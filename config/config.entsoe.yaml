@@ -1,0 +1,81 @@
+# SPDX-FileCopyrightText: : 2017-2024 The PyPSA-Eur Authors
+#
+# SPDX-License-Identifier: CC0-1.0
+
+run:
+  name: "test"
+  disable_progressbar: true
+
+# TODO set foresight
+foresight: myopic
+
+scenario:
+  ll:
+  - v1.0
+  clusters:
+  - 39
+  planning_horizons:
+  - 2030
+
+# TODO check countries
+countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'XK']
+
+snapshots:
+  # TODO define multiple climatic years
+  start: "2013-01-01"
+  end: "2014-01-01"
+
+co2_budget:
+  # TODO define carbon budget compliant with EU 2030 and 2050 targets
+  2020: 0.701
+  2025: 0.524
+  2030: 0.297
+  2035: 0.150
+  2040: 0.071
+  2045: 0.032
+  2050: 0.000
+
+transmission_projects:
+  # TODO set TYNDP projects
+  enable: true
+  include:
+    tyndp2020: true
+    nep: true
+    manual: true
+load:
+  source: opsd # opsd, entsoe
+
+pypsa_eur:
+  Bus:
+  - AC
+  Link:
+  - DC
+  Generator:
+  - onwind
+  - offwind-ac
+  - offwind-dc
+  - offwind-float
+  - solar-hsat
+  - solar
+  - ror
+  - nuclear  # TODO check, as new
+  StorageUnit:
+  - PHS
+  - hydro
+  Store: []
+
+sector:
+  transport: true
+  heating: false
+  biomass: false
+  industry: false
+  agriculture: false
+  fossil_fuels: true
+
+clustering:
+  temporal:
+    resolution_sector: 50SEG
+
+  solver:
+    name: highs
+    options: highs-default

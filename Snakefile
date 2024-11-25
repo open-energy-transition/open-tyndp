@@ -17,7 +17,7 @@ copy_default_files(workflow)
 
 
 configfile: "config/config.default.yaml"
-configfile: "config/config.yaml"
+configfile: "config/config.entsoe.yaml"
 
 
 run = config["run"]
