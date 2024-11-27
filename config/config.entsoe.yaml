@@ -75,7 +75,3 @@ sector:
 clustering:
   temporal:
     resolution_sector: 50SEG
-
-  solver:
-    name: highs
-    options: highs-default
