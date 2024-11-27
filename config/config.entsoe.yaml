@@ -13,7 +13,7 @@ scenario:
   ll:
   - v1.0
   clusters:
-  - 39
+  - 100
   planning_horizons:
   - 2030
 
