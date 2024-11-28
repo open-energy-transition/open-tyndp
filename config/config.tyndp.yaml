@@ -43,7 +43,7 @@ transmission_projects:
     nep: true
     manual: true
 load:
-  source: opsd # opsd, entsoe
+  source: tyndp # opsd, tyndp
 
 pypsa_eur:
   Bus:
@@ -58,7 +58,6 @@ pypsa_eur:
   - solar-hsat
   - solar
   - ror
-  - nuclear  # TODO check, as new
   StorageUnit:
   - PHS
   - hydro

@@ -1,4 +1,5 @@
 ,Unit,Values,Description
+source,--,"{"""opsd"",""tyndp""}","Data source used for the electric load (OSPD or TYNDP, default: OPSD)."
 interpolate_limit,hours,integer,"Maximum gap size (consecutive nans) which interpolated linearly."
 time_shift_for_large_gaps,string,string,"Periods which are used for copying time-slices in order to fill large gaps of nans. Have to be valid ``pandas`` period strings."
 manual_adjustments,bool,"{true, false}","Whether to adjust the load data manually according to the function in :func:`manual_adjustment`."

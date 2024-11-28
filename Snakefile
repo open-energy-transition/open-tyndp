@@ -17,7 +17,7 @@ copy_default_files(workflow)
 
 
 configfile: "config/config.default.yaml"
-configfile: "config/config.entsoe.yaml"
+configfile: "config/config.tyndp.yaml"
 configfile: "config/config.private.yaml"
 
 
