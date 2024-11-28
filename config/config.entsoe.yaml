@@ -72,6 +72,31 @@ sector:
   agriculture: false
   fossil_fuels: true
 
+  land_transport_fuel_cell_share:  # Not modelled
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  land_transport_electric_share:
+    2020: 0
+    2025: 0.15
+    2030: 0.3
+    2035: 0.45
+    2040: 0.7
+    2045: 0.85
+    2050: 1
+  land_transport_ice_share:  # Not modelled
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+
 clustering:
   temporal:
     resolution_sector: 50SEG
