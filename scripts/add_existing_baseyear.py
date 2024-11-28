@@ -446,7 +446,10 @@ def add_heating_capacities_installed_before_baseyear(
     """
     logger.debug(f"Adding heating capacities installed before {baseyear}")
 
-    for heat_system in existing_heating.columns.get_level_values(0).unique():
+    heat_systems = existing_heating.columns.get_level_values(0).unique() if False else []
+    # TODO Add condition for TYDNP elec load
+    # TODO Add existing HHP
+    for heat_system in heat_systems:
         heat_system = HeatSystem(heat_system)
 
         nodes = pd.Index(

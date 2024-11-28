@@ -2041,11 +2041,12 @@ def build_heat_demand(n):
     electric_heat_supply = pd.concat(electric_heat_supply, axis=1)
 
     # subtract from electricity load since heat demand already in heat_demand
-    electric_nodes = n.loads.index[n.loads.carrier == "electricity"]
-    n.loads_t.p_set[electric_nodes] = (
-        n.loads_t.p_set[electric_nodes]
-        - electric_heat_supply.T.groupby(level=1).sum().T[electric_nodes]
-    )
+    if False:  # TODO Add option when TYNDP electric load
+        electric_nodes = n.loads.index[n.loads.carrier == "electricity"]
+        n.loads_t.p_set[electric_nodes] = (
+            n.loads_t.p_set[electric_nodes]
+            - electric_heat_supply.T.groupby(level=1).sum().T[electric_nodes]
+        )
 
     return heat_demand
 
@@ -2090,11 +2091,8 @@ def add_heat(n: pypsa.Network, costs: pd.DataFrame, cop: xr.DataArray):
         # 1e3 converts from W/m^2 to MW/(1000m^2) = kW/m^2
         solar_thermal = options["solar_cf_correction"] * solar_thermal / 1e3
 
-    for (
-        heat_system
-    ) in (
-        HeatSystem
-    ):  # this loops through all heat systems defined in _entities.HeatSystem
+    heat_systems = HeatSystem if False else []  # TODO Add condition for TYDNP elec load
+    for heat_system in heat_systems:  # this loops through all heat systems defined in _entities.HeatSystem
         overdim_factor = options["overdimension_heat_generators"][
             heat_system.central_or_decentral
         ]
