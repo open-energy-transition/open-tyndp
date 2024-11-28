@@ -4699,6 +4699,8 @@ if __name__ == "__main__":
 
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(n, costs)
+    elif not options["electricity_distribution_grid"] and True:  # TODO Test for load data source
+        logger.warning("Distribution network should always be used when using TYNDP electrical load.")
 
     if options["enhanced_geothermal"].get("enable", False):
         logger.info("Adding Enhanced Geothermal Systems (EGS).")
