@@ -25,6 +25,9 @@ snapshots:
   start: "2013-01-01"
   end: "2014-01-01"
 
+enable:
+  retrieve_tyndp_bundle: true
+
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
   2020: 0.701
