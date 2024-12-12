@@ -28,7 +28,7 @@ from _helpers import configure_logging, progress_retrieve, set_scenario_config
 logger = logging.getLogger(__name__)
 
 # Define the base URL
-url = "https://zenodo.org/records/14230568/files/tyndp_2024_bundle.zip"
+url = "https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip"
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
