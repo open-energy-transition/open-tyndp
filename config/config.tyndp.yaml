@@ -21,7 +21,7 @@ scenario:
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'XK']
 
 snapshots:
-  # TODO define multiple climatic years
+  # TODO define multiple climatic years, being either 1995 2008 or 2009
   start: "2013-01-01"
   end: "2014-01-01"
 
@@ -47,6 +47,9 @@ transmission_projects:
     manual: true
 load:
   source: tyndp # opsd, tyndp
+  tyndp_scenario:
+    scenario: DE  # NT, DE or GA
+    year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
 
 pypsa_eur:
   Bus:

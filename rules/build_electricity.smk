@@ -17,6 +17,11 @@ rule build_electricity_demand:
             if config_provider("load", "supplement_synthetic")(w)
             else []
         ),
+        tyndp_electricity_demand= lambda w: (
+            ancient(resources("electricity_demand_raw_tyndp.csv"))
+            if (config_provider("load","source")(w) == "tyndp")
+            else[]
+        ),
     output:
         resources("electricity_demand.csv"),
     log:
@@ -829,3 +834,24 @@ if config["electricity"]["base_network"] == "osm-raw":
             "../envs/environment.yaml"
         script:
             "../scripts/build_osm_network.py"
+
+if config["load"]["source"] == "tyndp":
+    rule clean_tyndp_data:
+        params:
+            snapshots=config_provider("snapshots"),
+            scenario=config_provider("load", "tyndp_scenario"),
+        input:
+            tyndp="data/tyndp_2024_bundle",
+        output:
+            electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
+        log:
+            logs("clean_tyndp_data.log"),
+        benchmark:
+            benchmarks("clean_tyndp_data")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/clean_tyndp_data.py"

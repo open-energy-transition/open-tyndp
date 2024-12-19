@@ -343,6 +343,9 @@ load:
   distribution_key:
     gdp: 0.6
     population: 0.4
+  tyndp_scenario:
+    scenario: DE  # NT, DE or GA
+    year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
 
 # docs
 # TODO: PyPSA-Eur merge issue in prepare_sector_network.py
