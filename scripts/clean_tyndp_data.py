@@ -22,6 +22,8 @@ def load_elec_demand(scenario, pyear, cyear):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
+    cyear_fallback = None
+
     if scenario == "NT":
         if pyear == 2050:
             logger.warning(
@@ -32,9 +34,10 @@ def load_elec_demand(scenario, pyear, cyear):
 
         if int(cyear) < 1982 or int(cyear) > 2019:
             logger.warning("Snapshot year doesn't match available TYNDP data. Falling back to 2009.")
-            cyear = 2009
+            cyear_fallback = 2009
         data = pd.read_excel(demand_fn, skiprows=7, index_col=0,
-                             usecols=lambda name: name == "Date" or name == int(cyear),
+                             usecols=lambda name: name == "Date" or
+                                                  name == int(cyear_fallback if cyear_fallback else cyear),
                              sheet_name=None)
 
     elif scenario in ["DE", "GA"]:
@@ -43,9 +46,10 @@ def load_elec_demand(scenario, pyear, cyear):
 
         if int(cyear) not in [1995, 2008, 2009]:
             logger.warning("Snapshot year doesn't match available TYNDP data. Falling back to 2009.")
-            cyear = 2009
+            cyear_fallback = 2009
         data = pd.read_excel(demand_fn, skiprows=11, index_col=0,
-                             usecols=lambda name: name == "Date" or name == int(cyear),
+                             usecols=lambda name: name == "Date" or
+                                                  name == int(cyear_fallback if cyear_fallback else cyear),
                              sheet_name=None)
 
         # Fix inconsistencies in input data
@@ -56,6 +60,10 @@ def load_elec_demand(scenario, pyear, cyear):
                                          sheet_name="UK00")
 
     demand = pd.concat(data, axis=1).droplevel(1, axis=1)
+
+    # need to reindex load time series to target year
+    demand.index = demand.index.map(lambda t: t.replace(year=cyear))
+
     return demand
 
 

@@ -11,16 +11,15 @@ rule build_electricity_demand:
         load=config_provider("load"),
     input:
         tyndp="data/tyndp_2024_bundle",
-        reported=ancient("data/electricity_demand_raw.csv"),
+        reported=lambda w: (
+            ancient(resources("electricity_demand_raw_tyndp.csv"))
+            if (config_provider("load","source")(w) == "tyndp")
+            else ancient("data/electricity_demand_raw.csv")
+        ),
         synthetic=lambda w: (
             ancient("data/load_synthetic_raw.csv")
             if config_provider("load", "supplement_synthetic")(w)
             else []
-        ),
-        tyndp_electricity_demand= lambda w: (
-            ancient(resources("electricity_demand_raw_tyndp.csv"))
-            if (config_provider("load","source")(w) == "tyndp")
-            else[]
         ),
     output:
         resources("electricity_demand.csv"),
