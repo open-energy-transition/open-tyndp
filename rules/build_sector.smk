@@ -1075,6 +1075,27 @@ def input_heat_source_potentials(w):
         in config_provider("sector", "heat_pump_sources", "urban central")(w)
     }
 
+if config["sector"]["h2_network_tyndp"]["enable"]:
+    rule clean_tyndp_h2_reference_grid:
+        params:
+            snapshots=config_provider("snapshots"),
+            scenario=config_provider("sector", "h2_network_tyndp", "tyndp_scenario"),
+        input:
+            tyndp_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
+        output:
+            h2_grid_prepped=resources("h2_reference_grid_tyndp.csv"),
+            interzonal_prepped=resources("h2_interzonal_tyndp.csv"),
+        log:
+            logs("clean_tyndp_h2_reference_grid.log"),
+        benchmark:
+            benchmarks("clean_tyndp_h2_reference_grid")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/clean_tyndp_h2_reference_grid.py"
 
 rule prepare_sector_network:
     params:
