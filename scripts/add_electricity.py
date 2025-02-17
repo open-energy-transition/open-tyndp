@@ -1,72 +1,10 @@
-# -*- coding: utf-8 -*-
-# SPDX-FileCopyrightText: : 2017-2024 The PyPSA-Eur Authors
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
+
 """
 Adds existing electrical generators, hydro-electric plants as well as
 greenfield and battery and hydrogen storage to the clustered network.
-
-Relevant Settings
------------------
-
-.. code:: yaml
-
-    costs:
-        year: version: dicountrate: emission_prices:
-
-    electricity:
-        max_hours: marginal_cost: capital_cost: conventional_carriers: co2limit:
-        extendable_carriers: estimate_renewable_capacities:
-
-
-    load:
-        scaling_factor:
-
-    renewable:
-        hydro:
-            carriers: hydro_max_hours: hydro_capital_cost:
-
-    lines:
-        length_factor:
-
-    links:
-        length_factor:
-
-.. seealso::
-    Documentation of the configuration file ``config/config.yaml`` at :ref:`costs_cf`,
-    :ref:`electricity_cf`, :ref:`load_cf`, :ref:`renewable_cf`, :ref:`lines_cf`
-
-Inputs
-------
-
-- ``resources/costs.csv``: The database of cost assumptions for all included
-  technologies for specific years from various sources; e.g. discount rate,
-  lifetime, investment (CAPEX), fixed operation and maintenance (FOM), variable
-  operation and maintenance (VOM), fuel costs, efficiency, carbon-dioxide
-  intensity.
-- ``data/hydro_capacities.csv``: Hydropower plant store/discharge power
-  capacities, energy storage capacity, and average hourly inflow by country.
-
-    .. image:: img/hydrocapacities.png
-        :scale: 34 %
-
-- ``resources/electricity_demand_base_s.nc`` Hourly nodal electricity demand
-  profiles.
-- ``resources/regions_onshore_base_s_{clusters}.geojson``: confer
-  :ref:`busregions`
-- ``resources/nuts3_shapes.geojson``: confer :ref:`shapes`
-- ``resources/powerplants_s_{clusters}.csv``: confer :ref:`powerplants`
-- ``resources/profile_{clusters}_{}.nc``: all technologies in
-  ``config["renewables"].keys()``, confer :ref:`renewableprofiles`.
-- ``networks/base_s_{clusters}.nc``
-
-Outputs
--------
-
-- ``networks/base_s_{clusters}_elec.nc``:
-
-    .. image:: img/elec.png
-            :scale: 33 %
 
 Description
 -----------
@@ -111,8 +49,6 @@ network with **zero** initial capacity:
 """
 
 import logging
-from pathlib import Path
-from typing import Dict, List
 
 import numpy as np
 import pandas as pd
@@ -306,7 +242,6 @@ def load_and_aggregate_powerplants(
     aggregation_strategies: dict = None,
     exclude_carriers: list = None,
 ) -> pd.DataFrame:
-
     if not aggregation_strategies:
         aggregation_strategies = {}
 
@@ -408,7 +343,6 @@ def attach_load(
     busmap_fn: str,
     scaling: float = 1.0,
 ) -> None:
-
     load = (
         xr.open_dataarray(load_fn).to_dataframe().squeeze(axis=1).unstack(level="time")
     )
@@ -429,7 +363,6 @@ def set_transmission_costs(
     line_length_factor: float = 1.0,
     link_length_factor: float = 1.0,
 ) -> None:
-
     n.lines["capital_cost"] = (
         n.lines["length"]
         * line_length_factor
@@ -506,9 +439,7 @@ def attach_wind_and_solar(
                     + connection_cost
                 )
                 logger.info(
-                    "Added connection cost of {:0.0f}-{:0.0f} Eur/MW/a to {}".format(
-                        connection_cost.min(), connection_cost.max(), car
-                    )
+                    f"Added connection cost of {connection_cost.min():0.0f}-{connection_cost.max():0.0f} Eur/MW/a to {car}"
                 )
             else:
                 capital_cost = costs.at[car, "capital_cost"]
@@ -726,7 +657,7 @@ def attach_hydro(n, costs, ppl, profile_hydro, hydro_capacities, carriers, **par
         )
         if not missing_countries.empty:
             logger.warning(
-                f'Assuming max_hours=6 for hydro reservoirs in the countries: {", ".join(missing_countries)}'
+                f"Assuming max_hours=6 for hydro reservoirs in the countries: {', '.join(missing_countries)}"
             )
         hydro_max_hours = hydro.max_hours.where(
             (hydro.max_hours > 0) & ~hydro.index.isin(missing_mh_single_i),
@@ -758,7 +689,7 @@ def attach_hydro(n, costs, ppl, profile_hydro, hydro_capacities, carriers, **par
         )
 
 
-def attach_OPSD_renewables(n: pypsa.Network, tech_map: Dict[str, List[str]]) -> None:
+def attach_OPSD_renewables(n: pypsa.Network, tech_map: dict[str, list[str]]) -> None:
     """
     Attach renewable capacities from the OPSD dataset to the network.
 
@@ -849,7 +780,7 @@ def estimate_renewable_capacities(
         if expansion_limit:
             assert np.isscalar(expansion_limit)
             logger.info(
-                f"Reducing capacity expansion limit to {expansion_limit*100:.2f}% of installed capacity."
+                f"Reducing capacity expansion limit to {expansion_limit * 100:.2f}% of installed capacity."
             )
             n.generators.loc[tech_i, "p_nom_max"] = (
                 expansion_limit * n.generators.loc[tech_i, "p_nom_min"]

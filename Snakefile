@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: : 2017-2024 The PyPSA-Eur Authors
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
@@ -44,6 +44,7 @@ wildcard_constraints:
     ll=r"(v|c)([0-9\.]+|opt)",
     opts=r"[-+a-zA-Z0-9\.]*",
     sector_opts=r"[-+a-zA-Z0-9\.\s]*",
+    planning_horizons=r"[0-9]{4}",
 
 
 include: "rules/common.smk"
@@ -83,7 +84,7 @@ rule create_scenarios:
     output:
         config["run"]["scenarios"]["file"],
     conda:
-        "envs/retrieve.yaml"
+        "envs/environment.yaml"
     script:
         "config/create_scenarios.py"
 
