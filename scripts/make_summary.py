@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# SPDX-FileCopyrightText: : 2020-2024 The PyPSA-Eur Authors
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -209,18 +208,15 @@ def calculate_cumulative_cost():
     # integrate cost throughout the transition path
     for r in cumulative_cost.columns:
         for cluster in cumulative_cost.index.get_level_values(level=0).unique():
-            for ll in cumulative_cost.index.get_level_values(level=1).unique():
-                for sector_opts in cumulative_cost.index.get_level_values(
-                    level=2
-                ).unique():
-                    cumulative_cost.loc[
-                        (cluster, ll, sector_opts, "cumulative cost"), r
-                    ] = np.trapz(
+            for sector_opts in cumulative_cost.index.get_level_values(level=1).unique():
+                cumulative_cost.loc[(cluster, sector_opts, "cumulative cost"), r] = (
+                    np.trapz(
                         cumulative_cost.loc[
-                            idx[cluster, ll, sector_opts, planning_horizons], r
+                            idx[cluster, sector_opts, planning_horizons], r
                         ].values,
                         x=planning_horizons,
                     )
+                )
 
     return cumulative_cost
 
@@ -543,24 +539,22 @@ def calculate_weighted_prices(n, label, weighted_prices):
     carriers = n.buses.carrier.unique()
 
     for carrier in carriers:
-        load = (
-            n.statistics.withdrawal(
-                groupby=pypsa.statistics.groupers["bus", "carrier"],
-                aggregate_time=False,
-                nice_names=False,
-                bus_carrier=carrier,
-            )
-            .groupby(level="bus")
-            .sum()
-            .T.fillna(0)
+        load = n.statistics.withdrawal(
+            groupby=pypsa.statistics.groupers["bus", "carrier"],
+            aggregate_time=False,
+            nice_names=False,
+            bus_carrier=carrier,
         )
 
-        price = n.buses_t.marginal_price.loc[:, n.buses.carrier == carrier]
-        price = price.reindex(columns=load.columns, fill_value=1)
+        if not load.empty and load.sum().sum() > 0:
+            load = load.groupby(level="bus").sum().T.fillna(0)
 
-        weighted_prices.loc[carrier, label] = (
-            load * price
-        ).sum().sum() / load.sum().sum()
+            price = n.buses_t.marginal_price.loc[:, n.buses.carrier == carrier]
+            price = price.reindex(columns=load.columns, fill_value=1)
+
+            weighted_prices.loc[carrier, label] = (
+                load * price
+            ).sum().sum() / load.sum().sum()
 
     return weighted_prices
 
@@ -677,7 +671,7 @@ def make_summaries(networks_dict):
 
     columns = pd.MultiIndex.from_tuples(
         networks_dict.keys(),
-        names=["cluster", "ll", "opt", "planning_horizon"],
+        names=["cluster", "opt", "planning_horizon"],
     )
 
     df = {output: pd.DataFrame(columns=columns, dtype=float) for output in outputs}
@@ -711,13 +705,12 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     networks_dict = {
-        (cluster, ll, opt + sector_opt, planning_horizon): "results/"
+        (cluster, opt + sector_opt, planning_horizon): "results/"
         + snakemake.params.RDIR
-        + f"/postnetworks/base_s_{cluster}_l{ll}_{opt}_{sector_opt}_{planning_horizon}.nc"
+        + f"/networks/base_s_{cluster}_{opt}_{sector_opt}_{planning_horizon}.nc"
         for cluster in snakemake.params.scenario["clusters"]
         for opt in snakemake.params.scenario["opts"]
         for sector_opt in snakemake.params.scenario["sector_opts"]
-        for ll in snakemake.params.scenario["ll"]
         for planning_horizon in snakemake.params.scenario["planning_horizons"]
     }
 
