@@ -2039,11 +2039,12 @@ def build_heat_demand(n):
     electric_heat_supply = pd.concat(electric_heat_supply, axis=1)
 
     # subtract from electricity load since heat demand already in heat_demand
-    electric_nodes = n.loads.index[n.loads.carrier == "electricity"]
-    n.loads_t.p_set[electric_nodes] = (
-        n.loads_t.p_set[electric_nodes]
-        - electric_heat_supply.T.groupby(level=1).sum().T[electric_nodes]
-    )
+    if snakemake.params.load_source != "tyndp":
+        electric_nodes = n.loads.index[n.loads.carrier == "electricity"]
+        n.loads_t.p_set[electric_nodes] = (
+            n.loads_t.p_set[electric_nodes]
+            - electric_heat_supply.T.groupby(level=1).sum().T[electric_nodes]
+        )
 
     return heat_demand
 
@@ -2095,8 +2096,9 @@ def add_heat(
         # 1e3 converts from W/m^2 to MW/(1000m^2) = kW/m^2
         solar_thermal = options["solar_cf_correction"] * solar_thermal / 1e3
 
+    heat_systems = HeatSystem if snakemake.params.load_source != "tyndp" else []
     for heat_system in (
-        HeatSystem
+        heat_systems
     ):  # this loops through all heat systems defined in _entities.HeatSystem
         overdim_factor = options["overdimension_heat_generators"][
             heat_system.central_or_decentral
@@ -4807,6 +4809,8 @@ if __name__ == "__main__":
 
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(n, costs)
+    elif not options["electricity_distribution_grid"] and snakemake.params.load_source=="tyndp":
+        logger.warning("Distribution network should always be used when using TYNDP electric load.")
 
     if options["enhanced_geothermal"].get("enable", False):
         logger.info("Adding Enhanced Geothermal Systems (EGS).")

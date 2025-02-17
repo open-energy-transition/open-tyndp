@@ -1117,6 +1117,7 @@ rule prepare_sector_network:
         heat_pump_sources=config_provider("sector", "heat_pump_sources"),
         heat_systems=config_provider("sector", "heat_systems"),
         energy_totals_year=config_provider("energy", "energy_totals_year"),
+        load_source=config_provider("load", "source"),
         heat_utilisation_potentials=config_provider(
             "sector", "district_heating", "heat_utilisation_potentials"
         ),
