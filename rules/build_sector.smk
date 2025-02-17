@@ -1239,6 +1239,16 @@ rule prepare_sector_network:
         direct_heat_source_utilisation_profiles=resources(
             "direct_heat_source_utilisation_profiles_base_s_{clusters}_{planning_horizons}.nc"
         ),
+        h2_grid_prepped=lambda w: (
+        resources("h2_reference_grid_tyndp.csv")
+        if config_provider("sector","h2_network_tyndp","enable")(w)
+        else[]
+        ),
+        interzonal_prepped=lambda w: (
+        resources("h2_interzonal_tyndp.csv")
+        if config_provider("sector","h2_network_tyndp","enable")(w)
+        else[]
+        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"

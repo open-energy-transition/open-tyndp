@@ -403,6 +403,23 @@ def create_network_topology(
 
     return topo
 
+def create_tyndp_h2_topology(n, fn):
+    """
+    Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
+    This also adds new single country H2 buses (Z1 + Z2 nodes) with copper-plated pipeline connections to actual H2 buses
+    if a country has more than one clustered region.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+    fn : str pointing to the input tyndp h2 reference grid csv file
+
+    Returns
+    -------
+    pd.DataFrame with columns bus0, bus1, length, underwater_fraction
+    """
+    h2_pipes = pd.read_csv(fn, index_col=0)
+    return h2_pipes
 
 def update_wind_solar_costs(
     n: pypsa.Network,
@@ -1619,6 +1636,9 @@ def add_storage_and_grids(n, costs):
             n, "H2 pipeline ", carriers=["DC", "gas pipeline"]
         )
 
+        if options["h2_network_tyndp"]["enable"]:
+            h2_pipes = create_tyndp_h2_topology(n, snakemake.input.h2_network)
+
         # TODO Add efficiency losses
         n.add(
             "Link",
@@ -1626,7 +1646,8 @@ def add_storage_and_grids(n, costs):
             bus0=h2_pipes.bus0.values + " H2",
             bus1=h2_pipes.bus1.values + " H2",
             p_min_pu=-1,
-            p_nom_extendable=True,
+            p_nom_extendable=True if not options["h2_network_tyndp"]["enable"] else False,
+            p_nom=h2_pipes.p_nom if options["h2_network_tyndp"]["enable"] else 0,
             length=h2_pipes.length.values,
             capital_cost=costs.at["H2 (g) pipeline", "fixed"] * h2_pipes.length.values,
             carrier="H2 pipeline",
