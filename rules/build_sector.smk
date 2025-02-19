@@ -1091,7 +1091,7 @@ def input_heat_source_potentials(w):
         in config_provider("sector", "heat_pump_sources", "urban central")(w)
     }
 
-if config["sector"]["h2_network_tyndp"]["enable"]:
+if config["sector"]["h2_topology_tyndp"]["enable"]:
     rule clean_tyndp_h2_reference_grid:
         params:
             snapshots=config_provider("snapshots"),
@@ -1239,14 +1239,19 @@ rule prepare_sector_network:
         direct_heat_source_utilisation_profiles=resources(
             "direct_heat_source_utilisation_profiles_base_s_{clusters}_{planning_horizons}.nc"
         ),
-        h2_grid_prepped=lambda w: (
+        h2_grid_tyndp=lambda w: (
         resources("h2_reference_grid_tyndp.csv")
-        if config_provider("sector","h2_network_tyndp","enable")(w)
+        if config_provider("sector","h2_topology_tyndp","enable")(w)
         else[]
         ),
         interzonal_prepped=lambda w: (
         resources("h2_interzonal_tyndp.csv")
-        if config_provider("sector","h2_network_tyndp","enable")(w)
+        if config_provider("sector","h2_topology_tyndp","enable")(w)
+        else[]
+        ),
+        nuts3=lambda w: (
+        resources("nuts3_shapes.geojson")
+        if config_provider("sector","h2_topology_tyndp","enable")(w)
         else[]
         ),
     output:

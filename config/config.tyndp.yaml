@@ -103,7 +103,7 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  h2_network_tyndp:
+  h2_topology_tyndp:
     enable: true
     tyndp_scenario:
       scenario: DE  # NT, DE or GA

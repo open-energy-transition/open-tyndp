@@ -14,6 +14,7 @@ from types import SimpleNamespace
 import networkx as nx
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import pypsa
 import xarray as xr
 from _helpers import (
@@ -403,11 +404,9 @@ def create_network_topology(
 
     return topo
 
-def create_tyndp_h2_topology(n, fn):
+def create_tyndp_h2_network(n, fn_h2_network, nodes):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
-    This also adds new single country H2 buses (Z1 + Z2 nodes) with copper-plated pipeline connections to actual H2 buses
-    if a country has more than one clustered region.
 
     Parameters
     ----------
@@ -418,7 +417,24 @@ def create_tyndp_h2_topology(n, fn):
     -------
     pd.DataFrame with columns bus0, bus1, length, underwater_fraction
     """
-    h2_pipes = pd.read_csv(fn, index_col=0)
+
+    # add IBIT and IBFI nodes as proxy with same location as IT and FI nodes
+    ib_nodes = pd.Series({"IBIT": "IT", "IBFI": "FI"})
+    nodes = pd.concat([nodes, nodes.loc[ib_nodes.values, :].set_index(ib_nodes.index)])
+    n.add(
+        "Bus",
+        ib_nodes.index + " H2 Z2",
+        location=ib_nodes.values,
+        x=nodes.loc[ib_nodes.index,:].set_index(ib_nodes.index + " H2 Z2").x,
+        y=pd.Series(nodes.loc[["IT", "FI"],"y"].values, index= ["IBIT H2 Z2", "IBFI H2 Z2"]),
+        carrier="H2",
+        unit="MWh_LHV",
+    )
+    # load H2 pipes
+    h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
+    h2_pipes = h2_pipes.assign(bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2")
+    h2_pipes["length"] = h2_pipes.apply(haversine, axis=1)
+
     return h2_pipes
 
 def update_wind_solar_costs(
@@ -1385,6 +1401,144 @@ def add_electricity_grid_connection(n, costs):
         "electricity grid connection", "fixed"
     ]
 
+def add_tyndp_h2_topology(n, costs):
+    """
+    Add TYNDP H2 topology to the network.
+    This adds new single country H2 buses (Z1 + Z2 nodes) and pipeline connections
+    between the different countries as well as interzonal connections within a country.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+    costs : df pd.Dataframe with associated cost assumptions.
+
+    Returns
+    -------
+    pd.DataFrame with columns bus0, bus1, length, underwater_fraction
+    """
+    logger.info("Add TYNDP hydrogen topology.")
+
+    # create country level regions and representative locations
+    nuts3 = gpd.read_file(snakemake.input.nuts3)
+    countries = nuts3.dissolve(by="country")[["geometry"]].to_crs("EPSG:4326")
+    countries["representative_point"] = countries.to_crs('+proj=cea').representative_point().to_crs("EPSG:4326")
+    countries["x"] = countries["representative_point"].x
+    countries["y"] = countries["representative_point"].y
+
+    # create country buses for location
+    # TODO: check if this is indeed necessary
+    n.add(
+        "Bus",
+        countries.index,
+        x=countries.x,
+        y=countries.y,
+        location=countries.index,
+        carrier="H2",
+        unit="MWh_LHV",
+        country=countries.index,
+    )
+
+    # add H2 Z1 and Z2 buses
+    n.add(
+        "Bus",
+        countries.index + " H2 Z1",
+        location=countries.index,
+        carrier="H2",
+        unit="MWh_LHV",
+    )
+
+    n.add(
+        "Bus",
+        countries.index + " H2 Z2",
+        x=countries.set_index(countries.index + " H2 Z2").x,
+        y=countries.set_index(countries.index + " H2 Z2").y,
+        location=countries.index,
+        carrier="H2",
+        unit="MWh_LHV",
+    )
+
+    # add dummy electrolysers and fuel cells or turbines
+    nodes = n.buses.loc[pop_layout.index,:]
+    logger.info("Adding dummy electrolysers.")
+    n.add(
+        "Link",
+        nodes.index + " H2 Electrolysis",
+        bus1=nodes.country.values + " H2 Z2",
+        bus0=nodes.index,
+        p_nom_extendable=True,
+        carrier="H2 Electrolysis",
+        efficiency=costs.at["electrolysis", "efficiency"],
+        capital_cost=costs.at["electrolysis", "fixed"],
+        lifetime=costs.at["electrolysis", "lifetime"],
+    )
+    if options["hydrogen_fuel_cell"]:
+        logger.info("Adding dummy hydrogen fuel cell for re-electrification.")
+
+        n.add(
+            "Link",
+            nodes.index + " H2 Fuel Cell",
+            bus0=nodes.country.values + " H2 Z2",
+            bus1=nodes.index,
+            p_nom_extendable=True,
+            carrier="H2 Fuel Cell",
+            efficiency=costs.at["fuel cell", "efficiency"],
+            capital_cost=costs.at["fuel cell", "fixed"]
+            * costs.at["fuel cell", "efficiency"],  # NB: fixed cost is per MWel
+            lifetime=costs.at["fuel cell", "lifetime"],
+        )
+
+    if options["hydrogen_turbine"]:
+        logger.info(
+            "Adding dummy hydrogen turbine for re-electrification. Assuming OCGT technology costs."
+        )
+        # TODO: perhaps replace with hydrogen-specific technology assumptions.
+
+        n.add(
+            "Link",
+            nodes.index + " H2 Z2 turbine",
+            bus0=nodes.country.values + " H2 Z2",
+            bus1=nodes.index,
+            p_nom_extendable=True,
+            carrier="H2 turbine",
+            efficiency=costs.at["OCGT", "efficiency"],
+            capital_cost=costs.at["OCGT", "fixed"]
+            * costs.at["OCGT", "efficiency"],  # NB: fixed cost is per MWel
+            marginal_cost=costs.at["OCGT", "VOM"],
+            lifetime=costs.at["OCGT", "lifetime"],
+        )
+
+    logger.info("Add TYNDP hydrogen pipelines.")
+    h2_pipes = create_tyndp_h2_network(n, snakemake.input.h2_grid_tyndp, countries)
+
+    n.add(
+        "Link",
+        h2_pipes.index,
+        bus0=h2_pipes.bus0,
+        bus1=h2_pipes.bus1,
+        p_nom_extendable=False,
+        p_nom=h2_pipes.p_nom,
+        length=h2_pipes.length,
+        bidirectional=False,
+        capital_cost=costs.at["H2 (g) pipeline", "fixed"] * h2_pipes.length.values,
+        carrier="H2 pipeline",
+        lifetime=costs.at["H2 (g) pipeline", "lifetime"],
+    )
+
+    # add interzonal links
+    interzonal = pd.read_csv(snakemake.input.interzonal_prepped, index_col=0)
+    interzonal = interzonal.assign(bus0=interzonal.country0.str.split("H2").str.join(" H2 "), bus1=interzonal.country1.str.split("H2").str.join(" H2 "))
+    interzonal = interzonal.loc[interzonal.country0.str.startswith(tuple(nodes.country.values))]
+
+    n.add(
+        "Link",
+        interzonal.index,
+        bus0=interzonal.bus0,
+        bus1=interzonal.bus1,
+        p_nom_extendable=False,
+        p_nom=interzonal.p_nom,
+        carrier="H2 pipeline",
+        lifetime=costs.at["H2 (g) pipeline", "lifetime"],
+    )
 
 def add_storage_and_grids(n, costs):
     logger.info("Add hydrogen storage")
@@ -1636,9 +1790,6 @@ def add_storage_and_grids(n, costs):
             n, "H2 pipeline ", carriers=["DC", "gas pipeline"]
         )
 
-        if options["h2_network_tyndp"]["enable"]:
-            h2_pipes = create_tyndp_h2_topology(n, snakemake.input.h2_network)
-
         # TODO Add efficiency losses
         n.add(
             "Link",
@@ -1646,8 +1797,7 @@ def add_storage_and_grids(n, costs):
             bus0=h2_pipes.bus0.values + " H2",
             bus1=h2_pipes.bus1.values + " H2",
             p_min_pu=-1,
-            p_nom_extendable=True if not options["h2_network_tyndp"]["enable"] else False,
-            p_nom=h2_pipes.p_nom if options["h2_network_tyndp"]["enable"] else 0,
+            p_nom_extendable=True,
             length=h2_pipes.length.values,
             capital_cost=costs.at["H2 (g) pipeline", "fixed"] * h2_pipes.length.values,
             carrier="H2 pipeline",
@@ -4750,7 +4900,10 @@ if __name__ == "__main__":
 
     add_generation(n, costs, existing_capacities, existing_efficiencies)
 
-    add_storage_and_grids(n, costs)
+    if options["h2_topology_tyndp"]["enable"]:
+        add_tyndp_h2_topology(n, costs)
+    else:
+        add_storage_and_grids(n, costs)
 
     if options["transport"]:
         add_land_transport(n, costs)
@@ -4842,7 +4995,8 @@ if __name__ == "__main__":
         add_electricity_grid_connection(n, costs)
 
     for k, v in options["transmission_efficiency"].items():
-        lossy_bidirectional_links(n, k, v)
+        if not (k == "H2 pipeline" and options["h2_topology_tyndp"]["enable"]):
+            lossy_bidirectional_links(n, k, v)
 
     # Workaround: Remove lines with conflicting (and unrealistic) properties
     # cf. https://github.com/PyPSA/pypsa-eur/issues/444
