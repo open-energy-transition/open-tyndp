@@ -3,22 +3,20 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  name: "test"
+  name: "h2_network_tyndp"
   disable_progressbar: true
 
 # TODO set foresight
 foresight: myopic
 
 scenario:
-  ll:
-  - v1.0
   clusters:
   - 100
   planning_horizons:
   - 2030
 
 # TODO check countries
-countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'XK']
+countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
 snapshots:
   # TODO define multiple climatic years, being either 1995 2008 or 2009
@@ -26,7 +24,14 @@ snapshots:
   end: "2014-01-01"
 
 enable:
-  retrieve_tyndp_bundle: true
+  retrieve: true
+  retrieve_databundle: true
+  retrieve_tyndp_bundle: false
+  retrieve_cost_data: true
+  build_cutout: false
+  retrieve_cutout: false
+  custom_busmap: false
+  drop_leap_day: true
 
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
@@ -38,6 +43,10 @@ co2_budget:
   2045: 0.032
   2050: 0.000
 
+# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#electricity
+electricity:
+  transmission_limit: v1.0
+
 transmission_projects:
   # TODO set TYNDP projects
   enable: true
@@ -48,7 +57,7 @@ transmission_projects:
 load:
   source: tyndp # opsd, tyndp
   manual_adjustments: false
-  supplement_synthetic: false
+  supplement_synthetic: true
   tyndp_scenario:
     scenario: DE  # NT, DE or GA
     year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
