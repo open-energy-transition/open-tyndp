@@ -419,17 +419,18 @@ def create_tyndp_h2_network(n, fn_h2_network, nodes):
     """
 
     # add IBIT and IBFI nodes as proxy with same location as IT and FI nodes
-    ib_nodes = pd.Series({"IBIT": "IT", "IBFI": "FI"})
-    nodes = pd.concat([nodes, nodes.loc[ib_nodes.values, :].set_index(ib_nodes.index)])
+    ib_nodes = pd.Series({"IBIT H2": "IT H2", "IBFI H2": "FI H2"})
+    nodes = pd.concat([nodes, nodes.loc[ib_nodes.values, :].set_index(ib_nodes.index).replace({"IT H2": "IBIT H2", "FI H2": "IBFI H2"})])
     n.add(
         "Bus",
-        ib_nodes.index + " H2 Z2",
-        location=ib_nodes.values,
-        x=nodes.loc[ib_nodes.index,:].set_index(ib_nodes.index + " H2 Z2").x,
-        y=pd.Series(nodes.loc[["IT", "FI"],"y"].values, index= ["IBIT H2 Z2", "IBFI H2 Z2"]),
+        ib_nodes.index + " Z2",
+        location=ib_nodes.index + " Z2",
+        x=nodes.loc[ib_nodes.index,:].set_index(ib_nodes.index + " Z2").x,
+        y=nodes.loc[ib_nodes.index,:].set_index(ib_nodes.index + " Z2").y,
         carrier="H2",
         unit="MWh_LHV",
     )
+
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
     h2_pipes = h2_pipes.assign(bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2")
@@ -1418,51 +1419,49 @@ def add_tyndp_h2_topology(n, costs):
     """
     logger.info("Add TYNDP hydrogen topology.")
 
-    # create country level regions and representative locations
-    nuts3 = gpd.read_file(snakemake.input.nuts3)
-    countries = nuts3.dissolve(by="country")[["geometry"]].to_crs("EPSG:4326")
-    countries["representative_point"] = countries.to_crs('+proj=cea').representative_point().to_crs("EPSG:4326")
-    countries["x"] = countries["representative_point"].x
-    countries["y"] = countries["representative_point"].y
-
-    # create country buses for location
-    # TODO: check if this is indeed necessary
-    n.add(
-        "Bus",
-        countries.index,
-        x=countries.x,
-        y=countries.y,
-        location=countries.index,
-        carrier="H2",
-        unit="MWh_LHV",
-        country=countries.index,
-    )
+    # load tyndp h2 buses
+    buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
 
     # add H2 Z1 and Z2 buses
+    logger.info("Adding Z1 and Z2 H2 nodes.")
+
     n.add(
         "Bus",
-        countries.index + " H2 Z1",
-        location=countries.index,
+        buses_h2.index + " Z2",
+        x=buses_h2.set_index(buses_h2.index + " Z2").x,
+        y=buses_h2.set_index(buses_h2.index + " Z2").y,
+        location=buses_h2.index + " Z2",
         carrier="H2",
         unit="MWh_LHV",
     )
 
     n.add(
         "Bus",
-        countries.index + " H2 Z2",
-        x=countries.set_index(countries.index + " H2 Z2").x,
-        y=countries.set_index(countries.index + " H2 Z2").y,
-        location=countries.index,
+        buses_h2.index + " Z1",
+        location=buses_h2.index + " Z2",
         carrier="H2",
         unit="MWh_LHV",
     )
 
-    # add dummy electrolysers and fuel cells or turbines
-    nodes = n.buses.loc[pop_layout.index,:]
-    logger.info("Adding dummy electrolysers.")
+    # add dummy electrolyzers and fuel cells or turbines
+    nodes = n.buses.loc[pop_layout.index,:].query("country in @buses_h2.country")
+    logger.info("Adding Z1 and Z2 dummy electrolysers.")
+
     n.add(
         "Link",
-        nodes.index + " H2 Electrolysis",
+        nodes.index + " H2 Z1 Electrolysis",
+        bus1=nodes.country.values + " H2 Z1",
+        bus0=nodes.index,
+        p_nom_extendable=True,
+        carrier="H2 Electrolysis",
+        efficiency=costs.at["electrolysis", "efficiency"],
+        capital_cost=costs.at["electrolysis", "fixed"],
+        lifetime=costs.at["electrolysis", "lifetime"],
+    )
+
+    n.add(
+        "Link",
+        nodes.index + " H2 Z2 Electrolysis",
         bus1=nodes.country.values + " H2 Z2",
         bus0=nodes.index,
         p_nom_extendable=True,
@@ -1471,12 +1470,77 @@ def add_tyndp_h2_topology(n, costs):
         capital_cost=costs.at["electrolysis", "fixed"],
         lifetime=costs.at["electrolysis", "lifetime"],
     )
-    if options["hydrogen_fuel_cell"]:
-        logger.info("Adding dummy hydrogen fuel cell for re-electrification.")
 
+    if options["SMR_cc"]:
+        logger.info("Adding Z1 dummy SMR CC.")
         n.add(
             "Link",
-            nodes.index + " H2 Fuel Cell",
+            nodes.index + " H2 Z1 SMR CC",
+            bus0=spatial.gas.nodes,
+            bus1=nodes.country.values + " H2 Z1",
+            bus2="co2 atmosphere",
+            bus3=spatial.co2.nodes,
+            p_nom_extendable=True,
+            carrier="SMR CC",
+            efficiency=costs.at["SMR CC", "efficiency"],
+            efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
+            efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
+            capital_cost=costs.at["SMR CC", "fixed"],
+            lifetime=costs.at["SMR CC", "lifetime"],
+        )
+
+    if options["SMR"]:
+        logger.info("Adding Z1 dummy SMR.")
+        n.add(
+            "Link",
+            nodes.index + " H2 Z1 SMR",
+            bus0=spatial.gas.nodes,
+            bus1=nodes.country.values + " H2 Z1",
+            bus2="co2 atmosphere",
+            p_nom_extendable=True,
+            carrier="SMR",
+            efficiency=costs.at["SMR", "efficiency"],
+            efficiency2=costs.at["gas", "CO2 intensity"],
+            capital_cost=costs.at["SMR", "fixed"],
+            lifetime=costs.at["SMR", "lifetime"],
+        )
+
+    # TODO: add technology assumptions for Methanol ATR (ATRM) to technology data
+    # if options["ATR"]:
+    #     n.add(
+    #         "Link",
+    #         nodes.index + " H2 Z1 ATR",
+    #         bus0=spatial.methanol.nodes,
+    #         bus1=nodes.country.values + " H2 Z1",
+    #         bus2="co2 atmosphere",
+    #         p_nom_extendable=True,
+    #         carrier="ATR",
+    #         efficiency=costs.at["ATRM", "efficiency"],
+    #         efficiency2=costs.at["methanolisation", "carbondioxide-input"],
+    #         capital_cost=costs.at["ATRM", "fixed"],
+    #         lifetime=costs.at["ATRM", "lifetime"],
+    #     )
+
+
+    if options["hydrogen_fuel_cell"]:
+        logger.info(
+            "Adding Z1 and Z2 dummy hydrogen fuel cell for re-electrification."
+        )
+        n.add(
+            "Link",
+            nodes.index + " H2 Z1 Fuel Cell",
+            bus0=nodes.country.values + " H2 Z1",
+            bus1=nodes.index,
+            p_nom_extendable=True,
+            carrier="H2 Fuel Cell",
+            efficiency=costs.at["fuel cell", "efficiency"],
+            capital_cost=costs.at["fuel cell", "fixed"]
+            * costs.at["fuel cell", "efficiency"],  # NB: fixed cost is per MWel
+            lifetime=costs.at["fuel cell", "lifetime"],
+        )
+        n.add(
+            "Link",
+            nodes.index + " H2 Z2 Fuel Cell",
             bus0=nodes.country.values + " H2 Z2",
             bus1=nodes.index,
             p_nom_extendable=True,
@@ -1489,10 +1553,21 @@ def add_tyndp_h2_topology(n, costs):
 
     if options["hydrogen_turbine"]:
         logger.info(
-            "Adding dummy hydrogen turbine for re-electrification. Assuming OCGT technology costs."
+            "Adding Z1 and Z2 dummy hydrogen turbine for re-electrification. Assuming OCGT technology costs."
         )
-        # TODO: perhaps replace with hydrogen-specific technology assumptions.
-
+        n.add(
+            "Link",
+            nodes.index + " H2 Z1 turbine",
+            bus0=nodes.country.values + " H2 Z1",
+            bus1=nodes.index,
+            p_nom_extendable=True,
+            carrier="H2 turbine",
+            efficiency=costs.at["OCGT", "efficiency"],
+            capital_cost=costs.at["OCGT", "fixed"]
+            * costs.at["OCGT", "efficiency"],  # NB: fixed cost is per MWel
+            marginal_cost=costs.at["OCGT", "VOM"],
+            lifetime=costs.at["OCGT", "lifetime"],
+        )
         n.add(
             "Link",
             nodes.index + " H2 Z2 turbine",
@@ -1508,7 +1583,7 @@ def add_tyndp_h2_topology(n, costs):
         )
 
     logger.info("Add TYNDP hydrogen pipelines.")
-    h2_pipes = create_tyndp_h2_network(n, snakemake.input.h2_grid_tyndp, countries)
+    h2_pipes = create_tyndp_h2_network(n, snakemake.input.h2_grid_tyndp, buses_h2)
 
     n.add(
         "Link",
@@ -4256,7 +4331,7 @@ def add_waste_heat(n):
         # TODO integrate usable waste heat efficiency into technology-data from DEA
         if (
             options["use_electrolysis_waste_heat"]
-            and "H2 Electrolysis" in link_carriers
+            and "H2 Electrolysis" in link_carriers and not options["h2_topology_tyndp"]["enable"]
         ):
             n.links.loc[urban_central + " H2 Electrolysis", "bus2"] = (
                 urban_central + " urban central heat"
@@ -4265,7 +4340,10 @@ def add_waste_heat(n):
                 0.84 - n.links.loc[urban_central + " H2 Electrolysis", "efficiency"]
             ) * options["use_electrolysis_waste_heat"]
 
-        if options["use_fuel_cell_waste_heat"] and "H2 Fuel Cell" in link_carriers:
+        if (
+            options["use_fuel_cell_waste_heat"]
+            and "H2 Fuel Cell" in link_carriers and not options["h2_topology_tyndp"]["enable"]
+        ):
             n.links.loc[urban_central + " H2 Fuel Cell", "bus2"] = (
                 urban_central + " urban central heat"
             )

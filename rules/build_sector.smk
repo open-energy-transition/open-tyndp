@@ -1249,8 +1249,8 @@ rule prepare_sector_network:
         if config_provider("sector","h2_topology_tyndp","enable")(w)
         else[]
         ),
-        nuts3=lambda w: (
-        resources("nuts3_shapes.geojson")
+        buses_h2=lambda w: (
+        resources("buses_h2.geojson")
         if config_provider("sector","h2_topology_tyndp","enable")(w)
         else[]
         ),
