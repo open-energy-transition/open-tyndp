@@ -85,6 +85,6 @@ reset:
 		echo "Reset completed." \
 	) || echo "Reset cancelled."
 
-dev:
-	snakemake resources/dev/osm-prebuilt/networks/base.nc
-	snakemake resources/dev/tyndp-raw/networks/base.nc
+tyndp:
+	snakemake resources/dev/tyndp-raw/maps/power-network.pdf
+	snakemake resources/dev/osm-prebuilt/maps/power-network.pdf
