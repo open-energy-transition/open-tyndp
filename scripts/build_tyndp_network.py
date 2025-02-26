@@ -276,6 +276,18 @@ def build_buses(
     return buses, buses_h2
 
 
+def format_grid_names(s: str):
+    s = (s
+         # Poland organizes its lines in three sections,
+         # PL00 for demand/generation, -E for exporting lines and -I for importing lines
+         .replace("PL00E", "PL00")
+         .replace("PL00I", "PL00")
+         # ITCO is a virtual node used to model the energy exchanges between Italy and Corsica
+         .replace("ITCO", "ITCN")
+         )
+    return s
+
+
 def build_links(
         grid_fn,
         buses: gpd.GeoDataFrame,
@@ -297,6 +309,7 @@ def build_links(
 
     """
     links = pd.read_excel(grid_fn)
+    links["Border"] = links["Border"].apply(format_grid_names)
     links[["bus0", "bus1"]] = links.Border.str.split("-", expand=True)
 
     # Create forward and reverse direction dataframes
@@ -337,9 +350,14 @@ def build_links(
             under_construction="f",
             tags=lambda df: df["bus0"] + " > " + df["bus1"],
         )
-        .set_index("link_id")
+        .groupby(by="link_id")
+        .agg({
+            **{col: 'first' for col in LINKS_COLUMNS if col != "p_nom"},
+            "p_nom": "sum",
+        })
         [LINKS_COLUMNS]
     )
+    links = gpd.GeoDataFrame(links, geometry="geometry", crs=geo_crs)
 
     return links
 
