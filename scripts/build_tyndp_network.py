@@ -205,10 +205,11 @@ def build_shapes(
         )
     )
 
-    # Correct DK, IT and GR coordinates
+    # Correct DK, IT, GR and SE coordinates
     country_shapes.loc["DK", ["node", "x", "y"]] = bidding_shapes.loc["DKE1", ["node", "x", "y"]]
     country_shapes.loc["IT", ["node", "x", "y"]] = bidding_shapes.loc["ITCA", ["node", "x", "y"]]
     country_shapes.loc["GR", ["node", "x", "y"]] = bidding_shapes.loc["GR00", ["node", "x", "y"]]
+    country_shapes.loc["SE", ["node", "x", "y"]] = bidding_shapes.loc["SE01", ["node", "x", "y"]]
 
     return bidding_shapes, country_shapes
 
@@ -283,7 +284,7 @@ def build_buses(
         .assign(station_id="IBIT H2", voltage=None, dc="f", tags="IBIT H2")
         .loc["ITN1"]
     )
-    ibfi_lat, ibfi_long = 67.0, 26.0
+    ibfi_lat, ibfi_long = 63.0, 25.0
     buses_h2.loc["IBFI H2"] = (
         buses_h2.loc[["FI H2"]]
         .assign(station_id="IBFI H2", tags="IBFI H2", x=ibfi_long, y=ibfi_lat, geometry=Point(ibfi_long, ibfi_lat))
