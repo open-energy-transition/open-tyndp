@@ -86,5 +86,5 @@ reset:
 	) || echo "Reset cancelled."
 
 tyndp:
-	snakemake resources/dev/tyndp-raw/maps/power-network.pdf
-	snakemake resources/dev/osm-prebuilt/maps/power-network.pdf
+	snakemake resources/dev/tyndp-raw/maps/power-network.pdf --rerun-incomplete
+	snakemake resources/dev/osm-prebuilt/maps/power-network.pdf --rerun-incomplete
