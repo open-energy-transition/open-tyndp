@@ -6,7 +6,7 @@ import logging
 
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 from _helpers import configure_logging, set_scenario_config
 
@@ -182,7 +182,6 @@ def build_shapes(
         bidding_zones.loc[nos0_idx].dissolve(by="country").reset_index().assign(id="NOS0")
     ])
 
-
     # Bidding zone shapes
     bidding_shapes = (
         bidding_zones
@@ -205,6 +204,11 @@ def build_shapes(
             y=lambda df: df["node"].y
         )
     )
+
+    # Correct DK, IT and GR coordinates
+    country_shapes.loc["DK", ["node", "x", "y"]] = bidding_shapes.loc["DKE1", ["node", "x", "y"]]
+    country_shapes.loc["IT", ["node", "x", "y"]] = bidding_shapes.loc["ITCA", ["node", "x", "y"]]
+    country_shapes.loc["GR", ["node", "x", "y"]] = bidding_shapes.loc["GR00", ["node", "x", "y"]]
 
     return bidding_shapes, country_shapes
 
@@ -272,6 +276,19 @@ def build_buses(
         [BUSES_COLUMNS]
     )
     buses_h2 = gpd.GeoDataFrame(buses_h2, geometry="geometry", crs=geo_crs)
+
+    # Manually add IBIT and IBFI nodes  # TODO Refine assumptions
+    buses_h2.loc["IBIT H2"] = (
+        buses.loc[["ITN1"]]
+        .assign(station_id="IBIT H2", voltage=None, dc="f", tags="IBIT H2")
+        .loc["ITN1"]
+    )
+    ibfi_lat, ibfi_long = 67.0, 26.0
+    buses_h2.loc["IBFI H2"] = (
+        buses_h2.loc[["FI H2"]]
+        .assign(station_id="IBFI H2", tags="IBFI H2", x=ibfi_long, y=ibfi_lat, geometry=Point(ibfi_long, ibfi_lat))
+        .loc["FI H2"]
+    )
 
     return buses, buses_h2
 
