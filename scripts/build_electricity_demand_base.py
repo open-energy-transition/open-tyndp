@@ -58,6 +58,8 @@ def upsample_load(
     data_arrays = []
 
     for cntry, group in gdf_regions.geometry.groupby(gdf_regions.country):
+        if cntry not in load.columns:
+            continue
         load_ct = load[cntry]
 
         if len(group) == 1:
