@@ -1409,7 +1409,9 @@ def add_tyndp_h2_topology(n, costs):
     # load tyndp h2 buses
     buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
 
+    ########################
     # add H2 Z1 and Z2 buses
+    ########################
     logger.info("Adding Z1 and Z2 H2 nodes.")
 
     n.add(
@@ -1430,15 +1432,17 @@ def add_tyndp_h2_topology(n, costs):
         unit="MWh_LHV",
     )
 
-    # add dummy electrolyzers and fuel cells or turbines
+    ########################
+    # add electrolyzers for Z1 and Z2
+    ########################
     nodes = n.buses.loc[pop_layout.index,:].query("country in @buses_h2.country")
     logger.info("Adding Z1 and Z2 dummy electrolysers.")
 
     n.add(
         "Link",
         nodes.index + " H2 Z1 Electrolysis",
-        bus1=nodes.country.values + " H2 Z1",
         bus0=nodes.index,
+        bus1=nodes.country.values + " H2 Z1",
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -1449,8 +1453,8 @@ def add_tyndp_h2_topology(n, costs):
     n.add(
         "Link",
         nodes.index + " H2 Z2 Electrolysis",
-        bus1=nodes.country.values + " H2 Z2",
         bus0=nodes.index,
+        bus1=nodes.country.values + " H2 Z2",
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -1458,6 +1462,37 @@ def add_tyndp_h2_topology(n, costs):
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
+    ########################
+    # add Z2 DRES electricity bus and electrolyzer
+    ########################
+    buses_h2_country = buses_h2.query("not station_id.str.contains('IB')")
+    n.add(
+        "Bus",
+        buses_h2_country.index + " Z2 DRES",
+        location=buses_h2_country.index + " Z2",
+        country=buses_h2_country.country.values,
+        v_nom=380.0,
+        carrier="AC",
+        unit="MWh_el",
+        substation_off=1.0,
+        substation_lv=1.0,
+    )
+
+    n.add(
+        "Link",
+        buses_h2_country.index + " Z2 DRES Electrolysis",
+        bus0=buses_h2_country.index + " Z2 DRES",
+        bus1=buses_h2_country.index + " Z2",
+        p_nom_extendable=True,
+        carrier="H2 Electrolysis",
+        efficiency=costs.at["electrolysis", "efficiency"],
+        capital_cost=costs.at["electrolysis", "fixed"],
+        lifetime=costs.at["electrolysis", "lifetime"],
+    )
+
+    ########################
+    # optionally add SMR and ATR
+    ########################
     if options["SMR_cc"]:
         logger.info("Adding Z1 dummy SMR CC.")
         n.add(
@@ -1508,7 +1543,9 @@ def add_tyndp_h2_topology(n, costs):
             lifetime=costs.at["SMR", "lifetime"],  # assume same as SMR lifetime for now
         )
 
-
+    ########################
+    # optionally add dummies for hydrogen fuel cells and/or H2 turbines for re-electrification
+    ########################
     if options["hydrogen_fuel_cell"]:
         logger.info(
             "Adding Z1 and Z2 dummy hydrogen fuel cell for re-electrification."
@@ -1569,6 +1606,9 @@ def add_tyndp_h2_topology(n, costs):
             lifetime=costs.at["OCGT", "lifetime"],
         )
 
+    ########################
+    # add TYNDP hydrogen pipelines
+    ########################
     logger.info("Add TYNDP hydrogen pipelines.")
     h2_pipes = create_tyndp_h2_network(n, snakemake.input.h2_grid_tyndp, buses_h2)
 
@@ -1586,7 +1626,9 @@ def add_tyndp_h2_topology(n, costs):
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
 
+    ########################
     # add interzonal links
+    ########################
     interzonal = pd.read_csv(snakemake.input.interzonal_prepped, index_col=0)
     interzonal = interzonal.assign(bus0=interzonal.country0.str.split("H2").str.join(" H2 "), bus1=interzonal.country1.str.split("H2").str.join(" H2 "))
     interzonal = interzonal.loc[interzonal.country0.str.startswith(tuple(nodes.country.values))]
