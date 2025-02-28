@@ -365,8 +365,33 @@ def build_links(
         links
         .merge(buses["geometry"], how="left", left_on="bus0", right_index=True)
         .merge(buses["geometry"], how="left", left_on="bus1", right_index=True, suffixes=("0", "1"))
-        .dropna()  # TODO Remove this when all nodes are known
     )
+
+    unknown_buses = (
+        set(links["bus0"][links[["bus0", "geometry0"]].isna().any(axis=1)]).union(
+        set(links["bus1"][links[["bus1", "geometry1"]].isna().any(axis=1)]))
+    )
+    known_exceptions = {
+        "DEKF",  # Connexion from DE to the Kriegers Flak offshore wind farm
+        "DKKF",  # Connexion from DK to the Kriegers Flak offshore wind farm
+        "DZ00",  # Algeria
+        "EG00",  # Egypt
+        "IS00",  # Iceland
+        "IL00",  # Israel
+        "LY00",  # Libya
+        "MA00",  # Morocco
+        "MD00",  # Moldova
+        "PS00",  # Palestine
+        "TN00",  # Tunisia
+        "TR00",  # Turkey
+        "UA00",  # Ukraine
+        "UA01",  # Ukraine
+    }
+    if unknown_buses - known_exceptions:
+        logger.warning(f"Dropping links connected to unknown buses: "
+                       f"{', '.join(sorted(unknown_buses - known_exceptions))}")
+    links = links.dropna()  # TODO Remove this when all nodes are known
+
     links["geometry"] = gpd.GeoSeries([LineString([p0, p1]) for p0, p1 in zip(links["geometry0"], links["geometry1"])])
     links = gpd.GeoDataFrame(links, geometry="geometry", crs=geo_crs)
 
