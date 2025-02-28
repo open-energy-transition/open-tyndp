@@ -17,7 +17,7 @@ copy_default_files(workflow)
 
 
 configfile: "config/config.default.yaml"
-configfile: "config/config.yaml"
+configfile: "config/config.tyndp.yaml"
 
 
 run = config["run"]
@@ -116,6 +116,23 @@ rule dag:
     shell:
         r"""
         snakemake --rulegraph all | sed -n "/digraph/,\$p" > {output.dot}
+        dot -Tpdf -o {output.pdf} {output.dot}
+        dot -Tpng -o {output.png} {output.dot}
+        """
+
+
+rule filegraph:
+    message:
+        "Creating FILEGRAPH of workflow."
+    output:
+        dot=resources("filegraph.dot"),
+        pdf=resources("filegraph.pdf"),
+        png=resources("filegraph.png"),
+    conda:
+        "envs/environment.yaml"
+    shell:
+        r"""
+        snakemake --filegraph all | sed -n "/digraph/,\$p" > {output.dot}
         dot -Tpdf -o {output.pdf} {output.dot}
         dot -Tpng -o {output.png} {output.dot}
         """

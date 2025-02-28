@@ -84,3 +84,7 @@ reset:
 		rm ./config/config.yaml || true; \
 		echo "Reset completed." \
 	) || echo "Reset cancelled."
+
+tyndp:
+	snakemake resources/dev/tyndp-raw/maps/power-network.pdf resources/dev/tyndp-raw/maps/power-network-s-55.pdf resources/dev/tyndp-raw/dag.pdf resources/dev/tyndp-raw/filegraph.pdf --rerun-incomplete $(args)
+	snakemake resources/dev/osm-prebuilt/maps/power-network.pdf resources/dev/osm-prebuilt/maps/power-network-s-55.pdf resources/dev/osm-prebuilt/dag.pdf resources/dev/osm-prebuilt/filegraph.pdf --rerun-incomplete $(args)
