@@ -1092,7 +1092,7 @@ def input_heat_source_potentials(w):
     }
 
 if config["sector"]["h2_topology_tyndp"]["enable"]:
-    rule clean_tyndp_h2_reference_grid:
+    rule build_tyndp_h2_network:
         params:
             snapshots=config_provider("snapshots"),
             scenario=config_provider("sector", "h2_network_tyndp", "tyndp_scenario"),
@@ -1102,16 +1102,16 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
             h2_grid_prepped=resources("h2_reference_grid_tyndp.csv"),
             interzonal_prepped=resources("h2_interzonal_tyndp.csv"),
         log:
-            logs("clean_tyndp_h2_reference_grid.log"),
+            logs("build_tyndp_h2_network.log"),
         benchmark:
-            benchmarks("clean_tyndp_h2_reference_grid")
+            benchmarks("build_tyndp_h2_network")
         threads: 1
         resources:
             mem_mb=4000,
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/clean_tyndp_h2_reference_grid.py"
+            "../scripts/build_tyndp_h2_network.py"
 
 rule prepare_sector_network:
     params:

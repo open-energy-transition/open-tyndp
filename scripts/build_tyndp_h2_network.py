@@ -9,10 +9,7 @@ Depending on the scenario, different planning years (`pyear`) are available. DE 
 """
 
 import logging
-
 import pandas as pd
-from pathlib import Path
-
 from _helpers import configure_logging, set_scenario_config, get_snapshots
 
 logger = logging.getLogger(__name__)
