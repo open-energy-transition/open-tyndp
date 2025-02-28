@@ -17,3 +17,10 @@ countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'E
 
 electricity:
   base_network: tyndp-raw
+
+transmission_projects:
+  enable: true
+  include:
+    tyndp2020: false
+    nep: false
+    manual: false
