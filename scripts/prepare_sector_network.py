@@ -1492,21 +1492,21 @@ def add_tyndp_h2_topology(n, costs):
             lifetime=costs.at["SMR", "lifetime"],
         )
 
-    # TODO: add technology assumptions for Methanol ATR (ATRM) to technology data
-    # if options["ATR"]:
-    #     n.add(
-    #         "Link",
-    #         nodes.index + " H2 Z1 ATR",
-    #         bus0=spatial.methanol.nodes,
-    #         bus1=nodes.country.values + " H2 Z1",
-    #         bus2="co2 atmosphere",
-    #         p_nom_extendable=True,
-    #         carrier="ATR",
-    #         efficiency=costs.at["ATRM", "efficiency"],
-    #         efficiency2=costs.at["methanolisation", "carbondioxide-input"],
-    #         capital_cost=costs.at["ATRM", "fixed"],
-    #         lifetime=costs.at["ATRM", "lifetime"],
-    #     )
+    # TODO: add good technology assumptions for Methanol ATR (ATRM) to technology data
+    if options["ATR"]:
+        n.add(
+            "Link",
+            nodes.index + " H2 Z1 ATR",
+            bus0=spatial.methanol.nodes,
+            bus1=nodes.country.values + " H2 Z1",
+            bus2="co2 atmosphere",
+            p_nom_extendable=True,
+            carrier="ATR",
+            efficiency=0.842,  # Hos et al (2024), p.1129 https://www.sciencedirect.com/science/article/pii/S0360319923045123#bib37
+            efficiency2=costs.at["methanolisation", "carbondioxide-input"],
+            capital_cost=1047353.20,  # based on Figure 3 https://www.icf.com/insights/energy/comparing-costs-of-industrial-hydrogen-technologies#:~:text=The%20SMR%20and%20ATR%20based%20hydrogen%20plant%20production%20costs%20are,this%20case%2C%20resulting%20in%20a
+            lifetime=costs.at["SMR", "lifetime"],  # assume same as SMR lifetime for now
+        )
 
 
     if options["hydrogen_fuel_cell"]:
