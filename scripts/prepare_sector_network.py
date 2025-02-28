@@ -418,19 +418,6 @@ def create_tyndp_h2_network(n, fn_h2_network, nodes):
     pd.DataFrame with columns bus0, bus1, length, underwater_fraction
     """
 
-    # add IBIT and IBFI nodes as proxy with same location as IT and FI nodes
-    ib_nodes = pd.Series({"IBIT H2": "IT H2", "IBFI H2": "FI H2"})
-    nodes = pd.concat([nodes, nodes.loc[ib_nodes.values, :].set_index(ib_nodes.index).replace({"IT H2": "IBIT H2", "FI H2": "IBFI H2"})])
-    n.add(
-        "Bus",
-        ib_nodes.index + " Z2",
-        location=ib_nodes.index + " Z2",
-        x=nodes.loc[ib_nodes.index,:].set_index(ib_nodes.index + " Z2").x,
-        y=nodes.loc[ib_nodes.index,:].set_index(ib_nodes.index + " Z2").y,
-        carrier="H2",
-        unit="MWh_LHV",
-    )
-
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
     h2_pipes = h2_pipes.assign(bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2")
