@@ -629,6 +629,7 @@ sector:
   hydrogen_turbine: false
   SMR: true
   SMR_cc: true
+  ATR: false
   regional_oil_demand: false
   regional_coal_demand: false
   regional_co2_sequestration_potential:

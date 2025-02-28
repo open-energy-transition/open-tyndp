@@ -1091,6 +1091,27 @@ def input_heat_source_potentials(w):
         in config_provider("sector", "heat_pump_sources", "urban central")(w)
     }
 
+if config["sector"]["h2_topology_tyndp"]["enable"]:
+    rule build_tyndp_h2_network:
+        params:
+            snapshots=config_provider("snapshots"),
+            scenario=config_provider("sector", "h2_network_tyndp", "tyndp_scenario"),
+        input:
+            tyndp_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
+        output:
+            h2_grid_prepped=resources("h2_reference_grid_tyndp.csv"),
+            interzonal_prepped=resources("h2_interzonal_tyndp.csv"),
+        log:
+            logs("build_tyndp_h2_network.log"),
+        benchmark:
+            benchmarks("build_tyndp_h2_network")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/build_tyndp_h2_network.py"
 
 rule prepare_sector_network:
     params:
@@ -1217,6 +1238,21 @@ rule prepare_sector_network:
         ),
         direct_heat_source_utilisation_profiles=resources(
             "direct_heat_source_utilisation_profiles_base_s_{clusters}_{planning_horizons}.nc"
+        ),
+        h2_grid_tyndp=lambda w: (
+        resources("h2_reference_grid_tyndp.csv")
+        if config_provider("sector","h2_topology_tyndp","enable")(w)
+        else[]
+        ),
+        interzonal_prepped=lambda w: (
+        resources("h2_interzonal_tyndp.csv")
+        if config_provider("sector","h2_topology_tyndp","enable")(w)
+        else[]
+        ),
+        buses_h2=lambda w: (
+        resources("buses_h2.geojson")
+        if config_provider("sector","h2_topology_tyndp","enable")(w)
+        else[]
         ),
     output:
         resources(
