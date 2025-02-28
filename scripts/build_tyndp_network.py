@@ -261,17 +261,15 @@ def build_buses(
     buses.loc["LUV1"] = buses.loc["LUV1"].fillna(buses.loc["LUG1"])
 
     # Manually add Italian virtual nodes  # TODO Refine assumptions
-    itco_lat, itco_long = 42.4, 10.3
     buses.loc["ITCO"] = (
-        buses.loc[["ITCS"]]
-        .assign(station_id="ITCO", tags="ITCO", x=itco_long, y=itco_lat, geometry=Point(itco_long, itco_lat))
-        .loc["ITCS"]
+        buses.loc[["FR15"]]
+        .assign(station_id="ITCO", country="IT", tags="ITCO")
+        .loc["FR15"]
     )
-    itvi_lat, itvi_long = 39.3, 12.4
     buses.loc["ITVI"] = (
-        buses.loc[["ITSA"]]
-        .assign(station_id="ITVI", tags="ITVI", x=itvi_long, y=itvi_lat, geometry=Point(itvi_long, itvi_lat))
-        .loc["ITSA"]
+        buses.loc[["ITSI"]]
+        .assign(station_id="ITVI", tags="ITVI")
+        .loc["ITSI"]
     )
 
     buses_h2 = (
