@@ -605,6 +605,7 @@ rule cluster_network:
         ),
         max_hours=config_provider("electricity", "max_hours"),
         length_factor=config_provider("lines", "length_factor"),
+        base=config_provider("electricity", "base_network"),
     input:
         unpack(input_cluster_network),
         network=resources("networks/base_s.nc"),
