@@ -260,6 +260,20 @@ def build_buses(
     buses.loc["LUF1"] = buses.loc["LUF1"].fillna(buses.loc["LUG1"])
     buses.loc["LUV1"] = buses.loc["LUV1"].fillna(buses.loc["LUG1"])
 
+    # Manually add Italian virtual nodes  # TODO Refine assumptions
+    itco_lat, itco_long = 42.4, 10.3
+    buses.loc["ITCO"] = (
+        buses.loc[["ITCS"]]
+        .assign(station_id="ITCO", tags="ITCO", x=itco_long, y=itco_lat, geometry=Point(itco_long, itco_lat))
+        .loc["ITCS"]
+    )
+    itvi_lat, itvi_long = 39.3, 12.4
+    buses.loc["ITVI"] = (
+        buses.loc[["ITSA"]]
+        .assign(station_id="ITVI", tags="ITVI", x=itvi_long, y=itvi_lat, geometry=Point(itvi_long, itvi_lat))
+        .loc["ITSA"]
+    )
+
     buses_h2 = (
         country_shapes[["node", "x", "y"]]
         .reset_index()
@@ -300,8 +314,6 @@ def format_grid_names(s: str):
          # PL00 for demand/generation, -E for exporting lines and -I for importing lines
          .replace("PL00E", "PL00")
          .replace("PL00I", "PL00")
-         # ITCO is a virtual node used to model the energy exchanges between Italy and Corsica
-         .replace("ITCO", "ITCN")
          )
     return s
 
