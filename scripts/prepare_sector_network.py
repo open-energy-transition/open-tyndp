@@ -1645,6 +1645,71 @@ def add_tyndp_h2_topology(n, costs):
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
 
+    ########################
+    # add dummy Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions
+    ########################
+
+    # add underground hydrogen cavern storage to all H2 Z2 nodes
+    cavern_types = snakemake.params.sector["hydrogen_underground_storage_locations"]
+    h2_caverns = pd.read_csv(snakemake.input.h2_cavern, index_col=0)
+    if (
+        not h2_caverns.empty
+        and options["hydrogen_underground_storage"]
+        and set(cavern_types).intersection(h2_caverns.columns)
+    ):
+        h2_caverns = h2_caverns[cavern_types].sum(axis=1)
+
+        # only use sites with at least 2 TWh potential
+        h2_caverns = h2_caverns[h2_caverns > 2]
+
+        # convert TWh to MWh
+        h2_caverns = h2_caverns * 1e6
+
+        # clip at 1000 TWh for one location
+        h2_caverns.clip(upper=1e9, inplace=True)
+
+        # group on country level
+        h2_caverns = (
+            h2_caverns
+            .to_frame()
+            .assign(country=h2_caverns.index.map(n.buses.country).values)
+            .groupby("country").sum()
+            .loc[:,0]
+        )
+
+        logger.info("Add TYNDP H2 underground storage for H2 Z2")
+
+        h2_capital_cost = costs.at["hydrogen storage underground", "fixed"]
+
+        n.add(
+            "Store",
+            h2_caverns.index + " H2 Z2 Cavern Store",
+            bus=h2_caverns.index + " H2 Z2",
+            e_nom_extendable=True,
+            e_nom_max=h2_caverns.values,
+            e_cyclic=True,
+            carrier="H2 Store",
+            capital_cost=h2_capital_cost,
+            lifetime=costs.at["hydrogen storage underground", "lifetime"],
+        )
+
+    # add overground hydrogen tank storage to all H2 Z1 nodes
+    tech = "hydrogen storage tank type 1 including compressor"
+    nodes_overground = buses_h2_country + " Z1"
+
+    logger.info("Add TYNDP H2 tank storage for H2 Z1")
+
+    n.add(
+        "Store",
+        nodes_overground.index + " Tank Store",
+        bus=nodes_overground.index,
+        e_nom_extendable=True,
+        e_cyclic=True,
+        carrier="H2 Store",
+        capital_cost=costs.at[tech, "fixed"],
+        lifetime=costs.at[tech, "lifetime"],
+    )
+
 def add_storage_and_grids(n, costs):
     logger.info("Add hydrogen storage")
 
