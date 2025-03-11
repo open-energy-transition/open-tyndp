@@ -1528,7 +1528,8 @@ def add_tyndp_h2_topology(n, costs):
         )
 
     # TODO: add good technology assumptions for Methanol ATR (ATRM) to technology data
-    if options["ATR"]:
+    if options["ATR"] and options["methanol"]:
+        add_carrier_buses(n, "methanol")
         n.add(
             "Link",
             nodes.index + " H2 Z1 ATR",
