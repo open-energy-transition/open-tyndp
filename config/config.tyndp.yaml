@@ -125,5 +125,4 @@ clustering:
 
 plotting:
   tech_colors:
-    # wind
     ATR: '#870c99'

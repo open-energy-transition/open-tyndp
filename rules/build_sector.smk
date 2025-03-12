@@ -1095,7 +1095,7 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
     rule build_tyndp_h2_network:
         params:
             snapshots=config_provider("snapshots"),
-            scenario=config_provider("sector", "h2_network_tyndp", "tyndp_scenario"),
+            scenario=config_provider("sector", "h2_topology_tyndp", "tyndp_scenario"),
         input:
             tyndp_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
         output:
