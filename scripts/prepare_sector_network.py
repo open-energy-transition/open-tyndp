@@ -1695,14 +1695,14 @@ def add_tyndp_h2_topology(n, costs):
 
     # add overground hydrogen tank storage to all H2 Z1 nodes
     tech = "hydrogen storage tank type 1 including compressor"
-    nodes_overground = buses_h2_country + " Z1"
+    nodes_overground = buses_h2_country.index + " Z1"
 
     logger.info("Add TYNDP H2 tank storage for H2 Z1")
 
     n.add(
         "Store",
-        nodes_overground.index + " Tank Store",
-        bus=nodes_overground.index,
+        nodes_overground + " Tank Store",
+        bus=nodes_overground,
         e_nom_extendable=True,
         e_cyclic=True,
         carrier="H2 Store",

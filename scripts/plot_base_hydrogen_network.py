@@ -9,7 +9,7 @@ import yaml
 import matplotlib.animation as animation
 import geopandas as gpd
 import cartopy.crs as ccrs
-from pypsa.plot import add_legend_lines, add_legend_patches
+from pypsa.plot import add_legend_lines, add_legend_patches, add_legend_circles
 from plot_hydrogen_network import load_projection
 plt.style.use(["ggplot"])
 
@@ -75,13 +75,30 @@ def plot_h2_map_base(network):
         legend_kw=legend_kw,
     )
 
-    colors = [color_h2_node, color_h2_pipe]
-    labels = ["H2 Node", "H2 Pipeline"]
+    legend_kw = dict(
+        loc="upper left",
+        bbox_to_anchor=(0.25, 1.13),
+        labelspacing=0.8,
+        handletextpad=0,
+        frameon=False,
+    )
+
+    add_legend_circles(
+        ax,
+        sizes=[0.2],
+        labels=["H2 Node"],
+        srid=n.srid,
+        patch_kw=dict(facecolor=color_h2_node),
+        legend_kw=legend_kw,
+    )
+
+    colors = [color_h2_pipe]
+    labels = ["H2 Pipeline"]
 
     legend_kw = dict(
         loc="upper left",
         bbox_to_anchor=(0, 1.13),
-        ncol=2,
+        ncol=1,
         frameon=False,
     )
 

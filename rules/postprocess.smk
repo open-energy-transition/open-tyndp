@@ -92,6 +92,9 @@ if config["foresight"] != "perfect":
             mem_mb=4000,
         benchmark:
             benchmarks("plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}")
+        log:
+            RESULTS
+            + "logs/plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
         conda:
             "../envs/environment.yaml"
         script:
