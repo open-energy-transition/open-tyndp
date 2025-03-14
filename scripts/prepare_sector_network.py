@@ -5130,6 +5130,22 @@ if __name__ == "__main__":
 
     if options["h2_topology_tyndp"]["enable"]:
         add_tyndp_h2_topology(n, costs)
+        add_battery_stores(n, nodes=pop_layout.index, costs=costs)
+        if options["gas_network"] or options["H2_retrofit"]:
+            fn = snakemake.input.clustered_gas_network
+            gas_pipes = pd.read_csv(fn, index_col=0)
+        if options["gas_network"]:
+            add_gas_network(
+                n=n,
+                gas_pipes=gas_pipes,
+                options=options,
+                costs=costs,
+                gas_input_nodes_file=snakemake.input.gas_input_nodes_simplified,
+            )
+        if options["H2_retrofit"]:
+            add_h2_pipeline_retrofit(n, gas_pipes, options, costs)
+        if options["H2_network"] and options["h2_topology_tyndp"]["expansion"]:
+            add_h2_pipeline_new(n, costs)
     else:
         add_gas_and_h2_topology(
             n=n,
