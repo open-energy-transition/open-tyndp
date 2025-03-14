@@ -1406,6 +1406,9 @@ def add_tyndp_h2_topology(n, costs):
     """
     logger.info("Add TYNDP hydrogen topology.")
 
+    # add H2 as carrier
+    n.add("Carrier", "H2")
+
     # load tyndp h2 buses
     buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
 
@@ -1542,6 +1545,25 @@ def add_tyndp_h2_topology(n, costs):
             efficiency2=costs.at["methanolisation", "carbondioxide-input"],
             capital_cost=1047353.20,  # based on Figure 3 https://www.icf.com/insights/energy/comparing-costs-of-industrial-hydrogen-technologies#:~:text=The%20SMR%20and%20ATR%20based%20hydrogen%20plant%20production%20costs%20are,this%20case%2C%20resulting%20in%20a
             lifetime=costs.at["SMR", "lifetime"],  # assume same as SMR lifetime for now
+        )
+
+    if options["methanation"]:
+        n.add(
+            "Link",
+            spatial.nodes,
+            suffix=" Sabatier",
+            bus0=nodes.country.values + " H2 Z2",
+            bus1=spatial.gas.nodes,
+            bus2=spatial.co2.nodes,
+            p_nom_extendable=True,
+            carrier="Sabatier",
+            p_min_pu=options["min_part_load_methanation"],
+            efficiency=costs.at["methanation", "efficiency"],
+            efficiency2=-costs.at["methanation", "efficiency"]
+                        * costs.at["gas", "CO2 intensity"],
+            capital_cost=costs.at["methanation", "fixed"]
+                         * costs.at["methanation", "efficiency"],  # costs given per kW_gas
+            lifetime=costs.at["methanation", "lifetime"],
         )
 
     ########################
