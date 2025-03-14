@@ -1168,6 +1168,9 @@ def add_generation(n, costs, existing_capacities=0, existing_efficiencies=None):
             lifetime=costs.at[generator, "lifetime"],
         )
 
+    # add Coal powerplants with CC
+    add_coal_cc(n, spatial, costs)
+
 
 def add_ammonia(n, costs):
     logger.info("Adding ammonia carrier with synthesis, cracking and storage")
@@ -1388,6 +1391,301 @@ def add_electricity_grid_connection(n, costs):
     n.generators.loc[gens, "capital_cost"] += costs.at[
         "electricity grid connection", "fixed"
     ]
+
+def add_battery_stores(n, nodes, costs):
+    n.add("Carrier", "battery")
+    n.add("Bus", nodes + " battery", location=nodes, carrier="battery", unit="MWh_el")
+    n.add(
+        "Store",
+        nodes + " battery",
+        bus=nodes + " battery",
+        e_cyclic=True,
+        e_nom_extendable=True,
+        carrier="battery",
+        capital_cost=costs.at["battery storage", "fixed"],
+        lifetime=costs.at["battery storage", "lifetime"],
+    )
+    n.add(
+        "Link",
+        nodes + " battery charger",
+        bus0=nodes,
+        bus1=nodes + " battery",
+        carrier="battery charger",
+        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+        capital_cost=costs.at["battery inverter", "fixed"],
+        p_nom_extendable=True,
+        lifetime=costs.at["battery inverter", "lifetime"],
+    )
+    n.add(
+        "Link",
+        nodes + " battery discharger",
+        bus0=nodes + " battery",
+        bus1=nodes,
+        carrier="battery discharger",
+        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+        marginal_cost=options["marginal_cost_storage"],
+        p_nom_extendable=True,
+        lifetime=costs.at["battery inverter", "lifetime"],
+    )
+
+def add_h2_storages(n, nodes, cavern_types, h2_caverns):
+
+    if (
+        not h2_caverns.empty
+        and options["hydrogen_underground_storage"]
+        and set(cavern_types).intersection(h2_caverns.columns)
+    ):
+        h2_caverns = h2_caverns[cavern_types].sum(axis=1)
+
+        # only use sites with at least 2 TWh potential
+        h2_caverns = h2_caverns[h2_caverns > 2]
+
+        # convert TWh to MWh
+        h2_caverns = h2_caverns * 1e6
+
+        # clip at 1000 TWh for one location
+        h2_caverns.clip(upper=1e9, inplace=True)
+
+        logger.info("Add hydrogen underground storage")
+
+        h2_capital_cost = costs.at["hydrogen storage underground", "fixed"]
+
+        n.add(
+            "Store",
+            h2_caverns.index + " H2 Store",
+            bus=h2_caverns.index + " H2",
+            e_nom_extendable=True,
+            e_nom_max=h2_caverns.values,
+            e_cyclic=True,
+            carrier="H2 Store",
+            capital_cost=h2_capital_cost,
+            lifetime=costs.at["hydrogen storage underground", "lifetime"],
+        )
+
+    # hydrogen stored overground (where not already underground)
+    tech = "hydrogen storage tank type 1 including compressor"
+    nodes_overground = h2_caverns.index.symmetric_difference(nodes)
+
+    n.add(
+        "Store",
+        nodes_overground + " H2 Store",
+        bus=nodes_overground + " H2",
+        e_nom_extendable=True,
+        e_cyclic=True,
+        carrier="H2 Store",
+        capital_cost=costs.at[tech, "fixed"],
+        lifetime=costs.at[tech, "lifetime"],
+    )
+
+def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file):
+    logger.info(
+        "Add natural gas infrastructure, incl. LNG terminals, production, storage and entry-points."
+    )
+    if options["H2_retrofit"]:
+        gas_pipes["p_nom_max"] = gas_pipes.p_nom
+        gas_pipes["p_nom_min"] = 0.0
+        # 0.1 EUR/MWkm/a to prefer decommissioning to address degeneracy
+        gas_pipes["capital_cost"] = 0.1 * gas_pipes.length
+        gas_pipes["p_nom_extendable"] = True
+    else:
+        gas_pipes["p_nom_max"] = np.inf
+        gas_pipes["p_nom_min"] = gas_pipes.p_nom
+        gas_pipes["capital_cost"] = (
+                gas_pipes.length * costs.at["CH4 (g) pipeline", "fixed"]
+        )
+        gas_pipes["p_nom_extendable"] = False
+
+    n.add(
+        "Link",
+        gas_pipes.index,
+        bus0=gas_pipes.bus0 + " gas",
+        bus1=gas_pipes.bus1 + " gas",
+        p_min_pu=gas_pipes.p_min_pu,
+        p_nom=gas_pipes.p_nom,
+        p_nom_extendable=gas_pipes.p_nom_extendable,
+        p_nom_max=gas_pipes.p_nom_max,
+        p_nom_min=gas_pipes.p_nom_min,
+        length=gas_pipes.length,
+        capital_cost=gas_pipes.capital_cost,
+        tags=gas_pipes.name,
+        carrier="gas pipeline",
+        lifetime=np.inf,
+    )
+
+    # remove fossil generators where there is neither
+    # production, LNG terminal, nor entry-point beyond system scope
+
+    gas_input_nodes = pd.read_csv(gas_input_nodes_file, index_col=0)
+
+    unique = gas_input_nodes.index.unique()
+    gas_i = n.generators.carrier == "gas"
+    internal_i = ~n.generators.bus.map(n.buses.location).isin(unique)
+
+    remove_i = n.generators[gas_i & internal_i].index
+    n.generators.drop(remove_i, inplace=True)
+
+    input_types = ["lng", "pipeline", "production"]
+    p_nom = gas_input_nodes[input_types].sum(axis=1).rename(lambda x: x + " gas")
+    n.generators.loc[gas_i, "p_nom_extendable"] = False
+    n.generators.loc[gas_i, "p_nom"] = p_nom
+
+    # add existing gas storage capacity
+    gas_i = n.stores.carrier == "gas"
+    e_nom = (
+            gas_input_nodes["storage"]
+            .rename(lambda x: x + " gas Store")
+            .reindex(n.stores.index)
+            .fillna(0.0)
+            * 1e3
+    )  # MWh_LHV
+    e_nom.clip(
+        upper=e_nom.quantile(0.98), inplace=True
+    )  # limit extremely large storage
+    n.stores.loc[gas_i, "e_nom_min"] = e_nom
+
+    # add candidates for new gas pipelines to achieve full connectivity
+
+    G = nx.Graph()
+
+    gas_buses = n.buses.loc[n.buses.carrier == "gas", "location"]
+    G.add_nodes_from(np.unique(gas_buses.values))
+
+    sel = gas_pipes.p_nom > 1500
+    attrs = ["bus0", "bus1", "length"]
+    G.add_weighted_edges_from(gas_pipes.loc[sel, attrs].values)
+
+    # find all complement edges
+    complement_edges = pd.DataFrame(complement(G).edges, columns=["bus0", "bus1"])
+    complement_edges["length"] = complement_edges.apply(haversine, axis=1)
+
+    # apply k_edge_augmentation weighted by length of complement edges
+    k_edge = options["gas_network_connectivity_upgrade"]
+    if augmentation := list(
+            k_edge_augmentation(G, k_edge, avail=complement_edges.values)
+    ):
+        new_gas_pipes = pd.DataFrame(augmentation, columns=["bus0", "bus1"])
+        new_gas_pipes["length"] = new_gas_pipes.apply(haversine, axis=1)
+
+        new_gas_pipes.index = new_gas_pipes.apply(
+            lambda x: f"gas pipeline new {x.bus0} <-> {x.bus1}", axis=1
+        )
+
+        n.add(
+            "Link",
+            new_gas_pipes.index,
+            bus0=new_gas_pipes.bus0 + " gas",
+            bus1=new_gas_pipes.bus1 + " gas",
+            p_min_pu=-1,  # new gas pipes are bidirectional
+            p_nom_extendable=True,
+            length=new_gas_pipes.length,
+            capital_cost=new_gas_pipes.length
+                         * costs.at["CH4 (g) pipeline", "fixed"],
+            carrier="gas pipeline new",
+            lifetime=costs.at["CH4 (g) pipeline", "lifetime"],
+        )
+
+def add_h2_pipeline_retrofit(n, gas_pipes, options, costs):
+    logger.info("Add retrofitting options of existing CH4 pipes to H2 pipes.")
+
+    fr = "gas pipeline"
+    to = "H2 pipeline retrofitted"
+    h2_pipes = gas_pipes.rename(index=lambda x: x.replace(fr, to))
+
+    n.add(
+        "Link",
+        h2_pipes.index,
+        bus0=h2_pipes.bus0 + " H2",
+        bus1=h2_pipes.bus1 + " H2",
+        p_min_pu=-1.0,  # allow that all H2 retrofit pipelines can be used in both directions
+        p_nom_max=h2_pipes.p_nom * options["H2_retrofit_capacity_per_CH4"],
+        p_nom_extendable=True,
+        length=h2_pipes.length,
+        capital_cost=costs.at["H2 (g) pipeline repurposed", "fixed"]
+                     * h2_pipes.length,
+        tags=h2_pipes.name,
+        carrier="H2 pipeline retrofitted",
+        lifetime=costs.at["H2 (g) pipeline repurposed", "lifetime"],
+    )
+
+def add_h2_pipeline_new(n, costs):
+    logger.info("Add options for new hydrogen pipelines.")
+
+    h2_pipes = create_network_topology(
+        n, "H2 pipeline ", carriers=["DC", "gas pipeline"]
+    )
+
+    # TODO Add efficiency losses
+    n.add(
+        "Link",
+        h2_pipes.index,
+        bus0=h2_pipes.bus0.values + " H2",
+        bus1=h2_pipes.bus1.values + " H2",
+        p_min_pu=-1,
+        p_nom_extendable=True,
+        length=h2_pipes.length.values,
+        capital_cost=costs.at["H2 (g) pipeline", "fixed"] * h2_pipes.length.values,
+        carrier="H2 pipeline",
+        lifetime=costs.at["H2 (g) pipeline", "lifetime"],
+    )
+
+def add_smr(n, nodes, spatial, costs):
+    if options["SMR_cc"]:
+        n.add(
+            "Link",
+            spatial.nodes,
+            suffix=" SMR CC",
+            bus0=spatial.gas.nodes,
+            bus1=nodes + " H2",
+            bus2="co2 atmosphere",
+            bus3=spatial.co2.nodes,
+            p_nom_extendable=True,
+            carrier="SMR CC",
+            efficiency=costs.at["SMR CC", "efficiency"],
+            efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
+            efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
+            capital_cost=costs.at["SMR CC", "fixed"],
+            lifetime=costs.at["SMR CC", "lifetime"],
+        )
+
+    if options["SMR"]:
+        n.add(
+            "Link",
+            nodes + " SMR",
+            bus0=spatial.gas.nodes,
+            bus1=nodes + " H2",
+            bus2="co2 atmosphere",
+            p_nom_extendable=True,
+            carrier="SMR",
+            efficiency=costs.at["SMR", "efficiency"],
+            efficiency2=costs.at["gas", "CO2 intensity"],
+            capital_cost=costs.at["SMR", "fixed"],
+            lifetime=costs.at["SMR", "lifetime"],
+        )
+
+def add_coal_cc(n, spatial, costs):
+    logger.info("Add coal CC.")
+    n.add(
+        "Link",
+        spatial.nodes,
+        suffix=" coal CC",
+        bus0=spatial.coal.nodes,
+        bus1=spatial.nodes,
+        bus2="co2 atmosphere",
+        bus3=spatial.co2.nodes,
+        marginal_cost=costs.at["coal", "efficiency"]
+                      * costs.at["coal", "VOM"],  # NB: VOM is per MWel
+        capital_cost=costs.at["coal", "efficiency"] * costs.at["coal", "fixed"]
+                     + costs.at["biomass CHP capture", "fixed"]
+                     * costs.at["coal", "CO2 intensity"],  # NB: fixed cost is per MWel
+        p_nom_extendable=True,
+        carrier="coal",
+        efficiency=costs.at["coal", "efficiency"],
+        efficiency2=costs.at["coal", "CO2 intensity"]
+                    * (1 - costs.at["biomass CHP capture", "capture_rate"]),
+        efficiency3=costs.at["coal", "CO2 intensity"]
+                    * costs.at["biomass CHP capture", "capture_rate"],
+        lifetime=costs.at["coal", "lifetime"],
+    )
 
 def add_tyndp_h2_topology(n, costs):
     """
@@ -1732,7 +2030,17 @@ def add_tyndp_h2_topology(n, costs):
         lifetime=costs.at[tech, "lifetime"],
     )
 
-def add_storage_and_grids(n, costs):
+def add_gas_and_h2_topology(
+    n,
+    costs,
+    pop_layout,
+    h2_cavern_file,
+    cavern_types,
+    clustered_gas_network_file,
+    gas_input_nodes_file,
+    spatial,
+    options,
+):
     logger.info("Add hydrogen storage")
 
     nodes = pop_layout.index
@@ -1741,6 +2049,7 @@ def add_storage_and_grids(n, costs):
 
     n.add("Bus", nodes + " H2", location=nodes, carrier="H2", unit="MWh_LHV")
 
+    # add H2 production technologies
     n.add(
         "Link",
         nodes + " H2 Electrolysis",
@@ -1753,6 +2062,9 @@ def add_storage_and_grids(n, costs):
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
+    add_smr(n, nodes, spatial, costs)
+
+    # add H2 re-electrification technologies
     if options["hydrogen_fuel_cell"]:
         logger.info("Adding hydrogen fuel cell for re-electrification.")
 
@@ -1789,252 +2101,30 @@ def add_storage_and_grids(n, costs):
             lifetime=costs.at["OCGT", "lifetime"],
         )
 
-    cavern_types = snakemake.params.sector["hydrogen_underground_storage_locations"]
-    h2_caverns = pd.read_csv(snakemake.input.h2_cavern, index_col=0)
+    # add H2 storages
+    h2_caverns = pd.read_csv(h2_cavern_file, index_col=0)
+    add_h2_storages(n, nodes, cavern_types, h2_caverns)
 
-    if (
-        not h2_caverns.empty
-        and options["hydrogen_underground_storage"]
-        and set(cavern_types).intersection(h2_caverns.columns)
-    ):
-        h2_caverns = h2_caverns[cavern_types].sum(axis=1)
-
-        # only use sites with at least 2 TWh potential
-        h2_caverns = h2_caverns[h2_caverns > 2]
-
-        # convert TWh to MWh
-        h2_caverns = h2_caverns * 1e6
-
-        # clip at 1000 TWh for one location
-        h2_caverns.clip(upper=1e9, inplace=True)
-
-        logger.info("Add hydrogen underground storage")
-
-        h2_capital_cost = costs.at["hydrogen storage underground", "fixed"]
-
-        n.add(
-            "Store",
-            h2_caverns.index + " H2 Store",
-            bus=h2_caverns.index + " H2",
-            e_nom_extendable=True,
-            e_nom_max=h2_caverns.values,
-            e_cyclic=True,
-            carrier="H2 Store",
-            capital_cost=h2_capital_cost,
-            lifetime=costs.at["hydrogen storage underground", "lifetime"],
-        )
-
-    # hydrogen stored overground (where not already underground)
-    tech = "hydrogen storage tank type 1 including compressor"
-    nodes_overground = h2_caverns.index.symmetric_difference(nodes)
-
-    n.add(
-        "Store",
-        nodes_overground + " H2 Store",
-        bus=nodes_overground + " H2",
-        e_nom_extendable=True,
-        e_cyclic=True,
-        carrier="H2 Store",
-        capital_cost=costs.at[tech, "fixed"],
-        lifetime=costs.at[tech, "lifetime"],
-    )
-
+    # add gas network and H2 retrofit and new pipelines construction
     if options["gas_network"] or options["H2_retrofit"]:
-        fn = snakemake.input.clustered_gas_network
-        gas_pipes = pd.read_csv(fn, index_col=0)
+        gas_pipes = pd.read_csv(clustered_gas_network_file, index_col=0)
 
     if options["gas_network"]:
-        logger.info(
-            "Add natural gas infrastructure, incl. LNG terminals, production, storage and entry-points."
+        add_gas_network(
+            n=n,
+            gas_pipes=gas_pipes,
+            options=options,
+            costs=costs,
+            gas_input_nodes_file=gas_input_nodes_file,
         )
-
-        if options["H2_retrofit"]:
-            gas_pipes["p_nom_max"] = gas_pipes.p_nom
-            gas_pipes["p_nom_min"] = 0.0
-            # 0.1 EUR/MWkm/a to prefer decommissioning to address degeneracy
-            gas_pipes["capital_cost"] = 0.1 * gas_pipes.length
-            gas_pipes["p_nom_extendable"] = True
-        else:
-            gas_pipes["p_nom_max"] = np.inf
-            gas_pipes["p_nom_min"] = gas_pipes.p_nom
-            gas_pipes["capital_cost"] = (
-                gas_pipes.length * costs.at["CH4 (g) pipeline", "fixed"]
-            )
-            gas_pipes["p_nom_extendable"] = False
-
-        n.add(
-            "Link",
-            gas_pipes.index,
-            bus0=gas_pipes.bus0 + " gas",
-            bus1=gas_pipes.bus1 + " gas",
-            p_min_pu=gas_pipes.p_min_pu,
-            p_nom=gas_pipes.p_nom,
-            p_nom_extendable=gas_pipes.p_nom_extendable,
-            p_nom_max=gas_pipes.p_nom_max,
-            p_nom_min=gas_pipes.p_nom_min,
-            length=gas_pipes.length,
-            capital_cost=gas_pipes.capital_cost,
-            tags=gas_pipes.name,
-            carrier="gas pipeline",
-            lifetime=np.inf,
-        )
-
-        # remove fossil generators where there is neither
-        # production, LNG terminal, nor entry-point beyond system scope
-
-        fn = snakemake.input.gas_input_nodes_simplified
-        gas_input_nodes = pd.read_csv(fn, index_col=0)
-
-        unique = gas_input_nodes.index.unique()
-        gas_i = n.generators.carrier == "gas"
-        internal_i = ~n.generators.bus.map(n.buses.location).isin(unique)
-
-        remove_i = n.generators[gas_i & internal_i].index
-        n.generators.drop(remove_i, inplace=True)
-
-        input_types = ["lng", "pipeline", "production"]
-        p_nom = gas_input_nodes[input_types].sum(axis=1).rename(lambda x: x + " gas")
-        n.generators.loc[gas_i, "p_nom_extendable"] = False
-        n.generators.loc[gas_i, "p_nom"] = p_nom
-
-        # add existing gas storage capacity
-        gas_i = n.stores.carrier == "gas"
-        e_nom = (
-            gas_input_nodes["storage"]
-            .rename(lambda x: x + " gas Store")
-            .reindex(n.stores.index)
-            .fillna(0.0)
-            * 1e3
-        )  # MWh_LHV
-        e_nom.clip(
-            upper=e_nom.quantile(0.98), inplace=True
-        )  # limit extremely large storage
-        n.stores.loc[gas_i, "e_nom_min"] = e_nom
-
-        # add candidates for new gas pipelines to achieve full connectivity
-
-        G = nx.Graph()
-
-        gas_buses = n.buses.loc[n.buses.carrier == "gas", "location"]
-        G.add_nodes_from(np.unique(gas_buses.values))
-
-        sel = gas_pipes.p_nom > 1500
-        attrs = ["bus0", "bus1", "length"]
-        G.add_weighted_edges_from(gas_pipes.loc[sel, attrs].values)
-
-        # find all complement edges
-        complement_edges = pd.DataFrame(complement(G).edges, columns=["bus0", "bus1"])
-        complement_edges["length"] = complement_edges.apply(haversine, axis=1)
-
-        # apply k_edge_augmentation weighted by length of complement edges
-        k_edge = options["gas_network_connectivity_upgrade"]
-        if augmentation := list(
-            k_edge_augmentation(G, k_edge, avail=complement_edges.values)
-        ):
-            new_gas_pipes = pd.DataFrame(augmentation, columns=["bus0", "bus1"])
-            new_gas_pipes["length"] = new_gas_pipes.apply(haversine, axis=1)
-
-            new_gas_pipes.index = new_gas_pipes.apply(
-                lambda x: f"gas pipeline new {x.bus0} <-> {x.bus1}", axis=1
-            )
-
-            n.add(
-                "Link",
-                new_gas_pipes.index,
-                bus0=new_gas_pipes.bus0 + " gas",
-                bus1=new_gas_pipes.bus1 + " gas",
-                p_min_pu=-1,  # new gas pipes are bidirectional
-                p_nom_extendable=True,
-                length=new_gas_pipes.length,
-                capital_cost=new_gas_pipes.length
-                * costs.at["CH4 (g) pipeline", "fixed"],
-                carrier="gas pipeline new",
-                lifetime=costs.at["CH4 (g) pipeline", "lifetime"],
-            )
 
     if options["H2_retrofit"]:
-        logger.info("Add retrofitting options of existing CH4 pipes to H2 pipes.")
-
-        fr = "gas pipeline"
-        to = "H2 pipeline retrofitted"
-        h2_pipes = gas_pipes.rename(index=lambda x: x.replace(fr, to))
-
-        n.add(
-            "Link",
-            h2_pipes.index,
-            bus0=h2_pipes.bus0 + " H2",
-            bus1=h2_pipes.bus1 + " H2",
-            p_min_pu=-1.0,  # allow that all H2 retrofit pipelines can be used in both directions
-            p_nom_max=h2_pipes.p_nom * options["H2_retrofit_capacity_per_CH4"],
-            p_nom_extendable=True,
-            length=h2_pipes.length,
-            capital_cost=costs.at["H2 (g) pipeline repurposed", "fixed"]
-            * h2_pipes.length,
-            tags=h2_pipes.name,
-            carrier="H2 pipeline retrofitted",
-            lifetime=costs.at["H2 (g) pipeline repurposed", "lifetime"],
-        )
+        add_h2_pipeline_retrofit(n, gas_pipes, options, costs)
 
     if options["H2_network"]:
-        logger.info("Add options for new hydrogen pipelines.")
+        add_h2_pipeline_new(n, costs)
 
-        h2_pipes = create_network_topology(
-            n, "H2 pipeline ", carriers=["DC", "gas pipeline"]
-        )
-
-        # TODO Add efficiency losses
-        n.add(
-            "Link",
-            h2_pipes.index,
-            bus0=h2_pipes.bus0.values + " H2",
-            bus1=h2_pipes.bus1.values + " H2",
-            p_min_pu=-1,
-            p_nom_extendable=True,
-            length=h2_pipes.length.values,
-            capital_cost=costs.at["H2 (g) pipeline", "fixed"] * h2_pipes.length.values,
-            carrier="H2 pipeline",
-            lifetime=costs.at["H2 (g) pipeline", "lifetime"],
-        )
-
-    n.add("Carrier", "battery")
-
-    n.add("Bus", nodes + " battery", location=nodes, carrier="battery", unit="MWh_el")
-
-    n.add(
-        "Store",
-        nodes + " battery",
-        bus=nodes + " battery",
-        e_cyclic=True,
-        e_nom_extendable=True,
-        carrier="battery",
-        capital_cost=costs.at["battery storage", "fixed"],
-        lifetime=costs.at["battery storage", "lifetime"],
-    )
-
-    n.add(
-        "Link",
-        nodes + " battery charger",
-        bus0=nodes,
-        bus1=nodes + " battery",
-        carrier="battery charger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        capital_cost=costs.at["battery inverter", "fixed"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
-
-    n.add(
-        "Link",
-        nodes + " battery discharger",
-        bus0=nodes + " battery",
-        bus1=nodes,
-        carrier="battery discharger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        marginal_cost=options["marginal_cost_storage"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
-
+    # add methanation
     if options["methanation"]:
         n.add(
             "Link",
@@ -2052,63 +2142,6 @@ def add_storage_and_grids(n, costs):
             capital_cost=costs.at["methanation", "fixed"]
             * costs.at["methanation", "efficiency"],  # costs given per kW_gas
             lifetime=costs.at["methanation", "lifetime"],
-        )
-
-    if options["coal_cc"]:
-        n.add(
-            "Link",
-            spatial.nodes,
-            suffix=" coal CC",
-            bus0=spatial.coal.nodes,
-            bus1=spatial.nodes,
-            bus2="co2 atmosphere",
-            bus3=spatial.co2.nodes,
-            marginal_cost=costs.at["coal", "efficiency"]
-            * costs.at["coal", "VOM"],  # NB: VOM is per MWel
-            capital_cost=costs.at["coal", "efficiency"] * costs.at["coal", "fixed"]
-            + costs.at["biomass CHP capture", "fixed"]
-            * costs.at["coal", "CO2 intensity"],  # NB: fixed cost is per MWel
-            p_nom_extendable=True,
-            carrier="coal",
-            efficiency=costs.at["coal", "efficiency"],
-            efficiency2=costs.at["coal", "CO2 intensity"]
-            * (1 - costs.at["biomass CHP capture", "capture_rate"]),
-            efficiency3=costs.at["coal", "CO2 intensity"]
-            * costs.at["biomass CHP capture", "capture_rate"],
-            lifetime=costs.at["coal", "lifetime"],
-        )
-
-    if options["SMR_cc"]:
-        n.add(
-            "Link",
-            spatial.nodes,
-            suffix=" SMR CC",
-            bus0=spatial.gas.nodes,
-            bus1=nodes + " H2",
-            bus2="co2 atmosphere",
-            bus3=spatial.co2.nodes,
-            p_nom_extendable=True,
-            carrier="SMR CC",
-            efficiency=costs.at["SMR CC", "efficiency"],
-            efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
-            efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
-            capital_cost=costs.at["SMR CC", "fixed"],
-            lifetime=costs.at["SMR CC", "lifetime"],
-        )
-
-    if options["SMR"]:
-        n.add(
-            "Link",
-            nodes + " SMR",
-            bus0=spatial.gas.nodes,
-            bus1=nodes + " H2",
-            bus2="co2 atmosphere",
-            p_nom_extendable=True,
-            carrier="SMR",
-            efficiency=costs.at["SMR", "efficiency"],
-            efficiency2=costs.at["gas", "CO2 intensity"],
-            capital_cost=costs.at["SMR", "fixed"],
-            lifetime=costs.at["SMR", "lifetime"],
         )
 
 
@@ -5098,7 +5131,18 @@ if __name__ == "__main__":
     if options["h2_topology_tyndp"]["enable"]:
         add_tyndp_h2_topology(n, costs)
     else:
-        add_storage_and_grids(n, costs)
+        add_gas_and_h2_topology(
+            n=n,
+            costs=costs,
+            pop_layout=pop_layout,
+            h2_cavern_file=snakemake.input.h2_cavern,
+            cavern_types=snakemake.params.sector["hydrogen_underground_storage_locations"],
+            clustered_gas_network_file=snakemake.input.clustered_gas_network,
+            gas_input_nodes_file=snakemake.input.gas_input_nodes_simplified,
+            spatial=spatial,
+            options=options,
+        )
+        add_battery_stores(n, nodes=pop_layout.index, costs=costs)
 
     if options["transport"]:
         add_land_transport(n, costs)
