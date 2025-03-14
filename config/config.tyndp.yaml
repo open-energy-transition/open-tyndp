@@ -26,10 +26,10 @@ snapshots:
 enable:
   retrieve: true
   retrieve_databundle: true
-  retrieve_tyndp_bundle: false
+  retrieve_tyndp_bundle: true
   retrieve_cost_data: true
   build_cutout: false
-  retrieve_cutout: false
+  retrieve_cutout: true
   custom_busmap: false
   drop_leap_day: true
 
