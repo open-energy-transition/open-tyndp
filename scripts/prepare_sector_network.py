@@ -1428,7 +1428,7 @@ def add_battery_stores(n, nodes, costs):
         lifetime=costs.at["battery inverter", "lifetime"],
     )
 
-def add_h2_storages(n, nodes, cavern_types, h2_caverns):
+def add_h2_storages(n, nodes, options, cavern_types, h2_caverns):
 
     if (
         not h2_caverns.empty
@@ -1628,7 +1628,7 @@ def add_h2_pipeline_new(n, costs):
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
 
-def add_smr(n, nodes, spatial, costs):
+def add_smr(n, nodes, spatial, options, costs):
     if options["SMR_cc"]:
         n.add(
             "Link",
@@ -2041,6 +2041,54 @@ def add_gas_and_h2_topology(
     spatial,
     options,
 ):
+    """
+    Add storage and grid infrastructure to the network for hydrogen and gas.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    costs : pd.DataFrame
+        Technology cost assumptions
+    pop_layout : pd.DataFrame
+        Population layout with index of locations/nodes
+    h2_cavern_file : str
+        Path to CSV file containing hydrogen cavern storage potentials
+    cavern_types : list
+        List of underground storage types to consider
+    clustered_gas_network_file : str, optional
+        Path to CSV file containing gas network data
+    gas_input_nodes_file : str, optional
+        Path to CSV file containing gas input nodes data
+    spatial : object, optional
+        Object containing spatial information about nodes and their locations
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - hydrogen_fuel_cell : bool
+        - hydrogen_turbine : bool
+        - hydrogen_underground_storage : bool
+        - gas_network : bool
+        - H2_retrofit : bool
+        - H2_network : bool
+        - SMR_cc : bool
+        - SMR : bool
+        - cc_fraction : float
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding various
+        storage and grid components.
+
+    Notes
+    -----
+    This function adds multiple types of storage and grid infrastructure, some of which needs to be enabled in options:
+    - Hydrogen infrastructure (electrolysis, SMR, fuel cells, storage)
+    - Gas network infrastructure
+    """
     logger.info("Add hydrogen storage")
 
     nodes = pop_layout.index
@@ -2062,7 +2110,7 @@ def add_gas_and_h2_topology(
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    add_smr(n, nodes, spatial, costs)
+    add_smr(n, nodes, spatial, options, costs)
 
     # add H2 re-electrification technologies
     if options["hydrogen_fuel_cell"]:
@@ -2103,7 +2151,7 @@ def add_gas_and_h2_topology(
 
     # add H2 storages
     h2_caverns = pd.read_csv(h2_cavern_file, index_col=0)
-    add_h2_storages(n, nodes, cavern_types, h2_caverns)
+    add_h2_storages(n, nodes, options, cavern_types, h2_caverns)
 
     # add gas network and H2 retrofit and new pipelines construction
     if options["gas_network"] or options["H2_retrofit"]:
