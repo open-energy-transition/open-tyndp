@@ -4401,10 +4401,7 @@ def add_waste_heat(n):
         link_carriers = n.links.carrier.unique()
 
         # TODO what is the 0.95 and should it be a config option?
-        if (
-            options["use_fischer_tropsch_waste_heat"]
-            and "Fischer-Tropsch" in link_carriers
-        ):
+        if options["use_fischer_tropsch_waste_heat"] and "Fischer-Tropsch" in link_carriers:
             n.links.loc[urban_central + " Fischer-Tropsch", "bus3"] = (
                 urban_central + " urban central heat"
             )
@@ -4437,10 +4434,7 @@ def add_waste_heat(n):
                 0.15 * total_energy_input / electricity_input
             ) * options["use_haber_bosch_waste_heat"]
 
-        if (
-            options["use_methanolisation_waste_heat"]
-            and "methanolisation" in link_carriers
-        ):
+        if options["use_methanolisation_waste_heat"] and "methanolisation" in link_carriers:
             n.links.loc[urban_central + " methanolisation", "bus4"] = (
                 urban_central + " urban central heat"
             )
@@ -4450,10 +4444,7 @@ def add_waste_heat(n):
             ) * options["use_methanolisation_waste_heat"]
 
         # TODO integrate usable waste heat efficiency into technology-data from DEA
-        if (
-            options["use_electrolysis_waste_heat"]
-            and "H2 Electrolysis" in link_carriers and not options["h2_topology_tyndp"]["enable"]
-        ):
+        if options["use_electrolysis_waste_heat"] and "H2 Electrolysis" in link_carriers:
             n.links.loc[urban_central + " H2 Electrolysis", "bus2"] = (
                 urban_central + " urban central heat"
             )
@@ -4461,10 +4452,7 @@ def add_waste_heat(n):
                 0.84 - n.links.loc[urban_central + " H2 Electrolysis", "efficiency"]
             ) * options["use_electrolysis_waste_heat"]
 
-        if (
-            options["use_fuel_cell_waste_heat"]
-            and "H2 Fuel Cell" in link_carriers and not options["h2_topology_tyndp"]["enable"]
-        ):
+        if options["use_fuel_cell_waste_heat"] and "H2 Fuel Cell" in link_carriers:
             n.links.loc[urban_central + " H2 Fuel Cell", "bus2"] = (
                 urban_central + " urban central heat"
             )
@@ -5130,7 +5118,10 @@ if __name__ == "__main__":
         add_industry(n, costs)
 
     if options["heating"]:
-        add_waste_heat(n)
+        if options["h2_topology_tyndp"]["enable"]:
+            logger.warning("Using industrial waste heat not yet compatible with TYNDP H2 topology.")
+        else:
+            add_waste_heat(n)
 
     if options["agriculture"]:  # requires H and I
         add_agriculture(n, costs)
