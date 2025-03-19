@@ -66,19 +66,7 @@ CONVERTERS_COLUMNS = [
 
 
 def format_bz_names(s: str):
-    s = (
-        s.replace("DK_1", "DKW1")
-        .replace("DK_2", "DKE1")
-        .replace("GB", "UK00")
-        .replace("IT_NORD", "ITN1")
-        .replace("IT_SUD", "ITS1")
-        .replace("LU", "LUG1")
-        .replace("NO_3", "NOM1")
-        .replace("NO_4", "NON1")
-        .replace("SE_", "SE0")
-        .replace("_", "")
-        .ljust(4, "0")
-    )[:4]
+    s = s.replace("FR-C", "FR15").replace("UK-N", "UKNI").replace("UK", "GB")
     return s
 
 
@@ -142,54 +130,9 @@ def build_shapes(bz_fn, geo_crs: str = GEO_CRS, distance_crs: str = DISTANCE_CRS
     """
     bidding_zones = gpd.read_file(bz_fn)
 
-    # Extract Northern Ireland
-    bidding_zones = extract_shape_by_bbox(
-        bidding_zones,
-        country="GB",
-        min_lon=-8.6,
-        max_lon=-5.8,
-        min_lat=54.0,
-        max_lat=55.4,
-        region_id="UKNI",
-    )
-
-    # Extract Corsica
-    bidding_zones = extract_shape_by_bbox(
-        bidding_zones,
-        country="FR",
-        min_lon=8.5,
-        max_lon=9.7,
-        min_lat=41.3,
-        max_lat=43.0,
-        region_id="FR15",
-    )
-
-    # Extract Crete
-    bidding_zones = extract_shape_by_bbox(
-        bidding_zones,
-        country="GR",
-        min_lon=24.0,
-        max_lon=26.5,
-        min_lat=35.0,
-        max_lat=35.7,
-        region_id="GR03",
-    )
-
-    # Merge southern bidding zones in Norway
-    nos0_idx = bidding_zones.query("id in ['NO_1', 'NO_2', 'NO_5']").index
-    bidding_zones = pd.concat(
-        [
-            bidding_zones.drop(nos0_idx),
-            bidding_zones.loc[nos0_idx]
-            .dissolve(by="country")
-            .reset_index()
-            .assign(id="NOS0"),
-        ]
-    )
-
     # Bidding zone shapes
     bidding_shapes = bidding_zones.assign(
-        bz_id=lambda df: df["id"].apply(format_bz_names),
+        bz_id=lambda df: df["zone_name"].apply(format_bz_names),
         node=lambda df: df.geometry.to_crs(distance_crs)
         .representative_point()
         .to_crs(geo_crs),
@@ -327,7 +270,9 @@ def format_grid_names(s: str):
         s
         # Poland organizes its lines in three sections,
         # PL00 for demand/generation, -E for exporting lines and -I for importing lines
-        .replace("PL00E", "PL00").replace("PL00I", "PL00")
+        .replace("PL00E", "PL00")
+        .replace("PL00I", "PL00")
+        .replace("UK", "GB")
     )
     return s
 
@@ -383,8 +328,8 @@ def build_links(
         links["bus0"][links[["bus0", "geometry0"]].isna().any(axis=1)]
     ).union(set(links["bus1"][links[["bus1", "geometry1"]].isna().any(axis=1)]))
     known_exceptions = {
-        "DEKF",  # Connexion from DE to the Kriegers Flak offshore wind farm
-        "DKKF",  # Connexion from DK to the Kriegers Flak offshore wind farm
+        "DEKF",  # Connection from DE to the Kriegers Flak offshore wind farm
+        "DKKF",  # Connection from DK to the Kriegers Flak offshore wind farm
         "DZ00",  # Algeria
         "EG00",  # Egypt
         "IS00",  # Iceland
