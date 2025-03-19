@@ -6,9 +6,8 @@ import logging
 
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import LineString, Point
-
 from _helpers import configure_logging, set_scenario_config
+from shapely.geometry import LineString, Point
 
 logger = logging.getLogger(__name__)
 
@@ -67,30 +66,30 @@ CONVERTERS_COLUMNS = [
 
 
 def format_bz_names(s: str):
-    s = (s
-         .replace("DK_1", "DKW1")
-         .replace("DK_2", "DKE1")
-         .replace("GB", "UK00")
-         .replace("IT_NORD", "ITN1")
-         .replace("IT_SUD", "ITS1")
-         .replace("LU", "LUG1")
-         .replace("NO_3", "NOM1")
-         .replace("NO_4", "NON1")
-         .replace('SE_', 'SE0')
-         .replace('_', '')
-         .ljust(4, "0")
-         )[:4]
+    s = (
+        s.replace("DK_1", "DKW1")
+        .replace("DK_2", "DKE1")
+        .replace("GB", "UK00")
+        .replace("IT_NORD", "ITN1")
+        .replace("IT_SUD", "ITS1")
+        .replace("LU", "LUG1")
+        .replace("NO_3", "NOM1")
+        .replace("NO_4", "NON1")
+        .replace("SE_", "SE0")
+        .replace("_", "")
+        .ljust(4, "0")
+    )[:4]
     return s
 
 
 def extract_shape_by_bbox(
-        gdf: gpd.GeoDataFrame,
-        country: str,
-        min_lon: float,
-        max_lon: float,
-        min_lat: float,
-        max_lat: float,
-        region_id: str
+    gdf: gpd.GeoDataFrame,
+    country: str,
+    min_lon: float,
+    max_lon: float,
+    min_lat: float,
+    max_lat: float,
+    region_id: str,
 ):
     """
     Extracts a shape from a country's GeoDataFrame based on latitude and longitude bounds.
@@ -107,37 +106,26 @@ def extract_shape_by_bbox(
     -------
         - gdf_new: Updated GeoDataFrame with the extracted shape separated.
     """
-    country_gdf = (
-        gdf.explode()
-        .query(f"country == '{country}'")
-        .reset_index(drop=True)
-    )
+    country_gdf = gdf.explode().query(f"country == '{country}'").reset_index(drop=True)
 
-    extracted_region = (
-        country_gdf
-        .cx[min_lon:max_lon, min_lat:max_lat]
-        .assign(id=region_id)
+    extracted_region = country_gdf.cx[min_lon:max_lon, min_lat:max_lat].assign(
+        id=region_id
     )
 
     remaining_country = (
-        country_gdf
-        .drop(extracted_region.index)
-        .dissolve(by="country")
-        .reset_index()
+        country_gdf.drop(extracted_region.index).dissolve(by="country").reset_index()
     )
 
-    return pd.concat([
-        gdf.query(f"country != '{country}'"),
-        remaining_country,
-        extracted_region.dissolve(by="country").reset_index(),
-    ]).reset_index(drop=True)
+    return pd.concat(
+        [
+            gdf.query(f"country != '{country}'"),
+            remaining_country,
+            extracted_region.dissolve(by="country").reset_index(),
+        ]
+    ).reset_index(drop=True)
 
 
-def build_shapes(
-        bz_fn,
-        geo_crs: str = GEO_CRS,
-        distance_crs: str = DISTANCE_CRS
-):
+def build_shapes(bz_fn, geo_crs: str = GEO_CRS, distance_crs: str = DISTANCE_CRS):
     """
     Process bidding zones from the shape file and calculate representative point. Deduce the country shapes and their representative point.
 
@@ -156,70 +144,91 @@ def build_shapes(
 
     # Extract Northern Ireland
     bidding_zones = extract_shape_by_bbox(
-        bidding_zones, country="GB",
-        min_lon=-8.6, max_lon=-5.8, min_lat=54.0, max_lat=55.4,
-        region_id="UKNI"
+        bidding_zones,
+        country="GB",
+        min_lon=-8.6,
+        max_lon=-5.8,
+        min_lat=54.0,
+        max_lat=55.4,
+        region_id="UKNI",
     )
 
     # Extract Corsica
     bidding_zones = extract_shape_by_bbox(
-        bidding_zones, country="FR",
-        min_lon=8.5, max_lon=9.7, min_lat=41.3, max_lat=43.0,
-        region_id="FR15"
+        bidding_zones,
+        country="FR",
+        min_lon=8.5,
+        max_lon=9.7,
+        min_lat=41.3,
+        max_lat=43.0,
+        region_id="FR15",
     )
 
     # Extract Crete
     bidding_zones = extract_shape_by_bbox(
-        bidding_zones, country="GR",
-        min_lon=24.0, max_lon=26.5, min_lat=35.0, max_lat=35.7,
-        region_id="GR03"
+        bidding_zones,
+        country="GR",
+        min_lon=24.0,
+        max_lon=26.5,
+        min_lat=35.0,
+        max_lat=35.7,
+        region_id="GR03",
     )
 
     # Merge southern bidding zones in Norway
     nos0_idx = bidding_zones.query("id in ['NO_1', 'NO_2', 'NO_5']").index
-    bidding_zones = pd.concat([
-        bidding_zones.drop(nos0_idx),
-        bidding_zones.loc[nos0_idx].dissolve(by="country").reset_index().assign(id="NOS0")
-    ])
-
-    # Bidding zone shapes
-    bidding_shapes = (
-        bidding_zones
-        .assign(
-            bz_id=lambda df: df["id"].apply(format_bz_names),
-            node=lambda df: df.geometry.to_crs(distance_crs).representative_point().to_crs(geo_crs),
-            x=lambda df: df["node"].x,
-            y=lambda df: df["node"].y
-        )
-        .set_index("bz_id")
+    bidding_zones = pd.concat(
+        [
+            bidding_zones.drop(nos0_idx),
+            bidding_zones.loc[nos0_idx]
+            .dissolve(by="country")
+            .reset_index()
+            .assign(id="NOS0"),
+        ]
     )
 
+    # Bidding zone shapes
+    bidding_shapes = bidding_zones.assign(
+        bz_id=lambda df: df["id"].apply(format_bz_names),
+        node=lambda df: df.geometry.to_crs(distance_crs)
+        .representative_point()
+        .to_crs(geo_crs),
+        x=lambda df: df["node"].x,
+        y=lambda df: df["node"].y,
+    ).set_index("bz_id")
+
     # Country shapes
-    country_shapes = (
-        bidding_shapes
-        .dissolve(by="country")[["geometry"]]
-        .assign(
-            node=lambda df: df.geometry.to_crs(distance_crs).representative_point().to_crs(geo_crs),
-            x=lambda df: df["node"].x,
-            y=lambda df: df["node"].y
-        )
+    country_shapes = bidding_shapes.dissolve(by="country")[["geometry"]].assign(
+        node=lambda df: df.geometry.to_crs(distance_crs)
+        .representative_point()
+        .to_crs(geo_crs),
+        x=lambda df: df["node"].x,
+        y=lambda df: df["node"].y,
     )
 
     # Correct DK, IT, GR and SE coordinates
-    country_shapes.loc["DK", ["node", "x", "y"]] = bidding_shapes.loc["DKE1", ["node", "x", "y"]]
-    country_shapes.loc["IT", ["node", "x", "y"]] = bidding_shapes.loc["ITCA", ["node", "x", "y"]]
-    country_shapes.loc["GR", ["node", "x", "y"]] = bidding_shapes.loc["GR00", ["node", "x", "y"]]
-    country_shapes.loc["SE", ["node", "x", "y"]] = bidding_shapes.loc["SE01", ["node", "x", "y"]]
+    country_shapes.loc["DK", ["node", "x", "y"]] = bidding_shapes.loc[
+        "DKE1", ["node", "x", "y"]
+    ]
+    country_shapes.loc["IT", ["node", "x", "y"]] = bidding_shapes.loc[
+        "ITCA", ["node", "x", "y"]
+    ]
+    country_shapes.loc["GR", ["node", "x", "y"]] = bidding_shapes.loc[
+        "GR00", ["node", "x", "y"]
+    ]
+    country_shapes.loc["SE", ["node", "x", "y"]] = bidding_shapes.loc[
+        "SE01", ["node", "x", "y"]
+    ]
 
     return bidding_shapes, country_shapes
 
 
 def build_buses(
-        buses_fn,
-        bidding_shapes: gpd.GeoDataFrame,
-        country_shapes: gpd.GeoDataFrame,
-        geo_crs: str = GEO_CRS,
-        distance_crs: str = DISTANCE_CRS
+    buses_fn,
+    bidding_shapes: gpd.GeoDataFrame,
+    country_shapes: gpd.GeoDataFrame,
+    geo_crs: str = GEO_CRS,
+    distance_crs: str = DISTANCE_CRS,
 ):
     """
     Extend the node list for both electricity and hydrogen with attributes, incl. country and coordinates.
@@ -240,7 +249,12 @@ def build_buses(
     """
     buses = (
         pd.read_excel(buses_fn)
-        .merge(bidding_shapes[["country", "node", "x", "y"]], how="outer", left_on="NODE", right_index=True)
+        .merge(
+            bidding_shapes[["country", "node", "x", "y"]],
+            how="outer",
+            left_on="NODE",
+            right_index=True,
+        )
         .rename({"NODE": "bus_id", "node": "geometry"}, axis=1)
         .assign(
             station_id=lambda df: df["bus_id"],
@@ -250,8 +264,7 @@ def build_buses(
             under_construction="f",
             tags=lambda df: df["bus_id"],
         )
-        .set_index("bus_id")
-        [BUSES_COLUMNS]
+        .set_index("bus_id")[BUSES_COLUMNS]
     )
     buses = gpd.GeoDataFrame(buses, geometry="geometry", crs=geo_crs)
 
@@ -267,9 +280,7 @@ def build_buses(
         .loc["FR15"]
     )
     buses.loc["ITVI"] = (
-        buses.loc[["ITSI"]]
-        .assign(station_id="ITVI", tags="ITVI")
-        .loc["ITSI"]
+        buses.loc[["ITSI"]].assign(station_id="ITVI", tags="ITVI").loc["ITSI"]
     )
 
     buses_h2 = (
@@ -285,8 +296,7 @@ def build_buses(
             under_construction="f",
             tags=lambda df: df["bus_id"],
         )
-        .set_index("bus_id")
-        [BUSES_COLUMNS]
+        .set_index("bus_id")[BUSES_COLUMNS]
     )
     buses_h2 = gpd.GeoDataFrame(buses_h2, geometry="geometry", crs=geo_crs)
 
@@ -299,7 +309,13 @@ def build_buses(
     ibfi_lat, ibfi_long = 63.0, 25.0
     buses_h2.loc["IBFI H2"] = (
         buses_h2.loc[["FI H2"]]
-        .assign(station_id="IBFI H2", tags="IBFI H2", x=ibfi_long, y=ibfi_lat, geometry=Point(ibfi_long, ibfi_lat))
+        .assign(
+            station_id="IBFI H2",
+            tags="IBFI H2",
+            x=ibfi_long,
+            y=ibfi_lat,
+            geometry=Point(ibfi_long, ibfi_lat),
+        )
         .loc["FI H2"]
     )
 
@@ -307,20 +323,20 @@ def build_buses(
 
 
 def format_grid_names(s: str):
-    s = (s
-         # Poland organizes its lines in three sections,
-         # PL00 for demand/generation, -E for exporting lines and -I for importing lines
-         .replace("PL00E", "PL00")
-         .replace("PL00I", "PL00")
-         )
+    s = (
+        s
+        # Poland organizes its lines in three sections,
+        # PL00 for demand/generation, -E for exporting lines and -I for importing lines
+        .replace("PL00E", "PL00").replace("PL00I", "PL00")
+    )
     return s
 
 
 def build_links(
-        grid_fn,
-        buses: gpd.GeoDataFrame,
-        geo_crs: str = GEO_CRS,
-        distance_crs: str = DISTANCE_CRS
+    grid_fn,
+    buses: gpd.GeoDataFrame,
+    geo_crs: str = GEO_CRS,
+    distance_crs: str = DISTANCE_CRS,
 ):
     """
     Process reference grid information to produce link data. p_nom are NTC values.
@@ -341,34 +357,31 @@ def build_links(
     links[["bus0", "bus1"]] = links.Border.str.split("-", expand=True)
 
     # Create forward and reverse direction dataframes
-    forward_links = (
-        links[["bus0", "bus1", "Summary Direction 1"]]
-        .rename(columns={"Summary Direction 1": "p_nom"})
+    forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
+        columns={"Summary Direction 1": "p_nom"}
     )
 
-    reverse_links = (
-        links[["bus1", "bus0", "Summary Direction 2"]]
-        .rename(columns={
-            "bus1": "bus0",
-            "bus0": "bus1",
-            "Summary Direction 2": "p_nom"
-        })
+    reverse_links = links[["bus1", "bus0", "Summary Direction 2"]].rename(
+        columns={"bus1": "bus0", "bus0": "bus1", "Summary Direction 2": "p_nom"}
     )
 
     # Combine into unidirectional links
     links = pd.concat([forward_links, reverse_links])
 
     # Add missing attributes
-    links = (
-        links
-        .merge(buses["geometry"], how="left", left_on="bus0", right_index=True)
-        .merge(buses["geometry"], how="left", left_on="bus1", right_index=True, suffixes=("0", "1"))
+    links = links.merge(
+        buses["geometry"], how="left", left_on="bus0", right_index=True
+    ).merge(
+        buses["geometry"],
+        how="left",
+        left_on="bus1",
+        right_index=True,
+        suffixes=("0", "1"),
     )
 
-    unknown_buses = (
-        set(links["bus0"][links[["bus0", "geometry0"]].isna().any(axis=1)]).union(
-        set(links["bus1"][links[["bus1", "geometry1"]].isna().any(axis=1)]))
-    )
+    unknown_buses = set(
+        links["bus0"][links[["bus0", "geometry0"]].isna().any(axis=1)]
+    ).union(set(links["bus1"][links[["bus1", "geometry1"]].isna().any(axis=1)]))
     known_exceptions = {
         "DEKF",  # Connexion from DE to the Kriegers Flak offshore wind farm
         "DKKF",  # Connexion from DK to the Kriegers Flak offshore wind farm
@@ -386,16 +399,19 @@ def build_links(
         "UA01",  # Ukraine
     }
     if unknown_buses - known_exceptions:
-        logger.warning(f"Dropping links connected to unknown buses: "
-                       f"{', '.join(sorted(unknown_buses - known_exceptions))}")
+        logger.warning(
+            f"Dropping links connected to unknown buses: "
+            f"{', '.join(sorted(unknown_buses - known_exceptions))}"
+        )
     links = links.dropna()  # TODO Remove this when all nodes are known
 
-    links["geometry"] = gpd.GeoSeries([LineString([p0, p1]) for p0, p1 in zip(links["geometry0"], links["geometry1"])])
+    links["geometry"] = gpd.GeoSeries(
+        [LineString([p0, p1]) for p0, p1 in zip(links["geometry0"], links["geometry1"])]
+    )
     links = gpd.GeoDataFrame(links, geometry="geometry", crs=geo_crs)
 
     links = (
-        links
-        .assign(
+        links.assign(
             link_id=lambda df: df["bus0"] + "-" + df["bus1"] + "-DC",
             voltage=380,  # TODO Improve assumption
             length=lambda df: df.geometry.to_crs(distance_crs).length,
@@ -404,11 +420,12 @@ def build_links(
             tags=lambda df: df["bus0"] + " > " + df["bus1"],
         )
         .groupby(by="link_id")
-        .agg({
-            **{col: 'first' for col in LINKS_COLUMNS if col != "p_nom"},
-            "p_nom": "sum",
-        })
-        [LINKS_COLUMNS]
+        .agg(
+            {
+                **{col: "first" for col in LINKS_COLUMNS if col != "p_nom"},
+                "p_nom": "sum",
+            }
+        )[LINKS_COLUMNS]
     )
     links = gpd.GeoDataFrame(links, geometry="geometry", crs=geo_crs)
 
@@ -431,9 +448,15 @@ if __name__ == "__main__":
     # Build links
     links = build_links(snakemake.input.reference_grid, buses)
 
-    lines = gpd.GeoDataFrame(columns=LINES_COLUMNS, geometry="geometry").set_index(pd.Index([], name="line_id"))
-    converters = gpd.GeoDataFrame(columns=CONVERTERS_COLUMNS, geometry="geometry").set_index(pd.Index([], name="converter_id"))
-    transformers = gpd.GeoDataFrame(columns=TRANSFORMERS_COLUMNS, geometry="geometry").set_index(pd.Index([], name="transformer_id"))
+    lines = gpd.GeoDataFrame(columns=LINES_COLUMNS, geometry="geometry").set_index(
+        pd.Index([], name="line_id")
+    )
+    converters = gpd.GeoDataFrame(
+        columns=CONVERTERS_COLUMNS, geometry="geometry"
+    ).set_index(pd.Index([], name="converter_id"))
+    transformers = gpd.GeoDataFrame(
+        columns=TRANSFORMERS_COLUMNS, geometry="geometry"
+    ).set_index(pd.Index([], name="transformer_id"))
 
     # Export to csv for base_network
     buses.to_csv(snakemake.output["substations"], quotechar="'")

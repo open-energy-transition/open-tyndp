@@ -61,7 +61,7 @@ def input_base_network(w):
     if base_network == "osm-raw":
         inputs = {c: resources(f"osm-raw/build/{c}.csv") for c in components}
     elif base_network == "tyndp-raw":
-        inputs = {c : resources(f"tyndp-raw/build/{c}.csv") for c in components}
+        inputs = {c: resources(f"tyndp-raw/build/{c}.csv") for c in components}
     elif base_network == "osm-prebuilt":
         inputs = {
             c: f"data/{base_network}/{osm_prebuilt_version}/{c}.csv" for c in components
@@ -853,7 +853,9 @@ if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
             lines_geojson=resources("tyndp-raw/build/geojson/lines.geojson"),
             links_geojson=resources("tyndp-raw/build/geojson/links.geojson"),
             converters_geojson=resources("tyndp-raw/build/geojson/converters.geojson"),
-            transformers_geojson=resources("tyndp-raw/build/geojson/transformers.geojson"),
+            transformers_geojson=resources(
+                "tyndp-raw/build/geojson/transformers.geojson"
+            ),
             substations_geojson=resources("tyndp-raw/build/geojson/buses.geojson"),
             substations_h2_geojson=resources("tyndp-raw/build/geojson/buses_h2.geojson"),
         log:

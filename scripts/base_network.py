@@ -664,12 +664,7 @@ def base_network(
 ):
     base_network = config["electricity"].get("base_network")
     osm_prebuilt_version = config["electricity"].get("osm-prebuilt-version")
-    assert base_network in {
-        "entsoegridkit",
-        "osm-raw",
-        "osm-prebuilt",
-        "tyndp-raw"
-    }, (
+    assert base_network in {"entsoegridkit", "osm-raw", "osm-prebuilt", "tyndp-raw"}, (
         f"base_network must be either 'entsoegridkit', 'osm-raw', 'osm-prebuilt' or 'tyndp-raw', but got '{base_network}'"
     )
     if base_network == "entsoegridkit":

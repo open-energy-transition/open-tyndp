@@ -4,6 +4,7 @@
 
 
 if config["foresight"] != "perfect":
+
     rule plot_base_network:
         params:
             plotting=config_provider("plotting"),
@@ -21,7 +22,6 @@ if config["foresight"] != "perfect":
             "../envs/environment.yaml"
         script:
             "../scripts/plot_base_network.py"
-
 
     rule plot_power_network_clustered:
         params:

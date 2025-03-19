@@ -16,10 +16,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "plot_base_network",
-            run="tyndp-raw"
-        )
+        snakemake = mock_snakemake("plot_base_network", run="tyndp-raw")
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
@@ -56,7 +53,11 @@ if __name__ == "__main__":
         )
 
         add_legend_lines(
-            ax, sizes_ac, labels_ac, patch_kw=dict(color="rosybrown"), legend_kw=legend_kw_ac
+            ax,
+            sizes_ac,
+            labels_ac,
+            patch_kw=dict(color="rosybrown"),
+            legend_kw=legend_kw_ac,
         )
 
     if not n.links.empty:
@@ -74,7 +75,11 @@ if __name__ == "__main__":
         )
 
         add_legend_lines(
-            ax, sizes_dc, labels_dc, patch_kw=dict(color="darkseagreen"), legend_kw=legend_kw_dc
+            ax,
+            sizes_dc,
+            labels_dc,
+            patch_kw=dict(color="darkseagreen"),
+            legend_kw=legend_kw_dc,
         )
 
     plt.savefig(snakemake.output.map, bbox_inches="tight")
