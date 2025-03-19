@@ -29,3 +29,5 @@ clustering:
   mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
   administrative:
     level: 3
+  temporal:
+    resolution_sector: 50SEG

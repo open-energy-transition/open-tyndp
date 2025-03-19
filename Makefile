@@ -59,6 +59,7 @@ test:
 	snakemake --configfile config/test/config.myopic.yaml
 	snakemake make_summary_perfect --configfile config/test/config.perfect.yaml
 	snakemake --configfile config/test/config.scenarios.yaml -n
+	snakemake resources/dev/tyndp-raw/maps/power-network.pdf resources/dev/tyndp-raw/maps/power-network-s-55.pdf --configfile config/config.tyndp.yaml
 	echo "All tests completed successfully."
 
 unit-test:
@@ -86,6 +87,6 @@ reset:
 	) || echo "Reset cancelled."
 
 tyndp:
-	snakemake resources/dev/tyndp-raw/maps/power-network.pdf resources/dev/tyndp-raw/maps/power-network-s-55.pdf --rerun-incomplete $(args)
-	snakemake resources/dev/osm-prebuilt/maps/power-network.pdf resources/dev/osm-prebuilt/maps/power-network-s-55.pdf --rerun-incomplete $(args)
-	snakemake resources/dev/tyndp-raw/dag_rulegraph.pdf resources/dev/tyndp-raw/dag_filegraph.pdf resources/dev/tyndp-raw/dag_filegraph.pdf resources/dev/osm-prebuilt/dag_filegraph.pdf
+	snakemake resources/dev/tyndp-raw/maps/power-network.pdf resources/dev/tyndp-raw/maps/power-network-s-55.pdf --configfile config/config.tyndp.yaml --rerun-incomplete $(args)
+	snakemake resources/dev/osm-prebuilt/maps/power-network.pdf resources/dev/osm-prebuilt/maps/power-network-s-55.pdf --configfile config/config.tyndp.yaml --rerun-incomplete $(args)
+	snakemake resources/dev/tyndp-raw/dag_rulegraph.pdf resources/dev/tyndp-raw/dag_filegraph.pdf resources/dev/tyndp-raw/dag_filegraph.pdf resources/dev/osm-prebuilt/dag_filegraph.pdf --configfile config/config.tyndp.yaml
