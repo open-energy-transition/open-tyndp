@@ -1257,7 +1257,13 @@ def prepare_costs(cost_file, params, nyears):
 
 
 def add_generation(
-    n, costs, options, spatial, ext_carriers, existing_capacities=None, existing_efficiencies=None
+    n,
+    costs,
+    options,
+    spatial,
+    ext_carriers,
+    existing_capacities=None,
+    existing_efficiencies=None,
 ):
     logger.info("Adding electricity generation")
 
@@ -1553,6 +1559,7 @@ def add_electricity_grid_connection(n, costs):
         "electricity grid connection", "capital_cost"
     ]
 
+
 def add_h2_production(n, nodes, options, spatial, costs, logger):
     """
     Adds base H2 production technologies.
@@ -1630,6 +1637,7 @@ def add_h2_production(n, nodes, options, spatial, costs, logger):
             lifetime=costs.at["SMR", "lifetime"],
         )
 
+
 def add_h2_reconversion(n, nodes, options, spatial, costs, logger):
     """
     Adds base H2 reconversion technologies (optional).
@@ -1673,9 +1681,9 @@ def add_h2_reconversion(n, nodes, options, spatial, costs, logger):
             p_min_pu=options["min_part_load_methanation"],
             efficiency=costs.at["methanation", "efficiency"],
             efficiency2=-costs.at["methanation", "efficiency"]
-                        * costs.at["gas", "CO2 intensity"],
+            * costs.at["gas", "CO2 intensity"],
             capital_cost=costs.at["methanation", "capital_cost"]
-                         * costs.at["methanation", "efficiency"],  # costs given per kW_gas
+            * costs.at["methanation", "efficiency"],  # costs given per kW_gas
             lifetime=costs.at["methanation", "lifetime"],
         )
 
@@ -1792,6 +1800,7 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger):
         lifetime=costs.at[tech, "lifetime"],
     )
 
+
 def add_h2(n, nodes, options, cavern_types, h2_caverns, spatial, costs, logger):
     """
     Adds base H2 components and techs: carrier, production, reconversion (optional) and storage.
@@ -1831,7 +1840,9 @@ def add_h2(n, nodes, options, cavern_types, h2_caverns, spatial, costs, logger):
         The function modifies the network object in-place by adding H2 components.
     """
 
-    logger.info("Adding base H2 components and techs: carrier, production, reconversion (optional), storage.")
+    logger.info(
+        "Adding base H2 components and techs: carrier, production, reconversion (optional), storage."
+    )
 
     n.add("Carrier", "H2")
     n.add("Bus", nodes + " H2", location=nodes, carrier="H2", unit="MWh_LHV")
@@ -1839,6 +1850,7 @@ def add_h2(n, nodes, options, cavern_types, h2_caverns, spatial, costs, logger):
     add_h2_production(n, nodes, options, spatial, costs, logger)
     add_h2_reconversion(n, nodes, options, spatial, costs, logger)
     add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger)
+
 
 def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file, logger):
     """
@@ -1882,7 +1894,7 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file, logger):
         gas_pipes["p_nom_max"] = np.inf
         gas_pipes["p_nom_min"] = gas_pipes.p_nom
         gas_pipes["capital_cost"] = (
-                gas_pipes.length * costs.at["CH4 (g) pipeline", "capital_cost"]
+            gas_pipes.length * costs.at["CH4 (g) pipeline", "capital_cost"]
         )
         gas_pipes["p_nom_extendable"] = False
 
@@ -1923,11 +1935,11 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file, logger):
     # add existing gas storage capacity
     gas_i = n.stores.carrier == "gas"
     e_nom = (
-            gas_input_nodes["storage"]
-            .rename(lambda x: x + " gas Store")
-            .reindex(n.stores.index)
-            .fillna(0.0)
-            * 1e3
+        gas_input_nodes["storage"]
+        .rename(lambda x: x + " gas Store")
+        .reindex(n.stores.index)
+        .fillna(0.0)
+        * 1e3
     )  # MWh_LHV
     e_nom.clip(
         upper=e_nom.quantile(0.98), inplace=True
@@ -1952,7 +1964,7 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file, logger):
     # apply k_edge_augmentation weighted by length of complement edges
     k_edge = options["gas_network_connectivity_upgrade"]
     if augmentation := list(
-            k_edge_augmentation(G, k_edge, avail=complement_edges.values)
+        k_edge_augmentation(G, k_edge, avail=complement_edges.values)
     ):
         new_gas_pipes = pd.DataFrame(augmentation, columns=["bus0", "bus1"])
         new_gas_pipes["length"] = new_gas_pipes.apply(haversine, axis=1)
@@ -1970,7 +1982,7 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file, logger):
             p_nom_extendable=True,
             length=new_gas_pipes.length,
             capital_cost=new_gas_pipes.length
-                         * costs.at["CH4 (g) pipeline", "capital_cost"],
+            * costs.at["CH4 (g) pipeline", "capital_cost"],
             carrier="gas pipeline new",
             lifetime=costs.at["CH4 (g) pipeline", "lifetime"],
         )
@@ -2059,7 +2071,7 @@ def add_h2_pipeline_new(n, costs, logger):
         p_nom_extendable=True,
         length=h2_pipes.length.values,
         capital_cost=costs.at["H2 (g) pipeline", "capital_cost"]
-                     * h2_pipes.length.values,
+        * h2_pipes.length.values,
         carrier="H2 pipeline",
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
