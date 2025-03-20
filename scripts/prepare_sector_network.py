@@ -1553,20 +1553,33 @@ def add_electricity_grid_connection(n, costs):
         "electricity grid connection", "capital_cost"
     ]
 
-def add_h2_production(n, nodes, options, spatial, costs):
+def add_h2_production(n, nodes, options, spatial, costs, logger):
     """
+    Adds base H2 production technologies.
 
     Parameters
     ----------
-    n
-    nodes
-    options
-    spatial
-    costs
+    n : pypsa.Network
+        The PyPSA network container object
+    nodes : pd.Index
+        Pandas Index of locations/nodes
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - SMR_cc : bool
+        - SMR : bool
+        - cc_fraction : float
+    spatial : object, optional
+        Object containing spatial information about nodes and their locations
+    costs : pd.DataFrame
+        Technology cost assumptions
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding components.
     """
 
     # add H2 production technologies
@@ -1617,20 +1630,33 @@ def add_h2_production(n, nodes, options, spatial, costs):
             lifetime=costs.at["SMR", "lifetime"],
         )
 
-def add_h2_reconversion(n, nodes, options, spatial, costs):
+def add_h2_reconversion(n, nodes, options, spatial, costs, logger):
     """
+    Adds base H2 reconversion technologies (optional).
 
     Parameters
     ----------
-    n
-    nodes
-    options
-    spatial
-    costs
+    n : pypsa.Network
+        The PyPSA network container object
+    nodes : pd.Index
+        Pandas Index of locations/nodes
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - hydrogen_fuel_cell : bool
+        - hydrogen_turbine : bool
+        - methanation : bool
+    spatial : object, optional
+        Object containing spatial information about nodes and their locations
+    costs : pd.DataFrame
+        Technology cost assumptions
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding H2 components.
     """
 
     if options["methanation"]:
@@ -1688,21 +1714,35 @@ def add_h2_reconversion(n, nodes, options, spatial, costs):
         )
 
 
-def add_h2_storage(n, nodes, options, cavern_types, h2_caverns):
+def add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger):
     """
+    Adds H2 storage as underground cavern storage (optional) and H2 steel tanks.
 
     Parameters
     ----------
-    n
-    nodes
-    options
-    cavern_types
-    h2_caverns
+    n : pypsa.Network
+        The PyPSA network container object
+    nodes : pd.Index
+        Pandas Index of locations/nodes
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - hydrogen_underground_storage : bool
+    cavern_types : list
+        List of underground storage types to consider
+    h2_caverns : pd.DataFrame
+        Hydrogen cavern storage potentials
+    costs : pd.DataFrame
+        Technology cost assumptions
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding H2 components.
     """
+
     logger.info("Adding hydrogen storage.")
 
     if (
@@ -1752,46 +1792,82 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_caverns):
         lifetime=costs.at[tech, "lifetime"],
     )
 
-def add_h2(n, nodes, options, cavern_types, h2_caverns, spatial, costs):
+def add_h2(n, nodes, options, cavern_types, h2_caverns, spatial, costs, logger):
     """
+    Adds base H2 components and techs: carrier, production, reconversion (optional) and storage.
 
     Parameters
     ----------
-    n
-    nodes
-    options
-    cavern_types
-    h2_caverns
-    spatial
-    costs
+    n : pypsa.Network
+        The PyPSA network container object
+    nodes : pd.Index
+        Pandas Index of locations/nodes
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - hydrogen_fuel_cell : bool
+        - hydrogen_turbine : bool
+        - hydrogen_underground_storage : bool
+        - H2_retrofit : bool
+        - H2_network : bool
+        - SMR_cc : bool
+        - SMR : bool
+        - cc_fraction : float
+        - methanation : bool
+    cavern_types : list
+        List of underground storage types to consider
+    h2_caverns : pd.DataFrame
+        Hydrogen cavern storage potentials
+    spatial : object, optional
+        Object containing spatial information about nodes and their locations
+    costs : pd.DataFrame
+        Technology cost assumptions
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding H2 components.
     """
+
     logger.info("Adding base H2 components and techs: carrier, production, reconversion (optional), storage.")
+
     n.add("Carrier", "H2")
     n.add("Bus", nodes + " H2", location=nodes, carrier="H2", unit="MWh_LHV")
 
-    add_h2_production(n, nodes, options, spatial, costs)
-    add_h2_reconversion(n, nodes, options, spatial, costs)
-    add_h2_storage(n, nodes, options, cavern_types, h2_caverns)
+    add_h2_production(n, nodes, options, spatial, costs, logger)
+    add_h2_reconversion(n, nodes, options, spatial, costs, logger)
+    add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger)
 
-def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file):
+def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file, logger):
     """
+    Adds natural gas infrastructure, incl. LNG terminals, production, storage and entry-points.
 
     Parameters
     ----------
-    n
-    gas_pipes
-    options
-    costs
-    gas_input_nodes_file
+    n : pypsa.Network
+        The PyPSA network container object
+    gas_pipes : pd.DataFrame
+        Dataframe containing gas network data
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - H2_retrofit : bool
+        - gas_network_connectivity_upgrade : int
+    costs : pd.DataFrame
+        Technology cost assumptions
+    gas_input_nodes_file : str, optional
+        Path to CSV file containing gas input nodes data
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding gas grid components.
     """
+
     logger.info(
         "Adding natural gas infrastructure, incl. LNG terminals, production, storage and entry-points."
     )
@@ -1900,20 +1976,31 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file):
         )
 
 
-def add_h2_pipeline_retrofit(n, gas_pipes, options, costs):
+def add_h2_pipeline_retrofit(n, gas_pipes, options, costs, logger):
     """
+    Adds retrofitting options of existing CH4 pipes to H2 pipes.
 
     Parameters
     ----------
-    n
-    gas_pipes
-    options
-    costs
+    n : pypsa.Network
+        The PyPSA network container object
+    gas_pipes : pd.DataFrame
+        Dataframe containing gas network data
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - H2_retrofit_capacity_per_CH4 : float
+    costs : pd.DataFrame
+        Technology cost assumptions
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding H2 retrofitting components.
     """
+
     logger.info("Adding retrofitting options of existing CH4 pipes to H2 pipes.")
 
     fr = "gas pipeline"
@@ -1937,18 +2024,25 @@ def add_h2_pipeline_retrofit(n, gas_pipes, options, costs):
     )
 
 
-def add_h2_pipeline_new(n, costs):
+def add_h2_pipeline_new(n, costs, logger):
     """
+    Adds options for new H2 pipelines.
 
     Parameters
     ----------
-    n
-    costs
+    n : pypsa.Network
+        The PyPSA network container object
+    costs : pd.DataFrame
+        Technology cost assumptions
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding new H2 pipeline components.
     """
+
     logger.info("Add options for new hydrogen pipelines.")
 
     h2_pipes = create_network_topology(
@@ -1973,17 +2067,23 @@ def add_h2_pipeline_new(n, costs):
 
 def add_battery_stores(n, nodes, costs):
     """
+    Adds battery stores with charger and discharger.
 
     Parameters
     ----------
-    n
-    nodes
-    costs
+    n : pypsa.Network
+        The PyPSA network container object
+    nodes : pd.Index
+        Pandas Index of locations/nodes
+    costs : pd.DataFrame
+        Technology cost assumptions
 
     Returns
     -------
-
+    None
+        The function modifies the network object in-place by adding battery store components.
     """
+
     n.add("Carrier", "battery")
 
     n.add("Bus", nodes + " battery", location=nodes, carrier="battery", unit="MWh_el")
@@ -2033,6 +2133,7 @@ def add_gas_and_h2_infrastructure(
     gas_input_nodes_file,
     spatial,
     options,
+    logger,
 ):
     """
     Add storage and grid infrastructure to the network for and gas and hydrogen.
@@ -2067,6 +2168,7 @@ def add_gas_and_h2_infrastructure(
         - SMR_cc : bool
         - SMR : bool
         - cc_fraction : float
+        - methanation : bool
     logger : logging.Logger, optional
         Logger for output messages. If None, no logging is performed.
 
@@ -2079,9 +2181,10 @@ def add_gas_and_h2_infrastructure(
     Notes
     -----
     This function adds multiple types of storage and grid infrastructure, some of which needs to be enabled in options:
-    - Hydrogen infrastructure (electrolysis, SMR, fuel cells, storage, pipelines)
+    - Hydrogen infrastructure (electrolysis, SMR (optional), fuel cells (optional), storage, pipelines (optional))
     - Gas network infrastructure (optional)
     """
+
     # Set defaults
     options = options or {}
 
@@ -2097,6 +2200,7 @@ def add_gas_and_h2_infrastructure(
         h2_caverns=h2_caverns,
         spatial=spatial,
         costs=costs,
+        logger=logger,
     )
 
     # add gas network and H2 retrofit and new pipelines construction
@@ -2110,6 +2214,7 @@ def add_gas_and_h2_infrastructure(
             options=options,
             costs=costs,
             gas_input_nodes_file=gas_input_nodes_file,
+            logger=logger,
         )
 
     if options["H2_retrofit"]:
@@ -2118,10 +2223,11 @@ def add_gas_and_h2_infrastructure(
             gas_pipes=gas_pipes,
             options=options,
             costs=costs,
+            logger=logger,
         )
 
     if options["H2_network"]:
-        add_h2_pipeline_new(n, costs)
+        add_h2_pipeline_new(n, costs, logger=logger)
 
 
 def check_land_transport_shares(shares):
@@ -5514,7 +5620,9 @@ if __name__ == "__main__":
         gas_input_nodes_file=snakemake.input.gas_input_nodes_simplified,
         spatial=spatial,
         options=options,
+        logger=logger,
     )
+
     add_battery_stores(n=n, nodes=pop_layout.index, costs=costs)
 
     if options["transport"]:
