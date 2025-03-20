@@ -4,13 +4,19 @@
 
 from pathlib import Path
 import yaml
-from os.path import normpath, exists
+from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
 from snakemake.utils import min_version
 
 min_version("8.11")
 
-from scripts._helpers import path_provider, copy_default_files, get_scenarios, get_rdir
+from scripts._helpers import (
+    path_provider,
+    copy_default_files,
+    get_scenarios,
+    get_rdir,
+    get_shadow,
+)
 
 
 copy_default_files(workflow)
@@ -23,6 +29,7 @@ configfile: "config/config.tyndp.yaml"
 run = config["run"]
 scenarios = get_scenarios(run)
 RDIR = get_rdir(run)
+shadow_config = get_shadow(run)
 
 shared_resources = run["shared_resources"]["policy"]
 exclude_from_shared = run["shared_resources"]["exclude"]
@@ -30,7 +37,8 @@ logs = path_provider("logs/", RDIR, shared_resources, exclude_from_shared)
 benchmarks = path_provider("benchmarks/", RDIR, shared_resources, exclude_from_shared)
 resources = path_provider("resources/", RDIR, shared_resources, exclude_from_shared)
 
-CDIR = "" if run["shared_cutouts"] else RDIR
+cutout_dir = config["atlite"]["cutout_directory"]
+CDIR = join(cutout_dir, ("" if run["shared_cutouts"] else RDIR))
 RESULTS = "results/" + RDIR
 
 
@@ -39,7 +47,7 @@ localrules:
 
 
 wildcard_constraints:
-    clusters="[0-9]+(m|c)?|all",
+    clusters="[0-9]+(m|c)?|all|adm",
     ll=r"(v|c)([0-9\.]+|opt)",
     opts=r"[-+a-zA-Z0-9\.]*",
     sector_opts=r"[-+a-zA-Z0-9\.\s]*",
@@ -104,18 +112,35 @@ rule purge:
             raise Exception(f"Input {do_purge}. Aborting purge.")
 
 
-rule dag:
+rule rulegraph:
     message:
-        "Creating DAG of workflow."
+        "Creating RULEGRAPH dag of workflow."
     output:
-        dot=resources("dag.dot"),
-        pdf=resources("dag.pdf"),
-        png=resources("dag.png"),
+        dot=resources("dag_rulegraph.dot"),
+        pdf=resources("dag_rulegraph.pdf"),
+        png=resources("dag_rulegraph.png"),
     conda:
         "envs/environment.yaml"
     shell:
         r"""
         snakemake --rulegraph all | sed -n "/digraph/,\$p" > {output.dot}
+        dot -Tpdf -o {output.pdf} {output.dot}
+        dot -Tpng -o {output.png} {output.dot}
+        """
+
+
+rule filegraph:
+    message:
+        "Creating FILEGRAPH dag of workflow."
+    output:
+        dot=resources("dag_filegraph.dot"),
+        pdf=resources("dag_filegraph.pdf"),
+        png=resources("dag_filegraph.png"),
+    conda:
+        "envs/environment.yaml"
+    shell:
+        r"""
+        snakemake --filegraph all | sed -n "/digraph/,\$p" > {output.dot}
         dot -Tpdf -o {output.pdf} {output.dot}
         dot -Tpng -o {output.png} {output.dot}
         """
