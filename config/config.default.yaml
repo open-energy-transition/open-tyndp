@@ -626,6 +626,7 @@ sector:
   hydrogen_turbine: false
   SMR: true
   SMR_cc: true
+  ATR: false
   regional_oil_demand: false
   regional_coal_demand: false
   regional_co2_sequestration_potential:
@@ -1292,6 +1293,7 @@ plotting:
     retrofitted H2 boiler: '#e5a0d9'
     SMR: '#870c71'
     SMR CC: '#4f1745'
+    ATR: '#870c99'
     H2 liquefaction: '#d647bd'
     hydrogen storage: '#bf13a0'
     H2 Store: '#bf13a0'

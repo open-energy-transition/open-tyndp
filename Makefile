@@ -84,3 +84,6 @@ reset:
 		rm ./config/config.yaml || true; \
 		echo "Reset completed." \
 	) || echo "Reset cancelled."
+
+tyndp:
+	snakemake resources/h2_network_tyndp/maps/base_h2_network_100___2030.pdf --rerun-incomplete $(args)
