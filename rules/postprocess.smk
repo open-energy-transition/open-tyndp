@@ -82,16 +82,20 @@ if config["foresight"] != "perfect":
             plotting=config_provider("plotting"),
         input:
             network=resources(
-            "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
-        ),
+                "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
+            ),
             regions_onshore=resources("regions_onshore.geojson"),
         output:
-            map=resources("maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"),
+            map=resources(
+                "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+            ),
         threads: 1
         resources:
             mem_mb=4000,
         benchmark:
-            benchmarks("plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}")
+            benchmarks(
+                "plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            )
         log:
             RESULTS
             + "logs/plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",

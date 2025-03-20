@@ -1083,7 +1083,9 @@ def input_heat_source_power(w):
         ).keys()
     }
 
+
 if config["sector"]["h2_topology_tyndp"]["enable"]:
+
     rule build_tyndp_h2_network:
         params:
             snapshots=config_provider("snapshots"),
@@ -1104,6 +1106,7 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
             "../envs/environment.yaml"
         script:
             "../scripts/build_tyndp_h2_network.py"
+
 
 rule prepare_sector_network:
     params:
@@ -1232,19 +1235,19 @@ rule prepare_sector_network:
             "direct_heat_source_utilisation_profiles_base_s_{clusters}_{planning_horizons}.nc"
         ),
         h2_grid_tyndp=lambda w: (
-        resources("h2_reference_grid_tyndp.csv")
-        if config_provider("sector","h2_topology_tyndp","enable")(w)
-        else[]
+            resources("h2_reference_grid_tyndp.csv")
+            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            else []
         ),
         interzonal_prepped=lambda w: (
-        resources("h2_interzonal_tyndp.csv")
-        if config_provider("sector","h2_topology_tyndp","enable")(w)
-        else[]
+            resources("h2_interzonal_tyndp.csv")
+            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            else []
         ),
         buses_h2=lambda w: (
-        resources("buses_h2.geojson")
-        if config_provider("sector","h2_topology_tyndp","enable")(w)
-        else[]
+            resources("buses_h2.geojson")
+            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            else []
         ),
     output:
         resources(

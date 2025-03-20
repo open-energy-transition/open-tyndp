@@ -1,21 +1,17 @@
 import logging
 
-import pandas as pd
-import numpy as np
+import geopandas as gpd
 import matplotlib.pyplot as plt
 import pypsa
-import os
-import yaml
-import matplotlib.animation as animation
-import geopandas as gpd
-import cartopy.crs as ccrs
-from pypsa.plot import add_legend_lines, add_legend_patches, add_legend_circles
 from plot_hydrogen_network import load_projection
+from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
+
 plt.style.use(["ggplot"])
 
 from _helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
+
 
 def plot_h2_map_base(network):
     n = network.copy()
@@ -33,9 +29,7 @@ def plot_h2_map_base(network):
     link_widths_total = link_widths_total.reindex(n.links.index).fillna(0.0)
 
     proj = load_projection(dict(name="EqualEarth"))
-    n.buses.drop(
-        n.buses.index[~n.buses.carrier.str.contains("H2")], inplace=True
-    )
+    n.buses.drop(n.buses.index[~n.buses.carrier.str.contains("H2")], inplace=True)
 
     logger.info("Plotting base H2 pipeline capacities.")
     fig, ax = plt.subplots(figsize=(7, 6), subplot_kw={"projection": proj})
@@ -108,6 +102,7 @@ def plot_h2_map_base(network):
 
     plt.savefig(snakemake.output.map, bbox_inches="tight")
     plt.close()
+
 
 if __name__ == "__main__":
     if "snakemake" not in globals():

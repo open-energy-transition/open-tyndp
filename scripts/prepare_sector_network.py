@@ -11,10 +11,10 @@ import os
 from itertools import product
 from types import SimpleNamespace
 
+import geopandas as gpd
 import networkx as nx
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 import pypsa
 import xarray as xr
 from _helpers import (
@@ -151,12 +151,17 @@ def define_spatial(nodes, options):
         spatial.h2_tyndp = SimpleNamespace()
         # load tyndp h2 buses
         buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
-        spatial.h2_tyndp.nodes = pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2"))
+        spatial.h2_tyndp.nodes = pd.Index(
+            (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
+        )
         spatial.h2_tyndp.locations = pd.Index(np.tile(buses_h2.index + " Z2", 2))
         spatial.h2_tyndp.country = pd.Index(np.tile(buses_h2.country, 2))
-        spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x,2))
-        spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y,2))
-        spatial.h2_tyndp.df = pd.DataFrame(vars(spatial.h2_tyndp), index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")))
+        spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x, 2))
+        spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y, 2))
+        spatial.h2_tyndp.df = pd.DataFrame(
+            vars(spatial.h2_tyndp),
+            index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
+        )
 
     # methanol
 
@@ -422,6 +427,7 @@ def create_network_topology(
 
     return topo
 
+
 def create_tyndp_h2_network(fn_h2_network):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
@@ -437,10 +443,13 @@ def create_tyndp_h2_network(fn_h2_network):
 
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
-    h2_pipes = h2_pipes.assign(bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2")
+    h2_pipes = h2_pipes.assign(
+        bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2"
+    )
     h2_pipes["length"] = h2_pipes.apply(haversine, axis=1)
 
     return h2_pipes
+
 
 def update_wind_solar_costs(
     n: pypsa.Network,
@@ -1567,9 +1576,13 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
     logger.info("Adding Z1 and Z2 dummy electrolysers.")
     n.add(
         "Link",
-        (nodes.index + " H2 Z1 Electrolysis").append(nodes.index + " H2 Z2 Electrolysis"),
+        (nodes.index + " H2 Z1 Electrolysis").append(
+            nodes.index + " H2 Z2 Electrolysis"
+        ),
         bus0=np.tile(nodes.index, 2),
-        bus1=np.append(nodes.country.values + " H2 Z1", (nodes.country.values + " H2 Z2")),
+        bus1=np.append(
+            nodes.country.values + " H2 Z1", (nodes.country.values + " H2 Z2")
+        ),
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -1671,9 +1684,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
     """
 
     if options["methanation"]:
-        logger.info(
-            "Adding Z2 dummy methanation."
-        )
+        logger.info("Adding Z2 dummy methanation.")
         # TODO: this does currently only work for no gas spatial and no co2 spatial
         n.add(
             "Link",
@@ -1687,20 +1698,20 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
             p_min_pu=options["min_part_load_methanation"],
             efficiency=costs.at["methanation", "efficiency"],
             efficiency2=-costs.at["methanation", "efficiency"]
-                        * costs.at["gas", "CO2 intensity"],
+            * costs.at["gas", "CO2 intensity"],
             capital_cost=costs.at["methanation", "fixed"]
-                         * costs.at["methanation", "efficiency"],  # costs given per kW_gas
+            * costs.at["methanation", "efficiency"],  # costs given per kW_gas
             lifetime=costs.at["methanation", "lifetime"],
         )
 
     if options["hydrogen_fuel_cell"]:
-        logger.info(
-            "Adding Z1 and Z2 dummy hydrogen fuel cell for re-electrification."
-        )
+        logger.info("Adding Z1 and Z2 dummy hydrogen fuel cell for re-electrification.")
         n.add(
             "Link",
             (nodes.index + " H2 Z1 Fuel Cell").append(nodes.index + " H2 Z2 Fuel Cell"),
-            bus0=np.append(nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"),
+            bus0=np.append(
+                nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"
+            ),
             bus1=np.tile(nodes.index, 2),
             p_nom_extendable=True,
             carrier="H2 Fuel Cell",
@@ -1717,7 +1728,9 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
         n.add(
             "Link",
             (nodes.index + " H2 Z1 turbine").append(nodes.index + " H2 Z2 turbine"),
-            bus0=np.append(nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"),
+            bus0=np.append(
+                nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"
+            ),
             bus1=np.tile(nodes.index, 2),
             p_nom_extendable=True,
             carrier="H2 turbine",
@@ -1749,9 +1762,13 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes, interzonal, costs):
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
 
-    interzonal = interzonal.assign(bus0=interzonal.country0.str.split("H2").str.join(" H2 "),
-                                   bus1=interzonal.country1.str.split("H2").str.join(" H2 "))
-    interzonal = interzonal.loc[interzonal.country0.str.startswith(tuple(nodes.country.values))]
+    interzonal = interzonal.assign(
+        bus0=interzonal.country0.str.split("H2").str.join(" H2 "),
+        bus1=interzonal.country1.str.split("H2").str.join(" H2 "),
+    )
+    interzonal = interzonal.loc[
+        interzonal.country0.str.startswith(tuple(nodes.country.values))
+    ]
     n.add(
         "Link",
         interzonal.index,
@@ -1788,11 +1805,11 @@ def add_h2_storage_tyndp(n, cavern_types, h2_caverns, buses_h2_z1, costs):
 
         # group on country level
         h2_caverns = (
-            h2_caverns
-            .to_frame()
+            h2_caverns.to_frame()
             .assign(country=h2_caverns.index.map(n.buses.country).values)
-            .groupby("country").sum()
-            .loc[:,0]
+            .groupby("country")
+            .sum()
+            .loc[:, 0]
         )
 
         logger.info("Adding dummy TYNDP H2 underground storage for H2 Z2")
@@ -1854,11 +1871,17 @@ def add_tyndp_h2_topology(n, spatial, costs):
     # add H2 as carrier
     n.add("Carrier", "H2")
 
-    nodes = n.buses.loc[pop_layout.index, :].query("country in @spatial.h2_tyndp.country")
+    nodes = n.buses.loc[pop_layout.index, :].query(
+        "country in @spatial.h2_tyndp.country"
+    )
     buses_h2_z2 = spatial.h2_tyndp.nodes[
-        ~spatial.h2_tyndp.nodes.str.contains('IB') & spatial.h2_tyndp.nodes.str.contains('Z2')]
+        ~spatial.h2_tyndp.nodes.str.contains("IB")
+        & spatial.h2_tyndp.nodes.str.contains("Z2")
+    ]
     buses_h2_z1 = spatial.h2_tyndp.nodes[
-        ~spatial.h2_tyndp.nodes.str.contains('IB') & spatial.h2_tyndp.nodes.str.contains('Z1')]
+        ~spatial.h2_tyndp.nodes.str.contains("IB")
+        & spatial.h2_tyndp.nodes.str.contains("Z1")
+    ]
 
     # add H2 Z1 and Z2 buses
     logger.info("Adding Z1 and Z2 H2 nodes.")
@@ -1869,7 +1892,7 @@ def add_tyndp_h2_topology(n, spatial, costs):
         x=spatial.h2_tyndp.x,
         y=spatial.h2_tyndp.y,
         location=spatial.h2_tyndp.locations,
-        country = spatial.h2_tyndp.country,
+        country=spatial.h2_tyndp.country,
         carrier="H2",
         unit="MWh_LHV",
     )
@@ -1907,10 +1930,10 @@ def add_storage_and_grids(
 ):
     """
     Add storage and grid infrastructure to the network including hydrogen, gas, and battery systems.
-    
+
     Parameters
     ----------
-    n : pypsa.Network    
+    n : pypsa.Network
         The PyPSA network container object
     costs : pd.DataFrame
         Technology cost assumptions
@@ -4958,7 +4981,10 @@ def add_waste_heat(n):
         link_carriers = n.links.carrier.unique()
 
         # TODO what is the 0.95 and should it be a config option?
-        if options["use_fischer_tropsch_waste_heat"] and "Fischer-Tropsch" in link_carriers:
+        if (
+            options["use_fischer_tropsch_waste_heat"]
+            and "Fischer-Tropsch" in link_carriers
+        ):
             n.links.loc[urban_central + " Fischer-Tropsch", "bus3"] = (
                 urban_central + " urban central heat"
             )
@@ -4991,7 +5017,10 @@ def add_waste_heat(n):
                 0.15 * total_energy_input / electricity_input
             ) * options["use_haber_bosch_waste_heat"]
 
-        if options["use_methanolisation_waste_heat"] and "methanolisation" in link_carriers:
+        if (
+            options["use_methanolisation_waste_heat"]
+            and "methanolisation" in link_carriers
+        ):
             n.links.loc[urban_central + " methanolisation", "bus4"] = (
                 urban_central + " urban central heat"
             )
@@ -5001,7 +5030,10 @@ def add_waste_heat(n):
             ) * options["use_methanolisation_waste_heat"]
 
         # TODO integrate usable waste heat efficiency into technology-data from DEA
-        if options["use_electrolysis_waste_heat"] and "H2 Electrolysis" in link_carriers:
+        if (
+            options["use_electrolysis_waste_heat"]
+            and "H2 Electrolysis" in link_carriers
+        ):
             n.links.loc[urban_central + " H2 Electrolysis", "bus2"] = (
                 urban_central + " urban central heat"
             )
@@ -5715,7 +5747,9 @@ if __name__ == "__main__":
             costs=costs,
             pop_layout=pop_layout,
             h2_cavern_file=snakemake.input.h2_cavern,
-            cavern_types=snakemake.params.sector["hydrogen_underground_storage_locations"],
+            cavern_types=snakemake.params.sector[
+                "hydrogen_underground_storage_locations"
+            ],
             clustered_gas_network_file=snakemake.input.clustered_gas_network,
             gas_input_nodes_file=snakemake.input.gas_input_nodes_simplified,
             spatial=spatial,
@@ -5796,7 +5830,9 @@ if __name__ == "__main__":
 
     if options["heating"]:
         if options["h2_topology_tyndp"]["enable"]:
-            logger.warning("Using industrial waste heat not yet compatible with TYNDP H2 topology.")
+            logger.warning(
+                "Using industrial waste heat not yet compatible with TYNDP H2 topology."
+            )
         else:
             add_waste_heat(n)
 
