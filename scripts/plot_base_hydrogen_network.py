@@ -4,14 +4,15 @@
 """
 Creates map of base hydrogen network, added before the optimization.
 """
+
 import logging
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pypsa
+from _helpers import configure_logging, set_scenario_config
 from plot_hydrogen_network import load_projection
 from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
-from _helpers import configure_logging, set_scenario_config
 
 plt.style.use(["ggplot"])
 
