@@ -2148,14 +2148,14 @@ def add_gas_and_h2_infrastructure(
     logger,
 ):
     """
-    Add storage and grid infrastructure to the network for and gas and hydrogen.
+    Add storage and grid infrastructure to the network for gas and hydrogen.
 
     Parameters
     ----------
     n : pypsa.Network
         The PyPSA network container object
     costs : pd.DataFrame
-        Technology cost assumptions
+        Cost assumptions for different technologies. Must include gas and hydrogen assumptions.
     pop_layout : pd.DataFrame
         Population layout with index of locations/nodes
     h2_cavern_file : str
@@ -2215,7 +2215,7 @@ def add_gas_and_h2_infrastructure(
         logger=logger,
     )
 
-    # add gas network and H2 retrofit and new pipelines construction
+    # add gas network, along with new and retrofitted H2 pipelines
     if options["gas_network"] or options["H2_retrofit"]:
         gas_pipes = pd.read_csv(clustered_gas_network_file, index_col=0)
 
