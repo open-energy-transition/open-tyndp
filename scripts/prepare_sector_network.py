@@ -1722,7 +1722,7 @@ def add_h2_reconversion(n, nodes, options, spatial, costs, logger):
         )
 
 
-def add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger):
+def add_h2_storage(n, nodes, options, cavern_types, h2_cavern_file, costs, logger):
     """
     Adds H2 storage as underground cavern storage (optional) and H2 steel tanks.
 
@@ -1738,8 +1738,8 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger):
         - hydrogen_underground_storage : bool
     cavern_types : list
         List of underground storage types to consider
-    h2_caverns : pd.DataFrame
-        Hydrogen cavern storage potentials
+    h2_cavern_file : str
+        Path to CSV file containing hydrogen cavern storage potentials
     costs : pd.DataFrame
         Technology cost assumptions
     logger : logging.Logger, optional
@@ -1752,6 +1752,8 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger):
     """
 
     logger.info("Adding hydrogen storage.")
+
+    h2_caverns = pd.read_csv(h2_cavern_file, index_col=0)
 
     if (
         not h2_caverns.empty
@@ -1799,57 +1801,6 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger):
         capital_cost=costs.at[tech, "capital_cost"],
         lifetime=costs.at[tech, "lifetime"],
     )
-
-
-def add_h2(n, nodes, options, cavern_types, h2_caverns, spatial, costs, logger):
-    """
-    Adds base H2 components and techs: carrier, production, reconversion (optional) and storage.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network container object
-    nodes : pd.Index
-        Pandas Index of locations/nodes
-    options : dict, optional
-        Dictionary of configuration options. Defaults to empty dict if not provided.
-        Key options include:
-        - hydrogen_fuel_cell : bool
-        - hydrogen_turbine : bool
-        - hydrogen_underground_storage : bool
-        - H2_retrofit : bool
-        - H2_network : bool
-        - SMR_cc : bool
-        - SMR : bool
-        - cc_fraction : float
-        - methanation : bool
-    cavern_types : list
-        List of underground storage types to consider
-    h2_caverns : pd.DataFrame
-        Hydrogen cavern storage potentials
-    spatial : object, optional
-        Object containing spatial information about nodes and their locations
-    costs : pd.DataFrame
-        Technology cost assumptions
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
-
-    Returns
-    -------
-    None
-        The function modifies the network object in-place by adding H2 components.
-    """
-
-    logger.info(
-        "Adding base H2 components and techs: carrier, production, reconversion (optional), storage."
-    )
-
-    n.add("Carrier", "H2")
-    n.add("Bus", nodes + " H2", location=nodes, carrier="H2", unit="MWh_LHV")
-
-    add_h2_production(n, nodes, options, spatial, costs, logger)
-    add_h2_reconversion(n, nodes, options, spatial, costs, logger)
-    add_h2_storage(n, nodes, options, cavern_types, h2_caverns, costs, logger)
 
 
 def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes_file, logger):
@@ -2201,16 +2152,39 @@ def add_gas_and_h2_infrastructure(
     options = options or {}
 
     nodes = pop_layout.index
-    h2_caverns = pd.read_csv(h2_cavern_file, index_col=0)
 
     # add base h2 technologies (carrier, production, reconversion, storage)
-    add_h2(
+    logger.info(
+        "Adding base H2 components and techs: carrier, production, reconversion (optional), storage."
+    )
+
+    # add H2 carrier and buses
+    n.add("Carrier", "H2")
+    n.add("Bus", nodes + " H2", location=nodes, carrier="H2", unit="MWh_LHV")
+
+    # add production, reconversion (optional) and storage
+    add_h2_production(
+        n=n,
+        nodes=nodes,
+        options=options,
+        spatial=spatial,
+        costs=costs,
+        logger=logger,
+    )
+    add_h2_reconversion(
+        n=n,
+        nodes=nodes,
+        options=options,
+        spatial=spatial,
+        costs=costs,
+        logger=logger,
+    )
+    add_h2_storage(
         n=n,
         nodes=nodes,
         options=options,
         cavern_types=cavern_types,
-        h2_caverns=h2_caverns,
-        spatial=spatial,
+        h2_cavern_file=h2_cavern_file,
         costs=costs,
         logger=logger,
     )
