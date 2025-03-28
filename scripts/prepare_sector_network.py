@@ -1586,7 +1586,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
-        capital_cost=costs.at["electrolysis", "fixed"],
+        capital_cost=costs.at["electrolysis", "capital_cost"],
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
@@ -1605,7 +1605,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
             efficiency=costs.at["SMR CC", "efficiency"],
             efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
             efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
-            capital_cost=costs.at["SMR CC", "fixed"],
+            capital_cost=costs.at["SMR CC", "capital_cost"],
             lifetime=costs.at["SMR CC", "lifetime"],
         )
 
@@ -1622,7 +1622,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
             carrier="SMR",
             efficiency=costs.at["SMR", "efficiency"],
             efficiency2=costs.at["gas", "CO2 intensity"],
-            capital_cost=costs.at["SMR", "fixed"],
+            capital_cost=costs.at["SMR", "capital_cost"],
             lifetime=costs.at["SMR", "lifetime"],
         )
 
@@ -1673,7 +1673,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
-        capital_cost=costs.at["electrolysis", "fixed"],
+        capital_cost=costs.at["electrolysis", "capital_cost"],
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
@@ -1699,7 +1699,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
             efficiency=costs.at["methanation", "efficiency"],
             efficiency2=-costs.at["methanation", "efficiency"]
             * costs.at["gas", "CO2 intensity"],
-            capital_cost=costs.at["methanation", "fixed"]
+            capital_cost=costs.at["methanation", "capital_cost"]
             * costs.at["methanation", "efficiency"],  # costs given per kW_gas
             lifetime=costs.at["methanation", "lifetime"],
         )
@@ -1716,7 +1716,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
             p_nom_extendable=True,
             carrier="H2 Fuel Cell",
             efficiency=costs.at["fuel cell", "efficiency"],
-            capital_cost=costs.at["fuel cell", "fixed"]
+            capital_cost=costs.at["fuel cell", "capital_cost"]
             * costs.at["fuel cell", "efficiency"],  # NB: fixed cost is per MWel
             lifetime=costs.at["fuel cell", "lifetime"],
         )
@@ -1735,7 +1735,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
             p_nom_extendable=True,
             carrier="H2 turbine",
             efficiency=costs.at["OCGT", "efficiency"],
-            capital_cost=costs.at["OCGT", "fixed"]
+            capital_cost=costs.at["OCGT", "capital_cost"]
             * costs.at["OCGT", "efficiency"],  # NB: fixed cost is per MWel
             marginal_cost=costs.at["OCGT", "VOM"],
             lifetime=costs.at["OCGT", "lifetime"],
@@ -1757,7 +1757,7 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes, interzonal, costs):
         p_nom=h2_pipes.p_nom,
         length=h2_pipes.length,
         bidirectional=False,
-        capital_cost=costs.at["H2 (g) pipeline", "fixed"] * h2_pipes.length.values,
+        capital_cost=costs.at["H2 (g) pipeline", "capital_cost"] * h2_pipes.length.values,
         carrier="H2 pipeline",
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
@@ -1822,7 +1822,7 @@ def add_h2_storage_tyndp(n, cavern_types, h2_caverns, buses_h2_z1, costs):
             e_nom_max=h2_caverns.values,
             e_cyclic=True,
             carrier="H2 Store",
-            capital_cost=costs.at["hydrogen storage underground", "fixed"],
+            capital_cost=costs.at["hydrogen storage underground", "capital_cost"],
             lifetime=costs.at["hydrogen storage underground", "lifetime"],
         )
 
@@ -1838,7 +1838,7 @@ def add_h2_storage_tyndp(n, cavern_types, h2_caverns, buses_h2_z1, costs):
         e_nom_extendable=True,
         e_cyclic=True,
         carrier="H2 Store",
-        capital_cost=costs.at[tech, "fixed"],
+        capital_cost=costs.at[tech, "capital_cost"],
         lifetime=costs.at[tech, "lifetime"],
     )
 
