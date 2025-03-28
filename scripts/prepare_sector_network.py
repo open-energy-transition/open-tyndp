@@ -1757,7 +1757,8 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes, interzonal, costs):
         p_nom=h2_pipes.p_nom,
         length=h2_pipes.length,
         bidirectional=False,
-        capital_cost=costs.at["H2 (g) pipeline", "capital_cost"] * h2_pipes.length.values,
+        capital_cost=costs.at["H2 (g) pipeline", "capital_cost"]
+        * h2_pipes.length.values,
         carrier="H2 pipeline",
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
