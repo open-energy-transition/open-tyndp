@@ -1603,7 +1603,23 @@ def add_electricity_grid_connection(n, costs):
 
 def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
     """
-    Adds electrolyzers for Z1 and Z2 and optionally add SMR, SMR CC and ATR.
+    Adds TYNDP electrolyzers for Z1 and Z2 and optionally add SMR, SMR CC and ATR.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    nodes : pd.Index
+        Pandas Index of electricity node locations/nodes
+    buses_h2_z1 : SimpleNamespace
+        Namespace object with spatial nodes of H2 Z1 buses
+    costs : pd.DataFrame
+        Technology cost assumptions
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding components.
     """
 
     logger.info("Adding Z1 and Z2 dummy electrolysers.")
@@ -1683,7 +1699,23 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
 
 def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     """
-    Adds Z2 DRES electricity buses and electrolyzers.
+    Adds TYNDP Z2 DRES electricity buses and electrolyzers.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    spatial : object
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`
+    buses_h2_z2 : SimpleNamespace
+        Namespace object with spatial nodes of H2 Z2 buses
+    costs : pd.DataFrame
+        Technology cost assumptions
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding components.
     """
 
     logger.info("Adding Z2 dummy DRES electricity buses and electrolyzers.")
@@ -1713,7 +1745,25 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
 
 def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
     """
-    Adds H2 reconversion with options for Fuel cells, H2 turbines and Methanation.
+    Adds TYNDP H2 reconversion with options for Fuel cells, H2 turbines and methanation.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    spatial : object
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`
+    nodes : pd.Index
+        Pandas Index of electricity node locations/nodes
+    buses_h2_z2 : SimpleNamespace
+        Namespace object with spatial nodes of H2 Z2 buses
+    costs : pd.DataFrame
+        Technology cost assumptions
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding components.
     """
 
     if options["methanation"]:
@@ -1775,10 +1825,31 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
         )
 
 
-def add_h2_grid_tyndp(n, nodes, h2_pipes, interzonal, costs):
+def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
     """
     Adds TYNDP hydrogen pipelines and interzonal (Z1 <-> Z2) connections.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    nodes : pd.Index
+        Pandas Index of electricity node locations/nodes
+    h2_pipes_file : str
+        Path to CSV file containing prepped H2 reference grid data
+    interzonal_file : str
+        Path to CSV file containing prepped H2 interzonal connection data
+    costs : pd.DataFrame
+        Technology cost assumptions
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding components.
     """
+
+    h2_pipes = create_tyndp_h2_network(h2_pipes_file)
+    interzonal = pd.read_csv(interzonal_file, index_col=0)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
     n.add(
@@ -1815,10 +1886,30 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes, interzonal, costs):
     )
 
 
-def add_h2_storage_tyndp(n, cavern_types, h2_caverns, buses_h2_z1, costs):
+def add_h2_storage_tyndp(n, cavern_types, h2_cavern_file, buses_h2_z1, costs):
     """
-    Adds Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions.
+    Adds TYNDP Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    cavern_types : list
+        List of underground storage types to consider
+    h2_caverns_file : str
+        Path to CSV containing hydrogen cavern storage potentials
+    buses_h2_z1 : SimpleNamespace
+        Namespace object with spatial nodes of H2 Z1 buses
+    costs : pd.DataFrame
+        Technology cost assumptions
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding components.
     """
+
+    h2_caverns = pd.read_csv(h2_cavern_file, index_col=0)
 
     # add underground hydrogen cavern storage to all H2 Z2 nodes
     if (
@@ -1877,7 +1968,7 @@ def add_h2_storage_tyndp(n, cavern_types, h2_caverns, buses_h2_z1, costs):
     )
 
 
-def add_tyndp_h2_topology(n, spatial, costs):
+def add_tyndp_h2_topology(n, spatial, h2_cavern_file, h2_pipes_file, interzonal_file, cavern_types, costs):
     """
     Add TYNDP H2 topology to the network.
     This adds new single country H2 buses (Z1 + Z2 nodes) and pipeline connections
@@ -1893,18 +1984,32 @@ def add_tyndp_h2_topology(n, spatial, costs):
     Parameters
     ----------
     n : pypsa.Network
-    spatial: SimpleNamespace with spatial nodes for different carriers such as `h2_tyndp`
-    costs : df pd.Dataframe with associated cost assumptions.
+        The PyPSA network container object
+    spatial : object
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`
+    h2_cavern_file : str
+        Path to CSV file containing hydrogen cavern storage potentials
+    h2_pipes_file : str
+        Path to CSV file containing prepped H2 reference grid data
+    interzonal_file : str
+        Path to CSV file containing prepped H2 interzonal connection data
+    cavern_types : list
+        List of underground storage types to consider
+    costs : pd.DataFrame
+        Technology cost assumptions
 
     Returns
     -------
-    pd.DataFrame with columns bus0, bus1, length, underwater_fraction
+    None
+        The function modifies the network object in-place by adding components.
     """
-    logger.info("Adding TYNDP hydrogen topology.")
+
+    logger.info("Adding TYNDP hydrogen topology and techs: carrier, Z1 and Z2 buses, production, reconversion (optional), grid, storage.")
 
     # add H2 as carrier
     n.add("Carrier", "H2")
 
+    # filter for electricity nodes and H2 Z1 and Z2 buses
     nodes = n.buses.loc[pop_layout.index, :].query(
         "country in @spatial.h2_tyndp.country"
     )
@@ -1941,14 +2046,22 @@ def add_tyndp_h2_topology(n, spatial, costs):
     add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs)
 
     # add H2 grid (H2 reference grid and interzonal (Z1 <-> Z2) capacities)
-    h2_pipes = create_tyndp_h2_network(snakemake.input.h2_grid_tyndp)
-    interzonal = pd.read_csv(snakemake.input.interzonal_prepped, index_col=0)
-    add_h2_grid_tyndp(n, nodes, h2_pipes, interzonal, costs)
+    add_h2_grid_tyndp(
+        n,
+        nodes,
+        h2_pipes_file=h2_pipes_file,
+        interzonal_file=interzonal_file,
+        costs=costs,
+    )
 
     # add H2 storage (Z1: H2 tanks; Z2: Salt caverns)
-    cavern_types = snakemake.params.sector["hydrogen_underground_storage_locations"]
-    h2_caverns = pd.read_csv(snakemake.input.h2_cavern, index_col=0)
-    add_h2_storage_tyndp(n, cavern_types, h2_caverns, buses_h2_z1, costs)
+    add_h2_storage_tyndp(
+        n,
+        cavern_types=cavern_types,
+        h2_cavern_file=h2_cavern_file,
+        buses_h2_z1=buses_h2_z1,
+        costs=costs,
+    )
 
 
 def add_h2_production(n, nodes, options, spatial, costs, logger):
@@ -2545,7 +2658,15 @@ def add_gas_and_h2_infrastructure(
     nodes = pop_layout.index
 
     if options["h2_topology_tyndp"]["enable"]:
-        add_tyndp_h2_topology(n, spatial, costs)
+        add_tyndp_h2_topology(
+            n=n,
+            spatial=spatial,
+            h2_cavern_file=h2_cavern_file,
+            h2_pipes_file=snakemake.input.h2_grid_tyndp,
+            interzonal_file=snakemake.input.interzonal_prepped,
+            cavern_types=cavern_types,
+            costs=costs,
+        )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
         logger.info(
