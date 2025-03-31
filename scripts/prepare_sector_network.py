@@ -2544,41 +2544,44 @@ def add_gas_and_h2_infrastructure(
 
     nodes = pop_layout.index
 
-    # add base h2 technologies (carrier, production, reconversion, storage)
-    logger.info(
-        "Adding base H2 components and techs: carrier, production, reconversion (optional), storage."
-    )
+    if options["h2_topology_tyndp"]["enable"]:
+        add_tyndp_h2_topology(n, spatial, costs)
+    else:
+        # add base h2 technologies (carrier, production, reconversion, storage)
+        logger.info(
+            "Adding base H2 components and techs: carrier, production, reconversion (optional), storage."
+        )
 
-    # add H2 carrier and buses
-    n.add("Carrier", "H2")
-    n.add("Bus", nodes + " H2", location=nodes, carrier="H2", unit="MWh_LHV")
+        # add H2 carrier and buses
+        n.add("Carrier", "H2")
+        n.add("Bus", nodes + " H2", location=nodes, carrier="H2", unit="MWh_LHV")
 
-    # add production, reconversion (optional) and storage
-    add_h2_production(
-        n=n,
-        nodes=nodes,
-        options=options,
-        spatial=spatial,
-        costs=costs,
-        logger=logger,
-    )
-    add_h2_reconversion(
-        n=n,
-        nodes=nodes,
-        options=options,
-        spatial=spatial,
-        costs=costs,
-        logger=logger,
-    )
-    add_h2_storage(
-        n=n,
-        nodes=nodes,
-        options=options,
-        cavern_types=cavern_types,
-        h2_cavern_file=h2_cavern_file,
-        costs=costs,
-        logger=logger,
-    )
+        # add production, reconversion (optional) and storage
+        add_h2_production(
+            n=n,
+            nodes=nodes,
+            options=options,
+            spatial=spatial,
+            costs=costs,
+            logger=logger,
+        )
+        add_h2_reconversion(
+            n=n,
+            nodes=nodes,
+            options=options,
+            spatial=spatial,
+            costs=costs,
+            logger=logger,
+        )
+        add_h2_storage(
+            n=n,
+            nodes=nodes,
+            options=options,
+            cavern_types=cavern_types,
+            h2_cavern_file=h2_cavern_file,
+            costs=costs,
+            logger=logger,
+        )
 
     # add gas network, along with new and retrofitted H2 pipelines
     if options["gas_network"] or options["H2_retrofit"]:
@@ -2594,7 +2597,7 @@ def add_gas_and_h2_infrastructure(
             logger=logger,
         )
 
-    if options["H2_retrofit"]:
+    if options["H2_retrofit"] and not options["h2_topology_tyndp"]["enable"]:
         add_h2_pipeline_retrofit(
             n=n,
             gas_pipes=gas_pipes,
@@ -2603,7 +2606,7 @@ def add_gas_and_h2_infrastructure(
             logger=logger,
         )
 
-    if options["H2_network"]:
+    if options["H2_network"] and not options["h2_topology_tyndp"]["enable"]:
         add_h2_pipeline_new(n, costs, logger=logger)
 
 
@@ -5987,23 +5990,20 @@ if __name__ == "__main__":
         existing_efficiencies=existing_efficiencies,
     )
 
-    if options["h2_topology_tyndp"]["enable"]:
-        add_tyndp_h2_topology(n, spatial, costs)
-    else:
-        add_gas_and_h2_infrastructure(
-            n=n,
-            costs=costs,
-            pop_layout=pop_layout,
-            h2_cavern_file=snakemake.input.h2_cavern,
-            cavern_types=snakemake.params.sector[
-                "hydrogen_underground_storage_locations"
-            ],
-            clustered_gas_network_file=snakemake.input.clustered_gas_network,
-            gas_input_nodes_file=snakemake.input.gas_input_nodes_simplified,
-            spatial=spatial,
-            options=options,
-            logger=logger,
-        )
+    add_gas_and_h2_infrastructure(
+        n=n,
+        costs=costs,
+        pop_layout=pop_layout,
+        h2_cavern_file=snakemake.input.h2_cavern,
+        cavern_types=snakemake.params.sector[
+            "hydrogen_underground_storage_locations"
+        ],
+        clustered_gas_network_file=snakemake.input.clustered_gas_network,
+        gas_input_nodes_file=snakemake.input.gas_input_nodes_simplified,
+        spatial=spatial,
+        options=options,
+        logger=logger,
+    )
 
     add_battery_stores(n=n, nodes=pop_layout.index, costs=costs)
 
