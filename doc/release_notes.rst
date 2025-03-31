@@ -11,6 +11,8 @@ Release Notes
 Upcoming Release
 ================
 
+* Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies
+
 * Refactoring of ``add_storage_and_grids`` in ``prepare_sector_network`` into multiple distinct functions for easier readability and adjustability.
 
 * Fail on solving status 'warning' because results are likely not valid.
