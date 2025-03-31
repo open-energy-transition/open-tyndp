@@ -155,6 +155,11 @@ transmission_efficiency,,,Section to specify transmission losses or compression 
 -- -- efficiency_per_1000km,p.u. per 1000 km,float,Length-dependent transmission efficiency ($\eta^{\text{length}}$)
 -- -- compression_per_1000km,p.u. per 1000 km,float,Length-dependent electricity demand for compression ($\eta \cdot \text{length}$) implemented as multi-link to local electricity bus.
 H2_network,--,"{true, false}",Add option for new hydrogen pipelines
+h2_topology_tyndp,,,
+-- enable,--,"{true, false}",Add option to use TYNDP h2 topology
+-- tyndp_scenario,,,
+-- -- scenario,str,One of {‘NT’, ‘DE’, ‘GA’},'NT': National Trends. 'DE': Distributed Energy. 'GA': Global Ambition.
+-- -- year,int,One of [2030,2035,2040,2045,2050],Year of modeling to be chosen only for DE or GA scenario.
 gas_network,--,"{true, false}","Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm   <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_   can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well."
 H2_retrofit,--,"{true, false}",Add option for retrofiting existing pipelines to transport hydrogen.
 H2_retrofit_capacity _per_CH4,--,float,"The ratio for H2 capacity per original CH4 capacity of retrofitted pipelines. The `European Hydrogen Backbone (April, 2020) p.15 <https://gasforclimate2050.eu/wp-content/uploads/2020/07/2020_European-Hydrogen-Backbone_Report.pdf>`_ 60% of original natural gas capacity could be used in cost-optimal case as H2 capacity."
