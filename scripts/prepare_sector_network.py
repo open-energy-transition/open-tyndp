@@ -5995,7 +5995,9 @@ if __name__ == "__main__":
             costs=costs,
             pop_layout=pop_layout,
             h2_cavern_file=snakemake.input.h2_cavern,
-            cavern_types=snakemake.params.sector["hydrogen_underground_storage_locations"],
+            cavern_types=snakemake.params.sector[
+                "hydrogen_underground_storage_locations"
+            ],
             clustered_gas_network_file=snakemake.input.clustered_gas_network,
             gas_input_nodes_file=snakemake.input.gas_input_nodes_simplified,
             spatial=spatial,
