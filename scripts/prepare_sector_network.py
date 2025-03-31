@@ -1968,7 +1968,9 @@ def add_h2_storage_tyndp(n, cavern_types, h2_cavern_file, buses_h2_z1, costs):
     )
 
 
-def add_tyndp_h2_topology(n, spatial, h2_cavern_file, h2_pipes_file, interzonal_file, cavern_types, costs):
+def add_tyndp_h2_topology(
+    n, spatial, h2_cavern_file, h2_pipes_file, interzonal_file, cavern_types, costs
+):
     """
     Add TYNDP H2 topology to the network.
     This adds new single country H2 buses (Z1 + Z2 nodes) and pipeline connections
@@ -2004,7 +2006,9 @@ def add_tyndp_h2_topology(n, spatial, h2_cavern_file, h2_pipes_file, interzonal_
         The function modifies the network object in-place by adding components.
     """
 
-    logger.info("Adding TYNDP hydrogen topology and techs: carrier, Z1 and Z2 buses, production, reconversion (optional), grid, storage.")
+    logger.info(
+        "Adding TYNDP hydrogen topology and techs: carrier, Z1 and Z2 buses, production, reconversion (optional), grid, storage."
+    )
 
     # add H2 as carrier
     n.add("Carrier", "H2")
