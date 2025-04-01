@@ -171,7 +171,9 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
 
     rule retrieve_tyndp_bundle:
         output:
-            directory("data/tyndp_2024_bundle"),
+            dir=directory("data/tyndp_2024_bundle"),
+            reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
+            buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
