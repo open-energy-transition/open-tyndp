@@ -1881,7 +1881,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
             efficiency=0.842,
             # Hos et al (2024), p.1129 https://www.sciencedirect.com/science/article/pii/S0360319923045123#bib37
             efficiency2=costs.at["methanolisation", "carbondioxide-input"],
-            capital_cost=1047353.20,
+            capital_cost=1047353.20,  # TODO: review cost assumptions for ATR
             # based on Figure 3 https://www.icf.com/insights/energy/comparing-costs-of-industrial-hydrogen-technologies#:~:text=The%20SMR%20and%20ATR%20based%20hydrogen%20plant%20production%20costs%20are,this%20case%2C%20resulting%20in%20a
             lifetime=costs.at["SMR", "lifetime"],  # assume same as SMR lifetime for now
         )
