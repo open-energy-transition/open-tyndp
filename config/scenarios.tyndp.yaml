@@ -3,6 +3,10 @@
 #
 # SPDX-License-Identifier: MIT
 
+tyndp-raw:
+  electricity:
+    base_network: tyndp-raw
+
 osm-prebuilt:
   scenario:
     clusters:
@@ -12,7 +16,3 @@ osm-prebuilt:
   countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'XK']
   electricity:
     base_network: osm-prebuilt
-
-tyndp-raw:
-  electricity:
-    base_network: tyndp-raw
