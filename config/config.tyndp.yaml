@@ -43,7 +43,7 @@ transmission_projects:
   include:
     tyndp2020: false
     nep: false
-    manual: true
+    manual: false
 
 load:
   source: tyndp # opsd, tyndp
