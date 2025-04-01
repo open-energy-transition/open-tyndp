@@ -647,6 +647,7 @@ def test_set_electrical_parameters_converters(
             "p_nom": 2000,
             "under_construction": False,
             "underground": False,
+            "dc": False,  # ToDo Change once we todo is addressed in base_network.py
         },
         index=[0],
     )

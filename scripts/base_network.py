@@ -392,6 +392,7 @@ def _set_electrical_parameters_converters(converters, config):
     # Converters are combined with links
     converters["under_construction"] = False
     converters["underground"] = False
+    converters["dc"] = False  # ToDo Find a better assumption
 
     return converters
 
