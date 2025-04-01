@@ -123,6 +123,25 @@ rule build_osm_boundaries:
         "../scripts/build_osm_boundaries.py"
 
 
+rule build_bidding_zones:
+    params:
+        countries=config_provider("countries"),
+    input:
+        bidding_zones_entsoepy="data/busshapes/bidding_zones_entsoepy.geojson",
+        bidding_zones_electricitymaps="data/busshapes/bidding_zones_electricitymaps.geojson",
+    output:
+        file=resources("bidding_zones.geojson"),
+    log:
+        logs("build_bidding_zones.log"),
+    threads: 1
+    resources:
+        mem_mb=1500,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_bidding_zones.py"
+
+
 rule build_shapes:
     params:
         countries=config_provider("countries"),
@@ -835,7 +854,7 @@ if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
         input:
             reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
             buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
-            bidding_shapes="data/bidding_zones.geojson",
+            bidding_shapes=resources("bidding_zones.geojson"),
         output:
             lines=resources("tyndp-raw/build/lines.csv"),
             links=resources("tyndp-raw/build/links.csv"),
