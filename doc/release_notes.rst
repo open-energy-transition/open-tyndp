@@ -11,6 +11,8 @@ Release Notes
 Upcoming Release
 ================
 
+* Introduce a new base network using TYNDP 2024 data (https://github.com/open-energy-transition/open-tyndp/pull/18/).
+
 * Fail on solving status 'warning' because results are likely not valid.
 
 * Introduced heat-venting in all heating systems at given marginal cost and added marginal cost for water tank charging. Renamed config setting for marginal cost of home-battery charging to ``marginal_cost_home_battery_storage``. (https://github.com/PyPSA/pypsa-eur/pull/1563)
