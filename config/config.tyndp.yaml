@@ -1,21 +1,19 @@
-# SPDX-FileCopyrightText: : 2024 The PyPSA-Eur Authors
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  name: "h2_network_tyndp"
-  disable_progressbar: true
+  prefix: "tyndp"
 
 # TODO set foresight
 foresight: myopic
 
 scenario:
   clusters:
-  - 100
+  - all
   planning_horizons:
   - 2030
 
-# TODO check countries
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
 snapshots:
@@ -24,14 +22,7 @@ snapshots:
   end: "2014-01-01"
 
 enable:
-  retrieve: true
-  retrieve_databundle: true
   retrieve_tyndp_bundle: true
-  retrieve_cost_data: true
-  build_cutout: false
-  retrieve_cutout: true
-  custom_busmap: false
-  drop_leap_day: true
 
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
@@ -43,17 +34,17 @@ co2_budget:
   2045: 0.032
   2050: 0.000
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#electricity
 electricity:
+  base_network: tyndp-raw
   transmission_limit: v1.0
 
 transmission_projects:
-  # TODO set TYNDP projects
   enable: true
   include:
-    tyndp2020: true
-    nep: true
+    tyndp2020: false
+    nep: false
     manual: true
+
 load:
   source: tyndp # opsd, tyndp
   manual_adjustments: false
@@ -120,9 +111,8 @@ sector:
   ATR: true
 
 clustering:
+  mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
+  administrative:
+    level: 3
   temporal:
     resolution_sector: 50SEG
-
-plotting:
-  tech_colors:
-    ATR: '#870c99'

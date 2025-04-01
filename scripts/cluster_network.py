@@ -484,6 +484,13 @@ if __name__ == "__main__":
     else:
         n_clusters = int(snakemake.wildcards.clusters)
 
+    if params.base == "tyndp-raw":
+        # Fast-path if TYNDP base network is used
+        logging.info("Skipping clustering: not applicable for TYNDP base network")
+
+        busmap = n.buses.index.to_series()
+        linemap = n.lines.index.to_series()
+        clustering = pypsa.clustering.spatial.Clustering(n, busmap, linemap)
     if n_clusters == len(n.buses):
         # Fast-path if no clustering is necessary
         busmap = n.buses.index.to_series()

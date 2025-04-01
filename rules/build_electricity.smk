@@ -60,6 +60,8 @@ def input_base_network(w):
     components = {"buses", "lines", "links", "converters", "transformers"}
     if base_network == "osm-raw":
         inputs = {c: resources(f"osm-raw/build/{c}.csv") for c in components}
+    elif base_network == "tyndp-raw":
+        inputs = {c: resources(f"tyndp-raw/build/{c}.csv") for c in components}
     elif base_network == "osm-prebuilt":
         inputs = {
             c: f"data/{base_network}/{osm_prebuilt_version}/{c}.csv" for c in components
@@ -119,6 +121,25 @@ rule build_osm_boundaries:
         "../envs/environment.yaml"
     script:
         "../scripts/build_osm_boundaries.py"
+
+
+rule build_bidding_zones:
+    params:
+        countries=config_provider("countries"),
+    input:
+        bidding_zones_entsoepy="data/busshapes/bidding_zones_entsoepy.geojson",
+        bidding_zones_electricitymaps="data/busshapes/bidding_zones_electricitymaps.geojson",
+    output:
+        file=resources("bidding_zones.geojson"),
+    log:
+        logs("build_bidding_zones.log"),
+    threads: 1
+    resources:
+        mem_mb=1500,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_bidding_zones.py"
 
 
 rule build_shapes:
@@ -592,6 +613,7 @@ rule cluster_network:
         ),
         max_hours=config_provider("electricity", "max_hours"),
         length_factor=config_provider("lines", "length_factor"),
+        base=config_provider("electricity", "base_network"),
     input:
         unpack(input_custom_busmap),
         network=resources("networks/base_s.nc"),
@@ -737,7 +759,7 @@ rule prepare_network:
         "../scripts/prepare_network.py"
 
 
-if config["electricity"]["base_network"] == "osm-raw":
+if lambda w: config_provider("electricity", "base_network")(w) == "osm-raw":
 
     rule clean_osm_data:
         input:
@@ -782,7 +804,7 @@ if config["electricity"]["base_network"] == "osm-raw":
             "../scripts/clean_osm_data.py"
 
 
-if config["electricity"]["base_network"] == "osm-raw":
+if lambda w: config_provider("electricity", "base_network")(w) == "osm-raw":
 
     rule build_osm_network:
         params:
@@ -820,3 +842,42 @@ if config["electricity"]["base_network"] == "osm-raw":
             "../envs/environment.yaml"
         script:
             "../scripts/build_osm_network.py"
+
+
+if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
+
+    rule build_tyndp_network:
+        params:
+            countries=config_provider("countries"),
+            voltages=config_provider("electricity", "voltages"),
+            line_types=config_provider("lines", "types"),
+        input:
+            reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
+            buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
+            bidding_shapes=resources("bidding_zones.geojson"),
+        output:
+            lines=resources("tyndp-raw/build/lines.csv"),
+            links=resources("tyndp-raw/build/links.csv"),
+            converters=resources("tyndp-raw/build/converters.csv"),
+            transformers=resources("tyndp-raw/build/transformers.csv"),
+            substations=resources("tyndp-raw/build/buses.csv"),
+            substations_h2=resources("tyndp-raw/build/buses_h2.csv"),
+            lines_geojson=resources("tyndp-raw/build/geojson/lines.geojson"),
+            links_geojson=resources("tyndp-raw/build/geojson/links.geojson"),
+            converters_geojson=resources("tyndp-raw/build/geojson/converters.geojson"),
+            transformers_geojson=resources(
+                "tyndp-raw/build/geojson/transformers.geojson"
+            ),
+            substations_geojson=resources("tyndp-raw/build/geojson/buses.geojson"),
+            substations_h2_geojson=resources("tyndp-raw/build/geojson/buses_h2.geojson"),
+        log:
+            logs("build_tyndp_network.log"),
+        benchmark:
+            benchmarks("build_tyndp_network")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/build_tyndp_network.py"

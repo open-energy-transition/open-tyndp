@@ -131,6 +131,23 @@ if config["enable"]["retrieve"]:
 
 
 
+if config["enable"]["retrieve"]:
+
+    rule retrieve_bidding_zones:
+        output:
+            file_entsoepy="data/busshapes/bidding_zones_entsoepy.geojson",
+            file_electricitymaps="data/busshapes/bidding_zones_electricitymaps.geojson",
+        log:
+            "logs/retrieve_bidding_zones.log",
+        resources:
+            mem_mb=1000,
+        retries: 2
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/retrieve_bidding_zones.py"
+
+
 if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True):
 
     rule retrieve_cutout:
@@ -148,6 +165,20 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
         run:
             move(input[0], output[0])
             validate_checksum(output[0], input[0])
+
+
+if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle", True):
+
+    rule retrieve_tyndp_bundle:
+        output:
+            dir=directory("data/tyndp_2024_bundle"),
+            reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
+            buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
+        log:
+            "logs/retrieve_tyndp_bundle.log",
+        retries: 2
+        script:
+            "../scripts/retrieve_tyndp_bundle.py"
 
 
 if config["enable"]["retrieve"] and config["enable"].get("retrieve_cost_data", True):
