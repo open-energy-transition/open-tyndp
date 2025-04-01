@@ -6854,7 +6854,9 @@ if __name__ == "__main__":
     year = int(snakemake.params["energy_totals_year"])
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
 
-    buses_h2_file = snakemake.input.buses_h2 if options["h2_topology_tyndp"]["enable"] else None
+    buses_h2_file = (
+        snakemake.input.buses_h2 if options["h2_topology_tyndp"]["enable"] else None
+    )
     spatial = define_spatial(pop_layout.index, options, buses_h2_file=buses_h2_file)
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
