@@ -10,7 +10,6 @@ rule build_electricity_demand:
         countries=config_provider("countries"),
         load=config_provider("load"),
     input:
-        tyndp="data/tyndp_2024_bundle",
         reported=ancient("data/electricity_demand_raw.csv"),
         synthetic=lambda w: (
             ancient("data/load_synthetic_raw.csv")
