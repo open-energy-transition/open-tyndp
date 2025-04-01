@@ -48,13 +48,18 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def define_spatial(nodes, options):
+def define_spatial(nodes, options, buses_h2_file=None):
     """
     Namespace for spatial.
 
     Parameters
     ----------
     nodes : list-like
+        Nodes to define spatial data for
+    options : dict
+        Configuration dictionary, must contain 'fossil_fuels' boolean
+    buses_h2_file : str
+        Path to CSV file containing TYNDP H2 buses information
     """
 
     spatial.nodes = nodes
@@ -151,10 +156,10 @@ def define_spatial(nodes, options):
     spatial.h2.locations = nodes
 
     # hydrogen tyndp
-    if options["h2_topology_tyndp"]["enable"]:
+    if options["h2_topology_tyndp"]["enable"] and buses_h2_file:
         spatial.h2_tyndp = SimpleNamespace()
         # load tyndp h2 buses
-        buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
+        buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
         spatial.h2_tyndp.nodes = pd.Index(
             (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
         )
@@ -6849,7 +6854,8 @@ if __name__ == "__main__":
     year = int(snakemake.params["energy_totals_year"])
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
 
-    spatial = define_spatial(pop_layout.index, options)
+    buses_h2_file = snakemake.input.buses_h2 if options["h2_topology_tyndp"]["enable"] else None
+    spatial = define_spatial(pop_layout.index, options, buses_h2_file=buses_h2_file)
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
         add_lifetime_wind_solar(n, costs)
