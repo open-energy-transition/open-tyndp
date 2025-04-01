@@ -3,11 +3,7 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  prefix: "dev"
-  name: all
-  scenarios:
-    enable: true
-    file: config/scenarios.tyndp.yaml
+  prefix: "tyndp"
 
 scenario:
   clusters:
