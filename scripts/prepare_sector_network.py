@@ -57,7 +57,15 @@ def define_spatial(nodes, options, buses_h2_file=None):
     nodes : list-like
         Nodes to define spatial data for
     options : dict
-        Configuration dictionary, must contain 'fossil_fuels' boolean
+        Configuration options containing at least:
+        - biomass_spatial : bool
+        - co2_spatial : bool
+        - gas_network : bool
+        - ammonia : bool
+        - h2_topology_tyndp : dict
+        - methanol : dict
+        - regional_oil_demand : bool
+        - regional_coal_demand : bool
     buses_h2_file : str
         Path to CSV file containing TYNDP H2 buses information
     """
@@ -158,7 +166,6 @@ def define_spatial(nodes, options, buses_h2_file=None):
     # hydrogen tyndp
     if options["h2_topology_tyndp"]["enable"] and buses_h2_file:
         spatial.h2_tyndp = SimpleNamespace()
-        # load tyndp h2 buses
         buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
         spatial.h2_tyndp.nodes = pd.Index(
             (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
@@ -447,8 +454,8 @@ def create_tyndp_h2_network(n, fn_h2_network):
     ----------
     n : pypsa.Network
         Network to update generator costs
-    fn : str
-        Pointing to the input tyndp h2 reference grid csv file
+    fn_h2_network : str
+        Pointing to the input TYNDP H2 reference grid csv file
 
     Returns
     -------
@@ -1801,7 +1808,7 @@ def add_electricity_grid_connection(n, costs):
 
 def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
     """
-    Adds TYNDP electrolyzers for Z1 and Z2 and optionally add SMR, SMR CC and ATR.
+    Add TYNDP electrolyzers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
 
     Parameters
     ----------
