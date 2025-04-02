@@ -457,7 +457,7 @@ def create_tyndp_h2_network(fn_h2_network):
     h2_pipes = h2_pipes.assign(
         bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2"
     )
-    h2_pipes["length"] = h2_pipes.apply(haversine, axis=1)
+    h2_pipes["length"] = h2_pipes.apply(haversine, axis=1, args=(n,))
 
     return h2_pipes
 
@@ -1881,7 +1881,9 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
     # TODO: add good technology assumptions for Methanol ATR (ATRM) to technology data
     if options["ATR"] and options["methanol"]:
         logger.info("Adding Z1 dummy ATR.")
-        add_carrier_buses(n, "methanol")
+        add_carrier_buses(
+            n=n, carrier="methanol", costs=costs, spatial=spatial, options=options
+        )
         # TODO: this does currently only work for no methanol spatial
         n.add(
             "Link",
@@ -2058,7 +2060,7 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         The function modifies the network object in-place by adding components.
     """
 
-    h2_pipes = create_tyndp_h2_network(h2_pipes_file)
+    h2_pipes = create_tyndp_h2_network(fn_h2_network=h2_pipes_file)
     interzonal = pd.read_csv(interzonal_file, index_col=0)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
