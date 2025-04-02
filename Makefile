@@ -59,7 +59,6 @@ test:
 	snakemake --configfile config/test/config.myopic.yaml
 	snakemake make_summary_perfect --configfile config/test/config.perfect.yaml
 	snakemake --configfile config/test/config.scenarios.yaml -n
-	snakemake resources/tyndp/maps/power-network-s-all.pdf --configfile config/config.tyndp.yaml
 	snakemake resources/tyndp/maps/power-network-s-all.pdf resources/tyndp/maps/base_h2_network_all___2030.pdf --configfile config/config.tyndp.yaml
 	echo "All tests completed successfully."
 
