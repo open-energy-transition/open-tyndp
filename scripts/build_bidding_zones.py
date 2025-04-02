@@ -126,16 +126,17 @@ if __name__ == "__main__":
         raise ValueError("Missing countries in electricitymaps bidding zones")
 
     # Manual corrections: replace Italy by entsoepy version
-    bidding_zones = bidding_zones[bidding_zones.country != "IT"]
+    if "IT" in countries:
+        bidding_zones = bidding_zones[bidding_zones.country != "IT"]
 
-    bidding_zones_entsoe = gpd.read_file(snakemake.input.bidding_zones_entsoepy)
-    bidding_zones_entsoe = bidding_zones_entsoe.rename(
-        columns={"zoneName": "zone_name"}
-    )
-    country_strings = parse_zone_names(bidding_zones_entsoe["zone_name"])
-    bidding_zones_entsoe["country"] = country_strings
-    italian_zones = bidding_zones_entsoe[bidding_zones_entsoe.country == "IT"]
-    bidding_zones = pd.concat([bidding_zones, italian_zones], ignore_index=True)
+        bidding_zones_entsoe = gpd.read_file(snakemake.input.bidding_zones_entsoepy)
+        bidding_zones_entsoe = bidding_zones_entsoe.rename(
+            columns={"zoneName": "zone_name"}
+        )
+        country_strings = parse_zone_names(bidding_zones_entsoe["zone_name"])
+        bidding_zones_entsoe["country"] = country_strings
+        italian_zones = bidding_zones_entsoe[bidding_zones_entsoe.country == "IT"]
+        bidding_zones = pd.concat([bidding_zones, italian_zones], ignore_index=True)
 
     # manual corrections: remove islands
     islands = [
