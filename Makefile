@@ -59,7 +59,7 @@ test:
 	snakemake --configfile config/test/config.myopic.yaml
 	snakemake make_summary_perfect --configfile config/test/config.perfect.yaml
 	snakemake --configfile config/test/config.scenarios.yaml -n
-	snakemake resources/tyndp/maps/power-network-s-all.pdf resources/tyndp/maps/base_h2_network_all___2030.pdf --configfile config/config.tyndp.yaml
+	snakemake resources/test/maps/power-network-s-all.pdf resources/test/maps/base_h2_network_all___2030.pdf --configfile config/test/config.tyndp.yaml
 	echo "All tests completed successfully."
 
 unit-test:
@@ -71,8 +71,8 @@ clean-tests:
 	snakemake --configfile config/test/config.overnight.yaml --delete-all-output
 	snakemake --configfile config/test/config.myopic.yaml --delete-all-output
 	snakemake make_summary_perfect --configfile config/test/config.perfect.yaml --delete-all-output
-	snakemake resources/tyndp/maps/power-network-s-all.pdf resources/tyndp/maps/base_h2_network_all___2030.pdf --configfile config/config.tyndp.yaml --delete-all-output
 	snakemake --configfile config/test/config.scenarios.yaml -n --delete-all-output
+	snakemake resources/test/maps/power-network-s-all.pdf resources/test/maps/base_h2_network_all___2030.pdf --configfile config/test/config.tyndp.yaml --delete-all-output
 
 # Removes all created files except for large cutout files (similar to fresh clone)
 reset:
