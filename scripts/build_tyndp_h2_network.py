@@ -37,10 +37,34 @@ def extract_grid_data(h2_grid_raw, direction="1"):
     return h2_grid
 
 
-def load_and_clean_h2_grid(fn, scenario="GA", pyear=2030):
+def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     """
-    Load and clean H2 reference grid and format data.
-    Returns both the cleaned reference grid and the interzonal connections as dataframes.
+    Load and clean H2 reference grid interzonal connections.
+    Returns the cleaned interzonal connections as dataframe.
+
+    Parameters
+    ----------
+    fn : str
+        Path to Excel file containing H2 reference grid data.
+    scenario : str
+        TYNDP scenario to use for interzonal connection data.
+        Possible options are:
+        - 'GA'
+        - 'DE'
+        - 'NT'
+    pyear : int
+        TYNDP planning horizon to use for interzonal connection data.
+        Possible options are:
+        - 2030
+        - 2035
+        - 2040
+        - 2045
+        - 2050
+
+    Returns
+    -------
+    pd.DataFrame
+        The function returns cleaned TYNDP H2 interzonal connections.
     """
 
     if scenario in ["DE", "GA"]:
@@ -76,12 +100,31 @@ def load_and_clean_h2_grid(fn, scenario="GA", pyear=2030):
             "Unknown scenario requested. Please, choose from 'GA', 'DE' or 'NT'."
         )
 
+    return interzonal
+
+
+def load_h2_grid(fn):
+    """
+    Load and clean H2 reference grid and format data.
+    Returns the cleaned reference grid as dataframe.
+
+    Parameters
+    ----------
+    fn : str
+        Path to Excel file containing H2 reference grid data.
+
+    Returns
+    -------
+    pd.DataFrame
+        The function returns the cleaned TYNDP H2 reference grid.
+    """
+
     h2_grid_raw = pd.read_excel(fn)
     h2_grid_p = extract_grid_data(h2_grid_raw, direction="1")
     h2_grid_reversed = extract_grid_data(h2_grid_raw, direction="2")
     h2_grid = pd.concat([h2_grid_p, h2_grid_reversed]).sort_index()
 
-    return h2_grid, interzonal
+    return h2_grid
 
 
 if __name__ == "__main__":
@@ -99,9 +142,8 @@ if __name__ == "__main__":
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
-    h2_grid, interzonal = load_and_clean_h2_grid(
-        fn=snakemake.input.tyndp_reference_grid, scenario=scenario, pyear=pyear
-    )
+    h2_grid = load_h2_grid(fn=snakemake.input.tyndp_reference_grid)
+    interzonal = load_h2_interzonal_connections(fn=snakemake.input.tyndp_reference_grid, scenario=scenario, pyear=pyear)
 
     # Save prepped H2 grid and interzonal
     h2_grid.to_csv(snakemake.output.h2_grid_prepped)
