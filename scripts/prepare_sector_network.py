@@ -2010,14 +2010,12 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         )
 
     if options["hydrogen_fuel_cell"]:
-        logger.info("Adding Z1 and Z2 dummy hydrogen fuel cell for re-electrification.")
+        logger.info("Adding Z2 dummy hydrogen fuel cell for re-electrification.")
         n.add(
             "Link",
-            (nodes.index + " H2 Z1 Fuel Cell").append(nodes.index + " H2 Z2 Fuel Cell"),
-            bus0=np.append(
-                nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"
-            ),
-            bus1=np.tile(nodes.index, 2),
+            nodes.index + " H2 Z2 Fuel Cell",
+            bus0=nodes.country.values + " H2 Z2",
+            bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 Fuel Cell",
             efficiency=costs.at["fuel cell", "efficiency"],
@@ -2028,22 +2026,20 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
 
     if options["hydrogen_turbine"]:
         logger.info(
-            "Adding Z1 and Z2 dummy hydrogen turbine for re-electrification. Assuming OCGT technology costs."
+            "Adding Z2 dummy hydrogen turbine for re-electrification. Assuming CCGT technology costs."
         )
         n.add(
             "Link",
-            (nodes.index + " H2 Z1 turbine").append(nodes.index + " H2 Z2 turbine"),
-            bus0=np.append(
-                nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"
-            ),
-            bus1=np.tile(nodes.index, 2),
+            nodes.index + " H2 Z2 turbine",
+            bus0=nodes.country.values + " H2 Z2",
+            bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 turbine",
-            efficiency=costs.at["OCGT", "efficiency"],
-            capital_cost=costs.at["OCGT", "capital_cost"]
-            * costs.at["OCGT", "efficiency"],  # NB: fixed cost is per MWel
-            marginal_cost=costs.at["OCGT", "VOM"],
-            lifetime=costs.at["OCGT", "lifetime"],
+            efficiency=costs.at["CCGT", "efficiency"],
+            capital_cost=costs.at["CCGT", "capital_cost"]
+            * costs.at["CCGT", "efficiency"],  # NB: fixed cost is per MWel
+            marginal_cost=costs.at["CCGT", "VOM"],
+            lifetime=costs.at["CCGT", "lifetime"],
         )
 
 
