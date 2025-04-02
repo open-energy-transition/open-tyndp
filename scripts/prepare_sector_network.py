@@ -446,14 +446,14 @@ def create_network_topology(
     return topo
 
 
-def create_tyndp_h2_network(n, fn_h2_network):
+def create_h2_topology_tyndp(n, fn_h2_network):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
 
     Parameters
     ----------
     n : pypsa.Network
-        Network to update generator costs
+        Network to create H2 topology for
     fn_h2_network : str
         Pointing to the input TYNDP H2 reference grid csv file
 
@@ -2070,7 +2070,7 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         The function modifies the network object in-place by adding components.
     """
 
-    h2_pipes = create_tyndp_h2_network(n=n, fn_h2_network=h2_pipes_file)
+    h2_pipes = create_h2_topology_tyndp(n=n, fn_h2_network=h2_pipes_file)
     interzonal = pd.read_csv(interzonal_file, index_col=0)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
