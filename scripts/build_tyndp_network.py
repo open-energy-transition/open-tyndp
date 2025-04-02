@@ -171,7 +171,6 @@ def build_buses(
     bidding_shapes: gpd.GeoDataFrame,
     country_shapes: gpd.GeoDataFrame,
     geo_crs: str = GEO_CRS,
-    distance_crs: str = DISTANCE_CRS,
 ):
     """
     Extend the node list for both electricity and hydrogen with attributes, incl. country and coordinates.
@@ -182,7 +181,6 @@ def build_buses(
         - bidding_shapes (GeoDataFrame): A GeoDataFrame including bidding zone geometry, representative point and id.
         - country_shapes (GeoDataFrame): A GeoDataFrame including country geometry and representative point.
         - geo_crs (CRS, optional): Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-        - distance_crs (CRS, optional): Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
 
 
     Returns
@@ -362,7 +360,7 @@ def build_links(
             length=lambda df: df.geometry.to_crs(distance_crs).length,
             underground="t",
             under_construction="f",
-            tags=lambda df: df["bus0"] + " > " + df["bus1"],
+            tags=lambda df: df["bus0"] + " -> " + df["bus1"],
         )
         .groupby(by="link_id")
         .agg(
@@ -393,6 +391,7 @@ if __name__ == "__main__":
     # Build links
     links = build_links(snakemake.input.reference_grid, buses)
 
+    # Build placeholder lines, converters and transformers as empty DataFrames
     lines = gpd.GeoDataFrame(columns=LINES_COLUMNS, geometry="geometry").set_index(
         pd.Index([], name="line_id")
     )
