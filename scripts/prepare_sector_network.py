@@ -2183,7 +2183,7 @@ def add_h2_storage_tyndp(
     )
 
 
-def add_tyndp_h2_topology(
+def add_h2_topology_tyndp(
     n,
     pop_layout,
     spatial,
@@ -2269,18 +2269,27 @@ def add_tyndp_h2_topology(
     )
 
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
-    add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options)
+    add_h2_production_tyndp(
+        n=n, nodes=nodes, buses_h2_z1=buses_h2_z1, costs=costs, options=options
+    )
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
-    add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs)
+    add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
-    add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options)
+    add_h2_reconversion_tyndp(
+        n=n,
+        spatial=spatial,
+        nodes=nodes,
+        buses_h2_z2=buses_h2_z2,
+        costs=costs,
+        options=options,
+    )
 
     # add H2 grid (H2 reference grid and interzonal (Z1 <-> Z2) capacities)
     add_h2_grid_tyndp(
-        n,
-        nodes,
+        n=n,
+        nodes=nodes,
         h2_pipes_file=h2_pipes_file,
         interzonal_file=interzonal_file,
         costs=costs,
@@ -2288,7 +2297,7 @@ def add_tyndp_h2_topology(
 
     # add H2 storage (Z1: H2 tanks; Z2: Salt caverns)
     add_h2_storage_tyndp(
-        n,
+        n=n,
         cavern_types=cavern_types,
         h2_cavern_file=h2_cavern_file,
         buses_h2_z1=buses_h2_z1,
@@ -2895,7 +2904,7 @@ def add_gas_and_h2_infrastructure(
     nodes = pop_layout.index
 
     if options["h2_topology_tyndp"]["enable"]:
-        add_tyndp_h2_topology(
+        add_h2_topology_tyndp(
             n=n,
             pop_layout=pop_layout,
             spatial=spatial,
@@ -2904,6 +2913,7 @@ def add_gas_and_h2_infrastructure(
             interzonal_file=interzonal_file,
             cavern_types=cavern_types,
             costs=costs,
+            options=options,
         )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
@@ -2966,7 +2976,7 @@ def add_gas_and_h2_infrastructure(
             )
 
     if options["H2_network"] and not options["h2_topology_tyndp"]["enable"]:
-        add_h2_pipeline_new(n, costs, logger=logger)
+        add_h2_pipeline_new(n=n, costs=costs, logger=logger)
 
 
 def check_land_transport_shares(shares):
