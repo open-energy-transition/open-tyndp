@@ -300,6 +300,7 @@ def build_links(
     links[["bus0", "bus1"]] = links.Border.str.split("-", expand=True)
 
     # Create forward and reverse direction dataframes
+    # TODO: combine to bidirectional links
     forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
         columns={"Summary Direction 1": "p_nom"}
     )
