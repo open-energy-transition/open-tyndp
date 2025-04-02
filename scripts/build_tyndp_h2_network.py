@@ -143,7 +143,9 @@ if __name__ == "__main__":
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
     h2_grid = load_h2_grid(fn=snakemake.input.tyndp_reference_grid)
-    interzonal = load_h2_interzonal_connections(fn=snakemake.input.tyndp_reference_grid, scenario=scenario, pyear=pyear)
+    interzonal = load_h2_interzonal_connections(
+        fn=snakemake.input.tyndp_reference_grid, scenario=scenario, pyear=pyear
+    )
 
     # Save prepped H2 grid and interzonal
     h2_grid.to_csv(snakemake.output.h2_grid_prepped)
