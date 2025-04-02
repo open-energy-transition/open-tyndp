@@ -1796,7 +1796,7 @@ def add_electricity_grid_connection(n, costs):
     ]
 
 
-def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
+def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
     """
     Adds TYNDP electrolyzers for Z1 and Z2 and optionally add SMR, SMR CC and ATR.
 
@@ -1810,6 +1810,14 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs):
         Namespace object with spatial nodes of H2 Z1 buses
     costs : pd.DataFrame
         Technology cost assumptions
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - SMR_cc : bool
+        - SMR : bool
+        - cc_fraction : float
+        - ATR : bool
+        - methanol : bool
 
     Returns
     -------
@@ -1938,7 +1946,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     )
 
 
-def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
+def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=None):
     """
     Adds TYNDP H2 reconversion with options for Fuel cells, H2 turbines and methanation.
 
@@ -1954,6 +1962,13 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs):
         Namespace object with spatial nodes of H2 Z2 buses
     costs : pd.DataFrame
         Technology cost assumptions
+    options : dict, optional
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+        Key options include:
+        - methanation : bool
+        - min_part_load_methanation : float
+        - hydrogen_fuel_cell : bool
+        - hydrogen_turbine : bool
 
     Returns
     -------
@@ -2081,7 +2096,9 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
     )
 
 
-def add_h2_storage_tyndp(n, cavern_types, h2_cavern_file, buses_h2_z1, costs):
+def add_h2_storage_tyndp(
+    n, cavern_types, h2_cavern_file, buses_h2_z1, costs, options={}
+):
     """
     Adds TYNDP Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions.
 
@@ -2097,6 +2114,9 @@ def add_h2_storage_tyndp(n, cavern_types, h2_cavern_file, buses_h2_z1, costs):
         Namespace object with spatial nodes of H2 Z1 buses
     costs : pd.DataFrame
         Technology cost assumptions
+    options : dict, optional
+       Dictionary of configuration options. Defaults to empty dict if not provided.
+       - hydrogen_underground_storage : bool
 
     Returns
     -------
@@ -2164,7 +2184,15 @@ def add_h2_storage_tyndp(n, cavern_types, h2_cavern_file, buses_h2_z1, costs):
 
 
 def add_tyndp_h2_topology(
-    n, spatial, h2_cavern_file, h2_pipes_file, interzonal_file, cavern_types, costs
+    n,
+    pop_layout,
+    spatial,
+    h2_cavern_file,
+    h2_pipes_file,
+    interzonal_file,
+    cavern_types,
+    costs,
+    options,
 ):
     """
     Add TYNDP H2 topology to the network.
@@ -2182,6 +2210,8 @@ def add_tyndp_h2_topology(
     ----------
     n : pypsa.Network
         The PyPSA network container object
+    pop_layout : pd.DataFrame
+        Population layout with index of locations/nodes
     spatial : object
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`
     h2_cavern_file : str
@@ -2194,6 +2224,9 @@ def add_tyndp_h2_topology(
         List of underground storage types to consider
     costs : pd.DataFrame
         Technology cost assumptions
+    options : dict, optional
+       Dictionary of configuration options. Defaults to empty dict if not provided.
+
 
     Returns
     -------
@@ -2236,13 +2269,13 @@ def add_tyndp_h2_topology(
     )
 
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
-    add_h2_production_tyndp(n, nodes, buses_h2_z1, costs)
+    add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options)
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
     add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
-    add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs)
+    add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options)
 
     # add H2 grid (H2 reference grid and interzonal (Z1 <-> Z2) capacities)
     add_h2_grid_tyndp(
@@ -2260,6 +2293,7 @@ def add_tyndp_h2_topology(
         h2_cavern_file=h2_cavern_file,
         buses_h2_z1=buses_h2_z1,
         costs=costs,
+        options=options,
     )
 
 
@@ -2792,6 +2826,8 @@ def add_gas_and_h2_infrastructure(
     costs,
     pop_layout,
     h2_cavern_file,
+    h2_pipes_file,
+    interzonal_file,
     cavern_types,
     clustered_gas_network_file,
     gas_input_nodes,
@@ -2812,6 +2848,10 @@ def add_gas_and_h2_infrastructure(
         Population layout with index of locations/nodes
     h2_cavern_file : str
         Path to CSV file containing hydrogen cavern storage potentials
+    h2_pipes_file : str
+        Path to CSV file containing prepped H2 reference grid data
+    interzonal_file : str
+        Path to CSV file containing prepped H2 interzonal connection data
     cavern_types : list
         List of underground storage types to consider
     clustered_gas_network_file : str, optional
@@ -2857,10 +2897,11 @@ def add_gas_and_h2_infrastructure(
     if options["h2_topology_tyndp"]["enable"]:
         add_tyndp_h2_topology(
             n=n,
+            pop_layout=pop_layout,
             spatial=spatial,
             h2_cavern_file=h2_cavern_file,
-            h2_pipes_file=snakemake.input.h2_grid_tyndp,
-            interzonal_file=snakemake.input.interzonal_prepped,
+            h2_pipes_file=h2_pipes_file,
+            interzonal_file=interzonal_file,
             cavern_types=cavern_types,
             costs=costs,
         )
@@ -6900,6 +6941,8 @@ if __name__ == "__main__":
         costs=costs,
         pop_layout=pop_layout,
         h2_cavern_file=snakemake.input.h2_cavern,
+        h2_pipes_file=snakemake.input.h2_grid_tyndp,
+        interzonal_file=snakemake.input.interzonal_prepped,
         cavern_types=snakemake.params.sector["hydrogen_underground_storage_locations"],
         clustered_gas_network_file=snakemake.input.clustered_gas_network,
         gas_input_nodes=gas_input_nodes,
