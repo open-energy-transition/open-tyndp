@@ -64,14 +64,6 @@ CONVERTERS_COLUMNS = [
     "geometry",
 ]
 
-# Poland organizes its lines in three sections,
-# PL00 for demand/generation, -E for exporting lines and -I for importing lines
-REPLACE_DICT = {
-    "PL00E": "PL00",
-    "PL00I": "PL00",
-    "UK": "GB",
-}
-
 
 def format_bz_names(s: str):
     s = s.replace("FR-C", "FR15").replace("UK-N", "UKNI").replace("UK", "GB")
@@ -276,7 +268,6 @@ def build_links(
     buses: gpd.GeoDataFrame,
     geo_crs: str = GEO_CRS,
     distance_crs: str = DISTANCE_CRS,
-    replace_dict: dict = REPLACE_DICT,
 ):
     """
     Process reference grid information to produce link data. p_nom are NTC values.
@@ -286,13 +277,21 @@ def build_links(
         - grid_fn (str | Path): Path to bidding zone shape file.
         - geo_crs (CRS, optional): Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
         - distance_crs (CRS, optional): Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
-        - replace_dict (dict): Dictionary with region names to replace. Defaults to REPLACE_DICT.
 
     Returns
     -------
         - links: A GeoDataFrame including NTC from the reference grid.
 
     """
+
+    # Poland organizes its lines in three sections,
+    # PL00 for demand/generation, -E for exporting lines and -I for importing lines
+    replace_dict = {
+        "PL00E": "PL00",
+        "PL00I": "PL00",
+        "UK": "GB",
+    }
+
     links = pd.read_excel(grid_fn)
     links = extract_grid_data_tyndp(links=links, carrier="Transmission line", replace_dict=replace_dict)
 
@@ -334,7 +333,7 @@ def build_links(
     links = links.dropna()  # TODO Remove this when all nodes are known
 
     links["geometry"] = gpd.GeoSeries(
-        [LineString([p0, p1]) for p0, p1 in zip(links["geometry0"], links["geometry1"])]
+        [LineString([p0, p1]) for p0, p1 in zip(links["geometry0"], links["geometry1"])], index=links.index
     )
     links = gpd.GeoDataFrame(links, geometry="geometry", crs=geo_crs)
 
