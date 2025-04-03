@@ -10,31 +10,14 @@ Depending on the scenario, different planning years (`pyear`) are available. DE 
 import logging
 
 import pandas as pd
-from _helpers import configure_logging, get_snapshots, set_scenario_config
+from _helpers import (
+    configure_logging,
+    extract_grid_data_tyndp,
+    get_snapshots,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
-
-
-def extract_grid_data(h2_grid_raw, direction="1"):
-    border_ctrys = h2_grid_raw.Border.str.split("-", expand=True)
-    border_i = {
-        "1": [0, 1],
-        "2": [1, 0],
-    }
-    h2_grid = (
-        h2_grid_raw.assign(
-            country0=border_ctrys[border_i[direction][0]],
-            country1=border_ctrys[border_i[direction][1]],
-        ).assign(
-            p_nom=h2_grid_raw[f"Summary Direction {direction}"].mul(1e3)
-        )  # Gw to MW
-    )[["country0", "country1", "p_nom"]]
-
-    def make_index(c):
-        return "H2 pipeline " + c.country0 + " -> " + c.country1
-
-    h2_grid.index = h2_grid.apply(make_index, axis=1)
-    return h2_grid
 
 
 def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
@@ -86,9 +69,9 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
             "Scenario == @scenario and Year == @pyear "
         )
 
-        interzonal_p = extract_grid_data(interzonal_filtered, direction="1")
-        interzonal_reversed = extract_grid_data(interzonal_filtered, direction="2")
-        interzonal = pd.concat([interzonal_p, interzonal_reversed]).sort_index()
+        interzonal = extract_grid_data_tyndp(interzonal_filtered, "H2 pipeline")
+        # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
+        interzonal["p_nom"] = interzonal.p_nom.mul(1e3)
 
     elif scenario == "NT":
         logger.info(
@@ -120,9 +103,9 @@ def load_h2_grid(fn):
     """
 
     h2_grid_raw = pd.read_excel(fn)
-    h2_grid_p = extract_grid_data(h2_grid_raw, direction="1")
-    h2_grid_reversed = extract_grid_data(h2_grid_raw, direction="2")
-    h2_grid = pd.concat([h2_grid_p, h2_grid_reversed]).sort_index()
+    h2_grid = extract_grid_data_tyndp(h2_grid_raw, "H2 pipeline")
+    # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
+    h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
 
     return h2_grid
 

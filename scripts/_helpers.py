@@ -1013,3 +1013,48 @@ def rename_techs(label: str) -> str:
         if old == label:
             label = new
     return label
+
+
+def extract_grid_data_tyndp(
+    links, carrier="Transmission line", replace_dict: dict = {}
+):
+    """
+    Extract TYNDP reference grid data from the raw input table.
+
+    Parameters
+    ----------
+    links : pd.DataFrame
+        DataFrame with raw links to extract grid information from
+    carrier : str
+        Name of the line carrier of the corresponding TYNDP reference grid ('H2 pipeline' or 'Transmission line')
+    replace_dict : dict
+        Dictionary with region names to replace
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1
+    """
+
+    links["Border"] = links["Border"].replace(replace_dict, regex=True)
+    links[["bus0", "bus1"]] = links.Border.str.split("-", expand=True)
+
+    # Create forward and reverse direction dataframes
+    # TODO: combine to bidirectional links
+    forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
+        columns={"Summary Direction 1": "p_nom"}
+    )
+
+    reverse_links = links[["bus1", "bus0", "Summary Direction 2"]].rename(
+        columns={"bus1": "bus0", "bus0": "bus1", "Summary Direction 2": "p_nom"}
+    )
+
+    # Combine into unidirectional links and return
+    h2_grid = pd.concat([forward_links, reverse_links])
+
+    def make_index(c, carrier):
+        return carrier + " " + c.bus0 + " -> " + c.bus1
+
+    h2_grid.index = h2_grid.apply(make_index, axis=1, args=(carrier,))
+
+    return h2_grid

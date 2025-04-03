@@ -465,7 +465,7 @@ def create_h2_topology_tyndp(n, fn_h2_network):
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
     h2_pipes = h2_pipes.assign(
-        bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2"
+        bus0=h2_pipes.bus0 + " H2 Z2", bus1=h2_pipes.bus1 + " H2 Z2"
     )
     h2_pipes["length"] = h2_pipes.apply(haversine, axis=1, args=(n,))
 
