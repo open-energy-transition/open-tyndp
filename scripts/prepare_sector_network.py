@@ -6850,7 +6850,6 @@ if __name__ == "__main__":
             "prepare_sector_network",
             opts="",
             clusters="10",
-            ll="vopt",
             sector_opts="",
             planning_horizons="2050",
         )
@@ -7167,7 +7166,7 @@ if __name__ == "__main__":
         add_electricity_grid_connection(n, costs)
 
     for k, v in options["transmission_efficiency"].items():
-        if not (k == "H2 pipeline" and options["h2_topology_tyndp"]["enable"]):
+        if k in options["transmission_efficiency"]["enable"]:
             lossy_bidirectional_links(n, k, v)
 
     # Workaround: Remove lines with conflicting (and unrealistic) properties
