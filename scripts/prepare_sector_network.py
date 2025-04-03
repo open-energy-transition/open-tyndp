@@ -1889,7 +1889,9 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         )
 
     # TODO: add good technology assumptions for Methanol ATR (ATRM) to technology data
-    if options["ATR"] and options["methanol"]:
+    if options["ATR"] and any(
+            v if isinstance(v, bool) else any(v.values()) for v in options["methanol"].values()
+    ):
         logger.info("Adding Z1 dummy ATR.")
         add_carrier_buses(
             n=n, carrier="methanol", costs=costs, spatial=spatial, options=options
@@ -4316,7 +4318,9 @@ def add_methanol(
     - methanol_reforming_cc: Enables methanol reforming with carbon capture
     """
     methanol_options = options["methanol"]
-    if not any(methanol_options.values()):
+    if not any(
+            v if isinstance(v, bool) else any(v.values()) for v in methanol_options.values()
+    ):
         return
 
     logger.info("Add methanol")
