@@ -6,7 +6,7 @@ import logging
 
 import geopandas as gpd
 import pandas as pd
-from _helpers import configure_logging, set_scenario_config
+from _helpers import configure_logging, set_scenario_config, extract_grid_data_tyndp
 from shapely.geometry import LineString, Point
 
 logger = logging.getLogger(__name__)
@@ -63,6 +63,14 @@ CONVERTERS_COLUMNS = [
     "p_nom",
     "geometry",
 ]
+
+# Poland organizes its lines in three sections,
+# PL00 for demand/generation, -E for exporting lines and -I for importing lines
+REPLACE_DICT = {
+    "PL00E": "PL00",
+    "PL00I": "PL00",
+    "UK": "GB",
+}
 
 
 def format_bz_names(s: str):
@@ -263,23 +271,12 @@ def build_buses(
     return buses, buses_h2
 
 
-def format_grid_names(s: str):
-    s = (
-        s
-        # Poland organizes its lines in three sections,
-        # PL00 for demand/generation, -E for exporting lines and -I for importing lines
-        .replace("PL00E", "PL00")
-        .replace("PL00I", "PL00")
-        .replace("UK", "GB")
-    )
-    return s
-
-
 def build_links(
     grid_fn,
     buses: gpd.GeoDataFrame,
     geo_crs: str = GEO_CRS,
     distance_crs: str = DISTANCE_CRS,
+    replace_dict: dict = REPLACE_DICT,
 ):
     """
     Process reference grid information to produce link data. p_nom are NTC values.
@@ -289,6 +286,7 @@ def build_links(
         - grid_fn (str | Path): Path to bidding zone shape file.
         - geo_crs (CRS, optional): Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
         - distance_crs (CRS, optional): Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
+        - replace_dict (dict): Dictionary with region names to replace. Defaults to REPLACE_DICT.
 
     Returns
     -------
@@ -296,21 +294,7 @@ def build_links(
 
     """
     links = pd.read_excel(grid_fn)
-    links["Border"] = links["Border"].apply(format_grid_names)
-    links[["bus0", "bus1"]] = links.Border.str.split("-", expand=True)
-
-    # Create forward and reverse direction dataframes
-    # TODO: combine to bidirectional links
-    forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
-        columns={"Summary Direction 1": "p_nom"}
-    )
-
-    reverse_links = links[["bus1", "bus0", "Summary Direction 2"]].rename(
-        columns={"bus1": "bus0", "bus0": "bus1", "Summary Direction 2": "p_nom"}
-    )
-
-    # Combine into unidirectional links
-    links = pd.concat([forward_links, reverse_links])
+    links = extract_grid_data_tyndp(links=links, carrier="Transmission line", replace_dict=replace_dict)
 
     # Add missing attributes
     links = links.merge(
