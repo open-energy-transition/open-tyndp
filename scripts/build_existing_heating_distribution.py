@@ -81,7 +81,7 @@ def build_existing_heating():
     # distribute technologies to nodes by population
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
 
-    nodal_heating = existing_heating.loc[pop_layout.ct]
+    nodal_heating = existing_heating.reindex(pop_layout.ct, fill_value=0.0)
     nodal_heating.index = pop_layout.index
     nodal_heating = nodal_heating.multiply(pop_layout.fraction, axis=0)
 
