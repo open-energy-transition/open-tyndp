@@ -6,7 +6,7 @@ import logging
 
 import geopandas as gpd
 import pandas as pd
-from _helpers import configure_logging, set_scenario_config, extract_grid_data_tyndp
+from _helpers import configure_logging, extract_grid_data_tyndp, set_scenario_config
 from shapely.geometry import LineString, Point
 
 logger = logging.getLogger(__name__)
@@ -293,7 +293,9 @@ def build_links(
     }
 
     links = pd.read_excel(grid_fn)
-    links = extract_grid_data_tyndp(links=links, carrier="Transmission line", replace_dict=replace_dict)
+    links = extract_grid_data_tyndp(
+        links=links, carrier="Transmission line", replace_dict=replace_dict
+    )
 
     # Add missing attributes
     links = links.merge(
@@ -333,7 +335,11 @@ def build_links(
     links = links.dropna()  # TODO Remove this when all nodes are known
 
     links["geometry"] = gpd.GeoSeries(
-        [LineString([p0, p1]) for p0, p1 in zip(links["geometry0"], links["geometry1"])], index=links.index
+        [
+            LineString([p0, p1])
+            for p0, p1 in zip(links["geometry0"], links["geometry1"])
+        ],
+        index=links.index,
     )
     links = gpd.GeoDataFrame(links, geometry="geometry", crs=geo_crs)
 

@@ -1015,7 +1015,9 @@ def rename_techs(label: str) -> str:
     return label
 
 
-def extract_grid_data_tyndp(links, carrier="Transmission line", replace_dict: dict = {}):
+def extract_grid_data_tyndp(
+    links, carrier="Transmission line", replace_dict: dict = {}
+):
     """
     Extract TYNDP reference grid data from the raw input table.
 
@@ -1049,6 +1051,7 @@ def extract_grid_data_tyndp(links, carrier="Transmission line", replace_dict: di
 
     # Combine into unidirectional links and return
     h2_grid = pd.concat([forward_links, reverse_links])
+
     def make_index(c, carrier):
         return carrier + " " + c.bus0 + " -> " + c.bus1
 
