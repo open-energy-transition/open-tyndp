@@ -22,13 +22,13 @@ logger = logging.getLogger(__name__)
 
 def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     """
-    Load and clean H2 reference grid interzonal connections.
+    Load and clean H2 interzonal connections.
     Returns the cleaned interzonal connections as dataframe.
 
     Parameters
     ----------
     fn : str
-        Path to Excel file containing H2 reference grid data.
+        Path to Excel file containing H2 interzonal data.
     scenario : str
         TYNDP scenario to use for interzonal connection data.
         Possible options are:
