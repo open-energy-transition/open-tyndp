@@ -2086,11 +2086,11 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
     )
 
     interzonal = interzonal.assign(
-        bus0=interzonal.country0.str.split("H2").str.join(" H2 "),
-        bus1=interzonal.country1.str.split("H2").str.join(" H2 "),
+        bus0=interzonal.bus0.str.split("H2").str.join(" H2 "),
+        bus1=interzonal.bus1.str.split("H2").str.join(" H2 "),
     )
     interzonal = interzonal.loc[
-        interzonal.country0.str.startswith(tuple(nodes.country.values))
+        interzonal.bus0.str.startswith(tuple(nodes.country.values))
     ]
     n.add(
         "Link",
