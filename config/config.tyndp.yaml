@@ -114,7 +114,9 @@ sector:
   hydrogen_fuel_cell: false
   hydrogen_turbine: true
   transmission_efficiency:
-    enable: ['gas pipeline', 'electricity ditribution grid']
+    enable:
+    - gas pipeline
+    - electricity ditribution grid
 
 clustering:
   mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
