@@ -5274,13 +5274,23 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
+    nodes_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
+    nodes_z2 = nodes_z2[~(nodes_z2 == "IBFI H2 Z2")]
+    nodes_z2_ind = n.buses.loc[nodes_z2].country.values + "00"
+    nodes_z2_ind[nodes_z2_ind == "IT00"] = "ITCN", "ITN1"
+    nodes_z2_ind[nodes_z2_ind == "FI00"] = "FI00"
+    nodes_z2_ind[nodes_z2_ind == "DK00"] = "DKE1"
+    nodes_z2_ind[nodes_z2_ind == "LU00"] = "LUG1"
+    nodes_z2_ind[nodes_z2_ind == "NO00"] = "NOS0"
+    nodes_z2_ind[nodes_z2_ind == "SE00"] = "SE01"
+    ind_demand_z2 = industrial_demand.reindex(nodes_z2_ind, fill_value=0)
     n.add(
         "Load",
-        nodes,
-        suffix=" H2 for industry",
-        bus=nodes + " H2",
+        nodes_z2_ind,
+        suffix=" H2 Z2 for industry",
+        bus=nodes_z2,
         carrier="H2 for industry",
-        p_set=industrial_demand.loc[nodes, "hydrogen"] / nhours,
+        p_set=ind_demand_z2["hydrogen"] / nhours,  # TODO Improve assumptions
     )
 
     # methanol for industry
@@ -5323,10 +5333,10 @@ def add_industry(
 
     n.add(
         "Link",
-        spatial.h2.locations + " methanolisation",
-        bus0=spatial.h2.nodes,
+        nodes_z2_ind + " methanolisation",  # TODO Improve this assumption
+        bus0=nodes_z2_ind,  # TODO Improve this assumption
         bus1=spatial.methanol.nodes,
-        bus2=nodes,
+        bus2=nodes_z2_ind,  # TODO Improve this assumption
         bus3=spatial.co2.nodes,
         carrier="methanolisation",
         p_nom_extendable=True,
@@ -5366,8 +5376,8 @@ def add_industry(
 
     n.add(
         "Link",
-        nodes + " Fischer-Tropsch",
-        bus0=nodes + " H2",
+        nodes_z2_ind + " Fischer-Tropsch",
+        bus0=nodes_z2_ind,
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
         carrier="Fischer-Tropsch",

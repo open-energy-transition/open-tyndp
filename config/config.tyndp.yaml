@@ -74,8 +74,8 @@ pypsa_eur:
 sector:
   transport: false
   heating: true
-  biomass: false
-  industry: false
+  biomass: true
+  industry: true
   shipping: false
   aviation: false
   agriculture: false
@@ -123,4 +123,4 @@ clustering:
   administrative:
     level: 3
   temporal:
-    resolution_sector: 365SEG
+    resolution_sector: 6H
