@@ -5274,23 +5274,23 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
-    nodes_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
-    nodes_z2 = nodes_z2[~(nodes_z2 == "IBFI H2 Z2")]
-    nodes_z2_ind = n.buses.loc[nodes_z2].country.values + "00"
-    nodes_z2_ind[nodes_z2_ind == "IT00"] = "ITCN", "ITN1"
-    nodes_z2_ind[nodes_z2_ind == "FI00"] = "FI00"
-    nodes_z2_ind[nodes_z2_ind == "DK00"] = "DKE1"
-    nodes_z2_ind[nodes_z2_ind == "LU00"] = "LUG1"
-    nodes_z2_ind[nodes_z2_ind == "NO00"] = "NOS0"
-    nodes_z2_ind[nodes_z2_ind == "SE00"] = "SE01"
-    ind_demand_z2 = industrial_demand.reindex(nodes_z2_ind, fill_value=0)
+    nodes_ind_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
+    nodes_ind_z2 = nodes_ind_z2[~(nodes_ind_z2 == "IBFI H2 Z2")]
+    nodes_ind = n.buses.loc[nodes_ind_z2].country.values + "00"
+    nodes_ind[nodes_ind == "IT00"] = "ITCN", "ITN1"
+    nodes_ind[nodes_ind == "FI00"] = "FI00"
+    nodes_ind[nodes_ind == "DK00"] = "DKE1"
+    nodes_ind[nodes_ind == "LU00"] = "LUG1"
+    nodes_ind[nodes_ind == "NO00"] = "NOS0"
+    nodes_ind[nodes_ind == "SE00"] = "SE01"
+    industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
     n.add(
         "Load",
-        nodes_z2_ind,
+        nodes_ind,
         suffix=" H2 Z2 for industry",
-        bus=nodes_z2,
+        bus=nodes_ind_z2,
         carrier="H2 for industry",
-        p_set=ind_demand_z2["hydrogen"] / nhours,  # TODO Improve assumptions
+        p_set=industrial_demand_zones["hydrogen"] / nhours,  # TODO Improve assumptions
     )
 
     # methanol for industry
@@ -5333,10 +5333,10 @@ def add_industry(
 
     n.add(
         "Link",
-        nodes_z2_ind + " methanolisation",  # TODO Improve this assumption
-        bus0=nodes_z2_ind,  # TODO Improve this assumption
+        nodes_ind + " methanolisation",  # TODO Improve this assumption
+        bus0=nodes_ind,  # TODO Improve this assumption
         bus1=spatial.methanol.nodes,
-        bus2=nodes_z2_ind,  # TODO Improve this assumption
+        bus2=nodes_ind,  # TODO Improve this assumption
         bus3=spatial.co2.nodes,
         carrier="methanolisation",
         p_nom_extendable=True,
@@ -5376,8 +5376,8 @@ def add_industry(
 
     n.add(
         "Link",
-        nodes_z2_ind + " Fischer-Tropsch",
-        bus0=nodes_z2_ind,
+        nodes_ind + " Fischer-Tropsch",
+        bus0=nodes_ind,
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
         carrier="Fischer-Tropsch",
