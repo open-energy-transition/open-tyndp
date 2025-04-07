@@ -5274,6 +5274,7 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
+    # TODO Link properly Industry to H2 topology
     nodes_ind_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
     nodes_ind_z2 = nodes_ind_z2[~(nodes_ind_z2 == "IBFI H2 Z2")]
     nodes_ind = n.buses.loc[nodes_ind_z2].country.values + "00"
@@ -5286,9 +5287,9 @@ def add_industry(
     industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
     n.add(
         "Load",
-        nodes_ind,
+        nodes_ind,  # TODO Improve assumptions
         suffix=" H2 Z2 for industry",
-        bus=nodes_ind_z2,
+        bus=nodes_ind_z2,  # TODO Improve assumptions
         carrier="H2 for industry",
         p_set=industrial_demand_zones["hydrogen"]
         / nhours
@@ -5298,9 +5299,9 @@ def add_industry(
     nodes_ind_z1 = nodes_ind_z2.str.replace("Z2", "Z1")
     n.add(
         "Load",
-        nodes_ind,
+        nodes_ind,  # TODO Improve assumptions
         suffix=" H2 Z1 for industry",
-        bus=nodes_ind_z1,
+        bus=nodes_ind_z1,  # TODO Improve assumptions
         carrier="H2 for industry",
         p_set=industrial_demand_zones["hydrogen"]
         / nhours
@@ -5390,8 +5391,8 @@ def add_industry(
 
     n.add(
         "Link",
-        nodes_ind + " Fischer-Tropsch",
-        bus0=nodes_ind,
+        nodes_ind + " Fischer-Tropsch",  # TODO Improve assumptions
+        bus0=nodes_ind,  # TODO Improve assumptions
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
         carrier="Fischer-Tropsch",
