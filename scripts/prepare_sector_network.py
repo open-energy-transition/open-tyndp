@@ -5290,7 +5290,21 @@ def add_industry(
         suffix=" H2 Z2 for industry",
         bus=nodes_ind_z2,
         carrier="H2 for industry",
-        p_set=industrial_demand_zones["hydrogen"] / nhours,  # TODO Improve assumptions
+        p_set=industrial_demand_zones["hydrogen"]
+        / nhours
+        / 2,  # TODO Improve assumptions
+    )
+
+    nodes_ind_z1 = nodes_ind_z2.str.replace("Z2", "Z1")
+    n.add(
+        "Load",
+        nodes_ind,
+        suffix=" H2 Z1 for industry",
+        bus=nodes_ind_z1,
+        carrier="H2 for industry",
+        p_set=industrial_demand_zones["hydrogen"]
+        / nhours
+        / 2,  # TODO Improve assumptions
     )
 
     # methanol for industry
