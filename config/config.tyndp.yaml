@@ -38,6 +38,10 @@ electricity:
   base_network: tyndp-raw
   transmission_limit: v1.0
 
+links:
+  p_max_pu: 1.0
+  p_min_pu: 0
+
 transmission_projects:
   enable: true
   include:
