@@ -5276,10 +5276,9 @@ def add_industry(
 
     # TODO Link properly Industry to H2 topology
     nodes_ind_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
-    nodes_ind_z2 = nodes_ind_z2[~(nodes_ind_z2 == "IBFI H2 Z2")]
+    nodes_ind_z2 = nodes_ind_z2[~(nodes_ind_z2.isin(["IBFI H2 Z2", "IBIT H2 Z2"]))]
     nodes_ind = n.buses.loc[nodes_ind_z2].country.values + "00"
-    nodes_ind[nodes_ind == "IT00"] = "ITCN", "ITN1"
-    nodes_ind[nodes_ind == "FI00"] = "FI00"
+    nodes_ind[nodes_ind == "IT00"] = "ITCN"
     nodes_ind[nodes_ind == "DK00"] = "DKE1"
     nodes_ind[nodes_ind == "LU00"] = "LUG1"
     nodes_ind[nodes_ind == "NO00"] = "NOS0"
@@ -5296,7 +5295,8 @@ def add_industry(
         / 2,  # TODO Improve assumptions
     )
 
-    nodes_ind_z1 = nodes_ind_z2.str.replace("Z2", "Z1")
+    nodes_ind_z1 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z1")]
+    nodes_ind_z1 = nodes_ind_z1[~(nodes_ind_z1.isin(["IBFI H2 Z1", "IBIT H2 Z1"]))]
     n.add(
         "Load",
         nodes_ind,  # TODO Improve assumptions
@@ -5349,7 +5349,7 @@ def add_industry(
     n.add(
         "Link",
         nodes_ind + " methanolisation",  # TODO Improve this assumption
-        bus0=nodes_ind,  # TODO Improve this assumption
+        bus0=nodes_ind_z2,  # TODO Improve this assumption
         bus1=spatial.methanol.nodes,
         bus2=nodes_ind,  # TODO Improve this assumption
         bus3=spatial.co2.nodes,
@@ -5392,7 +5392,7 @@ def add_industry(
     n.add(
         "Link",
         nodes_ind + " Fischer-Tropsch",  # TODO Improve assumptions
-        bus0=nodes_ind,  # TODO Improve assumptions
+        bus0=nodes_ind_z2,  # TODO Improve assumptions
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
         carrier="Fischer-Tropsch",
