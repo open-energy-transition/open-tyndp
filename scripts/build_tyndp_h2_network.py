@@ -10,37 +10,44 @@ Depending on the scenario, different planning years (`pyear`) are available. DE 
 import logging
 
 import pandas as pd
-from _helpers import configure_logging, get_snapshots, set_scenario_config
+from _helpers import (
+    configure_logging,
+    extract_grid_data_tyndp,
+    get_snapshots,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def extract_grid_data(h2_grid_raw, direction="1"):
-    border_ctrys = h2_grid_raw.Border.str.split("-", expand=True)
-    border_i = {
-        "1": [0, 1],
-        "2": [1, 0],
-    }
-    h2_grid = (
-        h2_grid_raw.assign(
-            country0=border_ctrys[border_i[direction][0]],
-            country1=border_ctrys[border_i[direction][1]],
-        ).assign(
-            p_nom=h2_grid_raw[f"Summary Direction {direction}"].mul(1e3)
-        )  # Gw to MW
-    )[["country0", "country1", "p_nom"]]
-
-    def make_index(c):
-        return "H2 pipeline " + c.country0 + " -> " + c.country1
-
-    h2_grid.index = h2_grid.apply(make_index, axis=1)
-    return h2_grid
-
-
-def load_and_clean_h2_grid(fn, scenario="GA", pyear=2030):
+def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     """
-    Load and clean H2 reference grid and format data.
-    Returns both the cleaned reference grid and the interzonal connections as dataframes.
+    Load and clean H2 interzonal connections.
+    Returns the cleaned interzonal connections as dataframe.
+
+    Parameters
+    ----------
+    fn : str
+        Path to Excel file containing H2 interzonal data.
+    scenario : str
+        TYNDP scenario to use for interzonal connection data.
+        Possible options are:
+        - 'GA'
+        - 'DE'
+        - 'NT'
+    pyear : int
+        TYNDP planning horizon to use for interzonal connection data.
+        Possible options are:
+        - 2030
+        - 2035
+        - 2040
+        - 2045
+        - 2050
+
+    Returns
+    -------
+    pd.DataFrame
+        The function returns cleaned TYNDP H2 interzonal connections.
     """
 
     if scenario in ["DE", "GA"]:
@@ -62,9 +69,9 @@ def load_and_clean_h2_grid(fn, scenario="GA", pyear=2030):
             "Scenario == @scenario and Year == @pyear "
         )
 
-        interzonal_p = extract_grid_data(interzonal_filtered, direction="1")
-        interzonal_reversed = extract_grid_data(interzonal_filtered, direction="2")
-        interzonal = pd.concat([interzonal_p, interzonal_reversed]).sort_index()
+        interzonal = extract_grid_data_tyndp(interzonal_filtered, "H2 pipeline")
+        # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
+        interzonal["p_nom"] = interzonal.p_nom.mul(1e3)
 
     elif scenario == "NT":
         logger.info(
@@ -76,26 +83,38 @@ def load_and_clean_h2_grid(fn, scenario="GA", pyear=2030):
             "Unknown scenario requested. Please, choose from 'GA', 'DE' or 'NT'."
         )
 
-    h2_grid_raw = pd.read_excel(fn)
-    h2_grid_p = extract_grid_data(h2_grid_raw, direction="1")
-    h2_grid_reversed = extract_grid_data(h2_grid_raw, direction="2")
-    h2_grid = pd.concat([h2_grid_p, h2_grid_reversed]).sort_index()
+    return interzonal
 
-    return h2_grid, interzonal
+
+def load_h2_grid(fn):
+    """
+    Load and clean H2 reference grid and format data.
+    Returns the cleaned reference grid as dataframe.
+
+    Parameters
+    ----------
+    fn : str
+        Path to Excel file containing H2 reference grid data.
+
+    Returns
+    -------
+    pd.DataFrame
+        The function returns the cleaned TYNDP H2 reference grid.
+    """
+
+    h2_grid_raw = pd.read_excel(fn)
+    h2_grid = extract_grid_data_tyndp(h2_grid_raw, "H2 pipeline")
+    # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
+    h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
+
+    return h2_grid
 
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "clean_tyndp_h2_reference_grid",
-            opts="",
-            clusters="100",
-            ll="v1.0",
-            sector_opts="",
-            planning_horizons="2030",
-        )
+        snakemake = mock_snakemake("build_tyndp_h2_network")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -106,8 +125,9 @@ if __name__ == "__main__":
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
-    h2_grid, interzonal = load_and_clean_h2_grid(
-        snakemake.input.tyndp_reference_grid, scenario=scenario, pyear=pyear
+    h2_grid = load_h2_grid(fn=snakemake.input.tyndp_reference_grid)
+    interzonal = load_h2_interzonal_connections(
+        fn=snakemake.input.tyndp_reference_grid, scenario=scenario, pyear=pyear
     )
 
     # Save prepped H2 grid and interzonal

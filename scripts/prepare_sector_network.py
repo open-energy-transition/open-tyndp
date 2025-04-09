@@ -57,7 +57,15 @@ def define_spatial(nodes, options, buses_h2_file=None):
     nodes : list-like
         Nodes to define spatial data for
     options : dict
-        Configuration dictionary, must contain 'fossil_fuels' boolean
+        Configuration options containing at least:
+        - biomass_spatial : bool
+        - co2_spatial : bool
+        - gas_network : bool
+        - ammonia : bool
+        - h2_topology_tyndp : dict
+        - methanol : dict
+        - regional_oil_demand : bool
+        - regional_coal_demand : bool
     buses_h2_file : str
         Path to CSV file containing TYNDP H2 buses information
     """
@@ -158,7 +166,6 @@ def define_spatial(nodes, options, buses_h2_file=None):
     # hydrogen tyndp
     if options["h2_topology_tyndp"]["enable"] and buses_h2_file:
         spatial.h2_tyndp = SimpleNamespace()
-        # load tyndp h2 buses
         buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
         spatial.h2_tyndp.nodes = pd.Index(
             (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
@@ -439,16 +446,16 @@ def create_network_topology(
     return topo
 
 
-def create_tyndp_h2_network(n, fn_h2_network):
+def create_h2_topology_tyndp(n, fn_h2_network):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
 
     Parameters
     ----------
     n : pypsa.Network
-        Network to update generator costs
-    fn : str
-        Pointing to the input tyndp h2 reference grid csv file
+        Network to create H2 topology for
+    fn_h2_network : str
+        Pointing to the input TYNDP H2 reference grid csv file
 
     Returns
     -------
@@ -458,7 +465,7 @@ def create_tyndp_h2_network(n, fn_h2_network):
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
     h2_pipes = h2_pipes.assign(
-        bus0=h2_pipes.country0 + " H2 Z2", bus1=h2_pipes.country1 + " H2 Z2"
+        bus0=h2_pipes.bus0 + " H2 Z2", bus1=h2_pipes.bus1 + " H2 Z2"
     )
     h2_pipes["length"] = h2_pipes.apply(haversine, axis=1, args=(n,))
 
@@ -1801,7 +1808,7 @@ def add_electricity_grid_connection(n, costs):
 
 def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
     """
-    Adds TYNDP electrolyzers for Z1 and Z2 and optionally add SMR, SMR CC and ATR.
+    Add TYNDP electrolyzers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
 
     Parameters
     ----------
@@ -1882,7 +1889,10 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         )
 
     # TODO: add good technology assumptions for Methanol ATR (ATRM) to technology data
-    if options["ATR"] and options["methanol"]:
+    if options["ATR"] and any(
+        v if isinstance(v, bool) else any(v.values())
+        for v in options["methanol"].values()
+    ):
         logger.info("Adding Z1 dummy ATR.")
         add_carrier_buses(
             n=n, carrier="methanol", costs=costs, spatial=spatial, options=options
@@ -2003,14 +2013,12 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         )
 
     if options["hydrogen_fuel_cell"]:
-        logger.info("Adding Z1 and Z2 dummy hydrogen fuel cell for re-electrification.")
+        logger.info("Adding Z2 dummy hydrogen fuel cell for re-electrification.")
         n.add(
             "Link",
-            (nodes.index + " H2 Z1 Fuel Cell").append(nodes.index + " H2 Z2 Fuel Cell"),
-            bus0=np.append(
-                nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"
-            ),
-            bus1=np.tile(nodes.index, 2),
+            nodes.index + " H2 Z2 Fuel Cell",
+            bus0=nodes.country.values + " H2 Z2",
+            bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 Fuel Cell",
             efficiency=costs.at["fuel cell", "efficiency"],
@@ -2021,22 +2029,20 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
 
     if options["hydrogen_turbine"]:
         logger.info(
-            "Adding Z1 and Z2 dummy hydrogen turbine for re-electrification. Assuming OCGT technology costs."
+            "Adding Z2 dummy hydrogen turbine for re-electrification. Assuming CCGT technology costs."
         )
         n.add(
             "Link",
-            (nodes.index + " H2 Z1 turbine").append(nodes.index + " H2 Z2 turbine"),
-            bus0=np.append(
-                nodes.country.values + " H2 Z1", nodes.country.values + " H2 Z2"
-            ),
-            bus1=np.tile(nodes.index, 2),
+            nodes.index + " H2 Z2 turbine",
+            bus0=nodes.country.values + " H2 Z2",
+            bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 turbine",
-            efficiency=costs.at["OCGT", "efficiency"],
-            capital_cost=costs.at["OCGT", "capital_cost"]
-            * costs.at["OCGT", "efficiency"],  # NB: fixed cost is per MWel
-            marginal_cost=costs.at["OCGT", "VOM"],
-            lifetime=costs.at["OCGT", "lifetime"],
+            efficiency=costs.at["CCGT", "efficiency"],
+            capital_cost=costs.at["CCGT", "capital_cost"]
+            * costs.at["CCGT", "efficiency"],  # NB: fixed cost is per MWel
+            marginal_cost=costs.at["CCGT", "VOM"],
+            lifetime=costs.at["CCGT", "lifetime"],
         )
 
 
@@ -2063,7 +2069,7 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         The function modifies the network object in-place by adding components.
     """
 
-    h2_pipes = create_tyndp_h2_network(n=n, fn_h2_network=h2_pipes_file)
+    h2_pipes = create_h2_topology_tyndp(n=n, fn_h2_network=h2_pipes_file)
     interzonal = pd.read_csv(interzonal_file, index_col=0)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
@@ -2083,11 +2089,11 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
     )
 
     interzonal = interzonal.assign(
-        bus0=interzonal.country0.str.split("H2").str.join(" H2 "),
-        bus1=interzonal.country1.str.split("H2").str.join(" H2 "),
+        bus0=interzonal.bus0.str.split("H2").str.join(" H2 "),
+        bus1=interzonal.bus1.str.split("H2").str.join(" H2 "),
     )
     interzonal = interzonal.loc[
-        interzonal.country0.str.startswith(tuple(nodes.country.values))
+        interzonal.bus0.str.startswith(tuple(nodes.country.values))
     ]
     n.add(
         "Link",
@@ -4313,7 +4319,9 @@ def add_methanol(
     - methanol_reforming_cc: Enables methanol reforming with carbon capture
     """
     methanol_options = options["methanol"]
-    if not any(methanol_options.values()):
+    if not any(
+        v if isinstance(v, bool) else any(v.values()) for v in methanol_options.values()
+    ):
         return
 
     logger.info("Add methanol")
@@ -6847,7 +6855,6 @@ if __name__ == "__main__":
             "prepare_sector_network",
             opts="",
             clusters="10",
-            ll="vopt",
             sector_opts="",
             planning_horizons="2050",
         )
@@ -7164,7 +7171,7 @@ if __name__ == "__main__":
         add_electricity_grid_connection(n, costs)
 
     for k, v in options["transmission_efficiency"].items():
-        if not (k == "H2 pipeline" and options["h2_topology_tyndp"]["enable"]):
+        if k in options["transmission_efficiency"]["enable"]:
             lossy_bidirectional_links(n, k, v)
 
     # Workaround: Remove lines with conflicting (and unrealistic) properties
