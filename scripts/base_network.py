@@ -469,12 +469,20 @@ def _set_countries_and_substations(n, config, country_shapes, offshore_shapes):
         return pd.Series(key, index)
 
     compat_kws = dict(include_groups=False) if PD_GE_2_2 else {}
-    gb = buses.loc[substation_b].groupby(
-        ["x", "y"], as_index=False, group_keys=False, sort=False
-    )
-    bus_map_low = gb.apply(prefer_voltage, "min", **compat_kws)
+    filtered_buses = buses.loc[substation_b]
+    if len(filtered_buses) == 1:
+        # Handle single row case explicitly
+        single_idx = filtered_buses.index[0]
+        bus_map_low = pd.Series(single_idx, index=[single_idx])
+        bus_map_high = pd.Series(single_idx, index=[single_idx])
+    else:
+        # Multiple rows case
+        gb = filtered_buses.groupby(
+            ["x", "y"], as_index=False, group_keys=False, sort=False
+        )
+        bus_map_low = gb.apply(prefer_voltage, "min", **compat_kws)
+        bus_map_high = gb.apply(prefer_voltage, "max", **compat_kws)
     lv_b = (bus_map_low == bus_map_low.index).reindex(buses.index, fill_value=False)
-    bus_map_high = gb.apply(prefer_voltage, "max", **compat_kws)
     hv_b = (bus_map_high == bus_map_high.index).reindex(buses.index, fill_value=False)
 
     onshore_b = pd.Series(False, buses.index)
