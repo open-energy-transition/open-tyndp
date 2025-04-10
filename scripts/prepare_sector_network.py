@@ -5290,22 +5290,8 @@ def add_industry(
         suffix=" H2 Z2 for industry",
         bus=nodes_ind_z2,  # TODO Improve assumptions
         carrier="H2 for industry",
-        p_set=industrial_demand_zones["hydrogen"] / nhours,
-        # / 2,  # TODO Improve assumptions
+        p_set=industrial_demand_zones["hydrogen"] / nhours,  # TODO Improve assumptions
     )
-
-    # nodes_ind_z1 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z1")]
-    # nodes_ind_z1 = nodes_ind_z1[~(nodes_ind_z1.isin(["IBFI H2 Z1", "IBIT H2 Z1"]))]
-    # n.add(
-    #     "Load",
-    #     nodes_ind,  # TODO Improve assumptions
-    #     suffix=" H2 Z1 for industry",
-    #     bus=nodes_ind_z1,  # TODO Improve assumptions
-    #     carrier="H2 for industry",
-    #     p_set=industrial_demand_zones["hydrogen"]
-    #     / nhours
-    #     / 2,  # TODO Improve assumptions
-    # )
 
     # methanol for industry
 
