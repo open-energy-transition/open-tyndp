@@ -5274,13 +5274,23 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
+    # TODO Link properly Industry to H2 topology
+    nodes_ind_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
+    nodes_ind_z2 = nodes_ind_z2[~(nodes_ind_z2.isin(["IBFI H2 Z2", "IBIT H2 Z2"]))]
+    nodes_ind = n.buses.loc[nodes_ind_z2].country.values + "00"
+    nodes_ind[nodes_ind == "IT00"] = "ITCN"
+    nodes_ind[nodes_ind == "DK00"] = "DKE1"
+    nodes_ind[nodes_ind == "LU00"] = "LUG1"
+    nodes_ind[nodes_ind == "NO00"] = "NOS0"
+    nodes_ind[nodes_ind == "SE00"] = "SE01"
+    industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
     n.add(
         "Load",
-        nodes,
-        suffix=" H2 for industry",
-        bus=nodes + " H2",
+        nodes_ind,  # TODO Improve assumptions
+        suffix=" H2 Z2 for industry",
+        bus=nodes_ind_z2,  # TODO Improve assumptions
         carrier="H2 for industry",
-        p_set=industrial_demand.loc[nodes, "hydrogen"] / nhours,
+        p_set=industrial_demand_zones["hydrogen"] / nhours,  # TODO Improve assumptions
     )
 
     # methanol for industry
@@ -5323,10 +5333,10 @@ def add_industry(
 
     n.add(
         "Link",
-        spatial.h2.locations + " methanolisation",
-        bus0=spatial.h2.nodes,
+        nodes_ind + " methanolisation",  # TODO Improve this assumption
+        bus0=nodes_ind_z2,  # TODO Improve this assumption
         bus1=spatial.methanol.nodes,
-        bus2=nodes,
+        bus2=nodes_ind,  # TODO Improve this assumption
         bus3=spatial.co2.nodes,
         carrier="methanolisation",
         p_nom_extendable=True,
@@ -5366,8 +5376,8 @@ def add_industry(
 
     n.add(
         "Link",
-        nodes + " Fischer-Tropsch",
-        bus0=nodes + " H2",
+        nodes_ind + " Fischer-Tropsch",  # TODO Improve assumptions
+        bus0=nodes_ind_z2,  # TODO Improve assumptions
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
         carrier="Fischer-Tropsch",
