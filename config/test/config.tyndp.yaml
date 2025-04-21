@@ -153,3 +153,9 @@ clustering:
     level: 3
   temporal:
     resolution_sector: 6H
+
+solving:
+  solver:
+    name: highs
+    options: highs-simplex
+  mem: 4000
