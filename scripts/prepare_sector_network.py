@@ -638,7 +638,7 @@ def add_carrier_buses(
         nodes + " Store",
         bus=nodes,
         e_nom_extendable=True,
-        e_cyclic=False,
+        e_cyclic=True,
         carrier=carrier,
         capital_cost=capital_cost,
     )
