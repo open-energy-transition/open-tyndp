@@ -4416,7 +4416,10 @@ def add_biomass(
     """
     logger.info("Add biomass")
 
-    biomass_potentials = pd.read_csv(biomass_potentials_file, index_col=0)
+    nhours = n.snapshot_weightings.generators.sum()
+    nyears = nhours / 8760
+
+    biomass_potentials = pd.read_csv(biomass_potentials_file, index_col=0) * nyears
 
     # need to aggregate potentials if gas not nodally resolved
     if options["gas_network"]:
