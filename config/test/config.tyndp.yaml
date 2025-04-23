@@ -74,14 +74,6 @@ transmission_projects:
     nep: false
     manual: false
 
-load:
-  source: tyndp # opsd, tyndp
-  manual_adjustments: false
-  supplement_synthetic: true
-  tyndp_scenario:
-    scenario: DE  # NT, DE or GA
-    year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
-
 pypsa_eur:
   Bus:
   - AC
