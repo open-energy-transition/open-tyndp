@@ -5093,7 +5093,6 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
-    base_network: str,
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -5128,8 +5127,6 @@ def add_industry(
         Year for which investment costs should be considered
     HeatSystem : Enum
         Enumeration defining different heat system types
-    base_network : str
-        Base network configuration
 
     Returns
     -------
@@ -5286,7 +5283,7 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
-    if base_network == "tyndp-raw":
+    if options["h2_topology_tyndp"]["enable"]:
         # TODO Link properly Industry to H2 topology
         nodes_ind_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
         nodes_ind_z2 = nodes_ind_z2[~(nodes_ind_z2.isin(["IBFI H2 Z2", "IBIT H2 Z2"]))]
@@ -5296,25 +5293,19 @@ def add_industry(
         nodes_ind[nodes_ind == "LU00"] = "LUG1"
         nodes_ind[nodes_ind == "NO00"] = "NOS0"
         nodes_ind[nodes_ind == "SE00"] = "SE01"
-        industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
-        n.add(
-            "Load",
-            nodes_ind,  # TODO Improve assumptions
-            suffix=" H2 Z2 for industry",
-            bus=nodes_ind_z2,  # TODO Improve assumptions
-            carrier="H2 for industry",
-            p_set=industrial_demand_zones["hydrogen"]
-            / nhours,  # TODO Improve assumptions
-        )
     else:
-        n.add(
-            "Load",
-            nodes,
-            suffix=" H2 for industry",
-            bus=nodes + " H2",
-            carrier="H2 for industry",
-            p_set=industrial_demand.loc[nodes, "hydrogen"] / nhours,
-        )
+        nodes_ind = nodes
+        nodes_ind_z2 = nodes + " H2"
+    industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
+    n.add(
+        "Load",
+        nodes_ind,  # TODO Improve assumptions
+        suffix=" H2 Z2 for industry",
+        bus=nodes_ind_z2,  # TODO Improve assumptions
+        carrier="H2 for industry",
+        p_set=industrial_demand_zones["hydrogen"]
+        / nhours,  # TODO Improve assumptions for zones
+    )
 
     # methanol for industry
 
@@ -5354,47 +5345,26 @@ def add_industry(
         # CO2 intensity methanol based on stoichiometric calculation with 22.7 GJ/t methanol (32 g/mol), CO2 (44 g/mol), 277.78 MWh/TJ = 0.218 t/MWh
     )
 
-    if base_network == "tyndp-raw":
-        # TODO Link properly Industry to H2 topology
-        n.add(
-            "Link",
-            nodes_ind + " methanolisation",  # TODO Improve this assumption
-            bus0=nodes_ind_z2,  # TODO Improve this assumption
-            bus1=spatial.methanol.nodes,
-            bus2=nodes_ind,  # TODO Improve this assumption
-            bus3=spatial.co2.nodes,
-            carrier="methanolisation",
-            p_nom_extendable=True,
-            p_min_pu=options["min_part_load_methanolisation"],
-            capital_cost=costs.at["methanolisation", "capital_cost"]
-            * options["MWh_MeOH_per_MWh_H2"],  # EUR/MW_H2/a
-            marginal_cost=options["MWh_MeOH_per_MWh_H2"]
-            * costs.at["methanolisation", "VOM"],
-            lifetime=costs.at["methanolisation", "lifetime"],
-            efficiency=options["MWh_MeOH_per_MWh_H2"],
-            efficiency2=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_MWh_e"],
-            efficiency3=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_tCO2"],
-        )
-    else:
-        n.add(
-            "Link",
-            spatial.h2.locations + " methanolisation",
-            bus0=spatial.h2.nodes,
-            bus1=spatial.methanol.nodes,
-            bus2=nodes,
-            bus3=spatial.co2.nodes,
-            carrier="methanolisation",
-            p_nom_extendable=True,
-            p_min_pu=options["min_part_load_methanolisation"],
-            capital_cost=costs.at["methanolisation", "capital_cost"]
-            * options["MWh_MeOH_per_MWh_H2"],  # EUR/MW_H2/a
-            marginal_cost=options["MWh_MeOH_per_MWh_H2"]
-            * costs.at["methanolisation", "VOM"],
-            lifetime=costs.at["methanolisation", "lifetime"],
-            efficiency=options["MWh_MeOH_per_MWh_H2"],
-            efficiency2=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_MWh_e"],
-            efficiency3=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_tCO2"],
-        )
+    # TODO Link properly Industry to H2 topology
+    n.add(
+        "Link",
+        nodes_ind + " methanolisation",  # TODO Improve this assumption
+        bus0=nodes_ind_z2,  # TODO Improve this assumption
+        bus1=spatial.methanol.nodes,
+        bus2=nodes_ind,  # TODO Improve this assumption
+        bus3=spatial.co2.nodes,
+        carrier="methanolisation",
+        p_nom_extendable=True,
+        p_min_pu=options["min_part_load_methanolisation"],
+        capital_cost=costs.at["methanolisation", "capital_cost"]
+        * options["MWh_MeOH_per_MWh_H2"],  # EUR/MW_H2/a
+        marginal_cost=options["MWh_MeOH_per_MWh_H2"]
+        * costs.at["methanolisation", "VOM"],
+        lifetime=costs.at["methanolisation", "lifetime"],
+        efficiency=options["MWh_MeOH_per_MWh_H2"],
+        efficiency2=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_MWh_e"],
+        efficiency3=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_tCO2"],
+    )
 
     if options["oil_boilers"]:
         nodes = pop_layout.index
@@ -5419,45 +5389,25 @@ def add_industry(
                     lifetime=costs.at["decentral oil boiler", "lifetime"],
                 )
 
-    if base_network == "tyndp-raw":
-        # TODO Link properly Industry to H2 topology
-        n.add(
-            "Link",
-            nodes_ind + " Fischer-Tropsch",  # TODO Improve assumptions
-            bus0=nodes_ind_z2,  # TODO Improve assumptions
-            bus1=spatial.oil.nodes,
-            bus2=spatial.co2.nodes,
-            carrier="Fischer-Tropsch",
-            efficiency=costs.at["Fischer-Tropsch", "efficiency"],
-            capital_cost=costs.at["Fischer-Tropsch", "capital_cost"]
-            * costs.at["Fischer-Tropsch", "efficiency"],  # EUR/MW_H2/a
-            marginal_cost=costs.at["Fischer-Tropsch", "efficiency"]
-            * costs.at["Fischer-Tropsch", "VOM"],
-            efficiency2=-costs.at["oil", "CO2 intensity"]
-            * costs.at["Fischer-Tropsch", "efficiency"],
-            p_nom_extendable=True,
-            p_min_pu=options["min_part_load_fischer_tropsch"],
-            lifetime=costs.at["Fischer-Tropsch", "lifetime"],
-        )
-    else:
-        n.add(
-            "Link",
-            nodes + " Fischer-Tropsch",
-            bus0=nodes + " H2",
-            bus1=spatial.oil.nodes,
-            bus2=spatial.co2.nodes,
-            carrier="Fischer-Tropsch",
-            efficiency=costs.at["Fischer-Tropsch", "efficiency"],
-            capital_cost=costs.at["Fischer-Tropsch", "capital_cost"]
-            * costs.at["Fischer-Tropsch", "efficiency"],  # EUR/MW_H2/a
-            marginal_cost=costs.at["Fischer-Tropsch", "efficiency"]
-            * costs.at["Fischer-Tropsch", "VOM"],
-            efficiency2=-costs.at["oil", "CO2 intensity"]
-            * costs.at["Fischer-Tropsch", "efficiency"],
-            p_nom_extendable=True,
-            p_min_pu=options["min_part_load_fischer_tropsch"],
-            lifetime=costs.at["Fischer-Tropsch", "lifetime"],
-        )
+    # TODO Link properly Industry to H2 topology
+    n.add(
+        "Link",
+        nodes_ind + " Fischer-Tropsch",  # TODO Improve assumptions
+        bus0=nodes_ind_z2,  # TODO Improve assumptions
+        bus1=spatial.oil.nodes,
+        bus2=spatial.co2.nodes,
+        carrier="Fischer-Tropsch",
+        efficiency=costs.at["Fischer-Tropsch", "efficiency"],
+        capital_cost=costs.at["Fischer-Tropsch", "capital_cost"]
+        * costs.at["Fischer-Tropsch", "efficiency"],  # EUR/MW_H2/a
+        marginal_cost=costs.at["Fischer-Tropsch", "efficiency"]
+        * costs.at["Fischer-Tropsch", "VOM"],
+        efficiency2=-costs.at["oil", "CO2 intensity"]
+        * costs.at["Fischer-Tropsch", "efficiency"],
+        p_nom_extendable=True,
+        p_min_pu=options["min_part_load_fischer_tropsch"],
+        lifetime=costs.at["Fischer-Tropsch", "lifetime"],
+    )
 
     # naphtha
     demand_factor = options["HVC_demand_factor"]
@@ -7118,7 +7068,6 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
-            base_network=snakemake.params.base_network,
         )
 
     if options["shipping"]:
