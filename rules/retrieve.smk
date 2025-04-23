@@ -152,6 +152,7 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
 
     rule retrieve_cutout:
         input:
+            # TODO Use Zenodo as data provider
             storage(
                 "https://drive.usercontent.google.com/download?id=1gLvJcqUgGdGw_UpBaot2BSm8e-9b1YvN&export=download&authuser=0&confirm=t",
             ),
