@@ -5093,6 +5093,7 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
+    base_network: str,
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -5127,6 +5128,8 @@ def add_industry(
         Year for which investment costs should be considered
     HeatSystem : Enum
         Enumeration defining different heat system types
+    base_network : str
+        Base network configuration
 
     Returns
     -------
@@ -5283,7 +5286,7 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
-    if snakemake.params.base_network == "tyndp-raw":
+    if base_network == "tyndp-raw":
         # TODO Link properly Industry to H2 topology
         nodes_ind_z2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
         nodes_ind_z2 = nodes_ind_z2[~(nodes_ind_z2.isin(["IBFI H2 Z2", "IBIT H2 Z2"]))]
@@ -5351,7 +5354,7 @@ def add_industry(
         # CO2 intensity methanol based on stoichiometric calculation with 22.7 GJ/t methanol (32 g/mol), CO2 (44 g/mol), 277.78 MWh/TJ = 0.218 t/MWh
     )
 
-    if snakemake.params.base_network == "tyndp-raw":
+    if base_network == "tyndp-raw":
         # TODO Link properly Industry to H2 topology
         n.add(
             "Link",
@@ -5416,7 +5419,7 @@ def add_industry(
                     lifetime=costs.at["decentral oil boiler", "lifetime"],
                 )
 
-    if snakemake.params.base_network == "tyndp-raw":
+    if base_network == "tyndp-raw":
         # TODO Link properly Industry to H2 topology
         n.add(
             "Link",
@@ -7115,6 +7118,7 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
+            base_network=snakemake.params.base_network,
         )
 
     if options["shipping"]:
