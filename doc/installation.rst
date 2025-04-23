@@ -79,7 +79,7 @@ Nevertheless, you can still use open-source solvers for smaller problems.
     .. code:: console
 
         $ conda activate pypsa-eur
-        $ conda install -c gurobi gurobi"=12.0.0"
+        $ conda install -c gurobi gurobi"=12.0.1"
 
     Additionally, you need to setup your `Gurobi license <https://www.gurobi.com/solutions/licensing/>`__.
 
@@ -99,4 +99,4 @@ You can also use ``snakemake`` to specify another file, e.g.
 
 .. code:: console
 
-    $ snakemake --configfile config/config.mymodifications.yaml
+    $ snakemake -call --configfile config/config.mymodifications.yaml

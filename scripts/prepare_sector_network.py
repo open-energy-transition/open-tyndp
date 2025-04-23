@@ -25,6 +25,7 @@ from _helpers import (
 )
 from add_electricity import (
     calculate_annuity,
+    flatten,
     load_costs,
     sanitize_carriers,
     sanitize_locations,
@@ -524,7 +525,10 @@ def update_wind_solar_costs(
             if "year" in ds.indexes:
                 ds = ds.sel(year=ds.year.min(), drop=True)
 
+            ds = ds.stack(bus_bin=["bus", "bin"])
+
             distance = ds["average_distance"].to_pandas()
+            distance.index = distance.index.map(flatten)
             submarine_cost = costs.at[tech + "-connection-submarine", "capital_cost"]
             underground_cost = costs.at[
                 tech + "-connection-underground", "capital_cost"
@@ -1566,6 +1570,7 @@ def insert_electricity_distribution_grid(
     costs: pd.DataFrame,
     options: dict,
     pop_layout: pd.DataFrame,
+    solar_rooftop_potentials_fn: str,
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -1669,11 +1674,10 @@ def insert_electricity_distribution_grid(
     # set existing solar to cost of utility cost rather the 50-50 rooftop-utility
     solar = n.generators.index[n.generators.carrier == "solar"]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
-    pop_solar = pop_layout.total.rename(index=lambda x: x + " solar")
 
-    # add max solar rooftop potential assuming 0.1 kW/m2 and 20 m2/person,
-    # i.e. 2 kW/person (population data is in thousands of people) so we get MW
-    potential = 0.1 * 20 * pop_solar
+    fn = solar_rooftop_potentials_fn
+    potential = pd.read_csv(fn, index_col=["bus", "bin"]).squeeze()
+    potential.index = potential.index.map(flatten) + " solar"
 
     n.add(
         "Generator",
@@ -4086,7 +4090,7 @@ def add_heat(
                     bus1=nodes,
                     bus2=nodes + " urban central heat",
                     bus3="co2 atmosphere",
-                    carrier="urban central CHP",
+                    carrier=f"urban central {fuel} CHP",
                     p_nom_extendable=True,
                     capital_cost=costs.at["central gas CHP", "capital_cost"]
                     * costs.at["central gas CHP", "efficiency"],
@@ -4106,7 +4110,7 @@ def add_heat(
                     bus2=nodes + " urban central heat",
                     bus3="co2 atmosphere",
                     bus4=spatial.co2.df.loc[nodes, "nodes"].values,
-                    carrier="urban central CHP CC",
+                    carrier=f"urban central {fuel} CHP CC",
                     p_nom_extendable=True,
                     capital_cost=costs.at["central gas CHP", "capital_cost"]
                     * costs.at["central gas CHP", "efficiency"]
@@ -4538,7 +4542,9 @@ def add_biomass(
     if options["solid_biomass_import"].get("enable", False):
         biomass_import_price = options["solid_biomass_import"]["price"]
         # convert TWh in MWh
-        biomass_import_max_amount = options["solid_biomass_import"]["max_amount"] * 1e6
+        biomass_import_max_amount = (
+            options["solid_biomass_import"]["max_amount"] * 1e6 * nyears
+        )
         biomass_import_upstream_emissions = options["solid_biomass_import"][
             "upstream_emissions_factor"
         ]
@@ -6187,9 +6193,6 @@ def add_agriculture(
     )
 
     # machinery
-    def get(parameter, year):
-        """Helper function to get time-dependent parameter values."""
-        return parameter[year] if isinstance(parameter, dict) else parameter
 
     electric_share = get(
         options["agriculture_machinery_electric_share"], investment_year
@@ -6859,7 +6862,6 @@ def add_import_options(
         )
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -7161,7 +7163,9 @@ if __name__ == "__main__":
         limit_individual_line_extension(n, maxext)
 
     if options["electricity_distribution_grid"]:
-        insert_electricity_distribution_grid(n, costs, options, pop_layout)
+        insert_electricity_distribution_grid(
+            n, costs, options, pop_layout, snakemake.input.solar_rooftop_potentials
+        )
 
     if options["enhanced_geothermal"].get("enable", False):
         logger.info("Adding Enhanced Geothermal Systems (EGS).")
