@@ -155,7 +155,7 @@ dependencies:
   - hdf4=4.2.15
   - hdf5=1.14.3
   - hicolor-icon-theme=0.17
-  - highspy=1.9.0
+  - highspy=1.10.0
   - hpack=4.1.0
   - httpcore=1.0.7
   - httpx=0.28.1
