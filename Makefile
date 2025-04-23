@@ -54,11 +54,11 @@ install-pinned-macos: _conda_check
 # Run default tests
 test:
 	set -e
-	#snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml
-	#snakemake -call --configfile config/test/config.overnight.yaml
-	#snakemake -call --configfile config/test/config.myopic.yaml
-	#snakemake -call make_summary_perfect --configfile config/test/config.perfect.yaml
-	#snakemake -call --configfile config/test/config.scenarios.yaml -n
+	snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml
+	snakemake -call --configfile config/test/config.overnight.yaml
+	snakemake -call --configfile config/test/config.myopic.yaml
+	snakemake -call make_summary_perfect --configfile config/test/config.perfect.yaml
+	snakemake -call --configfile config/test/config.scenarios.yaml -n
 	snakemake -call --configfile config/test/config.tyndp.yaml
 	echo "All tests completed successfully."
 
@@ -67,11 +67,11 @@ unit-test:
 
 # Cleans all output files from tests
 clean-tests:
-	#snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml --delete-all-output
-	#snakemake -call --configfile config/test/config.overnight.yaml --delete-all-output
-	#snakemake -call --configfile config/test/config.myopic.yaml --delete-all-output
-	#snakemake -call make_summary_perfect --configfile config/test/config.perfect.yaml --delete-all-output
-	#snakemake -call --configfile config/test/config.scenarios.yaml -n --delete-all-output
+	snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml --delete-all-output
+	snakemake -call --configfile config/test/config.overnight.yaml --delete-all-output
+	snakemake -call --configfile config/test/config.myopic.yaml --delete-all-output
+	snakemake -call make_summary_perfect --configfile config/test/config.perfect.yaml --delete-all-output
+	snakemake -call --configfile config/test/config.scenarios.yaml -n --delete-all-output
 	snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output
 
 # Removes all created files except for large cutout files (similar to fresh clone)
