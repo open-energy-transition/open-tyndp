@@ -154,9 +154,8 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
 
     rule retrieve_cutout:
         input:
-            # TODO Use Zenodo as data provider
             storage(
-                "https://drive.usercontent.google.com/download?id=1gLvJcqUgGdGw_UpBaot2BSm8e-9b1YvN&export=download&authuser=0&confirm=t",
+                "https://zenodo.org/records/14936211/files/{cutout}.nc",
             ),
         output:
             CDIR + "{cutout}.nc",
@@ -167,8 +166,23 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
         retries: 2
         run:
             move(input[0], output[0])
-            # validate_checksum(output[0], input[0])
+            validate_checksum(output[0], input[0])
 
+    rule retrieve_cutout_1w:
+        input:
+            # TODO Use Zenodo as data provider
+            storage(
+                "https://drive.usercontent.google.com/download?id=1gLvJcqUgGdGw_UpBaot2BSm8e-9b1YvN&export=download&authuser=0&confirm=t",
+            ),
+        output:
+            CDIR + "europe-2013-03-sarah3-era5.nc",
+        log:
+            "logs/" + CDIR + "retrieve_cutout_europe-2013-03-sarah3-era5.log",
+        resources:
+            mem_mb=5000,
+        retries: 2
+        run:
+            move(input[0], output[0])
 
 
 if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle", True):
