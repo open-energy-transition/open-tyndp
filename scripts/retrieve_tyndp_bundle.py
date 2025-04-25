@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: 2024 The PyPSA-Eur Authors
 #
 # SPDX-License-Identifier: MIT
@@ -43,7 +42,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
     disable_progress = snakemake.config["run"].get("disable_progressbar", False)
 
-    to_fn = snakemake.output[0]
+    to_fn = snakemake.output.dir
     to_fn_zp = to_fn + ".zip"
 
     # download .zip file

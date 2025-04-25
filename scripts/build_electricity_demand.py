@@ -13,9 +13,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-from pandas import Timedelta as Delta
-
 from _helpers import configure_logging, get_snapshots, set_scenario_config
+from pandas import Timedelta as Delta
 
 logger = logging.getLogger(__name__)
 
@@ -293,7 +292,10 @@ if __name__ == "__main__":
         if "MD" in countries:
             load["MD"] = 6.2e6 * (load_ua / load_ua.sum())
 
-    if snakemake.params.load["manual_adjustments"] and snakemake.params.load["source"] == "opsd":
+    if (
+        snakemake.params.load["manual_adjustments"]
+        and snakemake.params.load["source"] == "opsd"
+    ):
         load = manual_adjustment(load, snakemake.input[0], countries)
 
     logger.info(f"Linearly interpolate gaps of size {interpolate_limit} and less.")
@@ -306,8 +308,8 @@ if __name__ == "__main__":
         logger.info("Supplement missing data with synthetic data.")
         fn = snakemake.input.synthetic
         synthetic_load = pd.read_csv(fn, index_col=0, parse_dates=True)
-        # UA, MD, XK do not appear in synthetic load data
-        countries = list(set(countries) - set(["UA", "MD", "XK"]))
+        # UA, MD, XK, CY, MT do not appear in synthetic load data
+        countries = list(set(countries) - set(["UA", "MD", "XK", "CY", "MT"]))
         synthetic_load = synthetic_load.loc[snapshots, countries]
         load = load.combine_first(synthetic_load)
 

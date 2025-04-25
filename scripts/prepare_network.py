@@ -119,8 +119,8 @@ def add_emission_prices(n, emission_prices={"co2": 0.0}, exclude_co2=False):
     n.storage_units["marginal_cost"] += su_ep
 
 
-def add_dynamic_emission_prices(n):
-    co2_price = pd.read_csv(snakemake.input.co2_price, index_col=0, parse_dates=True)
+def add_dynamic_emission_prices(n, fn):
+    co2_price = pd.read_csv(fn, index_col=0, parse_dates=True)
     co2_price = co2_price[~co2_price.index.duplicated()]
     co2_price = co2_price.reindex(n.snapshots).ffill().bfill()
 
@@ -182,13 +182,13 @@ def set_transmission_limit(n, kind, factor, costs, Nyears=1):
     return n
 
 
-def average_every_nhours(n, offset):
+def average_every_nhours(n, offset, drop_leap_day=False):
     logger.info(f"Resampling the network to {offset}")
     m = n.copy(with_time=False)
 
     snapshot_weightings = n.snapshot_weightings.resample(offset).sum()
     sns = snapshot_weightings.index
-    if snakemake.params.drop_leap_day:
+    if drop_leap_day:
         sns = sns[~((sns.month == 2) & (sns.day == 29))]
     m.set_snapshots(snapshot_weightings.index)
     m.snapshot_weightings = snapshot_weightings
@@ -285,7 +285,6 @@ def set_line_nom_max(
     n.links["p_nom_max"] = n.links.p_nom_max.clip(upper=p_nom_max_set)
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -293,10 +292,9 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_network",
             clusters="37",
-            ll="v1.0",
             opts="Co2L-4H",
         )
-    configure_logging(snakemake)
+    configure_logging(snakemake)  # pylint: disable=E0606
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
@@ -315,7 +313,7 @@ if __name__ == "__main__":
     time_resolution = snakemake.params.time_resolution
     is_string = isinstance(time_resolution, str)
     if is_string and time_resolution.lower().endswith("h"):
-        n = average_every_nhours(n, time_resolution)
+        n = average_every_nhours(n, time_resolution, snakemake.params.drop_leap_day)
 
     # segments with package tsam
     if is_string and time_resolution.lower().endswith("seg"):
@@ -336,7 +334,7 @@ if __name__ == "__main__":
         logger.info(
             "Setting time dependent emission prices according spot market price"
         )
-        add_dynamic_emission_prices(n)
+        add_dynamic_emission_prices(n, snakemake.input.co2_price)
     elif emission_prices["enable"]:
         add_emission_prices(
             n, dict(co2=snakemake.params.costs["emission_prices"]["co2"])

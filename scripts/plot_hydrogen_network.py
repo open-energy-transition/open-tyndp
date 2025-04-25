@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pypsa
 from _helpers import configure_logging, retry, set_scenario_config
-from plot_power_network import assign_location, load_projection
+from make_summary import assign_locations
+from plot_power_network import load_projection
 from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ def plot_h2_map(n, regions):
     # if "H2 pipeline" not in n.links.carrier.unique():
     #     return
 
-    assign_location(n)
+    assign_locations(n)
 
     h2_storage = n.stores.query("carrier == 'H2'")
     regions["H2"] = (
@@ -64,11 +65,16 @@ def plot_h2_map(n, regions):
     line_lower_threshold = 750
 
     # Drop non-electric buses so they don't clutter the plot
-    n.buses.drop(n.buses.index[n.buses.carrier != "AC"], inplace=True)
+    n.buses.drop(
+        n.buses.index[(n.buses.carrier != "AC") | (n.buses.index.str.contains("DRES"))],
+        inplace=True,
+    )
 
     carriers = ["H2 Electrolysis", "H2 Fuel Cell"]
 
-    elec = n.links[n.links.carrier.isin(carriers)].index
+    elec = n.links[
+        (n.links.carrier.isin(carriers)) & ~(n.links.index.str.contains("DRES"))
+    ].index
 
     bus_sizes = (
         n.links.loc[elec, "p_nom_opt"].groupby([n.links["bus0"], n.links.carrier]).sum()
@@ -259,7 +265,6 @@ if __name__ == "__main__":
             "plot_hydrogen_network",
             opts="",
             clusters="37",
-            ll="v1.0",
             sector_opts="4380H-T-H-B-I-A-dist1",
         )
 

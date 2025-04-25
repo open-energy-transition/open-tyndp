@@ -1,24 +1,20 @@
-# SPDX-FileCopyrightText: : 2024 The PyPSA-Eur Authors
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  name: "test"
-  disable_progressbar: true
+  prefix: "tyndp"
 
 # TODO set foresight
-foresight: myopic
+foresight: overnight
 
 scenario:
-  ll:
-  - v1.0
   clusters:
-  - 100
+  - all
   planning_horizons:
   - 2030
 
-# TODO check countries
-countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'XK']
+countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
 snapshots:
   # TODO define multiple climatic years, being either 1995 2008 or 2009
@@ -38,13 +34,21 @@ co2_budget:
   2045: 0.032
   2050: 0.000
 
+electricity:
+  base_network: tyndp-raw
+  transmission_limit: v1.0
+
+links:
+  p_max_pu: 1.0
+  p_min_pu: 0
+
 transmission_projects:
-  # TODO set TYNDP projects
   enable: true
   include:
-    tyndp2020: true
-    nep: true
-    manual: true
+    tyndp2020: false
+    nep: false
+    manual: false
+
 load:
   source: tyndp # opsd, tyndp
   manual_adjustments: false
@@ -72,10 +76,12 @@ pypsa_eur:
   Store: []
 
 sector:
-  transport: true
+  transport: false
   heating: true
-  biomass: false
-  industry: false
+  biomass: true
+  industry: true
+  shipping: false
+  aviation: false
   agriculture: false
   fossil_fuels: true
 
@@ -103,7 +109,22 @@ sector:
     2040: 0
     2045: 0
     2050: 0
+  h2_topology_tyndp:
+    enable: true
+    tyndp_scenario:
+      scenario: DE  # NT, DE or GA
+      year: 2030  # 2030, 2035, 2040, 2045 or 2050 (only for DE or GA)
+  ATR: false
+  hydrogen_fuel_cell: false
+  hydrogen_turbine: true
+  transmission_efficiency:
+    enable:
+    - gas pipeline
+    - electricity distribution grid
 
 clustering:
+  mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
+  administrative:
+    level: 3
   temporal:
-    resolution_sector: 50SEG
+    resolution_sector: 6H

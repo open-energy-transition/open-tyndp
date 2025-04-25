@@ -1,0 +1,153 @@
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+run:
+  prefix: "test-tyndp"
+  disable_progressbar: true
+  shared_resources:
+    policy: "test"
+  shared_cutouts: true
+
+# TODO set foresight
+foresight: overnight
+
+scenario:
+  clusters:
+  - all
+  planning_horizons:
+  - 2030
+
+countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
+
+snapshots:
+  start: "2013-03-01"
+  end: "2013-03-08"
+
+enable:
+  retrieve_tyndp_bundle: true
+
+electricity:
+  base_network: tyndp-raw
+  transmission_limit: v1.0
+
+  extendable_carriers:
+    Generator: [OCGT]
+    StorageUnit: [battery]
+    Store: [H2]
+    Link: [H2 pipeline]
+
+  renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float]
+
+links:
+  p_max_pu: 1.0
+  p_min_pu: 0
+
+atlite:
+  default_cutout: europe-2013-03-sarah3-era5
+  cutouts:
+    europe-2013-03-sarah3-era5:
+      time: ["2013-03-01", "2013-03-08"]
+
+renewable:
+  onwind:
+    cutout: europe-2013-03-sarah3-era5
+  offwind-ac:
+    cutout: europe-2013-03-sarah3-era5
+    max_depth: false
+  offwind-dc:
+    cutout: europe-2013-03-sarah3-era5
+    max_depth: false
+  offwind-float:
+    cutout: europe-2013-03-sarah3-era5
+    max_depth: false
+    min_depth: false
+  solar:
+    cutout: europe-2013-03-sarah3-era5
+  solar-hsat:
+    cutout: europe-2013-03-sarah3-era5
+
+transmission_projects:
+  enable: true
+  include:
+    tyndp2020: false
+    nep: false
+    manual: false
+
+pypsa_eur:
+  Bus:
+  - AC
+  Link:
+  - DC
+  Generator:
+  - onwind
+  - offwind-ac
+  - offwind-dc
+  - offwind-float
+  - solar-hsat
+  - solar
+  - ror
+  StorageUnit:
+  - PHS
+  - hydro
+  Store: []
+
+sector:
+  transport: false
+  heating: true
+  biomass: true
+  industry: true
+  shipping: false
+  aviation: false
+  agriculture: false
+  fossil_fuels: true
+
+  land_transport_fuel_cell_share:  # Not modelled
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  land_transport_electric_share:
+    2020: 0
+    2025: 0.15
+    2030: 0.3
+    2035: 0.45
+    2040: 0.7
+    2045: 0.85
+    2050: 1
+  land_transport_ice_share:  # Not modelled
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  h2_topology_tyndp:
+    enable: true
+    tyndp_scenario:
+      scenario: DE  # NT, DE or GA
+      year: 2030  # 2030, 2035, 2040, 2045 or 2050 (only for DE or GA)
+  ATR: false
+  hydrogen_fuel_cell: false
+  hydrogen_turbine: true
+  transmission_efficiency:
+    enable:
+    - gas pipeline
+    - electricity distribution grid
+
+clustering:
+  mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
+  administrative:
+    level: 3
+  temporal:
+    resolution_sector: 6H
+
+solving:
+  solver:
+    name: highs
+    options: highs-default
+  mem: 4000

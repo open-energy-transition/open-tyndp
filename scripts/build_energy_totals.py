@@ -1570,7 +1570,6 @@ def build_heating_efficiencies(
     return heating_efficiencies
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -1605,10 +1604,14 @@ if __name__ == "__main__":
         idees = build_idees(idees_countries)
     else:
         # e.g. UA and MD
-        logger.info(f"No IDEES data available for {countries} and years 2000-2015. Filling with zeros.")
+        logger.info(
+            f"No IDEES data available for {countries} and years 2000-2015. Filling with zeros."
+        )
         years = range(2000, 2016)
         idees = pd.DataFrame(
-            index=pd.MultiIndex.from_tuples([(country, year) for country in countries for year in years]),
+            index=pd.MultiIndex.from_tuples(
+                [(country, year) for country in countries for year in years]
+            ),
             columns=[
                 "passenger cars",
                 "passenger car efficiency",
@@ -1633,7 +1636,7 @@ if __name__ == "__main__":
                 "thermal uses residential",
                 "thermal uses services",
             ],
-            data=0
+            data=0,
         )
 
     energy = build_energy_totals(countries, eurostat, swiss, idees)

@@ -5,6 +5,7 @@
 import requests
 from datetime import datetime, timedelta
 from shutil import move, unpack_archive
+from shutil import copy as shcopy
 from zipfile import ZipFile
 
 if config["enable"].get("retrieve", "auto") == "auto":
@@ -27,6 +28,8 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_databundle", 
         "gebco/GEBCO_2014_2D.nc",
         "GDP_per_capita_PPP_1990_2015_v2.nc",
         "ppp_2019_1km_Aggregated.tif",
+        "era5-HDD-per-country.csv",
+        "era5-runoff-per-country.csv",
     ]
 
     rule retrieve_databundle:
@@ -130,15 +133,32 @@ if config["enable"]["retrieve"]:
 
 
 
+if config["enable"]["retrieve"]:
+
+    rule retrieve_bidding_zones:
+        output:
+            file_entsoepy="data/busshapes/bidding_zones_entsoepy.geojson",
+            file_electricitymaps="data/busshapes/bidding_zones_electricitymaps.geojson",
+        log:
+            "logs/retrieve_bidding_zones.log",
+        resources:
+            mem_mb=1000,
+        retries: 2
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/retrieve_bidding_zones.py"
+
+
 if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True):
 
     rule retrieve_cutout:
         input:
             storage(
-                "https://zenodo.org/records/12791128/files/{cutout}.nc",
+                "https://zenodo.org/records/14936211/files/{cutout}.nc",
             ),
         output:
-            "cutouts/" + CDIR + "{cutout}.nc",
+            CDIR + "{cutout}.nc",
         log:
             "logs/" + CDIR + "retrieve_cutout_{cutout}.log",
         resources:
@@ -148,11 +168,31 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
             move(input[0], output[0])
             validate_checksum(output[0], input[0])
 
+    rule retrieve_cutout_1w:
+        input:
+            # TODO Use Zenodo as data provider
+            storage(
+                "https://drive.usercontent.google.com/download?id=1gLvJcqUgGdGw_UpBaot2BSm8e-9b1YvN&export=download&authuser=0&confirm=t",
+            ),
+        output:
+            CDIR + "europe-2013-03-sarah3-era5.nc",
+        log:
+            "logs/" + CDIR + "retrieve_cutout_europe-2013-03-sarah3-era5.log",
+        resources:
+            mem_mb=5000,
+        retries: 2
+        run:
+            move(input[0], output[0])
+
+
 if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle", True):
 
     rule retrieve_tyndp_bundle:
         output:
-            directory("data/tyndp_2024_bundle"),
+            dir=directory("data/tyndp_2024_bundle"),
+            elec_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
+            buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
+            h2_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
@@ -301,21 +341,6 @@ if config["enable"]["retrieve"]:
 
 if config["enable"]["retrieve"]:
 
-    rule retrieve_geological_co2_storage_potential:
-        input:
-            storage(
-                "https://raw.githubusercontent.com/ericzhou571/Co2Storage/main/resources/complete_map_2020_unit_Mt.geojson",
-                keep_local=True,
-            ),
-        output:
-            "data/complete_map_2020_unit_Mt.geojson",
-        retries: 1
-        run:
-            move(input[0], output[0])
-
-
-if config["enable"]["retrieve"]:
-
     # Downloading Copernicus Global Land Cover for land cover and land use:
     # Website: https://land.copernicus.eu/global/products/lc
     rule download_copernicus_land_cover:
@@ -413,6 +438,31 @@ if config["enable"]["retrieve"]:
 
 if config["enable"]["retrieve"]:
 
+    rule retrieve_co2stop:
+        params:
+            zip="data/co2jrc_openformats.zip",
+        output:
+            "data/CO2JRC_OpenFormats/CO2Stop_DataInterrogationSystem/Hydrocarbon_Storage_Units.csv",
+            "data/CO2JRC_OpenFormats/CO2Stop_Polygons Data/StorageUnits_March13.kml",
+            "data/CO2JRC_OpenFormats/CO2Stop_DataInterrogationSystem/Hydrocarbon_Traps.csv",
+            "data/CO2JRC_OpenFormats/CO2Stop_DataInterrogationSystem/Hydrocarbon_Traps_Temp.csv",
+            "data/CO2JRC_OpenFormats/CO2Stop_DataInterrogationSystem/Hydrocarbon_Traps1.csv",
+            "data/CO2JRC_OpenFormats/CO2Stop_Polygons Data/DaughterUnits_March13.kml",
+        run:
+            import requests
+
+            response = requests.get(
+                "https://setis.ec.europa.eu/document/download/786a884f-0b33-4789-b744-28004b16bd1a_en?filename=co2jrc_openformats.zip",
+            )
+            with open(params["zip"], "wb") as f:
+                f.write(response.content)
+            output_folder = Path(params["zip"]).parent
+            unpack_archive(params["zip"], output_folder)
+
+
+
+if config["enable"]["retrieve"]:
+
     rule retrieve_gem_europe_gas_tracker:
         output:
             "data/gem/Europe-Gas-Tracker-2024-05.xlsx",
@@ -478,15 +528,16 @@ if config["enable"]["retrieve"]:
     # Website: https://www.protectedplanet.net/en/thematic-areas/wdpa
     rule download_wdpa:
         input:
-            storage(url, keep_local=True),
+            zip=storage(url, keep_local=True),
         params:
             zip="data/WDPA_shp.zip",
             folder=directory("data/WDPA"),
         output:
             gpkg="data/WDPA.gpkg",
         run:
-            shell("cp {input} {params.zip}")
-            shell("unzip -o {params.zip} -d {params.folder}")
+            shcopy(input.zip, params.zip)
+            unpack_archive(params.zip, params.folder)
+
             for i in range(3):
                 # vsizip is special driver for directly working with zipped shapefiles in ogr2ogr
                 layer_path = (
@@ -500,7 +551,7 @@ if config["enable"]["retrieve"]:
         # extract the main zip and then merge the contained 3 zipped shapefiles
         # Website: https://www.protectedplanet.net/en/thematic-areas/marine-protected-areas
         input:
-            storage(
+            zip=storage(
                 f"https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_{bYYYY}_Public_marine_shp.zip",
                 keep_local=True,
             ),
@@ -510,8 +561,9 @@ if config["enable"]["retrieve"]:
         output:
             gpkg="data/WDPA_WDOECM_marine.gpkg",
         run:
-            shell("cp {input} {params.zip}")
-            shell("unzip -o {params.zip} -d {params.folder}")
+            shcopy(input.zip, params.zip)
+            unpack_archive(params.zip, params.folder)
+
             for i in range(3):
                 # vsizip is special driver for directly working with zipped shapefiles in ogr2ogr
                 layer_path = f"/vsizip/{params.folder}/WDPA_WDOECM_{bYYYY}_Public_marine_shp_{i}.zip"
@@ -661,23 +713,38 @@ if config["enable"]["retrieve"]:
         script:
             "../scripts/retrieve_osm_boundaries.py"
 
-
-if config["enable"]["retrieve"]:
-
-    rule retrieve_heat_source_utilisation_potentials:
-        params:
-            heat_source="{heat_source}",
-            heat_utilisation_potentials=config_provider(
-                "sector", "district_heating", "heat_utilisation_potentials"
+    rule retrieve_geothermal_heat_utilisation_potentials:
+        input:
+            isi_heat_potentials=storage(
+                "https://fordatis.fraunhofer.de/bitstream/fordatis/341.3/12/Results_DH_Matching_Cluster.xlsx",
+                keep_local=True,
             ),
-        log:
-            "logs/retrieve_heat_source_potentials_{heat_source}.log",
-        resources:
-            mem_mb=500,
         output:
-            "data/heat_source_utilisation_potentials/{heat_source}.gpkg",
-        script:
-            "../scripts/retrieve_heat_source_utilisation_potentials.py"
+            "data/isi_heat_utilisation_potentials.xlsx",
+        log:
+            "logs/retrieve_geothermal_heat_utilisation_potentials.log",
+        threads: 1
+        retries: 2
+        run:
+            move(input[0], output[0])
+
+    rule retrieve_lau_regions:
+        input:
+            lau_regions=storage(
+                "https://gisco-services.ec.europa.eu/distribution/v2/lau/download/ref-lau-2019-01m.geojson.zip",
+                keep_local=True,
+            ),
+        output:
+            lau_regions="data/lau_regions.geojson",
+        log:
+            "logs/retrieve_lau_regions.log",
+            lau_regions="data/lau_regions.zip",
+        log:
+            "logs/retrieve_lau_regions.log",
+        threads: 1
+        retries: 2
+        run:
+            move(input[0], output[0])
 
 
 if config["enable"]["retrieve"]:
