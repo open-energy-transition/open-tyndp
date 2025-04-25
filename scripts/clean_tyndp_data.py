@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # SPDX-FileCopyrightText: : 2024 The PyPSA-Eur Authors
 #
 # SPDX-License-Identifier: MIT
@@ -9,11 +8,10 @@ Depending on the scenario, different planning years (`pyear`) are available. DE 
 """
 
 import logging
-
-import pandas as pd
 from pathlib import Path
 
-from _helpers import configure_logging, set_scenario_config, get_snapshots
+import pandas as pd
+from _helpers import configure_logging, get_snapshots, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -27,37 +25,64 @@ def load_elec_demand(scenario, pyear, cyear):
     if scenario == "NT":
         if pyear == 2050:
             logger.warning(
-                "2050 electricity demand data are not defined for NT in 2024 TYNDP cycle. Falling back to 2040.")
+                "2050 electricity demand data are not defined for NT in 2024 TYNDP cycle. Falling back to 2040."
+            )
             pyear = 2040
-        demand_fn = Path(snakemake.input.tyndp, "Demand Profiles", scenario, "Electricity demand profiles",
-                              f"{pyear}_National Trends.xlsx")
+        demand_fn = Path(
+            snakemake.input.tyndp,
+            "Demand Profiles",
+            scenario,
+            "Electricity demand profiles",
+            f"{pyear}_National Trends.xlsx",
+        )
 
         if int(cyear) < 1982 or int(cyear) > 2019:
-            logger.warning("Snapshot year doesn't match available TYNDP data. Falling back to 2009.")
+            logger.warning(
+                "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
+            )
             cyear_fallback = 2009
-        data = pd.read_excel(demand_fn, skiprows=7, index_col=0,
-                             usecols=lambda name: name == "Date" or
-                                                  name == int(cyear_fallback if cyear_fallback else cyear),
-                             sheet_name=None)
+        data = pd.read_excel(
+            demand_fn,
+            skiprows=7,
+            index_col=0,
+            usecols=lambda name: name == "Date"
+            or name == int(cyear_fallback if cyear_fallback else cyear),
+            sheet_name=None,
+        )
 
     elif scenario in ["DE", "GA"]:
-        demand_fn = Path(snakemake.input.tyndp, "Demand Profiles", scenario, str(pyear),
-                              f"ELECTRICITY_MARKET {scenario} {pyear}.xlsx")
+        demand_fn = Path(
+            snakemake.input.tyndp,
+            "Demand Profiles",
+            scenario,
+            str(pyear),
+            f"ELECTRICITY_MARKET {scenario} {pyear}.xlsx",
+        )
 
         if int(cyear) not in [1995, 2008, 2009]:
-            logger.warning("Snapshot year doesn't match available TYNDP data. Falling back to 2009.")
+            logger.warning(
+                "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
+            )
             cyear_fallback = 2009
-        data = pd.read_excel(demand_fn, skiprows=11, index_col=0,
-                             usecols=lambda name: name == "Date" or
-                                                  name == int(cyear_fallback if cyear_fallback else cyear),
-                             sheet_name=None)
+        data = pd.read_excel(
+            demand_fn,
+            skiprows=11,
+            index_col=0,
+            usecols=lambda name: name == "Date"
+            or name == int(cyear_fallback if cyear_fallback else cyear),
+            sheet_name=None,
+        )
 
         # Fix inconsistencies in input data
         if pyear in [2040, 2050]:
             data["PL00"].index = data["AL00"].index
-            data["UK00"] = pd.read_excel(demand_fn, skiprows=11, index_col=0,
-                                         usecols=lambda name: name == "Date" or name == int(cyear) - 1,
-                                         sheet_name="UK00")
+            data["UK00"] = pd.read_excel(
+                demand_fn,
+                skiprows=11,
+                index_col=0,
+                usecols=lambda name: name == "Date" or name == int(cyear) - 1,
+                sheet_name="UK00",
+            )
 
     demand = pd.concat(data, axis=1).droplevel(1, axis=1)
 
