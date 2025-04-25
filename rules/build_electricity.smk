@@ -533,6 +533,7 @@ def input_class_regions(w):
 rule build_electricity_demand_base:
     params:
         distribution_key=config_provider("load", "distribution_key"),
+        load_source=config_provider("load", "source"),
     input:
         base_network=resources("networks/base_s.nc"),
         regions=resources("regions_onshore_base_s.geojson"),

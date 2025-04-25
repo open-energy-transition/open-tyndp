@@ -45,6 +45,7 @@ def upsample_load(
     load_fn: str,
     nuts3_fn: str,
     distribution_key: dict[str, float],
+    load_source: str = "opsd",
 ) -> pd.DataFrame:
     substation_lv_i = n.buses.index[n.buses["substation_lv"]]
     gdf_regions = gpd.read_file(regions_fn).set_index("name").reindex(substation_lv_i)
@@ -55,40 +56,47 @@ def upsample_load(
     gdp_weight = distribution_key.get("gdp", 0.6)
     pop_weight = distribution_key.get("pop", 0.4)
 
-    data_arrays = []
-
-    for cntry, group in gdf_regions.geometry.groupby(gdf_regions.country):
-        if cntry not in load.columns:
-            # TODO: Implement TYNDP load data integration and remove this
-            logging.warning(f"Cannot upsample load for {cntry}: no load data defined")
-            continue
-
-        load_ct = load[cntry]
-
-        if len(group) == 1:
-            factors = pd.Series(1.0, index=group.index)
-
-        else:
-            nuts3_cntry = nuts3.loc[nuts3.country == cntry]
-            transfer = shapes_to_shapes(group, nuts3_cntry.geometry).T.tocsr()
-            gdp_n = pd.Series(
-                transfer.dot(nuts3_cntry["gdp"].fillna(1.0).values), index=group.index
-            )
-            pop_n = pd.Series(
-                transfer.dot(nuts3_cntry["pop"].fillna(1.0).values), index=group.index
-            )
-
-            factors = normed(gdp_weight * normed(gdp_n) + pop_weight * normed(pop_n))
-
-        data_arrays.append(
-            xr.DataArray(
-                factors.values * load_ct.values[:, np.newaxis],
-                dims=["time", "bus"],
-                coords={"time": load_ct.index.values, "bus": factors.index.values},
-            )
+    if load_source == "tyndp":
+        data_array = xr.DataArray(
+            load,
+            dims=["time", "bus"],
+            coords={"time": load.index.values, "bus": load.columns.values},
         )
+    else:
+        data_arrays = []
 
-    return xr.concat(data_arrays, dim="bus")
+        for cntry, group in gdf_regions.geometry.groupby(gdf_regions.country):
+            load_ct = load[cntry]
+
+            if len(group) == 1:
+                factors = pd.Series(1.0, index=group.index)
+
+            else:
+                nuts3_cntry = nuts3.loc[nuts3.country == cntry]
+                transfer = shapes_to_shapes(group, nuts3_cntry.geometry).T.tocsr()
+                gdp_n = pd.Series(
+                    transfer.dot(nuts3_cntry["gdp"].fillna(1.0).values),
+                    index=group.index,
+                )
+                pop_n = pd.Series(
+                    transfer.dot(nuts3_cntry["pop"].fillna(1.0).values),
+                    index=group.index,
+                )
+
+                factors = normed(
+                    gdp_weight * normed(gdp_n) + pop_weight * normed(pop_n)
+                )
+
+            data_arrays.append(
+                xr.DataArray(
+                    factors.values * load_ct.values[:, np.newaxis],
+                    dims=["time", "bus"],
+                    coords={"time": load_ct.index.values, "bus": factors.index.values},
+                )
+            )
+        data_array = xr.concat(data_arrays, dim="bus")
+
+    return data_array
 
 
 if __name__ == "__main__":
@@ -109,6 +117,7 @@ if __name__ == "__main__":
         load_fn=snakemake.input.load,
         nuts3_fn=snakemake.input.nuts3,
         distribution_key=params.distribution_key,
+        load_source=snakemake.params.load_source,
     )
 
     load.name = "electricity demand (MW)"
