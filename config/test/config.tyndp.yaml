@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  prefix: "test-tyndp"
+  prefix: "test-elec-tyndp"
   disable_progressbar: true
   shared_resources:
     policy: "test"
