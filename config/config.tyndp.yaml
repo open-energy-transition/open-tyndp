@@ -6,7 +6,7 @@ run:
   prefix: "tyndp"
 
 # TODO set foresight
-foresight: overnight
+foresight: myopic
 
 scenario:
   clusters:
