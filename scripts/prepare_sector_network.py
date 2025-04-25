@@ -3504,7 +3504,11 @@ def add_land_transport(
 
 
 def build_heat_demand(
-    n, hourly_heat_demand_file, pop_weighted_energy_totals, heating_efficiencies
+    n,
+    hourly_heat_demand_file,
+    pop_weighted_energy_totals,
+    heating_efficiencies,
+    load_source: str = "opsd",
 ):
     """
     Build heat demand time series and adjust electricity load to account for electric heating.
@@ -3520,6 +3524,8 @@ def build_heat_demand(
         electricity consumption for different sectors and uses
     heating_efficiencies : dict
         Dictionary mapping sector and use combinations to their heating efficiencies
+    load_source : str (optional)
+        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -3562,7 +3568,7 @@ def build_heat_demand(
     electric_heat_supply = pd.concat(electric_heat_supply, axis=1)
 
     # subtract from electricity load since heat demand already in heat_demand
-    if snakemake.params.load_source != "tyndp":
+    if load_source != "tyndp":
         electric_nodes = n.loads.index[n.loads.carrier == "electricity"]
         n.loads_t.p_set[electric_nodes] = (
             n.loads_t.p_set[electric_nodes]
@@ -3591,6 +3597,7 @@ def add_heat(
     spatial: object,
     options: dict,
     investment_year: int,
+    load_source: str = "opsd",
 ):
     """
     Add heat sector to the network including heat demand, heat pumps, storage, and conversion technologies.
@@ -3634,6 +3641,8 @@ def add_heat(
         Dictionary containing configuration options for heat sector components
     investment_year : int
         Year for which to get the heat sector components and costs
+    load_source : str (optional)
+        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -3660,6 +3669,7 @@ def add_heat(
         hourly_heat_demand_total_file,
         pop_weighted_energy_totals,
         heating_efficiencies,
+        load_source=load_source,
     )
 
     cop = xr.open_dataarray(cop_profiles_file)
@@ -3686,7 +3696,7 @@ def add_heat(
         # 1e3 converts from W/m^2 to MW/(1000m^2) = kW/m^2
         solar_thermal = options["solar_cf_correction"] * solar_thermal / 1e3
 
-    heat_systems = HeatSystem if snakemake.params.load_source != "tyndp" else []
+    heat_systems = HeatSystem if load_source != "tyndp" else []
     for heat_system in (
         heat_systems
     ):  # this loops through all heat systems defined in _entities.HeatSystem
@@ -7040,6 +7050,7 @@ if __name__ == "__main__":
             spatial=spatial,
             options=options,
             investment_year=investment_year,
+            load_source=snakemake.params.load_source,
         )
 
     if options["biomass"]:
