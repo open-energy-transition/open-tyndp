@@ -88,5 +88,5 @@ reset:
 	) || echo "Reset cancelled."
 
 tyndp:
-	snakemake resources/tyndp/maps/power-network.pdf resources/tyndp/maps/power-network-s-all.pdf resources/tyndp/maps/base_h2_network_all___2030.pdf --configfile config/config.tyndp.yaml --rerun-incomplete $(args)
+	snakemake --configfile config/config.tyndp.yaml --rerun-incomplete $(args)
 	snakemake rulegraph filegraph --configfile config/config.tyndp.yaml
