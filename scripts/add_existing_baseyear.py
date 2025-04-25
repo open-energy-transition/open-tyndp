@@ -522,7 +522,9 @@ def add_heating_capacities_installed_before_baseyear(
     valid_grouping_years = []
 
     heat_systems = (
-        existing_capacities.columns.get_level_values(0).unique() if False else []
+        existing_capacities.columns.get_level_values(0).unique()
+        if snakemake.params.load_source != "tyndp"
+        else []
     )
     for heat_system in heat_systems:
         heat_system = HeatSystem(heat_system)
