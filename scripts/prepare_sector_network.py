@@ -5597,47 +5597,48 @@ def add_industry(
             efficiency3=process_co2_per_naphtha,
         )
 
-    # TODO simplify bus expression
-    n.add(
-        "Load",
-        nodes,
-        suffix=" low-temperature heat for industry",
-        bus=[
-            (
-                node + " urban central heat"
-                if node + " urban central heat" in n.buses.index
-                else node + " services urban decentral heat"
-            )
-            for node in nodes
-        ],
-        carrier="low-temperature heat for industry",
-        p_set=industrial_demand.loc[nodes, "low-temperature heat"] / nhours,
-    )
-
-    # remove today's industrial electricity demand by scaling down total electricity demand
-    for ct in n.buses.country.dropna().unique():
-        # TODO map onto n.bus.country
-
-        loads_i = n.loads.index[
-            (n.loads.index.str[:2] == ct) & (n.loads.carrier == "electricity")
-        ]
-        if n.loads_t.p_set[loads_i].empty:
-            continue
-        factor = (
-            1
-            - industrial_demand.loc[loads_i, "current electricity"].sum()
-            / n.loads_t.p_set[loads_i].sum().sum()
+    if load_source != "tyndp":
+        # TODO simplify bus expression
+        n.add(
+            "Load",
+            nodes,
+            suffix=" low-temperature heat for industry",
+            bus=[
+                (
+                    node + " urban central heat"
+                    if node + " urban central heat" in n.buses.index
+                    else node + " services urban decentral heat"
+                )
+                for node in nodes
+            ],
+            carrier="low-temperature heat for industry",
+            p_set=industrial_demand.loc[nodes, "low-temperature heat"] / nhours,
         )
-        n.loads_t.p_set[loads_i] *= factor
 
-    n.add(
-        "Load",
-        nodes,
-        suffix=" industry electricity",
-        bus=nodes,
-        carrier="industry electricity",
-        p_set=industrial_demand.loc[nodes, "electricity"] / nhours,
-    )
+        # remove today's industrial electricity demand by scaling down total electricity demand
+        for ct in n.buses.country.dropna().unique():
+            # TODO map onto n.bus.country
+
+            loads_i = n.loads.index[
+                (n.loads.index.str[:2] == ct) & (n.loads.carrier == "electricity")
+            ]
+            if n.loads_t.p_set[loads_i].empty:
+                continue
+            factor = (
+                1
+                - industrial_demand.loc[loads_i, "current electricity"].sum()
+                / n.loads_t.p_set[loads_i].sum().sum()
+            )
+            n.loads_t.p_set[loads_i] *= factor
+
+        n.add(
+            "Load",
+            nodes,
+            suffix=" industry electricity",
+            bus=nodes,
+            carrier="industry electricity",
+            p_set=industrial_demand.loc[nodes, "electricity"] / nhours,
+        )
 
     n.add(
         "Bus",
