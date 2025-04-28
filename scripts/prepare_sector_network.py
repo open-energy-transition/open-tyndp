@@ -4381,6 +4381,7 @@ def add_biomass(
     biomass_potentials_file,
     biomass_transport_costs_file=None,
     nyears=1,
+    load_source: str = "opsd",
 ):
     """
     Add biomass-related components to the PyPSA network.
@@ -4416,6 +4417,8 @@ def add_biomass(
         Required if biomass_transport or biomass_spatial options are True.
     nyears : float
         Number of years for which to scale the biomass potentials.
+    load_source : str (optional)
+        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -4894,7 +4897,7 @@ def add_biomass(
             lifetime=costs.at[key + " CC", "lifetime"],
         )
 
-    if options["biomass_boiler"]:
+    if options["biomass_boiler"] and load_source != "tyndp":
         # TODO: Add surcharge for pellets
         nodes = pop_layout.index
         for name in [
@@ -5105,6 +5108,7 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
+    load_source: str = "opsd",
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -5139,6 +5143,8 @@ def add_industry(
         Year for which investment costs should be considered
     HeatSystem : Enum
         Enumeration defining different heat system types
+    load_source : str (optional)
+        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -5382,8 +5388,8 @@ def add_industry(
 
     if options["oil_boilers"]:
         nodes = pop_layout.index
-
-        for heat_system in HeatSystem:
+        heat_systems = HeatSystem if load_source != "tyndp" else []
+        for heat_system in heat_systems:
             if not heat_system == HeatSystem.URBAN_CENTRAL:
                 n.add(
                     "Link",
@@ -7064,6 +7070,7 @@ if __name__ == "__main__":
             biomass_potentials_file=snakemake.input.biomass_potentials,
             biomass_transport_costs_file=snakemake.input.biomass_transport_costs,
             nyears=nyears,
+            load_source=snakemake.params.load_source,
         )
 
     if options["ammonia"]:
@@ -7083,6 +7090,7 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
+            load_source=snakemake.params.load_source,
         )
 
     if options["shipping"]:
