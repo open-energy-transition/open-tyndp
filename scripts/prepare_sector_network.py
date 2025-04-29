@@ -1571,6 +1571,7 @@ def insert_electricity_distribution_grid(
     options: dict,
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
+    load_source: str = "opsd",
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -1595,6 +1596,8 @@ def insert_electricity_distribution_grid(
         Population data per node with at least:
         - 'total' column containing population in thousands
         Index should match network nodes
+    load_source : str (optional)
+        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -1616,7 +1619,12 @@ def insert_electricity_distribution_grid(
     - Resistive heaters
     - Micro-CHP units
     """
-    nodes = pop_layout.index
+
+    nodes = (
+        n.buses.query("carrier == 'AC' and not index.str.contains('DRES')").index
+        if load_source == "tyndp"
+        else pop_layout.index
+    )
 
     n.add(
         "Bus",
@@ -7195,7 +7203,12 @@ if __name__ == "__main__":
 
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(
-            n, costs, options, pop_layout, snakemake.input.solar_rooftop_potentials
+            n,
+            costs,
+            options,
+            pop_layout,
+            snakemake.input.solar_rooftop_potentials,
+            snakemake.params.load_source,
         )
     elif (
         not options["electricity_distribution_grid"]
