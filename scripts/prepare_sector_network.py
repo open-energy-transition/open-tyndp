@@ -1619,10 +1619,12 @@ def insert_electricity_distribution_grid(
     - Resistive heaters
     - Micro-CHP units
     """
-    nodes = pop_layout.index
 
-    if load_source == "opsd":
-        nodes = n.buses.query("carrier == 'AC' and not index.str.contains('DRES')").index
+    nodes = (
+        n.buses.query("carrier == 'AC' and not index.str.contains('DRES')").index
+        if load_source == "tyndp"
+        else pop_layout.index
+    )
 
     n.add(
         "Bus",
@@ -7201,7 +7203,12 @@ if __name__ == "__main__":
 
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(
-            n, costs, options, pop_layout, snakemake.input.solar_rooftop_potentials
+            n,
+            costs,
+            options,
+            pop_layout,
+            snakemake.input.solar_rooftop_potentials,
+            snakemake.params.load_source,
         )
     elif (
         not options["electricity_distribution_grid"]
