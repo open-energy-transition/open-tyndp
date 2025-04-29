@@ -1571,6 +1571,7 @@ def insert_electricity_distribution_grid(
     options: dict,
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
+    load_source: str = "opsd",
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -1595,6 +1596,8 @@ def insert_electricity_distribution_grid(
         Population data per node with at least:
         - 'total' column containing population in thousands
         Index should match network nodes
+    load_source : str (optional)
+        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -1617,6 +1620,9 @@ def insert_electricity_distribution_grid(
     - Micro-CHP units
     """
     nodes = pop_layout.index
+
+    if load_source == "opsd":
+        nodes = n.buses.query("carrier == 'AC' and not index.str.contains('DRES')").index
 
     n.add(
         "Bus",
