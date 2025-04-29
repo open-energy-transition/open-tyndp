@@ -159,3 +159,13 @@ solving:
     name: highs
     options: highs-default
   mem: 4000
+
+plotting:
+  balance_map:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - methanol
+    - co2 stored

@@ -128,3 +128,13 @@ clustering:
     level: 3
   temporal:
     resolution_sector: 6H
+
+plotting:
+  balance_map:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - methanol
+    - co2 stored
