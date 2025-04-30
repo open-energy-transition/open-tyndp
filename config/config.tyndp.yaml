@@ -56,6 +56,7 @@ load:
   tyndp_scenario:
     scenario: DE  # NT, DE or GA
     year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
+    interpolate: false
 
 pypsa_eur:
   Bus:
