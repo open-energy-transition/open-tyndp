@@ -10,7 +10,6 @@ rule build_electricity_demand:
         countries=config_provider("countries"),
         load=config_provider("load"),
     input:
-        tyndp="data/tyndp_2024_bundle",
         reported=lambda w: (
             ancient(resources("electricity_demand_raw_tyndp.csv"))
             if (config_provider("load", "source")(w) == "tyndp")
