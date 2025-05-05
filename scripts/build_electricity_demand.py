@@ -271,10 +271,10 @@ if __name__ == "__main__":
         else slice(snapshots[0], snapshots[-1])
     )
 
-    interpolate_limit = snakemake.params.load["interpolate_limit"]
+    interpolate_limit = snakemake.params.load["fill_gaps"]["interpolate_limit"]
     countries = snakemake.params.countries
 
-    time_shift = snakemake.params.load["time_shift_for_large_gaps"]
+    time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
     load = load_timeseries(snakemake.input.reported, years, countries)
 
@@ -300,8 +300,8 @@ if __name__ == "__main__":
         load = manual_adjustment(load, snakemake.input[0], countries)
 
     if (
-        not snakemake.params.load["source"] == "tyndp"
-        or snakemake.params.load["tyndp_scenario"]["interpolate"]
+        snakemake.params.load["fill_gaps"]["enable"]
+        and snakemake.params.load["source"] == "opsd"
     ):
         logger.info(f"Linearly interpolate gaps of size {interpolate_limit} and less.")
         load = load.interpolate(method="linear", limit=interpolate_limit)
