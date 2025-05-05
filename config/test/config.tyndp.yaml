@@ -146,7 +146,6 @@ sector:
   transmission_efficiency:
     enable:
     - gas pipeline
-    - electricity distribution grid
 
 clustering:
   mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
