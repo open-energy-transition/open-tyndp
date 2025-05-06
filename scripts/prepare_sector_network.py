@@ -1623,11 +1623,7 @@ def insert_electricity_distribution_grid(
     - Micro-CHP units
     """
 
-    nodes = (
-        n.buses.query("carrier == 'AC' and not index.str.contains('DRES')").index
-        if load_source == "tyndp"
-        else pop_layout.index
-    )
+    nodes = n.buses.query("carrier == 'AC' and not index.str.contains('DRES')").index
 
     n.add(
         "Bus",
