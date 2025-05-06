@@ -11,6 +11,4 @@ supplement_synthetic,bool,"{true, false}","Whether to supplement missing data fo
 distribution_key,--,--,"Distribution key for spatially disaggregating the per-country electricity demand data."
 -- gdp,float,"[0, 1]","Weighting factor for the GDP data in the distribution key."
 -- population,float,"[0, 1]","Weighting factor for the population data in the distribution key."
-tyndp_scenario,--,--,"Scenario configuration when `tyndp` source is used."
--- scenario,--,"{"""NT"",""DE"",""GA""}","TYNDP scenario to use as electricity demand, being one of NT, DE or GA."
--- year,--,"{2030, 2040, 2050}","Scenario year to use, being one of 2030, 2040 or 2050. Electricity demand for 2050 are only defined for DE and GA."
+tyndp_scenario,--,"{"""NT"",""DE"",""GA""}","Scenario configuration of the electricity demand when using the `tyndp` source, which is one of NT, DE or GA."
