@@ -910,6 +910,7 @@ if lambda w: config_provider("load", "source")(w) == "tyndp":
 
     rule clean_tyndp_demand:
         params:
+            planning_horizons=config_provider("scenario", "planning_horizons"),
             snapshots=config_provider("snapshots"),
             scenario=config_provider("load", "tyndp_scenario"),
         input:
