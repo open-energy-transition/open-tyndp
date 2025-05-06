@@ -16,7 +16,7 @@ from _helpers import configure_logging, get_snapshots, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def load_elec_demand(scenario, pyear, cyear):
+def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
@@ -29,8 +29,7 @@ def load_elec_demand(scenario, pyear, cyear):
             )
             pyear = 2040
         demand_fn = Path(
-            snakemake.input.tyndp,
-            "Demand Profiles",
+            fn,
             scenario,
             "Electricity demand profiles",
             f"{pyear}_National Trends.xlsx",
@@ -52,8 +51,7 @@ def load_elec_demand(scenario, pyear, cyear):
 
     elif scenario in ["DE", "GA"]:
         demand_fn = Path(
-            snakemake.input.tyndp,
-            "Demand Profiles",
+            fn,
             scenario,
             str(pyear),
             f"ELECTRICITY_MARKET {scenario} {pyear}.xlsx",
@@ -96,7 +94,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("clean_tyndp_data")
+        snakemake = mock_snakemake(
+            "clean_tyndp_demand", configfiles="config/test/config.tyndp.yaml"
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -107,7 +107,12 @@ if __name__ == "__main__":
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep electricity demand
-    demand = load_elec_demand(scenario, pyear, cyear)
+    demand = load_elec_demand(
+        fn=snakemake.input.electricity_demand,
+        scenario=scenario,
+        pyear=pyear,
+        cyear=cyear,
+    )
 
     # Save prepped electricity demand
     demand.to_csv(snakemake.output.electricity_demand_prepped)

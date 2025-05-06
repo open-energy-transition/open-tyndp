@@ -908,22 +908,22 @@ if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
 
 if lambda w: config_provider("load", "source")(w) == "tyndp":
 
-    rule clean_tyndp_data:
+    rule clean_tyndp_demand:
         params:
             snapshots=config_provider("snapshots"),
             scenario=config_provider("load", "tyndp_scenario"),
         input:
-            tyndp="data/tyndp_2024_bundle",
+            electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
         output:
             electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
         log:
-            logs("clean_tyndp_data.log"),
+            logs("clean_tyndp_demand.log"),
         benchmark:
-            benchmarks("clean_tyndp_data")
+            benchmarks("clean_tyndp_demand")
         threads: 1
         resources:
             mem_mb=4000,
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/clean_tyndp_data.py"
+            "../scripts/clean_tyndp_demand.py"
