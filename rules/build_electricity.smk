@@ -11,7 +11,7 @@ rule build_electricity_demand:
         load=config_provider("load"),
     input:
         reported=lambda w: (
-            ancient(resources("electricity_demand_raw_tyndp.csv"))
+            resources("electricity_demand_raw_tyndp.csv")
             if (config_provider("load", "source")(w) == "tyndp")
             else ancient("data/electricity_demand_raw.csv")
         ),
