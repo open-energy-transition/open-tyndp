@@ -34,15 +34,26 @@ def load_timeseries_opsd(fn, years, countries):
     )
 
 
-def load_timeseries_tyndp(fn, years, countries):
+def load_timeseries_tyndp(fn, years, countries, planning_horizons=2030):
     """
     Read load data from TYNDP data.
     """
-    return (
+    demand = (
         pd.read_csv(fn, index_col=0, parse_dates=[0], date_format="%Y-%m-%d %H:%M:%S")
         .tz_localize(None)
         .dropna(how="all", axis=0)
+        .loc[planning_horizons]
     )
+
+    # need to reindex load time series to snapshots year
+    cyear = years.start.year
+    if cyear != years.stop.year:
+        logging.warning(
+            "Snapshots covers more than one year, consider limiting your analysis to a single full year."
+        )
+    demand.index = demand.index.map(lambda t: t.replace(year=cyear))
+
+    return demand
 
 
 def load_timeseries(*args, **kwargs):
@@ -51,13 +62,14 @@ def load_timeseries(*args, **kwargs):
 
     Parameters
     ----------
-    years : None or slice()
-        Years for which to read load data (defaults to
-        slice("2018","2019"))
     fn : str
         File name or url location (file format .csv)
+    years : None or slice()
+        Years for which to read load data (defaults to slice("2018","2019"))
     countries : listlike
         Countries for which to read load data.
+    planning_horizons : int (optional)
+        Planning horizons for which to read load data (only for TYNDP demand data).
 
     Returns
     -------
@@ -255,7 +267,10 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_electricity_demand")
+        snakemake = mock_snakemake(
+            "build_electricity_demand",
+            planning_horizons=2030,
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -276,7 +291,12 @@ if __name__ == "__main__":
 
     time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
-    load = load_timeseries(snakemake.input.reported, years, countries)
+    planning_horizons = snakemake.wildcards.planning_horizons
+    planning_horizons = slice(str(planning_horizons), str(planning_horizons))
+
+    load = load_timeseries(
+        snakemake.input.reported, years, countries, planning_horizons=planning_horizons
+    )
 
     load = load.reindex(index=snapshots)
 

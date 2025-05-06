@@ -21,11 +21,11 @@ rule build_electricity_demand:
             else []
         ),
     output:
-        resources("electricity_demand.csv"),
+        resources("electricity_demand_{planning_horizons}.csv"),
     log:
-        logs("build_electricity_demand.log"),
+        logs("build_electricity_demand_{planning_horizons}.log"),
     benchmark:
-        benchmarks("build_electricity_demand")
+        benchmarks("build_electricity_demand_{planning_horizons}")
     resources:
         mem_mb=5000,
     conda:
@@ -537,13 +537,13 @@ rule build_electricity_demand_base:
         base_network=resources("networks/base_s.nc"),
         regions=resources("regions_onshore_base_s.geojson"),
         nuts3=resources("nuts3_shapes.geojson"),
-        load=resources("electricity_demand.csv"),
+        load=resources("electricity_demand_{planning_horizons}.csv"),
     output:
-        resources("electricity_demand_base_s.nc"),
+        resources("electricity_demand_base_s_{planning_horizons}.nc"),
     log:
-        logs("build_electricity_demand_base_s.log"),
+        logs("build_electricity_demand_base_s_{planning_horizons}.log"),
     benchmark:
-        benchmarks("build_electricity_demand_base_s")
+        benchmarks("build_electricity_demand_base_s_{planning_horizons}")
     resources:
         mem_mb=5000,
     conda:
@@ -737,14 +737,14 @@ rule add_electricity:
             if config_provider("conventional", "dynamic_fuel_price")(w)
             else []
         ),
-        load=resources("electricity_demand_base_s.nc"),
+        load=resources("electricity_demand_base_s_{planning_horizons}.nc"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
     output:
-        resources("networks/base_s_{clusters}_elec.nc"),
+        resources("networks/base_s_{clusters}_elec_{planning_horizons}.nc"),
     log:
-        logs("add_electricity_{clusters}.log"),
+        logs("add_electricity_{clusters}_{planning_horizons}.log"),
     benchmark:
-        benchmarks("add_electricity_{clusters}")
+        benchmarks("add_electricity_{clusters}_{planning_horizons}")
     threads: 1
     resources:
         mem_mb=10000,
@@ -771,17 +771,17 @@ rule prepare_network:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         transmission_limit=config_provider("electricity", "transmission_limit"),
     input:
-        resources("networks/base_s_{clusters}_elec.nc"),
+        resources("networks/base_s_{clusters}_elec_{planning_horizons}.nc"),
         tech_costs=lambda w: resources(
             f"costs_{config_provider('costs', 'year')(w)}.csv"
         ),
         co2_price=lambda w: resources("co2_price.csv") if "Ept" in w.opts else [],
     output:
-        resources("networks/base_s_{clusters}_elec_{opts}.nc"),
+        resources("networks/base_s_{clusters}_elec_{opts}__{planning_horizons}.nc"),
     log:
-        logs("prepare_network_base_s_{clusters}_elec_{opts}.log"),
+        logs("prepare_network_base_s_{clusters}_elec_{opts}__{planning_horizons}.log"),
     benchmark:
-        benchmarks("prepare_network_base_s_{clusters}_elec_{opts}")
+        benchmarks("prepare_network_base_s_{clusters}_elec_{opts}__{planning_horizons}")
     threads: 1
     resources:
         mem_mb=4000,
