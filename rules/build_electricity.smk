@@ -619,6 +619,15 @@ def input_custom_busmap(w):
     return {"custom_busmap": []}
 
 
+# Optional input when clustering method requires load
+def input_custom_load(w):
+    if config_provider("scenario", "clusters")(w) != "all" and config_provider(
+        "clustering", "mode"
+    )(w) not in ["administrative", "custom_busmap", "custom_busshapes"]:
+        return {"load": resources("electricity_demand_base_s.nc")}
+    return {"load": []}
+
+
 rule cluster_network:
     params:
         countries=config_provider("countries"),
@@ -638,6 +647,7 @@ rule cluster_network:
         base=config_provider("electricity", "base_network"),
     input:
         unpack(input_custom_busmap),
+        unpack(input_custom_load),
         network=resources("networks/base_s.nc"),
         admin_shapes=resources("admin_shapes.geojson"),
         regions_onshore=resources("regions_onshore_base_s.geojson"),
@@ -648,7 +658,6 @@ rule cluster_network:
             == "hac"
             else []
         ),
-        load=resources("electricity_demand_base_s.nc"),
     output:
         network=resources("networks/base_s_{clusters}.nc"),
         regions_onshore=resources("regions_onshore_base_s_{clusters}.geojson"),

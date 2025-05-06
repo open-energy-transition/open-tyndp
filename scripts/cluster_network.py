@@ -471,13 +471,6 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
     buses_prev, lines_prev, links_prev = len(n.buses), len(n.lines), len(n.links)
 
-    load = (
-        xr.open_dataarray(snakemake.input.load)
-        .mean(dim="time")
-        .to_pandas()
-        .reindex(n.buses.index, fill_value=0.0)
-    )
-
     if snakemake.wildcards.clusters == "all":
         n_clusters = len(n.buses)
     elif mode == "administrative":
@@ -521,6 +514,13 @@ if __name__ == "__main__":
             logger.info(f"Imported custom busmap from {snakemake.input.custom_busmap}")
             busmap = custom_busmap
         else:
+            load = (
+                xr.open_dataarray(snakemake.input.load)
+                .mean(dim="time")
+                .to_pandas()
+                .reindex(n.buses.index, fill_value=0.0)
+            )
+
             algorithm = params.cluster_network["algorithm"]
             features = None
             if algorithm == "hac":
