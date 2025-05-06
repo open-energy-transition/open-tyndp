@@ -1194,6 +1194,46 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
         script:
             "../scripts/build_tyndp_h2_network.py"
 
+    rule clean_tyndp_h2_imports:
+        input:
+            import_potentials_raw="data/tyndp_2024_bundle/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+        output:
+            import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
+        log:
+            logs("build_tyndp_h2_imports.log"),
+        benchmark:
+            benchmarks("build_tyndp_h2_imports")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/clean_tyndp_h2_imports.py"
+
+    rule build_tyndp_h2_import_potentials:
+        params:
+            tyndp_scenario=config_provider(
+                "sector", "h2_topology_tyndp", "tyndp_scenario"
+            ),
+        input:
+            import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
+        output:
+            import_potentials_filtered=resources(
+                "h2_import_potentials_{planning_horizons}.csv"
+            ),
+        log:
+            logs("build_tyndp_h2_import_potentials_{planning_horizons}.log"),
+        benchmark:
+            benchmarks("build_tyndp_h2_import_potentials_{planning_horizons}")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/build_tyndp_h2_import_potentials.py"
+
 
 rule prepare_sector_network:
     params:
@@ -1347,6 +1387,11 @@ rule prepare_sector_network:
         ),
         buses_h2=lambda w: (
             resources("tyndp-raw/build/geojson/buses_h2.geojson")
+            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            else []
+        ),
+        h2_imports_tyndp=lambda w: (
+            resources("h2_import_potentials_{planning_horizons}.csv")
             if config_provider("sector", "h2_topology_tyndp", "enable")(w)
             else []
         ),

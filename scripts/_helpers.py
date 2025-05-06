@@ -1126,9 +1126,10 @@ def extract_grid_data_tyndp(
     # Combine into unidirectional links and return
     h2_grid = pd.concat([forward_links, reverse_links])
 
-    def make_index(c, carrier):
-        return carrier + " " + c.bus0 + " -> " + c.bus1
-
     h2_grid.index = h2_grid.apply(make_index, axis=1, args=(carrier,))
 
     return h2_grid
+
+
+def make_index(c, carrier):
+    return carrier + " " + c.bus0 + " -> " + c.bus1
