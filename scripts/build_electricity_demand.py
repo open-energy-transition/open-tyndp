@@ -38,11 +38,13 @@ def load_timeseries_tyndp(fn, years, countries, planning_horizons=2030):
     """
     Read load data from TYNDP data.
     """
+    planning_slice = slice(str(planning_horizons), str(planning_horizons))
+
     demand = (
         pd.read_csv(fn, index_col=0, parse_dates=[0], date_format="%Y-%m-%d %H:%M:%S")
         .tz_localize(None)
         .dropna(how="all", axis=0)
-        .loc[planning_horizons]
+        .loc[planning_slice]
     )
 
     # need to reindex load time series to snapshots year
@@ -293,7 +295,6 @@ if __name__ == "__main__":
 
     if snakemake.params.load["source"] == "tyndp":
         planning_horizons = int(snakemake.wildcards.planning_horizons)
-        planning_horizons = slice(str(planning_horizons), str(planning_horizons))
     else:
         planning_horizons = None
 
