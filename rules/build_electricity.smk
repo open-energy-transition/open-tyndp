@@ -14,11 +14,6 @@ def param_elec_demand():
 
 def input_elec_demand(w):
     return {
-        "reported": (
-            resources("electricity_demand_raw_tyndp.csv")
-            if (config_provider("load", "source")(w) == "tyndp")
-            else ancient("data/electricity_demand_raw.csv")
-        ),
         "synthetic": (
             ancient("data/load_synthetic_raw.csv")
             if config_provider("load", "supplement_synthetic")(w)
@@ -30,8 +25,14 @@ def input_elec_demand(w):
 rule build_electricity_demand:
     params:
         **param_elec_demand(),
+        load_source=(
+            "opsd"
+            if config_provider("load", "source") == "tyndp"
+            else config_provider("load", "source")
+        ),
     input:
         unpack(input_elec_demand),
+        reported=ancient("data/electricity_demand_raw.csv"),
     output:
         resources("electricity_demand.csv"),
     log:
@@ -46,11 +47,13 @@ rule build_electricity_demand:
         "../scripts/build_electricity_demand.py"
 
 
-rule build_electricity_demand_myopic:
+rule build_electricity_demand_tyndp:
     params:
         **param_elec_demand(),
+        load_source="tyndp",
     input:
         unpack(input_elec_demand),
+        reported=resources("electricity_demand_raw_tyndp.csv"),
     output:
         resources("electricity_demand_{planning_horizons}.csv"),
     log:
@@ -595,7 +598,7 @@ rule build_electricity_demand_base:
         "../scripts/build_electricity_demand_base.py"
 
 
-rule build_electricity_demand_base_myopic:
+rule build_electricity_demand_base_tyndp:
     params:
         **param_elec_demand_base(),
     input:
