@@ -1195,6 +1195,13 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
             "../scripts/build_tyndp_h2_network.py"
 
 
+# Optional input when load is exogenously set for TYNDP
+def input_custom_load(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        {"load": resources("electricity_demand_base_s_{planning_horizons}.nc")}
+    return {"load": []}
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
@@ -1230,6 +1237,7 @@ rule prepare_sector_network:
     input:
         unpack(input_profile_offwind),
         unpack(input_heat_source_power),
+        unpack(input_custom_load),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,
         snapshot_weightings=resources(
