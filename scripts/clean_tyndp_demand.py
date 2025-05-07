@@ -20,8 +20,6 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
-    cyear_fallback = None
-
     if scenario == "NT":
         if pyear == 2050:
             logger.warning(
@@ -39,13 +37,12 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
             logger.warning(
                 "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
             )
-            cyear_fallback = 2009
+            cyear = 2009
         data = pd.read_excel(
             demand_fn,
             skiprows=7,
             index_col=0,
-            usecols=lambda name: name == "Date"
-            or name == int(cyear_fallback if cyear_fallback else cyear),
+            usecols=lambda name: name == "Date" or name == int(cyear),
             sheet_name=None,
         )
 
@@ -61,13 +58,12 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
             logger.warning(
                 "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
             )
-            cyear_fallback = 2009
+            cyear = 2009
         data = pd.read_excel(
             demand_fn,
             skiprows=11,
             index_col=0,
-            usecols=lambda name: name == "Date"
-            or name == int(cyear_fallback if cyear_fallback else cyear),
+            usecols=lambda name: name == "Date" or name == int(cyear),
             sheet_name=None,
         )
 
