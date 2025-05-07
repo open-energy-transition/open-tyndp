@@ -20,7 +20,7 @@ from scripts._helpers import configure_logging, get_snapshots, set_scenario_conf
 logger = logging.getLogger(__name__)
 
 
-def load_timeseries_opsd(fn, years, countries):
+def load_timeseries_opsd(fn, years, countries, planning_horizons=None):
     """
     Read load data from OPSD time-series package version 2020-10-06.
     """
@@ -291,8 +291,11 @@ if __name__ == "__main__":
 
     time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
-    planning_horizons = snakemake.wildcards.planning_horizons
-    planning_horizons = slice(str(planning_horizons), str(planning_horizons))
+    if snakemake.params.load["source"] == "tyndp":
+        planning_horizons = snakemake.wildcards.planning_horizons
+        planning_horizons = slice(str(planning_horizons), str(planning_horizons))
+    else:
+        planning_horizons = None
 
     load = load_timeseries(
         snakemake.input.reported, years, countries, planning_horizons=planning_horizons
