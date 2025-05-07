@@ -292,7 +292,7 @@ if __name__ == "__main__":
     time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
     if snakemake.params.load["source"] == "tyndp":
-        planning_horizons = snakemake.wildcards.planning_horizons
+        planning_horizons = int(snakemake.wildcards.planning_horizons)
         planning_horizons = slice(str(planning_horizons), str(planning_horizons))
     else:
         planning_horizons = None
