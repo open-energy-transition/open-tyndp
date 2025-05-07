@@ -29,7 +29,7 @@ def input_elec_demand(w):
 
 rule build_electricity_demand:
     params:
-        param_elec_demand(),
+        **param_elec_demand(),
     input:
         unpack(input_elec_demand),
     output:
@@ -48,7 +48,7 @@ rule build_electricity_demand:
 
 rule build_electricity_demand_myopic:
     params:
-        param_elec_demand(),
+        **param_elec_demand(),
     input:
         unpack(input_elec_demand),
     output:
@@ -577,7 +577,7 @@ def input_elec_demand_base(w):
 
 rule build_electricity_demand_base:
     params:
-        param_elec_demand_base(),
+        **param_elec_demand_base(),
     input:
         unpack(input_elec_demand_base),
         load=resources("electricity_demand.csv"),
@@ -597,7 +597,7 @@ rule build_electricity_demand_base:
 
 rule build_electricity_demand_base_myopic:
     params:
-        param_elec_demand_base(),
+        **param_elec_demand_base(),
     input:
         unpack(input_elec_demand_base),
         load=resources("electricity_demand_{planning_horizons}.csv"),
