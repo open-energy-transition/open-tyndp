@@ -1082,15 +1082,58 @@ rule build_existing_heating_distribution:
         "../scripts/build_existing_heating_distribution.py"
 
 
+# Optional input/output when load requires planning horizons
+def input_custom_network(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return {
+            "network": resources(
+                "networks/base_s_{clusters}_elec_{opts}__{planning_horizons}.nc"
+            )
+        }
+    return {"network": resources("networks/base_s_{clusters}_elec_{opts}.nc")}
+
+
+def output_custom_network(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return {
+            "snapshot_weightings": resources(
+                "snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}.csv"
+            )
+        }
+    return {
+        "snapshot_weightings": resources(
+            "snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}.csv"
+        )
+    }
+
+
+def log_custom_network(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [
+            logs(
+                "time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}.log"
+            )
+        ]
+    return [logs("time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}.log")]
+
+
+def benchmark_custom_network(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [
+            benchmarks(
+                "time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}"
+            )
+        ]
+    return [benchmarks("time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}")]
+
+
 rule time_aggregation:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         solver_name=config_provider("solving", "solver", "name"),
     input:
-        network=resources(
-            "networks/base_s_{clusters}_elec_{opts}__{planning_horizons}.nc"
-        ),
+        unpack(input_custom_network),
         hourly_heat_demand_total=lambda w: (
             resources("hourly_heat_demand_total_base_s_{clusters}.nc")
             if config_provider("sector", "heating")(w)
@@ -1102,20 +1145,14 @@ rule time_aggregation:
             else []
         ),
     output:
-        snapshot_weightings=resources(
-            "snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}.csv"
-        ),
+        unpack(output_custom_network),
     threads: 1
     resources:
         mem_mb=5000,
     log:
-        logs(
-            "time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}.log"
-        ),
+        unpack(log_custom_network),
     benchmark:
-        benchmarks(
-            "time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}"
-        )
+        unpack(benchmark_custom_network)
     conda:
         "../envs/environment.yaml"
     script:
@@ -1201,6 +1238,25 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
             "../scripts/build_tyndp_h2_network.py"
 
 
+# Optional input/output when load requires planning horizons
+def input_custom_demand_prep_sector(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return {
+            "snapshot_weightings": resources(
+                "snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}.csv"
+            ),
+            "network": resources(
+                "networks/base_s_{clusters}_elec_{opts}__{planning_horizons}.nc"
+            ),
+        }
+    return {
+        "snapshot_weightings": resources(
+            "snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}.csv"
+        ),
+        "network": resources("networks/base_s_{clusters}_elec_{opts}.nc"),
+    }
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
@@ -1236,11 +1292,9 @@ rule prepare_sector_network:
     input:
         unpack(input_profile_offwind),
         unpack(input_heat_source_power),
+        unpack(input_custom_demand_prep_sector),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,
-        snapshot_weightings=resources(
-            "snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}_{planning_horizons}.csv"
-        ),
         retro_cost=lambda w: (
             resources("retro_cost_base_s_{clusters}.csv")
             if config_provider("sector", "retrofitting", "retro_endogen")(w)
@@ -1263,9 +1317,6 @@ rule prepare_sector_network:
                 "sector", "regional_co2_sequestration_potential", "enable"
             )(w)
             else []
-        ),
-        network=resources(
-            "networks/base_s_{clusters}_elec_{opts}__{planning_horizons}.nc"
         ),
         eurostat="data/eurostat/Balances-April2023",
         pop_weighted_energy_totals=resources(

@@ -3,6 +3,13 @@
 # SPDX-License-Identifier: MIT
 
 
+# Optional output when load requires planning horizons
+def output_custom_demand(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [resources("electricity_demand_{planning_horizons}.csv")]
+    return [resources("electricity_demand.csv")]
+
+
 rule build_electricity_demand:
     params:
         snapshots=config_provider("snapshots"),
@@ -21,11 +28,11 @@ rule build_electricity_demand:
             else []
         ),
     output:
-        resources("electricity_demand_{planning_horizons}.csv"),
+        unpack(output_custom_demand),
     log:
-        logs("build_electricity_demand_{planning_horizons}.log"),
+        logs("build_electricity_demand.log"),
     benchmark:
-        benchmarks("build_electricity_demand_{planning_horizons}")
+        benchmarks("build_electricity_demand")
     resources:
         mem_mb=5000,
     conda:
@@ -529,21 +536,34 @@ def input_class_regions(w):
     }
 
 
+# Optional input/output when load requires planning horizons
+def input_custom_demand_base(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return {"load": resources("electricity_demand_{planning_horizons}.csv")}
+    return {"load": resources("electricity_demand.csv")}
+
+
+def output_custom_demand_base(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [resources("electricity_demand_base_s_{planning_horizons}.nc")]
+    return [resources("electricity_demand_base_s.nc")]
+
+
 rule build_electricity_demand_base:
     params:
         distribution_key=config_provider("load", "distribution_key"),
         load_source=config_provider("load", "source"),
     input:
+        unpack(input_custom_demand_base),
         base_network=resources("networks/base_s.nc"),
         regions=resources("regions_onshore_base_s.geojson"),
         nuts3=resources("nuts3_shapes.geojson"),
-        load=resources("electricity_demand_{planning_horizons}.csv"),
     output:
-        resources("electricity_demand_base_s_{planning_horizons}.nc"),
+        unpack(output_custom_demand_base),
     log:
-        logs("build_electricity_demand_base_s_{planning_horizons}.log"),
+        logs("build_electricity_demand_base_s.log"),
     benchmark:
-        benchmarks("build_electricity_demand_base_s_{planning_horizons}")
+        benchmarks("build_electricity_demand_base_s")
     resources:
         mem_mb=5000,
     conda:
@@ -702,6 +722,31 @@ def input_conventional(w):
     }
 
 
+# Optional input/output when load requires planning horizons
+def input_custom_demand_elec(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return {"load": resources("electricity_demand_base_s_{planning_horizons}.nc")}
+    return {"load": resources("electricity_demand_base_s.nc")}
+
+
+def output_custom_demand_elec(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [resources("networks/base_s_{clusters}_elec___{planning_horizons}.nc")]
+    return [resources("networks/base_s_{clusters}_elec.nc")]
+
+
+def log_custom_demand_elec(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [logs("add_electricity_{clusters}_{planning_horizons}.log")]
+    return [logs("add_electricity_{clusters}.log")]
+
+
+def benchmarks_custom_demand_elec(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [benchmarks("add_electricity_{clusters}_{planning_horizons}.log")]
+    return [benchmarks("add_electricity_{clusters}.log")]
+
+
 rule add_electricity:
     params:
         line_length_factor=config_provider("lines", "length_factor"),
@@ -724,6 +769,7 @@ rule add_electricity:
         unpack(input_profile_tech),
         unpack(input_class_regions),
         unpack(input_conventional),
+        unpack(input_custom_demand_elec),
         base_network=resources("networks/base_s_{clusters}.nc"),
         tech_costs=lambda w: resources(
             f"costs_{config_provider('costs', 'year')(w)}.csv"
@@ -737,14 +783,13 @@ rule add_electricity:
             if config_provider("conventional", "dynamic_fuel_price")(w)
             else []
         ),
-        load=resources("electricity_demand_base_s_{planning_horizons}.nc"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
     output:
-        resources("networks/base_s_{clusters}_elec_{planning_horizons}.nc"),
+        unpack(output_custom_demand_elec),
     log:
-        logs("add_electricity_{clusters}_{planning_horizons}.log"),
+        unpack(log_custom_demand_elec),
     benchmark:
-        benchmarks("add_electricity_{clusters}_{planning_horizons}")
+        unpack(benchmarks_custom_demand_elec)
     threads: 1
     resources:
         mem_mb=10000,
@@ -752,6 +797,41 @@ rule add_electricity:
         "../envs/environment.yaml"
     script:
         "../scripts/add_electricity.py"
+
+
+# Optional input/output when load requires planning horizons
+def input_custom_demand_prep(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [resources("networks/base_s_{clusters}_elec___{planning_horizons}.nc")]
+    return [resources("networks/base_s_{clusters}_elec.nc")]
+
+
+def output_custom_demand_prep(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [
+            resources("networks/base_s_{clusters}_elec_{opts}__{planning_horizons}.nc")
+        ]
+    return [resources("networks/base_s_{clusters}_elec_{opts}.nc")]
+
+
+def log_custom_demand_prep(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [
+            logs(
+                "prepare_network_base_s_{clusters}_elec_{opts}__{planning_horizons}.log"
+            )
+        ]
+    return [logs("prepare_network_base_s_{clusters}_elec_{opts}.log")]
+
+
+def benchmarks_custom_demand_prep(w):
+    if config_provider("load", "source")(w) == "tyndp":
+        return [
+            benchmarks(
+                "prepare_network_base_s_{clusters}_elec_{opts}__{planning_horizons}"
+            )
+        ]
+    return [benchmarks("prepare_network_base_s_{clusters}_elec_{opts}")]
 
 
 rule prepare_network:
@@ -771,17 +851,17 @@ rule prepare_network:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         transmission_limit=config_provider("electricity", "transmission_limit"),
     input:
-        resources("networks/base_s_{clusters}_elec_{planning_horizons}.nc"),
+        unpack(input_custom_demand_prep),
         tech_costs=lambda w: resources(
             f"costs_{config_provider('costs', 'year')(w)}.csv"
         ),
         co2_price=lambda w: resources("co2_price.csv") if "Ept" in w.opts else [],
     output:
-        resources("networks/base_s_{clusters}_elec_{opts}__{planning_horizons}.nc"),
+        unpack(output_custom_demand_prep),
     log:
-        logs("prepare_network_base_s_{clusters}_elec_{opts}__{planning_horizons}.log"),
+        unpack(log_custom_demand_prep),
     benchmark:
-        benchmarks("prepare_network_base_s_{clusters}_elec_{opts}__{planning_horizons}")
+        unpack(benchmarks_custom_demand_prep)
     threads: 1
     resources:
         mem_mb=4000,
