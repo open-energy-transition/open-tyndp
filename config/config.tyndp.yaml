@@ -103,9 +103,7 @@ sector:
     2050: 0
   h2_topology_tyndp:
     enable: true
-    tyndp_scenario:
-      scenario: DE  # NT, DE or GA
-      year: 2030  # 2030, 2035, 2040, 2045 or 2050 (only for DE or GA)
+    tyndp_scenario: DE  # NT, DE or GA
   ATR: false
   hydrogen_fuel_cell: false
   hydrogen_turbine: true

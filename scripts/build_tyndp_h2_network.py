@@ -120,14 +120,17 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_tyndp_h2_network")
+        snakemake = mock_snakemake(
+            "build_tyndp_h2_network",
+            planning_horizons=2030,
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
     # Parameters
-    cf = snakemake.params.scenario
-    scenario, pyear = cf.get("scenario", "DE"), cf.get("year", 2030)
+    scenario = snakemake.params.scenario
+    pyear = int(snakemake.wildcards.planning_horizons)
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities

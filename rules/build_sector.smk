@@ -1180,12 +1180,12 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
         input:
             tyndp_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
         output:
-            h2_grid_prepped=resources("h2_reference_grid_tyndp.csv"),
-            interzonal_prepped=resources("h2_interzonal_tyndp.csv"),
+            h2_grid_prepped=resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
+            interzonal_prepped=resources("h2_interzonal_tyndp_{planning_horizons}.csv"),
         log:
-            logs("build_tyndp_h2_network.log"),
+            logs("build_tyndp_h2_network_{planning_horizons}.log"),
         benchmark:
-            benchmarks("build_tyndp_h2_network")
+            benchmarks("build_tyndp_h2_network_{planning_horizons}")
         threads: 1
         resources:
             mem_mb=4000,
@@ -1336,12 +1336,12 @@ rule prepare_sector_network:
             "direct_heat_source_utilisation_profiles_base_s_{clusters}_{planning_horizons}.nc"
         ),
         h2_grid_tyndp=lambda w: (
-            resources("h2_reference_grid_tyndp.csv")
+            resources("h2_reference_grid_tyndp_{planning_horizons}.csv")
             if config_provider("sector", "h2_topology_tyndp", "enable")(w)
             else []
         ),
         interzonal_prepped=lambda w: (
-            resources("h2_interzonal_tyndp.csv")
+            resources("h2_interzonal_tyndp_{planning_horizons}.csv")
             if config_provider("sector", "h2_topology_tyndp", "enable")(w)
             else []
         ),
