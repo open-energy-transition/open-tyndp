@@ -3,29 +3,60 @@
 # SPDX-License-Identifier: MIT
 
 
-rule build_electricity_demand:
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        countries=config_provider("countries"),
-        load=config_provider("load"),
-    input:
-        reported=lambda w: (
+def param_elec_demand():
+    return {
+        "snapshots": config_provider("snapshots"),
+        "drop_leap_day": config_provider("enable", "drop_leap_day"),
+        "countries": config_provider("countries"),
+        "load": config_provider("load"),
+    }
+
+
+def input_elec_demand(w):
+    return {
+        "reported": (
             resources("electricity_demand_raw_tyndp.csv")
             if (config_provider("load", "source")(w) == "tyndp")
             else ancient("data/electricity_demand_raw.csv")
         ),
-        synthetic=lambda w: (
+        "synthetic": (
             ancient("data/load_synthetic_raw.csv")
             if config_provider("load", "supplement_synthetic")(w)
             else []
         ),
+    }
+
+
+rule build_electricity_demand:
+    params:
+        param_elec_demand(),
+    input:
+        unpack(input_elec_demand),
     output:
         resources("electricity_demand.csv"),
     log:
         logs("build_electricity_demand.log"),
     benchmark:
         benchmarks("build_electricity_demand")
+    resources:
+        mem_mb=5000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_electricity_demand.py"
+
+
+rule build_electricity_demand_myopic:
+    params:
+        param_elec_demand(),
+    input:
+        unpack(input_elec_demand),
+    output:
+        resources("electricity_demand_{planning_horizons}.csv"),
+    log:
+        logs("build_electricity_demand_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_electricity_demand_{planning_horizons}")
     resources:
         mem_mb=5000,
     conda:
@@ -529,14 +560,26 @@ def input_class_regions(w):
     }
 
 
+def param_elec_demand_base():
+    return {
+        "distribution_key": config_provider("load", "distribution_key"),
+        "load_source": config_provider("load", "source"),
+    }
+
+
+def input_elec_demand_base(w):
+    return {
+        "base_network": resources("networks/base_s.nc"),
+        "regions": resources("regions_onshore_base_s.geojson"),
+        "nuts3": resources("nuts3_shapes.geojson"),
+    }
+
+
 rule build_electricity_demand_base:
     params:
-        distribution_key=config_provider("load", "distribution_key"),
-        load_source=config_provider("load", "source"),
+        param_elec_demand_base(),
     input:
-        base_network=resources("networks/base_s.nc"),
-        regions=resources("regions_onshore_base_s.geojson"),
-        nuts3=resources("nuts3_shapes.geojson"),
+        unpack(input_elec_demand_base),
         load=resources("electricity_demand.csv"),
     output:
         resources("electricity_demand_base_s.nc"),
@@ -544,6 +587,26 @@ rule build_electricity_demand_base:
         logs("build_electricity_demand_base_s.log"),
     benchmark:
         benchmarks("build_electricity_demand_base_s")
+    resources:
+        mem_mb=5000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_electricity_demand_base.py"
+
+
+rule build_electricity_demand_base_myopic:
+    params:
+        param_elec_demand_base(),
+    input:
+        unpack(input_elec_demand_base),
+        load=resources("electricity_demand_{planning_horizons}.csv"),
+    output:
+        resources("electricity_demand_base_s_{planning_horizons}.nc"),
+    log:
+        logs("build_electricity_demand_base_s_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_electricity_demand_base_s_{planning_horizons}")
     resources:
         mem_mb=5000,
     conda:
