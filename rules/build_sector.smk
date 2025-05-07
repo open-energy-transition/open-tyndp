@@ -1198,7 +1198,7 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
 # Optional input when load is exogenously set for TYNDP
 def input_custom_load(w):
     if config_provider("load", "source")(w) == "tyndp":
-        {"load": resources("electricity_demand_base_s_{planning_horizons}.nc")}
+        return {"load": resources("electricity_demand_base_s_{planning_horizons}.nc")}
     return {"load": []}
 
 
