@@ -6775,6 +6775,7 @@ def add_import_options(
     costs: pd.DataFrame,
     options: dict,
     gas_input_nodes: pd.DataFrame,
+    h2_imports_tyndp_fn: str,
 ):
     """
     Add green energy import options.
@@ -6787,6 +6788,8 @@ def add_import_options(
         Options from snakemake.params["sector"].
     gas_input_nodes : pd.DataFrame
         Locations of gas input nodes split by LNG and pipeline.
+    h2_imports_tyndp_fn: str,
+        Path to file containing H2 import potentials and marginal cost from TYNDP input data
     """
 
     import_config = options["imports"]
@@ -6864,18 +6867,51 @@ def add_import_options(
             )
 
     if "H2" in import_config["carriers"]:
-        p_nom = gas_input_nodes["pipeline"].dropna()
-        p_nom.rename(lambda x: x + " H2", inplace=True)
+        if options["h2_topology_tyndp"]["enable"]:
+            logger.info("Adding TYNDP H2 import.")
+            import_potentials_h2 = pd.read_csv(h2_imports_tyndp_fn, index_col=0)
+            n.add(
+                "Bus",
+                import_potentials_h2.Corridor,
+                suffix=" H2 import",
+                location=import_potentials_h2.bus0.values,
+                carrier="import H2",
+                unit="MWh_th",
+            )
 
-        n.add(
-            "Generator",
-            p_nom.index,
-            suffix=" import",
-            bus=p_nom.index,
-            carrier="import H2",
-            p_nom=p_nom,
-            marginal_cost=import_options["H2"],
-        )
+            n.add(
+                "Generator",
+                import_potentials_h2.Corridor,
+                suffix=" H2 import",
+                bus=import_potentials_h2.Corridor.values + " H2 import",
+                carrier="import H2",
+                p_nom=import_potentials_h2.p_nom_generator.values,
+                marginal_cost=import_potentials_h2.marginal_cost.values,
+                e_sum_max=import_potentials_h2.e_sum_max.values,
+            )
+            n.add(
+                "Link",
+                import_potentials_h2.index,
+                bus0=import_potentials_h2.Corridor.values + " H2 import",
+                bus1=import_potentials_h2.bus1.values + " H2 Z2",
+                p_nom_extendable=False,
+                p_nom=import_potentials_h2.p_nom_link.values,
+                bidirectional=False,
+                carrier="H2 import " + import_potentials_h2.Type.values,
+            )
+
+        else:
+            p_nom = gas_input_nodes["pipeline"].dropna()
+            p_nom.rename(lambda x: x + " H2", inplace=True)
+            n.add(
+                "Generator",
+                p_nom.index,
+                suffix=" import",
+                bus=p_nom.index,
+                carrier="import H2",
+                p_nom=p_nom,
+                marginal_cost=import_options["H2"],
+            )
 
 
 if __name__ == "__main__":
@@ -7196,7 +7232,13 @@ if __name__ == "__main__":
         )
 
     if options["imports"]["enable"]:
-        add_import_options(n, costs, options, gas_input_nodes)
+        add_import_options(
+            n=n,
+            costs=costs,
+            options=options,
+            gas_input_nodes=gas_input_nodes,
+            h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
+        )
 
     if options["gas_distribution_grid"]:
         insert_gas_distribution_costs(n, costs, options=options)
