@@ -37,23 +37,23 @@ def match_centroids(df, countries_centroids):
     """
     import_nodes = df.bus0.unique()
     # match coordinates
-    if df.bus0.isin(countries_centroids.ISO).any():
-        coordinates = (
-            countries_centroids.query("ISO in @import_nodes or ISO=='FO'")
-            .replace(
-                {"FO": "Ammonia"}
-            )  # manually match coordinates of Faroe Islands with Ammonia imports
-            .set_index("ISO")
-            .geometry
-        )
+    coordinates = (
+        countries_centroids.query("ISO in @import_nodes or ISO=='FO'")
+        .replace(
+            {"FO": "Ammonia"}
+        )  # manually match coordinates of Faroe Islands with Ammonia imports
+        .set_index("ISO")
+        .geometry
+    )
+    if not coordinates.empty:
         logger.info(f"Found coordinates for import nodes {coordinates.index.values}")
-        return df.assign(
-            bus0_x=df.bus0.map(coordinates.x), bus0_y=df.bus0.map(coordinates.y)
-        )
     else:
         logger.warning(
             f"Can't match centroid coordinates to as none of the import nodes {import_nodes} are an ISO country."
         )
+    return df.assign(
+        bus0_x=df.bus0.map(coordinates.x), bus0_y=df.bus0.map(coordinates.y)
+    )
 
 
 def load_import_data(fn, countries_centroids):
