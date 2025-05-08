@@ -6791,9 +6791,9 @@ def add_import_options(
 
     import_config = options["imports"]
     import_options = import_config["price"]
-    logger.info(f"Adding import options:\n{pd.Series(import_options)}")
+    logger.info(f"Adding import options:\n{pd.Series(import_config['carriers'])}")
 
-    if "methanol" in import_options:
+    if "methanol" in import_config["carriers"]:
         co2_intensity = costs.at["methanolisation", "carbondioxide-input"]
 
         n.add(
@@ -6808,7 +6808,7 @@ def add_import_options(
             p_nom=1e7,
         )
 
-    if "oil" in import_options:
+    if "oil" in import_config["carriers"]:
         co2_intensity = costs.at["oil", "CO2 intensity"]
 
         n.add(
@@ -6823,7 +6823,7 @@ def add_import_options(
             p_nom=1e7,
         )
 
-    if "gas" in import_options:
+    if "gas" in import_config["carriers"]:
         co2_intensity = costs.at["gas", "CO2 intensity"]
 
         p_nom = gas_input_nodes["lng"].dropna()
@@ -6846,7 +6846,7 @@ def add_import_options(
             p_nom=p_nom / co2_intensity,
         )
 
-    if "NH3" in import_options:
+    if "NH3" in import_config["carriers"]:
         if options["ammonia"]:
             n.add(
                 "Generator",
@@ -6863,7 +6863,7 @@ def add_import_options(
                 "Skipping specified ammonia imports because ammonia carrier is not present."
             )
 
-    if "H2" in import_options:
+    if "H2" in import_config["carriers"]:
         p_nom = gas_input_nodes["pipeline"].dropna()
         p_nom.rename(lambda x: x + " H2", inplace=True)
 
