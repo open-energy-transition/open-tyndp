@@ -193,6 +193,7 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
             elec_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
             buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
             h2_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
+            h2_imports="data/tyndp_2024_bundle/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
