@@ -50,7 +50,7 @@ rule build_electricity_demand:
 rule build_electricity_demand_tyndp:
     params:
         **param_elec_demand(),
-        load_source="tyndp",
+        load_source=config_provider("load", "source"),
     input:
         unpack(input_elec_demand),
         reported=resources("electricity_demand_raw_tyndp.csv"),
@@ -566,7 +566,6 @@ def input_class_regions(w):
 def param_elec_demand_base():
     return {
         "distribution_key": config_provider("load", "distribution_key"),
-        "load_source": config_provider("load", "source"),
     }
 
 
@@ -581,6 +580,11 @@ def input_elec_demand_base(w):
 rule build_electricity_demand_base:
     params:
         **param_elec_demand_base(),
+        load_source=(
+            "opsd"
+            if config_provider("load", "source") == "tyndp"
+            else config_provider("load", "source")
+        ),
     input:
         unpack(input_elec_demand_base),
         load=resources("electricity_demand.csv"),
@@ -601,6 +605,7 @@ rule build_electricity_demand_base:
 rule build_electricity_demand_base_tyndp:
     params:
         **param_elec_demand_base(),
+        load_source=config_provider("load", "source"),
     input:
         unpack(input_elec_demand_base),
         load=resources("electricity_demand_{planning_horizons}.csv"),
