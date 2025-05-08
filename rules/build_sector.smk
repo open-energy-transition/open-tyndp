@@ -1197,6 +1197,7 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
     rule clean_tyndp_h2_imports:
         input:
             import_potentials_raw="data/tyndp_2024_bundle/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+            countries_centroids="data/countries_centroids.geojson",
         output:
             import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
         log:

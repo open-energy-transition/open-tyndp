@@ -6875,6 +6875,8 @@ def add_import_options(
                 import_potentials_h2.Corridor,
                 suffix=" H2 import",
                 location=import_potentials_h2.bus0.values,
+                x=import_potentials_h2.bus0_x.values,
+                y=import_potentials_h2.bus0_y.values,
                 carrier="import H2",
                 unit="MWh_th",
             )

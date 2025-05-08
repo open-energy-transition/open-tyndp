@@ -228,3 +228,10 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **Link:** https://github.com/PyPSA/powerplantmatching
 - **License:** GPL-3.0
 - **Description:** Contains matched dataset of powerplants in Europe.
+
+``resources/countries_centroids.geojson``
+
+- **Source:** Copyright (c) 2021 Gavin Rehkemper, https://github.com/gavinr/world-countries-centroids/tree/v1.0.0
+- **Link:** https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson
+- **License:** MIT License
+- **Description:** Contains centroids of world countries in GeoJson.

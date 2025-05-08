@@ -140,3 +140,16 @@ None.
 **Outputs**
 
 - ``data/shipdensity_global.zip``
+
+Rule ``retrieve_countries_centroids``
+====================================
+
+This rule downloads country centroid geometry data by `Copyright (c) 2021 Gavin Rehkemper` from https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson.
+
+**Relevant Settings**
+
+None.
+
+**Outputs**
+
+- ``data/countries_centroids.geojson``
