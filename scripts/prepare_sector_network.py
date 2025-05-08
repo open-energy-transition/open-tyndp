@@ -29,6 +29,7 @@ from scripts._helpers import (
     update_config_from_wildcards,
 )
 from scripts.add_electricity import (
+    attach_load,
     calculate_annuity,
     flatten,
     load_costs,
@@ -6925,6 +6926,22 @@ if __name__ == "__main__":
     investment_year = int(snakemake.wildcards.planning_horizons)
 
     n = pypsa.Network(snakemake.input.network)
+
+    if snakemake.params.load_source == "tyndp":
+        logging.warning("Overwriting existing load data with TYNDP load.")
+        load = (
+            xr.open_dataarray(snakemake.input.load)
+            .to_dataframe()
+            .squeeze(axis=1)
+            .unstack(level="time")
+        )
+        attach_load(
+            n=n,
+            load=load,
+            busmap_fn=snakemake.input.busmap,
+            scaling=snakemake.params.scaling_factor,
+            overwrite=True,
+        )
 
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
     nhours = n.snapshot_weightings.generators.sum()

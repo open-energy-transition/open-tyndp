@@ -1234,6 +1234,7 @@ rule prepare_sector_network:
             "sector", "district_heating", "limited_heat_sources"
         ),
         load_source=config_provider("load", "source"),
+        scaling_factor=config_provider("load", "scaling_factor"),
     input:
         unpack(input_profile_offwind),
         unpack(input_heat_source_power),
