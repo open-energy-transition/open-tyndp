@@ -54,8 +54,13 @@ def load_import_data(fn):
     }
 
     imports = imports.rename(columns=rename_dict).replace(scenario_dict)
-
-    imports.index = imports.apply(make_index, axis=1, args=("H2 imports",))
+    imports.loc[:, "e_sum_max"] *= 1e3  # convert from GWh to MWh
+    imports.loc[:, "Band"] = (
+        imports.Corridor.str.split("-", expand=True).iloc[:, -1].str.lower()
+    )
+    imports.index = (
+        imports.apply(make_index, axis=1, args=("H2 import",)) + " - " + imports.Band
+    )
 
     return imports
 
