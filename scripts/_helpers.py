@@ -1110,8 +1110,14 @@ def extract_grid_data_tyndp(
         DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1
     """
 
-    links["Border"] = links["Border"].replace(replace_dict, regex=True)
-    links[["bus0", "bus1"]] = links.Border.str.split("-", expand=True)
+    links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
+    links = pd.concat(
+        [
+            links,
+            links.Border.str.split("-", expand=True).set_axis(["bus0", "bus1"], axis=1),
+        ],
+        axis=1,
+    )
 
     # Create forward and reverse direction dataframes
     # TODO: combine to bidirectional links
