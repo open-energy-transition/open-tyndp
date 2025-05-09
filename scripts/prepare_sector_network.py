@@ -6869,7 +6869,22 @@ def add_import_options(
     if "H2" in import_config["carriers"]:
         if options["h2_topology_tyndp"]["enable"]:
             logger.info("Adding TYNDP H2 import.")
+
             import_potentials_h2 = pd.read_csv(h2_imports_tyndp_fn, index_col=0)
+
+            # change coordinates of import buses with existing H2 buses (e.g. NO)
+            h2_coords = (
+                n.buses.query("index.str.contains('H2')")
+                .groupby("country")
+                .first()[["x", "y"]]
+                .rename(columns={"x": "bus0_x", "y": "bus0_y"})
+            )
+            temp_df = import_potentials_h2.set_index("bus0")
+            temp_df.update(h2_coords)
+            import_potentials_h2[["bus0_x", "bus0_y"]] = temp_df[
+                ["bus0_x", "bus0_y"]
+            ].values
+
             n.add(
                 "Bus",
                 import_potentials_h2.Corridor,
@@ -6877,6 +6892,7 @@ def add_import_options(
                 location=import_potentials_h2.bus0.values,
                 x=import_potentials_h2.bus0_x.values,
                 y=import_potentials_h2.bus0_y.values,
+                country=import_potentials_h2.bus0.replace({"Ammonia": ""}).values,
                 carrier="import H2",
                 unit="MWh_th",
             )
