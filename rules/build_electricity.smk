@@ -10,7 +10,11 @@ rule build_electricity_demand:
         countries=config_provider("countries"),
         load=config_provider("load"),
     input:
-        reported=ancient("data/electricity_demand_raw.csv"),
+        reported=lambda w: (
+            resources("electricity_demand_raw_tyndp.csv")
+            if (config_provider("load", "source")(w) == "tyndp")
+            else ancient("data/electricity_demand_raw.csv")
+        ),
         synthetic=lambda w: (
             ancient("data/load_synthetic_raw.csv")
             if config_provider("load", "supplement_synthetic")(w)
@@ -528,6 +532,7 @@ def input_class_regions(w):
 rule build_electricity_demand_base:
     params:
         distribution_key=config_provider("load", "distribution_key"),
+        load_source=config_provider("load", "source"),
     input:
         base_network=resources("networks/base_s.nc"),
         regions=resources("regions_onshore_base_s.geojson"),
@@ -899,3 +904,26 @@ if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
             "../envs/environment.yaml"
         script:
             "../scripts/build_tyndp_network.py"
+
+
+if lambda w: config_provider("load", "source")(w) == "tyndp":
+
+    rule clean_tyndp_demand:
+        params:
+            snapshots=config_provider("snapshots"),
+            scenario=config_provider("load", "tyndp_scenario"),
+        input:
+            electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
+        output:
+            electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
+        log:
+            logs("clean_tyndp_demand.log"),
+        benchmark:
+            benchmarks("clean_tyndp_demand")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/clean_tyndp_demand.py"

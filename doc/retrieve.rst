@@ -19,6 +19,11 @@ Rule ``retrieve_databundle``
 
 .. automodule:: retrieve_databundle
 
+Rule ``retrieve_tyndp_bundle``
+============================
+
+.. automodule:: retrieve_tyndp_bundle
+
 Rule ``retrieve_eurostat_data``
 ===============================
 
@@ -54,6 +59,11 @@ Rule ``retrieve_osm_data``
 =========================================
 
 .. automodule:: retrieve_osm_data
+
+Rule ``retrieve_bidding_zones``
+=========================================
+
+.. automodule:: retrieve_bidding_zones
 
 Rule ``retrieve_cutout``
 ============================

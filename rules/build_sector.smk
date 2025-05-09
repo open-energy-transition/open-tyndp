@@ -1226,6 +1226,7 @@ rule prepare_sector_network:
         limited_heat_sources=config_provider(
             "sector", "district_heating", "limited_heat_sources"
         ),
+        load_source=config_provider("load", "source"),
     input:
         unpack(input_profile_offwind),
         unpack(input_heat_source_power),

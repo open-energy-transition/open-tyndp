@@ -3,14 +3,14 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  prefix: "test-tyndp"
+  prefix: "test-elec-tyndp"
   disable_progressbar: true
   shared_resources:
     policy: "test"
   shared_cutouts: true
 
 # TODO set foresight
-foresight: overnight
+foresight: myopic
 
 scenario:
   clusters:
@@ -39,10 +39,6 @@ electricity:
 
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float]
 
-links:
-  p_max_pu: 1.0
-  p_min_pu: 0
-
 atlite:
   default_cutout: europe-2013-03-sarah3-era5
   cutouts:
@@ -67,12 +63,26 @@ renewable:
   solar-hsat:
     cutout: europe-2013-03-sarah3-era5
 
+links:
+  p_max_pu: 1.0
+  p_min_pu: 0
+
 transmission_projects:
   enable: true
   include:
     tyndp2020: false
     nep: false
     manual: false
+
+load:
+  source: tyndp # opsd, tyndp
+  fill_gaps:
+    enable: false
+  manual_adjustments: false
+  supplement_synthetic: false
+  tyndp_scenario:
+    scenario: DE  # NT, DE or GA
+    year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
 
 pypsa_eur:
   Bus:
@@ -135,7 +145,6 @@ sector:
   transmission_efficiency:
     enable:
     - gas pipeline
-    - electricity distribution grid
 
 clustering:
   mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
@@ -149,3 +158,13 @@ solving:
     name: highs
     options: highs-default
   mem: 4000
+
+plotting:
+  balance_map:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - methanol
+    - co2 stored

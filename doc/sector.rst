@@ -233,6 +233,11 @@ Rule ``time_aggregation``
 
 .. automodule:: time_aggregation
 
+Rule ``build_tyndp_h2_network``
+==============================================================================
+
+.. automodule:: build_tyndp_h2_network
+
 Rule ``prepare_sector_network``
 ==============================================================================
 

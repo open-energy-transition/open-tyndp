@@ -337,8 +337,11 @@ transformers:
 
 # docs-load in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#load
 load:
-  interpolate_limit: 3
-  time_shift_for_large_gaps: 1w
+  source: opsd # opsd, tyndp
+  fill_gaps:
+    enable: true
+    interpolate_limit: 3
+    time_shift_for_large_gaps: 1w
   manual_adjustments: true # false
   scaling_factor: 1.0
   fixed_year: false # false or year (e.g. 2013)
@@ -346,6 +349,9 @@ load:
   distribution_key:
     gdp: 0.6
     population: 0.4
+  tyndp_scenario:
+    scenario: DE  # NT, DE or GA
+    year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
 
 # docs
 # TODO: PyPSA-Eur merge issue in prepare_sector_network.py
