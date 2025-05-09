@@ -3,29 +3,57 @@
 # SPDX-License-Identifier: MIT
 
 
-rule build_electricity_demand:
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        countries=config_provider("countries"),
-        load=config_provider("load"),
-    input:
-        reported=lambda w: (
-            resources("electricity_demand_raw_tyndp.csv")
-            if (config_provider("load", "source")(w) == "tyndp")
-            else ancient("data/electricity_demand_raw.csv")
-        ),
-        synthetic=lambda w: (
+def param_elec_demand():
+    return {
+        "snapshots": config_provider("snapshots"),
+        "drop_leap_day": config_provider("enable", "drop_leap_day"),
+        "countries": config_provider("countries"),
+        "load": config_provider("load"),
+    }
+
+
+def input_elec_demand(w):
+    return {
+        "synthetic": (
             ancient("data/load_synthetic_raw.csv")
             if config_provider("load", "supplement_synthetic")(w)
             else []
         ),
+    }
+
+
+rule build_electricity_demand:
+    params:
+        **param_elec_demand(),
+    input:
+        unpack(input_elec_demand),
+        reported=ancient("data/electricity_demand_raw.csv"),
     output:
         resources("electricity_demand.csv"),
     log:
         logs("build_electricity_demand.log"),
     benchmark:
         benchmarks("build_electricity_demand")
+    resources:
+        mem_mb=5000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_electricity_demand.py"
+
+
+rule build_electricity_demand_tyndp:
+    params:
+        **param_elec_demand(),
+    input:
+        unpack(input_elec_demand),
+        reported=resources("electricity_demand_raw_tyndp.csv"),
+    output:
+        resources("electricity_demand_{planning_horizons}.csv"),
+    log:
+        logs("build_electricity_demand_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_electricity_demand_{planning_horizons}")
     resources:
         mem_mb=5000,
     conda:
@@ -529,14 +557,26 @@ def input_class_regions(w):
     }
 
 
+def param_elec_demand_base():
+    return {
+        "distribution_key": config_provider("load", "distribution_key"),
+        "load_source": config_provider("load", "source"),
+    }
+
+
+def input_elec_demand_base(w):
+    return {
+        "base_network": resources("networks/base_s.nc"),
+        "regions": resources("regions_onshore_base_s.geojson"),
+        "nuts3": resources("nuts3_shapes.geojson"),
+    }
+
+
 rule build_electricity_demand_base:
     params:
-        distribution_key=config_provider("load", "distribution_key"),
-        load_source=config_provider("load", "source"),
+        **param_elec_demand_base(),
     input:
-        base_network=resources("networks/base_s.nc"),
-        regions=resources("regions_onshore_base_s.geojson"),
-        nuts3=resources("nuts3_shapes.geojson"),
+        unpack(input_elec_demand_base),
         load=resources("electricity_demand.csv"),
     output:
         resources("electricity_demand_base_s.nc"),
@@ -544,6 +584,26 @@ rule build_electricity_demand_base:
         logs("build_electricity_demand_base_s.log"),
     benchmark:
         benchmarks("build_electricity_demand_base_s")
+    resources:
+        mem_mb=5000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_electricity_demand_base.py"
+
+
+rule build_electricity_demand_base_tyndp:
+    params:
+        **param_elec_demand_base(),
+    input:
+        unpack(input_elec_demand_base),
+        load=resources("electricity_demand_{planning_horizons}.csv"),
+    output:
+        resources("electricity_demand_base_s_{planning_horizons}.nc"),
+    log:
+        logs("build_electricity_demand_base_s_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_electricity_demand_base_s_{planning_horizons}")
     resources:
         mem_mb=5000,
     conda:
@@ -619,6 +679,13 @@ def input_custom_busmap(w):
     return {"custom_busmap": []}
 
 
+# Optional input if TYNPD load data is not used
+def input_custom_load(w):
+    if config_provider("load", "source")(w) != "tyndp":
+        return {"load": resources("electricity_demand_base_s.nc")}
+    return {"load": []}
+
+
 rule cluster_network:
     params:
         countries=config_provider("countries"),
@@ -638,6 +705,7 @@ rule cluster_network:
         base=config_provider("electricity", "base_network"),
     input:
         unpack(input_custom_busmap),
+        unpack(input_custom_load),
         network=resources("networks/base_s.nc"),
         admin_shapes=resources("admin_shapes.geojson"),
         regions_onshore=resources("regions_onshore_base_s.geojson"),
@@ -648,7 +716,6 @@ rule cluster_network:
             == "hac"
             else []
         ),
-        load=resources("electricity_demand_base_s.nc"),
     output:
         network=resources("networks/base_s_{clusters}.nc"),
         regions_onshore=resources("regions_onshore_base_s_{clusters}.geojson"),
@@ -711,10 +778,12 @@ rule add_electricity:
         ),
         aggregation_strategies=config_provider("clustering", "aggregation_strategies"),
         exclude_carriers=config_provider("clustering", "exclude_carriers"),
+        load_source=config_provider("load", "source"),
     input:
         unpack(input_profile_tech),
         unpack(input_class_regions),
         unpack(input_conventional),
+        unpack(input_custom_load),
         base_network=resources("networks/base_s_{clusters}.nc"),
         tech_costs=lambda w: resources(
             f"costs_{config_provider('costs', 'year')(w)}.csv"
@@ -728,7 +797,6 @@ rule add_electricity:
             if config_provider("conventional", "dynamic_fuel_price")(w)
             else []
         ),
-        load=resources("electricity_demand_base_s.nc"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
     output:
         resources("networks/base_s_{clusters}_elec.nc"),
@@ -910,6 +978,7 @@ if lambda w: config_provider("load", "source")(w) == "tyndp":
 
     rule clean_tyndp_demand:
         params:
+            planning_horizons=config_provider("scenario", "planning_horizons"),
             snapshots=config_provider("snapshots"),
             scenario=config_provider("load", "tyndp_scenario"),
         input:
@@ -920,7 +989,7 @@ if lambda w: config_provider("load", "source")(w) == "tyndp":
             logs("clean_tyndp_demand.log"),
         benchmark:
             benchmarks("clean_tyndp_demand")
-        threads: 1
+        threads: 4
         resources:
             mem_mb=4000,
         conda:
