@@ -1180,18 +1180,22 @@ if __name__ == "__main__":
         params.exclude_carriers,
     )
 
-    load = (
-        xr.open_dataarray(snakemake.input.load)
-        .to_dataframe()
-        .squeeze(axis=1)
-        .unstack(level="time")
-    )
-    attach_load(
-        n,
-        load,
-        snakemake.input.busmap,
-        params.scaling_factor,
-    )
+    if snakemake.params.load_source != "tyndp":
+        logging.info(
+            f"Attaching load from {snakemake.params.load_source} to the network"
+        )
+        load = (
+            xr.open_dataarray(snakemake.input.load)
+            .to_dataframe()
+            .squeeze(axis=1)
+            .unstack(level="time")
+        )
+        attach_load(
+            n,
+            load,
+            snakemake.input.busmap,
+            params.scaling_factor,
+        )
 
     set_transmission_costs(
         n,

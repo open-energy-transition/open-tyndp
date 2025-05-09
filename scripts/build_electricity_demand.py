@@ -78,10 +78,10 @@ def load_timeseries(*args, **kwargs):
     load : pd.DataFrame
         Load time-series with UTC timestamps x ISO-2 countries
     """
-    if snakemake.params.load_source == "tyndp":
+    if snakemake.params.load["source"] == "tyndp":
         return load_timeseries_tyndp(*args, **kwargs)
     else:
-        if snakemake.params.load_source != "opsd":
+        if snakemake.params.load["source"] != "opsd":
             logging.warning("Undefined load source, using the default OPSD as default.")
         return load_timeseries_opsd(*args, **kwargs)
 
@@ -277,9 +277,6 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # load_source is a param in this rule
-    snakemake.params.load["source"] = ""
-
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
@@ -296,7 +293,7 @@ if __name__ == "__main__":
 
     time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
-    if snakemake.params.load_source == "tyndp":
+    if snakemake.params.load["source"] == "tyndp":
         planning_horizons = int(snakemake.wildcards.planning_horizons)
     else:
         planning_horizons = None
@@ -307,7 +304,7 @@ if __name__ == "__main__":
 
     load = load.reindex(index=snapshots)
 
-    if "UA" in countries and snakemake.params.load_source == "opsd":
+    if "UA" in countries and snakemake.params.load["source"] == "opsd":
         # attach load of UA (best data only for entsoe transparency)
         load_ua = load_timeseries(snakemake.input.reported, "2018", ["UA"])
         snapshot_year = str(snapshots.year.unique().item())
@@ -322,13 +319,13 @@ if __name__ == "__main__":
 
     if (
         snakemake.params.load["manual_adjustments"]
-        and snakemake.params.load_source == "opsd"
+        and snakemake.params.load["source"] == "opsd"
     ):
         load = manual_adjustment(load, snakemake.input[0], countries)
 
     if (
         snakemake.params.load["fill_gaps"]["enable"]
-        and snakemake.params.load_source == "opsd"
+        and snakemake.params.load["source"] == "opsd"
     ):
         logger.info(f"Linearly interpolate gaps of size {interpolate_limit} and less.")
         load = load.interpolate(method="linear", limit=interpolate_limit)
