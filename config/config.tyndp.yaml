@@ -111,6 +111,14 @@ sector:
     enable:
     - gas pipeline
     - electricity distribution grid
+  imports:
+    enable: true
+    carriers:
+    - H2
+    - NH3
+    - methanol
+    - gas
+    - oil
 
 clustering:
   mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes

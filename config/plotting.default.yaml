@@ -487,6 +487,8 @@ plotting:
     land transport fuel cell: '#6b3161'
     H2 pipeline: '#f081dc'
     H2 pipeline retrofitted: '#ba99b5'
+    H2 import Lh2: "#F28C28"
+    H2 import Pipeline: "#FFA500"
     H2 Fuel Cell: '#c251ae'
     H2 fuel cell: '#c251ae'
     H2 turbine: '#991f83'
