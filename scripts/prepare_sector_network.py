@@ -6928,7 +6928,9 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     if snakemake.params.load_source == "tyndp":
-        logging.warning("Overwriting existing load data with TYNDP load.")
+        logging.info(
+            f"Attaching load from {snakemake.params.load_source} to the network"
+        )
         load = (
             xr.open_dataarray(snakemake.input.load)
             .to_dataframe()
