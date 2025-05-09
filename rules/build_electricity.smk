@@ -989,7 +989,7 @@ if lambda w: config_provider("load", "source")(w) == "tyndp":
             logs("clean_tyndp_demand.log"),
         benchmark:
             benchmarks("clean_tyndp_demand")
-        threads: 1
+        threads: 4
         resources:
             mem_mb=4000,
         conda:

@@ -8,10 +8,12 @@ Depending on the scenario, different planning years (`pyear`) are available. DE 
 """
 
 import logging
+import multiprocessing as mp
 from pathlib import Path
 
 import pandas as pd
 from _helpers import configure_logging, get_snapshots, set_scenario_config
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -103,16 +105,26 @@ if __name__ == "__main__":
     planning_horizons = snakemake.params["planning_horizons"]
 
     # Load and prep electricity demand
-    demand = []
-    for pyear in planning_horizons:
-        demand.append(
-            load_elec_demand(
-                fn=snakemake.input.electricity_demand,
-                scenario=scenario,
-                pyear=pyear,
-                cyear=cyear,
-            )
+    tqdm_kwargs = {
+        "ascii": False,
+        "unit": " pyear",
+        "total": len(planning_horizons),
+        "desc": "Loading TYNDP demand data",
+    }
+
+    def load_elec_demand_wrapper(pyear):
+        return load_elec_demand(
+            fn=snakemake.input.electricity_demand,
+            scenario=scenario,
+            pyear=pyear,
+            cyear=cyear,
         )
+
+    with mp.Pool(processes=snakemake.threads) as pool:
+        demand = list(
+            tqdm(pool.imap(load_elec_demand_wrapper, planning_horizons), **tqdm_kwargs)
+        )
+
     demand = pd.concat(demand)
 
     # Save prepped electricity demand
