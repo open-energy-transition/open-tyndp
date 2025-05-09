@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     # parameters
     scenario = snakemake.params.tyndp_scenario
-    year = snakemake.wildcards.planning_horizons
+    year = int(snakemake.wildcards.planning_horizons)
 
     # Load prepped import potentials and filter
     fn = snakemake.input.import_potentials_prepped
