@@ -3,15 +3,6 @@
 # SPDX-License-Identifier: MIT
 
 
-def param_elec_demand():
-    return {
-        "snapshots": config_provider("snapshots"),
-        "drop_leap_day": config_provider("enable", "drop_leap_day"),
-        "countries": config_provider("countries"),
-        "load": config_provider("load"),
-    }
-
-
 def input_elec_demand(w):
     return {
         "synthetic": (
@@ -24,7 +15,10 @@ def input_elec_demand(w):
 
 rule build_electricity_demand:
     params:
-        **param_elec_demand(),
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        countries=config_provider("countries"),
+        load=config_provider("load"),
     input:
         unpack(input_elec_demand),
         reported=ancient("data/electricity_demand_raw.csv"),
@@ -42,9 +36,7 @@ rule build_electricity_demand:
         "../scripts/build_electricity_demand.py"
 
 
-rule build_electricity_demand_tyndp:
-    params:
-        **param_elec_demand(),
+use rule build_electricity_demand as build_electricity_demand_tyndp with:
     input:
         unpack(input_elec_demand),
         reported=resources("electricity_demand_raw_tyndp.csv"),
@@ -54,12 +46,6 @@ rule build_electricity_demand_tyndp:
         logs("build_electricity_demand_{planning_horizons}.log"),
     benchmark:
         benchmarks("build_electricity_demand_{planning_horizons}")
-    resources:
-        mem_mb=5000,
-    conda:
-        "../envs/environment.yaml"
-    script:
-        "../scripts/build_electricity_demand.py"
 
 
 rule build_powerplants:
@@ -557,13 +543,6 @@ def input_class_regions(w):
     }
 
 
-def param_elec_demand_base():
-    return {
-        "distribution_key": config_provider("load", "distribution_key"),
-        "load_source": config_provider("load", "source"),
-    }
-
-
 def input_elec_demand_base(w):
     return {
         "base_network": resources("networks/base_s.nc"),
@@ -574,7 +553,8 @@ def input_elec_demand_base(w):
 
 rule build_electricity_demand_base:
     params:
-        **param_elec_demand_base(),
+        distribution_key=config_provider("load", "distribution_key"),
+        load_source=config_provider("load", "source"),
     input:
         unpack(input_elec_demand_base),
         load=resources("electricity_demand.csv"),
@@ -592,9 +572,7 @@ rule build_electricity_demand_base:
         "../scripts/build_electricity_demand_base.py"
 
 
-rule build_electricity_demand_base_tyndp:
-    params:
-        **param_elec_demand_base(),
+use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
     input:
         unpack(input_elec_demand_base),
         load=resources("electricity_demand_{planning_horizons}.csv"),
@@ -604,12 +582,6 @@ rule build_electricity_demand_base_tyndp:
         logs("build_electricity_demand_base_s_{planning_horizons}.log"),
     benchmark:
         benchmarks("build_electricity_demand_base_s_{planning_horizons}")
-    resources:
-        mem_mb=5000,
-    conda:
-        "../envs/environment.yaml"
-    script:
-        "../scripts/build_electricity_demand_base.py"
 
 
 rule build_hac_features:
