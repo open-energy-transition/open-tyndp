@@ -752,7 +752,6 @@ rule add_electricity:
         unpack(input_profile_tech),
         unpack(input_class_regions),
         unpack(input_conventional),
-        unpack(input_custom_load),
         base_network=resources("networks/base_s_{clusters}.nc"),
         tech_costs=lambda w: resources(
             f"costs_{config_provider('costs', 'year')(w)}.csv"
@@ -767,6 +766,11 @@ rule add_electricity:
             else []
         ),
         busmap=resources("busmap_base_s_{clusters}.csv"),
+        load=lambda w: (
+            resources("electricity_demand_base_s.nc")
+            if config_provider("load", "source")(w) != "tyndp"
+            else []
+        ),
     output:
         resources("networks/base_s_{clusters}_elec.nc"),
     log:
