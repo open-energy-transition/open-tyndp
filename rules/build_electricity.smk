@@ -651,13 +651,6 @@ def input_custom_busmap(w):
     return {"custom_busmap": []}
 
 
-# Optional input if TYNPD load data is not used
-def input_custom_load(w):
-    if config_provider("load", "source")(w) != "tyndp":
-        return {"load": resources("electricity_demand_base_s.nc")}
-    return {"load": []}
-
-
 rule cluster_network:
     params:
         countries=config_provider("countries"),
@@ -677,7 +670,6 @@ rule cluster_network:
         base=config_provider("electricity", "base_network"),
     input:
         unpack(input_custom_busmap),
-        unpack(input_custom_load),
         network=resources("networks/base_s.nc"),
         admin_shapes=resources("admin_shapes.geojson"),
         regions_onshore=resources("regions_onshore_base_s.geojson"),
@@ -686,6 +678,11 @@ rule cluster_network:
             resources("hac_features.nc")
             if config_provider("clustering", "cluster_network", "algorithm")(w)
             == "hac"
+            else []
+        ),
+        load=lambda w: (
+            resources("electricity_demand_base_s.nc")
+            if config_provider("load", "source")(w) != "tyndp"
             else []
         ),
     output:
