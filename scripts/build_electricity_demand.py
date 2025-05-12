@@ -82,7 +82,7 @@ def load_timeseries(*args, **kwargs):
         return load_timeseries_tyndp(*args, **kwargs)
     else:
         if snakemake.params.load["source"] != "opsd":
-            logging.warning("Undefined load source, using the default OPSD as default.")
+            logger.warning("Undefined load source, using the default OPSD as default.")
         return load_timeseries_opsd(*args, **kwargs)
 
 

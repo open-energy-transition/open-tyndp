@@ -1186,7 +1186,7 @@ if __name__ == "__main__":
 
     if snakemake.params.load_source != "tyndp":
         logger.info(
-            f"Attaching load from {snakemake.params.load_source} to the network"
+            f"Attaching electrical load from {snakemake.params.load_source} to the network"
         )
 
         attach_load(

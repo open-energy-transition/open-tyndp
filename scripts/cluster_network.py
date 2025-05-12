@@ -480,7 +480,7 @@ if __name__ == "__main__":
 
     if params.base == "tyndp-raw":
         # Fast-path if TYNDP base network is used
-        logging.info("Skipping clustering: not applicable for TYNDP base network")
+        logger.info("Skipping clustering: not applicable for TYNDP base network")
 
         busmap = n.buses.index.to_series()
         linemap = n.lines.index.to_series()
