@@ -6928,7 +6928,7 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     if snakemake.params.load_source == "tyndp":
-        logging.info(
+        logger.info(
             f"Attaching load from {snakemake.params.load_source} to the network"
         )
         load = (

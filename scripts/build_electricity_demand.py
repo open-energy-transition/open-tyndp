@@ -299,7 +299,10 @@ if __name__ == "__main__":
         planning_horizons = None
 
     load = load_timeseries(
-        snakemake.input.reported, years, countries, planning_horizons=planning_horizons
+        fn=snakemake.input.reported,
+        years=years,
+        countries=countries,
+        planning_horizons=planning_horizons,
     )
 
     load = load.reindex(index=snapshots)
