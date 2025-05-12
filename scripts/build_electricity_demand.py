@@ -50,7 +50,7 @@ def load_timeseries_tyndp(fn, years, countries, planning_horizons=2030):
     # need to reindex load time series to snapshots year
     cyear = years.start.year
     if cyear != years.stop.year:
-        logging.warning(
+        logger.warning(
             "Snapshots covers more than one year, consider limiting your analysis to a single full year."
         )
     demand.index = demand.index.map(lambda t: t.replace(year=cyear))
