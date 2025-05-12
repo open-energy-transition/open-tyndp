@@ -6931,15 +6931,10 @@ if __name__ == "__main__":
         logger.info(
             f"Attaching load from {snakemake.params.load_source} to the network"
         )
-        load = (
-            xr.open_dataarray(snakemake.input.load)
-            .to_dataframe()
-            .squeeze(axis=1)
-            .unstack(level="time")
-        )
+
         attach_load(
             n=n,
-            load=load,
+            load_fn=snakemake.input.load,
             busmap_fn=snakemake.input.busmap,
             scaling=snakemake.params.scaling_factor,
             overwrite=True,

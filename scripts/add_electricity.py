@@ -415,7 +415,7 @@ def load_and_aggregate_powerplants(
 
 def attach_load(
     n: pypsa.Network,
-    load: pd.DataFrame,
+    load_fn: str,
     busmap_fn: str,
     scaling: float = 1.0,
     overwrite: bool = False,
@@ -427,8 +427,8 @@ def attach_load(
     ----------
     n : pypsa.Network
         The PyPSA network to attach the load data to.
-    load : pandas.DataFrame
-        Load data dataframe.
+    load_fn : str
+        Path to the load data file.
     busmap_fn : str
         Path to the busmap file.
     scaling : float, optional
@@ -436,6 +436,10 @@ def attach_load(
     overwrite : bool, optional
         Overwrite the load instead of setting it
     """
+    load = (
+        xr.open_dataarray(load_fn).to_dataframe().squeeze(axis=1).unstack(level="time")
+    )
+
     # apply clustering busmap
     busmap = pd.read_csv(busmap_fn, dtype=str).set_index("Bus").squeeze()
     load = load.groupby(busmap).sum().T
@@ -1184,15 +1188,10 @@ if __name__ == "__main__":
         logger.info(
             f"Attaching load from {snakemake.params.load_source} to the network"
         )
-        load = (
-            xr.open_dataarray(snakemake.input.load)
-            .to_dataframe()
-            .squeeze(axis=1)
-            .unstack(level="time")
-        )
+
         attach_load(
             n,
-            load,
+            snakemake.input.load,
             snakemake.input.busmap,
             params.scaling_factor,
         )
