@@ -514,6 +514,11 @@ if __name__ == "__main__":
             logger.info(f"Imported custom busmap from {snakemake.input.custom_busmap}")
             busmap = custom_busmap
         else:
+            if snakemake.params.load_source == "tyndp":
+                raise ValueError(
+                    "Unable to perform clustering: TYNDP load data varies with the planning horizon."
+                )
+
             load = (
                 xr.open_dataarray(snakemake.input.load)
                 .mean(dim="time")
