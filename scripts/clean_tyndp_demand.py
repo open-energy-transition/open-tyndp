@@ -19,7 +19,7 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 
-def load_elec_demand(pyear: int, fn: str, scenario: str, cyear: int):
+def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
@@ -115,8 +115,8 @@ if __name__ == "__main__":
 
     func = partial(
         load_elec_demand,
-        fn=snakemake.input.electricity_demand,
-        scenario=scenario,
+        snakemake.input.electricity_demand,
+        scenario,
         cyear=cyear,
     )
 
