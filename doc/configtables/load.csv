@@ -1,5 +1,5 @@
 ,Unit,Values,Description
-source,--,"{"""opsd"",""tyndp""}","Data source used for the electric load (OSPD or TYNDP, default: OPSD)."
+source,--,"{""opsd"",""tyndp""}","Data source used for the electrical load (OSPD or TYNDP, default: OPSD)."
 fill_gaps,--,--,"Gaps filling strategy used."
 -- enable,bool,"{true, false}","Whether to fill gaps using interpolation for small gaps and time shift for large gaps."
 -- interpolate_limit,hours,integer,"Maximum gap size (consecutive nans) which interpolated linearly."
