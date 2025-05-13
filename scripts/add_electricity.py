@@ -418,6 +418,7 @@ def attach_load(
     load_fn: str,
     busmap_fn: str,
     scaling: float = 1.0,
+    overwrite: bool = False,
 ) -> None:
     """
     Attach load data to the network.
@@ -432,6 +433,8 @@ def attach_load(
         Path to the busmap file.
     scaling : float, optional
         Scaling factor for the load data, by default 1.0.
+    overwrite : bool, optional
+        Overwrite the load instead of setting it
     """
     load = (
         xr.open_dataarray(load_fn).to_dataframe().squeeze(axis=1).unstack(level="time")
@@ -444,7 +447,9 @@ def attach_load(
     logger.info(f"Load data scaled by factor {scaling}.")
     load *= scaling
 
-    n.add("Load", load.columns, bus=load.columns, p_set=load)  # carrier="electricity"
+    n.add(
+        "Load", load.columns, bus=load.columns, p_set=load, overwrite=overwrite
+    )  # carrier="electricity"
 
 
 def set_transmission_costs(
@@ -1179,12 +1184,17 @@ if __name__ == "__main__":
         params.exclude_carriers,
     )
 
-    attach_load(
-        n,
-        snakemake.input.load,
-        snakemake.input.busmap,
-        params.scaling_factor,
-    )
+    if snakemake.params.load_source != "tyndp":
+        logger.info(
+            f"Attaching electrical load from {snakemake.params.load_source} to the network"
+        )
+
+        attach_load(
+            n,
+            snakemake.input.load,
+            snakemake.input.busmap,
+            params.scaling_factor,
+        )
 
     set_transmission_costs(
         n,

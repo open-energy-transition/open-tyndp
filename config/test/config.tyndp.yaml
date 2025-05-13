@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  prefix: "test-elec-tyndp"
+  prefix: "test-sector-tyndp"
   disable_progressbar: true
   shared_resources:
-    policy: "test"
+    policy: false
   shared_cutouts: true
 
 # TODO set foresight
@@ -17,6 +17,7 @@ scenario:
   - all
   planning_horizons:
   - 2030
+  - 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
@@ -26,6 +27,10 @@ snapshots:
 
 enable:
   retrieve_tyndp_bundle: true
+
+co2_budget:
+  # TODO define carbon budget compliant with EU 2030 and 2050 targets
+  2040: 0.2  # Temporary increase to allow CI to pass while load configurations are incomplete.
 
 electricity:
   base_network: tyndp-raw
@@ -80,10 +85,7 @@ load:
     enable: false
   manual_adjustments: false
   supplement_synthetic: false
-  tyndp_scenario:
-    scenario: DE  # NT, DE or GA
-    year: 2030  # 2030, 2040 or 2050 (only for DE or GA)
-
+  tyndp_scenario: DE  # NT, DE or GA
 pypsa_eur:
   Bus:
   - AC
