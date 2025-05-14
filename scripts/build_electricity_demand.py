@@ -70,7 +70,7 @@ def load_timeseries(*args, **kwargs):
         Years for which to read load data (defaults to slice("2018","2019"))
     countries : listlike
         Countries for which to read load data.
-    planning_horizons : int (optional)
+    planning_horizons : int, optional
         Planning horizons for which to read load data (only for TYNDP demand data).
 
     Returns

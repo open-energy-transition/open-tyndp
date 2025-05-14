@@ -512,7 +512,7 @@ def add_heating_capacities_installed_before_baseyear(
         Minimum capacity threshold
     use_electricity_distribution_grid : bool
         Whether to use electricity distribution grid
-    load_source : str (optional)
+    load_source : str, optional
         Source of the electrical load, default is "opsd"
     """
     logger.debug(f"Adding heating capacities installed before {baseyear}")
