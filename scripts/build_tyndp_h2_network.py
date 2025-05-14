@@ -2,9 +2,10 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script is used to clean TYNDP Scenario Building input data to be used in the PyPSA-Eur workflow. The `snapshot` year is used as climatic year (`cyear`). For DE and GA, it must be one of the following years: 1995, 2008 or 2009. For NT, it must be between 1982 and 2019. If the `snapshot` is not one of these years, then the demand is set to 2009 electricity demand (2009 being considered as the most representative of the three years).
-
-Depending on the scenario, different planning years (`pyear`) are available. DE and GA are defined for 2030, 2040 and 2050. NT scenario is only defined for 2030 and 2040.
+This script loads and cleans the TYNDP H2 reference grid and interzonal connections for a given wildcard planning horizon
+and TYNDP scenario as defined in the config file. The reference grid contains data for the TYNDP planning year 2030,
+while depending on the scenario, different planning years (`pyear`) are available for the interzonal connections.
+DE and GA are defined for 2030, 2035, 2040, 2045 and 2050. For the NT scenario no interzonal capacities are defined.
 """
 
 import logging
@@ -120,14 +121,17 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_tyndp_h2_network")
+        snakemake = mock_snakemake(
+            "build_tyndp_h2_network",
+            planning_horizons=2030,
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
     # Parameters
-    cf = snakemake.params.scenario
-    scenario, pyear = cf.get("scenario", "DE"), cf.get("year", 2030)
+    scenario = snakemake.params.scenario
+    pyear = int(snakemake.wildcards.planning_horizons)
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
