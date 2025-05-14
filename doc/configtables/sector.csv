@@ -3,6 +3,7 @@ transport,--,"{true, false}",Flag to include transport sector.
 heating,--,"{true, false}",Flag to include heating sector.
 biomass,--,"{true, false}",Flag to include biomass sector.
 industry,--,"{true, false}",Flag to include industry sector.
+use_industry_load,--,"{true, false}",Flag to include industry-specific electrical load.
 shipping,--,"{true, false}",Flag to include shipping sector.
 aviation,--,"{true, false}",Flag to include aviation sector.
 agriculture,--,"{true, false}",Flag to include agriculture sector.
