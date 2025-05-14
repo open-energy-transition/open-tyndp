@@ -451,6 +451,7 @@ sector:
   heating: true
   biomass: true
   industry: true
+  use_industry_load: true
   shipping: true
   aviation: true
   agriculture: true
