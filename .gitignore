@@ -88,3 +88,7 @@ merger-todos.md
 *.html
 # private dev folder
 dev/*
+
+!notebooks
+notebooks/*
+!notebooks/test_elec_demand_profiles.ipynb
