@@ -106,7 +106,7 @@ pypsa_eur:
 
 sector:
   transport: false
-  heating: true
+  heating: false
   biomass: true
   industry: true
   shipping: false

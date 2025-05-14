@@ -349,7 +349,7 @@ load:
   distribution_key:
     gdp: 0.6
     population: 0.4
-  tyndp_scenario: DE  # NT, DE or GA
+  tyndp_scenario: ''  # NT, DE or GA
 # docs
 # TODO: PyPSA-Eur merge issue in prepare_sector_network.py
 # regulate what components with which carriers are kept from PyPSA-Eur;
@@ -719,7 +719,7 @@ sector:
   h2_topology_tyndp:
     enable: false
     tyndp_scenario:
-      scenario: DE  # NT, DE or GA
+      scenario: ''  # NT, DE or GA
       year: 2030  # 2030, 2035, 2040, 2045 or 2050 (only for DE or GA)
   gas_network: false
   H2_retrofit: false

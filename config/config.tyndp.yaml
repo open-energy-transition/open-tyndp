@@ -78,7 +78,7 @@ pypsa_eur:
 
 sector:
   transport: false
-  heating: true
+  heating: false
   biomass: true
   industry: true
   shipping: false
@@ -110,6 +110,8 @@ sector:
     2040: 0
     2045: 0
     2050: 0
+  oil_boilers: false
+  biomass_boiler: false
   h2_topology_tyndp:
     enable: true
     tyndp_scenario:
