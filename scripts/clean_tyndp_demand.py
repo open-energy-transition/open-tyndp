@@ -86,6 +86,9 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     # need to reindex load time series to target year
     demand.index = demand.index.map(lambda t: t.replace(year=pyear))
 
+    # rename UK in GB
+    demand.columns = demand.columns.str.replace("UK", "GB")
+
     return demand
 
 
