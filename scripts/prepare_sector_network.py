@@ -1575,7 +1575,6 @@ def insert_electricity_distribution_grid(
     options: dict,
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
-    load_source: str = "opsd",
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -1600,8 +1599,6 @@ def insert_electricity_distribution_grid(
         Population data per node with at least:
         - 'total' column containing population in thousands
         Index should match network nodes
-    load_source : str (optional)
-        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -3518,7 +3515,6 @@ def build_heat_demand(
     hourly_heat_demand_file,
     pop_weighted_energy_totals,
     heating_efficiencies,
-    load_source: str = "opsd",
 ):
     """
     Build heat demand time series and adjust electricity load to account for electric heating.
@@ -3534,8 +3530,6 @@ def build_heat_demand(
         electricity consumption for different sectors and uses
     heating_efficiencies : dict
         Dictionary mapping sector and use combinations to their heating efficiencies
-    load_source : str (optional)
-        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -3578,12 +3572,11 @@ def build_heat_demand(
     electric_heat_supply = pd.concat(electric_heat_supply, axis=1)
 
     # subtract from electricity load since heat demand already in heat_demand
-    if load_source != "tyndp":
-        electric_nodes = n.loads.index[n.loads.carrier == "electricity"]
-        n.loads_t.p_set[electric_nodes] = (
-            n.loads_t.p_set[electric_nodes]
-            - electric_heat_supply.T.groupby(level=1).sum().T[electric_nodes]
-        )
+    electric_nodes = n.loads.index[n.loads.carrier == "electricity"]
+    n.loads_t.p_set[electric_nodes] = (
+        n.loads_t.p_set[electric_nodes]
+        - electric_heat_supply.T.groupby(level=1).sum().T[electric_nodes]
+    )
 
     return heat_demand
 
@@ -3607,7 +3600,6 @@ def add_heat(
     spatial: object,
     options: dict,
     investment_year: int,
-    load_source: str = "opsd",
 ):
     """
     Add heat sector to the network including heat demand, heat pumps, storage, and conversion technologies.
@@ -3651,8 +3643,6 @@ def add_heat(
         Dictionary containing configuration options for heat sector components
     investment_year : int
         Year for which to get the heat sector components and costs
-    load_source : str (optional)
-        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -3679,7 +3669,6 @@ def add_heat(
         hourly_heat_demand_total_file,
         pop_weighted_energy_totals,
         heating_efficiencies,
-        load_source=load_source,
     )
 
     cop = xr.open_dataarray(cop_profiles_file)
@@ -3706,9 +3695,8 @@ def add_heat(
         # 1e3 converts from W/m^2 to MW/(1000m^2) = kW/m^2
         solar_thermal = options["solar_cf_correction"] * solar_thermal / 1e3
 
-    heat_systems = HeatSystem if load_source != "tyndp" else []
     for heat_system in (
-        heat_systems
+        HeatSystem
     ):  # this loops through all heat systems defined in _entities.HeatSystem
         overdim_factor = options["overdimension_heat_generators"][
             heat_system.central_or_decentral
@@ -4391,7 +4379,6 @@ def add_biomass(
     biomass_potentials_file,
     biomass_transport_costs_file=None,
     nyears=1,
-    load_source: str = "opsd",
 ):
     """
     Add biomass-related components to the PyPSA network.
@@ -4427,8 +4414,6 @@ def add_biomass(
         Required if biomass_transport or biomass_spatial options are True.
     nyears : float
         Number of years for which to scale the biomass potentials.
-    load_source : str (optional)
-        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -4907,7 +4892,7 @@ def add_biomass(
             lifetime=costs.at[key + " CC", "lifetime"],
         )
 
-    if options["biomass_boiler"] and load_source != "tyndp":
+    if options["biomass_boiler"]:
         # TODO: Add surcharge for pellets
         nodes = pop_layout.index
         for name in [
@@ -5118,7 +5103,6 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
-    load_source: str = "opsd",
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -5153,8 +5137,6 @@ def add_industry(
         Year for which investment costs should be considered
     HeatSystem : Enum
         Enumeration defining different heat system types
-    load_source : str (optional)
-        Source of the electrical load, default is "opsd"
 
     Returns
     -------
@@ -5398,8 +5380,7 @@ def add_industry(
 
     if options["oil_boilers"]:
         nodes = pop_layout.index
-        heat_systems = HeatSystem if load_source != "tyndp" else []
-        for heat_system in heat_systems:
+        for heat_system in HeatSystem:
             if not heat_system == HeatSystem.URBAN_CENTRAL:
                 n.add(
                     "Link",
@@ -5611,7 +5592,7 @@ def add_industry(
                 lifetime=costs.at["waste CHP CC", "lifetime"],
             )
 
-    if load_source != "tyndp":
+    if options["heating"]:
         # TODO simplify bus expression
         n.add(
             "Load",
@@ -5629,6 +5610,7 @@ def add_industry(
             p_set=industrial_demand.loc[nodes, "low-temperature heat"] / nhours,
         )
 
+    if options["use_industry_load"]:
         # remove today's industrial electricity demand by scaling down total electricity demand
         for ct in n.buses.country.dropna().unique():
             # TODO map onto n.bus.country
@@ -7084,7 +7066,6 @@ if __name__ == "__main__":
             spatial=spatial,
             options=options,
             investment_year=investment_year,
-            load_source=snakemake.params.load_source,
         )
 
     if options["biomass"]:
@@ -7098,7 +7079,6 @@ if __name__ == "__main__":
             biomass_potentials_file=snakemake.input.biomass_potentials,
             biomass_transport_costs_file=snakemake.input.biomass_transport_costs,
             nyears=nyears,
-            load_source=snakemake.params.load_source,
         )
 
     if options["ammonia"]:
@@ -7118,7 +7098,6 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
-            load_source=snakemake.params.load_source,
         )
 
     if options["shipping"]:
@@ -7227,14 +7206,6 @@ if __name__ == "__main__":
             options,
             pop_layout,
             snakemake.input.solar_rooftop_potentials,
-            snakemake.params.load_source,
-        )
-    elif (
-        not options["electricity_distribution_grid"]
-        and snakemake.params.load_source == "tyndp"
-    ):
-        logger.warning(
-            "Distribution network should always be used when using TYNDP electric load."
         )
 
     if options["enhanced_geothermal"].get("enable", False):

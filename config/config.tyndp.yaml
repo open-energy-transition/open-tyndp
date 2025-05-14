@@ -78,9 +78,10 @@ pypsa_eur:
 
 sector:
   transport: false
-  heating: true
+  heating: false
   biomass: true
   industry: true
+  use_industry_load: false
   shipping: false
   aviation: false
   agriculture: false
@@ -110,11 +111,11 @@ sector:
     2040: 0
     2045: 0
     2050: 0
+  oil_boilers: false
+  biomass_boiler: false
   h2_topology_tyndp:
     enable: true
-    tyndp_scenario:
-      scenario: DE  # NT, DE or GA
-      year: 2030  # 2030, 2035, 2040, 2045 or 2050 (only for DE or GA)
+    tyndp_scenario: DE  # NT, DE or GA
   ATR: false
   hydrogen_fuel_cell: false
   hydrogen_turbine: true

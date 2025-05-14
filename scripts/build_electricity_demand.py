@@ -66,11 +66,11 @@ def load_timeseries(*args, **kwargs):
     ----------
     fn : str
         File name or url location (file format .csv)
-    years : None or slice()
-        Years for which to read load data (defaults to slice("2018","2019"))
+    years : slice(pandas.DatetimeIndex)
+        Years for which to read load data
     countries : listlike
         Countries for which to read load data.
-    planning_horizons : int (optional)
+    planning_horizons : int, optional
         Planning horizons for which to read load data (only for TYNDP demand data).
 
     Returns
@@ -269,10 +269,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "build_electricity_demand",
-            planning_horizons=2030,
-        )
+        snakemake = mock_snakemake("build_electricity_demand")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -320,23 +317,20 @@ if __name__ == "__main__":
         if "MD" in countries:
             load["MD"] = 6.2e6 * (load_ua / load_ua.sum())
 
-    if (
-        snakemake.params.load["manual_adjustments"]
-        and snakemake.params.load["source"] == "opsd"
-    ):
-        load = manual_adjustment(load, snakemake.input[0], countries)
+    if snakemake.params.load["source"] == "opsd":
+        if snakemake.params.load["manual_adjustments"]:
+            load = manual_adjustment(load, snakemake.input[0], countries)
 
-    if (
-        snakemake.params.load["fill_gaps"]["enable"]
-        and snakemake.params.load["source"] == "opsd"
-    ):
-        logger.info(f"Linearly interpolate gaps of size {interpolate_limit} and less.")
-        load = load.interpolate(method="linear", limit=interpolate_limit)
+        if snakemake.params.load["fill_gaps"]["enable"]:
+            logger.info(
+                f"Linearly interpolate gaps of size {interpolate_limit} and less."
+            )
+            load = load.interpolate(method="linear", limit=interpolate_limit)
 
-        logger.info(
-            f"Filling larger gaps by copying time-slices of period '{time_shift}'."
-        )
-        load = load.apply(fill_large_gaps, shift=time_shift)
+            logger.info(
+                f"Filling larger gaps by copying time-slices of period '{time_shift}'."
+            )
+            load = load.apply(fill_large_gaps, shift=time_shift)
 
     if snakemake.params.load["supplement_synthetic"]:
         logger.info("Supplement missing data with synthetic data.")
