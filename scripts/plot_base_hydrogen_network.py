@@ -94,15 +94,16 @@ def plot_h2_map_base(network, map_opts):
         **map_opts,
     )
 
-    n.plot(
-        geomap=True,
-        bus_sizes=0,
-        link_colors=color_h2_imports,
-        link_widths=link_widths_imports,
-        branch_components=["Link"],
-        ax=ax,
-        **map_opts,
-    )
+    if not h2_imports.empty:
+        n.plot(
+            geomap=True,
+            bus_sizes=0,
+            link_colors=color_h2_imports,
+            link_widths=link_widths_imports,
+            branch_components=["Link"],
+            ax=ax,
+            **map_opts,
+        )
 
     sizes = [30, 10]
     labels = [f"{s} GW" for s in sizes]
@@ -143,8 +144,10 @@ def plot_h2_map_base(network, map_opts):
         legend_kw=legend_kw,
     )
 
-    colors = [color_h2_pipe, color_h2_imports]
-    labels = ["H2 Pipeline", "H2 import"]
+    colors = (
+        [color_h2_pipe, color_h2_imports] if not h2_imports.empty else [color_h2_pipe]
+    )
+    labels = ["H2 Pipeline", "H2 import"] if not h2_imports.empty else ["H2 Pipeline"]
 
     legend_kw = dict(
         loc="upper left",
