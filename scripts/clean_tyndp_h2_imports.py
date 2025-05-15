@@ -59,7 +59,7 @@ def match_centroids(df, countries_centroids):
 
 def load_import_data(fn, countries_centroids):
     """
-    Load and clean H2 import potentials and marginal cost for pipeline and shipping
+    Load and clean TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost for pipeline and shipping
     Returns the cleaned data as dataframe.
 
     Parameters

@@ -6789,7 +6789,7 @@ def add_import_options(
     gas_input_nodes : pd.DataFrame
         Locations of gas input nodes split by LNG and pipeline.
     h2_imports_tyndp_fn: str,
-        Path to file containing H2 import potentials and marginal cost from TYNDP input data
+        Path to file containing H2 import potentials, maximum capacity, offer quantity and marginal cost from TYNDP input data
     """
 
     import_config = options["imports"]
