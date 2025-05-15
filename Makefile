@@ -112,5 +112,5 @@ reset:
 	) || echo "Reset cancelled."
 
 tyndp:
-	snakemake --configfile config/config.tyndp.yaml --rerun-incomplete $(args)
-	snakemake rulegraph filegraph --configfile config/config.tyndp.yaml
+	snakemake -call --configfile config/config.tyndp.yaml --rerun-incomplete $(args)
+	snakemake -call rulegraph filegraph --configfile config/config.tyndp.yaml
