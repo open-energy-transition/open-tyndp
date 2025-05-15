@@ -73,9 +73,7 @@ def load_import_data(fn, countries_centroids):
         The function returns cleaned TYNDP H2 import potentials and marginal cost.
     """
 
-    imports = pd.read_excel(fn)
-
-    rename_dict = {
+    column_dict = {
         "YEAR": "Year",
         "SCENARIO": "Scenario",
         "CORRIDOR": "Corridor",
@@ -87,13 +85,14 @@ def load_import_data(fn, countries_centroids):
         "MAX ENERGY YEAR [GWh]": "e_sum_max",
     }
 
-    scenario_dict = {
+    replace_dict = {
         "Distributed Energy": "DE",
         "Global Ambition": "GA",
         "National Trends": "NT",
+        "Lh2": "LH2",
     }
 
-    imports = imports.rename(columns=rename_dict).replace(scenario_dict)
+    imports = pd.read_excel(fn).rename(columns=column_dict).replace(replace_dict)
     imports.loc[:, "e_sum_max"] *= 1e3  # convert from GWh to MWh
     imports.loc[:, "Band"] = (
         imports.Corridor.str.split("-", expand=True).iloc[:, -1].str.lower()
