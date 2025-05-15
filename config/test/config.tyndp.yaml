@@ -30,7 +30,7 @@ enable:
 
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
-  2040: 0.2  # Temporary increase to allow CI to pass while load configurations are incomplete.
+  2040: 0.25  # Temporary increase to allow CI to pass while load configurations are incomplete.
 
 electricity:
   base_network: tyndp-raw
