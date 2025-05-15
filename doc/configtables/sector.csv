@@ -206,7 +206,8 @@ solid_biomass_import,,,
 -- upstream_emissions_factor,p.u.,float,Upstream emissions of solid biomass imports
 imports,,,
 -- enable,--,"{true, false}",Add option to include renewable energy imports
--- carriers,--,list,Select the carriers for which import option is to be added. Listed carriers also need to be listed in the price list below
+-- carriers,--,list,Select the carriers for which import option is to be added. Carriers listed must also be in the price list below.
+
 -- limit,TWh,float,Maximum allowed renewable energy imports
 -- limit_sense,--,"{==, <=, >=}",Sense of the limit
 -- price,,"{H2, NH3, methanol, gas, oil}",

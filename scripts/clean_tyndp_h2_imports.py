@@ -36,7 +36,8 @@ def match_centroids(df, countries_centroids):
         The function returns the input Dataframe df with matched coordinates inside new columns bus0_x and bus0_y
     """
     import_nodes = df.bus0.unique()
-    # match coordinates
+
+        # Match coordinates
     coordinates = (
         countries_centroids.query("ISO in @import_nodes or ISO=='FO'")
         .replace(
@@ -97,7 +98,8 @@ def load_import_data(fn, countries_centroids):
     imports.loc[:, "Band"] = (
         imports.Corridor.str.split("-", expand=True).iloc[:, -1].str.lower()
     )
-    # match countries centroids for defining coordinates of import nodes
+    
+    # Match countries centroids for defining coordinates of import nodes
     imports = match_centroids(imports, countries_centroids)
     imports.index = (
         imports.apply(make_index, axis=1, args=("H2 import",)) + " - " + imports.Band
@@ -115,8 +117,9 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # load countries centroids for defining coordinates of import nodes later on
+    # Load countries centroids for defining coordinates of import nodes later on
     countries_centroids = gpd.read_file(snakemake.input.countries_centroids)
+    
     # Load and prep import potentials
     import_potentials = load_import_data(
         snakemake.input.import_potentials_raw, countries_centroids

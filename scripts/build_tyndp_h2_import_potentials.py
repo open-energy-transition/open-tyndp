@@ -29,7 +29,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # parameters
+    # Parameters
     scenario = snakemake.params.tyndp_scenario
     year = int(snakemake.wildcards.planning_horizons)
 

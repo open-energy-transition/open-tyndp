@@ -168,7 +168,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "plot_base_hydrogen_network",
             opts="",
-            clusters="all",
+            clusters="100",
             sector_opts="",
             planning_horizons=2030,
         )
