@@ -104,7 +104,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    scenario = snakemake.params.get("scenario", "DE")
+    scenario = snakemake.params["scenario"]
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
     planning_horizons = snakemake.params["planning_horizons"]
 
