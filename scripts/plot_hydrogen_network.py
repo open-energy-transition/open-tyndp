@@ -10,6 +10,7 @@ import logging
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pypsa
 from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
@@ -45,7 +46,7 @@ def group_pipes(df, drop_direction=False):
 
 
 @retry
-def plot_h2_map(n, regions):
+def plot_h2_map(n, regions, map_fn):
     # if "H2 pipeline" not in n.links.carrier.unique():
     #     return
 
@@ -254,7 +255,7 @@ def plot_h2_map(n, regions):
 
     ax.set_facecolor("white")
 
-    fig.savefig(snakemake.output.map, bbox_inches="tight")
+    fig.savefig(map_fn, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -282,5 +283,13 @@ if __name__ == "__main__":
         map_opts["boundaries"] = regions.total_bounds[[0, 2, 1, 3]] + [-1, 1, -1, 1]
 
     proj = load_projection(snakemake.params.plotting)
+    map_fn = snakemake.output.map
 
-    plot_h2_map(n, regions)
+    if snakemake.params.tyndp_topology:
+        from plot_base_hydrogen_network import plot_h2_map_base
+
+        if n.buses.country.isin(["MA", "DZ"]).any():
+            map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
+        plot_h2_map_base(n, map_opts, map_fn)
+    else:
+        plot_h2_map(n, regions, map_fn)

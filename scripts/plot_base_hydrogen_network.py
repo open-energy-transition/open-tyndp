@@ -32,7 +32,7 @@ def group_import_corridors(df):
     return df.groupby(level=0).agg({"p_nom": "sum", "index_orig": "first"})
 
 
-def plot_h2_map_base(network, map_opts):
+def plot_h2_map_base(network, map_opts, map_fn):
     """
     Plots the base hydrogen network pipelines capacities, hydrogen buses and import potentials.
     """
@@ -160,7 +160,7 @@ def plot_h2_map_base(network, map_opts):
 
     ax.set_facecolor("white")
 
-    plt.savefig(snakemake.output.map, bbox_inches="tight")
+    plt.savefig(map_fn, bbox_inches="tight")
     plt.close()
 
 
@@ -190,5 +190,6 @@ if __name__ == "__main__":
     if n.buses.country.isin(["MA", "DZ"]).any():
         map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
     proj = load_projection(snakemake.params.plotting)
+    map_fn = snakemake.output.map
 
-    plot_h2_map_base(n, map_opts)
+    plot_h2_map_base(n, map_opts, map_fn)
