@@ -92,8 +92,16 @@ def load_import_data(fn, countries_centroids):
         "Lh2": "LH2",
     }
 
+    # Read data, rename and convert to MWh
     imports = pd.read_excel(fn).rename(columns=column_dict).replace(replace_dict)
     imports.loc[:, "e_sum_max"] *= 1e3  # convert from GWh to MWh
+
+    # Convert marginal_cost to numeric, replacing non-numeric values with NaN, then fill NaN with 0.0
+    imports.loc[:, "marginal_cost"] = pd.to_numeric(
+        imports.marginal_cost, errors="coerce"
+    ).fillna(0.0)
+
+    # Extract Band information into new column
     imports.loc[:, "Band"] = (
         imports.Corridor.str.split("-", expand=True).iloc[:, -1].str.lower()
     )
