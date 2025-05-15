@@ -1089,6 +1089,10 @@ def load_cutout(
     return cutout
 
 
+def make_index(c, carrier):
+    return carrier + " " + c.bus0 + " -> " + c.bus1
+
+
 def extract_grid_data_tyndp(
     links, carrier="Transmission line", replace_dict: dict = {}
 ):
@@ -1135,7 +1139,3 @@ def extract_grid_data_tyndp(
     h2_grid.index = h2_grid.apply(make_index, axis=1, args=(carrier,))
 
     return h2_grid
-
-
-def make_index(c, carrier):
-    return carrier + " " + c.bus0 + " -> " + c.bus1
