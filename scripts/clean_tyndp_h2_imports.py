@@ -14,6 +14,7 @@ from _helpers import (
     make_index,
     set_scenario_config,
 )
+from shapely.geometry import Point
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 def match_centroids(df, countries_centroids):
     """
     Matches coordinates of country centroids to bus0 countries.
-    Manually matches Faroe Island ("FO") coordinates to Ammonia import node.
+    Manually matches coordinates next to Faroe Island ("FO") to Ammonia import node.
 
     Parameters
     ----------
@@ -39,15 +40,22 @@ def match_centroids(df, countries_centroids):
 
     # Match coordinates
     coordinates = (
-        countries_centroids.query("ISO in @import_nodes or ISO=='FO'")
-        .replace(
+        countries_centroids.replace(
             {"FO": "Ammonia"}
-        )  # manually match coordinates of Faroe Islands with Ammonia imports
+        )  # manually match coordinates next to Faroe Islands with Ammonia imports
+        .query("ISO in @import_nodes")
         .set_index("ISO")
         .geometry
     )
+    if "Ammonia" in import_nodes:
+        # manually match coordinates next to Faroe Islands with Ammonia imports
+        coordinates.loc["Ammonia"] = Point(
+            coordinates.loc["Ammonia"].x - 1, coordinates.loc["Ammonia"].y + 1
+        )
     if not coordinates.empty:
-        logger.info(f"Found coordinates for import nodes {coordinates.index.values}")
+        logger.info(
+            f"Found coordinates for import nodes '{', '.join(coordinates.index.values)}'"
+        )
     else:
         logger.warning(
             f"Can't match centroid coordinates to as none of the import nodes '{', '.join(import_nodes)}' are an ISO country."
