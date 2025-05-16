@@ -6911,7 +6911,7 @@ def add_import_options(
                 suffix=" H2 import",
                 bus=import_potentials_h2.Corridor.values + " H2 import",
                 carrier="import H2",
-                p_nom=import_potentials_h2.p_nom_generator.values,
+                p_nom=import_potentials_h2.p_nom.values,
                 marginal_cost=import_potentials_h2.marginal_cost.values,
                 e_sum_max=import_potentials_h2.e_sum_max.values,
             )
@@ -6921,7 +6921,7 @@ def add_import_options(
                 bus0=import_potentials_h2.Corridor.values + " H2 import",
                 bus1=import_potentials_h2.bus1.values + " H2 Z2",
                 p_nom_extendable=False,
-                p_nom=import_potentials_h2.p_nom_link.values,
+                p_nom=import_potentials_h2.p_nom.values,
                 bidirectional=False,
                 carrier="H2 import " + import_potentials_h2.Type.values,
             )

@@ -87,8 +87,8 @@ def load_import_data(fn, countries_centroids):
         "CORRIDOR": "Corridor",
         "NODE FROM": "bus0",
         "NODE TO": "bus1",
-        "MAX CAPACITY [MW]": "p_nom_link",
-        "OFFER QUANTITY [MW]": "p_nom_generator",
+        "MAX CAPACITY [MW]": "p_nom",
+        "OFFER QUANTITY [MW]": "offer_quantity",
         "OFFER PRICE [€/MWh]": "marginal_cost",
         "MAX ENERGY YEAR [GWh]": "e_sum_max",
     }
