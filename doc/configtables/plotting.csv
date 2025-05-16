@@ -30,6 +30,7 @@ heatmap_timeseries,,,Plotting configuration for :mod:`plot_heatmap_timeseries`.
 -- soc,--,list,Subset of carriers to plot state of charge heatmap time series for.
 balance_map,,,
 -- bus_carriers,--,[str],List of carriers to plot.
+-- imports_as_flows,"{True,False}",bool,Whether to plot imports as flows (default plots imports in energy balance).
 -- {bus_carrier},,,
 -- -- unit,--,str,Unit of the energy carrier like TWh for electricity with conversion factor of a million.
 -- -- unit_conversion,--,float,Conversion factor for the energy carrier unit.

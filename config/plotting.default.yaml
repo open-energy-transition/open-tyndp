@@ -98,6 +98,7 @@ plotting:
     - oil
     - urban central water tanks
   balance_map:
+    imports_as_flows: false
     bus_carriers:
     - AC
     - H2

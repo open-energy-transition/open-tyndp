@@ -6897,7 +6897,7 @@ def add_import_options(
                 "Bus",
                 import_potentials_h2.Corridor,
                 suffix=" H2 import",
-                location=import_potentials_h2.bus0.values,
+                location=import_potentials_h2.Corridor.values + " H2 import",
                 x=import_potentials_h2.bus0_x.values,
                 y=import_potentials_h2.bus0_y.values,
                 country=import_potentials_h2.bus0.replace({"Ammonia": ""}).values,

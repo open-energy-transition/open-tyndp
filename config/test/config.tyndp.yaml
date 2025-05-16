@@ -161,6 +161,7 @@ solving:
 
 plotting:
   balance_map:
+    imports_as_flows: true
     bus_carriers:
     - AC
     - H2
@@ -168,3 +169,7 @@ plotting:
     - oil
     - methanol
     - co2 stored
+    H2:
+      bus_factor: 0.005
+      branch_factor: 0.04
+      flow_factor: 25
