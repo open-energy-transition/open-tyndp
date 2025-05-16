@@ -29,12 +29,15 @@ def group_import_corridors(df):
     # there are pipes for each investment period rename to AC buses name for plotting
     df["index_orig"] = df.index
     df.rename(index=lambda x: x.split(" - ")[0], inplace=True)
-    return df.groupby(level=0).agg({"p_nom": "sum", "index_orig": "first"})
+    return df.groupby(level=0).agg(
+        {"p_nom": "sum", "p_nom_opt": "sum", "index_orig": "first"}
+    )
 
 
-def plot_h2_map_base(network, map_opts, map_fn):
+def plot_h2_map_base(network, map_opts, map_fn, expanded=False):
     """
     Plots the base hydrogen network pipelines capacities, hydrogen buses and import potentials.
+    If expanded is enabled, the optimal capacities are plotted instead.
     """
     n = network.copy()
 
@@ -50,12 +53,13 @@ def plot_h2_map_base(network, map_opts, map_fn):
         inplace=True,
     )
 
+    p_nom = "p_nom_opt" if expanded else "p_nom"
     # capacity of pipes and imports
-    h2_pipes = n.links[n.links.carrier == "H2 pipeline"].p_nom
+    h2_pipes = n.links[n.links.carrier == "H2 pipeline"][p_nom]
     h2_imports = n.links[n.links.carrier.str.contains("H2 import")]
 
     # group high and low import corridors together
-    h2_imports = group_import_corridors(h2_imports).p_nom
+    h2_imports = group_import_corridors(h2_imports)[p_nom]
     n.links.rename(index=lambda x: x.split(" - ")[0], inplace=True)
     # group links by summing up p_nom values and taking the first value of the rest of the columns
     other_cols = dict.fromkeys(n.links.columns.drop(["p_nom_opt", "p_nom"]), "first")
