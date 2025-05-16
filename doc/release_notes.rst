@@ -23,6 +23,8 @@ Release Notes
 
 **Changes**
 
+* Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
+
 * Introduce a new base network using TYNDP 2024 data (https://github.com/open-energy-transition/open-tyndp/pull/18/).
 
 * Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies
