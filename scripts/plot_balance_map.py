@@ -7,6 +7,7 @@ Create energy balance maps for the defined carriers.
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pypsa
 from packaging.version import Version, parse
@@ -40,13 +41,17 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
+    config = snakemake.params.plotting
+    carrier = snakemake.wildcards.carrier
+    imports_as_flows = config["balance_map"]["imports_as_flows"]
+
     n = pypsa.Network(snakemake.input.network)
+    if imports_as_flows:
+        n.buses.loc[:, "carrier"] = n.buses.carrier.str.replace("import ", "")
     sanitize_carriers(n, snakemake.config)
     n.statistics.set_parameters(round=3, drop_zero=True, nice_names=False)
 
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
-    config = snakemake.params.plotting
-    carrier = snakemake.wildcards.carrier
 
     # fill empty colors or "" with light grey
     mask = n.carriers.color.isna() | n.carriers.color.eq("")
@@ -97,6 +102,12 @@ if __name__ == "__main__":
         .to_series()
         .map(n.carriers.color)
     )
+
+    buses_countries = n.buses.loc[
+        bus_sizes[bus_sizes > 1e-3].index.get_level_values("bus"), "country"
+    ]
+    if imports_as_flows and buses_countries.isin(["MA", "DZ"]).any():
+        boundaries = list(np.add(boundaries, [0, 0, -7, 0]))
 
     # line and links widths according to optimal capacity
     flow = n.statistics.transmission(groupby=False, bus_carrier=carrier).div(conversion)
@@ -201,12 +212,25 @@ if __name__ == "__main__":
 
     pad = 0.18
     n.carriers.loc["", "color"] = "None"
-    supp_carriers = bus_sizes[bus_sizes > 0].index.unique("carrier").sort_values()
-    cons_carriers = (
-        bus_sizes[bus_sizes < 0]
-        .index.unique("carrier")
-        .difference(supp_carriers)
-        .sort_values()
+
+    # Get lists for supply and consumption carriers
+    pos_carriers = bus_sizes[bus_sizes > 0].index.unique("carrier")
+    neg_carriers = bus_sizes[bus_sizes < 0].index.unique("carrier")
+
+    # Determine larger total absolute value for supply and consumption for a carrier if carrier exists as both supply and consumption
+    common_carriers = pos_carriers.intersection(neg_carriers)
+
+    def get_total_abs(carrier, sign):
+        values = bus_sizes.loc[:, carrier]
+        return values[values * sign > 0].abs().sum()
+
+    supp_carriers = sorted(
+        set(pos_carriers) - set(common_carriers)
+        | {c for c in common_carriers if get_total_abs(c, 1) >= get_total_abs(c, -1)}
+    )
+    cons_carriers = sorted(
+        set(neg_carriers) - set(common_carriers)
+        | {c for c in common_carriers if get_total_abs(c, 1) < get_total_abs(c, -1)}
     )
 
     # Add supply carriers

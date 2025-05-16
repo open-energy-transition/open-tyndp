@@ -98,6 +98,7 @@ plotting:
     - oil
     - urban central water tanks
   balance_map:
+    imports_as_flows: false
     bus_carriers:
     - AC
     - H2
@@ -487,6 +488,8 @@ plotting:
     land transport fuel cell: '#6b3161'
     H2 pipeline: '#f081dc'
     H2 pipeline retrofitted: '#ba99b5'
+    H2 import LH2: "#F28C28"
+    H2 import Pipeline: "#FFA500"
     H2 Fuel Cell: '#c251ae'
     H2 fuel cell: '#c251ae'
     H2 turbine: '#991f83'

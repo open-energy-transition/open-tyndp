@@ -178,11 +178,21 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
             buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
             h2_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
             electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
+            h2_imports="data/tyndp_2024_bundle/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
         script:
             "../scripts/retrieve_tyndp_bundle.py"
+
+    rule retrieve_countries_centroids:
+        output:
+            "data/countries_centroids.geojson",
+        log:
+            "logs/retrieve_countries_centroids.log",
+        retries: 2
+        shell:
+            "wget -O {output} https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson"
 
 
 if config["enable"]["retrieve"] and config["enable"].get("retrieve_cost_data", True):

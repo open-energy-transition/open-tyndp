@@ -6783,6 +6783,7 @@ def add_import_options(
     costs: pd.DataFrame,
     options: dict,
     gas_input_nodes: pd.DataFrame,
+    h2_imports_tyndp_fn: str,
 ):
     """
     Add green energy import options.
@@ -6795,13 +6796,15 @@ def add_import_options(
         Options from snakemake.params["sector"].
     gas_input_nodes : pd.DataFrame
         Locations of gas input nodes split by LNG and pipeline.
+    h2_imports_tyndp_fn: str,
+        Path to file containing H2 import potentials, maximum capacity, offer quantity and marginal cost from TYNDP input data
     """
 
     import_config = options["imports"]
     import_options = import_config["price"]
-    logger.info(f"Adding import options:\n{pd.Series(import_options)}")
+    logger.info(f"Adding import options:\n{pd.Series(import_config['carriers'])}")
 
-    if "methanol" in import_options:
+    if "methanol" in import_config["carriers"]:
         co2_intensity = costs.at["methanolisation", "carbondioxide-input"]
 
         n.add(
@@ -6816,7 +6819,7 @@ def add_import_options(
             p_nom=1e7,
         )
 
-    if "oil" in import_options:
+    if "oil" in import_config["carriers"]:
         co2_intensity = costs.at["oil", "CO2 intensity"]
 
         n.add(
@@ -6831,7 +6834,7 @@ def add_import_options(
             p_nom=1e7,
         )
 
-    if "gas" in import_options:
+    if "gas" in import_config["carriers"]:
         co2_intensity = costs.at["gas", "CO2 intensity"]
 
         p_nom = gas_input_nodes["lng"].dropna()
@@ -6854,7 +6857,7 @@ def add_import_options(
             p_nom=p_nom / co2_intensity,
         )
 
-    if "NH3" in import_options:
+    if "NH3" in import_config["carriers"]:
         if options["ammonia"]:
             n.add(
                 "Generator",
@@ -6871,19 +6874,70 @@ def add_import_options(
                 "Skipping specified ammonia imports because ammonia carrier is not present."
             )
 
-    if "H2" in import_options:
-        p_nom = gas_input_nodes["pipeline"].dropna()
-        p_nom.rename(lambda x: x + " H2", inplace=True)
+    if "H2" in import_config["carriers"]:
+        if options["h2_topology_tyndp"]["enable"]:
+            logger.info("Adding TYNDP H2 import.")
 
-        n.add(
-            "Generator",
-            p_nom.index,
-            suffix=" import",
-            bus=p_nom.index,
-            carrier="import H2",
-            p_nom=p_nom,
-            marginal_cost=import_options["H2"],
-        )
+            import_potentials_h2 = pd.read_csv(h2_imports_tyndp_fn, index_col=0)
+
+            # change coordinates of import buses with existing H2 buses (e.g. NO)
+            h2_coords = (
+                n.buses.query("index.str.contains('H2')")
+                .groupby("country")
+                .first()[["x", "y"]]
+                .rename(columns={"x": "bus0_x", "y": "bus0_y"})
+            )
+            temp_df = import_potentials_h2.set_index("bus0")
+            temp_df.update(h2_coords)
+            import_potentials_h2[["bus0_x", "bus0_y"]] = temp_df[
+                ["bus0_x", "bus0_y"]
+            ].values
+
+            n.add(
+                "Bus",
+                import_potentials_h2.Corridor,
+                suffix=" H2 import",
+                location=import_potentials_h2.Corridor.values + " H2 import",
+                x=import_potentials_h2.bus0_x.values,
+                y=import_potentials_h2.bus0_y.values,
+                country=import_potentials_h2.bus0.replace({"Ammonia": ""}).values,
+                carrier="import H2",
+                unit="MWh_th",
+            )
+
+            n.add(
+                "Generator",
+                import_potentials_h2.Corridor,
+                suffix=" H2 import",
+                bus=import_potentials_h2.Corridor.values + " H2 import",
+                carrier="import H2",
+                p_nom=import_potentials_h2.p_nom.values,
+                marginal_cost=import_potentials_h2.marginal_cost.values,
+                e_sum_max=import_potentials_h2.e_sum_max.values,
+            )
+            n.add(
+                "Link",
+                import_potentials_h2.index,
+                bus0=import_potentials_h2.Corridor.values + " H2 import",
+                bus1=import_potentials_h2.bus1.values + " H2 Z2",
+                p_nom_extendable=False,
+                p_nom=import_potentials_h2.p_nom.values,
+                bidirectional=False,
+                carrier="H2 import " + import_potentials_h2.Type.values,
+            )
+
+        else:
+            p_nom = gas_input_nodes["pipeline"].dropna()
+            p_nom.rename(lambda x: x + " H2", inplace=True)
+            n.add(
+                "Generator",
+                p_nom.index,
+                suffix=" import",
+                bus=p_nom.index,
+                carrier="import H2",
+                p_nom=p_nom,
+                marginal_cost=import_options["H2"],
+            )
 
 
 if __name__ == "__main__":
@@ -7221,7 +7275,13 @@ if __name__ == "__main__":
         )
 
     if options["imports"]["enable"]:
-        add_import_options(n, costs, options, gas_input_nodes)
+        add_import_options(
+            n=n,
+            costs=costs,
+            options=options,
+            gas_input_nodes=gas_input_nodes,
+            h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
+        )
 
     if options["gas_distribution_grid"]:
         insert_gas_distribution_costs(n, costs, options=options)
