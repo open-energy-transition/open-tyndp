@@ -20,24 +20,9 @@ from scripts._helpers import configure_logging, get_snapshots, set_scenario_conf
 logger = logging.getLogger(__name__)
 
 
-def load_timeseries(fn, years, countries):
+def load_timeseries_opsd(fn, years, countries, planning_horizons=None):
     """
     Read load data from OPSD time-series package version 2020-10-06.
-
-    Parameters
-    ----------
-    years : None or slice()
-        Years for which to read load data (defaults to
-        slice("2018","2019"))
-    fn : str
-        File name or url location (file format .csv)
-    countries : listlike
-        Countries for which to read load data.
-
-    Returns
-    -------
-    load : pd.DataFrame
-        Load time-series with UTC timestamps x ISO-2 countries
     """
     return (
         pd.read_csv(fn, index_col=0, parse_dates=[0], date_format="%Y-%m-%dT%H:%M:%SZ")
@@ -47,6 +32,58 @@ def load_timeseries(fn, years, countries):
         .filter(items=countries)
         .loc[years]
     )
+
+
+def load_timeseries_tyndp(fn, years, countries, planning_horizons=2030):
+    """
+    Read load data from TYNDP data.
+    """
+    planning_slice = slice(str(planning_horizons), str(planning_horizons))
+
+    demand = (
+        pd.read_csv(fn, index_col=0, parse_dates=[0], date_format="%Y-%m-%d %H:%M:%S")
+        .tz_localize(None)
+        .dropna(how="all", axis=0)
+        .loc[planning_slice]
+    )
+
+    # need to reindex load time series to snapshots year
+    cyear = years.start.year
+    if cyear != years.stop.year:
+        logger.warning(
+            "Snapshots covers more than one year, consider limiting your analysis to a single full year."
+        )
+    demand.index = demand.index.map(lambda t: t.replace(year=cyear))
+
+    return demand
+
+
+def load_timeseries(*args, **kwargs):
+    """
+    Read load data
+
+    Parameters
+    ----------
+    fn : str
+        File name or url location (file format .csv)
+    years : slice(pandas.DatetimeIndex)
+        Years for which to read load data
+    countries : listlike
+        Countries for which to read load data.
+    planning_horizons : int, optional
+        Planning horizons for which to read load data (only for TYNDP demand data).
+
+    Returns
+    -------
+    load : pd.DataFrame
+        Load time-series with UTC timestamps x ISO-2 countries
+    """
+    if snakemake.params.load["source"] == "tyndp":
+        return load_timeseries_tyndp(*args, **kwargs)
+    else:
+        if snakemake.params.load["source"] != "opsd":
+            logger.warning("Undefined load source, using the default OPSD as default.")
+        return load_timeseries_opsd(*args, **kwargs)
 
 
 def consecutive_nans(ds):
@@ -248,16 +285,26 @@ if __name__ == "__main__":
         else slice(snapshots[0], snapshots[-1])
     )
 
-    interpolate_limit = snakemake.params.load["interpolate_limit"]
+    interpolate_limit = snakemake.params.load["fill_gaps"]["interpolate_limit"]
     countries = snakemake.params.countries
 
-    time_shift = snakemake.params.load["time_shift_for_large_gaps"]
+    time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
-    load = load_timeseries(snakemake.input.reported, years, countries)
+    if snakemake.params.load["source"] == "tyndp":
+        planning_horizons = int(snakemake.wildcards.planning_horizons)
+    else:
+        planning_horizons = None
+
+    load = load_timeseries(
+        fn=snakemake.input.reported,
+        years=years,
+        countries=countries,
+        planning_horizons=planning_horizons,
+    )
 
     load = load.reindex(index=snapshots)
 
-    if "UA" in countries:
+    if "UA" in countries and snakemake.params.load["source"] == "opsd":
         # attach load of UA (best data only for entsoe transparency)
         load_ua = load_timeseries(snakemake.input.reported, "2018", ["UA"])
         snapshot_year = str(snapshots.year.unique().item())
@@ -270,14 +317,20 @@ if __name__ == "__main__":
         if "MD" in countries:
             load["MD"] = 6.2e6 * (load_ua / load_ua.sum())
 
-    if snakemake.params.load["manual_adjustments"]:
-        load = manual_adjustment(load, snakemake.input[0], countries)
+    if snakemake.params.load["source"] == "opsd":
+        if snakemake.params.load["manual_adjustments"]:
+            load = manual_adjustment(load, snakemake.input[0], countries)
 
-    logger.info(f"Linearly interpolate gaps of size {interpolate_limit} and less.")
-    load = load.interpolate(method="linear", limit=interpolate_limit)
+        if snakemake.params.load["fill_gaps"]["enable"]:
+            logger.info(
+                f"Linearly interpolate gaps of size {interpolate_limit} and less."
+            )
+            load = load.interpolate(method="linear", limit=interpolate_limit)
 
-    logger.info(f"Filling larger gaps by copying time-slices of period '{time_shift}'.")
-    load = load.apply(fill_large_gaps, shift=time_shift)
+            logger.info(
+                f"Filling larger gaps by copying time-slices of period '{time_shift}'."
+            )
+            load = load.apply(fill_large_gaps, shift=time_shift)
 
     if snakemake.params.load["supplement_synthetic"]:
         logger.info("Supplement missing data with synthetic data.")

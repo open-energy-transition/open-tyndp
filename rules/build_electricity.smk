@@ -3,6 +3,16 @@
 # SPDX-License-Identifier: MIT
 
 
+def input_elec_demand(w):
+    return {
+        "synthetic": (
+            ancient("data/load_synthetic_raw.csv")
+            if config_provider("load", "supplement_synthetic")(w)
+            else []
+        ),
+    }
+
+
 rule build_electricity_demand:
     params:
         snapshots=config_provider("snapshots"),
@@ -10,12 +20,8 @@ rule build_electricity_demand:
         countries=config_provider("countries"),
         load=config_provider("load"),
     input:
+        unpack(input_elec_demand),
         reported=ancient("data/electricity_demand_raw.csv"),
-        synthetic=lambda w: (
-            ancient("data/load_synthetic_raw.csv")
-            if config_provider("load", "supplement_synthetic")(w)
-            else []
-        ),
     output:
         resources("electricity_demand.csv"),
     log:
@@ -28,6 +34,18 @@ rule build_electricity_demand:
         "../envs/environment.yaml"
     script:
         "../scripts/build_electricity_demand.py"
+
+
+use rule build_electricity_demand as build_electricity_demand_tyndp with:
+    input:
+        unpack(input_elec_demand),
+        reported=resources("electricity_demand_raw_tyndp.csv"),
+    output:
+        resources("electricity_demand_{planning_horizons}.csv"),
+    log:
+        logs("build_electricity_demand_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_electricity_demand_{planning_horizons}")
 
 
 rule build_powerplants:
@@ -525,13 +543,20 @@ def input_class_regions(w):
     }
 
 
+def input_elec_demand_base(w):
+    return {
+        "base_network": resources("networks/base_s.nc"),
+        "regions": resources("regions_onshore_base_s.geojson"),
+        "nuts3": resources("nuts3_shapes.geojson"),
+    }
+
+
 rule build_electricity_demand_base:
     params:
         distribution_key=config_provider("load", "distribution_key"),
+        load_source=config_provider("load", "source"),
     input:
-        base_network=resources("networks/base_s.nc"),
-        regions=resources("regions_onshore_base_s.geojson"),
-        nuts3=resources("nuts3_shapes.geojson"),
+        unpack(input_elec_demand_base),
         load=resources("electricity_demand.csv"),
     output:
         resources("electricity_demand_base_s.nc"),
@@ -545,6 +570,18 @@ rule build_electricity_demand_base:
         "../envs/environment.yaml"
     script:
         "../scripts/build_electricity_demand_base.py"
+
+
+use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
+    input:
+        unpack(input_elec_demand_base),
+        load=resources("electricity_demand_{planning_horizons}.csv"),
+    output:
+        resources("electricity_demand_base_s_{planning_horizons}.nc"),
+    log:
+        logs("build_electricity_demand_base_s_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_electricity_demand_base_s_{planning_horizons}")
 
 
 rule build_hac_features:
@@ -631,6 +668,7 @@ rule cluster_network:
         max_hours=config_provider("electricity", "max_hours"),
         length_factor=config_provider("lines", "length_factor"),
         base=config_provider("electricity", "base_network"),
+        load_source=config_provider("load", "source"),
     input:
         unpack(input_custom_busmap),
         network=resources("networks/base_s.nc"),
@@ -643,7 +681,11 @@ rule cluster_network:
             == "hac"
             else []
         ),
-        load=resources("electricity_demand_base_s.nc"),
+        load=lambda w: (
+            resources("electricity_demand_base_s.nc")
+            if config_provider("load", "source")(w) != "tyndp"
+            else []
+        ),
     output:
         network=resources("networks/base_s_{clusters}.nc"),
         regions_onshore=resources("regions_onshore_base_s_{clusters}.geojson"),
@@ -706,6 +748,7 @@ rule add_electricity:
         ),
         aggregation_strategies=config_provider("clustering", "aggregation_strategies"),
         exclude_carriers=config_provider("clustering", "exclude_carriers"),
+        load_source=config_provider("load", "source"),
     input:
         unpack(input_profile_tech),
         unpack(input_class_regions),
@@ -723,8 +766,12 @@ rule add_electricity:
             if config_provider("conventional", "dynamic_fuel_price")(w)
             else []
         ),
-        load=resources("electricity_demand_base_s.nc"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
+        load=lambda w: (
+            resources("electricity_demand_base_s.nc")
+            if config_provider("load", "source")(w) != "tyndp"
+            else []
+        ),
     output:
         resources("networks/base_s_{clusters}_elec.nc"),
     log:
@@ -899,3 +946,27 @@ if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
             "../envs/environment.yaml"
         script:
             "../scripts/build_tyndp_network.py"
+
+
+if lambda w: config_provider("load", "source")(w) == "tyndp":
+
+    rule clean_tyndp_demand:
+        params:
+            planning_horizons=config_provider("scenario", "planning_horizons"),
+            snapshots=config_provider("snapshots"),
+            scenario=config_provider("load", "tyndp_scenario"),
+        input:
+            electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
+        output:
+            electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
+        log:
+            logs("clean_tyndp_demand.log"),
+        benchmark:
+            benchmarks("clean_tyndp_demand")
+        threads: 4
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/clean_tyndp_demand.py"

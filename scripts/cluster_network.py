@@ -471,13 +471,6 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
     buses_prev, lines_prev, links_prev = len(n.buses), len(n.lines), len(n.links)
 
-    load = (
-        xr.open_dataarray(snakemake.input.load)
-        .mean(dim="time")
-        .to_pandas()
-        .reindex(n.buses.index, fill_value=0.0)
-    )
-
     if snakemake.wildcards.clusters == "all":
         n_clusters = len(n.buses)
     elif mode == "administrative":
@@ -487,7 +480,7 @@ if __name__ == "__main__":
 
     if params.base == "tyndp-raw":
         # Fast-path if TYNDP base network is used
-        logging.info("Skipping clustering: not applicable for TYNDP base network")
+        logger.info("Skipping clustering: not applicable for TYNDP base network")
 
         busmap = n.buses.index.to_series()
         linemap = n.lines.index.to_series()
@@ -521,6 +514,18 @@ if __name__ == "__main__":
             logger.info(f"Imported custom busmap from {snakemake.input.custom_busmap}")
             busmap = custom_busmap
         else:
+            if snakemake.params.load_source == "tyndp":
+                raise ValueError(
+                    "Unable to perform clustering: TYNDP load data varies with the planning horizon."
+                )
+
+            load = (
+                xr.open_dataarray(snakemake.input.load)
+                .mean(dim="time")
+                .to_pandas()
+                .reindex(n.buses.index, fill_value=0.0)
+            )
+
             algorithm = params.cluster_network["algorithm"]
             features = None
             if algorithm == "hac":

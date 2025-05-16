@@ -29,6 +29,7 @@ from scripts._helpers import (
     update_config_from_wildcards,
 )
 from scripts.add_electricity import (
+    attach_load,
     calculate_annuity,
     flatten,
     load_costs,
@@ -1619,7 +1620,8 @@ def insert_electricity_distribution_grid(
     - Resistive heaters
     - Micro-CHP units
     """
-    nodes = pop_layout.index
+
+    nodes = n.buses.query("carrier == 'AC' and not index.str.contains('DRES')").index
 
     n.add(
         "Bus",
@@ -1648,7 +1650,9 @@ def insert_electricity_distribution_grid(
         efficiency := options["transmission_efficiency"]
         .get("electricity distribution grid", {})
         .get("efficiency_static")
-    ):
+    ) and "electricity distribution grid" in options["transmission_efficiency"][
+        "enable"
+    ]:
         logger.info(
             f"Deducting distribution losses from electricity demand: {np.around(100 * (1 - efficiency), decimals=2)}%"
         )
@@ -3507,7 +3511,10 @@ def add_land_transport(
 
 
 def build_heat_demand(
-    n, hourly_heat_demand_file, pop_weighted_energy_totals, heating_efficiencies
+    n,
+    hourly_heat_demand_file,
+    pop_weighted_energy_totals,
+    heating_efficiencies,
 ):
     """
     Build heat demand time series and adjust electricity load to account for electric heating.
@@ -5373,7 +5380,6 @@ def add_industry(
 
     if options["oil_boilers"]:
         nodes = pop_layout.index
-
         for heat_system in HeatSystem:
             if not heat_system == HeatSystem.URBAN_CENTRAL:
                 n.add(
@@ -5586,47 +5592,49 @@ def add_industry(
                 lifetime=costs.at["waste CHP CC", "lifetime"],
             )
 
-    # TODO simplify bus expression
-    n.add(
-        "Load",
-        nodes,
-        suffix=" low-temperature heat for industry",
-        bus=[
-            (
-                node + " urban central heat"
-                if node + " urban central heat" in n.buses.index
-                else node + " services urban decentral heat"
-            )
-            for node in nodes
-        ],
-        carrier="low-temperature heat for industry",
-        p_set=industrial_demand.loc[nodes, "low-temperature heat"] / nhours,
-    )
-
-    # remove today's industrial electricity demand by scaling down total electricity demand
-    for ct in n.buses.country.dropna().unique():
-        # TODO map onto n.bus.country
-
-        loads_i = n.loads.index[
-            (n.loads.index.str[:2] == ct) & (n.loads.carrier == "electricity")
-        ]
-        if n.loads_t.p_set[loads_i].empty:
-            continue
-        factor = (
-            1
-            - industrial_demand.loc[loads_i, "current electricity"].sum()
-            / n.loads_t.p_set[loads_i].sum().sum()
+    if options["heating"]:
+        # TODO simplify bus expression
+        n.add(
+            "Load",
+            nodes,
+            suffix=" low-temperature heat for industry",
+            bus=[
+                (
+                    node + " urban central heat"
+                    if node + " urban central heat" in n.buses.index
+                    else node + " services urban decentral heat"
+                )
+                for node in nodes
+            ],
+            carrier="low-temperature heat for industry",
+            p_set=industrial_demand.loc[nodes, "low-temperature heat"] / nhours,
         )
-        n.loads_t.p_set[loads_i] *= factor
 
-    n.add(
-        "Load",
-        nodes,
-        suffix=" industry electricity",
-        bus=nodes,
-        carrier="industry electricity",
-        p_set=industrial_demand.loc[nodes, "electricity"] / nhours,
-    )
+    if options["use_industry_load"]:
+        # remove today's industrial electricity demand by scaling down total electricity demand
+        for ct in n.buses.country.dropna().unique():
+            # TODO map onto n.bus.country
+
+            loads_i = n.loads.index[
+                (n.loads.index.str[:2] == ct) & (n.loads.carrier == "electricity")
+            ]
+            if n.loads_t.p_set[loads_i].empty:
+                continue
+            factor = (
+                1
+                - industrial_demand.loc[loads_i, "current electricity"].sum()
+                / n.loads_t.p_set[loads_i].sum().sum()
+            )
+            n.loads_t.p_set[loads_i] *= factor
+
+        n.add(
+            "Load",
+            nodes,
+            suffix=" industry electricity",
+            bus=nodes,
+            carrier="industry electricity",
+            p_set=industrial_demand.loc[nodes, "electricity"] / nhours,
+        )
 
     n.add(
         "Bus",
@@ -6955,6 +6963,19 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
+    if snakemake.params.load_source == "tyndp":
+        logger.info(
+            f"Attaching electrical load from {snakemake.params.load_source} to the network"
+        )
+
+        attach_load(
+            n=n,
+            load_fn=snakemake.input.load,
+            busmap_fn=snakemake.input.busmap,
+            scaling=snakemake.params.scaling_factor,
+            overwrite=True,
+        )
+
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
     nhours = n.snapshot_weightings.generators.sum()
     nyears = nhours / 8760
@@ -7234,7 +7255,11 @@ if __name__ == "__main__":
 
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(
-            n, costs, options, pop_layout, snakemake.input.solar_rooftop_potentials
+            n,
+            costs,
+            options,
+            pop_layout,
+            snakemake.input.solar_rooftop_potentials,
         )
 
     if options["enhanced_geothermal"].get("enable", False):

@@ -6,7 +6,7 @@ run:
   prefix: "tyndp"
 
 # TODO set foresight
-foresight: overnight
+foresight: myopic
 
 scenario:
   clusters:
@@ -27,13 +27,13 @@ enable:
 
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
-  2020: 0.701
-  2025: 0.524
-  2030: 0.297
-  2035: 0.150
-  2040: 0.071
-  2045: 0.032
-  2050: 0.000
+  2020: 0.720 # average emissions of 2019 to 2021 relative to 1990, CO2 excl LULUCF, EEA data, European Environment Agency. (2023a). Annual European Union greenhouse gas inventory 1990–2021 and inventory report 2023 - CRF Table. https://unfccc.int/documents/627830
+  2025: 0.648 # With additional measures (WAM) projection, CO2 excl LULUCF, European Environment Agency. (2023e). Member States’ greenhouse gas (GHG) emission projections 2023. https://www.eea.europa.eu/en/datahub/datahubitem-view/4b8d94a4-aed7-4e67-a54c-0623a50f48e8
+  2030: 0.450 # 55% reduction by 2030 (Ff55)
+  2035: 0.250
+  2040: 0.100 # 90% by 2040
+  2045: 0.050
+  2050: 0.000 # climate-neutral by 2050
 
 electricity:
   base_network: tyndp-raw
@@ -49,6 +49,14 @@ transmission_projects:
     tyndp2020: false
     nep: false
     manual: false
+
+load:
+  source: tyndp # opsd, tyndp
+  fill_gaps:
+    enable: false
+  manual_adjustments: false
+  supplement_synthetic: false
+  tyndp_scenario: DE  # NT, DE or GA
 
 pypsa_eur:
   Bus:
@@ -70,9 +78,10 @@ pypsa_eur:
 
 sector:
   transport: false
-  heating: true
+  heating: false
   biomass: true
   industry: true
+  use_industry_load: false
   shipping: false
   aviation: false
   agriculture: false
@@ -102,6 +111,8 @@ sector:
     2040: 0
     2045: 0
     2050: 0
+  oil_boilers: false
+  biomass_boiler: false
   h2_topology_tyndp:
     enable: true
     tyndp_scenario: DE  # NT, DE or GA
@@ -111,7 +122,6 @@ sector:
   transmission_efficiency:
     enable:
     - gas pipeline
-    - electricity distribution grid
   imports:
     enable: true
     carriers:
@@ -123,3 +133,13 @@ clustering:
     level: 3
   temporal:
     resolution_sector: 6H
+
+plotting:
+  balance_map:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - methanol
+    - co2 stored

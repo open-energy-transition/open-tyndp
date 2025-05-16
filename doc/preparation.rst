@@ -56,11 +56,15 @@ Rule ``clean_osm_data``
 
 .. automodule:: clean_osm_data
 
-
 Rule ``build_osm_network``
 =============================
 
 .. automodule:: build_osm_network
+
+Rule ``build_tyndp_network``
+=============================
+
+.. automodule:: build_tyndp_network
 
 .. _base:
 
@@ -84,6 +88,11 @@ Rule ``add_transmission_projects_and_dlr``
 ===========================================
 
 .. automodule:: add_transmission_projects_and_dlr
+
+Rule ``build_bidding_zones``
+=============================
+
+.. automodule:: build_bidding_zones
 
 .. _shapes:
 

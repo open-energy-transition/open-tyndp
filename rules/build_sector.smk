@@ -1267,6 +1267,8 @@ rule prepare_sector_network:
         limited_heat_sources=config_provider(
             "sector", "district_heating", "limited_heat_sources"
         ),
+        load_source=config_provider("load", "source"),
+        scaling_factor=config_provider("load", "scaling_factor"),
     input:
         unpack(input_profile_offwind),
         unpack(input_heat_source_power),
@@ -1389,6 +1391,11 @@ rule prepare_sector_network:
         buses_h2=lambda w: (
             resources("tyndp-raw/build/geojson/buses_h2.geojson")
             if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            else []
+        ),
+        load=lambda w: (
+            resources("electricity_demand_base_s_{planning_horizons}.nc")
+            if config_provider("load", "source")(w) == "tyndp"
             else []
         ),
         h2_imports_tyndp=lambda w: (

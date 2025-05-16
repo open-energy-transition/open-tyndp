@@ -479,6 +479,7 @@ def add_heating_capacities_installed_before_baseyear(
     energy_totals_year: int,
     capacity_threshold: float,
     use_electricity_distribution_grid: bool,
+    load_source: str = "opsd",
 ) -> None:
     """
     Add heating capacities installed before base year.
@@ -511,6 +512,8 @@ def add_heating_capacities_installed_before_baseyear(
         Minimum capacity threshold
     use_electricity_distribution_grid : bool
         Whether to use electricity distribution grid
+    load_source : str, optional
+        Source of the electrical load, default is "opsd"
     """
     logger.debug(f"Adding heating capacities installed before {baseyear}")
 
@@ -522,7 +525,12 @@ def add_heating_capacities_installed_before_baseyear(
     ratios = []
     valid_grouping_years = []
 
-    for heat_system in existing_capacities.columns.get_level_values(0).unique():
+    heat_systems = (
+        existing_capacities.columns.get_level_values(0).unique()
+        if load_source != "tyndp"
+        else []
+    )
+    for heat_system in heat_systems:
         heat_system = HeatSystem(heat_system)
 
         nodes = pd.Index(
@@ -775,6 +783,7 @@ if __name__ == "__main__":
                 "threshold_capacity"
             ],
             use_electricity_distribution_grid=options["electricity_distribution_grid"],
+            load_source=snakemake.params["load_source"],
         )
 
     # Set defaults for missing missing values

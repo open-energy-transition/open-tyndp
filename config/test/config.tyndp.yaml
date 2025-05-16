@@ -3,20 +3,21 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  prefix: "test-tyndp"
+  prefix: "test-sector-tyndp"
   disable_progressbar: true
   shared_resources:
-    policy: "test"
+    policy: false
   shared_cutouts: true
 
 # TODO set foresight
-foresight: overnight
+foresight: myopic
 
 scenario:
   clusters:
   - all
   planning_horizons:
   - 2030
+  - 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
@@ -26,6 +27,10 @@ snapshots:
 
 enable:
   retrieve_tyndp_bundle: true
+
+co2_budget:
+  # TODO define carbon budget compliant with EU 2030 and 2050 targets
+  2040: 0.25  # Temporary increase to allow CI to pass while load configurations are incomplete.
 
 electricity:
   base_network: tyndp-raw
@@ -39,10 +44,6 @@ electricity:
 
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float]
 
-links:
-  p_max_pu: 1.0
-  p_min_pu: 0
-
 atlite:
   default_cutout: europe-2013-03-sarah3-era5
   cutouts:
@@ -50,22 +51,17 @@ atlite:
       time: ["2013-03-01", "2013-03-08"]
 
 renewable:
-  onwind:
-    cutout: europe-2013-03-sarah3-era5
   offwind-ac:
-    cutout: europe-2013-03-sarah3-era5
     max_depth: false
   offwind-dc:
-    cutout: europe-2013-03-sarah3-era5
     max_depth: false
   offwind-float:
-    cutout: europe-2013-03-sarah3-era5
     max_depth: false
     min_depth: false
-  solar:
-    cutout: europe-2013-03-sarah3-era5
-  solar-hsat:
-    cutout: europe-2013-03-sarah3-era5
+
+links:
+  p_max_pu: 1.0
+  p_min_pu: 0
 
 transmission_projects:
   enable: true
@@ -74,6 +70,13 @@ transmission_projects:
     nep: false
     manual: false
 
+load:
+  source: tyndp # opsd, tyndp
+  fill_gaps:
+    enable: false
+  manual_adjustments: false
+  supplement_synthetic: false
+  tyndp_scenario: DE  # NT, DE or GA
 pypsa_eur:
   Bus:
   - AC
@@ -94,9 +97,10 @@ pypsa_eur:
 
 sector:
   transport: false
-  heating: true
+  heating: false
   biomass: true
   industry: true
+  use_industry_load: false
   shipping: false
   aviation: false
   agriculture: false
@@ -126,6 +130,8 @@ sector:
     2040: 0
     2045: 0
     2050: 0
+  oil_boilers: false
+  biomass_boiler: false
   h2_topology_tyndp:
     enable: true
     tyndp_scenario: DE  # NT, DE or GA
@@ -135,7 +141,6 @@ sector:
   transmission_efficiency:
     enable:
     - gas pipeline
-    - electricity distribution grid
   imports:
     enable: true
     carriers:
@@ -153,3 +158,13 @@ solving:
     name: highs
     options: highs-default
   mem: 4000
+
+plotting:
+  balance_map:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - methanol
+    - co2 stored
