@@ -1201,9 +1201,9 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
         output:
             import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
         log:
-            logs("build_tyndp_h2_imports.log"),
+            logs("clean_tyndp_h2_imports.log"),
         benchmark:
-            benchmarks("build_tyndp_h2_imports")
+            benchmarks("clean_tyndp_h2_imports")
         threads: 1
         resources:
             mem_mb=4000,

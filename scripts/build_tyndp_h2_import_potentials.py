@@ -2,7 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Filters TYNDP H2 import potentials and marginal cost for a specific TYNDP scenario and a given year wildcard.
+Filters TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost for pipeline and shipping
+for a specific TYNDP scenario and a given year wildcard.
 The function saves a csv file with TYNDP H2 import potentials and marginal cost filtered for a specific TYNDP scenario
 and for a given year.
 """
