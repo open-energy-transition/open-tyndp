@@ -13,7 +13,7 @@ Release Notes
 
 **Changes**
 
-* Add TYNDP hydrogen import potential and corridors from outside of the modelled countries (https://github.com/open-energy-transition/open-tyndp/pull/36). Notably this includes pipelines and shipping imports from North Africa, Ukraine and Norway. Different import potentials are available for each of the planning years which are differentiated by wildcards.
+* Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries (https://github.com/open-energy-transition/open-tyndp/pull/36). Notably this includes pipelines and shipping imports from North Africa, Ukraine and Norway. Different import potentials are available for each of the planning years which are differentiated by wildcards.
 
 
 .. Upcoming PyPSA-Eur Release

@@ -54,11 +54,11 @@ def match_centroids(df, countries_centroids):
         )
     if not coordinates.empty:
         logger.info(
-            f"Found coordinates for import nodes '{', '.join(coordinates.index.values)}'"
+            f"Found coordinates for import nodes: {', '.join(coordinates.index.values)}."
         )
     else:
         logger.warning(
-            f"Can't match centroid coordinates to as none of the import nodes '{', '.join(import_nodes)}' are an ISO country."
+            f"Can't match centroid coordinates as none of the import nodes are defined as ISO countries: {', '.join(import_nodes)}."
         )
     return df.assign(
         bus0_x=df.bus0.map(coordinates.x), bus0_y=df.bus0.map(coordinates.y)

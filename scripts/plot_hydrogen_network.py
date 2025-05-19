@@ -285,7 +285,7 @@ if __name__ == "__main__":
     proj = load_projection(snakemake.params.plotting)
     map_fn = snakemake.output.map
 
-    if snakemake.params.tyndp_topology:
+    if snakemake.params.tyndp_h2_topology:
         from plot_base_hydrogen_network import plot_h2_map_base
 
         if n.buses.country.isin(["MA", "DZ"]).any():
