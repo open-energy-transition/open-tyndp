@@ -76,7 +76,11 @@ if config["foresight"] != "perfect":
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
-            regions=resources("regions_onshore_base_s_{clusters}.geojson"),
+            regions=branch(
+                config_provider("sector", "h2_topology_tyndp", "enable"),
+                resources("country_shapes.geojson"),
+                resources("regions_onshore_base_s_{clusters}.geojson"),
+            ),
         output:
             map=RESULTS
             + "maps/base_s_{clusters}_{opts}_{sector_opts}-h2_network_{planning_horizons}.pdf",

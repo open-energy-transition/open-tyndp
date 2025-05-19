@@ -34,10 +34,31 @@ def group_import_corridors(df):
     )
 
 
-def plot_h2_map_base(network, map_opts, map_fn, expanded=False):
+def plot_h2_map_base(network, map_opts, map_fn, expanded=False, regions=None):
     """
     Plots the base hydrogen network pipelines capacities, hydrogen buses and import potentials.
     If expanded is enabled, the optimal capacities are plotted instead.
+    If regions are given, hydrogen storage capacities are plotted for those regions with aggregated H2 tank storage
+    and underground H2 cavern capacities.
+
+    Parameters
+    ----------
+    network : pypsa.Network
+        PyPSA network for plotting the hydrogen grid. Can be either presolving or post solving.
+    map_opts : dict
+        Map options for plotting.
+    map_fn : str
+        Path to save the final map plot to.
+    expanded : bool, optional
+        Whether to plot expanded capacities. Defaults to plotting only base network (p_nom).
+    regions : gpd.GeoDataframe, optional
+        Geodataframe of regions to use for plotting hydrogen storage capacities.
+        If none is given, no hydrogen storage capacities are plotted.
+
+    Returns
+    -------
+    None
+        Saves the map plot as figure.
     """
     n = network.copy()
 
@@ -79,6 +100,17 @@ def plot_h2_map_base(network, map_opts, map_fn, expanded=False):
     # drop non H2 buses
     n.buses.drop(n.buses.index[~n.buses.carrier.str.contains("H2")], inplace=True)
 
+    # optionally add hydrogen storage capacities onto the map
+    if regions is not None:
+        h2_storage = n.stores.query("carrier.str.contains('H2')")
+        regions["H2"] = (
+            h2_storage.rename(index=h2_storage.bus.map(n.buses.location))
+            .e_nom_opt.groupby(level=0)
+            .sum()
+            .div(1e6)
+        )  # TWh
+        regions["H2"] = regions["H2"].where(regions["H2"] > 0.1)
+
     # plot H2 pipeline capacities and imports
     logger.info("Plotting base H2 pipeline and import capacities.")
     proj = load_projection(dict(name="EqualEarth"))
@@ -97,6 +129,23 @@ def plot_h2_map_base(network, map_opts, map_fn, expanded=False):
         ax=ax,
         **map_opts,
     )
+
+    if regions is not None:
+        regions = regions.to_crs(proj.proj4_init)
+        regions.plot(
+            ax=ax,
+            column="H2",
+            cmap="Blues",
+            linewidths=0,
+            legend=True,
+            vmax=6,
+            vmin=0,
+            legend_kwds={
+                "label": "Hydrogen Storage [TWh]",
+                "shrink": 0.7,
+                "extend": "max",
+            },
+        )
 
     if not h2_imports.empty:
         n.plot(

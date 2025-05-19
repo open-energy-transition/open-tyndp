@@ -290,6 +290,8 @@ if __name__ == "__main__":
 
         if n.buses.country.isin(["MA", "DZ"]).any():
             map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
-        plot_h2_map_base(n, map_opts, map_fn, expanded=True)
+
+        regions.index = regions.index + " H2 Z2"
+        plot_h2_map_base(n, map_opts, map_fn, expanded=True, regions=regions)
     else:
         plot_h2_map(n, regions, map_fn)
