@@ -8,7 +8,27 @@
 Release Notes
 ##########################################
 
-.. Upcoming Release
+.. Upcoming Open-TYNDP Release
+.. ================
+
+**Changes**
+
+* Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
+
+* Feat: update cutout retrieval of 1w cutout (https://github.com/open-energy-transition/open-tyndp/pull/41)
+
+* refactor: TYNDP H2 reference grid in line with using planning_horizon for filtering the tyndp year (https://github.com/open-energy-transition/open-tyndp/pull/37)
+
+* Add a TYNDP specific CI (https://github.com/open-energy-transition/open-tyndp/pull/26)
+
+* Remove ch-ibit H2 pipeline capacity for 2030 H2 reference grid (https://github.com/open-energy-transition/open-tyndp/pull/27)
+
+**Bugfixes and Compatibility**
+
+* Fix: fix the docstring of build_tyndp_h2_network.py (https://github.com/open-energy-transition/open-tyndp/pull/40)
+
+
+.. Upcoming PyPSA-Eur Release
 .. ================
 
 **Breaking Changes**
@@ -23,14 +43,6 @@ Release Notes
 
 **Changes**
 
-* Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
-
-* Introduce a new base network using TYNDP 2024 data (https://github.com/open-energy-transition/open-tyndp/pull/18/).
-
-* Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies
-
-* Refactoring of ``add_storage_and_grids`` in ``prepare_sector_network`` into multiple distinct functions for easier readability and adjustability.
-
 * Non-sequestered HVC (plastic waste) is now allocated based on the population instead of production. It can be either burned without energetic utilization or in CHPs to support the district heating system.
 
 * Developer note: Scripts now use absolute imporys. When using `mock_snakemake` this 
@@ -41,6 +53,24 @@ Release Notes
 * Fix: Revert default behaviour of `-cores` for `snakemake` (https://github.com/PyPSA/pypsa-eur/pull/1650).
 
 * Add era5 data sources that are meant to be retrieved as part of data bundle to datafiles list in ``retrieve.smk``
+
+
+Open-TYNDP v0.1 (14th April 2025)
+========================================
+
+**Features**
+
+* Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid,
+  H2 Z1 and Z2 setup, production, reconversion and storage technologies (https://github.com/open-energy-transition/open-tyndp/pull/17/).
+
+* Introduce a new base network using TYNDP 2024 data (https://github.com/open-energy-transition/open-tyndp/pull/18/).
+
+**Changes**
+
+* Add fictive hydrogen demand using industry (https://github.com/open-energy-transition/open-tyndp/pull/25/).
+
+* Refactoring of ``add_storage_and_grids`` in ``prepare_sector_network`` into multiple distinct functions
+  for easier readability and adjustability (https://github.com/open-energy-transition/open-tyndp/pull/20/).
 
 
 PyPSA-Eur v2025.04.0 (6th April 2025)
