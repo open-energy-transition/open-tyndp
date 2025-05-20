@@ -34,7 +34,9 @@ def group_import_corridors(df):
     )
 
 
-def plot_h2_map_base(network, map_opts, map_fn, expanded=False, regions=None):
+def plot_h2_map_base(
+    network, map_opts, map_fn, expanded=False, regions_for_storage=None
+):
     """
     Plots the base hydrogen network pipelines capacities, hydrogen buses and import potentials.
     If expanded is enabled, the optimal capacities are plotted instead.
@@ -51,8 +53,8 @@ def plot_h2_map_base(network, map_opts, map_fn, expanded=False, regions=None):
         Path to save the final map plot to.
     expanded : bool, optional
         Whether to plot expanded capacities. Defaults to plotting only base network (p_nom).
-    regions : gpd.GeoDataframe, optional
-        Geodataframe of regions to use for plotting hydrogen storage capacities.
+    regions_for_storage : gpd.GeoDataframe, optional
+        Geodataframe of regions to use for plotting hydrogen storage capacities. Index needs to match storage locations.
         If none is given, no hydrogen storage capacities are plotted.
 
     Returns
@@ -101,15 +103,17 @@ def plot_h2_map_base(network, map_opts, map_fn, expanded=False, regions=None):
     n.buses.drop(n.buses.index[~n.buses.carrier.str.contains("H2")], inplace=True)
 
     # optionally add hydrogen storage capacities onto the map
-    if regions is not None:
+    if regions_for_storage is not None:
         h2_storage = n.stores.query("carrier.str.contains('H2')")
-        regions["H2"] = (
+        regions_for_storage["H2"] = (
             h2_storage.rename(index=h2_storage.bus.map(n.buses.location))
             .e_nom_opt.groupby(level=0)
             .sum()
             .div(1e6)
         )  # TWh
-        regions["H2"] = regions["H2"].where(regions["H2"] > 0.1)
+        regions_for_storage["H2"] = regions_for_storage["H2"].where(
+            regions_for_storage["H2"] > 0.1
+        )
 
     # plot H2 pipeline capacities and imports
     logger.info("Plotting base H2 pipeline and import capacities.")
@@ -130,9 +134,9 @@ def plot_h2_map_base(network, map_opts, map_fn, expanded=False, regions=None):
         **map_opts,
     )
 
-    if regions is not None:
-        regions = regions.to_crs(proj.proj4_init)
-        regions.plot(
+    if regions_for_storage is not None:
+        regions_for_storage = regions_for_storage.to_crs(proj.proj4_init)
+        regions_for_storage.plot(
             ax=ax,
             column="H2",
             cmap="Blues",

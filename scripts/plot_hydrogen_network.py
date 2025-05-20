@@ -292,6 +292,8 @@ if __name__ == "__main__":
             map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
 
         regions.index = regions.index + " H2 Z2"
-        plot_h2_map_base(n, map_opts, map_fn, expanded=True, regions=regions)
+        plot_h2_map_base(
+            n, map_opts, map_fn, expanded=True, regions_for_storage=regions
+        )
     else:
         plot_h2_map(n, regions, map_fn)
