@@ -23,7 +23,7 @@ if __name__ == "__main__":
         from _helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_tyndp_h2_import_potentials",
+            "build_tyndp_h2_imports",
             planning_horizons=2030,
         )
 
