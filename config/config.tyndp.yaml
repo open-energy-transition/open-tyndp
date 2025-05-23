@@ -38,6 +38,12 @@ co2_budget:
 electricity:
   base_network: tyndp-raw
   transmission_limit: v1.0
+  tyndp_renewable_profiles:
+    enable: true
+    technologies:
+    - offwind-ac
+    - offwind-dc
+    - offwind-float
 
 links:
   p_max_pu: 1.0

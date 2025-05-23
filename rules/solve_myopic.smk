@@ -59,7 +59,10 @@ rule add_existing_baseyear:
 def input_profile_tech_brownfield(w):
     return {
         f"profile_{tech}": resources("profile_{clusters}_" + tech + ".nc")
-        for tech in config_provider("electricity", "renewable_carriers")(w)
+        for tech in (
+            set(config_provider("electricity", "renewable_carriers")(w))
+            - set(tyndp_renewable_profiles(w))
+        )
         if tech != "hydro"
     }
 

@@ -540,6 +540,7 @@ def input_class_regions(w):
         )
         for tech in set(config_provider("electricity", "renewable_carriers")(w))
         - {"hydro"}
+        - set(tyndp_renewable_profiles(w))
     }
 
 
@@ -705,6 +706,14 @@ rule cluster_network:
         "../scripts/cluster_network.py"
 
 
+def tyndp_renewable_profiles(w):
+    return (
+        config_provider("electricity", "tyndp_renewable_profiles", "technologies")(w)
+        if config_provider("electricity", "tyndp_renewable_profiles", "enable")(w)
+        else []
+    )
+
+
 def input_profile_tech(w):
     return {
         f"profile_{tech}": resources(
@@ -712,7 +721,8 @@ def input_profile_tech(w):
             if tech != "hydro"
             else f"profile_{tech}.nc"
         )
-        for tech in config_provider("electricity", "renewable_carriers")(w)
+        for tech in set(config_provider("electricity", "renewable_carriers")(w))
+        - set(tyndp_renewable_profiles(w))
     }
 
 

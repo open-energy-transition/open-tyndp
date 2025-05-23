@@ -111,6 +111,13 @@ electricity:
   conventional_carriers: [nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass]
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float, hydro]
 
+  tyndp_renewable_profiles:
+    enable: false
+    technologies:
+    - offwind-ac
+    - offwind-dc
+    - offwind-float
+
   estimate_renewable_capacities:
     enable: true
     from_gem: true

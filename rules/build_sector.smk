@@ -1226,6 +1226,7 @@ def input_profile_offwind(w):
         f"profile_{tech}": resources("profile_{clusters}_" + tech + ".nc")
         for tech in ["offwind-ac", "offwind-dc", "offwind-float"]
         if (tech in config_provider("electricity", "renewable_carriers")(w))
+        and (tech not in tyndp_renewable_profiles(w))
     }
 
 
