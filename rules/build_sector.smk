@@ -1339,6 +1339,21 @@ if config["sector"]["h2_topology_tyndp"]:
             "../scripts/build_tyndp_h2_imports.py"
 
 
+# TODO Set the right if
+if True:
+
+    rule clean_tyndp_offshore_hubs:
+        params:
+            planning_horizons=config_provider("scenario", "planning_horizons"),
+            # TODO Select the right scenario
+            scenario=config_provider("load", "tyndp_scenario"),
+        input:
+            nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
+            grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
+        script:
+            "../scripts/clean_tyndp_offshore_hubs.py"
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
