@@ -954,7 +954,7 @@ if lambda w: config_provider("load", "source")(w) == "tyndp":
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
             snapshots=config_provider("snapshots"),
-            scenario=config_provider("load", "tyndp_scenario"),
+            scenario=config_provider("tyndp_scenario"),
         input:
             electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
         output:

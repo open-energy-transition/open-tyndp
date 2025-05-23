@@ -31,7 +31,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    scenario = snakemake.params.tyndp_scenario
+    scenario = snakemake.params.scenario
     year = int(snakemake.wildcards.planning_horizons)
 
     # Load prepped import potentials and filter
