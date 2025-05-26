@@ -1317,7 +1317,7 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             "../scripts/clean_tyndp_h2_imports.py"
 
-    rule build_tyndp_h2_import_potentials:
+    rule build_tyndp_h2_imports:
         params:
             scenario=config_provider("tyndp_scenario"),
         input:
@@ -1327,16 +1327,16 @@ if config["sector"]["h2_topology_tyndp"]:
                 "h2_import_potentials_{planning_horizons}.csv"
             ),
         log:
-            logs("build_tyndp_h2_import_potentials_{planning_horizons}.log"),
+            logs("build_tyndp_h2_imports_{planning_horizons}.log"),
         benchmark:
-            benchmarks("build_tyndp_h2_import_potentials_{planning_horizons}")
+            benchmarks("build_tyndp_h2_imports_{planning_horizons}")
         threads: 1
         resources:
             mem_mb=4000,
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/build_tyndp_h2_import_potentials.py"
+            "../scripts/build_tyndp_h2_imports.py"
 
 
 rule prepare_sector_network:
