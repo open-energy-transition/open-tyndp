@@ -1338,15 +1338,10 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             "../scripts/build_tyndp_h2_imports.py"
 
-
-# TODO Set the right if
-if True:
-
     rule clean_tyndp_offshore_hubs:
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
-            # TODO Select the right scenario
-            scenario=config_provider("load", "tyndp_scenario"),
+            scenario=config_provider("tyndp_scenario"),
         input:
             nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
             grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),

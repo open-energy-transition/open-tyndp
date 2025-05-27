@@ -797,9 +797,7 @@ sector:
       methanol: 121
       gas: 122
       oil: 125
-  offshore_hubs:
-    enable: false
-    tyndp_scenario: ''    # NT, DE or GA
+  offshore_hubs: false
 
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#industry
