@@ -90,6 +90,11 @@ def add_existing_renewables(
     """
     tech_map = {"solar": "PV", "onwind": "Onshore", "offwind-ac": "Offshore"}
     # TODO: remove when TYNDP renewable generators are added
+    tyndp_renewable_profiles = (
+        snakemake.params.electricity["tyndp_renewable_profiles"]["technologies"]
+        if snakemake.params.electricity["tyndp_renewable_profiles"]["enable"]
+        else []
+    )
     if len(tyndp_renewable_profiles) > 0:
         logger.info(
             f"Hotfix until TYNDP renewable carriers are added. Skipping renewable carriers '{', '.join(tyndp_renewable_profiles)}'."
@@ -733,11 +738,7 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     options = snakemake.params.sector
-    tyndp_renewable_profiles = (
-        snakemake.params.electricity["tyndp_renewable_profiles"]["technologies"]
-        if snakemake.params.electricity["tyndp_renewable_profiles"]["enable"]
-        else []
-    )
+
     baseyear = snakemake.params.baseyear
 
     n = pypsa.Network(snakemake.input.network)
