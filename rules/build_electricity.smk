@@ -381,6 +381,76 @@ rule build_renewable_profiles:
         "../scripts/build_renewable_profiles.py"
 
 
+def input_data_pecd(w):
+    return {
+        f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + pyear + ".csv")
+        for pyear in [
+            "2030",
+            "2040",
+            "2050",
+        ]  # complete PECD data is available for the years 2030, 2040
+    }
+
+
+rule build_renewable_profiles_pecd:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        renewable=config_provider("renewable"),
+        planning_horizons=config_provider("scenario", "planning_horizons"),
+    input:
+        unpack(input_data_pecd),
+        availability_matrix=resources("availability_matrix_{clusters}_{technology}.nc"),
+        offshore_shapes=resources("offshore_shapes.geojson"),
+        distance_regions=resources("regions_onshore_base_s_{clusters}.geojson"),
+        resource_regions=lambda w: (
+            resources("regions_onshore_base_s_{clusters}.geojson")
+            if w.technology in ("onwind", "solar", "solar-hsat")
+            else resources("regions_offshore_base_s_{clusters}.geojson")
+        ),
+        cutout=lambda w: input_cutout(
+            w, config_provider("renewable", w.technology, "cutout")(w)
+        ),
+    output:
+        profile=resources("profile_pecd_{clusters}_{technology}.nc"),
+    log:
+        logs("build_renewable_profile_pecd_{clusters}_{technology}.log"),
+    benchmark:
+        benchmarks("build_renewable_profile_pecd_{clusters}_{technology}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    wildcard_constraints:
+        technology="(?!hydro).*",  # Any technology other than hydro
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_renewable_profiles_pecd.py"
+
+
+rule clean_pecd_data:
+    params:
+        scenario=config_provider("tyndp_scenario"),
+        snapshots=config_provider("snapshots"),
+    input:
+        offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
+        onshore_buses=resources("busmap_base_s_all.csv"),
+        fn_pecd="/Users/daniel/Desktop/Work/OET/Projects/open-tyndp/data/2024/20250313_ENTSO-E_ENTSOG_TYNDP_2024_Scenarios_Inputs/PECD/{planning_horizons}/",
+    output:
+        pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
+    log:
+        logs("clean_pecd_data_{technology}_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("clean_pecd_data_{technology}_{planning_horizons}")
+    threads: 4
+    resources:
+        mem_mb=4000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/clean_pecd_data.py"
+
+
 rule build_monthly_prices:
     input:
         co2_price_raw="data/validation/emission-spot-primary-market-auction-report-2019-data.xls",
