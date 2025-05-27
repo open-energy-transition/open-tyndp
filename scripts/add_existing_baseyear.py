@@ -89,6 +89,13 @@ def add_existing_renewables(
         Modifies df_agg in-place
     """
     tech_map = {"solar": "PV", "onwind": "Onshore", "offwind-ac": "Offshore"}
+    # TODO: remove when TYNDP renewable generators are added
+    if len(tyndp_renewable_profiles) > 0:
+        logger.info(
+            f"Hotfix until TYNDP renewable carriers are added. Skipping renewable carriers '{', '.join(tyndp_renewable_profiles)}'."
+        )
+        for k in tyndp_renewable_profiles:
+            tech_map.pop(k, None)
 
     irena = pm.data.IRENASTAT().powerplant.convert_country_to_alpha2()
     irena = irena.query("Country in @countries")
@@ -726,7 +733,11 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     options = snakemake.params.sector
-
+    tyndp_renewable_profiles = (
+        snakemake.params.electricity["tyndp_renewable_profiles"]["technologies"]
+        if snakemake.params.electricity["tyndp_renewable_profiles"]["enable"]
+        else []
+    )
     baseyear = snakemake.params.baseyear
 
     n = pypsa.Network(snakemake.input.network)
