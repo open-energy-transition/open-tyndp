@@ -68,6 +68,7 @@ def add_existing_renewables(
     costs: pd.DataFrame,
     df_agg: pd.DataFrame,
     countries: list[str],
+    tyndp_renewable_profiles: list[str],
 ) -> None:
     """
     Add existing renewable capacities to conventional power plant data.
@@ -82,6 +83,8 @@ def add_existing_renewables(
         Network containing topology and generator data
     countries : list
         List of country codes to consider
+    tyndp_renewable_profiles: list
+        List of renewable profile technologies taken from tyndp PECD
 
     Returns
     -------
@@ -90,11 +93,6 @@ def add_existing_renewables(
     """
     tech_map = {"solar": "PV", "onwind": "Onshore", "offwind-ac": "Offshore"}
     # TODO: remove when TYNDP renewable generators are added
-    tyndp_renewable_profiles = (
-        snakemake.params.electricity["tyndp_renewable_profiles"]["technologies"]
-        if snakemake.params.electricity["tyndp_renewable_profiles"]["enable"]
-        else []
-    )
     if len(tyndp_renewable_profiles) > 0:
         logger.info(
             f"Hotfix until TYNDP renewable carriers are added. Skipping renewable carriers '{', '.join(tyndp_renewable_profiles)}'."
@@ -161,6 +159,7 @@ def add_power_capacities_installed_before_baseyear(
     countries: list[str],
     capacity_threshold: float,
     lifetime_values: dict[str, float],
+    tyndp_renewable_profiles: list[str],
 ) -> None:
     """
     Add power generation capacities installed before base year.
@@ -183,6 +182,8 @@ def add_power_capacities_installed_before_baseyear(
         Minimum capacity threshold
     lifetime_values : dict
         Default values for missing data
+    tyndp_renewable_profiles: list
+        List of renewable profile technologies taken from tyndp PECD
     """
     logger.debug(f"Adding power capacities installed before {baseyear}")
 
@@ -235,6 +236,7 @@ def add_power_capacities_installed_before_baseyear(
         costs=costs,
         n=n,
         countries=countries,
+        tyndp_renewable_profiles=tyndp_renewable_profiles,
     )
     # drop assets which are already phased out / decommissioned
     phased_out = df_agg[df_agg["DateOut"] < baseyear].index
@@ -739,6 +741,12 @@ if __name__ == "__main__":
 
     options = snakemake.params.sector
 
+    tyndp_renewable_profiles = (
+        snakemake.params.electricity["tyndp_renewable_profiles"]["technologies"]
+        if snakemake.params.electricity["tyndp_renewable_profiles"]["enable"]
+        else []
+    )
+
     baseyear = snakemake.params.baseyear
 
     n = pypsa.Network(snakemake.input.network)
@@ -765,6 +773,7 @@ if __name__ == "__main__":
         countries=snakemake.config["countries"],
         capacity_threshold=snakemake.params.existing_capacities["threshold_capacity"],
         lifetime_values=snakemake.params.costs["fill_values"],
+        tyndp_renewable_profiles=tyndp_renewable_profiles,
     )
 
     if options["heating"]:
