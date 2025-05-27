@@ -1230,6 +1230,13 @@ def input_profile_offwind(w):
     }
 
 
+def input_profile_pecd(w):
+    return {
+        f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
+        for tech in tyndp_renewable_profiles(w)
+    }
+
+
 rule build_egs_potentials:
     params:
         snapshots=config_provider("snapshots"),
@@ -1380,6 +1387,7 @@ rule prepare_sector_network:
         scaling_factor=config_provider("load", "scaling_factor"),
     input:
         unpack(input_profile_offwind),
+        unpack(input_profile_pecd),
         unpack(input_heat_source_power),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,

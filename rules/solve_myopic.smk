@@ -67,6 +67,13 @@ def input_profile_tech_brownfield(w):
     }
 
 
+def input_profile_tech_brownfied_pecd(w):
+    return {
+        f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
+        for tech in tyndp_renewable_profiles(w)
+    }
+
+
 rule add_brownfield:
     params:
         H2_retrofit=config_provider("sector", "H2_retrofit"),
@@ -84,6 +91,7 @@ rule add_brownfield:
         ),
     input:
         unpack(input_profile_tech_brownfield),
+        unpack(input_profile_tech_brownfied_pecd),
         simplify_busmap=resources("busmap_base_s.csv"),
         cluster_busmap=resources("busmap_base_s_{clusters}.csv"),
         network=resources(
