@@ -29,6 +29,10 @@ Release Notes
 
 * Fix: fix the docstring of build_tyndp_h2_network.py (https://github.com/open-energy-transition/open-tyndp/pull/40)
 
+* Refactor: rename `build_tyndp_h2_import_potentials` to `build_tyndp_h2_imports` (https://github.com/open-energy-transition/open-tyndp/pull/50)
+
+* Refactor: consolidate `tyndp_scenario` configurations into a single configuration entry (https://github.com/open-energy-transition/open-tyndp/pull/51)
+
 
 .. Upcoming PyPSA-Eur Release
 .. ================
