@@ -20,6 +20,18 @@ GEO_CRS = "EPSG:4326"
 def load_offshore_hubs(fn: str):
     """
     Load offshore hubs coordinates and format data.
+
+    Parameters
+    ----------
+    fn : str
+        Path to the Excel file containing offshore hub data.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        GeoDataFrame containing the offshore hub data.
+
+        The GeoDataFrame uses the coordinate reference system defined by `GEO_CRS`.
     """
     column_dict = {
         "OFFSHORE_NODE": "Bus",
@@ -58,6 +70,25 @@ def load_offshore_grid(
 ):
     """
     Load offshore grid (electricity and hydrogen) and format data.
+
+    Parameters
+    ----------
+    fn : str
+        Path to the Excel file containing offshore grid data.
+    nodes : pd.DataFrame
+        DataFrame containing node information (currently not used in function body
+        but may be needed for validation or future functionality).
+    scenario : str
+        Scenario identifier to filter the grid data. Must be one of the scenario
+        codes: "DE" (Distributed Energy), "GA" (Global Ambition), or
+        "NT" (National Trends).
+    planning_horizons : list[int]
+        List of planning years to include in the cost data filtering.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing the merged offshore grid data.
     """
     column_dict = {
         "FROM": "bus0",
