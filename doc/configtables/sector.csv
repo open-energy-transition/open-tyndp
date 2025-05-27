@@ -230,3 +230,4 @@ imports,,,
 -- limit_sense,--,"{==, <=, >=}",Sense of the limit
 -- price,,"{H2, NH3, methanol, gas, oil}",
 -- -- {carrier},currency/MWh,float,Price for importing renewable energy of carrier
+offshore_hubs,--,"{true, false}",Add option for TYNDP offshore hubs

@@ -125,6 +125,7 @@ sector:
     enable: true
     carriers:
     - H2
+  offshore_hubs: true
 
 clustering:
   mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
