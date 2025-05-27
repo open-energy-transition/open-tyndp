@@ -1345,6 +1345,9 @@ if config["sector"]["h2_topology_tyndp"]:
         input:
             nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
             grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
+        output:
+            buses=resources("offshore_buses.csv"),
+            offshore_grid=resources("offshore_grid.csv"),
         script:
             "../scripts/clean_tyndp_offshore_hubs.py"
 

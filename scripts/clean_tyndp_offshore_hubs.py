@@ -169,5 +169,6 @@ if __name__ == "__main__":
         snakemake.input.grid, nodes, snakemake.params["scenario"], planning_horizons
     )
 
-    # Save prepped electricity demand
-    nodes.to_csv(snakemake.output.electricity_demand_prepped)
+    # Save data
+    nodes.to_csv(snakemake.output.buses, index=False)
+    grid.to_csv(snakemake.output.offshore_grid, index=False)
