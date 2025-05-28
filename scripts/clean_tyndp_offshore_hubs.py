@@ -145,6 +145,13 @@ def load_offshore_grid(
         grid_costs, how="left", on=["bus0", "bus1", "pyear", "scenario", "carrier"]
     )
 
+    # Assume non-extendable when missing data
+    # TODO Validate assumption
+    grid["p_nom_extendable"] = ~grid.isna().any(axis=1)
+    grid[["capital_cost", "marginal_cost"]] = grid[
+        ["capital_cost", "marginal_cost"]
+    ].fillna(0)
+
     return grid
 
 
