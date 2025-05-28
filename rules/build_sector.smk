@@ -1340,6 +1340,19 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             "../scripts/build_tyndp_h2_imports.py"
 
+    rule clean_tyndp_offshore_hubs:
+        params:
+            planning_horizons=config_provider("scenario", "planning_horizons"),
+            scenario=config_provider("tyndp_scenario"),
+        input:
+            nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
+            grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
+        output:
+            buses=resources("offshore_buses.csv"),
+            offshore_grid=resources("offshore_grid.csv"),
+        script:
+            "../scripts/clean_tyndp_offshore_hubs.py"
+
 
 rule prepare_sector_network:
     params:
