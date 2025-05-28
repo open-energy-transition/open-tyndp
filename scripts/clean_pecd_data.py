@@ -104,13 +104,6 @@ if __name__ == "__main__":
     )
     fn_pecd = snakemake.input.fn_pecd
 
-    if pyear == "2050":
-        logger.warning(
-            "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data instead."
-        )
-        pyear = "2040"
-        fn_pecd = fn_pecd.replace("2050", "2040")
-
     # Load and prep electricity demand
     tqdm_kwargs = {
         "ascii": False,

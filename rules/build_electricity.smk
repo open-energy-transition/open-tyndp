@@ -383,12 +383,12 @@ rule build_renewable_profiles:
 
 def input_data_pecd(w):
     return {
-        f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + pyear + ".csv")
-        for pyear in [
-            "2030",
-            "2040",
-            "2050",
-        ]  # complete PECD data is available for the years 2030, 2040
+        f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
+        for pyear in set(
+            config_provider("scenario", "planning_horizons")(w)
+        ).intersection([2030, 2040])
+        # Complete PECD data is only available for the years 2030, 2040
+        # TODO: adjust if udpated 2050 data available
     }
 
 

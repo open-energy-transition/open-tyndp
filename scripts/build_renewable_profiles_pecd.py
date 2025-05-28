@@ -58,9 +58,14 @@ if __name__ == "__main__":
         if int(year) not in [2030, 2040, 2050]:
             year = np.clip(10 * (year // 10), 2030, 2050)
             logger.warning(
-                "Planning horizon doesn't match available TYNDP data. "
+                "Planning horizon doesn't match available TYNDP PECD data. "
                 f"Falling back to previous available year {year}."
             )
+        if year == 2050:
+            logger.warning(
+                "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data instead."
+            )
+            year = 2040
 
         profile = (
             pd.read_csv(
