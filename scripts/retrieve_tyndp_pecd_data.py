@@ -22,7 +22,7 @@ from _helpers import configure_logging, progress_retrieve, set_scenario_config
 logger = logging.getLogger(__name__)
 
 # Define the base URL
-url = "https://drive.usercontent.google.com/download?id=1kgCQON-XXxRgDL7gX_uMulCV25RCFr4F&export=download&authuser=0&confirm=t"
+url = "https://drive.usercontent.google.com/download?id=15YF5_DIhIKrkJvhwbzbj3FKTyTzrtfda&export=download&authuser=0&confirm=t"
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
