@@ -23,6 +23,7 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
+    pyear_index = pyear
     if scenario == "NT":
         if pyear == 2050:
             logger.warning(
@@ -84,7 +85,7 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     demand = pd.concat(data, axis=1).droplevel(1, axis=1)
 
     # need to reindex load time series to target year
-    demand.index = demand.index.map(lambda t: t.replace(year=pyear))
+    demand.index = demand.index.map(lambda t: t.replace(year=pyear_index))
 
     # rename UK in GB
     demand.columns = demand.columns.str.replace("UK", "GB")
