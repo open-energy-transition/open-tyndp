@@ -218,7 +218,10 @@ def adjust_renewable_profiles(n, input_profiles, params, year):
         pd.Series(dr, index=dr).where(lambda x: x.isin(n.snapshots), pd.NA).ffill()
     )
 
-    for carrier in params["carriers"]:
+    # TODO: hotfix remove filter for tyndp_renewable_profiles after tyndp generators are added
+    for carrier in set(params["carriers"]) - set(
+        params["electricity"]["tyndp_renewable_profiles"]["technologies"]
+    ):
         if carrier == "hydro":
             continue
 
