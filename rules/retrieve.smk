@@ -185,6 +185,20 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
         script:
             "../scripts/retrieve_tyndp_bundle.py"
 
+    rule retrieve_tyndp_pecd_data:
+        params:
+            tyndp_bundle="data/tyndp_2024_bundle",
+        # TODO Integrate into Zenodo tyndp data bundle
+        output:
+            dir=directory("data/tyndp_2024_bundle/PECD"),
+        log:
+            "logs/retrieve_tyndp_pecd_data.log",
+        retries: 2
+        script:
+            "../scripts/retrieve_tyndp_pecd_data.py"
+
+    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data
+
     rule retrieve_countries_centroids:
         output:
             "data/countries_centroids.geojson",

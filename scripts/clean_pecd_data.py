@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 def read_pecd_file(node: list, fn_pecd: str, cyear: str, pyear: str, technology: str):
-    fn = Path(fn_pecd, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
+    fn = Path(fn_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
 
     if not os.path.isfile(fn):
         return None

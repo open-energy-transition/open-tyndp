@@ -435,7 +435,7 @@ rule clean_pecd_data:
     input:
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         onshore_buses=resources("busmap_base_s_all.csv"),
-        fn_pecd="/Users/daniel/Desktop/Work/OET/Projects/open-tyndp/data/2024/20250313_ENTSO-E_ENTSOG_TYNDP_2024_Scenarios_Inputs/PECD/{planning_horizons}/",
+        fn_pecd="data/tyndp_2024_bundle/PECD",
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:
@@ -449,6 +449,9 @@ rule clean_pecd_data:
         "../envs/environment.yaml"
     script:
         "../scripts/clean_pecd_data.py"
+
+
+ruleorder: retrieve_tyndp_pecd_data > clean_pecd_data
 
 
 rule build_monthly_prices:
