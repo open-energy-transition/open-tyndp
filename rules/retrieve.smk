@@ -197,7 +197,7 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
         script:
             "../scripts/retrieve_tyndp_pecd_data.py"
 
-    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data
+    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data > clean_pecd_data
 
     rule retrieve_countries_centroids:
         output:

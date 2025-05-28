@@ -451,9 +451,6 @@ rule clean_pecd_data:
         "../scripts/clean_pecd_data.py"
 
 
-ruleorder: retrieve_tyndp_pecd_data > clean_pecd_data
-
-
 rule build_monthly_prices:
     input:
         co2_price_raw="data/validation/emission-spot-primary-market-auction-report-2019-data.xls",
