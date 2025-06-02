@@ -799,7 +799,6 @@ sector:
       oil: 125
   offshore_hubs: false
 
-
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#industry
 industry:
   St_primary_fraction:

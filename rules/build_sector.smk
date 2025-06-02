@@ -1338,6 +1338,9 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             "../scripts/build_tyndp_h2_imports.py"
 
+
+if config["sector"]["offshore_hubs"]:
+
     rule clean_tyndp_offshore_hubs:
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
