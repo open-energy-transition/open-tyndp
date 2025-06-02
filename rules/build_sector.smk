@@ -1341,7 +1341,7 @@ if config["sector"]["h2_topology_tyndp"]:
 
 if config["sector"]["offshore_hubs"]:
 
-    rule clean_tyndp_offshore_hubs:
+    rule build_tyndp_offshore_hubs:
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
             scenario=config_provider("tyndp_scenario"),
@@ -1349,10 +1349,19 @@ if config["sector"]["offshore_hubs"]:
             nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
             grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
         output:
-            buses=resources("offshore_buses.csv"),
+            offshore_buses=resources("offshore_buses.csv"),
             offshore_grid=resources("offshore_grid.csv"),
+        log:
+            logs("build_tyndp_offshore_hubs.log"),
+        benchmark:
+            benchmarks("build_tyndp_offshore_hubs")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
         script:
-            "../scripts/clean_tyndp_offshore_hubs.py"
+            "../scripts/build_tyndp_offshore_hubs.py"
 
 
 rule prepare_sector_network:

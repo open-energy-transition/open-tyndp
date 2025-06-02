@@ -160,7 +160,7 @@ if __name__ == "__main__":
         from _helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "clean_tyndp_offshore_hubs", configfiles="config/test/config.tyndp.yaml"
+            "build_tyndp_offshore_hubs", configfiles="config/test/config.tyndp.yaml"
         )
 
     configure_logging(snakemake)
@@ -177,5 +177,5 @@ if __name__ == "__main__":
     )
 
     # Save data
-    nodes.to_csv(snakemake.output.buses, index=False)
+    nodes.to_csv(snakemake.output.offshore_buses, index=False)
     grid.to_csv(snakemake.output.offshore_grid, index=False)
