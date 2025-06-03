@@ -97,8 +97,8 @@ def load_offshore_grid(
         "SCENARIO": "scenario",
         "MARKET": "carrier",
         "CAPACITY": "p_nom",
-        "CAPEX": "capital_cost",
-        "OPEX": "marginal_cost",
+        "CAPEX": "investment",
+        "OPEX": "opex",
     }
 
     scenario_dict = {
@@ -133,12 +133,17 @@ def load_offshore_grid(
         .rename(columns=column_dict)
         .query("pyear in @planning_horizons")
     )
+    grid_costs[["investment", "opex"]] = grid_costs[["investment", "opex"]].mul(
+        1e6
+    )  # MEUR to EUR
     grid_costs["carrier"] = grid_costs["carrier"].replace("E", "DC")
     grid_costs["scenario"] = grid_costs["scenario"].replace(scenario_dict)
 
     # Rename UK in GB
-    grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB")
-    grid_costs[["bus0", "bus1"]] = grid_costs[["bus0", "bus1"]].replace("UK", "GB")
+    grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
+    grid_costs[["bus0", "bus1"]] = grid_costs[["bus0", "bus1"]].replace(
+        "UK", "GB", regex=True
+    )
 
     # Merge information
     grid = grid.merge(
@@ -148,9 +153,7 @@ def load_offshore_grid(
     # Assume non-extendable when missing data
     # TODO Validate assumption
     grid["p_nom_extendable"] = ~grid.isna().any(axis=1)
-    grid[["capital_cost", "marginal_cost"]] = grid[
-        ["capital_cost", "marginal_cost"]
-    ].fillna(0)
+    grid[["investment", "opex"]] = grid[["investment", "opex"]].fillna(0)
 
     return grid
 

@@ -1400,6 +1400,7 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
+        offshore_hubs=config_provider("sector", "offshore_hubs"),
     input:
         unpack(input_profile_offwind),
         unpack(input_heat_source_power),
@@ -1546,6 +1547,16 @@ rule prepare_sector_network:
         h2_imports_tyndp=lambda w: (
             resources("h2_import_potentials_{planning_horizons}.csv")
             if config_provider("sector", "h2_topology_tyndp")(w)
+            else []
+        ),
+        offshore_buses=lambda w: (
+            resources("offshore_buses.csv")
+            if config_provider("sector", "offshore_hubs")(w)
+            else []
+        ),
+        offshore_grid=lambda w: (
+            resources("offshore_grid.csv")
+            if config_provider("sector", "offshore_hubs")(w)
             else []
         ),
     output:

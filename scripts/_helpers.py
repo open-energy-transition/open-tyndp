@@ -1089,8 +1089,11 @@ def load_cutout(
     return cutout
 
 
-def make_index(c, carrier):
-    return carrier + " " + c.bus0 + " -> " + c.bus1
+def make_index(c, carrier="", connector="->"):
+    idx = [c.bus0, connector, c.bus1]
+    if carrier:
+        idx = [carrier] + idx
+    return " ".join(idx)
 
 
 def extract_grid_data_tyndp(
