@@ -182,7 +182,7 @@ def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[
     """
     column_dict = {
         "NODE": "location",
-        "OFFSHORE_NODE": "Bus",
+        "OFFSHORE_NODE": "bus0",
         "OFFSHORE_NODE_TYPE": "type",
         "YEAR": "pyear",
         "SCENARIO": "scenario",
@@ -206,7 +206,12 @@ def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[
         .query("pyear in @planning_horizons")
         .replace({"scenario": scenario_dict})
         .query("scenario == @scenario")
+        .assign(bus1=lambda x: x.bus0 + " H2")
     )
+
+    electrolysers[["capex", "opex"]] = electrolysers[["capex", "opex"]].mul(
+        1e3
+    )  # EUR/kW to EUR/MW
 
     return electrolysers
 

@@ -3049,6 +3049,67 @@ def map_h2_buses(n, df):
     return df_mapped
 
 
+def add_offshore_electrolysers_tyndp(
+    n: pypsa.Network,
+    pyear: int,
+    offshore_electrolysers_fn: str,
+    costs: pd.DataFrame,
+    logger: logging.Logger,
+    nyears: float = 1,
+):
+    """
+    Add offshore electrolysers to the network model.
+
+    This function adds offshore electrolysis capacity to the offshore hub buses in the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to add offshore generators to.
+    pyear : int
+        Planning horizon used to filter which reference generator data to include.
+    offshore_electrolysers_fn : str
+        Path to the file containing offshore electrolysers configuration data.
+    costs : pd.DataFrame
+        Technology costs assumptions.
+    logger : logging.Logger
+        Logger for output messages. If None, no logging is performed.
+    nyears : float, default 1
+        Number of years for which to scale the investment costs.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding offshore generators.
+    """
+    logger.info("Adding offshore electrolysers")
+
+    offshore_electrolysers = pd.read_csv(offshore_electrolysers_fn).query(
+        "pyear==@pyear"
+    )
+    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
+    offshore_electrolysers.index = (
+        offshore_electrolysers.bus0 + " H2 Offshore Electrolysis"
+    )
+
+    offshore_electrolysers.loc[:, "capital_cost"] = (
+        annuity_factor.get("electrolysis") * offshore_electrolysers["capex"]
+        + offshore_electrolysers["opex"]
+    ) * nyears
+
+    n.add(
+        "Link",
+        offshore_electrolysers.index,
+        bus0=offshore_electrolysers.bus0,
+        bus1=offshore_electrolysers.bus1,
+        p_nom_extendable=True,
+        carrier="H2 Electrolysis",
+        efficiency=costs.at["electrolysis", "efficiency"],
+        capital_cost=costs.at["electrolysis", "capital_cost"],
+        lifetime=costs.at["electrolysis", "lifetime"],
+    )
+
+
 def add_offshore_grid_tyndp(
     n: pypsa.Network,
     pyear: int,
@@ -3146,6 +3207,7 @@ def add_offshore_hubs_tyndp(
     n: pypsa.Network,
     pyear: int,
     offshore_grid_fn: str,
+    offshore_electrolysers_fn: str,
     costs: pd.DataFrame,
     spatial: spatial,
     logger: logging.Logger,
@@ -3165,6 +3227,8 @@ def add_offshore_hubs_tyndp(
         Planning horizon used to filter which reference grid data to include.
     offshore_grid_fn : str
         Path to the file containing offshore grid configuration data.
+    offshore_electrolysers_fn : str
+        Path to the file containing offshore electrolysers configuration data.
     costs : pd.DataFrame
         Technology costs assumptions.
     spatial : object, optional
@@ -3215,6 +3279,9 @@ def add_offshore_hubs_tyndp(
     # Add power production units
 
     # Add H2 production units
+    add_offshore_electrolysers_tyndp(
+        n, pyear, offshore_electrolysers_fn, costs, logger, nyears
+    )
 
     # Add offshore DC and H2 grid connections
     add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, logger, nyears)
@@ -7428,6 +7495,7 @@ if __name__ == "__main__":
             n=n,
             pyear=int(snakemake.wildcards.planning_horizons),
             offshore_grid_fn=snakemake.input.offshore_grid,
+            offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
             costs=costs,
             spatial=spatial,
             logger=logger,
