@@ -134,18 +134,12 @@ def load_offshore_grid(
         )
         .rename(columns=column_dict)
         .query("pyear in @planning_horizons")
+        .replace({"scenario": scenario_dict})
     )
     grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
         1e3
     )  # EUR/kW to EUR/MW
     grid_costs["carrier"] = grid_costs["carrier"].replace("E", "DC")
-    grid_costs["scenario"] = grid_costs["scenario"].replace(scenario_dict)
-
-    # Rename UK in GB
-    grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
-    grid_costs[["bus0", "bus1"]] = grid_costs[["bus0", "bus1"]].replace(
-        "UK", "GB", regex=True
-    )
 
     # Merge information
     grid = grid.merge(
@@ -154,8 +148,11 @@ def load_offshore_grid(
 
     # Assume non-extendable when missing data
     # TODO Validate assumption
-    grid["p_nom_extendable"] = ~grid.isna().any(axis=1)
+    grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
     grid[["capex", "opex"]] = grid[["capex", "opex"]].fillna(0)
+
+    # Rename UK in GB
+    grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
 
     return grid
 
@@ -213,7 +210,106 @@ def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[
         1e3
     )  # EUR/kW to EUR/MW
 
+    # rename UK in GB
+    electrolysers[["bus0", "bus1", "location"]] = electrolysers[
+        ["bus0", "bus1", "location"]
+    ].replace("UK", "GB", regex=True)
+
     return electrolysers
+
+
+def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int]):
+    """
+    Load offshore generators data and format data.
+
+    Parameters
+    ----------
+    fn : str
+        Path to the Excel file containing offshore generators data.
+    scenario : str
+        Scenario identifier to filter the grid data. Must be one of the scenario
+        codes: "DE" (Distributed Energy), "GA" (Global Ambition), or
+        "NT" (National Trends).
+    planning_horizons : list[int]
+        List of planning years to include in the cost data filtering.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing the formatted offshore generators data.
+    """
+    column_dict = {  # TODO
+        "NODE": "location",
+        "OFFSHORE_NODE": "bus0",
+        "OFFSHORE_NODE_TYPE": "type",
+        "YEAR": "pyear",
+        "SCENARIO": "scenario",
+        "TECHNOLOGY": "carrier",
+        "CAPEX": "capex",
+        "OPEX": "opex",
+        "MW": "p_nom_min",
+    }
+
+    scenario_dict = {
+        "Distributed Energy": "DE",
+        "Global Ambition": "GA",
+        "National Trends": "NT",
+    }
+
+    # Load generators data
+    generators = (
+        pd.read_excel(
+            fn,
+            sheet_name="EXISTING",
+        )
+        .rename(columns=column_dict)
+        .query("pyear in @planning_horizons")
+        .replace({"scenario": scenario_dict})
+        .query("scenario == @scenario")
+        .assign(
+            carrier=lambda x: "offwind-"
+            + x.carrier.str.lower().replace("_", "-", regex=True)
+        )
+    )
+
+    # Load costs data
+    generators_costs = (
+        pd.read_excel(
+            fn,
+            sheet_name="COST",
+        )
+        .rename(columns=column_dict)
+        .query("pyear in @planning_horizons")
+        .replace({"scenario": scenario_dict})
+        .query("scenario == @scenario")
+        .assign(
+            carrier=lambda x: "offwind-"
+            + x.carrier.str.lower().replace("_", "-", regex=True)
+        )
+    )
+
+    generators_costs[["capex", "opex"]] = generators_costs[["capex", "opex"]].mul(
+        1e3
+    )  # EUR/kW to EUR/MW
+
+    # Merge information
+    generators = generators_costs.merge(
+        generators,
+        how="outer",
+        on=["bus0", "location", "pyear", "scenario", "type", "carrier"],
+    ).assign(p_nom_min=lambda x: x["p_nom_min"].fillna(0))
+
+    # Assume non-extendable when missing data
+    # TODO Validate assumption
+    generators["p_nom_extendable"] = ~generators[["capex", "opex"]].isna().any(axis=1)
+    generators[["capex", "opex"]] = generators[["capex", "opex"]].fillna(0)
+
+    # Rename UK in GB
+    generators[["bus0", "location"]] = generators[["bus0", "location"]].replace(
+        "UK", "GB", regex=True
+    )
+
+    return generators
 
 
 if __name__ == "__main__":
@@ -241,7 +337,12 @@ if __name__ == "__main__":
         snakemake.input.electrolysers, snakemake.params["scenario"], planning_horizons
     )
 
+    generators = load_offshore_generators(
+        snakemake.input.generators, snakemake.params["scenario"], planning_horizons
+    )
+
     # Save data
     nodes.to_csv(snakemake.output.offshore_buses, index=False)
     grid.to_csv(snakemake.output.offshore_grid, index=False)
     electrolysers.to_csv(snakemake.output.offshore_electrolysers, index=False)
+    generators.to_csv(snakemake.output.offshore_generators, index=False)

@@ -1361,10 +1361,12 @@ if config["sector"]["offshore_hubs"]:
             electrolysers=directory(
                 "data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx"
             ),
+            generators=directory("data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx"),
         output:
             offshore_buses=resources("offshore_buses.csv"),
             offshore_grid=resources("offshore_grid.csv"),
             offshore_electrolysers=resources("offshore_electrolysers.csv"),
+            offshore_generators=resources("offshore_generators.csv"),
         log:
             logs("build_tyndp_offshore_hubs.log"),
         benchmark:
@@ -1576,6 +1578,11 @@ rule prepare_sector_network:
         ),
         offshore_electrolysers=lambda w: (
             resources("offshore_electrolysers.csv")
+            if config_provider("sector", "offshore_hubs")(w)
+            else []
+        ),
+        offshore_generators=lambda w: (
+            resources("offshore_generators.csv")
             if config_provider("sector", "offshore_hubs")(w)
             else []
         ),
