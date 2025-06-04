@@ -160,7 +160,7 @@ def process_carrier(group_item, balance, months, colors, config, output_dir):
 
     if df.empty:
         logger.warning(
-            f"No carriers of group {group} in energy balance. Skipping group: {group}"
+            f"No carriers of group '{group}' in energy balance. Skipping carrier group: '{group}'"
         )
         return
 

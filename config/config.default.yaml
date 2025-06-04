@@ -26,7 +26,7 @@ run:
     policy: false
     exclude: []
   shared_cutouts: true
-  use_shadow_directory: true # Set to false if problems regarding missing directories occur
+  use_shadow_directory: false
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#foresight
 foresight: overnight
@@ -497,7 +497,7 @@ sector:
       dynamic_capacity: true
       supplemental_heating:
         enable: false
-        booster_heat_pump: true
+        booster_heat_pump: false
       max_top_temperature: 90
       min_bottom_temperature: 35
     ates:
@@ -936,6 +936,10 @@ clustering:
   administrative:
     level: 1
   focus_weights: false
+  copperplate_regions: []
+  build_bidding_zones:
+    remove_islands: false
+    aggregate_to_tyndp: false
   simplify_network:
     to_substations: false
     remove_stubs: true
@@ -1000,7 +1004,7 @@ solving:
       fractional_last_unit_size: false
     keep_files: false
     model_kwargs:
-      solver_dir: "/tmp"
+      solver_dir: ""
 
   agg_p_nom_limits:
     agg_offwind: false
