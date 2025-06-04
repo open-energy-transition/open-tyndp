@@ -5,6 +5,7 @@ rule add_existing_baseyear:
     params:
         baseyear=config_provider("scenario", "planning_horizons", 0),
         sector=config_provider("sector"),
+        electricity=config_provider("electricity"),
         existing_capacities=config_provider("existing_capacities"),
         costs=config_provider("costs"),
         heat_pump_sources=config_provider("sector", "heat_pump_sources"),
