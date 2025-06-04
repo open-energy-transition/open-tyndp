@@ -97,7 +97,7 @@ def load_offshore_grid(
         "SCENARIO": "scenario",
         "MARKET": "carrier",
         "CAPACITY": "p_nom",
-        "CAPEX": "investment",
+        "CAPEX": "capex",
         "OPEX": "opex",
     }
 
@@ -133,9 +133,9 @@ def load_offshore_grid(
         .rename(columns=column_dict)
         .query("pyear in @planning_horizons")
     )
-    grid_costs[["investment", "opex"]] = grid_costs[["investment", "opex"]].mul(
-        1e6
-    )  # MEUR to EUR
+    grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
+        1e3
+    )  # EUR/kW to EUR/MW
     grid_costs["carrier"] = grid_costs["carrier"].replace("E", "DC")
     grid_costs["scenario"] = grid_costs["scenario"].replace(scenario_dict)
 
@@ -153,7 +153,7 @@ def load_offshore_grid(
     # Assume non-extendable when missing data
     # TODO Validate assumption
     grid["p_nom_extendable"] = ~grid.isna().any(axis=1)
-    grid[["investment", "opex"]] = grid[["investment", "opex"]].fillna(0)
+    grid[["capex", "opex"]] = grid[["capex", "opex"]].fillna(0)
 
     return grid
 

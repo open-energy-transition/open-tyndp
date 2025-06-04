@@ -3023,6 +3023,98 @@ def add_gas_and_h2_infrastructure(
         add_h2_pipeline_new(n=n, costs=costs, logger=logger)
 
 
+def add_offshore_grid(
+    n: pypsa.Network,
+    pyear: int,
+    offshore_grid_fn: str,
+    costs: pd.DataFrame,
+    logger: logging.Logger,
+    nyears: float = 1,
+):
+    """
+    Add offshore grid connections to the network model.
+
+    This function reads offshore grid configuration data and adds both DC and H2 pipeline links to the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to add offshore grid connections to.
+    pyear : int
+        Planning horizon used to filter which reference grid data to include.
+    offshore_grid_fn : str
+        Path to the file containing offshore grid configuration data.
+    costs : pd.DataFrame
+        Technology costs assumptions.
+    logger : logging.Logger
+        Logger for output messages. If None, no logging is performed.
+    nyears : float, default 1
+        Number of years for which to scale the investment costs.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding offshore grid links.
+
+
+    The capital costs are calculated as:
+    (annuity_factor * capex + opex) * nyears
+
+    """
+    logger.info("Adding offshore grid connections")
+
+    offshore_grid = pd.read_csv(offshore_grid_fn).query("pyear==@pyear")
+    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
+
+    # Add DC grid connections
+    offshore_grid_dc = offshore_grid.query("carrier=='DC'").copy()
+    offshore_grid_dc.index = offshore_grid_dc.apply(
+        lambda x: f"{x.bus0}-{x.bus1}-DC", axis=1
+    )
+    offshore_grid_dc.loc[:, "capital_cost"] = (
+        annuity_factor.get("HVDC submarine") * offshore_grid_dc["capex"]
+        + offshore_grid_dc["opex"]
+    ) * nyears
+
+    n.add(
+        "Link",
+        offshore_grid_dc.index,
+        bus0=offshore_grid_dc.bus0,
+        bus1=offshore_grid_dc.bus1,
+        p_nom_extendable=offshore_grid_dc.p_nom_extendable,
+        p_nom=offshore_grid_dc.p_nom,
+        p_min_pu=offshore_grid_dc.p_min_pu,
+        p_max_pu=offshore_grid_dc.p_max_pu,
+        capital_cost=offshore_grid_dc.capital_cost,
+        carrier="DC",
+        lifetime=costs.at["HVDC submarine", "lifetime"],
+    )
+
+    # Add H2 pipeline connections
+    offshore_grid_h2 = offshore_grid.query("carrier=='H2'").copy()
+    offshore_grid_h2.index = offshore_grid_h2.apply(
+        make_index, axis=1, args=("H2 pipeline",)
+    )
+    offshore_grid_h2.loc[:, "capital_cost"] = (
+        annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
+        + offshore_grid_h2["opex"]
+    ) * nyears
+
+    n.add(
+        "Link",
+        offshore_grid_h2.index,
+        bus0=offshore_grid_h2.bus0,
+        bus1=offshore_grid_h2.bus1,
+        p_nom_extendable=offshore_grid_h2.p_nom_extendable,
+        p_nom=offshore_grid_h2.p_nom,
+        p_min_pu=offshore_grid_h2.p_min_pu,
+        p_max_pu=offshore_grid_h2.p_max_pu,
+        capital_cost=offshore_grid_h2.capital_cost,
+        carrier="H2 pipeline",
+        lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
+    )
+
+
 def add_offshore_hubs(
     n: pypsa.Network,
     pyear: int,
@@ -3033,12 +3125,15 @@ def add_offshore_hubs(
     nyears: float = 1,
 ):
     """
-    Add offshore hubs to the network model.
+    Add offshore hubs and grid connections to the network model.
+
+    This function creates offshore hub infrastructure by adding both the physical
+    hubs (buses) and their interconnecting grid (DC and H2 pipeline links).
 
     Parameters
     ----------
     n : pypsa.Network
-        The network object to add offshore hubs to.
+        The network object to add offshore hubs and grid to.
     pyear: int
         Planning horizon used to filter which reference grid data to include.
     offshore_grid_fn : str
@@ -3090,63 +3185,8 @@ def add_offshore_hubs(
         unit="MWh_LHV",
     )
 
-    offshore_grid = pd.read_csv(offshore_grid_fn).query("pyear==@pyear")
-    offshore_grid["length"] = offshore_grid.apply(haversine, axis=1, args=(n,))
-    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
-
-    offshore_grid_dc = offshore_grid.query("carrier=='DC'").copy()
-    offshore_grid_dc.index = offshore_grid_dc.apply(
-        lambda x: f"{x.bus0}-{x.bus1}-DC", axis=1
-    )
-    offshore_grid_dc.loc[:, "capital_cost"] = (
-        annuity_factor.get("HVDC submarine")
-        * offshore_grid_dc["investment"]
-        * nyears
-        / offshore_grid_dc["p_nom"]
-        + offshore_grid_dc["opex"] * nyears / offshore_grid_dc["p_nom"]
-    )
-    n.add(
-        "Link",
-        offshore_grid_dc.index,
-        bus0=offshore_grid_dc.bus0,
-        bus1=offshore_grid_dc.bus1,
-        p_nom_extendable=offshore_grid_dc.p_nom_extendable,
-        p_nom=offshore_grid_dc.p_nom,
-        length=offshore_grid_dc.length,
-        p_min_pu=offshore_grid_dc.p_min_pu,
-        p_max_pu=offshore_grid_dc.p_max_pu,
-        capital_cost=offshore_grid_dc.capital_cost,  # TODO Validate units
-        carrier="DC",
-        lifetime=costs.at["HVDC submarine", "lifetime"],
-    )
-
-    offshore_grid_h2 = offshore_grid.query("carrier=='H2'").copy()
-    offshore_grid_h2.index = offshore_grid_h2.apply(
-        make_index, axis=1, args=("H2 pipeline",)
-    )
-    offshore_grid_h2.loc[:, "capital_cost"] = (
-        annuity_factor.get("H2 (g) submarine pipeline")
-        * offshore_grid_h2["investment"]
-        * nyears
-        / offshore_grid_h2["p_nom"]
-        + offshore_grid_h2["opex"] * nyears / offshore_grid_h2["p_nom"]
-    )
-    n.add(
-        "Link",
-        offshore_grid_h2.index,
-        bus0=offshore_grid_h2.bus0,
-        bus1=offshore_grid_h2.bus1,
-        p_nom_extendable=offshore_grid_h2.p_nom_extendable,
-        p_nom=offshore_grid_h2.p_nom,
-        length=offshore_grid_h2.length,
-        p_min_pu=offshore_grid_h2.p_min_pu,
-        p_max_pu=offshore_grid_h2.p_max_pu,
-        capital_cost=offshore_grid_h2.capital_cost,  # TODO Validate units
-        carrier="H2 pipeline",
-        lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
-    )
-
-    print("ok")
+    # Add offshore DC and H2 grid connections
+    add_offshore_grid(n, pyear, offshore_grid_fn, costs, logger, nyears)
 
 
 def check_land_transport_shares(shares):
