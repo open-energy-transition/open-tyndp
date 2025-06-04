@@ -12,6 +12,8 @@ run:
 # TODO set foresight
 foresight: myopic
 
+tyndp_scenario: DE  # NT, DE or GA
+
 scenario:
   clusters:
   - all
@@ -82,7 +84,6 @@ load:
     enable: false
   manual_adjustments: false
   supplement_synthetic: false
-  tyndp_scenario: DE  # NT, DE or GA
 pypsa_eur:
   Bus:
   - AC
@@ -138,9 +139,7 @@ sector:
     2050: 0
   oil_boilers: false
   biomass_boiler: false
-  h2_topology_tyndp:
-    enable: true
-    tyndp_scenario: DE  # NT, DE or GA
+  h2_topology_tyndp: true
   ATR: false
   hydrogen_fuel_cell: false
   hydrogen_turbine: true
@@ -153,9 +152,12 @@ sector:
     - H2
 
 clustering:
-  mode: administrative  # TODO Switch to Bidding zones to preserve bidding zones shapes
+  mode: administrative
   administrative:
-    level: 3
+    level: bz
+  build_bidding_zones:
+    remove_islands: true
+    aggregate_to_tyndp: true
   temporal:
     resolution_sector: 6H
 

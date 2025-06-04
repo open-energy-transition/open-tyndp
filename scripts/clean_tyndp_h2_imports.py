@@ -78,7 +78,7 @@ def load_import_data(fn, countries_centroids):
     Returns
     -------
     pd.DataFrame
-        The function returns cleaned TYNDP H2 import potentials and marginal cost.
+        The function returns cleaned TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost.
     """
 
     column_dict = {

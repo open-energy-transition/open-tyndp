@@ -65,7 +65,7 @@ def define_spatial(nodes, options, buses_h2_file=None):
         - co2_spatial : bool
         - gas_network : bool
         - ammonia : bool
-        - h2_topology_tyndp : dict
+        - h2_topology_tyndp : bool
         - methanol : dict
         - regional_oil_demand : bool
         - regional_coal_demand : bool
@@ -167,7 +167,7 @@ def define_spatial(nodes, options, buses_h2_file=None):
     spatial.h2.locations = nodes
 
     # hydrogen tyndp
-    if options["h2_topology_tyndp"]["enable"] and buses_h2_file:
+    if options["h2_topology_tyndp"] and buses_h2_file:
         spatial.h2_tyndp = SimpleNamespace()
         buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
         spatial.h2_tyndp.nodes = pd.Index(
@@ -541,11 +541,20 @@ def update_wind_solar_costs(
                 distance * submarine_cost + landfall_length * underground_cost
             )
 
-            capital_cost = (
-                costs.at["offwind", "capital_cost"]
-                + costs.at[tech + "-station", "capital_cost"]
-                + connection_cost
-            )
+            # Take 'offwind-float' capital cost for 'float', and 'offwind' capital cost for the rest ('ac' and 'dc')
+            midtech = tech.split("-", 2)[1]
+            if midtech == "float":
+                capital_cost = (
+                    costs.at[tech, "capital_cost"]
+                    + costs.at[tech + "-station", "capital_cost"]
+                    + connection_cost
+                )
+            else:
+                capital_cost = (
+                    costs.at["offwind", "capital_cost"]
+                    + costs.at[tech + "-station", "capital_cost"]
+                    + connection_cost
+                )
 
             logger.info(
                 f"Added connection cost of {connection_cost.min():0.0f}-{connection_cost.max():0.0f} Eur/MW/a to {tech}"
@@ -2925,7 +2934,7 @@ def add_gas_and_h2_infrastructure(
 
     nodes = pop_layout.index
 
-    if options["h2_topology_tyndp"]["enable"]:
+    if options["h2_topology_tyndp"]:
         add_h2_topology_tyndp(
             n=n,
             pop_layout=pop_layout,
@@ -2988,7 +2997,7 @@ def add_gas_and_h2_infrastructure(
                 logger=logger,
             )
 
-        if options["H2_retrofit"] and not options["h2_topology_tyndp"]["enable"]:
+        if options["H2_retrofit"] and not options["h2_topology_tyndp"]:
             add_h2_pipeline_retrofit(
                 n=n,
                 gas_pipes=gas_pipes,
@@ -2997,7 +3006,7 @@ def add_gas_and_h2_infrastructure(
                 logger=logger,
             )
 
-    if options["H2_network"] and not options["h2_topology_tyndp"]["enable"]:
+    if options["H2_network"] and not options["h2_topology_tyndp"]:
         add_h2_pipeline_new(n=n, costs=costs, logger=logger)
 
 
@@ -5120,7 +5129,8 @@ def add_biomass(
             carrier="electrobiofuels",
             lifetime=costs.at["electrobiofuels", "lifetime"],
             efficiency=costs.at["electrobiofuels", "efficiency-biomass"],
-            efficiency2=-costs.at["electrobiofuels", "efficiency-hydrogen"],
+            efficiency2=-costs.at["electrobiofuels", "efficiency-biomass"]
+            / costs.at["electrobiofuels", "efficiency-hydrogen"],
             efficiency3=-costs.at["solid biomass", "CO2 intensity"]
             + costs.at["BtL", "CO2 stored"]
             * (1 - costs.at["Fischer-Tropsch", "capture rate"]),
@@ -5413,7 +5423,7 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
-    if options["h2_topology_tyndp"]["enable"]:
+    if options["h2_topology_tyndp"]:
         # TODO Link properly Industry to H2 topology
         nodes_ind_h2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
         nodes_ind_h2 = nodes_ind_h2[~(nodes_ind_h2.isin(["IBFI H2 Z2", "IBIT H2 Z2"]))]
@@ -5431,7 +5441,7 @@ def add_industry(
         "Load",
         nodes_ind,  # TODO Improve assumptions
         suffix=" H2 Z2 for industry"
-        if options["h2_topology_tyndp"]["enable"]
+        if options["h2_topology_tyndp"]
         else " H2 for industry",  # TODO Improve assumptions
         bus=nodes_ind_h2,  # TODO Improve assumptions
         carrier="H2 for industry",
@@ -6995,7 +7005,7 @@ def add_import_options(
             )
 
     if "H2" in import_config["carriers"]:
-        if options["h2_topology_tyndp"]["enable"]:
+        if options["h2_topology_tyndp"]:
             logger.info("Adding TYNDP H2 import.")
 
             import_potentials_h2 = pd.read_csv(h2_imports_tyndp_fn, index_col=0)
@@ -7144,9 +7154,7 @@ if __name__ == "__main__":
     year = int(snakemake.params["energy_totals_year"])
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
 
-    buses_h2_file = (
-        snakemake.input.buses_h2 if options["h2_topology_tyndp"]["enable"] else None
-    )
+    buses_h2_file = snakemake.input.buses_h2 if options["h2_topology_tyndp"] else None
     spatial = define_spatial(pop_layout.index, options, buses_h2_file=buses_h2_file)
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
@@ -7310,7 +7318,7 @@ if __name__ == "__main__":
         )
 
     if options["heating"]:
-        if options["h2_topology_tyndp"]["enable"]:
+        if options["h2_topology_tyndp"]:
             logger.warning(
                 "Using industrial waste heat not yet compatible with TYNDP H2 topology."
             )
