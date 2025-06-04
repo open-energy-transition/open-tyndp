@@ -1228,6 +1228,14 @@ def input_profile_offwind(w):
         f"profile_{tech}": resources("profile_{clusters}_" + tech + ".nc")
         for tech in ["offwind-ac", "offwind-dc", "offwind-float"]
         if (tech in config_provider("electricity", "renewable_carriers")(w))
+        and (tech not in tyndp_renewable_profiles(w))
+    }
+
+
+def input_profile_pecd(w):
+    return {
+        f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
+        for tech in tyndp_renewable_profiles(w)
     }
 
 
@@ -1379,6 +1387,7 @@ rule prepare_sector_network:
         scaling_factor=config_provider("load", "scaling_factor"),
     input:
         unpack(input_profile_offwind),
+        unpack(input_profile_pecd),
         unpack(input_heat_source_power),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,
