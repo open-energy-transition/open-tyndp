@@ -3110,7 +3110,6 @@ def map_h2_buses(n, df):
     return df_mapped
 
 
-
 def add_offshore_grid_tyndp(
     n: pypsa.Network,
     pyear: int,
