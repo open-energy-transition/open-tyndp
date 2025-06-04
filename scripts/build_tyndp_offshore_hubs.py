@@ -160,6 +160,57 @@ def load_offshore_grid(
     return grid
 
 
+def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[int]):
+    """
+    Load offshore electrolysers data and format data.
+
+    Parameters
+    ----------
+    fn : str
+        Path to the Excel file containing offshore electrolyser data.
+    scenario : str
+        Scenario identifier to filter the grid data. Must be one of the scenario
+        codes: "DE" (Distributed Energy), "GA" (Global Ambition), or
+        "NT" (National Trends).
+    planning_horizons : list[int]
+        List of planning years to include in the cost data filtering.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing the formatted offshore electrolyser data.
+    """
+    column_dict = {
+        "NODE": "location",
+        "OFFSHORE_NODE": "Bus",
+        "OFFSHORE_NODE_TYPE": "type",
+        "YEAR": "pyear",
+        "SCENARIO": "scenario",
+        "CAPEX": "capex",
+        "OPEX": "opex",
+    }
+
+    scenario_dict = {
+        "Distributed Energy": "DE",
+        "Global Ambition": "GA",
+        "National Trends": "NT",
+    }
+
+    # Load electrolysers data
+    electrolysers = (
+        pd.read_excel(
+            fn,
+            sheet_name="COST",
+        )
+        .rename(columns=column_dict)
+        .query("pyear in @planning_horizons")
+        .replace({"scenario": scenario_dict})
+        .query("scenario == @scenario")
+    )
+
+    return electrolysers
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -181,6 +232,11 @@ if __name__ == "__main__":
         snakemake.input.grid, nodes, snakemake.params["scenario"], planning_horizons
     )
 
+    electrolysers = load_offshore_electrolysers(
+        snakemake.input.electrolysers, snakemake.params["scenario"], planning_horizons
+    )
+
     # Save data
     nodes.to_csv(snakemake.output.offshore_buses, index=False)
     grid.to_csv(snakemake.output.offshore_grid, index=False)
+    electrolysers.to_csv(snakemake.output.offshore_electrolysers, index=False)
