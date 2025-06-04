@@ -3040,7 +3040,7 @@ def map_h2_buses(n, df):
     return df_mapped
 
 
-def add_offshore_grid(
+def add_offshore_grid_tyndp(
     n: pypsa.Network,
     pyear: int,
     offshore_grid_fn: str,
@@ -3133,7 +3133,7 @@ def add_offshore_grid(
     )
 
 
-def add_offshore_hubs_topology(
+def add_offshore_hubs_tyndp(
     n: pypsa.Network,
     pyear: int,
     offshore_grid_fn: str,
@@ -3208,7 +3208,7 @@ def add_offshore_hubs_topology(
     # Add H2 production units
 
     # Add offshore DC and H2 grid connections
-    add_offshore_grid(n, pyear, offshore_grid_fn, costs, logger, nyears)
+    add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, logger, nyears)
 
 
 def check_land_transport_shares(shares):
@@ -7414,7 +7414,7 @@ if __name__ == "__main__":
     )
 
     if snakemake.params.offshore_hubs:
-        add_offshore_hubs_topology(
+        add_offshore_hubs_tyndp(
             n=n,
             pyear=int(snakemake.wildcards.planning_horizons),
             offshore_grid_fn=snakemake.input.offshore_grid,
