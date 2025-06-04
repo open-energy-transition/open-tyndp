@@ -50,7 +50,9 @@ def load_offshore_hubs(fn: str):
     nodes = gpd.GeoDataFrame(nodes, geometry="geometry", crs=GEO_CRS)
 
     # rename UK in GB
-    nodes[["Bus", "location"]] = nodes[["Bus", "location"]].replace("UK", "GB")
+    nodes[["Bus", "location"]] = nodes[["Bus", "location"]].replace(
+        "UK", "GB", regex=True
+    )
 
     return nodes
 

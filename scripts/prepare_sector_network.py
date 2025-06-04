@@ -91,7 +91,7 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
         spatial.offshore_hubs.x_h2 = offshore_buses_h2.x
         spatial.offshore_hubs.y_h2 = offshore_buses_h2.y
         spatial.offshore_hubs.locations = offshore_buses.location
-        spatial.offshore_hubs.locations_h2 = offshore_buses_h2.location + " H2"
+        spatial.offshore_hubs.locations_h2 = offshore_buses_h2.location
         spatial.offshore_hubs.country = offshore_buses.location.str[:2]
         spatial.offshore_hubs.country_h2 = offshore_buses_h2.location.str[:2]
         spatial.offshore_hubs.type = offshore_buses.type
@@ -3023,6 +3023,23 @@ def add_gas_and_h2_infrastructure(
         add_h2_pipeline_new(n=n, costs=costs, logger=logger)
 
 
+def map_h2_buses(n, df):
+    """
+    Map AC buses to H2 Z2 buses.
+    """
+    h2_busmap = (
+        n.buses.query(
+            "~Bus.str.contains('DRES') and carrier=='AC' and type==''"
+        ).location.str[:2]
+        + " H2 Z2"
+    )
+    df_mapped = df.assign(
+        bus0=lambda x: x["bus0"].map(h2_busmap).fillna(x["bus0"]),
+        bus1=lambda x: x["bus1"].map(h2_busmap).fillna(x["bus1"]),
+    )
+    return df_mapped
+
+
 def add_offshore_grid(
     n: pypsa.Network,
     pyear: int,
@@ -3099,6 +3116,7 @@ def add_offshore_grid(
         annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
         + offshore_grid_h2["opex"]
     ) * nyears
+    offshore_grid_h2 = map_h2_buses(n, offshore_grid_h2)
 
     n.add(
         "Link",
@@ -3115,7 +3133,7 @@ def add_offshore_grid(
     )
 
 
-def add_offshore_hubs(
+def add_offshore_hubs_topology(
     n: pypsa.Network,
     pyear: int,
     offshore_grid_fn: str,
@@ -3184,6 +3202,10 @@ def add_offshore_hubs(
         carrier="H2",
         unit="MWh_LHV",
     )
+
+    # Add power production units
+
+    # Add H2 production units
 
     # Add offshore DC and H2 grid connections
     add_offshore_grid(n, pyear, offshore_grid_fn, costs, logger, nyears)
@@ -7392,7 +7414,7 @@ if __name__ == "__main__":
     )
 
     if snakemake.params.offshore_hubs:
-        add_offshore_hubs(
+        add_offshore_hubs_topology(
             n=n,
             pyear=int(snakemake.wildcards.planning_horizons),
             offshore_grid_fn=snakemake.input.offshore_grid,
