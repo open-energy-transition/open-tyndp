@@ -13,6 +13,8 @@ Release Notes
 
 **Changes**
 
+* Introduce offshore wind hubs (https://github.com/open-energy-transition/open-tyndp/pull/54).
+
 * Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries (https://github.com/open-energy-transition/open-tyndp/pull/36). Notably this includes pipelines and shipping imports from North Africa, Ukraine and Norway. Different import potentials are available for each of the planning years which are differentiated by wildcards.
 
 * Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
