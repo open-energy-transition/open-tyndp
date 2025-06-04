@@ -3032,23 +3032,6 @@ def add_gas_and_h2_infrastructure(
         add_h2_pipeline_new(n=n, costs=costs, logger=logger)
 
 
-def map_h2_buses(n, df):
-    """
-    Map AC buses to H2 Z2 buses.
-    """
-    h2_busmap = (
-        n.buses.query(
-            "~Bus.str.contains('DRES') and carrier=='AC' and type==''"
-        ).location.str[:2]
-        + " H2 Z2"
-    )
-    df_mapped = df.assign(
-        bus0=lambda x: x["bus0"].map(h2_busmap).fillna(x["bus0"]),
-        bus1=lambda x: x["bus1"].map(h2_busmap).fillna(x["bus1"]),
-    )
-    return df_mapped
-
-
 def add_offshore_electrolysers_tyndp(
     n: pypsa.Network,
     pyear: int,
@@ -3108,6 +3091,24 @@ def add_offshore_electrolysers_tyndp(
         capital_cost=costs.at["electrolysis", "capital_cost"],
         lifetime=costs.at["electrolysis", "lifetime"],
     )
+
+
+def map_h2_buses(n, df):
+    """
+    Map AC buses to H2 Z2 buses.
+    """
+    h2_busmap = (
+        n.buses.query(
+            "~Bus.str.contains('DRES') and carrier=='AC' and type==''"
+        ).location.str[:2]
+        + " H2 Z2"
+    )
+    df_mapped = df.assign(
+        bus0=lambda x: x["bus0"].map(h2_busmap).fillna(x["bus0"]),
+        bus1=lambda x: x["bus1"].map(h2_busmap).fillna(x["bus1"]),
+    )
+    return df_mapped
+
 
 
 def add_offshore_grid_tyndp(
