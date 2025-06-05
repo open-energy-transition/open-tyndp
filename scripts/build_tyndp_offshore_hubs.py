@@ -143,7 +143,7 @@ def load_offshore_grid(
     )
     grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
         1e3
-    )  # EUR/kW to EUR/MW
+    )  # kEUR/MW to EUR/MW
     grid_costs["carrier"] = grid_costs["carrier"].replace("E", "DC")
 
     # Merge information
@@ -213,7 +213,7 @@ def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[
 
     electrolysers[["capex", "opex"]] = electrolysers[["capex", "opex"]].mul(
         1e3
-    )  # EUR/kW to EUR/MW
+    )  # kEUR/MW to EUR/MW
 
     # rename UK in GB
     electrolysers[["bus0", "bus1", "location"]] = electrolysers[
@@ -295,7 +295,7 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
 
     generators_costs[["capex", "opex"]] = generators_costs[["capex", "opex"]].mul(
         1e3
-    )  # EUR/kW to EUR/MW
+    )  # kEUR/MW to EUR/MW
 
     # Merge information
     generators = generators_costs.merge(
