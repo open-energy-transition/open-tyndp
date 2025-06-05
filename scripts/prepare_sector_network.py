@@ -458,11 +458,8 @@ def create_network_topology(
     candidates_n = candidates[~positive_order].rename(columns=swap_buses)
     candidates = pd.concat([candidates_p, candidates_n])
 
-    def make_index(c):
-        return prefix + c.bus0 + connector + c.bus1
-
     topo = candidates.groupby(["bus0", "bus1"], as_index=False).mean()
-    topo.index = topo.apply(make_index, axis=1)
+    topo.index = topo.apply(make_index, axis=1, prefix=prefix, connector=connector)
 
     if not bidirectional:
         topo_reverse = topo.copy()
@@ -3179,9 +3176,7 @@ def add_offshore_grid_tyndp(
 
     # Add H2 pipeline connections
     offshore_grid_h2 = offshore_grid.query("carrier=='H2'").copy()
-    offshore_grid_h2.index = offshore_grid_h2.apply(
-        make_index, axis=1, args=("H2 pipeline",)
-    )
+    offshore_grid_h2.index = offshore_grid_h2.apply(make_index, axis=1, prefix="H2 pipeline")
     offshore_grid_h2.loc[:, "capital_cost"] = (
         annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
         + offshore_grid_h2["opex"]
