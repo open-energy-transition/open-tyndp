@@ -21,6 +21,8 @@ def load_offshore_hubs(fn: str):
     """
     Load offshore hubs coordinates and format data.
 
+    Offshore Hubs (OH) nodes are situated offshore, while Offshore Radial (OR) nodes are located in the homeland market node.
+
     Parameters
     ----------
     fn : str
@@ -45,6 +47,9 @@ def load_offshore_hubs(fn: str):
         fn,
         sheet_name="NODE",
     ).rename(columns=column_dict)
+
+    mask = nodes["Bus"].str.contains("OH")
+    nodes.loc[mask, "location"] = nodes.loc[mask, "Bus"]
 
     nodes["geometry"] = nodes.apply(lambda row: Point(row["x"], row["y"]), axis=1)
     nodes = gpd.GeoDataFrame(nodes, geometry="geometry", crs=GEO_CRS)
