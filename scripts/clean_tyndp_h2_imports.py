@@ -116,7 +116,9 @@ def load_import_data(fn, countries_centroids):
 
     # Match countries centroids for defining coordinates of import nodes
     imports = match_centroids(imports, countries_centroids)
-    imports.index = imports.apply(make_index, axis=1, prefix="H2 import") + " - " + imports.Band
+    imports.index = (
+        imports.apply(make_index, axis=1, prefix="H2 import") + " - " + imports.Band
+    )
 
     return imports
 
