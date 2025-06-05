@@ -243,7 +243,7 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
     pd.DataFrame
         DataFrame containing the formatted offshore generators data.
     """
-    column_dict = {  # TODO
+    column_dict = {
         "NODE": "location",
         "OFFSHORE_NODE": "bus0",
         "OFFSHORE_NODE_TYPE": "type",
