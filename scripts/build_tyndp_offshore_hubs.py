@@ -224,11 +224,116 @@ def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[
     return electrolysers
 
 
+def get_shares(df, values, dropna=True):
+    df_share = (
+        df.pivot_table(
+            index=["bus0", "type", "pyear", "scenario"],
+            values=values,
+            columns="carrier",
+        )
+        .pipe(lambda df: df.div(df.sum(axis=1), axis=0))
+        .melt(ignore_index=False, value_name="tech_share")
+        .reset_index()
+    )
+    if dropna:
+        df_share = df_share.dropna(subset="tech_share")
+    return df_share
+
+
+def collect_generators_capacities(generators_e, generators_l):
+    # Determine technology shares
+    generators_e_share_raw = get_shares(generators_e, values="p_nom_min")
+
+    # Add missing H2 shares
+    generators_e_share = generators_e_share_raw.query(
+        "carrier.str.contains('h2')"
+    ).assign(carrier_rfc=lambda x: x.carrier.str.replace("h2", "dc", regex=True))
+
+    generators_e_share_rfc = (
+        generators_e_share.drop(columns=["tech_share", "carrier"])
+        .assign(carrier=lambda x: x.carrier_rfc)
+        .merge(generators_e_share_raw, how="left")
+    )
+    generators_e_share = pd.concat([generators_e_share, generators_e_share_rfc])
+
+    # Compute existing capacities using shares
+    generators = (
+        generators_l.merge(
+            generators_e_share,
+            how="outer",
+            left_on=["bus0", "type", "pyear", "scenario", "carrier"],
+            right_on=["bus0", "type", "pyear", "scenario", "carrier_rfc"],
+            suffixes=("_x", ""),
+        )
+        .assign(
+            tech_share=lambda x: x.tech_share.fillna(1),
+            p_nom_min=lambda x: x.p_nom_min * x.tech_share,
+            carrier=lambda x: x.carrier.fillna(x.carrier_x),
+        )
+        .drop(columns=["carrier_x", "tech_share", "carrier_rfc", "p_nom_max"])
+    )
+
+    return generators
+
+
+def collect_generators_potentials(generators, generators_l, generators_z):
+    # Get technology shares
+    generators_l_share = get_shares(generators_l, values="p_nom_max", dropna=False)
+
+    # Compute potentials using shares
+    generators_z_tech = (
+        generators_z.merge(
+            generators_l_share,
+            how="left",
+            on=["bus0", "type", "pyear", "scenario"],
+        )
+        .assign(
+            tech_share=lambda x: x.tech_share.fillna(0),
+            p_nom_max=lambda x: x.p_nom_max * x.tech_share,
+        )
+        .drop(columns=["tech_share"])
+        .query("p_nom_max != 0")
+    )
+
+    # Integrate potentials in data
+    generators = (
+        generators.merge(
+            generators_z_tech,
+            how="outer",
+            on=["bus0", "type", "pyear", "scenario", "carrier"],
+        )
+        .replace(0, np.nan)
+        .dropna(subset=["p_nom_min", "p_nom_max"], how="all")
+    )
+
+    # Copy DC potentials for H2 wind farms
+    idx = generators.carrier.str.contains("h2")
+    generators_h2 = (
+        generators.loc[idx]
+        .drop(columns="p_nom_max")
+        .assign(
+            carrier_ori=lambda x: x.carrier,
+            carrier=lambda x: x.carrier.str.replace("h2", "dc", regex=True),
+        )
+        .merge(
+            generators.drop(columns="p_nom_min"),
+            how="left",
+            on=["bus0", "type", "pyear", "scenario", "carrier"],
+        )
+        .drop(columns="carrier")
+        .rename(columns={"carrier_ori": "carrier"})
+    )
+
+    generators = pd.concat([generators.loc[~idx], generators_h2]).fillna(0)
+
+    return generators
+
+
 def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int]):
     """
     Load offshore generators data and format data.
 
-    The `COST` sheet provides techno-economic assumptions for offshore generators.
+    The `COST` sheet provides techno-economic assumptions for offshore generators. It is assumed that only the specified generators can be expanded.
 
     The `EXISTING` sheet is assumed to contain the collected existing capacities collected prior to any reallocations intended to align with the PEMMDB. This sheet appears to be excluded from the modelling exercise.
 
@@ -317,91 +422,23 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
     )  # kEUR/MW to EUR/MW
 
     # Collect existing capacities in LAYER_POTENTIAL using H2 tech shares from EXISTING
-    def get_shares(df, values, dropna=True):
-        df_share = (
-            df.pivot_table(
-                index=["bus0", "type", "pyear", "scenario"],
-                values=values,
-                columns="carrier",
-            )
-            .pipe(lambda df: df.div(df.sum(axis=1), axis=0))
-            .melt(ignore_index=False, value_name="tech_share")
-            .reset_index()
-        )
-        if dropna:
-            df_share = df_share.dropna(subset="tech_share")
-        return df_share
-
-    generators_e_share_raw = get_shares(generators_e, values="p_nom_min")
-
-    generators_e_share = generators_e_share_raw.query(
-        "carrier.str.contains('h2')"
-    ).assign(carrier_rfc=lambda x: x.carrier.str.replace("h2", "dc", regex=True))
-
-    generators_e_share_rfc = (
-        generators_e_share.drop(columns=["tech_share", "carrier"])
-        .assign(carrier=lambda x: x.carrier_rfc)
-        .merge(generators_e_share_raw, how="left")
-    )
-    generators_e_share = pd.concat([generators_e_share, generators_e_share_rfc])
-
-    generators = (
-        generators_l.merge(
-            generators_e_share,
-            how="outer",
-            left_on=["bus0", "type", "pyear", "scenario", "carrier"],
-            right_on=["bus0", "type", "pyear", "scenario", "carrier_rfc"],
-            suffixes=("_x", ""),
-        )
-        .assign(
-            tech_share=lambda x: x.tech_share.fillna(1),
-            p_nom_min=lambda x: x.p_nom_min * x.tech_share,
-            carrier=lambda x: x.carrier.fillna(x.carrier_x),
-        )
-        .drop(columns=["carrier_x", "tech_share", "carrier_rfc", "p_nom_max"])
-    )
+    generators = collect_generators_capacities(generators_e, generators_l)
 
     # Collect potentials in ZONE_POTENTIAL using tech shares from LAYER_POTENTIAL
-    generators_l_share = get_shares(generators_l, values="p_nom_max", dropna=False)
-    generators_z_tech = (
-        generators_z.merge(
-            generators_l_share,
-            how="left",
-            on=["bus0", "type", "pyear", "scenario"],
-        )
-        .assign(
-            tech_share=lambda x: x.tech_share.fillna(1),
-            p_nom_max=lambda x: x.p_nom_max * x.tech_share,
-        )
-        .drop(columns=["tech_share"])
-        .query("p_nom_max != 0")
+    generators = collect_generators_potentials(generators, generators_l, generators_z)
+
+    # Collect cost assumptions
+    generators = generators.merge(
+        generators_c,
+        how="left",
+        on=["bus0", "pyear", "scenario", "type", "carrier"],
     )
 
-    generators = (
-        generators.merge(
-            generators_z_tech,
-            how="outer",
-            on=["bus0", "type", "pyear", "scenario", "carrier"],
-        )
-        .replace(0, np.nan)
-        .dropna(subset=["p_nom_min", "p_nom_max"], how="all")
-    )
-
-    generators[generators.p_nom_max.isna()]
-
-    print("ok")
-
-    # Collect costs assumptions
-    generators = generators_c.merge(
-        generators,
-        how="outer",
-        on=["bus0", "location", "pyear", "scenario", "type", "carrier"],
-    ).assign(p_nom_min=lambda x: x["p_nom_min"].fillna(0))
-
-    # Assume non-extendable when missing data
-    # TODO Validate assumption
-    generators["p_nom_extendable"] = ~generators[["capex", "opex"]].isna().any(axis=1)
-    generators[["capex", "opex"]] = generators[["capex", "opex"]].fillna(0)
+    # Ensure that all cost assumptions are present
+    idx = generators[["capex", "opex"]].isna().any(axis=1)
+    if not (generators.loc[idx].p_nom_min == 0).all():
+        raise RuntimeError("Missing generator cost data in input dataset.")
+    generators = generators.dropna(subset=["capex", "opex"])
 
     # Rename UK in GB
     generators[["bus0", "location"]] = generators[["bus0", "location"]].replace(
