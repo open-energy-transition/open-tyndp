@@ -8,6 +8,7 @@ This script is used to clean TYNDP Scenario Building offshore hubs data to be us
 import logging
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 from _helpers import configure_logging, set_scenario_config
 from shapely.geometry import Point
@@ -255,17 +256,30 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
     pd.DataFrame
         DataFrame containing the formatted offshore generators data.
     """
-    column_dict = {
+    column_names = {
         "NODE": "location",
         "OFFSHORE_NODE": "bus0",
         "OFFSHORE_NODE_TYPE": "type",
         "YEAR": "pyear",
         "SCENARIO": "scenario",
         "TECHNOLOGY": "carrier",
+        "TECH1": "carrier",
         "CAPEX": "capex",
         "OPEX": "opex",
         "MW": "p_nom_min",
+        "EXISTING_MW": "p_nom_min",
+        "MAX_MW": "p_nom_max",
     }
+
+    column_del = [
+        "TECH2",
+        "TECH3",
+        "TECH4",
+        "TECH5",
+        "TECH6",
+        "MARGIN_MW",
+        "LAYER",
+    ]
 
     scenario_dict = {
         "Distributed Energy": "DE",
@@ -273,44 +287,112 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
         "National Trends": "NT",
     }
 
-    # Load generators data
-    generators = (
-        pd.read_excel(
-            fn,
-            sheet_name="EXISTING",
+    # Load data
+    def load_generators(sheet_name):
+        generators = (
+            pd.read_excel(
+                fn,
+                sheet_name=sheet_name,
+            )
+            .rename(columns=column_names)
+            .query("pyear in @planning_horizons")
+            .replace({"scenario": scenario_dict})
+            .query("scenario == @scenario")
+            .assign(
+                carrier=lambda x: "offwind-"
+                + x.carrier.str.lower().replace("_", "-", regex=True)
+            )
+            .drop(columns=column_del, errors="ignore")
         )
-        .rename(columns=column_dict)
-        .query("pyear in @planning_horizons")
-        .replace({"scenario": scenario_dict})
-        .query("scenario == @scenario")
-        .assign(
-            carrier=lambda x: "offwind-"
-            + x.carrier.str.lower().replace("_", "-", regex=True)
-        )
-    )
+        return generators
 
-    # Load costs data
-    generators_costs = (
-        pd.read_excel(
-            fn,
-            sheet_name="COST",
-        )
-        .rename(columns=column_dict)
-        .query("pyear in @planning_horizons")
-        .replace({"scenario": scenario_dict})
-        .query("scenario == @scenario")
-        .assign(
-            carrier=lambda x: "offwind-"
-            + x.carrier.str.lower().replace("_", "-", regex=True)
-        )
+    generators_e = load_generators("EXISTING")
+    generators_l = load_generators("LAYER_POTENTIAL")
+    generators_z = load_generators("ZONE_POTENTIAL").drop(
+        columns=["carrier", "p_nom_min"]
     )
-
-    generators_costs[["capex", "opex"]] = generators_costs[["capex", "opex"]].mul(
+    generators_c = load_generators("COST")
+    generators_c[["capex", "opex"]] = generators_c[["capex", "opex"]].mul(
         1e3
     )  # kEUR/MW to EUR/MW
 
-    # Merge information
-    generators = generators_costs.merge(
+    # Collect existing capacities in LAYER_POTENTIAL using H2 tech shares from EXISTING
+    def get_shares(df, values, dropna=True):
+        df_share = (
+            df.pivot_table(
+                index=["bus0", "type", "pyear", "scenario"],
+                values=values,
+                columns="carrier",
+            )
+            .pipe(lambda df: df.div(df.sum(axis=1), axis=0))
+            .melt(ignore_index=False, value_name="tech_share")
+            .reset_index()
+        )
+        if dropna:
+            df_share = df_share.dropna(subset="tech_share")
+        return df_share
+
+    generators_e_share_raw = get_shares(generators_e, values="p_nom_min")
+
+    generators_e_share = generators_e_share_raw.query(
+        "carrier.str.contains('h2')"
+    ).assign(carrier_rfc=lambda x: x.carrier.str.replace("h2", "dc", regex=True))
+
+    generators_e_share_rfc = (
+        generators_e_share.drop(columns=["tech_share", "carrier"])
+        .assign(carrier=lambda x: x.carrier_rfc)
+        .merge(generators_e_share_raw, how="left")
+    )
+    generators_e_share = pd.concat([generators_e_share, generators_e_share_rfc])
+
+    generators = (
+        generators_l.merge(
+            generators_e_share,
+            how="outer",
+            left_on=["bus0", "type", "pyear", "scenario", "carrier"],
+            right_on=["bus0", "type", "pyear", "scenario", "carrier_rfc"],
+            suffixes=("_x", ""),
+        )
+        .assign(
+            tech_share=lambda x: x.tech_share.fillna(1),
+            p_nom_min=lambda x: x.p_nom_min * x.tech_share,
+            carrier=lambda x: x.carrier.fillna(x.carrier_x),
+        )
+        .drop(columns=["carrier_x", "tech_share", "carrier_rfc", "p_nom_max"])
+    )
+
+    # Collect potentials in ZONE_POTENTIAL using tech shares from LAYER_POTENTIAL
+    generators_l_share = get_shares(generators_l, values="p_nom_max", dropna=False)
+    generators_z_tech = (
+        generators_z.merge(
+            generators_l_share,
+            how="left",
+            on=["bus0", "type", "pyear", "scenario"],
+        )
+        .assign(
+            tech_share=lambda x: x.tech_share.fillna(1),
+            p_nom_max=lambda x: x.p_nom_max * x.tech_share,
+        )
+        .drop(columns=["tech_share"])
+        .query("p_nom_max != 0")
+    )
+
+    generators = (
+        generators.merge(
+            generators_z_tech,
+            how="outer",
+            on=["bus0", "type", "pyear", "scenario", "carrier"],
+        )
+        .replace(0, np.nan)
+        .dropna(subset=["p_nom_min", "p_nom_max"], how="all")
+    )
+
+    generators[generators.p_nom_max.isna()]
+
+    print("ok")
+
+    # Collect costs assumptions
+    generators = generators_c.merge(
         generators,
         how="outer",
         on=["bus0", "location", "pyear", "scenario", "type", "carrier"],
