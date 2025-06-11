@@ -8,7 +8,6 @@ This script is used to clean TYNDP Scenario Building offshore hubs data to be us
 import logging
 
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 from _helpers import configure_logging, set_scenario_config
 from shapely.geometry import Point
@@ -240,91 +239,69 @@ def get_shares(df, values, dropna=True):
     return df_share
 
 
-def collect_generators_capacities(generators_e, generators_l):
-    # Determine technology shares
-    generators_e_share_raw = get_shares(generators_e, values="p_nom_min")
-
-    # Add missing H2 shares
-    generators_e_share = generators_e_share_raw.query(
-        "carrier.str.contains('h2')"
-    ).assign(carrier_rfc=lambda x: x.carrier.str.replace("h2", "dc", regex=True))
-
-    generators_e_share_rfc = (
-        generators_e_share.drop(columns=["tech_share", "carrier"])
-        .assign(carrier=lambda x: x.carrier_rfc)
-        .merge(generators_e_share_raw, how="left")
+def collect_from_layer(generators_e, generators_l):
+    # Identify reallocations of radial wind farms using LAYER_POTENTIAL
+    idx = ["location", "bus0", "type", "pyear", "scenario", "carrier"]
+    generators_el = generators_e.merge(
+        generators_l,
+        how="outer",
+        on=["bus0", "type", "pyear", "scenario", "carrier"],
+        suffixes=("", "_l"),
     )
-    generators_e_share = pd.concat([generators_e_share, generators_e_share_rfc])
 
-    # Compute existing capacities using shares
+    radial_inconsistent = generators_el.query(
+        "carrier.str.contains('-r') "  # only radial connection
+        "and p_nom_min != p_nom_min_l "  # when EXISTING and LAYER_POTENTIAL values are inconsistent
+        "and ~(p_nom_min.isna() and p_nom_min_l == 0)"  # treat missing values and zeros as equivalent
+    )
+
+    # Fix EXISTING technologies by reallocating radial to hubs
+    generators_e_fixed = generators_e.copy().set_index(idx)
+    corrections = radial_inconsistent.assign(
+        location=lambda x: x.bus0, carrier=lambda x: x.carrier.str.replace("-r", "-oh")
+    ).set_index(idx)
+    generators_e_fixed = (
+        pd.concat(
+            [
+                generators_e_fixed.drop(radial_inconsistent.set_index(idx).index),
+                corrections[generators_e_fixed.columns],
+            ]
+        )
+        .groupby(level=list(range(len(idx))))
+        .sum()
+    )
+
+    # Calculate technology shares, considering PEMMDB related reallocations
+    tech_shares = get_shares(generators_e_fixed, values="p_nom_min")
+
+    # Apply H2 to DC carrier mapping and get relevant shares
+    h2_shares = (
+        tech_shares.query("carrier.str.contains('h2')")
+        .assign(
+            carrier_mapped=lambda x: x.carrier.str.replace(
+                "h2", "dc", regex=True
+            ).str.replace("-r", "-oh", regex=True)
+        )
+        .drop(columns=["tech_share", "carrier"])
+        .merge(tech_shares, how="left")
+    )
+
+    # Apply shares to data to calculate existing capacities
     generators = (
         generators_l.merge(
-            generators_e_share,
+            h2_shares,
             how="outer",
             left_on=["bus0", "type", "pyear", "scenario", "carrier"],
-            right_on=["bus0", "type", "pyear", "scenario", "carrier_rfc"],
+            right_on=["bus0", "type", "pyear", "scenario", "carrier_mapped"],
             suffixes=("_x", ""),
         )
         .assign(
             tech_share=lambda x: x.tech_share.fillna(1),
-            p_nom_min=lambda x: x.p_nom_min * x.tech_share,
             carrier=lambda x: x.carrier.fillna(x.carrier_x),
+            p_nom_min=lambda x: x.p_nom_min * x.tech_share,
         )
-        .drop(columns=["carrier_x", "tech_share", "carrier_rfc", "p_nom_max"])
+        .drop(columns=["carrier_x", "tech_share", "carrier_mapped"])
     )
-
-    return generators
-
-
-def collect_generators_potentials(generators, generators_l, generators_z):
-    # Get technology shares
-    generators_l_share = get_shares(generators_l, values="p_nom_max", dropna=False)
-
-    # Compute potentials using shares
-    generators_z_tech = (
-        generators_z.merge(
-            generators_l_share,
-            how="left",
-            on=["bus0", "type", "pyear", "scenario"],
-        )
-        .assign(
-            tech_share=lambda x: x.tech_share.fillna(0),
-            p_nom_max=lambda x: x.p_nom_max * x.tech_share,
-        )
-        .drop(columns=["tech_share"])
-        .query("p_nom_max != 0")
-    )
-
-    # Integrate potentials in data
-    generators = (
-        generators.merge(
-            generators_z_tech,
-            how="outer",
-            on=["bus0", "type", "pyear", "scenario", "carrier"],
-        )
-        .replace(0, np.nan)
-        .dropna(subset=["p_nom_min", "p_nom_max"], how="all")
-    )
-
-    # Copy DC potentials for H2 wind farms
-    idx = generators.carrier.str.contains("h2")
-    generators_h2 = (
-        generators.loc[idx]
-        .drop(columns="p_nom_max")
-        .assign(
-            carrier_ori=lambda x: x.carrier,
-            carrier=lambda x: x.carrier.str.replace("h2", "dc", regex=True),
-        )
-        .merge(
-            generators.drop(columns="p_nom_min"),
-            how="left",
-            on=["bus0", "type", "pyear", "scenario", "carrier"],
-        )
-        .drop(columns="carrier")
-        .rename(columns={"carrier_ori": "carrier"})
-    )
-
-    generators = pd.concat([generators.loc[~idx], generators_h2]).fillna(0)
 
     return generators
 
@@ -358,8 +335,13 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
 
     Returns
     -------
-    pd.DataFrame
-        DataFrame containing the formatted offshore generators data.
+    generators
+        pd.DataFrame
+            DataFrame containing the formatted offshore generators data.
+
+    trajectories
+        pd.DataFrame
+            DataFrame containing the zone potentials trajectories
     """
     column_names = {
         "NODE": "location",
@@ -421,11 +403,11 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
         1e3
     )  # kEUR/MW to EUR/MW
 
-    # Collect existing capacities in LAYER_POTENTIAL using H2 tech shares from EXISTING
-    generators = collect_generators_capacities(generators_e, generators_l)
+    # Collect existing capacities and potentials in LAYER_POTENTIAL using H2 tech shares from EXISTING
+    generators = collect_from_layer(generators_e, generators_l)
 
-    # Collect potentials in ZONE_POTENTIAL using tech shares from LAYER_POTENTIAL
-    generators = collect_generators_potentials(generators, generators_l, generators_z)
+    # Collect potentials trajectories in ZONE_POTENTIAL
+    zone_trajectories = generators_z
 
     # Collect cost assumptions
     generators = generators.merge(
@@ -439,13 +421,14 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
     if not (generators.loc[idx].p_nom_min == 0).all():
         raise RuntimeError("Missing generator cost data in input dataset.")
     generators = generators.dropna(subset=["capex", "opex"])
+    generators.loc[:, "p_nom_extendable"] = True
 
     # Rename UK in GB
     generators[["bus0", "location"]] = generators[["bus0", "location"]].replace(
         "UK", "GB", regex=True
     )
 
-    return generators
+    return generators, zone_trajectories
 
 
 if __name__ == "__main__":
@@ -473,7 +456,7 @@ if __name__ == "__main__":
         snakemake.input.electrolysers, snakemake.params["scenario"], planning_horizons
     )
 
-    generators = load_offshore_generators(
+    generators, zone_trajectories = load_offshore_generators(
         snakemake.input.generators, snakemake.params["scenario"], planning_horizons
     )
 
@@ -482,3 +465,4 @@ if __name__ == "__main__":
     grid.to_csv(snakemake.output.offshore_grid, index=False)
     electrolysers.to_csv(snakemake.output.offshore_electrolysers, index=False)
     generators.to_csv(snakemake.output.offshore_generators, index=False)
+    zone_trajectories.to_csv(snakemake.output.offshore_zone_trajectories, index=False)

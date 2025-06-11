@@ -1367,6 +1367,7 @@ if config["sector"]["offshore_hubs"]:
             offshore_grid=resources("offshore_grid.csv"),
             offshore_electrolysers=resources("offshore_electrolysers.csv"),
             offshore_generators=resources("offshore_generators.csv"),
+            offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
         log:
             logs("build_tyndp_offshore_hubs.log"),
         benchmark:
