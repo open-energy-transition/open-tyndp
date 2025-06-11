@@ -310,17 +310,15 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
     """
     Load offshore generators data and format data.
 
-    The `COST` sheet provides techno-economic assumptions for offshore generators. It is assumed that only the specified generators can be expanded.
+    The `EXISTING` sheet is assumed to contain the collected existing capacities collected prior to any reallocations intended to align with the PEMMDB. This sheet appears to be excluded from the modelling exercise, except for hydrogen-generating capacities.
 
-    The `EXISTING` sheet is assumed to contain the collected existing capacities collected prior to any reallocations intended to align with the PEMMDB. This sheet appears to be excluded from the modelling exercise.
+    The `LAYER_POTENTIAL` sheet is viewed as containing the reallocated existing capacities (excluding hydrogen-generating specific information) and the theoretical potentials per technology. Existing capacities are specified for both electricity- and hydrogen-generating offshore wind farms. Technology shares from `EXISTING` will be used to supplement the data.
 
-    The `LAYER_POTENTIAL` sheet is viewed as containing the reallocated existing capacities and the theoretical potentials per technology. Existing capacities are specified for both electricity- and hydrogen-generating offshore wind farms. Technology shares from `EXISTING` will be used to supplement the data.
+    The `ZONE_POTENTIAL` sheet is considered as the source for achievable potentials for each node across all planning horizons. It establishes a nodal constraint on top of the theoretical potentials outlined by `LAYER_POTENTIAL`.
 
-    The `ZONE_POTENTIAL` sheet is considered as the source for achievable potentials at each planning horizon. Technology shares from `LAYER_POTENTIAL` will be used to supplement the data.
+    **Existing capacities** will be read from the `LAYER_POTENTIAL` sheet, utilizing technology shares specified in `EXISTING` for hydrogen-generating capacities. A discrepancy of 526 MW for `DEOH002` in 2045 (across all scenarios) is noted when comparing existing capacities with `ZONE_POTENTIAL`. It remains uncertain which of the two values is correct: 5828.55 MW from `LAYER_POTENTIAL` or 6354.55 MW from `ZONE_POTENTIAL`.
 
-    **Existing capacities** will be read from the `LAYER_POTENTIAL` sheet, utilizing technology shares specified in `EXISTING`. A discrepancy of 526 MW for `DEOH002` in 2045 (across all scenarios) is noted when comparing existing capacities with `ZONE_POTENTIAL`. It remains uncertain which of the two values is correct: 5828.55 MW from `LAYER_POTENTIAL` or 6354.55 MW from `ZONE_POTENTIAL`.
-
-    **Potentials** will be read from the `ZONE_POTENTIAL` sheet, utilizing technology shares specified in `LAYER_POTENTIAL`. The same 526 MW discrepancy in `DEOH002` (across all planning horizons and scenarios) has been identified and needs to be addressed to ensure that existing capacities do not exceed their potential.
+    **Potentials** will be obtained from both the `LAYER_POTENTIAL` and the `ZONE_POTENTIAL` sheets. `LAYER_POTENTIAL` will establish a technology level constraint, while `ZONE_POTENTIAL` will restrict expansion across all technologies at each node. The same 526 MW discrepancy in `DEOH002` (across all planning horizons and scenarios) has been noted and needs to be addressed to ensure that existing capacities do not exceed their potential.
 
     Parameters
     ----------
@@ -335,13 +333,11 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
 
     Returns
     -------
-    generators
-        pd.DataFrame
-            DataFrame containing the formatted offshore generators data.
+    generators : pd.DataFrame
+        DataFrame containing the formatted offshore generators data
 
-    trajectories
-        pd.DataFrame
-            DataFrame containing the zone potentials trajectories
+    zone_trajectories : pd.DataFrame
+        DataFrame containing the zone potentials trajectories
     """
     column_names = {
         "NODE": "location",
