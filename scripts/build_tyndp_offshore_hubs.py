@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 GEO_CRS = "EPSG:4326"
 
 
-def load_offshore_hubs(fn: str):
+def load_offshore_hubs(fn: str, countries: list[str]):
     """
     Load offshore hubs coordinates and format data.
 
@@ -27,6 +27,8 @@ def load_offshore_hubs(fn: str):
     ----------
     fn : str
         Path to the Excel file containing offshore hub data.
+    countries : list[str]
+        List of country codes used to clean data.
 
     Returns
     -------
@@ -50,14 +52,18 @@ def load_offshore_hubs(fn: str):
 
     mask = nodes["Bus"].str.contains("OH")
     nodes.loc[mask, "location"] = nodes.loc[mask, "Bus"]
+    nodes.loc[:, "country"] = nodes.loc[:, "location"].str[:2]
 
     nodes["geometry"] = nodes.apply(lambda row: Point(row["x"], row["y"]), axis=1)
     nodes = gpd.GeoDataFrame(nodes, geometry="geometry", crs=GEO_CRS)
 
     # rename UK in GB
-    nodes[["Bus", "location"]] = nodes[["Bus", "location"]].replace(
-        "UK", "GB", regex=True
-    )
+    nodes[["Bus", "location", "country"]] = nodes[
+        ["Bus", "location", "country"]
+    ].replace("UK", "GB", regex=True)
+
+    # filter selected countries
+    nodes = nodes.query("country in @countries")
 
     return nodes
 
@@ -73,7 +79,11 @@ def expand_all_scenario(df: pd.DataFrame, scenarios: list):
 
 
 def load_offshore_grid(
-    fn: str, nodes: pd.DataFrame, scenario: str, planning_horizons: list[int]
+    fn: str,
+    nodes: pd.DataFrame,
+    scenario: str,
+    planning_horizons: list[int],
+    countries: list[str],
 ):
     """
     Load offshore grid (electricity and hydrogen) and format data.
@@ -91,6 +101,8 @@ def load_offshore_grid(
         "NT" (National Trends).
     planning_horizons : list[int]
         List of planning years to include in the cost data filtering.
+    countries : list[str]
+        List of country codes used to clean data.
 
     Returns
     -------
@@ -159,10 +171,18 @@ def load_offshore_grid(
     # Rename UK in GB
     grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
 
+    # Filter selected countries
+    grid = grid.assign(
+        country0=lambda x: x.bus0.str[:2],
+        country1=lambda x: x.bus1.str[:2],
+    ).query("country0 in @countries and country1 in @countries")
+
     return grid
 
 
-def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[int]):
+def load_offshore_electrolysers(
+    fn: str, scenario: str, planning_horizons: list[int], countries: list[str]
+):
     """
     Load offshore electrolysers data and format data.
 
@@ -176,6 +196,8 @@ def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[
         "NT" (National Trends).
     planning_horizons : list[int]
         List of planning years to include in the cost data filtering.
+    countries : list[str]
+        List of country codes used to clean data.
 
     Returns
     -------
@@ -219,6 +241,11 @@ def load_offshore_electrolysers(fn: str, scenario: str, planning_horizons: list[
     electrolysers[["bus0", "bus1", "location"]] = electrolysers[
         ["bus0", "bus1", "location"]
     ].replace("UK", "GB", regex=True)
+
+    # filter selected countries
+    electrolysers = electrolysers.assign(country=lambda x: x.bus0.str[:2]).query(
+        "country in @countries"
+    )
 
     return electrolysers
 
@@ -306,7 +333,9 @@ def collect_from_layer(generators_e, generators_l):
     return generators
 
 
-def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int]):
+def load_offshore_generators(
+    fn: str, scenario: str, planning_horizons: list[int], countries: list[str]
+):
     """
     Load offshore generators data and format data.
 
@@ -330,6 +359,8 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
         "NT" (National Trends).
     planning_horizons : list[int]
         List of planning years to include in the cost data filtering.
+    countries : list[str]
+        List of country codes used to clean data.
 
     Returns
     -------
@@ -429,6 +460,17 @@ def load_offshore_generators(fn: str, scenario: str, planning_horizons: list[int
     generators[["bus0", "location"]] = generators[["bus0", "location"]].replace(
         "UK", "GB", regex=True
     )
+    zone_trajectories["bus0"] = zone_trajectories["bus0"].replace(
+        "UK", "GB", regex=True
+    )
+
+    # Filter selected countries
+    generators = generators.assign(country=lambda x: x.bus0.str[:2]).query(
+        "country in @countries"
+    )
+    zone_trajectories = zone_trajectories.assign(
+        country=lambda x: x.bus0.str[:2]
+    ).query("country in @countries")
 
     return generators, zone_trajectories
 
@@ -447,19 +489,30 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params["scenario"]
     planning_horizons = snakemake.params["planning_horizons"]
+    countries = snakemake.params["countries"]
 
-    nodes = load_offshore_hubs(snakemake.input.nodes)
+    nodes = load_offshore_hubs(snakemake.input.nodes, countries)
 
     grid = load_offshore_grid(
-        snakemake.input.grid, nodes, snakemake.params["scenario"], planning_horizons
+        snakemake.input.grid,
+        nodes,
+        snakemake.params["scenario"],
+        planning_horizons,
+        countries,
     )
 
     electrolysers = load_offshore_electrolysers(
-        snakemake.input.electrolysers, snakemake.params["scenario"], planning_horizons
+        snakemake.input.electrolysers,
+        snakemake.params["scenario"],
+        planning_horizons,
+        countries,
     )
 
     generators, zone_trajectories = load_offshore_generators(
-        snakemake.input.generators, snakemake.params["scenario"], planning_horizons
+        snakemake.input.generators,
+        snakemake.params["scenario"],
+        planning_horizons,
+        countries,
     )
 
     # Save data

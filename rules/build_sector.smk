@@ -1355,6 +1355,7 @@ if config["sector"]["offshore_hubs"]:
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
             scenario=config_provider("tyndp_scenario"),
+            countries=config_provider("countries"),
         input:
             nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
             grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
