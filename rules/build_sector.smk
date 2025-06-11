@@ -1355,6 +1355,7 @@ if config["sector"]["offshore_hubs"]:
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
             scenario=config_provider("tyndp_scenario"),
+            countries=config_provider("countries"),
         input:
             nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
             grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
@@ -1367,6 +1368,7 @@ if config["sector"]["offshore_hubs"]:
             offshore_grid=resources("offshore_grid.csv"),
             offshore_electrolysers=resources("offshore_electrolysers.csv"),
             offshore_generators=resources("offshore_generators.csv"),
+            offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
         log:
             logs("build_tyndp_offshore_hubs.log"),
         benchmark:
