@@ -124,6 +124,13 @@ if __name__ == "__main__":
     with mp.Pool(processes=snakemake.threads) as pool:
         demand = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
-    pecd_df = pd.concat(demand, axis=1)
+    pecd_df = (
+        pd.concat(demand, axis=1)
+        .reindex(nodes, axis=1)
+        .fillna(0.0)  # include missing node data with empty columns
+        .rename(
+            columns=lambda x: x.replace("UK", "GB")
+        )  # replace UK with GB for naming convention
+    )
 
     pecd_df.to_csv(snakemake.output.pecd_data_clean)
