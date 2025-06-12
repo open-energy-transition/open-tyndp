@@ -3033,6 +3033,7 @@ def add_offshore_generators_tyndp(
     n: pypsa.Network,
     pyear: int,
     offshore_generators_fn: str,
+    profiles: dict[str, str],
     costs: pd.DataFrame,
     logger: logging.Logger,
 ):
@@ -3053,6 +3054,9 @@ def add_offshore_generators_tyndp(
         Planning horizon used to filter which reference generator data to include.
     offshore_generators : str
         Path to the file containing offshore generators configuration data.
+    profiles : dict[str, str]
+        Dictionary mapping technology names to profile file paths
+        e.g. {'offwind-dc': 'path/to/profile.nc'}
     costs : pd.DataFrame
         Technology costs assumptions.
     logger : logging.Logger
@@ -3067,6 +3071,7 @@ def add_offshore_generators_tyndp(
 
     offshore_generators = pd.read_csv(offshore_generators_fn).query("pyear==@pyear")
 
+    # Assign locations and index
     mask = offshore_generators["carrier"].str.contains("h2")
     offshore_generators.loc[mask, ["bus0", "location"]] = (
         offshore_generators.loc[mask, ["bus0", "location"]] + " H2"
@@ -3075,6 +3080,7 @@ def add_offshore_generators_tyndp(
         offshore_generators.bus0 + " " + offshore_generators.carrier
     )
 
+    # Adjust capacities and costs to account for efficiency
     h2_idx = offshore_generators.filter(like="h2", axis=0).index
     offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]] = (
         offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]].mul(
@@ -3085,12 +3091,37 @@ def add_offshore_generators_tyndp(
         h2_idx, ["capex", "opex"]
     ].div(costs.at["electrolysis", "efficiency"])
 
+    # Determine capital_cost
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
     offshore_generators.loc[:, "capital_cost"] = (
         annuity_factor.get("electrolysis") * offshore_generators["capex"]
         + offshore_generators["opex"]
     ) * nyears
 
+    # Load PECD profiles
+    p_max_pu = []
+    for key, fn in profiles.items():
+        tech = key[len("profile_pecd_") :]
+        techs = offshore_generators[
+            offshore_generators.carrier.str.contains(tech)
+        ].carrier.unique()
+        techs = ["H2 " + tech_i if "h2" in tech_i else tech_i for tech_i in techs]
+
+        with xr.open_dataset(fn) as ds:
+            ds = ds.sel(
+                year=pyear, bin=0, time=n.snapshots, drop=True
+            )  # ToDo Remove time sel once sns are filtered in PECD data
+            p_max_pu_i = ds["profile"].to_pandas()
+
+        for tech_i in techs:
+            p_max_pu.append(p_max_pu_i.rename(columns=lambda x: x + " " + tech_i))
+
+    p_max_pu = pd.concat(p_max_pu, axis=1)
+    p_max_pu = p_max_pu.reindex(
+        offshore_generators.index, axis=1, fill_value=0
+    )  # ToDo Simplify once missing nodes are addressed in PECD data
+
+    # Add generators to the network
     n.add(
         "Generator",
         offshore_generators.index,
@@ -3103,7 +3134,7 @@ def add_offshore_generators_tyndp(
         capital_cost=offshore_generators.capital_cost,
         marginal_cost=costs.at["offwind", "marginal_cost"],
         efficiency=costs.at["offwind", "efficiency"],
-        # p_max_pu=  # PECD data
+        p_max_pu=p_max_pu,
         lifetime=costs.at["offwind", "lifetime"],
     )
 
@@ -3285,6 +3316,7 @@ def add_offshore_hubs_tyndp(
     offshore_generators_fn: str,
     offshore_electrolysers_fn: str,
     offshore_grid_fn: str,
+    profiles: dict[str, str],
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
     logger: logging.Logger,
@@ -3308,6 +3340,9 @@ def add_offshore_hubs_tyndp(
         Path to the file containing offshore electrolysers configuration data.
     offshore_grid_fn : str
         Path to the file containing offshore grid configuration data.
+    profiles : dict[str, str]
+        Dictionary mapping technology names to profile file paths
+        e.g. {'offwind-dc': 'path/to/profile.nc'}
     costs : pd.DataFrame
         Technology costs assumptions.
     spatial : object, optional
@@ -3356,7 +3391,9 @@ def add_offshore_hubs_tyndp(
     )
 
     # Add power production units
-    add_offshore_generators_tyndp(n, pyear, offshore_generators_fn, costs, logger)
+    add_offshore_generators_tyndp(
+        n, pyear, offshore_generators_fn, profiles, costs, logger
+    )
 
     # Add H2 production units
     add_offshore_electrolysers_tyndp(
@@ -7577,6 +7614,7 @@ if __name__ == "__main__":
             offshore_generators_fn=snakemake.input.offshore_generators,
             offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
             offshore_grid_fn=snakemake.input.offshore_grid,
+            profiles=profiles,
             costs=costs,
             spatial=spatial,
             logger=logger,
