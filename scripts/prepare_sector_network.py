@@ -3033,6 +3033,7 @@ def add_offshore_generators_tyndp(
     n: pypsa.Network,
     pyear: int,
     offshore_generators_fn: str,
+    costs: pd.DataFrame,
     logger: logging.Logger,
 ):
     """
@@ -3040,6 +3041,9 @@ def add_offshore_generators_tyndp(
 
     This function adds offshore generation capacity, various offshore wind
     turbines (AC and H2), to the offshore hub buses in the network.
+
+    Existing capacities and potentials are adjusted for hydrogen-generating wind farms
+    to account for efficiency.
 
     Parameters
     ----------
@@ -3049,6 +3053,8 @@ def add_offshore_generators_tyndp(
         Planning horizon used to filter which reference generator data to include.
     offshore_generators : str
         Path to the file containing offshore generators configuration data.
+    costs : pd.DataFrame
+        Technology costs assumptions.
     logger : logging.Logger
         Logger for output messages. If None, no logging is performed.
 
@@ -3068,6 +3074,16 @@ def add_offshore_generators_tyndp(
     offshore_generators.index = (
         offshore_generators.bus0 + " " + offshore_generators.carrier
     )
+
+    h2_idx = offshore_generators.filter(like="h2", axis=0).index
+    offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]] = (
+        offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]].mul(
+            costs.at["electrolysis", "efficiency"]
+        )
+    )
+    offshore_generators.loc[h2_idx, ["capex", "opex"]] = offshore_generators.loc[
+        h2_idx, ["capex", "opex"]
+    ].div(costs.at["electrolysis", "efficiency"])
 
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
     offshore_generators.loc[:, "capital_cost"] = (
@@ -3340,7 +3356,7 @@ def add_offshore_hubs_tyndp(
     )
 
     # Add power production units
-    add_offshore_generators_tyndp(n, pyear, offshore_generators_fn, logger)
+    add_offshore_generators_tyndp(n, pyear, offshore_generators_fn, costs, logger)
 
     # Add H2 production units
     add_offshore_electrolysers_tyndp(
