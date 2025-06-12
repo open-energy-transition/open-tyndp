@@ -1226,14 +1226,27 @@ def input_profile_offwind(w):
         f"profile_{tech}": resources("profile_{clusters}_" + tech + ".nc")
         for tech in ["offwind-ac", "offwind-dc", "offwind-float"]
         if (tech in config_provider("electricity", "renewable_carriers")(w))
-        and (tech not in tyndp_renewable_profiles(w))
+        and (tech not in tyndp_renewable_carriers(w))
     }
+
+
+def pecd_renewable_profiles(w):
+    return (
+        [
+            carrier
+            for carrier in config_provider(
+                "electricity", "pecd_renewable_profiles", "technologies"
+            )(w).keys()
+        ]
+        if config_provider("electricity", "pecd_renewable_profiles", "enable")(w)
+        else []
+    )
 
 
 def input_profile_pecd(w):
     return {
         f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
-        for tech in tyndp_renewable_profiles(w)
+        for tech in pecd_renewable_profiles(w)
     }
 
 

@@ -1203,20 +1203,26 @@ if __name__ == "__main__":
         params.link_length_factor,
     )
 
-    tyndp_renewable_profiles = (
-        params.electricity["tyndp_renewable_profiles"]["technologies"]
-        if params.electricity["tyndp_renewable_profiles"]["enable"]
+    tyndp_renewable_carriers = (
+        [
+            subcarrier
+            for carrier in params.electricity["pecd_renewable_profiles"][
+                "technologies"
+            ].values()
+            for subcarrier in carrier
+        ]
+        if params.electricity["pecd_renewable_profiles"]["enable"]
         else []
     )
-    if len(tyndp_renewable_profiles) > 0:
+    if len(tyndp_renewable_carriers) > 0:
         logger.info(
-            f"Skipping renewable carriers '{', '.join(tyndp_renewable_profiles)}'. They will be attached later on with TYNDP data."
+            f"Skipping renewable carriers '{', '.join(tyndp_renewable_carriers)}'. They will be attached later on with TYNDP data."
         )
     renewable_carriers = set(
         [
             carrier
             for carrier in params.electricity["renewable_carriers"]
-            if carrier not in tyndp_renewable_profiles
+            if carrier not in tyndp_renewable_carriers
         ]
     )
     extendable_carriers = params.electricity["extendable_carriers"]
@@ -1285,7 +1291,7 @@ if __name__ == "__main__":
             tech_map = {
                 key: value
                 for key, value in estimate_renewable_caps["technology_mapping"].items()
-                if value not in tyndp_renewable_profiles
+                if value not in tyndp_renewable_carriers
             }
             expansion_limit = estimate_renewable_caps["expansion_limit"]
             year = estimate_renewable_caps["year"]

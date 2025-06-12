@@ -90,6 +90,7 @@ if __name__ == "__main__":
         "offwind-ac": "Wind_Offshore",
         "offwind-dc": "Wind_Offshore",
         "offwind-float": "Wind_Offshore",
+        "offwind": "Wind_Offshore",
         "onwind": "Wind_Onshore",
         "solar": "LFSolarPV",
         "solar-hsat": "LFSolarPV",

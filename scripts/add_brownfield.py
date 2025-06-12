@@ -218,10 +218,23 @@ def adjust_renewable_profiles(n, input_profiles, params, year):
         pd.Series(dr, index=dr).where(lambda x: x.isin(n.snapshots), pd.NA).ffill()
     )
 
-    # TODO: hotfix remove filter for tyndp_renewable_profiles after tyndp generators are added
-    for carrier in set(params["carriers"]) - set(
-        params["electricity"]["tyndp_renewable_profiles"]["technologies"]
-    ):
+    # TODO: hotfix remove filter for tyndp_renewable_carriers after tyndp generators are added
+    tyndp_renewable_carriers = (
+        [
+            subcarrier
+            for carrier in snakemake.params.electricity["pecd_renewable_profiles"][
+                "technologies"
+            ].values()
+            for subcarrier in carrier
+        ]
+        if snakemake.params.electricity["pecd_renewable_profiles"]["enable"]
+        else []
+    )
+    if len(tyndp_renewable_carriers) > 0:
+        logger.info(
+            f"Hotfix until TYNDP renewable carriers are added. Skipping renewable carriers '{', '.join(tyndp_renewable_carriers)}'."
+        )
+    for carrier in set(params["carriers"]) - set(tyndp_renewable_carriers):
         if carrier == "hydro":
             continue
 

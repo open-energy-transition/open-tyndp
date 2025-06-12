@@ -62,7 +62,7 @@ def input_profile_tech_brownfield(w):
         f"profile_{tech}": resources("profile_{clusters}_" + tech + ".nc")
         for tech in (
             set(config_provider("electricity", "renewable_carriers")(w))
-            - set(tyndp_renewable_profiles(w))
+            - set(tyndp_renewable_carriers(w))
         )
         if tech != "hydro"
     }
@@ -71,7 +71,7 @@ def input_profile_tech_brownfield(w):
 def input_profile_tech_brownfied_pecd(w):
     return {
         f"profile_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
-        for tech in tyndp_renewable_profiles(w)
+        for tech in pecd_renewable_profiles(w)
     }
 
 
