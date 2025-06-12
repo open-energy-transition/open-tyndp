@@ -550,9 +550,11 @@ rule build_direct_heat_source_utilisation_profiles:
 def solar_thermal_cutout(wildcards):
     c = config_provider("solar_thermal", "cutout")(wildcards)
     if c == "default":
-        return CDIR + config_provider("atlite", "default_cutout")(wildcards) + ".nc"
+        return CDIR.joinpath(
+            config_provider("atlite", "default_cutout")(wildcards) + ".nc"
+        ).as_posix()
     else:
-        return CDIR + c + ".nc"
+        return CDIR.joinpath(c + ".nc").as_posix()
 
 
 rule build_solar_thermal_profiles:
@@ -1297,12 +1299,12 @@ def input_heat_source_power(w):
     }
 
 
-if config["sector"]["h2_topology_tyndp"]["enable"]:
+if config["sector"]["h2_topology_tyndp"]:
 
     rule build_tyndp_h2_network:
         params:
             snapshots=config_provider("snapshots"),
-            scenario=config_provider("sector", "h2_topology_tyndp", "tyndp_scenario"),
+            scenario=config_provider("tyndp_scenario"),
         input:
             tyndp_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
         output:
@@ -1338,11 +1340,9 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
         script:
             "../scripts/clean_tyndp_h2_imports.py"
 
-    rule build_tyndp_h2_import_potentials:
+    rule build_tyndp_h2_imports:
         params:
-            tyndp_scenario=config_provider(
-                "sector", "h2_topology_tyndp", "tyndp_scenario"
-            ),
+            scenario=config_provider("tyndp_scenario"),
         input:
             import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
         output:
@@ -1350,16 +1350,16 @@ if config["sector"]["h2_topology_tyndp"]["enable"]:
                 "h2_import_potentials_{planning_horizons}.csv"
             ),
         log:
-            logs("build_tyndp_h2_import_potentials_{planning_horizons}.log"),
+            logs("build_tyndp_h2_imports_{planning_horizons}.log"),
         benchmark:
-            benchmarks("build_tyndp_h2_import_potentials_{planning_horizons}")
+            benchmarks("build_tyndp_h2_imports_{planning_horizons}")
         threads: 1
         resources:
             mem_mb=4000,
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/build_tyndp_h2_import_potentials.py"
+            "../scripts/build_tyndp_h2_imports.py"
 
 
 rule prepare_sector_network:
@@ -1524,17 +1524,17 @@ rule prepare_sector_network:
         ),
         h2_grid_tyndp=lambda w: (
             resources("h2_reference_grid_tyndp_{planning_horizons}.csv")
-            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            if config_provider("sector", "h2_topology_tyndp")(w)
             else []
         ),
         interzonal_prepped=lambda w: (
             resources("h2_interzonal_tyndp_{planning_horizons}.csv")
-            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            if config_provider("sector", "h2_topology_tyndp")(w)
             else []
         ),
         buses_h2=lambda w: (
             resources("tyndp-raw/build/geojson/buses_h2.geojson")
-            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            if config_provider("sector", "h2_topology_tyndp")(w)
             else []
         ),
         load=lambda w: (
@@ -1544,7 +1544,7 @@ rule prepare_sector_network:
         ),
         h2_imports_tyndp=lambda w: (
             resources("h2_import_potentials_{planning_horizons}.csv")
-            if config_provider("sector", "h2_topology_tyndp", "enable")(w)
+            if config_provider("sector", "h2_topology_tyndp")(w)
             else []
         ),
     output:
