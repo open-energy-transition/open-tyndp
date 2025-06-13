@@ -10,6 +10,7 @@ DE and GA are defined for 2030, 2035, 2040, 2045 and 2050. For the NT scenario n
 
 import logging
 
+import numpy as np
 import pandas as pd
 from _helpers import (
     configure_logging,
@@ -60,7 +61,7 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
                 "Planning horizon doesn't match available TYNDP data. "
                 "Falling back to closest available year between 2030 and 2050."
             )
-            pyear = min(max(2030, 5 * round(pyear / 5)), 2050)
+            pyear = np.clip(5 * (pyear // 5), 2030, 2050)
         scenario_dict = {
             "GA": "Global Ambition",
             "DE": "Distributed Energy",
