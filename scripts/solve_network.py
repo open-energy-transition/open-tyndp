@@ -1112,6 +1112,45 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
     n.model.add_constraints(lhs, limit_sense, rhs, name="import_limit")
 
 
+def add_offshore_hubs_constraint(
+    n, planning_horizons: int | None, offshore_zone_trajectories_fn
+):
+    """
+    Add two constraints on offshore hubs.
+
+    1. Constraint expansion of DC and H2 sitting on the same location, as the sum of the two capacities cannot exceed the layer potential.
+    2. Constraint the maximum potential per zone.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network instance
+    planning_horizons : int, optional
+        The current planning horizon year or None in perfect foresight
+    offshore_zone_trajectories_fn: str
+        Path to the dataFrame containing the offshore zone potentials trajectories
+    """
+    # Constraint DC / H2 expansion on the same layer
+    h2_gens = n.generators.loc[n.generators.carrier.str.contains("h2")]
+    h2_gens_i = h2_gens.index
+    dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
+
+    off_electrolysers = n.links.loc[
+        n.links.index.str.contains("Offshore Electrolysis")
+    ].set_index("bus1")
+    eff = (
+        off_electrolysers.loc[h2_gens.bus]
+        .set_index(h2_gens_i)
+        .efficiency.rename_axis("Generator-ext")
+    )
+    p_nom = n.model["Generator-p_nom"]
+    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
+
+    rhs = n.generators.loc[dc_gens_i].p_nom_max.rename_axis("Generator-ext")
+
+    n.model.add_constraints(lhs <= rhs, name="Generator-off_h2_dc_pot")
+
+
 def add_co2_atmosphere_constraint(n, snapshots):
     glcs = n.global_constraints[n.global_constraints.type == "co2_atmosphere"]
 
@@ -1136,7 +1175,10 @@ def add_co2_atmosphere_constraint(n, snapshots):
 
 
 def extra_functionality(
-    n: pypsa.Network, snapshots: pd.DatetimeIndex, planning_horizons: str | None = None
+    n: pypsa.Network,
+    snapshots: pd.DatetimeIndex,
+    planning_horizons: str | None = None,
+    offshore_zone_trajectories_fn: str | None = None,
 ) -> None:
     """
     Add custom constraints and functionality.
@@ -1149,6 +1191,8 @@ def extra_functionality(
         Simulation timesteps
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
+    offshore_zone_trajectories_fn: str, optional
+        Path to the dataFrame containing the offshore zone potentials trajectories
 
     Collects supplementary constraints which will be passed to
     ``pypsa.optimization.optimize``.
@@ -1205,6 +1249,11 @@ def extra_functionality(
     if config["sector"]["imports"]["enable"]:
         add_import_limit_constraint(n, snapshots)
 
+    if config["sector"]["offshore_hubs"]:
+        add_offshore_hubs_constraint(
+            n, int(planning_horizons), offshore_zone_trajectories_fn
+        )
+
     if n.params.custom_extra_functionality:
         source_path = n.params.custom_extra_functionality
         assert os.path.exists(source_path), f"{source_path} does not exist"
@@ -1250,6 +1299,7 @@ def solve_network(
     solving: dict,
     rule_name: str | None = None,
     planning_horizons: str | None = None,
+    offshore_zone_trajectories_fn: str | None = None,
     **kwargs,
 ) -> None:
     """
@@ -1269,6 +1319,8 @@ def solve_network(
         Name of the snakemake rule being executed
     planning_horizons : str, optional
             The current planning horizon year or None in perfect foresight
+    offshore_zone_trajectories_fn : str, optional
+        Path to dataFrame containing the offshore zone potentials trajectories
     **kwargs
         Additional keyword arguments passed to the solver
 
@@ -1297,7 +1349,9 @@ def solve_network(
     )
     kwargs["solver_name"] = solving["solver"]["name"]
     kwargs["extra_functionality"] = partial(
-        extra_functionality, planning_horizons=planning_horizons
+        extra_functionality,
+        planning_horizons=planning_horizons,
+        offshore_zone_trajectories_fn=offshore_zone_trajectories_fn,
     )
     kwargs["transmission_losses"] = cf_solving.get("transmission_losses", False)
     kwargs["linearized_unit_commitment"] = cf_solving.get(
@@ -1403,6 +1457,7 @@ if __name__ == "__main__":
             planning_horizons=planning_horizons,
             rule_name=snakemake.rule,
             log_fn=snakemake.log.solver,
+            offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
         )
 
     logger.info(f"Maximum memory usage: {mem.mem_usage}")

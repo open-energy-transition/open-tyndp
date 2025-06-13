@@ -3129,7 +3129,7 @@ def add_offshore_generators_tyndp(
         carrier=offshore_generators.carrier,
         p_nom=offshore_generators.p_nom_min,
         p_nom_min=offshore_generators.p_nom_min,
-        p_nom_max=offshore_generators.p_nom_min,
+        p_nom_max=offshore_generators.p_nom_max,
         p_nom_extendable=offshore_generators.p_nom_extendable,
         capital_cost=offshore_generators.capital_cost,
         marginal_cost=costs.at["offwind", "marginal_cost"],
