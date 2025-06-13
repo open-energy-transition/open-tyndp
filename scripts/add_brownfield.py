@@ -33,6 +33,7 @@ def add_brownfield(
     h2_retrofit=False,
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
+    offshore_hubs=False,
 ):
     """
     Add brownfield capacity from previous network.
@@ -51,13 +52,33 @@ def add_brownfield(
         Ratio of hydrogen to methane capacity for pipeline retrofitting
     capacity_threshold : float
         Threshold for removing assets with low capacity
+    offshore_hubs : bool
+        Whether to enable offshore hubs
     """
     logger.info(f"Preparing brownfield for the year {year}")
 
     # electric transmission grid set optimised capacities of previous as minimum
     n.lines.s_nom_min = n_p.lines.s_nom_opt
-    dc_i = n.links[n.links.carrier == "DC"].index
+    dc_i = n.links[(n.links.carrier == "DC") & (n.links.build_year < year)].index
     n.links.loc[dc_i, "p_nom_min"] = n_p.links.loc[dc_i, "p_nom_opt"]
+
+    # offshore generators and links (H2 pipeline, DC links, and electrolysers) capacities set optimised
+    # capacities of previous as minimum if the value exceeds the minimum value
+    if offshore_hubs:
+        off_li_i = n_p.links.index[n_p.links.index.str.contains("Offshore")]
+        off_gens_i = n_p.generators.index[n_p.generators.index.str.contains("offwind")]
+        off_i = {"Link": off_li_i, "Generator": off_gens_i, "Store": pd.Index([])}
+        n.links.loc[off_li_i, "p_nom_min"] = pd.concat(
+            [n.links.loc[off_li_i, "p_nom_min"], n_p.links.loc[off_li_i, "p_nom_opt"]],
+            axis=1,
+        ).max(axis=1)
+        n.generators.loc[off_gens_i, "p_nom_min"] = pd.concat(
+            [
+                n.generators.loc[off_gens_i, "p_nom_min"],
+                n_p.generators.loc[off_gens_i, "p_nom_opt"],
+            ],
+            axis=1,
+        ).max(axis=1)
 
     for c in n_p.iterate_components(["Link", "Generator", "Store"]):
         attr = "e" if c.name == "Store" else "p"
@@ -88,6 +109,9 @@ def add_brownfield(
                 c.name,
                 chp_heat[c.df.loc[chp_heat, f"{attr}_nom_opt"] < threshold_chp_heat],
             )
+
+        # remove offshore hubs assets as they are added for each planning horizon (Offshore Hubs methodology)
+        n_p.remove(c.name, off_i[c.name])
 
         n_p.remove(
             c.name,
@@ -370,6 +394,7 @@ if __name__ == "__main__":
         h2_retrofit=snakemake.params.H2_retrofit,
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
+        offshore_hubs=snakemake.params.offshore_hubs,
     )
 
     disable_grid_expansion_if_limit_hit(n)

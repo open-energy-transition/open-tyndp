@@ -91,6 +91,7 @@ rule add_brownfield:
         dynamic_ptes_capacity=config_provider(
             "sector", "district_heating", "ptes", "dynamic_capacity"
         ),
+        offshore_hubs=config_provider("sector", "offshore_hubs"),
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfied_pecd),

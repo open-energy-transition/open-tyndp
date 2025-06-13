@@ -3135,6 +3135,7 @@ def add_offshore_generators_tyndp(
         marginal_cost=costs.at["offwind", "marginal_cost"],
         efficiency=costs.at["offwind", "efficiency"],
         p_max_pu=p_max_pu,
+        build_year=pyear,
         lifetime=costs.at["offwind", "lifetime"],
     )
 
@@ -3196,6 +3197,7 @@ def add_offshore_electrolysers_tyndp(
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
         capital_cost=costs.at["electrolysis", "capital_cost"],
+        build_year=pyear,
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
@@ -3263,7 +3265,7 @@ def add_offshore_grid_tyndp(
     # Add DC grid connections
     offshore_grid_dc = offshore_grid.query("carrier=='DC'").copy()
     offshore_grid_dc.index = offshore_grid_dc.apply(
-        lambda x: f"{x.bus0}-{x.bus1}-DC", axis=1
+        lambda x: f"{x.bus0}-{x.bus1}-Offshore DC", axis=1
     )
     offshore_grid_dc.loc[:, "capital_cost"] = (
         annuity_factor.get("HVDC submarine") * offshore_grid_dc["capex"]
@@ -3281,13 +3283,14 @@ def add_offshore_grid_tyndp(
         p_max_pu=offshore_grid_dc.p_max_pu,
         capital_cost=offshore_grid_dc.capital_cost,
         carrier="DC",
+        build_year=pyear,
         lifetime=costs.at["HVDC submarine", "lifetime"],
     )
 
     # Add H2 pipeline connections
     offshore_grid_h2 = offshore_grid.query("carrier=='H2'").copy()
     offshore_grid_h2.index = offshore_grid_h2.apply(
-        make_index, axis=1, prefix="H2 pipeline"
+        make_index, axis=1, prefix="Offshore H2 pipeline"
     )
     offshore_grid_h2.loc[:, "capital_cost"] = (
         annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
@@ -3306,6 +3309,7 @@ def add_offshore_grid_tyndp(
         p_max_pu=offshore_grid_h2.p_max_pu,
         capital_cost=offshore_grid_h2.capital_cost,
         carrier="H2 pipeline",
+        build_year=pyear,
         lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
     )
 

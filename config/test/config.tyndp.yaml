@@ -84,6 +84,7 @@ load:
     enable: false
   manual_adjustments: false
   supplement_synthetic: false
+
 pypsa_eur:
   Bus:
   - AC
