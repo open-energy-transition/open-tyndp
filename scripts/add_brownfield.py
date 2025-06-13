@@ -206,7 +206,9 @@ def disable_grid_expansion_if_limit_hit(n):
                 n.global_constraints.drop(name, inplace=True)
 
 
-def adjust_renewable_profiles(n, input_profiles, params, year):
+def adjust_renewable_profiles(
+    n, input_profiles, params, year, tyndp_renewable_carriers
+):
     """
     Adjusts renewable profiles according to the renewable technology specified,
     using the latest year below or equal to the selected year.
@@ -219,17 +221,6 @@ def adjust_renewable_profiles(n, input_profiles, params, year):
     )
 
     # TODO: hotfix remove filter for tyndp_renewable_carriers after tyndp generators are added
-    tyndp_renewable_carriers = (
-        [
-            subcarrier
-            for carrier in snakemake.params.electricity["pecd_renewable_profiles"][
-                "technologies"
-            ].values()
-            for subcarrier in carrier
-        ]
-        if snakemake.params.electricity["pecd_renewable_profiles"]["enable"]
-        else []
-    )
     if len(tyndp_renewable_carriers) > 0:
         logger.info(
             f"Hotfix until TYNDP renewable carriers are added. Skipping renewable carriers '{', '.join(tyndp_renewable_carriers)}'."
@@ -365,7 +356,21 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    adjust_renewable_profiles(n, snakemake.input, snakemake.params, year)
+    tyndp_renewable_carriers = (
+        [
+            subcarrier
+            for carrier in snakemake.params.electricity["pecd_renewable_profiles"][
+                "technologies"
+            ].values()
+            for subcarrier in carrier
+        ]
+        if snakemake.params.electricity["pecd_renewable_profiles"]["enable"]
+        else []
+    )
+
+    adjust_renewable_profiles(
+        n, snakemake.input, snakemake.params, year, tyndp_renewable_carriers
+    )
 
     add_build_year_to_new_assets(n, year)
 

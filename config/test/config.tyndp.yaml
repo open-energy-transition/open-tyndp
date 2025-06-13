@@ -56,7 +56,7 @@ electricity:
     Store: [H2]
     Link: [H2 pipeline]
 
-  renewable_carriers: [solar, solar-hsat, onwind, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh, hydro]
+  renewable_carriers: [solar, solar-hsat, onwind, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
 atlite:
   default_cutout: europe-2013-03-sarah3-era5
