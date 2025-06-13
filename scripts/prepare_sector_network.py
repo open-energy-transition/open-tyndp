@@ -25,6 +25,7 @@ from scipy.stats import beta
 from scripts._helpers import (
     configure_logging,
     get,
+    make_index,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -51,7 +52,7 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def define_spatial(nodes, options, buses_h2_file=None):
+def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
     """
     Namespace for spatial.
 
@@ -70,10 +71,31 @@ def define_spatial(nodes, options, buses_h2_file=None):
         - regional_oil_demand : bool
         - regional_coal_demand : bool
     buses_h2_file : str
-        Path to CSV file containing TYNDP H2 buses information
+        Path to the file containing TYNDP H2 buses information.
+    offshore_buses_fn : str
+        Path to the file containing offshore bus data.
     """
 
     spatial.nodes = nodes
+
+    # offshore hubs
+
+    if options.get("offshore_hubs") and offshore_buses_fn:
+        spatial.offshore_hubs = SimpleNamespace()
+        offshore_buses = pd.read_csv(offshore_buses_fn, index_col=0)
+        offshore_buses_h2 = offshore_buses.set_index(offshore_buses.index + " H2")
+        spatial.offshore_hubs.nodes = offshore_buses.index
+        spatial.offshore_hubs.nodes_h2 = offshore_buses_h2.index
+        spatial.offshore_hubs.x = offshore_buses.x
+        spatial.offshore_hubs.y = offshore_buses.y
+        spatial.offshore_hubs.x_h2 = offshore_buses_h2.x
+        spatial.offshore_hubs.y_h2 = offshore_buses_h2.y
+        spatial.offshore_hubs.locations = offshore_buses.location
+        spatial.offshore_hubs.locations_h2 = offshore_buses_h2.location
+        spatial.offshore_hubs.country = offshore_buses.location.str[:2]
+        spatial.offshore_hubs.country_h2 = offshore_buses_h2.location.str[:2]
+        spatial.offshore_hubs.type = offshore_buses.type
+        spatial.offshore_hubs.type_h2 = offshore_buses_h2.type
 
     # biomass
 
@@ -436,11 +458,8 @@ def create_network_topology(
     candidates_n = candidates[~positive_order].rename(columns=swap_buses)
     candidates = pd.concat([candidates_p, candidates_n])
 
-    def make_index(c):
-        return prefix + c.bus0 + connector + c.bus1
-
     topo = candidates.groupby(["bus0", "bus1"], as_index=False).mean()
-    topo.index = topo.apply(make_index, axis=1)
+    topo.index = topo.apply(make_index, axis=1, prefix=prefix, connector=connector)
 
     if not bidirectional:
         topo_reverse = topo.copy()
@@ -3008,6 +3027,385 @@ def add_gas_and_h2_infrastructure(
 
     if options["H2_network"] and not options["h2_topology_tyndp"]:
         add_h2_pipeline_new(n=n, costs=costs, logger=logger)
+
+
+def add_offshore_generators_tyndp(
+    n: pypsa.Network,
+    pyear: int,
+    offshore_generators_fn: str,
+    profiles: dict[str, str],
+    costs: pd.DataFrame,
+    logger: logging.Logger,
+):
+    """
+    Add offshore generators to the network model.
+
+    This function adds offshore generation capacity, various offshore wind
+    turbines (AC and H2), to the offshore hub buses in the network.
+
+    Existing capacities and potentials are adjusted for hydrogen-generating wind farms
+    to account for efficiency.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to add offshore generators to.
+    pyear : int
+        Planning horizon used to filter which reference generator data to include.
+    offshore_generators : str
+        Path to the file containing offshore generators configuration data.
+    profiles : dict[str, str]
+        Dictionary mapping technology names to profile file paths
+        e.g. {'offwind-dc': 'path/to/profile.nc'}
+    costs : pd.DataFrame
+        Technology costs assumptions.
+    logger : logging.Logger
+        Logger for output messages. If None, no logging is performed.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding offshore generators.
+    """
+    logger.info("Adding offshore generators")
+
+    offshore_generators = pd.read_csv(offshore_generators_fn).query("pyear==@pyear")
+
+    # Assign locations and index
+    mask = offshore_generators["carrier"].str.contains("h2")
+    offshore_generators.loc[mask, ["bus0", "location"]] = (
+        offshore_generators.loc[mask, ["bus0", "location"]] + " H2"
+    )
+    offshore_generators.index = (
+        offshore_generators.bus0 + " " + offshore_generators.carrier
+    )
+
+    # Adjust capacities and costs to account for efficiency
+    h2_idx = offshore_generators.filter(like="h2", axis=0).index
+    offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]] = (
+        offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]].mul(
+            costs.at["electrolysis", "efficiency"]
+        )
+    )
+    offshore_generators.loc[h2_idx, ["capex", "opex"]] = offshore_generators.loc[
+        h2_idx, ["capex", "opex"]
+    ].div(costs.at["electrolysis", "efficiency"])
+
+    # Determine capital_cost
+    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
+    offshore_generators.loc[:, "capital_cost"] = (
+        annuity_factor.get("electrolysis") * offshore_generators["capex"]
+        + offshore_generators["opex"]
+    ) * nyears
+
+    # Load PECD profiles
+    p_max_pu = []
+    for key, fn in profiles.items():
+        tech = key[len("profile_pecd_") :]
+        techs = offshore_generators[
+            offshore_generators.carrier.str.contains(tech)
+        ].carrier.unique()
+        techs = ["H2 " + tech_i if "h2" in tech_i else tech_i for tech_i in techs]
+
+        with xr.open_dataset(fn) as ds:
+            ds = ds.sel(
+                year=pyear, bin=0, time=n.snapshots, drop=True
+            )  # ToDo Remove time sel once sns are filtered in PECD data
+            p_max_pu_i = ds["profile"].to_pandas()
+
+        for tech_i in techs:
+            p_max_pu.append(p_max_pu_i.rename(columns=lambda x: x + " " + tech_i))
+
+    p_max_pu = pd.concat(p_max_pu, axis=1)
+    p_max_pu = p_max_pu.reindex(
+        offshore_generators.index, axis=1, fill_value=0
+    )  # ToDo Simplify once missing nodes are addressed in PECD data
+
+    # Add generators to the network
+    n.add(
+        "Generator",
+        offshore_generators.index,
+        bus=offshore_generators.location,
+        carrier=offshore_generators.carrier,
+        p_nom=offshore_generators.p_nom_min,
+        p_nom_min=offshore_generators.p_nom_min,
+        p_nom_max=offshore_generators.p_nom_max,
+        p_nom_extendable=offshore_generators.p_nom_extendable,
+        capital_cost=offshore_generators.capital_cost,
+        marginal_cost=costs.at["offwind", "marginal_cost"],
+        efficiency=costs.at["offwind", "efficiency"],
+        p_max_pu=p_max_pu,
+        build_year=pyear,
+        lifetime=costs.at["offwind", "lifetime"],
+    )
+
+
+def add_offshore_electrolysers_tyndp(
+    n: pypsa.Network,
+    pyear: int,
+    offshore_electrolysers_fn: str,
+    costs: pd.DataFrame,
+    logger: logging.Logger,
+    nyears: float = 1,
+):
+    """
+    Add offshore electrolysers to the network model.
+
+    This function adds offshore electrolysis capacity to the offshore hub buses in the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to add offshore generators to.
+    pyear : int
+        Planning horizon used to filter which reference generator data to include.
+    offshore_electrolysers_fn : str
+        Path to the file containing offshore electrolysers configuration data.
+    costs : pd.DataFrame
+        Technology costs assumptions.
+    logger : logging.Logger
+        Logger for output messages. If None, no logging is performed.
+    nyears : float, default 1
+        Number of years for which to scale the investment costs.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding offshore generators.
+    """
+    logger.info("Adding offshore electrolysers")
+
+    offshore_electrolysers = pd.read_csv(offshore_electrolysers_fn).query(
+        "pyear==@pyear"
+    )
+    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
+    offshore_electrolysers.index = (
+        offshore_electrolysers.bus0 + " H2 Offshore Electrolysis"
+    )
+
+    offshore_electrolysers.loc[:, "capital_cost"] = (
+        annuity_factor.get("electrolysis") * offshore_electrolysers["capex"]
+        + offshore_electrolysers["opex"]
+    ) * nyears
+
+    n.add(
+        "Link",
+        offshore_electrolysers.index,
+        bus0=offshore_electrolysers.bus0,
+        bus1=offshore_electrolysers.bus1,
+        p_nom_extendable=True,
+        carrier="H2 Electrolysis",
+        efficiency=costs.at["electrolysis", "efficiency"],
+        capital_cost=costs.at["electrolysis", "capital_cost"],
+        build_year=pyear,
+        lifetime=costs.at["electrolysis", "lifetime"],
+    )
+
+
+def map_h2_buses(n, df):
+    """
+    Map AC buses to H2 Z2 buses.
+    """
+    h2_busmap = (
+        n.buses.query(
+            "~Bus.str.contains('DRES') and carrier=='AC' and type==''"
+        ).location.str[:2]
+        + " H2 Z2"
+    )
+    df_mapped = df.assign(
+        bus0=lambda x: x["bus0"].map(h2_busmap).fillna(x["bus0"]),
+        bus1=lambda x: x["bus1"].map(h2_busmap).fillna(x["bus1"]),
+    )
+    return df_mapped
+
+
+def add_offshore_grid_tyndp(
+    n: pypsa.Network,
+    pyear: int,
+    offshore_grid_fn: str,
+    costs: pd.DataFrame,
+    logger: logging.Logger,
+    nyears: float = 1,
+):
+    """
+    Add offshore grid connections to the network model.
+
+    This function reads offshore grid configuration data and adds both DC and H2 pipeline links to the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to add offshore grid connections to.
+    pyear : int
+        Planning horizon used to filter which reference grid data to include.
+    offshore_grid_fn : str
+        Path to the file containing offshore grid configuration data.
+    costs : pd.DataFrame
+        Technology costs assumptions.
+    logger : logging.Logger
+        Logger for output messages. If None, no logging is performed.
+    nyears : float, default 1
+        Number of years for which to scale the investment costs.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding offshore grid links.
+
+
+    The capital costs are calculated as:
+    (annuity_factor * capex + opex) * nyears
+
+    """
+    logger.info("Adding offshore grid connections")
+
+    offshore_grid = pd.read_csv(offshore_grid_fn).query("pyear==@pyear")
+    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
+
+    # Add DC grid connections
+    offshore_grid_dc = offshore_grid.query("carrier=='DC'").copy()
+    offshore_grid_dc.index = offshore_grid_dc.apply(
+        lambda x: f"{x.bus0}-{x.bus1}-Offshore DC", axis=1
+    )
+    offshore_grid_dc.loc[:, "capital_cost"] = (
+        annuity_factor.get("HVDC submarine") * offshore_grid_dc["capex"]
+        + offshore_grid_dc["opex"]
+    ) * nyears
+
+    n.add(
+        "Link",
+        offshore_grid_dc.index,
+        bus0=offshore_grid_dc.bus0,
+        bus1=offshore_grid_dc.bus1,
+        p_nom_extendable=offshore_grid_dc.p_nom_extendable,
+        p_nom=offshore_grid_dc.p_nom,
+        p_min_pu=offshore_grid_dc.p_min_pu,
+        p_max_pu=offshore_grid_dc.p_max_pu,
+        capital_cost=offshore_grid_dc.capital_cost,
+        carrier="DC",
+        build_year=pyear,
+        lifetime=costs.at["HVDC submarine", "lifetime"],
+    )
+
+    # Add H2 pipeline connections
+    offshore_grid_h2 = offshore_grid.query("carrier=='H2'").copy()
+    offshore_grid_h2.index = offshore_grid_h2.apply(
+        make_index, axis=1, prefix="Offshore H2 pipeline"
+    )
+    offshore_grid_h2.loc[:, "capital_cost"] = (
+        annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
+        + offshore_grid_h2["opex"]
+    ) * nyears
+    offshore_grid_h2 = map_h2_buses(n, offshore_grid_h2)
+
+    n.add(
+        "Link",
+        offshore_grid_h2.index,
+        bus0=offshore_grid_h2.bus0,
+        bus1=offshore_grid_h2.bus1,
+        p_nom_extendable=offshore_grid_h2.p_nom_extendable,
+        p_nom=offshore_grid_h2.p_nom,
+        p_min_pu=offshore_grid_h2.p_min_pu,
+        p_max_pu=offshore_grid_h2.p_max_pu,
+        capital_cost=offshore_grid_h2.capital_cost,
+        carrier="H2 pipeline",
+        build_year=pyear,
+        lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
+    )
+
+
+def add_offshore_hubs_tyndp(
+    n: pypsa.Network,
+    pyear: int,
+    offshore_generators_fn: str,
+    offshore_electrolysers_fn: str,
+    offshore_grid_fn: str,
+    profiles: dict[str, str],
+    costs: pd.DataFrame,
+    spatial: SimpleNamespace,
+    logger: logging.Logger,
+    nyears: float = 1,
+):
+    """
+    Add offshore hubs and grid connections to the network model.
+
+    This function creates offshore hub infrastructure by adding both the physical
+    hubs (buses) and their interconnecting grid (DC and H2 pipeline links).
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to add offshore hubs and grid to.
+    pyear: int
+        Planning horizon used to filter which reference grid data to include.
+    offshore_generators_fn : str
+        Path to the file containing offshore generators configuration data.
+    offshore_electrolysers_fn : str
+        Path to the file containing offshore electrolysers configuration data.
+    offshore_grid_fn : str
+        Path to the file containing offshore grid configuration data.
+    profiles : dict[str, str]
+        Dictionary mapping technology names to profile file paths
+        e.g. {'offwind-dc': 'path/to/profile.nc'}
+    costs : pd.DataFrame
+        Technology costs assumptions.
+    spatial : object, optional
+        Object containing spatial information about nodes and their locations.
+    logger : logging.Logger, optional
+        Logger for output messages. If None, no logging is performed.
+    nyears : float
+        Number of years for which to scale the investment costs.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding offshore hubs
+
+    Notes
+    -----
+    Components added to the network:
+        - Offshore DC and H2 buses
+        - Offshore DC and H2 grid
+    """
+    logger.info("Adding offshore hubs")
+
+    n.add(
+        "Bus",
+        spatial.offshore_hubs.nodes,
+        x=spatial.offshore_hubs.x,
+        y=spatial.offshore_hubs.y,
+        location=spatial.offshore_hubs.locations,
+        country=spatial.offshore_hubs.country,
+        type=spatial.offshore_hubs.type,
+        carrier="AC",
+        unit="MWh_el",
+        v_nom=380,
+    )
+
+    n.add(
+        "Bus",
+        spatial.offshore_hubs.nodes_h2,
+        x=spatial.offshore_hubs.x_h2,
+        y=spatial.offshore_hubs.y_h2,
+        location=spatial.offshore_hubs.locations_h2,
+        country=spatial.offshore_hubs.country_h2,
+        type=spatial.offshore_hubs.type_h2,
+        carrier="H2",
+        unit="MWh_LHV",
+    )
+
+    # Add power production units
+    add_offshore_generators_tyndp(
+        n, pyear, offshore_generators_fn, profiles, costs, logger
+    )
+
+    # Add H2 production units
+    add_offshore_electrolysers_tyndp(
+        n, pyear, offshore_electrolysers_fn, costs, logger, nyears
+    )
+
+    # Add offshore DC and H2 grid connections
+    add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, logger, nyears)
 
 
 def check_land_transport_shares(shares):
@@ -7155,7 +7553,12 @@ if __name__ == "__main__":
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
 
     buses_h2_file = snakemake.input.buses_h2 if options["h2_topology_tyndp"] else None
-    spatial = define_spatial(pop_layout.index, options, buses_h2_file=buses_h2_file)
+    spatial = define_spatial(
+        pop_layout.index,
+        options,
+        offshore_buses_fn=snakemake.input.offshore_buses,
+        buses_h2_file=buses_h2_file,
+    )
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
         add_lifetime_wind_solar(n, costs)
@@ -7207,6 +7610,20 @@ if __name__ == "__main__":
         options=options,
         logger=logger,
     )
+
+    if snakemake.params.offshore_hubs:
+        add_offshore_hubs_tyndp(
+            n=n,
+            pyear=int(snakemake.wildcards.planning_horizons),
+            offshore_generators_fn=snakemake.input.offshore_generators,
+            offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
+            offshore_grid_fn=snakemake.input.offshore_grid,
+            profiles=profiles,
+            costs=costs,
+            spatial=spatial,
+            logger=logger,
+            nyears=nyears,
+        )
 
     add_battery_stores(n=n, nodes=pop_layout.index, costs=costs)
 

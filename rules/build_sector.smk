@@ -1362,6 +1362,39 @@ if config["sector"]["h2_topology_tyndp"]:
             "../scripts/build_tyndp_h2_imports.py"
 
 
+if config["sector"]["offshore_hubs"]:
+
+    rule build_tyndp_offshore_hubs:
+        params:
+            planning_horizons=config_provider("scenario", "planning_horizons"),
+            scenario=config_provider("tyndp_scenario"),
+            countries=config_provider("countries"),
+        input:
+            nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
+            grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
+            electrolysers=directory(
+                "data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx"
+            ),
+            generators=directory("data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx"),
+        output:
+            offshore_buses=resources("offshore_buses.csv"),
+            offshore_grid=resources("offshore_grid.csv"),
+            offshore_electrolysers=resources("offshore_electrolysers.csv"),
+            offshore_generators=resources("offshore_generators.csv"),
+            offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
+        log:
+            logs("build_tyndp_offshore_hubs.log"),
+        benchmark:
+            benchmarks("build_tyndp_offshore_hubs")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/build_tyndp_offshore_hubs.py"
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
@@ -1398,6 +1431,7 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
+        offshore_hubs=config_provider("sector", "offshore_hubs"),
     input:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
@@ -1545,6 +1579,26 @@ rule prepare_sector_network:
         h2_imports_tyndp=lambda w: (
             resources("h2_import_potentials_{planning_horizons}.csv")
             if config_provider("sector", "h2_topology_tyndp")(w)
+            else []
+        ),
+        offshore_buses=lambda w: (
+            resources("offshore_buses.csv")
+            if config_provider("sector", "offshore_hubs")(w)
+            else []
+        ),
+        offshore_grid=lambda w: (
+            resources("offshore_grid.csv")
+            if config_provider("sector", "offshore_hubs")(w)
+            else []
+        ),
+        offshore_electrolysers=lambda w: (
+            resources("offshore_electrolysers.csv")
+            if config_provider("sector", "offshore_hubs")(w)
+            else []
+        ),
+        offshore_generators=lambda w: (
+            resources("offshore_generators.csv")
+            if config_provider("sector", "offshore_hubs")(w)
             else []
         ),
     output:
