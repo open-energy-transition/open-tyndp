@@ -61,6 +61,7 @@ if __name__ == "__main__":
                 "Planning horizon doesn't match available TYNDP PECD data. "
                 f"Falling back to previous available year {year}."
             )
+        year_i = str(year)
         if year == 2050:
             logger.warning(
                 "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data instead."
@@ -74,7 +75,7 @@ if __name__ == "__main__":
             .rename_axis("time")
             .reset_index()
             .melt(id_vars=["time"], var_name="bus", value_name="profile")
-            .assign(bin=0, year=year)
+            .assign(bin=0, year=year_i)
             .set_index(["time", "bus", "bin", "year"])
             .to_xarray()
         )
