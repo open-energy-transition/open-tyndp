@@ -92,6 +92,7 @@ rule add_brownfield:
         dynamic_ptes_capacity=config_provider(
             "sector", "district_heating", "ptes", "dynamic_capacity"
         ),
+        offshore_hubs=config_provider("sector", "offshore_hubs"),
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfied_pecd),
@@ -140,6 +141,11 @@ rule solve_sector_network_myopic:
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
         ),
         costs=resources("costs_{planning_horizons}.csv"),
+        offshore_zone_trajectories=lambda w: (
+            resources("offshore_zone_trajectories.csv")
+            if config_provider("sector", "offshore_hubs")(w)
+            else []
+        ),
     output:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
