@@ -1138,17 +1138,30 @@ def add_offshore_hubs_constraint(
     off_electrolysers = n.links.loc[
         n.links.index.str.contains("Offshore Electrolysis")
     ].set_index("bus1")
-    eff = (
-        off_electrolysers.loc[h2_gens.bus]
-        .set_index(h2_gens_i)
-        .efficiency.rename_axis("Generator-ext")
-    )
-    p_nom = n.model["Generator-p_nom"]
+    eff = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
+    p_nom = n.model["Generator-p_nom"].rename({"Generator-ext": "Generator"})
     lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
 
-    rhs = n.generators.loc[dc_gens_i].p_nom_max.rename_axis("Generator-ext")
+    rhs = n.generators.loc[dc_gens_i].p_nom_max
 
     n.model.add_constraints(lhs <= rhs, name="Generator-off_h2_dc_pot")
+
+    # Constraint the maximum potential per zone
+    limit = (
+        pd.read_csv(offshore_zone_trajectories_fn, index_col=0)
+        .query("pyear == @planning_horizons")
+        .p_nom_max
+    )
+
+    off_gens_i = n.generators.loc[n.generators.index.str.contains("offwind")].index
+    eff = eff.reindex(off_gens_i, fill_value=1)
+    grouper = n.generators.loc[off_gens_i].bus.map(n.buses.location)
+    idx = pd.Index(set(limit.index).intersection(grouper))
+
+    lhs = (p_nom.loc[off_gens_i] / eff).groupby(grouper).sum().loc[idx]
+    rhs = limit.loc[idx]
+
+    n.model.add_constraints(lhs <= rhs, name="Generator-off_zone_pot")
 
 
 def add_co2_atmosphere_constraint(n, snapshots):
