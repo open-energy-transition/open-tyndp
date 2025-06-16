@@ -124,7 +124,7 @@ def add_brownfield(
 
         h2_pipe_capacity = n.links.loc[h2_pipelines, "p_nom"]
         h2_pipe_potential = n.links.loc[h2_pipelines, "p_nom_max"]
-        already_retrofitted = (
+        existing_capacity_p = (
             n.links.loc[h2_pipelines_fixed_i, "p_nom_opt"]
             .rename(lambda x: x.split("-2")[0] + f"-{year}")
             .groupby(level=0)
@@ -132,11 +132,11 @@ def add_brownfield(
         )
         remaining_capacity = (
             h2_pipe_capacity
-            - already_retrofitted.reindex(index=h2_pipe_capacity.index).fillna(0)
+            - existing_capacity_p.reindex(index=h2_pipe_capacity.index).fillna(0)
         ).clip(lower=0)
         remaining_potential = (
             h2_pipe_potential
-            - already_retrofitted.reindex(index=h2_pipe_capacity.index).fillna(0)
+            - existing_capacity_p.reindex(index=h2_pipe_capacity.index).fillna(0)
         ).clip(
             lower=0
         )  # this should anyway never be negative. We will still clip to account for rounding errors
