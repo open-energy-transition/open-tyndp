@@ -33,6 +33,7 @@ def add_brownfield(
     h2_retrofit=False,
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
+    h2_topology_tyndp=False,
 ):
     """
     Add brownfield capacity from previous network.
@@ -51,6 +52,8 @@ def add_brownfield(
         Ratio of hydrogen to methane capacity for pipeline retrofitting
     capacity_threshold : float
         Threshold for removing assets with low capacity
+    h2_topology_tyndp : bool
+        Whether to TYNDP H2 topology is used
     """
     logger.info(f"Preparing brownfield for the year {year}")
 
@@ -109,6 +112,36 @@ def add_brownfield(
         ) & n.component_attrs[c.name].status.str.contains("Input")
         for tattr in n.component_attrs[c.name].index[selection]:
             n.import_series_from_dataframe(c.pnl[tattr], c.name, tattr)
+
+    # adjust TYNDP H2 pipeline expansion by subtracting existing capacity from previous years from current year total capacity and potential
+    if h2_topology_tyndp:
+        h2_pipelines_fixed_i = n.links[
+            (n.links.carrier == "H2 pipeline") & (n.links.build_year != year)
+        ].index
+        h2_pipelines = n.links[
+            (n.links.carrier == "H2 pipeline") & (n.links.build_year == year)
+        ].index
+
+        h2_pipe_capacity = n.links.loc[h2_pipelines, "p_nom"]
+        h2_pipe_potential = n.links.loc[h2_pipelines, "p_nom_max"]
+        already_retrofitted = (
+            n.links.loc[h2_pipelines_fixed_i, "p_nom_opt"]
+            .rename(lambda x: x.split("-2")[0] + f"-{year}")
+            .groupby(level=0)
+            .sum()
+        )
+        remaining_capacity = (
+            h2_pipe_capacity
+            - already_retrofitted.reindex(index=h2_pipe_capacity.index).fillna(0)
+        ).clip(lower=0)
+        remaining_potential = (
+            h2_pipe_potential
+            - already_retrofitted.reindex(index=h2_pipe_capacity.index).fillna(0)
+        ).clip(
+            lower=0
+        )  # this should anyway never be negative. We will still clip to account for rounding errors
+        n.links.loc[h2_pipelines, ["p_nom_min", "p_nom"]] = remaining_capacity
+        n.links.loc[h2_pipelines, "p_nom_max"] = remaining_potential
 
     # deal with gas network
     if h2_retrofit:
@@ -367,6 +400,7 @@ if __name__ == "__main__":
         h2_retrofit=snakemake.params.H2_retrofit,
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
+        h2_topology_tyndp=snakemake.params.h2_topology_tyndp,
     )
 
     disable_grid_expansion_if_limit_hit(n)
