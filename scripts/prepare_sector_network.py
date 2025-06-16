@@ -3108,18 +3108,13 @@ def add_offshore_generators_tyndp(
         techs = ["H2 " + tech_i if "h2" in tech_i else tech_i for tech_i in techs]
 
         with xr.open_dataset(fn) as ds:
-            ds = ds.sel(
-                year=pyear, bin=0, time=n.snapshots, drop=True
-            )  # ToDo Remove time sel once sns are filtered in PECD data
+            ds = ds.sel(year=pyear, bin=0, time=n.snapshots, drop=True)
             p_max_pu_i = ds["profile"].to_pandas()
 
         for tech_i in techs:
             p_max_pu.append(p_max_pu_i.rename(columns=lambda x: x + " " + tech_i))
 
-    p_max_pu = pd.concat(p_max_pu, axis=1)
-    p_max_pu = p_max_pu.reindex(
-        offshore_generators.index, axis=1, fill_value=0
-    )  # ToDo Simplify once missing nodes are addressed in PECD data
+    p_max_pu = pd.concat(p_max_pu, axis=1)[offshore_generators.index]
 
     # Add generators to the network
     n.add(
