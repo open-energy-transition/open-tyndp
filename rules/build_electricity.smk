@@ -393,6 +393,30 @@ rule build_renewable_profiles:
         "../scripts/build_renewable_profiles.py"
 
 
+rule clean_pecd_data:
+    params:
+        scenario=config_provider("tyndp_scenario"),
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+    input:
+        offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
+        onshore_buses=resources("busmap_base_s_all.csv"),
+        fn_pecd="data/tyndp_2024_bundle/PECD",
+    output:
+        pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
+    log:
+        logs("clean_pecd_data_{technology}_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("clean_pecd_data_{technology}_{planning_horizons}")
+    threads: 4
+    resources:
+        mem_mb=4000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/clean_pecd_data.py"
+
+
 def input_data_pecd(w):
     return {
         f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
@@ -427,29 +451,6 @@ rule build_renewable_profiles_pecd:
         "../envs/environment.yaml"
     script:
         "../scripts/build_renewable_profiles_pecd.py"
-
-
-rule clean_pecd_data:
-    params:
-        scenario=config_provider("tyndp_scenario"),
-        snapshots=config_provider("snapshots"),
-    input:
-        offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
-        onshore_buses=resources("busmap_base_s_all.csv"),
-        fn_pecd="data/tyndp_2024_bundle/PECD",
-    output:
-        pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
-    log:
-        logs("clean_pecd_data_{technology}_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("clean_pecd_data_{technology}_{planning_horizons}")
-    threads: 4
-    resources:
-        mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
-    script:
-        "../scripts/clean_pecd_data.py"
 
 
 rule build_monthly_prices:
@@ -604,7 +605,7 @@ def input_class_regions(w):
         )
         for tech in set(config_provider("electricity", "renewable_carriers")(w))
         - {"hydro"}
-        - set(tyndp_renewable_profiles(w))
+        - set(tyndp_renewable_carriers(w))
     }
 
 
@@ -789,10 +790,16 @@ rule cluster_network:
         "../scripts/cluster_network.py"
 
 
-def tyndp_renewable_profiles(w):
+def tyndp_renewable_carriers(w):
     return (
-        config_provider("electricity", "tyndp_renewable_profiles", "technologies")(w)
-        if config_provider("electricity", "tyndp_renewable_profiles", "enable")(w)
+        [
+            subcarrier
+            for carrier in config_provider(
+                "electricity", "pecd_renewable_profiles", "technologies"
+            )(w).values()
+            for subcarrier in carrier
+        ]
+        if config_provider("electricity", "pecd_renewable_profiles", "enable")(w)
         else []
     )
 
@@ -805,7 +812,7 @@ def input_profile_tech(w):
             else f"profile_{tech}.nc"
         )
         for tech in set(config_provider("electricity", "renewable_carriers")(w))
-        - set(tyndp_renewable_profiles(w))
+        - set(tyndp_renewable_carriers(w))
     }
 
 

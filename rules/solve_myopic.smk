@@ -9,6 +9,7 @@ rule add_existing_baseyear:
         sector=config_provider("sector"),
         electricity=config_provider("electricity"),
         existing_capacities=config_provider("existing_capacities"),
+        carriers=config_provider("electricity", "renewable_carriers"),
         costs=config_provider("costs"),
         heat_pump_sources=config_provider("sector", "heat_pump_sources"),
         energy_totals_year=config_provider("energy", "energy_totals_year"),
@@ -62,7 +63,7 @@ def input_profile_tech_brownfield(w):
         f"profile_{tech}": resources("profile_{clusters}_" + tech + ".nc")
         for tech in (
             set(config_provider("electricity", "renewable_carriers")(w))
-            - set(tyndp_renewable_profiles(w))
+            - set(tyndp_renewable_carriers(w))
         )
         if tech != "hydro"
     }
@@ -71,7 +72,7 @@ def input_profile_tech_brownfield(w):
 def input_profile_tech_brownfied_pecd(w):
     return {
         f"profile_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
-        for tech in tyndp_renewable_profiles(w)
+        for tech in pecd_renewable_profiles(w)
     }
 
 

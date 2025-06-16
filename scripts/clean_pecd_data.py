@@ -36,7 +36,14 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def read_pecd_file(node: list, fn_pecd: str, cyear: str, pyear: str, technology: str):
+def read_pecd_file(
+    node: list,
+    fn_pecd: str,
+    cyear: str,
+    pyear: str,
+    technology: str,
+    sns: pd.DatetimeIndex,
+):
     fn = Path(fn_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
 
     if not os.path.isfile(fn):
@@ -45,8 +52,12 @@ def read_pecd_file(node: list, fn_pecd: str, cyear: str, pyear: str, technology:
     pecd_bus = pd.read_csv(
         fn,
         skiprows=10,
-        usecols=lambda name: name == "Date" or name == "Hour" or name == str(cyear),
-    )
+        usecols=lambda name: name == "Date"
+        or name == "Hour"
+        or name == str(cyear)
+        or name == str(float(cyear)),
+    ).rename(columns={str(float(cyear)): str(cyear)})
+
     datetime_str = f"{cyear}." + pecd_bus["Date"].str.cat(
         (pecd_bus["Hour"] - 1).astype(str), sep=" "
     )
@@ -54,6 +65,7 @@ def read_pecd_file(node: list, fn_pecd: str, cyear: str, pyear: str, technology:
         pecd_bus.set_index(pd.to_datetime(datetime_str, format="%Y.%d.%m. %H"))
         .drop(columns=["Date", "Hour"])
         .rename(columns={str(cyear): node})
+        .loc[sns]  # filter for snapshots only
     )
 
     return cf_pecd
@@ -73,7 +85,8 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Climate year from snapshots
-    cyear = get_snapshots(snakemake.params.snapshots)[0].year
+    sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
+    cyear = sns[0].year
     if int(cyear) < 1982 or int(cyear) > 2019:
         # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
         logger.warning(
@@ -90,6 +103,7 @@ if __name__ == "__main__":
         "offwind-ac": "Wind_Offshore",
         "offwind-dc": "Wind_Offshore",
         "offwind-float": "Wind_Offshore",
+        "offwind": "Wind_Offshore",
         "onwind": "Wind_Onshore",
         "solar": "LFSolarPV",
         "solar-hsat": "LFSolarPV",
@@ -118,11 +132,19 @@ if __name__ == "__main__":
         cyear=cyear,
         pyear=pyear,
         technology=pecd_tech,
+        sns=sns,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
         demand = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
-    pecd_df = pd.concat(demand, axis=1)
+    pecd_df = (
+        pd.concat(demand, axis=1)
+        .reindex(nodes, axis=1)
+        .fillna(0.0)  # include missing node data with empty columns
+        .rename(
+            columns=lambda x: x.replace("UK", "GB")
+        )  # replace UK with GB for naming convention
+    )
 
     pecd_df.to_csv(snakemake.output.pecd_data_clean)
