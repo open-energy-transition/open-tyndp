@@ -1140,11 +1140,12 @@ def add_offshore_hubs_constraint(
     ].set_index("bus1")
     eff = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
     p_nom = n.model["Generator-p_nom"].rename({"Generator-ext": "Generator"})
-    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
 
+    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
     rhs = n.generators.loc[dc_gens_i].p_nom_max
 
-    n.model.add_constraints(lhs <= rhs, name="Generator-off_h2_dc_pot")
+    if not lhs.empty:
+        n.model.add_constraints(lhs <= rhs, name="Generator-off_h2_dc_pot")
 
     # Constraint the maximum potential per zone
     limit = (
