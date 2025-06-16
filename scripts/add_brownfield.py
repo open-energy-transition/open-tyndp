@@ -62,24 +62,6 @@ def add_brownfield(
     dc_i = n.links[(n.links.carrier == "DC") & (n.links.build_year < year)].index
     n.links.loc[dc_i, "p_nom_min"] = n_p.links.loc[dc_i, "p_nom_opt"]
 
-    # offshore generators and links (H2 pipeline, DC links, and electrolysers) capacities set optimised
-    # capacities of previous as minimum if the value exceeds the minimum value
-    if offshore_hubs:
-        off_li_i = n_p.links.index[n_p.links.index.str.contains("Offshore")]
-        off_gens_i = n_p.generators.index[n_p.generators.index.str.contains("offwind")]
-        off_i = {"Link": off_li_i, "Generator": off_gens_i, "Store": pd.Index([])}
-        n.links.loc[off_li_i, "p_nom_min"] = pd.concat(
-            [n.links.loc[off_li_i, "p_nom_min"], n_p.links.loc[off_li_i, "p_nom_opt"]],
-            axis=1,
-        ).max(axis=1)
-        n.generators.loc[off_gens_i, "p_nom_min"] = pd.concat(
-            [
-                n.generators.loc[off_gens_i, "p_nom_min"],
-                n_p.generators.loc[off_gens_i, "p_nom_opt"],
-            ],
-            axis=1,
-        ).max(axis=1)
-
     for c in n_p.iterate_components(["Link", "Generator", "Store"]):
         attr = "e" if c.name == "Store" else "p"
 
@@ -110,9 +92,6 @@ def add_brownfield(
                 chp_heat[c.df.loc[chp_heat, f"{attr}_nom_opt"] < threshold_chp_heat],
             )
 
-        # remove offshore hubs assets as they are added for each planning horizon (Offshore Hubs methodology)
-        n_p.remove(c.name, off_i[c.name])
-
         n_p.remove(
             c.name,
             c.df.index[
@@ -133,6 +112,38 @@ def add_brownfield(
         ) & n.component_attrs[c.name].status.str.contains("Input")
         for tattr in n.component_attrs[c.name].index[selection]:
             n.import_series_from_dataframe(c.pnl[tattr], c.name, tattr)
+
+    # adjust TYNDP offshore expansion by subtracting existing capacity from previous years from current year total capacity and potential
+    if offshore_hubs:
+        filter = {"Link": "Offshore", "Generator": "offwind"}
+        for c in n.iterate_components(["Link", "Generator"]):
+            off_fixed_i = c.df[
+                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year != year)
+            ].index
+            off_i = c.df[
+                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year == year)
+            ].index
+
+            off_capacity = c.df.loc[off_i, "p_nom"]
+            off_potential = c.df.loc[off_i, "p_nom_max"]
+            already_existing = (
+                c.df.loc[off_fixed_i, "p_nom_opt"]
+                .rename(lambda x: x.split("-2")[0] + f"-{year}")
+                .groupby(level=0)
+                .sum()
+            )
+            remaining_capacity = (
+                off_capacity
+                - already_existing.reindex(index=off_capacity.index).fillna(0)
+            ).clip(lower=0)
+            remaining_potential = (
+                off_potential
+                - already_existing.reindex(index=off_capacity.index).fillna(0)
+            ).clip(
+                lower=0
+            )  # this should anyway never be negative. We will still clip to account for rounding errors
+            c.df.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
+            c.df.loc[off_i, "p_nom_max"] = remaining_potential
 
     # deal with gas network
     if h2_retrofit:

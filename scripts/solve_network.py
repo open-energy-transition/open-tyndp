@@ -1154,13 +1154,19 @@ def add_offshore_hubs_constraint(
         .p_nom_max
     )
 
-    off_gens_i = n.generators.loc[n.generators.index.str.contains("offwind")].index
-    eff = eff.reindex(off_gens_i, fill_value=1)
-    grouper = n.generators.loc[off_gens_i].bus.map(n.buses.location)
-    idx = pd.Index(set(limit.index).intersection(grouper))
+    ext_i = n.generators.p_nom_extendable
+    off_i = n.generators.index.str.contains("offwind")
 
-    lhs = (p_nom.loc[off_gens_i] / eff).groupby(grouper).sum().loc[idx]
-    rhs = limit.loc[idx]
+    off_gens_i = n.generators.loc[(off_i) & (ext_i)].index
+    grouper_ext = n.generators.loc[off_gens_i].bus.map(n.buses.location)
+    idx = pd.Index(set(limit.index).intersection(grouper_ext))
+    eff = eff.reindex(off_gens_i, fill_value=1)
+    lhs = (p_nom.loc[off_gens_i] / eff).groupby(grouper_ext).sum().loc[idx]
+
+    existing = n.generators.loc[(off_i) & ~(ext_i), "p_nom"]
+    grouper = n.generators.loc[existing.index].bus.map(n.buses.location)
+    existing = existing.groupby(grouper).sum().reindex(idx, fill_value=0)
+    rhs = limit.loc[idx] - existing
 
     n.model.add_constraints(lhs <= rhs, name="Generator-off_zone_pot")
 

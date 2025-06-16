@@ -3130,7 +3130,6 @@ def add_offshore_generators_tyndp(
         marginal_cost=costs.at["offwind", "marginal_cost"],
         efficiency=costs.at["offwind", "efficiency"],
         p_max_pu=p_max_pu,
-        build_year=pyear,
         lifetime=costs.at["offwind", "lifetime"],
     )
 
@@ -3192,7 +3191,6 @@ def add_offshore_electrolysers_tyndp(
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
         capital_cost=costs.at["electrolysis", "capital_cost"],
-        build_year=pyear,
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
@@ -3278,7 +3276,6 @@ def add_offshore_grid_tyndp(
         p_max_pu=offshore_grid_dc.p_max_pu,
         capital_cost=offshore_grid_dc.capital_cost,
         carrier="DC",
-        build_year=pyear,
         lifetime=costs.at["HVDC submarine", "lifetime"],
     )
 
@@ -3304,7 +3301,6 @@ def add_offshore_grid_tyndp(
         p_max_pu=offshore_grid_h2.p_max_pu,
         capital_cost=offshore_grid_h2.capital_cost,
         carrier="H2 pipeline",
-        build_year=pyear,
         lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
     )
 
