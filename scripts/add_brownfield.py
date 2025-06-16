@@ -242,11 +242,23 @@ def adjust_renewable_profiles(n, input_profiles, params, year):
         pd.Series(dr, index=dr).where(lambda x: x.isin(n.snapshots), pd.NA).ffill()
     )
 
+    fn_map = {i: i for i in params["carriers"]}
+    if params["carriers_pecd"].get("enable", False):
+        fn_map.update(
+            {
+                vi: k
+                for k, v in params["carriers_pecd"]["technologies"].items()
+                for vi in v
+            }
+        )
+
     for carrier in set(params["carriers"]):
         if carrier == "hydro":
             continue
 
-        with xr.open_dataset(getattr(input_profiles, "profile_" + carrier)) as ds:
+        with xr.open_dataset(
+            getattr(input_profiles, "profile_" + fn_map[carrier])
+        ) as ds:
             if ds.indexes["bus"].empty or "year" not in ds.indexes:
                 continue
 

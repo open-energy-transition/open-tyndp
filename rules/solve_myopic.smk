@@ -87,6 +87,7 @@ rule add_brownfield:
         electricity=config_provider("electricity"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         carriers=config_provider("electricity", "renewable_carriers"),
+        carriers_pecd=config_provider("electricity", "pecd_renewable_profiles"),
         heat_pump_sources=config_provider("sector", "heat_pump_sources"),
         tes=config_provider("sector", "tes"),
         dynamic_ptes_capacity=config_provider(
