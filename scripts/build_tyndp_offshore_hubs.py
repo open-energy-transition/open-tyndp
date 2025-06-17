@@ -45,14 +45,15 @@ def load_offshore_hubs(fn: str, countries: list[str]):
         "LON": "x",
     }
 
-    nodes = pd.read_excel(
-        fn,
-        sheet_name="NODE",
-    ).rename(columns=column_dict)
-
-    mask = nodes["Bus"].str.contains("OH")
-    nodes.loc[mask, "location"] = nodes.loc[mask, "Bus"]
-    nodes.loc[:, "country"] = nodes.loc[:, "location"].str[:2]
+    nodes = (
+        pd.read_excel(fn, sheet_name="NODE")
+        .rename(columns=column_dict)
+        .query("Bus.str.contains('OH')")
+        .assign(
+            location=lambda x: x.Bus,
+            country=lambda x: x.location.str[:2],
+        )
+    )
 
     nodes["geometry"] = nodes.apply(lambda row: Point(row["x"], row["y"]), axis=1)
     nodes = gpd.GeoDataFrame(nodes, geometry="geometry", crs=GEO_CRS)
