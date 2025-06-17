@@ -206,8 +206,8 @@ def load_offshore_electrolysers(
         DataFrame containing the formatted offshore electrolyser data.
     """
     column_dict = {
-        "NODE": "location",
-        "OFFSHORE_NODE": "bus0",
+        "NODE": "bus0",
+        "OFFSHORE_NODE": "location",
         "OFFSHORE_NODE_TYPE": "type",
         "YEAR": "pyear",
         "SCENARIO": "scenario",
@@ -231,8 +231,11 @@ def load_offshore_electrolysers(
         .query("pyear in @planning_horizons")
         .replace({"scenario": scenario_dict})
         .query("scenario == @scenario")
-        .assign(bus1=lambda x: x.bus0 + " H2")
+        .assign(country=lambda x: x.bus0.str[:2], bus1=lambda x: x.bus0 + " H2")
     )
+
+    mask = electrolysers["type"] == "Radial"
+    electrolysers.loc[mask, "bus1"] = electrolysers.loc[mask, "country"] + " H2 Z2"
 
     electrolysers[["capex", "opex"]] = electrolysers[["capex", "opex"]].mul(
         1e3
@@ -244,9 +247,7 @@ def load_offshore_electrolysers(
     ].replace("UK", "GB", regex=True)
 
     # filter selected countries
-    electrolysers = electrolysers.assign(country=lambda x: x.bus0.str[:2]).query(
-        "country in @countries"
-    )
+    electrolysers = electrolysers.query("country in @countries")
 
     return electrolysers
 
