@@ -115,7 +115,7 @@ def load_offshore_grid(
         "YEAR": "pyear",
         "SCENARIO": "scenario",
         "MARKET": "carrier",
-        "CAPACITY": "p_nom",
+        "CAPACITY": "p_nom_min",
         "CAPEX": "capex",
         "OPEX": "opex",
     }
