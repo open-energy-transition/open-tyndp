@@ -19,7 +19,7 @@ GEO_CRS = "EPSG:4326"
 
 def load_offshore_hubs(fn: str, countries: list[str]):
     """
-    Load offshore hubs coordinates and format data.
+    Load and process offshore hub coordinates from Excel file.
 
     Offshore Hubs (OH) nodes are situated offshore, while Offshore Radial (OR) nodes are removed from the data.
 
@@ -47,24 +47,14 @@ def load_offshore_hubs(fn: str, countries: list[str]):
     nodes = (
         pd.read_excel(fn, sheet_name="NODE")
         .rename(columns=column_dict)
-        .query("type != 'Radial'")
         .assign(
             location=lambda x: x.Bus,
             country=lambda x: x.location.str[:2],
         )
-        .drop(columns="HOME_NODE")
     )
 
     nodes["geometry"] = nodes.apply(lambda row: Point(row["x"], row["y"]), axis=1)
     nodes = gpd.GeoDataFrame(nodes, geometry="geometry", crs=GEO_CRS)
-
-    # rename UK in GB
-    nodes[["Bus", "location", "country"]] = nodes[
-        ["Bus", "location", "country"]
-    ].replace("UK", "GB", regex=True)
-
-    # filter selected countries
-    nodes = nodes.query("country in @countries")
 
     return nodes
 
@@ -250,29 +240,36 @@ def load_offshore_electrolysers(
     return electrolysers
 
 
-def get_shares(df, values, dropna=True):
-    df_share = (
-        df.pivot_table(
-            index=["bus0", "type", "pyear", "scenario"],
-            values=values,
-            columns="carrier",
-        )
-        .pipe(lambda df: df.div(df.sum(axis=1), axis=0))
-        .melt(ignore_index=False, value_name="tech_share")
-        .reset_index()
-    )
-    if dropna:
-        df_share = df_share.dropna(subset="tech_share")
-    return df_share
+def collect_from_layer(generators_e, generators_l, nodes):
+    """
+    Combine existing capacities with potentials and resolve bus allocations.
 
+    This function merges generator data from two sources: existing capacities (EXISTING sheet)
+    and potential capacities (LAYER sheet). It handles reallocation of radial wind farms by
+    correcting inconsistencies between EXISTING and LAYER data, particularly for offshore
+    radial connections that need to be mapped to hub connections.
 
-def collect_from_layer(generators_e, generators_l):
+    Parameters
+    ----------
+    generators_e : pd.DataFrame
+       Existing generator capacities.
+    generators_l : pd.DataFrame
+       Layer potential capacities. Contains candidate generators without explicit bus assignments.
+    nodes : pd.DataFrame
+       Node definitions. Used to deduce bus assignments for candidates lacking explicit bus information.
+
+    Returns
+    -------
+    pd.DataFrame
+       Combined generator dataframe with corrected bus allocations and merged existing
+       and potential capacities.
+    """
     # Identify reallocations of radial wind farms using LAYER_POTENTIAL
     idx = ["location", "bus0", "type", "pyear", "scenario", "carrier"]
     generators_el = generators_e.merge(
         generators_l,
         how="outer",
-        on=["bus0", "type", "pyear", "scenario", "carrier"],
+        on=["location", "type", "pyear", "scenario", "carrier"],
         suffixes=("", "_l"),
     )
 
@@ -280,61 +277,72 @@ def collect_from_layer(generators_e, generators_l):
         "carrier.str.contains('-r') "  # only radial connection
         "and p_nom_min != p_nom_min_l "  # when EXISTING and LAYER_POTENTIAL values are inconsistent
         "and ~(p_nom_min.isna() and p_nom_min_l == 0)"  # treat missing values and zeros as equivalent
-    )
+    )[idx + ["p_nom_min"]]
 
     # Fix EXISTING technologies by reallocating radial to hubs
-    generators_e_fixed = generators_e.copy().set_index(idx)
-    corrections = radial_inconsistent.assign(
-        location=lambda x: x.bus0, carrier=lambda x: x.carrier.str.replace("-r", "-oh")
-    ).set_index(idx)
+    corrections_radial = radial_inconsistent.assign(
+        bus0=lambda x: x.location, carrier=lambda x: x.carrier.str.replace("-r", "-oh")
+    )
     generators_e_fixed = (
         pd.concat(
             [
-                generators_e_fixed.drop(radial_inconsistent.set_index(idx).index),
-                corrections[generators_e_fixed.columns],
+                generators_e.set_index(idx).drop(
+                    radial_inconsistent.set_index(idx).index
+                ),
+                corrections_radial.set_index(idx),
             ]
         )
         .groupby(level=list(range(len(idx))))
         .sum()
+        .reset_index()
+        .assign(carrier_mapped=lambda x: x.carrier.str.replace("h2", "dc", regex=True))
+    )
+    generators_l_fixed = (
+        generators_l.drop(columns="p_nom_min")
+        .query("p_nom_max != 0")
+        .rename(columns={"carrier": "carrier_mapped"})
     )
 
-    # Calculate technology shares, considering PEMMDB related reallocations
-    tech_shares = get_shares(generators_e_fixed, values="p_nom_min")
-
-    # Apply H2 to DC carrier mapping and get relevant shares
-    h2_shares = (
-        tech_shares.query("carrier.str.contains('h2')")
-        .assign(
-            carrier_mapped=lambda x: x.carrier.str.replace(
-                "h2", "dc", regex=True
-            ).str.replace("-r", "-oh", regex=True)
-        )
-        .drop(columns=["tech_share", "carrier"])
-        .merge(tech_shares, how="left")
-    )
-
-    # Apply shares to data to calculate existing capacities
+    # Combine existing capacities with potentials
+    # Set identical potentials for both hydrogen- and electricity-generating farms
     generators = (
-        generators_l.merge(
-            h2_shares,
+        generators_e_fixed.merge(
+            generators_l_fixed,
             how="outer",
-            left_on=["bus0", "type", "pyear", "scenario", "carrier"],
-            right_on=["bus0", "type", "pyear", "scenario", "carrier_mapped"],
-            suffixes=("_x", ""),
+            on=["location", "type", "pyear", "scenario", "carrier_mapped"],
         )
         .assign(
-            tech_share=lambda x: x.tech_share.fillna(1),
-            carrier=lambda x: x.carrier.fillna(x.carrier_x),
-            p_nom_min=lambda x: x.p_nom_min * x.tech_share,
+            p_nom_min=lambda df: df.p_nom_min.fillna(0),
+            carrier=lambda df: df.carrier.fillna(df.carrier_mapped),
         )
-        .drop(columns=["carrier_x", "tech_share", "carrier_mapped"])
+        .drop(columns="carrier_mapped")
     )
+
+    # Fill missing buses
+    generators = (
+        generators.merge(nodes[["location", "HOME_NODE"]], how="left", on="location")
+        .assign(
+            bus0=lambda df: df.bus0.fillna(
+                df.HOME_NODE.where(df.carrier.str.contains("-r"), df.location)
+            )
+        )
+        .drop(columns="HOME_NODE")
+    )
+
+    # Remove duplicates introduced by LAYER
+    generators = generators.sort_values(
+        by="p_nom_min", ascending=False
+    ).drop_duplicates(subset=idx)
 
     return generators
 
 
 def load_offshore_generators(
-    fn: str, scenario: str, planning_horizons: list[int], countries: list[str]
+    fn: str,
+    nodes: pd.DataFrame,
+    scenario: str,
+    planning_horizons: list[int],
+    countries: list[str],
 ):
     """
     Load offshore generators data and format data.
@@ -353,6 +361,8 @@ def load_offshore_generators(
     ----------
     fn : str
         Path to the Excel file containing offshore generators data.
+    nodes : pd.DataFrame
+        DataFrame containing node information.
     scenario : str
         Scenario identifier to filter the grid data. Must be one of the scenario
         codes: "DE" (Distributed Energy), "GA" (Global Ambition), or
@@ -371,8 +381,8 @@ def load_offshore_generators(
         DataFrame containing the zone potentials trajectories
     """
     column_names = {
-        "NODE": "location",
-        "OFFSHORE_NODE": "bus0",
+        "NODE": "bus0",
+        "OFFSHORE_NODE": "location",
         "OFFSHORE_NODE_TYPE": "type",
         "YEAR": "pyear",
         "SCENARIO": "scenario",
@@ -402,16 +412,19 @@ def load_offshore_generators(
     }
 
     # Load data
-    def load_generators(sheet_name):
-        generators = (
-            pd.read_excel(
-                fn,
-                sheet_name=sheet_name,
+    def load_generators(sheet_name, tech_switch=None):
+        generators = pd.read_excel(
+            fn,
+            sheet_name=sheet_name,
+        )
+        if tech_switch:
+            generators = generators.dropna(subset=tech_switch).assign(
+                TECH1=lambda df: df[tech_switch]
             )
-            .rename(columns=column_names)
-            .query("pyear in @planning_horizons")
+        generators = (
+            generators.rename(columns=column_names)
             .replace({"scenario": scenario_dict})
-            .query("scenario == @scenario")
+            .query("pyear in @planning_horizons and scenario == @scenario")
             .assign(
                 carrier=lambda x: "offwind-"
                 + x.carrier.str.lower().replace("_", "-", regex=True)
@@ -421,7 +434,11 @@ def load_offshore_generators(
         return generators
 
     generators_e = load_generators("EXISTING")
-    generators_l = load_generators("LAYER_POTENTIAL")
+    generators_l_e = load_generators("LAYER_POTENTIAL")
+    generators_l_h2 = load_generators("LAYER_POTENTIAL", tech_switch="TECH2").drop(
+        columns="p_nom_min"
+    )
+    generators_l = pd.concat([generators_l_e, generators_l_h2])
     generators_z = load_generators("ZONE_POTENTIAL").drop(
         columns=["carrier", "p_nom_min"]
     )
@@ -431,13 +448,13 @@ def load_offshore_generators(
     )  # kEUR/MW to EUR/MW
 
     # Collect existing capacities and potentials in LAYER_POTENTIAL using H2 tech shares from EXISTING
-    generators = collect_from_layer(generators_e, generators_l)
+    generators = collect_from_layer(generators_e, generators_l, nodes)
 
     # Collect potentials trajectories in ZONE_POTENTIAL
     zone_trajectories = generators_z
 
     # Resolve discrepancy in DEOH002
-    idx = zone_trajectories.query("bus0=='DEOH002' and pyear in [2045, 2050]").index
+    idx = zone_trajectories.query("location=='DEOH002' and pyear in [2045, 2050]").index
     zone_trajectories.loc[idx, "p_nom_max"] = (
         zone_trajectories.loc[idx, "p_nom_max"] - 526
     )
@@ -446,30 +463,31 @@ def load_offshore_generators(
     generators = generators.merge(
         generators_c,
         how="left",
-        on=["bus0", "pyear", "scenario", "type", "carrier"],
+        on=["bus0", "location", "pyear", "scenario", "type", "carrier"],
     )
 
-    # Ensure that all cost assumptions are present
-    idx = generators[["capex", "opex"]].isna().any(axis=1)
-    if not (generators.loc[idx].p_nom_min == 0).all():
+    # Validate that all required cost assumptions are defined
+    if generators[["capex", "opex"]].isna().any().any():
         raise RuntimeError("Missing generator cost data in input dataset.")
-    generators = generators.dropna(subset=["capex", "opex"])
     generators.loc[:, "p_nom_extendable"] = True
+
+    # Assign bus0 as location to establish home market association for radial nodes
+    generators.loc[:, "location"] = generators.loc[:, "bus0"]
 
     # Rename UK in GB
     generators[["bus0", "location"]] = generators[["bus0", "location"]].replace(
         "UK", "GB", regex=True
     )
-    zone_trajectories["bus0"] = zone_trajectories["bus0"].replace(
+    zone_trajectories["location"] = zone_trajectories["location"].replace(
         "UK", "GB", regex=True
     )
 
     # Filter selected countries
-    generators = generators.assign(country=lambda x: x.bus0.str[:2]).query(
+    generators = generators.assign(country=lambda x: x.location.str[:2]).query(
         "country in @countries"
     )
     zone_trajectories = zone_trajectories.assign(
-        country=lambda x: x.bus0.str[:2]
+        country=lambda x: x.location.str[:2]
     ).query("country in @countries")
 
     return generators, zone_trajectories
@@ -510,9 +528,18 @@ if __name__ == "__main__":
 
     generators, zone_trajectories = load_offshore_generators(
         snakemake.input.generators,
+        nodes,
         snakemake.params["scenario"],
         planning_horizons,
         countries,
+    )
+
+    # Convert country codes and retain only specified countries and offshore wind hubs
+    nodes[["Bus", "location", "country"]] = nodes[
+        ["Bus", "location", "country"]
+    ].replace("UK", "GB", regex=True)
+    nodes = nodes.query("type != 'Radial' and country in @countries").drop(
+        columns="HOME_NODE"
     )
 
     # Save data

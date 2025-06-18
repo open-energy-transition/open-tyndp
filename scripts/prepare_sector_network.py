@@ -3073,8 +3073,8 @@ def add_offshore_generators_tyndp(
 
     # Assign locations and index
     mask = offshore_generators["carrier"].str.contains("h2")
-    offshore_generators.loc[mask, ["bus0", "location"]] = (
-        offshore_generators.loc[mask, ["bus0", "location"]] + " H2"
+    offshore_generators.loc[mask, "bus0"] = (
+        offshore_generators.loc[mask, "bus0"] + " H2"
     )
     offshore_generators.index = (
         offshore_generators.bus0 + " " + offshore_generators.carrier
@@ -3114,13 +3114,15 @@ def add_offshore_generators_tyndp(
         for tech_i in techs:
             p_max_pu.append(p_max_pu_i.rename(columns=lambda x: x + " " + tech_i))
 
-    p_max_pu = pd.concat(p_max_pu, axis=1)[offshore_generators.index]
+    p_max_pu = pd.concat(p_max_pu, axis=1).reindex(
+        offshore_generators.index, fill_value=0
+    )
 
     # Add generators to the network
     n.add(
         "Generator",
         offshore_generators.index,
-        bus=offshore_generators.location,
+        bus=offshore_generators.bus0,
         carrier=offshore_generators.carrier,
         p_nom=offshore_generators.p_nom_min,
         p_nom_min=offshore_generators.p_nom_min,
