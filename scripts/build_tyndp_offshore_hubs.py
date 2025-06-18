@@ -94,8 +94,7 @@ def load_offshore_grid(
     fn : str
         Path to the Excel file containing offshore grid data.
     nodes : pd.DataFrame
-        DataFrame containing node information (currently not used in function body
-        but may be needed for validation or future functionality).
+        DataFrame containing node information.
     scenario : str
         Scenario identifier to filter the grid data. Must be one of the scenario
         codes: "DE" (Distributed Energy), "GA" (Global Ambition), or
@@ -128,17 +127,10 @@ def load_offshore_grid(
     }
 
     # Load reference grid
-    grid = (
-        pd.read_excel(
-            fn,
-            sheet_name="Reference grid",
-        )
-        .rename(columns=column_dict)
-        .assign(
-            p_min_pu=0,
-            p_max_pu=1,
-        )
-    )
+    grid = pd.read_excel(
+        fn,
+        sheet_name="Reference grid",
+    ).rename(columns=column_dict)
     grid["carrier"] = grid["carrier"].replace("E", "DC")
     grid = expand_all_scenario(grid, scenario_dict.values()).query(
         "scenario == @scenario"
@@ -151,8 +143,8 @@ def load_offshore_grid(
             sheet_name="COST",
         )
         .rename(columns=column_dict)
-        .query("pyear in @planning_horizons")
         .replace({"scenario": scenario_dict})
+        .query("pyear in @planning_horizons and scenario == @scenario")
     )
     grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
         1e3
@@ -161,22 +153,28 @@ def load_offshore_grid(
 
     # Merge information
     grid = grid.merge(
-        grid_costs, how="left", on=["bus0", "bus1", "pyear", "scenario", "carrier"]
+        grid_costs, how="outer", on=["bus0", "bus1", "pyear", "scenario", "carrier"]
+    ).assign(
+        p_min_pu=0,
+        p_max_pu=1,
     )
 
     # Assume non-extendable when missing data
     # TODO Validate assumption
     grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
     grid[["capex", "opex"]] = grid[["capex", "opex"]].fillna(0)
+    grid["p_nom_min"] = grid["p_nom_min"].fillna(0)
 
     # Rename UK in GB
     grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
 
-    # Filter selected countries
+    # Filter selected countries and nodes
     grid = grid.assign(
         country0=lambda x: x.bus0.str[:2],
         country1=lambda x: x.bus1.str[:2],
-    ).query("country0 in @countries and country1 in @countries")
+    ).query(
+        "country0 in @countries and country1 in @countries and ~bus0.str.contains('OR') and ~bus1.str.contains('OR')"
+    )
 
     return grid
 
