@@ -21,7 +21,7 @@ def load_offshore_hubs(fn: str, countries: list[str]):
     """
     Load offshore hubs coordinates and format data.
 
-    Offshore Hubs (OH) nodes are situated offshore, while Offshore Radial (OR) nodes are located in the homeland market node.
+    Offshore Hubs (OH) nodes are situated offshore, while Offshore Radial (OR) nodes are removed from the data.
 
     Parameters
     ----------
@@ -40,7 +40,6 @@ def load_offshore_hubs(fn: str, countries: list[str]):
     column_dict = {
         "OFFSHORE_NODE": "Bus",
         "OFFSHORE_NODE_TYPE": "type",
-        "HOME_NODE": "location",
         "LAT": "y",
         "LON": "x",
     }
@@ -48,11 +47,12 @@ def load_offshore_hubs(fn: str, countries: list[str]):
     nodes = (
         pd.read_excel(fn, sheet_name="NODE")
         .rename(columns=column_dict)
-        .query("Bus.str.contains('OH')")
+        .query("type != 'Radial'")
         .assign(
             location=lambda x: x.Bus,
             country=lambda x: x.location.str[:2],
         )
+        .drop(columns="HOME_NODE")
     )
 
     nodes["geometry"] = nodes.apply(lambda row: Point(row["x"], row["y"]), axis=1)
