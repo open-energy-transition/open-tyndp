@@ -205,7 +205,6 @@ def load_offshore_electrolysers(
     """
     column_dict = {
         "NODE": "bus0",
-        "OFFSHORE_NODE": "location",
         "OFFSHORE_NODE_TYPE": "type",
         "YEAR": "pyear",
         "SCENARIO": "scenario",
@@ -230,6 +229,7 @@ def load_offshore_electrolysers(
         .replace({"scenario": scenario_dict})
         .query("scenario == @scenario")
         .assign(country=lambda x: x.bus0.str[:2], bus1=lambda x: x.bus0 + " H2")
+        .drop(columns="OFFSHORE_NODE")
     )
 
     mask = electrolysers["type"] == "Radial"
@@ -240,9 +240,9 @@ def load_offshore_electrolysers(
     )  # kEUR/MW to EUR/MW
 
     # rename UK in GB
-    electrolysers[["bus0", "bus1", "location"]] = electrolysers[
-        ["bus0", "bus1", "location"]
-    ].replace("UK", "GB", regex=True)
+    electrolysers[["bus0", "bus1"]] = electrolysers[["bus0", "bus1"]].replace(
+        "UK", "GB", regex=True
+    )
 
     # filter selected countries
     electrolysers = electrolysers.query("country in @countries")
