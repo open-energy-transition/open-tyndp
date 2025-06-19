@@ -3075,7 +3075,7 @@ def add_offshore_generators_tyndp(
     mask = offshore_generators["carrier"].str.contains("h2")
     offshore_generators.loc[mask, "bus"] = offshore_generators.loc[mask, "bus"] + " H2"
     offshore_generators.index = (
-        offshore_generators.location + " " + offshore_generators.carrier
+        offshore_generators.location + " 0 " + offshore_generators.carrier
     )
 
     # Adjust capacities and costs to account for efficiency
@@ -3105,11 +3105,13 @@ def add_offshore_generators_tyndp(
         ].carrier.unique()
 
         with xr.open_dataset(fn) as ds:
-            ds = ds.sel(year=pyear, bin=0, time=n.snapshots, drop=True)
-            p_max_pu_i = ds["profile"].to_pandas()
+            ds = ds.stack(bus_bin=["bus", "bin"])
+            p_max_pu_i = ds["profile"].sel(year=pyear, time=n.snapshots).to_pandas()
 
         for tech_i in techs:
-            p_max_pu.append(p_max_pu_i.rename(columns=lambda x: x + " " + tech_i))
+            p_max_pu_t = p_max_pu_i.copy()
+            p_max_pu_t.columns = p_max_pu_t.columns.map(flatten) + f" {tech_i}"
+            p_max_pu.append(p_max_pu_t)
 
     p_max_pu = pd.concat(p_max_pu, axis=1).reindex(offshore_generators.index, axis=1)
 

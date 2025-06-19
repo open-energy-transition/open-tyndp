@@ -286,7 +286,8 @@ def adjust_renewable_profiles(n, input_profiles, params, year):
             p_max_pu = p_max_pu.groupby(snapshotmaps).mean()
 
             # replace renewable time series
-            n.generators_t.p_max_pu.loc[:, p_max_pu.columns] = p_max_pu
+            idx = n.generators[n.generators.carrier == carrier].index
+            n.generators_t.p_max_pu.loc[:, p_max_pu[idx].columns] = p_max_pu[idx]
 
 
 def update_heat_pump_efficiency(n: pypsa.Network, n_p: pypsa.Network, year: int):
