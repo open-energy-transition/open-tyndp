@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: : 2024 The PyPSA-Eur Authors
+# SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
 """
@@ -12,6 +12,7 @@ import multiprocessing as mp
 from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from _helpers import configure_logging, get_snapshots, set_scenario_config
 from tqdm import tqdm
@@ -23,6 +24,16 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
+    pyear_index = pyear
+
+    # handle intermediate years
+    # TODO: Possibly improve this with linear interpolation for 2035 and 2045
+    if pyear not in [2030, 2040, 2050]:
+        pyear = np.clip(10 * (pyear // 10), 2030, 2050)
+        logger.warning(
+            "Planning horizon doesn't match available 2024 TYNDP electricity demand data. "
+            f"Falling back to previous available year {pyear}."
+        )
     if scenario == "NT":
         if pyear == 2050:
             logger.warning(
@@ -84,7 +95,7 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
     demand = pd.concat(data, axis=1).droplevel(1, axis=1)
 
     # need to reindex load time series to target year
-    demand.index = demand.index.map(lambda t: t.replace(year=pyear))
+    demand.index = demand.index.map(lambda t: t.replace(year=pyear_index))
 
     # rename UK in GB
     demand.columns = demand.columns.str.replace("UK", "GB")

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2024 The PyPSA-Eur Authors
+# SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
 """
