@@ -471,9 +471,6 @@ def load_offshore_generators(
         raise RuntimeError("Missing generator cost data in input dataset.")
     generators.loc[:, "p_nom_extendable"] = True
 
-    # Assign bus0 as location to establish home market association for radial nodes
-    generators.loc[:, "location"] = generators.loc[:, "bus0"]
-
     # Rename UK in GB
     generators[["bus0", "location"]] = generators[["bus0", "location"]].replace(
         "UK", "GB", regex=True
