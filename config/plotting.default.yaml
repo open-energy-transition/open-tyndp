@@ -275,6 +275,14 @@ plotting:
     offwind-float: "#b5e2fa"
     offshore wind (Float): "#b5e2fa"
     offshore wind float: "#b5e2fa"
+    offwind-ac-fb-r: "#d0e5f7"
+    offwind-ac-fl-r: "#a8c5e8"
+    offwind-dc-fb-r: "#b8daf5"
+    offwind-dc-fl-r: "#85b8e6"
+    offwind-dc-fb-oh: "#8fbfec"
+    offwind-dc-fl-oh: "#5a9bd9"
+    offwind-h2-fb-oh: "#c47dbd"
+    offwind-h2-fl-oh: "#9d4d96"
     # water
     hydro: '#298c81'
     hydro reservoir: '#298c81'
