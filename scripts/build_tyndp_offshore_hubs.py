@@ -230,9 +230,9 @@ def load_offshore_electrolysers(
     )  # kEUR/MW to EUR/MW
 
     # rename UK in GB
-    electrolysers[["bus0", "bus1"]] = electrolysers[["bus0", "bus1"]].replace(
-        "UK", "GB", regex=True
-    )
+    electrolysers[["bus0", "bus1", "country"]] = electrolysers[
+        ["bus0", "bus1", "country"]
+    ].replace("UK", "GB", regex=True)
 
     # filter selected countries
     electrolysers = electrolysers.query("country in @countries")
