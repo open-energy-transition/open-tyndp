@@ -3073,9 +3073,7 @@ def add_offshore_generators_tyndp(
 
     # Assign locations and index
     mask = offshore_generators["carrier"].str.contains("h2")
-    offshore_generators.loc[mask, "bus0"] = (
-        offshore_generators.loc[mask, "bus0"] + " H2"
-    )
+    offshore_generators.loc[mask, "bus"] = offshore_generators.loc[mask, "bus"] + " H2"
     offshore_generators.index = (
         offshore_generators.location + " " + offshore_generators.carrier
     )
@@ -3119,7 +3117,7 @@ def add_offshore_generators_tyndp(
     n.add(
         "Generator",
         offshore_generators.index,
-        bus=offshore_generators.bus0,
+        bus=offshore_generators.bus,
         carrier=offshore_generators.carrier,
         p_nom=offshore_generators.p_nom_min,
         p_nom_min=offshore_generators.p_nom_min,

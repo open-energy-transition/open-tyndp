@@ -265,7 +265,7 @@ def collect_from_layer(generators_e, generators_l, nodes):
        and potential capacities.
     """
     # Identify reallocations of radial wind farms using LAYER_POTENTIAL
-    idx = ["location", "bus0", "type", "pyear", "scenario", "carrier"]
+    idx = ["location", "bus", "type", "pyear", "scenario", "carrier"]
     generators_el = generators_e.merge(
         generators_l,
         how="outer",
@@ -281,7 +281,7 @@ def collect_from_layer(generators_e, generators_l, nodes):
 
     # Fix EXISTING technologies by reallocating radial to hubs
     corrections_radial = radial_inconsistent.assign(
-        bus0=lambda x: x.location, carrier=lambda x: x.carrier.str.replace("-r", "-oh")
+        bus=lambda x: x.location, carrier=lambda x: x.carrier.str.replace("-r", "-oh")
     )
     generators_e_fixed = (
         pd.concat(
@@ -322,7 +322,7 @@ def collect_from_layer(generators_e, generators_l, nodes):
     generators = (
         generators.merge(nodes[["location", "HOME_NODE"]], how="left", on="location")
         .assign(
-            bus0=lambda df: df.bus0.fillna(
+            bus=lambda df: df.bus.fillna(
                 df.HOME_NODE.where(df.carrier.str.contains("-r"), df.location)
             )
         )
@@ -381,7 +381,7 @@ def load_offshore_generators(
         DataFrame containing the zone potentials trajectories
     """
     column_names = {
-        "NODE": "bus0",
+        "NODE": "bus",
         "OFFSHORE_NODE": "location",
         "OFFSHORE_NODE_TYPE": "type",
         "YEAR": "pyear",
@@ -463,7 +463,7 @@ def load_offshore_generators(
     generators = generators.merge(
         generators_c,
         how="left",
-        on=["bus0", "location", "pyear", "scenario", "type", "carrier"],
+        on=["bus", "location", "pyear", "scenario", "type", "carrier"],
     )
 
     # Validate that all required cost assumptions are defined
@@ -472,7 +472,7 @@ def load_offshore_generators(
     generators.loc[:, "p_nom_extendable"] = True
 
     # Rename UK in GB
-    generators[["bus0", "location"]] = generators[["bus0", "location"]].replace(
+    generators[["bus", "location"]] = generators[["bus", "location"]].replace(
         "UK", "GB", regex=True
     )
     zone_trajectories["location"] = zone_trajectories["location"].replace(
