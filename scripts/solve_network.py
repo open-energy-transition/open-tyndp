@@ -1156,15 +1156,16 @@ def add_offshore_hubs_constraint(
 
     ext_i = n.generators.p_nom_extendable
     off_i = n.generators.index.str.contains("offwind")
+    gens = n.generators.assign(zone=lambda df: df.index.str.split().str[0])
 
-    off_gens_i = n.generators.loc[(off_i) & (ext_i)].index
-    grouper_ext = n.generators.loc[off_gens_i].bus.map(n.buses.location)
+    off_gens_i = gens.loc[(off_i) & (ext_i)].index
+    grouper_ext = gens.loc[off_gens_i].zone
     idx = pd.Index(set(limit.index).intersection(grouper_ext))
     eff = eff.reindex(off_gens_i, fill_value=1)
     lhs = (p_nom.loc[off_gens_i] / eff).groupby(grouper_ext).sum().loc[idx]
 
-    existing = n.generators.loc[(off_i) & ~(ext_i), "p_nom"]
-    grouper = n.generators.loc[existing.index].bus.map(n.buses.location)
+    existing = gens.loc[(off_i) & ~(ext_i), "p_nom"]
+    grouper = gens.loc[existing.index].zone
     existing = existing.groupby(grouper).sum().reindex(idx, fill_value=0)
     rhs = limit.loc[idx] - existing
 
