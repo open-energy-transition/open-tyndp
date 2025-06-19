@@ -1134,7 +1134,7 @@ def add_offshore_hubs_constraint(
     gens = n.generators.assign(
         layer=lambda df: df.index.str.replace(r"-\d{4}$", "-2040", regex=True),
         zone=lambda df: df.index.str.split().str[0],
-    )
+    ).rename_axis("Generator-ext")
 
     # Constraint DC / H2 expansion on the same layer
     h2_i = gens.carrier.str.contains("h2")
@@ -1146,14 +1146,13 @@ def add_offshore_hubs_constraint(
         n.links.index.str.contains("Offshore Electrolysis")
     ].set_index("bus1")
     eff = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
-    p_nom = n.model["Generator-p_nom"].rename({"Generator-ext": "Generator"})
+    p_nom = n.model["Generator-p_nom"]
+    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
 
     existing_l = gens.loc[(h2_i) & ~(ext_i), "p_nom"]
     grouper_l = gens.loc[h2_i].layer
     existing_l = existing_l.groupby(grouper_l).sum().reindex(h2_gens_i, fill_value=0)
     existing_l.index = dc_gens_i
-
-    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
     rhs = gens.loc[dc_gens_i].p_nom_max - existing_l
 
     if not lhs.empty:
@@ -1169,7 +1168,7 @@ def add_offshore_hubs_constraint(
     off_i = gens.index.str.contains("offwind")
 
     off_gens_i = gens.loc[(off_i) & (ext_i)].index
-    grouper_ext = gens.loc[off_gens_i].zone
+    grouper_ext = gens.loc[off_gens_i].zone.rename("Generator-ext")
     idx = pd.Index(set(limit.index).intersection(grouper_ext))
     eff = eff.reindex(off_gens_i, fill_value=1)
     lhs = (p_nom.loc[off_gens_i] / eff).groupby(grouper_ext).sum().loc[idx]
