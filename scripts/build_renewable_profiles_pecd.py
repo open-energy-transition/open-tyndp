@@ -54,14 +54,13 @@ if __name__ == "__main__":
         logger.info(
             f"Extract PECD capacity factor time series for year {year} for technology {technology}..."
         )
-
+        year_i = year
         if int(year) not in [2030, 2040, 2050]:
             year = np.clip(10 * (year // 10), 2030, 2050)
             logger.warning(
                 "Planning horizon doesn't match available TYNDP PECD data. "
                 f"Falling back to previous available year {year}."
             )
-        year_i = year
         if year == 2050:
             logger.warning(
                 "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data instead."
