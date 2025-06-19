@@ -1130,8 +1130,15 @@ def add_offshore_hubs_constraint(
     offshore_zone_trajectories_fn: str
         Path to the dataFrame containing the offshore zone potentials trajectories
     """
+    ext_i = n.generators.p_nom_extendable
+    gens = n.generators.assign(
+        layer=lambda df: df.index.str.replace(r"-\d{4}$", "-2040", regex=True),
+        zone=lambda df: df.index.str.split().str[0],
+    )
+
     # Constraint DC / H2 expansion on the same layer
-    h2_gens = n.generators.loc[n.generators.carrier.str.contains("h2")]
+    h2_i = gens.carrier.str.contains("h2")
+    h2_gens = gens.loc[(h2_i) & (ext_i)]
     h2_gens_i = h2_gens.index
     dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
 
@@ -1141,8 +1148,13 @@ def add_offshore_hubs_constraint(
     eff = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
     p_nom = n.model["Generator-p_nom"].rename({"Generator-ext": "Generator"})
 
+    existing_l = gens.loc[(h2_i) & ~(ext_i), "p_nom"]
+    grouper_l = gens.loc[h2_i].layer
+    existing_l = existing_l.groupby(grouper_l).sum().reindex(h2_gens_i, fill_value=0)
+    existing_l.index = dc_gens_i
+
     lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
-    rhs = n.generators.loc[dc_gens_i].p_nom_max
+    rhs = gens.loc[dc_gens_i].p_nom_max - existing_l
 
     if not lhs.empty:
         n.model.add_constraints(lhs <= rhs, name="Generator-off_h2_dc_pot")
@@ -1154,9 +1166,7 @@ def add_offshore_hubs_constraint(
         .p_nom_max
     )
 
-    ext_i = n.generators.p_nom_extendable
-    off_i = n.generators.index.str.contains("offwind")
-    gens = n.generators.assign(zone=lambda df: df.index.str.split().str[0])
+    off_i = gens.index.str.contains("offwind")
 
     off_gens_i = gens.loc[(off_i) & (ext_i)].index
     grouper_ext = gens.loc[off_gens_i].zone
@@ -1164,10 +1174,10 @@ def add_offshore_hubs_constraint(
     eff = eff.reindex(off_gens_i, fill_value=1)
     lhs = (p_nom.loc[off_gens_i] / eff).groupby(grouper_ext).sum().loc[idx]
 
-    existing = gens.loc[(off_i) & ~(ext_i), "p_nom"]
-    grouper = gens.loc[existing.index].zone
-    existing = existing.groupby(grouper).sum().reindex(idx, fill_value=0)
-    rhs = limit.loc[idx] - existing
+    existing_z = gens.loc[(off_i) & ~(ext_i), "p_nom"]
+    grouper_z = gens.loc[existing_z.index].zone
+    existing_z = existing_z.groupby(grouper_z).sum().reindex(idx, fill_value=0)
+    rhs = limit.loc[idx] - existing_z
 
     n.model.add_constraints(lhs <= rhs, name="Generator-off_zone_pot")
 
