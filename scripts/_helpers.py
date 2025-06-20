@@ -1077,7 +1077,7 @@ def load_cutout(
 
 def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
     idx = [prefix, c[cname0], connector, c[cname1], suffix]
-    idx = [i for i in idx if i != ""]
+    idx = [i for i in idx if i]
     return " ".join(idx)
 
 
