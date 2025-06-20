@@ -115,7 +115,9 @@ def add_brownfield(
         for tattr in n.component_attrs[c.name].index[selection]:
             n.import_series_from_dataframe(c.pnl[tattr], c.name, tattr)
 
-    # adjust TYNDP offshore expansion by subtracting existing capacity from previous years from current year total capacity and potential
+    # adjust TYNDP offshore expansion by subtracting existing capacity from previous years
+    # from current year total capacity and potential
+    # hydrogen- and electricity-generating wind farms share the same potential; values are adjusted accordingly
     if offshore_hubs_tyndp:
         filter = {"Link": "Offshore", "Generator": "offwind"}
         for c in n.iterate_components(["Link", "Generator"]):
@@ -134,11 +136,50 @@ def add_brownfield(
                 .groupby(level=0)
                 .sum()
             )
+
+            # account for the shared potential of hydrogen- and electricity-generating wind farms
+            if c.name == "Generator":
+                h2_gens = already_existing.loc[
+                    already_existing.index.str.contains("h2")
+                ]
+                dc_gens = already_existing.loc[
+                    already_existing.index.str.contains("dc.*oh")
+                ]
+
+                off_h2_gens = n.generators.loc[h2_gens.index]
+                off_dc_gens = n.generators.loc[dc_gens.index]
+                off_electrolysers = n.links.loc[
+                    n.links.index.str.contains("Offshore Electrolysis")
+                ].set_index("bus1")
+                eff_h2 = (
+                    off_electrolysers.loc[off_h2_gens.bus]
+                    .set_index(h2_gens.index)
+                    .efficiency
+                )
+                eff_dc = (
+                    off_electrolysers.loc[off_dc_gens.bus + " H2"]
+                    .set_index(dc_gens.index)
+                    .efficiency
+                )
+
+                h2_to_dc = h2_gens.div(eff_h2).rename(
+                    index=lambda x: x.replace("h2", "dc")
+                )
+                dc_to_h2 = dc_gens.mul(eff_dc).rename(
+                    index=lambda x: x.replace("dc", "h2")
+                )
+
+                already_existing = (
+                    pd.concat([already_existing, h2_to_dc, dc_to_h2])
+                    .groupby(level=0)
+                    .sum()
+                )
+
             remaining_capacity = (
                 off_capacity
                 - already_existing.reindex(index=off_capacity.index).fillna(0)
             ).clip(lower=0)
-            # this should in theory never be negative. We will still clip to account for rounding errors
+            # values should be non-negative; clipping applied to handle rounding errors
             remaining_potential = (
                 off_potential
                 - already_existing.reindex(index=off_capacity.index).fillna(0)
