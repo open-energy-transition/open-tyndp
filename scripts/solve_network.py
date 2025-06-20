@@ -1132,7 +1132,9 @@ def add_offshore_hubs_constraint(
     """
     ext_i = n.generators.p_nom_extendable
     gens = n.generators.assign(
-        layer=lambda df: df.index.str.replace(r"-\d{4}$", f"-{planning_horizons}", regex=True),
+        layer=lambda df: df.index.str.replace(
+            r"-\d{4}$", f"-{planning_horizons}", regex=True
+        ),
         zone=lambda df: df.index.str.split().str[0],
     ).rename_axis("Generator-ext")
 
