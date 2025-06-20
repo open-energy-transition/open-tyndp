@@ -3247,6 +3247,8 @@ def add_offshore_grid_tyndp(
         Modifies the network object in-place by adding offshore grid links.
 
 
+    Notes
+    -----
     The capital costs are calculated as:
     (annuity_factor * capex + opex) * nyears
 

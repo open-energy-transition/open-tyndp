@@ -1132,7 +1132,7 @@ def add_offshore_hubs_constraint(
     """
     ext_i = n.generators.p_nom_extendable
     gens = n.generators.assign(
-        layer=lambda df: df.index.str.replace(r"-\d{4}$", "-2040", regex=True),
+        layer=lambda df: df.index.str.replace(r"-\d{4}$", f"-{planning_horizons}", regex=True),
         zone=lambda df: df.index.str.split().str[0],
     ).rename_axis("Generator-ext")
 
@@ -1222,7 +1222,7 @@ def extra_functionality(
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn: str, optional
-        Path to the dataFrame containing the offshore zone potentials trajectories
+        Path to the DataFrame containing the offshore zone potentials trajectories
 
     Collects supplementary constraints which will be passed to
     ``pypsa.optimization.optimize``.
@@ -1350,7 +1350,7 @@ def solve_network(
     planning_horizons : str, optional
             The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn : str, optional
-        Path to dataFrame containing the offshore zone potentials trajectories
+        Path to DataFrame containing the offshore zone potentials trajectories
     **kwargs
         Additional keyword arguments passed to the solver
 

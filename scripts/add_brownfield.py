@@ -136,12 +136,11 @@ def add_brownfield(
                 off_capacity
                 - already_existing.reindex(index=off_capacity.index).fillna(0)
             ).clip(lower=0)
+            # this should in theory never be negative. We will still clip to account for rounding errors
             remaining_potential = (
                 off_potential
                 - already_existing.reindex(index=off_capacity.index).fillna(0)
-            ).clip(
-                lower=0
-            )  # this should anyway never be negative. We will still clip to account for rounding errors
+            ).clip(lower=0)
             c.df.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
             c.df.loc[off_i, "p_nom_max"] = remaining_potential
 
