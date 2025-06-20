@@ -91,6 +91,7 @@ load:
     enable: false
   manual_adjustments: false
   supplement_synthetic: false
+
 pypsa_eur:
   Bus:
   - AC
@@ -157,6 +158,15 @@ sector:
     enable: true
     carriers:
     - H2
+  offshore_hubs_tyndp: true
+
+costs:
+  overwrites:
+    lifetime:
+      electrolysis: 25
+      HVDC submarine: 25
+      H2 (g) submarine pipeline: 25
+      offwind: 25
 
 clustering:
   mode: administrative
