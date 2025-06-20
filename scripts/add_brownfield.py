@@ -59,7 +59,9 @@ def add_brownfield(
 
     # electric transmission grid set optimised capacities of previous as minimum
     n.lines.s_nom_min = n_p.lines.s_nom_opt
-    dc_i = n.links[(n.links.carrier == "DC") & (n.links.build_year < year)].index
+    dc_i = n.links[
+        (n.links.carrier == "DC") & ~(n.links.index.str.contains("Offshore"))
+    ].index
     n.links.loc[dc_i, "p_nom_min"] = n_p.links.loc[dc_i, "p_nom_opt"]
 
     for c in n_p.iterate_components(["Link", "Generator", "Store"]):
