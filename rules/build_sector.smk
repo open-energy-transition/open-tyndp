@@ -1299,6 +1299,17 @@ def input_heat_source_power(w):
     }
 
 
+def input_offshore_hubs(w):
+    if config_provider("sector", "offshore_hubs_tyndp")(w):
+        return {
+            "offshore_buses": resources("offshore_buses.csv"),
+            "offshore_grid": resources("offshore_grid.csv"),
+            "offshore_electrolysers": resources("offshore_electrolysers.csv"),
+            "offshore_generators": resources("offshore_generators.csv"),
+        }
+    return {}
+
+
 if config["sector"]["h2_topology_tyndp"]:
 
     rule build_tyndp_h2_network:
@@ -1436,6 +1447,7 @@ rule prepare_sector_network:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
         unpack(input_heat_source_power),
+        unpack(input_offshore_hubs),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,
         snapshot_weightings=resources(
@@ -1579,26 +1591,6 @@ rule prepare_sector_network:
         h2_imports_tyndp=lambda w: (
             resources("h2_import_potentials_{planning_horizons}.csv")
             if config_provider("sector", "h2_topology_tyndp")(w)
-            else []
-        ),
-        offshore_buses=lambda w: (
-            resources("offshore_buses.csv")
-            if config_provider("sector", "offshore_hubs_tyndp")(w)
-            else []
-        ),
-        offshore_grid=lambda w: (
-            resources("offshore_grid.csv")
-            if config_provider("sector", "offshore_hubs_tyndp")(w)
-            else []
-        ),
-        offshore_electrolysers=lambda w: (
-            resources("offshore_electrolysers.csv")
-            if config_provider("sector", "offshore_hubs_tyndp")(w)
-            else []
-        ),
-        offshore_generators=lambda w: (
-            resources("offshore_generators.csv")
-            if config_provider("sector", "offshore_hubs_tyndp")(w)
             else []
         ),
     output:
