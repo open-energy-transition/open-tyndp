@@ -80,7 +80,7 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
 
     # offshore hubs
 
-    if options.get("offshore_hubs") and offshore_buses_fn:
+    if options.get("offshore_hubs_tyndp") and offshore_buses_fn:
         spatial.offshore_hubs = SimpleNamespace()
         offshore_buses = pd.read_csv(offshore_buses_fn, index_col=0)
         offshore_buses_h2 = offshore_buses.set_index(offshore_buses.index + " H2")
@@ -7607,7 +7607,7 @@ if __name__ == "__main__":
         logger=logger,
     )
 
-    if snakemake.params.offshore_hubs:
+    if snakemake.params.offshore_hubs_tyndp:
         add_offshore_hubs_tyndp(
             n=n,
             pyear=int(snakemake.wildcards.planning_horizons),

@@ -1362,7 +1362,7 @@ if config["sector"]["h2_topology_tyndp"]:
             "../scripts/build_tyndp_h2_imports.py"
 
 
-if config["sector"]["offshore_hubs"]:
+if config["sector"]["offshore_hubs_tyndp"]:
 
     rule build_tyndp_offshore_hubs:
         params:
@@ -1431,7 +1431,7 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
-        offshore_hubs=config_provider("sector", "offshore_hubs"),
+        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
     input:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
@@ -1583,22 +1583,22 @@ rule prepare_sector_network:
         ),
         offshore_buses=lambda w: (
             resources("offshore_buses.csv")
-            if config_provider("sector", "offshore_hubs")(w)
+            if config_provider("sector", "offshore_hubs_tyndp")(w)
             else []
         ),
         offshore_grid=lambda w: (
             resources("offshore_grid.csv")
-            if config_provider("sector", "offshore_hubs")(w)
+            if config_provider("sector", "offshore_hubs_tyndp")(w)
             else []
         ),
         offshore_electrolysers=lambda w: (
             resources("offshore_electrolysers.csv")
-            if config_provider("sector", "offshore_hubs")(w)
+            if config_provider("sector", "offshore_hubs_tyndp")(w)
             else []
         ),
         offshore_generators=lambda w: (
             resources("offshore_generators.csv")
-            if config_provider("sector", "offshore_hubs")(w)
+            if config_provider("sector", "offshore_hubs_tyndp")(w)
             else []
         ),
     output:

@@ -810,7 +810,7 @@ sector:
       methanol: 121
       gas: 122
       oil: 125
-  offshore_hubs: false
+  offshore_hubs_tyndp: false
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#industry
 industry:

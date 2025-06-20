@@ -33,7 +33,7 @@ def add_brownfield(
     h2_retrofit=False,
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
-    offshore_hubs=False,
+    offshore_hubs_tyndp=False,
 ):
     """
     Add brownfield capacity from previous network.
@@ -52,7 +52,7 @@ def add_brownfield(
         Ratio of hydrogen to methane capacity for pipeline retrofitting
     capacity_threshold : float
         Threshold for removing assets with low capacity
-    offshore_hubs : bool
+    offshore_hubs_tyndp : bool
         Whether to enable offshore hubs
     """
     logger.info(f"Preparing brownfield for the year {year}")
@@ -114,7 +114,7 @@ def add_brownfield(
             n.import_series_from_dataframe(c.pnl[tattr], c.name, tattr)
 
     # adjust TYNDP offshore expansion by subtracting existing capacity from previous years from current year total capacity and potential
-    if offshore_hubs:
+    if offshore_hubs_tyndp:
         filter = {"Link": "Offshore", "Generator": "offwind"}
         for c in n.iterate_components(["Link", "Generator"]):
             off_fixed_i = c.df[
@@ -414,7 +414,7 @@ if __name__ == "__main__":
         h2_retrofit=snakemake.params.H2_retrofit,
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
-        offshore_hubs=snakemake.params.offshore_hubs,
+        offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
     )
 
     disable_grid_expansion_if_limit_hit(n)
