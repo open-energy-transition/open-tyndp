@@ -353,9 +353,9 @@ def load_offshore_generators(
 
     The `ZONE_POTENTIAL` sheet is considered as the source for achievable potentials for each node across all planning horizons. It establishes a nodal constraint on top of the theoretical potentials outlined by `LAYER_POTENTIAL`.
 
-    **Existing capacities** will be read from the `LAYER_POTENTIAL` sheet, utilizing technology shares specified in `EXISTING` for hydrogen-generating capacities. A discrepancy of 526 MW for `DEOH002` in 2045 (across all scenarios) is noted when comparing existing capacities with `ZONE_POTENTIAL`. It remains uncertain which of the two values is correct: 5828.55 MW from `LAYER_POTENTIAL` or 6354.55 MW from `ZONE_POTENTIAL`. Currently, the value of 5828.55 MW is used.
+    **Existing capacities** will be read from the `LAYER_POTENTIAL` sheet, utilizing technology shares specified in `EXISTING` for hydrogen-generating capacities. A discrepancy of 526 MW for `DEOH002` in 2040 (across all scenarios) is noted when comparing existing capacities with `ZONE_POTENTIAL`. It remains uncertain which of the two values is correct: 5828.55 MW from `LAYER_POTENTIAL` or 6354.55 MW from `ZONE_POTENTIAL`. Currently, the value of 5828.55 MW is used.
 
-    **Potentials** will be obtained from both the `LAYER_POTENTIAL` and the `ZONE_POTENTIAL` sheets. `LAYER_POTENTIAL` will establish a technology level constraint, while `ZONE_POTENTIAL` will restrict expansion across all technologies at each node. The same 526 MW discrepancy in `DEOH002` (across all planning horizons and scenarios) has been noted and needs to be addressed to ensure that existing capacities do not exceed their potential. Currently, the value `ZONE_POTENTIAL` value is corrected at 5828.55 MW.
+    **Potentials** will be obtained from both the `LAYER_POTENTIAL` and the `ZONE_POTENTIAL` sheets. `LAYER_POTENTIAL` will establish a technology level constraint, while `ZONE_POTENTIAL` will restrict expansion across all technologies at each node. The same 526 MW discrepancy for `DEOH002` in 2045 and 2050 (across all planning horizons and scenarios) has been noted and needs to be addressed to ensure that existing capacities do not exceed their potential. Currently, the value `ZONE_POTENTIAL` value is corrected at 5828.55 MW.
 
     Parameters
     ----------
@@ -454,9 +454,15 @@ def load_offshore_generators(
     zone_trajectories = generators_z
 
     # Resolve discrepancy in DEOH002
-    idx = zone_trajectories.query("location=='DEOH002' and pyear in [2045, 2050]").index
-    zone_trajectories.loc[idx, "p_nom_max"] = (
-        zone_trajectories.loc[idx, "p_nom_max"] - 526
+    idx_l = generators.query(
+        "location=='DEOH002' and pyear == 2040 and carrier=='offwind-ac-fb-r'"
+    ).index
+    generators.loc[idx_l, "p_nom_min"] = generators.loc[idx_l, "p_nom_min"] - 526
+    idx_z = zone_trajectories.query(
+        "location=='DEOH002' and pyear in [2045, 2050]"
+    ).index
+    zone_trajectories.loc[idx_z, "p_nom_max"] = (
+        zone_trajectories.loc[idx_z, "p_nom_max"] - 526
     )
 
     # Collect cost assumptions
