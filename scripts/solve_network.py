@@ -1149,13 +1149,9 @@ def add_offshore_hubs_constraint(
     ].set_index("bus1")
     eff = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
     p_nom = n.model["Generator-p_nom"]
-    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
 
-    existing_l = gens.loc[(h2_i) & ~(ext_i), "p_nom"]
-    grouper_l = gens.loc[h2_i].layer
-    existing_l = existing_l.groupby(grouper_l).sum().reindex(h2_gens_i, fill_value=0)
-    existing_l.index = dc_gens_i
-    rhs = gens.loc[dc_gens_i].p_nom_max - existing_l
+    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
+    rhs = gens.loc[dc_gens_i].p_nom_max
 
     if not lhs.empty:
         n.model.add_constraints(lhs <= rhs, name="Generator-off_h2_dc_pot")
