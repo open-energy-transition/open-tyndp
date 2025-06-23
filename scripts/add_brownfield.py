@@ -151,6 +151,7 @@ def add_brownfield(
                 off_electrolysers = n.links.loc[
                     n.links.index.str.contains("Offshore Electrolysis")
                 ].set_index("bus1")
+                # ToDo Account for time-varying efficiencies across planning horizons
                 eff_h2 = (
                     off_electrolysers.loc[off_h2_gens.bus]
                     .set_index(h2_gens.index)

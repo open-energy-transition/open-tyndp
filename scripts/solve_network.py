@@ -1147,10 +1147,10 @@ def add_offshore_hubs_constraint(
     off_electrolysers = n.links.loc[
         n.links.index.str.contains("Offshore Electrolysis")
     ].set_index("bus1")
-    eff = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
+    eff_l = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
     p_nom = n.model["Generator-p_nom"]
 
-    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff
+    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff_l
     rhs = gens.loc[dc_gens_i].p_nom_max
 
     if not lhs.empty:
@@ -1168,12 +1168,23 @@ def add_offshore_hubs_constraint(
     off_gens_i = gens.loc[(off_i) & (ext_i)].index
     grouper_ext = gens.loc[off_gens_i].zone.rename("Generator-ext")
     idx = pd.Index(set(limit.index).intersection(grouper_ext))
-    eff = eff.reindex(off_gens_i, fill_value=1)
-    lhs = (p_nom.loc[off_gens_i] / eff).groupby(grouper_ext).sum().loc[idx]
+    eff_z = eff_l.reindex(off_gens_i, fill_value=1)
+    lhs = (p_nom.loc[off_gens_i] / eff_z).groupby(grouper_ext).sum().loc[idx]
 
-    existing_z = gens.loc[(off_i) & ~(ext_i), "p_nom"]
+    # ToDo Account for time-varying efficiencies across planning horizons
+    existing_z = (
+        gens.loc[(off_i) & ~(ext_i), "p_nom"]
+        .rename(lambda x: x.split("-2")[0] + f"-{planning_horizons}")
+        .groupby(level=0)
+        .sum()
+    )
     grouper_z = gens.loc[existing_z.index].zone
-    existing_z = existing_z.groupby(grouper_z).sum().reindex(idx, fill_value=0)
+    existing_z = (
+        (existing_z / eff_z.loc[existing_z.index])
+        .groupby(grouper_z)
+        .sum()
+        .reindex(idx, fill_value=0)
+    )
     rhs = limit.loc[idx] - existing_z
 
     n.model.add_constraints(lhs <= rhs, name="Generator-off_zone_pot")
