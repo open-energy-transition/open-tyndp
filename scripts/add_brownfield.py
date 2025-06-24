@@ -176,11 +176,11 @@ def add_brownfield(
                     .sum()
                 )
 
+            # values should be non-negative; clipping applied to handle rounding errors
             remaining_capacity = (
                 off_capacity
                 - already_existing.reindex(index=off_capacity.index).fillna(0)
             ).clip(lower=0)
-            # values should be non-negative; clipping applied to handle rounding errors
             remaining_potential = (
                 off_potential
                 - already_existing.reindex(index=off_capacity.index).fillna(0)
