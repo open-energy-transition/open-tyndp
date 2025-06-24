@@ -75,11 +75,6 @@ rule prepare_perfect_foresight:
                 str(config_provider("scenario", "planning_horizons", 0)(w))
             )
         ),
-        offshore_zone_trajectories=lambda w: (
-            resources("offshore_zone_trajectories.csv")
-            if config_provider("sector", "offshore_hubs_tyndp")(w)
-            else []
-        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_brownfield_all_years.nc"
@@ -112,6 +107,11 @@ rule solve_sector_network_perfect:
             "networks/base_s_{clusters}_{opts}_{sector_opts}_brownfield_all_years.nc"
         ),
         costs=resources("costs_2030.csv"),
+        offshore_zone_trajectories=lambda w: (
+            resources("offshore_zone_trajectories.csv")
+            if config_provider("sector", "offshore_hubs_tyndp")(w)
+            else []
+        ),
     output:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_brownfield_all_years.nc",
