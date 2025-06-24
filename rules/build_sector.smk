@@ -1300,14 +1300,15 @@ def input_heat_source_power(w):
 
 
 def input_offshore_hubs(w):
+    offshore_files = [
+        "offshore_buses",
+        "offshore_grid",
+        "offshore_electrolysers",
+        "offshore_generators",
+    ]
     if config_provider("sector", "offshore_hubs_tyndp")(w):
-        return {
-            "offshore_buses": resources("offshore_buses.csv"),
-            "offshore_grid": resources("offshore_grid.csv"),
-            "offshore_electrolysers": resources("offshore_electrolysers.csv"),
-            "offshore_generators": resources("offshore_generators.csv"),
-        }
-    return {}
+        return {f: f"{f}.csv" for f in offshore_files}
+    return {f: [] for f in offshore_files}
 
 
 if config["sector"]["h2_topology_tyndp"]:
