@@ -3038,6 +3038,7 @@ def add_offshore_generators_tyndp(
     profiles: dict[str, str],
     costs: pd.DataFrame,
     logger: logging.Logger,
+    nyears: float = 1,
 ):
     """
     Add offshore generators to the network model.
@@ -3063,6 +3064,8 @@ def add_offshore_generators_tyndp(
         Technology costs assumptions.
     logger : logging.Logger
         Logger for output messages. If None, no logging is performed.
+    nyears : float, default 1
+        Number of years for which to scale the investment costs.
 
     Returns
     -------
@@ -3392,7 +3395,7 @@ def add_offshore_hubs_tyndp(
 
     # Add power production units
     add_offshore_generators_tyndp(
-        n, pyear, offshore_generators_fn, profiles, costs, logger
+        n, pyear, offshore_generators_fn, profiles, costs, logger, nyears
     )
 
     # Add H2 production units
