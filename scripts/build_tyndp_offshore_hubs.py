@@ -472,7 +472,7 @@ def load_offshore_generators(
 
     # Validate that all required cost assumptions are defined
     if generators[["capex", "opex"]].isna().any().any():
-        raise RuntimeError("Missing generator cost data in input dataset.")
+        raise ValueError("Missing generator cost data in input dataset.")
     generators.loc[:, "p_nom_extendable"] = True
 
     # Rename UK in GB
