@@ -21,8 +21,6 @@ def load_offshore_hubs(fn: str, countries: list[str]):
     """
     Load and process offshore hub coordinates from Excel file.
 
-    Offshore Hubs (OH) nodes are situated offshore, while Offshore Radial (OR) nodes are removed from the data.
-
     Parameters
     ----------
     fn : str
@@ -347,7 +345,7 @@ def load_offshore_generators(
     """
     Load offshore generators data and format data.
 
-    The `EXISTING` sheet is assumed to contain the collected existing capacities collected prior to any reallocations intended to align with the PEMMDB. This sheet appears to be excluded from the modelling exercise, except for hydrogen-generating capacities.
+    The `EXISTING` sheet is assumed to contain the existing capacities collected prior to any reallocations intended to align with the PEMMDB. This sheet appears to be excluded from the modelling exercise, except for hydrogen-generating capacities.
 
     The `LAYER_POTENTIAL` sheet is viewed as containing the reallocated existing capacities (excluding hydrogen-generating specific information) and the theoretical potentials per technology. Existing capacities are specified for both electricity- and hydrogen-generating offshore wind farms. Technology shares from `EXISTING` will be used to supplement the data.
 
