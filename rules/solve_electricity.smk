@@ -13,6 +13,11 @@ rule solve_network:
         custom_extra_functionality=input_custom_extra_functionality,
     input:
         network=resources("networks/base_s_{clusters}_elec_{opts}.nc"),
+        offshore_zone_trajectories=lambda w: (
+            resources("offshore_zone_trajectories.csv")
+            if config_provider("sector", "offshore_hubs_tyndp")(w)
+            else []
+        ),
     output:
         network=RESULTS + "networks/base_s_{clusters}_elec_{opts}.nc",
         config=RESULTS + "configs/config.base_s_{clusters}_elec_{opts}.yaml",
