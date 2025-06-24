@@ -1307,7 +1307,7 @@ def input_offshore_hubs(w):
         "offshore_generators",
     ]
     if config_provider("sector", "offshore_hubs_tyndp")(w):
-        return {f: f"{f}.csv" for f in offshore_files}
+        return {f: resources(f"{f}.csv") for f in offshore_files}
     return {f: [] for f in offshore_files}
 
 
