@@ -79,6 +79,7 @@ if config["foresight"] == "perfect":
 rule all:
     input:
         expand(RESULTS + "graphs/costs.svg", run=config["run"]["name"]),
+        expand(resources("maps/power-network.pdf")),
         expand(
             resources("maps/power-network-s-{clusters}.pdf"),
             run=config["run"]["name"],
@@ -87,6 +88,17 @@ rule all:
         expand(
             RESULTS
             + "maps/base_s_{clusters}_{opts}_{sector_opts}-costs-all_{planning_horizons}.pdf",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        lambda w: expand(
+            (
+                resources(
+                    "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+                )
+                if config_provider("sector", "H2_network")(w)
+                else []
+            ),
             run=config["run"]["name"],
             **config["scenario"],
         ),

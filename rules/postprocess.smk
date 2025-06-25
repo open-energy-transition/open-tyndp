@@ -68,6 +68,33 @@ if config["foresight"] != "perfect":
         script:
             "../scripts/plot_power_network.py"
 
+    rule plot_base_hydrogen_network:
+        params:
+            plotting=config_provider("plotting"),
+        input:
+            network=resources(
+                "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
+            ),
+            regions_onshore=resources("regions_onshore.geojson"),
+        output:
+            map=resources(
+                "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+            ),
+        threads: 1
+        resources:
+            mem_mb=4000,
+        benchmark:
+            benchmarks(
+                "plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            )
+        log:
+            RESULTS
+            + "logs/plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/plot_base_hydrogen_network.py"
+
     rule plot_hydrogen_network:
         params:
             plotting=config_provider("plotting"),
@@ -99,33 +126,6 @@ if config["foresight"] != "perfect":
             "../envs/environment.yaml"
         script:
             "../scripts/plot_hydrogen_network.py"
-
-    rule plot_base_hydrogen_network:
-        params:
-            plotting=config_provider("plotting"),
-        input:
-            network=resources(
-                "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
-            ),
-            regions_onshore=resources("regions_onshore.geojson"),
-        output:
-            map=resources(
-                "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
-            ),
-        threads: 1
-        resources:
-            mem_mb=4000,
-        benchmark:
-            benchmarks(
-                "plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
-            )
-        log:
-            RESULTS
-            + "logs/plot_base_hydrogen_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
-        conda:
-            "../envs/environment.yaml"
-        script:
-            "../scripts/plot_base_hydrogen_network.py"
 
     rule plot_gas_network:
         params:
