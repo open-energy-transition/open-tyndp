@@ -124,6 +124,27 @@ rule all:
         ),
         lambda w: expand(
             (
+                resources(
+                    "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+                )
+                if config_provider("sector", "offshore_hubs_tyndp")(w)
+                else []
+            ),
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}-offshore_network_{planning_horizons}.pdf"
+                if config_provider("sector", "offshore_hubs_tyndp")(w)
+                else []
+            ),
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        lambda w: expand(
+            (
                 RESULTS + "csvs/cumulative_costs.csv"
                 if config_provider("foresight")(w) == "myopic"
                 else []
