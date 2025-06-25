@@ -125,23 +125,25 @@ rule all:
         lambda w: expand(
             (
                 resources(
-                    "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+                    "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
                 )
                 if config_provider("sector", "offshore_hubs_tyndp")(w)
                 else []
             ),
             run=config["run"]["name"],
             **config["scenario"],
+            carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
         ),
         lambda w: expand(
             (
                 RESULTS
-                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network.pdf"
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf"
                 if config_provider("sector", "offshore_hubs_tyndp")(w)
                 else []
             ),
             run=config["run"]["name"],
             **config["scenario"],
+            carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
         ),
         lambda w: expand(
             (

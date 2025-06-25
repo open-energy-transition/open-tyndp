@@ -20,7 +20,7 @@ plt.style.use(["ggplot"])
 logger = logging.getLogger(__name__)
 
 
-def plot_offshore_map(network, map_opts, map_fn, expanded=False):
+def plot_offshore_map(network, map_opts, map_fn, carrier="DC", expanded=False):
     """
     Plots the offshore network hydrogen and electricity capacities and offshore-hubs buses.
     If expanded is enabled, the optimal capacities are plotted instead.
@@ -33,6 +33,8 @@ def plot_offshore_map(network, map_opts, map_fn, expanded=False):
         Map options for plotting.
     map_fn : str
         Path to save the final map plot to.
+    carrier : str, optional
+        Carrier to plot
     expanded : bool, optional
         Whether to plot expanded capacities. Defaults to plotting only base network (p_nom).
 
@@ -43,36 +45,30 @@ def plot_offshore_map(network, map_opts, map_fn, expanded=False):
     """
     n = network.copy()
 
-    linewidth_factor = 4e3
+    linewidth_factor = 1e4
+
+    mask = {"DC": "Offshore DC", "H2": "Offshore H2 pipeline"}
 
     n.links.drop(
-        n.links.index[
-            ~(
-                n.links.index.str.contains("Offshore H2 pipeline")
-                | n.links.index.str.contains("Offshore DC")
-            )
-        ],
+        n.links.index[~(n.links.index.str.contains(mask[carrier]))],
         inplace=True,
     )
 
     p_nom = "p_nom_opt" if expanded else "p_nom"
     # transmission capacities
-    links_dc = n.links[n.links.index.str.contains("Offshore DC")][p_nom]
-    links_h2 = n.links[n.links.index.str.contains("Offshore H2 pipeline")][p_nom]
+    links = n.links[n.links.index.str.contains(mask[carrier])][p_nom]
 
     # set link widths
-    link_widths_dc = links_dc / linewidth_factor
-    link_widths_h2 = links_h2 / linewidth_factor
-    if link_widths_h2.notnull().empty and link_widths_dc.notnull().empty:
-        logger.info("No offshore capacities to plot.")
+    link_widths = links / linewidth_factor
+    if link_widths.notnull().empty:
+        logger.info(f"No offshore capacities for {carrier}, skipping plot.")
         return
-    link_widths_h2 = link_widths_h2.reindex(n.links.index).fillna(0.0)
-    link_widths_dc = link_widths_dc.reindex(n.links.index).fillna(0.0)
+    link_widths = link_widths.reindex(n.links.index).fillna(0.0)
 
     # keep relevant buses
     n.buses.drop(
         n.buses.index[
-            (~n.buses.carrier.isin(["AC", "DC", "H2"]))
+            (~n.buses.carrier.isin(["AC"] + [carrier]))
             | (n.buses.index.str.contains("Z1|Z2"))
         ],
         inplace=True,
@@ -88,6 +84,7 @@ def plot_offshore_map(network, map_opts, map_fn, expanded=False):
     fig, ax = plt.subplots(figsize=(7, 6), subplot_kw={"projection": proj})
     color_h2 = "#f081dc"
     color_dc = "darkseagreen"
+    color = color_dc if carrier == "DC" else color_h2
     color_oh_nodes = "#ff29d9"
     color_hm_nodes = "darkgray"
 
@@ -95,8 +92,8 @@ def plot_offshore_map(network, map_opts, map_fn, expanded=False):
         geomap=True,
         bus_sizes=0.05,
         bus_colors=color_hm_nodes,
-        link_colors=color_h2,
-        link_widths=link_widths_h2,
+        link_colors=color,
+        link_widths=link_widths,
         branch_components=["Link"],
         ax=ax,
         **map_opts,
@@ -111,19 +108,9 @@ def plot_offshore_map(network, map_opts, map_fn, expanded=False):
         **map_opts,
     )
 
-    n.plot(
-        geomap=True,
-        bus_sizes=0,
-        link_colors=color_dc,
-        link_widths=link_widths_dc,
-        branch_components=["Link"],
-        ax=ax,
-        **map_opts,
-    )
-
     sizes = [30, 10]
     labels = [f"{s} GW" for s in sizes]
-    scale = 1e3 / 4e3
+    scale = 1e3 / linewidth_factor
     sizes = [s * scale for s in sizes]
 
     legend_kw = dict(
@@ -171,8 +158,7 @@ def plot_offshore_map(network, map_opts, map_fn, expanded=False):
         legend_kw=legend_kw,
     )
 
-    colors = [color_dc, color_h2]
-    labels = ["DC link", "H2 pipeline"]
+    label = "DC link" if carrier == "DC" else "H2 pipeline"
 
     legend_kw = dict(
         loc="upper left",
@@ -181,7 +167,7 @@ def plot_offshore_map(network, map_opts, map_fn, expanded=False):
         frameon=False,
     )
 
-    add_legend_patches(ax, colors, labels, legend_kw=legend_kw)
+    add_legend_patches(ax, color, label, legend_kw=legend_kw)
 
     ax.set_facecolor("white")
 
@@ -199,6 +185,7 @@ if __name__ == "__main__":
             clusters="all",
             sector_opts="",
             planning_horizons=2050,
+            carrier="DC",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -214,4 +201,10 @@ if __name__ == "__main__":
     proj = load_projection(snakemake.params.plotting)
     map_fn = snakemake.output.map
 
-    plot_offshore_map(n, map_opts, map_fn, expanded=snakemake.params.expanded)
+    plot_offshore_map(
+        n,
+        map_opts,
+        map_fn,
+        carrier=snakemake.wildcards.carrier,
+        expanded=snakemake.params.expanded,
+    )

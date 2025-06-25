@@ -164,7 +164,7 @@ def plot_h2_map_base(
 
     sizes = [30, 10]
     labels = [f"{s} GW" for s in sizes]
-    scale = 1e3 / 4e3
+    scale = 1e3 / linewidth_factor
     sizes = [s * scale for s in sizes]
 
     legend_kw = dict(

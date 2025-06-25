@@ -241,6 +241,10 @@ plotting:
       - 200
       - 100
       branch_sizes:
+  offshore_maps:
+    bus_carriers:
+    - DC
+    - H2
 
   nice_names:
     OCGT: "Open-Cycle Gas"
