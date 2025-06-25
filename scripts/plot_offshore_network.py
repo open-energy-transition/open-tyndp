@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plot offshore base transmission network.
+Plot offshore transmission network.
 """
 
 import logging
@@ -20,9 +20,9 @@ plt.style.use(["ggplot"])
 logger = logging.getLogger(__name__)
 
 
-def plot_offshore_map_base(network, map_opts, map_fn, expanded=False):
+def plot_offshore_map(network, map_opts, map_fn, expanded=False):
     """
-    Plots the base offshore network hydrogen and electricity capacities and offshore-hubs buses.
+    Plots the offshore network hydrogen and electricity capacities and offshore-hubs buses.
     If expanded is enabled, the optimal capacities are plotted instead.
 
     Parameters
@@ -64,7 +64,7 @@ def plot_offshore_map_base(network, map_opts, map_fn, expanded=False):
     link_widths_dc = links_dc / linewidth_factor
     link_widths_h2 = links_h2 / linewidth_factor
     if link_widths_h2.notnull().empty and link_widths_dc.notnull().empty:
-        logger.info("No offshore base capacities to plot.")
+        logger.info("No offshore capacities to plot.")
         return
     link_widths_h2 = link_widths_h2.reindex(n.links.index).fillna(0.0)
     link_widths_dc = link_widths_dc.reindex(n.links.index).fillna(0.0)
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         from _helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "plot_base_offshore_network",
+            "plot_offshore_network",
             opts="",
             clusters="all",
             sector_opts="",
@@ -214,4 +214,4 @@ if __name__ == "__main__":
     proj = load_projection(snakemake.params.plotting)
     map_fn = snakemake.output.map
 
-    plot_offshore_map_base(n, map_opts, map_fn, expanded=snakemake.params.expanded)
+    plot_offshore_map(n, map_opts, map_fn, expanded=snakemake.params.expanded)

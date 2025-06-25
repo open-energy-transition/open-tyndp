@@ -153,7 +153,7 @@ if config["foresight"] != "perfect":
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/plot_base_offshore_network.py"
+            "../scripts/plot_offshore_network.py"
 
     use rule plot_base_offshore_network as plot_offshore_network with:
         params:
