@@ -105,7 +105,7 @@ rule all:
         lambda w: expand(
             (
                 RESULTS
-                + "maps/base_s_{clusters}_{opts}_{sector_opts}-h2_network_{planning_horizons}.pdf"
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-h2_network.pdf"
                 if config_provider("sector", "H2_network")(w)
                 else []
             ),
@@ -136,7 +136,7 @@ rule all:
         lambda w: expand(
             (
                 RESULTS
-                + "maps/base_s_{clusters}_{opts}_{sector_opts}-offshore_network_{planning_horizons}.pdf"
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network.pdf"
                 if config_provider("sector", "offshore_hubs_tyndp")(w)
                 else []
             ),
