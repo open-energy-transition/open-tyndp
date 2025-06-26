@@ -66,10 +66,12 @@ def plot_offshore_map(network, map_opts, map_fn, carrier="DC", expanded=False):
     link_widths = link_widths.reindex(n.links.index).fillna(0.0)
 
     # keep relevant buses
+    bus_carriers = [carrier] + (["AC"] if carrier == "DC" else [])
     n.buses.drop(
         n.buses.index[
-            (~n.buses.carrier.isin(["AC"] + [carrier]))
-            | (n.buses.index.str.contains("Z1|Z2"))
+            (~n.buses.carrier.isin(bus_carriers))
+            | (n.buses.index.str.contains("Z1"))
+            | (n.buses.index.str.contains("DRES"))
         ],
         inplace=True,
     )
