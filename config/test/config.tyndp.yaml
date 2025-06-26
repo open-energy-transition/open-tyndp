@@ -165,7 +165,8 @@ sector:
     enable: true
     carriers:
     - H2
-  offshore_hubs_tyndp: true
+  offshore_hubs_tyndp:
+    enable: true
 
 costs:
   overwrites:

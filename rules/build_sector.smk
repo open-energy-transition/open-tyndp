@@ -1306,7 +1306,7 @@ def input_offshore_hubs(w):
         "offshore_electrolysers",
         "offshore_generators",
     ]
-    if config_provider("sector", "offshore_hubs_tyndp")(w):
+    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
         return {f: resources(f"{f}.csv") for f in offshore_files}
     return {f: [] for f in offshore_files}
 
@@ -1374,13 +1374,14 @@ if config["sector"]["h2_topology_tyndp"]:
             "../scripts/build_tyndp_h2_imports.py"
 
 
-if config["sector"]["offshore_hubs_tyndp"]:
+if config["sector"]["offshore_hubs_tyndp"]["enable"]:
 
     rule build_tyndp_offshore_hubs:
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
             scenario=config_provider("tyndp_scenario"),
             countries=config_provider("countries"),
+            offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
         input:
             nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
             grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
@@ -1443,7 +1444,7 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
-        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
+        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
     input:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),

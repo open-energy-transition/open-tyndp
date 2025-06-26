@@ -15,7 +15,7 @@ rule solve_network:
         network=resources("networks/base_s_{clusters}_elec_{opts}.nc"),
         offshore_zone_trajectories=lambda w: (
             resources("offshore_zone_trajectories.csv")
-            if config_provider("sector", "offshore_hubs_tyndp")(w)
+            if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
             else []
         ),
     output:

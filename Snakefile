@@ -127,7 +127,7 @@ rule all:
                 resources(
                     "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
                 )
-                if config_provider("sector", "offshore_hubs_tyndp")(w)
+                if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
                 else []
             ),
             run=config["run"]["name"],
@@ -138,7 +138,7 @@ rule all:
             (
                 RESULTS
                 + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf"
-                if config_provider("sector", "offshore_hubs_tyndp")(w)
+                if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
                 else []
             ),
             run=config["run"]["name"],

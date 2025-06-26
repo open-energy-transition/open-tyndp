@@ -1298,7 +1298,7 @@ def extra_functionality(
     if config["sector"]["imports"]["enable"]:
         add_import_limit_constraint(n, snapshots)
 
-    if config["sector"]["offshore_hubs_tyndp"]:
+    if config["sector"]["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_constraint(
             n, int(planning_horizons), offshore_zone_trajectories_fn
         )

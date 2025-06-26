@@ -8,6 +8,7 @@ This script is used to clean TYNDP Scenario Building offshore hubs data to be us
 import logging
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 from _helpers import configure_logging, set_scenario_config
 from shapely.geometry import Point
@@ -73,6 +74,7 @@ def load_offshore_grid(
     scenario: str,
     planning_horizons: list[int],
     countries: list[str],
+    max_capacity: dict[str, int],
 ):
     """
     Load offshore grid (electricity and hydrogen) and format data.
@@ -91,6 +93,8 @@ def load_offshore_grid(
         List of planning years to include in the cost data filtering.
     countries : list[str]
         List of country codes used to clean data.
+    max_capacity : dict[str, int]
+        Maximum transmission capacity between two offshore hubs per carrier
 
     Returns
     -------
@@ -152,6 +156,11 @@ def load_offshore_grid(
     grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
     grid[["capex", "opex"]] = grid[["capex", "opex"]].fillna(0)
     grid["p_nom_min"] = grid["p_nom_min"].fillna(0)
+
+    # Add maximum transmission capacities
+    grid["p_nom_max"] = np.where(
+        grid.carrier == "DC", max_capacity["DC"], max_capacity["H2"]
+    )
 
     # Rename UK in GB
     grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
@@ -518,6 +527,7 @@ if __name__ == "__main__":
         snakemake.params["scenario"],
         planning_horizons,
         countries,
+        snakemake.params["offshore_hubs_tyndp"]["max_capacity"],
     )
 
     electrolysers = load_offshore_electrolysers(
