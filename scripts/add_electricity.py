@@ -190,6 +190,30 @@ def sanitize_carriers(n, config):
     n.carriers["color"] = n.carriers.color.where(n.carriers.color != "", colors)
 
 
+def get_tyndp_res_carriers(pecd_renewable_profiles: dict):
+    """
+    Function to return all TYNDP renewable carriers specified in the configuration file for PECD profiles.
+
+    The function makes sure TYNDP renewable carriers are only returned if PECD profiles are enabled.
+
+    Parameters
+    ----------
+    pecd_renewable_profiles : dict
+        Dictionary that contains all TYNDP renewable carrier for of the PECD profiles.
+
+    Returns
+    -------
+    tyndp_renewable_carriers : list
+        List of TYNDP renewable carriers.
+    """
+    tyndp_renewable_carriers = (
+        list(chain(*pecd_renewable_profiles["technologies"].values()))
+        if pecd_renewable_profiles["enable"]
+        else []
+    )
+    return tyndp_renewable_carriers
+
+
 def sanitize_locations(n):
     if "location" in n.buses.columns:
         n.buses["x"] = n.buses.x.where(n.buses.x != 0, n.buses.location.map(n.buses.x))
@@ -1213,14 +1237,8 @@ if __name__ == "__main__":
         params.link_length_factor,
     )
 
-    tyndp_renewable_carriers = (
-        list(
-            chain(
-                *params.electricity["pecd_renewable_profiles"]["technologies"].values()
-            )
-        )
-        if params.electricity["pecd_renewable_profiles"]["enable"]
-        else []
+    tyndp_renewable_carriers = get_tyndp_res_carriers(
+        params.electricity["pecd_renewable_profiles"]
     )
     if len(tyndp_renewable_carriers) > 0:
         logger.info(

@@ -19,7 +19,7 @@ from scripts._helpers import (
     set_scenario_config,
     update_config_from_wildcards,
 )
-from scripts.add_electricity import flatten, sanitize_carriers
+from scripts.add_electricity import flatten, get_tyndp_res_carriers, sanitize_carriers
 from scripts.add_existing_baseyear import add_build_year_to_new_assets
 
 logger = logging.getLogger(__name__)
@@ -356,16 +356,8 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    tyndp_renewable_carriers = (
-        [
-            subcarrier
-            for carrier in snakemake.params.electricity["pecd_renewable_profiles"][
-                "technologies"
-            ].values()
-            for subcarrier in carrier
-        ]
-        if snakemake.params.electricity["pecd_renewable_profiles"]["enable"]
-        else []
+    tyndp_renewable_carriers = get_tyndp_res_carriers(
+        snakemake.params.pecd_renewable_profiles
     )
 
     adjust_renewable_profiles(

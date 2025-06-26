@@ -5,7 +5,9 @@ rule add_existing_baseyear:
     params:
         baseyear=config_provider("scenario", "planning_horizons", 0),
         sector=config_provider("sector"),
-        electricity=config_provider("electricity"),
+        pecd_renewable_profiles=config_provider(
+            "electricity", "pecd_renewable_profiles"
+        ),
         existing_capacities=config_provider("existing_capacities"),
         carriers=config_provider("electricity", "renewable_carriers"),
         costs=config_provider("costs"),
