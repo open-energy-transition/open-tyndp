@@ -22,7 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 def plot_offshore_map(
-    network, map_opts, map_fn, planning_horizons, carrier="DC", expanded=False
+    network,
+    map_opts,
+    map_fn,
+    planning_horizons,
+    carrier="DC",
+    expanded=False,
+    legend=True,
 ):
     """
     Plots the offshore network hydrogen and electricity capacities and offshore-hubs buses.
@@ -42,6 +48,8 @@ def plot_offshore_map(
         Carrier to plot
     expanded : bool, optional
         Whether to plot expanded capacities. Defaults to plotting only base network (p_nom).
+    legend : bool, optional
+        Whether to display a legend on the plot. Defaults to display the legend.
 
     Returns
     -------
@@ -119,66 +127,67 @@ def plot_offshore_map(
         **map_opts,
     )
 
-    sizes = [30, 10]
-    labels = [f"{s} GW" for s in sizes]
-    scale = 1e3 / linewidth_factor
-    sizes = [s * scale for s in sizes]
+    if legend:
+        sizes = [30, 10]
+        labels = [f"{s} GW" for s in sizes]
+        scale = 1e3 / linewidth_factor
+        sizes = [s * scale for s in sizes]
 
-    legend_kw = dict(
-        loc="upper left",
-        bbox_to_anchor=(0.32, 1.13),
-        frameon=False,
-        ncol=1,
-        labelspacing=0.8,
-        handletextpad=1,
-    )
+        legend_kw = dict(
+            loc="upper left",
+            bbox_to_anchor=(0.32, 1.13),
+            frameon=False,
+            ncol=1,
+            labelspacing=0.8,
+            handletextpad=1,
+        )
 
-    add_legend_lines(
-        ax,
-        sizes,
-        labels,
-        patch_kw=dict(color="lightgrey"),
-        legend_kw=legend_kw,
-    )
+        add_legend_lines(
+            ax,
+            sizes,
+            labels,
+            patch_kw=dict(color="lightgrey"),
+            legend_kw=legend_kw,
+        )
 
-    legend_kw = dict(
-        loc="upper left",
-        bbox_to_anchor=(0.55, 1.13),
-        labelspacing=0.8,
-        handletextpad=0,
-        frameon=False,
-    )
+        legend_kw = dict(
+            loc="upper left",
+            bbox_to_anchor=(0.55, 1.13),
+            labelspacing=0.8,
+            handletextpad=0,
+            frameon=False,
+        )
 
-    add_legend_circles(
-        ax,
-        sizes=[0.1],
-        labels=["Home market"],
-        srid=n.srid,
-        patch_kw=dict(facecolor=color_hm_nodes),
-        legend_kw=legend_kw,
-    )
+        add_legend_circles(
+            ax,
+            sizes=[0.1],
+            labels=["Home market"],
+            srid=n.srid,
+            patch_kw=dict(facecolor=color_hm_nodes),
+            legend_kw=legend_kw,
+        )
 
-    legend_kw["bbox_to_anchor"] = (0.55, 1.08)
+        legend_kw["bbox_to_anchor"] = (0.55, 1.08)
 
-    add_legend_circles(
-        ax,
-        sizes=[0.1],
-        labels=["Offshore hubs"],
-        srid=n.srid,
-        patch_kw=dict(facecolor=color_oh_nodes),
-        legend_kw=legend_kw,
-    )
+        add_legend_circles(
+            ax,
+            sizes=[0.1],
+            labels=["Offshore hubs"],
+            srid=n.srid,
+            patch_kw=dict(facecolor=color_oh_nodes),
+            legend_kw=legend_kw,
+        )
 
-    label = "DC link" if carrier == "DC" else "H2 pipeline"
+        label = "DC link" if carrier == "DC" else "H2 pipeline"
 
-    legend_kw = dict(
-        loc="upper left",
-        bbox_to_anchor=(0, 1.13),
-        ncol=1,
-        frameon=False,
-    )
+        legend_kw = dict(
+            loc="upper left",
+            bbox_to_anchor=(0, 1.13),
+            ncol=1,
+            frameon=False,
+        )
 
-    add_legend_patches(ax, color, label, legend_kw=legend_kw)
+        add_legend_patches(ax, color, label, legend_kw=legend_kw)
 
     ax.set_facecolor("white")
 
