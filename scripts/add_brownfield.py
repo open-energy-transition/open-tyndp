@@ -285,7 +285,9 @@ def disable_grid_expansion_if_limit_hit(n):
                 n.global_constraints.drop(name, inplace=True)
 
 
-def adjust_renewable_profiles(n, input_profiles, params, year):
+def adjust_renewable_profiles(
+    n, input_profiles, params, year, tyndp_renewable_carriers
+):
     """
     Adjusts renewable profiles according to the renewable technology specified,
     using the latest year below or equal to the selected year.
@@ -307,7 +309,7 @@ def adjust_renewable_profiles(n, input_profiles, params, year):
             }
         )
 
-    for carrier in set(params["carriers"]):
+    for carrier in set(params["carriers"]) - set(tyndp_renewable_carriers):
         if carrier == "hydro":
             continue
 
