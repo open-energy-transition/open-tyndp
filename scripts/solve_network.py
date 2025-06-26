@@ -1145,7 +1145,8 @@ def add_offshore_hubs_constraint(
     dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
 
     off_electrolysers = n.links.loc[
-        n.links.index.str.contains("Offshore Electrolysis")
+        (n.links.index.str.contains("Offshore Electrolysis"))
+        & (n.links.build_year == planning_horizons)
     ].set_index("bus1")
     eff_l = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
     p_nom = n.model["Generator-p_nom"]

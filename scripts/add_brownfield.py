@@ -149,7 +149,8 @@ def add_brownfield(
                 off_h2_gens = n.generators.loc[h2_gens.index]
                 off_dc_gens = n.generators.loc[dc_gens.index]
                 off_electrolysers = n.links.loc[
-                    n.links.index.str.contains("Offshore Electrolysis")
+                    (n.links.index.str.contains("Offshore Electrolysis"))
+                    & (n.links.build_year == year)
                 ].set_index("bus1")
                 # ToDo Account for time-varying efficiencies across planning horizons
                 eff_h2 = (
