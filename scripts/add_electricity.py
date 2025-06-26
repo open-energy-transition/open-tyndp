@@ -50,6 +50,7 @@ network with **zero** initial capacity:
 
 import logging
 from collections.abc import Iterable
+from itertools import chain
 from typing import Any
 
 import geopandas as gpd
