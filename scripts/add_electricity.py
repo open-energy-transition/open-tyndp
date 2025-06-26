@@ -1213,7 +1213,11 @@ if __name__ == "__main__":
     )
 
     tyndp_renewable_carriers = (
-        list(chain(*params.electricity["pecd_renewable_profiles"]["technologies"].values()))
+        list(
+            chain(
+                *params.electricity["pecd_renewable_profiles"]["technologies"].values()
+            )
+        )
         if params.electricity["pecd_renewable_profiles"]["enable"]
         else []
     )
@@ -1221,7 +1225,9 @@ if __name__ == "__main__":
         logger.info(
             f"Skipping renewable carriers - they will be attached later with TYNDP data: {', '.join(tyndp_renewable_carriers)}"
         )
-    renewable_carriers = set(params.electricity["renewable_carriers"]).difference(tyndp_renewable_carriers)
+    renewable_carriers = set(params.electricity["renewable_carriers"]).difference(
+        tyndp_renewable_carriers
+    )
     extendable_carriers = params.electricity["extendable_carriers"]
     conventional_carriers = params.electricity["conventional_carriers"]
     conventional_inputs = {

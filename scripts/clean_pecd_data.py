@@ -140,7 +140,9 @@ if __name__ == "__main__":
 
     pecd_df = (
         pd.concat(demand, axis=1)
-        .reindex(nodes, axis=1, fill_value=0.0)  # include missing node data with empty columns
+        .reindex(
+            nodes, axis=1, fill_value=0.0
+        )  # include missing node data with empty columns
         .rename(
             columns=lambda x: x.replace("UK", "GB")
         )  # replace UK with GB for naming convention
