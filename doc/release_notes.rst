@@ -84,6 +84,8 @@ Release Notes
   SVG output format has also been added for these graphs, and error handling during 
   graph generation has been enhanced.
 
+* Improved the behavior of ``agg_p_nom_limits``: added the ability to aggregate all ``solar`` electric technologies.
+
 Open-TYNDP v0.1 (14th April 2025)
 ========================================
 
