@@ -69,7 +69,7 @@ def input_profile_tech_brownfield(w):
     }
 
 
-def input_profile_tech_brownfied_pecd(w):
+def input_profile_tech_brownfield_pecd(w):
     return {
         f"profile_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
         for tech in pecd_renewable_profiles(w)
@@ -94,7 +94,7 @@ rule add_brownfield:
         ),
     input:
         unpack(input_profile_tech_brownfield),
-        unpack(input_profile_tech_brownfied_pecd),
+        unpack(input_profile_tech_brownfield_pecd),
         simplify_busmap=resources("busmap_base_s.csv"),
         cluster_busmap=resources("busmap_base_s_{clusters}.csv"),
         network=resources(

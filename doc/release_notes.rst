@@ -13,7 +13,7 @@ Release Notes
 
 **Changes**
 
-* Add processing and preparation of TYNDP 2024 PECD renewable profiles instead of default renewable profiles using atlite (https://github.com/open-energy-transition/open-tyndp/pull/53). Initial implementation first addresses profiles for offshore technologies.
+* Add processing and preparation of TYNDP 2024 PECD renewable profiles, replacing default ERA5-based profiles processed with Atlite (https://github.com/open-energy-transition/open-tyndp/pull/53). Initial implementation first addresses profiles for offshore technologies.
 
 * Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries (https://github.com/open-energy-transition/open-tyndp/pull/36). Notably this includes pipelines and shipping imports from North Africa, Ukraine and Norway. Different import potentials are available for each of the planning years which are differentiated by wildcards.
 

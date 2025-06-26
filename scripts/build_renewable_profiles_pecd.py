@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Creates renewable profiles for each region from PECD and TYNDP input data containing the available
-generation time series (based on PECD weather data) from the node for onshore wind, AC-connected offshore wind,
-DC-connected offshore wind and solar PV generators.
+Create renewable profiles for each region from PECD and TYNDP datasets, building on PECD climate data. The available
+generation time series are read for each node across all renewable technologies, including onshore wind, AC-connected offshore wind,
+DC-connected offshore wind, and solar PV generators.
 
 .. note:: Hydroelectric profiles will be built in script :mod:`build_hydro_profiles_PECD`. Not yet implemented.
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "build_renewable_profiles_pecd",
             clusters="all",
-            technology="offwind-ac",
+            technology="offwind",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -58,12 +58,11 @@ if __name__ == "__main__":
         if int(year) not in [2030, 2040, 2050]:
             year = np.clip(10 * (year // 10), 2030, 2050)
             logger.warning(
-                "Planning horizon doesn't match available TYNDP PECD data. "
-                f"Falling back to previous available year {year}."
+                f"TYNDP PECD data unavailable for planning horizon. Falling back to previous available year {year}."
             )
         if year == 2050:
             logger.warning(
-                "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data instead."
+                "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data."
             )
             year = 2040
 
