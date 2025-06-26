@@ -27,7 +27,7 @@ def plot_offshore_map(
     map_fn,
     planning_horizons,
     carrier="DC",
-    expanded=False,
+    p_nom="p_nom",
     legend=True,
 ):
     """
@@ -46,8 +46,9 @@ def plot_offshore_map(
         The planning horizon year
     carrier : str, optional
         Carrier to plot
-    expanded : bool, optional
-        Whether to plot expanded capacities. Defaults to plotting only base network (p_nom).
+    p_nom : str | float, optional
+        Nominal power parameter for determining link thickness. If str, must be "p_nom" or "p_nom_opt".
+        If float, uses fixed value for all links. Defaults to plotting only base network (p_nom).
     legend : bool, optional
         Whether to display a legend on the plot. Defaults to display the legend.
 
@@ -67,20 +68,24 @@ def plot_offshore_map(
         inplace=True,
     )
 
-    p_nom = "p_nom_opt" if expanded else "p_nom"
     # transmission capacities
-    links = (
-        n.links[n.links.index.str.contains(mask[carrier])][p_nom]
-        .rename(index=lambda x: re.sub(r"-\d{4}$", f"-{planning_horizons}", x))
-        .groupby(level=0)
-        .sum()
-    )
-    # set link widths
-    link_widths = links / linewidth_factor
-    if link_widths.notnull().empty:
-        logger.info(f"No offshore capacities for {carrier}, skipping plot.")
-        return
-    link_widths = link_widths.reindex(n.links.index).fillna(0.0)
+    if isinstance(p_nom, str):
+        links = (
+            n.links[n.links.index.str.contains(mask[carrier])][p_nom]
+            .rename(index=lambda x: re.sub(r"-\d{4}$", f"-{planning_horizons}", x))
+            .groupby(level=0)
+            .sum()
+        )
+        # set link widths
+        link_widths = links / linewidth_factor
+        if link_widths.notnull().empty:
+            logger.info(f"No offshore capacities for {carrier}, skipping plot.")
+            return
+        link_widths = link_widths.reindex(n.links.index).fillna(0.0)
+    elif isinstance(p_nom, float) or isinstance(p_nom, int):
+        link_widths = p_nom
+    else:
+        raise ValueError("Value 'p_nom' must be either str or float.")
 
     # keep relevant buses
     bus_carriers = [carrier] + (["AC"] if carrier == "DC" else [])
@@ -221,11 +226,13 @@ if __name__ == "__main__":
     proj = load_projection(snakemake.params.plotting)
     map_fn = snakemake.output.map
 
+    p_nom = "p_nom_opt" if snakemake.params.expanded else "p_nom"
+
     plot_offshore_map(
         n,
         map_opts,
         map_fn,
         snakemake.wildcards.planning_horizons,
         carrier=snakemake.wildcards.carrier,
-        expanded=snakemake.params.expanded,
+        p_nom=p_nom,
     )
