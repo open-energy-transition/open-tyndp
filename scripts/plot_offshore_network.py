@@ -6,6 +6,7 @@ Plot offshore transmission network.
 """
 
 import logging
+import re
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -20,7 +21,9 @@ plt.style.use(["ggplot"])
 logger = logging.getLogger(__name__)
 
 
-def plot_offshore_map(network, map_opts, map_fn, carrier="DC", expanded=False):
+def plot_offshore_map(
+    network, map_opts, map_fn, planning_horizons, carrier="DC", expanded=False
+):
     """
     Plots the offshore network hydrogen and electricity capacities and offshore-hubs buses.
     If expanded is enabled, the optimal capacities are plotted instead.
@@ -33,6 +36,8 @@ def plot_offshore_map(network, map_opts, map_fn, carrier="DC", expanded=False):
         Map options for plotting.
     map_fn : str
         Path to save the final map plot to.
+    planning_horizons : int
+        The planning horizon year
     carrier : str, optional
         Carrier to plot
     expanded : bool, optional
@@ -56,8 +61,12 @@ def plot_offshore_map(network, map_opts, map_fn, carrier="DC", expanded=False):
 
     p_nom = "p_nom_opt" if expanded else "p_nom"
     # transmission capacities
-    links = n.links[n.links.index.str.contains(mask[carrier])][p_nom]
-
+    links = (
+        n.links[n.links.index.str.contains(mask[carrier])][p_nom]
+        .rename(index=lambda x: re.sub(r"-\d{4}$", f"-{planning_horizons}", x))
+        .groupby(level=0)
+        .sum()
+    )
     # set link widths
     link_widths = links / linewidth_factor
     if link_widths.notnull().empty:
@@ -207,6 +216,7 @@ if __name__ == "__main__":
         n,
         map_opts,
         map_fn,
+        snakemake.wildcards.planning_horizons,
         carrier=snakemake.wildcards.carrier,
         expanded=snakemake.params.expanded,
     )
