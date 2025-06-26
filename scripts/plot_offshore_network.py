@@ -29,6 +29,7 @@ def plot_offshore_map(
     carrier="DC",
     p_nom="p_nom",
     legend=True,
+    hubs_only=False,
 ):
     """
     Plots the offshore network hydrogen and electricity capacities and offshore-hubs buses.
@@ -51,6 +52,8 @@ def plot_offshore_map(
         If float, uses fixed value for all links. Defaults to plotting only base network (p_nom).
     legend : bool, optional
         Whether to display a legend on the plot. Defaults to display the legend.
+    hubs_only : bool, optional
+        Whether to only plot the offshore hubs. Defaults to plot both home market nodes and offshore hubs.
 
     Returns
     -------
@@ -101,6 +104,9 @@ def plot_offshore_map(
     n_oh.buses.drop(
         n_oh.buses.index[~n_oh.buses.index.str.contains("OH")], inplace=True
     )
+
+    if hubs_only:
+        n.buses = n_oh.buses
 
     # plot transmission network
     logger.info("Plotting offshore transmission network.")
