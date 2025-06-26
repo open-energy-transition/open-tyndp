@@ -7,7 +7,9 @@ rule add_existing_baseyear:
     params:
         baseyear=config_provider("scenario", "planning_horizons", 0),
         sector=config_provider("sector"),
-        electricity=config_provider("electricity"),
+        pecd_renewable_profiles=config_provider(
+            "electricity", "pecd_renewable_profiles"
+        ),
         existing_capacities=config_provider("existing_capacities"),
         carriers=config_provider("electricity", "renewable_carriers"),
         costs=config_provider("costs"),
@@ -69,7 +71,7 @@ def input_profile_tech_brownfield(w):
     }
 
 
-def input_profile_tech_brownfied_pecd(w):
+def input_profile_tech_brownfield_pecd(w):
     return {
         f"profile_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
         for tech in pecd_renewable_profiles(w)
@@ -84,7 +86,9 @@ rule add_brownfield:
         ),
         threshold_capacity=config_provider("existing_capacities", "threshold_capacity"),
         snapshots=config_provider("snapshots"),
-        electricity=config_provider("electricity"),
+        pecd_renewable_profiles=config_provider(
+            "electricity", "pecd_renewable_profiles"
+        ),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         carriers=config_provider("electricity", "renewable_carriers"),
         carriers_pecd=config_provider("electricity", "pecd_renewable_profiles"),
@@ -96,7 +100,7 @@ rule add_brownfield:
         offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
     input:
         unpack(input_profile_tech_brownfield),
-        unpack(input_profile_tech_brownfied_pecd),
+        unpack(input_profile_tech_brownfield_pecd),
         simplify_busmap=resources("busmap_base_s.csv"),
         cluster_busmap=resources("busmap_base_s_{clusters}.csv"),
         network=resources(

@@ -50,6 +50,7 @@ network with **zero** initial capacity:
 
 import logging
 from collections.abc import Iterable
+from itertools import chain
 from typing import Any
 
 import geopandas as gpd
@@ -187,6 +188,30 @@ def sanitize_carriers(n, config):
         missing_i = list(colors.index[colors.isna()])
         logger.warning(f"tech_colors for carriers {missing_i} not defined in config.")
     n.carriers["color"] = n.carriers.color.where(n.carriers.color != "", colors)
+
+
+def get_tyndp_res_carriers(pecd_renewable_profiles: dict):
+    """
+    Function to return all TYNDP renewable carriers specified in the configuration file for PECD profiles.
+
+    The function makes sure TYNDP renewable carriers are only returned if PECD profiles are enabled.
+
+    Parameters
+    ----------
+    pecd_renewable_profiles : dict
+        Dictionary that contains all TYNDP renewable carrier for of the PECD profiles.
+
+    Returns
+    -------
+    tyndp_renewable_carriers : list
+        List of TYNDP renewable carriers.
+    """
+    tyndp_renewable_carriers = (
+        list(chain(*pecd_renewable_profiles["technologies"].values()))
+        if pecd_renewable_profiles["enable"]
+        else []
+    )
+    return tyndp_renewable_carriers
 
 
 def sanitize_locations(n):
@@ -1212,27 +1237,15 @@ if __name__ == "__main__":
         params.link_length_factor,
     )
 
-    tyndp_renewable_carriers = (
-        [
-            subcarrier
-            for carrier in params.electricity["pecd_renewable_profiles"][
-                "technologies"
-            ].values()
-            for subcarrier in carrier
-        ]
-        if params.electricity["pecd_renewable_profiles"]["enable"]
-        else []
+    tyndp_renewable_carriers = get_tyndp_res_carriers(
+        params.electricity["pecd_renewable_profiles"]
     )
     if len(tyndp_renewable_carriers) > 0:
         logger.info(
-            f"Skipping renewable carriers '{', '.join(tyndp_renewable_carriers)}'. They will be attached later on with TYNDP data."
+            f"Skipping renewable carriers - they will be attached later with TYNDP data: {', '.join(tyndp_renewable_carriers)}"
         )
-    renewable_carriers = set(
-        [
-            carrier
-            for carrier in params.electricity["renewable_carriers"]
-            if carrier not in tyndp_renewable_carriers
-        ]
+    renewable_carriers = set(params.electricity["renewable_carriers"]).difference(
+        tyndp_renewable_carriers
     )
     extendable_carriers = params.electricity["extendable_carriers"]
     conventional_carriers = params.electricity["conventional_carriers"]

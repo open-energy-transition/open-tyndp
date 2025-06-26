@@ -189,8 +189,8 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
 
     rule retrieve_tyndp_pecd_data:
         params:
+            # TODO Integrate into Zenodo tyndp data bundle
             tyndp_bundle="data/tyndp_2024_bundle",
-        # TODO Integrate into Zenodo tyndp data bundle
         output:
             dir=directory("data/tyndp_2024_bundle/PECD"),
         log:

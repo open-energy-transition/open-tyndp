@@ -23,7 +23,11 @@ from scripts._helpers import (
     set_scenario_config,
     update_config_from_wildcards,
 )
-from scripts.add_electricity import load_costs, sanitize_carriers
+from scripts.add_electricity import (
+    get_tyndp_res_carriers,
+    load_costs,
+    sanitize_carriers,
+)
 from scripts.build_energy_totals import cartesian
 from scripts.definitions.heat_system import HeatSystem
 from scripts.prepare_sector_network import cluster_heat_buses, define_spatial
@@ -743,6 +747,9 @@ if __name__ == "__main__":
     options = snakemake.params.sector
 
     renewable_carriers = snakemake.params.carriers
+    tyndp_renewable_carriers = get_tyndp_res_carriers(
+        snakemake.params.pecd_renewable_profiles
+    )
 
     baseyear = snakemake.params.baseyear
 
