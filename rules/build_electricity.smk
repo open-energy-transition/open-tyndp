@@ -395,7 +395,6 @@ rule build_renewable_profiles:
 
 rule clean_pecd_data:
     params:
-        scenario=config_provider("tyndp_scenario"),
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
     input:
@@ -430,9 +429,6 @@ def input_data_pecd(w):
 
 rule build_renewable_profiles_pecd:
     params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        renewable=config_provider("renewable"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
     input:
         unpack(input_data_pecd),
