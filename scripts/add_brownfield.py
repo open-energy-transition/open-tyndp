@@ -33,6 +33,7 @@ def add_brownfield(
     h2_retrofit=False,
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
+    offshore_hubs_tyndp=False,
 ):
     """
     Add brownfield capacity from previous network.
@@ -51,12 +52,16 @@ def add_brownfield(
         Ratio of hydrogen to methane capacity for pipeline retrofitting
     capacity_threshold : float
         Threshold for removing assets with low capacity
+    offshore_hubs_tyndp : bool
+        Whether to enable offshore hubs
     """
     logger.info(f"Preparing brownfield for the year {year}")
 
     # electric transmission grid set optimised capacities of previous as minimum
     n.lines.s_nom_min = n_p.lines.s_nom_opt
-    dc_i = n.links[n.links.carrier == "DC"].index
+    dc_i = n.links[
+        (n.links.carrier == "DC") & ~(n.links.index.str.contains("Offshore"))
+    ].index
     n.links.loc[dc_i, "p_nom_min"] = n_p.links.loc[dc_i, "p_nom_opt"]
 
     for c in n_p.iterate_components(["Link", "Generator", "Store"]):
@@ -109,6 +114,80 @@ def add_brownfield(
         ) & n.component_attrs[c.name].status.str.contains("Input")
         for tattr in n.component_attrs[c.name].index[selection]:
             n.import_series_from_dataframe(c.pnl[tattr], c.name, tattr)
+
+    # adjust TYNDP offshore expansion by subtracting existing capacity from previous years
+    # from current year total capacity and potential
+    # hydrogen- and electricity-generating wind farms share the same potential; values are adjusted accordingly
+    if offshore_hubs_tyndp:
+        filter = {"Link": "Offshore", "Generator": "offwind"}
+        for c in n.iterate_components(["Link", "Generator"]):
+            off_fixed_i = c.df[
+                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year != year)
+            ].index
+            off_i = c.df[
+                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year == year)
+            ].index
+
+            off_capacity = c.df.loc[off_i, "p_nom"]
+            off_potential = c.df.loc[off_i, "p_nom_max"]
+            already_existing = (
+                c.df.loc[off_fixed_i, "p_nom_opt"]
+                .rename(lambda x: x.split("-2")[0] + f"-{year}")
+                .groupby(level=0)
+                .sum()
+            )
+
+            # account for the shared potential of hydrogen- and electricity-generating wind farms
+            if c.name == "Generator":
+                h2_gens = already_existing.loc[
+                    already_existing.index.str.contains("h2")
+                ]
+                dc_gens = already_existing.loc[
+                    already_existing.index.str.contains("dc.*oh")
+                ]
+
+                off_h2_gens = n.generators.loc[h2_gens.index]
+                off_dc_gens = n.generators.loc[dc_gens.index]
+                off_electrolysers = n.links.loc[
+                    (n.links.index.str.contains("Offshore Electrolysis"))
+                    & (n.links.build_year == year)
+                ].set_index("bus1")
+                # ToDo Account for time-varying efficiencies across planning horizons
+                eff_h2 = (
+                    off_electrolysers.loc[off_h2_gens.bus]
+                    .set_index(h2_gens.index)
+                    .efficiency
+                )
+                eff_dc = (
+                    off_electrolysers.loc[off_dc_gens.bus + " H2"]
+                    .set_index(dc_gens.index)
+                    .efficiency
+                )
+
+                h2_to_dc = h2_gens.div(eff_h2).rename(
+                    index=lambda x: x.replace("h2", "dc")
+                )
+                dc_to_h2 = dc_gens.mul(eff_dc).rename(
+                    index=lambda x: x.replace("dc", "h2")
+                )
+
+                already_existing = (
+                    pd.concat([already_existing, h2_to_dc, dc_to_h2])
+                    .groupby(level=0)
+                    .sum()
+                )
+
+            # values should be non-negative; clipping applied to handle rounding errors
+            remaining_capacity = (
+                off_capacity
+                - already_existing.reindex(index=off_capacity.index).fillna(0)
+            ).clip(lower=0)
+            remaining_potential = (
+                off_potential
+                - already_existing.reindex(index=off_capacity.index).fillna(0)
+            ).clip(lower=0)
+            c.df.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
+            c.df.loc[off_i, "p_nom_max"] = remaining_potential
 
     # deal with gas network
     if h2_retrofit:
@@ -220,16 +299,23 @@ def adjust_renewable_profiles(
         pd.Series(dr, index=dr).where(lambda x: x.isin(n.snapshots), pd.NA).ffill()
     )
 
-    # TODO: hotfix remove filter for tyndp_renewable_carriers after tyndp generators are added
-    if len(tyndp_renewable_carriers) > 0:
-        logger.info(
-            f"Hotfix until TYNDP renewable carriers are added. Skipping renewable carriers '{', '.join(tyndp_renewable_carriers)}'."
+    fn_map = {i: i for i in params["carriers"]}
+    if params["carriers_pecd"].get("enable", False):
+        fn_map.update(
+            {
+                vi: k
+                for k, v in params["carriers_pecd"]["technologies"].items()
+                for vi in v
+            }
         )
+
     for carrier in set(params["carriers"]) - set(tyndp_renewable_carriers):
         if carrier == "hydro":
             continue
 
-        with xr.open_dataset(getattr(input_profiles, "profile_" + carrier)) as ds:
+        with xr.open_dataset(
+            getattr(input_profiles, "profile_" + fn_map[carrier])
+        ) as ds:
             if ds.indexes["bus"].empty or "year" not in ds.indexes:
                 continue
 
@@ -246,7 +332,8 @@ def adjust_renewable_profiles(
             p_max_pu = p_max_pu.groupby(snapshotmaps).mean()
 
             # replace renewable time series
-            n.generators_t.p_max_pu.loc[:, p_max_pu.columns] = p_max_pu
+            idx = n.generators[n.generators.carrier == carrier].index
+            n.generators_t.p_max_pu.loc[:, p_max_pu[idx].columns] = p_max_pu[idx]
 
 
 def update_heat_pump_efficiency(n: pypsa.Network, n_p: pypsa.Network, year: int):
@@ -380,6 +467,7 @@ if __name__ == "__main__":
         h2_retrofit=snakemake.params.H2_retrofit,
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
+        offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
     )
 
     disable_grid_expansion_if_limit_hit(n)

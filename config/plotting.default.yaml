@@ -241,6 +241,10 @@ plotting:
       - 200
       - 100
       branch_sizes:
+  offshore_maps:
+    bus_carriers:
+    - DC
+    - H2
 
   nice_names:
     OCGT: "Open-Cycle Gas"
@@ -269,12 +273,20 @@ plotting:
     offwind-ac: "#6895dd"
     offshore wind (AC): "#6895dd"
     offshore wind ac: "#6895dd"
+    offwind-ac-fb-r: "#6895dd"
+    offwind-ac-fl-r: "#6da5e8"
+    offwind-dc-fb-r: "#71b5ed"
     offwind-dc: "#74c6f2"
     offshore wind (DC): "#74c6f2"
     offshore wind dc: "#74c6f2"
+    offwind-dc-fb-oh: "#74c6f2"
+    offwind-dc-fl-r: "#94d4f6"
     offwind-float: "#b5e2fa"
     offshore wind (Float): "#b5e2fa"
     offshore wind float: "#b5e2fa"
+    offwind-dc-fl-oh: "#b5e2fa"
+    offwind-h2-fb-oh: "#c47dbd"
+    offwind-h2-fl-oh: "#9d4d96"
     # water
     hydro: '#298c81'
     hydro reservoir: '#298c81'

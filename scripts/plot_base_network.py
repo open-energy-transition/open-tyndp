@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plot base network transmission network.
+Plot base transmission network.
 """
 
 import geopandas as gpd
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("plot_base_network", run="tyndp-raw")
+        snakemake = mock_snakemake("plot_base_network")
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
