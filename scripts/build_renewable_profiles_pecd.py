@@ -81,17 +81,4 @@ if __name__ == "__main__":
         profiles.append(profile)
 
     ds = xr.merge(profiles)
-
-    # TODO: Later on the max capacities for renewable technologies and regions can be added here
-    # profiles = xr.merge(profiles)
-    # p_nom_max = place_holder
-    # average_distance = place_holder
-    # ds = xr.merge(
-    #     [
-    #         profiles,
-    #         p_nom_max.rename("p_nom_max"),
-    #         average_distance.rename("average_distance"),
-    #     ]
-    # )
-
     ds.to_netcdf(snakemake.output.profile)
