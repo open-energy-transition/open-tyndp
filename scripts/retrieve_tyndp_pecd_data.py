@@ -4,7 +4,7 @@
 """
 The TYNDP PECD data contains input data for the 2024 TYNDP scenario building process.
 
-This rule downloads the TYNDP PECD data from Google Drive and extracts it in the ``data/tyndp_2024_bundle``
+This rule downloads the TYNDP PECD v3.1 data from Google Drive and extracts it in the ``data/tyndp_2024_bundle``
 subdirectory, such that all files of the TYNDP bundle are stored in it.
 
 **Outputs**
