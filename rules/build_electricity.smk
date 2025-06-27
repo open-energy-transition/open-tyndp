@@ -788,13 +788,13 @@ rule cluster_network:
 
 def tyndp_renewable_carriers(w):
     return (
-        [
-            subcarrier
-            for carrier in config_provider(
-                "electricity", "pecd_renewable_profiles", "technologies"
-            )(w).values()
-            for subcarrier in carrier
-        ]
+        list(
+            chain(
+                *config_provider(
+                    "electricity", "pecd_renewable_profiles", "technologies"
+                )(w).values()
+            )
+        )
         if config_provider("electricity", "pecd_renewable_profiles", "enable")(w)
         else []
     )
