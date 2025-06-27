@@ -400,7 +400,7 @@ rule clean_pecd_data:
     input:
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         onshore_buses=resources("busmap_base_s_all.csv"),
-        fn_pecd="data/tyndp_2024_bundle/PECD",
+        dir_pecd="data/tyndp_2024_bundle/PECD",
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:

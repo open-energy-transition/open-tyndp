@@ -38,20 +38,20 @@ logger = logging.getLogger(__name__)
 
 def read_pecd_file(
     node: str,
-    fn_pecd: str,
+    dir_pecd: str,
     cyear: str,
     pyear: str,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    fn = Path(fn_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
+    fn = Path(dir_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
 
     if not os.path.isfile(fn):
         return None
 
     pecd_bus = pd.read_csv(
         fn,
-        skiprows=10,
+        skiprows=10,  # first ten rows contain only file metadata
         usecols=lambda name: name == "Date"
         or name == "Hour"
         or name == str(cyear)
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     nodes = (
         offshore_buses.index if pecd_tech == "Wind_Offshore" else onshore_buses.index
     )
-    fn_pecd = snakemake.input.fn_pecd
+    dir_pecd = snakemake.input.dir_pecd
 
     # Load and prep electricity demand
     tqdm_kwargs = {
@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
     func = partial(
         read_pecd_file,
-        fn_pecd=fn_pecd,
+        dir_pecd=dir_pecd,
         cyear=cyear,
         pyear=pyear,
         technology=pecd_tech,
