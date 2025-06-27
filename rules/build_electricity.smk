@@ -395,13 +395,12 @@ rule build_renewable_profiles:
 
 rule clean_pecd_data:
     params:
-        scenario=config_provider("tyndp_scenario"),
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
     input:
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         onshore_buses=resources("busmap_base_s_all.csv"),
-        fn_pecd="data/tyndp_2024_bundle/PECD",
+        dir_pecd="data/tyndp_2024_bundle/PECD",
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:
@@ -430,9 +429,6 @@ def input_data_pecd(w):
 
 rule build_renewable_profiles_pecd:
     params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        renewable=config_provider("renewable"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
     input:
         unpack(input_data_pecd),
@@ -792,13 +788,13 @@ rule cluster_network:
 
 def tyndp_renewable_carriers(w):
     return (
-        [
-            subcarrier
-            for carrier in config_provider(
-                "electricity", "pecd_renewable_profiles", "technologies"
-            )(w).values()
-            for subcarrier in carrier
-        ]
+        list(
+            chain(
+                *config_provider(
+                    "electricity", "pecd_renewable_profiles", "technologies"
+                )(w).values()
+            )
+        )
         if config_provider("electricity", "pecd_renewable_profiles", "enable")(w)
         else []
     )

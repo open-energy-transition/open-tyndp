@@ -43,7 +43,7 @@ electricity:
   pecd_renewable_profiles:
     enable: true
     technologies:
-      offwind:
+      Wind_Offshore:
       - offwind-ac-fb-r
       - offwind-ac-fl-r
       - offwind-dc-fb-r

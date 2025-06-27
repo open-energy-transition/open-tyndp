@@ -38,20 +38,20 @@ logger = logging.getLogger(__name__)
 
 def read_pecd_file(
     node: str,
-    fn_pecd: str,
+    dir_pecd: str,
     cyear: str,
     pyear: str,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    fn = Path(fn_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
+    fn = Path(dir_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
 
     if not os.path.isfile(fn):
         return None
 
     pecd_bus = pd.read_csv(
         fn,
-        skiprows=10,
+        skiprows=10,  # first ten rows contain only file metadata
         usecols=lambda name: name == "Date"
         or name == "Hour"
         or name == str(cyear)
@@ -97,18 +97,9 @@ if __name__ == "__main__":
     # Planning year
     pyear = str(snakemake.wildcards.planning_horizons)
 
-    # Technology as in PECD terminology
     # TODO: find solution for solar profiles being differentiated between Utility and Rooftop for Italy
-    pecd_tech_dict = {
-        "offwind-ac": "Wind_Offshore",
-        "offwind-dc": "Wind_Offshore",
-        "offwind-float": "Wind_Offshore",
-        "offwind": "Wind_Offshore",
-        "onwind": "Wind_Onshore",
-        "solar": "LFSolarPV",
-        "solar-hsat": "LFSolarPV",
-    }
-    pecd_tech = pecd_tech_dict[snakemake.wildcards.technology]
+    # Technology as in PECD terminology
+    pecd_tech = snakemake.wildcards.technology
 
     offshore_buses = pd.read_excel(snakemake.input.offshore_buses, index_col=0)
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
@@ -116,7 +107,7 @@ if __name__ == "__main__":
     nodes = (
         offshore_buses.index if pecd_tech == "Wind_Offshore" else onshore_buses.index
     )
-    fn_pecd = snakemake.input.fn_pecd
+    dir_pecd = snakemake.input.dir_pecd
 
     # Load and prep electricity demand
     tqdm_kwargs = {
@@ -128,7 +119,7 @@ if __name__ == "__main__":
 
     func = partial(
         read_pecd_file,
-        fn_pecd=fn_pecd,
+        dir_pecd=dir_pecd,
         cyear=cyear,
         pyear=pyear,
         technology=pecd_tech,

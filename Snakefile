@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+from itertools import chain
 from pathlib import Path
 import yaml
 from os.path import normpath, exists, join
