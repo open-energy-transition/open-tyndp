@@ -97,18 +97,9 @@ if __name__ == "__main__":
     # Planning year
     pyear = str(snakemake.wildcards.planning_horizons)
 
-    # Technology as in PECD terminology
     # TODO: find solution for solar profiles being differentiated between Utility and Rooftop for Italy
-    pecd_tech_dict = {
-        "offwind-ac": "Wind_Offshore",
-        "offwind-dc": "Wind_Offshore",
-        "offwind-float": "Wind_Offshore",
-        "offwind": "Wind_Offshore",
-        "onwind": "Wind_Onshore",
-        "solar": "LFSolarPV",
-        "solar-hsat": "LFSolarPV",
-    }
-    pecd_tech = pecd_tech_dict[snakemake.wildcards.technology]
+    # Technology as in PECD terminology
+    pecd_tech = snakemake.wildcards.technology
 
     offshore_buses = pd.read_excel(snakemake.input.offshore_buses, index_col=0)
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
