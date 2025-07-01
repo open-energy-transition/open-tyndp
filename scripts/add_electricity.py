@@ -50,7 +50,6 @@ network with **zero** initial capacity:
 
 import logging
 from collections.abc import Iterable
-from itertools import chain
 from typing import Any
 
 import geopandas as gpd
@@ -64,6 +63,7 @@ from pypsa.clustering.spatial import DEFAULT_ONE_PORT_STRATEGIES, normed_or_unif
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    get_tyndp_res_carriers,
     rename_techs,
     set_scenario_config,
     update_p_nom_max,
@@ -188,30 +188,6 @@ def sanitize_carriers(n, config):
         missing_i = list(colors.index[colors.isna()])
         logger.warning(f"tech_colors for carriers {missing_i} not defined in config.")
     n.carriers["color"] = n.carriers.color.where(n.carriers.color != "", colors)
-
-
-def get_tyndp_res_carriers(pecd_renewable_profiles: dict):
-    """
-    Function to return all TYNDP renewable carriers specified in the configuration file for PECD profiles.
-
-    The function makes sure TYNDP renewable carriers are only returned if PECD profiles are enabled.
-
-    Parameters
-    ----------
-    pecd_renewable_profiles : dict
-        Dictionary that contains all TYNDP renewable carriers of the PECD profiles.
-
-    Returns
-    -------
-    tyndp_renewable_carriers : list
-        List of TYNDP renewable carriers.
-    """
-    tyndp_renewable_carriers = (
-        list(chain(*pecd_renewable_profiles["technologies"].values()))
-        if pecd_renewable_profiles["enable"]
-        else []
-    )
-    return tyndp_renewable_carriers
 
 
 def sanitize_locations(n):

@@ -19,12 +19,12 @@ import xarray as xr
 
 from scripts._helpers import (
     configure_logging,
+    get_tyndp_res_carriers,
     sanitize_custom_columns,
     set_scenario_config,
     update_config_from_wildcards,
 )
 from scripts.add_electricity import (
-    get_tyndp_res_carriers,
     load_costs,
     sanitize_carriers,
 )
