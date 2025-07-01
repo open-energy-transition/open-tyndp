@@ -78,7 +78,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "clean_pecd_data",
             clusters="all",
-            technology="offwind-ac",
+            technology="Wind_Offshore",
             planning_horizons=2030,
         )
     configure_logging(snakemake)
