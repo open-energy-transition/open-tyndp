@@ -31,7 +31,7 @@ conventional_carriers,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignite
 ,,,
 renewable_carriers,--,"Any subset of {solar, onwind, offwind-ac, offwind-dc, offwind-float, hydro}",List of renewable generators to include in the model.
 pecd_renewable_profiles,,,
--- enable,,bool,Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_profile_name`` can be any of {Wind_Offshore, Wind_Onshore, LFSolarPV}.
+-- enable,,bool,Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_profile_name`` can be any of {CSP, LFSolarPV, Wind_Offshore, Wind_Onshore}.
 -- technologies,,,
 -- -- {pecd_profile_name},--,list,The TYNDP renewable carriers for which the PECD renewable profile is used. These TYNDP renewable carriers should also be listed in ``renewable_carriers``. Carriers not listed use default renewable profiles.
 estimate_renewable_capacities,,,
