@@ -199,7 +199,7 @@ def get_tyndp_res_carriers(pecd_renewable_profiles: dict):
     Parameters
     ----------
     pecd_renewable_profiles : dict
-        Dictionary that contains all TYNDP renewable carrier for of the PECD profiles.
+        Dictionary that contains all TYNDP renewable carriers of the PECD profiles.
 
     Returns
     -------
