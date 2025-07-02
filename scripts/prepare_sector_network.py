@@ -2359,7 +2359,7 @@ def add_h2_topology_tyndp(
     )
 
 
-def add_h2_production(n, nodes, options, spatial, costs, logger):
+def add_h2_production(n, nodes, options, spatial, costs):
     """
     Adds base H2 production technologies.
 
@@ -2379,8 +2379,6 @@ def add_h2_production(n, nodes, options, spatial, costs, logger):
         Object containing spatial information about nodes and their locations
     costs : pd.DataFrame
         Technology cost assumptions
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
@@ -2437,7 +2435,7 @@ def add_h2_production(n, nodes, options, spatial, costs, logger):
         )
 
 
-def add_h2_reconversion(n, nodes, options, spatial, costs, logger):
+def add_h2_reconversion(n, nodes, options, spatial, costs):
     """
     Adds base H2 reconversion technologies (optional).
 
@@ -2457,8 +2455,6 @@ def add_h2_reconversion(n, nodes, options, spatial, costs, logger):
         Object containing spatial information about nodes and their locations
     costs : pd.DataFrame
         Technology cost assumptions
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
@@ -2521,7 +2517,7 @@ def add_h2_reconversion(n, nodes, options, spatial, costs, logger):
         )
 
 
-def add_h2_storage(n, nodes, options, cavern_types, h2_cavern_file, costs, logger):
+def add_h2_storage(n, nodes, options, cavern_types, h2_cavern_file, costs):
     """
     Adds H2 storage as underground cavern storage (optional) and H2 steel tanks.
 
@@ -2541,8 +2537,6 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_cavern_file, costs, logge
         Path to CSV file containing hydrogen cavern storage potentials
     costs : pd.DataFrame
         Technology cost assumptions
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
@@ -2602,7 +2596,7 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_cavern_file, costs, logge
     )
 
 
-def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes, logger):
+def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes):
     """
     Adds natural gas infrastructure, incl. LNG terminals, production, storage and entry-points.
 
@@ -2621,8 +2615,6 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes, logger):
         Technology cost assumptions
     gas_input_nodes : pd.DataFrame, optional
        DataFrame containing gas input node information (LNG, pipeline, etc.)
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
@@ -2736,7 +2728,7 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes, logger):
         )
 
 
-def add_h2_pipeline_retrofit(n, gas_pipes, options, costs, logger):
+def add_h2_pipeline_retrofit(n, gas_pipes, options, costs):
     """
     Adds retrofitting options of existing CH4 pipes to H2 pipes.
 
@@ -2752,8 +2744,6 @@ def add_h2_pipeline_retrofit(n, gas_pipes, options, costs, logger):
         - H2_retrofit_capacity_per_CH4 : float
     costs : pd.DataFrame
         Technology cost assumptions
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
@@ -2784,7 +2774,7 @@ def add_h2_pipeline_retrofit(n, gas_pipes, options, costs, logger):
     )
 
 
-def add_h2_pipeline_new(n, costs, logger):
+def add_h2_pipeline_new(n, costs):
     """
     Adds options for new H2 pipelines.
 
@@ -2794,8 +2784,6 @@ def add_h2_pipeline_new(n, costs, logger):
         The PyPSA network container object
     costs : pd.DataFrame
         Technology cost assumptions
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
@@ -2895,7 +2883,6 @@ def add_gas_and_h2_infrastructure(
     gas_input_nodes,
     spatial,
     options,
-    logger,
 ):
     """
     Add storage and grid infrastructure to the network for gas and hydrogen.
@@ -2935,8 +2922,6 @@ def add_gas_and_h2_infrastructure(
         - SMR : bool
         - cc_fraction : float
         - methanation : bool
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
 
     Returns
     -------
@@ -2985,7 +2970,6 @@ def add_gas_and_h2_infrastructure(
             options=options,
             spatial=spatial,
             costs=costs,
-            logger=logger,
         )
         add_h2_reconversion(
             n=n,
@@ -2993,7 +2977,6 @@ def add_gas_and_h2_infrastructure(
             options=options,
             spatial=spatial,
             costs=costs,
-            logger=logger,
         )
         add_h2_storage(
             n=n,
@@ -3002,7 +2985,6 @@ def add_gas_and_h2_infrastructure(
             cavern_types=cavern_types,
             h2_cavern_file=h2_cavern_file,
             costs=costs,
-            logger=logger,
         )
 
     # add gas network, along with new and retrofitted H2 pipelines
@@ -3016,7 +2998,6 @@ def add_gas_and_h2_infrastructure(
                 options=options,
                 costs=costs,
                 gas_input_nodes=gas_input_nodes,
-                logger=logger,
             )
 
         if options["H2_retrofit"] and not options["h2_topology_tyndp"]:
@@ -3025,11 +3006,10 @@ def add_gas_and_h2_infrastructure(
                 gas_pipes=gas_pipes,
                 options=options,
                 costs=costs,
-                logger=logger,
             )
 
     if options["H2_network"] and not options["h2_topology_tyndp"]:
-        add_h2_pipeline_new(n=n, costs=costs, logger=logger)
+        add_h2_pipeline_new(n=n, costs=costs)
 
 
 def add_offshore_generators_tyndp(
@@ -3039,7 +3019,6 @@ def add_offshore_generators_tyndp(
     profiles: dict[str, str],
     pecd_mapping: dict[str, str],
     costs: pd.DataFrame,
-    logger: logging.Logger,
     nyears: float = 1,
 ):
     """
@@ -3067,8 +3046,6 @@ def add_offshore_generators_tyndp(
         e.g. {'offwind-dc-fb-oh': 'Offshore_Wind'}
     costs : pd.DataFrame
         Technology costs assumptions.
-    logger : logging.Logger
-        Logger for output messages. If None, no logging is performed.
     nyears : float, default 1
         Number of years for which to scale the investment costs.
 
@@ -3153,7 +3130,6 @@ def add_offshore_electrolysers_tyndp(
     pyear: int,
     offshore_electrolysers_fn: str,
     costs: pd.DataFrame,
-    logger: logging.Logger,
     nyears: float = 1,
 ):
     """
@@ -3171,8 +3147,6 @@ def add_offshore_electrolysers_tyndp(
         Path to the file containing offshore electrolysers configuration data.
     costs : pd.DataFrame
         Technology costs assumptions.
-    logger : logging.Logger
-        Logger for output messages. If None, no logging is performed.
     nyears : float, default 1
         Number of years for which to scale the investment costs.
 
@@ -3231,7 +3205,6 @@ def add_offshore_grid_tyndp(
     pyear: int,
     offshore_grid_fn: str,
     costs: pd.DataFrame,
-    logger: logging.Logger,
     nyears: float = 1,
 ):
     """
@@ -3249,8 +3222,6 @@ def add_offshore_grid_tyndp(
         Path to the file containing offshore grid configuration data.
     costs : pd.DataFrame
         Technology costs assumptions.
-    logger : logging.Logger
-        Logger for output messages. If None, no logging is performed.
     nyears : float, default 1
         Number of years for which to scale the investment costs.
 
@@ -3343,7 +3314,6 @@ def add_offshore_hubs_tyndp(
     pecd_mapping: dict[str, str],
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
-    logger: logging.Logger,
     nyears: float = 1,
 ):
     """
@@ -3374,8 +3344,6 @@ def add_offshore_hubs_tyndp(
         Technology costs assumptions.
     spatial : object, optional
         Object containing spatial information about nodes and their locations.
-    logger : logging.Logger, optional
-        Logger for output messages. If None, no logging is performed.
     nyears : float
         Number of years for which to scale the investment costs.
 
@@ -3419,16 +3387,14 @@ def add_offshore_hubs_tyndp(
 
     # Add power production units
     add_offshore_generators_tyndp(
-        n, pyear, offshore_generators_fn, profiles, pecd_mapping, costs, logger, nyears
+        n, pyear, offshore_generators_fn, profiles, pecd_mapping, costs, nyears
     )
 
     # Add H2 production units
-    add_offshore_electrolysers_tyndp(
-        n, pyear, offshore_electrolysers_fn, costs, logger, nyears
-    )
+    add_offshore_electrolysers_tyndp(n, pyear, offshore_electrolysers_fn, costs, nyears)
 
     # Add offshore DC and H2 grid connections
-    add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, logger, nyears)
+    add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, nyears)
 
 
 def check_land_transport_shares(shares):
@@ -7638,7 +7604,6 @@ if __name__ == "__main__":
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
-        logger=logger,
     )
 
     if snakemake.params.offshore_hubs_tyndp:
@@ -7652,7 +7617,6 @@ if __name__ == "__main__":
             pecd_mapping=pecd_mapping,
             costs=costs,
             spatial=spatial,
-            logger=logger,
             nyears=nyears,
         )
 
