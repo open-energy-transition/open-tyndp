@@ -1299,6 +1299,18 @@ def input_heat_source_power(w):
     }
 
 
+def input_offshore_hubs(w):
+    offshore_files = [
+        "offshore_buses",
+        "offshore_grid",
+        "offshore_electrolysers",
+        "offshore_generators",
+    ]
+    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
+        return {f: resources(f"{f}.csv") for f in offshore_files}
+    return {f: [] for f in offshore_files}
+
+
 if config["sector"]["h2_topology_tyndp"]:
 
     rule build_tyndp_h2_network:
@@ -1362,6 +1374,40 @@ if config["sector"]["h2_topology_tyndp"]:
             "../scripts/build_tyndp_h2_imports.py"
 
 
+if config["sector"]["offshore_hubs_tyndp"]["enable"]:
+
+    rule build_tyndp_offshore_hubs:
+        params:
+            planning_horizons=config_provider("scenario", "planning_horizons"),
+            scenario=config_provider("tyndp_scenario"),
+            countries=config_provider("countries"),
+            offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
+        input:
+            nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
+            grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
+            electrolysers=directory(
+                "data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx"
+            ),
+            generators=directory("data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx"),
+        output:
+            offshore_buses=resources("offshore_buses.csv"),
+            offshore_grid=resources("offshore_grid.csv"),
+            offshore_electrolysers=resources("offshore_electrolysers.csv"),
+            offshore_generators=resources("offshore_generators.csv"),
+            offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
+        log:
+            logs("build_tyndp_offshore_hubs.log"),
+        benchmark:
+            benchmarks("build_tyndp_offshore_hubs")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/build_tyndp_offshore_hubs.py"
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
@@ -1398,10 +1444,12 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
+        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
     input:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
         unpack(input_heat_source_power),
+        unpack(input_offshore_hubs),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,
         snapshot_weightings=resources(
