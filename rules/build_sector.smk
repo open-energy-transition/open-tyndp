@@ -1234,13 +1234,13 @@ def input_profile_offwind(w):
 
 def pecd_renewable_profiles(w):
     return (
-        [
-            carrier
-            for carrier in config_provider(
-                "electricity", "pecd_renewable_profiles", "technologies"
-            )(w).keys()
-        ]
-        if config_provider("electricity", "pecd_renewable_profiles", "enable")(w)
+    list(
+       config_provider(
+           "electricity",
+           "pecd_renewable_profiles",
+           "technologies"
+       )(w)
+    ) if config_provider("electricity", "pecd_renewable_profiles", "enable")(w)
         else []
     )
 
