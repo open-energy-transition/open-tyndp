@@ -31,9 +31,10 @@ conventional_carriers,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignite
 ,,,
 renewable_carriers,--,"Any subset of {solar, onwind, offwind-ac, offwind-dc, offwind-float, hydro}",List of renewable generators to include in the model.
 pecd_renewable_profiles,,,
--- enable,,bool,Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_profile_name`` can be any of {CSP, LFSolarPV, Wind_Offshore, Wind_Onshore}.
+-- enable,,bool,Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_techs`` can be any of {CSP, LFSolarPV, Wind_Offshore, Wind_Onshore}.
 -- technologies,,,
--- -- {pecd_profile_name},--,list,The TYNDP renewable carriers for which the PECD renewable profile is used. These TYNDP renewable carriers should also be listed in ``renewable_carriers``. Carriers not listed use default renewable profiles.
+-- -- {pecd_tech},--,str,The PECD tech whose PECD profile is used. These PECD tech and their profiles are mapped to ``tydnp_renewable_carriers``.
+-- -- -- {tyndp_renewable_carriers},--,str,The `tyndp_renewable_carriers` for which the PECD profiles must be used. Carriers not listed use the default renewable profiles.
 estimate_renewable_capacities,,,
 -- enable,,bool,Activate routine to estimate renewable capacities in rule :mod:`add_electricity`. This option should not be used in combination with pathway planning ``foresight: myopic`` or ``foresight: perfect`` as renewable capacities are added differently in :mod:`add_existing_baseyear`.
 -- from_gem,--,bool,Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.
