@@ -1231,7 +1231,7 @@ def input_profile_offwind(w):
     }
 
 
-pecd_renewable_profiles = branch(
+pecd_techs = branch(
     config_provider("electricity", "pecd_renewable_profiles", "enable"),
     config_provider("electricity", "pecd_renewable_profiles", "technologies"),
 )
@@ -1240,7 +1240,7 @@ pecd_renewable_profiles = branch(
 def input_profile_pecd(w):
     return {
         f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
-        for tech in pecd_renewable_profiles(w)
+        for tech in pecd_techs(w)
     }
 
 

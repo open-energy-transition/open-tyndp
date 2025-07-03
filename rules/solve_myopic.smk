@@ -74,7 +74,7 @@ def input_profile_tech_brownfield(w):
 def input_profile_tech_brownfield_pecd(w):
     return {
         f"profile_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
-        for tech in pecd_renewable_profiles(w)
+        for tech in pecd_techs(w)
     }
 
 
