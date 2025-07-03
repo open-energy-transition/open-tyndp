@@ -1234,8 +1234,9 @@ def input_profile_offwind(w):
 
 pecd_renewable_profiles = branch(
     config_provider("electricity", "pecd_renewable_profiles", "enable"),
-    config_provider("electricity", "pecd_renewable_profiles", "technologies")
+    config_provider("electricity", "pecd_renewable_profiles", "technologies"),
 )
+
 
 def input_profile_pecd(w):
     return {
