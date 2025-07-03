@@ -179,6 +179,7 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
             h2_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
             electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
             h2_imports="data/tyndp_2024_bundle/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+            offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
