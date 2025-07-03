@@ -131,6 +131,10 @@ electricity:
     from_gem: true
     year: 2020
     expansion_limit: false
+    technologies:
+    - Offshore
+    - Onshore
+    - PV
     technology_mapping:
       Offshore: offwind-ac
       Onshore: onwind

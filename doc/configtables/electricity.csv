@@ -40,6 +40,7 @@ estimate_renewable_capacities,,,
 -- from_gem,--,bool,Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.
 -- year,--,bool,Renewable capacities are based on existing capacities reported by IRENA (IRENASTAT) for the specified year
 -- expansion_limit,--,float or false,"Artificially limit maximum IRENA capacities to a factor.  For example, an ``expansion_limit: 1.1`` means 110% of capacities . If false are chosen, the estimated renewable potentials determine by the workflow are used."
+-- technologies,--,list,Switch to select the technologies for which renewable capacities are estimated for overnight foresight. Technologies covered by specified TYNDP renewable carriers need to be removed.
 -- technology_mapping,,,Mapping between PyPSA-Eur and powerplantmatching technology names
 -- -- Offshore,--,"{onwind}","PyPSA-Eur carrier that is considered for existing onshore wind capacities (IRENA, GEM)."
 -- -- Offshore,--,"Any of {offwind-ac, offwind-dc, offwind-float}","PyPSA-Eur carrier that is considered for existing offshore wind technology (IRENA, GEM)."

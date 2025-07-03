@@ -59,6 +59,12 @@ electricity:
       - offwind-h2-fb-oh
       - offwind-h2-fl-oh
 
+  estimate_renewable_capacities:
+    # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation
+    technologies:
+    - Onshore
+    - PV
+
   transmission_limit: v1.0
 
 atlite:
