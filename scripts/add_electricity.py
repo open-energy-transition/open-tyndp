@@ -64,7 +64,6 @@ from scripts._helpers import (
     PYPSA_V1,
     configure_logging,
     get_snapshots,
-    get_tyndp_res_carriers,
     rename_techs,
     set_scenario_config,
     update_p_nom_max,
@@ -1216,16 +1215,12 @@ if __name__ == "__main__":
         params.link_length_factor,
     )
 
-    tyndp_renewable_carriers = get_tyndp_res_carriers(
-        params.electricity["pecd_renewable_profiles"]
-    )
+    tyndp_renewable_carriers = params.electricity["tyndp_renewable_carriers"]
     if len(tyndp_renewable_carriers) > 0:
         logger.info(
-            f"Skipping renewable carriers - they will be attached later with TYNDP data: {', '.join(tyndp_renewable_carriers)}"
+            f"Skipping TYNDP renewable carriers - they will be attached later with TYNDP data: {', '.join(tyndp_renewable_carriers)}"
         )
-    renewable_carriers = set(params.electricity["renewable_carriers"]).difference(
-        tyndp_renewable_carriers
-    )
+    renewable_carriers = params.electricity["renewable_carriers"]
     extendable_carriers = params.electricity["extendable_carriers"]
     conventional_carriers = params.electricity["conventional_carriers"]
     conventional_inputs = {

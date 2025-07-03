@@ -10,7 +10,6 @@ import os
 import re
 import time
 from functools import partial, wraps
-from itertools import chain
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable, Union
@@ -1128,27 +1127,3 @@ def extract_grid_data_tyndp(
     h2_grid.index = h2_grid.apply(make_index, axis=1, args=(carrier,))
 
     return h2_grid
-
-
-def get_tyndp_res_carriers(pecd_renewable_profiles: dict):
-    """
-    Function to return all TYNDP renewable carriers specified in the configuration file for PECD profiles.
-
-    The function makes sure TYNDP renewable carriers are only returned if PECD profiles are enabled.
-
-    Parameters
-    ----------
-    pecd_renewable_profiles : dict
-        Dictionary that contains all TYNDP renewable carriers of the PECD profiles.
-
-    Returns
-    -------
-    tyndp_renewable_carriers : list
-        List of TYNDP renewable carriers.
-    """
-    tyndp_renewable_carriers = (
-        list(chain(*pecd_renewable_profiles["technologies"].values()))
-        if pecd_renewable_profiles["enable"]
-        else []
-    )
-    return tyndp_renewable_carriers

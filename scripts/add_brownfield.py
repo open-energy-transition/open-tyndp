@@ -15,7 +15,6 @@ import xarray as xr
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    get_tyndp_res_carriers,
     sanitize_custom_columns,
     set_scenario_config,
     update_config_from_wildcards,
@@ -357,9 +356,7 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    tyndp_renewable_carriers = get_tyndp_res_carriers(
-        snakemake.params.pecd_renewable_profiles
-    )
+    tyndp_renewable_carriers = snakemake.params.tyndp_renewable_carriers
 
     adjust_renewable_profiles(
         n, snakemake.input, snakemake.params, year, tyndp_renewable_carriers

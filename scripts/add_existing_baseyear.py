@@ -19,7 +19,6 @@ import xarray as xr
 
 from scripts._helpers import (
     configure_logging,
-    get_tyndp_res_carriers,
     sanitize_custom_columns,
     set_scenario_config,
     update_config_from_wildcards,
@@ -761,9 +760,7 @@ if __name__ == "__main__":
     options = snakemake.params.sector
 
     renewable_carriers = snakemake.params.carriers
-    tyndp_renewable_carriers = get_tyndp_res_carriers(
-        snakemake.params.pecd_renewable_profiles
-    )
+    tyndp_renewable_carriers = snakemake.params.tyndp_renewable_carriers
 
     baseyear = snakemake.params.baseyear
 
