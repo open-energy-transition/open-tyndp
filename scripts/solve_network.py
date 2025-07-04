@@ -1137,7 +1137,7 @@ def add_offshore_hubs_constraint(
     planning_horizons : int, optional
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn: str
-        Path to the dataFrame containing the offshore zone potentials trajectories
+        Path to the file containing the offshore zone potentials trajectories
     """
     ext_i = n.generators.p_nom_extendable
     gens = n.generators.assign(
@@ -1241,7 +1241,7 @@ def extra_functionality(
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn: str, optional
-        Path to the DataFrame containing the offshore zone potentials trajectories
+        Path to the file containing the offshore zone potentials trajectories
 
     Collects supplementary constraints which will be passed to
     ``pypsa.optimization.optimize``.

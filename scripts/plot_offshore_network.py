@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plot offshore transmission network.
+Plot offshore transmission network with existing capacities. If `expanded` is enabled, the optimal capacities are plotted instead.
 """
 
 import logging
@@ -33,7 +33,7 @@ def plot_offshore_map(
 ):
     """
     Plots the offshore network hydrogen and electricity capacities and offshore-hubs buses.
-    If expanded is enabled, the optimal capacities are plotted instead.
+    If `p_nom` parameter is set as `p_nom_opt`, optimal capacities are plotted instead.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def plot_offshore_map(
     Returns
     -------
     None
-        Saves the map plot as figure.
+        Saves the map plot as figure to the provided map_fn path.
     """
     n = network.copy()
 
@@ -88,7 +88,7 @@ def plot_offshore_map(
     elif isinstance(p_nom, float) or isinstance(p_nom, int):
         link_widths = p_nom
     else:
-        raise ValueError("Value 'p_nom' must be either str or float.")
+        raise ValueError("Parameter 'p_nom' must be either str or float.")
 
     # keep relevant buses
     bus_carriers = [carrier] + (["AC"] if carrier == "DC" else [])

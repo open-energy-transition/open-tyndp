@@ -3056,7 +3056,7 @@ def add_offshore_generators_tyndp(
         The network object to add offshore generators to.
     pyear : int
         Planning horizon used to filter which reference generator data to include.
-    offshore_generators : str
+    offshore_generators_fn : str
         Path to the file containing offshore generators configuration data.
     profiles : dict[str, str]
         Dictionary mapping technology names to profile file paths

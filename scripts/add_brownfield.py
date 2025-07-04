@@ -171,11 +171,13 @@ def add_brownfield(
                     index=lambda x: x.replace("dc", "h2")
                 )
 
-                already_existing = (
+                already_existing_l = (
                     pd.concat([already_existing, h2_to_dc, dc_to_h2])
                     .groupby(level=0)
                     .sum()
                 )
+            else:
+                already_existing_l = already_existing.copy()
 
             # values should be non-negative; clipping applied to handle rounding errors
             remaining_capacity = (
@@ -184,7 +186,7 @@ def add_brownfield(
             ).clip(lower=0)
             remaining_potential = (
                 off_potential
-                - already_existing.reindex(index=off_capacity.index).fillna(0)
+                - already_existing_l.reindex(index=off_capacity.index).fillna(0)
             ).clip(lower=0)
             c.df.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
             c.df.loc[off_i, "p_nom_max"] = remaining_potential

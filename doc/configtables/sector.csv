@@ -232,5 +232,5 @@ imports,,,
 -- -- {carrier},currency/MWh,float,Price for importing renewable energy of carrier
 offshore_hubs_tyndp,--,"{true, false}",Add options for TYNDP offshore hubs
 -- enable,--,"{true, false}",Add option to include TYNDP offshore hubs
--- max_capacity,--,"{true, false}",Maximum transmission capacities between two offshore hubs
+-- max_capacity,,,
 -- -- {carrier},GW,float,Maximum transmission capacity between two offshore hubs of a carrier
