@@ -287,9 +287,7 @@ def disable_grid_expansion_if_limit_hit(n):
                 n.global_constraints.drop(name, inplace=True)
 
 
-def adjust_renewable_profiles(
-    n, input_profiles, params, year, tyndp_renewable_carriers
-):
+def adjust_renewable_profiles(n, input_profiles, params, year):
     """
     Adjusts renewable profiles according to the renewable technology specified,
     using the latest year below or equal to the selected year.
@@ -301,23 +299,11 @@ def adjust_renewable_profiles(
         pd.Series(dr, index=dr).where(lambda x: x.isin(n.snapshots), pd.NA).ffill()
     )
 
-    fn_map = {i: i for i in params["carriers"]}
-    if params["carriers_pecd"].get("enable", False):
-        fn_map.update(
-            {
-                vi: k
-                for k, v in params["carriers_pecd"]["technologies"].items()
-                for vi in v
-            }
-        )
-
-    for carrier in set(params["carriers"]) - set(tyndp_renewable_carriers):
+    for carrier in set(params["carriers"]):
         if carrier == "hydro":
             continue
 
-        with xr.open_dataset(
-            getattr(input_profiles, "profile_" + fn_map[carrier])
-        ) as ds:
+        with xr.open_dataset(getattr(input_profiles, "profile_" + carrier)) as ds:
             if ds.indexes["bus"].empty or "year" not in ds.indexes:
                 continue
 
@@ -445,11 +431,7 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    tyndp_renewable_carriers = snakemake.params.tyndp_renewable_carriers
-
-    adjust_renewable_profiles(
-        n, snakemake.input, snakemake.params, year, tyndp_renewable_carriers
-    )
+    adjust_renewable_profiles(n, snakemake.input, snakemake.params, year)
 
     add_build_year_to_new_assets(n, year)
 

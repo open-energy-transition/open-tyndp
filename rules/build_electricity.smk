@@ -601,7 +601,6 @@ def input_class_regions(w):
         )
         for tech in set(config_provider("electricity", "renewable_carriers")(w))
         - {"hydro"}
-        - set(tyndp_renewable_carriers(w))
     }
 
 
@@ -784,20 +783,6 @@ rule cluster_network:
         "../envs/environment.yaml"
     script:
         "../scripts/cluster_network.py"
-
-
-def tyndp_renewable_carriers(w):
-    return (
-        list(
-            chain(
-                *config_provider(
-                    "electricity", "pecd_renewable_profiles", "technologies"
-                )(w).values()
-            )
-        )
-        if config_provider("electricity", "pecd_renewable_profiles", "enable")(w)
-        else []
-    )
 
 
 def input_profile_tech(w):
