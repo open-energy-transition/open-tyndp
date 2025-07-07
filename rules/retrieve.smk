@@ -181,12 +181,8 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
             h2_imports="data/tyndp_2024_bundle/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
             offshore_nodes="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
             offshore_grid="data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx",
-            offshore_electrolysers=directory(
-                "data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx"
-            ),
-            offshore_generators=directory(
-                "data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx"
-            ),
+            offshore_electrolysers="data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx",
+            offshore_generators="data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
