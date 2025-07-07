@@ -3067,14 +3067,12 @@ def add_offshore_generators_tyndp(
 
     # Adjust capacities and costs to account for efficiency
     h2_idx = offshore_generators.filter(like="h2", axis=0).index
-    offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]] = (
-        offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]].mul(
-            costs.at["electrolysis", "efficiency"]
-        )
-    )
-    offshore_generators.loc[h2_idx, ["capex", "opex"]] = offshore_generators.loc[
-        h2_idx, ["capex", "opex"]
-    ].div(costs.at["electrolysis", "efficiency"])
+    offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]] *= costs.at[
+        "electrolysis", "efficiency"
+    ]
+    offshore_generators.loc[h2_idx, ["capex", "opex"]] /= costs.at[
+        "electrolysis", "efficiency"
+    ]
 
     # Determine capital_cost
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])

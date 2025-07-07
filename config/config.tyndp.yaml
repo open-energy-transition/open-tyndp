@@ -150,6 +150,9 @@ sector:
     - H2
   offshore_hubs_tyndp:
     enable: true
+    max_capacity:
+      DC: 10
+      H2: 30
 
 costs:
   overwrites:
