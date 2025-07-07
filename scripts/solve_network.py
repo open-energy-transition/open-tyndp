@@ -1136,7 +1136,7 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
 
 def add_offshore_hubs_constraint(
     n,
-    planning_horizons: int | None,
+    planning_horizons: int,
     offshore_zone_trajectories_fn,
     carriers_tyndp: list[str],
 ):

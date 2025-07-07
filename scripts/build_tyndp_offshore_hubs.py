@@ -10,8 +10,9 @@ import logging
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from _helpers import configure_logging, set_scenario_config
 from shapely.geometry import Point
+
+from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +152,7 @@ def load_offshore_grid(
         p_max_pu=1,
     )
 
-    # Assume non-extendable when missing data
+    # Handle missing cost data
     # TODO Validate assumption
     grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
     grid[["capex", "opex"]] = grid[["capex", "opex"]].fillna(0)
@@ -460,16 +461,22 @@ def load_offshore_generators(
     # Collect potentials trajectories in ZONE_POTENTIAL
     zone_trajectories = generators_z
 
-    # Resolve discrepancy in DEOH002
+    # Resolve known DEOH002 data discrepancy
+    # This is a temporary fix for a 526 MW discrepancy between LAYER_POTENTIAL
+    # and ZONE_POTENTIAL data sources.
+    # TODO: Remove this once upstream TYNDP data is corrected
+    DEOH002_DISCREPANCY_MW = 526
     idx_l = generators.query(
         "location=='DEOH002' and pyear == 2040 and carrier=='offwind-ac-fb-r'"
     ).index
-    generators.loc[idx_l, "p_nom_min"] = generators.loc[idx_l, "p_nom_min"] - 526
+    generators.loc[idx_l, "p_nom_min"] = (
+        generators.loc[idx_l, "p_nom_min"] - DEOH002_DISCREPANCY_MW
+    )
     idx_z = zone_trajectories.query(
         "location=='DEOH002' and pyear in [2045, 2050]"
     ).index
     zone_trajectories.loc[idx_z, "p_nom_max"] = (
-        zone_trajectories.loc[idx_z, "p_nom_max"] - 526
+        zone_trajectories.loc[idx_z, "p_nom_max"] - DEOH002_DISCREPANCY_MW
     )
 
     # Collect cost assumptions
@@ -505,7 +512,7 @@ def load_offshore_generators(
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "build_tyndp_offshore_hubs", configfiles="config/test/config.tyndp.yaml"
