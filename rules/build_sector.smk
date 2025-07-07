@@ -1252,6 +1252,19 @@ def input_profile_pecd(w):
     }
 
 
+pecd_techs = branch(
+    config_provider("electricity", "pecd_renewable_profiles", "enable"),
+    config_provider("electricity", "pecd_renewable_profiles", "technologies"),
+)
+
+
+def input_profile_pecd(w):
+    return {
+        f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
+        for tech in pecd_techs(w)
+    }
+
+
 rule build_egs_potentials:
     params:
         snapshots=config_provider("snapshots"),

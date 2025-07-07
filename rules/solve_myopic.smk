@@ -10,6 +10,9 @@ rule add_existing_baseyear:
         pecd_renewable_profiles=config_provider(
             "electricity", "pecd_renewable_profiles"
         ),
+        tyndp_renewable_carriers=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
         existing_capacities=config_provider("existing_capacities"),
         carriers=config_provider("electricity", "renewable_carriers"),
         costs=config_provider("costs"),
@@ -63,10 +66,7 @@ rule add_existing_baseyear:
 def input_profile_tech_brownfield(w):
     return {
         f"profile_{tech}": resources("profile_{clusters}_" + tech + ".nc")
-        for tech in (
-            set(config_provider("electricity", "renewable_carriers")(w))
-            - set(tyndp_renewable_carriers(w))
-        )
+        for tech in (set(config_provider("electricity", "renewable_carriers")(w)))
         if tech != "hydro"
     }
 
@@ -74,7 +74,7 @@ def input_profile_tech_brownfield(w):
 def input_profile_tech_brownfield_pecd(w):
     return {
         f"profile_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
-        for tech in pecd_renewable_profiles(w)
+        for tech in pecd_techs(w)
     }
 
 
@@ -88,6 +88,9 @@ rule add_brownfield:
         snapshots=config_provider("snapshots"),
         pecd_renewable_profiles=config_provider(
             "electricity", "pecd_renewable_profiles"
+        ),
+        tyndp_renewable_carriers=config_provider(
+            "electricity", "tyndp_renewable_carriers"
         ),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         carriers=config_provider("electricity", "renewable_carriers"),

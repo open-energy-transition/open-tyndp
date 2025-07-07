@@ -23,6 +23,7 @@ from _helpers import configure_logging, progress_retrieve, set_scenario_config
 logger = logging.getLogger(__name__)
 
 # Define the base URL
+# TODO: retrieve_tyndp_pecd_data needs to be deprecated once PECD data is added to the TYNDP data bundle
 url = "https://storage.googleapis.com/open-tyndp-data-store/PECD.zip"
 
 if __name__ == "__main__":

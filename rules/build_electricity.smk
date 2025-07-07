@@ -808,7 +808,6 @@ def input_profile_tech(w):
             else f"profile_{tech}.nc"
         )
         for tech in set(config_provider("electricity", "renewable_carriers")(w))
-        - set(tyndp_renewable_carriers(w))
     }
 
 
