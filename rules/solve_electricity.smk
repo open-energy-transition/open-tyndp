@@ -11,6 +11,7 @@ rule solve_network:
             "sector", "co2_sequestration_potential", default=200
         ),
         custom_extra_functionality=input_custom_extra_functionality,
+        carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
     input:
         network=resources("networks/base_s_{clusters}_elec_{opts}.nc"),
         offshore_zone_trajectories=lambda w: (

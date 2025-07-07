@@ -1135,7 +1135,10 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
 
 
 def add_offshore_hubs_constraint(
-    n, planning_horizons: int | None, offshore_zone_trajectories_fn
+    n,
+    planning_horizons: int | None,
+    offshore_zone_trajectories_fn,
+    carriers_tyndp: list[str],
 ):
     """
     Add two constraints on offshore hubs.
@@ -1151,6 +1154,8 @@ def add_offshore_hubs_constraint(
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn: str
         Path to the file containing the offshore zone potentials trajectories
+    carriers_tyndp : list[str], optional
+        List of TYNDP renewable carriers
     """
     ext_i = n.generators.p_nom_extendable
     gens = n.generators.assign(
@@ -1159,9 +1164,11 @@ def add_offshore_hubs_constraint(
         ),
         zone=lambda df: df.index.str.split().str[0],
     ).rename_axis("Generator-ext")
+    off_carriers = [i for i in carriers_tyndp if "offwind" in i]
+    off_h2_carriers = [i for i in off_carriers if "h2" in i]
 
     # Constraint DC / H2 expansion on the same layer
-    h2_i = gens.carrier.str.contains("h2")
+    h2_i = gens.carrier.isin(off_h2_carriers)
     h2_gens = gens.loc[(h2_i) & (ext_i)]
     h2_gens_i = h2_gens.index
     dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
@@ -1186,7 +1193,7 @@ def add_offshore_hubs_constraint(
         .p_nom_max
     )
 
-    off_i = gens.index.str.contains("offwind")
+    off_i = gens.carrier.isin(off_carriers)
 
     off_gens_i = gens.loc[(off_i) & (ext_i)].index
     grouper_ext = gens.loc[off_gens_i].zone.rename("Generator-ext")
@@ -1241,6 +1248,7 @@ def extra_functionality(
     snapshots: pd.DatetimeIndex,
     planning_horizons: str | None = None,
     offshore_zone_trajectories_fn: str | None = None,
+    carriers_tyndp: list[str] = [],
 ) -> None:
     """
     Add custom constraints and functionality.
@@ -1255,6 +1263,8 @@ def extra_functionality(
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn: str, optional
         Path to the file containing the offshore zone potentials trajectories
+    carriers_tyndp : list[str], optional
+        List of TYNDP renewable carriers
 
     Collects supplementary constraints which will be passed to
     ``pypsa.optimization.optimize``.
@@ -1313,7 +1323,7 @@ def extra_functionality(
 
     if config["sector"]["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_constraint(
-            n, int(planning_horizons), offshore_zone_trajectories_fn
+            n, int(planning_horizons), offshore_zone_trajectories_fn, carriers_tyndp
         )
 
     if n.params.custom_extra_functionality:
@@ -1362,6 +1372,7 @@ def solve_network(
     rule_name: str | None = None,
     planning_horizons: str | None = None,
     offshore_zone_trajectories_fn: str | None = None,
+    carriers_tyndp: list[str] = [],
     **kwargs,
 ) -> None:
     """
@@ -1380,9 +1391,11 @@ def solve_network(
     rule_name : str, optional
         Name of the snakemake rule being executed
     planning_horizons : str, optional
-            The current planning horizon year or None in perfect foresight
+        The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn : str, optional
         Path to DataFrame containing the offshore zone potentials trajectories
+    carriers_tyndp : list[str], optional
+        List of TYNDP renewable carriers
     **kwargs
         Additional keyword arguments passed to the solver
 
@@ -1414,6 +1427,7 @@ def solve_network(
         extra_functionality,
         planning_horizons=planning_horizons,
         offshore_zone_trajectories_fn=offshore_zone_trajectories_fn,
+        carriers_tyndp=carriers_tyndp,
     )
     kwargs["transmission_losses"] = cf_solving.get("transmission_losses", False)
     kwargs["linearized_unit_commitment"] = cf_solving.get(
@@ -1520,6 +1534,7 @@ if __name__ == "__main__":
             rule_name=snakemake.rule,
             log_fn=snakemake.log.solver,
             offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
+            carriers_tyndp=snakemake.params.carriers_tyndp,
         )
 
     logger.info(f"Maximum memory usage: {mem.mem_usage}")
