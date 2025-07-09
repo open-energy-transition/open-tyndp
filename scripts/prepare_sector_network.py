@@ -3067,6 +3067,9 @@ def add_offshore_generators_tyndp(
 
     # Adjust capacities and costs to account for efficiency
     h2_idx = offshore_generators.filter(like="h2", axis=0).index
+    offshore_generators["efficiency"] = np.where(
+        mask, costs.at["electrolysis", "efficiency"], 1.0
+    )
     offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]] *= costs.at[
         "electrolysis", "efficiency"
     ]
@@ -3117,7 +3120,8 @@ def add_offshore_generators_tyndp(
         p_nom_extendable=offshore_generators.p_nom_extendable,
         capital_cost=offshore_generators.capital_cost,
         marginal_cost=costs.at["offwind", "marginal_cost"],
-        efficiency=costs.at["offwind", "efficiency"],
+        efficiency=offshore_generators.efficiency,
+        efficiency_dc_to_h2=costs.at["electrolysis", "efficiency"],
         p_max_pu=p_max_pu,
         lifetime=costs.at["offwind", "lifetime"],
     )
