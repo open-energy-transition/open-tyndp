@@ -55,13 +55,13 @@ Activate the newly created `open-tydnp` environment:
 
 ## 2. Run the analysis
 
-    snakemake -call
+    make tyndp
 
 This will run all analysis steps to reproduce results and build the report.
 
-To generate a PDF of the dependency graph of all steps `resources/dag.pdf` run:
+To generate a PDF of the dependency graph of all steps `resources/dag_rulegraph.pdf` run:
 
-    snakemake -c1 dag
+    snakemake -c1 rulegraph
 
 <sup>*</sup> Open Energy Transition (g)GmbH, Königsallee 52, 95448 Bayreuth, Germany
 
