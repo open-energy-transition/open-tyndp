@@ -22,7 +22,6 @@ from scripts._helpers import (
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
 configfile: "config/config.private.yaml"
-configfile: "config/config.yaml"
 
 
 run = config["run"]
@@ -81,6 +80,7 @@ if config["foresight"] == "perfect":
 rule all:
     input:
         expand(RESULTS + "graphs/costs.svg", run=config["run"]["name"]),
+        expand(resources("maps/power-network.pdf"), run=config["run"]["name"]),
         expand(
             resources("maps/power-network-s-{clusters}.pdf"),
             run=config["run"]["name"],
@@ -94,8 +94,19 @@ rule all:
         ),
         lambda w: expand(
             (
+                resources(
+                    "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+                )
+                if config_provider("sector", "H2_network")(w)
+                else []
+            ),
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        lambda w: expand(
+            (
                 RESULTS
-                + "maps/base_s_{clusters}_{opts}_{sector_opts}-h2_network_{planning_horizons}.pdf"
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-h2_network.pdf"
                 if config_provider("sector", "H2_network")(w)
                 else []
             ),
@@ -111,6 +122,29 @@ rule all:
             ),
             run=config["run"]["name"],
             **config["scenario"],
+        ),
+        lambda w: expand(
+            (
+                resources(
+                    "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
+                )
+                if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
+                else []
+            ),
+            run=config["run"]["name"],
+            **config["scenario"],
+            carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf"
+                if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
+                else []
+            ),
+            run=config["run"]["name"],
+            **config["scenario"],
+            carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
         ),
         lambda w: expand(
             (
@@ -201,7 +235,7 @@ rule rulegraph:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
         echo "[Rule rulegraph] Using final config file: {input.config_file}"
-        snakemake --rulegraph all --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
+        snakemake --rulegraph --configfile {input.config_file} --quiet | sed -n "/digraph/,\$p" > {output.dot}
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then

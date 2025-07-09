@@ -68,38 +68,6 @@ if config["foresight"] != "perfect":
         script:
             "../scripts/plot_power_network.py"
 
-    rule plot_hydrogen_network:
-        params:
-            plotting=config_provider("plotting"),
-            foresight=config_provider("foresight"),
-            tyndp_h2_topology=config_provider("sector", "h2_topology_tyndp"),
-        input:
-            network=RESULTS
-            + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
-            regions=branch(
-                config_provider("sector", "h2_topology_tyndp"),
-                resources("country_shapes.geojson"),
-                resources("regions_onshore_base_s_{clusters}.geojson"),
-            ),
-        output:
-            map=RESULTS
-            + "maps/base_s_{clusters}_{opts}_{sector_opts}-h2_network_{planning_horizons}.pdf",
-        threads: 2
-        resources:
-            mem_mb=10000,
-        log:
-            RESULTS
-            + "logs/plot_hydrogen_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
-        benchmark:
-            (
-                RESULTS
-                + "benchmarks/plot_hydrogen_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
-            )
-        conda:
-            "../envs/environment.yaml"
-        script:
-            "../scripts/plot_hydrogen_network.py"
-
     rule plot_base_hydrogen_network:
         params:
             plotting=config_provider("plotting"),
@@ -126,6 +94,83 @@ if config["foresight"] != "perfect":
             "../envs/environment.yaml"
         script:
             "../scripts/plot_base_hydrogen_network.py"
+
+    rule plot_hydrogen_network:
+        params:
+            plotting=config_provider("plotting"),
+            foresight=config_provider("foresight"),
+            tyndp_h2_topology=config_provider("sector", "h2_topology_tyndp"),
+        input:
+            network=RESULTS
+            + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+            regions=branch(
+                config_provider("sector", "h2_topology_tyndp"),
+                resources("country_shapes.geojson"),
+                resources("regions_onshore_base_s_{clusters}.geojson"),
+            ),
+        output:
+            map=RESULTS
+            + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-h2_network.pdf",
+        threads: 2
+        resources:
+            mem_mb=10000,
+        log:
+            RESULTS
+            + "logs/plot_hydrogen_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
+        benchmark:
+            (
+                RESULTS
+                + "benchmarks/plot_hydrogen_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            )
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/plot_hydrogen_network.py"
+
+    rule plot_base_offshore_network:
+        params:
+            plotting=config_provider("plotting"),
+            expanded=False,
+        input:
+            network=resources(
+                "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
+            ),
+            regions_offshore=resources("regions_offshore.geojson"),
+        output:
+            map=resources(
+                "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
+            ),
+        threads: 1
+        resources:
+            mem_mb=4000,
+        benchmark:
+            benchmarks(
+                "plot_base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
+            )
+        log:
+            RESULTS
+            + "logs/plot_base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.log",
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/plot_offshore_network.py"
+
+    use rule plot_base_offshore_network as plot_offshore_network with:
+        params:
+            expanded=True,
+        input:
+            network=RESULTS
+            + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+        output:
+            map=RESULTS
+            + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf",
+        benchmark:
+            benchmarks(
+                "plot_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
+            )
+        log:
+            RESULTS
+            + "logs/plot_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.log",
 
     rule plot_gas_network:
         params:
