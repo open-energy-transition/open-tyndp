@@ -21,8 +21,10 @@ authors:
     country: DE
   - given-names: Thomas
     family-names: Gilon
+    orcid: https://orcid.org/0009-0009-8300-0922
   - given-names: Daniel
     family-names: Rüdt
+    orcid: https://orcid.org/0000-0003-2182-444X
   - family-names: Hörsch
     given-names: Jonas
     orcid: https://orcid.org/0000-0001-9438-767X
