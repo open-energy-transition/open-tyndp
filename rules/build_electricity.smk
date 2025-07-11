@@ -397,6 +397,9 @@ rule clean_pecd_data:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
+        fill_gaps_method=config_provider(
+            "electricity", "pecd_renewable_profiles", "fill_gaps_method"
+        ),
     input:
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         onshore_buses=resources("busmap_base_s_all.csv"),

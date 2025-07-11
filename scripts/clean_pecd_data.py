@@ -109,7 +109,7 @@ if __name__ == "__main__":
     )
     dir_pecd = snakemake.input.dir_pecd
 
-    # Load and prep electricity demand
+    # Load and prep pecd data
     tqdm_kwargs = {
         "ascii": False,
         "unit": " nodes",
@@ -127,16 +127,22 @@ if __name__ == "__main__":
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
-        demand = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
+        pecd = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
+    pecd_df = pd.concat(pecd, axis=1)
+    fill_na = (
+        pd.Series(0.0, index=pecd_df.index)
+        if snakemake.params.fill_gaps_method == "zero"
+        else pecd_df.agg(snakemake.params.fill_gaps_method, axis=1)
+    )
     pecd_df = (
-        pd.concat(demand, axis=1)
-        .reindex(
-            nodes, axis=1, fill_value=0.0
-        )  # include missing node data with empty columns
+        pecd_df.reindex(nodes, axis=1)  # include missing node data with empty columns
         .rename(
             columns=lambda x: x.replace("UK", "GB")
         )  # replace UK with GB for naming convention
+        .where(
+            lambda df: df.notna(), fill_na, axis=0
+        )  # fill missing node data with configured aggregation method
     )
 
     pecd_df.to_csv(snakemake.output.pecd_data_clean)

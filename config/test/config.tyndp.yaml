@@ -49,6 +49,7 @@ electricity:
 
   pecd_renewable_profiles:
     enable: true
+    fill_gaps_method: zero
     technologies:
       Wind_Offshore:
       - offwind-ac-fb-r
