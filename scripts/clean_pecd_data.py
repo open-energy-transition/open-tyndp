@@ -5,11 +5,9 @@
 Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
 The script is executed for a given technology, and planning horizon. Technologies can be one of:
 
-   * CSP_noStorage,
-   * CSP_withStorage,
-   * LFSolarPV,
-   * LFSolarPVRooftop,
+   * CSP
    * LFSolarPVUtility,
+   * LFSolarPVRooftop,
    * Wind_Offshore,
    * Wind_Onshore.
 
@@ -44,6 +42,9 @@ def read_pecd_file(
     technology: str,
     sns: pd.DatetimeIndex,
 ):
+    # PECD only differentiates IT nodes between utility and rooftop PV
+    if "LFSolarPV" in technology and "IT" not in node:
+        technology = "LFSolarPV"
     fn = Path(dir_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
 
     if not os.path.isfile(fn):
@@ -97,7 +98,6 @@ if __name__ == "__main__":
     # Planning year
     pyear = str(snakemake.wildcards.planning_horizons)
 
-    # TODO: find solution for solar profiles being differentiated between Utility and Rooftop for Italy
     # Technology as in PECD terminology
     pecd_tech = snakemake.wildcards.technology
 
@@ -105,7 +105,9 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
 
     nodes = (
-        offshore_buses.index if pecd_tech == "Wind_Offshore" else onshore_buses.index
+        offshore_buses.index
+        if pecd_tech == "Wind_Offshore"
+        else onshore_buses.index.str.replace("GB", "UK", regex=True)
     )
     dir_pecd = snakemake.input.dir_pecd
 

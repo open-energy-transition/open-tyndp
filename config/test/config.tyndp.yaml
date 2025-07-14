@@ -44,8 +44,8 @@ electricity:
     Store: [H2]
     Link: [H2 pipeline]
 
-  renewable_carriers: [solar, solar-hsat, onwind]
-  tyndp_renewable_carriers: [offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
+  renewable_carriers: [solar-hsat, onwind]
+  tyndp_renewable_carriers: [solar-pv, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:
     enable: true
@@ -60,6 +60,10 @@ electricity:
       - offwind-dc-fl-oh
       - offwind-h2-fb-oh
       - offwind-h2-fl-oh
+      LFSolarPVRooftop:
+      - solar-pv-rooftop
+      LFSolarPVUtility:
+      - solar-pv-utility
 
   estimate_renewable_capacities:
     # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation
