@@ -131,6 +131,10 @@ if __name__ == "__main__":
     with mp.Pool(processes=snakemake.threads) as pool:
         pecd = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
+    if all(data is None for data in pecd):
+        raise ValueError(
+            f"No PECD data found for {pecd_tech}. Please specify a technology covered within the TYNDP PECD data."
+        )
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (
         pd.Series(0.0, index=pecd_df.index)
