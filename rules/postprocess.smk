@@ -110,7 +110,7 @@ if config["foresight"] != "perfect":
             ),
         output:
             map=RESULTS
-            + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-h2_network.pdf",
+            + "maps/base_s_{clusters}_{opts}_{sector_opts}-h2_network_{planning_horizons}.pdf",
         threads: 2
         resources:
             mem_mb=10000,
