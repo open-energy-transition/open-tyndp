@@ -40,8 +40,8 @@ co2_budget:
 electricity:
   base_network: tyndp-raw
 
-  renewable_carriers: [solar, solar-hsat, onwind, hydro]
-  tyndp_renewable_carriers: [solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
+  renewable_carriers: [solar-hsat, hydro]
+  tyndp_renewable_carriers: [onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:
     enable: true
@@ -60,6 +60,8 @@ electricity:
       - solar-pv-rooftop
       LFSolarPVUtility:
       - solar-pv-utility
+      Wind_Onshore:
+      - onwind
 
   estimate_renewable_capacities:
     # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation
