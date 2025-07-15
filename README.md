@@ -45,9 +45,9 @@ Clone the repository:
 
     git clone https://github.com/open-energy-transition/open-tyndp
 
-You need [mamba](https://mamba.readthedocs.io/en/latest/) to run the analysis. Users may also prefer to use [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) or [conda](https://docs.conda.io/projects/conda/en/latest/index.html). Using `mamba`, you can create an environment from within you can run it:
+You need a package manager like [mamba](https://mamba.readthedocs.io/en/latest/) to run the analysis. Users may also prefer to use [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) or [conda](https://docs.conda.io/projects/conda/en/latest/index.html). Using `mamba`, you can create an environment for `<your-os>` from within you can run it:
 
-    mamba env create -f environment.yaml
+    mamba env create -n open-tyndp -f envs/<your-os>.lock.yaml
 
 Activate the newly created `open-tydnp` environment:
 
@@ -61,7 +61,7 @@ This will run all analysis steps to reproduce results and build the report.
 
 To generate a PDF of the dependency graph of all steps `resources/dag_rulegraph.pdf` run:
 
-    snakemake -c1 rulegraph
+    snakemake -c1 rulegraph --configfile config/config.tyndp.yaml
 
 <sup>*</sup> Open Energy Transition (g)GmbH, Königsallee 52, 95448 Bayreuth, Germany
 
