@@ -14,10 +14,9 @@ rule solve_network:
         carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
     input:
         network=resources("networks/base_s_{clusters}_elec_{opts}.nc"),
-        offshore_zone_trajectories=lambda w: (
-            resources("offshore_zone_trajectories.csv")
-            if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
-            else []
+        offshore_zone_trajectories=branch(
+            config_provider("sector", "offshore_hubs_tyndp", "enable"),
+            resources("offshore_zone_trajectories.csv"),
         ),
     output:
         network=RESULTS + "networks/base_s_{clusters}_elec_{opts}.nc",
