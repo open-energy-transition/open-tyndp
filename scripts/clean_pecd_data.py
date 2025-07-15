@@ -42,11 +42,11 @@ def read_pecd_file(
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    # PECD only differentiates IT nodes between utility and rooftop PV
-    if "LFSolarPV" in technology and "IT" not in node:
-        technology = "LFSolarPV"
     fn = Path(dir_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
 
+    # PECD only differentiates between utility and rooftop PV for some nodes
+    if not os.path.isfile(fn) and "LFSolarPV" in technology:
+        fn = Path(str(fn).replace(technology, "LFSolarPV"))
     if not os.path.isfile(fn):
         return None
 
