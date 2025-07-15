@@ -1375,12 +1375,10 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
             countries=config_provider("countries"),
             offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
         input:
-            nodes=directory("data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx"),
-            grid=directory("data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx"),
-            electrolysers=directory(
-                "data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx"
-            ),
-            generators=directory("data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx"),
+            nodes="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
+            grid="data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx",
+            electrolysers="data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx",
+            generators="data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx",
         output:
             offshore_buses=resources("offshore_buses.csv"),
             offshore_grid=resources("offshore_grid.csv"),

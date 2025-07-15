@@ -10,7 +10,6 @@ import logging
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from shapely.geometry import Point
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -53,8 +52,9 @@ def load_offshore_hubs(fn: str, countries: list[str]):
         )
     )
 
-    nodes["geometry"] = nodes.apply(lambda row: Point(row["x"], row["y"]), axis=1)
-    nodes = gpd.GeoDataFrame(nodes, geometry="geometry", crs=GEO_CRS)
+    nodes = gpd.GeoDataFrame(
+        nodes, geometry=gpd.points_from_xy(nodes.x, nodes.y), crs=GEO_CRS
+    )
 
     return nodes
 
@@ -120,11 +120,11 @@ def load_offshore_grid(
     }
 
     # Load reference grid
-    grid = pd.read_excel(
-        fn,
-        sheet_name="Reference grid",
-    ).rename(columns=column_dict)
-    grid["carrier"] = grid["carrier"].replace("E", "DC")
+    grid = (
+        pd.read_excel(fn, sheet_name="Reference grid")
+        .rename(columns=column_dict)
+        .replace({"carrier": {"E": "DC"}, "scenario": scenario_dict})
+    )
     grid = expand_all_scenario(grid, scenario_dict.values()).query(
         "scenario == @scenario"
     )
