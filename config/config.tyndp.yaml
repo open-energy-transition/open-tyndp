@@ -40,7 +40,7 @@ co2_budget:
 electricity:
   base_network: tyndp-raw
 
-  renewable_carriers: [solar-hsat, hydro]
+  renewable_carriers: [onwind, solar, solar-hsat, hydro]
   tyndp_renewable_carriers: [onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:

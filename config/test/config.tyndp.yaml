@@ -44,7 +44,7 @@ electricity:
     Store: [H2]
     Link: [H2 pipeline]
 
-  renewable_carriers: [solar-hsat]
+  renewable_carriers: [onwind, solar, solar-hsat]
   tyndp_renewable_carriers: [onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:
