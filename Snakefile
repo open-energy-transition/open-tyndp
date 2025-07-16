@@ -141,7 +141,7 @@ rule all:
         lambda w: expand(
             (
                 RESULTS
-                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-h2_network.pdf"
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}-h2_network_{planning_horizons}.pdf"
                 if config_provider("sector", "H2_network")(w)
                 else []
             ),
