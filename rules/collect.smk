@@ -81,3 +81,25 @@ rule plot_balance_maps:
             run=config["run"]["name"],
             carrier=config_provider("plotting", "balance_map", "bus_carriers")(w),
         ),
+
+
+rule make_benchmarks:
+    input:
+        lambda w: expand(
+            RESULTS
+            + "benchmarks/csvs/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            **config["scenario"],
+            run=config["run"]["name"],
+            table=config_provider("tables")(w),
+        ),
+
+
+rule plot_benchmarks:
+    input:
+        lambda w: expand(
+            RESULTS
+            + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            **config["scenario"],
+            run=config["run"]["name"],
+            table=config_provider("tables")(w),
+        ),
