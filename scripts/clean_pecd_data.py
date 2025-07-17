@@ -5,11 +5,9 @@
 Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
 The script is executed for a given technology, and planning horizon. Technologies can be one of:
 
-   * CSP_noStorage,
-   * CSP_withStorage,
-   * LFSolarPV,
-   * LFSolarPVRooftop,
+   * CSP
    * LFSolarPVUtility,
+   * LFSolarPVRooftop,
    * Wind_Offshore,
    * Wind_Onshore.
 
@@ -46,6 +44,9 @@ def read_pecd_file(
 ):
     fn = Path(dir_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
 
+    # PECD only differentiates between utility and rooftop PV for some nodes
+    if not os.path.isfile(fn) and "LFSolarPV" in technology:
+        fn = Path(str(fn).replace(technology, "LFSolarPV"))
     if not os.path.isfile(fn):
         return None
 
@@ -97,7 +98,6 @@ if __name__ == "__main__":
     # Planning year
     pyear = str(snakemake.wildcards.planning_horizons)
 
-    # TODO: find solution for solar profiles being differentiated between Utility and Rooftop for Italy
     # Technology as in PECD terminology
     pecd_tech = snakemake.wildcards.technology
 
@@ -105,11 +105,13 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
 
     nodes = (
-        offshore_buses.index if pecd_tech == "Wind_Offshore" else onshore_buses.index
+        offshore_buses.index
+        if pecd_tech == "Wind_Offshore"
+        else onshore_buses.index.str.replace("GB", "UK", regex=True)
     )
     dir_pecd = snakemake.input.dir_pecd
 
-    # Load and prep electricity demand
+    # Load and prep pecd data
     tqdm_kwargs = {
         "ascii": False,
         "unit": " nodes",
@@ -127,16 +129,26 @@ if __name__ == "__main__":
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
-        demand = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
+        pecd = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
+    if all(data is None for data in pecd):
+        raise ValueError(
+            f"No PECD data found for {pecd_tech}. Please specify a technology covered within the TYNDP PECD data."
+        )
+    pecd_df = pd.concat(pecd, axis=1)
+    fill_na = (
+        pd.Series(0.0, index=pecd_df.index)
+        if snakemake.params.fill_gaps_method == "zero"
+        else pecd_df.agg(snakemake.params.fill_gaps_method, axis=1)
+    )
     pecd_df = (
-        pd.concat(demand, axis=1)
-        .reindex(
-            nodes, axis=1, fill_value=0.0
-        )  # include missing node data with empty columns
+        pecd_df.reindex(nodes, axis=1)  # include missing node data with empty columns
         .rename(
             columns=lambda x: x.replace("UK", "GB")
         )  # replace UK with GB for naming convention
+        .where(
+            lambda df: df.notna(), fill_na, axis=0
+        )  # fill missing node data with configured aggregation method
     )
 
     pecd_df.to_csv(snakemake.output.pecd_data_clean)
