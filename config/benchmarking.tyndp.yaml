@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: Open Energy Transition gGmbH
+#
+# SPDX-License-Identifier: CC0-1.0
+
+benchmarking:
+  enable: true
+
+# Define default values for each table type
+table_types:
+  scenario_comparison:
+    index_col: 1
+    header: [3, 4]
+    method: nrmse  # nrmse, mae
+    plot: bar  # bar, area, None
+  time_series:
+    index_col: 0
+    header: 3
+    method: nrmse
+    plot: area
+
+# Define table specific values
+tables:
+  elec_demand:
+    table_type: scenario_comparison
+    sheet_name: 5-
+    unit: TWh
+
+  generation_profiles:
+    table_type: time_series
+    sheet_name: 30a
+    unit: GW
