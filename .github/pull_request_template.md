@@ -3,6 +3,18 @@ Closes # (if applicable).
 ## Changes proposed in this Pull Request
 
 
+## Tasks
+
+
+## Workflow
+
+
+## Open issues
+
+ 
+## Notes
+
+
 ## Checklist
 
 - [ ] I tested my contribution locally and it works as intended.
