@@ -162,8 +162,13 @@ def load_offshore_grid(
 
     # Add maximum transmission capacities
     grid["p_nom_max"] = np.where(
-        grid.carrier == "DC_OH", max_capacity["DC_OH"], max_capacity["H2 pipeline OH"]
-    )
+        grid.bus0.str.contains("OH") & grid.bus1.str.contains("OH"),
+        np.where(
+            (grid.carrier == "DC_OH"), max_capacity["DC_OH"], max_capacity["H2 pipeline OH"]
+        )
+        * 1e3,
+        grid.get("p_nom_max", np.inf),
+    )  # MW > GW
 
     # Rename UK in GB
     grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
