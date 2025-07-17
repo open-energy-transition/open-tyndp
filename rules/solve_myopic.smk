@@ -85,6 +85,7 @@ rule add_brownfield:
             "sector", "H2_retrofit_capacity_per_CH4"
         ),
         threshold_capacity=config_provider("existing_capacities", "threshold_capacity"),
+        h2_topology_tyndp=config_provider("sector", "h2_topology_tyndp"),
         snapshots=config_provider("snapshots"),
         pecd_renewable_profiles=config_provider(
             "electricity", "pecd_renewable_profiles"
