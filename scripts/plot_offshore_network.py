@@ -26,7 +26,7 @@ def plot_offshore_map(
     map_opts,
     map_fn,
     planning_horizons,
-    carrier="DC",
+    carrier="DC_OH",
     p_nom="p_nom",
     legend=True,
     hubs_only=False,
@@ -62,19 +62,17 @@ def plot_offshore_map(
     """
     n = network.copy()
 
-    linewidth_factor = 1e4
-
-    mask = {"DC": "Offshore DC", "H2": "Offshore H2 pipeline"}
+    linewidth_factor = 1e4 if carrier == "DC_OH" else 5e3
 
     n.links.drop(
-        n.links.index[~(n.links.index.str.contains(mask[carrier]))],
+        n.links.index[n.links.carrier != carrier],
         inplace=True,
     )
 
     # transmission capacities
     if isinstance(p_nom, str):
         links = (
-            n.links[n.links.index.str.contains(mask[carrier])][p_nom]
+            n.links[n.links.carrier == carrier][p_nom]
             .rename(index=lambda x: re.sub(r"-\d{4}$", f"-{planning_horizons}", x))
             .groupby(level=0)
             .sum()
@@ -91,18 +89,16 @@ def plot_offshore_map(
         raise ValueError("Parameter 'p_nom' must be either str or float.")
 
     # keep relevant buses
-    bus_carriers = [carrier] + (["AC"] if carrier == "DC" else [])
+    bus_carriers = [carrier.replace("DC", "AC")] + (
+        ["AC"] if carrier == "DC_OH" else ["H2", "H2_OH"]
+    )
     n.buses.drop(
-        n.buses.index[
-            (~n.buses.carrier.isin(bus_carriers))
-            | (n.buses.index.str.contains("Z1"))
-            | (n.buses.index.str.contains("DRES"))
-        ],
+        n.buses.index[~n.buses.carrier.isin(bus_carriers)],
         inplace=True,
     )
     n_oh = n.copy()
     n_oh.buses.drop(
-        n_oh.buses.index[~n_oh.buses.index.str.contains("OH")], inplace=True
+        n_oh.buses.index[~n_oh.buses.carrier.str.contains("OH")], inplace=True
     )
 
     if hubs_only:
@@ -114,7 +110,7 @@ def plot_offshore_map(
     fig, ax = plt.subplots(figsize=(7, 6), subplot_kw={"projection": proj})
     color_h2 = "#f081dc"
     color_dc = "darkseagreen"
-    color = color_dc if carrier == "DC" else color_h2
+    color = color_dc if carrier == "DC_OH" else color_h2
     color_oh_nodes = "#ff29d9"
     color_hm_nodes = "darkgray"
 
@@ -189,7 +185,7 @@ def plot_offshore_map(
             legend_kw=legend_kw,
         )
 
-        label = "DC link" if carrier == "DC" else "H2 pipeline"
+        label = "DC link" if carrier == "DC_OH" else "H2 pipeline"
 
         legend_kw = dict(
             loc="upper left",
@@ -216,7 +212,7 @@ if __name__ == "__main__":
             clusters="all",
             sector_opts="",
             planning_horizons=2050,
-            carrier="DC",
+            carrier="DC_OH",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)

@@ -118,7 +118,12 @@ def load_offshore_grid(
     grid = (
         pd.read_excel(fn, sheet_name="Reference grid")
         .rename(columns=column_dict)
-        .replace({"carrier": {"E": "DC"}, "scenario": scenario_dict})
+        .replace(
+            {
+                "carrier": {"E": "DC_OH", "H2": "H2 pipeline OH"},
+                "scenario": scenario_dict,
+            }
+        )
     )
     grid = expand_all_scenario(grid, scenario_dict.values()).query(
         "scenario == @scenario"
@@ -137,7 +142,9 @@ def load_offshore_grid(
     grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
         1e3
     )  # kEUR/MW to EUR/MW
-    grid_costs["carrier"] = grid_costs["carrier"].replace("E", "DC")
+    grid_costs["carrier"] = grid_costs["carrier"].replace(
+        {"E": "DC_OH", "H2": "H2 pipeline OH"}
+    )
 
     # Merge information
     grid = grid.merge(
@@ -155,7 +162,7 @@ def load_offshore_grid(
 
     # Add maximum transmission capacities
     grid["p_nom_max"] = np.where(
-        grid.carrier == "DC", max_capacity["DC"], max_capacity["H2"]
+        grid.carrier == "DC_OH", max_capacity["DC_OH"], max_capacity["H2 pipeline OH"]
     )
 
     # Rename UK in GB

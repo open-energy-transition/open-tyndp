@@ -820,8 +820,8 @@ sector:
   offshore_hubs_tyndp:
     enable: false
     max_capacity:
-      DC: 10
-      H2: 30
+      DC_OH: 10
+      H2 pipeline OH: 30
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#industry
 industry:
