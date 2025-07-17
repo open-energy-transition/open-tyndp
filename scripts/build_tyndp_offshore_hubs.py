@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 GEO_CRS = "EPSG:4326"
 
 
-def load_offshore_hubs(fn: str, countries: list[str]):
+def load_offshore_hubs(fn: str):
     """
     Load and process offshore hub coordinates from Excel file.
 
@@ -26,8 +26,6 @@ def load_offshore_hubs(fn: str, countries: list[str]):
     ----------
     fn : str
         Path to the Excel file containing offshore hub data.
-    countries : list[str]
-        List of country codes used to clean data.
 
     Returns
     -------
@@ -71,7 +69,6 @@ def expand_all_scenario(df: pd.DataFrame, scenarios: list):
 
 def load_offshore_grid(
     fn: str,
-    nodes: pd.DataFrame,
     scenario: str,
     planning_horizons: list[int],
     countries: list[str],
@@ -84,8 +81,6 @@ def load_offshore_grid(
     ----------
     fn : str
         Path to the Excel file containing offshore grid data.
-    nodes : pd.DataFrame
-        DataFrame containing node information.
     scenario : str
         Scenario identifier to filter the grid data. Must be one of the scenario
         codes: "DE" (Distributed Energy), "GA" (Global Ambition), or
@@ -526,11 +521,10 @@ if __name__ == "__main__":
     planning_horizons = snakemake.params["planning_horizons"]
     countries = snakemake.params["countries"]
 
-    nodes = load_offshore_hubs(snakemake.input.nodes, countries)
+    nodes = load_offshore_hubs(snakemake.input.nodes)
 
     grid = load_offshore_grid(
         snakemake.input.grid,
-        nodes,
         snakemake.params["scenario"],
         planning_horizons,
         countries,
