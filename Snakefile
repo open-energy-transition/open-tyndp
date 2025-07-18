@@ -79,46 +79,42 @@ if config["foresight"] == "perfect":
 
 def input_all_tyndp(w):
     files = []
-    files.extend(
-        expand(
-            (
-                resources(
-                    "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
-                )
-                if config_provider("sector", "H2_network")(w)
-                else []
-            ),
-            run=config["run"]["name"],
-            **config["scenario"],
+    if config_provider("sector", "H2_network")(w):
+        files.extend(
+            expand(
+                (
+                    resources(
+                        "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+                    )
+                ),
+                run=config["run"]["name"],
+                **config["scenario"],
+            )
         )
-    )
-    files.extend(
-        expand(
-            (
-                resources(
-                    "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
-                )
-                if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
-                else []
-            ),
-            run=config["run"]["name"],
-            **config["scenario"],
-            carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
+        files.extend(
+            expand(
+                (
+                    resources(
+                        "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
+                    )
+                ),
+                run=config["run"]["name"],
+                **config["scenario"],
+                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+            )
         )
-    )
-    files.extend(
-        expand(
-            (
-                RESULTS
-                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf"
-                if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
-                else []
-            ),
-            run=config["run"]["name"],
-            **config["scenario"],
-            carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+        files.extend(
+            expand(
+                (
+                    RESULTS
+                    + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf"
+                ),
+                run=config["run"]["name"],
+                **config["scenario"],
+                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+            )
         )
-    )
     return files
 
 
