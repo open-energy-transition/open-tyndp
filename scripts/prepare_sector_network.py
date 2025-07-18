@@ -3061,8 +3061,6 @@ def add_offshore_generators_tyndp(
     offshore_generators = pd.read_csv(offshore_generators_fn).query("pyear==@pyear")
 
     # Assign locations and index
-    mask = offshore_generators["carrier"].str.contains("h2")
-    offshore_generators.loc[mask, "bus"] = offshore_generators.loc[mask, "bus"] + " H2"
     offshore_generators.index = (
         offshore_generators.location + " 0 " + offshore_generators.carrier
     )
@@ -3083,7 +3081,7 @@ def add_offshore_generators_tyndp(
         + offshore_generators["opex"]
     ) * nyears
 
-    # mapping from TYNDP offshore generators to PECD profiles
+    # Mapping from TYNDP offshore generators to PECD profiles
     offshore_generators["pecd_profile_name"] = offshore_generators["carrier"].map(
         pecd_mapping
     )
@@ -3183,23 +3181,6 @@ def add_offshore_electrolysers_tyndp(
     )
 
 
-def map_h2_buses(n, df):
-    """
-    Map AC buses to H2 Z2 buses.
-    """
-    h2_busmap = (
-        n.buses.query(
-            "~Bus.str.contains('DRES') and carrier=='AC' and type==''"
-        ).location.str[:2]
-        + " H2 Z2"
-    )
-    df_mapped = df.assign(
-        bus0=lambda x: x["bus0"].map(h2_busmap).fillna(x["bus0"]),
-        bus1=lambda x: x["bus1"].map(h2_busmap).fillna(x["bus1"]),
-    )
-    return df_mapped
-
-
 def add_offshore_grid_tyndp(
     n: pypsa.Network,
     pyear: int,
@@ -3269,15 +3250,7 @@ def add_offshore_grid_tyndp(
     )
 
     # Add H2 pipeline connections
-    offshore_grid_h2 = offshore_grid.query("carrier=='H2_OH'").copy()
-    offshore_grid_h2 = offshore_grid_h2.assign(
-        bus0=lambda df: np.where(
-            df.bus0.str.contains("OH"), df.bus0 + " H2", df.bus0.str[:2] + " H2 Z2"
-        ),
-        bus1=lambda df: np.where(
-            df.bus1.str.contains("OH"), df.bus1 + " H2", df.bus1.str[:2] + " H2 Z2"
-        ),
-    )
+    offshore_grid_h2 = offshore_grid.query("carrier=='H2 pipeline OH'").copy()
     offshore_grid_h2.index = offshore_grid_h2.apply(
         make_index, axis=1, prefix="Offshore H2 pipeline"
     )
@@ -3285,7 +3258,6 @@ def add_offshore_grid_tyndp(
         annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
         + offshore_grid_h2["opex"]
     ) * nyears
-    offshore_grid_h2 = map_h2_buses(n, offshore_grid_h2)
 
     n.add(
         "Link",

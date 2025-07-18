@@ -154,6 +154,24 @@ def load_offshore_grid(
         p_max_pu=1,
     )
 
+    # Filter out radial nodes and Convert to explicit hydrogen buses
+    grid = grid.query("~bus0.str.contains('OR') and ~bus1.str.contains('OR')").assign(
+        bus0=lambda df: np.where(
+            df.carrier == "H2 pipeline OH",
+            np.where(
+                df.bus0.str.contains("OH"), df.bus0 + " H2", df.bus0.str[:2] + " H2 Z2"
+            ),
+            df.bus0,
+        ),
+        bus1=lambda df: np.where(
+            df.carrier == "H2 pipeline OH",
+            np.where(
+                df.bus1.str.contains("OH"), df.bus1 + " H2", df.bus1.str[:2] + " H2 Z2"
+            ),
+            df.bus1,
+        ),
+    )
+
     # Handle missing cost data
     # TODO Validate assumption
     grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
@@ -164,7 +182,9 @@ def load_offshore_grid(
     grid["p_nom_max"] = np.where(
         grid.bus0.str.contains("OH") & grid.bus1.str.contains("OH"),
         np.where(
-            (grid.carrier == "DC_OH"), max_capacity["DC_OH"], max_capacity["H2 pipeline OH"]
+            (grid.carrier == "DC_OH"),
+            max_capacity["DC_OH"],
+            max_capacity["H2 pipeline OH"],
         )
         * 1e3,
         grid.get("p_nom_max", np.inf),
@@ -177,9 +197,7 @@ def load_offshore_grid(
     grid = grid.assign(
         country0=lambda x: x.bus0.str[:2],
         country1=lambda x: x.bus1.str[:2],
-    ).query(
-        "country0 in @countries and country1 in @countries and ~bus0.str.contains('OR') and ~bus1.str.contains('OR')"
-    )
+    ).query("country0 in @countries and country1 in @countries")
 
     return grid
 
@@ -492,6 +510,10 @@ def load_offshore_generators(
         how="left",
         on=["bus", "location", "pyear", "scenario", "type", "carrier"],
     )
+
+    # Convert to explicit hydrogen buses
+    mask = generators["carrier"].str.contains("h2")
+    generators.loc[mask, "bus"] = generators.loc[mask, "bus"] + " H2"
 
     # Validate that all required cost assumptions are defined
     if generators[["capex", "opex"]].isna().any().any():
