@@ -80,7 +80,7 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
 
     # offshore hubs
 
-    if options.get("offshore_hubs_tyndp") and offshore_buses_fn:
+    if options["offshore_hubs_tyndp"]["enable"] and offshore_buses_fn:
         spatial.offshore_hubs = SimpleNamespace()
         offshore_buses = pd.read_csv(offshore_buses_fn, index_col=0)
         offshore_buses_h2 = offshore_buses.set_index(offshore_buses.index + " H2")
@@ -7527,10 +7527,15 @@ if __name__ == "__main__":
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
 
     buses_h2_file = snakemake.input.buses_h2 if options["h2_topology_tyndp"] else None
+    buses_oh_file = (
+        snakemake.input.offshore_buses
+        if options["offshore_hubs_tyndp"]["enable"]
+        else None
+    )
     spatial = define_spatial(
         pop_layout.index,
         options,
-        offshore_buses_fn=snakemake.input.offshore_buses,
+        offshore_buses_fn=buses_oh_file,
         buses_h2_file=buses_h2_file,
     )
 

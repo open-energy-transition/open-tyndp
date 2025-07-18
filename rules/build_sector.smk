@@ -1395,7 +1395,7 @@ def input_offshore_hubs(w):
     ]
     if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
         return {f: resources(f"{f}.csv") for f in offshore_files}
-    return {f: [] for f in offshore_files}
+    return {}
 
 
 rule prepare_sector_network:
