@@ -13,6 +13,8 @@ Release Notes
 
 **Changes**
 
+* Introduce TYNDP offshore wind hubs via `sector:offshore_hubs_tyndp` configuration (https://github.com/open-energy-transition/open-tyndp/pull/54). This feature implements an offshore grid topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics. Three wind farm types are supported: AC-radial (ac-r), DC-radial (dc-r) and DC-hubs (dc-oh). Each is compatible with fixed-bottom (fb) or floating (fl) foundations. Wind farms connected to hubs can produce hydrogen directly through a dedicated P2G unit, while electricity can be supplied to the network or converted to hydrogen via offshore electrolysers connected to the hubs. The network includes existing capacities, with capacity expansion constrained by technological potential and evolving zone potential.
+
 * Add processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles, replacing default ERA5-based profiles processed with Atlite (https://github.com/open-energy-transition/open-tyndp/pull/53). Initial implementation first addresses profiles for offshore technologies.
 
 * Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries (https://github.com/open-energy-transition/open-tyndp/pull/36). Notably this includes pipelines and shipping imports from North Africa, Ukraine and Norway. Different import potentials are available for each of the planning years which are differentiated by wildcards.

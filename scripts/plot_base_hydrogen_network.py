@@ -75,6 +75,10 @@ def plot_h2_map_base(
         ],
         inplace=True,
     )
+    n.links.drop(
+        n.links.index[n.links.carrier.str.contains("OH")],
+        inplace=True,
+    )
 
     p_nom = "p_nom_opt" if expanded else "p_nom"
     # capacity of pipes and imports
@@ -100,7 +104,12 @@ def plot_h2_map_base(
     link_widths_imports = link_widths_imports.reindex(n.links.index).fillna(0.0)
 
     # drop non H2 buses
-    n.buses.drop(n.buses.index[~n.buses.carrier.str.contains("H2")], inplace=True)
+    n.buses.drop(
+        n.buses.index[
+            (~n.buses.carrier.str.contains("H2")) | (n.buses.carrier.str.contains("OH"))
+        ],
+        inplace=True,
+    )
 
     # optionally add hydrogen storage capacities onto the map
     if regions_for_storage is not None:
@@ -164,7 +173,7 @@ def plot_h2_map_base(
 
     sizes = [30, 10]
     labels = [f"{s} GW" for s in sizes]
-    scale = 1e3 / 4e3
+    scale = 1e3 / linewidth_factor
     sizes = [s * scale for s in sizes]
 
     legend_kw = dict(
@@ -228,7 +237,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "plot_base_hydrogen_network",
             opts="",
-            clusters="100",
+            clusters="all",
             sector_opts="",
             planning_horizons=2030,
         )
