@@ -1291,18 +1291,6 @@ def input_heat_source_power(w):
     }
 
 
-def input_offshore_hubs(w):
-    offshore_files = [
-        "offshore_buses",
-        "offshore_grid",
-        "offshore_electrolysers",
-        "offshore_generators",
-    ]
-    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
-        return {f: resources(f"{f}.csv") for f in offshore_files}
-    return {f: [] for f in offshore_files}
-
-
 if config["sector"]["h2_topology_tyndp"]:
 
     rule build_tyndp_h2_network:
@@ -1396,6 +1384,18 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
             "../envs/environment.yaml"
         script:
             "../scripts/build_tyndp_offshore_hubs.py"
+
+
+def input_offshore_hubs(w):
+    offshore_files = [
+        "offshore_buses",
+        "offshore_grid",
+        "offshore_electrolysers",
+        "offshore_generators",
+    ]
+    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
+        return {f: resources(f"{f}.csv") for f in offshore_files}
+    return {f: [] for f in offshore_files}
 
 
 rule prepare_sector_network:
