@@ -1172,15 +1172,12 @@ def add_offshore_hubs_constraint(
     h2_gens = gens.loc[(h2_i) & (ext_i)]
     h2_gens_i = h2_gens.index
     dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
-
-    off_electrolysers = n.links.loc[
-        (n.links.index.str.contains("Offshore Electrolysis"))
-        & (n.links.build_year == planning_horizons)
-    ].set_index("bus1")
-    eff_l = off_electrolysers.loc[h2_gens.bus].set_index(h2_gens_i).efficiency
     p_nom = n.model["Generator-p_nom"]
 
-    lhs = p_nom.loc[dc_gens_i] + p_nom.loc[h2_gens_i] / eff_l
+    lhs = (
+        p_nom.loc[dc_gens_i]
+        + p_nom.loc[h2_gens_i] / h2_gens.loc[h2_gens_i, "efficiency_dc_to_b0"]
+    )
     rhs = gens.loc[dc_gens_i].p_nom_max
 
     if not lhs.empty:
@@ -1198,22 +1195,22 @@ def add_offshore_hubs_constraint(
     off_gens_i = gens.loc[(off_i) & (ext_i)].index
     grouper_ext = gens.loc[off_gens_i].zone.rename("Generator-ext")
     idx = pd.Index(set(limit.index).intersection(grouper_ext))
-    eff_z = eff_l.reindex(off_gens_i, fill_value=1)
+    eff_z = gens["efficiency_dc_to_b0"].reindex(off_gens_i)
     lhs = (p_nom.loc[off_gens_i] / eff_z).groupby(grouper_ext).sum().loc[idx]
 
-    # ToDo Account for time-varying efficiencies across planning horizons
     existing_z = (
-        gens.loc[(off_i) & ~(ext_i), "p_nom"]
-        .rename(lambda x: x.split("-2")[0] + f"-{planning_horizons}")
-        .groupby(level=0)
+        gens.loc[(off_i) & ~(ext_i)]
+        .assign(
+            p_nom=lambda df: np.where(
+                df.carrier.str.contains("h2"),
+                df.p_nom.div(df.efficiency_dc_to_h2),
+                df.p_nom,
+            )
+        )
+        .rename(lambda x: x.split("-2")[0] + f"-{planning_horizons}")[["p_nom", "zone"]]
+        .groupby(by="zone")
         .sum()
-    )
-    grouper_z = gens.loc[existing_z.index].zone
-    existing_z = (
-        (existing_z / eff_z.loc[existing_z.index])
-        .groupby(grouper_z)
-        .sum()
-        .reindex(idx, fill_value=0)
+        .reindex(idx, fill_value=0)["p_nom"]
     )
     rhs = limit.loc[idx] - existing_z
 

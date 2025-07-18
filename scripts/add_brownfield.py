@@ -118,6 +118,7 @@ def add_brownfield(
     # hydrogen- and electricity-generating wind farms share the same potential; values are adjusted accordingly
     if offshore_hubs_tyndp:
         filter = {"Link": "Offshore", "Generator": "offwind"}
+        eff_map = {"Link": "efficiency", "Generator": "efficiency_dc_to_h2"}
         for c in n.iterate_components(["Link", "Generator"]):
             off_fixed_i = c.df[
                 (c.df.index.str.contains(filter[c.name])) & (c.df.build_year != year)
@@ -128,9 +129,25 @@ def add_brownfield(
 
             off_capacity = c.df.loc[off_i, "p_nom"]
             off_potential = c.df.loc[off_i, "p_nom_max"]
+
+            # Determine existing capacities in MW_e and MW_h2
             already_existing = (
-                c.df.loc[off_fixed_i, "p_nom_opt"]
-                .rename(lambda x: x.split("-2")[0] + f"-{year}")
+                c.df.loc[off_fixed_i]
+                .assign(
+                    p_nom_opt_e=lambda df: np.where(
+                        df.carrier.str.contains("h2"),
+                        df.p_nom_opt.div(df[eff_map[c.name]]),
+                        df.p_nom_opt,
+                    ),
+                    p_nom_opt_h2=lambda df: np.where(
+                        ~df.carrier.str.contains("h2"),
+                        df.p_nom_opt.mul(df[eff_map[c.name]]),
+                        df.p_nom_opt,
+                    ),
+                )
+                .rename(lambda x: x.split("-2")[0] + f"-{year}")[
+                    ["p_nom_opt", "p_nom_opt_e", "p_nom_opt_h2"]
+                ]
                 .groupby(level=0)
                 .sum()
             )
@@ -145,33 +162,15 @@ def add_brownfield(
                     already_existing.index.str.contains("dc.*oh")
                 ]
 
-                off_h2_gens = n.generators.loc[h2_gens.index]
-                off_dc_gens = n.generators.loc[dc_gens.index]
-                off_electrolysers = n.links.loc[
-                    (n.links.index.str.contains("Offshore Electrolysis"))
-                    & (n.links.build_year == year)
-                ].set_index("bus1")
-                # ToDo Account for time-varying efficiencies across planning horizons
-                eff_h2 = (
-                    off_electrolysers.loc[off_h2_gens.bus]
-                    .set_index(h2_gens.index)
-                    .efficiency
-                )
-                eff_dc = (
-                    off_electrolysers.loc[off_dc_gens.bus + " H2"]
-                    .set_index(dc_gens.index)
-                    .efficiency
-                )
-
-                h2_to_dc = h2_gens.div(eff_h2).rename(
+                h2_to_dc = h2_gens.p_nom_opt_e.rename(
                     index=lambda x: x.replace("h2", "dc")
-                )
-                dc_to_h2 = dc_gens.mul(eff_dc).rename(
+                ).rename("p_nom_opt")
+                dc_to_h2 = dc_gens.p_nom_opt_h2.rename(
                     index=lambda x: x.replace("dc", "h2")
-                )
+                ).rename("p_nom_opt")
 
                 already_existing_l = (
-                    pd.concat([already_existing, h2_to_dc, dc_to_h2])
+                    pd.concat([already_existing.p_nom_opt, h2_to_dc, dc_to_h2])
                     .groupby(level=0)
                     .sum()
                 )
@@ -181,7 +180,7 @@ def add_brownfield(
             # values should be non-negative; clipping applied to handle rounding errors
             remaining_capacity = (
                 off_capacity
-                - already_existing.reindex(index=off_capacity.index).fillna(0)
+                - already_existing.p_nom_opt.reindex(index=off_capacity.index).fillna(0)
             ).clip(lower=0)
             remaining_potential = (
                 off_potential
