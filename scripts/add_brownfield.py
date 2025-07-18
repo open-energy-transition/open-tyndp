@@ -175,6 +175,8 @@ def add_brownfield(
                     .groupby(level=0)
                     .sum()
                 )
+            else:
+                already_existing_l = already_existing_l.p_nom_opt
 
             # values should be non-negative; clipping applied to handle rounding errors
             remaining_capacity = (
