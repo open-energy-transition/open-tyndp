@@ -153,7 +153,6 @@ def add_brownfield(
             )
 
             # account for the shared potential of hydrogen- and electricity-generating wind farms
-            already_existing_l = already_existing.copy()
             if c.name == "Generator":
                 h2_gens = already_existing.loc[
                     already_existing.index.str.contains("h2")
@@ -175,7 +174,7 @@ def add_brownfield(
                     .sum()
                 )
             else:
-                already_existing_l = already_existing_l.p_nom_opt
+                already_existing_l = already_existing.p_nom_opt
 
             # values should be non-negative; clipping applied to handle rounding errors
             remaining_capacity = (
