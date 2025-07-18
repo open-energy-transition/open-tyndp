@@ -10,7 +10,6 @@ import logging
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from shapely.geometry import Point
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 GEO_CRS = "EPSG:4326"
 
 
-def load_offshore_hubs(fn: str, countries: list[str]):
+def load_offshore_hubs(fn: str):
     """
     Load and process offshore hub coordinates from Excel file.
 
@@ -27,8 +26,6 @@ def load_offshore_hubs(fn: str, countries: list[str]):
     ----------
     fn : str
         Path to the Excel file containing offshore hub data.
-    countries : list[str]
-        List of country codes used to clean data.
 
     Returns
     -------
@@ -53,8 +50,9 @@ def load_offshore_hubs(fn: str, countries: list[str]):
         )
     )
 
-    nodes["geometry"] = nodes.apply(lambda row: Point(row["x"], row["y"]), axis=1)
-    nodes = gpd.GeoDataFrame(nodes, geometry="geometry", crs=GEO_CRS)
+    nodes = gpd.GeoDataFrame(
+        nodes, geometry=gpd.points_from_xy(nodes.x, nodes.y), crs=GEO_CRS
+    )
 
     return nodes
 
@@ -71,7 +69,6 @@ def expand_all_scenario(df: pd.DataFrame, scenarios: list):
 
 def load_offshore_grid(
     fn: str,
-    nodes: pd.DataFrame,
     scenario: str,
     planning_horizons: list[int],
     countries: list[str],
@@ -84,8 +81,6 @@ def load_offshore_grid(
     ----------
     fn : str
         Path to the Excel file containing offshore grid data.
-    nodes : pd.DataFrame
-        DataFrame containing node information.
     scenario : str
         Scenario identifier to filter the grid data. Must be one of the scenario
         codes: "DE" (Distributed Energy), "GA" (Global Ambition), or
@@ -120,11 +115,16 @@ def load_offshore_grid(
     }
 
     # Load reference grid
-    grid = pd.read_excel(
-        fn,
-        sheet_name="Reference grid",
-    ).rename(columns=column_dict)
-    grid["carrier"] = grid["carrier"].replace("E", "DC")
+    grid = (
+        pd.read_excel(fn, sheet_name="Reference grid")
+        .rename(columns=column_dict)
+        .replace(
+            {
+                "carrier": {"E": "DC_OH", "H2": "H2 pipeline OH"},
+                "scenario": scenario_dict,
+            }
+        )
+    )
     grid = expand_all_scenario(grid, scenario_dict.values()).query(
         "scenario == @scenario"
     )
@@ -142,7 +142,9 @@ def load_offshore_grid(
     grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
         1e3
     )  # kEUR/MW to EUR/MW
-    grid_costs["carrier"] = grid_costs["carrier"].replace("E", "DC")
+    grid_costs["carrier"] = grid_costs["carrier"].replace(
+        {"E": "DC_OH", "H2": "H2 pipeline OH"}
+    )
 
     # Merge information
     grid = grid.merge(
@@ -150,6 +152,24 @@ def load_offshore_grid(
     ).assign(
         p_min_pu=0,
         p_max_pu=1,
+    )
+
+    # Filter out radial nodes and Convert to explicit hydrogen buses
+    grid = grid.query("~bus0.str.contains('OR') and ~bus1.str.contains('OR')").assign(
+        bus0=lambda df: np.where(
+            df.carrier == "H2 pipeline OH",
+            np.where(
+                df.bus0.str.contains("OH"), df.bus0 + " H2", df.bus0.str[:2] + " H2 Z2"
+            ),
+            df.bus0,
+        ),
+        bus1=lambda df: np.where(
+            df.carrier == "H2 pipeline OH",
+            np.where(
+                df.bus1.str.contains("OH"), df.bus1 + " H2", df.bus1.str[:2] + " H2 Z2"
+            ),
+            df.bus1,
+        ),
     )
 
     # Handle missing cost data
@@ -160,8 +180,15 @@ def load_offshore_grid(
 
     # Add maximum transmission capacities
     grid["p_nom_max"] = np.where(
-        grid.carrier == "DC", max_capacity["DC"], max_capacity["H2"]
-    )
+        grid.bus0.str.contains("OH") & grid.bus1.str.contains("OH"),
+        np.where(
+            (grid.carrier == "DC_OH"),
+            max_capacity["DC_OH"],
+            max_capacity["H2 pipeline OH"],
+        )
+        * 1e3,
+        grid.get("p_nom_max", np.inf),
+    )  # MW > GW
 
     # Rename UK in GB
     grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
@@ -170,9 +197,7 @@ def load_offshore_grid(
     grid = grid.assign(
         country0=lambda x: x.bus0.str[:2],
         country1=lambda x: x.bus1.str[:2],
-    ).query(
-        "country0 in @countries and country1 in @countries and ~bus0.str.contains('OR') and ~bus1.str.contains('OR')"
-    )
+    ).query("country0 in @countries and country1 in @countries")
 
     return grid
 
@@ -486,6 +511,10 @@ def load_offshore_generators(
         on=["bus", "location", "pyear", "scenario", "type", "carrier"],
     )
 
+    # Convert to explicit hydrogen buses
+    mask = generators["carrier"].str.contains("h2")
+    generators.loc[mask, "bus"] = generators.loc[mask, "bus"] + " H2"
+
     # Validate that all required cost assumptions are defined
     if generators[["capex", "opex"]].isna().any().any():
         raise ValueError("Missing generator cost data in input dataset.")
@@ -526,11 +555,10 @@ if __name__ == "__main__":
     planning_horizons = snakemake.params["planning_horizons"]
     countries = snakemake.params["countries"]
 
-    nodes = load_offshore_hubs(snakemake.input.nodes, countries)
+    nodes = load_offshore_hubs(snakemake.input.nodes)
 
     grid = load_offshore_grid(
         snakemake.input.grid,
-        nodes,
         snakemake.params["scenario"],
         planning_horizons,
         countries,

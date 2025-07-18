@@ -243,8 +243,8 @@ plotting:
       branch_sizes:
   offshore_maps:
     bus_carriers:
-    - DC
-    - H2
+    - DC_OH
+    - H2 pipeline OH
 
   nice_names:
     OCGT: "Open-Cycle Gas"
@@ -494,6 +494,7 @@ plotting:
     H2 for industry: "#f073da"
     H2 for shipping: "#ebaee0"
     H2: '#bf13a0'
+    H2_OH: '#bf13a0'
     hydrogen: '#bf13a0'
     retrofitted H2 boiler: '#e5a0d9'
     SMR: '#870c71'
@@ -505,6 +506,7 @@ plotting:
     H2 storage: '#bf13a0'
     land transport fuel cell: '#6b3161'
     H2 pipeline: '#f081dc'
+    H2 pipeline OH: '#f081dc'
     H2 pipeline retrofitted: '#ba99b5'
     H2 import LH2: "#F28C28"
     H2 import Pipeline: "#FFA500"
@@ -577,11 +579,14 @@ plotting:
     geothermal district heat: '#d19D00'
     geothermal organic rankine cycle: '#ffbf00'
     AC: "#70af1d"
+    AC_OH: "#70af1d"
+    AC_DRES: "#70af1d"
     AC-AC: "#70af1d"
     AC line: "#70af1d"
     links: "#8a1caf"
     HVDC links: "#8a1caf"
     DC: "#8a1caf"
+    DC_OH: "#8a1caf"
     DC-DC: "#8a1caf"
     DC link: "#8a1caf"
     load: "#dd2e23"

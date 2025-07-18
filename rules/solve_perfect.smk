@@ -107,10 +107,9 @@ rule solve_sector_network_perfect:
             "networks/base_s_{clusters}_{opts}_{sector_opts}_brownfield_all_years.nc"
         ),
         costs=resources("costs_2030.csv"),
-        offshore_zone_trajectories=lambda w: (
-            resources("offshore_zone_trajectories.csv")
-            if config_provider("sector", "offshore_hubs_tyndp", "enable")(w)
-            else []
+        offshore_zone_trajectories=branch(
+            config_provider("sector", "offshore_hubs_tyndp", "enable"),
+            resources("offshore_zone_trajectories.csv"),
         ),
     output:
         network=RESULTS

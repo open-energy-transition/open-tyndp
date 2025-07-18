@@ -86,6 +86,10 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
         offshore_buses_h2 = offshore_buses.set_index(offshore_buses.index + " H2")
         spatial.offshore_hubs.nodes = offshore_buses.index
         spatial.offshore_hubs.nodes_h2 = offshore_buses_h2.index
+        spatial.offshore_hubs.carrier = pd.Series("AC_OH", index=offshore_buses.index)
+        spatial.offshore_hubs.carrier_h2 = pd.Series(
+            "H2_OH", index=offshore_buses_h2.index
+        )
         spatial.offshore_hubs.x = offshore_buses.x
         spatial.offshore_hubs.y = offshore_buses.y
         spatial.offshore_hubs.x_h2 = offshore_buses_h2.x
@@ -1649,9 +1653,7 @@ def insert_electricity_distribution_grid(
     - Micro-CHP units
     """
 
-    nodes = n.buses.query(
-        "carrier == 'AC' and not index.str.contains('DRES') and not index.str.contains('OH')"
-    ).index
+    nodes = n.buses.query("carrier == 'AC'").index
 
     n.add(
         "Bus",
@@ -1985,7 +1987,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
         location=buses_h2_z2,
         country=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values,
         v_nom=380.0,
-        carrier="AC",
+        carrier="AC_DRES",
         unit="MWh_el",
         substation_off=1.0,
         substation_lv=1.0,
@@ -3059,8 +3061,6 @@ def add_offshore_generators_tyndp(
     offshore_generators = pd.read_csv(offshore_generators_fn).query("pyear==@pyear")
 
     # Assign locations and index
-    mask = offshore_generators["carrier"].str.contains("h2")
-    offshore_generators.loc[mask, "bus"] = offshore_generators.loc[mask, "bus"] + " H2"
     offshore_generators.index = (
         offshore_generators.location + " 0 " + offshore_generators.carrier
     )
@@ -3084,7 +3084,7 @@ def add_offshore_generators_tyndp(
         + offshore_generators["opex"]
     ) * nyears
 
-    # mapping from TYNDP offshore generators to PECD profiles
+    # Mapping from TYNDP offshore generators to PECD profiles
     offshore_generators["pecd_profile_name"] = offshore_generators["carrier"].map(
         pecd_mapping
     )
@@ -3185,23 +3185,6 @@ def add_offshore_electrolysers_tyndp(
     )
 
 
-def map_h2_buses(n, df):
-    """
-    Map AC buses to H2 Z2 buses.
-    """
-    h2_busmap = (
-        n.buses.query(
-            "~Bus.str.contains('DRES') and carrier=='AC' and type==''"
-        ).location.str[:2]
-        + " H2 Z2"
-    )
-    df_mapped = df.assign(
-        bus0=lambda x: x["bus0"].map(h2_busmap).fillna(x["bus0"]),
-        bus1=lambda x: x["bus1"].map(h2_busmap).fillna(x["bus1"]),
-    )
-    return df_mapped
-
-
 def add_offshore_grid_tyndp(
     n: pypsa.Network,
     pyear: int,
@@ -3245,7 +3228,7 @@ def add_offshore_grid_tyndp(
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
 
     # Add DC grid connections
-    offshore_grid_dc = offshore_grid.query("carrier=='DC'").copy()
+    offshore_grid_dc = offshore_grid.query("carrier=='DC_OH'").copy()
     offshore_grid_dc.index = offshore_grid_dc.apply(
         lambda x: f"{x.bus0}-{x.bus1}-Offshore DC", axis=1
     )
@@ -3266,20 +3249,12 @@ def add_offshore_grid_tyndp(
         p_min_pu=offshore_grid_dc.p_min_pu,
         p_max_pu=offshore_grid_dc.p_max_pu,
         capital_cost=offshore_grid_dc.capital_cost,
-        carrier="DC",
+        carrier=offshore_grid_dc.carrier,
         lifetime=costs.at["HVDC submarine", "lifetime"],
     )
 
     # Add H2 pipeline connections
-    offshore_grid_h2 = offshore_grid.query("carrier=='H2'").copy()
-    offshore_grid_h2 = offshore_grid_h2.assign(
-        bus0=lambda df: np.where(
-            df.bus0.str.contains("OH"), df.bus0 + " H2", df.bus0.str[:2] + " H2 Z2"
-        ),
-        bus1=lambda df: np.where(
-            df.bus1.str.contains("OH"), df.bus1 + " H2", df.bus1.str[:2] + " H2 Z2"
-        ),
-    )
+    offshore_grid_h2 = offshore_grid.query("carrier=='H2 pipeline OH'").copy()
     offshore_grid_h2.index = offshore_grid_h2.apply(
         make_index, axis=1, prefix="Offshore H2 pipeline"
     )
@@ -3287,7 +3262,6 @@ def add_offshore_grid_tyndp(
         annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
         + offshore_grid_h2["opex"]
     ) * nyears
-    offshore_grid_h2 = map_h2_buses(n, offshore_grid_h2)
 
     n.add(
         "Link",
@@ -3301,7 +3275,7 @@ def add_offshore_grid_tyndp(
         p_min_pu=offshore_grid_h2.p_min_pu,
         p_max_pu=offshore_grid_h2.p_max_pu,
         capital_cost=offshore_grid_h2.capital_cost,
-        carrier="H2 pipeline",
+        carrier=offshore_grid_h2.carrier,
         lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
     )
 
@@ -3370,7 +3344,7 @@ def add_offshore_hubs_tyndp(
         location=spatial.offshore_hubs.locations,
         country=spatial.offshore_hubs.country,
         type=spatial.offshore_hubs.type,
-        carrier="AC",
+        carrier="AC_OH",
         unit="MWh_el",
         v_nom=380,
     )
@@ -3383,7 +3357,7 @@ def add_offshore_hubs_tyndp(
         location=spatial.offshore_hubs.locations_h2,
         country=spatial.offshore_hubs.country_h2,
         type=spatial.offshore_hubs.type_h2,
-        carrier="H2",
+        carrier="H2_OH",
         unit="MWh_LHV",
     )
 
