@@ -62,7 +62,8 @@ def plot_offshore_map(
     """
     n = network.copy()
 
-    linewidth_factor = 1e4 if carrier == "DC_OH" else 5e3
+    lw_factor = 1e4 if carrier == "DC_OH" else 5e3
+    link_lower_threshold = 1e2  # MW below which not drawn
 
     n.links.drop(
         n.links.index[n.links.carrier != carrier],
@@ -78,7 +79,8 @@ def plot_offshore_map(
             .sum()
         )
         # set link widths
-        link_widths = links / linewidth_factor
+        links[links < link_lower_threshold] = 0.0
+        link_widths = links / lw_factor
         if link_widths.notnull().empty:
             logger.info(f"No offshore capacities for {carrier}, skipping plot.")
             return
@@ -137,7 +139,7 @@ def plot_offshore_map(
     if legend:
         sizes = [30, 10]
         labels = [f"{s} GW" for s in sizes]
-        scale = 1e3 / linewidth_factor
+        scale = 1e3 / lw_factor
         sizes = [s * scale for s in sizes]
 
         legend_kw = dict(
