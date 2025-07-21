@@ -5,11 +5,11 @@
 benchmarking:
   enable: false
 
-processing:
-  unit_conversion:
-    TWh: 1000000
-    GWh: 1000
-    MWh: 1
-    GW: 1000
-    MW: 1
-    kW: 0.001
+  processing:
+    unit_conversion:
+      TWh: 1000000
+      GWh: 1000
+      MWh: 1
+      GW: 1000
+      MW: 1
+      kW: 0.001
