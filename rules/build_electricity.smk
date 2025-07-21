@@ -497,6 +497,58 @@ rule build_hydro_profile:
         "../scripts/build_hydro_profile.py"
 
 
+rule clean_tyndp_hydro_inflows:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+    input:
+        hydro_inflows_dir="data/tyndp_2024_bundle/Hydro Inflows",
+        onshore_buses=resources("busmap_base_s_all.csv"),
+    output:
+        hydro_inflows_tyndp=resources(
+            "hydro_inflows_tyndp_{tech}_{planning_horizons}.csv"
+        ),
+    log:
+        logs("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}.log"),
+    threads: 4
+    benchmark:
+        benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/clean_tyndp_hydro_inflows.py"
+
+
+def input_data_hydro_tyndp(w):
+    return {
+        f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
+            f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
+        )
+        for pyear in set(
+            config_provider("scenario", "planning_horizons")(w)
+        ).intersection([2030, 2040, 2050])
+        # Hydro inflows data is only available for the years 2030, 2040, 2050
+        for tech in ["Run of River", "Pondage", "Reservoir", "PS Open", "PS Closed"]
+    }
+
+
+rule build_tyndp_hydro_profile:
+    input:
+        unpack(input_data_hydro_tyndp),
+    output:
+        profile=resources("profile_hydro_tyndp.nc"),
+    log:
+        logs("build_tyndp_hydro_profile.log"),
+    benchmark:
+        benchmarks("build_tyndp_hydro_profile")
+    resources:
+        mem_mb=5000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_tyndp_hydro_profile.py"
+
+
 rule build_line_rating:
     params:
         snapshots=config_provider("snapshots"),
