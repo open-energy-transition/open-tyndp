@@ -57,14 +57,12 @@ Development status
 ==================
 The back-casting of the 2024 TYNDP cycle involves developing new features based on the published `modelling methodology report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__. Major and already implemented features are summarized below. Please, refer to the `release notes <https://github.com/open-energy-transition/open-tyndp/blob/master/doc/release_notes.rst>`__ for a more comprehensive list of features and to the relevant `pull requests <https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22>`__ for extensive documentation of the implementations.
 
-- Introduce a new electricity base network using TYNDP 2024 electricity reference grid data.
-
+- Introduced a new electricity base network using TYNDP 2024 electricity reference grid data.
 - Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies.
-
-- Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries.
-- Add the TYNDP electricity demand as an exogenously set demand.
-- Add processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles, replacing default ERA5-based profiles processed with Atlite.
-- Introduce TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics.
+- Added TYNDP hydrogen import potentials and corridors from outside of the modelled countries.
+- Added the TYNDP electricity demand as an exogenously set demand.
+- Added processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles, replacing default ERA5-based profiles processed with Atlite.
+- Introduced TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics.
 
 .. list-table::
    :align: center
