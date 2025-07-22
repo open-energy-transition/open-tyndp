@@ -32,7 +32,7 @@ def plot_offshore_map(
     hubs_only=False,
 ):
     """
-    Plots the offshore network hydrogen and electricity capacities and offshore-hubs buses.
+    Plots the offshore network hydrogen or electricity capacities and offshore-hubs buses.
     If `p_nom` parameter is set as `p_nom_opt`, optimal capacities are plotted instead.
 
     Parameters

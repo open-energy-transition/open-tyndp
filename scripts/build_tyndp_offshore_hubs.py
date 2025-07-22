@@ -16,6 +16,11 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 GEO_CRS = "EPSG:4326"
+SCENARIO_DICT = {
+    "Distributed Energy": "DE",
+    "Global Ambition": "GA",
+    "National Trends": "NT",
+}
 
 
 def load_offshore_hubs(fn: str):
@@ -34,7 +39,7 @@ def load_offshore_hubs(fn: str):
 
         The GeoDataFrame uses the coordinate reference system defined by `GEO_CRS`.
     """
-    column_dict = {
+    column_names = {
         "OFFSHORE_NODE": "Bus",
         "OFFSHORE_NODE_TYPE": "type",
         "LAT": "y",
@@ -43,7 +48,7 @@ def load_offshore_hubs(fn: str):
 
     nodes = (
         pd.read_excel(fn, sheet_name="NODE")
-        .rename(columns=column_dict)
+        .rename(columns=column_names)
         .assign(
             location=lambda x: x.Bus,
             country=lambda x: x.location.str[:2],
@@ -97,7 +102,7 @@ def load_offshore_grid(
     pd.DataFrame
         DataFrame containing the merged offshore grid data.
     """
-    column_dict = {
+    column_names = {
         "FROM": "bus0",
         "TO": "bus1",
         "YEAR": "pyear",
@@ -108,24 +113,18 @@ def load_offshore_grid(
         "OPEX": "opex",
     }
 
-    scenario_dict = {
-        "Distributed Energy": "DE",
-        "Global Ambition": "GA",
-        "National Trends": "NT",
-    }
-
     # Load reference grid
     grid = (
         pd.read_excel(fn, sheet_name="Reference grid")
-        .rename(columns=column_dict)
+        .rename(columns=column_names)
         .replace(
             {
                 "carrier": {"E": "DC_OH", "H2": "H2 pipeline OH"},
-                "scenario": scenario_dict,
+                "scenario": SCENARIO_DICT,
             }
         )
     )
-    grid = expand_all_scenario(grid, scenario_dict.values()).query(
+    grid = expand_all_scenario(grid, SCENARIO_DICT.values()).query(
         "scenario == @scenario"
     )
 
@@ -135,8 +134,8 @@ def load_offshore_grid(
             fn,
             sheet_name="COST",
         )
-        .rename(columns=column_dict)
-        .replace({"scenario": scenario_dict})
+        .rename(columns=column_names)
+        .replace({"scenario": SCENARIO_DICT})
         .query("pyear in @planning_horizons and scenario == @scenario")
     )
     grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
@@ -172,7 +171,7 @@ def load_offshore_grid(
         ),
     )
 
-    # Handle missing cost data
+    # Handle missing data
     # TODO Validate assumption
     grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
     grid[["capex", "opex"]] = grid[["capex", "opex"]].fillna(0)
@@ -188,7 +187,7 @@ def load_offshore_grid(
         )
         * 1e3,
         grid.get("p_nom_max", np.inf),
-    )  # MW > GW
+    )  # GW > MW
 
     # Rename UK in GB
     grid[["bus0", "bus1"]] = grid[["bus0", "bus1"]].replace("UK", "GB", regex=True)
@@ -226,7 +225,7 @@ def load_offshore_electrolysers(
     pd.DataFrame
         DataFrame containing the formatted offshore electrolyser data.
     """
-    column_dict = {
+    column_names = {
         "NODE": "bus0",
         "OFFSHORE_NODE_TYPE": "type",
         "YEAR": "pyear",
@@ -235,21 +234,15 @@ def load_offshore_electrolysers(
         "OPEX": "opex",
     }
 
-    scenario_dict = {
-        "Distributed Energy": "DE",
-        "Global Ambition": "GA",
-        "National Trends": "NT",
-    }
-
     # Load electrolysers data
     electrolysers = (
         pd.read_excel(
             fn,
             sheet_name="COST",
         )
-        .rename(columns=column_dict)
+        .rename(columns=column_names)
         .query("pyear in @planning_horizons")
-        .replace({"scenario": scenario_dict})
+        .replace({"scenario": SCENARIO_DICT})
         .query("scenario == @scenario")
         .assign(country=lambda x: x.bus0.str[:2], bus1=lambda x: x.bus0 + " H2")
         .drop(columns="OFFSHORE_NODE")
@@ -438,12 +431,6 @@ def load_offshore_generators(
         "LAYER",
     ]
 
-    scenario_dict = {
-        "Distributed Energy": "DE",
-        "Global Ambition": "GA",
-        "National Trends": "NT",
-    }
-
     # Load data
     def load_generators(sheet_name, tech_switch=None):
         generators = pd.read_excel(
@@ -456,7 +443,7 @@ def load_offshore_generators(
             )
         generators = (
             generators.rename(columns=column_names)
-            .replace({"scenario": scenario_dict})
+            .replace({"scenario": SCENARIO_DICT})
             .query("pyear in @planning_horizons and scenario == @scenario")
             .assign(
                 carrier=lambda x: "offwind-"
