@@ -29,60 +29,17 @@ This repository is maintained using [OET's soft-fork strategy](https://open-ener
 The back-casting of the 2024 TYNDP cycle involves developing new features based on the published [modelling methodology report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf). Major and already implemented features are summarized below. Please, refer to the [release notes](https://github.com/open-energy-transition/open-tyndp/blob/master/doc/release_notes.rst) for a more comprehensive list of features and to the relevant [pull requests](https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22) for extensive documentation of the implementations.
 
 * Introduce a new electricity base network using TYNDP 2024 electricity reference grid data.
-  <table width="50%" style="margin: 0 auto;">
-  <tr>
-  <td width="50%">
-  
-  **TYNDP 2024 topology** <br>
-  <img src="doc/img/tyndp/electricity-grid-report.png" height="200px" alt="TYNDP 2024 topology">
-  
-  </td>
-  <td width="50%">
-  
-  **Open TYNDP topology** <br>
-  <img src="doc/img/tyndp/electricity-grid.png" height="200px" alt="Open TYNDP topology">
-  
-  </td>
-  </tr>
-  </table>
-  
 * Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies.
-  <table width="50%" style="margin: 0 auto;">
-  <tr>
-  <td width="50%">
-  
-  **TYNDP 2024 topology** <br>
-  <img src="doc/img/tyndp/h2-grid-report.png" height="200px" alt="TYNDP 2024 topology">
-  
-  </td>
-  <td width="50%">
-  
-  **Open TYNDP topology** <br>
-  <img src="doc/img/tyndp/h2-grid.png" height="200px" alt="Open TYNDP topology">
-  
-  </td>
-  </tr>
-  </table>
 * Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries. 
 * Add the TYNDP electricity demand as an exogenously set demand. 
 * Add processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles, replacing default ERA5-based profiles processed with Atlite.
 * Introduce TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics.
-  <table width="50%" style="margin: 0 auto;">
-  <tr>
-  <td width="50%">
-  
-  **TYNDP 2024 topology** <br>
-  <img src="doc/img/tyndp/offshore-grid-report.png" height="200px" alt="TYNDP 2024 topology">
-  
-  </td>
-  <td width="50%">
-  
-  **Open TYNDP topology** <br>
-  <img src="doc/img/tyndp/offshore-grid.png" height="200px" alt="Open TYNDP topology">
-  
-  </td>
-  </tr>
-  </table>
+
+|       Feature        | TYNDP 2024 topology | Open TYNDP topology |
+|:--------------------:|:-------------------:|:-------------------:|
+| **Electricity Grid** | <img src="doc/img/tyndp/electricity-grid-report.png" height="200px" alt="TYNDP 2024 electricity topology"> | <img src="doc/img/tyndp/electricity-grid.png" height="200px" alt="Open TYNDP electricity topology"> |
+|  **Hydrogen Grid**   | <img src="doc/img/tyndp/h2-grid-report.png" height="200px" alt="TYNDP 2024 hydrogen topology"> | <img src="doc/img/tyndp/h2-grid.png" height="200px" alt="Open TYNDP hydrogen topology"> |
+|  **Offshore Grid**   | <img src="doc/img/tyndp/offshore-grid-report.png" height="200px" alt="TYNDP 2024 offshore topology"> | <img src="doc/img/tyndp/offshore-grid.png" height="200px" alt="Open TYNDP offshore topology"> |
 
 # Repository structure
 
