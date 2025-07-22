@@ -8,8 +8,8 @@
 Release Notes
 ##########################################
 
-.. Upcoming Open-TYNDP Release
-.. ================
+Upcoming Open-TYNDP Release
+================
 
 **Changes**
 
@@ -36,8 +36,8 @@ Release Notes
 * Refactor: consolidate `tyndp_scenario` configurations into a single configuration entry (https://github.com/open-energy-transition/open-tyndp/pull/51)
 
 
-.. Upcoming PyPSA-Eur Release
-.. ================
+Upcoming PyPSA-Eur Release
+================
 
 * Fix: Invalid aquifer shape geometries are now fixed in `build_ates_potentials.py` (fixing https://github.com/PyPSA/pypsa-eur/issues/1696)
 
