@@ -68,7 +68,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 
 .. list-table::
    :align: center
-   :widths: 30 35 35
+   :widths: 20 40 40
    :header-rows: 1
 
    * - **Feature**
