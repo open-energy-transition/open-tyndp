@@ -15,11 +15,11 @@ directory in which the commands following the ``%`` should be entered.
 Clone the Repository
 ====================
 
-First of all, clone the `PyPSA-Eur repository <https://github.com/PyPSA/pypsa-eur>`__ using the version control system ``git`` in the command line.
+First of all, clone the `Open TYNDP repository <https://github.com/open-energy-transition/open-tyndp>`__ using the version control system ``git`` in the command line.
 
 .. code:: console
 
-    $ git clone https://github.com/PyPSA/pypsa-eur.git
+    $ git clone https://github.com/open-energy-transition/open-tyndp.git
 
 
 .. _deps:
@@ -27,8 +27,8 @@ First of all, clone the `PyPSA-Eur repository <https://github.com/PyPSA/pypsa-eu
 Install Python Dependencies
 ===============================
 
-PyPSA-Eur relies on a set of other Python packages to function. We recommend
-using the package manager `conda <https://docs.anaconda.com/miniconda/>` or
+PyPSA-Eur, and consequently Open TYNDP, relies on a set of other Python packages to function. We recommend
+using the package manager `conda <https://docs.anaconda.com/miniconda/>`__ or
 `mamba <https://mamba.readthedocs.io/en/latest/>`__ to install them and manage
 your environments.
 
@@ -56,9 +56,9 @@ We recommend using these locked files for a stable environment.
 
     $ conda update conda
 
-    $ conda env create -f envs/linux-64.lock.yaml # select the appropriate file for your platform
+    $ conda env create -n open-tyndp -f envs/linux-64.lock.yaml # select the appropriate file for your platform
 
-    $ conda activate pypsa-eur
+    $ conda activate open-tyndp
 
 Install a Solver
 ================
