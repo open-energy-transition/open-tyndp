@@ -3,9 +3,9 @@
 
   SPDX-License-Identifier: CC-BY-4.0
 
-##################################################################################
+#############################################################################################################
 Open TYNDP: A PyPSA-Eur based Sector-Coupled Open Optimisation Model of the Ten-Year Network Development Plan
-##################################################################################
+#############################################################################################################
 
 .. image:: https://img.shields.io/github/v/release/open-energy-transition/open-tyndp?include_prereleases
     :alt: GitHub release (latest by date including pre-releases)
@@ -104,8 +104,11 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 
 |
 
+PyPSA-Eur
+=========
+
 Electricity System
-==================
+------------------
 
 The electricity system representation contains alternating current lines at
 and above 220 kV voltage level and all high voltage direct current lines,
@@ -125,7 +128,7 @@ effects for renewable power generation and their varying resource availability.
 |
 
 Sector-Coupled Energy System
-============================
+----------------------------
 
 A sector-coupled extension (previously known as **PyPSA-Eur-Sec**, which is now
 deprecated) adds demand and supply for the following sectors: transport, space
@@ -158,7 +161,7 @@ them:
     networks.
 
 About
-=====
+-----
 
 PyPSA-Eur is designed to be imported into the open energy system modelling
 framework `PyPSA <https://www.pypsa.org>`__ for which `documentation
@@ -195,7 +198,7 @@ as part of the `Stromnetze Research Initiative
 
 
 Workflow
-========
+--------
 
 .. image:: img/workflow.png
     :class: full-width
@@ -207,7 +210,7 @@ Workflow
 
 
 Learning Energy System Modelling
-================================
+--------------------------------
 
 If you are (relatively) new to energy system modelling and optimisation and plan
 to use PyPSA-Eur, the following resources are one way to get started in addition
@@ -222,7 +225,7 @@ to reading this documentation.
 
 
 Citing PyPSA-Eur
-================
+----------------
 
 If you use PyPSA-Eur for your research, we would appreciate it if you would cite one of the following papers:
 
@@ -274,7 +277,7 @@ If you want to cite a specific PyPSA-Eur version, each release of PyPSA-Eur is s
 
 
 Operating Systems
-=================
+-----------------
 
 The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL only).
 
