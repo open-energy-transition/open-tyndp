@@ -76,29 +76,29 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
      - **Open TYNDP topology**
    * - **Electricity Grid**
      - .. image:: img/tyndp/electricity-grid-report.png
-          :height: 200px
+          :height: 300px
           :align: center
           :alt: TYNDP 2024 electricity topology
      - .. image:: img/tyndp/electricity-grid.png
-          :height: 200px
+          :height: 300px
           :align: center
           :alt: Open TYNDP electricity topology
    * - **Hydrogen Grid**
      - .. image:: img/tyndp/h2-grid-report.png
-          :height: 200px
+          :height: 300px
           :align: center
           :alt: TYNDP 2024 hydrogen topology
      - .. image:: img/tyndp/h2-grid.png
-          :height: 200px
+          :height: 300px
           :align: center
           :alt: Open TYNDP hydrogen topology
    * - **Offshore Grid**
      - .. image:: img/tyndp/offshore-grid-report.png
-          :height: 200px
+          :height: 300px
           :align: center
           :alt: TYNDP 2024 offshore topology
      - .. image:: img/tyndp/offshore-grid.png
-          :height: 200px
+          :height: 300px
           :align: center
           :alt: Open TYNDP offshore topology
 

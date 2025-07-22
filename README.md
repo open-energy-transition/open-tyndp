@@ -37,9 +37,9 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 
 |       Feature        | TYNDP 2024 topology | Open TYNDP topology |
 |:--------------------:|:-------------------:|:-------------------:|
-| **Electricity Grid** | <img src="doc/img/tyndp/electricity-grid-report.png" height="200px" alt="TYNDP 2024 electricity topology"> | <img src="doc/img/tyndp/electricity-grid.png" height="200px" alt="Open TYNDP electricity topology"> |
-|  **Hydrogen Grid**   | <img src="doc/img/tyndp/h2-grid-report.png" height="200px" alt="TYNDP 2024 hydrogen topology"> | <img src="doc/img/tyndp/h2-grid.png" height="200px" alt="Open TYNDP hydrogen topology"> |
-|  **Offshore Grid**   | <img src="doc/img/tyndp/offshore-grid-report.png" height="200px" alt="TYNDP 2024 offshore topology"> | <img src="doc/img/tyndp/offshore-grid.png" height="200px" alt="Open TYNDP offshore topology"> |
+| **Electricity Grid** | <img src="doc/img/tyndp/electricity-grid-report.png" height="300px" alt="TYNDP 2024 electricity topology"> | <img src="doc/img/tyndp/electricity-grid.png" height="300px" alt="Open TYNDP electricity topology"> |
+|  **Hydrogen Grid**   | <img src="doc/img/tyndp/h2-grid-report.png" height="300px" alt="TYNDP 2024 hydrogen topology"> | <img src="doc/img/tyndp/h2-grid.png" height="300px" alt="Open TYNDP hydrogen topology"> |
+|  **Offshore Grid**   | <img src="doc/img/tyndp/offshore-grid-report.png" height="300px" alt="TYNDP 2024 offshore topology"> | <img src="doc/img/tyndp/offshore-grid.png" height="300px" alt="Open TYNDP offshore topology"> |
 
 # Repository structure
 
