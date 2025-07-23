@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
@@ -98,9 +98,9 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "PyPSA-Eur"
-copyright = "2017-2025 Tom Brown (KIT, TUB, FIAS), Jonas Hoersch (KIT, FIAS), Fabian Hofmann (TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (Aarhus University), Lisa Zeyen (KIT, TUB)"
-author = "Tom Brown (KIT, TUB, FIAS), Jonas Hoersch (KIT, FIAS), Fabian Hofmann (TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (Aarhus University), Lisa Zeyen (KIT, TUB)"
+project = "Open-TYNDP"
+copyright = "2017-2025 Tom Brown (KIT, TUB, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (Aarhus University), Lisa Zeyen (KIT, TUB), Thomas Gilon (OET), Daniel Rüdt (OET)"
+author = "Tom Brown (KIT, TUB, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (Aarhus University), Lisa Zeyen (KIT, TUB), Thomas Gilon (OET), Daniel Rüdt (OET)"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -166,7 +166,7 @@ html_theme = "sphinx_book_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "repository_url": "https://github.com/pypsa/pypsa-eur",
+    "repository_url": "https://github.com/open-energy-transition/open-tyndp",
     "use_repository_button": True,
     "show_navbar_depth": 1,
 }
@@ -177,10 +177,10 @@ html_theme_options = {
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "PyPSA-Eur"
+html_title = "Open-TYNDP"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = "PyPSA-Eur"
+html_short_title = "open-tyndp"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
