@@ -77,6 +77,8 @@ Open-TYNDP v0.2 (23th July 2025)
 
 * Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
 
+* Add a dedicated `Open-TYDNP documentation <https://open-tyndp.readthedocs.io/en/latest/>`__ website (https://github.com/open-energy-transition/open-tyndp/pull/80).
+
 **Changes**
 
 * Feat: update cutout retrieval of 1w cutout (https://github.com/open-energy-transition/open-tyndp/pull/41)
