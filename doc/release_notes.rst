@@ -11,31 +11,7 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
-**Changes**
 
-* Introduce TYNDP offshore wind hubs via `sector:offshore_hubs_tyndp` configuration (https://github.com/open-energy-transition/open-tyndp/pull/54). This feature implements an offshore grid topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics. Three wind farm types are supported: AC-radial (ac-r), DC-radial (dc-r) and DC-hubs (dc-oh). Each is compatible with fixed-bottom (fb) or floating (fl) foundations. Wind farms connected to hubs can produce hydrogen directly through a dedicated P2G unit, while electricity can be supplied to the network or converted to hydrogen via offshore electrolysers connected to the hubs. The network includes existing capacities, with capacity expansion constrained by technological potential and evolving zone potential.
-
-* Add processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles, replacing default ERA5-based profiles processed with Atlite (https://github.com/open-energy-transition/open-tyndp/pull/53). Initial implementation first addresses profiles for offshore technologies.
-
-* Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries (https://github.com/open-energy-transition/open-tyndp/pull/36). Notably this includes pipelines and shipping imports from North Africa, Ukraine and Norway. Different import potentials are available for each of the planning years which are differentiated by wildcards.
-
-* Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
-
-* Feat: update cutout retrieval of 1w cutout (https://github.com/open-energy-transition/open-tyndp/pull/41)
-
-* refactor: TYNDP H2 reference grid in line with using planning_horizon for filtering the tyndp year (https://github.com/open-energy-transition/open-tyndp/pull/37)
-
-* Add a TYNDP specific CI (https://github.com/open-energy-transition/open-tyndp/pull/26)
-
-* Remove ch-ibit H2 pipeline capacity for 2030 H2 reference grid (https://github.com/open-energy-transition/open-tyndp/pull/27)
-
-**Bugfixes and Compatibility**
-
-* Fix: fix the docstring of build_tyndp_h2_network.py (https://github.com/open-energy-transition/open-tyndp/pull/40)
-
-* Refactor: rename `build_tyndp_h2_import_potentials` to `build_tyndp_h2_imports` (https://github.com/open-energy-transition/open-tyndp/pull/50)
-
-* Refactor: consolidate `tyndp_scenario` configurations into a single configuration entry (https://github.com/open-energy-transition/open-tyndp/pull/51)
 
 
 Upcoming PyPSA-Eur Release
@@ -87,6 +63,38 @@ Upcoming PyPSA-Eur Release
   graph generation has been enhanced.
 
 * Improved the behavior of ``agg_p_nom_limits``: added the ability to aggregate all ``solar`` electric technologies.
+
+Open-TYNDP v0.2 (23th July 2025)
+========================================
+
+**Features**
+
+* Introduce TYNDP offshore wind hubs via `sector:offshore_hubs_tyndp` configuration (https://github.com/open-energy-transition/open-tyndp/pull/54). This feature implements an offshore grid topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics. Three wind farm types are supported: AC-radial (ac-r), DC-radial (dc-r) and DC-hubs (dc-oh). Each is compatible with fixed-bottom (fb) or floating (fl) foundations. Wind farms connected to hubs can produce hydrogen directly through a dedicated P2G unit, while electricity can be supplied to the network or converted to hydrogen via offshore electrolysers connected to the hubs. The network includes existing capacities, with capacity expansion constrained by technological potential and evolving zone potential.
+
+* Add processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles, replacing default ERA5-based profiles processed with Atlite (https://github.com/open-energy-transition/open-tyndp/pull/53). Initial implementation first addresses profiles for offshore technologies.
+
+* Add TYNDP hydrogen import potentials and corridors from outside of the modelled countries (https://github.com/open-energy-transition/open-tyndp/pull/36). Notably this includes pipelines and shipping imports from North Africa, Ukraine and Norway. Different import potentials are available for each of the planning years which are differentiated by wildcards.
+
+* Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
+
+**Changes**
+
+* Feat: update cutout retrieval of 1w cutout (https://github.com/open-energy-transition/open-tyndp/pull/41)
+
+* refactor: TYNDP H2 reference grid in line with using planning_horizon for filtering the tyndp year (https://github.com/open-energy-transition/open-tyndp/pull/37)
+
+* Add a TYNDP specific CI (https://github.com/open-energy-transition/open-tyndp/pull/26)
+
+* Remove ch-ibit H2 pipeline capacity for 2030 H2 reference grid (https://github.com/open-energy-transition/open-tyndp/pull/27)
+
+**Bugfixes and Compatibility**
+
+* Fix: fix the docstring of build_tyndp_h2_network.py (https://github.com/open-energy-transition/open-tyndp/pull/40)
+
+* Refactor: rename `build_tyndp_h2_import_potentials` to `build_tyndp_h2_imports` (https://github.com/open-energy-transition/open-tyndp/pull/50)
+
+* Refactor: consolidate `tyndp_scenario` configurations into a single configuration entry (https://github.com/open-energy-transition/open-tyndp/pull/51)
+
 
 Open-TYNDP v0.1 (14th April 2025)
 ========================================
