@@ -30,7 +30,7 @@ authors:
     orcid: https://orcid.org/0000-0001-9438-767X
 repository-code: 'https://github.com/open-energy-transition/open-tyndp'
 license: MIT
-version: v0.1
+version: v0.2
 
 # Reference the original work
 references:
