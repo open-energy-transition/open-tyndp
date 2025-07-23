@@ -15,7 +15,7 @@ directory in which the commands following the ``%`` should be entered.
 Clone the Repository
 ====================
 
-First of all, clone the `Open TYNDP repository <https://github.com/open-energy-transition/open-tyndp>`__ using the version control system ``git`` in the command line.
+First of all, clone the `Open-TYNDP repository <https://github.com/open-energy-transition/open-tyndp>`__ using the version control system ``git`` in the command line.
 
 .. code:: console
 
@@ -27,7 +27,7 @@ First of all, clone the `Open TYNDP repository <https://github.com/open-energy-t
 Install Python Dependencies
 ===============================
 
-PyPSA-Eur, and consequently Open TYNDP, relies on a set of other Python packages to function. We recommend
+PyPSA-Eur, and consequently Open-TYNDP, relies on a set of other Python packages to function. We recommend
 using the package manager `conda <https://docs.anaconda.com/miniconda/>`__ or
 `mamba <https://mamba.readthedocs.io/en/latest/>`__ to install them and manage
 your environments.
