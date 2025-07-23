@@ -41,6 +41,13 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 |  **Hydrogen Grid**   | <img src="doc/img/tyndp/h2-grid-report.png" height="300px" alt="TYNDP 2024 hydrogen topology"> | <img src="doc/img/tyndp/h2-grid.png" height="300px" alt="Open TYNDP hydrogen topology"> |
 |  **Offshore Grid**   | <img src="doc/img/tyndp/offshore-grid-report.png" height="300px" alt="TYNDP 2024 offshore topology"> | <img src="doc/img/tyndp/offshore-grid.png" height="300px" alt="Open TYNDP offshore topology"> |
 
+**WARNING**: Open-TYNDP is under active development and has several
+[limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) which
+you should understand before using the model. The github repository
+[issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are
+working on (please feel free to help or make suggestions). The
+[documentation](https://open-tyndp.readthedocs.io/) remains somewhat patchy.
+
 # Repository structure
 
 * `benchmarks`: will store `snakemake` benchmarks (does not exist initially)
