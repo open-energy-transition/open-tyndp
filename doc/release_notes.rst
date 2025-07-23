@@ -81,7 +81,7 @@ Open-TYNDP v0.2 (23th July 2025)
 
 * Feat: update cutout retrieval of 1w cutout (https://github.com/open-energy-transition/open-tyndp/pull/41)
 
-* refactor: TYNDP H2 reference grid in line with using planning_horizon for filtering the tyndp year (https://github.com/open-energy-transition/open-tyndp/pull/37)
+* Refactor: TYNDP H2 reference grid in line with using planning_horizon for filtering the tyndp year (https://github.com/open-energy-transition/open-tyndp/pull/37)
 
 * Add a TYNDP specific CI (https://github.com/open-energy-transition/open-tyndp/pull/26)
 
