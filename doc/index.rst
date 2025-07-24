@@ -10,6 +10,9 @@ Open-TYNDP: A PyPSA-Eur based Sector-Coupled Open Optimisation Model of the Ten-
 .. image:: https://img.shields.io/github/v/release/open-energy-transition/open-tyndp?include_prereleases
     :alt: GitHub release (latest by date including pre-releases)
 
+.. image:: https://img.shields.io/github/commits-difference/open-energy-transition/open-tyndp?base=master&head=PyPSA:pypsa-eur:master&label=commits%20behind%20PyPSA-Eur
+    :alt: commits behind PyPSA-Eur
+
 .. image:: https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml/badge.svg
     :target: https://github.com/open-energy-transition/open-tyndp/actions
 
