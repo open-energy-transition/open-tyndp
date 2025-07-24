@@ -47,14 +47,6 @@ def read_hydro_inflows_file(
     if not os.path.isfile(fn):
         return None
 
-    tech_res = {
-        "Run of River": "d",
-        "Pondage": "d",
-        "Reservoir": "w",
-        "PS Open": "w",
-        "PS Closed": "w",
-    }
-
     inflow_tech = pd.read_excel(
         fn,
         skiprows=1,
@@ -65,6 +57,9 @@ def read_hydro_inflows_file(
         or name == int(cyear),
         sheet_name=f"{hydro_tech} - Year Dependent",
     )
+
+    # infer resolution of data for each technology
+    tech_res = "w" if "Week" in inflow_tech.columns else "d"
 
     sns_year = sns[0].year
     date_index = {
@@ -83,18 +78,18 @@ def read_hydro_inflows_file(
     inflow_tech = (
         inflow_tech.query("ShortName == 'INFLOW'")
         .assign(
-            datetime=date_index[tech_res[hydro_tech]],
+            datetime=date_index[tech_res],
             p_nom=lambda df: np.where(  # calculate hourly inflow in GWh/h
                 df.Variable.str.contains("week"),
-                df[int(cyear)].div(24 * 7),  # the value will be either in GWh/week
-                df[int(cyear)].div(24),  # the value will be either in GWh/day
+                df[int(cyear)].div(24 * 7),  # input value was either in GWh/week
+                df[int(cyear)].div(24),  # or in GWh/day
             ),
         )
         .set_index("datetime")
         .reindex(sns)  # filter for snapshots only
         .ffill()
-        .div(1e3)  # convert from GW to MW
         .p_nom.rename(node)
+        .mul(1e3)  # convert from GW to MW
     )
 
     return inflow_tech
