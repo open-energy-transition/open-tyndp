@@ -190,13 +190,27 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_tyndp_bundle"
         params:
             # TODO Integrate into Zenodo tyndp data bundle
             tyndp_bundle="data/tyndp_2024_bundle",
+            url="https://storage.googleapis.com/open-tyndp-data-store/PECD.zip",
         output:
             dir=directory("data/tyndp_2024_bundle/PECD"),
         log:
             "logs/retrieve_tyndp_pecd_data.log",
         retries: 2
         script:
-            "../scripts/retrieve_tyndp_pecd_data.py"
+            "../scripts/retrieve_additional_tyndp_data.py"
+
+    rule retrieve_tyndp_hydro_inflows:
+        params:
+            # TODO Integrate into Zenodo tyndp data bundle
+            tyndp_bundle="data/tyndp_2024_bundle",
+            url="https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip",
+        output:
+            dir=directory("data/tyndp_2024_bundle/Hydro Inflows"),
+        log:
+            "logs/retrieve_tyndp_hydro_inflows.log",
+        retries: 2
+        script:
+            "../scripts/retrieve_additional_tyndp_data.py"
 
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data > clean_pecd_data
 
