@@ -90,3 +90,25 @@ rule plot_power_networks_clustered:
             **config["scenario"],
             run=config["run"]["name"],
         ),
+
+
+rule make_benchmarks:
+    input:
+        lambda w: expand(
+            RESULTS
+            + "benchmarks/csvs/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            **config["scenario"],
+            run=config["run"]["name"],
+            table=config_provider("tables")(w),
+        ),
+
+
+rule plot_benchmarks:
+    input:
+        lambda w: expand(
+            RESULTS
+            + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            **config["scenario"],
+            run=config["run"]["name"],
+            table=config_provider("tables")(w),
+        ),
