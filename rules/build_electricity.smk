@@ -78,8 +78,8 @@ def input_base_network(w):
     components = {"buses", "lines", "links", "converters", "transformers"}
     if base_network == "osm-raw":
         inputs = {c: resources(f"osm-raw/build/{c}.csv") for c in components}
-    elif base_network == "tyndp-raw":
-        inputs = {c: resources(f"tyndp-raw/build/{c}.csv") for c in components}
+    elif base_network == "tyndp":
+        inputs = {c: resources(f"tyndp/build/{c}.csv") for c in components}
     elif base_network == "osm-prebuilt":
         inputs = {
             c: f"data/{base_network}/{osm_prebuilt_version}/{c}.csv" for c in components
@@ -904,7 +904,7 @@ rule prepare_network:
         "../scripts/prepare_network.py"
 
 
-if lambda w: config_provider("electricity", "base_network")(w) == "osm-raw":
+if config["electricity"]["base_network"] == "osm-raw":
 
     rule clean_osm_data:
         input:
@@ -949,7 +949,7 @@ if lambda w: config_provider("electricity", "base_network")(w) == "osm-raw":
             "../scripts/clean_osm_data.py"
 
 
-if lambda w: config_provider("electricity", "base_network")(w) == "osm-raw":
+if config["electricity"]["base_network"] == "osm-raw":
 
     rule build_osm_network:
         params:
@@ -989,32 +989,28 @@ if lambda w: config_provider("electricity", "base_network")(w) == "osm-raw":
             "../scripts/build_osm_network.py"
 
 
-if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
+if config["electricity"]["base_network"] == "tyndp":
 
     rule build_tyndp_network:
         params:
             countries=config_provider("countries"),
-            voltages=config_provider("electricity", "voltages"),
-            line_types=config_provider("lines", "types"),
         input:
             reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
             buses="data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx",
             bidding_shapes=resources("bidding_zones.geojson"),
         output:
-            lines=resources("tyndp-raw/build/lines.csv"),
-            links=resources("tyndp-raw/build/links.csv"),
-            converters=resources("tyndp-raw/build/converters.csv"),
-            transformers=resources("tyndp-raw/build/transformers.csv"),
-            substations=resources("tyndp-raw/build/buses.csv"),
-            substations_h2=resources("tyndp-raw/build/buses_h2.csv"),
-            lines_geojson=resources("tyndp-raw/build/geojson/lines.geojson"),
-            links_geojson=resources("tyndp-raw/build/geojson/links.geojson"),
-            converters_geojson=resources("tyndp-raw/build/geojson/converters.geojson"),
-            transformers_geojson=resources(
-                "tyndp-raw/build/geojson/transformers.geojson"
-            ),
-            substations_geojson=resources("tyndp-raw/build/geojson/buses.geojson"),
-            substations_h2_geojson=resources("tyndp-raw/build/geojson/buses_h2.geojson"),
+            lines=resources("tyndp/build/lines.csv"),
+            links=resources("tyndp/build/links.csv"),
+            converters=resources("tyndp/build/converters.csv"),
+            transformers=resources("tyndp/build/transformers.csv"),
+            substations=resources("tyndp/build/buses.csv"),
+            substations_h2=resources("tyndp/build/buses_h2.csv"),
+            lines_geojson=resources("tyndp/build/geojson/lines.geojson"),
+            links_geojson=resources("tyndp/build/geojson/links.geojson"),
+            converters_geojson=resources("tyndp/build/geojson/converters.geojson"),
+            transformers_geojson=resources("tyndp/build/geojson/transformers.geojson"),
+            substations_geojson=resources("tyndp/build/geojson/buses.geojson"),
+            substations_h2_geojson=resources("tyndp/build/geojson/buses_h2.geojson"),
         log:
             logs("build_tyndp_network.log"),
         benchmark:
@@ -1028,7 +1024,7 @@ if lambda w: config_provider("electricity", "base_network")(w) == "tyndp-raw":
             "../scripts/build_tyndp_network.py"
 
 
-if lambda w: config_provider("load", "source")(w) == "tyndp":
+if config["load"]["source"] == "tyndp":
 
     rule clean_tyndp_demand:
         params:

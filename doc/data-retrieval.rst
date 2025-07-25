@@ -11,6 +11,7 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 
 
 ``data/bgr/``
+
 - **Source:** Bundesanstalt für Geowissenschaften und Rohstoffe (BGR)
 - **Link:** https://www.bgr.bund.de/DE/Themen/Wasser/Projekte/laufend/Beratung/Ihme1500/ihme1500_projektbeschr.html?nn=1546102
 - **License:** `custom <https://www.bgr.bund.de/DE/Gemeinsames/Produkte/Produktcenter/faq_inhalt.html?nn=6951010#doc5914388bodyText5>` and `custom <https://www.bgr.bund.de/DE/Gemeinsames/Produkte/produkte_agb.html>`

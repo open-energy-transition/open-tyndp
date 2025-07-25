@@ -23,7 +23,11 @@ configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
 configfile: "config/benchmarking.default.yaml"
 configfile: "config/config.private.yaml"
-configfile: "config/config.yaml"
+
+
+if Path("config/config.yaml").exists():
+
+    configfile: "config/config.yaml"
 
 
 run = config["run"]
@@ -84,17 +88,61 @@ if config["benchmarking"]["enable"]:
     include: "rules/benchmarking.smk"
 
 
+def input_all_tyndp(w):
+    files = []
+    if config_provider("sector", "H2_network")(w):
+        files.extend(
+            expand(
+                (
+                    resources(
+                        "maps/base_h2_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf"
+                    )
+                ),
+                run=config["run"]["name"],
+                **config["scenario"],
+            )
+        )
+    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
+        files.extend(
+            expand(
+                (
+                    resources(
+                        "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
+                    )
+                ),
+                run=config["run"]["name"],
+                **config["scenario"],
+                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+            )
+        )
+        files.extend(
+            expand(
+                (
+                    RESULTS
+                    + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf"
+                ),
+                run=config["run"]["name"],
+                **config["scenario"],
+                carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+            )
+        )
+        files.extend(
+            lambda w: expand(
+                RESULTS
+                + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf",
+                run=config["run"]["name"],
+                **config["scenario"],
+                table=config_provider("tables")(w),
+            )
+        )
+    return files
+
+
 rule all:
     input:
-        # ToDo Use TYNDP input function
-        lambda w: expand(
-            RESULTS
-            + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf",
-            run=config["run"]["name"],
-            **config["scenario"],
-            table=config_provider("tables")(w),
-        ),
+        input_all_tyndp,
         expand(RESULTS + "graphs/costs.svg", run=config["run"]["name"]),
+        expand(resources("maps/power-network.pdf"), run=config["run"]["name"]),
         expand(
             resources("maps/power-network-s-{clusters}.pdf"),
             run=config["run"]["name"],
