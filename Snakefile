@@ -126,8 +126,9 @@ def input_all_tyndp(w):
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
             )
         )
+    if config_provider("benchmarking", "enable")(w):
         files.extend(
-            lambda w: expand(
+            expand(
                 RESULTS
                 + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf",
                 run=config["run"]["name"],
