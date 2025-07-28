@@ -101,12 +101,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
           :alt: Open-TYNDP offshore topology
 
 .. warning::
-    Open-TYNDP is under active development and has several
-    :doc:`limitations` which
-    you should understand before using the model. The Github repository
-    `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collect known
-    topics we are working on. Please feel free to help or make suggestions.
-
+    Open-TYNDP is under active development and has several :doc:`limitations` which you should understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ remains somewhat patchy.
 |
 
 PyPSA-Eur
