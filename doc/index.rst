@@ -55,6 +55,10 @@ This repository is maintained using `OET's soft-fork strategy <https://open-ener
 
 Development status
 ==================
+
+.. warning::
+    Open-TYNDP is under active development and has several :doc:`limitations` which you should understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ remains somewhat patchy.
+
 The back-casting of the 2024 TYNDP cycle involves developing new features based on the published `modelling methodology report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__. Major and already implemented features are summarized below. Please, refer to the :doc:`release_notes` for a more comprehensive list of features and to the relevant `pull requests <https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22>`__ for extensive documentation of the implementations.
 
 - Introduced a new electricity base network using TYNDP 2024 electricity reference grid data.
@@ -99,9 +103,6 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
           :height: 300px
           :align: center
           :alt: Open-TYNDP offshore topology
-
-.. warning::
-    Open-TYNDP is under active development and has several :doc:`limitations` which you should understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ remains somewhat patchy.
 |
 
 PyPSA-Eur
