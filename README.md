@@ -93,9 +93,9 @@ We strongly welcome anyone interested in contributing to this project. If you ha
 
 # Licence
 
-The code in PyPSA-Eur is released as free software under the
-[MIT License](https://opensource.org/licenses/MIT), see [`doc/licenses.rst`](doc/licenses.rst).
-However, different licenses and terms of use may apply to the various
+Open-TYNDP is a soft-fork of PyPSA-Eur, relying on a similar licensing strategy. As with PyPSA-Eur, the code in Open-TYNDP is released as free software under the
+[MIT License](https://opensource.org/licenses/MIT), see [`doc/licenses.rst`](doc/licenses.rst) for attribution and licensing strategy details.
+Additionally, different licenses and terms of use may apply to the various
 input data, see [`doc/data_sources.rst`](doc/data_sources.rst).
 
 <sup>*</sup> Open Energy Transition (g)GmbH, Königsallee 52, 95448 Bayreuth, Germany
