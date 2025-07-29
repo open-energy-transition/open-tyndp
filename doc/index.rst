@@ -4,7 +4,7 @@
   SPDX-License-Identifier: CC-BY-4.0
 
 #############################################################################################################
-Open-TYNDP: A PyPSA-Eur based Sector-Coupled Open Optimisation Model of the Ten-Year Network Development Plan
+Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
 #############################################################################################################
 
 .. image:: https://img.shields.io/github/v/release/open-energy-transition/open-tyndp?include_prereleases

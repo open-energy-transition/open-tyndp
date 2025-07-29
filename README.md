@@ -15,7 +15,7 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
 [![REUSE status](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
 
-# Open-TYNDP
+# Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
 <img src="https://raw.githubusercontent.com/open-energy-transition/oet-website/main/assets/img/oet-logo-red-n-subtitle.png" alt="Open Energy Transition Logo" width="260" height="100" align="right">
 
 This repository introduces the open model dataset of the Open-TYNDP research and innovation project which is a collaboration between [Open Energy Transition (OET)](https://openenergytransition.org/)<sup>*</sup> and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project’s aim is to explore and consider the adoption of PyPSA in the TYNDP by building a workflow based on [PyPSA-Eur](https://github.com/pypsa/pypsa-eur). It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source frameworks in energy planning, encouraging broader global adoption.
