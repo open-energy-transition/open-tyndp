@@ -44,7 +44,7 @@ Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Cont
 
 |
 
-This repository introduces the open model dataset of the Open-TYNDP research and innovation project which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__ [*]_ and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project’s aim is to explore and consider the adoption of PyPSA in the TYNDP by building a workflow based on `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__. It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.
+This repository introduces the open model dataset of the Open-TYNDP research and innovation project which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__ [1]_ and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project’s aim is to explore and consider the adoption of PyPSA in the TYNDP by building a workflow based on `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__. It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.
 
 To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle, before aligning with the current 2026 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and `interactive workshops <https://open-energy-transition.github.io/open-tyndp-workshops/intro.html>`__ alongside the development of the PyPSA tool, further promoting collaboration and transparency throughout the process.
 
@@ -106,7 +106,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
           :height: 300px
           :align: center
           :alt: Open-TYNDP hydrogen topology
-   * - **Offshore Grid** (see PR `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__)
+   * - **Offshore Grid**
      - .. image:: img/tyndp/offshore-grid-report.png
           :height: 300px
           :align: center
@@ -296,7 +296,7 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 
 |
 
-.. [*] Open Energy Transition (g)GmbH, Königsallee 52, 95448 Bayreuth, Germany
+.. [1] Open Energy Transition (g)GmbH, Königsallee 52, 95448 Bayreuth, Germany
 
 
 .. toctree::
