@@ -81,3 +81,25 @@ rule plot_balance_maps:
             run=config["run"]["name"],
             carrier=config_provider("plotting", "balance_map", "bus_carriers")(w),
         ),
+
+
+rule clean_pecd_datas:
+    input:
+        lambda w:
+            expand(
+                resources("pecd_data_{technology}_{planning_horizons}.csv"),
+                **config["scenario"],
+                run=config["run"]["name"],
+                technology=config_provider("electricity","pecd_renewable_profiles","technologies")(w),
+            )
+
+
+rule build_renewable_profiles_pecds:
+    input:
+        lambda w:
+            expand(
+                resources("profile_pecd_{clusters}_{technology}.nc"),
+                **config["scenario"],
+                run=config["run"]["name"],
+                technology=config_provider("electricity","pecd_renewable_profiles","technologies")(w),
+            )
