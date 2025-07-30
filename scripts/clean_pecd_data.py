@@ -52,10 +52,10 @@ def read_pecd_file(
         return None
 
     # Malta CSP data file has an extra header row that must be skipped
-    if node=="MT00" and technology=="CSP_noStorage" and pyear=="2040":
-        skiprows=11
+    if node == "MT00" and technology == "CSP_noStorage" and pyear == "2040":
+        skiprows = 11
     else:
-        skiprows=10
+        skiprows = 10
 
     pecd_bus = pd.read_csv(
         fn,
