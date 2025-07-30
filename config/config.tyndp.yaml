@@ -42,6 +42,12 @@ electricity:
 
   pecd_renewable_profiles:
     enable: true
+    fill_gaps_method: zero
+    # Complete PECD data is only available for the years 2030, 2040
+    # TODO: adjust once udpated 2050 PECD data ist available
+    available_years:
+    - 2030
+    - 2040
     technologies:
       Wind_Offshore:
       - offwind-ac-fb-r
