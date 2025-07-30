@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 """
 Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
-The script is executed for a given technology, and planning horizon. Technologies can be one of:
+The script is executed for a given technology and planning horizon. Technologies can be one of:
 
    * CSP
    * LFSolarPVUtility,
@@ -50,9 +50,15 @@ def read_pecd_file(
     if not os.path.isfile(fn):
         return None
 
+    # Malta CSP data file has an extra header row that must be skipped
+    if node=="MT00" and technology=="CSP_noStorage" and pyear=="2040":
+        skiprows=11
+    else:
+        skiprows=10
+
     pecd_bus = pd.read_csv(
         fn,
-        skiprows=10,  # first ten rows contain only file metadata
+        skiprows=skiprows,  # first rows contain only file metadata
         usecols=lambda name: name == "Date"
         or name == "Hour"
         or name == str(cyear)
