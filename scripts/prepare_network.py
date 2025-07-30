@@ -29,7 +29,7 @@ import logging
 import numpy as np
 import pandas as pd
 import pypsa
-from pypsa.descriptors import expand_series
+from pypsa.common import expand_series
 
 from scripts._helpers import (
     configure_logging,
@@ -49,7 +49,7 @@ def modify_attribute(n, adjustments, investment_year, modification="factor"):
         return
     change_dict = adjustments[modification]
     for c in change_dict.keys():
-        if c not in n.components.keys():
+        if c not in n.component_attrs.keys():
             logger.warning(f"{c} needs to be a PyPSA Component")
             continue
         for carrier in change_dict[c].keys():
@@ -185,7 +185,7 @@ def set_transmission_limit(n, kind, factor, costs, Nyears=1):
 
 def average_every_nhours(n, offset, drop_leap_day=False):
     logger.info(f"Resampling the network to {offset}")
-    m = n.copy(with_time=False)
+    m = n.copy(snapshots=[])
 
     snapshot_weightings = n.snapshot_weightings.resample(offset).sum()
     sns = snapshot_weightings.index

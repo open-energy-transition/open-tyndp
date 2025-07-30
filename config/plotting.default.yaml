@@ -241,6 +241,10 @@ plotting:
       - 200
       - 100
       branch_sizes:
+  offshore_maps:
+    bus_carriers:
+    - DC_OH
+    - H2 pipeline OH
 
   nice_names:
     OCGT: "Open-Cycle Gas"
@@ -269,12 +273,20 @@ plotting:
     offwind-ac: "#6895dd"
     offshore wind (AC): "#6895dd"
     offshore wind ac: "#6895dd"
+    offwind-ac-fb-r: "#6895dd"
+    offwind-ac-fl-r: "#6da5e8"
+    offwind-dc-fb-r: "#71b5ed"
     offwind-dc: "#74c6f2"
     offshore wind (DC): "#74c6f2"
     offshore wind dc: "#74c6f2"
+    offwind-dc-fb-oh: "#74c6f2"
+    offwind-dc-fl-r: "#94d4f6"
     offwind-float: "#b5e2fa"
     offshore wind (Float): "#b5e2fa"
     offshore wind float: "#b5e2fa"
+    offwind-dc-fl-oh: "#b5e2fa"
+    offwind-h2-fb-oh: "#c47dbd"
+    offwind-h2-fl-oh: "#9d4d96"
     # water
     hydro: '#298c81'
     hydro reservoir: '#298c81'
@@ -332,6 +344,7 @@ plotting:
     urban central oil boiler: '#9d9d9d'
     services urban decentral oil boiler: '#999999'
     agriculture machinery oil: '#949494'
+    agriculture machinery electric: '#444578'
     shipping oil: "#808080"
     land transport oil: '#afafaf'
     # nuclear
@@ -482,6 +495,7 @@ plotting:
     H2 for industry: "#f073da"
     H2 for shipping: "#ebaee0"
     H2: '#bf13a0'
+    H2_OH: '#bf13a0'
     hydrogen: '#bf13a0'
     retrofitted H2 boiler: '#e5a0d9'
     SMR: '#870c71'
@@ -493,6 +507,7 @@ plotting:
     H2 storage: '#bf13a0'
     land transport fuel cell: '#6b3161'
     H2 pipeline: '#f081dc'
+    H2 pipeline OH: '#f081dc'
     H2 pipeline retrofitted: '#ba99b5'
     H2 import LH2: "#F28C28"
     H2 import Pipeline: "#FFA500"
@@ -565,11 +580,14 @@ plotting:
     geothermal district heat: '#d19D00'
     geothermal organic rankine cycle: '#ffbf00'
     AC: "#70af1d"
+    AC_OH: "#70af1d"
+    AC_DRES: "#70af1d"
     AC-AC: "#70af1d"
     AC line: "#70af1d"
     links: "#8a1caf"
     HVDC links: "#8a1caf"
     DC: "#8a1caf"
+    DC_OH: "#8a1caf"
     DC-DC: "#8a1caf"
     DC link: "#8a1caf"
     load: "#dd2e23"

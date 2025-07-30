@@ -4,7 +4,7 @@
 
 FROM condaforge/mambaforge
 
-LABEL org.opencontainers.image.source https://github.com/PyPSA/pypsa-eur
+LABEL org.opencontainers.image.source https://github.com/open-energy-transition/open-tyndp
 
 RUN conda update -n base conda
 RUN conda install -n base conda-libmamba-solver

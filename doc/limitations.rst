@@ -19,7 +19,7 @@ improving the approximations.
   This list of limitations is incomplete and will be added to over time.
 
 .. seealso::
-  See also the `GitHub repository issues <https://github.com/PyPSA/pypsa-eur/issues>`__.
+  See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__.
 
 - **Electricity transmission network topology:**
   The grid data is based on a map of the ENTSO-E area that is known

@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
 
-PYPSA_V1 = bool(re.match(r"^0\.35\.0\.post1\.dev\d{3}", pypsa.__version__))
+PYPSA_V1 = bool(re.match(r"^0\.35\.\d\.post1\.dev\d{3}", pypsa.__version__))
 
 
 def get_scenarios(run):
@@ -1077,8 +1077,10 @@ def load_cutout(
     return cutout
 
 
-def make_index(c, carrier):
-    return carrier + " " + c.bus0 + " -> " + c.bus1
+def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
+    idx = [prefix, c[cname0], connector, c[cname1], suffix]
+    idx = [i for i in idx if i]
+    return " ".join(idx)
 
 
 def extract_grid_data_tyndp(
@@ -1122,8 +1124,8 @@ def extract_grid_data_tyndp(
     )
 
     # Combine into unidirectional links and return
-    h2_grid = pd.concat([forward_links, reverse_links])
+    links = pd.concat([forward_links, reverse_links])
 
-    h2_grid.index = h2_grid.apply(make_index, axis=1, args=(carrier,))
+    links.index = links.apply(make_index, axis=1, prefix=carrier)
 
-    return h2_grid
+    return links

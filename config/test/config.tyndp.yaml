@@ -1,9 +1,9 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
+# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  prefix: "test-sector-tyndp"
+  name: "test-sector-tyndp"
   disable_progressbar: true
   shared_resources:
     policy: false
@@ -28,15 +28,19 @@ snapshots:
   start: "2013-03-01"
   end: "2013-03-08"
 
-enable:
-  retrieve_tyndp_bundle: true
-
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
-  2040: 0.25  # Temporary increase to allow CI to pass while load configurations are incomplete.
+  2020: 0.720 # average emissions of 2019 to 2021 relative to 1990, CO2 excl LULUCF, EEA data, European Environment Agency. (2023a). Annual European Union greenhouse gas inventory 1990–2021 and inventory report 2023 - CRF Table. https://unfccc.int/documents/627830
+  2025: 0.648 # With additional measures (WAM) projection, CO2 excl LULUCF, European Environment Agency. (2023e). Member States’ greenhouse gas (GHG) emission projections 2023. https://www.eea.europa.eu/en/datahub/datahubitem-view/4b8d94a4-aed7-4e67-a54c-0623a50f48e8
+  2030: 0.450 # 55% reduction by 2030 (Ff55)
+  2035: 0.250
+  2040: 0.100 # 90% by 2040
+  2045: 0.050
+  2050: 0.000 # climate-neutral by 2050
+
 
 electricity:
-  base_network: tyndp-raw
+  base_network: tyndp
 
   extendable_carriers:
     Generator: [OCGT]
@@ -108,6 +112,7 @@ load:
     enable: false
   manual_adjustments: false
   supplement_synthetic: false
+
 pypsa_eur:
   Bus:
   - AC
@@ -163,10 +168,20 @@ sector:
     2050: 0
   oil_boilers: false
   biomass_boiler: false
-  h2_topology_tyndp: true
-  ATR: false
   hydrogen_fuel_cell: false
-  hydrogen_turbine: true
+  ATR: false
+  regional_co2_sequestration_potential:
+    enable: false
+  co2_spatial: false
+  co2_network: false
+  methanol:
+    methanol_to_power:
+      ocgt: false
+    biomass_to_methanol: false
+  ammonia: false
+  h2_topology_tyndp: true
+  gas_network: false
+  electrobiofuels: false
   transmission_efficiency:
     enable:
     - gas pipeline
@@ -174,6 +189,21 @@ sector:
     enable: true
     carriers:
     - H2
+  offshore_hubs_tyndp:
+    enable: true
+    max_capacity:
+      DC_OH: 10
+      H2 pipeline OH: 30
+
+costs:
+  overwrites:
+    lifetime:
+      electrolysis: 25
+      HVDC submarine: 25
+      H2 (g) submarine pipeline: 25
+      offwind: 25
+    efficiency:
+      electrolysis: 0.68  # ToDo Account for time-varying efficiencies, currently using fixed 2020 value from TYNDP 2024
 
 clustering:
   mode: administrative
