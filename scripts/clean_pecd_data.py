@@ -43,7 +43,11 @@ def read_pecd_file(
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    fn = Path(dir_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
+    fn = Path(
+        dir_pecd,
+        pyear,
+        f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
+    )
 
     # PECD only differentiates between utility and rooftop PV for some nodes
     if not os.path.isfile(fn) and "LFSolarPV" in technology:
@@ -117,9 +121,11 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
 
     nodes = (
-        offshore_buses.index
+        offshore_buses.index.str.replace(
+            "UK", "GB", regex=True
+        )  # replace UK with GB for naming convention
         if pecd_tech == "Wind_Offshore"
-        else onshore_buses.index.str.replace("GB", "UK", regex=True)
+        else onshore_buses.index
     )
     dir_pecd = snakemake.input.dir_pecd
 
@@ -154,11 +160,9 @@ if __name__ == "__main__":
         else pecd_df.agg(snakemake.params.fill_gaps_method, axis=1)
     )
     pecd_df = (
-        pecd_df.reindex(nodes, axis=1)  # include missing node data with empty columns
-        .rename(
-            columns=lambda x: x.replace("UK", "GB")
-        )  # replace UK with GB for naming convention
-        .where(
+        pecd_df.reindex(
+            nodes, axis=1
+        ).where(  # include missing node data with empty columns
             lambda df: df.notna(), fill_na, axis=0
         )  # fill missing node data with configured aggregation method
     )
