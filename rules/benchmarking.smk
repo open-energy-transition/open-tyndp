@@ -5,7 +5,7 @@
 
 rule retrieve_tyndp_benchmark:
     output:
-        scenarios_figures="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xslx",
+        scenarios_figures="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
     log:
         logs("retrieve_tyndp_benchmark.log"),
     retries: 2
@@ -14,8 +14,10 @@ rule retrieve_tyndp_benchmark:
 
 
 rule clean_tyndp_benchmark:
+    params:
+        benchmarking=config_provider("benchmarking"),
     input:
-        scenarios_figures="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xslx",
+        scenarios_figures="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
     output:
         benchmarks=resources("benchmarks.csv"),
     log:

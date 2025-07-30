@@ -8,24 +8,151 @@ benchmarking:
 # Define default values for each table type
   table_types:
     scenario_comparison:
-      index_col: 1
-      header: [3, 4]
+      index_col: [2, 3]  # TODO Document this as Excel like index, starting at 1
+      header: 4  # TODO Document this as Excel like index, starting at 1
       method: nrmse  # nrmse, mae
       plot: bar  # bar, area, None
-    time_series:
-      index_col: 0
-      header: 3
+    time_serie:
+      index_col: 1
+      header: 4
       method: nrmse
       plot: area
 
 # Define table specific values
-  tables:
+  tables:   # TODO Specify mandatory and optional fields
+    final_energy_demand:
+      table_type: scenario_comparison
+      sheet_name: 51-
+      unit: TWh
+      names:
+        index:
+        - year
+        - scenario
+        column:
+        - carrier
+
     elec_demand:
       table_type: scenario_comparison
-      sheet_name: 5-
+      sheet_name: 52-
       unit: TWh
+      index_col: 2
+      header: [4, 5]
+      names:
+        index:
+        - sector
+        column:
+        - year
+        - scenario
+    methane_demand:
+      table_type: scenario_comparison
+      sheet_name: 53-
+      unit: TWh
+      names:
+        index:
+        - year
+        - scenario
+        column:
+        - sector
+
+    hydrogen_demand:
+      table_type: scenario_comparison
+      sheet_name: 54-
+      unit: TWh
+      names:
+        index:
+        - year
+        - scenario
+        column:
+        - sector
+
+    power_capacity:
+      table_type: scenario_comparison
+      sheet_name: 25-
+      unit: GW
+      nrows: 10
+      ncolumns: 17
+      names:
+        index:
+        - scenario
+        - year
+        column:
+        - carrier
+
+    power_generation:
+      table_type: scenario_comparison
+      sheet_name: 26-
+      unit: TWh
+      nrows: 10
+      ncolumns: 16
+      names:
+        index:
+        - scenario
+        - year
+        column:
+        - carrier
+
+    methane_supply:
+      table_type: scenario_comparison
+      sheet_name: 32-
+      unit: TWh
+      index_col: 2
+      header: [6, 7]
+      nrows: 13
+      ncolumns: 9
+      names:
+        index:
+        - carrier
+        column:
+        - scenario
+        - year
+
+    hydrogen_supply:
+      table_type: scenario_comparison
+      sheet_name: 33-
+      unit: TWh
+      header: [4, 5]
+      index_col: 2
+      nrows: 13
+      ncolumns: 9
+      names:
+        index:
+        - carrier
+        column:
+        - scenario
+        - year
+
+    biomass_supply:
+      table_type: scenario_comparison
+      sheet_name: 59-
+      unit: TWh
+      index_col: 2
+      header: [4, 5]
+      names:
+        index:
+        - carrier
+        column:
+        - scenario
+        - year
+
+    energy_imports:
+      table_type: scenario_comparison
+      sheet_name: 60-
+      unit: TWh
+      index_col: 2
+      header: [3, 4]
+      names:
+        index:
+        - carrier
+        column:
+        - scenario
+        - year
 
     generation_profiles:
-      table_type: time_series
+      table_type: time_serie
       sheet_name: 30a
       unit: GW
+      names:
+        index:
+        - snapshot
+        column:
+        - carrier
