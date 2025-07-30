@@ -12,15 +12,21 @@ import multiprocessing as mp
 from functools import partial
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from _helpers import configure_logging, get_snapshots, set_scenario_config
+from _helpers import (
+    configure_logging,
+    get_snapshots,
+    safe_pyear,
+    set_scenario_config,
+)
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
 
-def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
+def load_elec_demand(
+    fn: str, scenario: str, pyear: int, cyear: int, available_years: list
+):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
@@ -28,12 +34,9 @@ def load_elec_demand(fn: str, scenario: str, pyear: int, cyear: int):
 
     # handle intermediate years
     # TODO: Possibly improve this with linear interpolation for 2035 and 2045
-    if pyear not in [2030, 2040, 2050]:
-        pyear = np.clip(10 * (pyear // 10), 2030, 2050)
-        logger.warning(
-            "Planning horizon doesn't match available 2024 TYNDP electricity demand data. "
-            f"Falling back to previous available year {pyear}."
-        )
+    pyear = int(
+        safe_pyear(int(pyear), available_years=available_years, source="TYNDP demand")
+    )
     if scenario == "NT":
         if pyear == 2050:
             logger.warning(
@@ -132,6 +135,7 @@ if __name__ == "__main__":
         snakemake.input.electricity_demand,
         scenario,
         cyear=cyear,
+        available_years=snakemake.params.available_years,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
