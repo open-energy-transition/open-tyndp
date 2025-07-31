@@ -435,6 +435,7 @@ def input_data_pecd(w):
                         "electricity", "pecd_renewable_profiles", "available_years"
                     )(w),
                     "PECD",
+                    verbose=False,
                 )
                 for year in config_provider("scenario", "planning_horizons")(w)
             ]
