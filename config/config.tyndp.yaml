@@ -89,6 +89,10 @@ load:
   source: tyndp # opsd, tyndp
   fill_gaps:
     enable: false
+  available_years_tyndp:
+  - 2030
+  - 2040
+  - 2050
   manual_adjustments: false
   supplement_synthetic: false
 

@@ -34,6 +34,7 @@ tyndp_renewable_carriers,--,"Any subset of {solar-pv, solar-pv-utility, solar-pv
 pecd_renewable_profiles,,,
 -- enable,,bool,Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_techs`` can be any of {LFSolarPVUtility, LFSolarPVRooftop, Wind_Offshore, Wind_Onshore, CSP_noStorage, CSP_withStorage_7h_dispatched, CSP_withStorage_7h_preDispatch}.
 -- fill_gaps_method,,str,The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.
+-- available_years,--,list,"List of years for which PECD data is available."
 -- technologies,,,
 -- -- {pecd_tech},--,str,The PECD tech whose PECD profile is used. These PECD tech and their profiles are mapped to ``tyndp_renewable_carriers``.
 -- -- -- {tyndp_renewable_carriers},--,str,The `tyndp_renewable_carriers` for which the PECD profiles must be used. All `tyndp_renewable_carriers` must be mapped to a PECD profile. Non-TYNDP renewable carriers use the default renewable profiles.
