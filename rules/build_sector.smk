@@ -1573,8 +1573,7 @@ rule prepare_sector_network:
             else []
         ),
         profile_hydro_tyndp=branch(
-            lambda w: "hydro"
-            in config_provider("electricity", "tyndp_renewable_carriers")(w),
+            config_provider("electricity", "tyndp_hydro_profiles", "enable"),
             resources("profile_hydro_tyndp.nc"),
             [],
         ),

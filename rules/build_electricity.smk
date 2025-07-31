@@ -544,10 +544,21 @@ def input_data_hydro_tyndp(w):
             f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
         )
         for pyear in set(
-            config_provider("scenario", "planning_horizons")(w)
-        ).intersection([2030, 2040, 2050])
-        # Hydro inflows data is only available for the years 2030, 2040, 2050
-        for tech in ["Run of River", "Pondage", "Reservoir", "PS Open", "PS Closed"]
+            [
+                safe_pyear(
+                    year,
+                    config_provider(
+                        "electricity", "tyndp_hydro_profiles", "available_years"
+                    )(w),
+                    "PEMMDB hydro",
+                    verbose=False,
+                )
+                for year in config_provider("scenario", "planning_horizons")(w)
+            ]
+        )
+        for tech in config_provider(
+            "electricity", "tyndp_hydro_profiles", "technologies"
+        )(w)
     }
 
 

@@ -155,6 +155,19 @@ electricity:
       - offwind-h2-fb-oh
       - offwind-h2-fl-oh
 
+  tyndp_hydro_profiles:
+    enable: true
+    technologies:
+    - Run of River
+    - Pondage
+    - Reservoir
+    - PS Open
+    - PS Closed
+    available_years:
+    - 2030
+    - 2040
+    - 2050
+
   estimate_renewable_capacities:
     enable: true
     from_gem: true
