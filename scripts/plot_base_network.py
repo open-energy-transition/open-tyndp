@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
+# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 """
-Plot base network transmission network.
+Plot base transmission network.
 """
 
 import geopandas as gpd
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("plot_base_network", run="tyndp-raw")
+        snakemake = mock_snakemake("plot_base_network", run="tyndp")
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)

@@ -24,9 +24,6 @@ snapshots:
   start: "2013-01-01"
   end: "2014-01-01"
 
-enable:
-  retrieve_tyndp_bundle: true
-
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
   2020: 0.720 # average emissions of 2019 to 2021 relative to 1990, CO2 excl LULUCF, EEA data, European Environment Agency. (2023a). Annual European Union greenhouse gas inventory 1990–2021 and inventory report 2023 - CRF Table. https://unfccc.int/documents/627830
@@ -38,7 +35,7 @@ co2_budget:
   2050: 0.000 # climate-neutral by 2050
 
 electricity:
-  base_network: tyndp-raw
+  base_network: tyndp
 
   renewable_carriers: [solar, solar-hsat, onwind]
   tyndp_renewable_carriers: [hydro, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
@@ -137,10 +134,20 @@ sector:
     2050: 0
   oil_boilers: false
   biomass_boiler: false
-  h2_topology_tyndp: true
-  ATR: false
   hydrogen_fuel_cell: false
-  hydrogen_turbine: true
+  ATR: false
+  regional_co2_sequestration_potential:
+    enable: false
+  co2_spatial: false
+  co2_network: false
+  methanol:
+    methanol_to_power:
+      ocgt: false
+    biomass_to_methanol: false
+  ammonia: false
+  h2_topology_tyndp: true
+  gas_network: false
+  electrobiofuels: false
   transmission_efficiency:
     enable:
     - gas pipeline
@@ -148,6 +155,21 @@ sector:
     enable: true
     carriers:
     - H2
+  offshore_hubs_tyndp:
+    enable: true
+    max_capacity:
+      DC_OH: 10
+      H2 pipeline OH: 30
+
+costs:
+  overwrites:
+    lifetime:
+      electrolysis: 25
+      HVDC submarine: 25
+      H2 (g) submarine pipeline: 25
+      offwind: 25
+    efficiency:
+      electrolysis: 0.68  # ToDo Account for time-varying efficiencies, currently using fixed 2020 value from TYNDP 2024
 
 clustering:
   mode: administrative

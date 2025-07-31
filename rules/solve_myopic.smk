@@ -7,12 +7,6 @@ rule add_existing_baseyear:
     params:
         baseyear=config_provider("scenario", "planning_horizons", 0),
         sector=config_provider("sector"),
-        pecd_renewable_profiles=config_provider(
-            "electricity", "pecd_renewable_profiles"
-        ),
-        tyndp_renewable_carriers=config_provider(
-            "electricity", "tyndp_renewable_carriers"
-        ),
         existing_capacities=config_provider("existing_capacities"),
         carriers=config_provider("electricity", "renewable_carriers"),
         costs=config_provider("costs"),
@@ -86,12 +80,6 @@ rule add_brownfield:
         ),
         threshold_capacity=config_provider("existing_capacities", "threshold_capacity"),
         snapshots=config_provider("snapshots"),
-        pecd_renewable_profiles=config_provider(
-            "electricity", "pecd_renewable_profiles"
-        ),
-        tyndp_renewable_carriers=config_provider(
-            "electricity", "tyndp_renewable_carriers"
-        ),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         carriers=config_provider("electricity", "renewable_carriers"),
         heat_pump_sources=config_provider("sector", "heat_pump_sources"),
@@ -99,6 +87,7 @@ rule add_brownfield:
         dynamic_ptes_capacity=config_provider(
             "sector", "district_heating", "ptes", "dynamic_capacity"
         ),
+        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfield_pecd),
@@ -142,11 +131,16 @@ rule solve_sector_network_myopic:
             "sector", "co2_sequestration_potential", default=200
         ),
         custom_extra_functionality=input_custom_extra_functionality,
+        carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
     input:
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
         ),
         costs=resources("costs_{planning_horizons}.csv"),
+        offshore_zone_trajectories=branch(
+            config_provider("sector", "offshore_hubs_tyndp", "enable"),
+            resources("offshore_zone_trajectories.csv"),
+        ),
     output:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",

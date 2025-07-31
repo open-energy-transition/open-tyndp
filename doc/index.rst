@@ -1,27 +1,30 @@
 ..
-  SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+  SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 
   SPDX-License-Identifier: CC-BY-4.0
 
-##################################################################################
-PyPSA-Eur: A Sector-Coupled Open Optimisation Model of the European Energy System
-##################################################################################
+#############################################################################################################
+Open-TYNDP: A PyPSA-Eur based Sector-Coupled Open Optimisation Model of the Ten-Year Network Development Plan
+#############################################################################################################
 
-.. image:: https://img.shields.io/github/v/release/pypsa/pypsa-eur?include_prereleases
+.. image:: https://img.shields.io/github/v/release/open-energy-transition/open-tyndp?include_prereleases
     :alt: GitHub release (latest by date including pre-releases)
 
-.. image:: https://github.com/pypsa/pypsa-eur/actions/workflows/test.yaml/badge.svg
-    :target: https://github.com/PyPSA/pypsa-eur/actions
+.. image:: https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml/badge.svg
+    :target: https://github.com/open-energy-transition/open-tyndp/actions
 
 .. image:: https://readthedocs.org/projects/pypsa-eur/badge/?version=latest
     :target: https://pypsa-eur.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation
 
-.. image:: https://img.shields.io/github/repo-size/pypsa/pypsa-eur
+.. image:: https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp
     :alt: GitHub repo size
 
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg
     :target: https://doi.org/10.5281/zenodo.3520874
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.14230568.svg
+    :target: https://doi.org/10.5281/zenodo.14230568
 
 .. image:: https://img.shields.io/badge/snakemake-≥7.19-brightgreen.svg?style=flat
     :target: https://snakemake.readthedocs.io
@@ -30,21 +33,87 @@ PyPSA-Eur: A Sector-Coupled Open Optimisation Model of the European Energy Syste
 .. image:: https://img.shields.io/discord/911692131440148490?logo=discord
     :target: https://discord.gg/AnuJBk23FU
     :alt: Discord
-    
-.. image:: https://api.reuse.software/badge/github.com/pypsa/pypsa-eur
-    :target: https://api.reuse.software/info/github.com/pypsa/pypsa-eur
+
+.. image:: https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp
+    :target: https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp
     :alt: REUSE
 
 
 |
 
-PyPSA-Eur is an open model dataset of the European energy system at the
-transmission network level that covers the full ENTSO-E area. It covers demand
-and supply for all energy sectors. From version v0.8.0, PyPSA-Eur includes all
-the features from PyPSA-Eur-Sec, which is now deprecated.
+This repository introduces the open model dataset of the Open-TYNDP research and innovation project which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__\ :sup:`*` and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project’s aim is to explore and consider the adoption of PyPSA in the TYNDP by building a workflow based on PyPSA-Eur. It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source frameworks in energy planning, encouraging broader global adoption.
+
+To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle, before aligning with the current 2026 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and `interactive workshops <https://open-energy-transition.github.io/open-tyndp-workshops/intro.html>`__ alongside the development of the PyPSA tool, further promoting collaboration and transparency throughout the process.
+
+This repository is a soft-fork of `OET/PyPSA-Eur <https://github.com/open-energy-transition/pypsa-eur>`__ and contains the entire project `Open-TYNDP` supported by OET, including code and documentation. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
+
+This repository is maintained using `OET's soft-fork strategy <https://open-energy-transition.github.io/handbook/docs/Engineering/SoftForkStrategy>`__. OET's primary aim is to contribute as much as possible to the open source (OS) upstream repositories. For long-term changes that cannot be directly merged upstream, the strategy organizes and maintains OET forks, ensuring they remain up-to-date and compatible with upstream on a regular basis, while also supporting future contributions back to the OS repositories.
+
+\ :sup:`*` Open Energy Transition (g)GmbH, Königsallee 52, 95448 Bayreuth, Germany
+
+|
+
+Development status
+==================
+The back-casting of the 2024 TYNDP cycle involves developing new features based on the published `modelling methodology report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__. Major and already implemented features are summarized below. Please, refer to the :doc:`release_notes` for a more comprehensive list of features and to the relevant `pull requests <https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22>`__ for extensive documentation of the implementations.
+
+- Introduced a new electricity base network using TYNDP 2024 electricity reference grid data.
+- Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies.
+- Added TYNDP hydrogen import potentials and corridors from outside of the modelled countries.
+- Added the TYNDP electricity demand as an exogenously set demand.
+- Added processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles, replacing default ERA5-based profiles processed with Atlite.
+- Introduced TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics.
+
+.. list-table::
+   :align: center
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - **Feature**
+     - **TYNDP 2024 topology**
+     - **Open-TYNDP topology**
+   * - **Electricity Grid**
+     - .. image:: img/tyndp/electricity-grid-report.png
+          :height: 300px
+          :align: center
+          :alt: TYNDP 2024 electricity topology
+     - .. image:: img/tyndp/electricity-grid.png
+          :height: 300px
+          :align: center
+          :alt: Open-TYNDP electricity topology
+   * - **Hydrogen Grid**
+     - .. image:: img/tyndp/h2-grid-report.png
+          :height: 300px
+          :align: center
+          :alt: TYNDP 2024 hydrogen topology
+     - .. image:: img/tyndp/h2-grid.png
+          :height: 300px
+          :align: center
+          :alt: Open-TYNDP hydrogen topology
+   * - **Offshore Grid**
+     - .. image:: img/tyndp/offshore-grid-report.png
+          :height: 300px
+          :align: center
+          :alt: TYNDP 2024 offshore topology
+     - .. image:: img/tyndp/offshore-grid.png
+          :height: 300px
+          :align: center
+          :alt: Open-TYNDP offshore topology
+
+.. warning::
+    Open-TYNDP is under active development and has several
+    :doc:`limitations` which
+    you should understand before using the model. The Github repository
+    `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collect known
+    topics we are working on. Please feel free to help or make suggestions.
+
+|
+
+PyPSA-Eur
+=========
 
 Electricity System
-==================
+------------------
 
 The electricity system representation contains alternating current lines at
 and above 220 kV voltage level and all high voltage direct current lines,
@@ -64,7 +133,7 @@ effects for renewable power generation and their varying resource availability.
 |
 
 Sector-Coupled Energy System
-============================
+----------------------------
 
 A sector-coupled extension (previously known as **PyPSA-Eur-Sec**, which is now
 deprecated) adds demand and supply for the following sectors: transport, space
@@ -97,7 +166,7 @@ them:
     networks.
 
 About
-=====
+-----
 
 PyPSA-Eur is designed to be imported into the open energy system modelling
 framework `PyPSA <https://www.pypsa.org>`__ for which `documentation
@@ -134,7 +203,7 @@ as part of the `Stromnetze Research Initiative
 
 
 Workflow
-========
+--------
 
 .. image:: img/workflow.png
     :class: full-width
@@ -146,7 +215,7 @@ Workflow
 
 
 Learning Energy System Modelling
-================================
+--------------------------------
 
 If you are (relatively) new to energy system modelling and optimisation and plan
 to use PyPSA-Eur, the following resources are one way to get started in addition
@@ -161,7 +230,7 @@ to reading this documentation.
 
 
 Citing PyPSA-Eur
-================
+----------------
 
 If you use PyPSA-Eur for your research, we would appreciate it if you would cite one of the following papers:
 
@@ -213,7 +282,7 @@ If you want to cite a specific PyPSA-Eur version, each release of PyPSA-Eur is s
 
 
 Operating Systems
-=================
+-----------------
 
 The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL only).
 

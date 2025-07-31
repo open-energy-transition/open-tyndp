@@ -11,6 +11,7 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 
 
 ``data/bgr/``
+
 - **Source:** Bundesanstalt für Geowissenschaften und Rohstoffe (BGR)
 - **Link:** https://www.bgr.bund.de/DE/Themen/Wasser/Projekte/laufend/Beratung/Ihme1500/ihme1500_projektbeschr.html?nn=1546102
 - **License:** `custom <https://www.bgr.bund.de/DE/Gemeinsames/Produkte/Produktcenter/faq_inhalt.html?nn=6951010#doc5914388bodyText5>` and `custom <https://www.bgr.bund.de/DE/Gemeinsames/Produkte/produkte_agb.html>`
@@ -213,7 +214,7 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **Source:** `ERA5
   <https://cds-beta.climate.copernicus.eu/datasets/reanalysis-era5-single-levels?tab=overview>`__
   and `SARAH-3 <https://navigator.eumetsat.int/product/EO:EUM:DAT:0863>`__
-- **Link:** https://zenodo.org/records/12791128
+- **Link:** https://zenodo.org/records/15349674
 - **License:** CC-BY 4.0
 - **Description:** Contains weather data cutouts for Europe to read in with ``atlite``.
 

@@ -17,9 +17,12 @@ body:
     options:
     - label: >
         I have confirmed this bug exists on the lastest
-        [release](https://github.com/pypsa/pypsa-eur/releases) of PyPSA-Eur.
+        [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP.
     - label: >
         I have confirmed this bug exists on the current
+        [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP.
+    - label: >
+        I have confirmed this bug doesn't exists in the upstream
         [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur.
 
 - type: textarea
