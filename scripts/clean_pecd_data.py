@@ -5,11 +5,13 @@
 Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
 The script is executed for a given technology and planning horizon. Technologies can be one of:
 
-   * CSP
    * LFSolarPVUtility,
    * LFSolarPVRooftop,
    * Wind_Offshore,
-   * Wind_Onshore.
+   * Wind_Onshore,
+   * CSP_noStorage,
+   * CSP_withStorage_7h_dispatched,
+   * CSP_withStorage_7h_preDispatch (note: includes cf > 1 for when thermal storage can be used).
 
 Outputs
 -------
