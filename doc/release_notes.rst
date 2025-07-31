@@ -11,7 +11,7 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
-
+* Add complete compatibility for processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles (Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, Solar CSP), replacing default ERA5- and SARAH3-based profiles processed with Atlite (https://github.com/open-energy-transition/open-tyndp/pull/71). This implementation serves to facilitate a sub-workflow for creation of the renewable profiles but does not yet attach them to any technologies yet.
 
 
 Upcoming PyPSA-Eur Release
