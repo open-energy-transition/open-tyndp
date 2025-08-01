@@ -49,7 +49,7 @@ electricity:
     Link: [H2 pipeline]
 
   renewable_carriers: [solar, solar-hsat, onwind]
-  tyndp_renewable_carriers: [offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
+  tyndp_renewable_carriers: [hydro, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:
     enable: true
