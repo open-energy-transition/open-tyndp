@@ -45,13 +45,13 @@ Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Cont
 
 |
 
-This repository introduces the open model dataset of the Open-TYNDP research and innovation project which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__ [1]_ and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project’s aim is to explore and consider the adoption of PyPSA in the TYNDP by building a workflow based on `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__. It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.
+This repository introduces the open model dataset of the Open-TYNDP research and innovation project, which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__ and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project’s aim is to explore and consider the adoption of PyPSA in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__. It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.
 
 To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle, before aligning with the current 2026 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and `interactive workshops <https://open-energy-transition.github.io/open-tyndp-workshops/intro.html>`__ alongside the development of the PyPSA tool, further promoting collaboration and transparency throughout the process.
 
 This repository is a soft-fork of `OET/PyPSA-Eur <https://github.com/open-energy-transition/pypsa-eur>`__ and contains the entire project `Open-TYNDP` supported by OET, including code and documentation. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
-This repository is maintained using `OET's soft-fork strategy <https://open-energy-transition.github.io/handbook/docs/Engineering/SoftForkStrategy>`__. OET's primary aim is to contribute as much as possible to the open-source upstream repositories. For long-term changes that cannot be directly merged upstream, the strategy organizes and maintains OET forks, ensuring they remain up-to-date and compatible with upstream on a regular basis, while also supporting future contributions back to the OS repositories.
+This repository is maintained using `OET's soft-fork strategy <https://open-energy-transition.github.io/handbook/docs/Engineering/SoftForkStrategy>`__. OET's primary aim is to contribute as much as possible to the open-source (OS) upstream repositories. For long-term changes that cannot be directly merged upstream, the strategy organizes and maintains OET forks, ensuring they remain up-to-date and compatible with upstream on a regular basis, while also supporting future contributions back to the OS repositories.
 
 |
 
@@ -70,7 +70,7 @@ Development status
 ==================
 
 .. warning::
-    Open-TYNDP is under active development and has several :doc:`limitations` which you should understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ also remains work in progress.
+    Open-TYNDP is under active development and has several :doc:`limitations` which you should understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the PyPSA-Eur repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ also remains work in progress.
 
 The back-casting of the 2024 TYNDP cycle involves developing new features based on the published `modelling methodology report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__. Major and already implemented features are summarized below. Please, refer to the :doc:`release_notes` for a more comprehensive list of features and to the relevant `pull requests <https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22>`__ for extensive documentation of the implementations.
 
@@ -296,8 +296,6 @@ Operating Systems
 The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL only).
 
 |
-
-.. [1] Open Energy Transition (g)GmbH, Königsallee 52, 95448 Bayreuth, Germany
 
 
 .. toctree::
