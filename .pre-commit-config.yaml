@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
@@ -55,6 +56,16 @@ repos:
   rev: v0.11.0
   hooks:
   - id: snakefmt
+
+  # Check and auto-fix SPDX copyright headers in modified files
+- repo: local
+  hooks:
+  - id: add-spdx-headers
+    name: Add Open-TYNDP SPDX copyright headers
+    entry: .pre-commit-hooks/add-spdx-headers.sh
+    language: script
+    exclude_types: [binary]
+    exclude: ^LICENSES/
 
   # Check for FSFE REUSE compliance (licensing)
 - repo: https://github.com/fsfe/reuse-tool
