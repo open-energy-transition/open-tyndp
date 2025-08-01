@@ -1158,7 +1158,9 @@ def safe_pyear(
     """
 
     if not available_years:
-        raise ValueError("No `available_years` provided. Expected a non-empty list of years.")
+        raise ValueError(
+            "No `available_years` provided. Expected a non-empty list of years."
+        )
     if year not in available_years:
         lower = [y for y in available_years if y < year]
         year_new = max(lower) if lower else available_years[0]
