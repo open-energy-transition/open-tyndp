@@ -156,7 +156,7 @@ electricity:
       - offwind-h2-fl-oh
 
   tyndp_hydro_profiles:
-    enable: true
+    enable: false
     technologies:
     - Run of River
     - Pondage
