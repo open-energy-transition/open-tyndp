@@ -1138,14 +1138,14 @@ def safe_pyear(
     verbose: bool = True,
 ):
     """
-    Checks and adjusts whether a given pyear is in the available years and falls back to the previous available year.
+    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it falls back to the previous available year.
 
     Parameters
     ----------
     year : int
         planning horizon year which will be checked and possibly adjusted to previous available year
     available_years : list, optional
-        list of available years. Defaults to [2030, 2040, 2050]
+        List of available years. Defaults to [2030, 2040, 2050]
     source : str, optional
         source of the data for which availability will be checked. Defaults to "TYNDP"
     verbose : bool, optional
@@ -1158,7 +1158,7 @@ def safe_pyear(
     """
 
     if not available_years:
-        raise ValueError("`available_years` cannot be empty.")
+        raise ValueError("No `available_years` provided. Expected a non-empty list of years.")
     if year not in available_years:
         lower = [y for y in available_years if y < year]
         year_new = max(lower) if lower else available_years[0]
