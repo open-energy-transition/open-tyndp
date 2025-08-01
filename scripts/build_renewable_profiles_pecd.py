@@ -22,12 +22,12 @@ Outputs
 
 import logging
 
-import numpy as np
 import pandas as pd
 import xarray as xr
 
 from scripts._helpers import (
     configure_logging,
+    safe_pyear,
     set_scenario_config,
 )
 
@@ -55,16 +55,10 @@ if __name__ == "__main__":
             f"Extract PECD capacity factor time series for year {year} for technology {technology}..."
         )
         year_i = year
-        if int(year) not in [2030, 2040, 2050]:
-            year = np.clip(10 * (year // 10), 2030, 2050)
-            logger.warning(
-                f"TYNDP PECD data unavailable for planning horizon. Falling back to previous available year {year}."
-            )
-        if year == 2050:
-            logger.warning(
-                "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data."
-            )
-            year = 2040
+        # falling back to latest available pyear if not in list of available years
+        year = safe_pyear(
+            year, available_years=snakemake.params.available_years, source="PECD"
+        )
 
         profile = (
             pd.read_csv(
