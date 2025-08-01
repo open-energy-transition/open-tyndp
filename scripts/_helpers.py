@@ -1143,7 +1143,7 @@ def safe_pyear(
     Parameters
     ----------
     year : int
-        planning horizon year which will be checked and possibly adjusted to previous available year.
+        Planning horizon year which will be checked and possibly adjusted to previous available year.
     available_years : list, optional
         List of available years. Defaults to [2030, 2040, 2050].
     source : str, optional
@@ -1154,7 +1154,7 @@ def safe_pyear(
     Returns
     -------
     year_new : int
-        safe pyear adjusted for available years
+        Safe pyear adjusted for available years
     """
 
     if not available_years:
