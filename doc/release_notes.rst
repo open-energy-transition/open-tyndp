@@ -11,7 +11,7 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
-
+* Introduce processing of PEMMDB hydro inflows data for different hydro technologies (Run of River, Pondage, Reservoir, PS Open, PS Closed) from 2024 TYNDP into hydro inflow profiles (https://github.com/open-energy-transition/open-tyndp/pull/77). This implementation serves to facilitate a sub-workflow for creation of the hydro inflow profiles, but does not yet attach them to any hydro technologies.
 
 
 Upcoming PyPSA-Eur Release
