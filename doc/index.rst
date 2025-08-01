@@ -58,11 +58,15 @@ This repository is maintained using `OET's soft-fork strategy <https://open-ener
 Open-Source ecosystem
 ==================
 
-The Open-TYNDP repository builds on the open-source ecosystem of `PyPSA <https://github.com/pypsa/pypsa>`__ and `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ which are developed and maintained by several organizations, including `Open Energy Transition (OET) <https://openenergytransition.org/>`__, `Technische Universität Berlin (TUB) <https://www.tu.berlin/en/ensys/>`__, `Fraunhofer <https://www.fraunhofer.de/>`__, `Ostbayerische Technische Hochschule (OTH) <https://www.oth-regensburg.de/en/>`__, `Universita di Pisa (UNIPI) <https://www.unipi.it/en/>`__ and `Danmarks Tekniske Universitet (DTU) <https://www.dtu.dk/english/>`__. This group of maintainers consists of individuals that significantly contributed to the projects over time and have earned the authority to review and accept change requests in the repository. This privilege comes with the responsibility to continuously work on the repository and contribute to enhancements, stability, security and more. This worldwide ecosystem involves energy researchers, system operators, regulators, NGOs, and policymakers.
+The Open-TYNDP repository builds on the open-source ecosystem of `PyPSA <https://github.com/pypsa/pypsa>`__ and `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ which are developed and maintained by several organizations, including `Open Energy Transition (OET) <https://openenergytransition.org/>`__, `Technische Universität Berlin (TUB) <https://www.tu.berlin/en/ensys/>`__, `Fraunhofer <https://www.fraunhofer.de/>`__, `Ostbayerische Technische Hochschule (OTH) <https://www.oth-regensburg.de/en/>`__, `Universita di Pisa (UNIPI) <https://www.unipi.it/en/>`__ and `Danmarks Tekniske Universitet (DTU) <https://www.dtu.dk/english/>`__. This group of maintainers consists of individuals who have significantly contributed to the projects over time and earned the authority to review and accept change requests. This privilege comes with the responsibility to continuously work on the repository and contribute to enhancements, stability, security and more. This worldwide ecosystem involves energy researchers, system operators, regulators, NGOs, and policymakers.
 
 .. image:: img/tyndp/open-source-ecosystem.png
     :align: center
     :alt: Open-Source Ecosystem
+
+Within this ecosystem, independent organisations can develop their own private repositories using the publicly available Open-TYNDP and PyPSA-Eur codebases. This shared foundation ensures interoperability and creates opportunities for partnership through sharing and co-developing features. By using a soft-fork strategy, each private repository can contribute to and benefit from the shared research and development environment. The shared foundation also enables organisations to request support and feature development from other actors.
+
+Each organisation in this open-source ecosystem remains fully independent of the shared foundation, maintaining its own governance structure and decision-making processes regarding its codebase. Organisations are also free to keep parts of their code private.
 
 |
 
