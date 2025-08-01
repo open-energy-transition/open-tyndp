@@ -57,7 +57,7 @@ if __name__ == "__main__":
         year_i = year
         # falling back to latest available pyear if not in list of available years
         year = safe_pyear(
-            int(year), available_years=snakemake.params.available_years, source="PECD"
+            year, available_years=snakemake.params.available_years, source="PECD"
         )
 
         profile = (

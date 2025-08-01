@@ -34,9 +34,8 @@ def load_elec_demand(
 
     # handle intermediate years
     # TODO: Possibly improve this with linear interpolation for 2035 and 2045
-    pyear = int(
-        safe_pyear(int(pyear), available_years=available_years, source="TYNDP demand")
-    )
+    pyear = safe_pyear(pyear, available_years=available_years, source="TYNDP demand")
+
     if scenario == "NT":
         if pyear == 2050:
             logger.warning(

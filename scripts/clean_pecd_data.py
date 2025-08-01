@@ -41,13 +41,13 @@ def read_pecd_file(
     node: str,
     dir_pecd: str,
     cyear: str,
-    pyear: str,
+    pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
     fn = Path(
         dir_pecd,
-        pyear,
+        str(pyear),
         f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
     )
 
@@ -59,7 +59,7 @@ def read_pecd_file(
         return None
 
     # Malta CSP data file has an extra header row that must be skipped
-    if node == "MT00" and technology == "CSP_noStorage" and pyear == "2040":
+    if node == "MT00" and technology == "CSP_noStorage" and pyear == 2040:
         skiprows = 11
     else:
         skiprows = 10
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
-        int(snakemake.wildcards.planning_horizons),
+        snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
         source="PECD",
     )
