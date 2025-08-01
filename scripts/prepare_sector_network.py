@@ -7508,7 +7508,7 @@ if __name__ == "__main__":
     profiles = {
         key: snakemake.input[key]
         for key in snakemake.input.keys()
-        if key.startswith("profile")
+        if key.startswith("profile") and "hydro" not in key
     }
     pecd_renewable_profiles_techs = snakemake.params.electricity[
         "pecd_renewable_profiles"
