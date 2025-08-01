@@ -59,12 +59,6 @@ if __name__ == "__main__":
         year = safe_pyear(
             int(year), available_years=snakemake.params.available_years, source="PECD"
         )
-        # TODO: remove once PECD data is updated
-        if year == 2050:
-            logger.warning(
-                "PECD input data for 2050 is incomplete. Falling back to 2040 PECD data."
-            )
-            year = 2040
 
         profile = (
             pd.read_csv(
