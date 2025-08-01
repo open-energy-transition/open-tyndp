@@ -563,6 +563,16 @@ def input_data_hydro_tyndp(w):
 
 
 rule build_tyndp_hydro_profile:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        planning_horizons=config_provider("scenario", "planning_horizons"),
+        available_years=config_provider(
+            "electricity", "tyndp_hydro_profiles", "available_years"
+        ),
+        technologies=config_provider(
+            "electricity", "tyndp_hydro_profiles", "technologies"
+        ),
     input:
         unpack(input_data_hydro_tyndp),
     output:
