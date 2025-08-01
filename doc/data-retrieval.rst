@@ -242,7 +242,7 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 
 - **Source:** Electricity Maps, https://github.com/electricitymaps/electricitymaps-contrib
 - **Link:** https://raw.githubusercontent.com/electricitymaps/electricitymaps-contrib/v1.238.0/web/geo/world.geojson
-- **License:** GNU-AGPLv3
+- **License:** AGPLv3
 - **Description:** Contains bidding zones shape files.
 
 ``data/busshapes/bidding_zones_entsoepy.geojson``

@@ -9,12 +9,21 @@ path = [
     "data/**",
     "doc/configtables/*",
     "doc/data.csv",
-    "doc/img/**",
+    "doc/img/*",
     "test/test_data/*",
 ]
 SPDX-FileCopyrightText = [
     "The Open-TYNDP Authors",
     "The PyPSA-Eur Authors",
+]
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = [
+    "doc/img/tyndp/*",
+]
+SPDX-FileCopyrightText = [
+    "The Open-TYNDP Authors",
 ]
 SPDX-License-Identifier = "CC-BY-4.0"
 

@@ -354,4 +354,4 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    contributing
    support
    publications
-   developers
+   contributors
