@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: : 2025 The PyPSA-Eur Authors
 #
 # SPDX-License-Identifier: MIT
