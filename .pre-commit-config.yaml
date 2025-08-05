@@ -76,11 +76,10 @@ repos:
   - id: reuse-open-tyndp-smk
     name: reuse-open-tyndp-smk
     description: "Add Open-TYNDP SPDX copyright headers to modified SMK files"
-    entry: bash -c 'reuse annotate --exclude-year --merge-copyrights -s python --copyright="Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>" $(git diff --name-only $(git merge-base HEAD master))'
-    pass_filenames: true
+    entry: bash -c 'reuse annotate --exclude-year --merge-copyrights -s python --copyright="Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>" $(git diff --name-only $(git merge-base HEAD master) | grep -E "\\.smk$|Snakefile|matplotlibrc")'
+    pass_filenames: false
     language: python
     additional_dependencies: ["reuse"]
-    files: \.smk$|Snakefile|matplotlibrc
     exclude: ^\.github/|borg-it|data/|doc/configtables/|doc/img/|REUSE\.toml
 
   # Check for FSFE REUSE compliance (licensing)
