@@ -68,7 +68,6 @@ repos:
     pass_filenames: false
     language: python
     additional_dependencies: ["reuse"]
-    types: [file]
     exclude: ^\.github/|borg-it|data/|doc/configtables/|doc/img/|REUSE\.toml
 
 - repo: local
