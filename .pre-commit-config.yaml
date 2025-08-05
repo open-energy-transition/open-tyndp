@@ -79,7 +79,6 @@ repos:
     pass_filenames: false
     language: python
     additional_dependencies: ["reuse"]
-    exclude: ^\.github/|borg-it|data/|doc/configtables/|doc/img/|REUSE\.toml
 
   # Check for FSFE REUSE compliance (licensing)
 - repo: https://github.com/fsfe/reuse-tool
