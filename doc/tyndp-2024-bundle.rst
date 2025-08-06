@@ -1,7 +1,6 @@
+.. SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 ..
-  SPDX-FileCopyrightText: Open Energy Transition gGmbH
-
-  SPDX-License-Identifier: CC-BY-4.0
+.. SPDX-License-Identifier: CC-BY-4.0
 
 ###################
 TYNDP 2024 data bundle for PyPSA-Eur
