@@ -34,6 +34,9 @@ rule clean_tyndp_benchmark:
 
 
 rule build_benchmark:
+    params:
+        benchmarking=config_provider("benchmarking"),
+        scenario=config_provider("tyndp_scenario"),
     input:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",

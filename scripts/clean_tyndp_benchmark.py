@@ -291,7 +291,9 @@ if __name__ == "__main__":
         )
 
     # Combine all benchmark data
-    benchmarks_combined = pd.concat(benchmarks, ignore_index=True)
+    benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
+        source="TYNDP 2024"
+    )
     if benchmarks_combined.empty:
         logger.warning("No benchmark data was successfully processed")
 
