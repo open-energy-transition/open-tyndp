@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
@@ -155,7 +156,7 @@ def build_shapes(
         y=lambda df: df["node"].y,
     )
 
-    # Correct DK, IT, GR and SE coordinates
+    # Correct DK, IT, GR, SE and GB coordinates
     if "DK" in countries:
         country_shapes.loc["DK", ["node", "x", "y"]] = bidding_shapes.loc[
             "DKE1", ["node", "x", "y"]
@@ -171,6 +172,10 @@ def build_shapes(
     if "SE" in countries:
         country_shapes.loc["SE", ["node", "x", "y"]] = bidding_shapes.loc[
             "SE01", ["node", "x", "y"]
+        ]
+    if "GB" in countries:
+        country_shapes.loc["GB", ["node", "x", "y"]] = bidding_shapes.loc[
+            "GB00", ["node", "x", "y"]
         ]
 
     return bidding_shapes, country_shapes

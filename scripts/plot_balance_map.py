@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -50,7 +51,9 @@ if __name__ == "__main__":
     if imports_as_flows:
         n.buses.loc[:, "carrier"] = n.buses.carrier.str.replace("import ", "")
     sanitize_carriers(n, snakemake.config)
-    n.statistics.set_parameters(round=3, drop_zero=True, nice_names=False)
+    pypsa.options.set_option("params.statistics.round", 3)
+    pypsa.options.set_option("params.statistics.drop_zero", True)
+    pypsa.options.set_option("params.statistics.nice_names", False)
 
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
 
@@ -163,13 +166,21 @@ if __name__ == "__main__":
         layout="constrained",
     )
 
+    line_flow = flow.get("Line")
+    link_flow = flow.get("Link")
+    transformer_flow = flow.get("Transformer")
+
     n.plot(
         bus_sizes=bus_sizes * bus_size_factor,
         bus_colors=colors,
         bus_split_circles=True,
         line_widths=line_widths * branch_width_factor,
         link_widths=link_widths * branch_width_factor,
-        flow=flow * flow_size_factor,
+        line_flow=line_flow * flow_size_factor if line_flow is not None else None,
+        link_flow=link_flow * flow_size_factor if link_flow is not None else None,
+        transformer_flow=transformer_flow * flow_size_factor
+        if transformer_flow is not None
+        else None,
         ax=ax,
         margin=0.2,
         color_geomap={"border": "darkgrey", "coastline": "darkgrey"},

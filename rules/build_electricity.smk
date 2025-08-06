@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
@@ -1032,7 +1033,7 @@ if config["load"]["source"] == "tyndp":
             snapshots=config_provider("snapshots"),
             scenario=config_provider("tyndp_scenario"),
         input:
-            electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
+            electricity_demand="data/tyndp_2024_bundle/Demand Profiles",
         output:
             electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
         log:
