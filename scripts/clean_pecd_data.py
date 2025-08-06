@@ -30,6 +30,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    safe_pyear,
     set_scenario_config,
 )
 
@@ -94,8 +95,12 @@ if __name__ == "__main__":
         )
         cyear = 2009
 
-    # Planning year
-    pyear = str(snakemake.wildcards.planning_horizons)
+    # Planning year (falls back to latest available pyear if not in list of available years)
+    pyear = safe_pyear(
+        int(snakemake.wildcards.planning_horizons),
+        available_years=snakemake.params.available_years,
+        source="PECD",
+    )
 
     # TODO: find solution for solar profiles being differentiated between Utility and Rooftop for Italy
     # Technology as in PECD terminology

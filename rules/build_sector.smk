@@ -1573,6 +1573,11 @@ rule prepare_sector_network:
             if config_provider("sector", "h2_topology_tyndp")(w)
             else []
         ),
+        profile_hydro_tyndp=branch(
+            config_provider("electricity", "tyndp_hydro_profiles", "enable"),
+            resources("profile_hydro_tyndp.nc"),
+            [],
+        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"

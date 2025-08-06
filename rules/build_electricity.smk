@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+from scripts._helpers import safe_pyear
+
 
 def input_elec_demand(w):
     return {
@@ -398,6 +400,12 @@ rule clean_pecd_data:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
+        fill_gaps_method=config_provider(
+            "electricity", "pecd_renewable_profiles", "fill_gaps_method"
+        ),
+        available_years=config_provider(
+            "electricity", "pecd_renewable_profiles", "available_years"
+        ),
     input:
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         onshore_buses=resources("busmap_base_s_all.csv"),
@@ -421,16 +429,27 @@ def input_data_pecd(w):
     return {
         f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
         for pyear in set(
-            config_provider("scenario", "planning_horizons")(w)
-        ).intersection([2030, 2040])
-        # Complete PECD data is only available for the years 2030, 2040
-        # TODO: adjust if udpated 2050 data available
+            [
+                safe_pyear(
+                    year,
+                    config_provider(
+                        "electricity", "pecd_renewable_profiles", "available_years"
+                    )(w),
+                    "PECD",
+                    verbose=False,
+                )
+                for year in config_provider("scenario", "planning_horizons")(w)
+            ]
+        )
     }
 
 
 rule build_renewable_profiles_pecd:
     params:
         planning_horizons=config_provider("scenario", "planning_horizons"),
+        available_years=config_provider(
+            "electricity", "pecd_renewable_profiles", "available_years"
+        ),
     input:
         unpack(input_data_pecd),
     output:
@@ -496,6 +515,79 @@ rule build_hydro_profile:
         "../envs/environment.yaml"
     script:
         "../scripts/build_hydro_profile.py"
+
+
+rule clean_tyndp_hydro_inflows:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+    input:
+        hydro_inflows_dir="data/tyndp_2024_bundle/Hydro Inflows",
+        onshore_buses=resources("busmap_base_s_all.csv"),
+    output:
+        hydro_inflows_tyndp=resources(
+            "hydro_inflows_tyndp_{tech}_{planning_horizons}.csv"
+        ),
+    log:
+        logs("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}.log"),
+    threads: 4
+    benchmark:
+        benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/clean_tyndp_hydro_inflows.py"
+
+
+def input_data_hydro_tyndp(w):
+    return {
+        f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
+            f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
+        )
+        for pyear in set(
+            [
+                safe_pyear(
+                    year,
+                    config_provider(
+                        "electricity", "tyndp_hydro_profiles", "available_years"
+                    )(w),
+                    "PEMMDB hydro",
+                    verbose=False,
+                )
+                for year in config_provider("scenario", "planning_horizons")(w)
+            ]
+        )
+        for tech in config_provider(
+            "electricity", "tyndp_hydro_profiles", "technologies"
+        )(w)
+    }
+
+
+rule build_tyndp_hydro_profile:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        planning_horizons=config_provider("scenario", "planning_horizons"),
+        available_years=config_provider(
+            "electricity", "tyndp_hydro_profiles", "available_years"
+        ),
+        technologies=config_provider(
+            "electricity", "tyndp_hydro_profiles", "technologies"
+        ),
+    input:
+        unpack(input_data_hydro_tyndp),
+    output:
+        profile=resources("profile_hydro_tyndp.nc"),
+    log:
+        logs("build_tyndp_hydro_profile.log"),
+    benchmark:
+        benchmarks("build_tyndp_hydro_profile")
+    resources:
+        mem_mb=5000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_tyndp_hydro_profile.py"
 
 
 rule build_line_rating:
@@ -1032,6 +1124,7 @@ if config["load"]["source"] == "tyndp":
             planning_horizons=config_provider("scenario", "planning_horizons"),
             snapshots=config_provider("snapshots"),
             scenario=config_provider("tyndp_scenario"),
+            available_years=config_provider("load", "available_years_tyndp"),
         input:
             electricity_demand="data/tyndp_2024_bundle/Demand Profiles",
         output:
