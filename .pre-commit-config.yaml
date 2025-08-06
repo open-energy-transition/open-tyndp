@@ -72,7 +72,7 @@ repos:
 - repo: local
   hooks:
   - id: reuse-open-tyndp-smk
-    name: reuse-open-tyndp-smk
+    name: reuse-open-tyndp-smk  # TODO Remove hook once reuse-tool PR #1206 has been merged
     description: "Add Open-TYNDP SPDX copyright headers to modified SMK files"
     entry: bash -c "reuse annotate --exclude-year --merge-copyrights -s python --copyright='Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>' $(git diff --name-only --merge-base master | grep -vE '^D' | awk '{print $2}' | grep -E '\\.smk$|Snakefile|matplotlibrc')"
     pass_filenames: false
