@@ -1,10 +1,13 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
+
 exclude: "^LICENSES"
 
 ci:
   autoupdate_schedule: quarterly
+  skip: [reuse-open-tyndp, reuse-open-tyndp-smk]
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -55,6 +58,27 @@ repos:
   rev: v0.11.0
   hooks:
   - id: snakefmt
+
+  # Check and auto-fix SPDX copyright headers in modified files
+- repo: local
+  hooks:
+  - id: reuse-open-tyndp
+    name: reuse-open-tyndp
+    description: "Add Open-TYNDP SPDX copyright headers to modified files"
+    entry: bash -c "reuse annotate --exclude-year --merge-copyrights --skip-unrecognised --copyright='Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>' $(git diff --name-status --merge-base master | grep -vE '^D|\.github/|borg-it|data/|doc/configtables/|doc/img/|REUSE\.toml' | awk '{print $2}')"
+    pass_filenames: false
+    language: python
+    additional_dependencies: ["reuse"]
+
+- repo: local
+  hooks:
+  - id: reuse-open-tyndp-smk
+    name: reuse-open-tyndp-smk  # TODO Remove hook once reuse-tool PR #1206 has been merged
+    description: "Add Open-TYNDP SPDX copyright headers to modified SMK files"
+    entry: bash -c "reuse annotate --exclude-year --merge-copyrights -s python --copyright='Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>' $(git diff --name-only --merge-base master | grep -vE '^D' | awk '{print $2}' | grep -E '\\.smk$|Snakefile|matplotlibrc')"
+    pass_filenames: false
+    language: python
+    additional_dependencies: ["reuse"]
 
   # Check for FSFE REUSE compliance (licensing)
 - repo: https://github.com/fsfe/reuse-tool
