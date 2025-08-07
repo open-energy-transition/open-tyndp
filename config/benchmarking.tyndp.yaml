@@ -10,12 +10,12 @@ benchmarking:
     scenario_comparison:
       index_col: [2, 3]  # TODO Document this as Excel like index, starting at 1
       header: 4  # TODO Document this as Excel like index, starting at 1
-      method: nrmse  # nrmse, mae
+      method: set_indicators
       plot: bar  # bar, area, None
     time_serie:
       index_col: 1
       header: 4
-      method: nrmse
+      method: set_indicators
       plot: area
 
 # Define table specific values
@@ -30,6 +30,14 @@ benchmarking:
         - scenario
         column:
         - carrier
+      map:
+        AC: electricity
+        AC_OH: electricity
+        H2: hydrogen
+        gas: methane
+        low voltage: electricity
+        oil: liquids
+        coal: solids
 
     elec_demand:
       table_type: scenario_comparison
@@ -39,10 +47,15 @@ benchmarking:
       header: [4, 5]
       names:
         index:
-        - sector
+        - carrier
         column:
         - year
         - scenario
+      map:
+        H2 Electrolysis: others
+        methanolisation: others
+        electricity: residential
+
     methane_demand:
       table_type: scenario_comparison
       sheet_name: 53-
@@ -52,7 +65,14 @@ benchmarking:
         - year
         - scenario
         column:
-        - sector
+        - carrier
+      map:
+        CCGT: transformation input
+        OCGT: transformation input
+        SMR: transformation input
+        SMR CC: transformation input
+        gas for industry: industry
+        gas for industry CC: industry
 
     hydrogen_demand:
       table_type: scenario_comparison
@@ -63,7 +83,14 @@ benchmarking:
         - year
         - scenario
         column:
-        - sector
+        - carrier
+      map:
+        Fischer-Tropsch: e-fuels production
+        H2 for industry: industry
+        H2 turbine: electricity generation and heat production
+        Sabatier: e-fuels production
+        methanolisation: e-fuels production
+        H2 for shipping: international shipping
 
     power_capacity:
       table_type: scenario_comparison
@@ -77,6 +104,28 @@ benchmarking:
         - year
         column:
         - carrier
+      map:
+        offwind-dc-fl-r: wind offshore
+        offwind-dc-fl-oh: wind offshore
+        offwind-dc-fb-r: wind offshore
+        offwind-dc-fb-oh: wind offshore
+        offwind-ac-fl-r: wind offshore
+        offwind-ac-fb-r: wind offshore
+        onwind: wind onshore
+        solar rooftop: solar
+        solar-hsat: solar
+        H2 turbine: hydrogen
+        coal: coal + other fossil
+        lignite: coal + other fossil
+        CCGT: methane
+        OCGT: methane
+        battery discharger: battery
+        home battery discharger: battery
+        urban central solid biomass CHP: chp and small thermal
+        PHS: hydro and pumped storage
+        hydro: hydro and pumped storage
+        ror: hydro and pumped storage
+
 
     power_generation:
       table_type: scenario_comparison
@@ -90,6 +139,24 @@ benchmarking:
         - year
         column:
         - carrier
+      map:
+        offwind-dc-fl-r: wind offshore
+        offwind-dc-fl-oh: wind offshore
+        offwind-dc-fb-r: wind offshore
+        offwind-dc-fb-oh: wind offshore
+        offwind-ac-fl-r: wind offshore
+        offwind-ac-fb-r: wind offshore
+        onwind: wind onshore
+        solar rooftop: solar
+        solar-hsat: solar
+        H2 turbine: hydrogen
+        coal: coal + other fossil
+        lignite: coal + other fossil
+        CCGT: methane
+        OCGT: methane
+        urban central solid biomass CHP: other non-res
+        ror: hydro (exc. pump storage)
+        hydro: hydro (exc. pump storage)
 
     methane_supply:
       table_type: scenario_comparison
@@ -105,6 +172,10 @@ benchmarking:
         column:
         - scenario
         - year
+      map:
+        Sabatier: synthetic methane (domestic)
+        biogas to gas: biomethane (domestic)
+        gas: natural gas (import)
 
     hydrogen_supply:
       table_type: scenario_comparison
@@ -120,6 +191,12 @@ benchmarking:
         column:
         - scenario
         - year
+      map:
+        H2 Electrolysis: p2g
+        H2 import LH2: ammonia imports
+        H2 import Pipeline: low carbon imports
+        SMR: smr (grey)
+        SMR CC: smr with ccs (blue)
 
     biomass_supply:
       table_type: scenario_comparison
@@ -133,6 +210,8 @@ benchmarking:
         column:
         - scenario
         - year
+      map:
+        solid biomass: biomass
 
     energy_imports:
       table_type: scenario_comparison
@@ -146,13 +225,41 @@ benchmarking:
         column:
         - scenario
         - year
+      map:
+        H2 import LH2: hydrogen
+        H2 import Pipeline: hydrogen
+        coal: solids
+        lignite: solids
+        oil refining: liquids
 
     generation_profiles:
       table_type: time_serie
-      sheet_name: 30a
+      sheet_name:
+        DE: 30a
+        GA: 30b
       unit: GW
       names:
         index:
         - snapshot
         column:
         - carrier
+      map:
+        offwind-dc-fl-r: offshore wind
+        offwind-dc-fl-oh: offshore wind
+        offwind-dc-fb-r: offshore wind
+        offwind-dc-fb-oh: offshore wind
+        offwind-ac-fl-r: offshore wind
+        offwind-ac-fb-r: offshore wind
+        onwind: onshore wind
+        solar rooftop: solar
+        solar-hsat: solar
+        H2 turbine: methane&hydrogen
+        CCGT: methane&hydrogen
+        OCGT: methane&hydrogen
+        coal: coal&lignite&oil
+        lignite: coal&lignite&oil
+        oil: coal&lignite&oil
+        battery discharger: battery
+        home battery discharger: battery
+        urban central solid biomass CHP: other res
+

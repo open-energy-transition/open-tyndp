@@ -92,14 +92,24 @@ rule plot_power_networks_clustered:
         ),
 
 
+rule prepare_benchmarks:
+    input:
+        lambda w: expand(
+            RESULTS
+            + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        RESULTS + "validation/benchmarks_tyndp.csv",
+
+
 rule make_benchmarks:
     input:
         lambda w: expand(
             RESULTS
-            + "benchmarks/csvs/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
             **config["scenario"],
             run=config["run"]["name"],
-            table=config_provider("tables")(w),
         ),
 
 
@@ -107,7 +117,7 @@ rule plot_benchmarks:
     input:
         lambda w: expand(
             RESULTS
-            + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            + "validation/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
             **config["scenario"],
             run=config["run"]["name"],
             table=config_provider("tables")(w),

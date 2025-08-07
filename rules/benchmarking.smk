@@ -16,10 +16,11 @@ rule retrieve_tyndp_benchmark:
 rule clean_tyndp_benchmark:
     params:
         benchmarking=config_provider("benchmarking"),
+        scenario=config_provider("tyndp_scenario"),
     input:
         scenarios_figures="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
     output:
-        benchmarks=resources("benchmarks.csv"),
+        benchmarks=RESULTS + "validation/benchmarks_tyndp.csv",
     log:
         logs("clean_tyndp_benchmark.log"),
     benchmark:
@@ -42,7 +43,7 @@ rule build_benchmark:
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
     output:
         RESULTS
-        + "benchmarks/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+        + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
     log:
         logs(
             "build_benchmark_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
@@ -61,24 +62,29 @@ rule build_benchmark:
 
 
 rule make_benchmark:
+    params:
+        benchmarking=config_provider("benchmarking"),
+        scenario=config_provider("tyndp_scenario"),
     input:
-        results=RESULTS
-        + "benchmarks/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
-        benchmarks=resources("benchmarks.csv"),
+        results=expand(
+            RESULTS
+            + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            planning_horizons=config_provider("scenario", "planning_horizons"),
+            allow_missing=True,
+        ),
+        benchmarks=RESULTS + "validation/benchmarks_tyndp.csv",
     output:
-        RESULTS
-        + "benchmarks/csvs/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+        benchmarks=directory(
+            RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/"
+        ),
+        kpis=RESULTS + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
     threads: 1
     resources:
         mem_mb=8000,
     log:
-        logs(
-            "make_benchmark/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
-        ),
+        logs("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years.log"),
     benchmark:
-        benchmarks(
-            "make_benchmark/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
-        )
+        benchmarks("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
     conda:
         "../envs/environment.yaml"
     script:
@@ -89,22 +95,16 @@ rule plot_benchmark:
     params:
         plotting=config_provider("plotting"),
     input:
-        elec_demand=RESULTS
-        + "benchmarks/csvs/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+        RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/",
     output:
-        RESULTS
-        + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf",
+        RESULTS + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
     threads: 1
     resources:
         mem_mb=8000,
     log:
-        logs(
-            "plot_benchmark/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
-        ),
+        logs("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years.log"),
     benchmark:
-        benchmarks(
-            "benchmarks/plot_benchmark/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
-        )
+        benchmarks("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
     conda:
         "../envs/environment.yaml"
     script:

@@ -4,7 +4,9 @@
 """
 This script cleans the raw TYNDP 2024 Scenarios Report Data that will be used for benchmarking.
 
-It reads and processes all the tables defined in the configuration file. The correct indexes and headers are then assigned. The data structure is subsequently converted to a long format. Finally, the units are converted to standard units: MW for power units and MWh for energy units.
+It reads and processes all the tables defined in the configuration file. The correct indexes
+and headers are then assigned. The data structure is subsequently converted to a long format.
+Finally, the units are converted to standard units: MW for power units and MWh for energy units.
 """
 
 import logging
@@ -23,6 +25,12 @@ SCENARIO_DICT = {
     "Global Ambition": "GA",
     "National Trends": "NT",
 }
+
+
+def _safe_sheet(sn):
+    if isinstance(sn, dict):
+        return sn[scenario]
+    return sn
 
 
 def _process_index(
@@ -168,7 +176,9 @@ def _add_identifier(s):
         return s
 
 
-def load_benchmark(benchmarks_raw: dict, table: str, options: dict) -> pd.DataFrame:
+def load_benchmark(
+    benchmarks_raw: dict, table: str, scenario: str, options: dict
+) -> pd.DataFrame:
     """
     Load and process benchmark data from TYNDP Excel sheets.
 
@@ -178,6 +188,8 @@ def load_benchmark(benchmarks_raw: dict, table: str, options: dict) -> pd.DataFr
         Dictionary of pandas DataFrames from Excel sheets, keyed by sheet name.
     table : str
         Name of table to load.
+    scenario: str
+        Name of scenario to load.
     options : dict
         Full benchmarking configuration.
 
@@ -195,7 +207,7 @@ def load_benchmark(benchmarks_raw: dict, table: str, options: dict) -> pd.DataFr
         return pd.DataFrame()
 
     # Parameters
-    sheet_name = opt["sheet_name"]
+    sheet_name = _safe_sheet(opt["sheet_name"])
     df = benchmarks_raw[sheet_name]
     table_config = options["table_types"][opt["table_type"]]
     nrows = opt.get("nrows", None)
@@ -232,10 +244,13 @@ def load_benchmark(benchmarks_raw: dict, table: str, options: dict) -> pd.DataFr
     # Add table identifier
     df_converted["table"] = table
 
-    # Clean data
-    if "year" in df_converted.columns:
-        df_converted["year"] = df_converted["year"].astype(int)
+    # Apply exceptions
+    if table == "generation_profiles":
+        # TODO Validate planning year assumption
+        df_converted["year"] = 2040
+        df_converted["scenario"] = scenario
 
+    # Clean data
     if "scenario" in df_converted.columns:
         df_converted["scenario"] = (
             df_converted["scenario"]
@@ -243,9 +258,11 @@ def load_benchmark(benchmarks_raw: dict, table: str, options: dict) -> pd.DataFr
             .apply(_add_identifier)
         )
 
-    for col in ["carrier", "sector"]:
-        if col in df_converted.columns:
-            df_converted[col] = df_converted[col].str.lower().str.rstrip("*")
+    df_converted["year"] = df_converted["year"].astype(int)
+    df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
+    df_converted = df_converted[
+        ~df_converted.carrier.isin(["sum", "aggregated", "total generation"])
+    ]
 
     return df_converted
 
@@ -254,19 +271,18 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "clean_tyndp_benchmark", configfiles="config/test/config.tyndp.yaml"
-        )
+        snakemake = mock_snakemake("clean_tyndp_benchmark")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
     # Parameters
     options = snakemake.params["benchmarking"]
+    scenario = snakemake.params["scenario"]
 
     # Read benchmarks
     logger.info("Reading raw benchmark data")
-    sheet_names = [j["sheet_name"] for i, j in options["tables"].items()]
+    sheet_names = [_safe_sheet(j["sheet_name"]) for i, j in options["tables"].items()]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
     )
@@ -282,6 +298,7 @@ if __name__ == "__main__":
     func = partial(
         load_benchmark,
         benchmarks_raw,
+        scenario=scenario,
         options=options,
     )
 

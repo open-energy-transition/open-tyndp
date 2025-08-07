@@ -5,12 +5,13 @@
 This script retrieves the TYNDP 2024 Scenarios Report Data Figures package for benchmarking purposes.
 
 This rule downloads the package from the `ENTSOs website
-<https://2024.entsos-tyndp-scenarios.eu/download/>` and extracts it in the ``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package``
-subdirectory.
+<https://2024.entsos-tyndp-scenarios.eu/download/>` and extracts it in the
+``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package`` subdirectory.
 
 **Output**
 
-- ``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xslx``: Excel sheet with the data and calculation used to produce the figures in the Scenarios Report
+- ``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xslx``:
+  Excel sheet with the data and calculation used to produce the figures in the Scenarios Report
 
 """
 

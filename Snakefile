@@ -131,7 +131,7 @@ def input_all_tyndp(w):
         files.extend(
             expand(
                 RESULTS
-                + "benchmarks/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.pdf",
+                + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
                 run=config["run"]["name"],
                 **config["scenario"],
                 table=config_provider("tables")(w),
