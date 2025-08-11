@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
 
@@ -48,14 +49,15 @@ electricity:
     Store: [H2]
     Link: [H2 pipeline]
 
+  # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
   renewable_carriers: [solar, solar-hsat, onwind]
-  tyndp_renewable_carriers: [hydro, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
+  tyndp_renewable_carriers: [hydro, onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:
     enable: true
     fill_gaps_method: zero
     # Complete PECD data is only available for the years 2030, 2040
-    # TODO: adjust once udpated 2050 PECD data ist available
+    # TODO: adjust once udpated 2050 PECD data is available
     available_years:
     - 2030
     - 2040
@@ -69,6 +71,12 @@ electricity:
       - offwind-dc-fl-oh
       - offwind-h2-fb-oh
       - offwind-h2-fl-oh
+      LFSolarPVRooftop:
+      - solar-pv-rooftop
+      LFSolarPVUtility:
+      - solar-pv-utility
+      Wind_Onshore:
+      - onwind
 
   tyndp_hydro_profiles:
     enable: true
@@ -119,12 +127,12 @@ transmission_projects:
 
 load:
   source: tyndp # opsd, tyndp
+  fill_gaps:
+    enable: false
   available_years_tyndp:
   - 2030
   - 2040
   - 2050
-  fill_gaps:
-    enable: false
   manual_adjustments: false
   supplement_synthetic: false
 

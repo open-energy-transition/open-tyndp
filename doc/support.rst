@@ -8,7 +8,7 @@
 Support
 ##########################################
 
-Please consider the following ways to reach out to the community and the developers:
+Please consider the following ways to reach out to the community and the contributors:
 
 * To **discuss** with other PyPSA users, organise projects, share news, and get in touch with the community you can use the `Discord server <https://discord.gg/AnuJBk23FU>`_.
   * The `PyPSA mailing <https://groups.google.com/group/pypsa>`_ list previously was used for all kind of questions. Please use Discord server going forward, while the mailing list remains accessible as a knowledge archive.

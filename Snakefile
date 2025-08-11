@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
@@ -176,21 +177,17 @@ rule all:
             run=config["run"]["name"],
             carrier=config_provider("plotting", "balance_map", "bus_carriers")(w),
         ),
-        directory(
-            expand(
-                RESULTS
-                + "graphics/balance_timeseries/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
-                run=config["run"]["name"],
-                **config["scenario"],
-            ),
+        expand(
+            RESULTS
+            + "graphics/balance_timeseries/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
         ),
-        directory(
-            expand(
-                RESULTS
-                + "graphics/heatmap_timeseries/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
-                run=config["run"]["name"],
-                **config["scenario"],
-            ),
+        expand(
+            RESULTS
+            + "graphics/heatmap_timeseries/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
         ),
     default_target: True
 

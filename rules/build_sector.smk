@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
@@ -823,7 +824,7 @@ rule build_industrial_production_per_country:
         ),
     threads: 8
     resources:
-        mem_mb=1000,
+        mem_mb=2000,
     log:
         logs("build_industrial_production_per_country.log"),
     benchmark:
@@ -973,7 +974,7 @@ rule build_industrial_energy_demand_per_country_today:
         ),
     threads: 8
     resources:
-        mem_mb=1000,
+        mem_mb=2000,
     log:
         logs("build_industrial_energy_demand_per_country_today.log"),
     benchmark:

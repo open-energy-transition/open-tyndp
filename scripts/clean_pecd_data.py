@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: MIT
 """
 Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
-The script is executed for a given technology, and planning horizon. Technologies can be one of:
+The script is executed for a given technology and planning horizon. Technologies can be one of:
 
-   * CSP_noStorage,
-   * CSP_withStorage,
-   * LFSolarPV,
-   * LFSolarPVRooftop,
    * LFSolarPVUtility,
+   * LFSolarPVRooftop,
    * Wind_Offshore,
-   * Wind_Onshore.
+   * Wind_Onshore,
+   * CSP_noStorage,
+   * CSP_withStorage_7h_dispatched,
+   * CSP_withStorage_7h_preDispatch (note: includes cf > 1 for when thermal storage can be used).
 
 Outputs
 -------
@@ -41,18 +41,32 @@ def read_pecd_file(
     node: str,
     dir_pecd: str,
     cyear: str,
-    pyear: str,
+    pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    fn = Path(dir_pecd, pyear, f"PECD_{technology}_{pyear}_{node}_edition 2023.2.csv")
+    fn = Path(
+        dir_pecd,
+        str(pyear),
+        f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
+    )
 
+    # PECD only differentiates between utility and rooftop PV for some nodes
+    if not os.path.isfile(fn) and "LFSolarPV" in technology:
+        fn = Path(str(fn).replace(technology, "LFSolarPV"))
     if not os.path.isfile(fn):
+        logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
         return None
+
+    # Malta CSP data file has an extra header row that must be skipped
+    if node == "MT00" and technology == "CSP_noStorage" and pyear == 2040:
+        skiprows = 11
+    else:
+        skiprows = 10
 
     pecd_bus = pd.read_csv(
         fn,
-        skiprows=10,  # first ten rows contain only file metadata
+        skiprows=skiprows,  # first rows contain only file metadata
         usecols=lambda name: name == "Date"
         or name == "Hour"
         or name == str(cyear)
@@ -97,12 +111,11 @@ if __name__ == "__main__":
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
-        int(snakemake.wildcards.planning_horizons),
+        snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
         source="PECD",
     )
 
-    # TODO: find solution for solar profiles being differentiated between Utility and Rooftop for Italy
     # Technology as in PECD terminology
     pecd_tech = snakemake.wildcards.technology
 
@@ -110,11 +123,15 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
 
     nodes = (
-        offshore_buses.index if pecd_tech == "Wind_Offshore" else onshore_buses.index
+        offshore_buses.index.str.replace(
+            "UK", "GB", regex=True
+        )  # replace UK with GB for naming convention
+        if pecd_tech == "Wind_Offshore"
+        else onshore_buses.index
     )
     dir_pecd = snakemake.input.dir_pecd
 
-    # Load and prep electricity demand
+    # Load and prep pecd data
     tqdm_kwargs = {
         "ascii": False,
         "unit": " nodes",
@@ -132,16 +149,24 @@ if __name__ == "__main__":
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
-        demand = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
+        pecd = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
 
+    if all(data is None for data in pecd):
+        raise ValueError(
+            f"No PECD data found for {pecd_tech} in {pyear}. Please specify a technology covered within the TYNDP PECD data."
+        )
+    pecd_df = pd.concat(pecd, axis=1)
+    fill_na = (
+        pd.Series(0.0, index=pecd_df.index)
+        if snakemake.params.fill_gaps_method == "zero"
+        else pecd_df.agg(snakemake.params.fill_gaps_method, axis=1)
+    )
     pecd_df = (
-        pd.concat(demand, axis=1)
-        .reindex(
-            nodes, axis=1, fill_value=0.0
-        )  # include missing node data with empty columns
-        .rename(
-            columns=lambda x: x.replace("UK", "GB")
-        )  # replace UK with GB for naming convention
+        pecd_df.reindex(
+            nodes, axis=1
+        ).where(  # include missing node data with empty columns
+            lambda df: df.notna(), fill_na, axis=0
+        )  # fill missing node data with configured aggregation method
     )
 
     pecd_df.to_csv(snakemake.output.pecd_data_clean)

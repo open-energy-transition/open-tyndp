@@ -1,6 +1,7 @@
 
 ..
-  SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+  SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+  SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 
   SPDX-License-Identifier: CC-BY-4.0
 
@@ -10,6 +11,8 @@ Release Notes
 
 Upcoming Open-TYNDP Release
 ================
+
+* Add complete compatibility for processing and preparation of PECD v3.1 renewable profiles (Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, Solar CSP) (https://github.com/open-energy-transition/open-tyndp/pull/71). These profiles are used for the TYNDP 2024 and replace the default ERA5- and SARAH3-based profiles processed with Atlite. This implementation serves to facilitate a sub-workflow for creation of the renewable profiles, but does not yet attach them to any technologies.
 
 * Introduce processing of PEMMDB hydro inflows data for different hydro technologies (Run of River, Pondage, Reservoir, PS Open, PS Closed) from 2024 TYNDP into hydro inflow profiles (https://github.com/open-energy-transition/open-tyndp/pull/77). This implementation serves to facilitate a sub-workflow for creation of the hydro inflow profiles, but does not yet attach them to any hydro technologies.
 
@@ -22,6 +25,8 @@ Upcoming PyPSA-Eur Release
 * Fixed missing costs name for geothermal-sourced heat pump and allowed geothermal heat pumps in test configs.
 
 * Changed error handling for non-extendable heat storage in energy-to-power ratio constraints to warning.
+
+* Allow expandable CCGTs by default
 
 
 PyPSA-Eur v2025.07.0 (11th July 2025, merged 24th July 2025)

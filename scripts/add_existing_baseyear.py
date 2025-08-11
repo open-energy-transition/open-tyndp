@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -102,6 +103,12 @@ def add_existing_renewables(
 
     irena = irena.unstack().reset_index()
 
+    if not set(tech_map).intersection(renewable_carriers):
+        # TODO: adjust once TYNDP existing capacities are added.
+        logger.info(
+            "No existing capacities to add for specified renewable carriers. Existing capacities of TYNDP renewable carriers will be added separately."
+        )
+
     for carrier, tech in tech_map.items():
         if carrier not in renewable_carriers:
             continue
@@ -145,7 +152,9 @@ def add_existing_renewables(
                     df_agg.at[name, "bus"] = bus
                     df_agg.at[name, "resource_class"] = bin_id
 
-    df_agg["resource_class"] = df_agg["resource_class"].fillna(0)
+    df_agg["resource_class"] = (
+        df_agg["resource_class"].fillna(0) if "resource_class" in df_agg.columns else 0
+    )
 
 
 def add_power_capacities_installed_before_baseyear(

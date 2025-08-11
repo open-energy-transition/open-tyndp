@@ -1,5 +1,6 @@
 ..
-  SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+  SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+  SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 
   SPDX-License-Identifier: CC-BY-4.0
 
@@ -237,9 +238,31 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **License:** GPL-3.0
 - **Description:** Contains matched dataset of powerplants in Europe.
 
+``data/busshapes/bidding_zones_electricitymaps.geojson``
+
+- **Source:** Electricity Maps, https://github.com/electricitymaps/electricitymaps-contrib
+- **Link:** https://raw.githubusercontent.com/electricitymaps/electricitymaps-contrib/v1.238.0/web/geo/world.geojson
+- **License:** AGPLv3
+- **Description:** Contains bidding zones shape files.
+
+``data/busshapes/bidding_zones_entsoepy.geojson``
+
+- **Source:** Pecinovsky, J., & Boerman, F. entsoe-py. https://github.com/EnergieID/entsoe-py
+- **Link:** https://github.com/EnergieID/entsoe-py/tree/c03c604af36ef92e8ef6ee89dc57c56ca5e1dbac/entsoe/geo/geojson
+- **License:** MIT License
+- **Description:** Contains bidding zones shape files used to improve `data/busshapes/bidding_zones_electricitymaps.geojson` data.
+
 ``resources/countries_centroids.geojson``
 
 - **Source:** Copyright (c) 2021 Gavin Rehkemper, https://github.com/gavinr/world-countries-centroids/tree/v1.0.0
 - **Link:** https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson
 - **License:** MIT License
 - **Description:** Contains centroids of world countries in GeoJson.
+
+``data/tyndp_2024_bundle/PECD``
+
+- **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/PECD.zip
+- **License:** CC-BY 4.0
+- **Description:** Contains hourly PECD v3.1 capacity factor time series for Solar PV rooftop,
+  Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.

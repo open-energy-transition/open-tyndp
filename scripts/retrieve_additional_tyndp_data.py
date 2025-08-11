@@ -5,6 +5,8 @@
 Retrieves additional TYNDP data not included in the Zenodo TYNDP data bundle .
 Downloads the zip file and extracts it in the ``data/tyndp_2024_bundle``
 subdirectory, such that all files of the TYNDP bundle are stored in it.
+The original data is published by ENTSO-E and ENTSOG under Creative Commons Attribution 4.0 International License (CC-BY 4.0)
+and can be found under https://2024.entsos-tyndp-scenarios.eu/download/.
 
 Currently, this is used for two additional datasets:
 * TYNDP PECD data: The TYNDP PECD v3.1 data contains input data for the 2024 TYNDP scenario building process.

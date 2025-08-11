@@ -28,6 +28,12 @@ authors:
   - family-names: Hörsch
     given-names: Jonas
     orcid: https://orcid.org/0000-0001-9438-767X
+  - family-names: Frysztacki
+    given-names: Martha
+    orcid: https://orcid.org/0000-0002-0788-1328
+  - family-names: Parzen
+    given-names: Max
+    orcid: https://orcid.org/0000-0002-4390-0063
 repository-code: 'https://github.com/open-energy-transition/open-tyndp'
 license: MIT
 version: v0.2

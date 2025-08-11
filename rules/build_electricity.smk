@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
@@ -120,7 +121,7 @@ rule base_network:
         benchmarks("base_network")
     threads: 4
     resources:
-        mem_mb=1500,
+        mem_mb=2000,
     conda:
         "../envs/environment.yaml"
     script:
@@ -425,21 +426,17 @@ rule clean_pecd_data:
 
 
 def input_data_pecd(w):
+    available_years = config_provider(
+        "electricity", "pecd_renewable_profiles", "available_years"
+    )(w)
+    planning_horizons = config_provider("scenario", "planning_horizons")(w)
+    safe_pyears = set(
+        safe_pyear(year, available_years, "PECD", verbose=False)
+        for year in planning_horizons
+    )
     return {
         f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
-        for pyear in set(
-            [
-                safe_pyear(
-                    year,
-                    config_provider(
-                        "electricity", "pecd_renewable_profiles", "available_years"
-                    )(w),
-                    "PECD",
-                    verbose=False,
-                )
-                for year in config_provider("scenario", "planning_horizons")(w)
-            ]
-        )
+        for pyear in safe_pyears
     }
 
 
@@ -1125,7 +1122,7 @@ if config["load"]["source"] == "tyndp":
             scenario=config_provider("tyndp_scenario"),
             available_years=config_provider("load", "available_years_tyndp"),
         input:
-            electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
+            electricity_demand="data/tyndp_2024_bundle/Demand Profiles",
         output:
             electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
         log:

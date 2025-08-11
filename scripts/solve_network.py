@@ -1,4 +1,5 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH and contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -53,7 +54,12 @@ from scripts._helpers import (
 )
 
 logger = logging.getLogger(__name__)
-pypsa.network.power_flow.logger.setLevel(logging.WARNING)
+
+# Allow for PyPSA versions <0.35
+if PYPSA_V1:
+    pypsa.network.power_flow.logger.setLevel(logging.WARNING)
+else:
+    pypsa.pf.logger.setLevel(logging.WARNING)
 
 
 class ObjectiveValueError(Exception):
