@@ -425,21 +425,17 @@ rule clean_pecd_data:
 
 
 def input_data_pecd(w):
+    available_years = config_provider(
+        "electricity", "pecd_renewable_profiles", "available_years"
+    )(w)
+    planning_horizons = config_provider("scenario", "planning_horizons")(w)
+    safe_pyears = set(
+        safe_pyear(year, available_years, "PECD", verbose=False)
+        for year in planning_horizons
+    )
     return {
         f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
-        for pyear in set(
-            [
-                safe_pyear(
-                    year,
-                    config_provider(
-                        "electricity", "pecd_renewable_profiles", "available_years"
-                    )(w),
-                    "PECD",
-                    verbose=False,
-                )
-                for year in config_provider("scenario", "planning_horizons")(w)
-            ]
-        )
+        for pyear in safe_pyears
     }
 
 
