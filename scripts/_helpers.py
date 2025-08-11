@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import time
+from bisect import bisect_right
 from functools import partial, wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -1164,8 +1165,9 @@ def safe_pyear(
     if not isinstance(year, int):
         year = int(year)
     if year not in available_years:
-        lower = [y for y in available_years if y < year]
-        year_new = max(lower) if lower else available_years[0]
+        year_new = available_years[
+            bisect_right(sorted(available_years), year, lo=1) - 1
+        ]
         if verbose:
             logger.warning(
                 f"{source} data unavailable for planning horizon {year}. Falling back to previous available year {year_new}."

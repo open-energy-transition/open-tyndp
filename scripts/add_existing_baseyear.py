@@ -102,7 +102,7 @@ def add_existing_renewables(
 
     irena = irena.unstack().reset_index()
 
-    if not set(tech_map.keys()).intersection(renewable_carriers):
+    if not set(tech_map).intersection(renewable_carriers):
         # TODO: adjust once TYNDP existing capacities are added.
         logger.info(
             "No existing capacities to add for specified renewable carriers. Existing capacities of TYNDP renewable carriers will be added separately."
