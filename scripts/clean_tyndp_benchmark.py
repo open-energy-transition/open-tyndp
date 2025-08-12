@@ -261,7 +261,7 @@ def load_benchmark(
     df_converted["year"] = df_converted["year"].astype(int)
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
     df_converted = df_converted[
-        ~df_converted.carrier.isin(["sum", "aggregated", "total generation"])
+        ~df_converted.carrier.isin(["sum", "aggregated", "total generation", "total"])
     ]
 
     return df_converted

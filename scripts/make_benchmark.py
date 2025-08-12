@@ -27,11 +27,13 @@ def _compute_smpe(df: pd.DataFrame, model_col: str, rfc_col: str, eps: float) ->
     Calculate Symmetric Mean Percentage Error (sMPE).
 
     sMPE indicates the direction of the deviations between modeled scenarios
-    and real-world outcomes, showing if the output is overall overestimated or underestimated.
+    and reference outcomes, showing if the output is overall overestimated or underestimated.
 
     Formula: sMPE = (1/n) * Σ[(ŷᵢ - yᵢ) / ((|ŷᵢ| + |yᵢ|)/2 + ε)]
 
-    Reference: Wen et al. (2022), Applied Energy 325, 119906
+    Reference
+    ---------
+    Wen et al. (2022), Applied Energy 325, 119906, Table 1
     """
     return (
         (df[model_col] - df[rfc_col])
@@ -43,11 +45,13 @@ def _compute_smape(df: pd.DataFrame, model_col: str, rfc_col: str, eps: float) -
     """
     Calculate Symmetric Mean Absolute Percentage Error (sMAPE).
 
-    sMAPE indicates the absolute magnitude of the deviations.
+    sMAPE indicates the absolute magnitude of the deviations. It avoids the cancellation of negative and positive errors.
 
     Formula: sMAPE = (1/n) * Σ[|ŷᵢ - yᵢ| / ((|ŷᵢ| + |yᵢ|)/2 + ε)]
 
-    Reference: Wen et al. (2022), Applied Energy 325, 119906
+    Reference
+    ---------
+    Wen et al. (2022), Applied Energy 325, 119906, Table 1
     """
     return (
         (df[model_col] - df[rfc_col]).abs()
@@ -65,7 +69,9 @@ def _compute_smdape(
 
     Formula: sMdAPE = Median[|ŷᵢ - yᵢ| / ((|ŷᵢ| + |yᵢ|)/2 + ε)]
 
-    Reference: Wen et al. (2022), Applied Energy 325, 119906
+    Reference
+    ---------
+    Wen et al. (2022), Applied Energy 325, 119906, Table 1
     """
     return (
         (df[model_col] - df[rfc_col]).abs()
@@ -82,7 +88,9 @@ def _compute_rmsle(df: pd.DataFrame, model_col: str, rfc_col: str, eps: float) -
 
     Formula: RMSLE = √[(1/n) * Σ[log(1 + ((ŷᵢ + ε) - (yᵢ + ε))/(yᵢ + ε))]²]
 
-    Reference: Wen et al. (2022), Applied Energy 325, 119906
+    Reference
+    ---------
+    Wen et al. (2022), Applied Energy 325, 119906, Table 1
     """
     return np.sqrt(
         (
@@ -163,7 +171,7 @@ def _compute_all_indicators(
     }
 
     if df_raw is not None:
-        indicators["missing"] = _compute_missing(df_raw, df)
+        indicators["Missing"] = _compute_missing(df_raw, df)
 
     if carrier:
         indicators = {(table, carrier): indicators}
@@ -181,15 +189,15 @@ def compute_indicators(
     rfc_col: str = "TYNDP 2024",
     carrier_col: str = "carrier",
     eps: float = 1e-6,
-    round: int = 2,
-) -> tuple[pd.DataFrame, pd.Series]:
+    precision: int = 2,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Calculate accuracy indicators following Wen et al. (2022) methodology to assess model performance
     against reference data. The function expects paired columns representing workflow estimates
     and TYNDP 2024 baseline values. The function computes both per-carrier and overall indicators.
 
     Computes six key accuracy indicators:
-    - missing: Count of carrier dropped due to missing values
+    - Missing: Count of carrier dropped due to missing values
     - sMPE: Symmetric Mean Percentage Error (directional)
     - sMAPE: Symmetric Mean Absolute Percentage Error (magnitude)
     - sMdAPE: Symmetric Median Absolute Percentage Error (skewness)
@@ -216,7 +224,7 @@ def compute_indicators(
         Column name for carrier/technology grouping.
     eps: float, default 1e-6
         Small value required when the denominator is zero.
-    round: int, default 2
+    precision: int, default 2
         Number of decimal places to round to.
 
     Returns
@@ -233,7 +241,7 @@ def compute_indicators(
     # Compute overall indicators
     indicators = _compute_all_indicators(
         df, table, model_col, rfc_col, eps, df_raw=df_raw
-    ).round(2)
+    ).round(precision)
 
     # Compute per-carrier indicators
     df_carrier = [
@@ -244,7 +252,7 @@ def compute_indicators(
     df_carrier.extend(
         [pd.DataFrame(index=[(table, carrier) for carrier in missing_carriers])]
     )
-    df_carrier = pd.concat(df_carrier).round(round)
+    df_carrier = pd.concat(df_carrier).round(precision)
 
     return df_carrier, indicators
 
@@ -270,9 +278,9 @@ def compare_sources(table: str, options: dict) -> tuple[pd.DataFrame, pd.Series]
     """
 
     # Parameters
-    type = options["tables"][table]["table_type"]
+    table_type = options["tables"][table]["table_type"]
     method = options["tables"][table].get(
-        "method", options["table_types"][type]["method"]
+        "method", options["table_types"][table_type]["method"]
     )
     scenario = "TYNDP " + snakemake.params["scenario"]  # noqa: F841
 

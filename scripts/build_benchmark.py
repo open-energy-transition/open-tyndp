@@ -43,6 +43,7 @@ def compute_benchmark(n: pypsa.Network, table: str, options: dict) -> pd.DataFra
     demand_comps = ["Link", "Load"]
 
     if table == "final_energy_demand":
+        # TODO Clarify what renewables encompass
         exclude_carriers = [
             "DC",
             "DC_OH",
@@ -64,6 +65,7 @@ def compute_benchmark(n: pypsa.Network, table: str, options: dict) -> pd.DataFra
             .sum()
         )
     elif table == "elec_demand":
+        # TODO Industrial demand currently included in residential
         df = n.statistics.withdrawal(
             comps=demand_comps,
             bus_carrier=elec_bus_carrier,
@@ -158,7 +160,7 @@ def compute_benchmark(n: pypsa.Network, table: str, options: dict) -> pd.DataFra
         ).reindex(
             ["coal", "lignite", "oil refining", "H2 import LH2", "H2 import Pipeline"]
         )
-    elif table == "generation_profiles":
+    elif table == "generation_profiles" and n.snapshots.year[0] == 2009:
         df = (
             n.statistics.supply(
                 bus_carrier=elec_bus_carrier,

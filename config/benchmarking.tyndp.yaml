@@ -5,11 +5,11 @@
 benchmarking:
   enable: true
 
-# Define default values for each table type
+  # Define default values for each table type
   table_types:
     scenario_comparison:
-      index_col: [2, 3]  # TODO Document this as Excel like index, starting at 1
-      header: 4  # TODO Document this as Excel like index, starting at 1
+      index_col: [2, 3]  # TODO Document this as Excel-like index, starting at 1
+      header: 4  # TODO Document this as Excel-like index, starting at 1
       method: set_indicators
       plot: bar  # bar, area, None
     time_serie:
@@ -18,18 +18,20 @@ benchmarking:
       method: set_indicators
       plot: area
 
-# Define table specific values
+  # Define table specific values
   tables:   # TODO Specify mandatory and optional fields
     final_energy_demand:
       table_type: scenario_comparison
-      sheet_name: 51-
+      sheet_name: 5-
       unit: TWh
+      index_col: 2
+      header: [4, 5]
       names:
         index:
-        - year
-        - scenario
-        column:
         - carrier
+        column:
+        - scenario
+        - year
       map:
         AC: electricity
         AC_OH: electricity
@@ -262,4 +264,6 @@ benchmarking:
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: other res
+        PHS: hydro
+        ror: hydro
 

@@ -144,5 +144,5 @@ rule plot_benchmarks:
             + "validation/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
             **config["scenario"],
             run=config["run"]["name"],
-            table=config_provider("tables")(w),
+            table=config_provider("benchmarking", "tables")(w),
         ),

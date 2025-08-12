@@ -10,7 +10,7 @@ This rule downloads the package from the `ENTSOs website
 
 **Output**
 
-- ``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xslx``:
+- ``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx``:
   Excel sheet with the data and calculation used to produce the figures in the Scenarios Report
 
 """
