@@ -92,6 +92,30 @@ rule plot_power_networks_clustered:
         ),
 
 
+rule clean_pecd_datas:
+    input:
+        lambda w: expand(
+            resources("pecd_data_{technology}_{planning_horizons}.csv"),
+            **config["scenario"],
+            run=config["run"]["name"],
+            technology=config_provider(
+                "electricity", "pecd_renewable_profiles", "technologies"
+            )(w),
+        ),
+
+
+rule build_renewable_profiles_pecds:
+    input:
+        lambda w: expand(
+            resources("profile_pecd_{clusters}_{technology}.nc"),
+            **config["scenario"],
+            run=config["run"]["name"],
+            technology=config_provider(
+                "electricity", "pecd_renewable_profiles", "technologies"
+            )(w),
+        ),
+
+
 rule prepare_benchmarks:
     input:
         lambda w: expand(

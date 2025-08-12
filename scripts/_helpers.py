@@ -10,6 +10,7 @@ import logging
 import os
 import re
 import time
+from bisect import bisect_right
 from functools import partial, wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -1130,3 +1131,49 @@ def extract_grid_data_tyndp(
     links.index = links.apply(make_index, axis=1, prefix=carrier)
 
     return links
+
+
+def safe_pyear(
+    year: int | str,
+    available_years: list = [2030, 2040, 2050],
+    source: str = "TYNDP",
+    verbose: bool = True,
+):
+    """
+    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it falls back to the previous available year.
+
+    Parameters
+    ----------
+    year : int
+        Planning horizon year which will be checked and possibly adjusted to previous available year.
+    available_years : list, optional
+        List of available years. Defaults to [2030, 2040, 2050].
+    source : str, optional
+        Source of the data for which availability will be checked. For logging purpose only. Defaults to "TYNDP".
+    verbose : bool, optional
+        Whether to activate verbose logging. Defaults to True.
+
+    Returns
+    -------
+    year_new : int
+        Safe pyear adjusted for available years
+    """
+
+    if not available_years:
+        raise ValueError(
+            "No `available_years` provided. Expected a non-empty list of years."
+        )
+    if not isinstance(year, int):
+        year = int(year)
+    if year not in available_years:
+        year_new = available_years[
+            bisect_right(sorted(available_years), year, lo=1) - 1
+        ]
+        if verbose:
+            logger.warning(
+                f"{source} data unavailable for planning horizon {year}. Falling back to previous available year {year_new}."
+            )
+    else:
+        year_new = year
+
+    return year_new

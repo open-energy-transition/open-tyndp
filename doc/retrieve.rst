@@ -168,3 +168,8 @@ None.
 **Outputs**
 
 - ``data/countries_centroids.geojson``
+
+Rule ``retrieve_tyndp_pecd_data``
+====================================
+
+.. automodule:: retrieve_tyndp_pecd_data

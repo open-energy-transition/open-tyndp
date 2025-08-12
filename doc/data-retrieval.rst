@@ -258,3 +258,11 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **Link:** https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson
 - **License:** MIT License
 - **Description:** Contains centroids of world countries in GeoJson.
+
+``data/tyndp_2024_bundle/PECD``
+
+- **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/PECD.zip
+- **License:** CC-BY 4.0
+- **Description:** Contains hourly PECD v3.1 capacity factor time series for Solar PV rooftop,
+  Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.
