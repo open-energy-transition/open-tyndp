@@ -217,6 +217,7 @@ if config["enable"]["retrieve"]:
             "../scripts/retrieve_additional_tyndp_data.py"
 
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data > clean_pecd_data
+    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_hydro_inflows > clean_tyndp_hydro_inflows
 
     rule retrieve_countries_centroids:
         output:
