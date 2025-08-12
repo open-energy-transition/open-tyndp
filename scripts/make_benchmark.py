@@ -94,6 +94,47 @@ def _compute_rmsle(df: pd.DataFrame, model_col: str, rfc_col: str, eps: float) -
     )
 
 
+def _compute_growth_error(
+    df: pd.DataFrame, model_col: str, rfc_col: str, eps: float
+) -> float:
+    """
+    Calculate Growth Error.
+
+    Growth error show the error in temporal scale. This indicator is ignored for dynamic time series.
+
+    Formula: Growth error = ĝₜ - gₜ, where gₜ = [ln(yₜ) - ln(yₜ₀)] / (t - t₀)
+
+    Reference
+    ---------
+    Wen et al. (2022), Applied Energy 325, 119906, Table 1
+    """
+    if len(df) < 2:
+        logger.warning("Insufficient data for growth error calculation")
+        return np.nan
+
+    # Sort by time to ensure proper chronological order
+    df_sorted = df.sort_values("year")
+
+    # Validate time span
+    t0 = df_sorted.index.get_level_values("year")[0]
+    t1 = df_sorted.index.get_level_values("year")[-1]
+    time_span = t1 - t0
+
+    if time_span == 0:
+        logger.warning("Zero time span for growth error calculation")
+        return np.nan
+
+    # Calculate growth rates
+    def _compute_growth_rate(values: pd.Series) -> float:
+        y0 = max(values.iloc[0], eps)
+        y1 = max(values.iloc[-1], eps)
+        return (np.log(y1) - np.log(y0)) / time_span
+
+    model_growth = _compute_growth_rate(df_sorted[model_col])
+    rfc_growth = _compute_growth_rate(df_sorted[rfc_col])
+    return model_growth - rfc_growth
+
+
 def _compute_missing(df_raw: pd.DataFrame, df: pd.DataFrame) -> int:
     """
     Calculate missing carriers count.
@@ -109,7 +150,7 @@ def _compute_all_indicators(
     eps: float,
     carrier: str = None,
     df_raw: pd.DataFrame = None,
-) -> dict[str, float]:
+) -> pd.DataFrame:
     """
     Compute all accuracy indicators for a given dataset.
     """
@@ -118,6 +159,7 @@ def _compute_all_indicators(
         "sMAPE": _compute_smape(df, model_col, rfc_col, eps),
         "sMdAPE": _compute_smdape(df, model_col, rfc_col, eps),
         "RMSLE": _compute_rmsle(df, model_col, rfc_col, eps),
+        "Growth Error": _compute_growth_error(df, model_col, rfc_col, eps),
     }
 
     if df_raw is not None:
@@ -146,12 +188,13 @@ def compute_indicators(
     against reference data. The function expects paired columns representing workflow estimates
     and TYNDP 2024 baseline values. The function computes both per-carrier and overall indicators.
 
-    Computes five key accuracy indicators:
+    Computes six key accuracy indicators:
     - missing: Count of carrier dropped due to missing values
     - sMPE: Symmetric Mean Percentage Error (directional)
     - sMAPE: Symmetric Mean Absolute Percentage Error (magnitude)
     - sMdAPE: Symmetric Median Absolute Percentage Error (skewness)
     - RMSLE: Root Mean Square Logarithmic Error (logarithmic deviations)
+    - Growth_Error: Growth Error (temporal analysis of transition rates)
 
     Reference: Wen, X., Jaxa-Rozen, M., Trutnevyte, E., 2022. Accuracy indicators for evaluating
     retrospective performance of energy system models. Applied Energy 325, 119906.
