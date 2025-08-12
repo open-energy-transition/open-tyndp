@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+from scripts._helpers import safe_pyear
+
 
 def input_elec_demand(w):
     return {
@@ -119,7 +121,7 @@ rule base_network:
         benchmarks("base_network")
     threads: 4
     resources:
-        mem_mb=1500,
+        mem_mb=2000,
     conda:
         "../envs/environment.yaml"
     script:
@@ -398,6 +400,12 @@ rule clean_pecd_data:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
+        fill_gaps_method=config_provider(
+            "electricity", "pecd_renewable_profiles", "fill_gaps_method"
+        ),
+        available_years=config_provider(
+            "electricity", "pecd_renewable_profiles", "available_years"
+        ),
     input:
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         onshore_buses=resources("busmap_base_s_all.csv"),
@@ -418,19 +426,26 @@ rule clean_pecd_data:
 
 
 def input_data_pecd(w):
+    available_years = config_provider(
+        "electricity", "pecd_renewable_profiles", "available_years"
+    )(w)
+    planning_horizons = config_provider("scenario", "planning_horizons")(w)
+    safe_pyears = set(
+        safe_pyear(year, available_years, "PECD", verbose=False)
+        for year in planning_horizons
+    )
     return {
         f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
-        for pyear in set(
-            config_provider("scenario", "planning_horizons")(w)
-        ).intersection([2030, 2040])
-        # Complete PECD data is only available for the years 2030, 2040
-        # TODO: adjust if udpated 2050 data available
+        for pyear in safe_pyears
     }
 
 
 rule build_renewable_profiles_pecd:
     params:
         planning_horizons=config_provider("scenario", "planning_horizons"),
+        available_years=config_provider(
+            "electricity", "pecd_renewable_profiles", "available_years"
+        ),
     input:
         unpack(input_data_pecd),
     output:
@@ -1032,8 +1047,9 @@ if config["load"]["source"] == "tyndp":
             planning_horizons=config_provider("scenario", "planning_horizons"),
             snapshots=config_provider("snapshots"),
             scenario=config_provider("tyndp_scenario"),
+            available_years=config_provider("load", "available_years_tyndp"),
         input:
-            electricity_demand=directory("data/tyndp_2024_bundle/Demand Profiles"),
+            electricity_demand="data/tyndp_2024_bundle/Demand Profiles",
         output:
             electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
         log:

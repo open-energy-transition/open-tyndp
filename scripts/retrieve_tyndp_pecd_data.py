@@ -6,6 +6,8 @@ The TYNDP PECD data contains input data for the 2024 TYNDP scenario building pro
 
 This rule downloads the TYNDP PECD v3.1 data from Google Drive and extracts it in the ``data/tyndp_2024_bundle``
 subdirectory, such that all files of the TYNDP bundle are stored in it.
+The original data is published by ENTSO-E and ENTSOG under Creative Commons Attribution 4.0 International License (CC-BY 4.0)
+and can be found under https://2024.entsos-tyndp-scenarios.eu/download/.
 
 **Outputs**
 

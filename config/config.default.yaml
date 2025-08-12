@@ -145,6 +145,11 @@ electricity:
 
   pecd_renewable_profiles:
     enable: false
+    fill_gaps_method: zero
+    available_years:
+    - 2030
+    - 2040
+    - 2050
     technologies:
       Wind_Offshore:
       - offwind-ac-fb-r
@@ -393,6 +398,10 @@ load:
     enable: true
     interpolate_limit: 3
     time_shift_for_large_gaps: 1w
+  available_years_tyndp:
+  - 2030
+  - 2040
+  - 2050
   manual_adjustments: true
   scaling_factor: 1.0
   fixed_year: false
@@ -799,6 +808,7 @@ sector:
   biogas_upgrading_cc: false
   conventional_generation:
     OCGT: gas
+    CCGT: gas
   keep_existing_capacities: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: false
