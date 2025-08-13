@@ -34,13 +34,13 @@ repos:
     types_or: [python, rst, markdown]
     files: ^(scripts|doc)/
 
-# Remove output from Jupyter notebooks
-- repo: https://github.com/aflc/pre-commit-jupyter
-  rev: v1.2.1
-  hooks:
-  - id: jupyter-notebook-cleanup
-    args: ['--remove-kernel-metadata']
-    exclude: examples/solve-on-remote.ipynb
+## Remove output from Jupyter notebooks
+#- repo: https://github.com/aflc/pre-commit-jupyter
+#  rev: v1.2.1
+#  hooks:
+#  - id: jupyter-notebook-cleanup
+#    args: ['--remove-kernel-metadata']
+#    exclude: examples/solve-on-remote.ipynb
 
   # YAML formatting
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
