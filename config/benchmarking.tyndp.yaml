@@ -10,12 +10,10 @@ benchmarking:
     scenario_comparison:
       index_col: [2, 3]  # TODO Document this as Excel-like index, starting at 1
       header: 4  # TODO Document this as Excel-like index, starting at 1
-      method: set_indicators
       plot: bar  # bar, area, None
     time_serie:
       index_col: 1
       header: 4
-      method: set_indicators
       plot: area
 
   # Define table specific values

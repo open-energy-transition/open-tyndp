@@ -188,7 +188,6 @@ def _compute_all_indicators(
 def compute_indicators(
     df_raw: pd.DataFrame,
     table: str,
-    method: str,
     model_col: str = "Open-TYNDP",
     rfc_col: str = "TYNDP 2024",
     carrier_col: str = "carrier",
@@ -218,8 +217,6 @@ def compute_indicators(
         DataFrame to calculate indicators from.
     table : str
         Benchmark metric to compute.
-    method : str
-        Indicators method to use.  # ToDo Assess if needed
     model_col : str, default "Open-TYNDP"
         Column name for model/projected values (ŷᵢ).
     rfc_col : str, default "TYNDP 2024"
@@ -282,10 +279,6 @@ def compare_sources(table: str, options: dict) -> tuple[pd.DataFrame, pd.Series]
     """
 
     # Parameters
-    table_type = options["tables"][table]["table_type"]
-    method = options["tables"][table].get(
-        "method", options["table_types"][table_type]["method"]
-    )
     scenario = "TYNDP " + snakemake.params["scenario"]  # noqa: F841
 
     # Load data
@@ -311,7 +304,7 @@ def compare_sources(table: str, options: dict) -> tuple[pd.DataFrame, pd.Series]
     )
 
     # Compare sources
-    df, indicators = compute_indicators(df, table, method)
+    df, indicators = compute_indicators(df, table)
 
     return df, indicators
 
