@@ -143,11 +143,11 @@ def _compute_growth_error(
     return model_growth - rfc_growth
 
 
-def _compute_missing(df_raw: pd.DataFrame, df: pd.DataFrame) -> int:
+def _compute_missing(df_na: pd.DataFrame) -> int:
     """
     Calculate missing carriers count.
     """
-    return df_raw.shape[0] - df.shape[0]
+    return len(df_na.index.get_level_values("carrier").unique())
 
 
 def _compute_all_indicators(
@@ -157,7 +157,7 @@ def _compute_all_indicators(
     rfc_col: str,
     eps: float,
     carrier: str = None,
-    df_raw: pd.DataFrame = None,
+    df_na: pd.DataFrame = None,
 ) -> pd.DataFrame:
     """
     Compute all accuracy indicators for a given dataset.
@@ -167,11 +167,15 @@ def _compute_all_indicators(
         "sMAPE": _compute_smape(df, model_col, rfc_col, eps),
         "sMdAPE": _compute_smdape(df, model_col, rfc_col, eps),
         "RMSLE": _compute_rmsle(df, model_col, rfc_col, eps),
-        "Growth Error": _compute_growth_error(df, model_col, rfc_col, eps),
     }
 
-    if df_raw is not None:
-        indicators["Missing"] = _compute_missing(df_raw, df)
+    if "snapshot" not in df.index.names:
+        indicators["Growth Error"] = _compute_growth_error(df, model_col, rfc_col, eps)
+    elif not carrier:
+        indicators["Growth Error"] = "NA"
+
+    if df_na is not None:
+        indicators["Missing"] = _compute_missing(df_na)
 
     if carrier:
         indicators = {(table, carrier): indicators}
@@ -240,7 +244,7 @@ def compute_indicators(
 
     # Compute overall indicators
     indicators = _compute_all_indicators(
-        df, table, model_col, rfc_col, eps, df_raw=df_raw
+        df, table, model_col, rfc_col, eps, df_na=df_na
     ).round(precision)
 
     # Compute per-carrier indicators
