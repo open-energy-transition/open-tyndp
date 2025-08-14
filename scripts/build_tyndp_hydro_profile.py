@@ -50,9 +50,7 @@ if __name__ == "__main__":
     inflows = []
 
     for year, technology in product(pyears, technologies):
-        logger.info(
-            f"Extracting hydro inflows for {technology} in {year}"
-        )
+        logger.info(f"Extracting hydro inflows for {technology} in {year}")
         year_i = year
         # falling back to latest available pyear if not in list of available years
         year = safe_pyear(
