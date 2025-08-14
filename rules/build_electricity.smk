@@ -519,7 +519,7 @@ rule clean_tyndp_hydro_inflows:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
     input:
         hydro_inflows_dir="data/tyndp_2024_bundle/Hydro Inflows",
-        onshore_buses=resources("busmap_base_s_all.csv"),
+        busmap=resources("busmap_base_s_all.csv"),
     output:
         hydro_inflows_tyndp=resources(
             "hydro_inflows_tyndp_{tech}_{planning_horizons}.csv"
