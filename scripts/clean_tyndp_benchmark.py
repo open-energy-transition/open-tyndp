@@ -34,7 +34,7 @@ def _safe_sheet(sn):
 
 
 def _process_index(
-    df: pd.DataFrame, index_col: list, names: list[str], nrows: int = None
+    df: pd.DataFrame, index_col: list[int], names: list[str], nrows: int = None
 ) -> pd.DataFrame:
     """
     Process indexes columns to create proper index structure.
@@ -43,7 +43,7 @@ def _process_index(
     ----------
     df : pd.DataFrame
         DataFrame with indexes in data columns.
-    index_col : list
+    index_col : list[int]
         List of Excel column indices for indexes.
     names : list[str]
         List of index names.
@@ -69,7 +69,7 @@ def _process_index(
 
 
 def _process_header(
-    df: pd.DataFrame, header: list, names: list[str], ncolumns: int = None
+    df: pd.DataFrame, header: list[int], names: list[str], ncolumns: int = None
 ) -> pd.DataFrame:
     """
     Process header rows to create proper column structure.
@@ -78,7 +78,7 @@ def _process_header(
     ----------
     df : pd.DataFrame
         DataFrame with headers in data rows.
-    header : list
+    header : list[int]
         List of Excel row indices for headers.
     names : list[str]
         List of column names.
@@ -116,7 +116,7 @@ def _process_header(
 def _convert_units(
     df: pd.DataFrame,
     source_unit: str,
-    unit_conversion: dict,
+    unit_conversion: dict[str, float],
     value_col: str = "value",
 ) -> pd.DataFrame:
     """
@@ -132,7 +132,7 @@ def _convert_units(
         Long-format DataFrame containing values to convert.
     source_unit : str
         Source unit of the values.
-    unit_conversion : dict
+    unit_conversion : dict[str, float]
         Dictionary mapping units to conversion factors (to base unit).
     value_col : str, default "value"
         Name of the column containing values to convert.
@@ -177,14 +177,14 @@ def _add_identifier(s):
 
 
 def load_benchmark(
-    benchmarks_raw: dict, table: str, scenario: str, options: dict
+    benchmarks_raw: dict[str, pd.DataFrame], table: str, scenario: str, options: dict
 ) -> pd.DataFrame:
     """
     Load and process benchmark data from TYNDP Excel sheets.
 
     Parameters
     ----------
-    benchmarks_raw : dict
+    benchmarks_raw : dictdict[str, pd.DataFrame]
         Dictionary of pandas DataFrames from Excel sheets, keyed by sheet name.
     table : str
         Name of table to load.
