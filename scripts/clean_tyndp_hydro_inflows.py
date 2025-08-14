@@ -41,6 +41,7 @@ def read_hydro_inflows_file(
     pyear: str,
     hydro_tech: str,
     sns: pd.DatetimeIndex,
+    date_index: dict,
 ) -> pd.Series:
     fn = Path(hydro_inflows_dir, pyear, f"PEMMDB_{node}_Hydro_Inflows_{pyear}.xlsx")
 
@@ -60,20 +61,6 @@ def read_hydro_inflows_file(
 
     # infer resolution of data for each technology
     tech_res = "w" if "Week" in inflow_tech.columns else "d"
-
-    sns_year = sns[0].year
-    date_index = {
-        "w": pd.date_range(
-            start=f"{sns_year}-01-01",
-            periods=53,  # 53 weeks
-            freq="7D",
-        ),
-        "d": pd.date_range(
-            start=f"{sns_year}-01-01",
-            periods=366,  # 366 days (incl. first day of next year)
-            freq="D",
-        ),
-    }
 
     inflow_tech = (
         inflow_tech.query("ShortName == 'INFLOW'")
@@ -111,6 +98,18 @@ if __name__ == "__main__":
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
+    date_index = {
+        "w": pd.date_range(
+            start=f"{cyear}-01-01",
+            periods=53,  # 53 weeks
+            freq="7D",
+        ),
+        "d": pd.date_range(
+            start=f"{cyear}-01-01",
+            periods=366,  # 366 days (incl. first day of next year)
+            freq="D",
+        ),
+    }
     if int(cyear) < 1982 or int(cyear) > 2019:
         logger.warning(
             f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
@@ -119,12 +118,12 @@ if __name__ == "__main__":
 
     # Planning year
     pyear = str(snakemake.wildcards.planning_horizons)
-    hydro_tech = str(snakemake.wildcards.tech)
 
     # Parameters
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
     nodes = onshore_buses.index.str.replace("GB", "UK", regex=True)
     hydro_inflows_dir = snakemake.input.hydro_inflows_dir
+    hydro_tech = str(snakemake.wildcards.tech)
 
     # Load and prep inflow data
     tqdm_kwargs = {
@@ -141,6 +140,7 @@ if __name__ == "__main__":
         pyear=pyear,
         hydro_tech=hydro_tech,
         sns=sns,
+        date_index=date_index,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
