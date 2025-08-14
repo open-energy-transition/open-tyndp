@@ -43,7 +43,11 @@ def read_hydro_inflows_file(
     sns: pd.DatetimeIndex,
     date_index: dict,
 ) -> pd.Series:
-    fn = Path(hydro_inflows_dir, pyear, f"PEMMDB_{node}_Hydro_Inflows_{pyear}.xlsx")
+    fn = Path(
+        hydro_inflows_dir,
+        pyear,
+        f"PEMMDB_{node.replace('GB', 'UK')}_Hydro_Inflows_{pyear}.xlsx",
+    )
 
     if not os.path.isfile(fn):
         return None
@@ -121,7 +125,7 @@ if __name__ == "__main__":
 
     # Parameters
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
-    nodes = onshore_buses.index.str.replace("GB", "UK", regex=True)
+    nodes = onshore_buses.index
     hydro_inflows_dir = snakemake.input.hydro_inflows_dir
     hydro_tech = str(snakemake.wildcards.tech)
 
@@ -149,12 +153,10 @@ if __name__ == "__main__":
     inflows_df = (
         pd.concat(inflows, axis=1)
         .reindex(
-            nodes, axis=1, fill_value=0.0
+            nodes,
+            axis=1,
         )  # include missing node data with empty columns
-        .rename(
-            columns=lambda x: x.replace("UK", "GB")
-        )  # replace UK with GB for naming convention
-        .fillna(0.0)
+        .fillna(0.0)  # fill missing data with zero values
     )
 
     inflows_df.to_csv(snakemake.output.hydro_inflows_tyndp)
