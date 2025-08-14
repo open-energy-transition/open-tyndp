@@ -78,7 +78,7 @@ electricity:
       Wind_Onshore:
       - onwind
 
-  tyndp_hydro_profiles:
+  pemmdb_hydro_profiles:
     enable: true
     available_years:
     - 2030

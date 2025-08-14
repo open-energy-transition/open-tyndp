@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Builds hydroelectric inflow time-series for each country based on TYNDP hydro inflow data.
+Builds hydroelectric inflow time-series for each country based on PEMMDB v2.4 hydro inflow data from the 2024 TYNDP.
 
 Outputs
 -------
 
-- ``resources/profile_hydro_tyndp.nc``:
+- ``resources/profile_pemmdb_hydro.nc``:
 
     ===================  ================  =========================================================
     Field                Dimensions        Description

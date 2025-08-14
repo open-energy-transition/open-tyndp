@@ -545,7 +545,7 @@ def input_data_hydro_tyndp(w):
                 safe_pyear(
                     year,
                     config_provider(
-                        "electricity", "tyndp_hydro_profiles", "available_years"
+                        "electricity", "pemmdb_hydro_profiles", "available_years"
                     )(w),
                     "PEMMDB hydro",
                     verbose=False,
@@ -554,7 +554,7 @@ def input_data_hydro_tyndp(w):
             ]
         )
         for tech in config_provider(
-            "electricity", "tyndp_hydro_profiles", "technologies"
+            "electricity", "pemmdb_hydro_profiles", "technologies"
         )(w)
     }
 
@@ -565,15 +565,15 @@ rule build_tyndp_hydro_profile:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
         available_years=config_provider(
-            "electricity", "tyndp_hydro_profiles", "available_years"
+            "electricity", "pemmdb_hydro_profiles", "available_years"
         ),
         technologies=config_provider(
-            "electricity", "tyndp_hydro_profiles", "technologies"
+            "electricity", "pemmdb_hydro_profiles", "technologies"
         ),
     input:
         unpack(input_data_hydro_tyndp),
     output:
-        profile=resources("profile_hydro_tyndp.nc"),
+        profile=resources("profile_pemmdb_hydro.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
