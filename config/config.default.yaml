@@ -163,16 +163,16 @@ electricity:
 
   tyndp_hydro_profiles:
     enable: false
+    available_years:
+    - 2030
+    - 2040
+    - 2050
     technologies:
     - Run of River
     - Pondage
     - Reservoir
     - PS Open
     - PS Closed
-    available_years:
-    - 2030
-    - 2040
-    - 2050
 
   estimate_renewable_capacities:
     enable: true
