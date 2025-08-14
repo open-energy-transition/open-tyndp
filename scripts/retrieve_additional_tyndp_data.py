@@ -47,6 +47,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
     disable_progress = snakemake.config["run"].get("disable_progressbar", False)
 
+    source = snakemake.params.source
     to_fn = snakemake.output.dir
     tyndp_bundle_fn = Path(rootpath, snakemake.params["tyndp_bundle"])
     to_fn_zp = to_fn + ".zip"
@@ -55,15 +56,15 @@ if __name__ == "__main__":
     url = snakemake.params.url
 
     # download .zip file
-    logger.info(f"Downloading additional TYNDP data from '{url}'.")
+    logger.info(f"Downloading TYNDP {source} data from '{url}'.")
     progress_retrieve(url, to_fn_zp, disable=disable_progress)
 
     # extract
-    logger.info("Extracting additional TYNDP data.")
+    logger.info(f"Extracting TYNDP {source} data.")
     with zipfile.ZipFile(to_fn_zp, "r") as zip_ref:
         zip_ref.extractall(tyndp_bundle_fn)
 
     # remove .zip file
     os.remove(to_fn_zp)
 
-    logger.info(f"Additional TYNDP data available in '{to_fn}'.")
+    logger.info(f"TYNDP {source} data available in '{to_fn}'.")

@@ -195,6 +195,7 @@ if config["enable"]["retrieve"]:
             # TODO Integrate into Zenodo tyndp data bundle
             tyndp_bundle="data/tyndp_2024_bundle",
             url="https://storage.googleapis.com/open-tyndp-data-store/PECD.zip",
+            source="PECD",
         output:
             dir=directory("data/tyndp_2024_bundle/PECD"),
         log:
@@ -207,6 +208,7 @@ if config["enable"]["retrieve"]:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
             url="https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip",
+            source="hydro inflows",
         output:
             dir=directory("data/tyndp_2024_bundle/Hydro Inflows"),
         log:
