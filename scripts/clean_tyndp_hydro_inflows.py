@@ -113,7 +113,7 @@ if __name__ == "__main__":
     cyear = sns[0].year
     if int(cyear) < 1982 or int(cyear) > 2019:
         logger.warning(
-            "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
         )
         cyear = 2009
 
@@ -121,8 +121,8 @@ if __name__ == "__main__":
     pyear = str(snakemake.wildcards.planning_horizons)
     hydro_tech = str(snakemake.wildcards.tech)
 
+    # Parameters
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
-
     nodes = onshore_buses.index.str.replace("GB", "UK", regex=True)
     hydro_inflows_dir = snakemake.input.hydro_inflows_dir
 

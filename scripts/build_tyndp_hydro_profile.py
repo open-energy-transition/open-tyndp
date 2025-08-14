@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
 """
-Build hydroelectric inflow time-series for each country based on TYNDP hydro inflow data.
+Builds hydroelectric inflow time-series for each country based on TYNDP hydro inflow data.
 
 Outputs
 -------
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     for year, technology in product(pyears, technologies):
         logger.info(
-            f"Extracting hydro inflows for year {year} for technology {technology}..."
+            f"Extracting hydro inflows for {technology} in {year}"
         )
         year_i = year
         # falling back to latest available pyear if not in list of available years

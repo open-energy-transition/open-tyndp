@@ -39,9 +39,9 @@ pecd_renewable_profiles,,,
 -- -- {pecd_tech},--,str,The PECD tech whose PECD profile is used. These PECD tech and their profiles are mapped to ``tyndp_renewable_carriers``.
 -- -- -- {tyndp_renewable_carriers},--,str,The `tyndp_renewable_carriers` for which the PECD profiles must be used. All `tyndp_renewable_carriers` must be mapped to a PECD profile. Non-TYNDP renewable carriers use the default renewable profiles.
 tyndp_hydro_profiles,,,
--- enable,,bool,Activate PEMMDB hyddro inflow profiles from 2024 TYNDP instead of default hydro profiles.
+-- enable,,bool,Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.
 -- available_years,--,list,"List of years for which PEMMDB hydro inflows data is available."
--- technologies,--,list,The hydro technology for which PEMMDB hydro inflows data shall be prepared. Technologies can be any of {Run of River, Pondage, Reservoir, PS Open, PS Closed}.
+-- technologies,--,list,The hydro technologies for which PEMMDB hydro inflows data is used. Technologies can be any of {Run of River, Pondage, Reservoir, PS Open, PS Closed}.
 estimate_renewable_capacities,,,
 -- enable,,bool,Activate routine to estimate renewable capacities in rule :mod:`add_electricity`. This option should not be used in combination with pathway planning ``foresight: myopic`` or ``foresight: perfect`` as renewable capacities are added differently in :mod:`add_existing_baseyear`.
 -- from_gem,--,bool,Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.
