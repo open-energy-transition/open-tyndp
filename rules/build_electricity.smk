@@ -536,26 +536,28 @@ rule clean_tyndp_hydro_inflows:
 
 
 def input_data_hydro_tyndp(w):
+    available_years = config_provider(
+        "electricity", "pemmdb_hydro_profiles", "available_years"
+    )(w)
+    planning_horizons = config_provider("scenario", "planning_horizons")(w)
+    safe_pyears = set(
+        safe_pyear(
+            year,
+            available_years,
+            "PEMMDB hydro",
+            verbose=False,
+        )
+        for year in planning_horizons
+    )
+    technologies = config_provider(
+        "electricity", "pemmdb_hydro_profiles", "technologies"
+    )(w)
     return {
         f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
             f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
         )
-        for pyear in set(
-            [
-                safe_pyear(
-                    year,
-                    config_provider(
-                        "electricity", "pemmdb_hydro_profiles", "available_years"
-                    )(w),
-                    "PEMMDB hydro",
-                    verbose=False,
-                )
-                for year in config_provider("scenario", "planning_horizons")(w)
-            ]
-        )
-        for tech in config_provider(
-            "electricity", "pemmdb_hydro_profiles", "technologies"
-        )(w)
+        for pyear in safe_pyears
+        for tech in technologies
     }
 
 
