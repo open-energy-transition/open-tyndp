@@ -38,8 +38,8 @@ electricity:
   base_network: tyndp
 
   # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
-  renewable_carriers: [onwind, solar, solar-hsat, hydro]
-  tyndp_renewable_carriers: [onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
+  renewable_carriers: [solar, solar-hsat, onwind]
+  tyndp_renewable_carriers: [hydro, onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:
     enable: true
@@ -65,6 +65,19 @@ electricity:
       - solar-pv-utility
       Wind_Onshore:
       - onwind
+
+  pemmdb_hydro_profiles:
+    enable: true
+    available_years:
+    - 2030
+    - 2040
+    - 2050
+    technologies:
+    - Run of River
+    - Pondage
+    - Reservoir
+    - PS Open
+    - PS Closed
 
   estimate_renewable_capacities:
     # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation

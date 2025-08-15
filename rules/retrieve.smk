@@ -194,15 +194,28 @@ if config["enable"]["retrieve"]:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
             tyndp_bundle="data/tyndp_2024_bundle",
+            url="https://storage.googleapis.com/open-tyndp-data-store/PECD.zip",
+            source="PECD",
         output:
             dir=directory("data/tyndp_2024_bundle/PECD"),
         log:
             "logs/retrieve_tyndp_pecd_data.log",
         retries: 2
         script:
-            "../scripts/retrieve_tyndp_pecd_data.py"
+            "../scripts/retrieve_additional_tyndp_data.py"
+
+    use rule retrieve_tyndp_pecd_data as retrieve_tyndp_hydro_inflows with:
+        params:
+            # TODO Integrate into Zenodo tyndp data bundle
+            url="https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip",
+            source="hydro inflows",
+        output:
+            dir=directory("data/tyndp_2024_bundle/Hydro Inflows"),
+        log:
+            "logs/retrieve_tyndp_hydro_inflows.log",
 
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data > clean_pecd_data
+    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_hydro_inflows > clean_tyndp_hydro_inflows
 
     rule retrieve_countries_centroids:
         output:

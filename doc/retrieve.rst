@@ -172,4 +172,9 @@ None.
 Rule ``retrieve_tyndp_pecd_data``
 ====================================
 
-.. automodule:: retrieve_tyndp_pecd_data
+.. automodule:: retrieve_additional_tyndp_data
+
+Rule ``retrieve_tyndp_hydro_inflows``
+====================================
+
+.. automodule:: retrieve_additional_tyndp_data
