@@ -68,19 +68,20 @@ def read_hydro_inflows_file(
 
     inflow_tech = (
         inflow_tech.query("ShortName == 'INFLOW'")
-        .assign(
-            datetime=date_index[tech_res],
-            p_nom=lambda df: np.where(  # calculate hourly inflow in GWh/h
-                df.Variable.str.contains("week"),
-                df[int(cyear)].div(24 * 7),  # input value was either in GWh/week
-                df[int(cyear)].div(24),  # or in GWh/day
-            ),
-        )
+        .assign(datetime=date_index[tech_res])
         .set_index("datetime")
-        .reindex(sns)  # filter for snapshots only
-        .ffill()
-        .p_nom.rename(node)
-        .mul(1e3)  # convert from GW to MW
+        .reindex(sns)  # filter for hourly subset of snapshots only
+        .ffill()  # upsample to hourly data
+        .assign(
+            **{
+                node: lambda df: np.where(  # calculate hourly inflow in MWh/h
+                    # input value was either in GWh/week or in GWh/day
+                    df.Variable.str.contains("week"),
+                    df[int(cyear)] / (24 * 7 * 1e-3),
+                    df[int(cyear)] / (24 * 1e-3),
+                )
+            }
+        )[node]
     )
 
     return inflow_tech
