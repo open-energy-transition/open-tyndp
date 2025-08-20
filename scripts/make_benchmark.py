@@ -258,7 +258,9 @@ def compute_indicators(
     return df_carrier, indicators
 
 
-def compare_sources(table: str, options: dict) -> tuple[pd.DataFrame, pd.Series]:
+def compare_sources(
+    table: str, options: dict, scenario: str, benchmarks_fn: str, results_fn: list[str]
+) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
     paired columns representing workflow results estimates and TYNDP 2024 baseline values.
@@ -269,6 +271,12 @@ def compare_sources(table: str, options: dict) -> tuple[pd.DataFrame, pd.Series]
         Benchmark metric to compute.
     options : dict
         Full benchmarking configuration.
+    scenario: str
+        Name of scenario to compare.
+    benchmarks_fn: str
+        Path to the TYNDP benchmark metrics to compare.
+    results_fn: list[str]
+        List of paths to the Open-TYNDP benchmark metrics to compare.
 
     Returns
     -------
@@ -279,15 +287,15 @@ def compare_sources(table: str, options: dict) -> tuple[pd.DataFrame, pd.Series]
     """
 
     # Parameters
-    scenario = "TYNDP " + snakemake.params["scenario"]  # noqa: F841
+    scenario = "TYNDP " + scenario  # noqa: F841
 
     # Load data
     logger.info(f"Making benchmark for {table} using TYNDP 2024 and Open-TYNDP")
-    benchmarks_tyndp = pd.read_csv(snakemake.input.benchmarks).query(
+    benchmarks_tyndp = pd.read_csv(benchmarks_fn).query(
         "table==@table and scenario==@scenario"
     )
     benchmarks_n = []
-    for fn in snakemake.input.results:
+    for fn in results_fn:
         benchmarks_n.append(
             pd.read_csv(fn).query("table==@table and scenario==@scenario")
         )
@@ -325,6 +333,9 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
+    scenario = snakemake.params["scenario"]
+    benchmarks_fn = snakemake.input.benchmarks
+    results_fn = snakemake.input.results
 
     # Compute benchmarks
     logger.info("Computing benchmarks")
@@ -336,7 +347,13 @@ if __name__ == "__main__":
         "desc": "Computing benchmark",
     }
 
-    func = partial(compare_sources, options=options)
+    func = partial(
+        compare_sources,
+        options=options,
+        scenario=scenario,
+        benchmarks_fn=benchmarks_fn,
+        results_fn=results_fn,
+    )
 
     with mp.Pool(processes=snakemake.threads) as pool:
         results = list(tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs))
