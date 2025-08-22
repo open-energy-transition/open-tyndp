@@ -486,6 +486,23 @@ rule build_pemmdb_data:
         "../scripts/build_pemmdb_data.py"
 
 
+rule build_tyndp_trajectories:
+    input:
+        trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
+        busmap=resources("busmap_base_s_all.csv"),
+    output:
+        tyndp_trajectories=resources("tyndp_trajectories.csv"),
+    log:
+        logs("build_tyndp_trajectories.log"),
+    threads: 4
+    benchmark:
+        benchmarks("build_tyndp_trajectories")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_tyndp_trajectories.py"
+
+
 rule build_monthly_prices:
     input:
         co2_price_raw="data/validation/emission-spot-primary-market-auction-report-2019-data.xls",
