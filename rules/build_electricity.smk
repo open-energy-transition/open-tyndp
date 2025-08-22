@@ -465,6 +465,27 @@ rule build_renewable_profiles_pecd:
         "../scripts/build_renewable_profiles_pecd.py"
 
 
+rule build_pemmdb_data:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+    input:
+        pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
+        busmap=resources("busmap_base_s_all.csv"),
+    output:
+        pemmdb_capacities=resources("pemmdb_capacities_{tech}_{planning_horizons}.csv"),
+        pemmdb_p_min_pu=resources("pemmdb_p_min_pu_{tech}_{planning_horizons}.nc"),
+    log:
+        logs("build_pemmdb_data_{tech}_{planning_horizons}.log"),
+    threads: 4
+    benchmark:
+        benchmarks("build_pemmdb_data_{tech}_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_pemmdb_data.py"
+
+
 rule build_monthly_prices:
     input:
         co2_price_raw="data/validation/emission-spot-primary-market-auction-report-2019-data.xls",
