@@ -14,9 +14,33 @@ Upcoming Open-TYNDP Release
 
 * Add complete compatibility for processing and preparation of PECD v3.1 renewable profiles (Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, Solar CSP) (https://github.com/open-energy-transition/open-tyndp/pull/71). These profiles are used for the TYNDP 2024 and replace the default ERA5- and SARAH3-based profiles processed with Atlite. This implementation serves to facilitate a sub-workflow for creation of the renewable profiles, but does not yet attach them to any technologies.
 
+* Introduce processing of PEMMDB hydro inflows data for different hydro technologies (Run of River, Pondage, Reservoir, PS Open, PS Closed) from the 2024 TYNDP to create hydro inflow profiles (https://github.com/open-energy-transition/open-tyndp/pull/77). This implementation facilitates the sub-workflow for creating the hydro inflow profiles, but it does not yet attach them to any hydro technologies.
+
 
 Upcoming PyPSA-Eur Release
 ================
+
+* Fixed `ValueError` in `prepare_sector_network.py` in function `add_storage_and_grids`
+  when running with few nodes such that they are all already connected by existing gas
+  lines. (https://github.com/PyPSA/pypsa-eur/pull/1780)
+
+* Fixed `AttributeError` in `prepare_sector_network.py` when running sector-coupled
+  PyPSA-Eur with only one country. (https://github.com/PyPSA/pypsa-eur/pull/1778)
+
+* Fixed `FileNotFoundError` bugs preventing pypsa from being run as a Snakemake
+  module. The cause of this bug was that intermediate zip files in rules were being
+  saved in directories that didn't exist yet (without creating the parent directories).
+  This didn't fail when using PyPSA-Eur as a standalone module, because the directory
+  was the same as the rule's output file. However, when using PyPSA-Eur as a Snakemake
+  module, this was not the case as Snakemake prepends a prefix to all the input and
+  output files, but not to any file locations listed as parameters. The fix was to save 
+  intermediate zip files at the top directory level. This was fixed for many rules in 
+  `retrieve.smk`, i.e., `retrieve_eez`, `retrieve_nuts_2021_shapes`, 
+  `retrieve_nuts_2013_shapes`, `retrieve_worldbank_urban_population`, 
+  `retrieve_co2stop`, `download_wdpa`, `download_wdpa_marine`, `retrieve_eurostat_data`.
+  (https://github.com/PyPSA/pypsa-eur/pull/1768)
+
+* Updated standing losses for PTES, central TTES, and decentral TTES, previously calculated using the ``tes_tau`` parameter, to the latest DEA technology data, and updated costs version to v0.13.3.
 
 * Introduce a new base network using TYNDP 2024 data (https://github.com/PyPSA/pypsa-eur/pull/1646). This base network can be used with `tyndp` as `base_network`. It models NTC transmission capacities between TYNDP bidding zones using unidirectional `links`. This implementation neglects KVL and is referred to as a transport model. This is consistent with the TYNDP 2024 methodology.
 
@@ -26,6 +50,7 @@ Upcoming PyPSA-Eur Release
 
 * Allow expandable CCGTs by default
 
+* Updated `build_osm_network` and `clean_osm_data` to handle voltage levels below 220 kV (down to 63 kV). When `base_network` is set to `osm_raw`, an electricity grid from voltage levels AC 63 kV to 750 kV can be created (experimental feature). For an example, see the example configuration in `config/examples/config-distribution-grid-experimental.yaml`.
 
 PyPSA-Eur v2025.07.0 (11th July 2025, merged 24th July 2025)
 =====================================

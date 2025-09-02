@@ -513,6 +513,81 @@ rule build_hydro_profile:
         "../scripts/build_hydro_profile.py"
 
 
+rule clean_tyndp_hydro_inflows:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+    input:
+        hydro_inflows_dir="data/tyndp_2024_bundle/Hydro Inflows",
+        busmap=resources("busmap_base_s_all.csv"),
+    output:
+        hydro_inflows_tyndp=resources(
+            "hydro_inflows_tyndp_{tech}_{planning_horizons}.csv"
+        ),
+    log:
+        logs("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}.log"),
+    threads: 4
+    benchmark:
+        benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/clean_tyndp_hydro_inflows.py"
+
+
+def input_data_hydro_tyndp(w):
+    available_years = config_provider(
+        "electricity", "pemmdb_hydro_profiles", "available_years"
+    )(w)
+    planning_horizons = config_provider("scenario", "planning_horizons")(w)
+    safe_pyears = set(
+        safe_pyear(
+            year,
+            available_years,
+            "PEMMDB hydro",
+            verbose=False,
+        )
+        for year in planning_horizons
+    )
+    technologies = config_provider(
+        "electricity", "pemmdb_hydro_profiles", "technologies"
+    )(w)
+    return {
+        f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
+            f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
+        )
+        for pyear in safe_pyears
+        for tech in technologies
+    }
+
+
+rule build_tyndp_hydro_profile:
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        planning_horizons=config_provider("scenario", "planning_horizons"),
+        available_years=config_provider(
+            "electricity", "pemmdb_hydro_profiles", "available_years"
+        ),
+        technologies=config_provider(
+            "electricity", "pemmdb_hydro_profiles", "technologies"
+        ),
+    input:
+        unpack(input_data_hydro_tyndp),
+    output:
+        profile=resources("profile_pemmdb_hydro.nc"),
+    log:
+        logs("build_tyndp_hydro_profile.log"),
+    benchmark:
+        benchmarks("build_tyndp_hydro_profile")
+    resources:
+        mem_mb=5000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_tyndp_hydro_profile.py"
+
+
 rule build_line_rating:
     params:
         snapshots=config_provider("snapshots"),
