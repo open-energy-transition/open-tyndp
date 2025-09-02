@@ -207,3 +207,25 @@ Rule ``prepare_network``
 
 .. automodule:: prepare_network
 
+Rule ``clean_pecd_data``
+===========================
+
+.. automodule:: clean_pecd_data
+
+Rule ``build_renewable_profiles_pecd``
+===========================
+
+.. automodule:: build_renewable_profiles_pecd
+
+Rule ``clean_tyndp_hydro_inflows``
+===========================
+
+.. automodule:: clean_tyndp_hydro_inflows
+
+Rule ``build_tyndp_hydro_profile``
+===========================
+
+.. automodule:: build_tyndp_hydro_profile
+
+
+
