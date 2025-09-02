@@ -34,6 +34,8 @@ This repository is maintained using [OET's soft-fork strategy](https://open-ener
 
 **WARNING**: Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [Limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
+## ✅ Already implemented features
+
 The back-casting of the 2024 TYNDP cycle involves developing new features based on the published [modelling methodology report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf). Major and already implemented features are summarized below. Please, refer to the [Release Notes](https://open-tyndp.readthedocs.io/en/latest/release_notes.html) for a more comprehensive list of features and to the relevant [pull requests](https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22) for extensive documentation of the implementations.
 
 - Introduced a new electricity base network using TYNDP 2024 electricity reference grid data (see PR [#18](https://github.com/open-energy-transition/open-tyndp/pull/18)).
@@ -48,6 +50,41 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 | **Electricity Grid** | <img src="doc/img/tyndp/electricity-grid-report.png" height="300px" alt="TYNDP 2024 electricity topology"> | <img src="doc/img/tyndp/electricity-grid.png" height="300px" alt="Open-TYNDP electricity topology"> |
 |  **Hydrogen Grid**   | <img src="doc/img/tyndp/h2-grid-report.png" height="300px" alt="TYNDP 2024 hydrogen topology"> | <img src="doc/img/tyndp/h2-grid.png" height="300px" alt="Open-TYNDP hydrogen topology"> |
 |  **Offshore Grid**   | <img src="doc/img/tyndp/offshore-grid-report.png" height="300px" alt="TYNDP 2024 offshore topology"> | <img src="doc/img/tyndp/offshore-grid.png" height="300px" alt="Open-TYNDP offshore topology"> |
+
+## 🔨 Features in development
+
+While multiple TYNDP features are already introduced to the Open-TYNDP model, there are several features and assumptions that are still in development and currently rely on default implementations and assumptions from PyPSA-Eur.
+
+|                       Milestone                        |                       Feature                       | Status |
+|:------------------------------------------------------:|:---------------------------------------------------:|:---:|
+|       **Visualizations and workflow automation**       |                 Automated workflow                  |  ✅  |
+|                                                        |               TYNDP plotting routines               |  🔨  |
+|           **Automated tests and benchmarks**           |           Automated benchmarking routine            |  🔨  |
+|              **TYNDP modelling features**              |           Perfect foresight optimization            |  🔨  |
+|                                                        |            Security of Supply (SoS) loop            |  🔨  |
+| **Existing infrastructure and associated parameters**  |             Electricity reference grid              |  ✅  |
+|                                                        |               Hydrogen reference grid               |  ✅  |
+|                                                        |                    Offshore grid                    |  ✅  |
+|                                                        |                      PECD data                      |  ✅  |
+|                                                        |                    Hydro inflows                    |  ✅  |
+|                                                        |            PEMMDB capacities & must-runs            |  🔨  |
+|                                                        |         Investment candidates trajectories          |  🔨  |
+|                    **TYNDP demand**                    |                     Electricity                     |  ✅  |
+|                                                        |                      Hydrogen                       |  🔨  |
+|                                                        |                       Methane                       |  🔨  |
+|                                                        |                   Synthetic fuels                   |  🔨  |
+|                                                        |                  District heating                   |  🔨  |
+|                                                        |                   Energy imports                    |  🔨  |
+|          **TYNDP technologies and carriers**           | TYNDP generation technologies (incl. SRES and DRES) |  🔨  |
+|                                                        |                 Prosumer modelling                  |  🔨  |
+|                                                        |                    EV modelling                     |  🔨  |
+|                                                        |               Synthetic fuel carriers               |  🔨  |
+|                                                        |                  Hybrid heat pumps                  |  🔨  |
+|                                                        |     Industrial electricity and hydrogen demands     |  🔨  |
+|                                                        |                   Hydrogen zones                    |  ✅  |
+
+.. seealso::
+  See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
 
 # Repository structure
 
