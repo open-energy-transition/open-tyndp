@@ -83,7 +83,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 |                                                        |     Industrial electricity and hydrogen demands     |  🔨  |
 |                                                        |                   Hydrogen zones                    |  ✅  |
 
-**SEE ALSO**: See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
+**SEE ALSO**: See also the [GitHub repository issues](https://github.com/open-energy-transition/open-tyndp/issues) for a comprehensive list of currently open issues.
 
 # Repository structure
 
