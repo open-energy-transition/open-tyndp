@@ -282,7 +282,9 @@ if __name__ == "__main__":
 
     # Read benchmarks
     logger.info("Reading raw benchmark data")
-    sheet_names = [_safe_sheet(j["sheet_name"], scenario) for i, j in options["tables"].items()]
+    sheet_names = [
+        _safe_sheet(j["sheet_name"], scenario) for i, j in options["tables"].items()
+    ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
     )
