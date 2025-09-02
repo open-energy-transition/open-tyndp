@@ -11,7 +11,7 @@ benchmarking:
       index_col: [2, 3]  # TODO Document this as Excel-like index, starting at 1
       header: 4  # TODO Document this as Excel-like index, starting at 1
       plot: bar  # bar, area, None
-    time_serie:
+    time_series:
       index_col: 1
       header: 4
       plot: area
@@ -30,7 +30,7 @@ benchmarking:
         column:
         - scenario
         - year
-      map:
+      mapping:
         AC: electricity
         AC_OH: electricity
         H2: hydrogen
@@ -51,7 +51,7 @@ benchmarking:
         column:
         - year
         - scenario
-      map:
+      mapping:
         H2 Electrolysis: others
         methanolisation: others
         electricity: residential
@@ -66,7 +66,7 @@ benchmarking:
         - scenario
         column:
         - carrier
-      map:
+      mapping:
         CCGT: transformation input
         OCGT: transformation input
         SMR: transformation input
@@ -84,7 +84,7 @@ benchmarking:
         - scenario
         column:
         - carrier
-      map:
+      mapping:
         Fischer-Tropsch: e-fuels production
         H2 for industry: industry
         H2 turbine: electricity generation and heat production
@@ -104,7 +104,7 @@ benchmarking:
         - year
         column:
         - carrier
-      map:
+      mapping:
         offwind-dc-fl-r: wind offshore
         offwind-dc-fl-oh: wind offshore
         offwind-dc-fb-r: wind offshore
@@ -139,7 +139,7 @@ benchmarking:
         - year
         column:
         - carrier
-      map:
+      mapping:
         offwind-dc-fl-r: wind offshore
         offwind-dc-fl-oh: wind offshore
         offwind-dc-fb-r: wind offshore
@@ -172,7 +172,7 @@ benchmarking:
         column:
         - scenario
         - year
-      map:
+      mapping:
         Sabatier: synthetic methane (domestic)
         biogas to gas: biomethane (domestic)
         gas: natural gas (import)
@@ -191,7 +191,7 @@ benchmarking:
         column:
         - scenario
         - year
-      map:
+      mapping:
         H2 Electrolysis: p2g
         H2 import LH2: ammonia imports
         H2 import Pipeline: low carbon imports
@@ -210,7 +210,7 @@ benchmarking:
         column:
         - scenario
         - year
-      map:
+      mapping:
         solid biomass: biomass
 
     energy_imports:
@@ -225,7 +225,7 @@ benchmarking:
         column:
         - scenario
         - year
-      map:
+      mapping:
         H2 import LH2: hydrogen
         H2 import Pipeline: hydrogen
         coal: solids
@@ -233,7 +233,7 @@ benchmarking:
         oil refining: liquids
 
     generation_profiles:
-      table_type: time_serie
+      table_type: time_series
       sheet_name:
         DE: 30a
         GA: 30b
@@ -243,7 +243,7 @@ benchmarking:
         - snapshot
         column:
         - carrier
-      map:
+      mapping:
         offwind-dc-fl-r: offshore wind
         offwind-dc-fl-oh: offshore wind
         offwind-dc-fb-r: offshore wind

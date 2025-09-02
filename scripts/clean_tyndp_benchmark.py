@@ -27,7 +27,7 @@ SCENARIO_DICT = {
 }
 
 
-def _safe_sheet(sn):
+def _safe_sheet(sn, scenario):
     if isinstance(sn, dict):
         return sn[scenario]
     return sn
@@ -37,14 +37,14 @@ def _process_index(
     df: pd.DataFrame, index_col: list[int], names: list[str], nrows: int = None
 ) -> pd.DataFrame:
     """
-    Process indexes columns to create proper index structure.
+    Process index columns to create proper index structure.
 
     Parameters
     ----------
     df : pd.DataFrame
-        DataFrame with indexes in data columns.
+        DataFrame with indices in data columns.
     index_col : list[int]
-        List of Excel column indices for indexes.
+        List of Excel column indices for index.
     names : list[str]
         List of index names.
     nrows : int, optional
@@ -53,7 +53,7 @@ def _process_index(
     Returns
     -------
     pd.DataFrame
-        DataFrame with proper indexes.
+        DataFrame with proper index.
     """
     if nrows:
         df = df[:nrows]
@@ -184,7 +184,7 @@ def load_benchmark(
 
     Parameters
     ----------
-    benchmarks_raw : dictdict[str, pd.DataFrame]
+    benchmarks_raw : dict[str, pd.DataFrame]
         Dictionary of pandas DataFrames from Excel sheets, keyed by sheet name.
     table : str
         Name of table to load.
@@ -207,7 +207,7 @@ def load_benchmark(
         return pd.DataFrame()
 
     # Parameters
-    sheet_name = _safe_sheet(opt["sheet_name"])
+    sheet_name = _safe_sheet(opt["sheet_name"], scenario)
     df = benchmarks_raw[sheet_name]
     table_config = options["table_types"][opt["table_type"]]
     nrows = opt.get("nrows", None)
@@ -282,7 +282,7 @@ if __name__ == "__main__":
 
     # Read benchmarks
     logger.info("Reading raw benchmark data")
-    sheet_names = [_safe_sheet(j["sheet_name"]) for i, j in options["tables"].items()]
+    sheet_names = [_safe_sheet(j["sheet_name"], scenario) for i, j in options["tables"].items()]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
     )

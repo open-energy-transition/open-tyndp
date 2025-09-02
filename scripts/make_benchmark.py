@@ -4,7 +4,7 @@
 """
 This script computes accuracy indicators for comparing workflow results against reference data from the TYNDP 2024.
 
-This module implements the Wen et al. (2022) methodology for evaluating performance of energy system
+This module implements a methodology introduced by Wen et al. (2022) for evaluating performance of energy system
 models using multiple accuracy indicators.
 """
 
@@ -108,7 +108,7 @@ def _compute_growth_error(
     """
     Calculate Growth Error.
 
-    Growth error show the error in temporal scale. This indicator is ignored for dynamic time series.
+    The growth error shows the error in temporal scale. This indicator is ignored for dynamic time series.
 
     Formula: Growth error = ĝₜ - gₜ, where gₜ = [ln(yₜ) - ln(yₜ₀)] / (t - t₀)
 

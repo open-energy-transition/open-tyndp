@@ -52,7 +52,7 @@ rule build_benchmark:
         benchmarks(
             "build_benchmark_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
-    threads: 1
+    threads: 4
     resources:
         mem_mb=4000,
     conda:
@@ -78,7 +78,7 @@ rule make_benchmark:
             RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/"
         ),
         kpis=RESULTS + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
-    threads: 1
+    threads: 4
     resources:
         mem_mb=8000,
     log:
@@ -98,7 +98,7 @@ rule plot_benchmark:
         RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/",
     output:
         RESULTS + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
-    threads: 1
+    threads: 4
     resources:
         mem_mb=8000,
     log:
