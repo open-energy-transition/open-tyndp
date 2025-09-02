@@ -1399,11 +1399,18 @@ def input_pemmdb_data(w):
     tyndp_renewable_carriers = config_provider(
         "electricity", "tyndp_renewable_carriers"
     )(w)
+    pemmdb_techs_dict = pemmdb_techs(w)
+
+    if not pemmdb_techs_dict:
+        return {}
+
+    carrier_set = set(tyndp_conventional_carriers)
     enabled_techs = [
         tech
-        for tech, values in pemmdb_techs(w).items()
-        if set(tyndp_conventional_carriers).intersection(values)
+        for tech, values in pemmdb_techs_dict.items()
+        if carrier_set.intersection(values)
     ]
+
     return {
         f"pemmdb_capacities_{tech}": resources(
             f"pemmdb_capacities_" + tech + "_{planning_horizons}.csv"
