@@ -8,7 +8,7 @@ subdirectory, such that all files of the TYNDP bundle are stored in it.
 The original data is published by ENTSO-E and ENTSOG under Creative Commons Attribution 4.0 International License (CC-BY 4.0)
 and can be found under https://2024.entsos-tyndp-scenarios.eu/download/.
 
-Currently, this is used for two additional datasets:
+Currently, this is used for the following additional datasets:
 * TYNDP PECD data: The TYNDP PECD v3.1 data contains input data for the 2024 TYNDP scenario building process.
 * TYNDP hydro inflows: The TYNDP hydro inflow data from PEMMDB v2.4 contains hydro inflow data for different hydro technologies:
     * Run of River,
@@ -16,6 +16,8 @@ Currently, this is used for two additional datasets:
     * Reservoir,
     * PS Open,
     * PS Closed
+* TYNDP PEMMDB data: The TYNDP PEMMDB v2.4 data contains capacity and must-run obligation input data for generation technologies,
+  reserves, DSR, batteries and electrolysers.
 
 **Outputs**
 

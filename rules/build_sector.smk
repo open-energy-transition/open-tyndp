@@ -1386,6 +1386,32 @@ def input_offshore_hubs(w):
     return {}
 
 
+pemmdb_techs = branch(
+    config_provider("electricity", "pemmdb_capacities", "enable"),
+    config_provider("electricity", "pemmdb_capacities", "technologies"),
+)
+
+
+def input_pemmdb_data(w):
+    tyndp_conventional_carriers = config_provider(
+        "electricity", "tyndp_conventional_carriers"
+    )(w)
+    tyndp_renewable_carriers = config_provider(
+        "electricity", "tyndp_renewable_carriers"
+    )(w)
+    enabled_techs = [
+        tech
+        for tech, values in pemmdb_techs(w).items()
+        if set(tyndp_conventional_carriers).intersection(values)
+    ]
+    return {
+        f"pemmdb_capacities_{tech}": resources(
+            f"pemmdb_capacities_" + tech + "_{planning_horizons}.csv"
+        )
+        for tech in enabled_techs
+    }
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
@@ -1428,6 +1454,7 @@ rule prepare_sector_network:
         unpack(input_profile_pecd),
         unpack(input_heat_source_power),
         unpack(input_offshore_hubs),
+        unpack(input_pemmdb_data),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,
         snapshot_weightings=resources(

@@ -469,6 +469,9 @@ rule build_pemmdb_data:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
+        available_years=config_provider(
+            "electricity", "pemmdb_capacities", "available_years"
+        ),
     input:
         pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
         busmap=resources("busmap_base_s_all.csv"),

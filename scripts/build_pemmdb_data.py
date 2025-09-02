@@ -51,6 +51,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    safe_pyear,
     set_scenario_config,
 )
 
@@ -78,7 +79,7 @@ def read_pemmdb_capacities(
 ) -> pd.Series:
     fn = Path(
         pemmdb_dir,
-        pyear,
+        str(pyear),
         f"PEMMDB_{node.replace('GB', 'UK')}_NationalTrends_{pyear}.xlsx",
     )
 
@@ -189,7 +190,7 @@ def read_pemmdb_must_runs(
 ) -> pd.Series:
     fn = Path(
         pemmdb_dir,
-        pyear,
+        str(pyear),
         f"PEMMDB_{node.replace('GB', 'UK')}_NationalTrends_{pyear}.xlsx",
     )
 
@@ -352,7 +353,11 @@ if __name__ == "__main__":
         cyear = 2009
 
     # Planning year
-    pyear = str(snakemake.wildcards.planning_horizons)
+    pyear = safe_pyear(
+        snakemake.wildcards.planning_horizons,
+        available_years=snakemake.params.available_years,
+        source="PEMMDB",
+    )
 
     # Parameters
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)

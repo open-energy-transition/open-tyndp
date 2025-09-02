@@ -178,3 +178,8 @@ Rule ``retrieve_tyndp_hydro_inflows``
 ====================================
 
 .. automodule:: retrieve_additional_tyndp_data
+
+Rule ``retrieve_tyndp_pemmdb_data``
+====================================
+
+.. automodule:: retrieve_additional_tyndp_data
