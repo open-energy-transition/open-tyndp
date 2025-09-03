@@ -135,87 +135,113 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 
 .. list-table::
    :align: center
-   :widths: 35 40 25
+   :widths: 35 35 20 10
    :header-rows: 1
 
    * - **Milestone**
      - **Feature**
+     - **PR**
      - **Status**
    * - **Visualizations and workflow automation**
      - Automated workflow
+     -
      - ✅
    * -
      - TYNDP plotting routines
-     - 🔨
+     -
+     - ⌛
    * - **Automated tests and benchmarks**
      - Automated benchmarking routine
-     - 🔨 (PR `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__)
+     - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__
+     - 🔨
    * - **TYNDP modelling features**
      - Perfect foresight optimization
-     - 🔨
+     -
+     - ⌛
    * -
      - Security of Supply (SoS) loop
-     - 🔨
+     -
+     - ⌛
    * - **Existing infrastructure and associated parameters**
      - Electricity reference grid
-     - ✅ (PR `#18 <https://github.com/open-energy-transition/open-tyndp/pull/18>`__)
+     - `#18 <https://github.com/open-energy-transition/open-tyndp/pull/18>`__
+     - ✅
    * -
      - Hydrogen reference grid
-     - ✅ (PR `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__, `#36 <https://github.com/open-energy-transition/open-tyndp/pull/36>`__)
+     - `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__, `#36 <https://github.com/open-energy-transition/open-tyndp/pull/36>`__
+     - ✅
    * -
      - Offshore grid
-     - ✅ (PR `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__, `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__)
+     - `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__, `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__
+     - ✅
    * -
      - PECD data
-     - ✅ (PR `#71 <https://github.com/open-energy-transition/open-tyndp/pull/71>`__)
+     - `#71 <https://github.com/open-energy-transition/open-tyndp/pull/71>`__
+     - ✅
    * -
      - Hydro inflows
-     - ✅ (PR `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__)
+     - `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__
+     - ✅
    * -
      - PEMMDB capacities & must-runs
-     - 🔨 (PR `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__)
+     - `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__
+     - 🔨
    * -
      - Investment candidates trajectories
-     - 🔨 (PR `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__)
+     - `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__
+     - 🔨
    * - **TYNDP demand**
      - Electricity
-     - ✅ (PR `#14 <https://github.com/open-energy-transition/open-tyndp/pull/14>`__)
+     - `#14 <https://github.com/open-energy-transition/open-tyndp/pull/14>`__
+     - ✅
    * -
      - Hydrogen
-     - 🔨
+     -
+     - ⌛
    * -
      - Methane
-     - 🔨
+     -
+     - ⌛
    * -
      - Synthetic fuels
-     - 🔨
+     -
+     - ⌛
    * -
      - District heating
-     - 🔨
+     -
+     - ⌛
    * -
      - Energy imports
-     - 🔨
+     -
+     - ⌛
    * - **TYNDP technologies and carriers**
      - TYNDP generation technologies (incl. SRES and DRES)
-     - 🔨
+     -
+     - ⌛
    * -
      - Prosumer modelling
-     - 🔨
+     -
+     - ⌛
    * -
      - EV modelling
-     - 🔨
+     -
+     - ⌛
    * -
      - Synthetic fuel carriers
-     - 🔨
+     -
+     - ⌛
    * -
      - Hybrid heat pumps
-     - 🔨
+     -
+     - ⌛
    * -
      - Industrial electricity and hydrogen demands
-     - 🔨
+     -
+     - ⌛
    * -
      - Hydrogen zones
-     - ✅ (PR `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__)
+     - `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__
+     - ✅
 
 Background on PyPSA-Eur
 =========
