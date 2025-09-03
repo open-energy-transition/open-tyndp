@@ -558,7 +558,7 @@ rule clean_tyndp_hydro_inflows:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
-        params=config_provider(
+        available_years=config_provider(
             "electricity", "pemmdb_hydro_profiles", "available_years"
         ),
     input:
