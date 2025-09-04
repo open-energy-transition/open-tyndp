@@ -160,31 +160,35 @@ def compute_benchmark(n: pypsa.Network, table: str, options: dict) -> pd.DataFra
         ).reindex(
             ["coal", "lignite", "oil refining", "H2 import LH2", "H2 import Pipeline"]
         )
-    elif table == "generation_profiles" and n.snapshots.year[0] == 2009:
-        df = (
-            n.statistics.supply(
-                bus_carrier=elec_bus_carrier,
-                groupby="carrier",
-                nice_names=False,
-                aggregate_across_components=True,
-                aggregate_time=False,
+    elif table == "generation_profiles":
+        if n.snapshots.year[0] == 2009:
+            df = (
+                n.statistics.supply(
+                    bus_carrier=elec_bus_carrier,
+                    groupby="carrier",
+                    nice_names=False,
+                    aggregate_across_components=True,
+                    aggregate_time=False,
+                )
+                .drop(
+                    index=[
+                        "DC",
+                        "DC_OH",
+                        "electricity distribution grid",
+                        "H2 Electrolysis",
+                        "battery charger",
+                        "home battery charger",
+                        "methanolisation",
+                        "electricity",
+                    ]
+                )
+                .melt(ignore_index=False)
+                .reset_index()
+                .set_index(["snapshot", "carrier"])["value"]
             )
-            .drop(
-                index=[
-                    "DC",
-                    "DC_OH",
-                    "electricity distribution grid",
-                    "H2 Electrolysis",
-                    "battery charger",
-                    "home battery charger",
-                    "methanolisation",
-                    "electricity",
-                ]
-            )
-            .melt(ignore_index=False)
-            .reset_index()
-            .set_index(["snapshot", "carrier"])["value"]
-        )
+        else:
+            logger.warning(f"Unknown climate year for table: {table}")
+            df = pd.DataFrame(columns=["carrier"])
     else:
         logger.warning(f"Unknown benchmark table: {table}")
         df = pd.DataFrame(columns=["carrier"])
