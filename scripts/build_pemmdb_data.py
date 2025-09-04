@@ -18,7 +18,7 @@ Available technologies are:
     * Light oil
     * Heavy oil
     * Oil shale
-    * Other non-RES
+    * Other Non-RES
 * Renewables
     * Wind
     * Solar
@@ -65,7 +65,6 @@ CONVENTIONALS = [
     "Light oil",
     "Heavy oil",
     "Oil shale",
-    "Other non-RES",
 ]
 
 
@@ -73,9 +72,8 @@ def read_pemmdb_capacities(
     node: str,
     pemmdb_dir: str,
     cyear: str,
-    pyear: str,
+    pyear: int,
     pemmdb_tech: str,
-    sns: pd.DatetimeIndex,
 ) -> pd.Series:
     fn = Path(
         pemmdb_dir,
@@ -110,22 +108,25 @@ def read_pemmdb_capacities(
             .query("carrier == @pemmdb_tech")
         )
 
+    # Other Non-RES
+    elif pemmdb_tech == "Other Non-RES":
+        df = pd.read_excel(
+            fn,
+            sheet_name="Other Non-RES",
+        )
+
     # Wind
     elif pemmdb_tech == "Wind":
-        df = pd.read_excel(fn, sheet_name="Wind")
+        df = pd.read_excel(
+            fn,
+            sheet_name="Wind",
+        )
 
     # Solar
     elif pemmdb_tech == "Solar":
         df = pd.read_excel(
             fn,
             sheet_name="Solar",
-            # skiprows=1,
-            # usecols=lambda name: name == "Day"
-            # or name == "Week"
-            # or name == "ShortName"
-            # or name == "Variable"
-            # or name == int(cyear),
-            # sheet_name=f"{hydro_tech} - Year Dependent",
         )
 
     # Hydro
@@ -133,13 +134,6 @@ def read_pemmdb_capacities(
         df = pd.read_excel(
             fn,
             sheet_name="Hydro",
-            # skiprows=1,
-            # usecols=lambda name: name == "Day"
-            # or name == "Week"
-            # or name == "ShortName"
-            # or name == "Variable"
-            # or name == int(cyear),
-            # sheet_name=f"{hydro_tech} - Year Dependent",
         )
 
     # Other RES
@@ -184,9 +178,11 @@ def read_pemmdb_must_runs(
     node: str,
     pemmdb_dir: str,
     cyear: str,
-    pyear: str,
+    pyear: int,
+    pyear_i: int,
     pemmdb_tech: str,
     sns: pd.DatetimeIndex,
+    tyndp_scenario: str,
 ) -> pd.Series:
     fn = Path(
         pemmdb_dir,
@@ -260,71 +256,22 @@ def read_pemmdb_must_runs(
             .sel(time=sns)  # filter for snapshots only
         )
 
-    # Wind
-    elif pemmdb_tech == "Wind":
-        df = pd.read_excel(fn, sheet_name="Wind")
+        # For DE and GA scenario, must-runs are removed after 2030 as to 2024 TYNDP Methodology report, p.37
+        if tyndp_scenario != "NT" and pyear_i > 2030:
+            profile = profile.assign(p_min_pu=0.0)
 
-    # Solar
-    elif pemmdb_tech == "Solar":
-        df = pd.read_excel(
+    # Other Non-RES
+    elif pemmdb_tech == "Other Non-RES":
+        must_runs = pd.read_excel(
             fn,
-            sheet_name="Solar",
-            # skiprows=1,
-            # usecols=lambda name: name == "Day"
-            # or name == "Week"
-            # or name == "ShortName"
-            # or name == "Variable"
-            # or name == int(cyear),
-            # sheet_name=f"{hydro_tech} - Year Dependent",
-        )
-
-    # Hydro
-    elif pemmdb_tech == "Hydro":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Hydro",
-            # skiprows=1,
-            # usecols=lambda name: name == "Day"
-            # or name == "Week"
-            # or name == "ShortName"
-            # or name == "Variable"
-            # or name == int(cyear),
-            # sheet_name=f"{hydro_tech} - Year Dependent",
+            sheet_name="Other Non-RES",
         )
 
     # Other RES
     elif pemmdb_tech == "Other RES":
-        df = pd.read_excel(
+        must_runs = pd.read_excel(
             fn,
             sheet_name="Other RES",
-        )
-
-    # Reserves
-    elif pemmdb_tech == "Reserves":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Reserves",
-        )
-
-    # DSR
-    elif pemmdb_tech == "DSR":
-        df = pd.read_excel(
-            fn,
-            sheet_name="DSR",
-        )
-
-    # Battery
-    elif pemmdb_tech == "Battery":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Battery",
-        )
-
-    # Electrolyser
-    elif pemmdb_tech == "Electrolyser":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Electrolyser",
         )
 
     return profile
@@ -353,8 +300,9 @@ if __name__ == "__main__":
         cyear = 2009
 
     # Planning year
+    pyear_i = int(snakemake.wildcards.planning_horizons)
     pyear = safe_pyear(
-        snakemake.wildcards.planning_horizons,
+        pyear_i,
         available_years=snakemake.params.available_years,
         source="PEMMDB",
     )
@@ -364,6 +312,7 @@ if __name__ == "__main__":
     nodes = onshore_buses.index
     pemmdb_dir = snakemake.input.pemmdb_dir
     tech = str(snakemake.wildcards.tech)
+    tyndp_scenario = snakemake.params.tyndp_scenario
 
     # Load and prep inflow data
     tqdm_kwargs_1 = {
@@ -386,7 +335,6 @@ if __name__ == "__main__":
         cyear=cyear,
         pyear=pyear,
         pemmdb_tech=tech,
-        sns=sns,
     )
 
     func_must_runs = partial(
@@ -394,8 +342,10 @@ if __name__ == "__main__":
         pemmdb_dir=pemmdb_dir,
         cyear=cyear,
         pyear=pyear,
+        pyear_i=pyear_i,
         pemmdb_tech=tech,
         sns=sns,
+        tyndp_scenario=tyndp_scenario,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:

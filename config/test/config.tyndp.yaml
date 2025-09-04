@@ -128,8 +128,8 @@ electricity:
       - oil_heavy
       Oil shale:
       - oil_shale
-      Other non-RES:
-      - other_coventionals
+      Other Non-RES:
+      - chp
 
   estimate_renewable_capacities:
     # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation

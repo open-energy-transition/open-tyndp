@@ -472,6 +472,7 @@ rule build_pemmdb_data:
         available_years=config_provider(
             "electricity", "pemmdb_capacities", "available_years"
         ),
+        tyndp_scenario=config_provider("tyndp_scenario"),
     input:
         pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
         busmap=resources("busmap_base_s_all.csv"),
