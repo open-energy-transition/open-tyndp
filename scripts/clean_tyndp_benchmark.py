@@ -16,15 +16,9 @@ from functools import partial
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import SCENARIO_DICT, configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
-
-SCENARIO_DICT = {
-    "Distributed Energy": "DE",
-    "Global Ambition": "GA",
-    "National Trends": "NT",
-}
 
 
 def _safe_sheet(sn, scenario):
