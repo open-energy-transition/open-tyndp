@@ -140,6 +140,7 @@ electricity:
   everywhere_powerplants: []
 
   conventional_carriers: [nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass]
+  tyndp_conventional_carriers: []
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float, hydro]
   tyndp_renewable_carriers: []
 
@@ -173,6 +174,17 @@ electricity:
     - Reservoir
     - PS Open
     - PS Closed
+
+  pemmdb_capacities:
+    enable: false
+    available_years:
+    - 2030
+    - 2040
+    - 2050
+    technologies:
+    Solar:
+    - solar-pv-utility
+    - solar-pv-rooftop
 
   estimate_renewable_capacities:
     enable: true

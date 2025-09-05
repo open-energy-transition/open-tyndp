@@ -219,6 +219,16 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_tyndp_hydro_inflows.log",
 
+    use rule retrieve_tyndp_pecd_data as retrieve_tyndp_pemmdb_data with:
+        params:
+            # TODO Integrate into Zenodo tyndp data bundle
+            url="https://storage.googleapis.com/open-tyndp-data-store/PEMMDB.zip",
+            source="PEMMDB",
+        output:
+            dir=directory("data/tyndp_2024_bundle/PEMMDB2"),
+        log:
+            "logs/retrieve_tyndp_pemmdb_data.log",
+
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data > clean_pecd_data
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_hydro_inflows > clean_tyndp_hydro_inflows
 
