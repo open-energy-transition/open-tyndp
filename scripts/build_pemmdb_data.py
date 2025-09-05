@@ -100,6 +100,7 @@ def read_pemmdb_capacities(
             .assign(
                 **{
                     "carrier": lambda df: df["carrier"].ffill(),
+                    "efficiency": 1.0,  # capacities are in MWel and no efficiencies are given
                     "type": lambda df: df["type"].fillna(df.carrier),
                     "bus": node,
                     "country": node[:2],
@@ -110,9 +111,39 @@ def read_pemmdb_capacities(
 
     # Other Non-RES
     elif pemmdb_tech == "Other Non-RES":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Other Non-RES",
+        df = (
+            pd.read_excel(
+                fn,
+                sheet_name="Other Non-RES",
+                skiprows=7,  # first seven rows are metadata
+                index_col=1,
+                nrows=9,  # capacity information is only at the top of the file
+            )
+            .filter(like="Price Band")
+            .set_axis(
+                [
+                    "p_nom",
+                    "units_count",
+                    "type",
+                    "purpose",
+                    "price",
+                    "efficiency",
+                    "co2_factor",
+                    "cyear_start",
+                    "cyear_end",
+                ]
+            )
+            .T.assign(
+                **{
+                    "carrier": "Other Non-RES",
+                    "bus": node,
+                    "country": node[:2],
+                    "cyear_start": lambda x: x.cyear_start.astype(int),
+                    "cyear_end": lambda x: x.cyear_end.astype(int),
+                }
+            )
+            .query("cyear_start <= @cyear and cyear_end >= @cyear")
+            .reset_index(drop=True)
         )
 
     # Wind
@@ -171,18 +202,22 @@ def read_pemmdb_capacities(
             sheet_name="Electrolyser",
         )
 
+    else:
+        return None
+
     return df
 
 
 def read_pemmdb_must_runs(
     node: str,
     pemmdb_dir: str,
+    tyndp_scenario: str,
     cyear: str,
     pyear: int,
     pyear_i: int,
     pemmdb_tech: str,
     sns: pd.DatetimeIndex,
-    tyndp_scenario: str,
+    index_year: pd.DatetimeIndex,
 ) -> pd.Series:
     fn = Path(
         pemmdb_dir,
@@ -236,11 +271,6 @@ def read_pemmdb_must_runs(
         )
         must_runs = must_runs.set_index(must_runs.index.map("_".join)).T
 
-        index_year = pd.date_range(
-            start=f"{cyear}-01-01",
-            periods=8760,  # 53 weeks
-            freq="h",
-        )
         df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
 
         for type in must_runs.columns:
@@ -260,19 +290,15 @@ def read_pemmdb_must_runs(
         if tyndp_scenario != "NT" and pyear_i > 2030:
             profile = profile.assign(p_min_pu=0.0)
 
-    # Other Non-RES
-    elif pemmdb_tech == "Other Non-RES":
-        must_runs = pd.read_excel(
-            fn,
-            sheet_name="Other Non-RES",
-        )
-
     # Other RES
     elif pemmdb_tech == "Other RES":
         must_runs = pd.read_excel(
             fn,
             sheet_name="Other RES",
         )
+
+    else:
+        return None
 
     return profile
 
@@ -293,9 +319,15 @@ if __name__ == "__main__":
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
-    if int(cyear) < 1982 or int(cyear) > 2019:
+    index_year = pd.date_range(
+        start=f"{cyear}-01-01",
+        periods=8760,  # 53 weeks
+        freq="h",
+    )
+    # Only climate years 1995, 2008 and 2009 are available for all technologies and countries
+    if int(cyear) not in [1995, 2008, 2009]:
         logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
+            "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
         )
         cyear = 2009
 
@@ -340,12 +372,13 @@ if __name__ == "__main__":
     func_must_runs = partial(
         read_pemmdb_must_runs,
         pemmdb_dir=pemmdb_dir,
+        tyndp_scenario=tyndp_scenario,
         cyear=cyear,
         pyear=pyear,
         pyear_i=pyear_i,
         pemmdb_tech=tech,
         sns=sns,
-        tyndp_scenario=tyndp_scenario,
+        index_year=index_year,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
@@ -358,9 +391,9 @@ if __name__ == "__main__":
 
     pemmdb_capacities_df = (
         pd.concat(pemmdb_capacities, axis=0)[
-            ["bus", "carrier", "type", "p_nom", "country"]
-        ]  # reorder columns
-    )
+            ["bus", "carrier", "type", "p_nom", "efficiency", "country"]
+        ]  # # select and order relevant columns
+    ).reset_index(drop=True)
 
     # merge p_min_pu profiles into one xarray dataset
     ds = xr.merge(profiles)
