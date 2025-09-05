@@ -40,7 +40,6 @@ Cleaned netcdf file with must run obligations (p_min_pu) and availability (p_max
 
 import logging
 import multiprocessing as mp
-import os
 from functools import partial
 from pathlib import Path
 
@@ -68,7 +67,7 @@ CONVENTIONALS = [
 ]
 
 
-def read_pemmdb_must_runs(
+def read_pemmdb_profiles(
     node: str,
     pemmdb_dir: str,
     tyndp_scenario: str,
@@ -78,19 +77,20 @@ def read_pemmdb_must_runs(
     pemmdb_tech: str,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> pd.Series:
+) -> xr.Dataset:
     fn = Path(
         pemmdb_dir,
         str(pyear),
         f"PEMMDB_{node.replace('GB', 'UK')}_NationalTrends_{pyear}.xlsx",
     )
 
-    if not os.path.isfile(fn):
+    if not fn.is_file():
+        logger.warning(f"No PEMMDB data available for {node} in {pyear}.")
         return None
 
     # Conventionals & Hydrogen
     if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
-        # read must runs
+        # read data
         must_runs = (
             pd.read_excel(
                 fn,
@@ -137,18 +137,18 @@ def read_pemmdb_must_runs(
             df[type] = df["month"].map(must_runs[type])
         df.drop(columns="month", inplace=True)
 
-        profile = (
+        profiles = (
             df.reset_index(names="time")
             .melt(id_vars="time", var_name="type", value_name="p_min_pu")
-            .assign(carrier=pemmdb_tech, bus=node)
+            .assign(carrier=pemmdb_tech, bus=node, p_max_pu=1.0)
             .set_index(["time", "bus", "carrier", "type"])
             .to_xarray()
             .sel(time=sns)  # filter for snapshots only
         )
 
-        # For DE and GA scenario, must-runs are removed after 2030 as to 2024 TYNDP Methodology report, p.37
+        # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
         if tyndp_scenario != "NT" and pyear_i > 2030:
-            profile = profile.assign(p_min_pu=0.0)
+            profiles = profiles.assign(p_min_pu=0.0)
 
     # Other RES
     elif pemmdb_tech == "Other RES":
@@ -157,10 +157,63 @@ def read_pemmdb_must_runs(
             sheet_name="Other RES",
         )
 
+    # Other Non-RES
+    elif pemmdb_tech == "Other Non-RES":
+        # read data
+        df = pd.read_excel(
+            fn,
+            sheet_name="Other Non-RES",
+            skiprows=7,  # first seven rows are metadata
+            index_col=1,
+        ).rename(index={"Installed capacity \n(MW)": "p_nom", "PEMMDB type(s)": "type"})
+
+        # create filter mask for column that matches the specified climate year
+        # start_years = pd.to_numeric(df.iloc[7], errors='coerce')
+        start_years = pd.to_numeric(df.loc["Start climate year", :], errors="coerce")
+        # end_years = pd.to_numeric(df.iloc[8], errors='coerce')
+        end_years = pd.to_numeric(df.loc["End climate year", :], errors="coerce")
+        mask = (start_years <= cyear) & (cyear <= end_years)
+
+        if not mask.any():
+            logger.warning(
+                f"No data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            )
+            return None
+
+        df = (
+            df.loc[:, mask].set_axis(  # filter for climate year
+                ["p_max"], axis="columns"
+            )  # rename the column
+        )
+
+        # extract capacity for per unit calculation and plant type
+        cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce").values[0]
+        type = df.loc["type", :].values[0]
+
+        profiles = (
+            df.reset_index(drop=True)
+            .loc[10:, :]
+            .assign(
+                p_nom=cap,
+                p_max_pu=lambda df: df.p_max
+                / df.p_nom,  # calculate per unit availability
+                p_min_pu=0.0,
+                time=index_year,
+                bus=node,
+                carrier=pemmdb_tech,
+                type=type,
+            )
+            .set_index(["time", "bus", "carrier", "type"])[
+                ["p_min_pu", "p_max_pu"]
+            ]  # only keep per unit columns
+            .to_xarray()
+            .sel(time=sns)
+        )
+
     else:
         return None
 
-    return profile
+    return profiles
 
 
 if __name__ == "__main__":
@@ -171,7 +224,7 @@ if __name__ == "__main__":
             "clean_pemmdb_profiles",
             clusters="all",
             planning_horizons=2030,
-            tech="Nuclear",
+            tech="Gas",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -211,11 +264,11 @@ if __name__ == "__main__":
         "ascii": False,
         "unit": " nodes",
         "total": len(nodes),
-        "desc": "Loading PEMMDB must-runs",
+        "desc": "Loading PEMMDB profiles",
     }
 
     func = partial(
-        read_pemmdb_must_runs,
+        read_pemmdb_profiles,
         pemmdb_dir=pemmdb_dir,
         tyndp_scenario=tyndp_scenario,
         cyear=cyear,
