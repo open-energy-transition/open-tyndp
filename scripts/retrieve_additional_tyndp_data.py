@@ -27,6 +27,7 @@ Currently, this is used for the following additional datasets:
 
 import logging
 import os
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -36,37 +37,39 @@ logger = logging.getLogger(__name__)
 
 # TODO: retrieve_additional_tyndp_data needs to be deprecated once all TYNDP data is added to the TYNDP data bundle
 
+
+def retrieve_bundle(url: str, source: str, to_dir: str, disable_progress: bool = False):
+    to_fn = Path(to_dir, Path(url).name)
+
+    # download data
+    logger.info(f"Downloading TYNDP {source} data from '{url}'.")
+    progress_retrieve(url, to_fn, disable=disable_progress)
+
+    # extract if needed
+    if (
+        zipfile.is_zipfile(to_fn) and to_fn.suffix.lower() != ".xlsx"
+    ):  # xlsx are valid zip files
+        logger.info(f"Extracting TYNDP {source} data.")
+        with zipfile.ZipFile(to_fn, "r") as zip_ref:
+            zip_ref.extractall(to_dir)
+        os.remove(to_fn)
+        shutil.rmtree(Path(to_dir, "__MACOSX"), ignore_errors=True)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("retrieve_tyndp_pecd_data")
-        rootpath = ".."
-    else:
-        rootpath = "."
+        snakemake = mock_snakemake("retrieve_tyndp_hydro_inflow")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
     disable_progress = snakemake.config["run"].get("disable_progressbar", False)
 
-    source = snakemake.params.source
-    to_fn = snakemake.output.dir
-    tyndp_bundle_fn = Path(rootpath, snakemake.params["tyndp_bundle"])
-    to_fn_zp = to_fn + ".zip"
-
-    # define url
     url = snakemake.params.url
+    source = snakemake.params.source
+    to_dir = snakemake.output.dir
 
-    # download .zip file
-    logger.info(f"Downloading TYNDP {source} data from '{url}'.")
-    progress_retrieve(url, to_fn_zp, disable=disable_progress)
+    retrieve_bundle(url, source, to_dir, disable_progress)
 
-    # extract
-    logger.info(f"Extracting TYNDP {source} data.")
-    with zipfile.ZipFile(to_fn_zp, "r") as zip_ref:
-        zip_ref.extractall(tyndp_bundle_fn)
-
-    # remove .zip file
-    os.remove(to_fn_zp)
-
-    logger.info(f"TYNDP {source} data available in '{to_fn}'.")
+    logger.info(f"TYNDP {source} data available in '{to_dir}'.")

@@ -1,4 +1,5 @@
 ..
+  SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
   SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 
   SPDX-License-Identifier: CC-BY-4.0
@@ -7,6 +8,22 @@
 Limitations
 ##########################################
 
+.. warning::
+
+  This list of limitations is incomplete and will be added to over time.
+
+Limitations of the TYNDP
+=========
+The Ten-Year Network Development Plan is subject to several assumptions and modelling simplifications that are crucial to the optimization results.
+The Open-TYNDP project does not aim to change or improve any of the existing TYNDP methodology but to rather reproduce it.
+For a comprehensive overview of the TYNDP modelling methodology and its limitations refer to the `2024 TYNDP Scenarios Methodology Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__.
+
+.. seealso::
+  Refer also to the current `development status <https://open-tyndp.readthedocs.io/en/latest/index.html#development-status>`__ of the Open-TYNDP project for an overview of currently implemented and missing features.
+
+Limitations of PyPSA-Eur
+=========
+
 While the benefit of an openly available, functional and partially validated
 model of the European energy system is high, many approximations have
 been made due to missing data.
@@ -14,12 +31,8 @@ The limitations of the dataset are listed below,
 both as a warning to the user and as an encouragement to assist in
 improving the approximations.
 
-.. warning::
-
-  This list of limitations is incomplete and will be added to over time.
-
 .. seealso::
-  See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__.
+  See also the `GitHub repository issues <https://github.com/pypsa/pypsa-eur/issues>`__.
 
 - **Electricity transmission network topology:**
   The grid data is based on a map of the ENTSO-E area that is known
