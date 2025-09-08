@@ -412,7 +412,7 @@ def aggregate_costs(n, flatten=False, opts=None, existing_only=False):
 def progress_retrieve(url, file, disable=False):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
-    os.makedirs(os.path.dirname(file.resolve()), exist_ok=True)
+    Path(file).parent.mkdir(parents=True, exist_ok=True)
 
     if disable:
         response = requests.get(url, headers=headers, stream=True)
