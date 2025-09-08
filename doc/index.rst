@@ -79,7 +79,7 @@ Development status
 .. warning::
     Open-TYNDP is under active development and is not yet feature-complete. The current development status and general :doc:`limitations` are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the PyPSA-Eur repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ also remains work in progress.
 
-✅ Already implemented features
+Already implemented features
 -------------------------------
 
 The back-casting of the 2024 TYNDP cycle involves developing new features based on the published `modelling methodology report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__. Major and already implemented features are summarized below. Please, refer to the :doc:`release_notes` for a more comprehensive list of features and to the relevant `pull requests <https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22>`__ for extensive documentation of the implementations.
@@ -128,7 +128,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
           :alt: Open-TYNDP offshore topology
 |
 
-🔨 Features in development
+Features in development
 --------------------------
 
 While multiple TYNDP features are already introduced to the Open-TYNDP model, there are several other features and assumptions that are still in development and currently rely on default implementations and assumptions from PyPSA-Eur.
