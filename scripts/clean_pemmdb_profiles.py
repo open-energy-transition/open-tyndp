@@ -67,17 +67,199 @@ CONVENTIONALS = [
 ]
 
 
+def _read_thermal_profiles(
+    fn: Path,
+    pemmdb_tech: str,
+    tyndp_scenario: str,
+    pyear_i: int,
+    node: str,
+    sns: pd.DatetimeIndex,
+    index_year: pd.DatetimeIndex,
+) -> xr.Dataset:
+    """Read and clean thermal (conventionals & hydrogen) profiles."""
+
+    # read data
+    must_runs = (
+        pd.read_excel(
+            fn,
+            sheet_name="Thermal",
+            skiprows=7,
+            usecols=[0, 1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+            names=[
+                "carrier",
+                "type",
+                "unit",
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+            ],
+        )
+        .drop([0, 1, 2])
+        .dropna(how="all")
+        .assign(
+            carrier=lambda df: df.carrier.ffill(),
+            type=lambda df: df.type.ffill().fillna(df.carrier),
+        )
+        .query("unit == '% of installed capacity' and carrier == @pemmdb_tech")
+        .drop(columns=["unit"])
+        .set_index(["carrier", "type"])
+        .div(1e2)  # percentage conversion
+    )
+
+    # Transform to monthly lookup
+    must_runs = must_runs.set_index(must_runs.index.map("_".join)).T
+
+    # map to hourly Datetime index
+    df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
+    for type in must_runs.columns:
+        df[type] = df["month"].map(must_runs[type])
+    df.drop(columns="month", inplace=True)
+
+    # flatten and turn into xarray dataset
+    profiles = (
+        df.reset_index(names="time")
+        .melt(id_vars="time", var_name="type", value_name="p_min_pu")
+        .assign(
+            carrier=pemmdb_tech, bus=node, p_max_pu=1.0
+        )  # also set p_max_pu with default value of 1.0
+        .set_index(["time", "bus", "carrier", "type"])
+        .to_xarray()
+        .sel(time=sns)  # filter for snapshots only
+    )
+
+    # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
+    if tyndp_scenario != "NT" and pyear_i > 2030:
+        profiles = profiles.assign(p_min_pu=0.0)
+
+    return profiles
+
+
+def _read_other_res_profiles(fn: Path, node: str, sns: pd.DatetimeIndex) -> xr.Dataset:
+    """Read and clean `Other RES` profiles."""
+    pass  # Placeholder
+
+
+def _read_other_nonres_profiles(
+    fn: Path,
+    pemmdb_tech: str,
+    cyear: int,
+    node: str,
+    sns: pd.DatetimeIndex,
+    index_year: pd.DatetimeIndex,
+) -> xr.Dataset:
+    """
+    Read and clean `Other Non-RES` profiles.
+    """
+
+    # read data
+    df = pd.read_excel(fn, sheet_name="Other Non-RES", skiprows=7, index_col=1).rename(
+        index={
+            "Installed capacity \n(MW)": "p_nom",
+            "PEMMDB type(s)": "type",
+            "Start climate year": "cyear_start",
+            "End climate year": "cyear_end",
+        }
+    )
+
+    # Create mask to filter for given climate year
+    cyear_start = pd.to_numeric(df.loc["cyear_start", :], errors="coerce")
+    cyear_end = pd.to_numeric(df.loc["cyear_end", :], errors="coerce")
+    mask = (cyear_start <= cyear) & (cyear <= cyear_end)
+
+    if not mask.any():
+        logger.warning(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+
+    # Filter for climate year and rename single column
+    df = df.loc[:, mask]
+    if df.shape[1] != 1:
+        logger.warning(
+            f"Expected max 1 column to match climate year {cyear} for '{pemmdb_tech}' at {node}, got {df.shape[1]}. Using first entry only."
+        )
+        df = df.iloc[:, :1]  # Take only first column
+
+    df = df.set_axis(["p_max"], axis="columns")
+
+    # Extract capacity and plant type
+    cap = pd.to_numeric(df.loc["p_nom", "p_max"], errors="coerce")
+    type = df.loc["type", "p_max"]
+
+    if pd.isna(cap) or cap <= 0:
+        logger.warning(f"Invalid capacity data for '{pemmdb_tech}' at {node}")
+        return None
+
+    profiles = (
+        df.iloc[10:]
+        .reset_index(drop=True)
+        .assign(
+            p_nom=cap,
+            p_max_pu=lambda x: x.p_max / cap,  # calculate per unit availability
+            p_min_pu=0.0,
+            time=index_year,
+            bus=node,
+            carrier=pemmdb_tech,
+            type=type,
+        )
+        .set_index(["time", "bus", "carrier", "type"])[["p_min_pu", "p_max_pu"]]
+        .to_xarray()
+        .sel(time=sns)
+    )
+
+    return profiles
+
+
 def read_pemmdb_profiles(
     node: str,
     pemmdb_dir: str,
     tyndp_scenario: str,
-    cyear: str,
+    cyear: int,
     pyear: int,
     pyear_i: int,
     pemmdb_tech: str,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
 ) -> xr.Dataset:
+    """
+    Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
+    from PEMMDB for a given technology, planning and climate year.
+
+    Parameters
+    ----------
+    node : str
+        Node name to read data for.
+    pemmdb_dir : str
+        Path to directory containing PEMMDB data.
+    tyndp_scenario : str
+        TYNDP scenario to read data for.
+    cyear : int
+        Climate year to read data for.
+    pyear : int
+        Planning year to read data for. Can be fallback year to available data.
+    pyear_i : int
+        Original planning year.
+    pemmdb_tech : str
+        PEMMDB technology to read data for.
+    sns : pd.DatetimeIndex
+        Modelled snapshots.
+    index_year : pd.DatetimeIndex
+        Hourly Datetime index for a full given cyear.
+
+    Returns
+    -------
+    profiles : xr.Dataset
+        xarray dataset containing must run obligations (p_min_pu) and availability (p_max_pu) profiles.
+    """
     fn = Path(
         pemmdb_dir,
         str(pyear),
@@ -85,135 +267,33 @@ def read_pemmdb_profiles(
     )
 
     if not fn.is_file():
-        logger.warning(f"No PEMMDB data available for {node} in {pyear}.")
+        logger.info(f"No PEMMDB data available for {node} in {pyear}.")
         return None
 
-    # Conventionals & Hydrogen
-    if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
-        # read data
-        must_runs = (
-            pd.read_excel(
-                fn,
-                sheet_name="Thermal",
-                skiprows=7,  # first seven rows are metadata
-                usecols=[0, 1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-                names=[
-                    "carrier",
-                    "type",
-                    "unit",
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                ],
+    try:
+        # Conventionals & Hydrogen
+        if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
+            return _read_thermal_profiles(
+                fn, pemmdb_tech, tyndp_scenario, pyear_i, node, sns, index_year
             )
-            .drop([0, 1, 2])
-            .dropna(how="all")
-            .assign(
-                **{
-                    "carrier": lambda df: df.carrier.ffill(),
-                    "type": lambda df: df.type.ffill().fillna(df.carrier),
-                }
+
+        # Other RES
+        elif pemmdb_tech == "Other RES":
+            return _read_other_res_profiles(fn, node, sns)
+
+        # Other Non-RES
+        elif pemmdb_tech == "Other Non-RES":
+            return _read_other_nonres_profiles(
+                fn, pemmdb_tech, cyear, node, sns, index_year
             )
-            .query("unit == '% of installed capacity'")
-            .drop(columns=["unit"])
-            .set_index(["carrier", "type"])
-            .div(1e2)  # percentage conversion
-            .query("carrier == @pemmdb_tech")
-        )
-        must_runs = must_runs.set_index(must_runs.index.map("_".join)).T
 
-        df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
-
-        for type in must_runs.columns:
-            df[type] = df["month"].map(must_runs[type])
-        df.drop(columns="month", inplace=True)
-
-        profiles = (
-            df.reset_index(names="time")
-            .melt(id_vars="time", var_name="type", value_name="p_min_pu")
-            .assign(carrier=pemmdb_tech, bus=node, p_max_pu=1.0)
-            .set_index(["time", "bus", "carrier", "type"])
-            .to_xarray()
-            .sel(time=sns)  # filter for snapshots only
-        )
-
-        # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
-        if tyndp_scenario != "NT" and pyear_i > 2030:
-            profiles = profiles.assign(p_min_pu=0.0)
-
-    # Other RES
-    elif pemmdb_tech == "Other RES":
-        must_runs = pd.read_excel(
-            fn,
-            sheet_name="Other RES",
-        )
-
-    # Other Non-RES
-    elif pemmdb_tech == "Other Non-RES":
-        # read data
-        df = pd.read_excel(
-            fn,
-            sheet_name="Other Non-RES",
-            skiprows=7,  # first seven rows are metadata
-            index_col=1,
-        ).rename(index={"Installed capacity \n(MW)": "p_nom", "PEMMDB type(s)": "type"})
-
-        # create filter mask for column that matches the specified climate year
-        # start_years = pd.to_numeric(df.iloc[7], errors='coerce')
-        start_years = pd.to_numeric(df.loc["Start climate year", :], errors="coerce")
-        # end_years = pd.to_numeric(df.iloc[8], errors='coerce')
-        end_years = pd.to_numeric(df.loc["End climate year", :], errors="coerce")
-        mask = (start_years <= cyear) & (cyear <= end_years)
-
-        if not mask.any():
-            logger.warning(
-                f"No data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
-            )
+        else:
             return None
 
-        df = (
-            df.loc[:, mask].set_axis(  # filter for climate year
-                ["p_max"], axis="columns"
-            )  # rename the column
+    except Exception as e:
+        raise Exception(
+            f"Error reading PEMMDB profiles for '{pemmdb_tech}' at {node} for climate year {cyear} and planning year {pyear}: {e}"
         )
-
-        # extract capacity for per unit calculation and plant type
-        cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce").values[0]
-        type = df.loc["type", :].values[0]
-
-        profiles = (
-            df.reset_index(drop=True)
-            .loc[10:, :]
-            .assign(
-                p_nom=cap,
-                p_max_pu=lambda df: df.p_max
-                / df.p_nom,  # calculate per unit availability
-                p_min_pu=0.0,
-                time=index_year,
-                bus=node,
-                carrier=pemmdb_tech,
-                type=type,
-            )
-            .set_index(["time", "bus", "carrier", "type"])[
-                ["p_min_pu", "p_max_pu"]
-            ]  # only keep per unit columns
-            .to_xarray()
-            .sel(time=sns)
-        )
-
-    else:
-        return None
-
-    return profiles
 
 
 if __name__ == "__main__":
@@ -238,7 +318,7 @@ if __name__ == "__main__":
         freq="h",
     )
     # Only climate years 1995, 2008 and 2009 are available for all technologies and countries
-    if int(cyear) not in [1995, 2008, 2009]:
+    if cyear not in [1995, 2008, 2009]:
         logger.warning(
             "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
         )
@@ -285,6 +365,12 @@ if __name__ == "__main__":
             for profile in tqdm(pool.imap(func, nodes), **tqdm_kwargs)
             if profile is not None
         ]
+
+    if not profiles:
+        raise Exception(
+            f"No PEMMDB profiles available for '{tech}' with climate year {cyear} and planning year {pyear}. "
+            f"Please specify different technology, climate year or planning year."
+        )
 
     # merge pemmdb profiles into one xarray dataset and save
     ds = xr.merge(profiles)

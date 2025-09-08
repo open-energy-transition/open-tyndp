@@ -67,13 +67,130 @@ CONVENTIONALS = [
 ]
 
 
+def _read_thermal_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.DataFrame:
+    """
+    Read and clean thermal (conventionals & hydrogen) capacities.
+    """
+    # read capacities (p_nom)
+    df = (
+        pd.read_excel(
+            fn,
+            sheet_name="Thermal",
+            skiprows=7,
+            usecols=[0, 1, 2],
+            names=["carrier", "type", "p_nom"],
+        )
+        .iloc[3:]
+        .dropna(how="all")
+        .assign(
+            carrier=lambda x: x.carrier.ffill(),
+            type=lambda x: x.type.fillna(x.carrier),
+            p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
+            efficiency=1.0,  # capacities are in MWel and no efficiencies are given
+            bus=node,
+            country=node[:2],
+        )
+        .query("carrier == @pemmdb_tech")
+        .reset_index(drop=True)
+    )
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+        )
+        return None
+
+    return df
+
+
+def _read_other_nonres_capacities(
+    fn: Path, node: str, cyear: str, pemmdb_tech: str
+) -> pd.DataFrame:
+    """
+    Read and clean `Other Non-RES` profiles.
+    """
+    # read raw data and filter for price band columns
+    df = pd.read_excel(
+        fn,
+        sheet_name="Other Non-RES",
+        skiprows=7,
+        index_col=1,
+        nrows=9,
+    ).filter(like="Price Band")
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+
+    column_names = [
+        "p_nom",
+        "units_count",
+        "type",
+        "purpose",
+        "price",
+        "efficiency",
+        "co2_factor",
+        "cyear_start",
+        "cyear_end",
+    ]
+
+    df = (
+        df.set_axis(column_names)
+        .T.assign(
+            carrier="Other Non-RES",
+            bus=node,
+            country=node[:2],
+            cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
+            cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
+            p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
+            units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
+            price=lambda x: pd.to_numeric(x.price, errors="coerce"),
+            efficiency=lambda x: pd.to_numeric(x.efficiency, errors="coerce"),
+            co2_factor=lambda x: pd.to_numeric(x.co2_factor, errors="coerce"),
+        )
+        .query("cyear_start <= @cyear and cyear_end >= @cyear")
+        .reset_index(drop=True)
+    )
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+        )
+        return None
+
+    return df
+
+
 def read_pemmdb_capacities(
     node: str,
     pemmdb_dir: str,
     cyear: str,
     pyear: int,
     pemmdb_tech: str,
-) -> pd.Series:
+) -> pd.DataFrame:
+    """
+    Read and clean capacities from PEMMDB for a given technology, planning and climate year.
+
+    Parameters
+    ----------
+    node : str
+        Node name to read data for.
+    pemmdb_dir : str
+        Path to directory containing PEMMDB data.
+    cyear : int
+        Climate year to read data for.
+    pyear : int
+        Planning year to read data for. Can be fallback year to available data.
+    pemmdb_tech : str
+        PEMMDB technology to read data for.
+
+    Returns
+    -------
+    df : pd.DataFrame
+        Ddataframe containing NT capacities (p_nom) in long format for the given pemmdb technology.
+    """
     fn = Path(
         pemmdb_dir,
         str(pyear),
@@ -81,130 +198,57 @@ def read_pemmdb_capacities(
     )
 
     if not os.path.isfile(fn):
+        logger.info(f"No PEMMDB data available for {node} in {pyear}.")
         return None
 
-    # Conventionals & Hydrogen
-    if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
-        # read capacities (p_nom)
-        df = (
-            pd.read_excel(
-                fn,
-                sheet_name="Thermal",
-                skiprows=7,  # first seven rows are metadata
-                usecols=[0, 1, 2],
-                names=["carrier", "type", "p_nom"],
-            )
-            .drop([0, 1, 2])
-            .dropna(how="all")
-            .assign(
-                **{
-                    "carrier": lambda df: df["carrier"].ffill(),
-                    "efficiency": 1.0,  # capacities are in MWel and no efficiencies are given
-                    "type": lambda df: df["type"].fillna(df.carrier),
-                    "bus": node,
-                    "country": node[:2],
-                }
-            )
-            .query("carrier == @pemmdb_tech")
+    try:
+        # Conventionals & Hydrogen
+        if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
+            return _read_thermal_capacities(fn, node, pemmdb_tech)
+
+        # Other Non-RES
+        elif pemmdb_tech == "Other Non-RES":
+            return _read_other_nonres_capacities(fn, node, cyear, pemmdb_tech)
+
+        # Wind
+        elif pemmdb_tech == "Wind":
+            pass  # placeholder
+
+        # Solar
+        elif pemmdb_tech == "Solar":
+            pass  # placeholder
+
+        # Hydro
+        elif pemmdb_tech == "Hydro":
+            pass  # placeholder
+
+        # Other RES
+        elif pemmdb_tech == "Other RES":
+            pass  # placeholder
+
+        # Reserves
+        elif pemmdb_tech == "Reserves":
+            pass  # placeholder
+
+        # DSR
+        elif pemmdb_tech == "DSR":
+            pass  # placeholder
+
+        # Battery
+        elif pemmdb_tech == "Battery":
+            pass  # placeholder
+
+        # Electrolyser
+        elif pemmdb_tech == "Electrolyser":
+            pass  # placeholder
+
+        else:
+            return None
+
+    except Exception as e:
+        raise Exception(
+            f"Error reading capacities for {pemmdb_tech} at {node} for climate year {cyear} and planning year {pyear}: {e}"
         )
-
-    # Other Non-RES
-    elif pemmdb_tech == "Other Non-RES":
-        df = (
-            pd.read_excel(
-                fn,
-                sheet_name="Other Non-RES",
-                skiprows=7,  # first seven rows are metadata
-                index_col=1,
-                nrows=9,  # capacity information is only at the top of the file
-            )
-            .filter(like="Price Band")
-            .set_axis(
-                [
-                    "p_nom",
-                    "units_count",
-                    "type",
-                    "purpose",
-                    "price",
-                    "efficiency",
-                    "co2_factor",
-                    "cyear_start",
-                    "cyear_end",
-                ]
-            )
-            .T.assign(
-                **{
-                    "carrier": "Other Non-RES",
-                    "bus": node,
-                    "country": node[:2],
-                    "cyear_start": lambda x: x.cyear_start.astype(int),
-                    "cyear_end": lambda x: x.cyear_end.astype(int),
-                }
-            )
-            .query("cyear_start <= @cyear and cyear_end >= @cyear")
-            .reset_index(drop=True)
-        )
-
-    # Wind
-    elif pemmdb_tech == "Wind":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Wind",
-        )
-
-    # Solar
-    elif pemmdb_tech == "Solar":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Solar",
-        )
-
-    # Hydro
-    elif pemmdb_tech == "hydro":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Hydro",
-        )
-
-    # Other RES
-    elif pemmdb_tech == "Other RES":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Other RES",
-        )
-
-    # Reserves
-    elif pemmdb_tech == "Reserves":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Reserves",
-        )
-
-    # DSR
-    elif pemmdb_tech == "DSR":
-        df = pd.read_excel(
-            fn,
-            sheet_name="DSR",
-        )
-
-    # Battery
-    elif pemmdb_tech == "Battery":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Battery",
-        )
-
-    # Electrolyser
-    elif pemmdb_tech == "Electrolyser":
-        df = pd.read_excel(
-            fn,
-            sheet_name="Electrolyser",
-        )
-
-    else:
-        return None
-
-    return df
 
 
 if __name__ == "__main__":
@@ -267,7 +311,17 @@ if __name__ == "__main__":
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
-        pemmdb_capacities = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
+        pemmdb_capacities = [
+            caps
+            for caps in tqdm(pool.imap(func, nodes), **tqdm_kwargs)
+            if caps is not None
+        ]
+
+    if not pemmdb_capacities:
+        raise Exception(
+            f"No PEMMDB capacities available for '{tech}' with climate year {cyear} and planning year {pyear}. "
+            f"Please specify different technology, climate year or planning year."
+        )
 
     pemmdb_capacities_df = (
         pd.concat(pemmdb_capacities, axis=0)[
