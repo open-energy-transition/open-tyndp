@@ -32,7 +32,7 @@ This repository is maintained using [OET's soft-fork strategy](https://open-ener
 
 # Development status
 
-**WARNING**: Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [Limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
+**Warning**: Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [Limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
 ## ✅ Already implemented features
 
@@ -83,7 +83,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 |                                                        |     Industrial electricity and hydrogen demands     |                                                                                                                                          |   ⌛    |
 |                                                        |                   Hydrogen zones                    |                                   [#17](https://github.com/open-energy-transition/open-tyndp/pull/17)                                    |   ✅    |
 
-**SEE ALSO**: See also the [GitHub repository issues](https://github.com/open-energy-transition/open-tyndp/issues) for a comprehensive list of currently open issues.
+**See also**: See also the [GitHub repository issues](https://github.com/open-energy-transition/open-tyndp/issues) for a comprehensive list of currently open issues.
 
 # Repository structure
 

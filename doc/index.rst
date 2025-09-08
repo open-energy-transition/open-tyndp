@@ -243,6 +243,9 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__
      - ✅
 
+.. seealso::
+  See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
+
 Background on PyPSA-Eur
 =========
 
