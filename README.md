@@ -53,7 +53,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 
 ## 🔨 Features in development
 
-While multiple TYNDP features are already introduced to the Open-TYNDP model, there are several features and assumptions that are still in development and currently rely on default implementations and assumptions from PyPSA-Eur.
+While multiple TYNDP features are already introduced to the Open-TYNDP model, there are several other features and assumptions that are still in development and currently rely on default implementations and assumptions from PyPSA-Eur.
 
 |                       Milestone                        |                       Feature                       |                                                                    PR                                                                    | Status |
 |:------------------------------------------------------:|:---------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------:|:------:|

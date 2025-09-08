@@ -14,8 +14,8 @@ Limitations
 
 Limitations of the TYNDP
 =========
-The Ten-Year Network Development Plan is subject to several assumptions and modelling simplifications which are crucial to the results of the optimization.
-The Open-TYNDP project does not aim to change or improve any of the existing TYNDP methodology but rather reproduce it.
+The Ten-Year Network Development Plan is subject to several assumptions and modelling simplifications that are crucial to the optimization results.
+The Open-TYNDP project does not aim to change or improve any of the existing TYNDP methodology but to rather reproduce it.
 For a comprehensive overview of the TYNDP modelling methodology and its limitations refer to the `2024 TYNDP Scenarios Methodology Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__.
 
 .. seealso::
