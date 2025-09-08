@@ -172,11 +172,11 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - Offshore grid
-     - `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__, `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__
+     - `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__
      - ✅
    * -
      - PECD data
-     - `#71 <https://github.com/open-energy-transition/open-tyndp/pull/71>`__
+     - `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__, `#71 <https://github.com/open-energy-transition/open-tyndp/pull/71>`__
      - ✅
    * -
      - Hydro inflows
