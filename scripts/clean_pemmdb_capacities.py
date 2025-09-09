@@ -44,6 +44,7 @@ import os
 from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -65,6 +66,60 @@ CONVENTIONALS = [
     "Heavy oil",
     "Oil shale",
 ]
+
+UNIT_CONVERSION = {
+    "TWh": 1e6,  # TWh to MWh
+    "GWh": 1e3,  # GWh to MWh
+    "MWh": 1,  # MWh to MWh
+    "kWh": 1e-3,  # kWh to MWh
+    "GW": 1e3,  # GW to MW
+    "MW": 1,  # MW to MW
+    "kW": 1e-3,  # kW to MW
+}
+
+
+def _convert_units(
+    df: pd.DataFrame,
+    unit_conversion: dict[str, float],
+    source_unit_col: str = "unit",
+    value_col: str = "value",
+) -> pd.DataFrame:
+    """
+    Convert units and add unit columns.
+    Automatically determines target unit based on source unit type:
+    - Energy units (TWh, GWh, MWh, kWh) → MWh
+    - Power units (GW, MW, kW) → MW
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Long-format DataFrame containing values to convert.
+    unit_conversion : dict[str, float]
+        Dictionary mapping units to conversion factors (to base unit).
+    source_unit_col : str, default "unit
+        Name of the column containing the source unit of the values.
+    value_col : str, default "value"
+        Name of the column containing values to convert.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with converted values and unit columns added.
+    """
+    # Determine target unit based on source unit type
+    energy_units = {"TWh", "GWh", "MWh", "kWh"}
+    power_units = {"GW", "MW", "kW"}
+
+    # Convert values using conversion factors from config
+    conversion_factors = df[source_unit_col].map(unit_conversion)
+    df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
+
+    # rename unit
+    df["unit"] = df[source_unit_col].apply(
+        lambda x: "MWh" if x in energy_units else "MW" if x in power_units else x
+    )
+
+    return df
 
 
 def _read_thermal_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.DataFrame:
@@ -89,6 +144,7 @@ def _read_thermal_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.DataFr
             efficiency=1.0,  # capacities are in MWel and no efficiencies are given
             bus=node,
             country=node[:2],
+            unit="MW",
         )
         .query("carrier == @pemmdb_tech")
         .reset_index(drop=True)
@@ -142,6 +198,7 @@ def _read_other_nonres_capacities(
             carrier="Other Non-RES",
             bus=node,
             country=node[:2],
+            unit="MW",
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -163,12 +220,80 @@ def _read_other_nonres_capacities(
     return df
 
 
+def _parse_index_parts(
+    index: pd.Index, pemmdb_tech: str
+) -> tuple[pd.Series, pd.Series]:
+    """
+    Parse index parts of PEMMDB renewable capacity sheets based on technology type.
+    """
+    if pemmdb_tech == "Hydro":
+        parts = index.str.split(r" - |capacity |\s*\(|\)", regex=True)
+        type_series = parts.str[0]
+        unit_series = parts.str[-2]
+    else:
+        parts = index.str.split(r"capacities |\s*\(|\)", regex=True)
+        type_series = parts.str[1]
+        unit_series = parts.str[2]
+
+    return type_series, unit_series
+
+
+def _read_res_capacities(
+    fn: Path, node: str, pemmdb_tech: str, unit_conversion: dict[str, float]
+) -> pd.DataFrame:
+    """
+    Read and clean `RES` (Solar, Wind, Hydro) capacities.
+    """
+    # read data
+    df = pd.read_excel(
+        fn, sheet_name=pemmdb_tech, skiprows=6, index_col=0, names=["p_nom"]
+    ).dropna()
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+        )
+        return None
+
+    # Induce type and unit from index
+    types, units = _parse_index_parts(df.index, pemmdb_tech)
+
+    df = df.assign(
+        bus=node,
+        country=node[:2],
+        carrier=pemmdb_tech,
+        efficiency=1.0,  # no efficiencies given but capacity in MWel
+        type=types,
+        unit=units,
+        element=lambda x: np.select(
+            [
+                x.index.str.contains("turbining", case=False, na=False),
+                x.index.str.contains("pumping", case=False, na=False),
+                x.index.str.contains("reservoir", case=False, na=False),
+                x.index.str.contains("Storage capacities", case=False, na=False),
+            ],
+            ["Turbine", "Pump", "Reservoir", "Storage"],
+            default="",
+        ),
+    )
+
+    # Update type to include element information where needed
+    df["type"] = np.where(
+        df["element"] != "", df["type"] + " - " + df["element"], df["type"]
+    )
+
+    df = _convert_units(df, unit_conversion, "unit", "p_nom").reset_index(drop=True)
+
+    return df
+
+
 def read_pemmdb_capacities(
     node: str,
     pemmdb_dir: str,
     cyear: str,
     pyear: int,
     pemmdb_tech: str,
+    unit_conversion: dict[str, float],
 ) -> pd.DataFrame:
     """
     Read and clean capacities from PEMMDB for a given technology, planning and climate year.
@@ -185,10 +310,12 @@ def read_pemmdb_capacities(
         Planning year to read data for. Can be fallback year to available data.
     pemmdb_tech : str
         PEMMDB technology to read data for.
+    unit_conversion : dict[str, float]
+        Dictionary mapping units to conversion factors (to base unit).
 
     Returns
     -------
-    df : pd.DataFrame
+    pd.DataFrame
         Ddataframe containing NT capacities (p_nom) in long format for the given pemmdb technology.
     """
     fn = Path(
@@ -210,17 +337,9 @@ def read_pemmdb_capacities(
         elif pemmdb_tech == "Other Non-RES":
             return _read_other_nonres_capacities(fn, node, cyear, pemmdb_tech)
 
-        # Wind
-        elif pemmdb_tech == "Wind":
-            pass  # placeholder
-
-        # Solar
-        elif pemmdb_tech == "Solar":
-            pass  # placeholder
-
-        # Hydro
-        elif pemmdb_tech == "Hydro":
-            pass  # placeholder
+        # Renewables (Solar, Wind, Hydro)
+        elif pemmdb_tech in ["Solar", "Wind", "Hydro"]:
+            return _read_res_capacities(fn, node, pemmdb_tech, unit_conversion)
 
         # Other RES
         elif pemmdb_tech == "Other RES":
@@ -308,6 +427,7 @@ if __name__ == "__main__":
         cyear=cyear,
         pyear=pyear,
         pemmdb_tech=tech,
+        unit_conversion=UNIT_CONVERSION,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
@@ -325,7 +445,7 @@ if __name__ == "__main__":
 
     pemmdb_capacities_df = (
         pd.concat(pemmdb_capacities, axis=0)[
-            ["carrier", "bus", "type", "p_nom", "efficiency", "country"]
+            ["carrier", "bus", "type", "p_nom", "efficiency", "country", "unit"]
         ]  # # select and order relevant columns
     ).reset_index(drop=True)
 
