@@ -196,7 +196,7 @@ def load_benchmark(
     # Handle each table type
     opt = options["tables"][table]
     table_type = opt["table_type"]
-    if table_type not in ["scenario_comparison", "time_serie"]:
+    if table_type not in ["scenario_comparison", "time_series"]:
         logger.warning(f"Table type '{table_type}' not implemented yet")
         return pd.DataFrame()
 

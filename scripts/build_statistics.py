@@ -37,7 +37,7 @@ def compute_benchmark(n: pypsa.Network, table: str, options: dict) -> pd.DataFra
         Benchmark data in long format.
     """
     opt = options["tables"][table]
-    map = opt.get("map", {})
+    map = opt.get("mapping", {})
     elec_bus_carrier = ["AC", "AC_OH", "low voltage"]
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
