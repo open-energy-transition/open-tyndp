@@ -34,9 +34,6 @@ if __name__ == "__main__":
         from _helpers import mock_snakemake
 
         snakemake = mock_snakemake("retrieve_tyndp_bundle")
-        rootpath = ".."
-    else:
-        rootpath = "."
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
