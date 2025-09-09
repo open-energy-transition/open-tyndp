@@ -228,6 +228,7 @@ if config["enable"]["retrieve"]:
             source="Benchmarks",
         output:
             dir=directory("data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package"),
+            file="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
         log:
             "logs/retrieve_tyndp_benchmark.log",
 
