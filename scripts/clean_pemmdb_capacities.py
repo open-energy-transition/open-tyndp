@@ -67,6 +67,12 @@ CONVENTIONALS = [
     "Oil shale",
 ]
 
+RENEWABLES = [
+    "Solar",
+    "Wind",
+    "Hydro",
+]
+
 UNIT_CONVERSION = {
     "TWh": 1e6,  # TWh to MWh
     "GWh": 1e3,  # GWh to MWh
@@ -110,11 +116,11 @@ def _convert_units(
     energy_units = {"TWh", "GWh", "MWh", "kWh"}
     power_units = {"GW", "MW", "kW"}
 
-    # Convert values using conversion factors from config
+    # Convert values using conversion factors
     conversion_factors = df[source_unit_col].map(unit_conversion)
     df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
 
-    # rename unit
+    # update unit column
     df["unit"] = df[source_unit_col].apply(
         lambda x: "MWh" if x in energy_units else "MW" if x in power_units else x
     )
@@ -338,7 +344,7 @@ def read_pemmdb_capacities(
             return _read_other_nonres_capacities(fn, node, cyear, pemmdb_tech)
 
         # Renewables (Solar, Wind, Hydro)
-        elif pemmdb_tech in ["Solar", "Wind", "Hydro"]:
+        elif pemmdb_tech in RENEWABLES:
             return _read_res_capacities(fn, node, pemmdb_tech, unit_conversion)
 
         # Other RES
