@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script computes the benchmarks from the optimised network.
+This script computes the benchmark statistics from the optimised network.
 """
 
 import logging
@@ -209,7 +209,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_benchmark",
+            "build_statistics",
             opts="",
             clusters="all",
             sector_opts="",

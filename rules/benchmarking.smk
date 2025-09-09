@@ -24,7 +24,7 @@ rule clean_tyndp_benchmark:
         "../scripts/clean_tyndp_benchmark.py"
 
 
-rule build_benchmark:
+rule build_statistics:
     params:
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
@@ -36,11 +36,11 @@ rule build_benchmark:
         + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
     log:
         logs(
-            "build_benchmark_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
+            "build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
         ),
     benchmark:
         benchmarks(
-            "build_benchmark_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            "build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     threads: 4
     resources:
@@ -48,7 +48,7 @@ rule build_benchmark:
     conda:
         "../envs/environment.yaml"
     script:
-        "../scripts/build_benchmark.py"
+        "../scripts/build_statistics.py"
 
 
 rule make_benchmark:
