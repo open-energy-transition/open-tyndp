@@ -162,6 +162,11 @@ def _compute_all_indicators(
     """
     Compute all accuracy indicators for a given dataset.
     """
+    expected_cols = ["Open-TYNDP", "TYNDP 2024"]
+    if not df.columns.tolist() == expected_cols:
+        logger.warning(f"Expected columns {expected_cols}, got {df.columns.tolist()}")
+        return pd.DataFrame()
+
     indicators = {
         "sMPE": _compute_smpe(df, model_col, rfc_col, eps),
         "sMAPE": _compute_smape(df, model_col, rfc_col, eps),
