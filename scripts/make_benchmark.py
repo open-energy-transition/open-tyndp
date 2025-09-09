@@ -83,20 +83,18 @@ def match_temporal_resolution(
     pd.DataFrame
         Aggregated DataFrame where reference data temporal resolution matches model data.
     """
-    idx_agg = (
-        df[model_col]
-        .dropna()
-        .index.get_level_values("snapshot")
-        .drop_duplicates()
-        .sort_values()
-    )
-    idx_full = (
-        df[rfc_col]
-        .dropna()
-        .index.get_level_values("snapshot")
-        .drop_duplicates()
-        .sort_values()
-    )
+
+    def _get_idx(col):
+        return (
+            df[col]
+            .dropna()
+            .index.get_level_values("snapshot")
+            .drop_duplicates()
+            .sort_values()
+        )
+
+    idx_agg = _get_idx(model_col)
+    idx_full = _get_idx(rfc_col)
 
     aggregation_map = (
         pd.Series(idx_agg.rename("map"), index=idx_agg).reindex(idx_full).ffill()

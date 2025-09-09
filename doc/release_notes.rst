@@ -12,6 +12,8 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
+* Introduce a benchmarking framework that assesses Open-TYNDP quality against published TYNDP 2024 data (https://github.com/open-energy-transition/open-tyndp/pull/73). This framework is fully integrated into the Open-TYNDP workflow, with benchmarking results included in the outputs. The methodology leverages a multi-criteria approach proposed by [Wen et al. (2022)](https://www.sciencedirect.com/science/article/pii/S0306261922011667). The rules cover processing raw data from TYNDP 2024 Scenarios packages, extracting Open-TYNDP statistics, computing accuracy metrics, and creating figures.
+
 * Add complete compatibility for processing and preparation of PECD v3.1 renewable profiles (Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, Solar CSP) (https://github.com/open-energy-transition/open-tyndp/pull/71). These profiles are used for the TYNDP 2024 and replace the default ERA5- and SARAH3-based profiles processed with Atlite. This implementation serves to facilitate a sub-workflow for creation of the renewable profiles, but does not yet attach them to any technologies.
 
 * Introduce processing of PEMMDB hydro inflows data for different hydro technologies (Run of River, Pondage, Reservoir, PS Open, PS Closed) from the 2024 TYNDP to create hydro inflow profiles (https://github.com/open-energy-transition/open-tyndp/pull/77). This implementation facilitates the sub-workflow for creating the hydro inflow profiles, but it does not yet attach them to any hydro technologies.

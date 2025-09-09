@@ -141,6 +141,7 @@ def compute_benchmark(n: pypsa.Network, table: str, options: dict) -> pd.DataFra
             aggregate_across_components=True,
         ).drop(index=["H2 pipeline", "H2 pipeline OH"])
     elif table == "biomass_supply":
+        # TODO Clarify how to deal with unsustainable sources
         df = n.statistics.supply(
             comps=supply_comps,
             bus_carrier="solid biomass",
