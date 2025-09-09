@@ -35,7 +35,7 @@ Available technologies are:
 
 Outputs
 -------
-Cleaned csv file with NT capacities (p_nom) in long format for the given pemmdb technology.
+Cleaned csv file with NT capacities (p_nom) in long format for the given pemmdb technology. Also includes information on carrier, bus, type, efficiency, country and unit.
 """
 
 import logging

@@ -531,7 +531,7 @@ def enabled_pemmdb_techs(w):
     if not pemmdb_techs_dict:
         return []
 
-    carrier_set = set(tyndp_conventional_carriers)
+    carrier_set = set(tyndp_conventional_carriers).union(tyndp_renewable_carriers)
     return [
         tech
         for tech, values in pemmdb_techs_dict.items()
