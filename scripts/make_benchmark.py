@@ -259,7 +259,7 @@ def compute_indicators(
 
 
 def compare_sources(
-    table: str, options: dict, scenario: str, benchmarks_fn: str, results_fn: list[str]
+    table: str, scenario: str, benchmarks_fn: str, results_fn: list[str]
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
@@ -269,8 +269,6 @@ def compare_sources(
     ----------
     table : str
         Benchmark metric to compute.
-    options : dict
-        Full benchmarking configuration.
     scenario: str
         Name of scenario to compare.
     benchmarks_fn: str
@@ -349,7 +347,6 @@ if __name__ == "__main__":
 
     func = partial(
         compare_sources,
-        options=options,
         scenario=scenario,
         benchmarks_fn=benchmarks_fn,
         results_fn=results_fn,
