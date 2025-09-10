@@ -22,6 +22,54 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
+def match_temporal_resolution(df, model_col, rfc_col):
+    """
+    Match temporal resolution against reference data. Hourly time series from the rfc_col will be
+    aggregated to match the temporal resolution of model_col.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with MultiIndex containing snapshot timestamps and data columns.
+    model_col : str
+        Column name for model values with potentially lower temporal resolution.
+    rfc_col : str
+        Column name for reference values with hourly temporal resolution.
+
+    Returns
+    -------
+    pd.DataFrame
+        Aggregated DataFrame where reference data temporal resolution matches model data.
+    """
+    idx_agg = (
+        df[model_col]
+        .dropna()
+        .index.get_level_values("snapshot")
+        .drop_duplicates()
+        .sort_values()
+    )
+    idx_full = (
+        df[rfc_col]
+        .dropna()
+        .index.get_level_values("snapshot")
+        .drop_duplicates()
+        .sort_values()
+    )
+
+    aggregation_map = (
+        pd.Series(idx_agg.rename("map"), index=idx_agg).reindex(idx_full).ffill()
+    )
+    df_map = df.join(aggregation_map, on="snapshot", how="left")
+
+    df_agg = (
+        df_map.groupby(["carrier", "scenario", "year", "table", "map"])
+        .mean()
+        .rename_axis(index={"map": "snapshot"})
+    )
+
+    return df_agg
+
+
 def _compute_smpe(df: pd.DataFrame, model_col: str, rfc_col: str, eps: float) -> float:
     """
     Calculate Symmetric Mean Percentage Error (sMPE).
@@ -162,7 +210,7 @@ def _compute_all_indicators(
     """
     Compute all accuracy indicators for a given dataset.
     """
-    expected_cols = ["Open-TYNDP", "TYNDP 2024"]
+    expected_cols = [model_col, rfc_col]
     if not df.columns.tolist() == expected_cols:
         logger.warning(f"Expected columns {expected_cols}, got {df.columns.tolist()}")
         return pd.DataFrame()
@@ -193,6 +241,7 @@ def _compute_all_indicators(
 def compute_indicators(
     df_raw: pd.DataFrame,
     table: str,
+    options,
     model_col: str = "Open-TYNDP",
     rfc_col: str = "TYNDP 2024",
     carrier_col: str = "carrier",
@@ -203,6 +252,8 @@ def compute_indicators(
     Calculate accuracy indicators following Wen et al. (2022) methodology to assess model performance
     against reference data. The function expects paired columns representing workflow estimates
     and TYNDP 2024 baseline values. The function computes both per-carrier and overall indicators.
+
+    Hourly time series from the rfc_col will be aggregated to match the temporal resolution of model_col.
 
     Computes six key accuracy indicators:
     - Missing: Count of carrier dropped due to missing values
@@ -222,6 +273,8 @@ def compute_indicators(
         DataFrame to calculate indicators from.
     table : str
         Benchmark metric to compute.
+    options : dict
+        Full benchmarking configuration.
     model_col : str, default "Open-TYNDP"
         Column name for model/projected values (ŷᵢ).
     rfc_col : str, default "TYNDP 2024"
@@ -240,9 +293,17 @@ def compute_indicators(
     pd.Series
        Series containing overall accuracy indicators.
     """
-    mask = df_raw.isna().any(axis=1)
-    df = df_raw[~mask]
-    df_na = df_raw[mask]
+    opt = options["tables"][table]
+
+    # Aggregate time-varying data to the given snapshots
+    if opt["table_type"] == "time_series":
+        df_agg = match_temporal_resolution(df_raw, model_col, rfc_col)
+    else:
+        df_agg = df_raw
+
+    mask = df_agg.isna().any(axis=1)
+    df = df_agg[~mask]
+    df_na = df_agg[mask]
 
     # Compute overall indicators
     indicators = _compute_all_indicators(
@@ -264,7 +325,7 @@ def compute_indicators(
 
 
 def compare_sources(
-    table: str, scenario: str, benchmarks_fn: str, results_fn: list[str]
+    table: str, scenario: str, benchmarks_fn: str, results_fn: list[str], options: dict
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
@@ -280,6 +341,8 @@ def compare_sources(
         Path to the TYNDP benchmark metrics to compare.
     results_fn: list[str]
         List of paths to the Open-TYNDP benchmark metrics to compare.
+    options : dict
+        Full benchmarking configuration.
 
     Returns
     -------
@@ -315,7 +378,7 @@ def compare_sources(
     )
 
     # Compare sources
-    df, indicators = compute_indicators(df, table)
+    df, indicators = compute_indicators(df, table, options)
 
     return df, indicators
 
@@ -355,6 +418,7 @@ if __name__ == "__main__":
         scenario=scenario,
         benchmarks_fn=benchmarks_fn,
         results_fn=results_fn,
+        options=options,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
