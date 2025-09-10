@@ -132,6 +132,8 @@ electricity:
       - oil_shale
       Other Non-RES:
       - chp
+      Electrolyser:
+      - electrolysis
 
   estimate_renewable_capacities:
     # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation

@@ -530,12 +530,16 @@ def enabled_pemmdb_techs(w):
     tyndp_renewable_carriers = config_provider(
         "electricity", "tyndp_renewable_carriers"
     )(w)
+    h2_topology_tyndp = config_provider("sector", "h2_topology_tyndp")(w)
     pemmdb_techs_dict = pemmdb_techs(w)
 
     if not pemmdb_techs_dict:
         return []
 
     carrier_set = set(tyndp_conventional_carriers).union(tyndp_renewable_carriers)
+    if h2_topology_tyndp:
+        carrier_set = carrier_set.union(["electrolysis"])
+
     return [
         tech
         for tech, values in pemmdb_techs_dict.items()

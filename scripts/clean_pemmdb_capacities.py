@@ -329,6 +329,55 @@ def _read_other_res_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.Data
     return df
 
 
+def _read_electrolyser_capacities(
+    fn: Path, node: str, pemmdb_tech: str
+) -> pd.DataFrame:
+    """
+    Read and clean `Electrolyser` capacities.
+    """
+    # read data
+    df = (
+        pd.read_excel(
+            fn,
+            sheet_name=pemmdb_tech,
+            skiprows=7,
+            index_col=0,
+        )
+        .dropna(how="all", axis=0)
+        .dropna(how="all", axis=1)
+    )
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+
+    column_names = [
+        "p_nom",
+        "units_count",
+        "efficiency",
+        "h2_storage",
+        "ramp_limit_up",
+        "ramp_limit_down",
+        "generation_reduction",
+    ]
+
+    df = (
+        df.set_axis(column_names, axis=1)
+        .assign(
+            carrier=pemmdb_tech,
+            bus=node,
+            country=node[:2],
+            type="Onshore grid connected",
+            unit="MW",
+        )
+        .reset_index(drop=True)
+    )
+
+    return df
+
+
 def read_pemmdb_capacities(
     node: str,
     pemmdb_dir: str,
@@ -387,10 +436,6 @@ def read_pemmdb_capacities(
         elif pemmdb_tech == "Other RES":
             return _read_other_res_capacities(fn, node, pemmdb_tech)
 
-        # Reserves
-        elif pemmdb_tech == "Reserves":
-            pass  # placeholder
-
         # DSR
         elif pemmdb_tech == "DSR":
             pass  # placeholder
@@ -401,7 +446,7 @@ def read_pemmdb_capacities(
 
         # Electrolyser
         elif pemmdb_tech == "Electrolyser":
-            pass  # placeholder
+            return _read_electrolyser_capacities(fn, node, pemmdb_tech)
 
         else:
             return None
