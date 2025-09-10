@@ -293,6 +293,42 @@ def _read_res_capacities(
     return df
 
 
+def _read_other_res_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.DataFrame:
+    """
+    Read and clean `Other RES` capacities.
+    """
+    # read data
+    df = (
+        pd.read_excel(
+            fn,
+            sheet_name="Other RES",
+            skiprows=6,
+            usecols=[0, 1],
+            index_col=0,
+        )
+        .iloc[[0]]
+        .set_axis(["p_nom"], axis=1)
+        .reset_index(drop=True)
+        .assign(
+            bus=node,
+            country=node[:2],
+            carrier=pemmdb_tech,
+            efficiency=1.0,  # no efficiencies given but capacity in MWel
+            type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
+            unit="MW",
+        )
+        .dropna()
+    )
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+
+    return df
+
+
 def read_pemmdb_capacities(
     node: str,
     pemmdb_dir: str,
@@ -349,7 +385,7 @@ def read_pemmdb_capacities(
 
         # Other RES
         elif pemmdb_tech == "Other RES":
-            pass  # placeholder
+            return _read_other_res_capacities(fn, node, pemmdb_tech)
 
         # Reserves
         elif pemmdb_tech == "Reserves":
@@ -424,7 +460,7 @@ if __name__ == "__main__":
         "ascii": False,
         "unit": " nodes",
         "total": len(nodes),
-        "desc": "Loading PEMMDB capacities",
+        "desc": f"Loading PEMMDB capacities for {tech}",
     }
 
     func = partial(
@@ -444,7 +480,7 @@ if __name__ == "__main__":
         ]
 
     if not pemmdb_capacities:
-        raise Exception(
+        logger.warning(
             f"No PEMMDB capacities available for '{tech}' with climate year {cyear} and planning year {pyear}. "
             f"Please specify different technology, climate year or planning year."
         )

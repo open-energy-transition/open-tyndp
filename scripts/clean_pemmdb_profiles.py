@@ -43,6 +43,7 @@ import multiprocessing as mp
 from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import xarray as xr
 from tqdm import tqdm
@@ -138,14 +139,52 @@ def _read_thermal_profiles(
 
     # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
     if tyndp_scenario != "NT" and pyear_i > 2030:
-        profiles = profiles.assign(p_min_pu=0.0)
+        profiles["p_min_pu"] = xr.full_like(profiles["p_min_pu"], 0.0)
 
     return profiles
 
 
-def _read_other_res_profiles(fn: Path, node: str, sns: pd.DatetimeIndex) -> xr.Dataset:
+def _read_other_res_profiles(
+    fn: Path,
+    pemmdb_tech: str,
+    node: str,
+    pyear: int,
+    sns: pd.DatetimeIndex,
+    index_year: pd.DatetimeIndex,
+) -> xr.Dataset:
     """Read and clean `Other RES` profiles."""
-    pass  # Placeholder
+
+    # read data
+    df = pd.read_excel(fn, sheet_name="Other RES", skiprows=6, usecols=[0, 1, 2])
+
+    capacity = np.float64(df.iloc[0, 1])
+
+    if np.isnan(capacity):
+        logger.warning(
+            f"No 'Other RES' capacity found for {node} in {pyear}, hence no must-run profile available."
+        )
+        return None
+
+    profiles = (
+        df.iloc[3:, 2]
+        .to_frame()
+        .set_axis(["p_min"], axis="columns")
+        .assign(
+            p_min_pu=lambda df: pd.to_numeric(df.p_min / capacity)
+            if capacity > 0
+            else 0.0,
+            p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
+            time=index_year,
+            bus=node,
+            carrier=pemmdb_tech,
+            type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
+        )
+        .set_index(["time", "bus", "carrier", "type"])[["p_min_pu", "p_max_pu"]]
+        .to_xarray()
+        .sel(time=sns)  # filter for snapshots only
+    )
+
+    return profiles
 
 
 def _read_other_nonres_profiles(
@@ -205,7 +244,7 @@ def _read_other_nonres_profiles(
         .assign(
             p_nom=cap,
             p_max_pu=lambda x: x.p_max / cap,  # calculate per unit availability
-            p_min_pu=0.0,
+            p_min_pu=0.0,  # also set p_min_pu with default value of 0.0
             time=index_year,
             bus=node,
             carrier=pemmdb_tech,
@@ -279,7 +318,9 @@ def read_pemmdb_profiles(
 
         # Other RES
         elif pemmdb_tech == "Other RES":
-            return _read_other_res_profiles(fn, node, sns)
+            return _read_other_res_profiles(
+                fn, pemmdb_tech, node, pyear, sns, index_year
+            )
 
         # Other Non-RES
         elif pemmdb_tech == "Other Non-RES":
@@ -344,7 +385,7 @@ if __name__ == "__main__":
         "ascii": False,
         "unit": " nodes",
         "total": len(nodes),
-        "desc": "Loading PEMMDB profiles",
+        "desc": f"Loading PEMMDB profiles for {tech}",
     }
 
     func = partial(
@@ -367,7 +408,7 @@ if __name__ == "__main__":
         ]
 
     if not profiles:
-        raise Exception(
+        logger.warning(
             f"No PEMMDB profiles available for '{tech}' with climate year {cyear} and planning year {pyear}. "
             f"Please specify different technology, climate year or planning year."
         )
