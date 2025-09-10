@@ -477,7 +477,9 @@ rule clean_pemmdb_capacities:
         pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
         busmap=resources("busmap_base_s_all.csv"),
     output:
-        pemmdb_capacities=resources("pemmdb_capacities_{tech}_{planning_horizons}.csv"),
+        pemmdb_capacities=resources(
+            "pemmdb/pemmdb_capacities_{tech}_{planning_horizons}.csv"
+        ),
     log:
         logs("clean_pemmdb_capacities_{tech}_{planning_horizons}.log"),
     threads: 4
@@ -501,7 +503,9 @@ rule clean_pemmdb_profiles:
         pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
         busmap=resources("busmap_base_s_all.csv"),
     output:
-        pemmdb_profiles=resources("pemmdb_profiles_{tech}_{planning_horizons}.nc"),
+        pemmdb_profiles=resources(
+            "pemmdb/pemmdb_profiles_{tech}_{planning_horizons}.nc"
+        ),
     log:
         logs("clean_pemmdb_profiles_{tech}_{planning_horizons}.log"),
     threads: 4
@@ -543,14 +547,14 @@ def input_pemmdb_data(w):
     enabled_techs = enabled_pemmdb_techs(w)
     capacities = {
         f"pemmdb_capacities_{tech}": resources(
-            f"pemmdb_capacities_" + tech + "_{planning_horizons}.csv"
+            f"pemmdb/pemmdb_capacities_" + tech + "_{planning_horizons}.csv"
         )
         for tech in enabled_techs
     }
 
     profiles = {
         f"pemmdb_profiles_{tech}": resources(
-            f"pemmdb_profiles_" + tech + "_{planning_horizons}.nc"
+            f"pemmdb/pemmdb_profiles_" + tech + "_{planning_horizons}.nc"
         )
         for tech in enabled_techs
     }
