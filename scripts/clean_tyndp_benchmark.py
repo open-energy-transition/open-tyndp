@@ -9,6 +9,7 @@ and headers are then assigned. The data structure is subsequently converted to a
 Finally, the units are converted to standard units: MW for power units and MWh for energy units.
 """
 
+import datetime
 import logging
 import multiprocessing as mp
 from functools import partial
@@ -54,7 +55,8 @@ def _process_index(
 
     index_array = [i - 1 for i in index_col]
     df = df.iloc[:, min(index_array) :]
-    df.loc[:, index_array] = df.loc[:, index_array].ffill()
+    if len(index_col) > 1:
+        df.loc[:, index_array] = df.loc[:, index_array].ffill()
 
     df = df.set_index(index_array)
     df.index.names = names
@@ -88,8 +90,11 @@ def _process_header(
         df = df.iloc[:, : (ncolumns - df.index.nlevels) - 1]
 
     header_array = []
-    for hdr in header:
-        header_array.append(df.iloc[hdr - 1].infer_objects(copy=False).ffill().values)
+    for hdr_i in header:
+        hdr = df.iloc[hdr_i - 1]
+        if len(header) > 1:
+            hdr = hdr.infer_objects(copy=False).ffill()
+        header_array.append(hdr.values)
 
     if not header_array:
         return df
@@ -99,8 +104,9 @@ def _process_header(
     else:
         df.columns = pd.MultiIndex.from_arrays(header_array)
 
-    df = df.iloc[max(header) :]
-    df = df.dropna(how="all").infer_objects(copy=False).fillna(0.0)
+    df = df.iloc[max(header) :].dropna(how="all")
+    df = df.loc[df.index.dropna(), df.columns.dropna()]
+    df = df.infer_objects(copy=False).fillna(0.0)
 
     df.columns.names = names
 
@@ -207,6 +213,18 @@ def load_benchmark(
     nrows = opt.get("nrows", None)
     ncolumns = opt.get("ncolumns", None)
     names = opt["names"]
+
+    # Fix temporal labeling - source data uses 00:00 as end-of-period (previous day's last hour),
+    # convert to beginning-of-period (current day's first hour)
+    if table == "generation_profiles":
+        time_col = df.iloc[
+            5:, 0
+        ]  # Start reading from row 6 where actual snapshot data begins
+        datetime_series = pd.to_datetime(time_col)
+        midnight_mask = datetime_series.dt.time == datetime.time(0, 0)
+        df.loc[time_col.index[midnight_mask], df.columns[0]] = datetime_series[
+            midnight_mask
+        ] + pd.Timedelta(days=1)
 
     index_col = opt.get("index_col", table_config["index_col"])
     if isinstance(index_col, int):
