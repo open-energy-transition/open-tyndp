@@ -22,6 +22,44 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
+def load_data(benchmarks_fn: str, results_fn: str, scenario: str) -> pd.DataFrame:
+    """
+    Load Open-TYNDP and TYNDP 2024 results.
+
+    Parameters
+    ----------
+    benchmarks_fn : str
+        Path to the TYNDP 2024 benchmark data file.
+    results_fn : str
+        Path to the Open-TYNDP results data file.
+    scenario: str
+        Name of scenario to compare.
+
+    Returns
+    -------
+    benchmarks_raw : pd.DataFrame
+        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+
+    """
+
+    # Load data
+    logger.info("Loading benchmark using TYNDP 2024 and Open-TYNDP")
+    benchmarks_tyndp = pd.read_csv(benchmarks_fn).query("scenario==@scenario")
+    benchmarks_n = []
+    for fn in results_fn:
+        benchmarks_n.append(pd.read_csv(fn).query("scenario==@scenario"))
+    benchmarks_n = pd.concat(benchmarks_n)
+    benchmarks_raw = pd.concat([benchmarks_tyndp, benchmarks_n]).dropna(
+        how="all", axis=1
+    )
+
+    # Clean data
+    available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
+    benchmarks_raw = benchmarks_raw.query("year in @available_years")
+
+    return benchmarks_raw
+
+
 def match_temporal_resolution(df, model_col, rfc_col):
     """
     Match temporal resolution against reference data. Hourly time series from the rfc_col will be
@@ -325,7 +363,7 @@ def compute_indicators(
 
 
 def compare_sources(
-    table: str, scenario: str, benchmarks_fn: str, results_fn: list[str], options: dict
+    table: str, benchmarks_raw: pd.DataFrame, options: dict
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
@@ -335,12 +373,8 @@ def compare_sources(
     ----------
     table : str
         Benchmark metric to compute.
-    scenario: str
-        Name of scenario to compare.
-    benchmarks_fn: str
-        Path to the TYNDP benchmark metrics to compare.
-    results_fn: list[str]
-        List of paths to the Open-TYNDP benchmark metrics to compare.
+    benchmarks_raw: pd.DataFrame
+        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
     options : dict
         Full benchmarking configuration.
 
@@ -352,28 +386,13 @@ def compare_sources(
        Series containing single-value accuracy metrics.
     """
 
-    # Parameters
-    scenario = "TYNDP " + scenario  # noqa: F841
-
-    # Load data
-    logger.info(f"Making benchmark for {table} using TYNDP 2024 and Open-TYNDP")
-    benchmarks_tyndp = pd.read_csv(benchmarks_fn).query(
-        "table==@table and scenario==@scenario"
-    )
-    benchmarks_n = []
-    for fn in results_fn:
-        benchmarks_n.append(
-            pd.read_csv(fn).query("table==@table and scenario==@scenario")
-        )
-    benchmarks_n = pd.concat(benchmarks_n)
-    benchmarks = pd.concat([benchmarks_tyndp, benchmarks_n]).dropna(how="all", axis=1)
-
     # Clean data
-    available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
+    logger.info(f"Making benchmark for {table} using TYNDP 2024 and Open-TYNDP")
+    benchmarks = benchmarks_raw.query("table==@table")
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
     ]
-    df = benchmarks.query("year in @available_years").pivot_table(
+    df = benchmarks.pivot_table(
         index=available_columns, values="value", columns="source", dropna=False
     )
 
@@ -399,9 +418,12 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    scenario = snakemake.params["scenario"]
+    scenario = "TYNDP " + snakemake.params["scenario"]  # noqa: F841
     benchmarks_fn = snakemake.input.benchmarks
     results_fn = snakemake.input.results
+
+    # Load data
+    benchmarks_raw = load_data(benchmarks_fn, results_fn, scenario)
 
     # Compute benchmarks
     logger.info("Computing benchmarks")
@@ -415,9 +437,7 @@ if __name__ == "__main__":
 
     func = partial(
         compare_sources,
-        scenario=scenario,
-        benchmarks_fn=benchmarks_fn,
-        results_fn=results_fn,
+        benchmarks_raw=benchmarks_raw,
         options=options,
     )
 
