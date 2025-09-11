@@ -40,7 +40,8 @@ electricity:
   # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
   tyndp_conventional_carriers: [gas, coal, lignite, nuclear, oil_light, oil_heavy, oil_shale]
   renewable_carriers: [solar, solar-hsat, onwind]
-  tyndp_renewable_carriers: [hydro, onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
+  tyndp_renewable_carriers: [other_res, hydro, onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
+  tyndp_stores: ["battery", "h2_cavern", "h2_tank"]
 
   pecd_renewable_profiles:
     enable: true
@@ -87,9 +88,43 @@ electricity:
     - 2040
     - 2050
     technologies:
-    Solar:
-    - solar-pv-utility
-    - solar-pv-rooftop
+      Solar:
+      - solar-pv-utility
+      - solar-pv-rooftop
+      Wind:
+      - offwind-ac-fb-r
+      - offwind-ac-fl-r
+      - offwind-dc-fb-r
+      - offwind-dc-fl-r
+      - offwind-dc-fb-oh
+      - offwind-dc-fl-oh
+      - offwind-h2-fb-oh
+      - offwind-h2-fl-oh
+      - onwind
+      Hydro:
+      - hydro
+      Other RES:
+      - other_res
+      Gas:
+      - gas
+      Nuclear:
+      - nuclear
+      Hard coal:
+      - coal
+      Lignite:
+      - lignite
+      Light oil:
+      - oil_light
+      Heavy oil:
+      - oil_heavy
+      Oil shale:
+      - oil_shale
+      Other Non-RES:
+      - chp
+      Electrolyser:
+      - electrolysis
+      Battery:
+      - battery
 
   estimate_renewable_capacities:
     # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation

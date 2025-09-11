@@ -128,7 +128,9 @@ def _convert_units(
     return df
 
 
-def _read_thermal_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.DataFrame:
+def _read_thermal_capacities(
+    fn: Path, node: str, cyear: int, pemmdb_tech: str
+) -> pd.DataFrame:
     """
     Read and clean thermal (conventionals & hydrogen) capacities.
     """
@@ -166,7 +168,7 @@ def _read_thermal_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.DataFr
 
 
 def _read_other_nonres_capacities(
-    fn: Path, node: str, cyear: str, pemmdb_tech: str
+    fn: Path, node: str, cyear: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
     Read and clean `Other Non-RES` profiles.
@@ -245,7 +247,7 @@ def _parse_index_parts(
 
 
 def _read_res_capacities(
-    fn: Path, node: str, pemmdb_tech: str, unit_conversion: dict[str, float]
+    fn: Path, node: str, cyear: int, pemmdb_tech: str, unit_conversion: dict[str, float]
 ) -> pd.DataFrame:
     """
     Read and clean `RES` (Solar, Wind, Hydro) capacities.
@@ -293,7 +295,9 @@ def _read_res_capacities(
     return df
 
 
-def _read_other_res_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.DataFrame:
+def _read_other_res_capacities(
+    fn: Path, node: str, cyear: int, pemmdb_tech: str
+) -> pd.DataFrame:
     """
     Read and clean `Other RES` capacities.
     """
@@ -330,7 +334,7 @@ def _read_other_res_capacities(fn: Path, node: str, pemmdb_tech: str) -> pd.Data
 
 
 def _read_electrolyser_capacities(
-    fn: Path, node: str, pemmdb_tech: str
+    fn: Path, node: str, cyear: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
     Read and clean `Electrolyser` capacities.
@@ -378,10 +382,64 @@ def _read_electrolyser_capacities(
     return df
 
 
+def _read_battery_capacities(
+    fn: Path, node: str, cyear: int, pemmdb_tech: str
+) -> pd.DataFrame:
+    """
+    Read and clean `Battery` capacities.
+    """
+    # read data
+    df_raw = (
+        pd.read_excel(fn, sheet_name="Battery", skiprows=7, index_col=0)
+        .dropna(how="all", axis=0)
+        .dropna(how="all", axis=1)
+        .reset_index(drop=True)
+    )
+
+    if df_raw.empty:
+        logger.info(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+
+    column_names = [
+        "p_nom_discharge",
+        "p_nom_charge",
+        "p_nom_store",
+        "units_count",
+        "efficiency",
+        "ramp_limit_up",
+        "ramp_limit_down",
+    ]
+
+    df_raw = df_raw.set_axis(column_names, axis=1)
+
+    units = ["MW", "MW", "MWh"]
+    types = ["Discharge", "Charge", "Store"]
+    p_noms = pd.concat(
+        [df_raw["p_nom_charge"], df_raw["p_nom_discharge"], df_raw["p_nom_store"]],
+        axis=0,
+    )
+
+    df = pd.DataFrame(
+        dict(
+            p_nom=p_noms.values,
+            efficiency=df_raw.efficiency[0],
+            carrier=pemmdb_tech,
+            bus=node,
+            country=node[:2],
+            type=types,
+            unit=units,
+        )
+    )
+
+    return df
+
+
 def read_pemmdb_capacities(
     node: str,
     pemmdb_dir: str,
-    cyear: str,
+    cyear: int,
     pyear: int,
     pemmdb_tech: str,
     unit_conversion: dict[str, float],
@@ -422,7 +480,7 @@ def read_pemmdb_capacities(
     try:
         # Conventionals & Hydrogen
         if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
-            return _read_thermal_capacities(fn, node, pemmdb_tech)
+            return _read_thermal_capacities(fn, node, cyear, pemmdb_tech)
 
         # Other Non-RES
         elif pemmdb_tech == "Other Non-RES":
@@ -430,11 +488,11 @@ def read_pemmdb_capacities(
 
         # Renewables (Solar, Wind, Hydro)
         elif pemmdb_tech in RENEWABLES:
-            return _read_res_capacities(fn, node, pemmdb_tech, unit_conversion)
+            return _read_res_capacities(fn, node, cyear, pemmdb_tech, unit_conversion)
 
         # Other RES
         elif pemmdb_tech == "Other RES":
-            return _read_other_res_capacities(fn, node, pemmdb_tech)
+            return _read_other_res_capacities(fn, node, cyear, pemmdb_tech)
 
         # DSR
         elif pemmdb_tech == "DSR":
@@ -442,11 +500,11 @@ def read_pemmdb_capacities(
 
         # Battery
         elif pemmdb_tech == "Battery":
-            pass  # placeholder
+            return _read_battery_capacities(fn, node, cyear, pemmdb_tech)
 
         # Electrolyser
         elif pemmdb_tech == "Electrolyser":
-            return _read_electrolyser_capacities(fn, node, pemmdb_tech)
+            return _read_electrolyser_capacities(fn, node, cyear, pemmdb_tech)
 
         else:
             return None
@@ -479,7 +537,7 @@ if __name__ == "__main__":
         freq="h",
     )
     # Only climate years 1995, 2008 and 2009 are available for all technologies and countries
-    if int(cyear) not in [1995, 2008, 2009]:
+    if cyear not in [1995, 2008, 2009]:
         logger.warning(
             "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
         )

@@ -143,6 +143,7 @@ electricity:
   tyndp_conventional_carriers: []
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float, hydro]
   tyndp_renewable_carriers: []
+  tyndp_stores: []
 
   pecd_renewable_profiles:
     enable: false
