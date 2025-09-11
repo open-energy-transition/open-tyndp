@@ -83,11 +83,23 @@ rule make_benchmark:
 
 rule plot_benchmark:
     params:
-        plotting=config_provider("plotting"),
+        benchmarking=config_provider("benchmarking"),
+        scenario=config_provider("tyndp_scenario"),
+        colors=config_provider("plotting", "tech_colors"),
     input:
-        RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/",
+        results=expand(
+            RESULTS
+            + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            planning_horizons=config_provider("scenario", "planning_horizons"),
+            allow_missing=True,
+        ),
+        benchmarks=RESULTS + "validation/benchmarks_tyndp.csv",
+        dir=RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/",
     output:
-        RESULTS + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+        directory(
+            RESULTS
+            + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/"
+        ),
     threads: 4
     resources:
         mem_mb=8000,

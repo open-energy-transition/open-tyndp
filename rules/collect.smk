@@ -141,8 +141,7 @@ rule plot_benchmarks:
     input:
         lambda w: expand(
             RESULTS
-            + "validation/graphics/{table}_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/",
             **config["scenario"],
             run=config["run"]["name"],
-            table=config_provider("benchmarking", "tables")(w),
         ),
