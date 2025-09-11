@@ -171,7 +171,7 @@ def _read_other_nonres_capacities(
     fn: Path, node: str, cyear: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
-    Read and clean `Other Non-RES` profiles.
+    Read and clean `Other Non-RES` capacities.
     """
     # read raw data and filter for price band columns
     df = pd.read_excel(
@@ -436,6 +436,80 @@ def _read_battery_capacities(
     return df
 
 
+def _read_dsr_capacities(
+    fn: Path, node: str, cyear: int, pemmdb_tech: str
+) -> pd.DataFrame:
+    """
+    Read and clean `DSR` capacities.
+
+    nb: Includes only Market Response (user not willing to pay more than 'Activation price')
+    nb: Activation price of -1 marks bands not to be modelled in MARKET models
+    """
+    # read raw data and filter for price band columns
+    df = (
+        pd.read_excel(
+            fn,
+            sheet_name="DSR",
+            skiprows=7,
+            index_col=1,
+            nrows=6,
+        )
+        .filter(like="Price Band")
+        .dropna(how="all")
+    )
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+
+    column_names = [
+        "p_nom",
+        "units_count",
+        "hours",
+        "price",
+        "cyear_start",
+        "cyear_end",
+    ]
+
+    df = (
+        df.set_axis(column_names)
+        .T.assign(
+            carrier=pemmdb_tech,
+            bus=node,
+            country=node[:2],
+            unit="MW",
+            cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
+            cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
+            p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
+            units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
+            price=lambda x: pd.to_numeric(x.price, errors="coerce"),
+            type=lambda x: x.hours.astype("str")
+            + " hours and "
+            + x.price.astype("str")
+            + " EUR",
+            efficiency=1.0,  # dummy value for efficiency
+        )
+        .query("cyear_start <= @cyear and cyear_end >= @cyear")
+        .reset_index(drop=True)
+    )
+
+    if df.empty:
+        logger.info(
+            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+        )
+        return None
+
+    if df.type.duplicated().any():
+        logger.warning(
+            f"{node} has duplicated price bands for 'DSR' and cyear {cyear} with the same type (hours and price) but differing capacities. Keeping only first entry."
+        )
+        df = df.groupby("type", as_index=False).first()
+
+    return df
+
+
 def read_pemmdb_capacities(
     node: str,
     pemmdb_dir: str,
@@ -496,7 +570,7 @@ def read_pemmdb_capacities(
 
         # DSR
         elif pemmdb_tech == "DSR":
-            pass  # placeholder
+            return _read_dsr_capacities(fn, node, cyear, pemmdb_tech)
 
         # Battery
         elif pemmdb_tech == "Battery":

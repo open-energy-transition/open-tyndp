@@ -258,6 +258,80 @@ def _read_other_nonres_profiles(
     return profiles
 
 
+def _read_dsr_profiles(
+    fn: Path,
+    pemmdb_tech: str,
+    cyear: int,
+    node: str,
+    sns: pd.DatetimeIndex,
+    index_year: pd.DatetimeIndex,
+) -> xr.Dataset:
+    """
+    Read and clean `DSR` profiles.
+    """
+
+    # read data
+    df = pd.read_excel(fn, sheet_name="DSR", skiprows=7, index_col=1).rename(
+        index={
+            "Capacity": "p_nom",
+            "Units": "units_count",
+            "Hours": "hours",
+            "Price": "price",
+            "Climate year start": "cyear_start",
+            "Climate year end": "cyear_end",
+        }
+    )
+
+    # Create mask to filter for given climate year and for capacity > 0
+    cyear_start = pd.to_numeric(df.loc["cyear_start", :], errors="coerce")
+    cyear_end = pd.to_numeric(df.loc["cyear_end", :], errors="coerce")
+    cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
+    mask = (cyear_start <= cyear) & (cyear <= cyear_end) & (cap > 0)
+
+    if not mask.any():
+        logger.warning(
+            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+        )
+        return None
+
+    # Filter for climate year and rename single column
+    df = df.loc[:, mask]
+
+    # extract price band type information
+    type = (
+        df.loc["hours", :].astype("str")
+        + " hours and "
+        + df.loc["price", :].astype("str")
+        + " EUR"
+    )
+
+    df_long = (
+        df.iloc[7:]
+        .reset_index(drop=True)
+        .div(cap.loc[mask], axis=1)
+        .set_axis(type, axis="columns")
+        .assign(
+            time=index_year,
+            bus=node,
+            carrier=pemmdb_tech,
+        )
+        .set_index(["time", "bus", "carrier"])
+        .melt(var_name="type", value_name="p_max_pu", ignore_index=False)
+        .set_index("type", append=True)
+        .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
+    )
+
+    if df_long.index.duplicated().any():
+        logger.warning(
+            f"{node} has duplicated price bands for 'DSR' and cyear {cyear} with the same type (hours and price) but differing capacities. Keeping only first entry."
+        )
+
+    # some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
+    profiles = df_long.groupby(level=[0, 1, 2, 3]).first().to_xarray().sel(time=sns)
+
+    return profiles
+
+
 def read_pemmdb_profiles(
     node: str,
     pemmdb_dir: str,
@@ -327,6 +401,10 @@ def read_pemmdb_profiles(
             return _read_other_nonres_profiles(
                 fn, pemmdb_tech, cyear, node, sns, index_year
             )
+
+        # DSR
+        elif pemmdb_tech == "DSR":
+            return _read_dsr_profiles(fn, pemmdb_tech, cyear, node, sns, index_year)
 
         else:
             return None
