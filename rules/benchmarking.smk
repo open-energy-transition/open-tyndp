@@ -10,7 +10,7 @@ rule clean_tyndp_benchmark:
     input:
         scenarios_figures="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
     output:
-        benchmarks=RESULTS + "validation/benchmarks_tyndp.csv",
+        benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
     log:
         logs("clean_tyndp_benchmark.log"),
     benchmark:
@@ -33,7 +33,7 @@ rule build_statistics:
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
     output:
         RESULTS
-        + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+        + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
     log:
         logs(
             "build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
@@ -58,11 +58,11 @@ rule make_benchmark:
     input:
         results=expand(
             RESULTS
-            + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
             planning_horizons=config_provider("scenario", "planning_horizons"),
             allow_missing=True,
         ),
-        benchmarks=RESULTS + "validation/benchmarks_tyndp.csv",
+        benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
     output:
         benchmarks=directory(
             RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/"
@@ -89,11 +89,11 @@ rule plot_benchmark:
     input:
         results=expand(
             RESULTS
-            + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
             planning_horizons=config_provider("scenario", "planning_horizons"),
             allow_missing=True,
         ),
-        benchmarks=RESULTS + "validation/benchmarks_tyndp.csv",
+        benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
     output:
         directory(
             RESULTS

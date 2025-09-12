@@ -120,11 +120,11 @@ rule prepare_benchmarks:
     input:
         lambda w: expand(
             RESULTS
-            + "validation/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
             **config["scenario"],
             run=config["run"]["name"],
         ),
-        RESULTS + "validation/benchmarks_tyndp.csv",
+        RESULTS + "validation/resources/benchmarks_tyndp.csv",
 
 
 rule make_benchmarks:
