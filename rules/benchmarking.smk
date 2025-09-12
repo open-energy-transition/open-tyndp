@@ -94,7 +94,6 @@ rule plot_benchmark:
             allow_missing=True,
         ),
         benchmarks=RESULTS + "validation/benchmarks_tyndp.csv",
-        dir=RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/",
     output:
         directory(
             RESULTS
