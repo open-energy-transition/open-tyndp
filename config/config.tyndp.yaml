@@ -225,3 +225,6 @@ plotting:
       bus_factor: 0.005
       branch_factor: 0.04
       flow_factor: 25
+
+benchmarking:
+  enable: true

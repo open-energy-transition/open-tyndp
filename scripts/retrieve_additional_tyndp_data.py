@@ -16,6 +16,8 @@ Currently, this is used for two additional datasets:
     * Reservoir,
     * PS Open,
     * PS Closed
+* TYNDP Scenarios Report Data Figures: The TYNDP Scenarios Report Data Figures file contains the data and calculation
+    used to produce the figures in the Scenarios Report.
 
 **Outputs**
 
