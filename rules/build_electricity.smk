@@ -591,9 +591,10 @@ rule build_pemmdb_data:
 
 
 rule build_tyndp_trajectories:
+    params:
+        tyndp_scenario=config_provider("tyndp_scenario"),
     input:
         trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
-        busmap=resources("busmap_base_s_all.csv"),
     output:
         tyndp_trajectories=resources("tyndp_trajectories.csv"),
     log:
