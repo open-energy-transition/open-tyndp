@@ -27,22 +27,25 @@ def _plot_scenario_comparison(
     table: str,
     year: int,
     output_dir: str,
+    scenario: str,
     model_col: str,
     rfc_col: str,
     source_unit: str,
 ):
     fig, ax = plt.subplots(figsize=(12, 8))
 
+    table_title = table.replace("_", " ").title()
     df.set_index("carrier")[[model_col, rfc_col]].plot.bar(
         ax=ax,
         color=["#1f77b4", "#ff7f0e"],
         width=0.7,
-        rot=45,
         xlabel="",
+        ylabel=f"{table_title} [{source_unit}]",
+        title=f"{table_title} - Scenario {scenario} - Year {year}",
     )
-    table_title = table.replace("_", " ").title()
-    ax.set_title(f"{table_title} - Year {year}")
-    ax.set_ylabel(f"{table_title} [{source_unit}]")
+    ax.tick_params(axis="x", labelrotation=45)
+    plt.setp(ax.get_xticklabels(), ha="right")
+    ax.legend(facecolor="white", frameon=True, edgecolor="black")
 
     for c in ax.containers:
         ax.bar_label(c, fmt="%.0f", padding=3, fontsize=8)
@@ -58,6 +61,7 @@ def _plot_time_series(
     table: str,
     year: int,
     output_dir: str,
+    scenario: str,
     model_col: str,
     rfc_col: str,
     source_unit: str,
@@ -105,7 +109,7 @@ def _plot_time_series(
 
     correlation = df_clean[model_col].corr(df_clean[rfc_col])
     table_title = table.replace("_", " ").title()
-    ax.set_title(f"{table_title} - Year {year}")
+    ax.set_title(f"{table_title} - Scenario {scenario} - Year {year}")
     ax.set_xlabel(f"{rfc_col} [{source_unit}]")
     ax.set_ylabel(f"{model_col} [{source_unit}]")
     ax.set_aspect("equal", adjustable="box")
@@ -138,6 +142,7 @@ def plot_benchmark(
     table: str,
     benchmarks_raw: pd.DataFrame,
     output_dir: str,
+    scenario: str,
     options: dict,
     colors: dict,
     model_col: str = "Open-TYNDP",
@@ -154,6 +159,8 @@ def plot_benchmark(
         Combined DataFrame containing both model and reference data.
     output_dir: str
         Output directory.
+    scenario: str
+        Scenario name.
     options : dict
         Full benchmarking configuration containing table units and conversions.
     colors : dict,
@@ -194,6 +201,7 @@ def plot_benchmark(
                 table,
                 year,
                 output_dir,
+                scenario,
                 model_col,
                 rfc_col,
                 source_unit,
@@ -207,6 +215,7 @@ def plot_benchmark(
                 table,
                 year,
                 output_dir,
+                scenario,
                 model_col,
                 rfc_col,
                 source_unit,
@@ -231,14 +240,14 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     colors = snakemake.params["colors"]
-    scenario = "TYNDP " + snakemake.params["scenario"]  # noqa: F841
+    scenario = snakemake.params["scenario"]
     benchmarks_fn = snakemake.input.benchmarks
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output[0])
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Load data
-    benchmarks_raw = load_data(benchmarks_fn, results_fn, scenario)
+    benchmarks_raw = load_data(benchmarks_fn, results_fn, "TYNDP " + scenario)
 
     # Produce benchmark figures
     logger.info("Producing benchmark figures")
@@ -254,6 +263,7 @@ if __name__ == "__main__":
         plot_benchmark,
         benchmarks_raw=benchmarks_raw,
         output_dir=output_dir,
+        scenario=scenario,
         options=options,
         colors=colors,
     )

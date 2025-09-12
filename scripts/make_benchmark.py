@@ -472,7 +472,7 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    scenario = "TYNDP " + snakemake.params["scenario"]  # noqa: F841
+    scenario = "TYNDP " + snakemake.params["scenario"]
     benchmarks_fn = snakemake.input.benchmarks
     results_fn = snakemake.input.results
 
