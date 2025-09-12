@@ -286,10 +286,14 @@ def compute_all_indicators(
         "RMSLE": _compute_rmsle(df, model_col, rfc_col, eps),
     }
 
-    if "snapshot" not in df.index.names:
+    if "snapshot" not in df.index.names and carrier:
         indicators["Growth Error"] = _compute_growth_error(df, model_col, rfc_col, eps)
-    elif not carrier:
-        indicators["Growth Error"] = "NA"
+    elif "snapshot" not in df.index.names and not carrier:
+        # Compute growth error on the total
+        idx = [c for c in df.index.names if c != "carrier"]
+        indicators["Growth Error"] = _compute_growth_error(
+            df.groupby(by=idx).sum(), model_col, rfc_col, eps
+        )
 
     if df_na is not None:
         indicators["Missing"] = _compute_missing(df_na)
