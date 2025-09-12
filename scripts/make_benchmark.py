@@ -403,7 +403,7 @@ def compare_sources(
 
     # Clean data
     logger.info(f"Making benchmark for {table} using TYNDP 2024 and Open-TYNDP")
-    benchmarks = benchmarks_raw.query("table==@table")
+    benchmarks = benchmarks_raw.query("table==@table").dropna(how="all", axis=1)
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
     ]
@@ -415,6 +415,45 @@ def compare_sources(
     df, indicators = compute_indicators(df, table, options)
 
     return df, indicators
+
+
+def compute_overall_accuracy(
+    benchmarks_raw: pd.DataFrame, options: dict
+) -> pd.DataFrame:
+    """
+    Compute overall accuracy indicators for a specified benchmark table.
+
+    Parameters
+    ----------
+    benchmarks_raw: pd.DataFrame
+        Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+    options : dict
+        Full benchmarking configuration.
+
+    Returns
+    -------
+    pd.Series
+       Series containing overall accuracy metrics.
+    """
+    logger.info("Making global benchmark using TYNDP 2024 and Open-TYNDP")
+    tables_series = [  # noqa: F841
+        t for t, v in options["tables"].items() if v["table_type"] == "time_series"
+    ]
+    df_global = (
+        benchmarks_raw.query("table not in @tables_series")
+        .dropna(how="all", axis=1)
+        .pivot_table(
+            index=["scenario", "year", "carrier"], values="value", columns="source"
+        )
+    )
+    mask = df_global.isna().any(axis=1)
+    df = df_global[~mask]
+    df_na = df_global[mask]
+    indicator_total = compute_all_indicators(
+        df, "Total (excl. time series)", df_na=df_na
+    ).round(2)
+
+    return indicator_total
 
 
 if __name__ == "__main__":
@@ -470,5 +509,8 @@ if __name__ == "__main__":
                 + f"/{table}_s_{snakemake.wildcards.clusters}_{snakemake.wildcards.opts}_{snakemake.wildcards.sector_opts}_all_years.csv"
             )
 
-    indicators = pd.concat(indicators)
+    # Compute global indicator
+    indicators_total = compute_overall_accuracy(benchmarks_raw, options)
+
+    indicators = pd.concat(list(indicators) + [indicators_total])
     indicators.to_csv(snakemake.output.kpis)
