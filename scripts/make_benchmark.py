@@ -60,7 +60,11 @@ def load_data(benchmarks_fn: str, results_fn: str, scenario: str) -> pd.DataFram
     return benchmarks_raw
 
 
-def match_temporal_resolution(df, model_col, rfc_col):
+def match_temporal_resolution(
+    df: pd.DataFrame,
+    model_col: str = "Open-TYNDP",
+    rfc_col: str = "TYNDP 2024",
+) -> pd.DataFrame:
     """
     Match temporal resolution against reference data. Hourly time series from the rfc_col will be
     aggregated to match the temporal resolution of model_col.
@@ -69,9 +73,9 @@ def match_temporal_resolution(df, model_col, rfc_col):
     ----------
     df : pd.DataFrame
         DataFrame with MultiIndex containing snapshot timestamps and data columns.
-    model_col : str
+    model_col : str, default "Open-TYNDP"
         Column name for model values with potentially lower temporal resolution.
-    rfc_col : str
+    rfc_col : str, default "TYNDP 2024"
         Column name for reference values with hourly temporal resolution.
 
     Returns
@@ -236,17 +240,39 @@ def _compute_missing(df_na: pd.DataFrame) -> int:
     return len(df_na.index.get_level_values("carrier").unique())
 
 
-def _compute_all_indicators(
+def compute_all_indicators(
     df: pd.DataFrame,
     table: str,
-    model_col: str,
-    rfc_col: str,
-    eps: float,
+    model_col: str = "Open-TYNDP",
+    rfc_col: str = "TYNDP 2024",
+    eps: float = 1e-6,
     carrier: str = None,
     df_na: pd.DataFrame = None,
 ) -> pd.DataFrame:
     """
     Compute all accuracy indicators for a given dataset.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing data for indicator calculations.
+    table : str
+        Benchmark metric to compute.
+    model_col : str, default "Open-TYNDP"
+        Column name for model/projected values (ŷᵢ).
+    rfc_col : str, default "TYNDP 2024"
+        Column name for reference/actual values (yᵢ).
+    eps: float, default 1e-6
+        Small value used when the denominator is zero.
+    carrier: str, default None
+        Name of the carrier for indicator calculation. If None, calculates overall table indicator.
+    df_na : pd.DataFrame, default None
+        DataFrame with missing values for missing carrier calculation.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing indicators, at carrier level if specified.
     """
     expected_cols = [model_col, rfc_col]
     if not df.columns.tolist() == expected_cols:
@@ -280,10 +306,7 @@ def compute_indicators(
     df_raw: pd.DataFrame,
     table: str,
     options,
-    model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024",
     carrier_col: str = "carrier",
-    eps: float = 1e-6,
     precision: int = 2,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -308,19 +331,13 @@ def compute_indicators(
     Parameters
     ----------
     df_raw : pd.DataFrame
-        DataFrame to calculate indicators from.
+        DataFrame containing data for indicator calculations.
     table : str
         Benchmark metric to compute.
     options : dict
         Full benchmarking configuration.
-    model_col : str, default "Open-TYNDP"
-        Column name for model/projected values (ŷᵢ).
-    rfc_col : str, default "TYNDP 2024"
-        Column name for reference/actual values (yᵢ).
     carrier_col : str, default "carrier"
         Column name for carrier/technology grouping.
-    eps: float, default 1e-6
-        Small value required when the denominator is zero.
     precision: int, default 2
         Number of decimal places to round to.
 
@@ -335,7 +352,7 @@ def compute_indicators(
 
     # Aggregate time-varying data to the given snapshots
     if opt["table_type"] == "time_series":
-        df_agg = match_temporal_resolution(df_raw, model_col, rfc_col)
+        df_agg = match_temporal_resolution(df_raw)
     else:
         df_agg = df_raw
 
@@ -343,14 +360,12 @@ def compute_indicators(
     df = df_agg[~mask]
     df_na = df_agg[mask]
 
-    # Compute overall indicators
-    indicators = _compute_all_indicators(
-        df, table, model_col, rfc_col, eps, df_na=df_na
-    ).round(precision)
+    # Compute overall indicators of the table
+    indicators = compute_all_indicators(df, table, df_na=df_na).round(precision)
 
     # Compute per-carrier indicators
     df_carrier = [
-        _compute_all_indicators(df_c, table, model_col, rfc_col, eps, carrier=carrier)
+        compute_all_indicators(df_c, table, carrier=carrier)
         for carrier, df_c in df.groupby(level=carrier_col)
     ]
     missing_carriers = set(df_na.index.get_level_values("carrier"))
