@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def _safe_sheet(sn, scenario):
     if isinstance(sn, dict):
-        return sn[scenario]
+        return sn.get(scenario, "")
     return sn
 
 
@@ -208,6 +208,9 @@ def load_benchmark(
 
     # Parameters
     sheet_name = _safe_sheet(opt["sheet_name"], scenario)
+    if sheet_name == "":
+        logger.info(f"No sheet name found for {table} in {scenario}")
+        return pd.DataFrame()
     df = benchmarks_raw[sheet_name]
     table_config = options["table_types"][opt["table_type"]]
     nrows = opt.get("nrows", None)
@@ -295,7 +298,9 @@ if __name__ == "__main__":
     # Read benchmarks
     logger.info("Reading raw benchmark data")
     sheet_names = [
-        _safe_sheet(j["sheet_name"], scenario) for i, j in options["tables"].items()
+        _safe_sheet(j["sheet_name"], scenario)
+        for i, j in options["tables"].items()
+        if _safe_sheet(j["sheet_name"], scenario)
     ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
