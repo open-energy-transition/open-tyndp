@@ -228,6 +228,69 @@ def plot_benchmark(
             )
 
 
+def plot_overview(indicators: pd.DataFrame, fn: str, metric: str = "sMAPE"):
+    """
+    Plot benchmark overview figure.
+
+    Parameters
+    ----------
+    indicators : pd.DataFrame
+        Indicators DataFrame.
+    fn : str
+        Output filename.
+    """
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Keep relevant indicators and rows
+    df_clean = indicators[[metric, "Missing"]].dropna()
+    df_clean.index = df_clean.index.str.replace("_", " ").str.title()
+
+    # Create bar plot with metric
+    df_clean.plot.bar(
+        ax=ax,
+        y=metric,
+        width=0.7,
+        xlabel="",
+        ylabel=metric,
+        title=f"Model Comparison: Open-TYNDP and TYNDP 2024\n{metric} accuracy indicator (a lower error is better)",
+        legend=True,
+    )
+
+    # Add missing carriers information
+    df_clean.plot(
+        ax=ax,
+        y="Missing",
+        secondary_y=True,
+        mark_right=True,
+        legend=True,
+        marker=".",
+        color="red",
+        markersize=10,
+        linestyle="None",
+        ylabel="Missing carriers",
+        ylim=0,
+    )
+
+    ax.tick_params(axis="x", labelrotation=45)
+    plt.setp(ax.get_xticklabels(), ha="right")
+
+    # Combine legends from both axes
+    h1, l1 = ax.get_legend_handles_labels()
+    h2, l2 = ax.right_ax.get_legend_handles_labels()
+    ax.legend(
+        h1 + h2,
+        l1 + l2,
+        facecolor="white",
+        frameon=True,
+        edgecolor="black",
+        loc="upper left",
+    )
+
+    fig.savefig(fn, bbox_inches="tight")
+
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -248,8 +311,10 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     benchmarks_fn = snakemake.input.benchmarks
     results_fn = snakemake.input.results
-    output_dir = Path(snakemake.output[0])
+    output_dir = Path(snakemake.output.dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    kpis_in = snakemake.input.kpis
+    kpis_out = snakemake.output.kpis
 
     # Load data
     benchmarks_raw = load_data(benchmarks_fn, results_fn, "TYNDP " + scenario)
@@ -275,5 +340,9 @@ if __name__ == "__main__":
 
     with mp.Pool(processes=snakemake.threads) as pool:
         results = list(tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs))
+
+    # Plot overview
+    indicators = pd.read_csv(kpis_in, index_col=0)
+    plot_overview(indicators, kpis_out)
 
     logger.info("Benchmark plotting completed successfully")

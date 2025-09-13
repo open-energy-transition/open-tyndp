@@ -94,11 +94,13 @@ rule plot_benchmark:
             allow_missing=True,
         ),
         benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
+        kpis=RESULTS + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
     output:
-        directory(
+        dir=directory(
             RESULTS
             + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/"
         ),
+        kpis=RESULTS + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
     threads: 4
     resources:
         mem_mb=8000,

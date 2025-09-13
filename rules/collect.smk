@@ -141,7 +141,7 @@ rule plot_benchmarks:
     input:
         lambda w: expand(
             RESULTS
-            + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/",
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
             **config["scenario"],
             run=config["run"]["name"],
         ),

@@ -521,5 +521,5 @@ if __name__ == "__main__":
     # Compute global indicator
     indicators_total = compute_overall_accuracy(benchmarks_raw, options)
 
-    indicators = pd.concat(list(indicators) + [indicators_total])
+    indicators = pd.concat([pd.concat(indicators).sort_index(), indicators_total])
     indicators.to_csv(snakemake.output.kpis)
