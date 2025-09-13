@@ -415,6 +415,11 @@ def compare_sources(
         index=available_columns, values="value", columns="source", dropna=False
     )
 
+    # Check if at least two sources are available to compare
+    if len(df.columns) != 2:
+        logging.info(f"Skipping table {table}, need exactly two sources to compare.")
+        return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
+
     # Compare sources
     df, indicators = compute_indicators(df, table, options)
 
