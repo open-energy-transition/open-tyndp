@@ -182,7 +182,7 @@ def plot_benchmark(
 
     # Filter data and Convert back to source unit
     logger.info(f"Making benchmark for {table} using {rfc_col} and {model_col}")
-    benchmarks_raw = benchmarks_raw.query("table==@table").copy()
+    benchmarks_raw = benchmarks_raw.query("table==@table").dropna(how="all", axis=1)
     benchmarks = _convert_units(benchmarks_raw, source_unit, unit_conversion)
 
     available_columns = [
@@ -191,6 +191,11 @@ def plot_benchmark(
     bench_wide = benchmarks.pivot_table(
         index=available_columns, values="value", columns="source", dropna=False
     )
+
+    # Check if at least two sources are available to compare
+    if len(bench_wide.columns) != 2:
+        logging.info(f"Skipping table {table}, need exactly two sources to compare.")
+        return
 
     for year in bench_wide.index.get_level_values("year").unique():
         bench_year = bench_wide.query("year==@year").copy()
