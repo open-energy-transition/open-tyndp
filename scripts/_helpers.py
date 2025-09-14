@@ -34,6 +34,8 @@ REGION_COLS = ["geometry", "name", "x", "y", "country"]
 SCENARIO_DICT = {
     "Distributed Energy": "DE",
     "Global Ambition": "GA",
+    r"National Trends\s*\+": "NT",
+    r"NT\s*\+": "NT",
     "National Trends": "NT",
 }
 
