@@ -228,7 +228,9 @@ def plot_benchmark(
             )
 
 
-def plot_overview(indicators: pd.DataFrame, fn: str, metric: str = "sMAPE"):
+def plot_overview(
+    indicators: pd.DataFrame, fn: str, scenario: str, metric: str = "sMAPE"
+):
     """
     Plot benchmark overview figure.
 
@@ -238,6 +240,10 @@ def plot_overview(indicators: pd.DataFrame, fn: str, metric: str = "sMAPE"):
         Indicators DataFrame.
     fn : str
         Output filename.
+    scenario : str
+        Scenario name.
+    metric : str, default "sMAPE
+        Metric to plot.
     """
     fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -252,7 +258,7 @@ def plot_overview(indicators: pd.DataFrame, fn: str, metric: str = "sMAPE"):
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Model Comparison: Open-TYNDP and TYNDP 2024\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP 2024 results for {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
     )
 
@@ -343,6 +349,6 @@ if __name__ == "__main__":
 
     # Plot overview
     indicators = pd.read_csv(kpis_in, index_col=0)
-    plot_overview(indicators, kpis_out)
+    plot_overview(indicators, kpis_out, scenario)
 
     logger.info("Benchmark plotting completed successfully")
