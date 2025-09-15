@@ -1588,6 +1588,11 @@ rule prepare_sector_network:
             resources("pemmdb_profiles_{planning_horizons}.nc"),
             [],
         ),
+        tyndp_trajectories=branch(
+            config_provider("electricity", "tyndp_renewable_carriers"),
+            resources("tyndp_trajectories.csv"),
+            [],
+        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
