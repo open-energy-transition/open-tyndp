@@ -212,7 +212,6 @@ def load_benchmark(
         logger.info(f"No sheet name found for {table} in {scenario}")
         return pd.DataFrame()
     df = benchmarks_raw[sheet_name]
-    table_config = options["table_types"][opt["table_type"]]
     nrows = opt.get("nrows", None)
     ncolumns = opt.get("ncolumns", None)
     names = opt["names"]
@@ -229,11 +228,11 @@ def load_benchmark(
             midnight_mask
         ] + pd.Timedelta(days=1)
 
-    index_col = opt.get("index_col", table_config["index_col"])
+    index_col = opt["index_col"]
     if isinstance(index_col, int):
         index_col = [index_col]
 
-    header = opt.get("header", table_config["header"])
+    header = opt["header"]
     if isinstance(header, int):
         header = [header]
 
@@ -253,7 +252,7 @@ def load_benchmark(
 
     # Apply unit conversion
     source_unit = opt["unit"]
-    unit_conversion = options["processing"]["unit_conversion"]
+    unit_conversion = options["unit_conversion"]
     df_converted = _convert_units(df_long, source_unit, unit_conversion)
 
     # Add table identifier

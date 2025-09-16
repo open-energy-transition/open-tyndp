@@ -175,7 +175,7 @@ def plot_benchmark(
     opt = options["tables"][table]
     table_type = opt["table_type"]
     source_unit = opt["unit"]
-    unit_conversion = options["processing"]["unit_conversion"]
+    unit_conversion = options["unit_conversion"]
     unit_conversion = {
         k: 1 / v for k, v in unit_conversion.items()
     }  # Inverse conversion factor to revert unit
