@@ -18,6 +18,7 @@ from typing import Callable, Union
 
 import atlite
 import fiona
+import git
 import pandas as pd
 import pypsa
 import pytz
@@ -1189,3 +1190,11 @@ def safe_pyear(
         year_new = year
 
     return year_new
+
+
+def get_git_commit_hash() -> str:
+    try:
+        repo = git.Repo(search_parent_directories=True)
+        return repo.head.commit.hexsha[:7]
+    except Exception:
+        return "unknown"

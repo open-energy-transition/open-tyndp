@@ -14,12 +14,34 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, get_git_commit_hash, set_scenario_config
 from scripts.clean_tyndp_benchmark import _convert_units
 from scripts.make_benchmark import load_data, match_temporal_resolution
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")
+
+
+def add_version(ax: plt.Axes, fig: plt.Figure, x=0.89):
+    commit_hash = get_git_commit_hash()
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    min_y = min(
+        [
+            i.get_window_extent(renderer).transformed(ax.transAxes.inverted()).y0
+            for i in ax.get_xticklabels()
+        ]
+    )
+    ax.text(
+        x,
+        min_y - 0.05,
+        f"version: {commit_hash}",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=8,
+        alpha=0.7,
+    )
 
 
 def _plot_scenario_comparison(
@@ -49,6 +71,8 @@ def _plot_scenario_comparison(
 
     for c in ax.containers:
         ax.bar_label(c, fmt="%.0f", padding=3, fontsize=8)
+
+    add_version(ax, fig)
 
     output_filename = Path(output_dir, f"benchmark_{table}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -131,6 +155,8 @@ def _plot_time_series(
         verticalalignment="top",
         bbox=props,
     )
+
+    add_version(ax, fig, x=1.2)
 
     output_filename = Path(output_dir, f"benchmark_{table}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -291,6 +317,8 @@ def plot_overview(
         edgecolor="black",
         loc="upper left",
     )
+
+    add_version(ax, fig, x=0.94)
 
     fig.savefig(fn, bbox_inches="tight")
 
