@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 plt.style.use("bmh")
 
 
-def add_version(ax: plt.Axes, fig: plt.Figure, x=0.89):
+def add_version(ax: plt.Axes, fig: plt.Figure, x=0.9):
     commit_hash = get_git_commit_hash()
     fig.canvas.draw()
     renderer = fig.canvas.get_renderer()
