@@ -191,7 +191,7 @@ def _compute_rmsle(df: pd.DataFrame, model_col: str, rfc_col: str, eps: float) -
 
 
 def _compute_growth_error(
-    df: pd.DataFrame, model_col: str, rfc_col: str, eps: float
+    df: pd.DataFrame, table: str, model_col: str, rfc_col: str, eps: float
 ) -> float:
     """
     Calculate Growth Error.
@@ -205,7 +205,7 @@ def _compute_growth_error(
     Wen et al. (2022), Applied Energy 325, 119906, Table 1
     """
     if len(df) < 2:
-        logger.warning("Insufficient data for growth error calculation")
+        logger.warning(f"Insufficient data in {table} for growth error calculation")
         return np.nan
 
     # Sort by time to ensure proper chronological order
@@ -285,12 +285,14 @@ def compute_all_indicators(
     }
 
     if "snapshot" not in df.index.names and carrier:
-        indicators["Growth Error"] = _compute_growth_error(df, model_col, rfc_col, eps)
+        indicators["Growth Error"] = _compute_growth_error(
+            df, table, model_col, rfc_col, eps
+        )
     elif "snapshot" not in df.index.names and not carrier:
         # Compute growth error on the total
         idx = [c for c in df.index.names if c != "carrier"]
         indicators["Growth Error"] = _compute_growth_error(
-            df.groupby(by=idx).sum(), model_col, rfc_col, eps
+            df.groupby(by=idx).sum(), table, model_col, rfc_col, eps
         )
 
     if df_na is not None:
