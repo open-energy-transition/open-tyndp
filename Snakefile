@@ -131,7 +131,7 @@ def input_all_tyndp(w):
         files.extend(
             expand(
                 RESULTS
-                + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+                + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
                 run=config["run"]["name"],
                 **config["scenario"],
             )

@@ -70,8 +70,8 @@ Workflow
    * `results/validation/resources/` for processed inputs information from both Open-TYNDP and TYNDP 2024.
    * `results/validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitative information for each table
    * `results/validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` for figures of each table
-   * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv` as summary table
-   * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.pdf` as summary figure
+   * `results/validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv` as summary table
+   * `results/validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf` as summary figure
    * the structure of these outputs can be validated in the artifacts of the GitHub CI (e.g. artifacts section `here <https://github.com/open-energy-transition/open-tyndp/actions/runs/17715799690?pr=73>`_)
 
 .. image:: img/tyndp/benchmarking_workflow.png
@@ -109,7 +109,7 @@ Example of figure created for the generation profiles for DE scenario in 2040 wi
 
 .. image:: img/tyndp/benchmarking_gen_profiles_DE_2040.png
 
-Example of indicators extracted from `kpis_s_all__all_years.csv` for DE scenario with 720SEG:
+Example of indicators extracted from `kpis_eu27_s_all__all_years.csv` for DE scenario with 720SEG:
 
 ===============================  =====  =====  ======  =====  ============  =======  ==================
 Table                            sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing  version

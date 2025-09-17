@@ -131,7 +131,7 @@ rule make_benchmarks:
     input:
         lambda w: expand(
             RESULTS
-            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
             **config["scenario"],
             run=config["run"]["name"],
         ),
@@ -141,7 +141,7 @@ rule plot_benchmarks:
     input:
         lambda w: expand(
             RESULTS
-            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
             **config["scenario"],
             run=config["run"]["name"],
         ),

@@ -26,6 +26,7 @@ rule clean_tyndp_benchmark:
 
 rule build_statistics:
     params:
+        eu27=config_provider("countries_eu27"),
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
     input:
@@ -67,7 +68,8 @@ rule make_benchmark:
         benchmarks=directory(
             RESULTS + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/"
         ),
-        kpis=RESULTS + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+        kpis=RESULTS
+        + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
     threads: 4
     resources:
         mem_mb=8000,
@@ -94,13 +96,15 @@ rule plot_benchmark:
             allow_missing=True,
         ),
         benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
-        kpis=RESULTS + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+        kpis=RESULTS
+        + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
     output:
         dir=directory(
             RESULTS
             + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/"
         ),
-        kpis=RESULTS + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+        kpis=RESULTS
+        + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
     threads: 4
     resources:
         mem_mb=8000,

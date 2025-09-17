@@ -63,7 +63,7 @@ def _plot_scenario_comparison(
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
-        title=f"{table_title} - Scenario {scenario} - Year {year}",
+        title=f"{table_title} - EU27 - Scenario {scenario} - Year {year}",
     )
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
@@ -133,7 +133,7 @@ def _plot_time_series(
 
     correlation = df_clean[model_col].corr(df_clean[rfc_col])
     table_title = table.replace("_", " ").title()
-    ax.set_title(f"{table_title} - Scenario {scenario} - Year {year}")
+    ax.set_title(f"{table_title} - EU27 - Scenario {scenario} - Year {year}")
     ax.set_xlabel(f"{rfc_col} [{source_unit}]")
     ax.set_ylabel(f"{model_col} [{source_unit}]")
     ax.set_aspect("equal", adjustable="box")
@@ -284,7 +284,7 @@ def plot_overview(
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Comparison of Open-TYNDP and TYNDP 2024 results for {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP 2024 results for EU27 and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
     )
 

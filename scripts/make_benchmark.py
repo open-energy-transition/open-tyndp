@@ -519,7 +519,7 @@ if __name__ == "__main__":
             benchmark_i = benchmark.loc[table].assign(version=version)
             benchmark_i.to_csv(
                 snakemake.output.benchmarks
-                + f"/{table}_s_{snakemake.wildcards.clusters}_{snakemake.wildcards.opts}_{snakemake.wildcards.sector_opts}_all_years.csv"
+                + f"/{table}_eu27_s_{snakemake.wildcards.clusters}_{snakemake.wildcards.opts}_{snakemake.wildcards.sector_opts}_all_years.csv"
             )
 
     # Compute global indicator
