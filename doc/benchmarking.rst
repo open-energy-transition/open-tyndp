@@ -84,22 +84,22 @@ Outputs
 
 Example of indicators extracted from `power_generation_s_all__all_years.csv` for DE scenario with 720SEG:
 
-================================  =====  =====  ======  =====  ==============  ============
+================================  =====  =====  ======  =====  ==============  ==================
 Carrier                           sMPE   sMAPE  sMdAPE  RMSLE  Growth Error    version
-================================  =====  =====  ======  =====  ==============  ============
-**Coal + other fossil**           0.93   1.07   1.07    18.64  2.65            a718362
-**Hydrogen**                      -0.05  1.95   1.95    6.15   1.15            a718362
-**Methane**                       1.54   1.54   1.54    2.03   -0.01           a718362
-**Nuclear**                       -2.00  2.00   2.00    23.55  0.07            a718362
-**Oil**                           2.00   2.00   2.00    24.57  -0.01           a718362
-**Other non-renewable**           1.52   1.52   1.52    2.00   —               a718362
-**Solar**                         -0.55  0.55   0.55    0.56   -0.01           a718362
-**Wind offshore**                 0.10   0.10   0.10    0.11   -0.01           a718362
-**Wind onshore**                  -1.56  1.56   1.56    2.19   -0.08           a718362
-**Other renewable**               —      —      —       —      —               a718362
-**Hydro (exc. pump storage)**     —      —      —       —      —               a718362
-**Biofuels**                      —      —      —       —      —               a718362
-================================  =====  =====  ======  =====  ==============  ============
+================================  =====  =====  ======  =====  ==============  ==================
+**Coal + other fossil**           0.93   1.07   1.07    18.64  2.65            v0.2+gca2f4f227
+**Hydrogen**                      -0.05  1.95   1.95    6.15   1.15            v0.2+gca2f4f227
+**Methane**                       1.54   1.54   1.54    2.03   -0.01           v0.2+gca2f4f227
+**Nuclear**                       -2.00  2.00   2.00    23.55  0.07            v0.2+gca2f4f227
+**Oil**                           2.00   2.00   2.00    24.57  -0.01           v0.2+gca2f4f227
+**Other non-renewable**           1.52   1.52   1.52    2.00   —               v0.2+gca2f4f227
+**Solar**                         -0.55  0.55   0.55    0.56   -0.01           v0.2+gca2f4f227
+**Wind offshore**                 0.10   0.10   0.10    0.11   -0.01           v0.2+gca2f4f227
+**Wind onshore**                  -1.56  1.56   1.56    2.19   -0.08           v0.2+gca2f4f227
+**Other renewable**               —      —      —       —      —               v0.2+gca2f4f227
+**Hydro (exc. pump storage)**     —      —      —       —      —               v0.2+gca2f4f227
+**Biofuels**                      —      —      —       —      —               v0.2+gca2f4f227
+================================  =====  =====  ======  =====  ==============  ==================
 
 Example of figure created for the final energy demand for DE scenario in 2040 with 720SEG:
 
@@ -111,22 +111,22 @@ Example of figure created for the generation profiles for DE scenario in 2040 wi
 
 Example of indicators extracted from `kpis_s_all__all_years.csv` for DE scenario with 720SEG:
 
-===============================  =====  =====  ======  =====  ============  =======  ============
+===============================  =====  =====  ======  =====  ============  =======  ==================
 Table                            sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing  version
-===============================  =====  =====  ======  =====  ============  =======  ============
-**Final energy demand**          -0.57  0.69   0.61    1.79   0.00          3        a718362
-**Electricity demand**           0.56   0.56   0.64    0.66   0.02          2        a718362
-**Methane demand**               0.39   0.43   0.38    0.60   0.00          6        a718362
-**Hydrogen demand**              -0.77  1.10   1.00    4.76   0.00          7        a718362
-**Power capacity**               -0.41  0.83   0.67    2.95   -0.01         5        a718362
-**Power generation**             0.14   1.36   1.55    13.52  -0.01         4        a718362
-**Methane supply**               -0.95  1.72   2.00    11.94  -0.02         3        a718362
-**Hydrogen supply**              -0.24  1.18   1.63    11.61  -0.03         3        a718362
-**Biomass supply**               -0.45  0.45   0.45    0.46   0.01          0        a718362
-**Energy imports**               -0.16  1.50   1.92    19.00  0.02          2        a718362
-**Generation profiles**          -0.41  1.50   1.96    12.57  —             11       a718362
-**Total (excl. time series)**    -0.30  1.12   1.15    6.83   0.00          23       a718362
-===============================  =====  =====  ======  =====  ============  =======  ============
+===============================  =====  =====  ======  =====  ============  =======  ==================
+**Final energy demand**          -0.57  0.69   0.61    1.79   0.00          3        v0.2+gca2f4f227
+**Electricity demand**           0.56   0.56   0.64    0.66   0.02          2        v0.2+gca2f4f227
+**Methane demand**               0.39   0.43   0.38    0.60   0.00          6        v0.2+gca2f4f227
+**Hydrogen demand**              -0.77  1.10   1.00    4.76   0.00          7        v0.2+gca2f4f227
+**Power capacity**               -0.41  0.83   0.67    2.95   -0.01         5        v0.2+gca2f4f227
+**Power generation**             0.14   1.36   1.55    13.52  -0.01         4        v0.2+gca2f4f227
+**Methane supply**               -0.95  1.72   2.00    11.94  -0.02         3        v0.2+gca2f4f227
+**Hydrogen supply**              -0.24  1.18   1.63    11.61  -0.03         3        v0.2+gca2f4f227
+**Biomass supply**               -0.45  0.45   0.45    0.46   0.01          0        v0.2+gca2f4f227
+**Energy imports**               -0.16  1.50   1.92    19.00  0.02          2        v0.2+gca2f4f227
+**Generation profiles**          -0.41  1.50   1.96    12.57  —             11       v0.2+gca2f4f227
+**Total (excl. time series)**    -0.30  1.12   1.15    6.83   0.00          23       v0.2+gca2f4f227
+===============================  =====  =====  ======  =====  ============  =======  ==================
 
 Example of summary figure created for DE scenario:
 
