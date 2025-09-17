@@ -35,7 +35,7 @@ The data is published in the `Scenarios package <https://2024-data.entsos-tyndp-
 
 The benchmarking is based on the methodology proposed by `Wen et al. (2022) <https://www.sciencedirect.com/science/article/pii/S0306261922011667>`_. This methodology provides a multi-criteria approach to ensure:
 
-- the **diversity** (each indicator have its own added value),
+- the **diversity** (each indicator has its own added value),
 - the **effectiveness** (each indicator provides essential and correct information),
 - the **robustness** (against diverse units and orders of magnitude), and
 - the **compatibility** (can be used to compare across countries) of the selected set of indicators.
@@ -47,7 +47,7 @@ This methodology defines the following indicators:
 - **sMAPE** (Symmetric Mean Absolute Percentage Error): Indicates the absolute magnitude of the deviations, avoiding the cancellation of negative and positive errors.
 - **sMdAPE** (Symmetric Median Absolute Percentage Error): Provides skewness information to complement sMAPE.
 - **RMSLE** (Root Mean Square Logarithmic Error): Complements the percentage errors since it shows the logarithmic deviation values.
-- **Growth error**: Show the error on temporal scale. This indicator is ignored for dynamic time series (i.e. hourly generation profiles).
+- **Growth error**: Shows the error on the temporal scale. This indicator is ignored for dynamic time series (i.e., hourly generation profiles).
 
 
 Hourly time series from the TYNDP 2024 will be aggregated to match the temporal resolution of Open-TYNDP.
@@ -68,7 +68,7 @@ Workflow
 #. The full set of files produced for the benchmarking are stored in the `results/validation/` folder. This includes:
 
    * `results/validation/resources/` for processed inputs information from both Open-TYNDP and TYNDP 2024.
-   * `results/validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitive information for each table
+   * `results/validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitative information for each table
    * `results/validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` for figures of each table
    * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.csv` as summary table
    * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years.pdf` as summary figure

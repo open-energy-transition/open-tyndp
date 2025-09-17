@@ -268,7 +268,7 @@ def plot_overview(
         Output filename.
     scenario : str
         Scenario name.
-    metric : str, default "sMAPE
+    metric : str, default "sMAPE"
         Metric to plot.
     """
     fig, ax = plt.subplots(figsize=(12, 8))

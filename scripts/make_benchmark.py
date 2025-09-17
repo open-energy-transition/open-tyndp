@@ -133,7 +133,7 @@ def _compute_smape(df: pd.DataFrame, model_col: str, rfc_col: str, eps: float) -
     """
     Calculate Symmetric Mean Absolute Percentage Error (sMAPE).
 
-    sMAPE indicates the absolute magnitude of the deviations. It avoids the cancellation of negative and positive errors.
+    sMAPE indicates the absolute magnitude of the deviations, avoiding the cancellation of negative and positive errors.
 
     Formula: sMAPE = (1/n) * Σ[|ŷᵢ - yᵢ| / ((|ŷᵢ| + |yᵢ|)/2 + ε)]
 

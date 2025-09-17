@@ -162,7 +162,7 @@ def _convert_units(
     return df
 
 
-def _add_identifier(s):
+def _add_identifier(s: str) -> str:
     """
     Add institution identifier to scenario name.
     """
@@ -216,7 +216,7 @@ def load_benchmark(
     ncolumns = opt.get("ncolumns", None)
     names = opt["names"]
 
-    # Fix temporal labeling - source data uses 00:00 as end-of-period (previous day's last hour),
+    # Fix temporal labeling - source data uses 00:00 as end-of-period (previous day's last hour);
     # convert to beginning-of-period (current day's first hour)
     if table == "generation_profiles":
         time_col = df.iloc[
