@@ -150,8 +150,8 @@ def compute_benchmark(n: pypsa.Network, table: str, options: dict) -> pd.DataFra
             aggregate_across_components=True,
         )
     elif table == "energy_imports":
-        # TODO cannot extract gas imports
-        # TODO no biomass import is assumed
+        # TODO Cannot extract gas imports
+        # TODO No biomass import is assumed
         df = n.statistics.supply(
             comps=supply_comps,
             bus_carrier=["H2", "oil", "coal", "lignite"],

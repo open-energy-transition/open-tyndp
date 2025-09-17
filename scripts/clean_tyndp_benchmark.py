@@ -22,7 +22,7 @@ from scripts._helpers import SCENARIO_DICT, configure_logging, set_scenario_conf
 logger = logging.getLogger(__name__)
 
 
-def _safe_sheet(sn, scenario):
+def _safe_sheet(sn: str | dict, scenario: str) -> str:
     if isinstance(sn, dict):
         return sn.get(scenario, "")
     return sn

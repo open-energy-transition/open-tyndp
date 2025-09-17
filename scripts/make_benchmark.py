@@ -84,7 +84,7 @@ def match_temporal_resolution(
         Aggregated DataFrame where reference data temporal resolution matches model data.
     """
 
-    def _get_idx(col):
+    def _get_idx(col: str) -> pd.Index:
         return (
             df[col]
             .dropna()
@@ -273,7 +273,7 @@ def compute_all_indicators(
         DataFrame containing indicators, at carrier level if specified.
     """
     expected_cols = [model_col, rfc_col]
-    if not df.columns.tolist() == expected_cols:
+    if not sorted(df.columns.tolist()) == sorted(expected_cols):
         logger.warning(f"Expected columns {expected_cols}, got {df.columns.tolist()}")
         return pd.DataFrame()
 
