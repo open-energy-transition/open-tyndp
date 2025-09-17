@@ -85,7 +85,7 @@ Outputs
 Example of indicators extracted from `power_generation_s_all__all_years.csv` for DE scenario with 720SEG:
 
 ================================  =====  =====  ======  =====  ==============  ============
-Carrier                           sMPE   sMAPE  sMdAPE  RMSLE  Growth Error    commit_hash
+Carrier                           sMPE   sMAPE  sMdAPE  RMSLE  Growth Error    version
 ================================  =====  =====  ======  =====  ==============  ============
 **Coal + other fossil**           0.93   1.07   1.07    18.64  2.65            a718362
 **Hydrogen**                      -0.05  1.95   1.95    6.15   1.15            a718362
@@ -112,7 +112,7 @@ Example of figure created for the generation profiles for DE scenario in 2040 wi
 Example of indicators extracted from `kpis_s_all__all_years.csv` for DE scenario with 720SEG:
 
 ===============================  =====  =====  ======  =====  ============  =======  ============
-Table                            sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing  commit_hash
+Table                            sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing  version
 ===============================  =====  =====  ======  =====  ============  =======  ============
 **Final energy demand**          -0.57  0.69   0.61    1.79   0.00          3        a718362
 **Electricity demand**           0.56   0.56   0.64    0.66   0.02          2        a718362

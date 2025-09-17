@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, get_git_commit_hash, set_scenario_config
+from scripts._helpers import configure_logging, get_version, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -508,15 +508,15 @@ if __name__ == "__main__":
         results = list(tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs))
         benchmarks, indicators = zip(*results)
 
-    # Get unique version hash
-    commit_hash = get_git_commit_hash()
+    # Get version
+    version = get_version()
 
     # Combine and write all benchmark data
     os.makedirs(snakemake.output.benchmarks, exist_ok=True)
     for benchmark in benchmarks:
         if not benchmark.empty:
             table = benchmark.index.get_level_values(0)[0]
-            benchmark_i = benchmark.loc[table].assign(commit_hash=commit_hash)
+            benchmark_i = benchmark.loc[table].assign(version=version)
             benchmark_i.to_csv(
                 snakemake.output.benchmarks
                 + f"/{table}_s_{snakemake.wildcards.clusters}_{snakemake.wildcards.opts}_{snakemake.wildcards.sector_opts}_all_years.csv"
@@ -527,5 +527,5 @@ if __name__ == "__main__":
 
     indicators = pd.concat(
         [pd.concat(indicators).sort_index(), indicators_total]
-    ).assign(commit_hash=commit_hash)
+    ).assign(version=version)
     indicators.to_csv(snakemake.output.kpis)

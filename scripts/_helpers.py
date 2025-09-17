@@ -1192,9 +1192,31 @@ def safe_pyear(
     return year_new
 
 
-def get_git_commit_hash() -> str:
+def get_version(hash_len: int = 9) -> str:
+    """
+    Create a version identifier from git repository state.
+
+    Returns a version string based on the latest reachable tag and current commit:
+    - If HEAD is exactly at a tag: returns the tag name (e.g., "v1.2.3")
+    - If HEAD is beyond a tag: returns "tag+g{hash}" (e.g., "v1.2.3+g1a2b3c4d")
+    - If no tags found: returns just the commit hash (e.g., "1a2b3c4d5")
+    """
     try:
         repo = git.Repo(search_parent_directories=True)
-        return repo.head.commit.hexsha[:7]
+        tags = sorted(
+            repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True
+        )
+        last_tag = None
+        for tag in tags:
+            if repo.is_ancestor(tag.commit, repo.head.commit):
+                last_tag = tag
+                break
+        if last_tag and last_tag.commit == repo.head.commit:
+            return f"{last_tag}"
+        elif last_tag:
+            return f"{last_tag}+g{repo.head.commit.hexsha[:hash_len]}"
+        else:
+            return repo.head.commit.hexsha[:hash_len]
+
     except Exception:
         return "unknown"

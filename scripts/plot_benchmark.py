@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, get_git_commit_hash, set_scenario_config
+from scripts._helpers import configure_logging, get_version, set_scenario_config
 from scripts.clean_tyndp_benchmark import _convert_units
 from scripts.make_benchmark import load_data, match_temporal_resolution
 
@@ -22,23 +22,23 @@ logger = logging.getLogger(__name__)
 plt.style.use("bmh")
 
 
-def add_version(ax: plt.Axes, fig: plt.Figure, x=0.9):
-    commit_hash = get_git_commit_hash()
+def add_version(ax: plt.Axes, fig: plt.Figure):
+    version = get_version()
     fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
-    min_y = min(
-        [
-            i.get_window_extent(renderer).transformed(ax.transAxes.inverted()).y0
-            for i in ax.get_xticklabels()
-        ]
-    )
+    bbox_fig = fig.get_tightbbox(fig.canvas.get_renderer())
+    fig_width_inches, fig_height_inches = fig.get_size_inches()
+    x1_fig = (
+        bbox_fig.x1 / fig_width_inches
+    )  # Convert bbox coordinates from inches to figure coordinates
+    y0_fig = bbox_fig.y0 / fig_height_inches
+
     ax.text(
-        x,
-        min_y - 0.05,
-        f"version: {commit_hash}",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
+        x1_fig,
+        y0_fig - 0.05,
+        f"version: {version}",
+        transform=fig.transFigure,
+        ha="right",
+        va="bottom",
         fontsize=8,
         alpha=0.7,
     )
@@ -156,7 +156,7 @@ def _plot_time_series(
         bbox=props,
     )
 
-    add_version(ax, fig, x=1.2)
+    add_version(ax, fig)
 
     output_filename = Path(output_dir, f"benchmark_{table}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -318,7 +318,7 @@ def plot_overview(
         loc="upper left",
     )
 
-    add_version(ax, fig, x=0.94)
+    add_version(ax, fig)
 
     fig.savefig(fn, bbox_inches="tight")
 
