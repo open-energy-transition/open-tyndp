@@ -477,7 +477,6 @@ pypsa_eur:
   - solar-hsat
   - solar
   - ror
-  - nuclear
   StorageUnit:
   - PHS
   - hydro
