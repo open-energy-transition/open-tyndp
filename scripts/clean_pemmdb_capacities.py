@@ -663,8 +663,20 @@ if __name__ == "__main__":
         )
 
     pemmdb_capacities_df = (
-        pd.concat(pemmdb_capacities, axis=0)[
-            ["carrier", "bus", "type", "p_nom", "efficiency", "country", "unit"]
+        pd.concat(pemmdb_capacities, axis=0).assign(
+            e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
+            p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
+        )[
+            [
+                "carrier",
+                "bus",
+                "type",
+                "p_nom",
+                "e_nom",
+                "efficiency",
+                "country",
+                "unit",
+            ]
         ]  # # select and order relevant columns
     ).reset_index(drop=True)
 
