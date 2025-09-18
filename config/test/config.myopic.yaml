@@ -29,11 +29,6 @@ snapshots:
   start: "2013-03-01"
   end: "2013-03-08"
 
-co2_budget:
-  2030: 0.550 # manual fix for CI
-  2040: 0.550 # manual fix for CI
-  2050: 0.550 # manual fix for CI
-
 sector:
   central_heat_vent: true
   solid_biomass_import:
@@ -71,7 +66,7 @@ sector:
 
 electricity:
   extendable_carriers:
-    Generator: [OCGT]
+    Generator: [OCGT, solar]
     StorageUnit: [battery]
     Store: [H2]
     Link: [H2 pipeline]
