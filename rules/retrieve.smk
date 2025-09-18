@@ -189,6 +189,7 @@ if config["enable"]["retrieve"]:
             offshore_grid="data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx",
             offshore_electrolysers="data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx",
             offshore_generators="data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx",
+            trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
