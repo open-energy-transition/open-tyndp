@@ -52,9 +52,10 @@ if __name__ == "__main__":
     # extract
     logger.info("Extracting TYNDP PECD data.")
     with zipfile.ZipFile(to_fn_zp, "r") as zip_ref:
-        zip_ref.extractall(tyndp_bundle_fn)
+        zip_ref.extractall(to_fn)
 
     # remove .zip file
     os.remove(to_fn_zp)
 
     logger.info(f"TYNDP PECD data available in '{to_fn}'.")
+
