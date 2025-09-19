@@ -474,6 +474,7 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    licenses
    data_sources
    validation
+   benchmarking
    limitations
    contributing
    support

@@ -22,6 +22,7 @@ from scripts._helpers import (
 
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
+configfile: "config/benchmarking.default.yaml"
 configfile: "config/config.private.yaml"
 
 
@@ -85,6 +86,11 @@ if config["foresight"] == "perfect":
     include: "rules/solve_perfect.smk"
 
 
+if config["benchmarking"]["enable"]:
+
+    include: "rules/benchmarking.smk"
+
+
 def input_all_tyndp(w):
     files = []
     if config_provider("sector", "H2_network")(w):
@@ -121,6 +127,15 @@ def input_all_tyndp(w):
                 run=config["run"]["name"],
                 **config["scenario"],
                 carrier=config_provider("plotting", "offshore_maps", "bus_carriers")(w),
+            )
+        )
+    if config_provider("benchmarking", "enable")(w):
+        files.extend(
+            expand(
+                RESULTS
+                + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+                run=config["run"]["name"],
+                **config["scenario"],
             )
         )
     return files
