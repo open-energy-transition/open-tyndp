@@ -114,3 +114,12 @@ rule build_renewable_profiles_pecds:
                 "electricity", "pecd_renewable_profiles", "technologies"
             )(w),
         ),
+
+
+rule build_pemmdb_datas:
+    input:
+        lambda w: expand(
+            resources("pemmdb_capacities_{planning_horizons}.csv"),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),

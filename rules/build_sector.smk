@@ -1578,6 +1578,21 @@ rule prepare_sector_network:
             resources("profile_pemmdb_hydro.nc"),
             [],
         ),
+        pemmdb_capacities=branch(
+            config_provider("electricity", "pemmdb_capacities", "enable"),
+            resources("pemmdb_capacities_{planning_horizons}.csv"),
+            [],
+        ),
+        pemmdb_profiles=branch(
+            config_provider("electricity", "pemmdb_capacities", "enable"),
+            resources("pemmdb_profiles_{planning_horizons}.nc"),
+            [],
+        ),
+        tyndp_trajectories=branch(
+            config_provider("electricity", "tyndp_renewable_carriers"),
+            resources("tyndp_trajectories.csv"),
+            [],
+        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"

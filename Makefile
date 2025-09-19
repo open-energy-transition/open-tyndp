@@ -85,7 +85,7 @@ test:
 	snakemake -call make_summary_perfect --configfile config/test/config.perfect.yaml
 	snakemake -call resources/test-elec-clusters/networks/base_s_adm.nc --configfile config/test/config.clusters.yaml
 	snakemake -call --configfile config/test/config.scenarios.yaml -n
-	snakemake -call --configfile config/test/config.tyndp.yaml
+	snakemake -call --configfile config/test/config.tyndp.yaml --latency-wait 10
 	echo "All tests completed successfully."
 
 unit-test:

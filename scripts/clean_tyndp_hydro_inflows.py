@@ -28,6 +28,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    safe_pyear,
     set_scenario_config,
 )
 
@@ -45,7 +46,7 @@ def read_hydro_inflows_file(
 ) -> pd.Series:
     fn = Path(
         hydro_inflows_dir,
-        pyear,
+        str(pyear),
         f"PEMMDB_{node.replace('GB', 'UK')}_Hydro_Inflows_{pyear}.xlsx",
     )
 
@@ -122,7 +123,11 @@ if __name__ == "__main__":
         cyear = 2009
 
     # Planning year
-    pyear = str(snakemake.wildcards.planning_horizons)
+    pyear = safe_pyear(
+        snakemake.wildcards.planning_horizons,
+        available_years=snakemake.params.available_years,
+        source="Hydro inflows",
+    )
 
     # Parameters
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)

@@ -31,6 +31,12 @@ logger = logging.getLogger(__name__)
 
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
 
+SCENARIO_DICT = {
+    "Distributed Energy": "DE",
+    "Global Ambition": "GA",
+    "National Trends": "NT",
+}
+
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
 
