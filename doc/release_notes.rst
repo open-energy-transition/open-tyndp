@@ -20,6 +20,8 @@ Upcoming Open-TYNDP Release
 
 * Fix bugs with PyPSA-Eur's nuclear implementation related to inconsistent modelling as generators and links, missing country-specific p_max_pu and missing uranium generators (https://github.com/open-energy-transition/open-tyndp/pull/105). Furthermore, reintroduce default hydro renewable_carrier until TYNDP hydro technologies are added.
 
+* Allow the retrieval of PyPSA-Eur cutouts for additional climate years that not available on Zenodo via retrieval from GCP (https://github.com/open-energy-transition/open-tyndp/pull/109). Currently, this feature is available for the additional climate year 2009.
+
 
 Upcoming PyPSA-Eur Release
 ================
