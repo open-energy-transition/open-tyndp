@@ -12,7 +12,10 @@ rule add_existing_baseyear:
         heat_pump_sources=config_provider("sector", "heat_pump_sources"),
         energy_totals_year=config_provider("energy", "energy_totals_year"),
         load_source=config_provider("load", "source"),
+        conventional=config_provider("conventional"),
+        conventional_carriers=config_provider("electricity", "conventional_carriers"),
     input:
+        unpack(input_conventional),
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
         ),

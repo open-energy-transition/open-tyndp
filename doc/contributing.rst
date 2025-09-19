@@ -1,4 +1,5 @@
 ..
+  SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
   SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 
   SPDX-License-Identifier: CC-BY-4.0
@@ -34,7 +35,7 @@ including our own are reviewed by a second person before they are incorporated i
 
 If you are unfamiliar with pull requests, the GitHub help pages have a nice `guide <https://help.github.com/en/articles/about-pull-requests>`_.
 
-To **discuss** with other PyPSA users, organise projects, share news, and get in touch with the community you can use the `Discord server <https://discord.gg/AnuJBk23FU>`_.
+To **discuss** with other PyPSA users, organise projects, share news, and get in touch with the community you can use the `Discord server <https://discord.gg/AnuJBk23FU>`_. Open-TYNDP has its own dedicated channel `pypsa-open-tyndp <https://discord.com/channels/911692131440148490/1414977512089321564>`_ for project-specific discussions.
 
 Contributing to the documentation
 ====================================
