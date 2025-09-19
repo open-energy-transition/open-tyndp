@@ -62,7 +62,7 @@ def expand_all_scenario(df: pd.DataFrame, scenarios: list):
     all_rows = (
         df[all_mask]
         .drop(columns="scenario")
-        .merge(pd.DataFrame({"scenario": scenarios}), how="cross")
+        .merge(pd.DataFrame({"scenario": list(set(scenarios))}), how="cross")
     )
     return pd.concat([df[~all_mask], all_rows], ignore_index=True)
 
