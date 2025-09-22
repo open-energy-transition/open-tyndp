@@ -91,21 +91,10 @@ electricity:
     - 2030
     - 2040
     technologies:
-      Wind_Offshore:
-      - offwind-ac-fb-r
-      - offwind-ac-fl-r
-      - offwind-dc-fb-r
-      - offwind-dc-fl-r
-      - offwind-dc-fb-oh
-      - offwind-dc-fl-oh
-      - offwind-h2-fb-oh
-      - offwind-h2-fl-oh
-      LFSolarPVRooftop:
-      - solar-pv-rooftop
-      LFSolarPVUtility:
-      - solar-pv-utility
-      Wind_Onshore:
-      - onwind
+    - Wind_Offshore
+    - LFSolarPVRooftop
+    - LFSolarPVUtility
+    - Wind_Onshore
 
   pemmdb_hydro_profiles:
     enable: true

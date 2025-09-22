@@ -1593,6 +1593,7 @@ rule prepare_sector_network:
             resources("tyndp_trajectories.csv"),
             [],
         ),
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
