@@ -484,6 +484,7 @@ rule clean_pemmdb_capacities:
     log:
         logs("clean_pemmdb_capacities_{tech}_{planning_horizons}.log"),
     threads: 4
+    retries: 2
     benchmark:
         benchmarks("clean_pemmdb_capacities_{tech}_{planning_horizons}")
     conda:
@@ -511,6 +512,7 @@ rule clean_pemmdb_profiles:
     log:
         logs("clean_pemmdb_profiles_{tech}_{planning_horizons}.log"),
     threads: 4
+    retries: 2
     benchmark:
         benchmarks("clean_pemmdb_profiles_{tech}_{planning_horizons}")
     conda:
@@ -647,6 +649,7 @@ rule clean_tyndp_hydro_inflows:
     log:
         logs("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}.log"),
     threads: 4
+    retries: 2
     benchmark:
         benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
     conda:
