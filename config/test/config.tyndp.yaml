@@ -103,11 +103,11 @@ electricity:
     - 2040
     - 2050
     technologies:
-    - Run of River
+    - Run_of_River
     - Pondage
     - Reservoir
-    - PS Open
-    - PS Closed
+    - PS_Open
+    - PS_Closed
 
   pemmdb_capacities:
     enable: true
@@ -119,14 +119,15 @@ electricity:
     - Solar
     - Wind
     - Hydro
-    - Other RES
+    - Other_RES
     - Gas
     - Nuclear
-    - Hard coal
+    - Hard_coal
     - Lignite
-    - Light oil
-    - Heavy oil
-    - Oil shale
+    - Light_oil
+    - Heavy_oil
+    - Oil_shale
+    - Other_Non-RES
     - Electrolyser
     - Battery
 

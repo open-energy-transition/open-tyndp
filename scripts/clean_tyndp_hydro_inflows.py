@@ -96,7 +96,7 @@ if __name__ == "__main__":
             "clean_tyndp_hydro_inflows",
             clusters="all",
             planning_horizons=2030,
-            tech="Run of River",
+            tech="Run_of_River",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
     nodes = onshore_buses.index
     hydro_inflows_dir = snakemake.input.hydro_inflows_dir
-    hydro_tech = str(snakemake.wildcards.tech)
+    hydro_tech = str(snakemake.wildcards.tech).replace("_", " ")
 
     # Load and prep inflow data
     tqdm_kwargs = {
