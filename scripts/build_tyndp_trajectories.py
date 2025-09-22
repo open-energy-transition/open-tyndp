@@ -18,6 +18,7 @@ import pandas as pd
 from scripts._helpers import (
     SCENARIO_DICT,
     configure_logging,
+    map_tyndp_carrier_names,
     set_scenario_config,
 )
 
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     column_names = {
         "NODE": "bus",
         "SCENARIO": "scenario",
-        "TECHNOLOGY": "carrier",
+        "TECHNOLOGY": "investment_dataset_carrier",
         "YEAR": "pyear",
         "MIN CAPACITY [MW]": "p_nom_min",
         "MAX CAPACITY [MW]": "p_nom_max",
@@ -53,5 +54,13 @@ if __name__ == "__main__":
         .replace(SCENARIO_DICT, regex=True)
         .query("scenario == @tyndp_scenario or scenario == 'All'")
     )
+
+    carrier_mapping_df = (
+        pd.read_csv(snakemake.input.carrier_mapping)[
+            ["investment_dataset_carrier", "open_tyndp_carrier", "open_tyndp_index"]
+        ]
+    ).dropna()
+
+    df = map_tyndp_carrier_names(df, carrier_mapping_df, ["investment_dataset_carrier"])
 
     df.to_csv(snakemake.output.tyndp_trajectories, index=False)

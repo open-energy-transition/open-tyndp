@@ -568,6 +568,7 @@ rule build_tyndp_trajectories:
         tyndp_scenario=config_provider("tyndp_scenario"),
     input:
         trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         tyndp_trajectories=resources("tyndp_trajectories.csv"),
     log:

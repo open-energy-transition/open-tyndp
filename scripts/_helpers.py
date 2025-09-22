@@ -1214,8 +1214,8 @@ def map_tyndp_carrier_names(
     df = df.merge(carrier_mapping_df, on=on_columns, how="left")
 
     # if the carrier is DSR, the different price bands are too diverse to use a robust external mapping. We will instead combine carrier and type information
-    df = (
-        df.assign(
+    if "pemmdb_carrier" in on_columns:
+        df = df.assign(
             open_tyndp_carrier=np.where(
                 df["pemmdb_carrier"] == "DSR",
                 df["pemmdb_carrier"].str.lower(),
@@ -1227,13 +1227,13 @@ def map_tyndp_carrier_names(
                 df["open_tyndp_index"],
             ),
         )
-        .drop(on_columns, axis="columns")
-        .rename(
-            columns={
-                "open_tyndp_carrier": "carrier",
-                "open_tyndp_index": "index_carrier",
-            }
-        )
+
+    # drop merge columns and rename to new "carrier" and "index_carrier" column
+    df = df.drop(on_columns, axis="columns").rename(
+        columns={
+            "open_tyndp_carrier": "carrier",
+            "open_tyndp_index": "index_carrier",
+        }
     )
 
     # Move "carrier" and "index_carrier" to the front
