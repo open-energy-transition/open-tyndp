@@ -2139,6 +2139,10 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
 
+    # for NT scenario there are no interzonal connections as only one H2 zone is modelled
+    if interzonal.empty:
+        return
+
     interzonal = interzonal.assign(
         bus0=interzonal.bus0.str.split("H2").str.join(" H2 "),
         bus1=interzonal.bus1.str.split("H2").str.join(" H2 "),
