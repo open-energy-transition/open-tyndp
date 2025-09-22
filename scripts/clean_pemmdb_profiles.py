@@ -40,6 +40,7 @@ Cleaned netcdf file with must run obligations (p_min_pu) and availability (p_max
 
 import logging
 import multiprocessing as mp
+import sys
 from functools import partial
 from pathlib import Path
 
@@ -107,9 +108,18 @@ def _read_thermal_profiles(
         )
         .drop([0, 1, 2])
         .dropna(how="all")
-        .assign(
+    )
+    # deal with Nuclear and Light Oil entries as they do not have a pemmdb type
+    nuclear_lightoil_i = must_runs.query(
+        "pemmdb_carrier in ['Nuclear', 'Light oil']"
+    ).index
+    must_runs.loc[nuclear_lightoil_i, "pemmdb_type"] = must_runs.loc[
+        nuclear_lightoil_i, "pemmdb_carrier"
+    ]
+    must_runs = (
+        must_runs.assign(
             pemmdb_carrier=lambda df: df.pemmdb_carrier.ffill(),
-            pemmdb_type=lambda df: df.pemmdb_type.ffill().fillna(df.pemmdb_carrier),
+            pemmdb_type=lambda df: df.pemmdb_type.ffill(),
         )
         .query("unit == '% of installed capacity' and pemmdb_carrier == @pemmdb_tech")
         .drop(columns=["unit"])
@@ -501,9 +511,14 @@ if __name__ == "__main__":
             f"No PEMMDB profiles available for '{tech}' with climate year {cyear} and planning year {pyear}. "
             f"Please specify different technology, climate year or planning year."
         )
+        # save empty dataset
+        ds = xr.Dataset()
+        ds.to_netcdf(snakemake.output.pemmdb_profiles)
+        sys.exit(0)
 
-    # merge pemmdb profiles into one xarray dataset and save
+    # otherwise merge pemmdb profiles into one xarray dataset and save
     ds = xr.merge(profiles)
+    # map pemmdb carrier names to tyndp technologies
     ds = (
         map_tyndp_carrier_names(
             ds.to_dataframe().reset_index(),
