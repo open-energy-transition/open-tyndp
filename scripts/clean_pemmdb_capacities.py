@@ -693,4 +693,4 @@ if __name__ == "__main__":
     pemmdb_capacities_df = map_tyndp_carrier_names(
         pemmdb_capacities_df, carrier_mapping_df, ["pemmdb_carrier", "pemmdb_type"]
     )
-    pemmdb_capacities_df.to_csv(snakemake.output.pemmdb_capacities)
+    pemmdb_capacities_df.to_csv(snakemake.output.pemmdb_capacities, index=False)

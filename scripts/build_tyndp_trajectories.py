@@ -54,4 +54,4 @@ if __name__ == "__main__":
         .query("scenario == @tyndp_scenario or scenario == 'All'")
     )
 
-    df.to_csv(snakemake.output.tyndp_trajectories)
+    df.to_csv(snakemake.output.tyndp_trajectories, index=False)

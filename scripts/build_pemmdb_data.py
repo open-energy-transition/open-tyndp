@@ -57,7 +57,7 @@ if __name__ == "__main__":
         capacities.append(capacity)
 
     capacities_df = pd.concat(capacities, axis=0).reset_index(drop=True)
-    capacities_df.to_csv(snakemake.output.pemmdb_capacities)
+    capacities_df.to_csv(snakemake.output.pemmdb_capacities, index=False)
 
     # Profiles
     profiles = []
