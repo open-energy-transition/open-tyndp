@@ -1,0 +1,80 @@
+,pemmdb_carrier,pemmdb_type,pecd_carrier,open_tyndp_carrier,open_tyndp_index,comment
+0,Solar,Thermal Solar,CSP_noStorage,solar-thermal,solar-thermal,
+1,Solar,Photovoltaic,LFSolarPV,solar-pv,solar-pv,used except for Italian nodes
+2,,,LFSolarPVUtility,solar-pv-utility,solar-pv-utility,only used for Italian nodes
+3,Solar,Rooftop,LFSolarPVRooftop,solar-pv-rooftop,solar-pv-rooftop,only used for Italian nodes
+4,Solar,Solar Thermal with Storage,CSP_withStorage,solar-thermal-w-storage,solar-thermal-w-storage,
+5,Solar,Solar Thermal with Storage - Storage,CSP_withStorage,solar-thermal-w-storage,solar-thermal-w-storage-storage,
+6,Wind,Onshore wind,Wind_Onshore,onwind,onwind,
+7,Wind,Offshore wind,Wind_Offshore,offwind,offwind,only used w/o offshore hubs
+8,,,Wind_Offshore,offwind-ac-fb-r,offwind-ac-fb-r,only used with offshore hubs
+9,,,Wind_Offshore,offwind-ac-fl-r,offwind-ac-fl-r,only used with offshore hubs
+10,,,Wind_Offshore,offwind-dc-fb-r,offwind-dc-fb-r,only used with offshore hubs
+11,,,Wind_Offshore,offwind-dc-fl-r,offwind-dc-fl-r,only used with offshore hubs
+12,,,Wind_Offshore,offwind-dc-fb-oh,offwind-dc-fb-oh,only used with offshore hubs
+13,,,Wind_Offshore,offwind-dc-fl-oh,offwind-dc-fl-oh,only used with offshore hubs
+14,,,Wind_Offshore,offwind-h2-fb-oh,offwind-h2-fb-oh,only used with offshore hubs
+15,,,Wind_Offshore,offwind-h2-fl-oh,offwind-h2-fl-oh,only used with offshore hubs
+16,Hydro,Run of River - Turbine,,hydro-ror,hydro-ror-turbine,
+17,Hydro,Pondage - Reservoir,,hydro-pondage,hydro-pondage-reservoir,
+18,Hydro,Pondage - Turbine,,hydro-pondage,hydro-pondage-turbine,
+19,Hydro,Reservoir - Reservoir,,hydro-reservoir,hydro-reservoir-reservoir,
+20,Hydro,Reservoir - Turbine,,hydro-reservoir,hydro-reservoir-turbine,
+21,Hydro,Pump Storage - Reservoir,,hydro-phs,hydro-phs-reservoir,
+22,Hydro,Pump Storage - Turbine,,hydro-phs,hydro-phs-turbine,
+23,Hydro,Pump Storage - Pump,,hydro-phs,hydro-phs-pump,
+24,Hydro,Pure Pump Storage - Reservoir,,hydro-phs-pure,hydro-phs-pure-reservoir,
+25,Hydro,Pure Pump Storage - Turbine,,hydro-phs-pure,hydro-phs-pure-turbine,
+26,Hydro,Pure Pump Storage - Pump,,hydro-phs-pure,hydro-phs-pure-pump,
+27,Other RES,"Small Biomass, Geothermal, Marine, Waste and Not Defined",,other-res,other-res,
+28,Gas,Conventional old 1,,gas,gas-conv-old1,
+29,Gas,Conventional old 2,,gas,gas-conv-old2,
+30,Gas,CCGT old 1,,gas,gas-ccgt-old1,
+31,Gas,CCGT old 2,,gas,gas-ccgt-old2,
+32,Gas,CCGT new,,gas,gas-ccgt-new,
+33,Gas,CCGT CCS,,gas,gas-ccgt-ccs,
+34,Gas,OCGT old,,gas,gas-ocgt-old,
+35,Gas,OCGT new,,gas,gas-ocgt-new,
+36,Gas,CCGT present 1,,gas,gas-ccgt-present1,
+37,Gas,CCGT present 2,,gas,gas-ccgt-present2,
+38,Nuclear,Nuclear,,nuclear,nuclear,
+39,Hard coal,old 1,,coal,coal-old1,
+40,Hard coal,old 2,,coal,coal-old2,
+41,Hard coal,new,,coal,coal-new,
+42,Hard coal,CCS,,coal,coal-ccs,
+43,Lignite,old 1,,lignite,lignite-old1,
+44,Lignite,old 2,,lignite,lignite-old2,
+45,Lignite,new,,lignite,lignite-new,
+46,Lignite,CCS,,lignite,lignite-ccs,
+47,Light oil,Light oil,,oil-light,oil-light,
+48,Heavy oil,old 1,,oil-heavy,oil-heavy-old1,
+49,Heavy oil,old 2,,oil-heavy,oil-heavy-old2,
+50,Oil shale,old,,oil-shale,oil-shale-old,
+51,Oil shale,new,,oil-shale,oil-shale-new,
+52,Other Non-RES,Gas - CCGT CCS,,chp,chp-gas-ccgt-ccs,Other Non-RES are assumed to represent CHP plants
+53,Other Non-RES,Gas - CCGT new,,chp,chp-gas-ccgt-new,Other Non-RES are assumed to represent CHP plants
+54,Other Non-RES,Gas - CCGT old 1,,chp,chp-gas-ccgt-old1,Other Non-RES are assumed to represent CHP plants
+55,Other Non-RES,Gas - CCGT old 2,,chp,chp-gas-ccgt-old2,Other Non-RES are assumed to represent CHP plants
+56,Other Non-RES,Gas - CCGT present 1,,chp,chp-gas-ccgt-present1,Other Non-RES are assumed to represent CHP plants
+57,Other Non-RES,Gas - CCGT present 2,,chp,chp-gas-ccgt-present2,Other Non-RES are assumed to represent CHP plants
+58,Other Non-RES,Gas - OCGT old,,chp,chp-gas-ocgt-old,Other Non-RES are assumed to represent CHP plants
+59,Other Non-RES,Gas - OCGT new,,chp,chp-gas-ocgt-new,Other Non-RES are assumed to represent CHP plants
+60,Other Non-RES,Gas - conventional old 1,,chp,chp-gas-conv-old1,Other Non-RES are assumed to represent CHP plants
+61,Other Non-RES,Gas - conventional old 2,,chp,chp-gas-conv-old2,Other Non-RES are assumed to represent CHP plants
+62,Other Non-RES,Hard coal - new,,chp,chp-coal-new,Other Non-RES are assumed to represent CHP plants
+63,Other Non-RES,Hard coal - old 1,,chp,chp-coal-old1,Other Non-RES are assumed to represent CHP plants
+64,Other Non-RES,Hard coal - old 2,,chp,chp-coal-old2,Other Non-RES are assumed to represent CHP plants
+65,Other Non-RES,Hard coal - CCS,,chp,chp-coal-ccs,Other Non-RES are assumed to represent CHP plants
+66,Other Non-RES,Light oil - -,,chp,chp-light-oil,Other Non-RES are assumed to represent CHP plants
+67,Other Non-RES,Heavy oil - old 1,,chp,chp-oil-heavy-old1,Other Non-RES are assumed to represent CHP plants
+68,Other Non-RES,Heavy oil - old 2,,chp,chp-oil-heavy-old2,Other Non-RES are assumed to represent CHP plants
+69,Other Non-RES,Oil shale - old,,chp,chp-oil-shale-old,Other Non-RES are assumed to represent CHP plants
+70,Other Non-RES,Oil shale - new,,chp,chp-oil-shale-new,Other Non-RES are assumed to represent CHP plants
+71,Other Non-RES,Lignite - new,,chp,chp-lignite-new,Other Non-RES are assumed to represent CHP plants
+72,Other Non-RES,Lignite - old 1,,chp,chp-lignite-old1,Other Non-RES are assumed to represent CHP plants
+73,Other Non-RES,Lignite - old 2,,chp,chp-lignite-old2,Other Non-RES are assumed to represent CHP plants
+74,Other Non-RES,Lignite - CCS,,chp,chp-lignite-old2,Other Non-RES are assumed to represent CHP plants
+75,Electrolyser,Onshore grid connected,,electrolyser,eletrolyser-onshore-grid,
+76,Battery,Discharge,,battery,battery-discharge,
+77,Battery,Charge,,battery,battery-charge,
+78,Battery,Store,,battery,battery-store,

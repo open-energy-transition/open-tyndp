@@ -51,6 +51,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    map_tyndp_carrier_names,
     safe_pyear,
     set_scenario_config,
 )
@@ -87,8 +88,8 @@ def _read_thermal_profiles(
             skiprows=7,
             usecols=[0, 1, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
             names=[
-                "carrier",
-                "type",
+                "pemmdb_carrier",
+                "pemmdb_type",
                 "unit",
                 "Jan",
                 "Feb",
@@ -107,17 +108,18 @@ def _read_thermal_profiles(
         .drop([0, 1, 2])
         .dropna(how="all")
         .assign(
-            carrier=lambda df: df.carrier.ffill(),
-            type=lambda df: df.type.ffill().fillna(df.carrier),
+            pemmdb_carrier=lambda df: df.pemmdb_carrier.ffill(),
+            pemmdb_type=lambda df: df.pemmdb_type.ffill().fillna(df.pemmdb_carrier),
         )
-        .query("unit == '% of installed capacity' and carrier == @pemmdb_tech")
+        .query("unit == '% of installed capacity' and pemmdb_carrier == @pemmdb_tech")
         .drop(columns=["unit"])
-        .set_index(["carrier", "type"])
+        .set_index(["pemmdb_type"])
+        .drop(columns=["pemmdb_carrier"])
         .div(1e2)  # percentage conversion
     )
 
-    # Transform to monthly lookup
-    must_runs = must_runs.set_index(must_runs.index.map("_".join)).T
+    # Transform to monthly lookup by inverting df
+    must_runs = must_runs.T
 
     # map to hourly Datetime index
     df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
@@ -128,11 +130,11 @@ def _read_thermal_profiles(
     # flatten and turn into xarray dataset
     profiles = (
         df.reset_index(names="time")
-        .melt(id_vars="time", var_name="type", value_name="p_min_pu")
+        .melt(id_vars="time", var_name="pemmdb_type", value_name="p_min_pu")
         .assign(
-            carrier=pemmdb_tech, bus=node, p_max_pu=1.0
+            pemmdb_carrier=pemmdb_tech, bus=node, p_max_pu=1.0
         )  # also set p_max_pu with default value of 1.0
-        .set_index(["time", "bus", "carrier", "type"])
+        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])
         .to_xarray()
         .sel(time=sns)  # filter for snapshots only
     )
@@ -176,10 +178,12 @@ def _read_other_res_profiles(
             p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
             time=index_year,
             bus=node,
-            carrier=pemmdb_tech,
-            type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
+            pemmdb_carrier=pemmdb_tech,
+            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
         )
-        .set_index(["time", "bus", "carrier", "type"])[["p_min_pu", "p_max_pu"]]
+        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
+            ["p_min_pu", "p_max_pu"]
+        ]
         .to_xarray()
         .sel(time=sns)  # filter for snapshots only
     )
@@ -203,7 +207,7 @@ def _read_other_nonres_profiles(
     df = pd.read_excel(fn, sheet_name="Other Non-RES", skiprows=7, index_col=1).rename(
         index={
             "Installed capacity \n(MW)": "p_nom",
-            "PEMMDB type(s)": "type",
+            "PEMMDB type(s)": "pemmdb_type",
             "Start climate year": "cyear_start",
             "End climate year": "cyear_end",
         }
@@ -232,7 +236,7 @@ def _read_other_nonres_profiles(
 
     # Extract capacity and plant type
     cap = pd.to_numeric(df.loc["p_nom", "p_max"], errors="coerce")
-    type = df.loc["type", "p_max"]
+    type = " - ".join(df.loc["pemmdb_type", "p_max"].split("/")[1:])
 
     if pd.isna(cap) or cap <= 0:
         logger.warning(f"Invalid capacity data for '{pemmdb_tech}' at {node}")
@@ -247,10 +251,12 @@ def _read_other_nonres_profiles(
             p_min_pu=0.0,  # also set p_min_pu with default value of 0.0
             time=index_year,
             bus=node,
-            carrier=pemmdb_tech,
-            type=type,
+            pemmdb_carrier=pemmdb_tech,
+            pemmdb_type=type,
         )
-        .set_index(["time", "bus", "carrier", "type"])[["p_min_pu", "p_max_pu"]]
+        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
+            ["p_min_pu", "p_max_pu"]
+        ]
         .to_xarray()
         .sel(time=sns)
     )
@@ -300,9 +306,9 @@ def _read_dsr_profiles(
     # extract price band type information
     type = (
         df.loc["hours", :].astype("str")
-        + " hours and "
+        + "h-"
         + df.loc["price", :].astype("str")
-        + " EUR"
+        + "eur"
     )
 
     df_long = (
@@ -313,11 +319,11 @@ def _read_dsr_profiles(
         .assign(
             time=index_year,
             bus=node,
-            carrier=pemmdb_tech,
+            pemmdb_carrier=pemmdb_tech,
         )
-        .set_index(["time", "bus", "carrier"])
-        .melt(var_name="type", value_name="p_max_pu", ignore_index=False)
-        .set_index("type", append=True)
+        .set_index(["time", "bus", "pemmdb_carrier"])
+        .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
+        .set_index("pemmdb_type", append=True)
         .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
     )
 
@@ -457,6 +463,11 @@ if __name__ == "__main__":
     pemmdb_dir = snakemake.input.pemmdb_dir
     tech = str(snakemake.wildcards.tech)
     tyndp_scenario = snakemake.params.tyndp_scenario
+    carrier_mapping_df = (
+        pd.read_csv(snakemake.input.carrier_mapping)[
+            ["pemmdb_carrier", "pemmdb_type", "open_tyndp_carrier", "open_tyndp_index"]
+        ]
+    ).dropna()
 
     # Load and prep data
     tqdm_kwargs = {
@@ -493,4 +504,13 @@ if __name__ == "__main__":
 
     # merge pemmdb profiles into one xarray dataset and save
     ds = xr.merge(profiles)
+    ds = (
+        map_tyndp_carrier_names(
+            ds.to_dataframe().reset_index(),
+            carrier_mapping_df,
+            ["pemmdb_carrier", "pemmdb_type"],
+        )
+        .set_index(["time", "bus", "carrier", "index_carrier"])
+        .to_xarray()
+    )
     ds.to_netcdf(snakemake.output.pemmdb_profiles)

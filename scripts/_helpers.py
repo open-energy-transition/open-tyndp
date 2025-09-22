@@ -18,6 +18,7 @@ from typing import Callable, Union
 
 import atlite
 import fiona
+import numpy as np
 import pandas as pd
 import pypsa
 import pytz
@@ -1187,3 +1188,57 @@ def safe_pyear(
         year_new = year
 
     return year_new
+
+
+def map_tyndp_carrier_names(
+    df: pd.DataFrame, carrier_mapping_df: pd.DataFrame, on_columns: list[str]
+):
+    """
+    Map external carriers to available tyndp_carrier names based on an input mapping.
+
+    Parameters
+    ----------
+    carriers : pd.DataFrame
+        DataFrame with external carriers to map
+    carrier_mapping_df : pd.DataFrame
+        DataFrame with mapping from external carriers to available tyndp_carrier names
+    on_columns : list[str]
+        Columns to merge on between the external carriers and tyndp_carriers.
+
+    Returns
+    -------
+    pd.DataFrame
+        Input DataFrame with mapping from external carriers to available tyndp carriers and index_carriers
+    """
+
+    df = df.merge(carrier_mapping_df, on=on_columns, how="left")
+
+    # if the carrier is DSR, the different price bands are too diverse to use a robust external mapping. We will instead combine carrier and type information
+    df = (
+        df.assign(
+            open_tyndp_carrier=np.where(
+                df["pemmdb_carrier"] == "DSR",
+                df["pemmdb_carrier"].str.lower(),
+                df["open_tyndp_carrier"],
+            ),
+            open_tyndp_index=np.where(
+                df["pemmdb_carrier"] == "DSR",
+                df["pemmdb_carrier"].str.lower() + "-" + df["pemmdb_type"],
+                df["open_tyndp_index"],
+            ),
+        )
+        .drop(on_columns, axis="columns")
+        .rename(
+            columns={
+                "open_tyndp_carrier": "carrier",
+                "open_tyndp_index": "index_carrier",
+            }
+        )
+    )
+
+    # Move "carrier" and "index_carrier" to the front
+    cols = ["carrier", "index_carrier"] + [
+        col for col in df.columns if col not in ["carrier", "index_carrier"]
+    ]
+
+    return df[cols]

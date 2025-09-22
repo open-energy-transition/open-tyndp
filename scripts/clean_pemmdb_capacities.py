@@ -51,6 +51,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    map_tyndp_carrier_names,
     safe_pyear,
     set_scenario_config,
 )
@@ -141,20 +142,20 @@ def _read_thermal_capacities(
             sheet_name="Thermal",
             skiprows=7,
             usecols=[0, 1, 2],
-            names=["carrier", "type", "p_nom"],
+            names=["pemmdb_carrier", "pemmdb_type", "p_nom"],
         )
         .iloc[3:]
         .dropna(how="all")
         .assign(
-            carrier=lambda x: x.carrier.ffill(),
-            type=lambda x: x.type.fillna(x.carrier),
+            pemmdb_carrier=lambda x: x.pemmdb_carrier.ffill(),
+            pemmdb_type=lambda x: x.pemmdb_type.fillna(x.pemmdb_carrier),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             efficiency=1.0,  # capacities are in MWel and no efficiencies are given
             bus=node,
             country=node[:2],
             unit="MW",
         )
-        .query("carrier == @pemmdb_tech")
+        .query("pemmdb_carrier == @pemmdb_tech")
         .reset_index(drop=True)
     )
 
@@ -191,7 +192,7 @@ def _read_other_nonres_capacities(
     column_names = [
         "p_nom",
         "units_count",
-        "type",
+        "pemmdb_type",
         "purpose",
         "price",
         "efficiency",
@@ -203,10 +204,11 @@ def _read_other_nonres_capacities(
     df = (
         df.set_axis(column_names)
         .T.assign(
-            carrier="Other Non-RES",
+            pemmdb_carrier="Other Non-RES",
             bus=node,
             country=node[:2],
             unit="MW",
+            pemmdb_type=lambda x: x.pemmdb_type.str.split("/").str[1:].str.join(" - "),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -269,9 +271,9 @@ def _read_res_capacities(
     df = df.assign(
         bus=node,
         country=node[:2],
-        carrier=pemmdb_tech,
+        pemmdb_carrier=pemmdb_tech,
         efficiency=1.0,  # no efficiencies given but capacity in MWel
-        type=types,
+        pemmdb_type=types,
         unit=units,
         element=lambda x: np.select(
             [
@@ -286,8 +288,10 @@ def _read_res_capacities(
     )
 
     # Update type to include element information where needed
-    df["type"] = np.where(
-        df["element"] != "", df["type"] + " - " + df["element"], df["type"]
+    df["pemmdb_type"] = np.where(
+        df["element"] != "",
+        df["pemmdb_type"] + " - " + df["element"],
+        df["pemmdb_type"],
     )
 
     df = _convert_units(df, unit_conversion, "unit", "p_nom").reset_index(drop=True)
@@ -316,9 +320,9 @@ def _read_other_res_capacities(
         .assign(
             bus=node,
             country=node[:2],
-            carrier=pemmdb_tech,
+            pemmdb_carrier=pemmdb_tech,
             efficiency=1.0,  # no efficiencies given but capacity in MWel
-            type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
+            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
             unit="MW",
         )
         .dropna()
@@ -370,10 +374,10 @@ def _read_electrolyser_capacities(
     df = (
         df.set_axis(column_names, axis=1)
         .assign(
-            carrier=pemmdb_tech,
+            pemmdb_carrier=pemmdb_tech,
             bus=node,
             country=node[:2],
-            type="Onshore grid connected",
+            pemmdb_type="Onshore grid connected",
             unit="MW",
         )
         .reset_index(drop=True)
@@ -425,10 +429,10 @@ def _read_battery_capacities(
         dict(
             p_nom=p_noms.values,
             efficiency=df_raw.efficiency[0],
-            carrier=pemmdb_tech,
+            pemmdb_carrier=pemmdb_tech,
             bus=node,
             country=node[:2],
-            type=types,
+            pemmdb_type=types,
             unit=units,
         )
     )
@@ -476,7 +480,7 @@ def _read_dsr_capacities(
     df = (
         df.set_axis(column_names)
         .T.assign(
-            carrier=pemmdb_tech,
+            pemmdb_carrier=pemmdb_tech,
             bus=node,
             country=node[:2],
             unit="MW",
@@ -485,10 +489,10 @@ def _read_dsr_capacities(
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
-            type=lambda x: x.hours.astype("str")
-            + " hours and "
+            pemmdb_type=lambda x: x.hours.astype("str")
+            + "h-"
             + x.price.astype("str")
-            + " EUR",
+            + "eur",
             efficiency=1.0,  # dummy value for efficiency
         )
         .query("cyear_start <= @cyear and cyear_end >= @cyear")
@@ -501,11 +505,11 @@ def _read_dsr_capacities(
         )
         return None
 
-    if df.type.duplicated().any():
+    if df.pemmdb_type.duplicated().any():
         logger.warning(
             f"{node} has duplicated price bands for 'DSR' and cyear {cyear} with the same type (hours and price) but differing capacities. Keeping only first entry."
         )
-        df = df.groupby("type", as_index=False).first()
+        df = df.groupby("pemmdb_type", as_index=False).first()
 
     return df
 
@@ -597,7 +601,7 @@ if __name__ == "__main__":
             "clean_pemmdb_capacities",
             clusters="all",
             planning_horizons=2030,
-            tech="Nuclear",
+            tech="Gas",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -631,6 +635,11 @@ if __name__ == "__main__":
     pemmdb_dir = snakemake.input.pemmdb_dir
     tech = str(snakemake.wildcards.tech)
     tyndp_scenario = snakemake.params.tyndp_scenario
+    carrier_mapping_df = (
+        pd.read_csv(snakemake.input.carrier_mapping)[
+            ["pemmdb_carrier", "pemmdb_type", "open_tyndp_carrier", "open_tyndp_index"]
+        ]
+    ).dropna()
 
     # Load and prep data
     tqdm_kwargs = {
@@ -668,9 +677,9 @@ if __name__ == "__main__":
             p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
         )[
             [
-                "carrier",
+                "pemmdb_carrier",
                 "bus",
-                "type",
+                "pemmdb_type",
                 "p_nom",
                 "e_nom",
                 "efficiency",
@@ -680,4 +689,8 @@ if __name__ == "__main__":
         ]  # # select and order relevant columns
     ).reset_index(drop=True)
 
+    # map pemmdb_carrier and pemmdb_type to tyndp technology names
+    pemmdb_capacities_df = map_tyndp_carrier_names(
+        pemmdb_capacities_df, carrier_mapping_df, ["pemmdb_carrier", "pemmdb_type"]
+    )
     pemmdb_capacities_df.to_csv(snakemake.output.pemmdb_capacities)

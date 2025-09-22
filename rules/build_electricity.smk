@@ -475,6 +475,7 @@ rule clean_pemmdb_capacities:
         tyndp_scenario=config_provider("tyndp_scenario"),
     input:
         pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
+        carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
     output:
         pemmdb_capacities=resources(
@@ -501,6 +502,7 @@ rule clean_pemmdb_profiles:
         tyndp_scenario=config_provider("tyndp_scenario"),
     input:
         pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
+        carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
     output:
         pemmdb_profiles=resources(
@@ -523,37 +525,8 @@ pemmdb_techs = branch(
 )
 
 
-def enabled_pemmdb_techs(w):
-    tyndp_conventional_carriers = config_provider(
-        "electricity", "tyndp_conventional_carriers"
-    )(w)
-    tyndp_renewable_carriers = config_provider(
-        "electricity", "tyndp_renewable_carriers"
-    )(w)
-    tyndp_stores = config_provider("electricity", "tyndp_stores")(w)
-    h2_topology_tyndp = config_provider("sector", "h2_topology_tyndp")(w)
-    pemmdb_techs_dict = pemmdb_techs(w)
-
-    if not pemmdb_techs_dict:
-        return []
-
-    carrier_set = (
-        set(tyndp_conventional_carriers)
-        .union(tyndp_renewable_carriers)
-        .union(tyndp_stores)
-    )
-    if h2_topology_tyndp:
-        carrier_set = carrier_set.union(["electrolysis"])
-
-    return [
-        tech
-        for tech, values in pemmdb_techs_dict.items()
-        if carrier_set.intersection(values)
-    ]
-
-
 def input_pemmdb_data(w):
-    enabled_techs = enabled_pemmdb_techs(w)
+    enabled_techs = pemmdb_techs(w)
     capacities = {
         f"pemmdb_capacities_{tech}": resources(
             f"pemmdb/pemmdb_capacities_" + tech + "_{planning_horizons}.csv"
@@ -573,7 +546,7 @@ def input_pemmdb_data(w):
 
 rule build_pemmdb_data:
     params:
-        pemmdb_techs=enabled_pemmdb_techs,
+        pemmdb_techs=pemmdb_techs,
     input:
         unpack(input_pemmdb_data),
     output:
