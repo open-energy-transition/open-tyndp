@@ -58,7 +58,7 @@ electricity:
   - oil-light
   - oil-heavy
   - oil-shale
-  renewable_carriers: [solar, solar-hsat, onwind]
+  renewable_carriers: [solar, solar-hsat]
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -182,10 +182,6 @@ pypsa_eur:
   Link:
   - DC
   Generator:
-  - onwind
-  - offwind-ac
-  - offwind-dc
-  - offwind-float
   - solar-hsat
   - solar
   - ror

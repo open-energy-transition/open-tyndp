@@ -529,6 +529,7 @@ def attach_wind_and_solar(
     extendable_carriers: list | set,
     line_length_factor: float = 1.0,
     landfall_lengths: dict = None,
+    trajectories: pd.DataFrame = pd.DataFrame(),
 ) -> None:
     """
     Attach wind and solar generators to the network.
@@ -551,6 +552,9 @@ def attach_wind_and_solar(
         Factor to scale the line length, by default 1.0.
     landfall_lengths : dict, optional
         Dictionary containing the landfall lengths for offshore wind, by default None.
+    trajectories : pd.DataFrame, optional, by default None
+        DataFrame containing the trajectories to attach (p_nom_min and p_nom_max). This bypasses any p_nom_max
+        that would have been defined in the profile itself.
     """
     add_missing_carriers(n, carriers)
 
@@ -608,15 +612,34 @@ def attach_wind_and_solar(
             buses = ds.indexes["bus_bin"].get_level_values("bus")
             bus_bins = ds.indexes["bus_bin"].map(flatten)
 
-            p_nom_max = ds["p_nom_max"].to_pandas()
-            p_nom_max.index = p_nom_max.index.map(flatten)
+            if "p_nom_max" in ds.data_vars and trajectories.empty:
+                p_nom_max = ds["p_nom_max"].to_pandas()
+                p_nom_max.index = p_nom_max.index.map(flatten)
+            elif not trajectories.empty:
+                p_nom_max_min = (
+                    trajectories.query("carrier == @car")
+                    .groupby("bus")[["p_nom_max", "p_nom_min"]]
+                    .sum()
+                )
+                p_nom_max_min = p_nom_max_min.reindex(
+                    ds.indexes["bus_bin"].get_level_values("bus")
+                ).fillna(0)
+                p_nom_max_min.index = ds.indexes["bus_bin"]
+                p_nom_max_min.index = p_nom_max_min.index.map(flatten)
+                p_nom_max = p_nom_max_min["p_nom_max"]
+                p_nom_min = p_nom_max_min["p_nom_min"]
+            else:
+                p_nom_max = np.inf
 
             p_max_pu = ds["profile"].to_pandas()
             p_max_pu.columns = p_max_pu.columns.map(flatten)
 
             if not ppl.query("carrier == @car").empty:
                 caps = ppl.query("carrier == @car").groupby("bus").p_nom.sum()
-                caps = pd.Series(data=caps, index=ds.indexes["bus"]).fillna(0)
+                caps = caps.reindex(
+                    ds.indexes["bus_bin"].get_level_values("bus")
+                ).fillna(0)
+                caps.index = ds.indexes["bus_bin"]
             else:
                 caps = pd.Series(index=ds.indexes["bus"]).fillna(0)
             caps.index = caps.index.map(flatten)
@@ -628,7 +651,7 @@ def attach_wind_and_solar(
                 bus=buses,
                 carrier=car,
                 p_nom=caps,
-                p_nom_min=caps,
+                p_nom_min=caps if trajectories.empty else p_nom_min,
                 p_nom_extendable=car in extendable_carriers["Generator"],
                 p_nom_max=p_nom_max,
                 marginal_cost=costs.at[supcar, "marginal_cost"],

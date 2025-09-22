@@ -32,6 +32,7 @@ from scripts._helpers import (
 )
 from scripts.add_electricity import (
     attach_load,
+    attach_wind_and_solar,
     calculate_annuity,
     flatten,
     load_costs,
@@ -7545,6 +7546,24 @@ if __name__ == "__main__":
         if "landfall_length" in settings.keys()
     }
     patch_electricity_network(n, costs, carriers_to_keep, profiles, landfall_lengths)
+
+    ppl = pd.read_csv(snakemake.input.pemmdb_capacities).query("carrier=='onwind'")
+    trajectories = (
+        pd.read_csv(snakemake.input.tyndp_trajectories)
+        .query("pyear == @investment_year")
+        .query("carrier=='onwind'")
+    )
+
+    # TODO Add if condition
+    attach_wind_and_solar(
+        n=n,
+        costs=costs,
+        ppl=ppl,
+        profile_filenames={"profile_onwind": snakemake.input.profile_pecd_Wind_Onshore},
+        carriers=["onwind"],
+        extendable_carriers=snakemake.params.electricity["extendable_carriers"],
+        trajectories=trajectories,
+    )
 
     fn = snakemake.input.heating_efficiencies
     year = int(snakemake.params["energy_totals_year"])
