@@ -174,6 +174,19 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
             move(input[0], output[0])
             validate_checksum(output[0], input[0])
 
+    rule retrieve_additional_cutout:
+        input:
+            storage("https://storage.googleapis.com/open-tyndp-data-store/{cutout}.nc"),
+        output:
+            CDIR.joinpath("{cutout}.nc").as_posix(),
+        log:
+            Path("logs").joinpath(CDIR, "retrieve_cutout_{cutout}.log").as_posix(),
+        resources:
+            mem_mb=5000,
+        retries: 2
+        run:
+            move(input[0], output[0])
+
 
 if config["enable"]["retrieve"]:
 
@@ -198,7 +211,6 @@ if config["enable"]["retrieve"]:
     rule retrieve_tyndp_pecd_data:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
-            tyndp_bundle="data/tyndp_2024_bundle",
             url="https://storage.googleapis.com/open-tyndp-data-store/PECD.zip",
             source="PECD",
         output:
@@ -213,7 +225,7 @@ if config["enable"]["retrieve"]:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
             url="https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip",
-            source="hydro inflows",
+            source="Hydro Inflows",
         output:
             dir=directory("data/tyndp_2024_bundle/Hydro Inflows"),
         log:

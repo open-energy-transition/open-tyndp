@@ -21,8 +21,8 @@ countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'E
 
 snapshots:
   # TODO define multiple climatic years, being either 1995 2008 or 2009
-  start: "2013-01-01"
-  end: "2014-01-01"
+  start: "2009-01-01"
+  end: "2010-01-01"
 
 co2_budget:
   # TODO define carbon budget compliant with EU 2030 and 2050 targets
@@ -38,7 +38,7 @@ electricity:
   base_network: tyndp
 
   # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
-  renewable_carriers: [solar, solar-hsat, onwind]
+  renewable_carriers: [hydro, solar, solar-hsat, onwind]
   tyndp_renewable_carriers: [hydro, onwind, solar-pv-utility, solar-pv-rooftop, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh]
 
   pecd_renewable_profiles:
@@ -86,6 +86,17 @@ electricity:
     - PV
 
   transmission_limit: v1.0
+
+atlite:
+  default_cutout: europe-2009-sarah3-era5
+  cutouts:
+    europe-2009-sarah3-era5:
+      module: [sarah, era5] # in priority order
+      x: [-12., 42.]
+      y: [33., 72.]
+      dx: 0.3
+      dy: 0.3
+      time: ['2009', '2009']
 
 links:
   p_max_pu: 1.0
