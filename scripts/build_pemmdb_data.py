@@ -51,9 +51,7 @@ if __name__ == "__main__":
     capacities = []
     logger.info("Load PEMMDB capacities for ...")
     for tech in tqdm(pemmdb_techs):
-        capacity = pd.read_csv(
-            snakemake.input[f"pemmdb_capacities_{tech}"], index_col=0
-        )
+        capacity = pd.read_csv(snakemake.input[f"pemmdb_capacities_{tech}"])
         capacities.append(capacity)
 
     capacities_df = pd.concat(capacities, axis=0).reset_index(drop=True)
