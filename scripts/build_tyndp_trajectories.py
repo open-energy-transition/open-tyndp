@@ -48,11 +48,15 @@ if __name__ == "__main__":
     }
 
     # TODO: How to add buildout information if even necessary
+    # Trajectories other than Nuclear are only used for DE and GA scenarios and after 2030
+    trajectories_id = [] if tyndp_scenario == "NT" else ["All"]
     df = (
         pd.read_excel(fn, sheet_name="GLOBAL")
         .rename(column_names, axis="columns")
         .replace(SCENARIO_DICT, regex=True)
-        .query("scenario == @tyndp_scenario or scenario == 'All'")
+        .query(
+            "scenario == @tyndp_scenario or (scenario in @trajectories_id and pyear > 2030)"
+        )
     )
 
     carrier_mapping_df = (
