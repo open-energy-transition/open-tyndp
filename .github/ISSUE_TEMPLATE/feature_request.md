@@ -8,7 +8,7 @@ assignees: ''
 
 ---
 
-<!-- Please do not post usage questions here. Ask them on our Open-TYNDP Discord server: https://discord.gg/AnuJBk23FU or reach out to us via tyndp@openenergytransition.org -->
+<!-- Please do not post usage questions here. You can ask them on our pypsa-open-tyndp Discord channel: https://discord.com/channels/911692131440148490/1414977512089321564 or reach out to us via tyndp@openenergytransition.org -->
 
 ## Describe the feature you'd like to see
 
