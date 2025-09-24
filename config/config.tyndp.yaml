@@ -46,7 +46,7 @@ electricity:
   - oil-light
   - oil-heavy
   - oil-shale
-  renewable_carriers: [hydro, solar, solar-hsat]
+  renewable_carriers: [hydro]
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror

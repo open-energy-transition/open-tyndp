@@ -286,6 +286,10 @@ def load_costs(
     costs.at["solar", "capital_cost"] = costs.at["solar-utility", "capital_cost"]
     costs = costs.rename({"solar-utility single-axis tracking": "solar-hsat"})
 
+    # TODO Remove this temporary mapping once proper cost assumptions are implemented
+    costs.loc["solar-pv-utility"] = costs.loc["solar-utility"]
+    costs.loc["solar-pv-rooftop"] = costs.loc["solar-rooftop"]
+
     costs = costs.rename(columns={"standing losses": "standing_losses"})
 
     # Calculate storage costs if max_hours is provided

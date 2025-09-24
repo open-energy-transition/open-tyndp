@@ -7547,20 +7547,29 @@ if __name__ == "__main__":
     }
     patch_electricity_network(n, costs, carriers_to_keep, profiles, landfall_lengths)
 
-    ppl = pd.read_csv(snakemake.input.pemmdb_capacities).query("carrier=='onwind'")
+    tyndp_renewable_carriers = snakemake.params.electricity["tyndp_renewable_carriers"]
+    tyndp_solar_onwind = [
+        c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
+    ]
+    ppl = pd.read_csv(snakemake.input.pemmdb_capacities).query(
+        "carrier.isin(@tyndp_solar_onwind)"
+    )
     trajectories = (
         pd.read_csv(snakemake.input.tyndp_trajectories)
         .query("pyear == @investment_year")
-        .query("carrier=='onwind'")
+        .query("carrier.isin(@tyndp_solar_onwind)")
     )
-
-    # TODO Add if condition
+    pecd_profiles = {
+        "profile_onwind": snakemake.input.profile_pecd_Wind_Onshore,
+        "profile_solar-pv-utility": snakemake.input.profile_pecd_LFSolarPVUtility,
+        "profile_solar-pv-rooftop": snakemake.input.profile_pecd_LFSolarPVRooftop,
+    }
     attach_wind_and_solar(
         n=n,
         costs=costs,
         ppl=ppl,
-        profile_filenames={"profile_onwind": snakemake.input.profile_pecd_Wind_Onshore},
-        carriers=["onwind"],
+        profile_filenames=pecd_profiles,
+        carriers=tyndp_solar_onwind,
         extendable_carriers=snakemake.params.electricity["extendable_carriers"],
         trajectories=trajectories,
     )
