@@ -18,8 +18,40 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
+def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: str) -> pd.Series:
+    """
+    Load and prepare loss factors
+
+    Parameters
+    ----------
+    fn : str
+        Path to the file containing loss factors.
+    n : pypsa.Network
+        Network to use.
+    planning_horizons : str
+        Planning horizon for which to read the data.
+
+    Returns
+    -------
+    pd.Series
+        Loss factors data.
+    """
+    # Read data
+    loss_factors = pd.read_csv(fn, index_col=0)[planning_horizons]
+
+    # Create index map
+    idx_map = n.buses.query("Bus.str.contains('low voltage')").country
+    loss_factors = idx_map.map(loss_factors).dropna()
+
+    return loss_factors
+
+
 def compute_benchmark(
-    n: pypsa.Network, table: str, options: dict, eu27: list[str]
+    n: pypsa.Network,
+    table: str,
+    options: dict,
+    eu27: list[str],
+    loss_factors: pd.Series = pd.Series(),
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimised network.
@@ -34,6 +66,8 @@ def compute_benchmark(
         Full benchmarking configuration.
     eu27 : list[str]
         List of member state of European Union (EU27).
+    loss_factors : pd.Series, optional
+        Series containing loss factors indexed by country.
 
     Returns
     -------
@@ -74,7 +108,6 @@ def compute_benchmark(
             .sum()
         )
     elif table == "elec_demand":
-        # TODO Industrial demand currently included in residential
         grouper = ["carrier"]
         df = (
             n.statistics.withdrawal(
@@ -84,19 +117,13 @@ def compute_benchmark(
                 nice_names=False,
                 aggregate_across_components=True,
             )
+            .loc[pd.IndexSlice[:, ["electricity"]]]
             .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(
-                index=[
-                    "DC",
-                    "DC_OH",
-                    "electricity distribution grid",
-                    "battery charger",
-                    "home battery charger",
-                ]
-            )
+            .dropna()
         )
+        if not loss_factors.empty:
+            df /= 1 + loss_factors.reindex(df.index, level="bus")
+        df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
         # TODO Energy and non-energy industrial demand are mixed
         grouper = ["carrier"]
@@ -302,10 +329,15 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     eu27 = snakemake.params["eu27"]
+    planning_horizons = str(snakemake.wildcards.planning_horizons)
+    loss_factors_fn = snakemake.input.loss_factors
 
-    # Read networks
+    # Read network
     logger.info("Reading network")
-    n = pypsa.Network(snakemake.input[0])
+    n = pypsa.Network(snakemake.input.network)
+
+    # Load loss factors
+    loss_factors = get_loss_factors(loss_factors_fn, n, planning_horizons)
 
     logger.info("Building benchmark from network")
     tqdm_kwargs = {
@@ -315,7 +347,9 @@ if __name__ == "__main__":
         "desc": "Computing benchmark",
     }
 
-    func = partial(compute_benchmark, n, options=options, eu27=eu27)
+    func = partial(
+        compute_benchmark, n, options=options, eu27=eu27, loss_factors=loss_factors
+    )
 
     with mp.Pool(processes=snakemake.threads) as pool:
         benchmarks = list(

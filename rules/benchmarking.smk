@@ -32,6 +32,7 @@ rule build_statistics:
     input:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+        loss_factors="data/tyndp_electricity_loss_factors.csv",
     output:
         RESULTS
         + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",

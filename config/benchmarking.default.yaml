@@ -48,9 +48,7 @@ benchmarking:
         - year
         - scenario
       mapping:
-        H2 Electrolysis: others
-        methanolisation: others
-        electricity: residential
+        electricity: aggregated
 
     methane_demand:
       table_type: scenario_comparison

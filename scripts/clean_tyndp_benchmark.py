@@ -274,9 +274,17 @@ def load_benchmark(
 
     df_converted["year"] = df_converted["year"].astype(int)
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
-    df_converted = df_converted[
-        ~df_converted.carrier.isin(["sum", "aggregated", "total generation", "total"])
-    ]
+
+    # Remove aggregated values except for electricity demand
+    if table != "elec_demand":
+        df_converted = df_converted[
+            ~df_converted.carrier.isin(
+                ["sum", "aggregated", "total generation", "total"]
+            )
+        ]
+    # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
+    else:
+        df_converted = df_converted[df_converted.carrier == "aggregated"]
 
     return df_converted
 
