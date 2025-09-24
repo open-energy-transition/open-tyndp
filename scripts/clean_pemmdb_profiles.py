@@ -471,7 +471,7 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
     nodes = onshore_buses.index
     pemmdb_dir = snakemake.input.pemmdb_dir
-    tech = str(snakemake.wildcards.tech)
+    tech = str(snakemake.wildcards.tech).replace("_", " ")
     tyndp_scenario = snakemake.params.tyndp_scenario
     carrier_mapping_df = (
         pd.read_csv(snakemake.input.carrier_mapping)[
