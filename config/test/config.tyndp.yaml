@@ -39,7 +39,6 @@ co2_budget:
   2045: 0.050
   2050: 0.000 # climate-neutral by 2050
 
-
 electricity:
   base_network: tyndp
 
@@ -58,7 +57,7 @@ electricity:
   - oil-light
   - oil-heavy
   - oil-shale
-  renewable_carriers: [solar, solar-hsat]
+  renewable_carriers: [solar-pv-utility]
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -91,10 +90,21 @@ electricity:
     - 2030
     - 2040
     technologies:
-    - Wind_Offshore
-    - LFSolarPVRooftop
-    - LFSolarPVUtility
-    - Wind_Onshore
+      Wind_Offshore:
+      - offwind-ac-fb-r
+      - offwind-ac-fl-r
+      - offwind-dc-fb-r
+      - offwind-dc-fl-r
+      - offwind-dc-fb-oh
+      - offwind-dc-fl-oh
+      - offwind-h2-fb-oh
+      - offwind-h2-fl-oh
+      LFSolarPVRooftop:
+      - solar-pv-rooftop
+      LFSolarPVUtility:
+      - solar-pv-utility
+      Wind_Onshore:
+      - onwind
 
   pemmdb_hydro_profiles:
     enable: true
@@ -182,8 +192,6 @@ pypsa_eur:
   Link:
   - DC
   Generator:
-  - solar-hsat
-  - solar
   - ror
   StorageUnit:
   - PHS

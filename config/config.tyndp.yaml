@@ -180,8 +180,6 @@ pypsa_eur:
   Link:
   - DC
   Generator:
-  - solar-hsat
-  - solar
   - ror
   StorageUnit:
   - PHS
