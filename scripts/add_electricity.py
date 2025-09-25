@@ -655,7 +655,7 @@ def attach_wind_and_solar(
                 bus=buses,
                 carrier=car,
                 p_nom=caps,
-                p_nom_min=caps if trajectories.empty else p_nom_min,
+                p_nom_min=caps if trajectories.empty else p_nom_min,  # pylint: disable=E0601
                 p_nom_extendable=car in extendable_carriers["Generator"],
                 p_nom_max=p_nom_max,
                 marginal_cost=costs.at[supcar, "marginal_cost"],
