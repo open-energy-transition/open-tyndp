@@ -115,6 +115,35 @@ def add_brownfield(
             # TODO: Needs to be rewritten to
             n._import_series_from_df(c.pnl[tattr], c.name, tattr)
 
+    # adjust onwind and solar expansion by subtracting existing capacity from previous years
+    # from current year total capacity and potential
+    onwind_solar_fixed_i = n.generators[
+        (n.generators.index.str.contains("onwind|solar"))
+        & (n.generators.build_year != year)
+    ].index
+    onwind_solar_i = n.generators[
+        (n.generators.index.str.contains("onwind|solar"))
+        & (n.generators.build_year == year)
+    ].index
+    onwind_solar_capacity = n.generators.loc[onwind_solar_i, "p_nom"]
+    onwind_solar_potential = n.generators.loc[onwind_solar_i, "p_nom_max"]
+    already_existing = (
+        n.generators.loc[onwind_solar_fixed_i, "p_nom_opt"]
+        .rename(lambda x: x.split("-2")[0] + f"-{year}")
+        .groupby(level=0)
+        .sum()
+    )
+    remaining_capacity = (
+        onwind_solar_capacity
+        - already_existing.reindex(index=onwind_solar_capacity.index).fillna(0)
+    ).clip(lower=0)
+    remaining_potential = (
+        onwind_solar_potential
+        - already_existing.reindex(index=onwind_solar_capacity.index).fillna(0)
+    ).clip(lower=0)
+    n.generators.loc[onwind_solar_i, ["p_nom_min", "p_nom"]] = remaining_capacity
+    n.generators.loc[onwind_solar_i, "p_nom_max"] = remaining_potential
+
     # adjust TYNDP offshore expansion by subtracting existing capacity from previous years
     # from current year total capacity and potential
     # hydrogen- and electricity-generating wind farms share the same potential; values are adjusted accordingly
