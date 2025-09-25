@@ -178,6 +178,7 @@ electricity:
 
   pemmdb_capacities:
     enable: false
+    nprocesses: 4
     available_years:
     - 2030
     - 2040
