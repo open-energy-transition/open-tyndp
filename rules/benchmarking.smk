@@ -57,6 +57,7 @@ rule make_benchmark:
     params:
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
+        snapshots=config_provider("snapshots"),
     input:
         results=expand(
             RESULTS
@@ -88,6 +89,7 @@ rule plot_benchmark:
     params:
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
+        snapshots=config_provider("snapshots"),
         colors=config_provider("plotting", "tech_colors"),
     input:
         results=expand(

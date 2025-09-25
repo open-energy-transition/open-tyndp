@@ -50,6 +50,7 @@ def _plot_scenario_comparison(
     year: int,
     output_dir: str,
     scenario: str,
+    cyear: int,
     model_col: str,
     rfc_col: str,
     source_unit: str,
@@ -63,7 +64,7 @@ def _plot_scenario_comparison(
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
-        title=f"{table_title} - EU27 - Scenario {scenario} - Year {year}",
+        title=f"{table_title} - EU27 - Scenario {scenario} - CY {cyear} - Year {year}",
     )
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
@@ -74,7 +75,7 @@ def _plot_scenario_comparison(
 
     add_version(ax, fig)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_{year}.pdf")
+    output_filename = Path(output_dir, f"benchmark_{table}_eu27_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
     plt.close(fig)
@@ -86,6 +87,7 @@ def _plot_time_series(
     year: int,
     output_dir: str,
     scenario: str,
+    cyear: int,
     model_col: str,
     rfc_col: str,
     source_unit: str,
@@ -133,7 +135,9 @@ def _plot_time_series(
 
     correlation = df_clean[model_col].corr(df_clean[rfc_col])
     table_title = table.replace("_", " ").title()
-    ax.set_title(f"{table_title} - EU27 - Scenario {scenario} - Year {year}")
+    ax.set_title(
+        f"{table_title} - EU27 - Scenario {scenario} - CY {cyear} - Year {year}"
+    )
     ax.set_xlabel(f"{rfc_col} [{source_unit}]")
     ax.set_ylabel(f"{model_col} [{source_unit}]")
     ax.set_aspect("equal", adjustable="box")
@@ -158,7 +162,7 @@ def _plot_time_series(
 
     add_version(ax, fig)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_{year}.pdf")
+    output_filename = Path(output_dir, f"benchmark_{table}_eu27_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
     plt.close(fig)
@@ -169,6 +173,7 @@ def plot_benchmark(
     benchmarks_raw: pd.DataFrame,
     output_dir: str,
     scenario: str,
+    cyear: int,
     options: dict,
     colors: dict,
     model_col: str = "Open-TYNDP",
@@ -187,6 +192,8 @@ def plot_benchmark(
         Output directory.
     scenario: str
         Scenario name.
+    cyear : int
+        Climate year.
     options : dict
         Full benchmarking configuration containing table units and conversions.
     colors : dict,
@@ -233,6 +240,7 @@ def plot_benchmark(
                 year,
                 output_dir,
                 scenario,
+                cyear,
                 model_col,
                 rfc_col,
                 source_unit,
@@ -247,6 +255,7 @@ def plot_benchmark(
                 year,
                 output_dir,
                 scenario,
+                cyear,
                 model_col,
                 rfc_col,
                 source_unit,
@@ -284,7 +293,7 @@ def plot_overview(
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Comparison of Open-TYNDP and TYNDP 2024 results for EU27 and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP 2024 results for EU27, CY {cyear} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
     )
 
@@ -343,6 +352,7 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     colors = snakemake.params["colors"]
     scenario = snakemake.params["scenario"]
+    cyear = int(snakemake.params.snapshots["start"][:4])
     benchmarks_fn = snakemake.input.benchmarks
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
@@ -368,6 +378,7 @@ if __name__ == "__main__":
         benchmarks_raw=benchmarks_raw,
         output_dir=output_dir,
         scenario=scenario,
+        cyear=cyear,
         options=options,
         colors=colors,
     )
