@@ -1,8 +1,7 @@
+.. SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+.. SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 ..
-  SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
-  SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
-
-  SPDX-License-Identifier: CC-BY-4.0
+.. SPDX-License-Identifier: CC-BY-4.0
 
 .. _data:
 
@@ -99,7 +98,10 @@ The :ref:`tutorial` uses a smaller cutout than required for the full model (30 M
 .. seealso::
     For details see :mod:`build_cutout` and read the `atlite documentation <https://atlite.readthedocs.io>`__.
 
+Rule ``retrieve_additional_cutout``
+============================
 
+This rule mirrors the default cutout retrieval but allows the retrieval of additional PyPSA-Eur cutouts that are not available from the `Zenodo record <https://zenodo.org/records/15349674>`__ but instead retrieved from GCP for the Open-TYNDP project specifically.
 
 Rule ``retrieve_electricity_demand``
 ====================================
