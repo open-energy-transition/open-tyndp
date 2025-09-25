@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+
+NT:
+  tyndp_scenario: NT
+
+DE:
+  tyndp_scenario: DE
+  electricity:
+    extendable_carriers:
+      Generator:
+      - onwind
+      - solar-pv-utility
+      - solar-pv-rooftop
+      - offwind-ac-fb-r
+      - offwind-ac-fl-r
+      - offwind-dc-fb-r
+      - offwind-dc-fl-r
+      - offwind-dc-fb-oh
+      - offwind-dc-fl-oh
+      - offwind-h2-fb-oh
+      - offwind-h2-fl-oh
+      - OCGT
+      - CCGT
+
+GA:
+  tyndp_scenario: GA
+  electricity:
+    extendable_carriers:
+      Generator:
+      - onwind
+      - solar-pv-utility
+      - solar-pv-rooftop
+      - offwind-ac-fb-r
+      - offwind-ac-fl-r
+      - offwind-dc-fb-r
+      - offwind-dc-fl-r
+      - offwind-dc-fb-oh
+      - offwind-dc-fl-oh
+      - offwind-h2-fb-oh
+      - offwind-h2-fl-oh
+      - OCGT
+      - CCGT

@@ -37,6 +37,9 @@ co2_budget:
 electricity:
   base_network: tyndp
 
+  extendable_carriers:
+    Generator: [OCGT, CCGT]
+
   # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
   tyndp_conventional_carriers:
   - gas

@@ -1202,6 +1202,10 @@ def add_offshore_hubs_constraint(
     off_i = gens.carrier.isin(off_carriers)
 
     off_gens_i = gens.loc[(off_i) & (ext_i)].index
+
+    if off_gens_i.empty:
+        return
+
     grouper_ext = gens.loc[off_gens_i].zone.rename("Generator-ext")
     idx = pd.Index(set(limit.index).intersection(grouper_ext))
     eff_z = gens["efficiency_dc_to_b0"].reindex(off_gens_i)
