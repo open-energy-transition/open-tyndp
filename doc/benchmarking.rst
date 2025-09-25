@@ -130,4 +130,4 @@ Table                            sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Miss
 
 Example of summary figure created for DE scenario:
 
-.. image:: img/tyndp/benchmarking_overview_DE.png
+.. image:: img/tyndp/benchmarking_overview_NT.png
