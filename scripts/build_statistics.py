@@ -169,6 +169,7 @@ def compute_benchmark(
             .groupby(by=grouper)
             .sum()
             .loc[lambda x: x > 0]
+            .drop(index=["electricity distribution grid"], errors="ignore")
         )
     elif table == "power_generation":
         grouper = ["carrier"]
