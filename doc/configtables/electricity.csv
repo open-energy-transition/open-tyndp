@@ -42,6 +42,7 @@ pemmdb_hydro_profiles,,,
 -- technologies,--,list,The hydro technologies for which PEMMDB hydro inflows data is used. Technologies can be any of {Run of River, Pondage, Reservoir, PS Open, PS Closed}.
 pemmdb_capacities,,,
 -- enable,,bool,Activate PEMMDB capacities, must-runs and availabilities from 2024 TYNDP.
+-- nprocesses,,int,"Number of parallel processes when reading pemmdb data."
 -- available_years,--,list,"List of years for which PEMMDB data is available."
 -- technologies,--,list,The PEMMDB technologies for which are available and shall be used. Technologies can be any of {Solar, Wind, Hydro, Other RES, Gas, Nuclear, Hard coal, Lignite, Light oil, Heavy oil, Oil shale, Other Non-RES, Electrolyser, Battery}.
 estimate_renewable_capacities,,, 

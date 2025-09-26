@@ -465,98 +465,31 @@ rule build_renewable_profiles_pecd:
         "../scripts/build_renewable_profiles_pecd.py"
 
 
-rule clean_pemmdb_capacities:
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        available_years=config_provider(
-            "electricity", "pemmdb_capacities", "available_years"
-        ),
-        tyndp_scenario=config_provider("tyndp_scenario"),
-    input:
-        pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
-        carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_base_s_all.csv"),
-    output:
-        pemmdb_capacities=resources(
-            "pemmdb/pemmdb_capacities_{tech}_{planning_horizons}.csv"
-        ),
-    log:
-        logs("clean_pemmdb_capacities_{tech}_{planning_horizons}.log"),
-    threads: 4
-    retries: 2
-    benchmark:
-        benchmarks("clean_pemmdb_capacities_{tech}_{planning_horizons}")
-    conda:
-        "../envs/environment.yaml"
-    script:
-        "../scripts/clean_pemmdb_capacities.py"
-
-
-rule clean_pemmdb_profiles:
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        available_years=config_provider(
-            "electricity", "pemmdb_capacities", "available_years"
-        ),
-        tyndp_scenario=config_provider("tyndp_scenario"),
-    input:
-        pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
-        carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_base_s_all.csv"),
-    output:
-        pemmdb_profiles=resources(
-            "pemmdb/pemmdb_profiles_{tech}_{planning_horizons}.nc"
-        ),
-    log:
-        logs("clean_pemmdb_profiles_{tech}_{planning_horizons}.log"),
-    threads: 4
-    retries: 2
-    benchmark:
-        benchmarks("clean_pemmdb_profiles_{tech}_{planning_horizons}")
-    conda:
-        "../envs/environment.yaml"
-    script:
-        "../scripts/clean_pemmdb_profiles.py"
-
-
 pemmdb_techs = branch(
     config_provider("electricity", "pemmdb_capacities", "enable"),
     config_provider("electricity", "pemmdb_capacities", "technologies"),
 )
 
 
-def input_pemmdb_data(w):
-    enabled_techs = pemmdb_techs(w)
-    capacities = {
-        f"pemmdb_capacities_{tech}": resources(
-            f"pemmdb/pemmdb_capacities_" + tech + "_{planning_horizons}.csv"
-        )
-        for tech in enabled_techs
-    }
-
-    profiles = {
-        f"pemmdb_profiles_{tech}": resources(
-            f"pemmdb/pemmdb_profiles_" + tech + "_{planning_horizons}.nc"
-        )
-        for tech in enabled_techs
-    }
-
-    return {**capacities, **profiles}
-
-
 rule build_pemmdb_data:
     params:
         pemmdb_techs=pemmdb_techs,
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        available_years=config_provider(
+            "electricity", "pemmdb_capacities", "available_years"
+        ),
+        tyndp_scenario=config_provider("tyndp_scenario"),
     input:
-        unpack(input_pemmdb_data),
+        pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
+        carrier_mapping="data/tyndp_technology_map.csv",
+        busmap=resources("busmap_base_s_all.csv"),
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
     log:
         logs("build_pemmdb_data_{planning_horizons}.log"),
-    threads: 4
+    threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
     benchmark:
         benchmarks("build_pemmdb_data_{planning_horizons}")
     conda:
