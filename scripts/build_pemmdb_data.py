@@ -87,44 +87,6 @@ pemmdb_sheet_mapping = {
 }
 
 
-def merge_xarray_ds_with_progress(
-    datasets: list[xr.Dataset], chunk_size=10, **merge_kwargs
-) -> xr.Dataset:
-    """
-    Merge xarray datasets in chunks and with tqdm progress bar.
-
-    Parameters
-    ----------
-    datasets : list[xr.Dataset]
-        List of xarray datasets to merge.
-    chunk_size : int, optional
-        Chunk size merging process. Defaults to 10.
-    merge_kwargs : dict, optional
-        Keyword arguments passed to xarray.merge.
-
-    Returns
-    -------
-    xr.Dataset
-        Fully merged xarray dataset.
-    """
-    if len(datasets) <= chunk_size:
-        # If list of datasets small enough, just merge all at once
-        return xr.merge(tqdm(datasets, desc="Merging datasets"), **merge_kwargs)
-
-    # Merge in chunks
-    result = None
-    chunks = [datasets[i : i + chunk_size] for i in range(0, len(datasets), chunk_size)]
-
-    for i, chunk in enumerate(tqdm(chunks, desc="Merging datasets")):
-        chunk_merged = xr.merge(chunk, **merge_kwargs)
-        if result is None:
-            result = chunk_merged
-        else:
-            result = xr.merge([result, chunk_merged], **merge_kwargs)
-
-    return result
-
-
 def _convert_units(
     df: pd.DataFrame,
     unit_conversion: dict[str, float],
@@ -605,7 +567,7 @@ def _process_thermal_profiles(
     pyear_i: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean thermal (conventionals & hydrogen) profiles.
     """
@@ -665,14 +627,13 @@ def _process_thermal_profiles(
 
     # Flatten and turn into xarray dataset
     profiles = (
-        df.reset_index(names="time")
-        .melt(id_vars="time", var_name="pemmdb_type", value_name="p_min_pu")
+        df.loc[sns]
+        .melt(var_name="pemmdb_type", value_name="p_min_pu", ignore_index=False)
+        .rename_axis("time", axis="index")
         .assign(
             pemmdb_carrier=pemmdb_tech, bus=node, p_max_pu=1.0
         )  # also set p_max_pu with default value of 1.0
-        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])
-        .to_xarray()
-        .sel(time=sns)  # filter for snapshots only
+        .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
     )
 
     # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
@@ -689,7 +650,7 @@ def _process_other_res_profiles(
     pyear: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean `Other RES` profiles.
     """
@@ -718,11 +679,10 @@ def _process_other_res_profiles(
             pemmdb_carrier=pemmdb_tech,
             pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
         )
+        .query("time in @sns")
         .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
             ["p_min_pu", "p_max_pu"]
         ]
-        .to_xarray()
-        .sel(time=sns)  # filter for snapshots only
     )
 
     return profiles
@@ -735,7 +695,7 @@ def _process_other_nonres_profiles(
     cyear: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean `Other Non-RES` profiles.
     """
@@ -792,6 +752,7 @@ def _process_other_nonres_profiles(
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
+        .query("time in @sns")
         .set_index(["time", "bus", "pemmdb_carrier"])
         .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
         .set_index("pemmdb_type", append=True)
@@ -804,7 +765,7 @@ def _process_other_nonres_profiles(
         )
 
     # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
-    profiles = df_long.groupby(level=[0, 1, 2, 3]).first().to_xarray().sel(time=sns)
+    profiles = df_long.groupby(level=[0, 1, 2, 3]).first()
 
     return profiles
 
@@ -816,7 +777,7 @@ def _process_dsr_profiles(
     cyear: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean `DSR` profiles.
     """
@@ -866,6 +827,7 @@ def _process_dsr_profiles(
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
+        .query("time in @sns")
         .set_index(["time", "bus", "pemmdb_carrier"])
         .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
         .set_index("pemmdb_type", append=True)
@@ -878,7 +840,7 @@ def _process_dsr_profiles(
         )
 
     # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
-    profiles = df_long.groupby(level=[0, 1, 2, 3]).first().to_xarray().sel(time=sns)
+    profiles = df_long.groupby(level=[0, 1, 2, 3]).first()
 
     return profiles
 
@@ -1009,7 +971,7 @@ def process_pemmdb_profiles(
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
     carrier_mapping_df: pd.DataFrame,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
     from PEMMDB for a given technology, planning and climate year.
@@ -1039,8 +1001,8 @@ def process_pemmdb_profiles(
 
     Returns
     -------
-    profiles : xr.Dataset
-        xarray dataset containing must run obligations (p_min_pu) and availability (p_max_pu) profiles.
+    profiles : pd.DataFrame
+        Dataframe containing must run obligations (p_min_pu) and availability (p_max_pu) profiles.
     """
     try:
         # Conventionals & Hydrogen
@@ -1080,15 +1042,11 @@ def process_pemmdb_profiles(
             return None
 
         # Map pemmdb carrier names to tyndp technologies
-        profiles = (
-            map_tyndp_carrier_names(
-                profiles.to_dataframe().reset_index(),
-                carrier_mapping_df,
-                ["pemmdb_carrier", "pemmdb_type"],
-            )
-            .set_index(["time", "bus", "carrier", "index_carrier"])
-            .to_xarray()
-        )
+        profiles = map_tyndp_carrier_names(
+            profiles.reset_index(),
+            carrier_mapping_df,
+            ["pemmdb_carrier", "pemmdb_type"],
+        ).set_index(["time", "bus", "carrier", "index_carrier"])
 
         return profiles
 
@@ -1110,7 +1068,7 @@ def process_pemmdb_data(
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
     carrier_mapping_df: pd.DataFrame,
-) -> pd.DataFrame | xr.Dataset:
+) -> pd.DataFrame:
     """
     Reads and cleans either capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles
     from PEMMDB for a given technology, planning and climate year.
@@ -1142,8 +1100,8 @@ def process_pemmdb_data(
 
     Returns
     -------
-    pd.DataFrame | xr.Dataset
-        Pandas dataframe or xarray dataset containing capacties or must run obligations (p_min_pu) and availability (p_max_pu) profiles respectively.
+    pd.DataFrame
+        Pandas dataframe containing capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles respectively.
     """
     # Extract node and tech information
     node, pemmdb_tech = node_tech
@@ -1350,6 +1308,6 @@ if __name__ == "__main__":
         ds.to_netcdf(snakemake.output.pemmdb_profiles)
         sys.exit(0)
 
-    # Otherwise merge pemmdb profiles into one xarray dataset and save
-    ds = merge_xarray_ds_with_progress(pemmdb_profiles)
+    # Otherwise merge pemmdb profiles into one pd.DataFrame, convert to xarray dataset and save
+    ds = pd.concat(pemmdb_profiles, axis=0).to_xarray()
     ds.to_netcdf(snakemake.output.pemmdb_profiles)
