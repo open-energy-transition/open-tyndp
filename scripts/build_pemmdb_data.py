@@ -34,6 +34,7 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 from scripts._helpers import (
     configure_logging,
+    convert_units,
     get_snapshots,
     map_tyndp_carrier_names,
     safe_pyear,
@@ -87,93 +88,12 @@ pemmdb_sheet_mapping = {
 }
 
 
-def merge_xarray_ds_with_progress(
-    datasets: list[xr.Dataset], chunk_size=10, **merge_kwargs
-) -> xr.Dataset:
-    """
-    Merge xarray datasets in chunks and with tqdm progress bar.
-
-    Parameters
-    ----------
-    datasets : list[xr.Dataset]
-        List of xarray datasets to merge.
-    chunk_size : int, optional
-        Chunk size merging process. Defaults to 10.
-    merge_kwargs : dict, optional
-        Keyword arguments passed to xarray.merge.
-
-    Returns
-    -------
-    xr.Dataset
-        Fully merged xarray dataset.
-    """
-    if len(datasets) <= chunk_size:
-        # If list of datasets small enough, just merge all at once
-        return xr.merge(tqdm(datasets, desc="Merging datasets"), **merge_kwargs)
-
-    # Merge in chunks
-    result = None
-    chunks = [datasets[i : i + chunk_size] for i in range(0, len(datasets), chunk_size)]
-
-    for i, chunk in enumerate(tqdm(chunks, desc="Merging datasets")):
-        chunk_merged = xr.merge(chunk, **merge_kwargs)
-        if result is None:
-            result = chunk_merged
-        else:
-            result = xr.merge([result, chunk_merged], **merge_kwargs)
-
-    return result
-
-
-def _convert_units(
-    df: pd.DataFrame,
-    unit_conversion: dict[str, float],
-    source_unit_col: str = "unit",
-    value_col: str = "value",
-) -> pd.DataFrame:
-    """
-    Convert units and add unit columns.
-    Automatically determines target unit based on source unit type:
-    - Energy units (TWh, GWh, MWh, kWh) → MWh
-    - Power units (GW, MW, kW) → MW
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Long-format DataFrame containing values to convert.
-    unit_conversion : dict[str, float]
-        Dictionary mapping units to conversion factors (to base unit).
-    source_unit_col : str, default "unit
-        Name of the column containing the source unit of the values.
-    value_col : str, default "value"
-        Name of the column containing values to convert.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with converted values and unit columns added.
-    """
-    # Determine target unit based on source unit type
-    energy_units = {"TWh", "GWh", "MWh", "kWh"}
-    power_units = {"GW", "MW", "kW"}
-
-    # Convert values using conversion factors
-    conversion_factors = df[source_unit_col].map(unit_conversion)
-    df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
-
-    # Update unit column
-    df["unit"] = df[source_unit_col].apply(
-        lambda x: "MWh" if x in energy_units else "MW" if x in power_units else x
-    )
-
-    return df
-
-
 def read_pemmdb_data(
     node: str,
     pemmdb_dir: str,
     cyear: int,
     pyear: int,
+    required_techs: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
     Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
@@ -189,6 +109,8 @@ def read_pemmdb_data(
         Climate year to read data for.
     pyear : int
         Planning year to read data for. Can be fallback year to available data.
+    required_techs : list[str], optional
+        List of required technologies to read pemmdb data for.
 
     Returns
     -------
@@ -206,7 +128,17 @@ def read_pemmdb_data(
         return None
 
     try:
-        data = pd.read_excel(fn, sheet_name=None)
+        if required_techs:
+            required_sheets = [
+                pemmdb_sheet_mapping.get(tech)
+                for tech in required_techs
+                if pemmdb_sheet_mapping.get(tech)
+            ]
+            required_sheets = list(set(required_sheets))
+            data = pd.read_excel(fn, sheet_name=required_sheets)
+        else:
+            data = pd.read_excel(fn, sheet_name=None)
+
         return {node: data}
 
     except Exception as e:
@@ -241,7 +173,7 @@ def _process_thermal_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
 
@@ -266,7 +198,7 @@ def _process_other_nonres_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -290,7 +222,14 @@ def _process_other_nonres_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            pemmdb_type=lambda x: x.pemmdb_type.str.split("/").str[1:].str.join(" - "),
+            pemmdb_type=lambda x: (
+                x.pemmdb_type.str.split("/").str[1:].str.join("-")
+                + "-"
+                + x.purpose.astype(str)
+                + "-"
+                + x.price.astype(str)
+                + "eur"
+            ),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -299,15 +238,23 @@ def _process_other_nonres_capacities(
             efficiency=lambda x: pd.to_numeric(x.efficiency, errors="coerce"),
             co2_factor=lambda x: pd.to_numeric(x.co2_factor, errors="coerce"),
         )
-        .query("cyear_start <= @cyear and cyear_end >= @cyear")
+        .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
         .reset_index(drop=True)
     )
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
+
+    if df.pemmdb_type.duplicated().any():
+        logger.warning(
+            f"{node} has duplicated price bands for '{pemmdb_tech}' and cyear {cyear} with the same type (type, purpose, price) but differing capacities. Keeping only first entry."
+        )
+
+    # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
+    df = df.groupby("pemmdb_type", as_index=False).first().reset_index(drop=True)
 
     return df
 
@@ -351,7 +298,7 @@ def _process_res_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
 
@@ -385,7 +332,7 @@ def _process_res_capacities(
         df["pemmdb_type"],
     )
 
-    df = _convert_units(df, unit_conversion, "unit", "p_nom").reset_index(drop=True)
+    df = convert_units(df, unit_conversion, "unit", "p_nom").reset_index(drop=True)
 
     return df
 
@@ -414,7 +361,7 @@ def _process_other_res_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -432,7 +379,7 @@ def _process_electrolyser_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -531,7 +478,7 @@ def _process_dsr_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -563,13 +510,13 @@ def _process_dsr_capacities(
             + "eur",
             efficiency=1.0,  # dummy value for efficiency
         )
-        .query("cyear_start <= @cyear and cyear_end >= @cyear")
+        .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
         .reset_index(drop=True)
     )
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
 
@@ -590,7 +537,7 @@ def _process_thermal_profiles(
     pyear_i: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean thermal (conventionals & hydrogen) profiles.
     """
@@ -644,25 +591,23 @@ def _process_thermal_profiles(
 
     # Map to hourly Datetime index
     df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
-    for type in must_runs.columns:
-        df[type] = df["month"].map(must_runs[type])
+    df = df.join(must_runs, on="month")
     df.drop(columns="month", inplace=True)
 
     # Flatten and turn into xarray dataset
     profiles = (
-        df.reset_index(names="time")
-        .melt(id_vars="time", var_name="pemmdb_type", value_name="p_min_pu")
+        df.loc[sns]
+        .melt(var_name="pemmdb_type", value_name="p_min_pu", ignore_index=False)
+        .rename_axis("time", axis="index")
         .assign(
             pemmdb_carrier=pemmdb_tech, bus=node, p_max_pu=1.0
         )  # also set p_max_pu with default value of 1.0
-        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])
-        .to_xarray()
-        .sel(time=sns)  # filter for snapshots only
+        .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
     )
 
     # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
     if tyndp_scenario != "NT" and pyear_i > 2030:
-        profiles["p_min_pu"] = xr.full_like(profiles["p_min_pu"], 0.0)
+        profiles.loc[:, "p_min_pu"] = 0.0
 
     return profiles
 
@@ -674,7 +619,7 @@ def _process_other_res_profiles(
     pyear: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean `Other RES` profiles.
     """
@@ -703,11 +648,10 @@ def _process_other_res_profiles(
             pemmdb_carrier=pemmdb_tech,
             pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
         )
+        .query("time in @sns")
         .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
             ["p_min_pu", "p_max_pu"]
         ]
-        .to_xarray()
-        .sel(time=sns)  # filter for snapshots only
     )
 
     return profiles
@@ -720,7 +664,7 @@ def _process_other_nonres_profiles(
     cyear: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean `Other Non-RES` profiles.
     """
@@ -732,6 +676,9 @@ def _process_other_nonres_profiles(
             index={
                 "Installed capacity \n(MW)": "p_nom",
                 "PEMMDB type(s)": "pemmdb_type",
+                "Purpose": "purpose",
+                "Avg. Market Offer Price (€/MWh)": "price",
+                "Avg. Efficiency Ratio": "efficiency",
                 "Start climate year": "cyear_start",
                 "End climate year": "cyear_end",
             }
@@ -742,50 +689,52 @@ def _process_other_nonres_profiles(
     # Create mask to filter for given climate year
     cyear_start = pd.to_numeric(df.loc["cyear_start", :], errors="coerce")
     cyear_end = pd.to_numeric(df.loc["cyear_end", :], errors="coerce")
-    mask = (cyear_start <= cyear) & (cyear <= cyear_end)
+    cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
+    mask = (cyear_start <= cyear) & (cyear <= cyear_end) & (cap > 0)
 
     if not mask.any():
         logger.warning(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB profiles available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
     # Filter for climate year and rename single column
     df = df.loc[:, mask]
-    if df.shape[1] != 1:
-        logger.warning(
-            f"Expected max 1 column to match climate year {cyear} for '{pemmdb_tech}' at {node}, got {df.shape[1]}. Using first entry only."
-        )
-        df = df.iloc[:, :1]  # Take only first column
-
-    df = df.set_axis(["p_max"], axis="columns")
 
     # Extract capacity and plant type
-    cap = pd.to_numeric(df.loc["p_nom", "p_max"], errors="coerce")
-    type = " - ".join(df.loc["pemmdb_type", "p_max"].split("/")[1:])
+    type = (
+        df.loc["pemmdb_type", :].str.split("/").str[1:].str.join("-")
+        + "-"
+        + df.loc["purpose", :].astype(str)
+        + "-"
+        + df.loc["price", :].astype(str)
+        + "eur"
+    )
 
-    if pd.isna(cap) or cap <= 0:
-        logger.warning(f"Invalid capacity data for '{pemmdb_tech}' at {node}")
-        return None
-
-    profiles = (
+    df_long = (
         df.iloc[10:]
         .reset_index(drop=True)
+        .div(cap.loc[mask], axis=1)
+        .set_axis(type, axis="columns")
         .assign(
-            p_nom=cap,
-            p_max_pu=lambda x: x.p_max / cap,  # calculate per unit availability
-            p_min_pu=0.0,  # also set p_min_pu with default value of 0.0
             time=index_year,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
-            pemmdb_type=type,
         )
-        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
-            ["p_min_pu", "p_max_pu"]
-        ]
-        .to_xarray()
-        .sel(time=sns)
+        .query("time in @sns")
+        .set_index(["time", "bus", "pemmdb_carrier"])
+        .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
+        .set_index("pemmdb_type", append=True)
+        .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
     )
+
+    if df_long.index.duplicated().any():
+        logger.warning(
+            f"{node} has duplicated price bands for '{pemmdb_tech}' and cyear {cyear} with the same type (type, purpose, price) but differing capacities. Keeping only first entry."
+        )
+
+    # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
+    profiles = df_long.groupby(level=[0, 1, 2, 3]).first()
 
     return profiles
 
@@ -797,7 +746,7 @@ def _process_dsr_profiles(
     cyear: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Extract and clean `DSR` profiles.
     """
@@ -847,6 +796,7 @@ def _process_dsr_profiles(
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
+        .query("time in @sns")
         .set_index(["time", "bus", "pemmdb_carrier"])
         .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
         .set_index("pemmdb_type", append=True)
@@ -859,7 +809,7 @@ def _process_dsr_profiles(
         )
 
     # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
-    profiles = df_long.groupby(level=[0, 1, 2, 3]).first().to_xarray().sel(time=sns)
+    profiles = df_long.groupby(level=[0, 1, 2, 3]).first()
 
     return profiles
 
@@ -990,7 +940,7 @@ def process_pemmdb_profiles(
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
     carrier_mapping_df: pd.DataFrame,
-) -> xr.Dataset:
+) -> pd.DataFrame:
     """
     Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
     from PEMMDB for a given technology, planning and climate year.
@@ -1020,8 +970,8 @@ def process_pemmdb_profiles(
 
     Returns
     -------
-    profiles : xr.Dataset
-        xarray dataset containing must run obligations (p_min_pu) and availability (p_max_pu) profiles.
+    profiles : pd.DataFrame
+        Dataframe containing must run obligations (p_min_pu) and availability (p_max_pu) profiles.
     """
     try:
         # Conventionals & Hydrogen
@@ -1061,15 +1011,11 @@ def process_pemmdb_profiles(
             return None
 
         # Map pemmdb carrier names to tyndp technologies
-        profiles = (
-            map_tyndp_carrier_names(
-                profiles.to_dataframe().reset_index(),
-                carrier_mapping_df,
-                ["pemmdb_carrier", "pemmdb_type"],
-            )
-            .set_index(["time", "bus", "carrier", "index_carrier"])
-            .to_xarray()
-        )
+        profiles = map_tyndp_carrier_names(
+            profiles.reset_index(),
+            carrier_mapping_df,
+            ["pemmdb_carrier", "pemmdb_type"],
+        ).set_index(["time", "bus", "carrier", "index_carrier"])
 
         return profiles
 
@@ -1091,7 +1037,7 @@ def process_pemmdb_data(
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
     carrier_mapping_df: pd.DataFrame,
-) -> pd.DataFrame | xr.Dataset:
+) -> pd.DataFrame:
     """
     Reads and cleans either capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles
     from PEMMDB for a given technology, planning and climate year.
@@ -1123,8 +1069,8 @@ def process_pemmdb_data(
 
     Returns
     -------
-    pd.DataFrame | xr.Dataset
-        Pandas dataframe or xarray dataset containing capacties or must run obligations (p_min_pu) and availability (p_max_pu) profiles respectively.
+    pd.DataFrame
+        Pandas dataframe containing capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles respectively.
     """
     # Extract node and tech information
     node, pemmdb_tech = node_tech
@@ -1228,6 +1174,7 @@ if __name__ == "__main__":
         pemmdb_dir=pemmdb_dir,
         cyear=cyear,
         pyear=pyear,
+        required_techs=pemmdb_techs,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool1:
@@ -1316,7 +1263,7 @@ if __name__ == "__main__":
                     index_year=index_year,
                     carrier_mapping_df=carrier_mapping_df,
                 )
-                for node_tech in tqdm(node_techs, **tqdm_kwargs_caps)
+                for node_tech in tqdm(node_techs, **tqdm_kwargs_profiles)
             )
             if profiles is not None
         ]
@@ -1331,6 +1278,6 @@ if __name__ == "__main__":
         ds.to_netcdf(snakemake.output.pemmdb_profiles)
         sys.exit(0)
 
-    # Otherwise merge pemmdb profiles into one xarray dataset and save
-    ds = merge_xarray_ds_with_progress(pemmdb_profiles)
+    # Otherwise merge pemmdb profiles into one pd.DataFrame, convert to xarray dataset and save
+    ds = pd.concat(pemmdb_profiles, axis=0).to_xarray()
     ds.to_netcdf(snakemake.output.pemmdb_profiles)

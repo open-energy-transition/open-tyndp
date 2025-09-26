@@ -489,7 +489,7 @@ rule build_pemmdb_data:
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
     log:
         logs("build_pemmdb_data_{planning_horizons}.log"),
-    threads: config["electricity"]["pemmdb_capacities"].get("nprocesses", 4)
+    threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
     benchmark:
         benchmarks("build_pemmdb_data_{planning_horizons}")
     conda:
