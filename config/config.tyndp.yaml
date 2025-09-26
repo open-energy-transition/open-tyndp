@@ -37,6 +37,9 @@ co2_budget:
 electricity:
   base_network: tyndp
 
+  extendable_carriers:
+    Generator: [OCGT, CCGT]
+
   # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
   tyndp_conventional_carriers:
   - gas
@@ -46,7 +49,7 @@ electricity:
   - oil-light
   - oil-heavy
   - oil-shale
-  renewable_carriers: [hydro, solar, solar-hsat, onwind]
+  renewable_carriers: [hydro]
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -178,12 +181,6 @@ pypsa_eur:
   Link:
   - DC
   Generator:
-  - onwind
-  - offwind-ac
-  - offwind-dc
-  - offwind-float
-  - solar-hsat
-  - solar
   - ror
   StorageUnit:
   - PHS

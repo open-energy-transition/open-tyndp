@@ -369,6 +369,7 @@ def load_offshore_generators(
     scenario: str,
     planning_horizons: list[int],
     countries: list[str],
+    extendable_carriers: dict[dict[str, list[str]]],
 ):
     """
     Load offshore generators data and format data.
@@ -397,6 +398,8 @@ def load_offshore_generators(
         List of planning years to include in the cost data filtering.
     countries : list[str]
         List of country codes used to clean data.
+    extendable_carriers : dict[dict[str, list[str]]]
+        Nested dictionary mapping components to list of extendable carriers.
 
     Returns
     -------
@@ -505,7 +508,9 @@ def load_offshore_generators(
     # Validate that all required cost assumptions are defined
     if generators[["capex", "opex"]].isna().any().any():
         raise ValueError("Missing generator cost data in input dataset.")
-    generators.loc[:, "p_nom_extendable"] = True
+    generators["p_nom_extendable"] = generators["carrier"].isin(
+        extendable_carriers["Generator"]
+    )
 
     # Rename UK in GB
     generators[["bus", "location"]] = generators[["bus", "location"]].replace(
@@ -541,6 +546,7 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     planning_horizons = snakemake.params["planning_horizons"]
     countries = snakemake.params["countries"]
+    extendable_carriers = snakemake.params["extendable_carriers"]
 
     nodes = load_offshore_hubs(snakemake.input.nodes)
 
@@ -565,6 +571,7 @@ if __name__ == "__main__":
         snakemake.params["scenario"],
         planning_horizons,
         countries,
+        extendable_carriers,
     )
 
     # Convert country codes and retain only specified countries and offshore wind hubs
