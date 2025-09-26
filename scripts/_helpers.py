@@ -18,6 +18,7 @@ from typing import Callable, Union
 
 import atlite
 import fiona
+import numpy as np
 import pandas as pd
 import pypsa
 import pytz
@@ -30,6 +31,12 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
+
+SCENARIO_DICT = {
+    "Distributed Energy": "DE",
+    "Global Ambition": "GA",
+    "National Trends": "NT",
+}
 
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
@@ -1181,3 +1188,108 @@ def safe_pyear(
         year_new = year
 
     return year_new
+
+
+def map_tyndp_carrier_names(
+    df: pd.DataFrame, carrier_mapping_df: pd.DataFrame, on_columns: list[str]
+):
+    """
+    Map external carriers to available tyndp_carrier names based on an input mapping.
+
+    Parameters
+    ----------
+    carriers : pd.DataFrame
+        DataFrame with external carriers to map
+    carrier_mapping_df : pd.DataFrame
+        DataFrame with mapping from external carriers to available tyndp_carrier names
+    on_columns : list[str]
+        Columns to merge on between the external carriers and tyndp_carriers.
+
+    Returns
+    -------
+    pd.DataFrame
+        Input DataFrame with mapping from external carriers to available tyndp carriers and index_carriers
+    """
+
+    df = df.merge(carrier_mapping_df, on=on_columns, how="left")
+
+    # if the carrier is DSR or Other Non-RES, the different price bands are too diverse to use a robust external mapping. We will instead combine carrier and type information
+    if "pemmdb_carrier" in on_columns:
+        # Other Non-RES are assumed to represent CHP plants (according to Methodology report p.37)
+        df = df.assign(
+            open_tyndp_carrier=lambda x: np.where(
+                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
+                x["pemmdb_carrier"]
+                .str.lower()
+                .str.split(" ")
+                .str.join("-")
+                .str.replace("other-non-res", "chp"),
+                x["open_tyndp_carrier"],
+            ),
+            open_tyndp_index=lambda x: np.where(
+                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
+                x["open_tyndp_carrier"]
+                + "-"
+                + x["pemmdb_type"].str.lower().str.split(" ").str.join("-"),
+                x["open_tyndp_index"],
+            ),
+        )
+
+    # drop merge columns and rename to new "carrier" and "index_carrier" column
+    df = df.drop(on_columns, axis="columns").rename(
+        columns={
+            "open_tyndp_carrier": "carrier",
+            "open_tyndp_index": "index_carrier",
+        }
+    )
+
+    # Move "carrier" and "index_carrier" to the front
+    cols = ["carrier", "index_carrier"] + [
+        col for col in df.columns if col not in ["carrier", "index_carrier"]
+    ]
+
+    return df[cols]
+
+
+def convert_units(
+    df: pd.DataFrame,
+    unit_conversion: dict[str, float],
+    source_unit_col: str = "unit",
+    value_col: str = "value",
+) -> pd.DataFrame:
+    """
+    Convert units and add unit columns.
+    Automatically determines target unit based on source unit type:
+    - Energy units (TWh, GWh, MWh, kWh) → MWh
+    - Power units (GW, MW, kW) → MW
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Long-format DataFrame containing values to convert.
+    unit_conversion : dict[str, float]
+        Dictionary mapping units to conversion factors (to base unit).
+    source_unit_col : str, default "unit
+        Name of the column containing the source unit of the values.
+    value_col : str, default "value"
+        Name of the column containing values to convert.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with converted values and unit columns added.
+    """
+    # Determine target unit based on source unit type
+    energy_units = {"TWh", "GWh", "MWh", "kWh"}
+    power_units = {"GW", "MW", "kW"}
+
+    # Convert values using conversion factors
+    conversion_factors = df[source_unit_col].map(unit_conversion)
+    df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
+
+    # Update unit column
+    df["unit"] = df[source_unit_col].apply(
+        lambda x: "MWh" if x in energy_units else "MW" if x in power_units else x
+    )
+
+    return df

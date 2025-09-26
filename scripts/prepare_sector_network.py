@@ -2139,6 +2139,10 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
 
+    # for NT scenario there are no interzonal connections as only one H2 zone is modelled
+    if interzonal.empty:
+        return
+
     interzonal = interzonal.assign(
         bus0=interzonal.bus0.str.split("H2").str.join(" H2 "),
         bus1=interzonal.bus1.str.split("H2").str.join(" H2 "),
@@ -3031,7 +3035,7 @@ def add_offshore_generators_tyndp(
     pyear: int,
     offshore_generators_fn: str,
     profiles: dict[str, str],
-    pecd_mapping: dict[str, str],
+    pecd_carrier_mapping: pd.DataFrame,
     costs: pd.DataFrame,
     nyears: float = 1,
 ):
@@ -3055,8 +3059,8 @@ def add_offshore_generators_tyndp(
     profiles : dict[str, str]
         Dictionary mapping technology names to profile file paths
         e.g. {'offwind-dc': 'path/to/profile.nc'}
-    pecd_mapping : dict[str, str]
-        Dictionary mapping technology names to PECD profile names
+    pecd_carrier_mapping : pd.DataFrame
+        DataFrame mapping technology names (index) to PECD profile names (pecd_carrier).
         e.g. {'offwind-dc-fb-oh': 'Offshore_Wind'}
     costs : pd.DataFrame
         Technology costs assumptions.
@@ -3100,7 +3104,7 @@ def add_offshore_generators_tyndp(
 
     # Mapping from TYNDP offshore generators to PECD profiles
     offshore_generators["pecd_profile_name"] = offshore_generators["carrier"].map(
-        pecd_mapping
+        pecd_carrier_mapping["pecd_carrier"]
     )
 
     # Load PECD profiles
@@ -3301,7 +3305,7 @@ def add_offshore_hubs_tyndp(
     offshore_electrolysers_fn: str,
     offshore_grid_fn: str,
     profiles: dict[str, str],
-    pecd_mapping: dict[str, str],
+    pecd_carrier_mapping: pd.DataFrame,
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
     nyears: float = 1,
@@ -3327,8 +3331,8 @@ def add_offshore_hubs_tyndp(
     profiles : dict[str, str]
         Dictionary mapping technology names to profile file paths
         e.g. {'offwind-dc': 'path/to/profile.nc'}
-    pecd_mapping : dict[str, str]
-        Dictionary mapping technology names to PECD profile names
+    pecd_carrier_mapping : pd.DataFrame
+        DataFrame mapping technology names (index) to PECD profile names (pecd_carrier).
         e.g. {'offwind-dc-fb-oh': 'Offshore_Wind'}
     costs : pd.DataFrame
         Technology costs assumptions.
@@ -3377,7 +3381,7 @@ def add_offshore_hubs_tyndp(
 
     # Add power production units
     add_offshore_generators_tyndp(
-        n, pyear, offshore_generators_fn, profiles, pecd_mapping, costs, nyears
+        n, pyear, offshore_generators_fn, profiles, pecd_carrier_mapping, costs, nyears
     )
 
     # Add H2 production units
@@ -7525,12 +7529,15 @@ if __name__ == "__main__":
         for key in snakemake.input.keys()
         if key.startswith("profile") and "hydro" not in key
     }
-    pecd_renewable_profiles_techs = snakemake.params.electricity[
-        "pecd_renewable_profiles"
-    ]["technologies"]
-    pecd_mapping = {
-        v: k for k, v_list in pecd_renewable_profiles_techs.items() for v in v_list
-    }
+    pecd_carrier_mapping = (
+        (
+            pd.read_csv(snakemake.input.carrier_mapping)[
+                ["pecd_carrier", "open_tyndp_index"]
+            ]
+        )
+        .dropna()
+        .set_index("open_tyndp_index")
+    )
 
     landfall_lengths = {
         tech: settings["landfall_length"]
@@ -7614,7 +7621,7 @@ if __name__ == "__main__":
             offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
             offshore_grid_fn=snakemake.input.offshore_grid,
             profiles=profiles,
-            pecd_mapping=pecd_mapping,
+            pecd_carrier_mapping=pecd_carrier_mapping,
             costs=costs,
             spatial=spatial,
             nyears=nyears,

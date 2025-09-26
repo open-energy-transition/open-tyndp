@@ -465,6 +465,58 @@ rule build_renewable_profiles_pecd:
         "../scripts/build_renewable_profiles_pecd.py"
 
 
+pemmdb_techs = branch(
+    config_provider("electricity", "pemmdb_capacities", "enable"),
+    config_provider("electricity", "pemmdb_capacities", "technologies"),
+)
+
+
+rule build_pemmdb_data:
+    params:
+        pemmdb_techs=pemmdb_techs,
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        available_years=config_provider(
+            "electricity", "pemmdb_capacities", "available_years"
+        ),
+        tyndp_scenario=config_provider("tyndp_scenario"),
+    input:
+        pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
+        carrier_mapping="data/tyndp_technology_map.csv",
+        busmap=resources("busmap_base_s_all.csv"),
+    output:
+        pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
+        pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
+    log:
+        logs("build_pemmdb_data_{planning_horizons}.log"),
+    threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
+    benchmark:
+        benchmarks("build_pemmdb_data_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_pemmdb_data.py"
+
+
+rule build_tyndp_trajectories:
+    params:
+        tyndp_scenario=config_provider("tyndp_scenario"),
+    input:
+        trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
+        carrier_mapping="data/tyndp_technology_map.csv",
+    output:
+        tyndp_trajectories=resources("tyndp_trajectories.csv"),
+    log:
+        logs("build_tyndp_trajectories.log"),
+    threads: 4
+    benchmark:
+        benchmarks("build_tyndp_trajectories")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_tyndp_trajectories.py"
+
+
 rule build_monthly_prices:
     input:
         co2_price_raw="data/validation/emission-spot-primary-market-auction-report-2019-data.xls",
@@ -517,6 +569,9 @@ rule clean_tyndp_hydro_inflows:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
+        available_years=config_provider(
+            "electricity", "pemmdb_hydro_profiles", "available_years"
+        ),
     input:
         hydro_inflows_dir="data/tyndp_2024_bundle/Hydro Inflows",
         busmap=resources("busmap_base_s_all.csv"),
@@ -527,6 +582,7 @@ rule clean_tyndp_hydro_inflows:
     log:
         logs("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}.log"),
     threads: 4
+    retries: 2
     benchmark:
         benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
     conda:
