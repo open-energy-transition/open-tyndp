@@ -634,8 +634,7 @@ def _process_thermal_profiles(
 
     # Map to hourly Datetime index
     df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
-    for type in must_runs.columns:
-        df[type] = df["month"].map(must_runs[type])
+    df.join(must_runs, on="month")
     df.drop(columns="month", inplace=True)
 
     # Flatten and turn into xarray dataset
