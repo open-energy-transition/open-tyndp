@@ -10,6 +10,7 @@ import multiprocessing as mp
 from functools import partial
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 import pypsa
 from tqdm import tqdm
@@ -38,7 +39,8 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: str) -> pd.Se
         Loss factors data.
     """
     # Read data
-    loss_factors = pd.read_csv(fn, index_col=0)[planning_horizons]
+    pyear = np.clip(5 * (planning_horizons // 10), 2030, 2050)
+    loss_factors = pd.read_csv(fn, index_col=0)[pyear]
 
     # Create index map
     idx_map = n.buses.query("Bus.str.contains('low voltage')").country
