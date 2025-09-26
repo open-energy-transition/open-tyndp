@@ -241,7 +241,7 @@ def _process_thermal_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
 
@@ -266,7 +266,7 @@ def _process_other_nonres_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -290,7 +290,14 @@ def _process_other_nonres_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            pemmdb_type=lambda x: x.pemmdb_type.str.split("/").str[1:].str.join(" - "),
+            pemmdb_type=lambda x: (
+                x.pemmdb_type.str.split("/").str[1:].str.join("-")
+                + "-"
+                + x.purpose.astype(str)
+                + "-"
+                + x.price.astype(str)
+                + "eur"
+            ),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -299,15 +306,23 @@ def _process_other_nonres_capacities(
             efficiency=lambda x: pd.to_numeric(x.efficiency, errors="coerce"),
             co2_factor=lambda x: pd.to_numeric(x.co2_factor, errors="coerce"),
         )
-        .query("cyear_start <= @cyear and cyear_end >= @cyear")
+        .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
         .reset_index(drop=True)
     )
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
+
+    if df.pemmdb_type.duplicated().any():
+        logger.warning(
+            f"{node} has duplicated price bands for '{pemmdb_tech}' and cyear {cyear} with the same type (type, purpose, price) but differing capacities. Keeping only first entry."
+        )
+
+    # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
+    df = df.groupby("pemmdb_type", as_index=False).first().reset_index(drop=True)
 
     return df
 
@@ -351,7 +366,7 @@ def _process_res_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
 
@@ -414,7 +429,7 @@ def _process_other_res_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -432,7 +447,7 @@ def _process_electrolyser_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -531,7 +546,7 @@ def _process_dsr_capacities(
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
@@ -563,13 +578,13 @@ def _process_dsr_capacities(
             + "eur",
             efficiency=1.0,  # dummy value for efficiency
         )
-        .query("cyear_start <= @cyear and cyear_end >= @cyear")
+        .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
         .reset_index(drop=True)
     )
 
     if df.empty:
         logger.info(
-            f"No PEMMDB data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
 
@@ -732,6 +747,9 @@ def _process_other_nonres_profiles(
             index={
                 "Installed capacity \n(MW)": "p_nom",
                 "PEMMDB type(s)": "pemmdb_type",
+                "Purpose": "purpose",
+                "Avg. Market Offer Price (€/MWh)": "price",
+                "Avg. Efficiency Ratio": "efficiency",
                 "Start climate year": "cyear_start",
                 "End climate year": "cyear_end",
             }
@@ -742,50 +760,51 @@ def _process_other_nonres_profiles(
     # Create mask to filter for given climate year
     cyear_start = pd.to_numeric(df.loc["cyear_start", :], errors="coerce")
     cyear_end = pd.to_numeric(df.loc["cyear_end", :], errors="coerce")
-    mask = (cyear_start <= cyear) & (cyear <= cyear_end)
+    cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
+    mask = (cyear_start <= cyear) & (cyear <= cyear_end) & (cap > 0)
 
     if not mask.any():
         logger.warning(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB profiles available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
 
     # Filter for climate year and rename single column
     df = df.loc[:, mask]
-    if df.shape[1] != 1:
-        logger.warning(
-            f"Expected max 1 column to match climate year {cyear} for '{pemmdb_tech}' at {node}, got {df.shape[1]}. Using first entry only."
-        )
-        df = df.iloc[:, :1]  # Take only first column
-
-    df = df.set_axis(["p_max"], axis="columns")
 
     # Extract capacity and plant type
-    cap = pd.to_numeric(df.loc["p_nom", "p_max"], errors="coerce")
-    type = " - ".join(df.loc["pemmdb_type", "p_max"].split("/")[1:])
+    type = (
+        df.loc["pemmdb_type", :].str.split("/").str[1:].str.join("-")
+        + "-"
+        + df.loc["purpose", :].astype(str)
+        + "-"
+        + df.loc["price", :].astype(str)
+        + "eur"
+    )
 
-    if pd.isna(cap) or cap <= 0:
-        logger.warning(f"Invalid capacity data for '{pemmdb_tech}' at {node}")
-        return None
-
-    profiles = (
+    df_long = (
         df.iloc[10:]
         .reset_index(drop=True)
+        .div(cap.loc[mask], axis=1)
+        .set_axis(type, axis="columns")
         .assign(
-            p_nom=cap,
-            p_max_pu=lambda x: x.p_max / cap,  # calculate per unit availability
-            p_min_pu=0.0,  # also set p_min_pu with default value of 0.0
             time=index_year,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
-            pemmdb_type=type,
         )
-        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
-            ["p_min_pu", "p_max_pu"]
-        ]
-        .to_xarray()
-        .sel(time=sns)
+        .set_index(["time", "bus", "pemmdb_carrier"])
+        .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
+        .set_index("pemmdb_type", append=True)
+        .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
     )
+
+    if df_long.index.duplicated().any():
+        logger.warning(
+            f"{node} has duplicated price bands for '{pemmdb_tech}' and cyear {cyear} with the same type (type, purpose, price) but differing capacities. Keeping only first entry."
+        )
+
+    # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
+    profiles = df_long.groupby(level=[0, 1, 2, 3]).first().to_xarray().sel(time=sns)
 
     return profiles
 
@@ -1316,7 +1335,7 @@ if __name__ == "__main__":
                     index_year=index_year,
                     carrier_mapping_df=carrier_mapping_df,
                 )
-                for node_tech in tqdm(node_techs, **tqdm_kwargs_caps)
+                for node_tech in tqdm(node_techs, **tqdm_kwargs_profiles)
             )
             if profiles is not None
         ]

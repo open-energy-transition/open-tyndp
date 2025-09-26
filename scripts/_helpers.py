@@ -1213,18 +1213,25 @@ def map_tyndp_carrier_names(
 
     df = df.merge(carrier_mapping_df, on=on_columns, how="left")
 
-    # if the carrier is DSR, the different price bands are too diverse to use a robust external mapping. We will instead combine carrier and type information
+    # if the carrier is DSR or Other Non-RES, the different price bands are too diverse to use a robust external mapping. We will instead combine carrier and type information
     if "pemmdb_carrier" in on_columns:
+        # Other Non-RES are assumed to represent CHP plants (according to Methodology report p.37)
         df = df.assign(
-            open_tyndp_carrier=np.where(
-                df["pemmdb_carrier"] == "DSR",
-                df["pemmdb_carrier"].str.lower(),
-                df["open_tyndp_carrier"],
+            open_tyndp_carrier=lambda x: np.where(
+                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
+                x["pemmdb_carrier"]
+                .str.lower()
+                .str.split(" ")
+                .str.join("-")
+                .str.replace("other-non-res", "chp"),
+                x["open_tyndp_carrier"],
             ),
-            open_tyndp_index=np.where(
-                df["pemmdb_carrier"] == "DSR",
-                df["pemmdb_carrier"].str.lower() + "-" + df["pemmdb_type"],
-                df["open_tyndp_index"],
+            open_tyndp_index=lambda x: np.where(
+                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
+                x["open_tyndp_carrier"]
+                + "-"
+                + x["pemmdb_type"].str.lower().str.split(" ").str.join("-"),
+                x["open_tyndp_index"],
             ),
         )
 
