@@ -26,7 +26,6 @@ rule clean_tyndp_benchmark:
 
 rule build_statistics:
     params:
-        eu27=config_provider("countries_eu27"),
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
     input:

@@ -9,6 +9,7 @@ import logging
 import multiprocessing as mp
 from functools import partial
 
+import country_converter as coco
 import pandas as pd
 import pypsa
 from tqdm import tqdm
@@ -329,7 +330,8 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    eu27 = snakemake.params["eu27"]
+    cc = coco.CountryConverter()
+    eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = str(snakemake.wildcards.planning_horizons)
     loss_factors_fn = snakemake.input.loss_factors
 
