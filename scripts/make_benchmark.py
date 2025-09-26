@@ -22,7 +22,9 @@ from scripts._helpers import configure_logging, get_version, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def load_data(benchmarks_fn: str, results_fn: str, scenario: str) -> pd.DataFrame:
+def load_data(
+    benchmarks_fn: str, results_fn: str, scenario: str, data_vp_fn: str = ""
+) -> pd.DataFrame:
     """
     Load Open-TYNDP and TYNDP 2024 results.
 
@@ -32,8 +34,10 @@ def load_data(benchmarks_fn: str, results_fn: str, scenario: str) -> pd.DataFram
         Path to the TYNDP 2024 benchmark data file.
     results_fn : str
         Path to the Open-TYNDP results data file.
-    scenario: str
+    scenario : str
         Name of scenario to compare.
+    data_vp_fn : str (optional)
+        Path to the Visualisation data file.
 
     Returns
     -------
@@ -56,6 +60,11 @@ def load_data(benchmarks_fn: str, results_fn: str, scenario: str) -> pd.DataFram
     # Clean data
     available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
+
+    # Add Visualisation Platform (optional)
+    if data_vp_fn:
+        data_vp = pd.read_csv(data_vp_fn)
+        benchmarks_raw = pd.concat([benchmarks_raw, data_vp])
 
     return benchmarks_raw
 

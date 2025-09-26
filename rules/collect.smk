@@ -125,7 +125,14 @@ rule prepare_benchmarks:
             **config["scenario"],
             run=config["run"]["name"],
         ),
-        RESULTS + "validation/resources/benchmarks_tyndp.csv",
+        expand(
+            RESULTS + "validation/resources/benchmarks_tyndp.csv",
+            run=config["run"]["name"],
+        ),
+        expand(
+            RESULTS + "validation/resources/data_vp_tyndp.csv",
+            run=config["run"]["name"],
+        ),
 
 
 rule make_benchmarks:

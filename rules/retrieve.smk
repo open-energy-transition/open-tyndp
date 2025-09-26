@@ -245,6 +245,19 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_tyndp_benchmark.log",
 
+    use rule retrieve_tyndp_pecd_data as retrieve_tyndp_vp_data with:
+        params:
+            # TODO Integrate into Zenodo tyndp data bundle
+            url="https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip",
+            source="Visualisation Platform",
+        output:
+            dir=directory("data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform"),
+            elec_demand="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
+            elec_flex="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
+            elec_supply="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
+        log:
+            "logs/retrieve_tyndp_benchmark.log",
+
     rule retrieve_countries_centroids:
         output:
             "data/countries_centroids.geojson",

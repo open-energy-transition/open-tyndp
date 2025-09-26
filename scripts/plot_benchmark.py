@@ -14,7 +14,12 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, get_version, set_scenario_config
+from scripts._helpers import (
+    configure_logging,
+    get_snapshots,
+    get_version,
+    set_scenario_config,
+)
 from scripts.clean_tyndp_benchmark import _convert_units
 from scripts.make_benchmark import load_data, match_temporal_resolution
 
@@ -52,15 +57,16 @@ def _plot_scenario_comparison(
     scenario: str,
     cyear: int,
     model_col: str,
-    rfc_col: str,
+    rfc_col: list[str],
     source_unit: str,
 ):
     fig, ax = plt.subplots(figsize=(12, 8))
 
     table_title = table.replace("_", " ").title()
-    df.set_index("carrier")[[model_col, rfc_col]].plot.bar(
+    idx = [model_col] + [c for c in rfc_col if c in df.columns]
+    df.set_index("carrier")[idx].plot.bar(
         ax=ax,
-        color=["#1f77b4", "#ff7f0e"],
+        color=["#1f77b4", "#ff7f0e", "#aeff39"],
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
@@ -177,7 +183,7 @@ def plot_benchmark(
     options: dict,
     colors: dict,
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024",
+    rfc_col: list[str] = ["TYNDP 2024", "TYNDP 2024 VP"],
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -200,7 +206,7 @@ def plot_benchmark(
         Dictionary of colors to be used for each technology.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_col : str, default "TYNDP 2024"
+    rfc_col : list[str], default ["TYNDP 2024", "TYNDP 2024 VP"]
         Column name for reference values.
     """
 
@@ -226,8 +232,8 @@ def plot_benchmark(
     )
 
     # Check if at least two sources are available to compare
-    if len(bench_wide.columns) != 2:
-        logging.info(f"Skipping table {table}, need exactly two sources to compare.")
+    if len(bench_wide.columns) < 2:
+        logging.info(f"Skipping table {table}, need at least two sources to compare.")
         return
 
     for year in bench_wide.index.get_level_values("year").unique():
@@ -246,8 +252,9 @@ def plot_benchmark(
                 source_unit,
             )
         elif table_type == "time_series":
+            rfc_col_str = [c for c in rfc_col if c in bench_year.columns][0]
             bench_agg = match_temporal_resolution(
-                bench_year, model_col, rfc_col
+                bench_year, model_col, rfc_col_str
             ).reset_index()
             _plot_time_series(
                 bench_agg,
@@ -257,7 +264,7 @@ def plot_benchmark(
                 scenario,
                 cyear,
                 model_col,
-                rfc_col,
+                rfc_col_str,
                 source_unit,
                 colors,
             )
@@ -352,8 +359,9 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     colors = snakemake.params["colors"]
     scenario = snakemake.params["scenario"]
-    cyear = int(snakemake.params.snapshots["start"][:4])
+    cyear = get_snapshots(snakemake.params.snapshots)[0].year
     benchmarks_fn = snakemake.input.benchmarks
+    data_vp_fn = snakemake.input.data_vp
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -361,7 +369,9 @@ if __name__ == "__main__":
     kpis_out = snakemake.output.kpis
 
     # Load data
-    benchmarks_raw = load_data(benchmarks_fn, results_fn, "TYNDP " + scenario)
+    benchmarks_raw = load_data(
+        benchmarks_fn, results_fn, "TYNDP " + scenario, data_vp_fn
+    )
 
     # Produce benchmark figures
     logger.info("Producing benchmark figures")

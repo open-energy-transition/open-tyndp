@@ -7,6 +7,7 @@ rule clean_tyndp_benchmark:
     params:
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
+        snapshots=config_provider("snapshots"),
     input:
         scenarios_figures="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
     output:
@@ -22,6 +23,31 @@ rule clean_tyndp_benchmark:
         "../envs/environment.yaml"
     script:
         "../scripts/clean_tyndp_benchmark.py"
+
+
+rule clean_tyndp_vp_data:
+    params:
+        scenario=config_provider("tyndp_scenario"),
+        snapshots=config_provider("snapshots"),
+        unit_conversion=config_provider("benchmarking", "unit_conversion"),
+    input:
+        elec_demand="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
+        elec_supplymix="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
+        elec_flex="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
+        loss_factors="data/tyndp_electricity_loss_factors.csv",
+    output:
+        RESULTS + "validation/resources/data_vp_tyndp.csv",
+    log:
+        logs("clean_tyndp_vp_data.log"),
+    benchmark:
+        benchmarks("clean_tyndp_vp_data")
+    threads: 4
+    resources:
+        mem_mb=4000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/clean_tyndp_vp_data.py"
 
 
 rule build_statistics:
@@ -98,6 +124,7 @@ rule plot_benchmark:
             allow_missing=True,
         ),
         benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
+        data_vp=RESULTS + "validation/resources/data_vp_tyndp.csv",
         kpis=RESULTS
         + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
     output:
