@@ -1249,3 +1249,47 @@ def map_tyndp_carrier_names(
     ]
 
     return df[cols]
+
+
+def convert_units(
+    df: pd.DataFrame,
+    unit_conversion: dict[str, float],
+    source_unit_col: str = "unit",
+    value_col: str = "value",
+) -> pd.DataFrame:
+    """
+    Convert units and add unit columns.
+    Automatically determines target unit based on source unit type:
+    - Energy units (TWh, GWh, MWh, kWh) → MWh
+    - Power units (GW, MW, kW) → MW
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Long-format DataFrame containing values to convert.
+    unit_conversion : dict[str, float]
+        Dictionary mapping units to conversion factors (to base unit).
+    source_unit_col : str, default "unit
+        Name of the column containing the source unit of the values.
+    value_col : str, default "value"
+        Name of the column containing values to convert.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with converted values and unit columns added.
+    """
+    # Determine target unit based on source unit type
+    energy_units = {"TWh", "GWh", "MWh", "kWh"}
+    power_units = {"GW", "MW", "kW"}
+
+    # Convert values using conversion factors
+    conversion_factors = df[source_unit_col].map(unit_conversion)
+    df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
+
+    # Update unit column
+    df["unit"] = df[source_unit_col].apply(
+        lambda x: "MWh" if x in energy_units else "MW" if x in power_units else x
+    )
+
+    return df
