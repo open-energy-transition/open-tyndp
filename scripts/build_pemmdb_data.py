@@ -136,6 +136,7 @@ def read_pemmdb_data(
     pemmdb_dir: str,
     cyear: int,
     pyear: int,
+    required_techs: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
     Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
@@ -151,6 +152,8 @@ def read_pemmdb_data(
         Climate year to read data for.
     pyear : int
         Planning year to read data for. Can be fallback year to available data.
+    required_techs : list[str], optional
+        List of required technologies to read pemmdb data for.
 
     Returns
     -------
@@ -168,7 +171,17 @@ def read_pemmdb_data(
         return None
 
     try:
-        data = pd.read_excel(fn, sheet_name=None)
+        if required_techs:
+            required_sheets = [
+                pemmdb_sheet_mapping.get(tech)
+                for tech in required_techs
+                if pemmdb_sheet_mapping.get(tech)
+            ]
+            required_sheets = list(set(required_sheets))
+            data = pd.read_excel(fn, sheet_name=required_sheets)
+        else:
+            data = pd.read_excel(fn, sheet_name=None)
+
         return {node: data}
 
     except Exception as e:
@@ -1205,6 +1218,7 @@ if __name__ == "__main__":
         pemmdb_dir=pemmdb_dir,
         cyear=cyear,
         pyear=pyear,
+        required_techs=pemmdb_techs,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool1:
