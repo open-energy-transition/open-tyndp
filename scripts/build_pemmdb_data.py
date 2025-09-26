@@ -591,7 +591,7 @@ def _process_thermal_profiles(
 
     # Map to hourly Datetime index
     df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
-    df.join(must_runs, on="month")
+    df = df.join(must_runs, on="month")
     df.drop(columns="month", inplace=True)
 
     # Flatten and turn into xarray dataset
@@ -607,7 +607,7 @@ def _process_thermal_profiles(
 
     # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
     if tyndp_scenario != "NT" and pyear_i > 2030:
-        profiles["p_min_pu"] = xr.full_like(profiles["p_min_pu"], 0.0)
+        profiles.loc[:, "p_min_pu"] = 0.0
 
     return profiles
 
