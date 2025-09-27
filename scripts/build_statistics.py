@@ -20,7 +20,7 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: str) -> pd.Series:
+def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Series:
     """
     Load and prepare loss factors
 
@@ -30,7 +30,7 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: str) -> pd.Se
         Path to the file containing loss factors.
     n : pypsa.Network
         Network to use.
-    planning_horizons : str
+    planning_horizons : int
         Planning horizon for which to read the data.
 
     Returns
@@ -40,7 +40,7 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: str) -> pd.Se
     """
     # Read data
     pyear = np.clip(5 * (planning_horizons // 10), 2030, 2050)
-    loss_factors = pd.read_csv(fn, index_col=0)[pyear]
+    loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
 
     # Create index map
     idx_map = n.buses.query("Bus.str.contains('low voltage')").country
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
-    planning_horizons = str(snakemake.wildcards.planning_horizons)
+    planning_horizons = int(snakemake.wildcards.planning_horizons)
     loss_factors_fn = snakemake.input.loss_factors
 
     # Read network
@@ -363,7 +363,7 @@ if __name__ == "__main__":
 
     # Combine all benchmark data
     benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
-        year=snakemake.wildcards.planning_horizons,
+        year=planning_horizons,
         scenario="TYNDP " + snakemake.params["scenario"],
         source="Open-TYNDP",
     )
