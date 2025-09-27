@@ -20,6 +20,7 @@ SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
 path = [
+    "doc/configtables/benchmarking.csv",
     "doc/img/tyndp/*",
 ]
 SPDX-FileCopyrightText = [

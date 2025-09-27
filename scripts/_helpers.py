@@ -18,6 +18,7 @@ from typing import Callable, Union
 
 import atlite
 import fiona
+import git
 import pandas as pd
 import pypsa
 import pytz
@@ -30,6 +31,14 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 REGION_COLS = ["geometry", "name", "x", "y", "country"]
+
+SCENARIO_DICT = {
+    "Distributed Energy": "DE",
+    "Global Ambition": "GA",
+    r"National Trends\s*\+": "NT",
+    r"NT\s*\+": "NT",
+    "National Trends": "NT",
+}
 
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
@@ -1181,3 +1190,33 @@ def safe_pyear(
         year_new = year
 
     return year_new
+
+
+def get_version(hash_len: int = 9) -> str:
+    """
+    Create a version identifier from git repository state.
+
+    Returns a version string based on the latest reachable tag and current commit:
+    - If HEAD is exactly at a tag: returns the tag name (e.g., "v1.2.3")
+    - If HEAD is beyond a tag: returns "tag+g{hash}" (e.g., "v1.2.3+g1a2b3c4d")
+    - If no tags found: returns just the commit hash (e.g., "1a2b3c4d5")
+    """
+    try:
+        repo = git.Repo(search_parent_directories=True)
+        tags = sorted(
+            repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True
+        )
+        last_tag = None
+        for tag in tags:
+            if repo.is_ancestor(tag.commit, repo.head.commit):
+                last_tag = tag
+                break
+        if last_tag and last_tag.commit == repo.head.commit:
+            return f"{last_tag}"
+        elif last_tag:
+            return f"{last_tag}+g{repo.head.commit.hexsha[:hash_len]}"
+        else:
+            return repo.head.commit.hexsha[:hash_len]
+
+    except Exception:
+        return "unknown"
