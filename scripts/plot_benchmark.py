@@ -64,6 +64,13 @@ def _plot_scenario_comparison(
 
     table_title = table.replace("_", " ").title()
     idx = [model_col] + [c for c in rfc_col if c in df.columns]
+
+    tyndp_str = "TYNDP 2024"
+    if "TYNDP 2024 Vis Plfm" in idx and tyndp_str in idx:
+        tyndp_str_ext = "TYNDP 2024 Scenarios"
+        idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
+        df = df.rename(columns={tyndp_str: tyndp_str_ext})
+
     df.set_index("carrier")[idx].plot.bar(
         ax=ax,
         color=["#1f77b4", "#ff7f0e", "#aeff39"],
@@ -183,7 +190,7 @@ def plot_benchmark(
     options: dict,
     colors: dict,
     model_col: str = "Open-TYNDP",
-    rfc_col: list[str] = ["TYNDP 2024", "TYNDP 2024 VP"],
+    rfc_col: list[str] = ["TYNDP 2024", "TYNDP 2024 Vis Plfm"],
 ):
     """
     Create benchmark comparison figures and export one file per year.

@@ -229,5 +229,5 @@ if __name__ == "__main__":
 
     # TODO Extend to include additional data from the Visualisation Platform
 
-    df = pd.concat([elec_demand, power_capacities]).assign(source="TYNDP 2024 Vis")
+    df = pd.concat([elec_demand, power_capacities]).assign(source="TYNDP 2024 Vis Plfm")
     df.to_csv(snakemake.output[0], index=False)
