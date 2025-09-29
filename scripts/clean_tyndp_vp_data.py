@@ -211,6 +211,8 @@ if __name__ == "__main__":
     unit_conversion = snakemake.params["unit_conversion"]
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
+    logger.info("Reading Visualisation Platform data")
+
     elec_demand = get_elec_demand(
         elec_demand_fn=snakemake.input.elec_demand,
         loss_factors_fn=snakemake.input.loss_factors,
