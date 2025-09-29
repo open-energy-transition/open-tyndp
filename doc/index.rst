@@ -90,6 +90,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added the TYNDP electricity demand as an exogenously set demand (see PR `#14 <https://github.com/open-energy-transition/open-tyndp/pull/14>`__).
 - Added processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles for offshore wind farms, replacing default ERA5-based profiles processed with Atlite (see PR `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__).
 - Introduced TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics (see PR `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__).
+- Added processing and preparation of PEMMDB v.2.4 capacity, must-run and availability data as well as expansion trajectories for conventional and renewable power generation, electrolysers, batteries and DSR (see PR `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__).
 
 .. list-table::
    :align: center
@@ -185,11 +186,11 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
    * -
      - PEMMDB capacities & must-runs
      - `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__
-     - 🔨
+     - ✅
    * -
      - Investment candidates trajectories
      - `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__
-     - 🔨
+     - ✅
    * - **TYNDP demand**
      - Electricity
      - `#14 <https://github.com/open-energy-transition/open-tyndp/pull/14>`__
