@@ -361,7 +361,7 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
     benchmarks_fn = snakemake.input.benchmarks
-    data_vp_fn = snakemake.input.data_vp
+    vp_data_fn = snakemake.input.vp_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -370,7 +370,7 @@ if __name__ == "__main__":
 
     # Load data
     benchmarks_raw = load_data(
-        benchmarks_fn, results_fn, "TYNDP " + scenario, data_vp_fn
+        benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn
     )
 
     # Produce benchmark figures

@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_data(
-    benchmarks_fn: str, results_fn: str, scenario: str, data_vp_fn: str = ""
+    benchmarks_fn: str, results_fn: str, scenario: str, vp_data_fn: str = ""
 ) -> pd.DataFrame:
     """
     Load Open-TYNDP and TYNDP 2024 results.
@@ -36,7 +36,7 @@ def load_data(
         Path to the Open-TYNDP results data file.
     scenario : str
         Name of scenario to compare.
-    data_vp_fn : str (optional)
+    vp_data_fn : str (optional)
         Path to the Visualisation data file.
 
     Returns
@@ -62,9 +62,9 @@ def load_data(
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
     # Add Visualisation Platform (optional)
-    if data_vp_fn:
-        data_vp = pd.read_csv(data_vp_fn)
-        benchmarks_raw = pd.concat([benchmarks_raw, data_vp])
+    if vp_data_fn:
+        vp_data = pd.read_csv(vp_data_fn)
+        benchmarks_raw = pd.concat([benchmarks_raw, vp_data])
 
     return benchmarks_raw
 

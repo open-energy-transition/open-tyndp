@@ -36,7 +36,7 @@ rule clean_tyndp_vp_data:
         elec_flex="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
         loss_factors="data/tyndp_electricity_loss_factors.csv",
     output:
-        RESULTS + "validation/resources/data_vp_tyndp.csv",
+        RESULTS + "validation/resources/vp_data_tyndp.csv",
     log:
         logs("clean_tyndp_vp_data.log"),
     benchmark:
@@ -124,7 +124,7 @@ rule plot_benchmark:
             allow_missing=True,
         ),
         benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
-        data_vp=RESULTS + "validation/resources/data_vp_tyndp.csv",
+        vp_data=RESULTS + "validation/resources/vp_data_tyndp.csv",
         kpis=RESULTS
         + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
     output:

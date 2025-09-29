@@ -127,7 +127,6 @@ def get_elec_demand(
             carrier="aggregated",
             scenario=f"TYNDP {scenario}",
             table="elec_demand",
-            source="TYNDP 2024 VP",
         )
     )
 
@@ -184,7 +183,6 @@ def get_power_capacities(
             .assign(
                 scenario=f"TYNDP {scenario}",
                 table="power_capacity",
-                source="TYNDP 2024 VP",
             )
         )
         data.append(df)
@@ -231,5 +229,5 @@ if __name__ == "__main__":
 
     # TODO Extend to include additional data from the Visualisation Platform
 
-    df = pd.concat([elec_demand, power_capacities])
+    df = pd.concat([elec_demand, power_capacities]).assign(source="TYNDP 2024 Vis")
     df.to_csv(snakemake.output[0], index=False)

@@ -130,7 +130,7 @@ rule prepare_benchmarks:
             run=config["run"]["name"],
         ),
         expand(
-            RESULTS + "validation/resources/data_vp_tyndp.csv",
+            RESULTS + "validation/resources/vp_data_tyndp.csv",
             run=config["run"]["name"],
         ),
 
