@@ -256,7 +256,7 @@ if config["enable"]["retrieve"]:
             elec_flex="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
             elec_supply="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
         log:
-            "logs/retrieve_tyndp_benchmark.log",
+            "logs/retrieve_tyndp_vp_data.log",
 
     rule retrieve_countries_centroids:
         output:
