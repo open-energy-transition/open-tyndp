@@ -44,6 +44,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added the TYNDP electricity demand as an exogenously set demand (see PR [#14](https://github.com/open-energy-transition/open-tyndp/pull/14)).
 - Added processing and preparation of TYNDP 2024 PECD v3.1 renewable profiles for offshore wind farms, replacing default ERA5-based profiles processed with Atlite (see PR [#53](https://github.com/open-energy-transition/open-tyndp/pull/53)).
 - Introduced TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics (see PR [#54](https://github.com/open-energy-transition/open-tyndp/pull/54)).
+- Introduce a benchmarking framework that assesses Open-TYNDP quality against published TYNDP 2024 data (see PR [#73](https://github.com/open-energy-transition/open-tyndp/pull/73)).
 
 |       Feature        | TYNDP 2024 topology | Open-TYNDP topology |
 |:--------------------:|:-------------------:|:-------------------:|
@@ -59,7 +60,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 |:------------------------------------------------------:|:---------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------:|:------:|
 |       **Visualizations and workflow automation**       |                 Automated workflow                  |                                                                                                                                          |   ✅    |
 |                                                        |               TYNDP plotting routines               |                                                                                                                                          |   ⌛    |
-|           **Automated tests and benchmarks**           |           Automated benchmarking routine            |                                   [#73](https://github.com/open-energy-transition/open-tyndp/pull/73)                                    |   🔨   |
+|           **Automated tests and benchmarks**           |           Automated benchmarking routine            |                                   [#73](https://github.com/open-energy-transition/open-tyndp/pull/73)                                    |   ✅   |
 |              **TYNDP modelling features**              |           Perfect foresight optimization            |                                                                                                                                          |   ⌛    |
 |                                                        |            Security of Supply (SoS) loop            |                                                                                                                                          |   ⌛    |
 | **Existing infrastructure and associated parameters**  |             Electricity reference grid              |                                   [#18](https://github.com/open-energy-transition/open-tyndp/pull/18)                                    |   ✅    |
