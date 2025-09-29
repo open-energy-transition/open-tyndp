@@ -206,8 +206,8 @@ def plot_benchmark(
         Dictionary of colors to be used for each technology.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_col : list[str], default ["TYNDP 2024", "TYNDP 2024 VP"]
-        Column name for reference values.
+    rfc_col : list[str], default ["TYNDP 2024", "TYNDP 2024 Vis Plfm"]
+        Column names for reference values.
     """
 
     # Parameters

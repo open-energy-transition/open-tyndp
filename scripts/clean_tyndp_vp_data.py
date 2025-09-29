@@ -69,7 +69,8 @@ def get_elec_demand(
     unit_conversion: dict,
 ) -> pd.DataFrame:
     """
-    Read and process the electricity demand data file.
+    Read and process the electricity demand data file. Transmission losses are deduced from the data to align with
+    the Open-TYNDP scope.
 
     Parameters
     ----------
@@ -87,7 +88,7 @@ def get_elec_demand(
     Returns
     -------
     pd.DataFrame
-        Processed electricity demand data with standardized format.
+        Processed electricity demand data (MWh) with standardized format.
     """
     # Get loss factors
     loss_factors = (
@@ -142,7 +143,7 @@ def get_power_capacities(
     Parameters
     ----------
     caps_fn : str
-        Path to the conventional power capacity data file.
+        Path to the power capacity data file.
     flex_fn : str
         Path to the flexible power capacity data file.
     scenario : str
@@ -227,6 +228,8 @@ if __name__ == "__main__":
         cyear=cyear,
         unit_conversion=unit_conversion,
     )
+
+    # TODO Extend to include additional data from the Visualisation Platform
 
     df = pd.concat([elec_demand, power_capacities])
     df.to_csv(snakemake.output[0], index=False)
