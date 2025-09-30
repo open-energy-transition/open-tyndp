@@ -3035,8 +3035,7 @@ def add_offshore_generators_tyndp(
     n: pypsa.Network,
     pyear: int,
     offshore_generators_fn: str,
-    profiles: dict[str, str],
-    pecd_carrier_mapping: pd.DataFrame,
+    profiles_pecd: pd.Series,
     costs: pd.DataFrame,
     nyears: float = 1,
 ):
@@ -3057,12 +3056,8 @@ def add_offshore_generators_tyndp(
         Planning horizon used to filter which reference generator data to include.
     offshore_generators_fn : str
         Path to the file containing offshore generators configuration data.
-    profiles : dict[str, str]
-        Dictionary mapping technology names to profile file paths
-        e.g. {'offwind-dc': 'path/to/profile.nc'}
-    pecd_carrier_mapping : pd.DataFrame
-        DataFrame mapping technology names (index) to PECD profile names (pecd_carrier).
-        e.g. {'offwind-dc-fb-oh': 'Offshore_Wind'}
+    profiles_pecd : pd.Series
+        Series mapping technology names (indexes) to PECD profile file paths (values).
     costs : pd.DataFrame
         Technology costs assumptions.
     nyears : float, default 1
@@ -3103,27 +3098,19 @@ def add_offshore_generators_tyndp(
         + offshore_generators["opex"]
     ) * nyears
 
-    # Mapping from TYNDP offshore generators to PECD profiles
-    offshore_generators["pecd_profile_name"] = offshore_generators["carrier"].map(
-        pecd_carrier_mapping["pecd_carrier"]
-    )
-
     # Load PECD profiles
     p_max_pu = []
-    for key, fn in profiles.items():
-        tech = key[len("profile_pecd_") :]
-        techs = offshore_generators[
-            offshore_generators.pecd_profile_name == tech
-        ].carrier.unique()
+    for key, fn in profiles_pecd.items():
+        tech = key[len("profile_") :]
+
+        if tech not in offshore_generators.carrier.unique():
+            continue
 
         with xr.open_dataset(fn) as ds:
             ds = ds.stack(bus_bin=["bus", "bin"])
             p_max_pu_i = ds["profile"].sel(year=pyear, time=n.snapshots).to_pandas()
-
-        for tech_i in techs:
-            p_max_pu_t = p_max_pu_i.copy()
-            p_max_pu_t.columns = p_max_pu_t.columns.map(flatten) + f" {tech_i}"
-            p_max_pu.append(p_max_pu_t)
+            p_max_pu_i.columns = p_max_pu_i.columns.map(flatten) + f" {tech}"
+            p_max_pu.append(p_max_pu_i)
 
     p_max_pu = pd.concat(p_max_pu, axis=1).reindex(offshore_generators.index, axis=1)
 
@@ -3305,8 +3292,7 @@ def add_offshore_hubs_tyndp(
     offshore_generators_fn: str,
     offshore_electrolysers_fn: str,
     offshore_grid_fn: str,
-    profiles: dict[str, str],
-    pecd_carrier_mapping: pd.DataFrame,
+    profiles_pecd: pd.Series,
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
     nyears: float = 1,
@@ -3329,12 +3315,8 @@ def add_offshore_hubs_tyndp(
         Path to the file containing offshore electrolysers configuration data.
     offshore_grid_fn : str
         Path to the file containing offshore grid configuration data.
-    profiles : dict[str, str]
-        Dictionary mapping technology names to profile file paths
-        e.g. {'offwind-dc': 'path/to/profile.nc'}
-    pecd_carrier_mapping : pd.DataFrame
-        DataFrame mapping technology names (index) to PECD profile names (pecd_carrier).
-        e.g. {'offwind-dc-fb-oh': 'Offshore_Wind'}
+    profiles_pecd : pd.Series
+        Series mapping technology names (indexes) to PECD profile file paths (values).
     costs : pd.DataFrame
         Technology costs assumptions.
     spatial : object, optional
@@ -3382,7 +3364,7 @@ def add_offshore_hubs_tyndp(
 
     # Add power production units
     add_offshore_generators_tyndp(
-        n, pyear, offshore_generators_fn, profiles, pecd_carrier_mapping, costs, nyears
+        n, pyear, offshore_generators_fn, profiles_pecd, costs, nyears
     )
 
     # Add H2 production units
@@ -7525,23 +7507,31 @@ if __name__ == "__main__":
         existing_capacities = existing_efficiencies = None
 
     carriers_to_keep = snakemake.params.pypsa_eur
-    profiles = {
+    profiles_atlite_offwind = {
         key: snakemake.input[key]
         for key in snakemake.input.keys()
-        if key.startswith("profile") and "hydro" not in key
+        if key.startswith("profile") and "hydro" not in key and "offwind" in key
     }
-    pecd_carrier_mapping = (
+    profiles_pecd = (
         pd.read_csv(snakemake.input.carrier_mapping)
-        .set_index("open_tyndp_carrier")
+        .set_index("open_tyndp_index")
         .pecd_carrier.dropna()
+        .to_dict()
     )
+    profiles_pecd = {
+        f"profile_{k}": snakemake.input.get(f"profile_pecd_{v}")
+        for k, v in profiles_pecd.items()
+        if snakemake.input.get(f"profile_pecd_{v}")
+    }
 
     landfall_lengths = {
         tech: settings["landfall_length"]
         for tech, settings in snakemake.params.renewable.items()
         if "landfall_length" in settings.keys()
     }
-    patch_electricity_network(n, costs, carriers_to_keep, profiles, landfall_lengths)
+    patch_electricity_network(
+        n, costs, carriers_to_keep, profiles_atlite_offwind, landfall_lengths
+    )
 
     tyndp_renewable_carriers = snakemake.params.electricity["tyndp_renewable_carriers"]
     tyndp_solar_onwind = [
@@ -7558,17 +7548,11 @@ if __name__ == "__main__":
             .query("carrier.isin(@tyndp_solar_onwind)")
         )
 
-        tech_map = pecd_carrier_mapping.loc[tyndp_solar_onwind].to_dict()
-        pecd_profiles = {
-            f"profile_{k}": snakemake.input.get(f"profile_pecd_{v}")
-            for k, v in tech_map.items()
-        }
-
         attach_wind_and_solar(
             n=n,
             costs=costs,
             ppl=ppl,
-            profile_filenames=pecd_profiles,
+            profile_filenames=profiles_pecd,
             carriers=tyndp_solar_onwind,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             trajectories=trajectories,
@@ -7648,8 +7632,7 @@ if __name__ == "__main__":
             offshore_generators_fn=snakemake.input.offshore_generators,
             offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
             offshore_grid_fn=snakemake.input.offshore_grid,
-            profiles=profiles,
-            pecd_carrier_mapping=pecd_carrier_mapping,
+            profiles_pecd=profiles_pecd,
             costs=costs,
             spatial=spatial,
             nyears=nyears,
