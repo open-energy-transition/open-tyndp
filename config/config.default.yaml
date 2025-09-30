@@ -153,15 +153,7 @@ electricity:
     - 2040
     - 2050
     technologies:
-      Wind_Offshore:
-      - offwind-ac-fb-r
-      - offwind-ac-fl-r
-      - offwind-dc-fb-r
-      - offwind-dc-fl-r
-      - offwind-dc-fb-oh
-      - offwind-dc-fl-oh
-      - offwind-h2-fb-oh
-      - offwind-h2-fl-oh
+    - Wind_Offshore
 
   pemmdb_hydro_profiles:
     enable: false
