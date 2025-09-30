@@ -111,6 +111,8 @@ benchmarking:
         offwind-dc-fb-oh: wind offshore
         offwind-ac-fl-r: wind offshore
         offwind-ac-fb-r: wind offshore
+        offwind-h2-fb-oh: wind offshore
+        offwind-h2-fl-oh: wind offshore
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
