@@ -211,7 +211,7 @@ if config["enable"]["retrieve"]:
     rule retrieve_tyndp_pecd_data:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
-            url="https://storage.googleapis.com/open-tyndp-data-store/PECD.zip",
+            url="https://storage.googleapis.com/open-tyndp-data-store/PECD_gz.zip",
             source="PECD",
         output:
             dir=directory("data/tyndp_2024_bundle/PECD"),

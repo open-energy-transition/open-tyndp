@@ -48,7 +48,7 @@ def read_pecd_file(
     fn = Path(
         dir_pecd,
         str(pyear),
-        f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
+        f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv.gz",
     )
 
     # PECD only differentiates between utility and rooftop PV for some nodes
