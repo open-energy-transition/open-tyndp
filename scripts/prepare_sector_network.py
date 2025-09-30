@@ -7531,13 +7531,9 @@ if __name__ == "__main__":
         if key.startswith("profile") and "hydro" not in key
     }
     pecd_carrier_mapping = (
-        (
-            pd.read_csv(snakemake.input.carrier_mapping)[
-                ["pecd_carrier", "open_tyndp_index"]
-            ]
-        )
-        .dropna()
-        .set_index("open_tyndp_index")
+        pd.read_csv(snakemake.input.carrier_mapping)
+        .set_index("open_tyndp_carrier")
+        .pecd_carrier.dropna()
     )
 
     landfall_lengths = {
@@ -7555,16 +7551,19 @@ if __name__ == "__main__":
         ppl = pd.read_csv(snakemake.input.pemmdb_capacities).query(
             "carrier.isin(@tyndp_solar_onwind)"
         )
+
         trajectories = (
             pd.read_csv(snakemake.input.tyndp_trajectories)
             .query("pyear == @investment_year")
             .query("carrier.isin(@tyndp_solar_onwind)")
         )
+
+        tech_map = pecd_carrier_mapping.loc[tyndp_solar_onwind].to_dict()
         pecd_profiles = {
-            "profile_onwind": snakemake.input.profile_pecd_Wind_Onshore,
-            "profile_solar-pv-utility": snakemake.input.profile_pecd_LFSolarPVUtility,
-            "profile_solar-pv-rooftop": snakemake.input.profile_pecd_LFSolarPVRooftop,
+            f"profile_{k}": snakemake.input.get(f"profile_pecd_{v}")
+            for k, v in tech_map.items()
         }
+
         attach_wind_and_solar(
             n=n,
             costs=costs,
