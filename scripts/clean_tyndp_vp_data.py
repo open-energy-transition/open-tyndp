@@ -189,7 +189,7 @@ def get_power_capacities(
 
     data = (
         pd.concat(data)
-        .groupby(["year", "carrier", "scenario", "table", "source"])
+        .groupby(["year", "carrier", "scenario", "table"])
         .sum()
         .reset_index()
     )
