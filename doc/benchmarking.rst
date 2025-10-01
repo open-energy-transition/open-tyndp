@@ -81,50 +81,52 @@ Outputs
 .. warning::
     Open-TYNDP is under active development and is not yet feature-complete. The current `development status <https://open-tyndp.readthedocs.io/en/latest/index.html#development-status>`__ and the general `Limitations <https://open-tyndp.readthedocs.io/en/latest/limitations.html>`__ are important to understand before using the model. The following outputs are presented for illustrative purposes and do not reflect the quality of the results.
 
-Example of indicators extracted from `power_generation_s_all__all_years.csv` for DE scenario with 720SEG:
+Example of indicators extracted from `power_generation_s_all__all_years.csv` for NT scenario with 45SEG:
 
 ================================  =====  =====  ======  =====  ==============  ==================
 Carrier                           sMPE   sMAPE  sMdAPE  RMSLE  Growth Error    version
 ================================  =====  =====  ======  =====  ==============  ==================
-**Coal + other fossil**           0.93   1.07   1.07    18.64  2.65            v0.2+gca2f4f227
-**Hydrogen**                      -0.05  1.95   1.95    6.15   1.15            v0.2+gca2f4f227
-**Methane**                       1.54   1.54   1.54    2.03   -0.01           v0.2+gca2f4f227
-**Nuclear**                       -2.00  2.00   2.00    23.55  0.07            v0.2+gca2f4f227
-**Oil**                           2.00   2.00   2.00    24.57  -0.01           v0.2+gca2f4f227
-**Other non-renewable**           1.52   1.52   1.52    2.00   —               v0.2+gca2f4f227
-**Solar**                         -0.55  0.55   0.55    0.56   -0.01           v0.2+gca2f4f227
-**Wind offshore**                 0.10   0.10   0.10    0.11   -0.01           v0.2+gca2f4f227
-**Wind onshore**                  -1.56  1.56   1.56    2.19   -0.08           v0.2+gca2f4f227
-**Other renewable**               —      —      —       —      —               v0.2+gca2f4f227
-**Hydro (exc. pump storage)**     —      —      —       —      —               v0.2+gca2f4f227
-**Biofuels**                      —      —      —       —      —               v0.2+gca2f4f227
+**Battery**                       -2.00  2.00   2.00    13.72  0.49            v0.2+gb167cb17f
+**CHP and small thermal**         -1.67  1.67   1.67    2.83   -0.17           v0.2+gb167cb17f
+**Coal + other fossil**           0.56   0.56   0.56    0.59   -0.03           v0.2+gb167cb17f
+**Hydro and pumped storage**      -0.16  0.16   0.16    0.17   -0.01           v0.2+gb167cb17f
+**Hydrogen**                      -1.71  1.71   1.71    12.21  1.54            v0.2+gb167cb17f
+**Methane**                       0.20   0.20   0.20    0.27   0.03            v0.2+gb167cb17f
+**Nuclear**                       -0.81  0.81   0.81    0.97   -0.07           v0.2+gb167cb17f
+**Oil**                           -0.08  0.27   0.27    0.29   0.05            v0.2+gb167cb17f
+**Solar**                         -0.05  0.05   0.05    0.05   -0.00           v0.2+gb167cb17f
+**Wind offshore**                 -0.00  0.00   0.00    0.00   0.00            v0.2+gb167cb17f
+**Wind onshore**                  -0.05  0.05   0.05    0.06   -0.00           v0.2+gb167cb17f
+**Demand shedding**               —      —      —       —      —               v0.2+gb167cb17f
+**Small scale res**               —      —      —       —      —               v0.2+gb167cb17f
+**Biofuels**                      —      —      —       —      —               v0.2+gb167cb17f
 ================================  =====  =====  ======  =====  ==============  ==================
 
-Example of figure created for the final energy demand for DE scenario in 2040 with 720SEG:
+Example of figure created for the final energy demand for NT scenario in 2030 with 45SEG:
 
-.. image:: img/tyndp/benchmarking_fed_DE_2040.png
+.. image:: img/tyndp/benchmarking_fed_NT_2030.png
 
-Example of figure created for the generation profiles for DE scenario in 2040 with 720SEG:
+Example of figure created for the generation profiles for DE scenario in 2040 with 45SEG:
 
 .. image:: img/tyndp/benchmarking_gen_profiles_DE_2040.png
 
-Example of indicators extracted from `kpis_eu27_s_all__all_years.csv` for DE scenario with 720SEG:
+Example of indicators extracted from `kpis_eu27_s_all__all_years.csv` for NT scenario with 45SEG:
 
 ===============================  =====  =====  ======  =====  ============  =======  ==================
 Table                            sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing  version
 ===============================  =====  =====  ======  =====  ============  =======  ==================
-**Final energy demand**          -0.57  0.69   0.61    1.79   0.00          3        v0.2+gca2f4f227
-**Electricity demand**           0.56   0.56   0.64    0.66   0.02          2        v0.2+gca2f4f227
-**Methane demand**               0.39   0.43   0.38    0.60   0.00          6        v0.2+gca2f4f227
-**Hydrogen demand**              -0.77  1.10   1.00    4.76   0.00          7        v0.2+gca2f4f227
-**Power capacity**               -0.41  0.83   0.67    2.95   -0.01         5        v0.2+gca2f4f227
-**Power generation**             0.14   1.36   1.55    13.52  -0.01         4        v0.2+gca2f4f227
-**Methane supply**               -0.95  1.72   2.00    11.94  -0.02         3        v0.2+gca2f4f227
-**Hydrogen supply**              -0.24  1.18   1.63    11.61  -0.03         3        v0.2+gca2f4f227
-**Biomass supply**               -0.45  0.45   0.45    0.46   0.01          0        v0.2+gca2f4f227
-**Energy imports**               -0.16  1.50   1.92    19.00  0.02          2        v0.2+gca2f4f227
-**Generation profiles**          -0.41  1.50   1.96    12.57  —             11       v0.2+gca2f4f227
-**Total (excl. time series)**    -0.30  1.12   1.15    6.83   0.00          23       v0.2+gca2f4f227
+**Final energy demand**          -0.20  0.33   0.23    0.45   0.01          6        v0.2+gb167cb17f
+**Electricity demand**           0.02   0.02   0.02    0.03   0.00          0        v0.2+gb167cb17f
+**Methane demand**               —      —      —       —      —             NA       v0.2+gb167cb17f
+**Hydrogen demand**              -0.53  0.53   0.52    0.72   —             10       v0.2+gb167cb17f
+**Power capacity**               -0.53  0.68   0.36    5.61   -0.01         3        v0.2+gb167cb17f
+**Power generation**             -0.13  0.82   0.67    3.97   -0.01         2        v0.2+gb167cb17f
+**Methane supply**               —      —      —       —      —             NA       v0.2+gb167cb17f
+**Hydrogen supply**              -0.76  1.13   1.01    9.60   -0.00         5        v0.2+gb167cb17f
+**Biomass supply**               -1.48  1.48   1.48    4.43   0.51          1        v0.2+gb167cb17f
+**Energy imports**               -1.34  1.36   2.00    27.07  0.14          2        v0.2+gb167cb17f
+**Generation profiles**          —      —      —       —      —             NA       v0.2+gb167cb17f
+**Total (excl. time series)**    -0.62  0.98   0.82    11.06  0.02          31       v0.2+gb167cb17f
 ===============================  =====  =====  ======  =====  ============  =======  ==================
 
 Example of summary figure created for DE scenario:
