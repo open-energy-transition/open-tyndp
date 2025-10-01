@@ -16,7 +16,7 @@ PyPSA-Eur has several configuration options which are documented in this section
 Configuration Files
 ===================
 
-Any PyPSA-Eur configuration can be set in a ``.yaml`` file. The default configurations 
+As for PyPSA-Eur, any Open-TYNDP configuration can be set in a ``.yaml`` file. The default configurations 
 ``config/config.default.yaml``, ``config/plotting.default.yaml`` and ``config/benchmarking.default.yaml``
 are maintained in the repository and cover all the options that are used/ can be set.
 

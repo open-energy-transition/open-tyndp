@@ -2139,24 +2139,27 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
 
-    if not interzonal.empty:
-        interzonal = interzonal.assign(
-            bus0=interzonal.bus0.str.split("H2").str.join(" H2 "),
-            bus1=interzonal.bus1.str.split("H2").str.join(" H2 "),
-        )
-        interzonal = interzonal.loc[
-            interzonal.bus0.str.startswith(tuple(nodes.country.values))
-        ]
-        n.add(
-            "Link",
-            interzonal.index,
-            bus0=interzonal.bus0,
-            bus1=interzonal.bus1,
-            p_nom_extendable=False,
-            p_nom=interzonal.p_nom,
-            carrier="H2 pipeline",
-            lifetime=costs.at["H2 (g) pipeline", "lifetime"],
-        )
+    # for NT scenario there are no interzonal connections as only one H2 zone is modelled
+    if interzonal.empty:
+        return
+    
+    interzonal = interzonal.assign(
+        bus0=interzonal.bus0.str.split("H2").str.join(" H2 "),
+        bus1=interzonal.bus1.str.split("H2").str.join(" H2 "),
+    )
+    interzonal = interzonal.loc[
+        interzonal.bus0.str.startswith(tuple(nodes.country.values))
+    ]
+    n.add(
+        "Link",
+        interzonal.index,
+        bus0=interzonal.bus0,
+        bus1=interzonal.bus1,
+        p_nom_extendable=False,
+        p_nom=interzonal.p_nom,
+        carrier="H2 pipeline",
+        lifetime=costs.at["H2 (g) pipeline", "lifetime"],
+    )
 
 
 def add_h2_storage_tyndp(

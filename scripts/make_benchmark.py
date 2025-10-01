@@ -88,8 +88,7 @@ def match_temporal_resolution(
         return (
             df[col]
             .dropna()
-            .index.get_level_values("snapshot")
-            .drop_duplicates()
+            .index.unique("snapshot")
             .sort_values()
         )
 

@@ -49,7 +49,6 @@ This methodology defines the following indicators:
 - **RMSLE** (Root Mean Square Logarithmic Error): Complements the percentage errors since it shows the logarithmic deviation values.
 - **Growth error**: Shows the error on the temporal scale. This indicator is ignored for dynamic time series (i.e., hourly generation profiles).
 
-
 Hourly time series from the TYNDP 2024 will be aggregated to match the temporal resolution of Open-TYNDP.
 
 Summary tables are computed for both the overall and per-carrier results.
