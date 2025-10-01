@@ -63,9 +63,7 @@ def process_pecd_files(
             or name in cyears.astype(float).astype(str).values,
         ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
 
-    output_file = Path(
-        output_dir, pecd_file.replace(".xlsx", ".csv").replace(".xls", ".csv")
-    )
+    output_file = Path(output_dir, pecd_file).with_suffix(".csv")
 
     df.to_csv(output_file, index=False)
 
