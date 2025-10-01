@@ -91,12 +91,14 @@ if __name__ == "__main__":
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
     cyear_i = cyear
-    if int(cyear) not in [1998, 2008, 2009]:
+    prebuilt_years = snakemake.params.prebuilt_years
+    if int(cyear) not in prebuilt_years:
         # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
+        fallback_year = int(prebuilt_years[-1])
         logger.warning(
-            "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year doesn't match available TYNDP data. Falling back to {fallback_year}."
         )
-        cyear = 2009
+        cyear = fallback_year
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(

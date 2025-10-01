@@ -418,6 +418,9 @@ rule clean_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
+        prebuilt_years=config_provider(
+            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
+        ),
     input:
         unpack(pecd_prebuilt_version),
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
