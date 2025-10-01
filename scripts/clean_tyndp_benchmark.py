@@ -209,7 +209,7 @@ def load_benchmark(
     # Parameters
     sheet_name = _safe_sheet(opt["sheet_name"], scenario)
     if sheet_name == "":
-        logger.info(f"No sheet name found for {table} in {scenario}")
+        logger.warning(f"No sheet name found for {table} in {scenario}")
         return pd.DataFrame()
     df = benchmarks_raw[sheet_name]
     nrows = opt.get("nrows", None)
