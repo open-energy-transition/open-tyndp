@@ -37,7 +37,6 @@ if not config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]
         version = config_provider("electricity", "pecd_renewable_profiles", "version")(
             w
         )
-        print(version)
         return {"pecd_raw": f"data/tyndp_2024_bundle/PECD/PECD_{version}"}
 
     rule prepare_pecd_release:
