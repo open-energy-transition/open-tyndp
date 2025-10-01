@@ -10,12 +10,11 @@ import multiprocessing as mp
 from functools import partial
 
 import country_converter as coco
-import numpy as np
 import pandas as pd
 import pypsa
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, safe_pyear, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Se
         Loss factors data.
     """
     # Read data
-    pyear = np.clip(5 * (planning_horizons // 10), 2030, 2050)
+    pyear = safe_pyear(planning_horizons, source="TYNDP Statistics")
     loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
 
     # Create index map
