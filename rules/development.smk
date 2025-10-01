@@ -44,7 +44,7 @@ if not config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]
             cyears=config_provider(
                 "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
             ),
-            available_years=config_provider(
+            available_pyears=config_provider(
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         input:

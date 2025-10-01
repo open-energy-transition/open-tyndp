@@ -87,14 +87,21 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    # Parameters
+    ############
+
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
+    # define climate year to use for the Datetime Index later on
     cyear_i = cyear
     prebuilt_years = snakemake.params.prebuilt_years
+
     if int(cyear) not in prebuilt_years:
         # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
-        fallback_year = int(prebuilt_years[-1])
+        fallback_year = (
+            2009 if 2009 in prebuilt_years else (prebuilt_years[-1])
+        )  # use 2009 as default fallback if one of the filtered cyears
         logger.warning(
             f"Snapshot year doesn't match available TYNDP data. Falling back to {fallback_year}."
         )
@@ -123,6 +130,8 @@ if __name__ == "__main__":
     dir_pecd = snakemake.input.pecd_prebuilt
 
     # Load and prep pecd data
+    #########################
+
     tqdm_kwargs = {
         "ascii": False,
         "unit": " nodes",

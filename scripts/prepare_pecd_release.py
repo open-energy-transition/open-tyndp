@@ -28,10 +28,10 @@ logger = logging.getLogger(__name__)
 
 
 def process_pecd_files(
-    pecd_file: Path,
-    dir_pecd: str,
-    cyears: pd.Series,
+    pecd_file: str,
+    dir_pecd: Path,
     output_dir: Path,
+    cyears: pd.Series,
 ) -> pd.DataFrame:
     fn = Path(dir_pecd, pecd_file)
 
@@ -40,7 +40,19 @@ def process_pecd_files(
         skiprows = 11
     else:
         skiprows = 10
-    if "xls" not in pecd_file:
+
+    if "xls" in pecd_file or "xlsx" in pecd_file:
+        df = pd.read_excel(
+            fn,
+            skiprows=skiprows,  # first rows contain only file metadata
+            usecols=lambda name: name == "Date"
+            or name == "Hour"
+            or name in cyears.values
+            or name in cyears.astype(str).values
+            or name in cyears.astype(float).astype(str).values,
+            engine="openpyxl",
+        ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
+    else:
         df = pd.read_csv(
             fn,
             skiprows=skiprows,  # first rows contain only file metadata
@@ -50,19 +62,10 @@ def process_pecd_files(
             or name in cyears.astype(str).values
             or name in cyears.astype(float).astype(str).values,
         ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
-    else:
-        df = pd.read_excel(
-            fn,
-            skiprows=skiprows,
-            usecols=lambda name: name == "Date"
-            or name == "Hour"
-            or name in cyears.values
-            or name in cyears.astype(str).values
-            or name in cyears.astype(float).astype(str).values,
-            engine="openpyxl",
-        ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
 
-    output_file = Path(output_dir, pecd_file.replace(".xlsx", ".csv"))
+    output_file = Path(
+        output_dir, pecd_file.replace(".xlsx", ".csv").replace(".xls", ".csv")
+    )
 
     df.to_csv(output_file, index=False)
 
@@ -81,6 +84,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)  # pylint: disable=possibly-used-before-assignment
     set_scenario_config(snakemake)
 
+    # Parameters
     # Climate year from snapshots
     cyears = pd.Series(snakemake.params.cyears).astype(int)
     available_cyears = np.arange(1982, 2020, 1)
@@ -89,16 +93,15 @@ if __name__ == "__main__":
             "Climate year doesn't match available TYNDP data. Only returning subset of available climate years."
         )
         cyears = pd.Series(list(set(cyears).intersection(available_cyears)))
-
-    # Planning year (falls back to latest available pyear if not in list of available years)
-    available_years = snakemake.params.available_years
-
-    # iterate over all files in the pecd-raw directory
+    # Planning years for which PECD data is available for in the specified PECD version
+    available_pyears = snakemake.params.available_pyears
+    # Input and output directories and prebuilt version
     dir_pecd = snakemake.input.pecd_raw
-    prebuilt_version = snakemake.wildcards.PECD_PREBUILT_VERSION
     prebuilt_dir = snakemake.output.pecd_prebuilt
+    prebuilt_version = snakemake.wildcards.pecd_prebuilt_version
 
-    for year in available_years:
+    # Iterate over available planning years
+    for year in available_pyears:
         dir_pecd_year = Path(dir_pecd, str(year))
         pecd_files = [
             f
@@ -121,8 +124,8 @@ if __name__ == "__main__":
         func = partial(
             process_pecd_files,
             dir_pecd=dir_pecd_year,
-            cyears=cyears,
             output_dir=output_dir,
+            cyears=cyears,
         )
 
         with mp.Pool(processes=snakemake.threads) as pool:
