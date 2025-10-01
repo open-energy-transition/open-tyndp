@@ -396,6 +396,18 @@ rule build_renewable_profiles:
         "../scripts/build_renewable_profiles.py"
 
 
+def pecd_prebuilt_version(w):
+    pre_built_version = config_provider(
+        "electricity", "pecd_renewable_profiles", "pre_built", "pecd_prebuilt_version"
+    )(w)
+    pecd_raw_version = config_provider(
+        "electricity", "pecd_renewable_profiles", "version"
+    )(w)
+    return {
+        "pecd_prebuilt": f"data/tyndp_2024_bundle/PECD/PECD_{pecd_raw_version}+pre-built.{pre_built_version}"
+    }
+
+
 rule clean_pecd_data:
     params:
         snapshots=config_provider("snapshots"),
@@ -407,9 +419,9 @@ rule clean_pecd_data:
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
     input:
+        unpack(pecd_prebuilt_version),
         offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
         onshore_buses=resources("busmap_base_s_all.csv"),
-        dir_pecd="data/tyndp_2024_bundle/PECD",
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:

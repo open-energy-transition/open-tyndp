@@ -40,7 +40,8 @@ logger = logging.getLogger(__name__)
 def read_pecd_file(
     node: str,
     dir_pecd: str,
-    cyear: str,
+    cyear: int,
+    cyear_i: int,
     pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
@@ -58,29 +59,16 @@ def read_pecd_file(
         logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
         return None
 
-    # Malta CSP data file has an extra header row that must be skipped
-    if node == "MT00" and technology == "CSP_noStorage" and pyear == 2040:
-        skiprows = 11
-    else:
-        skiprows = 10
+    pecd_bus = pd.read_csv(fn)
 
-    pecd_bus = pd.read_csv(
-        fn,
-        skiprows=skiprows,  # first rows contain only file metadata
-        usecols=lambda name: name == "Date"
-        or name == "Hour"
-        or name == str(cyear)
-        or name == str(float(cyear)),
-    ).rename(columns={str(float(cyear)): str(cyear)})
-
-    datetime_str = f"{cyear}." + pecd_bus["Date"].str.cat(
+    datetime_str = f"{cyear_i}." + pecd_bus["Date"].str.cat(
         (pecd_bus["Hour"] - 1).astype(str), sep=" "
     )
     cf_pecd = (
         pecd_bus.set_index(pd.to_datetime(datetime_str, format="%Y.%d.%m. %H"))
         .drop(columns=["Date", "Hour"])
+        .loc[sns, [str(cyear)]]  # filter for snapshots and climate year only
         .rename(columns={str(cyear): node})
-        .loc[sns]  # filter for snapshots only
     )
 
     return cf_pecd
@@ -102,7 +90,8 @@ if __name__ == "__main__":
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
-    if int(cyear) < 1982 or int(cyear) > 2019:
+    cyear_i = cyear
+    if int(cyear) not in [1998, 2008, 2009]:
         # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
         logger.warning(
             "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
@@ -129,7 +118,7 @@ if __name__ == "__main__":
         if pecd_tech == "Wind_Offshore"
         else onshore_buses.index
     )
-    dir_pecd = snakemake.input.dir_pecd
+    dir_pecd = snakemake.input.pecd_prebuilt
 
     # Load and prep pecd data
     tqdm_kwargs = {
@@ -143,6 +132,7 @@ if __name__ == "__main__":
         read_pecd_file,
         dir_pecd=dir_pecd,
         cyear=cyear,
+        cyear_i=cyear_i,
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,

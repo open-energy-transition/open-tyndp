@@ -145,6 +145,14 @@ electricity:
 
   pecd_renewable_profiles:
     enable: false
+    version: 3.2
+    pre_built:
+      retrieve: false
+      pecd_prebuilt_version: 0.1
+      cyears:
+      - 1998
+      - 2008
+      - 2009
     fill_gaps_method: zero
     available_years:
     - 2030

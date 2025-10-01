@@ -208,20 +208,22 @@ if config["enable"]["retrieve"]:
         script:
             "../scripts/retrieve_tyndp_bundle.py"
 
-    rule retrieve_tyndp_pecd_data:
+    rule retrieve_tyndp_pecd_data_raw:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
-            url="https://storage.googleapis.com/open-tyndp-data-store/PECD.zip",
-            source="PECD",
+            url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{PECD_VERSION}.zip",
+            source="PECD raw",
         output:
-            dir=directory("data/tyndp_2024_bundle/PECD"),
+            dir=directory("data/tyndp_2024_bundle/PECD/PECD_{PECD_VERSION}"),
         log:
-            "logs/retrieve_tyndp_pecd_data.log",
+            "logs/retrieve_tyndp_pecd_data_raw_{PECD_VERSION}.log",
         retries: 2
+        wildcard_constraints:
+            PECD_VERSION="(?!.*pre-built).*",  # Cannot be pre-built version
         script:
             "../scripts/retrieve_additional_tyndp_data.py"
 
-    use rule retrieve_tyndp_pecd_data as retrieve_tyndp_hydro_inflows with:
+    use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_hydro_inflows with:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
             url="https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip",
@@ -231,7 +233,20 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_tyndp_hydro_inflows.log",
 
-    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data > clean_pecd_data
+    if config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
+
+        use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_pecd_data_prebuilt with:
+            params:
+                url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{PECD_PREBUILT_VERSION}.zip",
+                source="PECD prebuilt",
+            output:
+                dir=directory(
+                    "data/tyndp_2024_bundle/PECD/PECD_{PECD_PREBUILT_VERSION}"
+                ),
+            log:
+                "logs/retrieve_tyndp_pecd_data_raw_{PECD_PREBUILT_VERSION}.log",
+
+    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data_raw > clean_pecd_data
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_hydro_inflows > clean_tyndp_hydro_inflows
 
     rule retrieve_countries_centroids:
