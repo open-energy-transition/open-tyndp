@@ -56,7 +56,7 @@ if not config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]
         log:
             logs("prepare_pecd_release_{pecd_prebuilt_version}.log"),
         benchmark:
-            benchmarks("prepare_osm_network_release_{pecd_prebuilt_version}")
+            benchmarks("prepare_pecd_release_{pecd_prebuilt_version}")
         threads: 4
         resources:
             mem_mb=1000,
