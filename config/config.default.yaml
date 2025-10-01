@@ -145,7 +145,7 @@ electricity:
 
   pecd_renewable_profiles:
     enable: false
-    version: 3.2
+    version: 3.1
     pre_built:
       retrieve: false
       pecd_prebuilt_version: 0.1

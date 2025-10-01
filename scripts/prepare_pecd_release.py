@@ -76,9 +76,9 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_pecd_release",
             clusters="all",
-            PECD_PREBUILT_VERSION="3.2+pre-built.0.1",
+            PECD_PREBUILT_VERSION="3.1+pre-built.0.1",
         )
-    configure_logging(snakemake)
+    configure_logging(snakemake)  # pylint: disable=used-before-assignment
     set_scenario_config(snakemake)
 
     # Climate year from snapshots
