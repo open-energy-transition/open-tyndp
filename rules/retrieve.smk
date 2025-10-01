@@ -211,15 +211,15 @@ if config["enable"]["retrieve"]:
     rule retrieve_tyndp_pecd_data_raw:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
-            url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{PECD_VERSION}.zip",
+            url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_version}.zip",
             source="PECD raw",
         output:
-            dir=directory("data/tyndp_2024_bundle/PECD/PECD_{PECD_VERSION}"),
+            dir=directory("data/tyndp_2024_bundle/PECD/PECD_{pecd_version}"),
         log:
-            "logs/retrieve_tyndp_pecd_data_raw_{PECD_VERSION}.log",
+            "logs/retrieve_tyndp_pecd_data_raw_{pecd_version}.log",
         retries: 2
         wildcard_constraints:
-            PECD_VERSION="(?!.*pre-built).*",  # Cannot be pre-built version
+            pecd_version="(?!.*pre-built).*",  # Cannot be pre-built version
         script:
             "../scripts/retrieve_additional_tyndp_data.py"
 
@@ -237,14 +237,14 @@ if config["enable"]["retrieve"]:
 
         use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_pecd_data_prebuilt with:
             params:
-                url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{PECD_PREBUILT_VERSION}.zip",
+                url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_prebuilt_version}.zip",
                 source="PECD prebuilt",
             output:
                 dir=directory(
-                    "data/tyndp_2024_bundle/PECD/PECD_{PECD_PREBUILT_VERSION}"
+                    "data/tyndp_2024_bundle/PECD/PECD_{pecd_prebuilt_version}"
                 ),
             log:
-                "logs/retrieve_tyndp_pecd_data_raw_{PECD_PREBUILT_VERSION}.log",
+                "logs/retrieve_tyndp_pecd_data_raw_{pecd_prebuilt_version}.log",
 
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data_raw > clean_pecd_data
     ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_hydro_inflows > clean_tyndp_hydro_inflows

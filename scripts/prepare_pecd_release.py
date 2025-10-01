@@ -79,7 +79,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_pecd_release",
             clusters="all",
-            PECD_PREBUILT_VERSION="3.1+pre-built.0.1",
+            pecd_prebuilt_version="3.1+pre-built.0.1",
         )
     configure_logging(snakemake)  # pylint: disable=possibly-used-before-assignment
     set_scenario_config(snakemake)
