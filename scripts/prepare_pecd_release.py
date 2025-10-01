@@ -78,7 +78,7 @@ if __name__ == "__main__":
             clusters="all",
             PECD_PREBUILT_VERSION="3.1+pre-built.0.1",
         )
-    configure_logging(snakemake)  # pylint: disable=used-before-assignment
+    configure_logging(snakemake)  # pylint: disable=possibly-used-before-assignment
     set_scenario_config(snakemake)
 
     # Climate year from snapshots
