@@ -616,9 +616,20 @@ def attach_wind_and_solar(
             buses = ds.indexes["bus_bin"].get_level_values("bus")
             bus_bins = ds.indexes["bus_bin"].map(flatten)
 
+            if not ppl.query("carrier == @car").empty:
+                caps = ppl.query("carrier == @car").groupby("bus").p_nom.sum()
+                caps = caps.reindex(
+                    ds.indexes["bus_bin"].get_level_values("bus")
+                ).fillna(0)
+                caps.index = ds.indexes["bus_bin"]
+            else:
+                caps = pd.Series(index=ds.indexes["bus"]).fillna(0)
+            caps.index = caps.index.map(flatten)
+
             if "p_nom_max" in ds.data_vars and trajectories.empty:
                 p_nom_max = ds["p_nom_max"].to_pandas()
                 p_nom_max.index = p_nom_max.index.map(flatten)
+                p_nom_min = caps
             elif not trajectories.empty:
                 p_nom_max_min = (
                     trajectories.query("carrier == @car")
@@ -634,19 +645,10 @@ def attach_wind_and_solar(
                 p_nom_min = p_nom_max_min["p_nom_min"]
             else:
                 p_nom_max = np.inf
+                p_nom_min = caps
 
             p_max_pu = ds["profile"].to_pandas()
             p_max_pu.columns = p_max_pu.columns.map(flatten)
-
-            if not ppl.query("carrier == @car").empty:
-                caps = ppl.query("carrier == @car").groupby("bus").p_nom.sum()
-                caps = caps.reindex(
-                    ds.indexes["bus_bin"].get_level_values("bus")
-                ).fillna(0)
-                caps.index = ds.indexes["bus_bin"]
-            else:
-                caps = pd.Series(index=ds.indexes["bus"]).fillna(0)
-            caps.index = caps.index.map(flatten)
 
             n.add(
                 "Generator",
@@ -655,7 +657,7 @@ def attach_wind_and_solar(
                 bus=buses,
                 carrier=car,
                 p_nom=caps,
-                p_nom_min=caps if trajectories.empty else p_nom_min,  # pylint: disable=E0601
+                p_nom_min=p_nom_min,
                 p_nom_extendable=car in extendable_carriers["Generator"],
                 p_nom_max=p_nom_max,
                 marginal_cost=costs.at[supcar, "marginal_cost"],
