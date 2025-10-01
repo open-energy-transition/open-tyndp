@@ -21,6 +21,8 @@ Upcoming Open-TYNDP Release
 
 * Allow the retrieval of PyPSA-Eur cutouts for additional climate years that are not available on Zenodo via retrieval from GCP (https://github.com/open-energy-transition/open-tyndp/pull/109). Currently, this feature is available for the additional climate year 2009.
 
+* Introduce PECD-prebuilt dataset as intermediate processing step to optionally reduce required data needed to be retrieved (https://github.com/open-energy-transition/open-tyndp/pull/123).
+
 
 Upcoming PyPSA-Eur Release
 ================
