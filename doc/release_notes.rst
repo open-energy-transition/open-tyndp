@@ -24,6 +24,8 @@ Upcoming Open-TYNDP Release
 
 * Introduce processing of PEMMDB v.2.4 capacity, must-run and availability data as well as expansion trajectories for conventional and renewable power generation, electrolysers, batteries and DSR (https://github.com/open-energy-transition/open-tyndp/pull/97).
 
+* Attach both solar and onwind technologies using PEMMDB and PECD data (https://github.com/open-energy-transition/open-tyndp/pull/115). Offwind statistics are also improved to include H2 generator capacities (in `MW_e`).
+
 
 Upcoming PyPSA-Eur Release
 ================
