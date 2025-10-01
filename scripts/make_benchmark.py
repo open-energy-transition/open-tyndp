@@ -85,12 +85,7 @@ def match_temporal_resolution(
     """
 
     def _get_idx(col: str) -> pd.Index:
-        return (
-            df[col]
-            .dropna()
-            .index.unique("snapshot")
-            .sort_values()
-        )
+        return df[col].dropna().index.unique("snapshot").sort_values()
 
     idx_agg = _get_idx(model_col)
     idx_full = _get_idx(rfc_col)
