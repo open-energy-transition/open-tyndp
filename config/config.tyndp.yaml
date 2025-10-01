@@ -40,7 +40,6 @@ electricity:
   extendable_carriers:
     Generator: [OCGT, CCGT]
 
-  # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
   tyndp_conventional_carriers:
   - gas
   - coal
@@ -72,6 +71,8 @@ electricity:
   - battery
   - h2_cavern
   - h2_tank
+  estimate_renewable_capacities:
+    enable: false
 
   pecd_renewable_profiles:
     enable: true

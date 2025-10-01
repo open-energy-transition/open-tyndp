@@ -557,8 +557,8 @@ def attach_wind_and_solar(
     landfall_lengths : dict, optional
         Dictionary containing the landfall lengths for offshore wind, by default None.
     trajectories : pd.DataFrame, optional, by default None
-        DataFrame containing the trajectories to attach (p_nom_min and p_nom_max). This bypasses any p_nom_max
-        that would have been defined in the profile itself.
+        DataFrame containing the trajectories to attach (p_nom_min and p_nom_max). When provided, these values
+        override any p_nom_max defined the profile itself.
     """
     add_missing_carriers(n, carriers)
 

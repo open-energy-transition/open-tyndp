@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script computes the benchmark statistics from the optimised network.
+This script computes benchmark statistics from the optimized network.
 """
 
 import logging
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Series:
     """
-    Load and prepare loss factors
+    Load and prepare loss factors.
 
     Parameters
     ----------
@@ -57,7 +57,7 @@ def compute_benchmark(
     loss_factors: pd.Series = pd.Series(),
 ) -> pd.DataFrame:
     """
-    Compute benchmark metrics from optimised network.
+    Compute benchmark metrics from optimized network.
 
     Parameters
     ----------
@@ -68,7 +68,7 @@ def compute_benchmark(
     options : dict
         Full benchmarking configuration.
     eu27 : list[str]
-        List of member state of European Union (EU27).
+        List of EU27 member states.
     loss_factors : pd.Series, optional
         Series containing loss factors indexed by country.
 
@@ -78,7 +78,7 @@ def compute_benchmark(
         Benchmark data in long format.
     """
     opt = options["tables"][table]
-    map = opt.get("mapping", {})
+    mapping = opt.get("mapping", {})
     elec_bus_carrier = ["AC", "AC_OH", "low voltage"]
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
@@ -320,7 +320,7 @@ def compute_benchmark(
     df = (
         df.reset_index()
         .rename(columns={"bus_carrier": "carrier", 0: "value", "objective": "value"})
-        .assign(carrier=lambda x: x["carrier"].map(map).fillna(x["carrier"]))
+        .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
     grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]
     df = df.groupby(by=grouper).sum().reset_index().assign(table=table)
