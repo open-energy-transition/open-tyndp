@@ -40,6 +40,9 @@ SCENARIO_DICT = {
     "National Trends": "NT",
 }
 
+ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
+POWER_UNITS = {"GW", "MW", "kW"}
+
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
 
@@ -1221,3 +1224,72 @@ def get_version(hash_len: int = 9) -> str:
     except Exception as e:
         logger.warning(f"Failed to determine version from git repository: {e}")
         return "unknown"
+
+
+def convert_units(
+    df: pd.DataFrame,
+    unit_col: str = "unit",
+    value_col: str = "value",
+    invert: bool = False,
+) -> pd.DataFrame:
+    """
+    Convert values to standardized units based on unit type.
+
+    Energy values are converted to MWh, power values to MW:
+    - Energy units (TWh, GWh, MWh, kWh) → MWh
+    - Power units (GW, MW, kW) → MW
+
+    When invert=False (default):
+        - Values are converted from unit_col units to standard units (MWh/MW)
+        - The "unit" column is updated to reflect the standardized unit
+
+    When invert=True:
+        - Values are converted from standard units (MWh/MW) back to unit_col units
+        - The "unit" column is NOT modified
+        - Useful for reverting previously standardized data
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Long-format DataFrame containing values to convert.
+    unit_col : str, default "unit"
+        Name of the column containing the unit information.
+        When invert=False: contains source units to convert from.
+        When invert=True: contains target units to convert to.
+    value_col : str, default "value"
+        Name of the column containing values to convert.
+    invert : bool, default False
+        If False, convert to standard units and update "unit" column.
+        If True, convert from standard units using inverse factors without modifying "unit" column.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with converted values.
+    """
+    df = df.copy()
+
+    unit_conversion = {
+        "TWh": 1000000,
+        "GWh": 1000,
+        "MWh": 1,
+        "GW": 1000,
+        "MW": 1,
+        "kW": 0.001,
+    }
+
+    if invert:
+        # Inverse conversion factor to revert unit
+        unit_conversion = {k: 1 / v for k, v in unit_conversion.items()}
+
+    # Convert values using conversion factors
+    conversion_factors = df[unit_col].map(unit_conversion)
+    df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
+
+    # Update unit column
+    if not invert:
+        df["unit"] = df[unit_col].apply(
+            lambda x: "MWh" if x in ENERGY_UNITS else "MW" if x in POWER_UNITS else x
+        )
+
+    return df

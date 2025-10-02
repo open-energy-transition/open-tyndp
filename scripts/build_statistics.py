@@ -14,7 +14,13 @@ import pandas as pd
 import pypsa
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, safe_pyear, set_scenario_config
+from scripts._helpers import (
+    ENERGY_UNITS,
+    POWER_UNITS,
+    configure_logging,
+    safe_pyear,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +91,7 @@ def compute_benchmark(
 
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
-        grouper = ["bus_carrier", "carrier"]
+        grouper = ["bus_carrier"]
         df = (
             n.statistics.withdrawal(
                 comps="Load",
@@ -94,8 +100,6 @@ def compute_benchmark(
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
             .groupby(level="bus_carrier")
             .sum()
         )
@@ -299,7 +303,19 @@ def compute_benchmark(
         .assign(carrier=lambda x: x["carrier"].map(map).fillna(x["carrier"]))
     )
     grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]
-    df = df.groupby(by=grouper).sum().reset_index().assign(table=table)
+    df = (
+        df.groupby(by=grouper)
+        .sum()
+        .reset_index()
+        .assign(
+            table=table,
+            unit=lambda x: "MWh"
+            if opt["unit"] in ENERGY_UNITS
+            else "MW"
+            if opt["unit"] in POWER_UNITS
+            else opt["unit"],
+        )
+    )
 
     return df
 
