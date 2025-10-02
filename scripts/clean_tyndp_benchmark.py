@@ -17,7 +17,12 @@ from functools import partial
 import pandas as pd
 from tqdm import tqdm
 
-from scripts._helpers import SCENARIO_DICT, configure_logging, set_scenario_config
+from scripts._helpers import (
+    SCENARIO_DICT,
+    configure_logging,
+    convert_units,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -113,55 +118,6 @@ def _process_header(
     return df
 
 
-def _convert_units(
-    df: pd.DataFrame,
-    source_unit: str,
-    unit_conversion: dict[str, float],
-    value_col: str = "value",
-) -> pd.DataFrame:
-    """
-    Convert units and add unit columns.
-
-    Automatically determines target unit based on source unit type:
-    - Energy units (TWh, GWh, MWh, kWh) → MWh
-    - Power units (GW, MW, kW) → MW
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Long-format DataFrame containing values to convert.
-    source_unit : str
-        Source unit of the values.
-    unit_conversion : dict[str, float]
-        Dictionary mapping units to conversion factors (to base unit).
-    value_col : str, default "value"
-        Name of the column containing values to convert.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with converted values and unit columns added.
-    """
-    # Determine target unit based on source unit type
-    energy_units = {"TWh", "GWh", "MWh", "kWh"}
-    power_units = {"GW", "MW", "kW"}
-
-    if source_unit in energy_units:
-        target_unit = "MWh"
-    elif source_unit in power_units:
-        target_unit = "MW"
-    else:
-        # Unknown unit type, keep original
-        target_unit = source_unit
-
-    # Convert values using conversion factor from config
-    conversion_factor = unit_conversion[source_unit]
-    df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factor
-    df["unit"] = target_unit
-
-    return df
-
-
 def _add_identifier(s: str) -> str:
     """
     Add institution identifier to scenario name.
@@ -251,9 +207,8 @@ def load_benchmark(
     df_long.columns = [i[0] if isinstance(i, tuple) else i for i in df_long.columns]
 
     # Apply unit conversion
-    source_unit = opt["unit"]
-    unit_conversion = options["unit_conversion"]
-    df_converted = _convert_units(df_long, source_unit, unit_conversion)
+    df_long["unit"] = opt["unit"]
+    df_converted = convert_units(df_long)
 
     # Add table identifier
     df_converted["table"] = table

@@ -16,11 +16,11 @@ from tqdm import tqdm
 
 from scripts._helpers import (
     configure_logging,
+    convert_units,
     get_snapshots,
     get_version,
     set_scenario_config,
 )
-from scripts.clean_tyndp_benchmark import _convert_units
 from scripts.make_benchmark import load_data, match_temporal_resolution
 
 logger = logging.getLogger(__name__)
@@ -221,15 +221,15 @@ def plot_benchmark(
     opt = options["tables"][table]
     table_type = opt["table_type"]
     source_unit = opt["unit"]
-    unit_conversion = options["unit_conversion"]
-    unit_conversion = {
-        k: 1 / v for k, v in unit_conversion.items()
-    }  # Inverse conversion factor to revert unit
 
     # Filter data and Convert back to source unit
     logger.info(f"Making benchmark for {table} using {rfc_col} and {model_col}")
-    benchmarks_raw = benchmarks_raw.query("table==@table").dropna(how="all", axis=1)
-    benchmarks = _convert_units(benchmarks_raw, source_unit, unit_conversion)
+    benchmarks_raw = (
+        benchmarks_raw.query("table==@table")
+        .dropna(how="all", axis=1)
+        .assign(unit=opt["unit"])
+    )
+    benchmarks = convert_units(benchmarks_raw, invert=True)
 
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]

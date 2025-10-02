@@ -2,7 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script computes accuracy indicators for comparing workflow results against reference data from the TYNDP 2024.
+This script computes accuracy indicators for comparing workflow results against reference data from TYNDP 2024.
+
+Benchmarks are computed only for planning years available in the TYNDP 2024 Scenarios data:
+- NT (National Trends): 2030, 2040
+- DE (Distributed Energy) and GA (Global Ambition): 2040, 2050
 
 This module implements a methodology introduced by Wen et al. (2022) for evaluating performance of energy system
 models using multiple accuracy indicators.
@@ -57,7 +61,7 @@ def load_data(
         how="all", axis=1
     )
 
-    # Clean data
+    # Filter to keep only years available in the TYNDP 2024 Scenarios data
     available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
@@ -208,7 +212,7 @@ def _compute_growth_error(
     Wen et al. (2022), Applied Energy 325, 119906, Table 1
     """
     if len(df) < 2:
-        logger.info(f"Insufficient data in {table} for growth error calculation")
+        logger.debug(f"Insufficient data in {table} for growth error calculation")
         return np.nan
 
     # Sort by time to ensure proper chronological order
