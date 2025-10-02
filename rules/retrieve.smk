@@ -259,7 +259,7 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_tyndp_benchmark.log",
 
-    use rule retrieve_tyndp_pecd_data as retrieve_tyndp_vp_data with:
+    use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_vp_data with:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
             url="https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip",
