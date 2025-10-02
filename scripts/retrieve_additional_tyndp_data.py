@@ -9,7 +9,7 @@ The original data is published by ENTSO-E and ENTSOG under Creative Commons Attr
 and can be found under https://2024.entsos-tyndp-scenarios.eu/download/.
 
 Currently, this is used for two additional datasets:
-* TYNDP PECD data: The TYNDP PECD v3.1 data contains input data for the 2024 TYNDP scenario building process.
+* TYNDP PECD data (raw or prebuilt): The TYNDP PECD v3.1 data contains input data for the 2024 TYNDP scenario building process.
 * TYNDP hydro inflows: The TYNDP hydro inflow data from PEMMDB v2.4 contains hydro inflow data for different hydro technologies:
     * Run of River,
     * Pondage,

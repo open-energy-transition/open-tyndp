@@ -171,7 +171,12 @@ None.
 
 - ``data/countries_centroids.geojson``
 
-Rule ``retrieve_tyndp_pecd_data``
+Rule ``retrieve_tyndp_pecd_data_raw``
+====================================
+
+.. automodule:: retrieve_additional_tyndp_data
+
+Rule ``retrieve_tyndp_pecd_data_prebuilt``
 ====================================
 
 .. automodule:: retrieve_additional_tyndp_data
