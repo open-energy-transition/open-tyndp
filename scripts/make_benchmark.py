@@ -75,6 +75,7 @@ def load_data(
 
 def match_temporal_resolution(
     df: pd.DataFrame,
+    snapshots: dict[str, str],
     model_col: str = "Open-TYNDP",
     rfc_col: str = "TYNDP 2024",
 ) -> pd.DataFrame:
@@ -86,6 +87,8 @@ def match_temporal_resolution(
     ----------
     df : pd.DataFrame
         DataFrame with MultiIndex containing snapshot timestamps and data columns.
+    snapshots : dict[str, str]
+        Dictionary defining the temporal range with 'start' and 'end' keys.
     model_col : str, default "Open-TYNDP"
         Column name for model values with potentially lower temporal resolution.
     rfc_col : str, default "TYNDP 2024"
@@ -102,11 +105,19 @@ def match_temporal_resolution(
 
     idx_agg = _get_idx(model_col)
     idx_full = _get_idx(rfc_col)
+    period = pd.date_range(
+        start=snapshots["start"],
+        end=snapshots["end"],
+        freq="h",
+        inclusive=snapshots["inclusive"],
+    )
+    idx_full = idx_full[(idx_full >= str(period[0])) & (idx_full <= str(period[-1]))]
 
     aggregation_map = (
         pd.Series(idx_agg.rename("map"), index=idx_agg).reindex(idx_full).ffill()
     )
     df_map = df.join(aggregation_map, on="snapshot", how="left")
+    df_map = df_map[df_map["map"].notna()]
 
     df_agg = (
         df_map.groupby(["carrier", "scenario", "year", "table", "map"])
@@ -316,6 +327,7 @@ def compute_all_indicators(
 def compute_indicators(
     df_raw: pd.DataFrame,
     table: str,
+    snapshots: dict[str, str],
     options,
     carrier_col: str = "carrier",
     precision: int = 2,
@@ -345,6 +357,8 @@ def compute_indicators(
         DataFrame containing data for indicator calculations.
     table : str
         Benchmark metric to compute.
+    snapshots : dict[str, str]
+        Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
     carrier_col : str, default "carrier"
@@ -363,7 +377,7 @@ def compute_indicators(
 
     # Aggregate time-varying data to the given snapshots
     if opt["table_type"] == "time_series":
-        df_agg = match_temporal_resolution(df_raw)
+        df_agg = match_temporal_resolution(df_raw, snapshots)
     else:
         df_agg = df_raw
 
@@ -389,7 +403,11 @@ def compute_indicators(
 
 
 def compare_sources(
-    table: str, benchmarks_raw: pd.DataFrame, scenario: str, options: dict
+    table: str,
+    benchmarks_raw: pd.DataFrame,
+    scenario: str,
+    snapshots: dict[str, str],
+    options: dict,
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
@@ -399,10 +417,12 @@ def compare_sources(
     ----------
     table : str
         Benchmark metric to compute.
-    benchmarks_raw: pd.DataFrame
+    benchmarks_raw : pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
-    scenario: str
+    scenario : str
         Name of scenario to compare.
+    snapshots : dict[str, str]
+        Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
 
@@ -426,12 +446,20 @@ def compare_sources(
 
     # Check if at least two sources are available to compare
     if len(df.columns) != 2:
-        if not (table == "generation_profiles" and scenario == "TYNDP NT"):
-            logger.info(f"Skipping table {table}, need exactly two sources to compare.")
+        # Generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios
+        show_warning = True
+        if table == "generation_profiles":
+            cyear = int(pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0])
+            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and cyear == 2009
+
+        if show_warning:
+            logger.warning(
+                f"Skipping table {table}, need exactly two sources to compare."
+            )
         return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
 
     # Compare sources
-    df, indicators = compute_indicators(df, table, options)
+    df, indicators = compute_indicators(df, table, snapshots, options)
 
     return df, indicators
 
@@ -492,6 +520,7 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     scenario = "TYNDP " + snakemake.params["scenario"]
+    snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
     results_fn = snakemake.input.results
 
@@ -512,6 +541,7 @@ if __name__ == "__main__":
         compare_sources,
         benchmarks_raw=benchmarks_raw,
         scenario=scenario,
+        snapshots=snapshots,
         options=options,
     )
 
@@ -530,7 +560,7 @@ if __name__ == "__main__":
             benchmark_i = benchmark.loc[table].assign(version=version)
             benchmark_i.to_csv(
                 snakemake.output.benchmarks
-                + f"/{table}_eu27_cy{snakemake.params.snapshots['start'][:4]}_s_{snakemake.wildcards.clusters}_{snakemake.wildcards.opts}_{snakemake.wildcards.sector_opts}_all_years.csv"
+                + f"/{table}_eu27_cy{snapshots['start'][:4]}_s_{snakemake.wildcards.clusters}_{snakemake.wildcards.opts}_{snakemake.wildcards.sector_opts}_all_years.csv"
             )
 
     # Compute global indicator
