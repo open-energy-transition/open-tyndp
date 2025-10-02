@@ -1591,7 +1591,6 @@ rule prepare_sector_network:
         tyndp_trajectories=branch(
             config_provider("electricity", "tyndp_renewable_carriers"),
             resources("tyndp_trajectories.csv"),
-            [],
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
