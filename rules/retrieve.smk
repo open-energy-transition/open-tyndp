@@ -213,6 +213,8 @@ if config["enable"]["retrieve"]:
             # TODO Integrate into Zenodo tyndp data bundle
             url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_version}.zip",
             source="PECD raw",
+        input:
+            "data/tyndp_2024_bundle",
         output:
             dir=directory("data/tyndp_2024_bundle/PECD/PECD_{pecd_version}"),
         log:
