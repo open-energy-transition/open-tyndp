@@ -118,7 +118,7 @@ rule build_renewable_profiles_pecds:
 
 rule build_pemmdb_datas:
     input:
-        lambda w: expand(
+        expand(
             resources("pemmdb_capacities_{planning_horizons}.csv"),
             **config["scenario"],
             run=config["run"]["name"],
