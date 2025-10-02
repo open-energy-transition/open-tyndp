@@ -10,12 +10,11 @@ import multiprocessing as mp
 from functools import partial
 
 import country_converter as coco
-import numpy as np
 import pandas as pd
 import pypsa
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, safe_pyear, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Se
         Loss factors data.
     """
     # Read data
-    pyear = np.clip(5 * (planning_horizons // 10), 2030, 2050)
+    pyear = safe_pyear(planning_horizons, source="TYNDP Statistics")
     loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
 
     # Create index map
@@ -87,18 +86,9 @@ def compute_benchmark(
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
         grouper = ["bus_carrier", "carrier"]
-        exclude_carriers = [
-            "DC",
-            "DC_OH",
-            "electricity distribution grid",
-            "H2 pipeline",
-            "battery charger",
-            "home battery charger",
-        ]
         df = (
             n.statistics.withdrawal(
-                comps=demand_comps,
-                bus_carrier=elec_bus_carrier + ["gas", "H2", "coal", "oil"],
+                comps="Load",
                 groupby=["bus"] + grouper,
                 nice_names=False,
                 aggregate_across_components=True,
@@ -106,7 +96,6 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
-            .loc[lambda x: ~x.index.get_level_values("carrier").isin(exclude_carriers)]
             .groupby(level="bus_carrier")
             .sum()
         )

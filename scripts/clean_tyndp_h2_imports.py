@@ -89,8 +89,7 @@ def load_import_data(fn, countries_centroids):
         "MAX ENERGY YEAR [GWh]": "e_sum_max",
     }
 
-    replace_dict = SCENARIO_DICT.copy()
-    replace_dict.update({"Lh2": "LH2"})
+    replace_dict = SCENARIO_DICT | {"Lh2": "LH2"}
 
     # Read data, rename and convert to MWh
     imports = pd.read_excel(fn).rename(columns=column_dict).replace(replace_dict)

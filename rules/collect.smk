@@ -119,7 +119,7 @@ rule build_renewable_profiles_pecds:
 
 rule prepare_benchmarks:
     input:
-        lambda w: expand(
+        expand(
             RESULTS
             + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
             **config["scenario"],
@@ -137,7 +137,7 @@ rule prepare_benchmarks:
 
 rule make_benchmarks:
     input:
-        lambda w: expand(
+        expand(
             RESULTS
             + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
             **config["scenario"],
@@ -147,7 +147,7 @@ rule make_benchmarks:
 
 rule plot_benchmarks:
     input:
-        lambda w: expand(
+        expand(
             RESULTS
             + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
             **config["scenario"],

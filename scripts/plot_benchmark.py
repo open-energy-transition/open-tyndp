@@ -240,7 +240,7 @@ def plot_benchmark(
 
     # Check if at least two sources are available to compare
     if len(bench_wide.columns) < 2:
-        logging.info(f"Skipping table {table}, need at least two sources to compare.")
+        logger.info(f"Skipping table {table}, need at least two sources to compare.")
         return
 
     for year in bench_wide.index.get_level_values("year").unique():

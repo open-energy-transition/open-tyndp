@@ -1218,5 +1218,6 @@ def get_version(hash_len: int = 9) -> str:
         else:
             return repo.head.commit.hexsha[:hash_len]
 
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Failed to determine version from git repository: {e}")
         return "unknown"

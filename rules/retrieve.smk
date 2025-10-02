@@ -208,20 +208,24 @@ if config["enable"]["retrieve"]:
         script:
             "../scripts/retrieve_tyndp_bundle.py"
 
-    rule retrieve_tyndp_pecd_data:
+    rule retrieve_tyndp_pecd_data_raw:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
-            url="https://storage.googleapis.com/open-tyndp-data-store/PECD.zip",
-            source="PECD",
+            url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_version}.zip",
+            source="PECD raw",
+        input:
+            "data/tyndp_2024_bundle",
         output:
-            dir=directory("data/tyndp_2024_bundle/PECD"),
+            dir=directory("data/tyndp_2024_bundle/PECD/PECD_{pecd_version}"),
         log:
-            "logs/retrieve_tyndp_pecd_data.log",
+            "logs/retrieve_tyndp_pecd_data_raw_{pecd_version}.log",
         retries: 2
+        wildcard_constraints:
+            pecd_version="(?!.*pre-built).*",  # Cannot be pre-built version
         script:
             "../scripts/retrieve_additional_tyndp_data.py"
 
-    use rule retrieve_tyndp_pecd_data as retrieve_tyndp_hydro_inflows with:
+    use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_hydro_inflows with:
         params:
             # TODO Integrate into Zenodo tyndp data bundle
             url="https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip",
@@ -231,8 +235,18 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_tyndp_hydro_inflows.log",
 
-    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_pecd_data > clean_pecd_data
-    ruleorder: retrieve_tyndp_bundle > retrieve_tyndp_hydro_inflows > clean_tyndp_hydro_inflows
+    if config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
+
+        use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_pecd_data_prebuilt with:
+            params:
+                url="https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_prebuilt_version}.zip",
+                source="PECD prebuilt",
+            output:
+                dir=directory(
+                    "data/tyndp_2024_bundle/PECD/PECD_{pecd_prebuilt_version}"
+                ),
+            log:
+                "logs/retrieve_tyndp_pecd_data_raw_{pecd_prebuilt_version}.log",
 
     use rule retrieve_tyndp_pecd_data as retrieve_tyndp_benchmark with:
         params:
@@ -817,9 +831,10 @@ if config["enable"]["retrieve"]:
             ardeco_gdp="data/jrc-ardeco/ARDECO-SUVGDP.2021.table.csv",
             ardeco_pop="data/jrc-ardeco/ARDECO-SNPTD.2021.table.csv",
         run:
+            # TODO Revert to original data source once data becomes available again
             urls = {
-                "ardeco_gdp": "https://urban.jrc.ec.europa.eu/ardeco-api-v2/rest/export/SUVGDP?version=2021&format=csv-table",
-                "ardeco_pop": "https://urban.jrc.ec.europa.eu/ardeco-api-v2/rest/export/SNPTD?version=2021&format=csv-table",
+                "ardeco_gdp": "https://storage.googleapis.com/open-tyndp-data-store/jrc-ardeco/ARDECO-SUVGDP.2021.table.csv",
+                "ardeco_pop": "https://storage.googleapis.com/open-tyndp-data-store/jrc-ardeco/ARDECO-SNPTD.2021.table.csv",
             }
 
             for key, url in urls.items():
