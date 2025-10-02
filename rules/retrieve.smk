@@ -807,6 +807,7 @@ if config["enable"]["retrieve"]:
             ardeco_gdp="data/jrc-ardeco/ARDECO-SUVGDP.2021.table.csv",
             ardeco_pop="data/jrc-ardeco/ARDECO-SNPTD.2021.table.csv",
         run:
+            # TODO Revert to original data source once data becomes available again
             urls = {
                 "ardeco_gdp": "https://storage.googleapis.com/open-tyndp-data-store/jrc-ardeco/ARDECO-SUVGDP.2021.table.csv",
                 "ardeco_pop": "https://storage.googleapis.com/open-tyndp-data-store/jrc-ardeco/ARDECO-SNPTD.2021.table.csv",

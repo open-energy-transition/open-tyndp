@@ -83,6 +83,8 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
+    ############
+
     # Climate year from snapshots
     cyears = pd.Series(snakemake.params.cyears).astype(int)
     available_cyears = np.arange(1982, 2020, 1)
@@ -99,6 +101,7 @@ if __name__ == "__main__":
     prebuilt_version = snakemake.wildcards.pecd_prebuilt_version
 
     # Iterate over available planning years
+    #######################################
     for year in available_pyears:
         dir_pecd_year = Path(dir_pecd, str(year))
         pecd_files = [

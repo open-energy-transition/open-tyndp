@@ -32,10 +32,10 @@ conventional_carriers,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignite
 renewable_carriers,--,"Any subset of {solar, onwind, offwind-ac, offwind-dc, offwind-float, hydro}",List of renewable generators to include in the model.
 tyndp_renewable_carriers,--,"Any subset of {solar-pv, solar-pv-utility, solar-pv-rooftop, onwind, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh}","List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list."
 pecd_renewable_profiles,,,
--- enable,,bool,"Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_techs`` can be any of {LFSolarPVUtility, LFSolarPVRooftop, Wind_Offshore, Wind_Onshore, CSP_noStorage, CSP_withStorage_7h_dispatched, CSP_withStorage_7h_preDispatch}."
+-- enable,bool,"{true, false}","Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_techs`` can be any of {LFSolarPVUtility, LFSolarPVRooftop, Wind_Offshore, Wind_Onshore, CSP_noStorage, CSP_withStorage_7h_dispatched, CSP_withStorage_7h_preDispatch}."
 -- version,,str,"Version of the raw PECD data, e.g. ``3.1``."
 -- pre_built,,,
--- -- retrieve,,bool,"Whether to retrieve already prepared PECD pre-built dataset of the PECD pre-built version as specified below. If ``false``, the pre-built will be created from scratch using PECD raw data."
+-- -- retrieve,bool,"{true, false}","Whether to retrieve already prepared PECD pre-built dataset of the PECD pre-built version as specified below. If ``false``, the pre-built will be created from scratch using PECD raw data."
 -- -- pecd_prebuilt_version,,str,"Version of the PECD pre-built."
 -- -- cyears,--,list,"List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019."
 -- fill_gaps_method,,str,"The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar."
@@ -44,7 +44,7 @@ pecd_renewable_profiles,,,
 -- -- {pecd_tech},--,str,"The PECD tech whose PECD profile is used. These PECD tech and their profiles are mapped to ``tyndp_renewable_carriers``."
 -- -- -- {tyndp_renewable_carriers},--,str,"The `tyndp_renewable_carriers` for which the PECD profiles must be used. All `tyndp_renewable_carriers` must be mapped to a PECD profile. Non-TYNDP renewable carriers use the default renewable profiles."
 pemmdb_hydro_profiles,,,
--- enable,,bool,"Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles."
+-- enable,bool,"{true, false}","Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles."
 -- available_years,--,list,"List of years for which PEMMDB hydro inflows data is available."
 -- technologies,--,list,"The hydro technologies for which PEMMDB hydro inflows data is used. Technologies can be any of {Run of River, Pondage, Reservoir, PS Open, PS Closed}."
 estimate_renewable_capacities,,, 
