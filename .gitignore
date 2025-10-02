@@ -105,6 +105,7 @@ report/*.pdf
 
 # private dev folder
 dev/*
+profiles/*
 
 # ai coding tools
 CLAUDE.md
