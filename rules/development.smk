@@ -54,9 +54,9 @@ if not config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]
                 "data/tyndp_2024_bundle/PECD/PECD_{pecd_prebuilt_version}"
             ),
         log:
-            logs("prepare_pecd_release_{pecd_prebuilt_version}.log"),
+            "logs/prepare_pecd_release_{pecd_prebuilt_version}.log",
         benchmark:
-            benchmarks("prepare_pecd_release_{pecd_prebuilt_version}")
+            "benchmarks/prepare_pecd_release_{pecd_prebuilt_version}"
         threads: 4
         resources:
             mem_mb=1000,
