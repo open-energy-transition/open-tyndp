@@ -1142,7 +1142,7 @@ if __name__ == "__main__":
     cyear = sns[0].year
     index_year = pd.date_range(
         start=f"{cyear}-01-01",
-        periods=8760,  # 53 weeks
+        periods=8760,
         freq="h",
     )
 

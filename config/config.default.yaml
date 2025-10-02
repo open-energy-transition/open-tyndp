@@ -176,9 +176,7 @@ electricity:
     - 2040
     - 2050
     technologies:
-    Solar:
-    - solar-pv-utility
-    - solar-pv-rooftop
+    - Solar
 
   estimate_renewable_capacities:
     enable: true
