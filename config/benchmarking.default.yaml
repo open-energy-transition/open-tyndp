@@ -27,13 +27,10 @@ benchmarking:
         - scenario
         - year
       mapping:
-        AC: electricity
-        AC_OH: electricity
         H2: hydrogen
-        gas: methane
         low voltage: electricity
-        oil: liquids
-        coal: solids
+        naphtha for industry: liquids
+        solid biomass for industry: biofuels
 
     elec_demand:
       table_type: scenario_comparison

@@ -86,18 +86,9 @@ def compute_benchmark(
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
         grouper = ["bus_carrier", "carrier"]
-        exclude_carriers = [
-            "DC",
-            "DC_OH",
-            "electricity distribution grid",
-            "H2 pipeline",
-            "battery charger",
-            "home battery charger",
-        ]
         df = (
             n.statistics.withdrawal(
-                comps=demand_comps,
-                bus_carrier=elec_bus_carrier + ["gas", "H2", "coal", "oil"],
+                comps="Load",
                 groupby=["bus"] + grouper,
                 nice_names=False,
                 aggregate_across_components=True,
@@ -105,7 +96,6 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
-            .loc[lambda x: ~x.index.get_level_values("carrier").isin(exclude_carriers)]
             .groupby(level="bus_carrier")
             .sum()
         )
