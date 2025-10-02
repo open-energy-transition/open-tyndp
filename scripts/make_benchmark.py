@@ -199,7 +199,7 @@ def _compute_growth_error(
     Wen et al. (2022), Applied Energy 325, 119906, Table 1
     """
     if len(df) < 2:
-        logger.warning(f"Insufficient data in {table} for growth error calculation")
+        logger.info(f"Insufficient data in {table} for growth error calculation")
         return np.nan
 
     # Sort by time to ensure proper chronological order
@@ -376,7 +376,7 @@ def compute_indicators(
 
 
 def compare_sources(
-    table: str, benchmarks_raw: pd.DataFrame, options: dict
+    table: str, benchmarks_raw: pd.DataFrame, scenario: str, options: dict
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
@@ -388,6 +388,8 @@ def compare_sources(
         Benchmark metric to compute.
     benchmarks_raw: pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
+    scenario: str
+        Name of scenario to compare.
     options : dict
         Full benchmarking configuration.
 
@@ -411,7 +413,8 @@ def compare_sources(
 
     # Check if at least two sources are available to compare
     if len(df.columns) != 2:
-        logging.info(f"Skipping table {table}, need exactly two sources to compare.")
+        if not (table == "generation_profiles" and scenario == "TYNDP NT"):
+            logger.info(f"Skipping table {table}, need exactly two sources to compare.")
         return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
 
     # Compare sources
@@ -495,6 +498,7 @@ if __name__ == "__main__":
     func = partial(
         compare_sources,
         benchmarks_raw=benchmarks_raw,
+        scenario=scenario,
         options=options,
     )
 
