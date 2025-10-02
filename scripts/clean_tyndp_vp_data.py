@@ -16,10 +16,10 @@ import pandas as pd
 from scripts._helpers import (
     SCENARIO_DICT,
     configure_logging,
+    convert_units,
     get_snapshots,
     set_scenario_config,
 )
-from scripts.clean_tyndp_benchmark import _convert_units
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +106,7 @@ def get_elec_demand(
         .melt(var_name="year", ignore_index=False)
         .assign(year=lambda x: x["year"].astype("int"))
         .set_index("year", append=True)
+        .value
     )
 
     # Read and process demand data
@@ -119,19 +120,16 @@ def get_elec_demand(
             f"Country in @EU27_COUNTRIES"
         )
         .assign(country_iso2=lambda x: x.Country.map(EU27_MAP))
-        .rename(columns={"Year": "year", "Value": "value"})
-        .set_index(["country_iso2", "year"])
+        .set_index(["country_iso2", "Year"])
     )
-    source_unit = df.Unit_Name.iloc[0]
-    df = df[["value"]]
 
-    df /= 1 + loss_factors.reindex(df.index)
+    df["Value"] /= 1 + loss_factors.reindex(df.index)
 
-    df = _convert_units(df, source_unit, unit_conversion)
+    df = convert_units(df, unit_col="Unit_Name", value_col="Value")
 
     data = (
-        df.groupby("year")
-        .value.sum()
+        df.groupby("Year")
+        .Value.sum()
         .reset_index()
         .assign(
             carrier="aggregated",
@@ -178,17 +176,15 @@ def get_power_capacities(
                 f"Property_Name == 'Installed Capacity' and "
                 f"Country in @EU27_COUNTRIES"
             )
-            .rename(
-                columns={"Year": "year", "Value": "value", "Category_Detail": "carrier"}
-            )
+            .rename(columns={"Category_Detail": "carrier"})
             .assign(carrier=lambda x: x.carrier.map(CARRIER_MAP))
         )
 
-        df = _convert_units(df, df.Unit_Name.iloc[0], unit_conversion)
+        df = convert_units(df, unit_col="Unit_Name", value_col="Value")
 
         df = (
-            df.groupby(["year", "carrier"])
-            .value.sum()
+            df.groupby(["Year", "carrier"])
+            .Value.sum()
             .reset_index()
             .assign(
                 scenario=f"TYNDP {scenario}",
@@ -199,7 +195,7 @@ def get_power_capacities(
 
     data = (
         pd.concat(data)
-        .groupby(["year", "carrier", "scenario", "table"])
+        .groupby(["Year", "carrier", "scenario", "table"])
         .sum()
         .reset_index()
     )
