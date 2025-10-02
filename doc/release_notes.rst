@@ -1,9 +1,8 @@
 
+.. SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+.. SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 ..
-  SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
-  SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
-
-  SPDX-License-Identifier: CC-BY-4.0
+.. SPDX-License-Identifier: CC-BY-4.0
 
 ##########################################
 Release Notes
@@ -21,6 +20,8 @@ Upcoming Open-TYNDP Release
 * Fix bugs with PyPSA-Eur's nuclear implementation related to inconsistent modelling as generators and links, missing country-specific p_max_pu and missing uranium generators (https://github.com/open-energy-transition/open-tyndp/pull/105). Furthermore, reintroduce default hydro renewable_carrier until TYNDP hydro technologies are added.
 
 * Allow the retrieval of PyPSA-Eur cutouts for additional climate years that are not available on Zenodo via retrieval from GCP (https://github.com/open-energy-transition/open-tyndp/pull/109). Currently, this feature is available for the additional climate year 2009.
+
+* Introduce PECD pre-built dataset to reduce data retrieval requirements (https://github.com/open-energy-transition/open-tyndp/pull/123). Users can either retrieve pre-processed PECD data for the climate years 1995, 2008 and 2009 from GCP storage, or build from raw data for any year between 1982 and 2019.
 
 * Introduce processing of PEMMDB v.2.4 capacity, must-run and availability data as well as expansion trajectories for conventional and renewable power generation, electrolysers, batteries and DSR (https://github.com/open-energy-transition/open-tyndp/pull/97).
 
