@@ -30,21 +30,26 @@ everywhere_powerplants,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignit
 conventional_carriers,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass}","List of conventional power plants to include in the model from ``resources/powerplants_s_{clusters}.csv``. If an included carrier is also listed in ``extendable_carriers``, the capacity is taken as a lower bound."
 ,,, 
 renewable_carriers,--,"Any subset of {solar, onwind, offwind-ac, offwind-dc, offwind-float, hydro}",List of renewable generators to include in the model.
-tyndp_renewable_carriers,--,"Any subset of {solar-pv, solar-pv-utility, solar-pv-rooftop, onwind, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh}",List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.
+tyndp_renewable_carriers,--,"Any subset of {solar-pv, solar-pv-utility, solar-pv-rooftop, onwind, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh}","List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list."
 pecd_renewable_profiles,,,
--- enable,,bool,Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below. Technologies ``pecd_techs`` can be any of {LFSolarPVUtility, LFSolarPVRooftop, Wind_Offshore, Wind_Onshore, CSP_noStorage, CSP_withStorage_7h_dispatched, CSP_withStorage_7h_preDispatch}.
--- fill_gaps_method,,str,The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.
+-- enable,bool,"{true, false}",Activate PECD renewable profiles from 2024 TYNDP instead of default renewable profiles for specified renewable technologies below.
+-- version,,str,"Version of the raw PECD data, e.g. ``3.1``."
+-- pre_built,,,
+-- -- retrieve,bool,"{true, false}","Whether to retrieve already prepared PECD pre-built dataset of the PECD pre-built version as specified below. If ``false``, the pre-built will be created from scratch using PECD raw data."
+-- -- pecd_prebuilt_version,,str,"Version of the PECD pre-built."
+-- -- cyears,--,list,"List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019."
+-- fill_gaps_method,,str,"The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar."
 -- available_years,--,list,"List of years for which PECD data is available."
--- technologies,--,list,The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to ``tyndp_renewable_carriers``. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file. Technologies can be any of {Wind_Offshore, LFSolarPVRooftop, LFSolarPVUtility, CSP_noStorage, CSP_withStorage, Wind_Onshore}
+-- technologies,--,"Any subset of {Wind_Offshore, LFSolarPVRooftop, LFSolarPVUtility, CSP_noStorage, CSP_withStorage, Wind_Onshore}",The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to ``tyndp_renewable_carriers``. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.
 pemmdb_hydro_profiles,,,
--- enable,,bool,Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.
+-- enable,bool,"{true, false}","Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles."
 -- available_years,--,list,"List of years for which PEMMDB hydro inflows data is available."
--- technologies,--,list,The hydro technologies for which PEMMDB hydro inflows data is used. Technologies can be any of {Run of River, Pondage, Reservoir, PS Open, PS Closed}.
+-- technologies,--,"Any subset of {Run of River, Pondage, Reservoir, PS Open, PS Closed}",The hydro technologies for which PEMMDB hydro inflows data is used.
 pemmdb_capacities,,,
 -- enable,,bool,Activate PEMMDB capacities, must-runs and availabilities from 2024 TYNDP.
 -- nprocesses,,int,"Number of parallel processes when reading pemmdb data."
 -- available_years,--,list,"List of years for which PEMMDB data is available."
--- technologies,--,list,The PEMMDB technologies for which are available and shall be used. Technologies can be any of {Solar, Wind, Hydro, Other RES, Gas, Nuclear, Hard coal, Lignite, Light oil, Heavy oil, Oil shale, Other Non-RES, Electrolyser, Battery}.
+-- technologies,--,"Any subset of {Solar, Wind, Hydro, Other RES, Gas, Nuclear, Hard coal, Lignite, Light oil, Heavy oil, Oil shale, Other Non-RES, Electrolyser, Battery}.",The PEMMDB technologies which are available and which data shall be used.
 estimate_renewable_capacities,,, 
 -- enable,,bool,Activate routine to estimate renewable capacities in rule :mod:`add_electricity`. This option should not be used in combination with pathway planning ``foresight: myopic`` or ``foresight: perfect`` as renewable capacities are added differently in :mod:`add_existing_baseyear`.
 -- from_gem,--,bool,Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.
