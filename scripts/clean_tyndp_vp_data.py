@@ -120,16 +120,17 @@ def get_elec_demand(
             f"Country in @EU27_COUNTRIES"
         )
         .assign(country_iso2=lambda x: x.Country.map(EU27_MAP))
-        .set_index(["country_iso2", "Year"])
+        .rename(columns={"Year": "year", "Value": "value"})
+        .set_index(["country_iso2", "year"])
     )
 
-    df["Value"] /= 1 + loss_factors.reindex(df.index)
+    df["value"] /= 1 + loss_factors.reindex(df.index)
 
-    df = convert_units(df, unit_col="Unit_Name", value_col="Value")
+    df = convert_units(df, unit_col="Unit_Name")
 
     data = (
-        df.groupby("Year")
-        .Value.sum()
+        df.groupby("year")
+        .value.sum()
         .reset_index()
         .assign(
             carrier="aggregated",
@@ -176,15 +177,17 @@ def get_power_capacities(
                 f"Property_Name == 'Installed Capacity' and "
                 f"Country in @EU27_COUNTRIES"
             )
-            .rename(columns={"Category_Detail": "carrier"})
+            .rename(
+                columns={"Category_Detail": "carrier", "Year": "year", "Value": "value"}
+            )
             .assign(carrier=lambda x: x.carrier.map(CARRIER_MAP))
         )
 
-        df = convert_units(df, unit_col="Unit_Name", value_col="Value")
+        df = convert_units(df, unit_col="Unit_Name")
 
         df = (
-            df.groupby(["Year", "carrier"])
-            .Value.sum()
+            df.groupby(["year", "carrier"])
+            .value.sum()
             .reset_index()
             .assign(
                 scenario=f"TYNDP {scenario}",
@@ -195,7 +198,7 @@ def get_power_capacities(
 
     data = (
         pd.concat(data)
-        .groupby(["Year", "carrier", "scenario", "table"])
+        .groupby(["year", "carrier", "scenario", "table"])
         .sum()
         .reset_index()
     )
