@@ -417,8 +417,16 @@ def compare_sources(
 
     # Check if at least two sources are available to compare
     if len(df.columns) != 2:
-        if not (table == "generation_profiles" and scenario == "TYNDP NT"):
-            logger.info(f"Skipping table {table}, need exactly two sources to compare.")
+        # Generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios
+        show_warning = True
+        if table == "generation_profiles":
+            cyear = int(pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0])
+            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and cyear == 2009
+
+        if show_warning:
+            logger.warning(
+                f"Skipping table {table}, need exactly two sources to compare."
+            )
         return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
 
     # Compare sources
