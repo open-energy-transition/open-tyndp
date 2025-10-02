@@ -147,7 +147,7 @@ electricity:
     enable: false
     version: 3.1
     pre_built:
-      retrieve: false
+      retrieve: true
       pecd_prebuilt_version: 0.1
       cyears:
       - 1995
