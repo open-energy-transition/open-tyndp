@@ -63,12 +63,14 @@ def load_data(
 
     # Filter to keep only years available in the TYNDP 2024 Scenarios data
     available_years = set(benchmarks_tyndp.year).intersection(benchmarks_n.year)  # noqa: F841
-    benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
     # Add Visualisation Platform (optional)
     if vp_data_fn:
         vp_data = pd.read_csv(vp_data_fn)
+        available_years = set(vp_data.year).intersection(available_years)
         benchmarks_raw = pd.concat([benchmarks_raw, vp_data])
+
+    benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
     return benchmarks_raw
 
