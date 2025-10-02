@@ -41,26 +41,26 @@ def process_pecd_files(
     else:
         skiprows = 10
 
+    def _usecols(name):
+        return (
+            name in ("Date", "Hour")
+            or name in cyears.values
+            or name in cyears.astype(str).values
+            or name in cyears.astype(float).astype(str).values
+        )
+
     if "xls" in pecd_file or "xlsx" in pecd_file:
         df = pd.read_excel(
             fn,
             skiprows=skiprows,  # first rows contain only file metadata
-            usecols=lambda name: name == "Date"
-            or name == "Hour"
-            or name in cyears.values
-            or name in cyears.astype(str).values
-            or name in cyears.astype(float).astype(str).values,
+            usecols=lambda name: _usecols(name),
             engine="openpyxl",
         ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
     else:
         df = pd.read_csv(
             fn,
             skiprows=skiprows,  # first rows contain only file metadata
-            usecols=lambda name: name == "Date"
-            or name == "Hour"
-            or name in cyears.values
-            or name in cyears.astype(str).values
-            or name in cyears.astype(float).astype(str).values,
+            usecols=lambda name: _usecols(name),
         ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
 
     output_file = Path(output_dir, pecd_file).with_suffix(".csv")
