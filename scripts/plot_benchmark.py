@@ -66,7 +66,7 @@ def _plot_scenario_comparison(
     idx = [model_col] + [c for c in rfc_col if c in df.columns]
 
     tyndp_str = "TYNDP 2024"
-    if "TYNDP 2024 Vis Plfm" in idx and tyndp_str in idx:
+    if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
         tyndp_str_ext = "TYNDP 2024 Scenarios"
         idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
         df = df.rename(columns={tyndp_str: tyndp_str_ext})
@@ -190,7 +190,7 @@ def plot_benchmark(
     options: dict,
     colors: dict,
     model_col: str = "Open-TYNDP",
-    rfc_col: list[str] = ["TYNDP 2024", "TYNDP 2024 Vis Plfm"],
+    rfc_col: list[str] = ["TYNDP 2024", "TYNDP 2024 Vis Pltfm"],
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -213,7 +213,7 @@ def plot_benchmark(
         Dictionary of colors to be used for each technology.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_col : list[str], default ["TYNDP 2024", "TYNDP 2024 Vis Plfm"]
+    rfc_col : list[str], default ["TYNDP 2024", "TYNDP 2024 Vis Pltfm"]
         Column names for reference values.
     """
 
