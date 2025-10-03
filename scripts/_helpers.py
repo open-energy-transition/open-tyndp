@@ -18,6 +18,7 @@ from typing import Callable, Union
 
 import atlite
 import fiona
+import git
 import numpy as np
 import pandas as pd
 import pypsa
@@ -35,8 +36,13 @@ REGION_COLS = ["geometry", "name", "x", "y", "country"]
 SCENARIO_DICT = {
     "Distributed Energy": "DE",
     "Global Ambition": "GA",
+    r"National Trends\s*\+": "NT",
+    r"NT\s*\+": "NT",
     "National Trends": "NT",
 }
+
+ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
+POWER_UNITS = {"GW", "MW", "kW"}
 
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
@@ -1251,45 +1257,101 @@ def map_tyndp_carrier_names(
     return df[cols]
 
 
+def get_version(hash_len: int = 9) -> str:
+    """
+    Create a version identifier from git repository state.
+
+    Returns a version string based on the latest reachable tag and current commit:
+    - If HEAD is exactly at a tag: returns the tag name (e.g., "v1.2.3")
+    - If HEAD is beyond a tag: returns "tag+g{hash}" (e.g., "v1.2.3+g1a2b3c4d")
+    - If no tags found: returns just the commit hash (e.g., "1a2b3c4d5")
+    """
+    try:
+        repo = git.Repo(search_parent_directories=True)
+        tags = sorted(
+            repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True
+        )
+        last_tag = None
+        for tag in tags:
+            if repo.is_ancestor(tag.commit, repo.head.commit):
+                last_tag = tag
+                break
+        if last_tag and last_tag.commit == repo.head.commit:
+            return f"{last_tag}"
+        elif last_tag:
+            return f"{last_tag}+g{repo.head.commit.hexsha[:hash_len]}"
+        else:
+            return repo.head.commit.hexsha[:hash_len]
+
+    except Exception as e:
+        logger.warning(f"Failed to determine version from git repository: {e}")
+        return "unknown"
+
+
 def convert_units(
     df: pd.DataFrame,
-    unit_conversion: dict[str, float],
-    source_unit_col: str = "unit",
+    unit_col: str = "unit",
     value_col: str = "value",
+    invert: bool = False,
 ) -> pd.DataFrame:
     """
-    Convert units and add unit columns.
-    Automatically determines target unit based on source unit type:
+    Convert values to standardized units based on unit type.
+
+    Energy values are converted to MWh, power values to MW:
     - Energy units (TWh, GWh, MWh, kWh) → MWh
     - Power units (GW, MW, kW) → MW
+
+    When invert=False (default):
+        - Values are converted from unit_col units to standard units (MWh/MW)
+        - The "unit" column is updated to reflect the standardized unit
+
+    When invert=True:
+        - Values are converted from standard units (MWh/MW) back to unit_col units
+        - The "unit" column is NOT modified
+        - Useful for reverting previously standardized data
 
     Parameters
     ----------
     df : pd.DataFrame
         Long-format DataFrame containing values to convert.
-    unit_conversion : dict[str, float]
-        Dictionary mapping units to conversion factors (to base unit).
-    source_unit_col : str, default "unit
-        Name of the column containing the source unit of the values.
+    unit_col : str, default "unit"
+        Name of the column containing the unit information.
+        When invert=False: contains source units to convert from.
+        When invert=True: contains target units to convert to.
     value_col : str, default "value"
         Name of the column containing values to convert.
+    invert : bool, default False
+        If False, convert to standard units and update "unit" column.
+        If True, convert from standard units using inverse factors without modifying "unit" column.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame with converted values and unit columns added.
+        DataFrame with converted values.
     """
-    # Determine target unit based on source unit type
-    energy_units = {"TWh", "GWh", "MWh", "kWh"}
-    power_units = {"GW", "MW", "kW"}
+    df = df.copy()
+
+    unit_conversion = {
+        "TWh": 1000000,
+        "GWh": 1000,
+        "MWh": 1,
+        "GW": 1000,
+        "MW": 1,
+        "kW": 0.001,
+    }
+
+    if invert:
+        # Inverse conversion factor to revert unit
+        unit_conversion = {k: 1 / v for k, v in unit_conversion.items()}
 
     # Convert values using conversion factors
-    conversion_factors = df[source_unit_col].map(unit_conversion)
+    conversion_factors = df[unit_col].map(unit_conversion)
     df[value_col] = pd.to_numeric(df[value_col], errors="coerce") * conversion_factors
 
     # Update unit column
-    df["unit"] = df[source_unit_col].apply(
-        lambda x: "MWh" if x in energy_units else "MW" if x in power_units else x
-    )
+    if not invert:
+        df["unit"] = df[unit_col].apply(
+            lambda x: "MWh" if x in ENERGY_UNITS else "MW" if x in POWER_UNITS else x
+        )
 
     return df

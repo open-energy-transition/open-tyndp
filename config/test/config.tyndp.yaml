@@ -13,7 +13,7 @@ run:
 # TODO set foresight
 foresight: myopic
 
-tyndp_scenario: DE  # NT, DE or GA
+tyndp_scenario: DE
 
 scenario:
   clusters:
@@ -38,7 +38,6 @@ co2_budget:
   2040: 0.100 # 90% by 2040
   2045: 0.050
   2050: 0.000 # climate-neutral by 2050
-
 
 electricity:
   base_network: tyndp
@@ -307,3 +306,6 @@ plotting:
       bus_factor: 0.005
       branch_factor: 0.04
       flow_factor: 25
+
+benchmarking:
+  enable: true

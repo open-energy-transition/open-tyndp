@@ -4,11 +4,15 @@
 
 run:
   prefix: "tyndp"
+  name: "all"
+  scenarios:
+    enable: true
+    file: config/scenarios.tyndp.yaml
 
 # TODO set foresight
 foresight: myopic
 
-tyndp_scenario: DE  # NT, DE or GA
+tyndp_scenario: NT
 
 scenario:
   clusters:
@@ -285,3 +289,6 @@ plotting:
       bus_factor: 0.005
       branch_factor: 0.04
       flow_factor: 25
+
+benchmarking:
+  enable: true

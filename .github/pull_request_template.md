@@ -26,4 +26,4 @@ Closes # (if applicable).
 - [ ] OET license identifier is added to all edited or newly created code files.
 - [ ] Sources of newly added data are documented in `doc/data_sources.rst`.
 - [ ] A release note `doc/release_notes.rst` is added.
-- [ ] Major features are listed in `README` and `doc/index.rst`.
+- [ ] Major features are documented with up-to-date information in `README` and `doc/index.rst`.

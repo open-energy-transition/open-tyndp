@@ -1,3 +1,4 @@
+.. SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 .. SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
@@ -15,9 +16,9 @@ PyPSA-Eur has several configuration options which are documented in this section
 Configuration Files
 ===================
 
-Any PyPSA-Eur configuration can be set in a ``.yaml`` file. The default configurations 
-``config/config.default.yaml`` and ``config/plotting.default.yaml`` are maintained in 
-the repository and cover all the options that are used/ can be set.
+As for PyPSA-Eur, any Open-TYNDP configuration can be set in a ``.yaml`` file. The default configurations 
+``config/config.default.yaml``, ``config/plotting.default.yaml`` and ``config/benchmarking.default.yaml``
+are maintained in the repository and cover all the options that are used/ can be set.
 
 To pass your own configuration, you can create a new file, e.g. ``my_config.yaml``, 
 and specify the options you want to change. They will override the default settings and 
@@ -104,6 +105,21 @@ The ``run`` section is used for running and storing scenarios with different con
 .. note::
     If you use myopic or perfect foresight, the planning horizon in
     :ref:`planning_horizons` in scenario has to be set.
+
+.. _tyndp_scenario_cf:
+
+``tyndp_scenario``
+=============
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: tyndp_scenario:
+   :end-at: tyndp_scenario:
+
+.. csv-table::
+   :header-rows: 1
+   :widths: 22,7,22,33
+   :file: configtables/tyndp_scenario.csv
 
 .. _scenario:
 
@@ -632,3 +648,17 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
    :header-rows: 1
    :widths: 22,7,22,33
    :file: configtables/plotting.csv
+
+.. _benchmarking_cf:
+
+``benchmarking``
+=============
+
+.. literalinclude:: ../config/benchmarking.default.yaml
+   :language: yaml
+   :start-at: benchmarking:
+
+.. csv-table::
+   :header-rows: 1
+   :widths: 22,7,22,33
+   :file: configtables/benchmarking.csv

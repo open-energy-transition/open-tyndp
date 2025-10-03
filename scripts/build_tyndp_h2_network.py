@@ -13,6 +13,7 @@ import logging
 import numpy as np
 import pandas as pd
 from _helpers import (
+    SCENARIO_DICT,
     configure_logging,
     extract_grid_data_tyndp,
     get_snapshots,
@@ -62,10 +63,7 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
                 "Falling back to closest available year between 2030 and 2050."
             )
             pyear = np.clip(5 * (pyear // 5), 2030, 2050)
-        scenario_dict = {
-            "GA": "Global Ambition",
-            "DE": "Distributed Energy",
-        }
+        scenario_dict = {v: k for k, v in SCENARIO_DICT.items()}
         scenario = scenario_dict[scenario]
         interzonal_filtered = interzonal_raw.query(
             "Scenario == @scenario and Year == @pyear "

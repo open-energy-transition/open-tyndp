@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+
+NT:
+  tyndp_scenario: NT
+
+DE:
+  tyndp_scenario: DE
+
+GA:
+  tyndp_scenario: GA
