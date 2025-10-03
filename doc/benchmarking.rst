@@ -31,7 +31,7 @@ The following metrics from the `TYNDP 2024 Scenarios report <https://2024.entsos
   * Benchmark energy imports, EU27 (TWh), (Fig 40, p51 and Fig 60, p68)
   * Hourly generation profile of power generation, Fig 30, p35
 
-The data is published in the `Scenarios package <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>`_.
+The data is published in the `Scenarios package <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>`_. In addition to the TYNDP 2024 Scenarios Report data, data from the `Visualisation Platform <https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>`_ is also processed and included in the relevant figures. The Open-TYNDP data is benchmarked against the published TYNDP 2024 Scenarios Report data, while figures present both data sources for comparison purposes. This addition resolves discrepancies observed in the main data source.
 
 The benchmarking is based on the methodology proposed by `Wen et al. (2022) <https://www.sciencedirect.com/science/article/pii/S0306261922011667>`_. This methodology provides a multi-criteria approach to ensure:
 
@@ -59,10 +59,11 @@ Workflow
 #. New configuration files `config/benchmarking.default.yaml`.
 #. `retrieve_additional_tyndp_data`: Retrieve the TYNDP 2024 Scenarios Report Data Figures package for benchmarking purposes. This rule will be deprecated once the data bundle has been updated (https://github.com/open-energy-transition/open-tyndp/issues/87).
 #. (new) `clean_tyndp_benchmark`: Read and process the raw TYNDP 2024 Scenarios Report data. The output data structure is a long-format table.
+#. (new) `clean_tyndp_vp_data`: Read and process the TYNDP 2024 Visualisation Platform data for benchmarking purposes. The output data structure is a long-format table.
 #. (new) `build_statistics`: Compute the benchmark statistics from the optimised network. Run for every planning horizon. The output data structure is a long-format table.
-#. (new) `make_benchmark`: Compute accuracy indicators for comparing model results against reference data from TYNDP 2024.
+#. (new) `make_benchmark`: Compute accuracy indicators for comparing model results against reference data from TYNDP 2024 Scenarios Report data.
 #. (new) `make_benchmarks` to collect `make_benchmark` outputs
-#. (new) `plot_benchmark`: Generate visualisation outputs for model validation
+#. (new) `plot_benchmark`: Generate visualisation outputs for model validation.
 #. (new) `plot_benchmarks` to collect `plot_benchmarks` outputs
 #. The full set of files produced for the benchmarking are stored in the `results/validation/` folder. This includes:
 
@@ -105,6 +106,10 @@ Carrier                           sMPE   sMAPE  sMdAPE  RMSLE  Growth Error    v
 Example of figure created for the final energy demand for NT scenario in 2030 with 45SEG:
 
 .. image:: img/tyndp/benchmarking_fed_NT_2030.png
+
+Example of figure including Visualisation Platform data created for the power capacity for NT scenario in 2030 with 45SEG:
+
+.. image:: img/tyndp/benchmarking_power_capacity_NT_2030_w_vis_pltfm.png
 
 Example of figure created for the generation profiles for DE scenario in 2040 with 45SEG:
 
