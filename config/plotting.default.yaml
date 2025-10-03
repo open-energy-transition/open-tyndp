@@ -358,6 +358,7 @@ plotting:
     # coal
     Coal: '#545454'
     coal: '#545454'
+    coal&lignite&oil: '#545454'
     Coal marginal: '#545454'
     coal for industry: '#343434'
     solid: '#545454'
@@ -386,9 +387,11 @@ plotting:
     unsustainable solid biomass: '#998622'
     unsustainable bioliquids: '#32CD32'
     electrobiofuels: 'red'
+    biofuels: 'red'
     BioSNG: '#123456'
     BioSNG CC: '#45233b'
     solid biomass to hydrogen: '#654321'
+    other res: '#91ba41'
     # power transmission
     lines: '#6c9459'
     transmission lines: '#6c9459'
@@ -401,6 +404,7 @@ plotting:
     industry electricity: '#2d2a66'
     industry new electricity: '#2d2a66'
     agriculture electricity: '#494778'
+    dsr: '#110d63'
     # battery + EVs
     battery: '#ace37f'
     battery storage: '#ace37f'
@@ -500,6 +504,7 @@ plotting:
     H2: '#bf13a0'
     H2_OH: '#bf13a0'
     hydrogen: '#bf13a0'
+    methane&hydrogen: '#bf13a0'
     retrofitted H2 boiler: '#e5a0d9'
     SMR: '#870c71'
     SMR CC: '#4f1745'

@@ -5,14 +5,6 @@
 benchmarking:
   enable: false
 
-  unit_conversion:
-    TWh: 1000000
-    GWh: 1000
-    MWh: 1
-    GW: 1000
-    MW: 1
-    kW: 0.001
-
   tables:
     final_energy_demand:
       table_type: scenario_comparison
@@ -34,6 +26,8 @@ benchmarking:
         low voltage: electricity
         oil: liquids
         coal: solids
+        naphtha for industry: liquids
+        solid biomass for industry: biofuels
 
     elec_demand:
       table_type: scenario_comparison
@@ -116,6 +110,7 @@ benchmarking:
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
+        solar-hsat: solar
         H2 turbine: hydrogen
         coal: coal + other fossil
         lignite: coal + other fossil
@@ -152,6 +147,7 @@ benchmarking:
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
+        solar-hsat: solar
         H2 turbine: hydrogen
         coal: coal + other fossil
         lignite: coal + other fossil
@@ -258,6 +254,7 @@ benchmarking:
         onwind: onshore wind
         solar-pv-rooftop: solar
         solar-pv-utility: solar
+        solar-hsat: solar
         H2 turbine: methane&hydrogen
         CCGT: methane&hydrogen
         OCGT: methane&hydrogen

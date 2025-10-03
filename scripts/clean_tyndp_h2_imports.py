@@ -9,11 +9,7 @@ import logging
 
 import geopandas as gpd
 import pandas as pd
-from _helpers import (
-    configure_logging,
-    make_index,
-    set_scenario_config,
-)
+from _helpers import SCENARIO_DICT, configure_logging, make_index, set_scenario_config
 from shapely.geometry import Point
 
 logger = logging.getLogger(__name__)
@@ -93,12 +89,7 @@ def load_import_data(fn, countries_centroids):
         "MAX ENERGY YEAR [GWh]": "e_sum_max",
     }
 
-    replace_dict = {
-        "Distributed Energy": "DE",
-        "Global Ambition": "GA",
-        "National Trends": "NT",
-        "Lh2": "LH2",
-    }
+    replace_dict = SCENARIO_DICT | {"Lh2": "LH2"}
 
     # Read data, rename and convert to MWh
     imports = pd.read_excel(fn).rename(columns=column_dict).replace(replace_dict)

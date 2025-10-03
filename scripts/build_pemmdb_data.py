@@ -59,16 +59,6 @@ RENEWABLES = [
     "Hydro",
 ]
 
-UNIT_CONVERSION = {
-    "TWh": 1e6,  # TWh to MWh
-    "GWh": 1e3,  # GWh to MWh
-    "MWh": 1,  # MWh to MWh
-    "kWh": 1e-3,  # kWh to MWh
-    "GW": 1e3,  # GW to MW
-    "MW": 1,  # MW to MW
-    "kW": 1e-3,  # kW to MW
-}
-
 pemmdb_sheet_mapping = {
     "Solar": "Solar",
     "Wind": "Wind",
@@ -282,7 +272,6 @@ def _process_res_capacities(
     node: str,
     cyear: int,
     pemmdb_tech: str,
-    unit_conversion: dict[str, float],
 ) -> pd.DataFrame:
     """
     Extract and clean `RES` (Solar, Wind, Hydro) capacities.
@@ -332,7 +321,7 @@ def _process_res_capacities(
         df["pemmdb_type"],
     )
 
-    df = convert_units(df, unit_conversion, "unit", "p_nom").reset_index(drop=True)
+    df = convert_units(df, "unit", "p_nom").reset_index(drop=True)
 
     return df
 
@@ -820,7 +809,6 @@ def process_pemmdb_capacities(
     pemmdb_tech: str,
     cyear: int,
     pyear: int,
-    unit_conversion: dict[str, float],
     carrier_mapping_df: pd.DataFrame,
 ) -> pd.DataFrame:
     """
@@ -838,8 +826,6 @@ def process_pemmdb_capacities(
         Climate year to read data for.
     pyear : int
         Planning year to read data for. Can be fallback year to available data.
-    unit_conversion : dict[str, float]
-        Dictionary mapping units to conversion factors (to base unit).
     carrier_mapping_df : pd.DataFrame
         Dataframe containing the carrier mapping from PEMMDB carrier to TYNDP technology name.
 
@@ -864,7 +850,7 @@ def process_pemmdb_capacities(
         # Renewables (Solar, Wind, Hydro)
         elif pemmdb_tech in RENEWABLES:
             capacities = _process_res_capacities(
-                node_tech_data, node, cyear, pemmdb_tech, unit_conversion
+                node_tech_data, node, cyear, pemmdb_tech
             )
 
         # Other RES
@@ -1032,7 +1018,6 @@ def process_pemmdb_data(
     cyear: int,
     pyear: int,
     pyear_i: int,
-    unit_conversion: dict[str, float],
     tyndp_scenario: str,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
@@ -1056,8 +1041,6 @@ def process_pemmdb_data(
         Planning year to read data for. Can be fallback year to available data.
     pyear_i : int
         Original planning year.
-    unit_conversion : dict[str, float]
-        Dictionary of unit conversions to convert between units.
     tyndp_scenario : str
         TYNDP scenario to read data for.
     sns : pd.DatetimeIndex
@@ -1089,7 +1072,6 @@ def process_pemmdb_data(
             pemmdb_tech,
             cyear,
             pyear,
-            unit_conversion,
             carrier_mapping_df,
         )
     elif element == "profiles":
@@ -1210,7 +1192,6 @@ if __name__ == "__main__":
                     cyear=cyear,
                     pyear=pyear,
                     pyear_i=pyear_i,
-                    unit_conversion=UNIT_CONVERSION,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     index_year=index_year,
@@ -1257,7 +1238,6 @@ if __name__ == "__main__":
                     cyear=cyear,
                     pyear=pyear,
                     pyear_i=pyear_i,
-                    unit_conversion=UNIT_CONVERSION,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     index_year=index_year,

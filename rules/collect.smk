@@ -117,6 +117,44 @@ rule build_renewable_profiles_pecds:
         ),
 
 
+rule prepare_benchmarks:
+    input:
+        expand(
+            RESULTS
+            + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        expand(
+            RESULTS + "validation/resources/benchmarks_tyndp.csv",
+            run=config["run"]["name"],
+        ),
+        expand(
+            RESULTS + "validation/resources/vp_data_tyndp.csv",
+            run=config["run"]["name"],
+        ),
+
+
+rule make_benchmarks:
+    input:
+        expand(
+            RESULTS
+            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+
+
+rule plot_benchmarks:
+    input:
+        expand(
+            RESULTS
+            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+
+
 rule build_pemmdb_datas:
     input:
         expand(

@@ -11,16 +11,11 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import SCENARIO_DICT, configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
 GEO_CRS = "EPSG:4326"
-SCENARIO_DICT = {
-    "Distributed Energy": "DE",
-    "Global Ambition": "GA",
-    "National Trends": "NT",
-}
 
 
 def load_offshore_hubs(fn: str):
@@ -67,7 +62,7 @@ def expand_all_scenario(df: pd.DataFrame, scenarios: list):
     all_rows = (
         df[all_mask]
         .drop(columns="scenario")
-        .merge(pd.DataFrame({"scenario": scenarios}), how="cross")
+        .merge(pd.DataFrame({"scenario": list(set(scenarios))}), how="cross")
     )
     return pd.concat([df[~all_mask], all_rows], ignore_index=True)
 
@@ -535,9 +530,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "build_tyndp_offshore_hubs", configfiles="config/test/config.tyndp.yaml"
-        )
+        snakemake = mock_snakemake("build_tyndp_offshore_hubs")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)

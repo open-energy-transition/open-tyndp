@@ -20,6 +20,8 @@ SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
 path = [
+    "data/tyndp_electricity_loss_factors.csv",
+    "doc/configtables/benchmarking.csv",
     "doc/img/tyndp/*",
 ]
 SPDX-FileCopyrightText = [

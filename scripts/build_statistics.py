@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script computes benchmark statistics from the optimized network.
+This script computes the benchmark statistics from the optimised network.
 """
 
 import logging
@@ -15,7 +15,13 @@ import pandas as pd
 import pypsa
 from tqdm import tqdm
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import (
+    ENERGY_UNITS,
+    POWER_UNITS,
+    configure_logging,
+    safe_pyear,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +45,7 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Se
         Loss factors data.
     """
     # Read data
-    pyear = np.clip(5 * (planning_horizons // 10), 2030, 2050)
+    pyear = safe_pyear(planning_horizons, source="TYNDP Statistics")
     loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
 
     # Create index map
@@ -68,7 +74,7 @@ def compute_benchmark(
     options : dict
         Full benchmarking configuration.
     eu27 : list[str]
-        List of EU27 member states.
+        List of member state of European Union (EU27).
     loss_factors : pd.Series, optional
         Series containing loss factors indexed by country.
 
@@ -86,27 +92,15 @@ def compute_benchmark(
 
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
-        grouper = ["bus_carrier", "carrier"]
-        exclude_carriers = [
-            "DC",
-            "DC_OH",
-            "electricity distribution grid",
-            "H2 pipeline",
-            "battery charger",
-            "home battery charger",
-        ]
+        grouper = ["bus_carrier"]
         df = (
             n.statistics.withdrawal(
-                comps=demand_comps,
-                bus_carrier=elec_bus_carrier + ["gas", "H2", "coal", "oil"],
+                comps="Load",
                 groupby=["bus"] + grouper,
                 nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .loc[lambda x: ~x.index.get_level_values("carrier").isin(exclude_carriers)]
             .groupby(level="bus_carrier")
             .sum()
         )
@@ -323,7 +317,19 @@ def compute_benchmark(
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
     grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]
-    df = df.groupby(by=grouper).sum().reset_index().assign(table=table)
+    df = (
+        df.groupby(by=grouper)
+        .sum()
+        .reset_index()
+        .assign(
+            table=table,
+            unit=lambda x: "MWh"
+            if opt["unit"] in ENERGY_UNITS
+            else "MW"
+            if opt["unit"] in POWER_UNITS
+            else opt["unit"],
+        )
+    )
 
     return df
 
@@ -337,8 +343,7 @@ if __name__ == "__main__":
             opts="",
             clusters="all",
             sector_opts="",
-            planning_horizons="2040",
-            run="NT",
+            planning_horizons="2030",
         )
 
     configure_logging(snakemake)

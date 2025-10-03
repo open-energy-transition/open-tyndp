@@ -258,3 +258,18 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **License:** CC-BY 4.0
 - **Description:** Contains hourly PECD v3.1 capacity factor time series for Solar PV rooftop,
   Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.
+
+``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx``
+
+- **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx
+- **License:** CC-BY 4.0
+- **Description:** Contains the TYNDP Scenarios Report Data Figures data and calculation
+    used to produce the figures in the Scenarios Report.
+
+``data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform``
+
+- **Source:** TYNDP 2024 Visualisation Platform, https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip
+- **License:** CC-BY 4.0
+- **Description:** Contains the TYNDP 2024 Visualisation Platform data for both electricity (supply mix, flexibility options, and electricity demand) and hydrogen (supply mix and hydrogen demand).
