@@ -19,8 +19,13 @@ benchmarking:
         - scenario
         - year
       mapping:
+        AC: electricity
+        AC_OH: electricity
         H2: hydrogen
+        gas: methane
         low voltage: electricity
+        oil: liquids
+        coal: solids
         naphtha for industry: liquids
         solid biomass for industry: biofuels
 
@@ -100,8 +105,11 @@ benchmarking:
         offwind-dc-fb-oh: wind offshore
         offwind-ac-fl-r: wind offshore
         offwind-ac-fb-r: wind offshore
+        offwind-h2-fb-oh: wind offshore
+        offwind-h2-fl-oh: wind offshore
         onwind: wind onshore
-        solar rooftop: solar
+        solar-pv-rooftop: solar
+        solar-pv-utility: solar
         solar-hsat: solar
         H2 turbine: hydrogen
         coal: coal + other fossil
@@ -114,7 +122,6 @@ benchmarking:
         PHS: hydro and pumped storage
         hydro: hydro and pumped storage
         ror: hydro and pumped storage
-
 
     power_generation:
       table_type: scenario_comparison
@@ -138,7 +145,8 @@ benchmarking:
         offwind-ac-fl-r: wind offshore
         offwind-ac-fb-r: wind offshore
         onwind: wind onshore
-        solar rooftop: solar
+        solar-pv-rooftop: solar
+        solar-pv-utility: solar
         solar-hsat: solar
         H2 turbine: hydrogen
         coal: coal + other fossil
@@ -244,7 +252,8 @@ benchmarking:
         offwind-ac-fl-r: offshore wind
         offwind-ac-fb-r: offshore wind
         onwind: onshore wind
-        solar rooftop: solar
+        solar-pv-rooftop: solar
+        solar-pv-utility: solar
         solar-hsat: solar
         H2 turbine: methane&hydrogen
         CCGT: methane&hydrogen

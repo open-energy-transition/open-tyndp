@@ -299,6 +299,7 @@ plotting:
     # solar
     solar: "#f9d002"
     solar PV: "#f9d002"
+    solar-pv-utility: "#f9d002"
     solar-hsat: "#fdb915"
     solar thermal: '#ffbf2b'
     residential rural solar thermal: '#f1c069'
@@ -307,6 +308,7 @@ plotting:
     services urban decentral solar thermal: '#dfb953'
     urban central solar thermal: '#d7b24c'
     solar rooftop: '#ffea80'
+    solar-pv-rooftop: '#ffea80'
     # gas
     OCGT: '#e0986c'
     OCGT marginal: '#e0986c'

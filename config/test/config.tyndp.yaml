@@ -48,7 +48,6 @@ electricity:
     Store: [H2]
     Link: [H2 pipeline]
 
-  # TODO: remove redundant onwind and solar from renewable_carriers list once technologies are included as tyndp_renewable_carriers from PEMMDB data
   tyndp_conventional_carriers:
   - gas
   - coal
@@ -57,7 +56,7 @@ electricity:
   - oil-light
   - oil-heavy
   - oil-shale
-  renewable_carriers: [solar, solar-hsat, onwind]
+  renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -80,6 +79,8 @@ electricity:
   - battery
   - h2_cavern
   - h2_tank
+  estimate_renewable_capacities:
+    enable: false
 
   pecd_renewable_profiles:
     enable: true
@@ -139,12 +140,6 @@ electricity:
     - Electrolyser
     - Battery
 
-  estimate_renewable_capacities:
-    # NOTE: technologies that are covered by TYNDP renewable carriers need to be removed from estimation
-    technologies:
-    - Onshore
-    - PV
-
   transmission_limit: v1.0
 
 atlite:
@@ -190,12 +185,6 @@ pypsa_eur:
   Link:
   - DC
   Generator:
-  - onwind
-  - offwind-ac
-  - offwind-dc
-  - offwind-float
-  - solar-hsat
-  - solar
   - ror
   StorageUnit:
   - PHS

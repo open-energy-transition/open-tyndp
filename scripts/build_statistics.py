@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Series:
     """
-    Load and prepare loss factors
+    Load and prepare loss factors.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def compute_benchmark(
     loss_factors: pd.Series = pd.Series(),
 ) -> pd.DataFrame:
     """
-    Compute benchmark metrics from optimised network.
+    Compute benchmark metrics from optimized network.
 
     Parameters
     ----------
@@ -83,7 +83,7 @@ def compute_benchmark(
         Benchmark data in long format.
     """
     opt = options["tables"][table]
-    map = opt.get("mapping", {})
+    mapping = opt.get("mapping", {})
     elec_bus_carrier = ["AC", "AC_OH", "low voltage"]
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
@@ -167,6 +167,19 @@ def compute_benchmark(
             .loc[lambda x: x > 0]
             .drop(index=["electricity distribution grid"], errors="ignore")
         )
+
+        # Add H2 offwind capacities in MW_e
+        df_offwind_h2 = (
+            n.generators.query("carrier.str.contains('offwind-h2')")
+            .assign(p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2)
+            .groupby(by=["bus"] + grouper)
+            .p_nom_opt.sum()
+            .reindex(eu27_idx, level="bus")
+            .groupby(by=grouper)
+            .sum()
+        )
+
+        df = pd.concat([df, df_offwind_h2])
     elif table == "power_generation":
         grouper = ["carrier"]
         df = (
@@ -300,7 +313,7 @@ def compute_benchmark(
     df = (
         df.reset_index()
         .rename(columns={"bus_carrier": "carrier", 0: "value", "objective": "value"})
-        .assign(carrier=lambda x: x["carrier"].map(map).fillna(x["carrier"]))
+        .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
     grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]
     df = (
