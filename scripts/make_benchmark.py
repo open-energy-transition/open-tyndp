@@ -70,6 +70,10 @@ def load_data(
         if not vp_data.empty:
             available_years = set(vp_data.year).intersection(available_years)
             benchmarks_raw = pd.concat([benchmarks_raw, vp_data])
+        else:
+            logger.info(
+                "Skipping comparison with Visualisation Platform data, as only available in TYNDP 2024 for the climate years 1995, 2008 and 2009."
+            )
 
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
