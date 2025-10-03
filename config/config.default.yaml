@@ -140,8 +140,10 @@ electricity:
   everywhere_powerplants: []
 
   conventional_carriers: [nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass]
+  tyndp_conventional_carriers: []
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float, hydro]
   tyndp_renewable_carriers: []
+  tyndp_stores: []
 
   pecd_renewable_profiles:
     enable: false
@@ -159,15 +161,7 @@ electricity:
     - 2040
     - 2050
     technologies:
-      Wind_Offshore:
-      - offwind-ac-fb-r
-      - offwind-ac-fl-r
-      - offwind-dc-fb-r
-      - offwind-dc-fl-r
-      - offwind-dc-fb-oh
-      - offwind-dc-fl-oh
-      - offwind-h2-fb-oh
-      - offwind-h2-fl-oh
+    - Wind_Offshore
 
   pemmdb_hydro_profiles:
     enable: false
@@ -181,6 +175,16 @@ electricity:
     - Reservoir
     - PS Open
     - PS Closed
+
+  pemmdb_capacities:
+    enable: false
+    nprocesses: 4
+    available_years:
+    - 2030
+    - 2040
+    - 2050
+    technologies:
+    - Solar
 
   estimate_renewable_capacities:
     enable: true
