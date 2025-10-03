@@ -447,6 +447,10 @@ def compare_sources(
             logger.warning(
                 f"Skipping table {table}, need exactly two sources to compare."
             )
+        else:
+            logger.info(
+                f"Skipping table {table} for scenario {scenario} and climate year {cyear}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
+            )
         return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
 
     # Compare sources
