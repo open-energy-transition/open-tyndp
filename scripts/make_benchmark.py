@@ -67,8 +67,9 @@ def load_data(
     # Add Visualisation Platform (optional)
     if vp_data_fn:
         vp_data = pd.read_csv(vp_data_fn)
-        available_years = set(vp_data.year).intersection(available_years)
-        benchmarks_raw = pd.concat([benchmarks_raw, vp_data])
+        if not vp_data.empty:
+            available_years = set(vp_data.year).intersection(available_years)
+            benchmarks_raw = pd.concat([benchmarks_raw, vp_data])
 
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
