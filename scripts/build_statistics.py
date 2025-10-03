@@ -10,7 +10,6 @@ import multiprocessing as mp
 from functools import partial
 
 import country_converter as coco
-import numpy as np
 import pandas as pd
 import pypsa
 from tqdm import tqdm
