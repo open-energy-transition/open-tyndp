@@ -153,8 +153,8 @@ rule plot_benchmarks:
             **config["scenario"],
             run=config["run"]["name"],
         ),
-        
-        
+
+
 rule build_pemmdb_datas:
     input:
         expand(
