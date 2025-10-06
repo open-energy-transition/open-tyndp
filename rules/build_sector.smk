@@ -1387,7 +1387,7 @@ def input_offshore_hubs(w):
 
 
 def input_pemmdb_data(w):
-    if not config_provider("electricity", "pemmdb_capacities", "enable"):
+    if not config_provider("electricity", "pemmdb_capacities", "enable")(w):
         return []
 
     available_years = config_provider(
