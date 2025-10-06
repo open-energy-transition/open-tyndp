@@ -54,6 +54,9 @@ rule build_statistics:
     params:
         benchmarking=config_provider("benchmarking"),
         scenario=config_provider("tyndp_scenario"),
+        tyndp_renewable_carriers=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
     input:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
