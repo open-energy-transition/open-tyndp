@@ -227,5 +227,17 @@ Rule ``build_tyndp_hydro_profile``
 
 .. automodule:: build_tyndp_hydro_profile
 
+Rule ``build_pemmdb_data``
+===========================
 
+.. automodule:: build_pemmdb_data
 
+Rule ``build_tyndp_trajectories``
+===========================
+
+.. automodule:: build_tyndp_trajectories
+
+Rule ``clean_tyndp_demand``
+===========================
+
+.. automodule:: clean_tyndp_demand
