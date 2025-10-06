@@ -118,11 +118,11 @@ def add_brownfield(
     # adjust onwind and solar expansion by subtracting existing capacity from previous years
     # from current year total capacity and potential
     onwind_solar_fixed_i = n.generators[
-        (n.generators.index.str.contains("onwind|solar"))
+        (n.generators.carrier.str.match("^(onwind|solar)"))
         & (n.generators.build_year != year)
     ].index
     onwind_solar_i = n.generators[
-        (n.generators.index.str.contains("onwind|solar"))
+        (n.generators.carrier.str.match("^(onwind|solar)"))
         & (n.generators.build_year == year)
     ].index
     onwind_solar_capacity = n.generators.loc[onwind_solar_i, "p_nom"]
