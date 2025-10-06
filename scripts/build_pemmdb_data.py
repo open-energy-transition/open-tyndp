@@ -592,6 +592,7 @@ def _process_thermal_profiles(
             pemmdb_carrier=pemmdb_tech, bus=node, p_max_pu=1.0
         )  # also set p_max_pu with default value of 1.0
         .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
+        .sort_index()  # sort index for more efficient indexing
     )
 
     # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
