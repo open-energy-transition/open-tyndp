@@ -505,6 +505,8 @@ rule build_pemmdb_data:
     log:
         logs("build_pemmdb_data_{planning_horizons}.log"),
     threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
+    resources:
+        mem_mb=16000,
     benchmark:
         benchmarks("build_pemmdb_data_{planning_horizons}")
     conda:
