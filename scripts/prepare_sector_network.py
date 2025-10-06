@@ -7516,7 +7516,7 @@ if __name__ == "__main__":
     profiles_atlite_offwind = {
         key: snakemake.input[key]
         for key in snakemake.input.keys()
-        if key.startswith("profile") and "hydro" not in key and "offwind" in key
+        if key.startswith("profile") and "pecd" not in key and "pemmdb" not in key
     }
     profiles_pecd = (
         pd.read_csv(snakemake.input.carrier_mapping)
