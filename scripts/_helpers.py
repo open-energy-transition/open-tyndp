@@ -1155,7 +1155,7 @@ def safe_pyear(
     available_years: list = [2030, 2040, 2050],
     source: str = "TYNDP",
     verbose: bool = True,
-):
+) -> int:
     """
     Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it falls back to the previous available year.
 

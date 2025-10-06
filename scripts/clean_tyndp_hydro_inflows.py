@@ -39,7 +39,7 @@ def read_hydro_inflows_file(
     node: str,
     hydro_inflows_dir: str,
     cyear: str,
-    pyear: str,
+    pyear: int,
     hydro_tech: str,
     sns: pd.DatetimeIndex,
     date_index: dict,
