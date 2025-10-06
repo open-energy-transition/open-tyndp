@@ -1386,6 +1386,31 @@ def input_offshore_hubs(w):
     return {}
 
 
+def input_pemmdb_data(w):
+    if not config_provider("electricity","pemmdb_capacities","enable"):
+        return []
+
+    available_years = config_provider(
+        "electricity", "pemmdb_capacities", "available_years"
+    )(w)
+    planning_horizons = config_provider("scenario", "planning_horizons")(w)
+    safe_pyears = set(
+        safe_pyear(year, available_years, "PEMMDB", verbose=False)
+        for year in planning_horizons
+    )
+
+    pemmdb_capacties = {
+        f"pemmdb_capacities_{pyear}": resources("pemmdb_capacities_" + str(pyear) + ".csv")
+        for pyear in safe_pyears
+    }
+    pemmdb_profiles = {
+        f"pemmdb_profiles_{pyear}": resources("pemmdb_profiles_" + str(pyear) + ".nc")
+        for pyear in safe_pyears
+    }
+
+    return {**pemmdb_capacties, **pemmdb_profiles}
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
@@ -1428,6 +1453,7 @@ rule prepare_sector_network:
         unpack(input_profile_pecd),
         unpack(input_heat_source_power),
         unpack(input_offshore_hubs),
+        unpack(input_pemmdb_data),
         **rules.cluster_gas_network.output,
         **rules.build_gas_input_locations.output,
         snapshot_weightings=resources(
@@ -1576,16 +1602,6 @@ rule prepare_sector_network:
         profile_pemmdb_hydro=branch(
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
             resources("profile_pemmdb_hydro.nc"),
-            [],
-        ),
-        pemmdb_capacities=branch(
-            config_provider("electricity", "pemmdb_capacities", "enable"),
-            resources("pemmdb_capacities_{planning_horizons}.csv"),
-            [],
-        ),
-        pemmdb_profiles=branch(
-            config_provider("electricity", "pemmdb_capacities", "enable"),
-            resources("pemmdb_profiles_{planning_horizons}.nc"),
             [],
         ),
         tyndp_trajectories=branch(
