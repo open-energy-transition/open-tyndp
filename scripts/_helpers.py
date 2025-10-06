@@ -1219,7 +1219,7 @@ def map_tyndp_carrier_names(
 
     df = df.merge(carrier_mapping_df, on=on_columns, how="left")
 
-    # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external 
+    # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external
     # mapping. Instead, we will combine the carrier and type information.
     if "pemmdb_carrier" in on_columns:
         # Other Non-RES are assumed to represent CHP plants (according to TYNDP 2024 Methodology report p.37)

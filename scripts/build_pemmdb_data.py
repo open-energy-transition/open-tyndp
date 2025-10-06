@@ -1170,7 +1170,7 @@ if __name__ == "__main__":
     ####################
     # Process capacities
     ####################
-    
+
     node_techs = list(product(nodes, pemmdb_techs))
 
     tqdm_kwargs_caps = {
