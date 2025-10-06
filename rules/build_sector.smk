@@ -1387,7 +1387,7 @@ def input_offshore_hubs(w):
 
 
 def input_pemmdb_data(w):
-    if not config_provider("electricity","pemmdb_capacities","enable"):
+    if not config_provider("electricity", "pemmdb_capacities", "enable"):
         return []
 
     available_years = config_provider(
@@ -1400,7 +1400,9 @@ def input_pemmdb_data(w):
     )
 
     pemmdb_capacties = {
-        f"pemmdb_capacities_{pyear}": resources("pemmdb_capacities_" + str(pyear) + ".csv")
+        f"pemmdb_capacities_{pyear}": resources(
+            "pemmdb_capacities_" + str(pyear) + ".csv"
+        )
         for pyear in safe_pyears
     }
     pemmdb_profiles = {
