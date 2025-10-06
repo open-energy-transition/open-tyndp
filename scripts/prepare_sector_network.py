@@ -3101,7 +3101,7 @@ def add_offshore_generators_tyndp(
     # Load PECD profiles
     p_max_pu = []
     for key, fn in profiles_pecd.items():
-        tech = key[len("profile_") :]
+        tech = key.removeprefix("profile_")
 
         if tech not in offshore_generators.carrier.unique():
             continue

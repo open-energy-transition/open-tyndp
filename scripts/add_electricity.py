@@ -557,8 +557,8 @@ def attach_wind_and_solar(
     landfall_lengths : dict, optional
         Dictionary containing the landfall lengths for offshore wind, by default None.
     trajectories : pd.DataFrame, optional, by default None
-        DataFrame containing the trajectories to attach (p_nom_min and p_nom_max). When provided, these values
-        override any p_nom_max defined the profile itself.
+        DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max). When
+        provided, these values override any p_nom_max defined in the profile itself.
     """
     add_missing_carriers(n, carriers)
 
@@ -626,23 +626,21 @@ def attach_wind_and_solar(
                 caps = pd.Series(index=ds.indexes["bus"]).fillna(0)
             caps.index = caps.index.map(flatten)
 
-            if "p_nom_max" in ds.data_vars and trajectories.empty:
-                p_nom_max = ds["p_nom_max"].to_pandas()
-                p_nom_max.index = p_nom_max.index.map(flatten)
-                p_nom_min = caps
-            elif not trajectories.empty:
+            if not trajectories.empty:
                 p_nom_max_min = (
                     trajectories.query("carrier == @car")
                     .groupby("bus")[["p_nom_max", "p_nom_min"]]
                     .sum()
                 )
                 p_nom_max_min = p_nom_max_min.reindex(
-                    ds.indexes["bus_bin"].get_level_values("bus")
-                ).fillna(0)
-                p_nom_max_min.index = ds.indexes["bus_bin"]
-                p_nom_max_min.index = p_nom_max_min.index.map(flatten)
+                    ds.indexes["bus_bin"].get_level_values("bus"), fill_value=0
+                ).set_axis(ds.indexes["bus_bin"].map(flatten), axis=0)
                 p_nom_max = p_nom_max_min["p_nom_max"]
                 p_nom_min = p_nom_max_min["p_nom_min"]
+            elif "p_nom_max" in ds.data_vars:
+                p_nom_max = ds["p_nom_max"].to_pandas()
+                p_nom_max.index = p_nom_max.index.map(flatten)
+                p_nom_min = caps
             else:
                 p_nom_max = np.inf
                 p_nom_min = caps

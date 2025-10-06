@@ -364,7 +364,7 @@ def load_offshore_generators(
     scenario: str,
     planning_horizons: list[int],
     countries: list[str],
-    extendable_carriers: dict[dict[str, list[str]]],
+    extendable_carriers: dict[str, list[str]],
 ):
     """
     Load offshore generators data and format data.
@@ -393,8 +393,8 @@ def load_offshore_generators(
         List of planning years to include in the cost data filtering.
     countries : list[str]
         List of country codes used to clean data.
-    extendable_carriers : dict[dict[str, list[str]]]
-        Nested dictionary mapping components to list of extendable carriers.
+    extendable_carriers : dict[str, list[str]]
+        Dictionary mapping components to list of extendable carriers.
 
     Returns
     -------
