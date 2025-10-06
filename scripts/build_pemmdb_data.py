@@ -1009,7 +1009,7 @@ def process_pemmdb_profiles(
 
 
 def process_pemmdb_data(
-    element: str,
+    category: str,
     node_tech: tuple[str, str],
     pemmdb_data: dict[str, dict[str, pd.DataFrame]],
     cyear: int,
@@ -1026,8 +1026,8 @@ def process_pemmdb_data(
 
     Parameters
     ----------
-    element : str
-        Element to read data for. Can be either 'capacities' or 'profiles'.
+    category : str
+        Category to read data for. Can be either 'capacities' or 'profiles'.
     node_tech : tuple[str, str]
         Tuple with node and technology to process for.
     pemmdb_data : dict[str, dict[str, pd.DataFrame]]
@@ -1062,7 +1062,7 @@ def process_pemmdb_data(
     if node_tech_data is None:
         return None
 
-    if element == "capacities":
+    if category == "capacities":
         data = process_pemmdb_capacities(
             node_tech_data,
             node,
@@ -1071,7 +1071,7 @@ def process_pemmdb_data(
             pyear,
             carrier_mapping_fn,
         )
-    elif element == "profiles":
+    elif category == "profiles":
         data = process_pemmdb_profiles(
             node_tech_data,
             node,
@@ -1086,7 +1086,7 @@ def process_pemmdb_data(
         )
     else:
         raise Exception(
-            f"Unknown element for PEMMDB data: {element}. Please choose between 'capacities' and 'profiles'."
+            f"Unknown element for PEMMDB data: {category}. Please choose between 'capacities' and 'profiles'."
         )
 
     return data
