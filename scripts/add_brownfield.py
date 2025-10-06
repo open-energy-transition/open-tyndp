@@ -125,6 +125,7 @@ def add_brownfield(
         (n.generators.carrier.str.match("^(onwind|solar)"))
         & (n.generators.build_year == year)
     ].index
+    onwind_solar_min = n.generators.loc[onwind_solar_i, "p_nom_min"]
     onwind_solar_capacity = n.generators.loc[onwind_solar_i, "p_nom"]
     onwind_solar_potential = n.generators.loc[onwind_solar_i, "p_nom_max"]
     already_existing = (
@@ -134,9 +135,17 @@ def add_brownfield(
         .sum()
         .reindex(index=onwind_solar_capacity.index, fill_value=0)
     )
+    remaining_min = (onwind_solar_min - already_existing).clip(lower=0)
     remaining_capacity = (onwind_solar_capacity - already_existing).clip(lower=0)
-    remaining_potential = (onwind_solar_potential - already_existing).clip(lower=0)
-    n.generators.loc[onwind_solar_i, ["p_nom_min", "p_nom"]] = remaining_capacity
+    remaining_potential = onwind_solar_potential - already_existing
+    existing_large = remaining_potential[remaining_potential < 0].index
+    if len(existing_large):
+        logger.warning(
+            f"Existing capacities larger than technical potential for {list(existing_large[:3])}, adjust technical potential to existing capacities"
+        )
+        remaining_potential = remaining_potential.clip(0)
+    n.generators.loc[onwind_solar_i, "p_nom_min"] = remaining_min
+    n.generators.loc[onwind_solar_i, "p_nom"] = remaining_capacity
     n.generators.loc[onwind_solar_i, "p_nom_max"] = remaining_potential
 
     # adjust TYNDP offshore expansion by subtracting existing capacity from previous years
