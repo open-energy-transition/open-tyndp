@@ -25,5 +25,6 @@ Closes # (if applicable).
 - [ ] Changes in configuration options are added in `config/test/*.yaml`.
 - [ ] OET license identifier is added to all edited or newly created code files.
 - [ ] Sources of newly added data are documented in `doc/data_sources.rst`.
+- [ ] New rules are documented in the appropriate `doc/*.rst` files.
 - [ ] A release note `doc/release_notes.rst` is added.
 - [ ] Major features are documented with up-to-date information in `README` and `doc/index.rst`.
