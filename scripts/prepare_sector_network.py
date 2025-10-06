@@ -7,6 +7,7 @@ Adds all sector-coupling components to the network, including demand and supply
 technologies for the buildings, transport and industry sectors.
 """
 
+import functools
 import logging
 import os
 from itertools import product
@@ -3100,17 +3101,22 @@ def add_offshore_generators_tyndp(
 
     # Load PECD profiles
     p_max_pu = []
+
+    @functools.cache
+    def read_profile(fn):
+        with xr.open_dataset(fn) as ds:
+            ds = ds.stack(bus_bin=["bus", "bin"])
+            return ds["profile"].sel(year=pyear, time=n.snapshots).to_pandas()
+
     for key, fn in profiles_pecd.items():
         tech = key.removeprefix("profile_")
 
         if tech not in offshore_generators.carrier.unique():
             continue
 
-        with xr.open_dataset(fn) as ds:
-            ds = ds.stack(bus_bin=["bus", "bin"])
-            p_max_pu_i = ds["profile"].sel(year=pyear, time=n.snapshots).to_pandas()
-            p_max_pu_i.columns = p_max_pu_i.columns.map(flatten) + f" {tech}"
-            p_max_pu.append(p_max_pu_i)
+        p_max_pu_i = read_profile(fn).copy()
+        p_max_pu_i.columns = p_max_pu_i.columns.map(flatten) + f" {tech}"
+        p_max_pu.append(p_max_pu_i)
 
     p_max_pu = pd.concat(p_max_pu, axis=1).reindex(offshore_generators.index, axis=1)
 
