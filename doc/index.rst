@@ -184,11 +184,11 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__
      - ✅
    * -
-     - PEMMDB capacities & must-runs
+     - PEMMDB capacities & must-runs processing
      - `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__
      - ✅
    * -
-     - Investment candidates trajectories
+     - Investment candidates trajectories processing
      - `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__
      - ✅
    * - **TYNDP demand**
