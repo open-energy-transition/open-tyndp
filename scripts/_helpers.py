@@ -1204,7 +1204,7 @@ def map_tyndp_carrier_names(
 
     Parameters
     ----------
-    carriers : pd.DataFrame
+    df : pd.DataFrame
         DataFrame with external carriers to map
     carrier_mapping_df : pd.DataFrame
         DataFrame with mapping from external carriers to available tyndp_carrier names
@@ -1214,14 +1214,15 @@ def map_tyndp_carrier_names(
     Returns
     -------
     pd.DataFrame
-        Input DataFrame with mapping from external carriers to available tyndp carriers and index_carriers
+        Input DataFrame with external carriers mapped to available tyndp_carriers and index_carriers.
     """
 
     df = df.merge(carrier_mapping_df, on=on_columns, how="left")
 
-    # if the carrier is DSR or Other Non-RES, the different price bands are too diverse to use a robust external mapping. We will instead combine carrier and type information
+    # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external 
+    # mapping. Instead, we will combine the carrier and type information.
     if "pemmdb_carrier" in on_columns:
-        # Other Non-RES are assumed to represent CHP plants (according to Methodology report p.37)
+        # Other Non-RES are assumed to represent CHP plants (according to TYNDP 2024 Methodology report p.37)
         df = df.assign(
             open_tyndp_carrier=lambda x: np.where(
                 x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
@@ -1241,7 +1242,7 @@ def map_tyndp_carrier_names(
             ),
         )
 
-    # drop merge columns and rename to new "carrier" and "index_carrier" column
+    # Drop merge columns and rename to new "carrier" and "index_carrier" column
     df = df.drop(on_columns, axis="columns").rename(
         columns={
             "open_tyndp_carrier": "carrier",

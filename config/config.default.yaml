@@ -162,6 +162,9 @@ electricity:
     - 2050
     technologies:
     - Wind_Offshore
+    - LFSolarPVRooftop
+    - LFSolarPVUtility
+    - Wind_Onshore
 
   pemmdb_hydro_profiles:
     enable: false
@@ -185,6 +188,19 @@ electricity:
     - 2050
     technologies:
     - Solar
+    - Wind
+    - Hydro
+    - Other_RES
+    - Gas
+    - Nuclear
+    - Hard_coal
+    - Lignite
+    - Light_oil
+    - Heavy_oil
+    - Oil_shale
+    - Other_Non-RES
+    - Electrolyser
+    - Battery
 
   estimate_renewable_capacities:
     enable: true

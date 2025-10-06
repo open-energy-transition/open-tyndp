@@ -25,7 +25,7 @@ Upcoming Open-TYNDP Release
 
 * Introduce PECD pre-built dataset to reduce data retrieval requirements (https://github.com/open-energy-transition/open-tyndp/pull/123). Users can either retrieve pre-processed PECD data for the climate years 1995, 2008 and 2009 from GCP storage, or build from raw data for any year between 1982 and 2019.
 
-* Introduce processing of PEMMDB v.2.4 capacity, must-run and availability data as well as expansion trajectories for conventional and renewable power generation, electrolysers, batteries and DSR (https://github.com/open-energy-transition/open-tyndp/pull/97).
+* Introduce processing and preparation of PEMMDB v2.4 capacity, must-run, and availability data, along with expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and DSR (https://github.com/open-energy-transition/open-tyndp/pull/97).
 
 
 Upcoming PyPSA-Eur Release
