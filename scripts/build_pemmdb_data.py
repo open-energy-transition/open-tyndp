@@ -637,7 +637,7 @@ def _process_other_res_profiles(
             pemmdb_carrier=pemmdb_tech,
             pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
         )
-        .query("time in @sns")
+        .loc[lambda x: x["time"].isin(sns)]
         .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
             ["p_min_pu", "p_max_pu"]
         ]
@@ -710,7 +710,7 @@ def _process_other_nonres_profiles(
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
-        .query("time in @sns")
+        .loc[lambda x: x["time"].isin(sns)]
         .set_index(["time", "bus", "pemmdb_carrier"])
         .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
         .set_index("pemmdb_type", append=True)
@@ -785,7 +785,7 @@ def _process_dsr_profiles(
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
-        .query("time in @sns")
+        .loc[lambda x: x["time"].isin(sns)]
         .set_index(["time", "bus", "pemmdb_carrier"])
         .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
         .set_index("pemmdb_type", append=True)
