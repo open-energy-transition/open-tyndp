@@ -1197,19 +1197,24 @@ def safe_pyear(
 
 
 def map_tyndp_carrier_names(
-    df: pd.DataFrame, carrier_mapping_df: pd.DataFrame, on_columns: list[str]
+    df: pd.DataFrame,
+    carrier_mapping_fn: str,
+    on_columns: list[str],
+    drop_merge_columns=False,
 ):
     """
-    Map external carriers to available tyndp_carrier names based on an input mapping.
+    Map external carriers to available tyndp_carrier names based on an input mapping. Optionally drop merged on columns.
 
     Parameters
     ----------
     df : pd.DataFrame
         DataFrame with external carriers to map
-    carrier_mapping_df : pd.DataFrame
-        DataFrame with mapping from external carriers to available tyndp_carrier names
+    carrier_mapping_fn : str
+        Path to file with mapping from external carriers to available tyndp_carrier names.
     on_columns : list[str]
         Columns to merge on between the external carriers and tyndp_carriers.
+    drop_merge_columns : bool, optional
+        Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier` and `index_carrier`. Defaults to False.
 
     Returns
     -------
@@ -1217,7 +1222,17 @@ def map_tyndp_carrier_names(
         Input DataFrame with external carriers mapped to available tyndp_carriers and index_carriers.
     """
 
-    df = df.merge(carrier_mapping_df, on=on_columns, how="left")
+    # read TYNDP carrier mapping
+    carrier_mapping = (
+        pd.read_csv(carrier_mapping_fn)[
+            on_columns + ["open_tyndp_carrier", "open_tyndp_index"]
+        ]
+    ).dropna()
+
+    df = df.merge(carrier_mapping, on=on_columns, how="left")
+
+    def normalize_carrier(s):
+        return s.lower().replace(" ", "-").replace("other-non-res", "chp")
 
     # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external
     # mapping. Instead, we will combine the carrier and type information.
@@ -1226,23 +1241,22 @@ def map_tyndp_carrier_names(
         df = df.assign(
             open_tyndp_carrier=lambda x: np.where(
                 x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["pemmdb_carrier"]
-                .str.lower()
-                .str.split(" ")
-                .str.join("-")
-                .str.replace("other-non-res", "chp"),
+                x["pemmdb_carrier"].apply(normalize_carrier),
                 x["open_tyndp_carrier"],
             ),
             open_tyndp_index=lambda x: np.where(
                 x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
                 x["open_tyndp_carrier"]
                 + "-"
-                + x["pemmdb_type"].str.lower().str.split(" ").str.join("-"),
+                + x["pemmdb_type"].apply(normalize_carrier),
                 x["open_tyndp_index"],
             ),
         )
 
-    # Drop merge columns and rename to new "carrier" and "index_carrier" column
+    if not drop_merge_columns:
+        return df
+
+    # Otherwise drop merge columns and rename to new "carrier" and "index_carrier" column
     df = df.drop(on_columns, axis="columns").rename(
         columns={
             "open_tyndp_carrier": "carrier",

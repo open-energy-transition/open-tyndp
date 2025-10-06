@@ -809,7 +809,7 @@ def process_pemmdb_capacities(
     pemmdb_tech: str,
     cyear: int,
     pyear: int,
-    carrier_mapping_df: pd.DataFrame,
+    carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
     Read and clean capacities from PEMMDB for a given technology, planning and climate year.
@@ -826,8 +826,8 @@ def process_pemmdb_capacities(
         Climate year to read data for.
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
-    carrier_mapping_df : pd.DataFrame
-        Dataframe containing the carrier mapping from PEMMDB carrier to TYNDP technology name.
+    carrier_mapping_fn : str
+        Path to file with mapping from external carriers to available tyndp_carrier names.
 
     Returns
     -------
@@ -904,7 +904,10 @@ def process_pemmdb_capacities(
 
         # Map pemmdb_carrier and pemmdb_type to TYNDP technology names
         capacities = map_tyndp_carrier_names(
-            capacities, carrier_mapping_df, ["pemmdb_carrier", "pemmdb_type"]
+            capacities,
+            carrier_mapping_fn,
+            ["pemmdb_carrier", "pemmdb_type"],
+            drop_merge_columns=True,
         )
 
         return capacities
@@ -925,7 +928,7 @@ def process_pemmdb_profiles(
     pyear_i: int,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-    carrier_mapping_df: pd.DataFrame,
+    carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
     Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
@@ -951,8 +954,8 @@ def process_pemmdb_profiles(
         Modelled snapshots.
     index_year : pd.DatetimeIndex
         Hourly Datetime index for a full given cyear.
-    carrier_mapping_df : pd.DataFrame
-        Dataframe containing the carrier mapping from PEMMDB carrier to TYNDP technology name.
+    carrier_mapping_fn : str
+        Path to file with mapping from external carriers to available tyndp_carrier names
 
     Returns
     -------
@@ -999,8 +1002,9 @@ def process_pemmdb_profiles(
         # Map PEMMDB carrier names to TYNDP technologies
         profiles = map_tyndp_carrier_names(
             profiles.reset_index(),
-            carrier_mapping_df,
+            carrier_mapping_fn,
             ["pemmdb_carrier", "pemmdb_type"],
+            drop_merge_columns=True,
         ).set_index(["time", "bus", "carrier", "index_carrier"])
 
         return profiles
@@ -1021,7 +1025,7 @@ def process_pemmdb_data(
     tyndp_scenario: str,
     sns: pd.DatetimeIndex,
     index_year: pd.DatetimeIndex,
-    carrier_mapping_df: pd.DataFrame,
+    carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
     Reads and cleans either capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles
@@ -1047,8 +1051,8 @@ def process_pemmdb_data(
         Modelled snapshots.
     index_year : pd.DatetimeIndex
         Hourly Datetime index for a full given cyear.
-    carrier_mapping_df : pd.DataFrame
-        Dataframe containing the carrier mapping from PEMMDB carrier to TYNDP technology name.
+    carrier_mapping_fn : str
+        Path to file with mapping from external carriers to available tyndp_carrier names.
 
     Returns
     -------
@@ -1072,7 +1076,7 @@ def process_pemmdb_data(
             pemmdb_tech,
             cyear,
             pyear,
-            carrier_mapping_df,
+            carrier_mapping_fn,
         )
     elif element == "profiles":
         data = process_pemmdb_profiles(
@@ -1085,7 +1089,7 @@ def process_pemmdb_data(
             pyear_i,
             sns,
             index_year,
-            carrier_mapping_df,
+            carrier_mapping_fn,
         )
     else:
         raise Exception(
@@ -1112,11 +1116,7 @@ if __name__ == "__main__":
     nodes = pd.read_csv(snakemake.input.busmap, index_col=0).index
     pemmdb_dir = snakemake.input.pemmdb_dir
     tyndp_scenario = snakemake.params.tyndp_scenario
-    carrier_mapping_df = (
-        pd.read_csv(snakemake.input.carrier_mapping)[
-            ["pemmdb_carrier", "pemmdb_type", "open_tyndp_carrier", "open_tyndp_index"]
-        ]
-    ).dropna()
+    carrier_mapping_fn = snakemake.input.carrier_mapping
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
@@ -1194,7 +1194,7 @@ if __name__ == "__main__":
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     index_year=index_year,
-                    carrier_mapping_df=carrier_mapping_df,
+                    carrier_mapping_fn=carrier_mapping_fn,
                 )
                 for node_tech in tqdm(node_techs, **tqdm_kwargs_caps)
             )
@@ -1239,7 +1239,7 @@ if __name__ == "__main__":
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     index_year=index_year,
-                    carrier_mapping_df=carrier_mapping_df,
+                    carrier_mapping_fn=carrier_mapping_fn,
                 )
                 for node_tech in tqdm(node_techs, **tqdm_kwargs_profiles)
             )
