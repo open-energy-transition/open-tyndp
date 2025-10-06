@@ -129,6 +129,7 @@ electricity:
     - Heavy_oil
     - Oil_shale
     - Other_Non-RES
+    - Hydrogen
     - Electrolyser
     - Battery
 
