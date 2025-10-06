@@ -55,6 +55,7 @@ if __name__ == "__main__":
         pd.read_excel(fn, sheet_name="GLOBAL")
         .rename(column_names, axis="columns")
         .replace(SCENARIO_DICT, regex=True)
+        .replace("UK", "GB", regex=True)
         .query("scenario == @tyndp_scenario or scenario in @trajectories_id")
     )
 
