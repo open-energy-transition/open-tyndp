@@ -7524,10 +7524,11 @@ if __name__ == "__main__":
         .pecd_carrier.dropna()
         .to_dict()
     )
+    tyndp_renewable_carriers = snakemake.params.electricity["tyndp_renewable_carriers"]
     profiles_pecd = {
         f"profile_{k}": snakemake.input.get(f"profile_pecd_{v}")
         for k, v in profiles_pecd.items()
-        if snakemake.input.get(f"profile_pecd_{v}")
+        if k in tyndp_renewable_carriers
     }
 
     landfall_lengths = {
@@ -7539,7 +7540,6 @@ if __name__ == "__main__":
         n, costs, carriers_to_keep, profiles_atlite_offwind, landfall_lengths
     )
 
-    tyndp_renewable_carriers = snakemake.params.electricity["tyndp_renewable_carriers"]
     tyndp_solar_onwind = [
         c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
     ]
