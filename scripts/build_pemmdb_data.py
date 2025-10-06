@@ -71,6 +71,71 @@ PEMMDB_SHEET_MAPPING = {
 }
 
 
+def drop_duplicate_price_bands(
+    df: pd.DataFrame,
+    groupby: str | list[str],
+    pemmdb_tech: str,
+    node: str,
+    cyear: int,
+    **kwargs,
+) -> pd.DataFrame:
+    """
+    Check given dataframe for duplicate PEMMDB entries with same type, purpose, and price but different capacities. Keep first entry.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe to check for duplicate prices bands.
+    groupby : str|list[str]
+        Columns to group by.
+    pemmdb_tech: str
+        PEMMDB technology name.
+    node: str
+        Node name.
+    cyear: int
+        Climate year.
+    **kwargs : dict
+        Keyword arguments passed to pd.DataFrame.groupby().
+
+    Returns
+    -------
+    df : pd.DataFrame
+        Dataframe without duplicate prices bands.
+    """
+    if (
+        "pemmdb_type" in df.columns
+        and df.pemmdb_type.duplicated().any()
+        or df.index.duplicated().any()
+    ):
+        # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price but different capacities. Using first entry.
+        logger.warning(
+            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
+        )
+    return df.groupby(groupby, **kwargs).first()
+
+
+def extract_price_band_type(df: pd.DataFrame) -> str:
+    """
+    Extract price band type information consisting of the PEMMDB type, the purpose of the plant and the price from Dataframe and combine into one string.
+    """
+    if "purpose" in df.columns:
+        return (
+            df.pemmdb_type.str.split("/").str[1:].str.join("-")
+            + "-"
+            + df.purpose.astype(str)
+            + "-"
+            + df.price.astype(str)
+            + "eur"
+        )
+    elif "hours" in df.columns:
+        return df.hours.astype("str") + "h-" + df.price.astype("str") + "eur"
+    else:
+        logger.warning(
+            "No purpose or hours column in Dataframe to extract for price band type."
+        )
+        return df.price.astype("str") + "eur"
+
+
 def read_pemmdb_data(
     node: str,
     pemmdb_dir: str,
@@ -129,7 +194,7 @@ def read_pemmdb_data(
         )
 
 
-def _process_thermal_capacities(
+def _process_thermal_hydrogen_capacities(
     node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
@@ -204,14 +269,7 @@ def _process_other_nonres_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            pemmdb_type=lambda x: (
-                x.pemmdb_type.str.split("/").str[1:].str.join("-")
-                + "-"
-                + x.purpose.astype(str)
-                + "-"
-                + x.price.astype(str)
-                + "eur"
-            ),
+            pemmdb_type=lambda x: extract_price_band_type(x),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -230,13 +288,10 @@ def _process_other_nonres_capacities(
         )
         return None
 
-    # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price but different capacities. Using first entry.
-    if df.pemmdb_type.duplicated().any():
-        logger.warning(
-            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
-        )
-
-    df = df.groupby("pemmdb_type", as_index=False).first().reset_index(drop=True)
+    # Check for duplicate price bands and keep first entry only
+    df = drop_duplicate_price_bands(
+        df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
+    ).reset_index(drop=True)
 
     return df
 
@@ -422,21 +477,17 @@ def _process_battery_capacities(
 
     units = ["MW", "MW", "MWh"]
     types = ["Charge", "Discharge", "Store"]
-    p_noms = pd.concat(
-        [df_raw["p_nom_charge"], df_raw["p_nom_discharge"], df_raw["p_nom_store"]],
-        axis=0,
-    )
 
-    df = pd.DataFrame(
-        dict(
-            p_nom=p_noms.values,
-            efficiency=df_raw.efficiency[0],
-            pemmdb_carrier=pemmdb_tech,
-            bus=node,
-            country=node[:2],
-            pemmdb_type=types,
-            unit=units,
-        )
+    df = df_raw.melt(
+        value_vars=["p_nom_charge", "p_nom_discharge", "p_nom_store"],
+        value_name="p_nom",
+    ).assign(
+        efficiency=df_raw.efficiency[0],
+        pemmdb_carrier=pemmdb_tech,
+        bus=node,
+        country=node[:2],
+        pemmdb_type=types,
+        unit=units,
     )
 
     return df
@@ -482,10 +533,7 @@ def _process_dsr_capacities(
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
-            pemmdb_type=lambda x: x.hours.astype("str")
-            + "h-"
-            + x.price.astype("str")
-            + "eur",
+            pemmdb_type=lambda x: extract_price_band_type(x),
             efficiency=1.0,  # dummy value for efficiency
         )
         .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
@@ -498,16 +546,15 @@ def _process_dsr_capacities(
         )
         return None
 
-    if df.pemmdb_type.duplicated().any():
-        logger.warning(
-            f"{node} has duplicated price bands for 'DSR' and cyear {cyear} with the same type (hours and price) but differing capacities. Keeping only first entry."
-        )
-        df = df.groupby("pemmdb_type", as_index=False).first()
+    # Check for duplicate price bands and keep first entry only
+    df = drop_duplicate_price_bands(
+        df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
+    ).reset_index(drop=True)
 
     return df
 
 
-def _process_thermal_profiles(
+def _process_thermal_hydrogen_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
     pemmdb_tech: str,
@@ -607,7 +654,7 @@ def _process_other_res_profiles(
 
     capacity = np.float64(df.iloc[0, 1])
 
-    if np.isnan(capacity):
+    if np.isnan(capacity) or capacity == 0:
         logger.warning(
             f"No 'Other RES' capacity found for {node} in {pyear}, hence no must-run profile available."
         )
@@ -616,9 +663,9 @@ def _process_other_res_profiles(
     profiles = (
         df.iloc[3:, 2]
         .to_frame()
-        .set_axis(["p_min"], axis="columns")
+        .set_axis(["p_min_t"], axis="columns")
         .assign(
-            p_min_pu=lambda df: pd.to_numeric(df.p_min / capacity)
+            p_min_pu=lambda df: pd.to_numeric(df.p_min_t / capacity)
             if capacity > 0
             else 0.0,
             p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
@@ -680,15 +727,8 @@ def _process_other_nonres_profiles(
     # Filter for climate year
     df = df.loc[:, mask]
 
-    # Extract capacity and plant type
-    type = (
-        df.loc["pemmdb_type", :].str.split("/").str[1:].str.join("-")
-        + "-"
-        + df.loc["purpose", :].astype(str)
-        + "-"
-        + df.loc["price", :].astype(str)
-        + "eur"
-    )
+    # Extract plant type
+    type = extract_price_band_type(df.T)
 
     df_long = (
         df.iloc[10:]
@@ -707,13 +747,10 @@ def _process_other_nonres_profiles(
         .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
     )
 
-    if df_long.index.duplicated().any():
-        logger.warning(
-            f"{node} has duplicated price bands for '{pemmdb_tech}' and cyear {cyear} with the same type (type, purpose, price) but differing capacities. Keeping only first entry."
-        )
-
-    # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
-    profiles = df_long.groupby(df_long.index.names).first()
+    # Check for duplicate price bands and keep first entry only
+    profiles = drop_duplicate_price_bands(
+        df_long, df_long.index.names, pemmdb_tech, node, cyear, as_index=True
+    )
 
     return profiles
 
@@ -758,12 +795,7 @@ def _process_dsr_profiles(
     df = df.loc[:, mask]
 
     # Extract price band type information
-    type = (
-        df.loc["hours", :].astype("str")
-        + "h-"
-        + df.loc["price", :].astype("str")
-        + "eur"
-    )
+    type = extract_price_band_type(df.T)
 
     df_long = (
         df.iloc[7:]
@@ -782,13 +814,10 @@ def _process_dsr_profiles(
         .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
     )
 
-    if df_long.index.duplicated().any():
-        logger.warning(
-            f"{node} has duplicated price bands for 'DSR' and cyear {cyear} with the same type (hours and price) but differing capacities. Keeping only first entry."
-        )
-
-    # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price but different capacities. Using first entry.
-    profiles = df_long.groupby(df_long.index.names).first()
+    # Check for duplicate price bands and keep first entry only
+    profiles = drop_duplicate_price_bands(
+        df_long, df_long.index.names, pemmdb_tech, node, cyear, as_index=True
+    )
 
     return profiles
 
@@ -827,7 +856,7 @@ def process_pemmdb_capacities(
     try:
         # Conventionals & Hydrogen
         if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
-            capacities = _process_thermal_capacities(
+            capacities = _process_thermal_hydrogen_capacities(
                 node_tech_data, node, cyear, pemmdb_tech
             )
 
@@ -955,7 +984,7 @@ def process_pemmdb_profiles(
     try:
         # Conventionals & Hydrogen
         if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
-            profiles = _process_thermal_profiles(
+            profiles = _process_thermal_hydrogen_profiles(
                 node_tech_data,
                 node,
                 pemmdb_tech,
@@ -1148,10 +1177,10 @@ if __name__ == "__main__":
         required_techs=pemmdb_techs,
     )
 
-    with mp.Pool(processes=snakemake.threads) as pool1:
+    with mp.Pool(processes=snakemake.threads) as pool:
         pemmdb_data_list = [
             data
-            for data in tqdm(pool1.imap(func_read, nodes), **tqdm_kwargs_read)
+            for data in tqdm(pool.imap(func_read, nodes), **tqdm_kwargs_read)
             if data is not None
         ]
 
