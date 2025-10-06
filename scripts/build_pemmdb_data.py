@@ -248,15 +248,12 @@ def _parse_index_parts(
     Parse index parts of PEMMDB renewable capacity sheets based on technology type.
     """
     if pemmdb_tech == "Hydro":
-        parts = index.str.split(r" - |capacity |\s*\(|\)", regex=True)
-        type_series = parts.str[0]
-        unit_series = parts.str[-2]
+        pattern = r"^(.*?)\s*(?:\(.*?\))?\s*-\s*.*?capacity\s*\((.*?)\)"
     else:
-        parts = index.str.split(r"capacities |\s*\(|\)", regex=True)
-        type_series = parts.str[1]
-        unit_series = parts.str[2]
+        pattern = r"capacities\s+(.*?)\s+\((.*?)\)"
+    extracted = index.str.extract(pattern).T.values
 
-    return type_series, unit_series
+    return extracted[0], extracted[1]
 
 
 def _process_res_capacities(
