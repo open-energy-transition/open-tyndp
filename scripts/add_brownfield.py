@@ -132,15 +132,10 @@ def add_brownfield(
         .rename(lambda x: x.split("-2")[0] + f"-{year}")
         .groupby(level=0)
         .sum()
+        .reindex(index=onwind_solar_capacity.index, fill_value=0)
     )
-    remaining_capacity = (
-        onwind_solar_capacity
-        - already_existing.reindex(index=onwind_solar_capacity.index).fillna(0)
-    ).clip(lower=0)
-    remaining_potential = (
-        onwind_solar_potential
-        - already_existing.reindex(index=onwind_solar_capacity.index).fillna(0)
-    ).clip(lower=0)
+    remaining_capacity = (onwind_solar_capacity - already_existing).clip(lower=0)
+    remaining_potential = (onwind_solar_potential - already_existing).clip(lower=0)
     n.generators.loc[onwind_solar_i, ["p_nom_min", "p_nom"]] = remaining_capacity
     n.generators.loc[onwind_solar_i, "p_nom_max"] = remaining_potential
 
@@ -181,6 +176,7 @@ def add_brownfield(
                 ]
                 .groupby(level=0)
                 .sum()
+                .reindex(index=off_capacity.index, fill_value=0)
             )
 
             # account for the shared potential of hydrogen- and electricity-generating wind farms
@@ -203,19 +199,16 @@ def add_brownfield(
                     pd.concat([already_existing.p_nom_opt, h2_to_dc, dc_to_h2])
                     .groupby(level=0)
                     .sum()
+                    .reindex(index=off_capacity.index, fill_value=0)
                 )
             else:
                 already_existing_l = already_existing.p_nom_opt
 
             # values should be non-negative; clipping applied to handle rounding errors
-            remaining_capacity = (
-                off_capacity
-                - already_existing.p_nom_opt.reindex(index=off_capacity.index).fillna(0)
-            ).clip(lower=0)
-            remaining_potential = (
-                off_potential
-                - already_existing_l.reindex(index=off_capacity.index).fillna(0)
-            ).clip(lower=0)
+            remaining_capacity = (off_capacity - already_existing.p_nom_opt).clip(
+                lower=0
+            )
+            remaining_potential = (off_potential - already_existing_l).clip(lower=0)
             c.df.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
             c.df.loc[off_i, "p_nom_max"] = remaining_potential
 
