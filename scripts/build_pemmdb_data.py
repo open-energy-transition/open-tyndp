@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -6,9 +6,9 @@ Collects and bundles the available PEMMDB v2.4 capacities and profiles for diffe
 
 Outputs
 -------
-Cleaned csv file with all NT capacities (p_nom) in long format and netcdf file with must run obligations (p_min_pu) and availability (p_max_pu) for all different PEMMDB technologies.
+Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file containing the must run obligations (p_min_pu) and availability (p_max_pu) for each of the different PEMMDB technologies.
 
-- ``resources/pemdb_capacties_{planning_horizon}.csv`` in long format
+- ``resources/pemmdb_capacities_{planning_horizon}.csv`` in long format
 - ``resources/pemmdb_profiles_{planning_horizon}.nc`` with the following structure:
 
     ===================  ====================  =========================================================
@@ -86,8 +86,7 @@ def read_pemmdb_data(
     required_techs: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
-    Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
-    from PEMMDB for a given technology, planning and climate year.
+    Reads raw data from the PEMMDB for a specific planning and climate year, and a given set of technologies.
 
     Parameters
     ----------
@@ -98,9 +97,9 @@ def read_pemmdb_data(
     cyear : int
         Climate year to read data for.
     pyear : int
-        Planning year to read data for. Can be fallback year to available data.
+        Planning year used for data retrieval (fallback year if pyear_i not available).
     required_techs : list[str], optional
-        List of required technologies to read pemmdb data for.
+        List of required technologies to read PEMMDB data for.
 
     Returns
     -------
@@ -238,12 +237,12 @@ def _process_other_nonres_capacities(
         )
         return None
 
+    # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price but different capacities. Using first entry.
     if df.pemmdb_type.duplicated().any():
         logger.warning(
-            f"{node} has duplicated price bands for '{pemmdb_tech}' and cyear {cyear} with the same type (type, purpose, price) but differing capacities. Keeping only first entry."
+            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
         )
 
-    # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
     df = df.groupby("pemmdb_type", as_index=False).first().reset_index(drop=True)
 
     return df
@@ -291,7 +290,7 @@ def _process_res_capacities(
         )
         return None
 
-    # Induce type and unit from index
+    # Infer type and unit from index
     types, units = _parse_index_parts(df.index, pemmdb_tech)
 
     # Extract data
@@ -321,7 +320,7 @@ def _process_res_capacities(
         df["pemmdb_type"],
     )
 
-    df = convert_units(df, "unit", "p_nom").reset_index(drop=True)
+    df = convert_units(df, value_col="p_nom").reset_index(drop=True)
 
     return df
 
@@ -432,7 +431,7 @@ def _process_battery_capacities(
     df_raw = df_raw.set_axis(column_names, axis=1)
 
     units = ["MW", "MW", "MWh"]
-    types = ["Discharge", "Charge", "Store"]
+    types = ["Charge", "Discharge", "Store"]
     p_noms = pd.concat(
         [df_raw["p_nom_charge"], df_raw["p_nom_discharge"], df_raw["p_nom_store"]],
         axis=0,
@@ -459,7 +458,7 @@ def _process_dsr_capacities(
     """
     Extract and clean `DSR` capacities.
 
-    nb: Includes only Market Response (user not willing to pay more than 'Activation price')
+    nb: Include only Market Response (user not willing to pay more than 'Activation price')
     nb: Activation price of -1 marks bands not to be modelled in MARKET models
     """
     # Get raw data
@@ -556,7 +555,7 @@ def _process_thermal_profiles(
         .dropna(how="all")
     )
 
-    # Deal with Nuclear and Light Oil entries as they do not have a pemmdb type
+    # Deal with Nuclear and Light Oil entries as they do not have a PEMMDB type
     nuclear_lightoil_i = must_runs.query(
         "pemmdb_carrier in ['Nuclear', 'Light oil']"
     ).index
@@ -592,9 +591,10 @@ def _process_thermal_profiles(
             pemmdb_carrier=pemmdb_tech, bus=node, p_max_pu=1.0
         )  # also set p_max_pu with default value of 1.0
         .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
+        .sort_index()  # sort index for more efficient indexing
     )
 
-    # Remove must-runs for DE and GA after 2030 as to 2024 TYNDP Methodology report, p.37
+    # Remove must-runs for DE and GA scenarios after 2030 (per TYNDP 2024 Methodology, p.37)
     if tyndp_scenario != "NT" and pyear_i > 2030:
         profiles.loc[:, "p_min_pu"] = 0.0
 
@@ -687,7 +687,7 @@ def _process_other_nonres_profiles(
         )
         return None
 
-    # Filter for climate year and rename single column
+    # Filter for climate year
     df = df.loc[:, mask]
 
     # Extract capacity and plant type
@@ -723,7 +723,7 @@ def _process_other_nonres_profiles(
         )
 
     # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
-    profiles = df_long.groupby(level=[0, 1, 2, 3]).first()
+    profiles = df_long.groupby(df_long.index.names).first()
 
     return profiles
 
@@ -764,7 +764,7 @@ def _process_dsr_profiles(
         )
         return None
 
-    # Filter for climate year and rename single column
+    # Filter for climate year
     df = df.loc[:, mask]
 
     # Extract price band type information
@@ -797,8 +797,8 @@ def _process_dsr_profiles(
             f"{node} has duplicated price bands for 'DSR' and cyear {cyear} with the same type (hours and price) but differing capacities. Keeping only first entry."
         )
 
-    # Some datasets have duplicate price bands with same cyear, hours and price but different capacities. We keep the first entry only
-    profiles = df_long.groupby(level=[0, 1, 2, 3]).first()
+    # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price but different capacities. Using first entry.
+    profiles = df_long.groupby(df_long.index.names).first()
 
     return profiles
 
@@ -825,14 +825,14 @@ def process_pemmdb_capacities(
     cyear : int
         Climate year to read data for.
     pyear : int
-        Planning year to read data for. Can be fallback year to available data.
+        Planning year used for data retrieval (fallback year if pyear_i not available).
     carrier_mapping_df : pd.DataFrame
         Dataframe containing the carrier mapping from PEMMDB carrier to TYNDP technology name.
 
     Returns
     -------
     pd.DataFrame
-        Ddataframe containing NT capacities (p_nom) in long format for the given pemmdb technology and node.
+        Dataframe containing NT capacities (p_nom) in long format for the given PEMMDB technology and node.
     """
     try:
         # Conventionals & Hydrogen
@@ -899,10 +899,10 @@ def process_pemmdb_capacities(
                     "country",
                     "unit",
                 ]
-            ]  # # select and order relevant columns
+            ]  # select and order relevant columns
         ).reset_index(drop=True)
 
-        # Map pemmdb_carrier and pemmdb_type to tyndp technology names
+        # Map pemmdb_carrier and pemmdb_type to TYNDP technology names
         capacities = map_tyndp_carrier_names(
             capacities, carrier_mapping_df, ["pemmdb_carrier", "pemmdb_type"]
         )
@@ -911,7 +911,7 @@ def process_pemmdb_capacities(
 
     except Exception as e:
         raise Exception(
-            f"Error processing capacities for {pemmdb_tech} at {node} for climate year {cyear} and planning year {pyear}: {e}"
+            f"Error while processing capacities for {pemmdb_tech} at {node} for climate year {cyear} and planning year {pyear}: {e}"
         )
 
 
@@ -944,7 +944,7 @@ def process_pemmdb_profiles(
     cyear : int
         Climate year to read data for.
     pyear : int
-        Planning year to read data for. Can be fallback year to available data.
+        Planning year used for data retrieval (fallback year if pyear_i not available).
     pyear_i : int
         Original planning year.
     sns : pd.DatetimeIndex
@@ -996,7 +996,7 @@ def process_pemmdb_profiles(
         if profiles is None:
             return None
 
-        # Map pemmdb carrier names to tyndp technologies
+        # Map PEMMDB carrier names to TYNDP technologies
         profiles = map_tyndp_carrier_names(
             profiles.reset_index(),
             carrier_mapping_df,
@@ -1038,7 +1038,7 @@ def process_pemmdb_data(
     cyear : int
         Climate year to read data for.
     pyear : int
-        Planning year to read data for. Can be fallback year to available data.
+        Planning year used for data retrieval (fallback year if pyear_i not available).
     pyear_i : int
         Original planning year.
     tyndp_scenario : str
@@ -1058,7 +1058,7 @@ def process_pemmdb_data(
     # Extract node and tech information
     node, pemmdb_tech = node_tech
 
-    # Extract pemmdb data for corresponding node and tech
+    # Extract PEMMDB data for corresponding node and tech
     node_tech_data = pemmdb_data.get(node, {}).get(
         pemmdb_sheet_mapping.get(pemmdb_tech, ""), None
     )
@@ -1109,8 +1109,7 @@ if __name__ == "__main__":
 
     # Parameter
     pemmdb_techs = [tech.replace("_", " ") for tech in snakemake.params.pemmdb_techs]
-    onshore_buses = pd.read_csv(snakemake.input.busmap, index_col=0)
-    nodes = onshore_buses.index
+    nodes = pd.read_csv(snakemake.input.busmap, index_col=0).index
     pemmdb_dir = snakemake.input.pemmdb_dir
     tyndp_scenario = snakemake.params.tyndp_scenario
     carrier_mapping_df = (
@@ -1131,7 +1130,7 @@ if __name__ == "__main__":
     # Only climate years 1995, 2008 and 2009 are available for all technologies and countries
     if cyear not in [1995, 2008, 2009]:
         logger.warning(
-            "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
         )
         cyear = 2009
 
@@ -1168,11 +1167,11 @@ if __name__ == "__main__":
 
     pemmdb_data = {node: data for d in pemmdb_data_list for node, data in d.items()}
 
-    node_techs = list(product(nodes, pemmdb_techs))
-
     ####################
     # Process capacities
     ####################
+
+    node_techs = list(product(nodes, pemmdb_techs))
 
     tqdm_kwargs_caps = {
         "ascii": False,
@@ -1208,8 +1207,7 @@ if __name__ == "__main__":
             f"Please specify different technologies, climate year or planning year."
         )
         # Save empty file
-        empty_caps = pd.DataFrame()
-        empty_caps.to_csv(snakemake.output.pemmdb_capacities)
+        pd.DataFrame().to_csv(snakemake.output.pemmdb_capacities)
         sys.exit(0)
 
     # Otherwise concat capacities into one dataframe and save to csv
@@ -1254,10 +1252,9 @@ if __name__ == "__main__":
             f"Please specify different technologies, climate year or planning year."
         )
         # Save empty dataset
-        ds = xr.Dataset()
-        ds.to_netcdf(snakemake.output.pemmdb_profiles)
+        xr.Dataset().to_netcdf(snakemake.output.pemmdb_profiles)
         sys.exit(0)
 
-    # Otherwise merge pemmdb profiles into one pd.DataFrame, convert to xarray dataset and save
+    # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
     ds = pd.concat(pemmdb_profiles, axis=0).to_xarray()
     ds.to_netcdf(snakemake.output.pemmdb_profiles)

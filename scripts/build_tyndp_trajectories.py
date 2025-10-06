@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Open Energy Transition gGmbH
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -6,7 +6,7 @@ Loads and cleans the TYNDP capacity trajectories for a given TYNDP scenario.
 
 Outputs
 -------
-Cleaned csv file with all TYNDP trajectories (`p_nom_min`, `p_nom_max`) as well as build out limitations in long format.
+Cleaned CSV file with all TYNDP trajectories (`p_nom_min`, `p_nom_max`) as well as build out limitations in long format.
 
 - ``resources/tyndp_trajectories.csv`` in long format.
 """
@@ -36,6 +36,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    # Parameters
     fn = snakemake.input.trajectories
     tyndp_scenario = snakemake.params.tyndp_scenario
     column_names = {
