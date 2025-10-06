@@ -59,11 +59,7 @@ RENEWABLES = [
     "Hydro",
 ]
 
-pemmdb_sheet_mapping = {
-    "Solar": "Solar",
-    "Wind": "Wind",
-    "Hydro": "Hydro",
-    "Other RES": "Other RES",
+PEMMDB_SHEET_MAPPING = {
     "Gas": "Thermal",
     "Nuclear": "Thermal",
     "Hard coal": "Thermal",
@@ -71,10 +67,7 @@ pemmdb_sheet_mapping = {
     "Light oil": "Thermal",
     "Heavy oil": "Thermal",
     "Oil shale": "Thermal",
-    "Other Non-RES": "Other Non-RES",
-    "Electrolyser": "Electrolyser",
-    "Battery": "Battery",
-    "DSR": "DSR",
+    "Hydrogen": "Thermal",
 }
 
 
@@ -119,9 +112,9 @@ def read_pemmdb_data(
     try:
         if required_techs:
             required_sheets = [
-                pemmdb_sheet_mapping.get(tech)
+                PEMMDB_SHEET_MAPPING.get(tech, tech)
                 for tech in required_techs
-                if pemmdb_sheet_mapping.get(tech)
+                if PEMMDB_SHEET_MAPPING.get(tech, tech)
             ]
             required_sheets = list(set(required_sheets))
             data = pd.read_excel(fn, sheet_name=required_sheets)
@@ -1064,7 +1057,7 @@ def process_pemmdb_data(
 
     # Extract PEMMDB data for corresponding node and tech
     node_tech_data = pemmdb_data.get(node, {}).get(
-        pemmdb_sheet_mapping.get(pemmdb_tech, ""), None
+        PEMMDB_SHEET_MAPPING.get(pemmdb_tech, pemmdb_tech), None
     )
     if node_tech_data is None:
         return None
