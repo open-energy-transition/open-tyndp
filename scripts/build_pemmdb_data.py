@@ -79,7 +79,7 @@ def read_pemmdb_data(
     required_techs: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
-    Reads raw data from the PEMMDB for a specific planning and climate year, and a given set of technologies.
+    Read raw data from the PEMMDB for a specific planning and climate year, and a given set of technologies.
 
     Parameters
     ----------
@@ -924,7 +924,7 @@ def process_pemmdb_profiles(
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
-    Reads and cleans must run obligations (p_min_pu) and availability (p_max_pu) profiles
+    Read and clean must run obligations (p_min_pu) and availability (p_max_pu) profiles
     from PEMMDB for a given technology, planning and climate year.
 
     Parameters
@@ -1021,7 +1021,7 @@ def process_pemmdb_data(
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
-    Reads and cleans either capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles
+    Read and clean either capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles
     from PEMMDB for a given technology, planning and climate year.
 
     Parameters
