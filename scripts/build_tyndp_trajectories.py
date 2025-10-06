@@ -6,7 +6,7 @@ Loads and cleans the TYNDP capacity trajectories for a given TYNDP scenario.
 
 Outputs
 -------
-Cleaned CSV file with all TYNDP trajectories (`p_nom_min`, `p_nom_max`) as well as build out limitations in long format.
+Cleaned CSV file with all TYNDP trajectories (`p_nom_min`, `p_nom_max`) in long format.
 
 - ``resources/tyndp_trajectories.csv`` in long format.
 """
