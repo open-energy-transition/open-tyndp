@@ -579,7 +579,7 @@ def _process_thermal_hydrogen_profiles(
     tyndp_scenario: str,
     pyear_i: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean thermal (conventionals & hydrogen) profiles.
@@ -633,7 +633,7 @@ def _process_thermal_hydrogen_profiles(
     must_runs = must_runs.T
 
     # Map to hourly Datetime index
-    df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
+    df = pd.DataFrame({"month": sns_year_h.month_name().str[:3]}, index=sns_year_h)
     df = df.join(must_runs, on="month")
     df.drop(columns="month", inplace=True)
 
@@ -662,7 +662,7 @@ def _process_other_res_profiles(
     pemmdb_tech: str,
     pyear: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean `Other RES` profiles.
@@ -687,7 +687,7 @@ def _process_other_res_profiles(
             if capacity > 0
             else 0.0,
             p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
-            time=index_year,
+            time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
             pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
@@ -707,7 +707,7 @@ def _process_other_nonres_profiles(
     pemmdb_tech: str,
     cyear: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean `Other Non-RES` profiles.
@@ -754,7 +754,7 @@ def _process_other_nonres_profiles(
         .div(cap.loc[mask], axis=1)
         .set_axis(type, axis="columns")
         .assign(
-            time=index_year,
+            time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
@@ -779,7 +779,7 @@ def _process_dsr_profiles(
     pemmdb_tech: str,
     cyear: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean `DSR` profiles.
@@ -821,7 +821,7 @@ def _process_dsr_profiles(
         .div(cap.loc[mask], axis=1)
         .set_axis(type, axis="columns")
         .assign(
-            time=index_year,
+            time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
@@ -964,7 +964,7 @@ def process_pemmdb_profiles(
     pyear: int,
     pyear_i: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
@@ -989,7 +989,7 @@ def process_pemmdb_profiles(
         Original planning year.
     sns : pd.DatetimeIndex
         Modelled snapshots.
-    index_year : pd.DatetimeIndex
+    sns_year_h : pd.DatetimeIndex
         Hourly Datetime index for a full given cyear.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names
@@ -1009,25 +1009,25 @@ def process_pemmdb_profiles(
                 tyndp_scenario,
                 pyear_i,
                 sns,
-                index_year,
+                sns_year_h,
             )
 
         # Other RES
         elif pemmdb_tech == "Other RES":
             profiles = _process_other_res_profiles(
-                node_tech_data, node, pemmdb_tech, pyear, sns, index_year
+                node_tech_data, node, pemmdb_tech, pyear, sns, sns_year_h
             )
 
         # Other Non-RES
         elif pemmdb_tech == "Other Non-RES":
             profiles = _process_other_nonres_profiles(
-                node_tech_data, node, pemmdb_tech, cyear, sns, index_year
+                node_tech_data, node, pemmdb_tech, cyear, sns, sns_year_h
             )
 
         # DSR
         elif pemmdb_tech == "DSR":
             profiles = _process_dsr_profiles(
-                node_tech_data, node, pemmdb_tech, cyear, sns, index_year
+                node_tech_data, node, pemmdb_tech, cyear, sns, sns_year_h
             )
 
         else:
@@ -1063,7 +1063,7 @@ def process_pemmdb_data(
     pyear_i: int,
     tyndp_scenario: str,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
@@ -1088,7 +1088,7 @@ def process_pemmdb_data(
         TYNDP scenario to read data for.
     sns : pd.DatetimeIndex
         Modelled snapshots.
-    index_year : pd.DatetimeIndex
+    sns_year_h : pd.DatetimeIndex
         Hourly Datetime index for a full given cyear.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names.
@@ -1127,7 +1127,7 @@ def process_pemmdb_data(
             pyear,
             pyear_i,
             sns,
-            index_year,
+            sns_year_h,
             carrier_mapping_fn,
         )
     else:
@@ -1160,7 +1160,7 @@ if __name__ == "__main__":
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
-    index_year = pd.date_range(
+    sns_year_h = pd.date_range(
         start=f"{cyear}-01-01",
         periods=8760,
         freq="h",
@@ -1232,7 +1232,7 @@ if __name__ == "__main__":
                     pyear_i=pyear_i,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
-                    index_year=index_year,
+                    sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,
                 )
                 for node_tech in tqdm(node_techs, **tqdm_kwargs_caps)
@@ -1277,7 +1277,7 @@ if __name__ == "__main__":
                     pyear_i=pyear_i,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
-                    index_year=index_year,
+                    sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,
                 )
                 for node_tech in tqdm(node_techs, **tqdm_kwargs_profiles)
