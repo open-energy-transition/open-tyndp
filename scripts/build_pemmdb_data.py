@@ -161,7 +161,7 @@ def _drop_duplicate_price_bands(
     ):
         # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
         # but different capacities. Using first entry.
-        logger.warning(
+        logger.info(
             f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
         )
     return df.groupby(groupby, **kwargs).first()
@@ -184,7 +184,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
     elif "hours" in df.columns:
         return df.hours.astype("str") + "h-" + df.price.astype("str") + "eur"
     else:
-        logger.warning(
+        logger.debug(
             "No purpose or hours column in Dataframe to extract for price band type."
         )
         return df.price.astype("str") + "eur"
@@ -219,7 +219,7 @@ def _process_thermal_hydrogen_capacities(
     )
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech_sheet}' at {node}."
         )
         return None
@@ -244,7 +244,7 @@ def _process_other_nonres_capacities(
     )
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
@@ -283,7 +283,7 @@ def _process_other_nonres_capacities(
     )
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
@@ -330,7 +330,7 @@ def _process_res_capacities(
     )
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
@@ -393,7 +393,7 @@ def _process_other_res_capacities(
     )
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
@@ -411,7 +411,7 @@ def _process_electrolyser_capacities(
     df = node_tech_data.iloc[7:].dropna(how="all", axis=0).dropna(how="all", axis=1)
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
@@ -458,7 +458,7 @@ def _process_battery_capacities(
     )
 
     if df_raw.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
@@ -506,7 +506,7 @@ def _process_dsr_capacities(
     df = node_tech_data.iloc[7:13, 2:]
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
@@ -541,7 +541,7 @@ def _process_dsr_capacities(
     )
 
     if df.empty:
-        logger.info(
+        logger.debug(
             f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
         )
         return None
@@ -650,7 +650,7 @@ def _process_other_res_profiles(
     capacity = np.float64(df.iloc[0, 1])
 
     if np.isnan(capacity) or capacity == 0:
-        logger.warning(
+        logger.debug(
             f"No 'Other RES' capacity found for {node} in {pyear}, hence no must-run profile available."
         )
         return None
@@ -714,7 +714,7 @@ def _process_other_nonres_profiles(
     mask = (cyear_start <= cyear) & (cyear <= cyear_end) & (cap > 0)
 
     if not mask.any():
-        logger.warning(
+        logger.debug(
             f"No PEMMDB profiles available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
@@ -781,7 +781,7 @@ def _process_dsr_profiles(
     mask = (cyear_start <= cyear) & (cyear <= cyear_end) & (cap > 0)
 
     if not mask.any():
-        logger.warning(
+        logger.debug(
             f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
         )
         return None
