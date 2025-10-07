@@ -35,6 +35,7 @@ def add_brownfield(
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
     offshore_hubs_tyndp=False,
+    carriers_tyndp=list[str],
 ):
     """
     Add brownfield capacity from previous network.
@@ -55,6 +56,8 @@ def add_brownfield(
         Threshold for removing assets with low capacity
     offshore_hubs_tyndp : bool
         Whether to enable offshore hubs
+    carriers_tyndp : list[str]
+        List of TYNDP carriers included in the model.
     """
     logger.info(f"Preparing brownfield for the year {year}")
 
@@ -115,38 +118,40 @@ def add_brownfield(
             # TODO: Needs to be rewritten to
             n._import_series_from_df(c.pnl[tattr], c.name, tattr)
 
-    # adjust onwind and solar expansion by subtracting existing capacity from previous years
+    # adjust TYNDP onwind and solar technologies expansion by subtracting existing capacity from previous years
     # from current year total capacity and potential
-    onwind_solar_fixed_i = n.generators[
-        (n.generators.carrier.str.match("^(onwind|solar)"))
-        & (n.generators.build_year != year)
-    ].index
-    onwind_solar_i = n.generators[
-        (n.generators.carrier.str.match("^(onwind|solar)"))
-        & (n.generators.build_year == year)
-    ].index
-    onwind_solar_min = n.generators.loc[onwind_solar_i, "p_nom_min"]
-    onwind_solar_capacity = n.generators.loc[onwind_solar_i, "p_nom"]
-    onwind_solar_potential = n.generators.loc[onwind_solar_i, "p_nom_max"]
-    already_existing = (
-        n.generators.loc[onwind_solar_fixed_i, "p_nom_opt"]
-        .rename(lambda x: x.split("-2")[0] + f"-{year}")
-        .groupby(level=0)
-        .sum()
-        .reindex(index=onwind_solar_capacity.index, fill_value=0)
-    )
-    remaining_min = (onwind_solar_min - already_existing).clip(lower=0)
-    remaining_capacity = (onwind_solar_capacity - already_existing).clip(lower=0)
-    remaining_potential = onwind_solar_potential - already_existing
-    existing_large = remaining_potential[remaining_potential < 0].index
-    if len(existing_large):
-        logger.warning(
-            f"Existing capacities larger than TYNPD 2024 trajectories for {list(existing_large[:3])}, adjusting technical potential to existing capacities"
+    onwind_solar_car = [c for c in carriers_tyndp if c.startswith(("solar", "onwind"))]
+    if onwind_solar_car:
+        onwind_solar_fixed_i = n.generators[
+            (n.generators.carrier.isin(onwind_solar_car))
+            & (n.generators.build_year != year)
+        ].index
+        onwind_solar_i = n.generators[
+            (n.generators.carrier.isin(onwind_solar_car))
+            & (n.generators.build_year == year)
+        ].index
+        onwind_solar_min = n.generators.loc[onwind_solar_i, "p_nom_min"]
+        onwind_solar_capacity = n.generators.loc[onwind_solar_i, "p_nom"]
+        onwind_solar_potential = n.generators.loc[onwind_solar_i, "p_nom_max"]
+        already_existing = (
+            n.generators.loc[onwind_solar_fixed_i, "p_nom_opt"]
+            .rename(lambda x: x.split("-2")[0] + f"-{year}")
+            .groupby(level=0)
+            .sum()
+            .reindex(index=onwind_solar_capacity.index, fill_value=0)
         )
-        remaining_potential = remaining_potential.clip(0)
-    n.generators.loc[onwind_solar_i, "p_nom_min"] = remaining_min
-    n.generators.loc[onwind_solar_i, "p_nom"] = remaining_capacity
-    n.generators.loc[onwind_solar_i, "p_nom_max"] = remaining_potential
+        remaining_min = (onwind_solar_min - already_existing).clip(lower=0)
+        remaining_capacity = (onwind_solar_capacity - already_existing).clip(lower=0)
+        remaining_potential = onwind_solar_potential - already_existing
+        existing_large = remaining_potential[remaining_potential < 0].index
+        if len(existing_large):
+            logger.warning(
+                f"Existing capacities larger than TYNPD 2024 trajectories for {list(existing_large[:3])}, adjusting technical potential to existing capacities"
+            )
+            remaining_potential = remaining_potential.clip(0)
+        n.generators.loc[onwind_solar_i, "p_nom_min"] = remaining_min
+        n.generators.loc[onwind_solar_i, "p_nom"] = remaining_capacity
+        n.generators.loc[onwind_solar_i, "p_nom_max"] = remaining_potential
 
     # adjust TYNDP offshore expansion by subtracting existing capacity from previous years
     # from current year total capacity and potential
@@ -480,6 +485,7 @@ if __name__ == "__main__":
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
         offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
+        carriers_tyndp=snakemake.params.carriers_tyndp,
     )
 
     disable_grid_expansion_if_limit_hit(n)
