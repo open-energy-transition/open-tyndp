@@ -136,6 +136,24 @@ def extract_price_band_type(df: pd.DataFrame) -> str:
         return df.price.astype("str") + "eur"
 
 
+def _validate_profiles(df):
+    if df is None:
+        return df
+
+    # Skip profiles that contain only default PyPSA values (p_min_pu=0, p_max_pu=1)
+    idx_names = [i for i in df.index.names if i != "time"]
+    unique_values = df.reset_index().drop("time", axis=1).drop_duplicates()
+
+    filter = "p_min_pu == 0 and p_max_pu == 1"
+    test_values = unique_values.groupby(idx_names).sum().query(f"not({filter})")
+
+    if test_values.empty:
+        return None
+
+    # Keep only rows where (bus, pemmdb_carrier, pemmdb_type)
+    return df[df.index.droplevel("time").isin(test_values.index)]
+
+
 def read_pemmdb_data(
     node: str,
     pemmdb_dir: str,
@@ -1015,6 +1033,8 @@ def process_pemmdb_profiles(
         else:
             return None
 
+        profiles = _validate_profiles(profiles)
+
         if profiles is None:
             return None
 
@@ -1275,5 +1295,15 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
-    ds = pd.concat(pemmdb_profiles, axis=0).to_xarray()
+    pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0)
+    ds = xr.Dataset(
+        {
+            "p_min_pu": (["sample"], pemmdb_profiles_df["p_min_pu"]),
+            "p_max_pu": (["sample"], pemmdb_profiles_df["p_max_pu"]),
+        },
+        coords={
+            level: (["sample"], pemmdb_profiles_df.index.get_level_values(level))
+            for level in pemmdb_profiles_df.index.names
+        },
+    )
     ds.to_netcdf(snakemake.output.pemmdb_profiles)
