@@ -12,10 +12,10 @@ Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file c
 - ``resources/pemmdb_profiles_{planning_horizon}.nc`` with the following structure:
 
     ===================  ====================  =========================================================
-    Field                Dimensions            Description
+    Field                Coordinates           Description
     ===================  ====================  =========================================================
-    profile              time, bus, carrier,   the per unit hourly availability and must-run obligations
-                         type                  for each bus and PEMMDB technology
+    p_min_pu,            time, bus, carrier,   the per unit hourly availability and must-run obligations
+    p_max_pu             type                  for each bus and PEMMDB technology
     ===================  ====================  =========================================================
 """
 
