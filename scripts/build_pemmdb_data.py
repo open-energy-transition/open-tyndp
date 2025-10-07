@@ -12,10 +12,10 @@ Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file c
 - ``resources/pemmdb_profiles_{planning_horizon}.nc`` with the following structure:
 
     ===================  ====================  =========================================================
-    Field                Dimensions            Description
+    Field                Coordinates           Description
     ===================  ====================  =========================================================
-    profile              time, bus, carrier,   the per unit hourly availability and must-run obligations
-                         type                  for each bus and PEMMDB technology
+    p_min_pu,            time, bus, carrier,   the per unit hourly availability and must-run obligations
+    p_max_pu             type                  for each bus and PEMMDB technology
     ===================  ====================  =========================================================
 """
 
@@ -136,12 +136,30 @@ def extract_price_band_type(df: pd.DataFrame) -> str:
         return df.price.astype("str") + "eur"
 
 
+def _validate_profiles(df):
+    if df is None:
+        return df
+
+    # Skip profiles that contain only default PyPSA values (p_min_pu=0, p_max_pu=1)
+    idx_names = [i for i in df.index.names if i != "time"]
+    unique_values = df.reset_index().drop("time", axis=1).drop_duplicates()
+
+    filter = "p_min_pu == 0 and p_max_pu == 1"
+    test_values = unique_values.groupby(idx_names).sum().query(f"not({filter})")
+
+    if test_values.empty:
+        return None
+
+    # Keep only rows where (bus, pemmdb_carrier, pemmdb_type)
+    return df[df.index.droplevel("time").isin(test_values.index)]
+
+
 def read_pemmdb_data(
     node: str,
     pemmdb_dir: str,
     cyear: int,
     pyear: int,
-    required_techs: list[str] = None,
+    required_sheets: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
     Read raw data from the PEMMDB for a specific planning and climate year, and a given set of technologies.
@@ -156,8 +174,8 @@ def read_pemmdb_data(
         Climate year to read data for.
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
-    required_techs : list[str], optional
-        List of required technologies to read PEMMDB data for.
+    required_sheets : list[str], optional
+        List of required technology sheets to read PEMMDB data for.
 
     Returns
     -------
@@ -175,13 +193,7 @@ def read_pemmdb_data(
         return None
 
     try:
-        if required_techs:
-            required_sheets = [
-                PEMMDB_SHEET_MAPPING.get(tech, tech)
-                for tech in required_techs
-                if PEMMDB_SHEET_MAPPING.get(tech, tech)
-            ]
-            required_sheets = list(set(required_sheets))
+        if required_sheets:
             data = pd.read_excel(fn, sheet_name=required_sheets)
         else:
             data = pd.read_excel(fn, sheet_name=None)
@@ -195,7 +207,11 @@ def read_pemmdb_data(
 
 
 def _process_thermal_hydrogen_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
+    node_tech_data: pd.DataFrame,
+    node: str,
+    cyear: int,
+    pemmdb_tech_sheet: str,
+    thermal_techs: list[str],
 ) -> pd.DataFrame:
     """
     Extract and clean thermal (conventionals & hydrogen) capacities.
@@ -214,13 +230,13 @@ def _process_thermal_hydrogen_capacities(
             country=node[:2],
             unit="MW",
         )
-        .query("pemmdb_carrier == @pemmdb_tech")
+        .query("pemmdb_carrier in @thermal_techs")
         .reset_index(drop=True)
     )
 
     if df.empty:
         logger.info(
-            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech_sheet}' at {node}."
         )
         return None
 
@@ -557,11 +573,11 @@ def _process_dsr_capacities(
 def _process_thermal_hydrogen_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
-    pemmdb_tech: str,
+    thermal_techs: list[str],
     tyndp_scenario: str,
     pyear_i: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean thermal (conventionals & hydrogen) profiles.
@@ -599,34 +615,29 @@ def _process_thermal_hydrogen_profiles(
     must_runs.loc[nuclear_lightoil_i, "pemmdb_type"] = must_runs.loc[
         nuclear_lightoil_i, "pemmdb_carrier"
     ]
+
+    # Format data
     must_runs = (
         must_runs.assign(
             pemmdb_carrier=lambda df: df.pemmdb_carrier.ffill(),
             pemmdb_type=lambda df: df.pemmdb_type.ffill(),
         )
-        .query("unit == '% of installed capacity' and pemmdb_carrier == @pemmdb_tech")
+        .query("unit == '% of installed capacity' and pemmdb_carrier in @thermal_techs")
         .drop(columns=["unit"])
-        .set_index(["pemmdb_type"])
-        .drop(columns=["pemmdb_carrier"])
+        .set_index(["pemmdb_carrier", "pemmdb_type"])
         .div(1e2)  # percentage conversion
+        .T
     )
-
-    # Transform to monthly lookup by inverting df
-    must_runs = must_runs.T
-
     # Map to hourly Datetime index
-    df = pd.DataFrame({"month": index_year.month_name().str[:3]}, index=index_year)
-    df = df.join(must_runs, on="month")
-    df.drop(columns="month", inplace=True)
+    months = sns_year_h.month_name().str[:3]
+    df = must_runs.loc[months].set_axis(sns_year_h, axis=0)
 
     # Flatten and turn into xarray dataset
     profiles = (
         df.loc[sns]
-        .melt(var_name="pemmdb_type", value_name="p_min_pu", ignore_index=False)
+        .melt(value_name="p_min_pu", ignore_index=False)
         .rename_axis("time", axis="index")
-        .assign(
-            pemmdb_carrier=pemmdb_tech, bus=node, p_max_pu=1.0
-        )  # also set p_max_pu with default value of 1.0
+        .assign(bus=node, p_max_pu=1.0)  # also set p_max_pu with default value of 1.0
         .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
         .sort_index()  # sort index for more efficient indexing
     )
@@ -644,7 +655,7 @@ def _process_other_res_profiles(
     pemmdb_tech: str,
     pyear: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean `Other RES` profiles.
@@ -669,7 +680,7 @@ def _process_other_res_profiles(
             if capacity > 0
             else 0.0,
             p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
-            time=index_year,
+            time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
             pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
@@ -689,7 +700,7 @@ def _process_other_nonres_profiles(
     pemmdb_tech: str,
     cyear: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean `Other Non-RES` profiles.
@@ -736,7 +747,7 @@ def _process_other_nonres_profiles(
         .div(cap.loc[mask], axis=1)
         .set_axis(type, axis="columns")
         .assign(
-            time=index_year,
+            time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
@@ -761,7 +772,7 @@ def _process_dsr_profiles(
     pemmdb_tech: str,
     cyear: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean `DSR` profiles.
@@ -803,7 +814,7 @@ def _process_dsr_profiles(
         .div(cap.loc[mask], axis=1)
         .set_axis(type, axis="columns")
         .assign(
-            time=index_year,
+            time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
         )
@@ -825,7 +836,8 @@ def _process_dsr_profiles(
 def process_pemmdb_capacities(
     node_tech_data: pd.DataFrame,
     node: str,
-    pemmdb_tech: str,
+    pemmdb_tech_sheet: str,
+    thermal_techs: list[str],
     cyear: int,
     pyear: int,
     carrier_mapping_fn: str,
@@ -839,8 +851,10 @@ def process_pemmdb_capacities(
         Dataframe containing the PEMMDB capacity data sheet for the given node and technology.
     node : str
         Node name to read data for.
-    pemmdb_tech : str
-        PEMMDB technology to read data for.
+    pemmdb_tech_sheet : str
+        PEMMDB technology sheet to read data from.
+    thermal_techs: list[str]
+        List of PEMMDB thermal technologies included in the model.
     cyear : int
         Climate year to read data for.
     pyear : int
@@ -855,45 +869,45 @@ def process_pemmdb_capacities(
     """
     try:
         # Conventionals & Hydrogen
-        if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
+        if pemmdb_tech_sheet == "Thermal":
             capacities = _process_thermal_hydrogen_capacities(
-                node_tech_data, node, cyear, pemmdb_tech
+                node_tech_data, node, cyear, pemmdb_tech_sheet, thermal_techs
             )
 
         # Other Non-RES
-        elif pemmdb_tech == "Other Non-RES":
+        elif pemmdb_tech_sheet == "Other Non-RES":
             capacities = _process_other_nonres_capacities(
-                node_tech_data, node, cyear, pemmdb_tech
+                node_tech_data, node, cyear, pemmdb_tech_sheet
             )
 
         # Renewables (Solar, Wind, Hydro)
-        elif pemmdb_tech in RENEWABLES:
+        elif pemmdb_tech_sheet in RENEWABLES:
             capacities = _process_res_capacities(
-                node_tech_data, node, cyear, pemmdb_tech
+                node_tech_data, node, cyear, pemmdb_tech_sheet
             )
 
         # Other RES
-        elif pemmdb_tech == "Other RES":
+        elif pemmdb_tech_sheet == "Other RES":
             capacities = _process_other_res_capacities(
-                node_tech_data, node, cyear, pemmdb_tech
+                node_tech_data, node, cyear, pemmdb_tech_sheet
             )
 
         # DSR
-        elif pemmdb_tech == "DSR":
+        elif pemmdb_tech_sheet == "DSR":
             capacities = _process_dsr_capacities(
-                node_tech_data, node, cyear, pemmdb_tech
+                node_tech_data, node, cyear, pemmdb_tech_sheet
             )
 
         # Battery
-        elif pemmdb_tech == "Battery":
+        elif pemmdb_tech_sheet == "Battery":
             capacities = _process_battery_capacities(
-                node_tech_data, node, cyear, pemmdb_tech
+                node_tech_data, node, cyear, pemmdb_tech_sheet
             )
 
         # Electrolyser
-        elif pemmdb_tech == "Electrolyser":
+        elif pemmdb_tech_sheet == "Electrolyser":
             capacities = _process_electrolyser_capacities(
-                node_tech_data, node, cyear, pemmdb_tech
+                node_tech_data, node, cyear, pemmdb_tech_sheet
             )
 
         else:
@@ -933,20 +947,21 @@ def process_pemmdb_capacities(
 
     except Exception as e:
         raise Exception(
-            f"Error while processing capacities for {pemmdb_tech} at {node} for climate year {cyear} and planning year {pyear}: {e}"
+            f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for climate year {cyear} and planning year {pyear}: {e}"
         )
 
 
 def process_pemmdb_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
-    pemmdb_tech: str,
+    pemmdb_tech_sheet: str,
+    thermal_techs: list[str],
     tyndp_scenario: str,
     cyear: int,
     pyear: int,
     pyear_i: int,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
@@ -959,8 +974,10 @@ def process_pemmdb_profiles(
         Dataframe containing the PEMMDB profile data sheet for the given node and technology.
     node : str
         Node name to read data for.
-    pemmdb_tech : str
-        PEMMDB technology to read data for.
+    pemmdb_tech_sheet : str
+        PEMMDB technology sheet to read data for.
+    thermal_techs: list[str]
+        Thermal technologies to read data for.
     tyndp_scenario : str
         TYNDP scenario to read data for.
     cyear : int
@@ -971,7 +988,7 @@ def process_pemmdb_profiles(
         Original planning year.
     sns : pd.DatetimeIndex
         Modelled snapshots.
-    index_year : pd.DatetimeIndex
+    sns_year_h : pd.DatetimeIndex
         Hourly Datetime index for a full given cyear.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names
@@ -983,37 +1000,39 @@ def process_pemmdb_profiles(
     """
     try:
         # Conventionals & Hydrogen
-        if pemmdb_tech in CONVENTIONALS or pemmdb_tech == "Hydrogen":
+        if pemmdb_tech_sheet == "Thermal":
             profiles = _process_thermal_hydrogen_profiles(
                 node_tech_data,
                 node,
-                pemmdb_tech,
+                thermal_techs,
                 tyndp_scenario,
                 pyear_i,
                 sns,
-                index_year,
+                sns_year_h,
             )
 
         # Other RES
-        elif pemmdb_tech == "Other RES":
+        elif pemmdb_tech_sheet == "Other RES":
             profiles = _process_other_res_profiles(
-                node_tech_data, node, pemmdb_tech, pyear, sns, index_year
+                node_tech_data, node, pemmdb_tech_sheet, pyear, sns, sns_year_h
             )
 
         # Other Non-RES
-        elif pemmdb_tech == "Other Non-RES":
+        elif pemmdb_tech_sheet == "Other Non-RES":
             profiles = _process_other_nonres_profiles(
-                node_tech_data, node, pemmdb_tech, cyear, sns, index_year
+                node_tech_data, node, pemmdb_tech_sheet, cyear, sns, sns_year_h
             )
 
         # DSR
-        elif pemmdb_tech == "DSR":
+        elif pemmdb_tech_sheet == "DSR":
             profiles = _process_dsr_profiles(
-                node_tech_data, node, pemmdb_tech, cyear, sns, index_year
+                node_tech_data, node, pemmdb_tech_sheet, cyear, sns, sns_year_h
             )
 
         else:
             return None
+
+        profiles = _validate_profiles(profiles)
 
         if profiles is None:
             return None
@@ -1030,20 +1049,21 @@ def process_pemmdb_profiles(
 
     except Exception as e:
         raise Exception(
-            f"Error reading PEMMDB profiles for '{pemmdb_tech}' at {node} for climate year {cyear} and planning year {pyear}: {e}"
+            f"Error reading PEMMDB profiles for '{pemmdb_tech_sheet}' at {node} for climate year {cyear} and planning year {pyear}: {e}"
         )
 
 
 def process_pemmdb_data(
     category: str,
-    node_tech: tuple[str, str],
+    node_tech_sheet: tuple[str, str],
     pemmdb_data: dict[str, dict[str, pd.DataFrame]],
+    thermal_techs: list[str],
     cyear: int,
     pyear: int,
     pyear_i: int,
     tyndp_scenario: str,
     sns: pd.DatetimeIndex,
-    index_year: pd.DatetimeIndex,
+    sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
@@ -1054,10 +1074,12 @@ def process_pemmdb_data(
     ----------
     category : str
         Category to read data for. Can be either 'capacities' or 'profiles'.
-    node_tech : tuple[str, str]
-        Tuple with node and technology to process for.
+    node_tech_sheet : tuple[str, str]
+        Tuple with node and technology sheet to process for.
     pemmdb_data : dict[str, dict[str, pd.DataFrame]]
         Dictionary containing all PEMMDB data for all nodes and technologies.
+    thermal_techs : list[str]
+        Thermal technologies to read data for.
     cyear : int
         Climate year to read data for.
     pyear : int
@@ -1068,7 +1090,7 @@ def process_pemmdb_data(
         TYNDP scenario to read data for.
     sns : pd.DatetimeIndex
         Modelled snapshots.
-    index_year : pd.DatetimeIndex
+    sns_year_h : pd.DatetimeIndex
         Hourly Datetime index for a full given cyear.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names.
@@ -1079,12 +1101,11 @@ def process_pemmdb_data(
         Pandas dataframe containing capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles respectively.
     """
     # Extract node and tech information
-    node, pemmdb_tech = node_tech
+    node, pemmdb_tech_sheet = node_tech_sheet
 
     # Extract PEMMDB data for corresponding node and tech
-    node_tech_data = pemmdb_data.get(node, {}).get(
-        PEMMDB_SHEET_MAPPING.get(pemmdb_tech, pemmdb_tech), None
-    )
+    node_tech_data = pemmdb_data.get(node, {}).get(pemmdb_tech_sheet, None)
+
     if node_tech_data is None:
         return None
 
@@ -1092,7 +1113,8 @@ def process_pemmdb_data(
         data = process_pemmdb_capacities(
             node_tech_data,
             node,
-            pemmdb_tech,
+            pemmdb_tech_sheet,
+            thermal_techs,
             cyear,
             pyear,
             carrier_mapping_fn,
@@ -1101,13 +1123,14 @@ def process_pemmdb_data(
         data = process_pemmdb_profiles(
             node_tech_data,
             node,
-            pemmdb_tech,
+            pemmdb_tech_sheet,
+            thermal_techs,
             tyndp_scenario,
             cyear,
             pyear,
             pyear_i,
             sns,
-            index_year,
+            sns_year_h,
             carrier_mapping_fn,
         )
     else:
@@ -1132,6 +1155,10 @@ if __name__ == "__main__":
 
     # Parameter
     pemmdb_techs = [tech.replace("_", " ") for tech in snakemake.params.pemmdb_techs]
+    pemmdb_tech_sheets = (
+        pd.Series(pemmdb_techs).replace(PEMMDB_SHEET_MAPPING).unique().tolist()
+    )
+    thermal_techs = [k for k, v in PEMMDB_SHEET_MAPPING.items() if v == "Thermal"]
     nodes = pd.read_csv(snakemake.input.busmap, index_col=0).index
     pemmdb_dir = snakemake.input.pemmdb_dir
     tyndp_scenario = snakemake.params.tyndp_scenario
@@ -1140,7 +1167,7 @@ if __name__ == "__main__":
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
-    index_year = pd.date_range(
+    sns_year_h = pd.date_range(
         start=f"{cyear}-01-01",
         periods=8760,
         freq="h",
@@ -1174,7 +1201,7 @@ if __name__ == "__main__":
         pemmdb_dir=pemmdb_dir,
         cyear=cyear,
         pyear=pyear,
-        required_techs=pemmdb_techs,
+        required_sheets=pemmdb_tech_sheets,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
@@ -1190,12 +1217,12 @@ if __name__ == "__main__":
     # Process capacities
     ####################
 
-    node_techs = list(product(nodes, pemmdb_techs))
+    node_tech_sheets = list(product(nodes, pemmdb_tech_sheets))
 
     tqdm_kwargs_caps = {
         "ascii": False,
         "unit": " node-tech combinations",
-        "total": len(node_techs),
+        "total": len(node_tech_sheets),
         "desc": "Processing PEMMDB capacities...",
     }
 
@@ -1205,17 +1232,18 @@ if __name__ == "__main__":
             for caps in (
                 process_pemmdb_data(
                     "capacities",
-                    node_tech=node_tech,
+                    node_tech_sheet=node_tech_sheet,
                     pemmdb_data=pemmdb_data,
+                    thermal_techs=thermal_techs,
                     cyear=cyear,
                     pyear=pyear,
                     pyear_i=pyear_i,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
-                    index_year=index_year,
+                    sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,
                 )
-                for node_tech in tqdm(node_techs, **tqdm_kwargs_caps)
+                for node_tech_sheet in tqdm(node_tech_sheets, **tqdm_kwargs_caps)
             )
             if caps is not None
         ]
@@ -1241,7 +1269,7 @@ if __name__ == "__main__":
     tqdm_kwargs_profiles = {
         "ascii": False,
         "unit": " node-tech combinations",
-        "total": len(node_techs),
+        "total": len(node_tech_sheets),
         "desc": "Processing PEMMDB profiles...",
     }
     with logging_redirect_tqdm():
@@ -1250,17 +1278,18 @@ if __name__ == "__main__":
             for profiles in (
                 process_pemmdb_data(
                     "profiles",
-                    node_tech=node_tech,
+                    node_tech_sheet=node_tech_sheet,
                     pemmdb_data=pemmdb_data,
+                    thermal_techs=thermal_techs,
                     cyear=cyear,
                     pyear=pyear,
                     pyear_i=pyear_i,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
-                    index_year=index_year,
+                    sns_year_h=sns_year_h,
                     carrier_mapping_fn=carrier_mapping_fn,
                 )
-                for node_tech in tqdm(node_techs, **tqdm_kwargs_profiles)
+                for node_tech_sheet in tqdm(node_tech_sheets, **tqdm_kwargs_profiles)
             )
             if profiles is not None
         ]
@@ -1275,5 +1304,15 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
-    ds = pd.concat(pemmdb_profiles, axis=0).to_xarray()
+    pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0)
+    ds = xr.Dataset(
+        {
+            "p_min_pu": (["sample"], pemmdb_profiles_df["p_min_pu"]),
+            "p_max_pu": (["sample"], pemmdb_profiles_df["p_max_pu"]),
+        },
+        coords={
+            level: (["sample"], pemmdb_profiles_df.index.get_level_values(level))
+            for level in pemmdb_profiles_df.index.names
+        },
+    )
     ds.to_netcdf(snakemake.output.pemmdb_profiles)
