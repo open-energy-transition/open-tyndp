@@ -71,90 +71,6 @@ PEMMDB_SHEET_MAPPING = {
 }
 
 
-def drop_duplicate_price_bands(
-    df: pd.DataFrame,
-    groupby: str | list[str],
-    pemmdb_tech: str,
-    node: str,
-    cyear: int,
-    **kwargs,
-) -> pd.DataFrame:
-    """
-    Check the provided dataframe for duplicate PEMMDB entries with the same type, purpose, and price but different
-    capacities. Keep first entry found when duplicates are found.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Dataframe to check for duplicate prices bands.
-    groupby : str|list[str]
-        Columns to group by.
-    pemmdb_tech: str
-        PEMMDB technology name.
-    node: str
-        Node name.
-    cyear: int
-        Climate year.
-    **kwargs : dict
-        Keyword arguments passed to pd.DataFrame.groupby().
-
-    Returns
-    -------
-    df : pd.DataFrame
-        Dataframe without duplicate prices bands.
-    """
-    if ("pemmdb_type" in df.columns and df.pemmdb_type.duplicated().any()) or (
-        df.index.duplicated().any()
-    ):
-        # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
-        # but different capacities. Using first entry.
-        logger.warning(
-            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
-        )
-    return df.groupby(groupby, **kwargs).first()
-
-
-def extract_price_band_type(df: pd.DataFrame) -> str:
-    """
-    Extract price band type information consisting of the PEMMDB type, the purpose of
-    the plant and the price from Dataframe and combine into one string.
-    """
-    if "purpose" in df.columns:
-        return (
-            df.pemmdb_type.str.split("/").str[1:].str.join("-").str.replace(" ", "-")
-            + "-"
-            + df.purpose.astype(str)
-            + "-"
-            + df.price.astype(str)
-            + "eur"
-        )
-    elif "hours" in df.columns:
-        return df.hours.astype("str") + "h-" + df.price.astype("str") + "eur"
-    else:
-        logger.warning(
-            "No purpose or hours column in Dataframe to extract for price band type."
-        )
-        return df.price.astype("str") + "eur"
-
-
-def _validate_profiles(df):
-    if df is None:
-        return df
-
-    # Skip profiles that contain only default PyPSA values (p_min_pu=0, p_max_pu=1)
-    idx_names = [i for i in df.index.names if i != "time"]
-    unique_values = df.reset_index().drop("time", axis=1).drop_duplicates()
-
-    filter = "p_min_pu == 0 and p_max_pu == 1"
-    test_values = unique_values.groupby(idx_names).sum().query(f"not({filter})")
-
-    if test_values.empty:
-        return None
-
-    # Keep only rows where (bus, pemmdb_carrier, pemmdb_type)
-    return df[df.index.droplevel("time").isin(test_values.index)]
-
-
 def read_pemmdb_data(
     node: str,
     pemmdb_dir: str,
@@ -206,6 +122,72 @@ def read_pemmdb_data(
         raise Exception(
             f"Error reading PEMMDB data at {node} for climate year {cyear} and planning year {pyear}: {e}"
         )
+
+
+def _drop_duplicate_price_bands(
+    df: pd.DataFrame,
+    groupby: str | list[str],
+    pemmdb_tech: str,
+    node: str,
+    cyear: int,
+    **kwargs,
+) -> pd.DataFrame:
+    """
+    Check the provided dataframe for duplicate PEMMDB entries with the same type, purpose, and price but different
+    capacities. Keep first entry found when duplicates are found.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe to check for duplicate prices bands.
+    groupby : str|list[str]
+        Columns to group by.
+    pemmdb_tech: str
+        PEMMDB technology name.
+    node: str
+        Node name.
+    cyear: int
+        Climate year.
+    **kwargs : dict
+        Keyword arguments passed to pd.DataFrame.groupby().
+
+    Returns
+    -------
+    df : pd.DataFrame
+        Dataframe without duplicate prices bands.
+    """
+    if ("pemmdb_type" in df.columns and df.pemmdb_type.duplicated().any()) or (
+        df.index.duplicated().any()
+    ):
+        # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
+        # but different capacities. Using first entry.
+        logger.warning(
+            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
+        )
+    return df.groupby(groupby, **kwargs).first()
+
+
+def _extract_price_band_type(df: pd.DataFrame) -> str:
+    """
+    Extract price band type information consisting of the PEMMDB type, the purpose of
+    the plant and the price from Dataframe and combine into one string.
+    """
+    if "purpose" in df.columns:
+        return (
+            df.pemmdb_type.str.split("/").str[1:].str.join("-").str.replace(" ", "-")
+            + "-"
+            + df.purpose.astype(str)
+            + "-"
+            + df.price.astype(str)
+            + "eur"
+        )
+    elif "hours" in df.columns:
+        return df.hours.astype("str") + "h-" + df.price.astype("str") + "eur"
+    else:
+        logger.warning(
+            "No purpose or hours column in Dataframe to extract for price band type."
+        )
+        return df.price.astype("str") + "eur"
 
 
 def _process_thermal_hydrogen_capacities(
@@ -287,7 +269,7 @@ def _process_other_nonres_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            pemmdb_type=lambda x: extract_price_band_type(x),
+            pemmdb_type=lambda x: _extract_price_band_type(x),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -307,7 +289,7 @@ def _process_other_nonres_capacities(
         return None
 
     # Check for duplicate price bands and keep first entry only
-    df = drop_duplicate_price_bands(
+    df = _drop_duplicate_price_bands(
         df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
     ).reset_index(drop=True)
 
@@ -551,7 +533,7 @@ def _process_dsr_capacities(
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
-            pemmdb_type=lambda x: extract_price_band_type(x),
+            pemmdb_type=lambda x: _extract_price_band_type(x),
             efficiency=1.0,  # dummy value for efficiency
         )
         .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
@@ -565,7 +547,7 @@ def _process_dsr_capacities(
         return None
 
     # Check for duplicate price bands and keep first entry only
-    df = drop_duplicate_price_bands(
+    df = _drop_duplicate_price_bands(
         df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
     ).reset_index(drop=True)
 
@@ -741,7 +723,7 @@ def _process_other_nonres_profiles(
     df = df.loc[:, mask]
 
     # Extract plant type
-    type = extract_price_band_type(df.T)
+    type = _extract_price_band_type(df.T)
 
     df_long = (
         df.iloc[10:]
@@ -761,7 +743,7 @@ def _process_other_nonres_profiles(
     )
 
     # Check for duplicate price bands and keep first entry only
-    profiles = drop_duplicate_price_bands(
+    profiles = _drop_duplicate_price_bands(
         df_long, df_long.index.names, pemmdb_tech, node, cyear, as_index=True
     )
 
@@ -808,7 +790,7 @@ def _process_dsr_profiles(
     df = df.loc[:, mask]
 
     # Extract price band type information
-    type = extract_price_band_type(df.T)
+    type = _extract_price_band_type(df.T)
 
     df_long = (
         df.iloc[7:]
@@ -828,7 +810,7 @@ def _process_dsr_profiles(
     )
 
     # Check for duplicate price bands and keep first entry only
-    profiles = drop_duplicate_price_bands(
+    profiles = _drop_duplicate_price_bands(
         df_long, df_long.index.names, pemmdb_tech, node, cyear, as_index=True
     )
 
@@ -951,6 +933,28 @@ def process_pemmdb_capacities(
         raise Exception(
             f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for climate year {cyear} and planning year {pyear}: {e}"
         )
+
+
+def _validate_profiles(df):
+    """
+    Validate and filter out profiles that contain only default PyPSA values (`p_min_pu` and `p_max_pu`).
+    Returns None if all profiles are filtered out.
+    """
+    if df is None:
+        return df
+
+    # Skip profiles that contain only default PyPSA values (p_min_pu=0, p_max_pu=1)
+    idx_names = [i for i in df.index.names if i != "time"]
+    unique_values = df.reset_index().drop("time", axis=1).drop_duplicates()
+
+    filter = "p_min_pu == 0 and p_max_pu == 1"
+    test_values = unique_values.groupby(idx_names).sum().query(f"not({filter})")
+
+    if test_values.empty:
+        return None
+
+    # Keep only rows where (bus, pemmdb_carrier, pemmdb_type)
+    return df[df.index.droplevel("time").isin(test_values.index)]
 
 
 def process_pemmdb_profiles(
