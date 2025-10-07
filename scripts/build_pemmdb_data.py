@@ -924,7 +924,7 @@ def process_pemmdb_capacities(
             capacities,
             carrier_mapping_fn,
             ["pemmdb_carrier", "pemmdb_type"],
-            drop_merge_columns=True,
+            drop_on_columns=True,
         )
 
         return capacities
@@ -1048,7 +1048,7 @@ def process_pemmdb_profiles(
             profiles.reset_index(),
             carrier_mapping_fn,
             ["pemmdb_carrier", "pemmdb_type"],
-            drop_merge_columns=True,
+            drop_on_columns=True,
         ).set_index(["time", "bus", "carrier", "index_carrier"])
 
         return profiles
