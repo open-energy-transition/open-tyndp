@@ -1393,9 +1393,7 @@ def input_pemmdb_data(w):
     available_years = config_provider(
         "electricity", "pemmdb_capacities", "available_years"
     )(w)
-    pemmdb_year = safe_pyear(
-        w.planning_horizons, available_years, verbose=False
-    )
+    pemmdb_year = safe_pyear(w.planning_horizons, available_years, verbose=False)
 
     return {
         "pemmdb_capacities": resources(

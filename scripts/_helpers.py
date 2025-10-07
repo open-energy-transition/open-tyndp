@@ -1157,7 +1157,7 @@ def safe_pyear(
     verbose: bool = True,
 ) -> int:
     """
-    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it 
+    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it
     falls back to the previous available year.
 
     Parameters
@@ -1215,7 +1215,7 @@ def map_tyndp_carrier_names(
     on_columns : list[str]
         Columns to merge on between the external carriers and tyndp_carriers.
     drop_on_columns : bool, optional
-        Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier` 
+        Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier`
         and `index_carrier`. Defaults to False.
 
     Returns

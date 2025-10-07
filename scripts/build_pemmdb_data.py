@@ -106,7 +106,7 @@ def drop_duplicate_price_bands(
     if ("pemmdb_type" in df.columns and df.pemmdb_type.duplicated().any()) or (
         df.index.duplicated().any()
     ):
-        # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price 
+        # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
         # but different capacities. Using first entry.
         logger.warning(
             f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
@@ -116,7 +116,7 @@ def drop_duplicate_price_bands(
 
 def extract_price_band_type(df: pd.DataFrame) -> str:
     """
-    Extract price band type information consisting of the PEMMDB type, the purpose of 
+    Extract price band type information consisting of the PEMMDB type, the purpose of
     the plant and the price from Dataframe and combine into one string.
     """
     if "purpose" in df.columns:
@@ -163,7 +163,7 @@ def read_pemmdb_data(
     required_sheets: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
-    Read raw data from the PEMMDB for a specific planning and climate year, 
+    Read raw data from the PEMMDB for a specific planning and climate year,
     and a given set of technologies.
 
     Parameters
@@ -1157,7 +1157,9 @@ if __name__ == "__main__":
 
     # Parameter
     pemmdb_techs = [tech.replace("_", " ") for tech in snakemake.params.pemmdb_techs]
-    pemmdb_tech_sheets = list({PEMMDB_SHEET_MAPPING.get(tech, tech) for tech in pemmdb_techs})
+    pemmdb_tech_sheets = list(
+        {PEMMDB_SHEET_MAPPING.get(tech, tech) for tech in pemmdb_techs}
+    )
     thermal_techs = [k for k, v in PEMMDB_SHEET_MAPPING.items() if v == "Thermal"]
     nodes = pd.read_csv(snakemake.input.busmap, index_col=0).index
     pemmdb_dir = snakemake.input.pemmdb_dir
