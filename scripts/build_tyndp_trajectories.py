@@ -6,7 +6,7 @@ Loads and cleans the TYNDP capacity trajectories for a given TYNDP scenario.
 
 Outputs
 -------
-Cleaned CSV file with all TYNDP trajectories (`p_nom_min`, `p_nom_max`) as well as build out limitations in long format.
+Cleaned CSV file with all TYNDP trajectories (`p_nom_min`, `p_nom_max`) in long format.
 
 - ``resources/tyndp_trajectories.csv`` in long format.
 """
@@ -49,23 +49,20 @@ if __name__ == "__main__":
     }
 
     # TODO: How to add buildout information if even necessary
-    # Trajectories other than Nuclear are only used for DE and GA scenarios and after 2030
+    # Trajectories other than Nuclear are only used for DE and GA scenarios
     trajectories_id = [] if tyndp_scenario == "NT" else ["All"]
     df = (
         pd.read_excel(fn, sheet_name="GLOBAL")
         .rename(column_names, axis="columns")
         .replace(SCENARIO_DICT, regex=True)
-        .query(
-            "scenario == @tyndp_scenario or (scenario in @trajectories_id and pyear > 2030)"
-        )
+        .replace("UK", "GB", regex=True)
+        .query("scenario == @tyndp_scenario or scenario in @trajectories_id")
     )
 
-    carrier_mapping_df = (
-        pd.read_csv(snakemake.input.carrier_mapping)[
-            ["investment_dataset_carrier", "open_tyndp_carrier", "open_tyndp_index"]
-        ]
-    ).dropna()
+    carrier_mapping_fn = snakemake.input.carrier_mapping
 
-    df = map_tyndp_carrier_names(df, carrier_mapping_df, ["investment_dataset_carrier"])
+    df = map_tyndp_carrier_names(
+        df, carrier_mapping_fn, ["investment_dataset_carrier"], drop_merge_columns=True
+    )
 
     df.to_csv(snakemake.output.tyndp_trajectories, index=False)

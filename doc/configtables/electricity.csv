@@ -28,9 +28,11 @@ custom_powerplants,--,"use `pandas.query <https://pandas.pydata.org/pandas-docs/
 everywhere_powerplants,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass}","List of conventional power plants to add to every node in the model with zero initial capacity. To be used in combination with ``extendable_carriers`` to allow for building conventional powerplants irrespective of existing locations."
 ,,, 
 conventional_carriers,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass}","List of conventional power plants to include in the model from ``resources/powerplants_s_{clusters}.csv``. If an included carrier is also listed in ``extendable_carriers``, the capacity is taken as a lower bound."
+tyndp_conventional_carriers,--,"Any subset of {gas, coal, lignite, nuclear, oil-light, oil-heavy, oil-shale}",List of TYNDP conventional power plants to include in the model.
 ,,, 
 renewable_carriers,--,"Any subset of {solar, onwind, offwind-ac, offwind-dc, offwind-float, hydro}",List of renewable generators to include in the model.
 tyndp_renewable_carriers,--,"Any subset of {solar-pv, solar-pv-utility, solar-pv-rooftop, onwind, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh}","List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list."
+tyndp_stores,--,"Any subset of {battery, h2_cavern, h2_tank}",List of TYNDP storage units (battery and/or hydrogen).
 pecd_renewable_profiles,,,
 -- enable,bool,"{true, false}",Activate PECD renewable profiles from TYNDP 2024 instead of default renewable profiles for specified renewable technologies below.
 -- version,,str,"Version of the raw PECD data, e.g. ``3.1``."

@@ -155,10 +155,14 @@ rule plot_benchmarks:
         ),
 
 
-rule build_pemmdb_datas:
+rule build_pemmdb_and_trajectories:
     input:
         expand(
             resources("pemmdb_capacities_{planning_horizons}.csv"),
             **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        expand(
+            resources("tyndp_trajectories.csv"),
             run=config["run"]["name"],
         ),

@@ -251,13 +251,27 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **License:** MIT License
 - **Description:** Contains centroids of world countries in GeoJson.
 
-``data/tyndp_2024_bundle/PECD``
+``data/tyndp_2024_bundle/PECD/PECD_{pecd_version}``
 
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
-- **Link:** https://storage.googleapis.com/open-tyndp-data-store/PECD.zip
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_version}.zip
 - **License:** CC-BY 4.0
 - **Description:** Contains hourly PECD v3.1 capacity factor time series for Solar PV rooftop,
   Solar PV utility, Onshore Wind, Offshore Wind and Solar CSP.
+
+``data/tyndp_2024_bundle/PECD/PECD_{pecd_prebuilt_version}``
+
+- **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/PECD/PECD_{pecd_prebuilt_version}.zip
+- **License:** CC-BY 4.0
+- **Description:** Contains already prepared hourly PECD v3.1 pre-built dataset of the specified PECD pre-built version for climate years 1995, 2008, and 2009.
+
+``data/tyndp_2024_bundle/PEMMDB2``
+
+- **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/PEMMDB.zip
+- **License:** CC-BY 4.0
+- **Description:** Contains PEMMDB v2.4 capacities and must-run and availability profiles for various PEMMDB technologies (thermal, RES, reserves, DSR, batteries and electrolysers).
 
 ``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx``
 
