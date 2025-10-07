@@ -1388,29 +1388,25 @@ def input_offshore_hubs(w):
 
 def input_pemmdb_data(w):
     if not config_provider("electricity", "pemmdb_capacities", "enable")(w):
-        return []
+        return {}
 
     available_years = config_provider(
         "electricity", "pemmdb_capacities", "available_years"
     )(w)
-    planning_horizons = config_provider("scenario", "planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(year, available_years, "PEMMDB", verbose=False)
-        for year in planning_horizons
+    pemmdb_year = safe_pyear(
+        w.planning_horizons, available_years, "PEMMDB", verbose=False
     )
 
-    pemmdb_capacties = {
-        f"pemmdb_capacities_{pyear}": resources(
-            "pemmdb_capacities_" + str(pyear) + ".csv"
+    pemmdb_capacities = {
+        f"pemmdb_capacities": resources(
+            "pemmdb_capacities_" + str(pemmdb_year) + ".csv"
         )
-        for pyear in safe_pyears
     }
     pemmdb_profiles = {
-        f"pemmdb_profiles_{pyear}": resources("pemmdb_profiles_" + str(pyear) + ".nc")
-        for pyear in safe_pyears
+        f"pemmdb_profiles": resources("pemmdb_profiles_" + str(pemmdb_year) + ".nc")
     }
 
-    return {**pemmdb_capacties, **pemmdb_profiles}
+    return {**pemmdb_capacities, **pemmdb_profiles}
 
 
 rule prepare_sector_network:
