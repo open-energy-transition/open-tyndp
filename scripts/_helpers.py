@@ -1157,7 +1157,8 @@ def safe_pyear(
     verbose: bool = True,
 ) -> int:
     """
-    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it falls back to the previous available year.
+    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it 
+    falls back to the previous available year.
 
     Parameters
     ----------
@@ -1200,7 +1201,7 @@ def map_tyndp_carrier_names(
     df: pd.DataFrame,
     carrier_mapping_fn: str,
     on_columns: list[str],
-    drop_merge_columns=False,
+    drop_on_columns=False,
 ):
     """
     Map external carriers to available tyndp_carrier names based on an input mapping. Optionally drop merged on columns.
@@ -1213,8 +1214,9 @@ def map_tyndp_carrier_names(
         Path to file with mapping from external carriers to available tyndp_carrier names.
     on_columns : list[str]
         Columns to merge on between the external carriers and tyndp_carriers.
-    drop_merge_columns : bool, optional
-        Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier` and `index_carrier`. Defaults to False.
+    drop_on_columns : bool, optional
+        Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier` 
+        and `index_carrier`. Defaults to False.
 
     Returns
     -------
@@ -1222,13 +1224,14 @@ def map_tyndp_carrier_names(
         Input DataFrame with external carriers mapped to available tyndp_carriers and index_carriers.
     """
 
-    # read TYNDP carrier mapping
+    # Read TYNDP carrier mapping
     carrier_mapping = (
         pd.read_csv(carrier_mapping_fn)[
             on_columns + ["open_tyndp_carrier", "open_tyndp_index"]
         ]
     ).dropna()
 
+    # Map the carriers
     df = df.merge(carrier_mapping, on=on_columns, how="left")
 
     def normalize_carrier(s):
@@ -1253,7 +1256,7 @@ def map_tyndp_carrier_names(
             ),
         )
 
-    if not drop_merge_columns:
+    if not drop_on_columns:
         return df
 
     # Otherwise drop merge columns and rename to new "carrier" and "index_carrier" column
