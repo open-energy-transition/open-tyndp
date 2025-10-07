@@ -660,9 +660,9 @@ def _process_other_res_profiles(
         .to_frame()
         .set_axis(["p_min_t"], axis="columns")
         .assign(
-            p_min_pu=lambda df: pd.to_numeric(df.p_min_t / capacity)
-            if capacity > 0
-            else 0.0,
+            p_min_pu=lambda x: np.where(
+                capacity > 0, pd.to_numeric(x["p_min_t"]) / capacity, 0.0
+            ),
             p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
             time=sns_year_h,
             bus=node,

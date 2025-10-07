@@ -1234,12 +1234,13 @@ def map_tyndp_carrier_names(
     # Map the carriers
     df = df.merge(carrier_mapping, on=on_columns, how="left")
 
-    def normalize_carrier(s):
-        return s.lower().replace(" ", "-").replace("other-non-res", "chp")
-
     # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external
     # mapping. Instead, we will combine the carrier and type information.
     if "pemmdb_carrier" in on_columns:
+
+        def normalize_carrier(s):
+            return s.lower().replace(" ", "-").replace("other-non-res", "chp")
+
         # Other Non-RES are assumed to represent CHP plants (according to TYNDP 2024 Methodology report p.37)
         df = df.assign(
             open_tyndp_carrier=lambda x: np.where(
