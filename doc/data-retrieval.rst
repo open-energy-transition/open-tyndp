@@ -271,7 +271,7 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://storage.googleapis.com/open-tyndp-data-store/PEMMDB.zip
 - **License:** CC-BY 4.0
-- **Description:** Contains PEMMDB v2.4 capacities and must-run and availability profiles for various PEMMDB technologies (thermal, RES, reserves, DSR, batteries and electrolysers).
+- **Description:** Contains PEMMDB v2.4 capacities, as well as must-run and availability profiles for various PEMMDB technologies (thermal, RES, reserves, DSR, batteries and electrolysers).
 
 ``data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx``
 
