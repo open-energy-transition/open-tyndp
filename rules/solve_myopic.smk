@@ -92,6 +92,7 @@ rule add_brownfield:
             "sector", "district_heating", "ptes", "dynamic_capacity"
         ),
         offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
+        carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfield_pecd),
