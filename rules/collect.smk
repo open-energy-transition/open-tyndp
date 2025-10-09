@@ -159,14 +159,12 @@ def input_pemmdb_datas(w):
     available_years = config_provider(
         "electricity", "pemmdb_capacities", "available_years"
     )(w)
-    safe_pyears = list(
+    return list(
         {
             safe_pyear(year, available_years, verbose=False)
             for year in config_provider("scenario", "planning_horizons")(w)
         }
     )
-
-    return safe_pyears
 
 
 rule build_pemmdb_and_trajectories:
