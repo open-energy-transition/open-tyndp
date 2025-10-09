@@ -62,7 +62,7 @@ if __name__ == "__main__":
     carrier_mapping_fn = snakemake.input.carrier_mapping
 
     df = map_tyndp_carrier_names(
-        df, carrier_mapping_fn, ["investment_dataset_carrier"], drop_merge_columns=True
+        df, carrier_mapping_fn, ["investment_dataset_carrier"], drop_on_columns=True
     )
 
     df.to_csv(snakemake.output.tyndp_trajectories, index=False)

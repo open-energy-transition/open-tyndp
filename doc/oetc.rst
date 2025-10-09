@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+.. SPDX-FileCopyrightText: Open Energy Transition gGmbH
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 

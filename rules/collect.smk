@@ -155,11 +155,25 @@ rule plot_benchmarks:
         ),
 
 
+def input_pemmdb_datas(w):
+    available_years = config_provider(
+        "electricity", "pemmdb_capacities", "available_years"
+    )(w)
+    safe_pyears = list(
+        {
+            safe_pyear(year, available_years, verbose=False)
+            for year in config_provider("scenario", "planning_horizons")(w)
+        }
+    )
+
+    return safe_pyears
+
+
 rule build_pemmdb_and_trajectories:
     input:
         expand(
             resources("pemmdb_capacities_{planning_horizons}.csv"),
-            **config["scenario"],
+            planning_horizons=input_pemmdb_datas,
             run=config["run"]["name"],
         ),
         expand(
