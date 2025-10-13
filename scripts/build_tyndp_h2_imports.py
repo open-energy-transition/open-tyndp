@@ -11,7 +11,8 @@ and for a given year.
 import logging
 
 import pandas as pd
-from _helpers import (
+
+from scripts._helpers import (
     configure_logging,
     set_scenario_config,
 )

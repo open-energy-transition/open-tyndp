@@ -12,7 +12,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-from _helpers import (
+
+from scripts._helpers import (
     SCENARIO_DICT,
     configure_logging,
     extract_grid_data_tyndp,
