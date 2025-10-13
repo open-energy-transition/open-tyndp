@@ -13,13 +13,14 @@ from functools import partial
 from pathlib import Path
 
 import pandas as pd
-from _helpers import (
+from tqdm import tqdm
+
+from scripts._helpers import (
     configure_logging,
     get_snapshots,
     safe_pyear,
     set_scenario_config,
 )
-from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 

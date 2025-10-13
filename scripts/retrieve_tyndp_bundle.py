@@ -22,7 +22,7 @@ import logging
 import os
 import zipfile
 
-from _helpers import configure_logging, progress_retrieve, set_scenario_config
+from scripts._helpers import configure_logging, progress_retrieve, set_scenario_config
 
 logger = logging.getLogger(__name__)
 

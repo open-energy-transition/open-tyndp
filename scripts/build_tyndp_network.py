@@ -7,8 +7,13 @@ import logging
 
 import geopandas as gpd
 import pandas as pd
-from _helpers import configure_logging, extract_grid_data_tyndp, set_scenario_config
 from shapely.geometry import LineString, Point
+
+from scripts._helpers import (
+    configure_logging,
+    extract_grid_data_tyndp,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
 
