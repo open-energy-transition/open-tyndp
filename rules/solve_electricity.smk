@@ -51,6 +51,7 @@ rule solve_operations_network:
             "sector", "co2_sequestration_potential", default=200
         ),
         custom_extra_functionality=input_custom_extra_functionality,
+        renewable_carriers=config_provider("electricity", "renewable_carriers"),
     input:
         network=RESULTS + "networks/base_s_{clusters}_elec_{opts}.nc",
     output:
