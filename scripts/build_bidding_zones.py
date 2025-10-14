@@ -202,7 +202,7 @@ def format_names(s: str):
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "build_bidding_zones", configfiles="config/test/config.clusters.yaml"

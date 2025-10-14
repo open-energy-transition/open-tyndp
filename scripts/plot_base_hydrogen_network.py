@@ -233,7 +233,7 @@ def plot_h2_map_base(
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "plot_base_hydrogen_network",
