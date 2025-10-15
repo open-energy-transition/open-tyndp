@@ -122,7 +122,7 @@ def load_import_data(fn, countries_centroids):
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake("clean_tyndp_h2_imports")
 

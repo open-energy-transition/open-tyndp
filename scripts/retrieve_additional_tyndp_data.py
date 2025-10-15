@@ -60,7 +60,7 @@ def retrieve_bundle(url: str, source: str, to_dir: str, disable_progress: bool =
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake("retrieve_tyndp_hydro_inflow")
 

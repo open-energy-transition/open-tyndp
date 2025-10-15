@@ -108,7 +108,7 @@ def load_elec_demand(
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "clean_tyndp_demand", configfiles="config/test/config.tyndp.yaml"

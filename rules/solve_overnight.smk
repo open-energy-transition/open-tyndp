@@ -12,7 +12,10 @@ rule solve_sector_network:
             "sector", "co2_sequestration_potential", default=200
         ),
         custom_extra_functionality=input_custom_extra_functionality,
-        carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
+        renewable_carriers=config_provider("electricity", "renewable_carriers"),
+        renewable_carriers_tyndp=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
     input:
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
