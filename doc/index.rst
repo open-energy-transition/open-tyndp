@@ -244,6 +244,50 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - Hydrogen zones
      - `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__
      - ✅
+   * - **Market Simulations**
+     - Rolling horizon (52 weeks)
+     -
+     - ⌛
+   * -
+     - Climate years (weighted average)
+     -
+     - ⌛
+   * -
+     - Planned and forced outages
+     -
+     - ⌛
+   * -
+     - Integration of DSR and sector coupling
+     -
+     - ⌛
+   * -
+     - CO₂ price (ETS), VOLL, discount rate, etc.
+     -
+     - ⌛
+   * - **CBA Benefit Indicators**
+     - B1: Socioeconomic Welfare (SEW)
+     -
+     - ⌛
+   * -
+     - B2: CO₂ Variation with societal costs
+     -
+     - ⌛
+   * -
+     - B3: DRES Integration (curtailment reduction)
+     -
+     - ⌛
+   * -
+     - B4: Non-CO₂ Emissions (NOx, SOx, PM2.5/10, NMVOC, NH₃)
+     -
+     - ⌛
+   * -
+     - B5: Grid Losses, B6: Adequacy, B7: Flexibility, B8: Stability, B9: Reserves reduction
+     -
+     - ⌛
+   * - **CBA Assessment Framework**
+     - TOOT/PINT methodology
+     -
+     - ⌛
 
 .. seealso::
   See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
