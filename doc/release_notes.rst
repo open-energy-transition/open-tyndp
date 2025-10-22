@@ -69,7 +69,7 @@ Open-TYNDP v0.3 (7th October 2025)
 
 * Introduce processing and preparation of PEMMDB v2.4 capacity, must-run, and availability data, along with expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and DSR (https://github.com/open-energy-transition/open-tyndp/pull/97).
 
-* Attach both solar and onwind technologies using PEMMDB v2.4 and PECD v3.1 data (https://github.com/open-energy-transition/open-tyndp/pull/115). Offwind statistics are also improved to include H2 generator capacities (in `MW_e`).
+* Attach both solar and onwind technologies using PEMMDB v2.4 and PECD v3.1 data (https://github.com/open-energy-transition/open-tyndp/pull/115 & https://github.com/open-energy-transition/open-tyndp/pull/139). Offwind statistics are also improved to include H2 generator capacities (in `MW_e`).
 
 **Changes**
 
@@ -82,6 +82,11 @@ Open-TYNDP v0.3 (7th October 2025)
 **Bugfixes and Compatibility**
 
 * Fix bugs with PyPSA-Eur's nuclear implementation related to inconsistent modelling as generators and links, missing country-specific p_max_pu and missing uranium generators (https://github.com/open-energy-transition/open-tyndp/pull/105). Furthermore, reintroduce default hydro renewable_carrier until TYNDP hydro technologies are added.
+
+**Developers Note**
+
+* Scripts now use absolute imports. When using ``mock_snakemake``, adding the
+  working directory to the PYTHONPATH or in your IDE is required (https://github.com/open-energy-transition/open-tyndp/pull/138).
 
 
 PyPSA-Eur v2025.07.0 (11th July 2025, merged 24th July 2025)
