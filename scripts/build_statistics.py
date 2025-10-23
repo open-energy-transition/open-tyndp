@@ -17,7 +17,6 @@ from tqdm import tqdm
 from scripts._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
-    PYPSA_V1,
     configure_logging,
     safe_pyear,
     set_scenario_config,
@@ -49,8 +48,7 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Se
     loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
 
     # Create index map
-    bus_col = "name" if PYPSA_V1 else "Bus"
-    idx_map = n.buses.query(f"{bus_col}.str.contains('low voltage')").country
+    idx_map = n.buses.loc[n.buses.carrier == "low voltage", "country"]
     loss_factors = idx_map.map(loss_factors).dropna()
 
     return loss_factors
@@ -386,17 +384,10 @@ if __name__ == "__main__":
         loss_factors=loss_factors,
     )
 
-    # Hotfix - Bug with pypsa>1.0.0 https://github.com/PyPSA/PyPSA/issues/1420
-    if PYPSA_V1:
-        for table in tqdm(options["tables"]):
-            compute_benchmark(
-                n, table, options, eu27, tyndp_renewable_carriers, loss_factors
-            )
-    else:
-        with mp.Pool(processes=snakemake.threads) as pool:
-            benchmarks = list(
-                tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs)
-            )
+    with mp.Pool(processes=snakemake.threads) as pool:
+        benchmarks = list(
+            tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs)
+        )
 
     # Combine all benchmark data
     benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
