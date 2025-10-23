@@ -61,38 +61,37 @@ Upcoming PyPSA-Eur Release
 
 * Running perfect foresight is now marked as unstable and may not work as expected.
 
-Open-TYNDP v0.3 (7th October 2025)
+Open-TYNDP v0.3 (24th October 2025)
 ========================================
 
 
 **Features**
 
-* Introduce a benchmarking framework that assesses Open-TYNDP quality against published TYNDP 2024 data (https://github.com/open-energy-transition/open-tyndp/pull/73) and Visualisation Platform data (https://github.com/open-energy-transition/open-tyndp/pull/117). This framework is fully integrated into the Open-TYNDP workflow, with benchmarking results included in the outputs. The methodology leverages a multi-criteria approach proposed by `Wen et al. (2022) <https://www.sciencedirect.com/science/article/pii/S0306261922011667>`__. The rules cover processing raw data from TYNDP 2024 Scenarios packages, extracting Open-TYNDP statistics, computing accuracy metrics, and creating figures. The data are benchmarked against the published TYNDP 2024 data, with figures presenting both sources for comparison.
+* Introduce a benchmarking framework that assesses Open-TYNDP model quality against published TYNDP 2024 data and Visualisation Platform data (https://github.com/open-energy-transition/open-tyndp/pull/73, https://github.com/open-energy-transition/open-tyndp/pull/117). This framework is fully integrated into the Open-TYNDP workflow, with benchmarking results included in the outputs. The methodology leverages a multi-criteria approach proposed by `Wen et al. (2022) <https://www.sciencedirect.com/science/article/pii/S0306261922011667>`__. The rules cover processing raw data from TYNDP 2024 Scenarios packages, extracting Open-TYNDP statistics, computing accuracy metrics, and creating comparison figures. The data are benchmarked against the published TYNDP 2024 data, with figures presenting both sources for comparison.
 
-* Add complete compatibility for processing and preparation of PECD v3.1 renewable profiles (Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, Solar CSP) (https://github.com/open-energy-transition/open-tyndp/pull/71). These profiles are used for the TYNDP 2024 and replace the default ERA5- and SARAH3-based profiles processed with Atlite. This implementation serves to facilitate a sub-workflow for creation of the renewable profiles, but does not yet attach them to any technologies.
+* Add complete processing and preparation of PECD v3.1 renewable profiles for all renewable technologies: Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, and Solar CSP (https://github.com/open-energy-transition/open-tyndp/pull/71). These profiles are used in TYNDP 2024 and replace the default ERA5- and SARAH3-based profiles processed with Atlite. The data processing infrastructure for renewable profile creation is complete, but full integration into the model workflow will follow in a subsequent PRs (https://github.com/open-energy-transition/open-tyndp/pull/115, https://github.com/open-energy-transition/open-tyndp/pull/139).
 
-* Introduce processing of PEMMDB v2.4 hydro inflows data for different hydro technologies (Run of River, Pondage, Reservoir, PS Open, PS Closed) from the 2024 TYNDP to create hydro inflow profiles (https://github.com/open-energy-transition/open-tyndp/pull/77). This implementation facilitates the sub-workflow for creating the hydro inflow profiles, but it does not yet attach them to any hydro technologies.
+* Introduce processing of PEMMDB v2.4 hydro inflows data for different hydro technologies: Run of River, Pondage, Reservoir, Pumped Storage Open Loop, and Pumped Storage Closed Loop (https://github.com/open-energy-transition/open-tyndp/pull/77). The data processing infrastructure for hydro inflow profiles is complete, but full integration into the model workflow will follow in a subsequent release.
 
-* Introduce processing and preparation of PEMMDB v2.4 capacity, must-run, and availability data, along with expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and DSR (https://github.com/open-energy-transition/open-tyndp/pull/97).
+* Introduce processing and preparation of PEMMDB v2.4 capacity data, including must-run and availability constraints, and expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and Demand Side Response (DSR) (https://github.com/open-energy-transition/open-tyndp/pull/97). The data processing infrastructure for PEMMDB v2.4 is complete, but full integration into the model workflow will follow in a subsequent release.
 
-* Attach both solar and onwind technologies using PEMMDB v2.4 and PECD v3.1 data (https://github.com/open-energy-transition/open-tyndp/pull/115 & https://github.com/open-energy-transition/open-tyndp/pull/139). Offwind statistics are also improved to include H2 generator capacities (in `MW_e`).
+* Integrate solar PV and onshore wind technologies using PEMMDB v2.4 capacity data and PECD v3.1 renewable profiles in the model (https://github.com/open-energy-transition/open-tyndp/pull/115, https://github.com/open-energy-transition/open-tyndp/pull/139). Offshore wind statistics are also improved to include hydrogen generator capacities (in ``MW_e``).
 
 **Changes**
 
-* Generalise the TYNDP data retrieval rule (https://github.com/open-energy-transition/open-tyndp/pull/101). This rule is intended for removal once all the data has been integrated into the `Zenodo databundle <https://zenodo.org/records/14230568>`_.
+* Generalise the TYNDP data retrieval rule for improved flexibility (https://github.com/open-energy-transition/open-tyndp/pull/101). This rule is intended for removal once all required data has been integrated into the `Zenodo databundle <https://zenodo.org/records/14230568>`_.
 
-* Allow the retrieval of PyPSA-Eur cutouts for additional climate years that are not available on Zenodo via retrieval from GCP (https://github.com/open-energy-transition/open-tyndp/pull/109). Currently, this feature is available for the additional climate year 2009.
+* Allow retrieval of PyPSA-Eur cutouts for additional climate years that are not available on Zenodo via direct retrieval from Google Cloud Platform (GCP) (https://github.com/open-energy-transition/open-tyndp/pull/109). Currently, this feature is available for climate year 2009.
 
-* Introduce PECD pre-built dataset to reduce data retrieval requirements (https://github.com/open-energy-transition/open-tyndp/pull/123). Users can either retrieve pre-processed PECD data for the climate years 1995, 2008 and 2009 from GCP storage, or build from raw data for any year between 1982 and 2019.
+* Introduce PECD pre-built dataset to significantly reduce data retrieval requirements (https://github.com/open-energy-transition/open-tyndp/pull/123). Users can either retrieve pre-processed PECD data for climate years 1995, 2008, and 2009 from GCP storage, or build from raw data for any year between 1982 and 2019.
 
 **Bugfixes and Compatibility**
 
-* Fix bugs with PyPSA-Eur's nuclear implementation related to inconsistent modelling as generators and links, missing country-specific p_max_pu and missing uranium generators (https://github.com/open-energy-transition/open-tyndp/pull/105). Furthermore, reintroduce default hydro renewable_carrier until TYNDP hydro technologies are added.
+* Fix bugs in PyPSA-Eur's nuclear implementation related to inconsistent modelling as both generators and links, missing country-specific `p_max_pu` profiles, and missing uranium generators (https://github.com/open-energy-transition/open-tyndp/pull/105). Additionally, reintroduce default hydro `renewable_carrier` until TYNDP-specific hydro technologies are fully integrated.
 
 **Developers Note**
 
-* Scripts now use absolute imports. When using ``mock_snakemake``, adding the
-  working directory to the PYTHONPATH or in your IDE is required (https://github.com/open-energy-transition/open-tyndp/pull/138).
+* Scripts now use absolute imports. When using ``mock_snakemake``, adding the working directory to the PYTHONPATH or in your IDE is required (https://github.com/open-energy-transition/open-tyndp/pull/138).
 
 
 PyPSA-Eur v2025.07.0 (11th July 2025, merged 24th July 2025)
@@ -218,7 +217,7 @@ PyPSA-Eur v2025.07.0 (11th July 2025, merged 24th July 2025)
   (https://github.com/PyPSA/pypsa-eur/pull/1643)
 
 
-Open-TYNDP v0.2 (23th July 2025)
+Open-TYNDP v0.2 (23rd July 2025)
 ========================================
 
 **Features**
