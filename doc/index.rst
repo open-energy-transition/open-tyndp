@@ -134,6 +134,7 @@ Features in development
 --------------------------
 
 While multiple TYNDP features are already introduced to the Open-TYNDP model, there are several other features and assumptions that are still in development and currently rely on default implementations and assumptions from PyPSA-Eur.
+
 .. list-table::
    :align: center
    :widths: 25 25 25 15 10
