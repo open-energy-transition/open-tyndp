@@ -388,14 +388,10 @@ if __name__ == "__main__":
 
     # Hotfix - Bug with pypsa>1.0.0 https://github.com/PyPSA/PyPSA/issues/1420
     if PYPSA_V1:
-        benchmarks = []
         for table in tqdm(options["tables"]):
-            benchmarks.append(
-                compute_benchmark(
-                    n, table, options, eu27, tyndp_renewable_carriers, loss_factors
-                )
+            compute_benchmark(
+                n, table, options, eu27, tyndp_renewable_carriers, loss_factors
             )
-
     else:
         with mp.Pool(processes=snakemake.threads) as pool:
             benchmarks = list(
