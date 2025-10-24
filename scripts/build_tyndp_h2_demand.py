@@ -236,7 +236,7 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     pyear = int(snakemake.wildcards.planning_horizons)
     snapshots = get_snapshots(snakemake.params.snapshots)
-    cyear = 2009  # snapshots[0].year
+    cyear = snapshots[0].year
     fn = snakemake.input.h2_demand
 
     # Check if climatic year is valid for scenario
