@@ -184,7 +184,6 @@ rule run_all_h2_demand:
     input:
         expand(
             resources("h2_demand_tyndp_{planning_horizons}.csv"),
-             **config["scenario"],
+            **config["scenario"],
             run=config["run"]["name"],
         ),
-
