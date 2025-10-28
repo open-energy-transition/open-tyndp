@@ -34,6 +34,7 @@ doc/_build
 /config/create_scenarios.py
 
 config/config.yaml
+config/config.private.yaml
 config/scenarios.yaml
 
 dconf
