@@ -9,7 +9,11 @@ Release Notes
 ##########################################
 
 Upcoming Open-TYNDP Release
+
+**Features**
 ================
+
+* Add the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
 
 
 Upcoming PyPSA-Eur Release
