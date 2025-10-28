@@ -96,10 +96,6 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 
 **See also**: See also the [GitHub repository issues](https://github.com/open-energy-transition/open-tyndp/issues) for a comprehensive list of currently open issues.
 
-**See also**: See also the [GitHub repository issues](https://github.com/open-energy-transition/open-tyndp/issues) for a comprehensive list of currently open issues.
-
-**See also**: See also the [GitHub repository issues](https://github.com/open-energy-transition/open-tyndp/issues) for a comprehensive list of currently open issues.
-
 # Repository structure
 
 * `benchmarks`: will store `snakemake` benchmarks (does not exist initially)
