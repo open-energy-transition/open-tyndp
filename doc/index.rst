@@ -91,7 +91,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Introduced TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics (see PR `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__).
 - Introduce a benchmarking framework that assesses Open-TYNDP quality against published TYNDP 2024 data (see PR `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__) and Visualisation Platform data (see PR `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__).
 - Added processing and preparation of PEMMDB v2.4 capacity, must-run, and availability data, along with expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and DSR (see PR `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__).
-- Attached both solar and onwind technologies using PEMMDB and PECD data (see PR `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__).
+- Attached both solar and onwind technologies using PEMMDB and PECD data (see PR `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__ and PR `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__).
 
 .. list-table::
    :align: center
@@ -218,7 +218,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **TYNDP technologies and carriers**
      - TYNDP generation technologies (incl. SRES and DRES)
-     - `# 115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__
+     - `# 115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `# 139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__
      - 🔨
    * -
      - Prosumer modelling

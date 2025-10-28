@@ -24,7 +24,6 @@ from scripts._helpers import (
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
 configfile: "config/benchmarking.default.yaml"
-configfile: "config/config.private.yaml"
 
 
 if Path("config/config.yaml").exists():

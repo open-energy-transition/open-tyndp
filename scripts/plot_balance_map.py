@@ -51,9 +51,9 @@ if __name__ == "__main__":
     if imports_as_flows:
         n.buses.loc[:, "carrier"] = n.buses.carrier.str.replace("import ", "")
     sanitize_carriers(n, snakemake.config)
-    pypsa.options.set_option("params.statistics.round", 3)
-    pypsa.options.set_option("params.statistics.drop_zero", True)
-    pypsa.options.set_option("params.statistics.nice_names", False)
+    pypsa.options.params.statistics.round = 3
+    pypsa.options.params.statistics.drop_zero = True
+    pypsa.options.params.statistics.nice_names = False
 
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
 
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         else None,
         ax=ax,
         margin=0.2,
-        color_geomap={"border": "darkgrey", "coastline": "darkgrey"},
+        geomap_colors={"border": "darkgrey", "coastline": "darkgrey"},
         geomap=True,
         boundaries=boundaries,
     )

@@ -48,7 +48,7 @@ def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Se
     loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
 
     # Create index map
-    idx_map = n.buses.query("Bus.str.contains('low voltage')").country
+    idx_map = n.buses.loc[n.buses.carrier == "low voltage", "country"]
     loss_factors = idx_map.map(loss_factors).dropna()
 
     return loss_factors
