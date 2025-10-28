@@ -6,7 +6,6 @@
 # To use these options in your local repository, please create a local `config/config.yaml` file which is by default
 # untracked and add your required private settings from below.
 
-# Example options
 remote:
   ssh: ''
   path: ''
