@@ -139,7 +139,6 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
    :align: center
    :widths: 35 35 20 10
    :header-rows: 1
-
    * - **Milestone**
      - **Feature**
      - **PR**
@@ -244,8 +243,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - Hydrogen zones
      - `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__
      - ✅
-   * - **Market Simulations**
-     - Rolling horizon (52 weeks)
+   * - **CBA Assessment Framework**
+     - TOOT/PINT methodology
      -
      - ⌛
    * -
@@ -253,15 +252,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      -
      - ⌛
    * -
-     - Planned and forced outages
-     -
-     - ⌛
-   * -
-     - Integration of DSR and sector coupling
-     -
-     - ⌛
-   * -
-     - CO₂ price (ETS), VOLL, discount rate, etc.
+     - CBA Benchmarking
      -
      - ⌛
    * - **CBA Benefit Indicators**
@@ -282,10 +273,6 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * -
      - B5: Grid Losses, B6: Adequacy, B7: Flexibility, B8: Stability, B9: Reserves reduction
-     -
-     - ⌛
-   * - **CBA Assessment Framework**
-     - TOOT/PINT methodology
      -
      - ⌛
 
