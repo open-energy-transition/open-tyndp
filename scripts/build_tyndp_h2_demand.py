@@ -2,9 +2,51 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script is used to build TYNDP Scenario Building hydrogen demand to be used in the PyPSA-Eur workflow. The `snapshot` year is used as climatic year (`cyear`). For DE and GA, `cyear` must be one of the following years: 1995, 2008 or 2009. For NT, it must be between 1982 and 2019. If the `snapshot` is not one of these years, then the demand is set to 2009 hydrogen demand (2009 being considered as the most representative of the three years).
+Builds TYNDP Scenario Builder hydrogen demand profiles for PyPSA-Eur.
 
-Depending on the scenario and hydrogen zone, different years are available in the input data. DE and GA are defined for 2030, 2040 and 2050 for Z2, and 2040, hydrogen zone Z1 is defined in 2050 for DE and GA, in 2040 only for GA. NT scenario is only defined for 2030 and 2040 without a split into two hydrogen zones. All the planning years are read at once. Missing years are linearly interpolated between the available years.
+This script processes hydrogen demand data from TYNDP 2024, using the
+``snapshots`` year as the climatic year (``cyear``) for demand profiles.
+The data is filtered and interpolated based on the selected scenario
+(Distributed Energy, Global Ambition, or National Trends) and planning horizon.
+
+Climatic Year Selection
+-----------------------
+
+The ``snapshots`` year determines the climatic year for demand profiles:
+
+- **DE and GA scenarios**: Must use 1995, 2008, or 2009. If ``snapshots``
+  is not one of these years, 2009 is used as the default (considered most
+  representative).
+- **NT scenario**: Must be between 1982 and 2019.
+
+Data Availability by Scenario
+------------------------------
+
+The input data has different temporal and spatial coverage depending on scenario:
+
+**Distributed Energy (DE) and Global Ambition (GA)**:
+  - Hydrogen zone Z2: Available for 2030, 2040, and 2050
+  - Hydrogen zone Z1: Available for 2050 (DE and GA) and 2040 (GA only)
+
+**National Trends (NT)**:
+  - Available for 2030 and 2040 only
+  - No split into hydrogen zones
+
+Processing
+----------
+
+Missing years are linearly interpolated between available data points.
+
+Inputs
+------
+
+- ``data/tyndp_2024_bundle/Demand Profiles``: TYNDP 2024 hydrogen demand profiles
+
+Outputs
+-------
+
+- ``resources/h2_demand_tyndp_{planning_horizons}.csv``: Processed hydrogen
+  demand time series for the specified planning horizon
 """
 
 import logging
