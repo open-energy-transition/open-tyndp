@@ -5,3 +5,12 @@
 remote:
   ssh: ''
   path: ''
+
+# Note that a local gurobi.lic file takes precedence over this setting
+solving:
+  solver_options:
+    gurobi-default:
+      env:
+        WLSACCESSID: ''
+        WLSSECRET: ''
+        LICENSEID:
