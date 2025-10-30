@@ -139,6 +139,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
    :align: center
    :widths: 35 35 20 10
    :header-rows: 1
+
    * - **Milestone**
      - **Feature**
      - **PR**
