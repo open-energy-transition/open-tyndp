@@ -443,6 +443,10 @@ def _process_battery_capacities(
     """
     Extract and clean `Battery` capacities.
     """
+    # Fill missing data for FR15
+    if node == "FR15":
+        node_tech_data.iloc[-1, [5, 7, 8]] = 0
+
     # Extract data
     df_raw = (
         node_tech_data.iloc[7:, 1:]
