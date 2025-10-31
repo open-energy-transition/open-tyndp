@@ -1446,7 +1446,7 @@ rule build_existing_heating_distribution:
         "../scripts/build_existing_heating_distribution.py"
 
 
-rule time_aggregation:
+rule build_snapshot_weightings:
     message:
         "Performing time series aggregation for temporal resolution reduction for {wildcards.clusters} clusters and {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
@@ -1473,11 +1473,15 @@ rule time_aggregation:
     resources:
         mem_mb=5000,
     log:
-        logs("time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}.log"),
+        logs(
+            "build_snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}.log"
+        ),
     benchmark:
-        benchmarks("time_aggregation_base_s_{clusters}_elec_{opts}_{sector_opts}")
+        benchmarks(
+            "build_snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}"
+        )
     script:
-        "../scripts/time_aggregation.py"
+        "../scripts/build_snapshot_weightings.py"
 
 
 def input_profile_offwind(w):
