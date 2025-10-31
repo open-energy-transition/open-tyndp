@@ -24,6 +24,8 @@ from scripts._helpers import (
 
 logger = logging.getLogger(__name__)
 
+pypsa.options.params.statistics.nice_names = False
+
 
 def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Series:
     """
@@ -99,7 +101,6 @@ def compute_benchmark(
             n.statistics.withdrawal(
                 comps="Load",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -113,7 +114,6 @@ def compute_benchmark(
                 comps=demand_comps,
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .loc[pd.IndexSlice[:, ["electricity"]]]
@@ -131,7 +131,6 @@ def compute_benchmark(
                 comps=demand_comps,
                 bus_carrier="gas",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -147,7 +146,6 @@ def compute_benchmark(
                 comps=demand_comps,
                 bus_carrier="H2",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -161,7 +159,6 @@ def compute_benchmark(
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -191,7 +188,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -214,7 +210,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier="gas",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -229,7 +224,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier="H2",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -245,7 +239,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier="solid biomass",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -261,7 +254,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier=["H2", "oil", "coal", "lignite"],
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -284,7 +276,6 @@ def compute_benchmark(
                 n.statistics.supply(
                     bus_carrier=elec_bus_carrier,
                     groupby=["bus"] + grouper,
-                    nice_names=False,
                     aggregate_across_components=True,
                     aggregate_time=False,
                 )
