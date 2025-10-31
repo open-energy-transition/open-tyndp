@@ -119,7 +119,7 @@ def get_elec_demand(
         .value.sum()
         .reset_index()
         .assign(
-            carrier="aggregated",
+            carrier="final demand (inc. t&d losses, excl. pump storage )",
             scenario=f"TYNDP {scenario}",
             table="elec_demand",
         )
