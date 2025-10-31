@@ -27,6 +27,41 @@ logger = logging.getLogger(__name__)
 pypsa.options.params.statistics.nice_names = False
 
 
+def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series):
+    """
+    Remove the last day from snapshots to ensure exactly 52 weeks of data.
+
+    Parameters
+    ----------
+    sns : pd.DatetimeIndex
+        Snapshot datetime index.
+    sws : pd.Series
+        Snapshot weightings.
+
+    Returns
+    -------
+    tuple[pd.DatetimeIndex, pd.Series]
+        Modified snapshots and snapshot weightings with the last day removed.
+    """
+    sns = sns.copy()
+    sws = sws.copy()
+
+    if (sws == 1.0).all():
+        sns = sns[:-24]
+        sws = sws[:-24]
+    else:
+        remaining = 24
+        while remaining > 0:
+            if sws.iloc[-1] >= remaining:
+                sws.iloc[-1] -= remaining
+                remaining = 0
+            else:
+                remaining -= sws.iloc[-1]
+                sws = sws.iloc[:-1]
+                sns = sns[:-1]
+    return sns, sws
+
+
 def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Series:
     """
     Load and prepare loss factors.
@@ -109,13 +144,21 @@ def compute_benchmark(
         )
     elif table == "elec_demand":
         grouper = ["carrier"]
+
+        # Remove the last day of the year to have exactly 52 weeks
+        sns, sws = remove_last_day(n.snapshots, n.snapshot_weightings.generators)
+
         df = (
             n.statistics.withdrawal(
                 comps=demand_comps,
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
+                aggregate_time=False,
             )
+            .reindex(sns, axis=1)
+            .mul(sws, axis=1)
+            .sum(axis=1)
             .loc[pd.IndexSlice[:, ["electricity"]]]
             .reindex(eu27_idx, level="bus")
             .dropna()
