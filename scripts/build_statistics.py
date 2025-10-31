@@ -18,7 +18,6 @@ from scripts._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
     configure_logging,
-    safe_pyear,
     set_scenario_config,
 )
 
@@ -62,42 +61,12 @@ def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series):
     return sns, sws
 
 
-def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Series:
-    """
-    Load and prepare loss factors.
-
-    Parameters
-    ----------
-    fn : str
-        Path to the file containing loss factors.
-    n : pypsa.Network
-        Network to use.
-    planning_horizons : int
-        Planning horizon for which to read the data.
-
-    Returns
-    -------
-    pd.Series
-        Loss factors data.
-    """
-    # Read data
-    pyear = safe_pyear(planning_horizons, source="TYNDP Statistics")
-    loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
-
-    # Create index map
-    idx_map = n.buses.loc[n.buses.carrier == "low voltage", "country"]
-    loss_factors = idx_map.map(loss_factors).dropna()
-
-    return loss_factors
-
-
 def compute_benchmark(
     n: pypsa.Network,
     table: str,
     options: dict,
     eu27: list[str],
     tyndp_renewable_carriers: list[str],
-    loss_factors: pd.Series = pd.Series(),
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -114,8 +83,6 @@ def compute_benchmark(
         List of member state of European Union (EU27).
     tyndp_renewable_carriers : list[str]
         List of renewable carriers in TYNDP 2024.
-    loss_factors : pd.Series, optional
-        Series containing loss factors indexed by country.
 
     Returns
     -------
@@ -163,8 +130,6 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus")
             .dropna()
         )
-        if not loss_factors.empty:
-            df /= 1 + loss_factors.reindex(df.index, level="bus")
         df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
         # TODO Energy and non-energy industrial demand are mixed
@@ -392,14 +357,10 @@ if __name__ == "__main__":
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
-    loss_factors_fn = snakemake.input.loss_factors
 
     # Read network
     logger.info("Reading network")
     n = pypsa.Network(snakemake.input.network)
-
-    # Load loss factors
-    loss_factors = get_loss_factors(loss_factors_fn, n, planning_horizons)
 
     logger.info("Building benchmark from network")
     tqdm_kwargs = {
@@ -415,7 +376,6 @@ if __name__ == "__main__":
         options=options,
         eu27=eu27,
         tyndp_renewable_carriers=tyndp_renewable_carriers,
-        loss_factors=loss_factors,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
