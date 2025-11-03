@@ -253,7 +253,7 @@ def check_cyear(cyear: int, scenario: str) -> int:
 
     if cyear not in valid_years[scenario]:
         logger.warning(
-            "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
         )
         cyear = 2009
 
