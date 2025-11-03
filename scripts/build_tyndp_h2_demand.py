@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Builds TYNDP Scenario Builder hydrogen demand profiles for PyPSA-Eur.
+Builds TYNDP Scenario Building hydrogen demand profiles for PyPSA-Eur.
 
 This script processes hydrogen demand data from TYNDP 2024, using the
 ``snapshots`` year as the climatic year (``cyear``) for demand profiles.
