@@ -117,7 +117,7 @@ def read_h2_excel(
         demand = pd.concat(data, axis=1).droplevel(1, axis=1)
         # Reindex to match snapshots
         demand = multiindex_to_datetimeindex(demand, year=cyear)
-        # rename UK in GB
+        # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
         demand.columns.name = "Bus"
 
