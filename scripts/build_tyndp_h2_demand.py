@@ -50,6 +50,7 @@ Outputs
 """
 
 import logging
+from bisect import bisect_right
 from pathlib import Path
 
 import pandas as pd
@@ -176,11 +177,24 @@ def interpolate_demand(
     """Interpolate demand between available years."""
 
     # Currently only implemented interpolation and not extrapolation
-    lower_years = [y for y in available_years if y < pyear]
-    upper_years = [y for y in available_years if y > pyear]
-
-    year_lower = max(lower_years)
-    year_upper = min(upper_years)
+    idx = bisect_right(available_years, pyear)
+    if idx == 0:
+        # Planning horizon is before all available years
+        logger.warning(
+            f"Year {pyear} is before the first available year {available_years[0]}. "
+            f"Falling back to first available year."
+        )
+        year_lower = year_upper = available_years[0]
+    elif idx == len(available_years):
+        # Planning horizon is after all available years
+        logger.warning(
+            f"Year {pyear} is after the latest available year {available_years[-1]}. "
+            f"Falling back to latest available year."
+        )
+        year_lower = year_upper = available_years[-1]
+    else:
+        year_lower = available_years[idx - 1]
+        year_upper = available_years[idx]
 
     logger.info(f"Interpolating {pyear} from {year_lower} and {year_upper}")
 
