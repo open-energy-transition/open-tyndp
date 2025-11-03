@@ -52,9 +52,8 @@ Outputs
 import logging
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from _helpers import configure_logging, get_snapshots, set_scenario_config
+from _helpers import check_cyear, configure_logging, get_snapshots, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -226,7 +225,30 @@ def interpolate_demand(
 
 
 def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFrame:
-    """Load hydrogen demand files into dictionary of dataframes. Filter for specific climatic year and format data."""
+    """
+    Load hydrogen demand data for a specific scenario, climate year, planning year.
+
+    This function retrieves hydrogen demand data from a file, either by loading
+    the exact year if available or by performing linear interpolation between
+    available years. The data is filtered for a specific climatic year.
+
+    Parameters
+    ----------
+    fn : str
+        Filepath to the hydrogen demand data file.
+    scenario : str
+        Name of the scenario to load.
+    pyear : int
+        Planning year for which to retrieve hydrogen demand data.
+    cyear : int
+        Climatic year used to filter the demand data.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing hydrogen demand data for the specified scenario,
+        planning year, and climatic year.
+    """
 
     available_years = get_available_years(fn, scenario)
     logger.info(
@@ -240,24 +262,6 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
 
     # Target year not available, do linear interpolation
     return interpolate_demand(available_years, pyear, fn, scenario, cyear)
-
-
-def check_cyear(cyear: int, scenario: str) -> int:
-    """Check if the climatic year is valid for the given scenario."""
-
-    valid_years = {
-        "NT": np.arange(1983, 2018).tolist(),
-        "DE": [1995, 2008, 2009],
-        "GA": [1995, 2008, 2009],
-    }
-
-    if cyear not in valid_years[scenario]:
-        logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
-        )
-        cyear = 2009
-
-    return cyear
 
 
 if __name__ == "__main__":
