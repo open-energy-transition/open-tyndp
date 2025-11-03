@@ -287,7 +287,7 @@ if __name__ == "__main__":
     # Load demand with interpolation
     logger.info(
         f"Processing H2 demand for scenario: {scenario}, "
-        f"target years: {pyear}, weather year: {cyear}"
+        f"target year: {pyear}, climate year: {cyear}"
     )
     demand = load_h2_demand(fn, scenario, pyear, cyear)
 
