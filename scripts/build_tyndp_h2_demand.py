@@ -212,9 +212,9 @@ def interpolate_demand(
         df_lower = pd.DataFrame(0, index=df_upper.index, columns=df_upper.columns)
     elif df_upper.empty:
         logger.warning(
-            f"Year {year_upper} failed to load. Using zeros for interpolation."
+            f"Year {year_upper} failed to load. Using data from lower year for interpolation."
         )
-        df_upper = pd.DataFrame(0, index=df_lower.index, columns=df_lower.columns)
+        df_upper = df_lower
 
     df_lower_aligned, df_upper_aligned = df_lower.align(
         df_upper, join="outer", axis=1, fill_value=0
