@@ -180,7 +180,7 @@ rule build_pemmdb_and_trajectories:
         ),
 
 
-rule run_all_h2_demand:
+rule build_tyndp_h2_demands:
     input:
         expand(
             resources("h2_demand_tyndp_{planning_horizons}.csv"),
