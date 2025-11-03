@@ -7,6 +7,7 @@ Plot benchmark figures.
 
 import logging
 import multiprocessing as mp
+import textwrap
 from functools import partial
 from pathlib import Path
 
@@ -71,7 +72,11 @@ def _plot_scenario_comparison(
         idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
         df = df.rename(columns={tyndp_str: tyndp_str_ext})
 
-    df.set_index("carrier")[idx].plot.bar(
+    # Wrap long x-axis labels
+    df = df.set_index("carrier")
+    df.index = [textwrap.fill(label, width=30) for label in df.index]
+
+    df[idx].plot.bar(
         ax=ax,
         color=["#1f77b4", "#ff7f0e", "#aeff39"],
         width=0.7,
@@ -307,6 +312,9 @@ def plot_overview(
     # Keep relevant indicators and rows
     df_clean = indicators[[metric, "Missing"]].dropna()
     df_clean.index = df_clean.index.str.replace("_", " ").str.title()
+
+    # Wrap long x-axis labels
+    df_clean.index = [textwrap.fill(label, width=30) for label in df_clean.index]
 
     # Create bar plot with metric
     df_clean.plot.bar(
