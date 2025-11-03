@@ -216,10 +216,6 @@ def interpolate_demand(
         )
         df_upper = df_lower
 
-    df_lower_aligned, df_upper_aligned = df_lower.align(
-        df_upper, join="outer", axis=1, fill_value=0
-    )
-
     missing_in_lower = df_upper.columns.difference(df_lower.columns)
     missing_in_upper = df_lower.columns.difference(df_upper.columns)
 
@@ -230,6 +226,9 @@ def interpolate_demand(
             f"Missing in {year_lower}: {list(missing_in_lower)}, "
             f"Missing in {year_upper}: {list(missing_in_upper)}"
         )
+    df_lower_aligned, df_upper_aligned = df_lower.align(
+        df_upper, join="outer", axis=1, fill_value=0
+    )
 
     weight = (pyear - year_lower) / (year_upper - year_lower)
     # Perform linear interpolation
