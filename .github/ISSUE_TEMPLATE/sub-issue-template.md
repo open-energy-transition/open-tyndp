@@ -4,6 +4,7 @@ about: Detailed implementation task that belongs to a parent issue
 title: "[SUB]"
 labels: ''
 assignees: ''
+type: 'Sub-issue'
 
 ---
 
