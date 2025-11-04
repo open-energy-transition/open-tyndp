@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 pypsa.options.params.statistics.nice_names = False
 
 
-def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series):
+def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series, nhours: int = 24):
     """
     Remove the last day from snapshots to ensure exactly 52 weeks of data.
 
@@ -36,6 +36,8 @@ def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series):
         Snapshot datetime index.
     sws : pd.Series
         Snapshot weightings.
+    nhours : int, default 24
+        Number of hours to consider.
 
     Returns
     -------
@@ -45,7 +47,7 @@ def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series):
     sns = sns.copy()
     sws = sws.copy()
 
-    remaining = 24
+    remaining = nhours
     while remaining > 0:
         if sws.iloc[-1] > remaining:
             sws.iloc[-1] -= remaining
