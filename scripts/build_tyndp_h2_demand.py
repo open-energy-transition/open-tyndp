@@ -50,6 +50,7 @@ Outputs
 """
 
 import logging
+from bisect import bisect_right
 from pathlib import Path
 
 import pandas as pd
@@ -57,7 +58,6 @@ from _helpers import (
     check_cyear,
     configure_logging,
     get_snapshots,
-    interpolate_demand,
     set_scenario_config,
 )
 
@@ -174,6 +174,72 @@ def load_single_year(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataF
         demand = pd.concat(demands, axis=1).droplevel(0, axis=1)
 
     return demand
+
+
+def interpolate_demand(
+    available_years: list[int], pyear: int, fn: str, scenario: str, cyear: int
+) -> pd.DataFrame:
+    """Interpolate demand between available years."""
+
+    # Currently only implemented interpolation and not extrapolation
+    idx = bisect_right(available_years, pyear)
+    if idx == 0:
+        # Planning horizon is before all available years
+        logger.warning(
+            f"Year {pyear} is before the first available year {available_years[0]}. "
+            f"Falling back to first available year."
+        )
+        year_lower = year_upper = available_years[0]
+    elif idx == len(available_years):
+        # Planning horizon is after all available years
+        logger.warning(
+            f"Year {pyear} is after the latest available year {available_years[-1]}. "
+            f"Falling back to latest available year."
+        )
+        year_lower = year_upper = available_years[-1]
+    else:
+        year_lower = available_years[idx - 1]
+        year_upper = available_years[idx]
+
+    logger.info(f"Interpolating {pyear} from {year_lower} and {year_upper}")
+
+    df_lower = load_single_year(fn, scenario, year_lower, cyear)
+    df_upper = load_single_year(fn, scenario, year_upper, cyear)
+
+    # Check if data was loaded successfully
+    if df_lower.empty and df_upper.empty:
+        logger.error("Both years failed to load")
+        return pd.DataFrame()
+    elif df_lower.empty:
+        logger.warning(
+            f"Year {year_lower} failed to load. Using zeros for interpolation."
+        )
+        df_lower = pd.DataFrame(0, index=df_upper.index, columns=df_upper.columns)
+    elif df_upper.empty:
+        logger.warning(
+            f"Year {year_upper} failed to load. Using data from lower year for interpolation."
+        )
+        df_upper = df_lower
+
+    missing_in_lower = df_upper.columns.difference(df_lower.columns)
+    missing_in_upper = df_lower.columns.difference(df_upper.columns)
+
+    if len(missing_in_lower) > 0 or len(missing_in_upper) > 0:
+        logger.warning(
+            f"Column mismatch between {year_lower} and {year_upper}. "
+            f"Missing columns filled with zeros. "
+            f"Missing in {year_lower}: {list(missing_in_lower)}, "
+            f"Missing in {year_upper}: {list(missing_in_upper)}"
+        )
+    df_lower_aligned, df_upper_aligned = df_lower.align(
+        df_upper, join="outer", axis=1, fill_value=0
+    )
+
+    weight = (pyear - year_lower) / (year_upper - year_lower)
+    # Perform linear interpolation
+    result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
+
+    return result
 
 
 def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFrame:
