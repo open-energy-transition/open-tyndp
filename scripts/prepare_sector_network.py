@@ -2213,14 +2213,15 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         )
 
     if options["hydrogen_fuel_cell"]:
-        logger.info("Adding Z2 dummy hydrogen fuel cell for re-electrification.")
+        logger.info("Adding Z2 hydrogen fuel cell for re-electrification.")
+        # TODO: Improve with TYNDP specific technology and cost assumptions
         n.add(
             "Link",
-            nodes.index + " H2 Z2 Fuel Cell",
+            nodes.index + " H2 Z2 h2-fuel-cell",
             bus0=nodes.country.values + " H2 Z2",
             bus1=nodes.index,
-            p_nom_extendable=True,
-            carrier="H2 Fuel Cell",
+            p_nom_extendable=False,
+            carrier="h2-fuel-cell",
             efficiency=costs.at["fuel cell", "efficiency"],
             capital_cost=costs.at["fuel cell", "capital_cost"]
             * costs.at["fuel cell", "efficiency"],  # NB: fixed cost is per MWel
@@ -2229,15 +2230,16 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
 
     if options["hydrogen_turbine"]:
         logger.info(
-            "Adding Z2 dummy hydrogen turbine for re-electrification. Assuming CCGT technology costs."
+            "Adding Z2 hydrogen turbine for re-electrification. Assuming CCGT technology costs."
         )
+        # TODO: Improve with TYNDP specific technology and cost assumptions
         n.add(
             "Link",
-            nodes.index + " H2 Z2 turbine",
+            nodes.index + " H2 Z2 h2-ccgt",
             bus0=nodes.country.values + " H2 Z2",
             bus1=nodes.index,
-            p_nom_extendable=True,
-            carrier="H2 turbine",
+            p_nom_extendable=False,
+            carrier="h2-ccgt",
             efficiency=costs.at["CCGT", "efficiency"],
             capital_cost=costs.at["CCGT", "capital_cost"]
             * costs.at["CCGT", "efficiency"],  # NB: fixed cost is per MWel

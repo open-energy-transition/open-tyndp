@@ -230,7 +230,6 @@ sector:
     2050: 0
   oil_boilers: false
   biomass_boiler: false
-  hydrogen_fuel_cell: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false
