@@ -26,14 +26,12 @@ logger = logging.getLogger(__name__)
 pypsa.options.params.statistics.nice_names = False
 
 
-def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series, nhours: int = 24):
+def remove_last_day(sws: pd.Series, nhours: int = 24):
     """
     Remove the last day from snapshots to ensure exactly 52 weeks of data.
 
     Parameters
     ----------
-    sns : pd.DatetimeIndex
-        Snapshot datetime index.
     sws : pd.Series
         Snapshot weightings.
     nhours : int, default 24
@@ -44,20 +42,14 @@ def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series, nhours: int = 24):
     tuple[pd.DatetimeIndex, pd.Series]
         Modified snapshots and snapshot weightings with the last day removed.
     """
-    sns = sns.copy()
     sws = sws.copy()
 
-    remaining = nhours
-    while remaining > 0:
-        if sws.iloc[-1] > remaining:
-            sws.iloc[-1] -= remaining
-            remaining = 0
-        else:
-            remaining -= sws.iloc[-1]
-            sws = sws.iloc[:-1]
-            sns = sns[:-1]
+    remaining_hours = sws.iloc[::-1].cumsum() - nhours
+    sws[remaining_hours < 0] = 0
+    last_i = remaining_hours[remaining_hours >= 0].index[0]
+    sws.loc[last_i] = remaining_hours.loc[last_i]
 
-    return sns, sws
+    return sws
 
 
 def compute_benchmark(
@@ -112,7 +104,7 @@ def compute_benchmark(
         grouper = ["carrier"]
 
         # Remove the last day of the year to have exactly 52 weeks
-        sns, sws = remove_last_day(n.snapshots, n.snapshot_weightings.generators)
+        sws = remove_last_day(n.snapshot_weightings.generators)
 
         df = (
             n.statistics.withdrawal(
@@ -122,7 +114,6 @@ def compute_benchmark(
                 aggregate_across_components=True,
                 aggregate_time=False,
             )
-            .reindex(sns, axis=1)
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[pd.IndexSlice[:, ["electricity"]]]
