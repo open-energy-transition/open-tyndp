@@ -45,19 +45,16 @@ def remove_last_day(sns: pd.DatetimeIndex, sws: pd.Series):
     sns = sns.copy()
     sws = sws.copy()
 
-    if (sws == 1.0).all():
-        sns = sns[:-24]
-        sws = sws[:-24]
-    else:
-        remaining = 24
-        while remaining > 0:
-            if sws.iloc[-1] >= remaining:
-                sws.iloc[-1] -= remaining
-                remaining = 0
-            else:
-                remaining -= sws.iloc[-1]
-                sws = sws.iloc[:-1]
-                sns = sns[:-1]
+    remaining = 24
+    while remaining > 0:
+        if sws.iloc[-1] > remaining:
+            sws.iloc[-1] -= remaining
+            remaining = 0
+        else:
+            remaining -= sws.iloc[-1]
+            sws = sws.iloc[:-1]
+            sns = sns[:-1]
+
     return sns, sws
 
 
