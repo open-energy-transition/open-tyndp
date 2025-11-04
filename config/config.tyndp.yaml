@@ -42,16 +42,17 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT, CCGT]
+    Generator: []
 
   tyndp_conventional_carriers:
   - gas
   - coal
   - lignite
-  - nuclear
+  - uranium
   - oil-light
   - oil-heavy
   - oil-shale
+  group_tyndp_conventionals: true
   renewable_carriers: [hydro]
   tyndp_renewable_carriers:
   - other-res

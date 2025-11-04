@@ -592,6 +592,32 @@ def update_wind_solar_costs(
             )
 
 
+def update_costs_tyndp(costs, tyndp_techs):
+    """
+    Update technology and cost assumptions for TYNDP technologies based on TYNDP to PyPSA-Eur default carrier mapping.
+
+    costs : pd.DataFrame
+        Cost assumptions DataFrame
+    tyndp_techs : dict[str, str]
+        Dictionary of TYNDP technology names mapped to carriers.
+
+    Returns
+    -------
+    costs : pd.DataFrame
+        Updated cost assumptions DataFrame
+    """
+
+    for tyndp_tech, pypsa_tech in tyndp_techs.items():
+        costs.loc[tyndp_tech] = costs.loc[pypsa_tech]
+
+    # Add CCS assumptions as intermediate copy since there is no direct mapping atm
+    costs.loc["gas-ccgt-ccs"] = costs.loc["CCGT"]
+    costs.loc["coal-ccs"] = costs.loc["coal"]
+    costs.loc["lignite-ccs"] = costs.loc["lignite"]
+
+    return costs
+
+
 def add_carrier_buses(
     n: pypsa.Network,
     carrier: str,
@@ -1380,11 +1406,118 @@ def cycling_shift(df, steps=1):
     return df
 
 
+def add_thermal_generation_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    nodes: pd.Index,
+    tyndp_conventionals: dict[str, str],
+    spatial: SimpleNamespace,
+    options: dict,
+    cf_industry: dict,
+):
+    """
+    Add TYNDP conventional thermal electricity generation technologies to the network.
+
+    Creates links between carrier buses and demand nodes for conventional generators,
+    including their efficiency, costs, and CO2 emissions.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies
+    nodes : pd.Index
+        pd.Index with demand nodes
+    tyndp_conventionals : Dict[str, str]
+        Dictionary mapping TYNDP conventional generation technologies to their energy carriers
+    spatial : SimpleNamespace
+        Namespace containing spatial information for different carriers,
+        including nodes and locations
+    options : dict
+        Configuration dictionary containing settings for the model
+    cf_industry : dict
+        Dictionary of industrial conversion factors, needed for carrier buses
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding generation components
+
+    Notes
+    -----
+    - Currently, default PyPSA-Eur technology assumptions are used, hence costs (VOM and fixed) are given per MWel and automatically adjusted by efficiency
+    - CO2 emissions are tracked through a link to the 'co2 atmosphere' bus
+    - Generator lifetimes are considered in the capital cost calculation
+    """
+
+    for generator, carrier in tyndp_conventionals.items():
+        carrier_nodes = vars(spatial)[carrier].nodes
+
+        add_carrier_buses(
+            n=n,
+            carrier=carrier,
+            costs=costs,
+            spatial=spatial,
+            options=options,
+            cf_industry=cf_industry,
+        )
+
+        # Add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
+        # TODO: Update with TYNDP specific assumptions
+        if "ccs" in generator:
+            n.add(
+                "Link",
+                nodes + " " + generator,
+                bus0=carrier_nodes,
+                bus1=nodes,
+                bus2="co2 atmosphere",
+                bus3=spatial.co2.df.loc[nodes, "nodes"].values,
+                carrier=generator,
+                p_nom_extendable=False,
+                capital_cost=costs.at[generator, "efficiency"]
+                * costs.at[generator, "capital_cost"]  # NB: fixed cost is per MWel
+                + costs.at["biomass CHP capture", "capital_cost"]
+                * costs.at[carrier, "CO2 intensity"],
+                marginal_cost=costs.at[generator, "efficiency"]
+                * costs.at[generator, "VOM"],  # NB: VOM is per MWel
+                efficiency=costs.at[generator, "efficiency"],
+                efficiency2=costs.at[carrier, "CO2 intensity"]
+                * (1 - costs.at["biomass CHP capture", "capture_rate"]),
+                efficiency3=costs.at[carrier, "CO2 intensity"]
+                * costs.at["biomass CHP capture", "capture_rate"],
+                lifetime=costs.at[generator, "lifetime"],
+            )
+
+        # Else add regular conventional power plants
+        else:
+            n.add(
+                "Link",
+                nodes + " " + generator,
+                bus0=carrier_nodes,
+                bus1=nodes,
+                bus2="co2 atmosphere",
+                marginal_cost=costs.at[generator, "efficiency"]
+                * costs.at[generator, "VOM"],  # NB: VOM is per MWel
+                capital_cost=costs.at[generator, "efficiency"]
+                * costs.at[generator, "capital_cost"],  # NB: fixed cost is per MWel
+                p_nom_extendable=False,
+                p_nom=0,
+                p_max_pu=1,
+                p_nom_min=0,
+                carrier=generator,
+                efficiency=costs.at[generator, "efficiency"],
+                efficiency2=costs.at[carrier, "CO2 intensity"],
+                lifetime=costs.at[generator, "lifetime"],
+            )
+
+
 def add_generation(
     n: pypsa.Network,
     costs: pd.DataFrame,
     pop_layout: pd.DataFrame,
     conventionals: dict[str, str],
+    tyndp_conventionals: pd.DataFrame,
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
@@ -1409,6 +1542,8 @@ def add_generation(
     conventionals : Dict[str, str]
         Dictionary mapping generator types to their energy carriers
         e.g., {'OCGT': 'gas', 'CCGT': 'gas', 'coal': 'coal'}
+    tyndp_conventionals : Dict[str, str]
+        Dictionary mapping TYNDP conventional generation technologies to their energy carriers
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
         including nodes and locations
@@ -1502,6 +1637,17 @@ def add_generation(
             * costs.at["biomass CHP capture", "capture_rate"],
             lifetime=costs.at["coal", "lifetime"],
         )
+
+    # Add TYNDP conventional power plants
+    add_thermal_generation_tyndp(
+        n=n,
+        costs=costs,
+        nodes=nodes,
+        tyndp_conventionals=tyndp_conventionals,
+        spatial=spatial,
+        options=options,
+        cf_industry=cf_industry,
+    )
 
 
 def add_ammonia(
@@ -7533,12 +7679,10 @@ if __name__ == "__main__":
         for key in snakemake.input.keys()
         if key.startswith("profile") and "pecd" not in key and "pemmdb" not in key
     }
-    profiles_pecd = (
-        pd.read_csv(snakemake.input.carrier_mapping)
-        .set_index("open_tyndp_index")
-        .pecd_carrier.dropna()
-        .to_dict()
+    tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
+        "open_tyndp_index"
     )
+    profiles_pecd = tyndp_carrier_mapping.pecd_carrier.dropna().to_dict()
     tyndp_renewable_carriers = snakemake.params.electricity["tyndp_renewable_carriers"]
     profiles_pecd = {
         f"profile_{k}": snakemake.input.get(f"profile_pecd_{v}")
@@ -7619,11 +7763,37 @@ if __name__ == "__main__":
         sequestration_potential_file=snakemake.input.sequestration_potential,
     )
 
+    # Read in tyndp conventional carriers and mapping while replacing oil variants with single "oil" carrier
+    # TODO: update if oil carriers are differentiated
+    tyndp_conventional_carriers = snakemake.params.conventional_carriers_tyndp
+
+    tyndp_conventional_mapping = (
+        tyndp_carrier_mapping[
+            ["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]
+        ]
+        .query("open_tyndp_carrier in @tyndp_conventional_carriers")
+        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
+    )
+
+    if snakemake.params.electricity["group_tyndp_conventionals"]:
+        tyndp_conventional_mapping = tyndp_conventional_mapping.groupby(
+            "open_tyndp_type"
+        ).first()
+
+    tyndp_conventional_generation = (
+        tyndp_conventional_mapping.open_tyndp_carrier.to_dict()
+    )
+
+    # TODO: update costs via overwrite csv with actual tech assumptions, this currently serves as a placeholder
+    pypsa_carrier_map = tyndp_conventional_mapping.dropna().pypsa_eur_carrier.to_dict()
+    costs = update_costs_tyndp(costs, pypsa_carrier_map)
+
     add_generation(
         n=n,
         costs=costs,
         pop_layout=pop_layout,
         conventionals=options["conventional_generation"],
+        tyndp_conventionals=tyndp_conventional_generation,
         spatial=spatial,
         options=options,
         cf_industry=cf_industry,

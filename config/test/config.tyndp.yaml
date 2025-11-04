@@ -43,7 +43,7 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT]
+    Generator: []
     StorageUnit: [battery]
     Store: [H2]
     Link: [H2 pipeline]
@@ -52,10 +52,11 @@ electricity:
   - gas
   - coal
   - lignite
-  - nuclear
+  - uranium
   - oil-light
   - oil-heavy
   - oil-shale
+  group_tyndp_conventionals: true
   renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
