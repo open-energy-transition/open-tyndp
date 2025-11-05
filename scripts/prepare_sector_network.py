@@ -1408,6 +1408,174 @@ def cycling_shift(df, steps=1):
     return df
 
 
+def _group_conv(df: pd.DataFrame, groupby: list[str]) -> pd.DataFrame:
+    """
+    Group conventional carriers based on specified columns.
+    """
+    # Define aggregation strategies for specific columns
+    AGG_STRATEGIES = {
+        "p_nom": "sum",
+        "e_nom": "sum",
+        "p_min": "sum",
+        "p_max": "sum",
+        "efficiency": "mean",
+        "index_carrier": lambda x: "/".join(x.dropna().astype(str)),
+    }
+
+    # Aggregation dict: use specific strategy if defined, else "first"
+    agg_dict = {
+        col: AGG_STRATEGIES.get(col, "first")
+        for col in df.columns
+        if col not in groupby
+    }
+
+    return (
+        df.groupby(groupby, dropna=False)
+        .agg(agg_dict)
+        .reset_index()
+        .rename(
+            columns={
+                "index_carrier": "grouped_index_carriers",
+                "open_tyndp_type": "index_carrier",
+            },
+            errors="ignore",
+        )
+    )
+
+
+def _add_tyndp_type(df: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add open_tyndp_type column based on index_carrier mapping.
+    """
+    return df.assign(
+        open_tyndp_type=lambda x: x["index_carrier"].map(mapping["open_tyndp_type"])
+    )
+
+
+def _group_capacities(
+    caps: pd.DataFrame,
+    conventional_carriers: list[str],
+    tyndp_mapping: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Group conventional capacities by bus and open_tyndp_type.
+    """
+    # Split into conventional and other
+    caps_conv = caps.query("carrier in @conventional_carriers")
+    caps_other = caps.query("carrier not in @conventional_carriers")
+
+    # Map to open_tyndp_type and group
+    caps_conv_with_type = _add_tyndp_type(caps_conv, tyndp_mapping)
+    caps_conv_grouped = _group_conv(
+        caps_conv_with_type, groupby=["bus", "open_tyndp_type"]
+    )
+
+    # Recombine
+    return pd.concat([caps_conv_grouped, caps_other], ignore_index=True)
+
+
+def _group_profiles(
+    profiles: pd.DataFrame,
+    caps_conv: pd.DataFrame,
+    caps_grouped: pd.DataFrame,
+    conventional_carriers: list[str],
+    tyndp_mapping: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Group conventional profiles by time, bus, and open_tyndp_type.
+    """
+    # Split into conventional and other
+    profiles_conv = profiles.query("carrier in @conventional_carriers")
+    profiles_other = profiles.query("carrier not in @conventional_carriers")
+
+    # Calculate absolute values for p_min and p_max
+    profiles_conv_abs = profiles_conv.merge(
+        caps_conv[["bus", "index_carrier", "p_nom"]],
+        on=["bus", "index_carrier"],
+        how="left",
+    ).assign(
+        p_min=lambda df: df.p_min_pu * df.p_nom,
+        p_max=lambda df: df.p_max_pu * df.p_nom,
+    )
+
+    # Map to open_tyndp_type and group
+    profiles_conv_with_type = _add_tyndp_type(profiles_conv_abs, tyndp_mapping)
+    profiles_conv_grouped = _group_conv(
+        profiles_conv_with_type, groupby=["time", "bus", "open_tyndp_type"]
+    )
+
+    # Convert back to per-unit values using grouped capacities
+    profiles_conv_pu = (
+        profiles_conv_grouped.drop(columns=["p_nom"])
+        .merge(
+            caps_grouped[["bus", "index_carrier", "p_nom"]],
+            on=["bus", "index_carrier"],
+            how="left",
+        )
+        .assign(
+            p_min_pu=lambda df: df.p_min / df.p_nom,
+            p_max_pu=lambda df: df.p_max / df.p_nom,
+        )
+        .drop(columns=["p_min", "p_max", "p_nom"])
+    )
+
+    # Recombine
+    return pd.concat([profiles_conv_pu, profiles_other], ignore_index=True)
+
+
+def group_tyndp_conventionals(
+    pemmdb_capacities: pd.DataFrame,
+    pemmdb_profiles: pd.DataFrame,
+    tyndp_conventional_mapping: pd.DataFrame,
+    tyndp_conventional_carriers: list[str],
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Group conventional thermal generation technologies by TYNDP type.
+
+    Groups capacities and profiles for conventional carriers according to the
+    open_tyndp_type mapping, combining multiple carriers into single entries.
+
+    Parameters
+    ----------
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    pemmdb_profiles : pd.DataFrame
+        All PEMMDB must-run and availability profiles.
+    tyndp_conventional_mapping : pd.DataFrame
+        Mapping from index_carrier to open_tyndp_type.
+    tyndp_conventional_carriers : list[str]
+        List of TYNDP conventional carriers to group
+
+    Returns
+    -------
+    tuple[pd.DataFrame, pd.DataFrame]
+        Grouped capacities and profiles.
+    """
+    logger.info("Grouping TYNDP conventional thermal generation technologies.")
+
+    # Store original conventional capacities before grouping
+    caps_conv_original = _add_tyndp_type(
+        pemmdb_capacities.query("carrier in @tyndp_conventional_carriers"),
+        tyndp_conventional_mapping,
+    )
+
+    # Group capacities
+    capacities_grouped = _group_capacities(
+        pemmdb_capacities, tyndp_conventional_carriers, tyndp_conventional_mapping
+    )
+
+    # Group profiles
+    profiles_grouped = _group_profiles(
+        pemmdb_profiles,
+        caps_conv_original,
+        capacities_grouped,
+        tyndp_conventional_carriers,
+        tyndp_conventional_mapping,
+    )
+
+    return capacities_grouped, profiles_grouped
+
+
 def add_thermal_generation_tyndp(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -7770,7 +7938,6 @@ if __name__ == "__main__":
     # Read in tyndp conventional carriers and mapping while replacing oil variants with single "oil" carrier
     # TODO: update if oil carriers are differentiated
     tyndp_conventional_carriers = snakemake.params.conventional_carriers_tyndp
-
     tyndp_conventional_mapping = (
         tyndp_carrier_mapping[
             ["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]
@@ -7779,7 +7946,21 @@ if __name__ == "__main__":
         .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
     )
 
+    # Read in PEMMDB data and trajectories
+    pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities)
+    pemmdb_profiles = xr.open_dataset(snakemake.input.pemmdb_profiles).to_dataframe()
+    tyndp_trajectories = pd.read_csv(snakemake.input.tyndp_trajectories)
+
     if snakemake.params.electricity["group_tyndp_conventionals"]:
+        # Group capacities and profiles for conventional technologies
+        pemmdb_capacities, pemmdb_profiles = group_tyndp_conventionals(
+            pemmdb_capacities=pemmdb_capacities,
+            pemmdb_profiles=pemmdb_profiles,
+            tyndp_conventional_mapping=tyndp_conventional_mapping,
+            tyndp_conventional_carriers=tyndp_conventional_carriers,
+        )
+
+        # Group mapping itself
         tyndp_conventional_mapping = tyndp_conventional_mapping.groupby(
             "open_tyndp_type"
         ).first()
