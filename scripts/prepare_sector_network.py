@@ -592,7 +592,9 @@ def update_wind_solar_costs(
             )
 
 
-def update_costs_tyndp(costs, tyndp_techs):
+def update_costs_tyndp(
+    costs: pd.DataFrame, tyndp_techs: dict[str, str]
+) -> pd.DataFrame:
     """
     Update technology and cost assumptions for TYNDP technologies based on TYNDP to PyPSA-Eur default carrier mapping.
 
@@ -1414,7 +1416,7 @@ def add_thermal_generation_tyndp(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
-):
+) -> None:
     """
     Add TYNDP conventional thermal electricity generation technologies to the network.
 
@@ -1442,7 +1444,7 @@ def add_thermal_generation_tyndp(
     Returns
     -------
     None
-        Modifies the network object in-place by adding generation components
+        Modifies the network object in-place by adding TYNDP generation components
 
     Notes
     -----
@@ -2008,7 +2010,7 @@ def add_electricity_grid_connection(n, costs):
 
 def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
     """
-    Add TYNDP electrolyzers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
+    Add TYNDP electrolysers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
 
     Parameters
     ----------
@@ -2117,7 +2119,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
 
 def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     """
-    Adds TYNDP Z2 DRES electricity buses and electrolyzers.
+    Adds TYNDP Z2 DRES electricity buses and electrolysers.
 
     Parameters
     ----------
@@ -2136,7 +2138,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
         The function modifies the network object in-place by adding components.
     """
 
-    logger.info("Adding Z2 dummy DRES electricity buses and electrolyzers.")
+    logger.info("Adding Z2 dummy DRES electricity buses and electrolysers.")
     n.add(
         "Bus",
         buses_h2_z2 + " DRES",
