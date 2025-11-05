@@ -32,6 +32,7 @@ import logging
 import os
 import re
 import sys
+from collections.abc import Sequence
 from functools import partial
 from typing import Any
 
@@ -65,6 +66,50 @@ else:
 
 class ObjectiveValueError(Exception):
     pass
+
+
+def add_co2_price(n: pypsa.Network, co2price: float, buses: Sequence[str]) -> None:
+    c = n.c.links
+    costs = []
+    for p in c.ports:
+        emitting_i = c.static.index[c.static[f"bus{p}"].isin(buses)]
+        if emitting_i.empty:
+            continue
+
+        efficiency_attr = (
+            None if p == 0 else "efficiency" if p == "1" else f"efficiency{p}"
+        )
+        if not c.dynamic[efficiency_attr].columns.intersection(emitting_i).empty:
+            raise ValueError(
+                "Emissions prices not implemented for varying emission efficiencies"
+            )
+
+        rate = (
+            -1 if efficiency_attr is None else c.static.loc[emitting_i, efficiency_attr]
+        )  # unit: tCO2 / internal unit
+        costs.append(co2price * rate)
+
+    if costs:
+        costs = pd.concat(costs).reindex(c.static.index, fill_value=0)
+        c.dynamic["marginal_cost"] += costs.loc[c.dynamic["marginal_cost"].columns]
+        c.static["marginal_cost"] += costs
+
+
+def add_co2_price_global_constraint(n: pypsa.Network):
+    glcs = n.global_constraints[n.global_constraints.type == "co2_price"]
+
+    if glcs.empty:
+        return
+
+    for name, glc in glcs.iterrows():
+        carattr = glc.carrier.attribute
+        emissions = n.carriers.loc[n.carriers[carattr] != 0, carattr]
+        buses = n.buses.index[n.buses.carrier.isin(emissions.index)]
+
+        if emissions.empty:
+            continue
+
+        add_co2_price(n, glc.constant, buses)
 
 
 def add_land_use_constraint_perfect(n: pypsa.Network) -> None:
@@ -541,6 +586,8 @@ def prepare_network(
         add_co2_sequestration_limit(
             n, limit_dict=limit_dict, planning_horizons=planning_horizons
         )
+
+    add_co2_price_global_constraint(n)
 
 
 def add_CCL_constraints(
