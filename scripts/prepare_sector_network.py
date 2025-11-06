@@ -7951,6 +7951,68 @@ def add_import_options(
             )
 
 
+def prepare_tyndp_conventional_mapping(
+    carrier_mapping: pd.DataFrame,
+    conventional_carriers: list[str],
+) -> pd.DataFrame:
+    """
+    Prepare TYNDP conventional carrier mapping.
+    Filters for conventional carriers and consolidates oil variants into single oil carrier.
+
+    Parameters
+    ----------
+    carrier_mapping : pd.DataFrame
+        Full TYNDP carrier mapping.
+    conventional_carriers : list[str]
+        List of conventional carrier names to include.
+
+    Returns
+    -------
+    pd.DataFrame
+        Filtered and processed conventional carrier mapping.
+    """
+    # TODO: update if oil carriers are differentiated with TYNDP assumptions
+    return (
+        carrier_mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
+        .query("open_tyndp_carrier in @conventional_carriers")
+        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
+    )
+
+
+def get_tyndp_conventional_thermals(
+    mapping: pd.DataFrame,
+    include_h2_fuel_cell: bool,
+    include_h2_turbine: bool,
+) -> tuple[dict[str, str], list[str]]:
+    """
+    Get list of TYNDP conventional thermal generation technologies.
+
+    Parameters
+    ----------
+    mapping : pd.DataFrame
+        TYNDP conventional carrier mapping (grouped or ungrouped).
+    include_h2_fuel_cell : bool
+        Whether to include hydrogen fuel cell technology.
+    include_h2_turbine : bool
+        Whether to include hydrogen turbine technology.
+
+    Returns
+    -------
+    tuple[dict[str, str], list[str]]
+        Dictionary with conventional mapping and list of conventional thermal technology names.
+    """
+
+    conventional_dict = mapping.open_tyndp_carrier.to_dict()
+    conventional_thermals = list(conventional_dict)
+
+    if include_h2_fuel_cell:
+        conventional_thermals.append("h2-fuel-cell")
+    if include_h2_turbine:
+        conventional_thermals.append("h2-ccgt")
+
+    return conventional_dict, conventional_thermals
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -8083,24 +8145,22 @@ if __name__ == "__main__":
         sequestration_potential_file=snakemake.input.sequestration_potential,
     )
 
-    # Read in tyndp conventional carriers and mapping while replacing oil variants with single "oil" carrier
-    # TODO: update if oil carriers are differentiated
-    tyndp_conventional_carriers = snakemake.params.conventional_carriers_tyndp
-    tyndp_conventional_mapping = (
-        tyndp_carrier_mapping[
-            ["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]
-        ]
-        .query("open_tyndp_carrier in @tyndp_conventional_carriers")
-        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
-    )
-
     # Read in PEMMDB data and trajectories
     pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities)
     pemmdb_profiles = xr.open_dataset(snakemake.input.pemmdb_profiles).to_dataframe()
     tyndp_trajectories = pd.read_csv(snakemake.input.tyndp_trajectories)
 
+    # Extract TYNDP conventional carriers
+    tyndp_conventional_carriers = snakemake.params.conventional_carriers_tyndp
+
+    # Prepare conventional mapping
+    tyndp_conventional_mapping = prepare_tyndp_conventional_mapping(
+        carrier_mapping=tyndp_carrier_mapping,
+        conventional_carriers=tyndp_conventional_carriers,
+    )
+
+    # Optionally group TYNDP conventionals
     if snakemake.params.electricity["group_tyndp_conventionals"]:
-        # Group capacities and profiles for conventional technologies
         pemmdb_capacities, pemmdb_profiles = group_tyndp_conventionals(
             pemmdb_capacities=pemmdb_capacities,
             pemmdb_profiles=pemmdb_profiles,
@@ -8113,8 +8173,13 @@ if __name__ == "__main__":
             "open_tyndp_type"
         ).first()
 
-    tyndp_conventional_generation = (
-        tyndp_conventional_mapping.open_tyndp_carrier.to_dict()
+    # Get list of conventional thermal technologies
+    tyndp_conventional_dict, tyndp_conventional_thermals = (
+        get_tyndp_conventional_thermals(
+            mapping=tyndp_conventional_mapping,
+            include_h2_fuel_cell=options["hydrogen_fuel_cell"],
+            include_h2_turbine=options["hydrogen_turbine"],
+        )
     )
 
     # TODO: update costs via overwrite csv with actual tech assumptions, this currently serves as a placeholder
@@ -8126,7 +8191,7 @@ if __name__ == "__main__":
         costs=costs,
         pop_layout=pop_layout,
         conventionals=options["conventional_generation"],
-        tyndp_conventionals=tyndp_conventional_generation,
+        tyndp_conventionals=tyndp_conventional_dict,
         spatial=spatial,
         options=options,
         cf_industry=cf_industry,
@@ -8148,13 +8213,6 @@ if __name__ == "__main__":
         spatial=spatial,
         options=options,
     )
-
-    # Specify list of TYNDP conventional thermal generation technologies
-    tyndp_conventional_thermals = list(tyndp_conventional_generation)
-    if options["hydrogen_fuel_cell"]:
-        tyndp_conventional_thermals.append("h2-fuel-cell")
-    if options["hydrogen_turbine"]:
-        tyndp_conventional_thermals.append("h2-ccgt")
 
     add_existing_pemmdb_capacities(
         n=n,
