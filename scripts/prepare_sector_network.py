@@ -1677,9 +1677,6 @@ def add_thermal_generation_tyndp(
                 capital_cost=costs.at[generator, "efficiency"]
                 * costs.at[generator, "capital_cost"],  # NB: fixed cost is per MWel
                 p_nom_extendable=False,
-                p_nom=0,
-                p_max_pu=1,
-                p_nom_min=0,
                 carrier=generator,
                 efficiency=costs.at[generator, "efficiency"],
                 efficiency2=costs.at[carrier, "CO2 intensity"],
@@ -1692,7 +1689,7 @@ def add_generation(
     costs: pd.DataFrame,
     pop_layout: pd.DataFrame,
     conventionals: dict[str, str],
-    tyndp_conventionals: pd.DataFrame,
+    tyndp_conventionals: dict[str, str],
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
@@ -1823,6 +1820,176 @@ def add_generation(
         options=options,
         cf_industry=cf_industry,
     )
+
+
+def _add_conventional_thermal_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    pemmdb_profiles: pd.DataFrame,
+    tyndp_conventional_thermals: dict[str, str],
+    nuclear_trajectories: pd.DataFrame,
+) -> None:
+    """
+    Add PEMMDB capacities and profiles to conventional thermal generation assets in the network.
+
+    Parameters
+    ----------
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    pemmdb_profiles : pd.DataFrame
+        All PEMMDB must-run and availability profiles.
+    tyndp_conventional_thermals : list[str]
+        List of TYNDP conventional thermal technologies that were added to the network.
+    nuclear_trajectories : pd.DataFrame
+        Trajectories for exogneous nuclear pathways.
+    """
+    logger.info(
+        "Adding PEMMDB capacities and profiles to conventional thermal generation assets."
+    )
+
+    for tech in tyndp_conventional_thermals:
+        # Capacities
+        ############
+        # Get indices for this technology
+        tech_i = n.links.query("carrier == @tech").index
+        if tech_i.empty:
+            continue
+
+        # Filter for capacities and add to the network
+        caps = pemmdb_capacities.query("index_carrier == @tech").set_index("bus")[
+            "p_nom"
+        ]
+        n.links.loc[tech_i, "p_nom"] = n.links.loc[tech_i, "bus1"].map(caps).fillna(0.0)
+
+        # Add nuclear-specific trajectories
+        if tech == "nuclear":
+            # Set p_nom_min and p_nom_max
+            traj_by_bus = nuclear_trajectories.set_index("bus")
+            n.links.loc[tech_i, "p_nom_min"] = (
+                n.links.loc[tech_i, "bus1"].map(traj_by_bus["p_nom_min"]).fillna(0.0)
+            )
+            n.links.loc[tech_i, "p_nom_max"] = (
+                n.links.loc[tech_i, "bus1"].map(traj_by_bus["p_nom_max"]).fillna(0.0)
+            )
+
+            # Enable expansion so that pathway supersedes the PEMMDB capacity
+            # TODO: verify how to treat NT scenario
+            n.links.loc[tech_i, "p_nom_extendable"] = True
+
+        # Profiles
+        ##########
+        # Filter for profiles
+        profiles = pemmdb_profiles.query("index_carrier == @tech")
+        p_min_pu = (
+            profiles.pivot_table(values="p_min_pu", index="time", columns="bus")
+            .rename(columns=lambda x: x + " " + tech)
+            .reindex(tech_i, axis=1, fill_value=0.0)
+        )
+        # Drop columns that are all zeros (default-value)
+        p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
+
+        p_max_pu = (
+            profiles.pivot_table(values="p_max_pu", index="time", columns="bus")
+            .rename(columns=lambda x: x + " " + tech)
+            .reindex(tech_i, axis=1, fill_value=1.0)
+        )
+        # Drop columns that are all ones (default-value)
+        p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
+
+        if not p_min_pu.empty:
+            index_name = n.links_t.p_min_pu.index.name
+            n.links_t.p_min_pu = pd.concat([n.links_t.p_min_pu, p_min_pu], axis=1)
+            n.links_t.p_min_pu.index.name = index_name
+
+        if not p_max_pu.empty:
+            index_name = n.links_t.p_max_pu.index.name
+            n.links_t.p_max_pu = pd.concat([n.links_t.p_max_pu, p_max_pu], axis=1)
+            n.links_t.p_max_pu.index.name = index_name
+
+
+def add_existing_pemmdb_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    pemmdb_profiles: pd.DataFrame,
+    trajectories: pd.DataFrame,
+    tyndp_renewable_carriers: list[str],
+    tyndp_conventional_thermals: list[str],
+    costs: pd.DataFrame,
+    profiles_pecd: dict[str, str],
+    extendable_carriers: list | set,
+) -> None:
+    """
+    Add PEMMDB existing capacities, must-runs and availabilities to the network.
+    This includes information for:
+      - conventional thermal generation (incl. H2 fuel-cells and turbines)
+      - onshore wind and solar
+      - hydro
+      - electrolysers
+      - other RES and other Non-RES
+      - battery storages
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        Dataframe containing all PEMMDB capacities.
+    pemmdb_profiles : pd.DataFrame
+        Dataframe containing all PEMMDB must-run and availability profiles.
+    trajectories : pd.DataFrame
+        DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
+    tyndp_renewable_carriers : list[str]
+        List of TYNDP renewable carriers.
+    tyndp_conventional_thermals : list[str]
+        List of TYNDP conventional thermal technologie that were added to the network.
+    costs : pd.DataFrame
+        DataFrame containing the cost data.
+    profiles_pecd : dict[str, str]
+        Dictionary containing the paths to the PECD renewable profiles.
+    extendable_carriers : list[str] | set
+        List of extendable renewable energy carriers.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding information to the generation components.
+    """
+    logger.info("Adding PEMMDB capacities, must-runs and availabilities to components.")
+
+    # Attach onwind and solar technologies and capacities
+    tyndp_solar_onwind = [
+        c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
+    ]
+
+    if tyndp_solar_onwind:
+        ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
+        trajectories_solar_onwind = trajectories.query(
+            "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+        )
+
+        attach_wind_and_solar(
+            n=n,
+            costs=costs,
+            ppl=ppl,
+            profile_filenames=profiles_pecd,
+            carriers=tyndp_solar_onwind,
+            extendable_carriers=extendable_carriers,
+            trajectories=trajectories_solar_onwind,
+        )
+
+    # Attach existing conventional thermal capacities
+    if tyndp_conventional_thermals:
+        nuclear_trajectories = trajectories.query(
+            "pyear == @investment_year and carrier == 'nuclear'"
+        )
+
+        _add_conventional_thermal_capacities(
+            n=n,
+            pemmdb_capacities=pemmdb_capacities,
+            pemmdb_profiles=pemmdb_profiles,
+            tyndp_conventional_thermals=tyndp_conventional_thermals,
+            nuclear_trajectories=nuclear_trajectories,
+        )
 
 
 def add_ammonia(
@@ -7876,30 +8043,6 @@ if __name__ == "__main__":
         n, costs, carriers_to_keep, profiles_atlite_offwind, landfall_lengths
     )
 
-    tyndp_solar_onwind = [
-        c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
-    ]
-    if tyndp_solar_onwind:
-        ppl = pd.read_csv(snakemake.input.pemmdb_capacities).query(
-            "carrier.isin(@tyndp_solar_onwind)"
-        )
-
-        trajectories = (
-            pd.read_csv(snakemake.input.tyndp_trajectories)
-            .query("pyear == @investment_year")
-            .query("carrier.isin(@tyndp_solar_onwind)")
-        )
-
-        attach_wind_and_solar(
-            n=n,
-            costs=costs,
-            ppl=ppl,
-            profile_filenames=profiles_pecd,
-            carriers=tyndp_solar_onwind,
-            extendable_carriers=snakemake.params.electricity["extendable_carriers"],
-            trajectories=trajectories,
-        )
-
     fn = snakemake.input.heating_efficiencies
     year = int(snakemake.params["energy_totals_year"])
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
@@ -8004,6 +8147,25 @@ if __name__ == "__main__":
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
+    )
+
+    # Specify list of TYNDP conventional thermal generation technologies
+    tyndp_conventional_thermals = list(tyndp_conventional_generation)
+    if options["hydrogen_fuel_cell"]:
+        tyndp_conventional_thermals.append("h2-fuel-cell")
+    if options["hydrogen_turbine"]:
+        tyndp_conventional_thermals.append("h2-ccgt")
+
+    add_existing_pemmdb_capacities(
+        n=n,
+        pemmdb_capacities=pemmdb_capacities,
+        pemmdb_profiles=pemmdb_profiles,
+        trajectories=tyndp_trajectories,
+        tyndp_renewable_carriers=tyndp_renewable_carriers,
+        tyndp_conventional_thermals=tyndp_conventional_thermals,
+        costs=costs,
+        profiles_pecd=profiles_pecd,
+        extendable_carriers=snakemake.params.electricity["extendable_carriers"],
     )
 
     if snakemake.params.offshore_hubs_tyndp:
