@@ -42,7 +42,7 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: []
+    Generator: [OCGT]
 
   conventional_carriers: []
   tyndp_conventional_carriers:
