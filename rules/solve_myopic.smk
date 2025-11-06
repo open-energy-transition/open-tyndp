@@ -78,6 +78,8 @@ def input_profile_tech_brownfield_pecd(w):
 
 rule add_brownfield:
     params:
+        sector=config_provider("sector"),
+        electricity=config_provider("electricity"),
         H2_retrofit=config_provider("sector", "H2_retrofit"),
         H2_retrofit_capacity_per_CH4=config_provider(
             "sector", "H2_retrofit_capacity_per_CH4"
@@ -93,6 +95,9 @@ rule add_brownfield:
         ),
         offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
+        conventional_carriers_tyndp=config_provider(
+            "electricity", "tyndp_conventional_carriers"
+        ),
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfield_pecd),
@@ -104,6 +109,7 @@ rule add_brownfield:
         network_p=solved_previous_horizon,  #solved network at previous time step
         costs=resources("costs_{planning_horizons}.csv"),
         cop_profiles=resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
