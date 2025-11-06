@@ -1504,19 +1504,24 @@ def _group_profiles(
         profiles_conv_with_type, groupby=["time", "bus", "open_tyndp_type"]
     )
 
-    # Convert back to per-unit values using grouped capacities
+    # Convert must-run and availability values back to per-unit values using grouped capacities.
+    # Some sub-types within a grouped carrier lack profiles (e.g., "gas-ccgt-old1" within "gas-ccgt" in BE00).
+    # Solution: (1) merge total grouped capacity from before, (2) add missing capacity to p_max
+    # assuming default p_max_pu=1.0, (3) recalculate per-unit values.
     profiles_conv_pu = (
-        profiles_conv_grouped.drop(columns=["p_nom"])
+        profiles_conv_grouped.rename(columns={"p_nom": "p_nom_profiles"})
         .merge(
             caps_grouped[["bus", "index_carrier", "p_nom"]],
             on=["bus", "index_carrier"],
             how="left",
         )
         .assign(
+            p_max=lambda df: df.p_max
+            + (df.p_nom - df.p_nom_profiles),  # add missing capacities to p_max
             p_min_pu=lambda df: df.p_min / df.p_nom,
             p_max_pu=lambda df: df.p_max / df.p_nom,
         )
-        .drop(columns=["p_min", "p_max", "p_nom"])
+        .drop(columns=["p_min", "p_max", "p_nom", "p_nom_profiles"], errors="ignore")
     )
 
     # Recombine
