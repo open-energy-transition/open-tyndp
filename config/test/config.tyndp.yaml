@@ -48,6 +48,7 @@ electricity:
     Store: [H2]
     Link: [H2 pipeline]
 
+  conventional_carriers: []
   tyndp_conventional_carriers:
   - gas
   - coal
