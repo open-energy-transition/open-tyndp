@@ -11,6 +11,7 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
+* Add co2 emission prices configurable per planning horizon (https://github.com/open-energy-transition/open-tyndp/pull/198)
 
 Upcoming PyPSA-Eur Release
 ================
