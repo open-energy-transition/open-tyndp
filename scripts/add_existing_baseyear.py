@@ -284,6 +284,9 @@ def add_power_capacities_installed_before_baseyear(
         aggfunc="sum",
     )
 
+    # filter to only include carriers that are actually chosen to be modelled in the configuration
+    df = df.query("Fueltype in @conventional_carriers")
+
     lifetime = df_agg.pivot_table(
         index=["grouping_year", "Fueltype", "resource_class"],
         columns="bus",
