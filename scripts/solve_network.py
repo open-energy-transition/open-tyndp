@@ -102,7 +102,7 @@ def add_co2_price_global_constraint(n: pypsa.Network):
         return
 
     for name, glc in glcs.iterrows():
-        carattr = glc.carrier.attribute
+        carattr = glc.carrier_attribute
         emissions = n.carriers.loc[n.carriers[carattr] != 0, carattr]
         buses = n.buses.index[n.buses.carrier.isin(emissions.index)]
 
