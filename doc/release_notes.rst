@@ -14,11 +14,16 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Added the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
 * Added missing TYNDP supply technologies using PEMMDB capacities, must-runs and availabilities (conventional thermal generation https://github.com/open-energy-transition/open-tyndp/pull/195)
 
 
 Upcoming PyPSA-Eur Release
 ================
+
+* Fixed `AttributeError` in `prepare_sector_network.py` when running sector-coupled
+  PyPSA-Eur with only one country and cluster. 
+  (https://github.com/PyPSA/pypsa-eur/pull/1835)
 
 * Added river-water and sea-water sourced heat pumps as well as interactive bus-balance plots and heat-source maps. Also introduced district heating areas in which heat sources must be located.
 
@@ -67,6 +72,9 @@ Upcoming PyPSA-Eur Release
 * Increase minimum required `pypsa` version to 0.33.2 (https://github.com/PyPSA/pypsa-eur/pull/1849)
 
 * Running perfect foresight is now marked as unstable and may not work as expected.
+
+* Added minimum unit dispatch setting option for electrolysis
+
 
 Open-TYNDP v0.3 (24th October 2025)
 ========================================

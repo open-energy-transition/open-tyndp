@@ -267,3 +267,8 @@ Rule ``prepare_sector_network``
 ==============================================================================
 
 .. automodule:: prepare_sector_network
+
+Rule ``build_tyndp_h2_demand``
+==============================================================================
+
+.. automodule:: build_tyndp_h2_demand

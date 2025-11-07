@@ -178,3 +178,12 @@ rule build_pemmdb_and_trajectories:
             resources("tyndp_trajectories.csv"),
             run=config["run"]["name"],
         ),
+
+
+rule build_tyndp_h2_demands:
+    input:
+        expand(
+            resources("h2_demand_tyndp_{planning_horizons}.csv"),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),

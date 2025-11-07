@@ -986,6 +986,27 @@ rule build_ammonia_production:
         "../scripts/build_ammonia_production.py"
 
 
+rule build_tyndp_h2_demand:
+    params:
+        snapshots=config_provider("snapshots"),
+        scenario=config_provider("tyndp_scenario"),
+    input:
+        h2_demand="data/tyndp_2024_bundle/Demand Profiles",
+    output:
+        h2_demand=resources("h2_demand_tyndp_{planning_horizons}.csv"),
+    threads: 1
+    resources:
+        mem_mb=1000,
+    log:
+        logs("build_tyndp_h2_demand_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_tyndp_h2_demand_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_tyndp_h2_demand.py"
+
+
 rule build_industry_sector_ratios:
     params:
         industry=config_provider("industry"),
@@ -1319,6 +1340,7 @@ rule build_transport_demand:
         sector=config_provider("sector"),
         energy_totals_year=config_provider("energy", "energy_totals_year"),
     input:
+        network=resources("networks/base_s.nc"),
         clustered_pop_layout=resources("pop_layout_base_s_{clusters}.csv"),
         pop_weighted_energy_totals=resources(
             "pop_weighted_energy_totals_s_{clusters}.csv"
