@@ -12,6 +12,11 @@ Upcoming Open-TYNDP Release
 ================
 
 
+**Features**
+
+* Added missing TYNDP supply technologies using PEMMDB capacities, must-runs and availabilities (conventional thermal generation https://github.com/open-energy-transition/open-tyndp/pull/195)
+
+
 Upcoming PyPSA-Eur Release
 ================
 
