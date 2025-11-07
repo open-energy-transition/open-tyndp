@@ -8146,6 +8146,11 @@ if __name__ == "__main__":
         sequestration_potential_file=snakemake.input.sequestration_potential,
     )
 
+    # Initialize variables that are conditionally assigned later
+    pemmdb_capacities = None
+    pemmdb_profiles = None
+    tyndp_trajectories = None
+
     # Read in PEMMDB data and trajectories
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
