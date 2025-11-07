@@ -415,6 +415,9 @@ def add_lifetime_wind_solar(n, costs):
     """
     Add lifetime for solar and wind generators.
     """
+    if n.generators.empty:
+        return
+
     for carrier in ["solar", "onwind", "offwind"]:
         gen_i = n.generators.index.str.contains(carrier)
         n.generators.loc[gen_i, "lifetime"] = costs.at[carrier, "lifetime"]
@@ -8197,11 +8200,17 @@ if __name__ == "__main__":
     pypsa_carrier_map = tyndp_conventional_mapping.dropna().pypsa_eur_carrier.to_dict()
     costs = update_costs_tyndp(costs, pypsa_carrier_map)
 
+    conventional_generation = {
+        generator: carrier
+        for generator, carrier in options["conventional_generation"].items()
+        if generator in snakemake.params.electricity["conventional_carriers"]
+    }
+
     add_generation(
         n=n,
         costs=costs,
         pop_layout=pop_layout,
-        conventionals=options["conventional_generation"],
+        conventionals=conventional_generation,
         tyndp_conventionals=tyndp_conventional_dict,
         spatial=spatial,
         options=options,
