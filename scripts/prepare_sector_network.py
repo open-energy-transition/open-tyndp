@@ -8146,9 +8146,14 @@ if __name__ == "__main__":
     )
 
     # Read in PEMMDB data and trajectories
-    pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities)
-    pemmdb_profiles = xr.open_dataset(snakemake.input.pemmdb_profiles).to_dataframe()
-    tyndp_trajectories = pd.read_csv(snakemake.input.tyndp_trajectories)
+    enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
+    if enable_pemmdb_caps:
+        pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities)
+        pemmdb_profiles = xr.open_dataset(
+            snakemake.input.pemmdb_profiles
+        ).to_dataframe()
+    if tyndp_renewable_carriers:
+        tyndp_trajectories = pd.read_csv(snakemake.input.tyndp_trajectories)
 
     # Extract TYNDP conventional carriers
     tyndp_conventional_carriers = snakemake.params.conventional_carriers_tyndp
@@ -8160,7 +8165,7 @@ if __name__ == "__main__":
     )
 
     # Optionally group TYNDP conventionals
-    if snakemake.params.electricity["group_tyndp_conventionals"]:
+    if enable_pemmdb_caps and snakemake.params.electricity["group_tyndp_conventionals"]:
         pemmdb_capacities, pemmdb_profiles = group_tyndp_conventionals(
             pemmdb_capacities=pemmdb_capacities,
             pemmdb_profiles=pemmdb_profiles,
@@ -8214,17 +8219,18 @@ if __name__ == "__main__":
         options=options,
     )
 
-    add_existing_pemmdb_capacities(
-        n=n,
-        pemmdb_capacities=pemmdb_capacities,
-        pemmdb_profiles=pemmdb_profiles,
-        trajectories=tyndp_trajectories,
-        tyndp_renewable_carriers=tyndp_renewable_carriers,
-        tyndp_conventional_thermals=tyndp_conventional_thermals,
-        costs=costs,
-        profiles_pecd=profiles_pecd,
-        extendable_carriers=snakemake.params.electricity["extendable_carriers"],
-    )
+    if enable_pemmdb_caps:
+        add_existing_pemmdb_capacities(
+            n=n,
+            pemmdb_capacities=pemmdb_capacities,
+            pemmdb_profiles=pemmdb_profiles,
+            trajectories=tyndp_trajectories,
+            tyndp_renewable_carriers=tyndp_renewable_carriers,
+            tyndp_conventional_thermals=tyndp_conventional_thermals,
+            costs=costs,
+            profiles_pecd=profiles_pecd,
+            extendable_carriers=snakemake.params.electricity["extendable_carriers"],
+        )
 
     if snakemake.params.offshore_hubs_tyndp:
         add_offshore_hubs_tyndp(
