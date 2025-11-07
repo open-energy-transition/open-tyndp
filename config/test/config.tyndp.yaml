@@ -278,9 +278,9 @@ clustering:
     resolution_sector: 6H
 
 solving:
-#  solver:
-#    name: highs
-#    options: highs-default
+  solver:
+    name: highs
+    options: highs-default
   mem: 4000
 
 plotting:
