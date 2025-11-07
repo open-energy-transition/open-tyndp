@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Builds TYNDP Scenario Building hydrogen demand profiles for Open-TYNDP.
+Builds TYNDP Scenario Building gas demand for Open-TYNDP.
 
-This script processes hydrogen demand data from TYNDP 2024, using the
+# TODO Update the documentation
+
+This script processes methane demand data from TYNDP 2024, using the
 ``snapshots`` year as the climatic year (``cyear``) for demand profiles.
 The data is filtered and interpolated based on the selected scenario
 (Distributed Energy, Global Ambition, or National Trends) and planning horizon.
@@ -51,84 +53,56 @@ Outputs
 
 import logging
 from bisect import bisect_right
-from pathlib import Path
 
+import country_converter as coco
 import pandas as pd
 from _helpers import (
-    check_cyear,
     configure_logging,
-    get_snapshots,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
+cc = coco.CountryConverter()
 
 
-def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:
-    """Convert hydrogen demand MultiIndex ('Date', 'Hour') to a DatetimeIndex and return a DataFrame."""
-
-    df_reset = df.reset_index()
-
-    df_reset["datetime"] = pd.to_datetime(
-        df_reset["Date"].str.strip(".")
-        + f".{year} "
-        + (df_reset["Hour"] - 1).astype(str)
-        + ":00",
-        format="%d.%m.%Y %H:%M",
-    )
-
-    # Set as index and drop the old columns
-    df_new = df_reset.set_index("datetime").drop(columns=["Date", "Hour"])
-
-    return df_new
-
-
-def get_available_years(fn: str, scenario: str) -> list[int]:
-    """Scan the directory to find which planning years are available."""
-    available_years = []
-    scenario_path = Path(fn) / scenario
-
-    if scenario == "NT":
-        # Look for folders like "H2 2030", "H2 2040"
-        demand_profiles_path = scenario_path / "H2 demand profiles"
-        if demand_profiles_path.exists():
-            for folder in demand_profiles_path.iterdir():
-                if folder.is_dir() and folder.name.startswith("H2 "):
-                    year = int(folder.name.split()[-1])
-                    available_years.append(year)
-
-    elif scenario in ["DE", "GA"]:
-        # Look for year folders directly under scenario
-        for folder in scenario_path.iterdir():
-            if folder.is_dir() and folder.name.isdigit():
-                available_years.append(int(folder.name))
-
-    return sorted(available_years)
-
-
-def read_h2_excel(
-    demand_fn: str, scenario: str, pyear: int, cyear: int, h2_zone: int
-) -> pd.DataFrame:
-    """Read and process hydrogen demand data from Excel file for a specific year and h2 zone."""
+def read_supply_tool(fn: str, scenario: str, pyear: int) -> pd.DataFrame:
+    """Read and process gas demand data from Supply Tool for a specific year."""
     try:
-        data = pd.read_excel(
-            demand_fn,
-            header=10,
-            index_col=[0, 1],
-            sheet_name=None,
-            usecols=lambda name: name == "Date" or name == "Hour" or name == int(cyear),
+        demand = pd.read_excel(
+            fn,
+            usecols="B:AC",
+            header=1,
+            index_col=0,
+            nrows=25,
+            skiprows=27 if pyear == 2040 else 0,
+            sheet_name="NT+ data",
         )
 
-        demand = pd.concat(data, axis=1).droplevel(1, axis=1)
-        # Reindex to match snapshots
-        demand = multiindex_to_datetimeindex(demand, year=cyear)
-        # Rename UK in GB
-        demand.columns = demand.columns.str.replace("UK", "GB")
-        demand.columns.name = "Bus"
+        # Set nodes as column name
+        demand.columns = cc.convert(demand.columns, to="iso2")
+        demand.columns = demand.columns + "00"
+
+        # Filter energy carriers
+        demand = (
+            demand.loc[
+                [
+                    "E-Methane",
+                    "Other fossil gas",
+                    "Biomethane",
+                    "Natural gas",
+                    "Waste gas",
+                    "Gas for Cooking",
+                    "Methane (LNG)",
+                ]
+            ]
+            .mul(1e3)
+            .sum()
+        )  # MWh
+        demand.name = "p_nom"
 
     except Exception as e:
         logger.warning(
-            f"Failed to read H2 demand for scenario {scenario}, pyear {pyear}, H2 Zone {h2_zone}: "
+            f"Failed to read gas demand for scenario {scenario} and pyear {pyear}: "
             f"{type(e).__name__}: {e}"
         )
         demand = pd.DataFrame()
@@ -136,48 +110,19 @@ def read_h2_excel(
     return demand
 
 
-def get_file_path(fn: str, scenario: str, pyear: int, h2_zone: int = None) -> Path:
-    """Construct file path for given planning year and zone."""
-
-    if scenario == "NT":
-        return Path(
-            fn,
-            scenario,
-            "H2 demand profiles",
-            f"H2 {pyear}",
-            f"{scenario}_{pyear}.xlsx",
-        )
-    elif scenario in ["DE", "GA"]:
-        return Path(
-            fn,
-            scenario,
-            str(pyear),
-            f"H2_ZONE_{h2_zone}.xlsx",
-        )
-
-
-def load_single_year(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFrame:
+def load_single_year(fn: str, scenario: str, pyear: int) -> pd.DataFrame:
     """Load demand data for a single planning year."""
     if scenario == "NT":
-        demand_fn = get_file_path(fn, scenario, pyear)
-        demand = read_h2_excel(demand_fn, scenario, pyear, cyear, h2_zone=2)
+        demand = read_supply_tool(fn, scenario, pyear)
     elif scenario in ["DE", "GA"]:
-        demands = {}
-        for h2_zone in [1, 2]:
-            demand_fn = get_file_path(fn, scenario, pyear, h2_zone)
-            demands[h2_zone] = read_h2_excel(
-                demand_fn, scenario, pyear, cyear, h2_zone=h2_zone
-            )
-            demands[h2_zone].columns = [
-                f"{col[:2]} H2 Z{h2_zone}" for col in demands[h2_zone].columns
-            ]
-        demand = pd.concat(demands, axis=1).droplevel(0, axis=1)
+        # ToDo Implement processing for DE/GA
+        pass
 
     return demand
 
 
 def interpolate_demand(
-    available_years: list[int], pyear: int, fn: str, scenario: str, cyear: int
+    available_years: list[int], pyear: int, fn: str, scenario: str
 ) -> pd.DataFrame:
     """Interpolate demand between available years."""
 
@@ -203,8 +148,8 @@ def interpolate_demand(
 
     logger.info(f"Interpolating {pyear} from {year_lower} and {year_upper}")
 
-    df_lower = load_single_year(fn, scenario, year_lower, cyear)
-    df_upper = load_single_year(fn, scenario, year_upper, cyear)
+    df_lower = load_single_year(fn, scenario, year_lower)
+    df_upper = load_single_year(fn, scenario, year_upper)
 
     # Check if data was loaded successfully
     if df_lower.empty and df_upper.empty:
@@ -242,9 +187,9 @@ def interpolate_demand(
     return result
 
 
-def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFrame:
+def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.DataFrame:
     """
-    Load hydrogen demand data for a specific scenario, climate year, planning year.
+    Load gas demand data for a specific scenario and planning year.
 
     This function retrieves hydrogen demand data from a file, either by loading
     the exact year if available or by performing linear interpolation between
@@ -258,28 +203,22 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
         Name of the scenario to load.
     pyear : int
         Planning year for which to retrieve hydrogen demand data.
-    cyear : int
-        Climatic year used to filter the demand data.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame containing hydrogen demand data for the specified scenario,
-        planning year, and climatic year.
+        DataFrame containing gas demand data for the specified scenario and planning year.
     """
 
-    available_years = get_available_years(fn, scenario)
-    logger.info(
-        f"Scenario {scenario}: Available years: {available_years}, Target year: {pyear}"
-    )
+    available_years = [2030, 2040]
 
     # If target year exists in data, load it directly
     if pyear in available_years:
         logger.info(f"Year {pyear} found in available data. Loading directly.")
-        return load_single_year(fn, scenario, pyear, cyear)
+        return load_single_year(fn, scenario, pyear)
 
     # Target year not available, do linear interpolation
-    return interpolate_demand(available_years, pyear, fn, scenario, cyear)
+    return interpolate_demand(available_years, pyear, fn, scenario)
 
 
 if __name__ == "__main__":
@@ -287,10 +226,8 @@ if __name__ == "__main__":
         from _helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_tyndp_h2_demand",
-            planning_horizons="2040",
-            clusters="all",
-            configfiles="config/test/config.tyndp.yaml",
+            "build_tyndp_gas_demand",
+            configfiles="config/config.tyndp.yaml",
         )
 
     configure_logging(snakemake)
@@ -298,20 +235,17 @@ if __name__ == "__main__":
 
     # Parameters
     scenario = snakemake.params["scenario"]
+    fn = snakemake.input.supply_tool
     pyear = int(snakemake.wildcards.planning_horizons)
-    snapshots = get_snapshots(snakemake.params.snapshots)
-    cyear = snapshots[0].year
-    fn = snakemake.input.h2_demand
 
-    # Check if climatic year is valid for scenario
-    cyear = check_cyear(cyear, scenario)
+    if scenario != "NT":
+        logger.warning(
+            f"Gas demand processing is not supported yet for {scenario}. Falling back to NT data."
+        )
 
     # Load demand with interpolation
-    logger.info(
-        f"Processing H2 demand for scenario: {scenario}, "
-        f"target year: {pyear}, climate year: {cyear}"
-    )
-    demand = load_h2_demand(fn, scenario, pyear, cyear)
+    logger.info(f"Processing gas demand for scenario: {scenario}")
+    demand = load_gas_demand(fn, scenario, pyear)
 
     # Export to CSV
-    demand.to_csv(snakemake.output.h2_demand, index=True)
+    demand.to_csv(snakemake.output.gas_demand, index=True)
