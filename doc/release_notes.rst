@@ -11,7 +11,7 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
-* Add co2 emission prices configurable per planning horizon (https://github.com/open-energy-transition/open-tyndp/pull/198)
+* Add CO2 emission prices configurable per planning horizon (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
 
 Upcoming PyPSA-Eur Release
 ================
