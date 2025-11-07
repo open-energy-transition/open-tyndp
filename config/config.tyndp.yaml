@@ -42,7 +42,7 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT]
+    Generator: []
 
   conventional_carriers: []
   tyndp_conventional_carriers:
@@ -270,6 +270,10 @@ clustering:
     remove_stubs: false
   temporal:
     resolution_sector: 6H
+
+solving:
+  options:
+    load_shedding: true
 
 plotting:
   balance_map:
