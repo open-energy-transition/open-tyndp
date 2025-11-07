@@ -451,6 +451,7 @@ def extract_conventional_thermals_tyndp(
     tyndp_carrier_mapping: pd.DataFrame,
     tyndp_conventional_carriers: list[str],
     grp_convs: bool,
+    options: dict,
 ) -> list[str]:
     """
     Extract list of TYNDP conventional thermal generation technologies.
@@ -466,6 +467,8 @@ def extract_conventional_thermals_tyndp(
         List of TYNDP conventional carrier names to include.
     grp_convs : bool
         Whether to group conventional carriers by open_tyndp_type.
+    options : dict
+        Configuration options containing
 
     Returns
     -------
@@ -565,6 +568,7 @@ if __name__ == "__main__":
         tyndp_carrier_mapping=tyndp_carrier_mapping,
         tyndp_conventional_carriers=snakemake.params.conventional_carriers_tyndp,
         grp_convs=snakemake.params.electricity["group_tyndp_conventionals"],
+        options=options,
     )
 
     # Drop fixed TYNDP conventional capacities from previous year as TYNDP capacities are given as cumulative input
