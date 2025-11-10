@@ -1474,7 +1474,7 @@ def interpolate_demand(
         year_lower = available_years[idx - 1]
         year_upper = available_years[idx]
 
-    logger.info(f"Interpolating {pyear} from {year_lower} and {year_upper}")
+    logger.debug(f"Interpolating {pyear} from {year_lower} and {year_upper}")
 
     kwargs_lower = {**load_kwargs, "pyear": year_lower}
     kwargs_upper = {**load_kwargs, "pyear": year_upper}
