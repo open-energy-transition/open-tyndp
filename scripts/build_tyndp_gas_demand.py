@@ -4,51 +4,50 @@
 """
 Builds TYNDP Scenario Building gas demand for Open-TYNDP.
 
-# TODO Update the documentation
-
-This script processes methane demand data from TYNDP 2024, using the
-``snapshots`` year as the climatic year (``cyear``) for demand profiles.
-The data is filtered and interpolated based on the selected scenario
-(Distributed Energy, Global Ambition, or National Trends) and planning horizon.
-
-Climatic Year Selection
------------------------
-
-The ``snapshots`` year determines the climatic year for demand profiles:
-
-- **DE and GA scenarios**: Must use 1995, 2008, or 2009. If ``snapshots``
-  is not one of these years, 2009 is used as the default (considered most
-  representative).
-- **NT scenario**: Must be between 1982 and 2019.
+This script processes methane (gas) demand data from TYNDP 2024 Supply Tool,
+extracting both final energy demand (direct gas consumption) and heat-related
+gas demand. The data is filtered and interpolated based on the selected
+scenario (Distributed Energy, Global Ambition, or National Trends) and
+planning horizon.
 
 Data Availability by Scenario
 ------------------------------
 
-The input data has different temporal and spatial coverage depending on scenario:
-
-**Distributed Energy (DE) and Global Ambition (GA)**:
-  - Hydrogen zone Z2: Available for 2030, 2040, and 2050
-  - Hydrogen zone Z1: Available for 2050 (DE and GA) and 2040 (GA only)
+The input data has different temporal coverage depending on scenario:
 
 **National Trends (NT)**:
-  - Available for 2030 and 2040 only
-  - No split into hydrogen zones
+  - Available for 2030 and 2040
+  - Includes final gas demand (incl. heat demand) from NT+ data collection
+  - Heat demand processed with distribution shares and efficiency factors
+  - Special handling for Italian demand
+
+**Distributed Energy (DE) and Global Ambition (GA)**:
+  - Processing not yet implemented
 
 Processing
 ----------
 
 Missing years are linearly interpolated between available data points.
 
+For each planning year, the script:
+1. Reads final energy demand (direct gas consumption by carrier)
+2. Reads heat demand and converts to primary energy using distribution and efficiency data
+3. Combines both demand components
+4. Aggregates by country/bus
+
 Inputs
 ------
 
-- ``data/tyndp_2024_bundle/Demand Profiles``: TYNDP 2024 hydrogen demand profiles
+- ``data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm``: TYNDP 2024 Supply Tool Excel file containing:
+  - NT+ data sheet: Final demand by country
+  - Other data and Conversions sheet: Heat distribution and efficiency factors
+  - IT sheet: Italian gas production data
 
 Outputs
 -------
 
-- ``resources/h2_demand_tyndp_{planning_horizons}.csv``: Processed hydrogen
-  demand time series for the specified planning horizon
+- ``gas_demand_tyndp_{planning_horizons}.csv``: Processed gas demand data (MWh) by country/bus
+  for the specified planning horizon
 """
 
 import logging
@@ -145,7 +144,7 @@ def read_heat_frame(fn: str, pyear: int, type: str) -> pd.DataFrame:
 
 
 def read_it_gas_prod(fn: str, pyear: int) -> float:
-    """Read Italian gas production of electricity. This data is hardcoded in Supply Tool IT sheet."""
+    """Read Italian gas production of electricity and heat. This data is hardcoded in Supply Tool IT sheet."""
     return (
         pd.read_excel(
             fn,
@@ -221,18 +220,18 @@ def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.DataFrame:
     """
     Load gas demand data for a specific scenario and planning year.
 
-    This function retrieves hydrogen demand data from a file, either by loading
+    This function retrieves gas demand data from a file, either by loading
     the exact year if available or by performing linear interpolation between
-    available years. The data is filtered for a specific climatic year.
+    available years.
 
     Parameters
     ----------
     fn : str
-        Filepath to the hydrogen demand data file.
+        Filepath to the gas demand data file.
     scenario : str
         Name of the scenario to load.
     pyear : int
-        Planning year for which to retrieve hydrogen demand data.
+        Planning year for which to retrieve gas demand data.
 
     Returns
     -------
