@@ -1983,7 +1983,7 @@ def add_existing_pemmdb_capacities(
     # Attach existing conventional thermal capacities
     if tyndp_conventional_thermals:
         nuclear_trajectories = trajectories.query(
-            "pyear == @investment_year and carrier == 'nuclear'"
+            "pyear == @investment_year and index_carrier == 'nuclear'"
         )
 
         _add_conventional_thermal_capacities(
