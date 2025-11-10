@@ -230,12 +230,17 @@ def plot_benchmark(
 
     # Filter data and Convert back to source unit
     logger.info(f"Making benchmark for {table} using {rfc_col} and {model_col}")
-    benchmarks_raw = (
+    benchmarks = (
         benchmarks_raw.query("table==@table")
         .dropna(how="all", axis=1)
         .assign(unit=opt["unit"])
     )
-    benchmarks = convert_units(benchmarks_raw, invert=True)
+
+    if benchmarks.empty:
+        logger.warning(f"No Open-TYNDP or TYNDP 2024 data available for table {table}.")
+        return
+
+    benchmarks = convert_units(benchmarks, invert=True)
 
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
