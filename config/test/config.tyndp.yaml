@@ -43,12 +43,12 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: []
+    Generator: [OCGT]
     StorageUnit: [battery]
     Store: [H2]
     Link: [H2 pipeline]
 
-  conventional_carriers: []
+  conventional_carriers: [OCGT]
   tyndp_conventional_carriers:
   - gas
   - coal
@@ -280,8 +280,6 @@ clustering:
     resolution_sector: 6H
 
 solving:
-  options:
-    load_shedding: true
   solver:
     name: highs
     options: highs-default
