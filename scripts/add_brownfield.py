@@ -16,16 +16,14 @@ import xarray as xr
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    get_tyndp_conventional_thermals,
+    prepare_tyndp_conventional_mapping,
     sanitize_custom_columns,
     set_scenario_config,
     update_config_from_wildcards,
 )
 from scripts.add_electricity import flatten, sanitize_carriers
 from scripts.add_existing_baseyear import add_build_year_to_new_assets
-from scripts.prepare_sector_network import (
-    get_tyndp_conventional_thermals,
-    prepare_tyndp_conventional_mapping,
-)
 
 logger = logging.getLogger(__name__)
 idx = pd.IndexSlice

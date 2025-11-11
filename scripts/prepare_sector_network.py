@@ -28,7 +28,9 @@ from scipy.stats import beta
 from scripts._helpers import (
     configure_logging,
     get,
+    get_tyndp_conventional_thermals,
     make_index,
+    prepare_tyndp_conventional_mapping,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -7965,68 +7967,6 @@ def add_import_options(
                 p_nom=p_nom,
                 marginal_cost=import_options["H2"],
             )
-
-
-def prepare_tyndp_conventional_mapping(
-    carrier_mapping: pd.DataFrame,
-    conventional_carriers: list[str],
-) -> pd.DataFrame:
-    """
-    Prepare TYNDP conventional carrier mapping.
-    Filters for conventional carriers and consolidates oil variants into single oil carrier.
-
-    Parameters
-    ----------
-    carrier_mapping : pd.DataFrame
-        Full TYNDP carrier mapping.
-    conventional_carriers : list[str]
-        List of conventional carrier names to include.
-
-    Returns
-    -------
-    pd.DataFrame
-        Filtered and processed conventional carrier mapping.
-    """
-    # TODO: update if oil carriers are differentiated with TYNDP assumptions
-    return (
-        carrier_mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
-        .query("open_tyndp_carrier in @conventional_carriers")
-        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
-    )
-
-
-def get_tyndp_conventional_thermals(
-    mapping: pd.DataFrame,
-    include_h2_fuel_cell: bool,
-    include_h2_turbine: bool,
-) -> tuple[dict[str, str], list[str]]:
-    """
-    Get list of TYNDP conventional thermal generation technologies.
-
-    Parameters
-    ----------
-    mapping : pd.DataFrame
-        TYNDP conventional carrier mapping (grouped or ungrouped).
-    include_h2_fuel_cell : bool
-        Whether to include hydrogen fuel cell technology.
-    include_h2_turbine : bool
-        Whether to include hydrogen turbine technology.
-
-    Returns
-    -------
-    tuple[dict[str, str], list[str]]
-        Dictionary with conventional mapping and list of conventional thermal technology names.
-    """
-
-    conventional_dict = mapping.open_tyndp_carrier.to_dict()
-    conventional_thermals = list(conventional_dict)
-
-    if include_h2_fuel_cell:
-        conventional_thermals.append("h2-fuel-cell")
-    if include_h2_turbine:
-        conventional_thermals.append("h2-ccgt")
-
-    return conventional_dict, conventional_thermals
 
 
 if __name__ == "__main__":
