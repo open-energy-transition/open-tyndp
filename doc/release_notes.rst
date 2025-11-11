@@ -18,6 +18,10 @@ Upcoming Open-TYNDP Release
 
 * Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208)
 
+**Bugfixes and Compatibility**
+
+* Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
+
 
 Upcoming PyPSA-Eur Release
 ================

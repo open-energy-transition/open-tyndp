@@ -124,6 +124,10 @@ def compute_benchmark(
     elif table == "methane_demand":
         # TODO Energy and non-energy industrial demand are mixed
         grouper = ["carrier"]
+        if "EU gas" in n.buses.index:
+            reindex_idx = pd.Index(["EU gas"])
+        else:
+            reindex_idx = eu27_idx
         df = (
             n.statistics.withdrawal(
                 comps=demand_comps,
@@ -131,7 +135,7 @@ def compute_benchmark(
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .reindex(eu27_idx, level="bus")
+            .reindex(reindex_idx, level="bus")
             .groupby(by=grouper)
             .sum()
         )
