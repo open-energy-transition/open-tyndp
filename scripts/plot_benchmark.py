@@ -237,7 +237,7 @@ def plot_benchmark(
     )
 
     if benchmarks.empty:
-        logger.warning(f"No Open-TYNDP or TYNDP 2024 data available for table {table}.")
+        logger.warning(f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets")
         return
 
     benchmarks = convert_units(benchmarks, invert=True)

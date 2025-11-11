@@ -449,7 +449,7 @@ def compare_sources(
     ]
 
     if benchmarks.empty:
-        logger.warning(f"No Open-TYNDP or TYNDP 2024 data available for table {table}.")
+        logger.warning(f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets")
         return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
 
     df = benchmarks.pivot_table(
