@@ -514,8 +514,8 @@ def remove_tyndp_conventionals_p(
         This function updates the network in place and does not return a value.
     """
     logger.info(
-        "Remove TYNDP conventional capacities from previous planning horizon "
-        "in favor of capacities from new planning horizon."
+        "Remove cumulative TYNDP conventional capacities from previous planning horizon "
+        "and replace with cumulative capacities from new planning horizon."
     )
 
     for tech in tyndp_conventional_thermals:
