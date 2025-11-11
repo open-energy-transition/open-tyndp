@@ -1862,17 +1862,29 @@ def _add_conventional_thermal_capacities(
         caps = pemmdb_capacities.query("index_carrier == @tech").set_index("bus")[
             "p_nom"
         ]
-        n.links.loc[tech_i, "p_nom"] = n.links.loc[tech_i, "bus1"].map(caps).fillna(0.0)
+        # Capacities are given in MWel, hence we need to convert to MWth
+        n.links.loc[tech_i, "p_nom"] = (
+            n.links.loc[tech_i, "bus1"]
+            .map(caps)
+            .fillna(0.0)
+            .div(n.links.loc[tech_i, "efficiency"])
+        )
 
         # Add nuclear-specific trajectories
         if tech == "nuclear":
             # Set p_nom_min and p_nom_max
             traj_by_bus = nuclear_trajectories.set_index("bus")
             n.links.loc[tech_i, "p_nom_min"] = (
-                n.links.loc[tech_i, "bus1"].map(traj_by_bus["p_nom_min"]).fillna(0.0)
+                n.links.loc[tech_i, "bus1"]
+                .map(traj_by_bus["p_nom_min"])
+                .fillna(0.0)
+                .div(n.links.loc[tech_i, "efficiency"])
             )
             n.links.loc[tech_i, "p_nom_max"] = (
-                n.links.loc[tech_i, "bus1"].map(traj_by_bus["p_nom_max"]).fillna(0.0)
+                n.links.loc[tech_i, "bus1"]
+                .map(traj_by_bus["p_nom_max"])
+                .fillna(0.0)
+                .div(n.links.loc[tech_i, "efficiency"])
             )
 
             # Enable expansion so that pathway supersedes the PEMMDB capacity
