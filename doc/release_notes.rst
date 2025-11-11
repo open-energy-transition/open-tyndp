@@ -16,6 +16,8 @@ Upcoming Open-TYNDP Release
 
 * Add the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
 
+* Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208)
+
 
 Upcoming PyPSA-Eur Release
 ================
