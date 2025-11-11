@@ -31,7 +31,7 @@ Missing years are linearly interpolated between available data points.
 
 For each planning year, the script:
 1. Reads final energy demand (direct gas consumption by carrier)
-2. Reads heat demand and converts to primary energy using distribution and efficiency data
+2. Reads heat demand and converts it to primary energy using distribution and efficiency data
 3. Combines both demand components
 4. Aggregates by country/bus
 
@@ -51,6 +51,7 @@ Outputs
 """
 
 import logging
+from typing import Literal
 
 import country_converter as coco
 import pandas as pd
@@ -61,7 +62,7 @@ cc = coco.CountryConverter()
 
 
 def convert_country_to_bus(names: pd.Index) -> pd.Index:
-    """Convert country names as Index to bus names."""
+    """Convert country names to bus names."""
     names = pd.Index(cc.convert(names, to="iso2"))
     return names + "00"
 
@@ -81,7 +82,7 @@ def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Ser
             sheet_name="NT+ data",
         )
 
-        # Set buses as column name
+        # Set buses as column names
         demand_fed.columns = convert_country_to_bus(demand_fed.columns)
 
         # Extract final heat demand
@@ -109,13 +110,15 @@ def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Ser
             f"Failed to read final gas demand for scenario {scenario} and pyear {pyear}: "
             f"{type(e).__name__}: {e}"
         )
-        demand_fed = pd.DataFrame()
-        demand_heat = 0.0
+        demand_fed = pd.Series()
+        demand_heat = pd.Series()
 
     return demand_fed, demand_heat
 
 
-def read_heat_frame(fn: str, pyear: int, type: str) -> pd.DataFrame:
+def read_heat_frame(
+    fn: str, pyear: int, type: Literal["distribution", "efficiency"]
+) -> pd.DataFrame:
     """Read heat distribution and efficiency tables in 'Other data and Conversions' sheet of Supply Tool."""
     if type not in ["distribution", "efficiency"]:
         raise ValueError(
@@ -137,14 +140,14 @@ def read_heat_frame(fn: str, pyear: int, type: str) -> pd.DataFrame:
         sheet_name="Other data and Conversions ",
     )
 
-    # Set buses as column name
+    # Set buses as column names
     df.columns = convert_country_to_bus(df.columns)
 
     return df
 
 
 def read_it_gas_prod(fn: str, pyear: int) -> float:
-    """Read Italian gas production of electricity and heat. This data is hardcoded in Supply Tool IT sheet."""
+    """Read Italian gas production used for heat. This data is hardcoded in Supply Tool IT sheet."""
     return (
         pd.read_excel(
             fn,
@@ -162,7 +165,7 @@ def read_it_gas_prod(fn: str, pyear: int) -> float:
 def read_heat_data(
     heat_fed: pd.Series, fn: str, scenario: str, pyear: int
 ) -> pd.Series:
-    """Read and process final gas demand data from Supply Tool for a specific year."""
+    """Read and process heat-related gas demand data from Supply Tool for a specific year."""
     try:
         shares = read_heat_frame(fn, pyear, "distribution")
         efficiencies = read_heat_frame(fn, pyear, "efficiency")
@@ -189,7 +192,7 @@ def read_heat_data(
             f"Failed to read heat demand data for scenario {scenario} and pyear {pyear}: "
             f"{type(e).__name__}: {e}"
         )
-        demand = pd.DataFrame()
+        demand = pd.Series()
 
     return demand
 
@@ -210,13 +213,13 @@ def load_single_year(fn: str, scenario: str, pyear: int) -> pd.Series:
     if scenario == "NT":
         demand = read_supply_tool(fn, scenario, pyear)
     elif scenario in ["DE", "GA"]:
-        # ToDo Implement processing for DE/GA
+        # TODO Implement processing for DE/GA
         demand = pd.Series()
 
     return demand
 
 
-def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.DataFrame:
+def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.Series:
     """
     Load gas demand data for a specific scenario and planning year.
 
@@ -235,8 +238,8 @@ def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.DataFrame:
 
     Returns
     -------
-    pd.DataFrame
-        DataFrame containing gas demand data for the specified scenario and planning year.
+    pd.Series
+        Series containing gas demand data for the specified scenario and planning year.
     """
 
     available_years = [2030, 2040]

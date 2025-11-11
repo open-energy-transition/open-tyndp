@@ -1447,14 +1447,14 @@ def interpolate_demand(
         Function to load data for a single planning year.
     **load_kwargs
         Keyword arguments to pass to load_single_year_fun. Must include 'pyear'
-        which will be replaced with the interpolation years.
+        as a parameter key, which will be overridden with interpolation boundary years.
 
     Returns
     -------
     pd.DataFrame | pd.Series
         Interpolated demand data.
     """
-    # Currently only implemented interpolation and not extrapolation
+    # Currently, only interpolation is implemented, not extrapolation
     idx = bisect_right(available_years, pyear)
     if idx == 0:
         # Planning horizon is before all available years
@@ -1488,7 +1488,7 @@ def interpolate_demand(
         return pd.DataFrame()
     elif df_lower.empty:
         logger.warning(
-            f"Year {year_lower} failed to load. Using zeros for interpolation."
+            f"Year {year_lower} failed to load. Filling with zeros for interpolation."
         )
         df_lower = pd.DataFrame(0, index=df_upper.index, columns=df_upper.columns)
     elif df_upper.empty:
