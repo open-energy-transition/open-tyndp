@@ -13,7 +13,7 @@ run:
 # TODO set foresight
 foresight: myopic
 
-tyndp_scenario: DE
+tyndp_scenario: NT
 
 scenario:
   clusters:
