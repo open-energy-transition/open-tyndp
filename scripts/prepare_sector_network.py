@@ -161,6 +161,8 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
         spatial.gas.industry_cc = nodes + " gas for industry CC"
         spatial.gas.biogas_to_gas = nodes + " biogas to gas"
         spatial.gas.biogas_to_gas_cc = nodes + " biogas to gas CC"
+        if options.get("gas_demand_exogenously"):
+            spatial.gas.exo_demand = nodes + " gas for demand"
     else:
         spatial.gas.nodes = ["EU gas"]
         spatial.gas.locations = ["EU"]
@@ -175,6 +177,8 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
             spatial.gas.industry_cc = nodes + " gas for industry CC"
         else:
             spatial.gas.industry_cc = ["gas for industry CC"]
+        if options.get("gas_demand_exogenously"):
+            spatial.gas.exo_demand = ["EU gas for demand"]
 
     spatial.gas.df = pd.DataFrame(vars(spatial.gas), index=nodes)
 
@@ -3380,6 +3384,69 @@ def add_offshore_hubs_tyndp(
 
     # Add offshore DC and H2 grid connections
     add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, nyears)
+
+
+def attach_gas_load(
+    n: pypsa.Network,
+    gas_demand_fn: str,
+    options: dict,
+    spatial: SimpleNamespace,
+    nhours: int = 8760,
+):
+    """
+    Attach exogenous gas demand to the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to add offshore hubs and grid to.
+    gas_demand_fn : str
+        Exogenous gas demand file name.
+    options : dict
+        Dictionary of configuration options including:
+        - gas_demand_exogenously
+    spatial : object, optional
+        Object containing spatial information about nodes and their locations.
+    nhours : int
+        Number of hours over which the annual gas demand is divided.
+    """
+
+    nhours = n.snapshot_weightings.generators.sum()
+
+    gas_demand = pd.read_csv(gas_demand_fn, index_col=0) / nhours
+
+    if options["gas_network"]:
+        spatial_gas_demand = gas_demand.rename(index=lambda x: x + " gas for demand")
+    else:
+        spatial_gas_demand = gas_demand.sum().rename({"p_nom": "EU gas for demand"})
+
+    n.add(
+        "Bus",
+        spatial.gas.exo_demand,
+        location=spatial.gas.locations,
+        carrier="gas for demand",
+        unit="MWh_LHV",
+    )
+
+    n.add(
+        "Load",
+        spatial.gas.exo_demand,
+        bus=spatial.gas.exo_demand,
+        carrier="gas for demand",
+        p_set=spatial_gas_demand,
+    )
+
+    n.add(
+        "Link",
+        spatial.gas.industry,
+        bus0=spatial.gas.nodes,
+        bus1=spatial.gas.exo_demand,
+        bus2="co2 atmosphere",
+        carrier="gas for demand",
+        p_nom_extendable=True,
+        efficiency=1.0,
+        efficiency2=costs.at["gas", "CO2 intensity"],
+    )
 
 
 def check_land_transport_shares(shares):
@@ -7646,7 +7713,7 @@ if __name__ == "__main__":
         options=options,
     )
 
-    if snakemake.params.offshore_hubs_tyndp:
+    if options["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_tyndp(
             n=n,
             pyear=int(snakemake.wildcards.planning_horizons),
@@ -7657,6 +7724,15 @@ if __name__ == "__main__":
             costs=costs,
             spatial=spatial,
             nyears=nyears,
+        )
+
+    if options["gas_demand_exogenously"]:
+        attach_gas_load(
+            n=n,
+            gas_demand_fn=snakemake.input.gas_demand,
+            options=options,
+            spatial=spatial,
+            nhours=nhours,
         )
 
     add_battery_stores(n=n, nodes=pop_layout.index, costs=costs)

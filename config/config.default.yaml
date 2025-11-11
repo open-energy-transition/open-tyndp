@@ -847,6 +847,7 @@ sector:
   H2_network: true
   h2_topology_tyndp: false
   gas_network: true
+  gas_demand_exogenously: false
   H2_retrofit: false
   H2_retrofit_capacity_per_CH4: 0.6
   gas_network_connectivity_upgrade: 1
