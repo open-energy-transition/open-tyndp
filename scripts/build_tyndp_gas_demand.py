@@ -262,7 +262,9 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_gas_demand",
-            configfiles="config/config.tyndp.yaml",
+            configfiles="config/test/config.tyndp.yaml",
+            planning_horizons=2035,
+            run="NT",
         )
 
     configure_logging(snakemake)
