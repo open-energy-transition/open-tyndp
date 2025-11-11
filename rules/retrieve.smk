@@ -253,6 +253,7 @@ if config["enable"]["retrieve"]:
             source="Supply Tool",
         output:
             dir=directory("data/tyndp_2024_bundle/Supply Tool"),
+            file="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
         log:
             "logs/retrieve_tyndp_pemmdb_data.log",
 
