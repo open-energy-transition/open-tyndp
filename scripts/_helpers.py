@@ -1130,6 +1130,24 @@ def load_cutout(
     return cutout
 
 
+def load_costs(cost_file: str) -> pd.DataFrame:
+    """
+    Load prepared cost data from CSV.
+
+    Parameters
+    ----------
+    cost_file : str
+        Path to the CSV file containing cost data
+
+    Returns
+    -------
+    costs : pd.DataFrame
+        DataFrame containing the prepared cost data
+    """
+
+    return pd.read_csv(cost_file, index_col=0)
+
+
 def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
     idx = [prefix, c[cname0], connector, c[cname1], suffix]
     idx = [i for i in idx if i]

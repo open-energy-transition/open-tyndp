@@ -98,7 +98,6 @@ clean-tests:
 	snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml --delete-all-output
 	snakemake -call --configfile config/test/config.overnight.yaml --delete-all-output
 	snakemake -call --configfile config/test/config.myopic.yaml --delete-all-output
-	snakemake -call make_summary_perfect --configfile config/test/config.perfect.yaml --delete-all-output
 	snakemake -call resources/test-elec-clusters/networks/base_s_adm.nc --configfile config/test/config.clusters.yaml --delete-all-output
 	snakemake -call --configfile config/test/config.scenarios.yaml -n --delete-all-output
 
@@ -114,6 +113,13 @@ reset:
 		echo "Reset completed." \
 	) || echo "Reset cancelled."
 
+# Update the DAGs in the documentation
+# use sed to remove everything up to 'Building DAG' outputs, e.g. from pulp/Gurobi before passing to dot
+update-dags:
+	snakemake results/networks/base_s_128_elec_.nc -F --dag | sed -n "/digraph/,/}/p" | dot -Tpng -o doc/img/intro-workflow.png
+	snakemake --rulegraph -F | sed -n "/digraph/,/}/p" | dot -Tpng -o doc/img/workflow.png
+
+# Make TYNDP
 tyndp:
 	snakemake -call --configfile config/config.tyndp.yaml --rerun-incomplete --keep-going $(args)
 	snakemake -call rulegraph filegraph --configfile config/config.tyndp.yaml

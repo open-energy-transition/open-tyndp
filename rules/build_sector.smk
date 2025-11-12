@@ -1428,7 +1428,7 @@ rule build_existing_heating_distribution:
 
 rule time_aggregation:
     params:
-        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        time_resolution=config_provider("clustering", "temporal"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         solver_name=config_provider("solving", "solver", "name"),
     input:
@@ -1664,7 +1664,6 @@ rule prepare_sector_network:
             "electricity", "tyndp_conventional_carriers"
         ),
         foresight=config_provider("foresight"),
-        costs=config_provider("costs"),
         sector=config_provider("sector"),
         industry=config_provider("industry"),
         renewable=config_provider("renewable"),
@@ -1744,9 +1743,9 @@ rule prepare_sector_network:
             "biomass_potentials_s_{clusters}_{planning_horizons}.csv"
         ),
         costs=lambda w: (
-            resources("costs_{}.csv".format(config_provider("costs", "year")(w)))
+            resources(f"costs_{config_provider("costs", "year")(w)}_processed.csv")
             if config_provider("foresight")(w) == "overnight"
-            else resources("costs_{planning_horizons}.csv")
+            else resources("costs_{planning_horizons}_processed.csv")
         ),
         h2_cavern=resources("salt_cavern_potentials_s_{clusters}.csv"),
         busmap_s=resources("busmap_base_s.csv"),
