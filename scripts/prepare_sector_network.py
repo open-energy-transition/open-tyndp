@@ -1929,9 +1929,16 @@ def _add_conventional_thermal_capacities(
                 .div(n.links.loc[tech_i, "efficiency"])
             )
 
-            # Enable expansion so that pathway supersedes the PEMMDB capacity
-            # TODO: verify how to treat NT scenario
-            n.links.loc[tech_i, "p_nom_extendable"] = True
+            # Manually set p_nom to p_nom_min as pathway supersedes given PEMMDB capacity
+            n.links.loc[tech_i, "p_nom"] = n.links.loc[tech_i, "p_nom_min"]
+
+            # Enable expansion if p_nom_min != p_nom_max
+            tech_i_exp = n.links.loc[tech_i].query("p_nom_min != p_nom_max").index
+            if not tech_i_exp.empty:
+                logger.info(
+                    f"Enabling expansion for {tech_i_exp.values} as trajectories are not fixed but a range."
+                )
+            n.links.loc[tech_i_exp, "p_nom_extendable"] = True
 
         # Profiles
         ##########
