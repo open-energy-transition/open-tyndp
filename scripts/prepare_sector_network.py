@@ -1970,6 +1970,12 @@ def _add_conventional_thermal_capacities(
             n.links_t.p_max_pu = pd.concat([n.links_t.p_max_pu, p_max_pu], axis=1)
             n.links_t.p_max_pu.index.name = index_name
 
+        # Remove non-expandable assets with no capacity
+        links_rm = (
+            n.links.loc[tech_i].query("p_nom_extendable == False and p_nom == 0").index
+        )
+        n.remove("Link", links_rm)
+
 
 def add_existing_pemmdb_capacities(
     n: pypsa.Network,
