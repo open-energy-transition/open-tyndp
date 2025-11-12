@@ -13,7 +13,7 @@ run:
 # TODO set foresight
 foresight: myopic
 
-tyndp_scenario: DE
+tyndp_scenario: NT
 
 scenario:
   clusters:
@@ -48,14 +48,16 @@ electricity:
     Store: [H2]
     Link: [H2 pipeline]
 
+  conventional_carriers: [OCGT]
   tyndp_conventional_carriers:
   - gas
   - coal
   - lignite
-  - nuclear
+  - uranium
   - oil-light
   - oil-heavy
   - oil-shale
+  group_tyndp_conventionals: true
   renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
@@ -229,7 +231,6 @@ sector:
     2050: 0
   oil_boilers: false
   biomass_boiler: false
-  hydrogen_fuel_cell: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false

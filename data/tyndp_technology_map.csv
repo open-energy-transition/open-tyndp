@@ -1,60 +1,60 @@
-pemmdb_carrier,pemmdb_type,pecd_carrier,investment_dataset_carrier,open_tyndp_carrier,open_tyndp_index,comment
-Solar,Photovoltaic,LFSolarPVUtility,Solar PV Utility,solar-pv-utility,solar-pv-utility,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
-Solar,Rooftop,LFSolarPVRooftop,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
-Solar,Thermal Solar,CSP_noStorage,,solar-thermal,solar-thermal,
-Solar,Solar Thermal with Storage,CSP_withStorage,,solar-thermal-w-storage,solar-thermal-w-storage,
-Solar,Solar Thermal with Storage - Storage,CSP_withStorage,,solar-thermal-w-storage,solar-thermal-w-storage-storage,
-Wind,Onshore wind,Wind_Onshore,Wind Onshore,onwind,onwind,
-Wind,Offshore wind,Wind_Offshore,,offwind,offwind,only used w/o offshore hubs
-,,Wind_Offshore,,offwind-ac-fb-r,offwind-ac-fb-r,only used with offshore hubs
-,,Wind_Offshore,,offwind-ac-fl-r,offwind-ac-fl-r,only used with offshore hubs
-,,Wind_Offshore,,offwind-dc-fb-r,offwind-dc-fb-r,only used with offshore hubs
-,,Wind_Offshore,,offwind-dc-fl-r,offwind-dc-fl-r,only used with offshore hubs
-,,Wind_Offshore,,offwind-dc-fb-oh,offwind-dc-fb-oh,only used with offshore hubs
-,,Wind_Offshore,,offwind-dc-fl-oh,offwind-dc-fl-oh,only used with offshore hubs
-,,Wind_Offshore,,offwind-h2-fb-oh,offwind-h2-fb-oh,only used with offshore hubs
-,,Wind_Offshore,,offwind-h2-fl-oh,offwind-h2-fl-oh,only used with offshore hubs
-Hydro,Run of River - Turbine,,,hydro-ror,hydro-ror-turbine,
-Hydro,Pondage - Reservoir,,,hydro-pondage,hydro-pondage-reservoir,
-Hydro,Pondage - Turbine,,,hydro-pondage,hydro-pondage-turbine,
-Hydro,Reservoir - Reservoir,,,hydro-reservoir,hydro-reservoir-reservoir,
-Hydro,Reservoir - Turbine,,,hydro-reservoir,hydro-reservoir-turbine,
-Hydro,Pump Storage - Reservoir,,,hydro-phs,hydro-phs-reservoir,
-Hydro,Pump Storage - Turbine,,,hydro-phs,hydro-phs-turbine,
-Hydro,Pump Storage - Pump,,,hydro-phs,hydro-phs-pump,
-Hydro,Pure Pump Storage - Reservoir,,,hydro-phs-pure,hydro-phs-pure-reservoir,
-Hydro,Pure Pump Storage - Turbine,,,hydro-phs-pure,hydro-phs-pure-turbine,
-Hydro,Pure Pump Storage - Pump,,,hydro-phs-pure,hydro-phs-pure-pump,
-Other RES,"Small Biomass, Geothermal, Marine, Waste and Not Defined",,,other-res,other-res,
-Gas,Conventional old 1,,,gas,gas-conv-old1,
-Gas,Conventional old 2,,,gas,gas-conv-old2,
-Gas,CCGT old 1,,,gas,gas-ccgt-old1,
-Gas,CCGT old 2,,,gas,gas-ccgt-old2,
-Gas,CCGT new,,,gas,gas-ccgt-new,
-Gas,CCGT CCS,,,gas,gas-ccgt-ccs,
-Gas,OCGT old,,,gas,gas-ocgt-old,
-Gas,OCGT new,,,gas,gas-ocgt-new,
-Gas,CCGT present 1,,,gas,gas-ccgt-present1,
-Gas,CCGT present 2,,,gas,gas-ccgt-present2,
-Nuclear,Nuclear,,Nuclear,nuclear,nuclear,
-Hard coal,old 1,,,coal,coal-old1,
-Hard coal,old 2,,,coal,coal-old2,
-Hard coal,new,,,coal,coal-new,
-Hard coal,CCS,,,coal,coal-ccs,
-Lignite,old 1,,,lignite,lignite-old1,
-Lignite,old 2,,,lignite,lignite-old2,
-Lignite,new,,,lignite,lignite-new,
-Lignite,CCS,,,lignite,lignite-ccs,
-Light oil,Light oil,,,oil-light,oil-light,
-Heavy oil,old 1,,,oil-heavy,oil-heavy-old1,
-Heavy oil,old 2,,,oil-heavy,oil-heavy-old2,
-Oil shale,old,,,oil-shale,oil-shale-old,
-Oil shale,new,,,oil-shale,oil-shale-new,
-Hydrogen,Fuel Cell,,,h2-fuel-cell,h2-fuel-cell,
-Hydrogen,CCGT,,,h2-ccgt,h2-ccgt,
-Electrolyser,Onshore grid connected,,Electrolyzers,electrolyser,electrolyser-onshore-grid,
-Battery,Discharge,,,battery,battery-discharge,
-Battery,Charge,,,battery,battery-charge,
-Battery,Store,,,battery,battery-store,
-,,,Batteries Prosumer,battery,battery-store-prosumer,
-,,,Batteries Utility,battery,battery-store-utility,
+pemmdb_carrier,pemmdb_type,pecd_carrier,investment_dataset_carrier,open_tyndp_carrier,open_tyndp_index,open_tyndp_type,pypsa_eur_carrier,comment
+Solar,Photovoltaic,LFSolarPVUtility,Solar PV Utility,solar-pv-utility,solar-pv-utility,solar-pv-utility,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+Solar,Rooftop,LFSolarPVRooftop,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,solar-pv-rooftop,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+Solar,Thermal Solar,CSP_noStorage,,solar-thermal,solar-thermal,solar-thermal,,
+Solar,Solar Thermal with Storage,CSP_withStorage,,solar-thermal-w-storage,solar-thermal-w-storage,solar-thermal-w-storage,,
+Solar,Solar Thermal with Storage - Storage,CSP_withStorage,,solar-thermal-w-storage,solar-thermal-w-storage-storage,solar-thermal-w-storage-storage,,
+Wind,Onshore wind,Wind_Onshore,Wind Onshore,onwind,onwind,onwind,,
+Wind,Offshore wind,Wind_Offshore,,offwind,offwind,offwind,,only used w/o offshore hubs
+,,Wind_Offshore,,offwind-ac-fb-r,offwind-ac-fb-r,offwind-ac-fb-r,,only used with offshore hubs
+,,Wind_Offshore,,offwind-ac-fl-r,offwind-ac-fl-r,offwind-ac-fl-r,,only used with offshore hubs
+,,Wind_Offshore,,offwind-dc-fb-r,offwind-dc-fb-r,offwind-dc-fb-r,,only used with offshore hubs
+,,Wind_Offshore,,offwind-dc-fl-r,offwind-dc-fl-r,offwind-dc-fl-r,,only used with offshore hubs
+,,Wind_Offshore,,offwind-dc-fb-oh,offwind-dc-fb-oh,offwind-dc-fb-oh,,only used with offshore hubs
+,,Wind_Offshore,,offwind-dc-fl-oh,offwind-dc-fl-oh,offwind-dc-fl-oh,,only used with offshore hubs
+,,Wind_Offshore,,offwind-h2-fb-oh,offwind-h2-fb-oh,offwind-h2-fb-oh,,only used with offshore hubs
+,,Wind_Offshore,,offwind-h2-fl-oh,offwind-h2-fl-oh,offwind-h2-fl-oh,,only used with offshore hubs
+Hydro,Run of River - Turbine,,,hydro-ror,hydro-ror-turbine,hydro-ror-turbine,,
+Hydro,Pondage - Reservoir,,,hydro-pondage,hydro-pondage-reservoir,hydro-pondage-reservoir,,
+Hydro,Pondage - Turbine,,,hydro-pondage,hydro-pondage-turbine,hydro-pondage-turbine,,
+Hydro,Reservoir - Reservoir,,,hydro-reservoir,hydro-reservoir-reservoir,hydro-reservoir-reservoir,,
+Hydro,Reservoir - Turbine,,,hydro-reservoir,hydro-reservoir-turbine,hydro-reservoir-turbine,,
+Hydro,Pump Storage - Reservoir,,,hydro-phs,hydro-phs-reservoir,hydro-phs-reservoir,,
+Hydro,Pump Storage - Turbine,,,hydro-phs,hydro-phs-turbine,hydro-phs-turbine,,
+Hydro,Pump Storage - Pump,,,hydro-phs,hydro-phs-pump,hydro-phs-pump,,
+Hydro,Pure Pump Storage - Reservoir,,,hydro-phs-pure,hydro-phs-pure-reservoir,hydro-phs-pure-reservoir,,
+Hydro,Pure Pump Storage - Turbine,,,hydro-phs-pure,hydro-phs-pure-turbine,hydro-phs-pure-turbine,,
+Hydro,Pure Pump Storage - Pump,,,hydro-phs-pure,hydro-phs-pure-pump,hydro-phs-pure-pump,,
+Other RES,"Small Biomass, Geothermal, Marine, Waste and Not Defined",,,other-res,other-res,other-res,,
+Gas,Conventional old 1,,,gas,gas-conv-old1,gas-conv,OCGT,
+Gas,Conventional old 2,,,gas,gas-conv-old2,gas-conv,OCGT,
+Gas,CCGT old 1,,,gas,gas-ccgt-old1,gas-ccgt,CCGT,
+Gas,CCGT old 2,,,gas,gas-ccgt-old2,gas-ccgt,CCGT,
+Gas,CCGT new,,,gas,gas-ccgt-new,gas-ccgt,CCGT,
+Gas,CCGT CCS,,,gas,gas-ccgt-ccs,gas-ccgt-ccs,,
+Gas,OCGT old,,,gas,gas-ocgt-old,gas-ocgt,OCGT,
+Gas,OCGT new,,,gas,gas-ocgt-new,gas-ocgt,OCGT,
+Gas,CCGT present 1,,,gas,gas-ccgt-present1,gas-ccgt,CCGT,
+Gas,CCGT present 2,,,gas,gas-ccgt-present2,gas-ccgt,CCGT,
+Nuclear,Nuclear,,Nuclear,uranium,nuclear,nuclear,nuclear,
+Hard coal,old 1,,,coal,coal-old1,coal,coal,
+Hard coal,old 2,,,coal,coal-old2,coal,coal,
+Hard coal,new,,,coal,coal-new,coal,coal,
+Hard coal,CCS,,,coal,coal-ccs,coal-ccs,,
+Lignite,old 1,,,lignite,lignite-old1,lignite,lignite,
+Lignite,old 2,,,lignite,lignite-old2,lignite,lignite,
+Lignite,new,,,lignite,lignite-new,lignite,lignite,
+Lignite,CCS,,,lignite,lignite-ccs,lignite-ccs,,
+Light oil,Light oil,,,oil-light,oil-light,oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Heavy oil,old 1,,,oil-heavy,oil-heavy-old1,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Heavy oil,old 2,,,oil-heavy,oil-heavy-old2,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,old,,,oil-shale,oil-shale-old,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,new,,,oil-shale,oil-shale-new,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Hydrogen,Fuel Cell,,,h2-fuel-cell,h2-fuel-cell,h2-fuel-cell,,
+Hydrogen,CCGT,,,h2-ccgt,h2-ccgt,h2-ccgt,,
+Electrolyser,Onshore grid connected,,Electrolyzers,electrolyser,electrolyser-onshore-grid,electrolyser-onshore-grid,,
+Battery,Discharge,,,battery,battery-discharge,battery-discharge,,
+Battery,Charge,,,battery,battery-charge,battery-charge,,
+Battery,Store,,,battery,battery-store,battery-store,,
+,,,Batteries Prosumer,battery,battery-store-prosumer,battery-store-prosumer,,
+,,,Batteries Utility,battery,battery-store-utility,battery-store-utility,,

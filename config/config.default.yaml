@@ -142,6 +142,7 @@ electricity:
 
   conventional_carriers: [nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass]
   tyndp_conventional_carriers: []
+  group_tyndp_conventionals: true
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float, hydro]
   tyndp_renewable_carriers: []
   tyndp_stores: []

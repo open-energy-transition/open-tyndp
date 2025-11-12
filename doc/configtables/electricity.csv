@@ -29,6 +29,7 @@ everywhere_powerplants,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignit
 ,,, 
 conventional_carriers,--,"Any subset of {nuclear, oil, OCGT, CCGT, coal, lignite, geothermal, biomass}","List of conventional power plants to include in the model from ``resources/powerplants_s_{clusters}.csv``. If an included carrier is also listed in ``extendable_carriers``, the capacity is taken as a lower bound."
 tyndp_conventional_carriers,--,"Any subset of {gas, coal, lignite, nuclear, oil-light, oil-heavy, oil-shale}",List of TYNDP conventional power plants to include in the model.
+group_tyndp_conventionals,bool,"{true, false}",Whether to group together different TYNDP conventional technologies according to a predetermined mapping specified in ``data/tyndp_technology_map.csv``
 ,,, 
 renewable_carriers,--,"Any subset of {solar, onwind, offwind-ac, offwind-dc, offwind-float, hydro}",List of renewable generators to include in the model.
 tyndp_renewable_carriers,--,"Any subset of {solar-pv, solar-pv-utility, solar-pv-rooftop, onwind, offwind-ac-fb-r, offwind-ac-fl-r, offwind-dc-fb-r, offwind-dc-fl-r, offwind-dc-fb-oh, offwind-dc-fl-oh, offwind-h2-fb-oh, offwind-h2-fl-oh}","List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list."
@@ -48,7 +49,7 @@ pemmdb_hydro_profiles,,,
 -- available_years,--,list,"List of years for which PEMMDB hydro inflows data is available."
 -- technologies,--,"Any subset of {Run of River, Pondage, Reservoir, PS Open, PS Closed}",The hydro technologies for which PEMMDB hydro inflows data is used.
 pemmdb_capacities,,,
--- enable,,bool,Activate PEMMDB capacities, must-runs and availabilities from TYNDP 2024.
+-- enable,,bool,"Activate PEMMDB capacities, must-runs and availabilities from TYNDP 2024."
 -- nprocesses,,int,"Number of parallel processes when reading pemmdb data."
 -- available_years,--,list,"List of years for which PEMMDB data is available."
 -- technologies,--,"Any subset of {Solar, Wind, Hydro, Other RES, Gas, Nuclear, Hard coal, Lignite, Light oil, Heavy oil, Oil shale, Other Non-RES, Electrolyser, Battery}.",The PEMMDB technologies which are available and which data shall be used.
