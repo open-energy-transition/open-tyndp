@@ -57,6 +57,24 @@ from scripts.prepare_network import maybe_adjust_costs_and_potentials
 spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
+CCS_CONFIGS = {
+    "gas-ccgt-ccs": {
+        "base_tech": "gas-ccgt",
+        "capture_tech": "cement capture",
+        "fuel": "gas",
+    },
+    "coal-ccs": {
+        "base_tech": "coal",
+        "capture_tech": "biomass CHP capture",
+        "fuel": "coal",
+    },
+    "lignite-ccs": {
+        "base_tech": "lignite",
+        "capture_tech": "biomass CHP capture",
+        "fuel": "lignite",
+    },
+}
+
 
 def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
     """
@@ -598,7 +616,9 @@ def update_wind_solar_costs(
 
 
 def update_costs_tyndp(
-    costs: pd.DataFrame, tyndp_techs: dict[str, str]
+    costs: pd.DataFrame,
+    tyndp_techs: dict[str, str],
+    ccs_configs: dict[str, dict],
 ) -> pd.DataFrame:
     """
     Update technology and cost assumptions for TYNDP technologies based on TYNDP to PyPSA-Eur default carrier mapping.
@@ -607,6 +627,8 @@ def update_costs_tyndp(
         Cost assumptions DataFrame
     tyndp_techs : dict[str, str]
         Dictionary of TYNDP technology names mapped to carriers.
+    ccs_configs : dict[str, dict]
+        Dictionary mapping each ccs technology to its associated base technology, capture technology and fuel
 
     Returns
     -------
@@ -617,10 +639,36 @@ def update_costs_tyndp(
     for tyndp_tech, pypsa_tech in tyndp_techs.items():
         costs.loc[tyndp_tech] = costs.loc[pypsa_tech]
 
-    # Add CCS assumptions as intermediate copy since there is no direct mapping atm
-    costs.loc["gas-ccgt-ccs"] = costs.loc["CCGT"]
-    costs.loc["coal-ccs"] = costs.loc["coal"]
-    costs.loc["lignite-ccs"] = costs.loc["lignite"]
+        # Update capital and marginal cost as fixed cost and VOM are given per MWel
+        costs.loc[tyndp_tech, "capital_cost"] = (
+            costs.at[tyndp_tech, "efficiency"] * costs.at[tyndp_tech, "capital_cost"]
+        )
+        costs.loc[tyndp_tech, "marginal_cost"] = (
+            costs.at[tyndp_tech, "efficiency"] * costs.at[tyndp_tech, "VOM"]
+        )
+
+    # Add CCS techs with capture technology assumptions
+    for ccs_tech, ccs_map in ccs_configs.items():
+        # Add CCS assumptions as intermediate copy since there is no direct mapping atm
+        costs.loc[ccs_tech] = costs.loc[ccs_map["base_tech"]]
+
+        # Update capital cost with cost component for capture
+        costs.loc[ccs_tech, "capital_cost"] = (
+            costs.at[ccs_map["base_tech"], "capital_cost"]
+            + costs.at[ccs_map["capture_tech"], "capital_cost"]
+            * costs.at[ccs_map["fuel"], "CO2 intensity"]
+        )
+
+        # Remaining CO2 intensity after capture
+        costs.loc[ccs_tech, "CO2 intensity"] = costs.at[
+            ccs_map["fuel"], "CO2 intensity"
+        ] * (1 - costs.at[ccs_map["capture_tech"], "capture_rate"])
+
+        # Amount of CO2 captured
+        costs.loc[ccs_tech, "CO2 capture"] = (
+            costs.at[ccs_map["fuel"], "CO2 intensity"]
+            * costs.at[ccs_map["capture_tech"], "capture_rate"]
+        )
 
     return costs
 
@@ -1655,17 +1703,11 @@ def add_thermal_generation_tyndp(
                 bus3=spatial.co2.df.loc[nodes, "nodes"].values,
                 carrier=generator,
                 p_nom_extendable=False,
-                capital_cost=costs.at[generator, "efficiency"]
-                * costs.at[generator, "capital_cost"]  # NB: fixed cost is per MWel
-                + costs.at["biomass CHP capture", "capital_cost"]
-                * costs.at[carrier, "CO2 intensity"],
-                marginal_cost=costs.at[generator, "efficiency"]
-                * costs.at[generator, "VOM"],  # NB: VOM is per MWel
+                capital_cost=costs.at[generator, "capital_cost"],
+                marginal_cost=costs.at[generator, "marginal_cost"],
                 efficiency=costs.at[generator, "efficiency"],
-                efficiency2=costs.at[carrier, "CO2 intensity"]
-                * (1 - costs.at["biomass CHP capture", "capture_rate"]),
-                efficiency3=costs.at[carrier, "CO2 intensity"]
-                * costs.at["biomass CHP capture", "capture_rate"],
+                efficiency2=costs.at[generator, "CO2 intensity"],
+                efficiency3=costs.at[generator, "CO2 capture"],
                 lifetime=costs.at[generator, "lifetime"],
             )
 
@@ -1677,10 +1719,8 @@ def add_thermal_generation_tyndp(
                 bus0=carrier_nodes,
                 bus1=nodes,
                 bus2="co2 atmosphere",
-                marginal_cost=costs.at[generator, "efficiency"]
-                * costs.at[generator, "VOM"],  # NB: VOM is per MWel
-                capital_cost=costs.at[generator, "efficiency"]
-                * costs.at[generator, "capital_cost"],  # NB: fixed cost is per MWel
+                marginal_cost=costs.at[generator, "marginal_cost"],
+                capital_cost=costs.at[generator, "capital_cost"],
                 p_nom_extendable=False,
                 carrier=generator,
                 efficiency=costs.at[generator, "efficiency"],
@@ -8150,7 +8190,9 @@ if __name__ == "__main__":
 
     # TODO: update costs via overwrite csv with actual tech assumptions, this currently serves as a placeholder
     pypsa_carrier_map = tyndp_conventional_mapping.dropna().pypsa_eur_carrier.to_dict()
-    costs = update_costs_tyndp(costs, pypsa_carrier_map)
+    costs = update_costs_tyndp(
+        costs=costs, tyndp_techs=pypsa_carrier_map, ccs_configs=CCS_CONFIGS
+    )
 
     conventional_generation = {
         generator: carrier
