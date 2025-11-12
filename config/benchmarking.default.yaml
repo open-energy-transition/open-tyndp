@@ -52,17 +52,16 @@ benchmarking:
       header: 4
       names:
         index:
-        - year
-        - scenario
-        column:
         - carrier
+        column:
+        - scenario
+        - year
       mapping:
-        CCGT: transformation input
-        OCGT: transformation input
-        SMR: transformation input
-        SMR CC: transformation input
-        gas for industry: industry
-        gas for industry CC: industry
+        CCGT: power generation
+        OCGT: power generation
+        SMR: SMR
+        SMR CC: SMR
+        gas for demand: total (excl. SMR and power generation)
 
     hydrogen_demand:
       table_type: scenario_comparison
