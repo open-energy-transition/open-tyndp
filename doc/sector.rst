@@ -88,6 +88,31 @@ Rule ``build_geothermal_heat_potential``
 
 .. automodule:: build_geothermal_heat_potential
 
+Rule ``build_ates_potentials``
+==============================================================================
+
+.. automodule:: build_ates_potentials
+
+Rule ``build_dh_areas``
+==============================================================================
+
+.. automodule:: build_dh_areas
+
+Rule ``build_river_heat_potential``
+==============================================================================
+
+.. automodule:: build_river_heat_potential
+
+Rule ``build_sea_heat_potential``
+==============================================================================
+
+.. automodule:: build_sea_heat_potential
+
+Rule ``build_ptes_operations``
+==============================================================================
+
+.. automodule:: build_ptes_operations
+
 Rule ``build_tes_capacity_profiles``
 ==============================================================================
 
@@ -242,3 +267,8 @@ Rule ``prepare_sector_network``
 ==============================================================================
 
 .. automodule:: prepare_sector_network
+
+Rule ``build_tyndp_h2_demand``
+==============================================================================
+
+.. automodule:: build_tyndp_h2_demand

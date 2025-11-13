@@ -73,7 +73,6 @@ CARRIER_MAP = {
 
 def get_elec_demand(
     elec_demand_fn: str,
-    loss_factors_fn: str,
     scenario: str,
     cyear: int,
     unit_conversion: dict,
@@ -86,8 +85,6 @@ def get_elec_demand(
     ----------
     elec_demand_fn : str
         Path to the electricity demand data file.
-    loss_factors_fn : str
-        Path to the loss factors file.
     scenario : str
         Name of the scenario being processed.
     cyear : int
@@ -100,15 +97,6 @@ def get_elec_demand(
     pd.DataFrame
         Processed electricity demand data (MWh) with standardized format.
     """
-    # Get loss factors
-    loss_factors = (
-        pd.read_csv(loss_factors_fn, index_col=0)
-        .melt(var_name="year", ignore_index=False)
-        .assign(year=lambda x: x["year"].astype("int"))
-        .set_index("year", append=True)
-        .value
-    )
-
     # Read and process demand data
     df = (
         pd.read_excel(elec_demand_fn)
@@ -124,8 +112,6 @@ def get_elec_demand(
         .set_index(["country_iso2", "year"])
     )
 
-    df["value"] /= 1 + loss_factors.reindex(df.index)
-
     df = convert_units(df, unit_col="Unit_Name")
 
     data = (
@@ -133,7 +119,7 @@ def get_elec_demand(
         .value.sum()
         .reset_index()
         .assign(
-            carrier="aggregated",
+            carrier="final demand (inc. t&d losses, excl. pump storage )",
             scenario=f"TYNDP {scenario}",
             table="elec_demand",
         )
@@ -224,7 +210,6 @@ if __name__ == "__main__":
 
     elec_demand = get_elec_demand(
         elec_demand_fn=snakemake.input.elec_demand,
-        loss_factors_fn=snakemake.input.loss_factors,
         scenario=scenario,
         cyear=cyear,
         unit_conversion=unit_conversion,
