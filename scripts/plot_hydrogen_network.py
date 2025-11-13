@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pypsa
-from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
+from pypsa.plot.maps.static import add_legend_circles, add_legend_lines, add_legend_patches
 
 from scripts._helpers import configure_logging, retry, set_scenario_config
 from scripts.make_summary import assign_locations
@@ -164,7 +164,7 @@ def plot_h2_map(n, regions, map_fn):
 
     bus_colors = {"H2 Electrolysis": "#ff29d9", "H2 Fuel Cell": "#805394"}
 
-    n.plot(
+    n.plot.map(
         geomap=True,
         bus_sizes=bus_sizes,
         bus_colors=bus_colors,
@@ -175,7 +175,7 @@ def plot_h2_map(n, regions, map_fn):
         **map_opts,
     )
 
-    n.plot(
+    n.plot.map(
         geomap=True,
         bus_sizes=0,
         link_colors=color_retrofit,

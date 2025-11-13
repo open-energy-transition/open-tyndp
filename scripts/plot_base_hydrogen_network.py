@@ -11,7 +11,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
 import pypsa
-from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
+from pypsa.plot.maps.static import add_legend_circles, add_legend_lines, add_legend_patches
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.plot_hydrogen_network import load_projection
@@ -133,7 +133,7 @@ def plot_h2_map_base(
     color_h2_imports = "#FFA500"
     color_h2_node = "#ff29d9"
 
-    n.plot(
+    n.plot.map(
         geomap=True,
         bus_sizes=0.1,
         bus_colors=color_h2_node,
@@ -162,7 +162,7 @@ def plot_h2_map_base(
         )
 
     if not h2_imports.empty:
-        n.plot(
+        n.plot.map(
             geomap=True,
             bus_sizes=0,
             link_colors=color_h2_imports,

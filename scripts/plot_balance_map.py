@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import pypsa
 from packaging.version import Version, parse
-from pypsa.plot import add_legend_lines, add_legend_patches, add_legend_semicircles
+from pypsa.plot.maps.static import add_legend_lines, add_legend_patches, add_legend_semicircles
 from pypsa.statistics import get_transmission_carriers
 
 from scripts._helpers import (
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     link_flow = flow.get("Link")
     transformer_flow = flow.get("Transformer")
 
-    n.plot(
+    n.plot.map(
         bus_sizes=bus_sizes * bus_size_factor,
         bus_colors=colors,
         bus_split_circles=True,
