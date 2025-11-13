@@ -1,6 +1,15 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
+
+"""
+Remove a single transmission project from the TOOT reference network.
+
+Creates project networks for TOOT methodology by removing one project at a time.
+Handles multi-border projects, removes links when capacity reaches zero, and
+validates against negative capacities.
+"""
+
 import logging
 
 import pandas as pd
