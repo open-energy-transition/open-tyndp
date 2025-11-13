@@ -7,6 +7,7 @@ Plot benchmark figures.
 
 import logging
 import multiprocessing as mp
+import textwrap
 from functools import partial
 from pathlib import Path
 
@@ -71,7 +72,11 @@ def _plot_scenario_comparison(
         idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
         df = df.rename(columns={tyndp_str: tyndp_str_ext})
 
-    df.set_index("carrier")[idx].plot.bar(
+    # Wrap long x-axis labels
+    df = df.set_index("carrier")
+    df.index = [textwrap.fill(label, width=30) for label in df.index]
+
+    df[idx].plot.bar(
         ax=ax,
         color=["#1f77b4", "#ff7f0e", "#aeff39"],
         width=0.7,
@@ -225,12 +230,19 @@ def plot_benchmark(
 
     # Filter data and Convert back to source unit
     logger.info(f"Making benchmark for {table} using {rfc_col} and {model_col}")
-    benchmarks_raw = (
+    benchmarks = (
         benchmarks_raw.query("table==@table")
         .dropna(how="all", axis=1)
         .assign(unit=opt["unit"])
     )
-    benchmarks = convert_units(benchmarks_raw, invert=True)
+
+    if benchmarks.empty:
+        logger.warning(
+            f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets"
+        )
+        return
+
+    benchmarks = convert_units(benchmarks, invert=True)
 
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
@@ -307,6 +319,9 @@ def plot_overview(
     # Keep relevant indicators and rows
     df_clean = indicators[[metric, "Missing"]].dropna()
     df_clean.index = df_clean.index.str.replace("_", " ").str.title()
+
+    # Wrap long x-axis labels
+    df_clean.index = [textwrap.fill(label, width=30) for label in df_clean.index]
 
     # Create bar plot with metric
     df_clean.plot.bar(

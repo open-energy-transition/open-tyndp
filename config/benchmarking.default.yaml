@@ -31,18 +31,18 @@ benchmarking:
 
     elec_demand:
       table_type: scenario_comparison
-      sheet_name: 52-
+      sheet_name: 23-
       unit: TWh
-      index_col: 2
-      header: [4, 5]
+      index_col: [2, 3]
+      header: 4
       names:
         index:
-        - carrier
-        column:
-        - year
         - scenario
+        - year
+        column:
+        - carrier
       mapping:
-        electricity: aggregated
+        electricity: final demand (inc. t&d losses, excl. pump storage )
 
     methane_demand:
       table_type: scenario_comparison

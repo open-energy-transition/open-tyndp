@@ -1,7 +1,0 @@
-# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
-#
-# SPDX-License-Identifier: CC0-1.0
-
-remote:
-  ssh: ''
-  path: ''
