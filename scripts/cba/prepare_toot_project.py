@@ -38,9 +38,13 @@ if __name__ == "__main__":
         transmission_projects["project_id"] == project_id
     ]
 
-    assert not transmission_project.empty, f"Transmission project {project_id} not found."
+    assert not transmission_project.empty, (
+        f"Transmission project {project_id} not found."
+    )
 
-    logger.debug(f"Project {project_id} has {len(transmission_project)} transmission projects.")
+    logger.debug(
+        f"Project {project_id} has {len(transmission_project)} transmission projects."
+    )
 
     for _, project in transmission_project.iterrows():
         bus0 = project["bus0"]
@@ -52,7 +56,9 @@ if __name__ == "__main__":
         capacity_reverse = project["p_nom 1->0"]
 
         result_capacity = n.links.loc[link_id, "p_nom"] - capacity
-        result_capacity_reverse = n.links.loc[reverse_link_id, "p_nom"] - capacity_reverse
+        result_capacity_reverse = (
+            n.links.loc[reverse_link_id, "p_nom"] - capacity_reverse
+        )
 
         if result_capacity < 0 or result_capacity_reverse < 0:
             logger.warning(
