@@ -239,7 +239,10 @@ def load_benchmark(
         ]
     # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
     else:
-        df_converted = df_converted[df_converted.carrier == "aggregated"]
+        df_converted = df_converted[
+            df_converted.carrier
+            == "final demand (inc. t&d losses, excl. pump storage )"
+        ]
 
     return df_converted
 

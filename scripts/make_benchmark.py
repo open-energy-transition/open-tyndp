@@ -447,6 +447,13 @@ def compare_sources(
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
     ]
+
+    if benchmarks.empty:
+        logger.warning(
+            f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets"
+        )
+        return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
+
     df = benchmarks.pivot_table(
         index=available_columns, values="value", columns="source", dropna=False
     )

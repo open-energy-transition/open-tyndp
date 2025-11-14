@@ -34,7 +34,6 @@ rule clean_tyndp_vp_data:
         elec_demand="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
         elec_supplymix="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
         elec_flex="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
-        loss_factors="data/tyndp_electricity_loss_factors.csv",
     output:
         RESULTS + "validation/resources/vp_data_tyndp.csv",
     log:
@@ -60,7 +59,6 @@ rule build_statistics:
     input:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
-        loss_factors="data/tyndp_electricity_loss_factors.csv",
     output:
         RESULTS
         + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
