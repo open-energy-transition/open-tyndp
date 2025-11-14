@@ -488,7 +488,7 @@ def create_network_topology(
     return topo
 
 
-def create_h2_topology_tyndp(n, fn_h2_network):
+def create_h2_topology_tyndp(n, fn_h2_network, tyndp_scenario):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
 
@@ -504,10 +504,11 @@ def create_h2_topology_tyndp(n, fn_h2_network):
     pd.DataFrame with columns bus0, bus1, length, underwater_fraction
     """
 
+    suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
     h2_pipes = h2_pipes.assign(
-        bus0=h2_pipes.bus0 + " H2 Z2", bus1=h2_pipes.bus1 + " H2 Z2"
+        bus0=h2_pipes.bus0 + f" {suffix}", bus1=h2_pipes.bus1 + f" {suffix}"
     )
     h2_pipes["length"] = h2_pipes.apply(haversine, axis=1, args=(n,))
 
@@ -2121,7 +2122,7 @@ def add_h2_reconversion_tyndp(
         )
 
 
-def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
+def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, tyndp_scenario):
     """
     Adds TYNDP hydrogen pipelines and interzonal (Z1 <-> Z2) connections.
 
@@ -2144,7 +2145,9 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         The function modifies the network object in-place by adding components.
     """
 
-    h2_pipes = create_h2_topology_tyndp(n=n, fn_h2_network=h2_pipes_file)
+    h2_pipes = create_h2_topology_tyndp(
+        n=n, fn_h2_network=h2_pipes_file, tyndp_scenario=tyndp_scenario
+    )
     interzonal = pd.read_csv(interzonal_file, index_col=0)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
@@ -2397,6 +2400,7 @@ def add_h2_topology_tyndp(
         h2_pipes_file=h2_pipes_file,
         interzonal_file=interzonal_file,
         costs=costs,
+        tyndp_scenario=tyndp_scenario,
     )
 
     # add H2 storage (Z1: H2 tanks; Z2/NT H2 nodes: Salt caverns)
