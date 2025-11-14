@@ -22,9 +22,29 @@ Upcoming Open-TYNDP Release
   building individual project networks, solving network optimizations, and computing CBA
   indicators.
 
+* Add the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
+
+**Bugfixes and Compatibility**
+
+* Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
+
+* Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214)
+
 
 Upcoming PyPSA-Eur Release
 ================
+
+* Fix: Allocate heat pump CAPEX on heat instead of electricity bus instead and remove nominal efficiency from CAPEX calculation
+
+* Fix: Configsettings for `heat_pump_cop_approximation` are now correctly passed to `CentralHeatingCopApproximator.py`
+
+* Feature: Introduce a new method to overwrite costs (https://github.com/PyPSA/pypsa-eur/pull/1752, https://github.com/PyPSA/pypsa-eur/pull/1879). Modifications to the default techno-economic assumptions can now be configured via `costs:custom_cost_fn`, which applies changes to the `resources/costs_{planning_horizons}.csv` files. The default configuration includes minor adjustments to stabilize optimization results. The existing implementation via `costs:overwrites` and `costs:capital_cost`/`costs:marginal_cost` parameters remains available but will be deprecated in a future release.
+
+* Fixed `AttributeError` in `prepare_sector_network.py` when running sector-coupled
+  PyPSA-Eur with only one country and cluster.
+  (https://github.com/PyPSA/pypsa-eur/pull/1835)
+
+* Added river-water and sea-water sourced heat pumps as well as interactive bus-balance plots and heat-source maps. Also introduced district heating areas in which heat sources must be located.
 
 * Added automatic retry for some (Zenodo) HTTP requests to handle transient errors
   like rate limiting and server errors.
