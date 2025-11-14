@@ -15,11 +15,22 @@ Upcoming Open-TYNDP Release
 
 * Add CO2 emission prices configurable per planning horizon (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
 
+* Introduce a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT
+  (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP
+  transmission and storage projects
+  (https://github.com/open-energy-transition/open-tyndp/pull/149) on top of the SB
+  results. The workflow structure has rules for retrieving CBA project data, processing
+  transmission and storage projects from Excel exports, creating reference networks,
+  building individual project networks, solving network optimizations, and computing CBA
+  indicators.
+
 * Add the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
 
 **Bugfixes and Compatibility**
 
 * Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
+
+* Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214)
 
 
 Upcoming PyPSA-Eur Release

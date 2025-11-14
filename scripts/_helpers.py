@@ -216,6 +216,15 @@ def find_opt(opts, expr):
     return False, None
 
 
+def fill_wildcards(s: str, **wildcards: str) -> str:
+    """
+    Fill given (subset of) wildcards into a path with wildcards
+    """
+    for k, v in wildcards.items():
+        s = s.replace("{" + k + "}", v)
+    return s
+
+
 # Define a context manager to temporarily mute print statements
 @contextlib.contextmanager
 def mute_print():

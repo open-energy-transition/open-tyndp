@@ -122,4 +122,4 @@ update-dags:
 # Make TYNDP
 tyndp:
 	snakemake -call --configfile config/config.tyndp.yaml --rerun-incomplete --keep-going $(args)
-	snakemake -call rulegraph filegraph --configfile config/config.tyndp.yaml
+	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
