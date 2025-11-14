@@ -72,3 +72,11 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 - **License:** CC-BY 4.0
 - **Description:** Contains generators, electrolysers, nodes and grid information used in the
   modelling of offshore hubs.
+
+``data/tyndp_2024_bundle/cba_projects``
+
+- **Source:** TYNDP 2024 Project Sheets, https://tyndp2024.entsoe.eu/projects-map
+- **Link:** https://zenodo.org/records/14230568
+- **License:** CC-BY 4.0
+- **Description:** Contains 177 transmission and 33 storage projects, which have been
+assessed by TYNDP 2024 in its Cost-Benefit Analysis.
