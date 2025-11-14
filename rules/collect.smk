@@ -212,7 +212,7 @@ rule rulegraphs:
         expand(
             resources("dag_rulegraph.pdf"),
             run=config["run"]["name"],
-        )
+        ),
 
 
 rule filegraphs:
@@ -220,4 +220,4 @@ rule filegraphs:
         expand(
             resources("dag_filegraph.pdf"),
             run=config["run"]["name"],
-        )
+        ),
