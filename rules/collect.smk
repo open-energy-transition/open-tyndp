@@ -205,3 +205,19 @@ rule build_tyndp_h2_demands:
             **config["scenario"],
             run=config["run"]["name"],
         ),
+
+
+rule rulegraphs:
+    input:
+        expand(
+            resources("dag_rulegraph.pdf"),
+            run=config["run"]["name"],
+        )
+
+
+rule filegraphs:
+    input:
+        expand(
+            resources("dag_filegraph.pdf"),
+            run=config["run"]["name"],
+        )
