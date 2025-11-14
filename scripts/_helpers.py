@@ -11,10 +11,10 @@ import os
 import re
 import time
 from bisect import bisect_right
+from collections.abc import Callable
 from functools import partial, wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Callable, Union
 
 import atlite
 import fiona
@@ -214,6 +214,15 @@ def find_opt(opts, expr):
             else:
                 return True, None
     return False, None
+
+
+def fill_wildcards(s: str, **wildcards: str) -> str:
+    """
+    Fill given (subset of) wildcards into a path with wildcards
+    """
+    for k, v in wildcards.items():
+        s = s.replace("{" + k + "}", v)
+    return s
 
 
 # Define a context manager to temporarily mute print statements
@@ -1099,7 +1108,7 @@ def rename_techs(label: str) -> str:
 
 
 def load_cutout(
-    cutout_files: Union[str, list[str]], time: Union[None, pd.DatetimeIndex] = None
+    cutout_files: str | list[str], time: None | pd.DatetimeIndex = None
 ) -> atlite.Cutout:
     """
     Load and optionally combine multiple cutout files.
@@ -1128,6 +1137,24 @@ def load_cutout(
         cutout.data = cutout.data.sel(time=time)
 
     return cutout
+
+
+def load_costs(cost_file: str) -> pd.DataFrame:
+    """
+    Load prepared cost data from CSV.
+
+    Parameters
+    ----------
+    cost_file : str
+        Path to the CSV file containing cost data
+
+    Returns
+    -------
+    costs : pd.DataFrame
+        DataFrame containing the prepared cost data
+    """
+
+    return pd.read_csv(cost_file, index_col=0)
 
 
 def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
@@ -1408,3 +1435,21 @@ def convert_units(
         )
 
     return df
+
+
+def check_cyear(cyear: int, scenario: str) -> int:
+    """Check if the climatic year is valid for the given scenario."""
+
+    valid_years = {
+        "NT": np.arange(1983, 2018).tolist(),
+        "DE": [1995, 2008, 2009],
+        "GA": [1995, 2008, 2009],
+    }
+
+    if cyear not in valid_years[scenario]:
+        logger.warning(
+            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
+        )
+        cyear = 2009
+
+    return cyear

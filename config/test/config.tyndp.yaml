@@ -273,6 +273,8 @@ clustering:
   build_bidding_zones:
     remove_islands: true
     aggregate_to_tyndp: true
+  simplify_network:
+    remove_stubs: false
   temporal:
     resolution_sector: 6H
 

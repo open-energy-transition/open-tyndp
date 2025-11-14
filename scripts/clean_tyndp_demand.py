@@ -86,7 +86,7 @@ def load_elec_demand(
 
         # Fix inconsistencies in input data
         if pyear in [2040, 2050]:
-            data["PL00"].index = data["AL00"].index
+            data["PL00"].index = data["AT00"].index
             data["UK00"] = pd.read_excel(
                 demand_fn,
                 skiprows=11,
