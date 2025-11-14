@@ -2034,7 +2034,9 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     )
 
 
-def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=None):
+def add_h2_reconversion_tyndp(
+    n, spatial, nodes, buses_h2, costs, tyndp_scenario, options=None
+):
     """
     Adds TYNDP H2 reconversion with options for Fuel cells, H2 turbines and methanation.
 
@@ -2064,14 +2066,15 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         The function modifies the network object in-place by adding components.
     """
 
+    suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
+
     if options["methanation"]:
-        logger.info("Adding Z2 dummy methanation.")
         # TODO: this does currently only work for no gas spatial and no co2 spatial
         n.add(
             "Link",
-            buses_h2_z2,
+            buses_h2,
             suffix=" Sabatier",
-            bus0=buses_h2_z2,
+            bus0=buses_h2,
             bus1=spatial.gas.nodes,
             bus2=spatial.co2.nodes,
             p_nom_extendable=True,
@@ -2086,11 +2089,10 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         )
 
     if options["hydrogen_fuel_cell"]:
-        logger.info("Adding Z2 dummy hydrogen fuel cell for re-electrification.")
         n.add(
             "Link",
-            nodes.index + " H2 Z2 Fuel Cell",
-            bus0=nodes.country.values + " H2 Z2",
+            nodes.index + f" {suffix} Fuel Cell",
+            bus0=buses_h2,
             bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 Fuel Cell",
@@ -2102,12 +2104,12 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
 
     if options["hydrogen_turbine"]:
         logger.info(
-            "Adding Z2 dummy hydrogen turbine for re-electrification. Assuming CCGT technology costs."
+            "Adding hydrogen turbine for re-electrification. Assuming CCGT technology costs."
         )
         n.add(
             "Link",
-            nodes.index + " H2 Z2 turbine",
-            bus0=nodes.country.values + " H2 Z2",
+            nodes.index + f" {suffix} turbine",
+            bus0=buses_h2,
             bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 turbine",
@@ -2377,12 +2379,14 @@ def add_h2_topology_tyndp(
         add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
+    buses_h2 = buses_h2_z1 if tyndp_scenario == "NT" else buses_h2_z2
     add_h2_reconversion_tyndp(
         n=n,
         spatial=spatial,
         nodes=nodes,
-        buses_h2_z2=buses_h2_z2,
+        buses_h2=buses_h2,
         costs=costs,
+        tyndp_scenario=tyndp_scenario,
         options=options,
     )
 
