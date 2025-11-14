@@ -257,6 +257,15 @@ costs:
       offwind: 25
     efficiency:
       electrolysis: 0.68  # ToDo Account for time-varying efficiencies, currently using fixed 2020 value from TYNDP 2024
+  emission_prices:
+    enable: true
+    co2:
+      # Source: Methodology report, p32
+      2030: 113.4
+      2035: 130.2 # interpolated
+      2040: 147
+      2045: 157.5 # interpolated
+      2050: 168
 
 clustering:
   mode: administrative
