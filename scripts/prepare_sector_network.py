@@ -56,7 +56,9 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
+def define_spatial(
+    nodes, options, offshore_buses_fn=None, buses_h2_file=None, tyndp_scenario=None
+):
     """
     Namespace for spatial.
 
@@ -200,17 +202,25 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
     if options["h2_topology_tyndp"] and buses_h2_file:
         spatial.h2_tyndp = SimpleNamespace()
         buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
-        spatial.h2_tyndp.nodes = pd.Index(
-            (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
-        )
-        spatial.h2_tyndp.locations = pd.Index(np.tile(buses_h2.index + " Z2", 2))
-        spatial.h2_tyndp.country = pd.Index(np.tile(buses_h2.country, 2))
-        spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x, 2))
-        spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y, 2))
-        spatial.h2_tyndp.df = pd.DataFrame(
-            vars(spatial.h2_tyndp),
-            index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
-        )
+        if tyndp_scenario == "NT":
+            spatial.h2_tyndp.nodes = buses_h2.index
+            spatial.h2_tyndp.locations = buses_h2.index
+            spatial.h2_tyndp.country = buses_h2.country
+            spatial.h2_tyndp.x = buses_h2.x
+            spatial.h2_tyndp.y = buses_h2.y
+
+        else:
+            spatial.h2_tyndp.nodes = pd.Index(
+                (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
+            )
+            spatial.h2_tyndp.locations = pd.Index(np.tile(buses_h2.index + " Z2", 2))
+            spatial.h2_tyndp.country = pd.Index(np.tile(buses_h2.country, 2))
+            spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x, 2))
+            spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y, 2))
+            spatial.h2_tyndp.df = pd.DataFrame(
+                vars(spatial.h2_tyndp),
+                index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
+            )
 
     # methanol
 
@@ -5817,31 +5827,21 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
-    if options["h2_topology_tyndp"]:
-        # TODO Link properly Industry to H2 topology
-        nodes_ind_h2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
-        nodes_ind_h2 = nodes_ind_h2[~(nodes_ind_h2.isin(["IBFI H2 Z2", "IBIT H2 Z2"]))]
-        nodes_ind = n.buses.loc[nodes_ind_h2].country.values + "00"
-        nodes_ind[nodes_ind == "IT00"] = "ITCN"
-        nodes_ind[nodes_ind == "DK00"] = "DKE1"
-        nodes_ind[nodes_ind == "LU00"] = "LUG1"
-        nodes_ind[nodes_ind == "NO00"] = "NOS0"
-        nodes_ind[nodes_ind == "SE00"] = "SE01"
-    else:
+    if not options["h2_topology_tyndp"]:
         nodes_ind = nodes
         nodes_ind_h2 = nodes + " H2"
-    industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
-    n.add(
-        "Load",
-        nodes_ind,  # TODO Improve assumptions
-        suffix=" H2 Z2 for industry"
-        if options["h2_topology_tyndp"]
-        else " H2 for industry",  # TODO Improve assumptions
-        bus=nodes_ind_h2,  # TODO Improve assumptions
-        carrier="H2 for industry",
-        p_set=industrial_demand_zones["hydrogen"]
-        / nhours,  # TODO Improve assumptions for zones
-    )
+        industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
+        n.add(
+            "Load",
+            nodes_ind,  # TODO Improve assumptions
+            suffix=" H2 Z2 for industry"
+            if options["h2_topology_tyndp"]
+            else " H2 for industry",  # TODO Improve assumptions
+            bus=nodes_ind_h2,  # TODO Improve assumptions
+            carrier="H2 for industry",
+            p_set=industrial_demand_zones["hydrogen"]
+            / nhours,  # TODO Improve assumptions for zones
+        )
 
     # methanol for industry
 
@@ -7472,9 +7472,10 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_sector_network",
             opts="",
-            clusters="10",
+            clusters="all",
             sector_opts="",
-            planning_horizons="2050",
+            planning_horizons="2030",
+            configfiles="config/config.tyndp-test.yaml",
         )
 
     configure_logging(snakemake)  # pylint: disable=E0606
@@ -7483,6 +7484,7 @@ if __name__ == "__main__":
 
     options = snakemake.params.sector
     cf_industry = snakemake.params.industry
+    tyndp_scenario = snakemake.params.scenario
 
     investment_year = int(snakemake.wildcards.planning_horizons)
 
@@ -7594,6 +7596,7 @@ if __name__ == "__main__":
         options,
         offshore_buses_fn=buses_oh_file,
         buses_h2_file=buses_h2_file,
+        tyndp_scenario=tyndp_scenario,
     )
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
