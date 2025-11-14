@@ -1899,16 +1899,14 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         The function modifies the network object in-place by adding components.
     """
 
-    logger.info("Adding Z1 and Z2 dummy electrolysers.")
+    suffix = "H2" if tyndp_scenario == "NT" else "H2 Z1"
+
+    # Add electrolysis to Z1 or in NT case general H2 nodes
     n.add(
         "Link",
-        (nodes.index + " H2 Z1 Electrolysis").append(
-            nodes.index + " H2 Z2 Electrolysis"
-        ),
-        bus0=np.tile(nodes.index, 2),
-        bus1=np.append(
-            nodes.country.values + " H2 Z1", (nodes.country.values + " H2 Z2")
-        ),
+        nodes.index + f" {suffix} Electrolysis",
+        bus0=nodes.index,
+        bus1=nodes.country,
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -1916,8 +1914,21 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
+    # Add electorlysis to Z2
+    if tyndp_scenario != "NT":
+        n.add(
+            "Link",
+            nodes.index + " H2 Z2 Electrolysis",
+            bus0=nodes.index,
+            bus1=nodes.country,
+            p_nom_extendable=True,
+            carrier="H2 Electrolysis",
+            efficiency=costs.at["electrolysis", "efficiency"],
+            capital_cost=costs.at["electrolysis", "capital_cost"],
+            lifetime=costs.at["electrolysis", "lifetime"],
+        )
+
     if options["SMR_cc"]:
-        logger.info("Adding Z1 dummy SMR CC.")
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
@@ -1936,7 +1947,6 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         )
 
     if options["SMR"]:
-        logger.info("Adding Z1 dummy SMR.")
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
@@ -1957,7 +1967,6 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         v if isinstance(v, bool) else any(v.values())
         for v in options["methanol"].values()
     ):
-        logger.info("Adding Z1 dummy ATR.")
         add_carrier_buses(
             n=n, carrier="methanol", costs=costs, spatial=spatial, options=options
         )
@@ -2176,7 +2185,7 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
 
 
 def add_h2_storage_tyndp(
-    n, cavern_types, h2_cavern_file, buses_h2_z1, costs, options={}
+    n, cavern_types, h2_cavern_file, buses_h2_z1, costs, tyndp_scenario, options={}
 ):
     """
     Adds TYNDP Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions.
@@ -2231,12 +2240,14 @@ def add_h2_storage_tyndp(
             .loc[:, 0]
         )
 
-        logger.info("Adding dummy TYNDP H2 underground storage for H2 Z2")
+        logger.info("Adding TYNDP H2 underground storage")
+
+        suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
 
         n.add(
             "Store",
-            h2_caverns.index + " H2 Z2 Cavern Store",
-            bus=h2_caverns.index + " H2 Z2",
+            h2_caverns.index + f" {suffix} Cavern Store",
+            bus=h2_caverns.index + f" {suffix}",
             e_nom_extendable=True,
             e_nom_max=h2_caverns.values,
             e_cyclic=True,
@@ -2246,20 +2257,21 @@ def add_h2_storage_tyndp(
         )
 
     # add overground hydrogen tank storage to all H2 Z1 nodes
-    tech = "hydrogen storage tank type 1 including compressor"
+    if not buses_h2_z1.empty:
+        tech = "hydrogen storage tank type 1 including compressor"
 
-    logger.info("Adding dummy TYNDP H2 tank storage for H2 Z1")
+        logger.info("Adding TYNDP H2 tank storage for H2 Z1")
 
-    n.add(
-        "Store",
-        buses_h2_z1 + " Tank Store",
-        bus=buses_h2_z1,
-        e_nom_extendable=True,
-        e_cyclic=True,
-        carrier="H2 Store",
-        capital_cost=costs.at[tech, "capital_cost"],
-        lifetime=costs.at[tech, "lifetime"],
-    )
+        n.add(
+            "Store",
+            buses_h2_z1 + " Tank Store",
+            bus=buses_h2_z1,
+            e_nom_extendable=True,
+            e_cyclic=True,
+            carrier="H2 Store",
+            capital_cost=costs.at[tech, "capital_cost"],
+            lifetime=costs.at[tech, "lifetime"],
+        )
 
 
 def add_h2_topology_tyndp(
@@ -2272,6 +2284,7 @@ def add_h2_topology_tyndp(
     cavern_types,
     costs,
     options,
+    tyndp_scenario,
 ):
     """
     Add TYNDP H2 topology to the network.
@@ -2324,17 +2337,9 @@ def add_h2_topology_tyndp(
     nodes = n.buses.loc[pop_layout.index, :].query(
         "country in @spatial.h2_tyndp.country"
     )
-    buses_h2_z2 = spatial.h2_tyndp.nodes[
-        ~spatial.h2_tyndp.nodes.str.contains("IB")
-        & spatial.h2_tyndp.nodes.str.contains("Z2")
-    ]
-    buses_h2_z1 = spatial.h2_tyndp.nodes[
-        ~spatial.h2_tyndp.nodes.str.contains("IB")
-        & spatial.h2_tyndp.nodes.str.contains("Z1")
-    ]
 
-    # add H2 Z1 and Z2 buses
-    logger.info("Adding Z1 and Z2 H2 nodes.")
+    # add H2 Buses
+    logger.info("Adding TYNDP H2 nodes.")
 
     n.add(
         "Bus",
@@ -2347,13 +2352,29 @@ def add_h2_topology_tyndp(
         unit="MWh_LHV",
     )
 
+    # define buses depending on tyndp scenario
+    if tyndp_scenario in ["DE", "GA"]:
+        buses_h2_z2 = spatial.h2_tyndp.nodes[
+            ~spatial.h2_tyndp.nodes.str.contains("IB")
+            & spatial.h2_tyndp.nodes.str.contains("Z2")
+        ]
+        buses_h2_z1 = spatial.h2_tyndp.nodes[
+            ~spatial.h2_tyndp.nodes.str.contains("IB")
+            & spatial.h2_tyndp.nodes.str.contains("Z1")
+        ]
+    # NT scenario only has one hydrogen zone
+    else:
+        buses_h2_z1 = spatial.h2_tyndp.nodes[~spatial.h2_tyndp.nodes.str.contains("IB")]
+        buses_h2_z2 = pd.Index([])
+
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
     add_h2_production_tyndp(
         n=n, nodes=nodes, buses_h2_z1=buses_h2_z1, costs=costs, options=options
     )
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
-    add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
+    if tyndp_scenario in ["DE", "GA"]:
+        add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
     add_h2_reconversion_tyndp(
@@ -2374,13 +2395,14 @@ def add_h2_topology_tyndp(
         costs=costs,
     )
 
-    # add H2 storage (Z1: H2 tanks; Z2: Salt caverns)
+    # add H2 storage (Z1: H2 tanks; Z2/NT H2 nodes: Salt caverns)
     add_h2_storage_tyndp(
         n=n,
         cavern_types=cavern_types,
         h2_cavern_file=h2_cavern_file,
         buses_h2_z1=buses_h2_z1,
         costs=costs,
+        tyndp_scenario=tyndp_scenario,
         options=options,
     )
 
@@ -2915,6 +2937,7 @@ def add_gas_and_h2_infrastructure(
     gas_input_nodes,
     spatial,
     options,
+    tyndp_scenario,
 ):
     """
     Add storage and grid infrastructure to the network for gas and hydrogen.
@@ -2984,6 +3007,7 @@ def add_gas_and_h2_infrastructure(
             cavern_types=cavern_types,
             costs=costs,
             options=options,
+            tyndp_scenario=tyndp_scenario,
         )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
@@ -7647,6 +7671,7 @@ if __name__ == "__main__":
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
+        tyndp_scenario=tyndp_scenario,
     )
 
     if snakemake.params.offshore_hubs_tyndp:
