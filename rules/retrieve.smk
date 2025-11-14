@@ -246,6 +246,17 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_tyndp_pemmdb_data.log",
 
+    use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_supply_tool with:
+        params:
+            # TODO Integrate into Zenodo tyndp data bundle
+            url="https://storage.googleapis.com/open-tyndp-data-store/20240518-Supply-Tool.xlsm.zip",
+            source="Supply Tool",
+        output:
+            dir=directory("data/tyndp_2024_bundle/Supply Tool"),
+            file="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
+        log:
+            "logs/retrieve_tyndp_pemmdb_data.log",
+
     if config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
 
         use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_pecd_data_prebuilt with:

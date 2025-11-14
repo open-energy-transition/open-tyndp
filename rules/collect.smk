@@ -207,6 +207,14 @@ rule build_tyndp_h2_demands:
         ),
 
 
+rule build_tyndp_gas_demands:
+    input:
+        expand(
+            resources("gas_demand_tyndp_{planning_horizons}.csv"),
+            **config["scenario"],
+        ),
+
+
 rule rulegraphs:
     input:
         expand(

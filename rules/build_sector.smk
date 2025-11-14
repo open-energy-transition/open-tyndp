@@ -148,6 +148,27 @@ rule cluster_gas_network:
         "../scripts/cluster_gas_network.py"
 
 
+rule build_tyndp_gas_demand:
+    params:
+        scenario=config_provider("tyndp_scenario"),
+        planning_horizons=config_provider("scenario", "planning_horizons"),
+    input:
+        supply_tool="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
+    output:
+        gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
+    threads: 1
+    resources:
+        mem_mb=1000,
+    log:
+        logs("build_tyndp_gas_demand_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_tyndp_gas_demand_{planning_horizons}")
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/build_tyndp_gas_demand.py"
+
+
 rule build_daily_heat_demand:
     params:
         snapshots=config_provider("snapshots"),

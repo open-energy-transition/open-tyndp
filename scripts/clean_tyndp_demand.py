@@ -123,6 +123,9 @@ if __name__ == "__main__":
     planning_horizons = snakemake.params["planning_horizons"]
 
     # Load and prep electricity demand
+    logger.info(
+        f"Processing Electricity demand for scenario: {scenario} and climate year: {cyear}"
+    )
     tqdm_kwargs = {
         "ascii": False,
         "unit": " pyear",
