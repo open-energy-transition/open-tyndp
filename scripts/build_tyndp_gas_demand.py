@@ -61,12 +61,6 @@ logger = logging.getLogger(__name__)
 cc = coco.CountryConverter()
 
 
-def convert_country_to_bus(names: pd.Index) -> pd.Index:
-    """Convert country names to bus names."""
-    names = pd.Index(cc.convert(names, to="iso2"))
-    return names + "00"
-
-
 def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Series]:
     """
     Read and process final gas demand data and final heat demand data from Supply Tool for a specific year.
@@ -83,7 +77,7 @@ def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Ser
         )
 
         # Set buses as column names
-        demand_fed.columns = convert_country_to_bus(demand_fed.columns)
+        demand_fed.columns = pd.Index(cc.convert(demand_fed.columns, to="iso2"))
 
         # Extract final heat demand
         demand_heat = demand_fed.loc["Heat"].mul(1e3)  # MWh
@@ -141,7 +135,7 @@ def read_heat_frame(
     )
 
     # Set buses as column names
-    df.columns = convert_country_to_bus(df.columns)
+    df.columns = pd.Index(cc.convert(df.columns, to="iso2"))
 
     return df
 
@@ -185,7 +179,7 @@ def read_heat_data(
         ].sum()  # MWh
 
         # Apply Italian solution as specified in Supply Tool
-        demand.loc["IT00"] = read_it_gas_prod(fn, pyear)
+        demand.loc["IT"] = read_it_gas_prod(fn, pyear)
 
     except Exception as e:
         logger.warning(
@@ -253,7 +247,7 @@ def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.Series:
     return interpolate_demand(
         available_years=available_years,
         pyear=pyear,
-        load_single_year_fun=load_single_year,
+        load_single_year_func=load_single_year,
         fn=fn,
         scenario=scenario,
     )

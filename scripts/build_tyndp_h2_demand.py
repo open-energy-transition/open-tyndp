@@ -216,7 +216,7 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
     return interpolate_demand(
         available_years=available_years,
         pyear=pyear,
-        load_single_year_fun=load_single_year,
+        load_single_year_func=load_single_year,
         fn=fn,
         scenario=scenario,
         cyear=cyear,

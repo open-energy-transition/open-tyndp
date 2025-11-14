@@ -1431,7 +1431,7 @@ def check_cyear(cyear: int, scenario: str) -> int:
 def interpolate_demand(
     available_years: list[int],
     pyear: int,
-    load_single_year_fun: Callable,
+    load_single_year_func: Callable,
     **load_kwargs,
 ) -> pd.DataFrame | pd.Series:
     """
@@ -1443,10 +1443,10 @@ def interpolate_demand(
         Sorted list of years for which data is available.
     pyear : int
         Planning year to interpolate demand for.
-    load_single_year_fun : Callable
+    load_single_year_func : Callable
         Function to load data for a single planning year.
     **load_kwargs
-        Keyword arguments to pass to load_single_year_fun. Must include 'pyear'
+        Keyword arguments to pass to load_single_year_func. Must include 'pyear'
         as a parameter key, which will be overridden with interpolation boundary years.
 
     Returns
@@ -1479,8 +1479,8 @@ def interpolate_demand(
     kwargs_lower = {**load_kwargs, "pyear": year_lower}
     kwargs_upper = {**load_kwargs, "pyear": year_upper}
 
-    df_lower = load_single_year_fun(**kwargs_lower)
-    df_upper = load_single_year_fun(**kwargs_upper)
+    df_lower = load_single_year_func(**kwargs_lower)
+    df_upper = load_single_year_func(**kwargs_upper)
 
     # Check if data was loaded successfully
     if df_lower.empty and df_upper.empty:
@@ -1496,6 +1496,9 @@ def interpolate_demand(
             f"Year {year_upper} failed to load. Using data from lower year for interpolation."
         )
         df_upper = df_lower
+
+    if year_upper == year_lower:
+        return df_lower
 
     # Handle column mismatches for DataFrames (only relevant for DataFrame, not Series)
     if isinstance(df_lower, pd.DataFrame) and isinstance(df_upper, pd.DataFrame):
