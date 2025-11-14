@@ -216,6 +216,15 @@ def find_opt(opts, expr):
     return False, None
 
 
+def fill_wildcards(s: str, **wildcards: str) -> str:
+    """
+    Fill given (subset of) wildcards into a path with wildcards
+    """
+    for k, v in wildcards.items():
+        s = s.replace("{" + k + "}", v)
+    return s
+
+
 # Define a context manager to temporarily mute print statements
 @contextlib.contextmanager
 def mute_print():
@@ -1128,6 +1137,24 @@ def load_cutout(
         cutout.data = cutout.data.sel(time=time)
 
     return cutout
+
+
+def load_costs(cost_file: str) -> pd.DataFrame:
+    """
+    Load prepared cost data from CSV.
+
+    Parameters
+    ----------
+    cost_file : str
+        Path to the CSV file containing cost data
+
+    Returns
+    -------
+    costs : pd.DataFrame
+        DataFrame containing the prepared cost data
+    """
+
+    return pd.read_csv(cost_file, index_col=0)
 
 
 def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
