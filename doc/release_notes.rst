@@ -28,6 +28,8 @@ Upcoming Open-TYNDP Release
 
 * Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
 
+* Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214)
+
 
 Upcoming PyPSA-Eur Release
 ================
