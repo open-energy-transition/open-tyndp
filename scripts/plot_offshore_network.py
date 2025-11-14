@@ -11,7 +11,11 @@ import re
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pypsa
-from pypsa.plot.maps.static import add_legend_circles, add_legend_lines, add_legend_patches
+from pypsa.plot.maps.static import (
+    add_legend_circles,
+    add_legend_lines,
+    add_legend_patches,
+)
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.plot_power_network import load_projection

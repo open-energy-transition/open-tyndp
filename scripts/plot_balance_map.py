@@ -12,7 +12,11 @@ import numpy as np
 import pandas as pd
 import pypsa
 from packaging.version import Version, parse
-from pypsa.plot.maps.static import add_legend_lines, add_legend_patches, add_legend_semicircles
+from pypsa.plot.maps.static import (
+    add_legend_lines,
+    add_legend_patches,
+    add_legend_semicircles,
+)
 from pypsa.statistics import get_transmission_carriers
 
 from scripts._helpers import (
