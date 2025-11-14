@@ -9,7 +9,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import pypsa
 from matplotlib.lines import Line2D
-from pypsa.plot import add_legend_lines
+from pypsa.plot.maps.static import add_legend_lines
 
 from scripts._helpers import set_scenario_config
 from scripts.plot_power_network import load_projection
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     regions.to_crs(proj.proj4_init).plot(
         ax=ax, facecolor="none", edgecolor="lightgray", linewidth=0.75
     )
-    n.plot(
+    n.plot.map(
         ax=ax,
         margin=0.06,
         line_widths=n.lines.s_nom / lw_factor,
