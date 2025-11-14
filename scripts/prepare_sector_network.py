@@ -2290,6 +2290,7 @@ def add_h2_topology_tyndp(
     costs,
     options,
     tyndp_scenario,
+    h2_demand_file,
 ):
     """
     Add TYNDP H2 topology to the network.
@@ -2412,6 +2413,43 @@ def add_h2_topology_tyndp(
         costs=costs,
         tyndp_scenario=tyndp_scenario,
         options=options,
+    )
+
+    # add exogenous hydrogen demand
+    add_h2_demand_tyndp(
+        n=n, h2_demand_file=h2_demand_file, tyndp_scenario=tyndp_scenario
+    )
+
+
+def add_h2_demand_tyndp(n, h2_demand_file, tyndp_scenario):
+    """
+    Add exogenous TYNDP hydrogen demand to the network.
+    """
+    logger.info("Add exogenous hydrogen demand to network")
+
+    demand = pd.read_csv(h2_demand_file, index_col=0, parse_dates=True)
+
+    # rename columns
+    if tyndp_scenario == "NT":
+        demand.columns = [f"{col[:2]} H2" for col in demand.columns]
+
+    # check for missing buses
+    h2_buses = n.buses[n.buses.carrier == "H2"].index
+    if not demand.columns.difference(h2_buses).empty:
+        missing = demand.columns.difference(h2_buses)
+        logger.warning(
+            f"The following H2 demand buses are not in the network and are dropped {missing}"
+        )
+        demand.drop(missing, inplace=True, axis=1)
+
+    # add exogenous demand
+    n.add(
+        "Load",
+        demand.columns,
+        suffix=" exogenous demand",
+        bus=demand.columns,
+        carrier="H2",
+        p_set=demand,
     )
 
 
@@ -2946,6 +2984,7 @@ def add_gas_and_h2_infrastructure(
     spatial,
     options,
     tyndp_scenario,
+    h2_demand_file,
 ):
     """
     Add storage and grid infrastructure to the network for gas and hydrogen.
@@ -3016,6 +3055,7 @@ def add_gas_and_h2_infrastructure(
             costs=costs,
             options=options,
             tyndp_scenario=tyndp_scenario,
+            h2_demand_file=h2_demand_file,
         )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
@@ -7680,6 +7720,7 @@ if __name__ == "__main__":
         spatial=spatial,
         options=options,
         tyndp_scenario=tyndp_scenario,
+        h2_demand_file=snakemake.input.h2_demand,
     )
 
     if snakemake.params.offshore_hubs_tyndp:
