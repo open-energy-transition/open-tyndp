@@ -2429,10 +2429,6 @@ def add_h2_demand_tyndp(n, h2_demand_file, tyndp_scenario):
 
     demand = pd.read_csv(h2_demand_file, index_col=0, parse_dates=True)
 
-    # rename columns
-    if tyndp_scenario == "NT":
-        demand.columns = [f"{col[:2]} H2" for col in demand.columns]
-
     # check for missing buses
     h2_buses = n.buses[n.buses.carrier == "H2"].index
     if not demand.columns.difference(h2_buses).empty:

@@ -161,6 +161,7 @@ def load_single_year(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataF
     if scenario == "NT":
         demand_fn = get_file_path(fn, scenario, pyear)
         demand = read_h2_excel(demand_fn, scenario, pyear, cyear, h2_zone=2)
+        demand.columns = [f"{col[:2]} H2" for col in demand.columns]
     elif scenario in ["DE", "GA"]:
         demands = {}
         for h2_zone in [1, 2]:
