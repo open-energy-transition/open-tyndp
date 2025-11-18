@@ -43,7 +43,6 @@ AGG_STRATEGIES = {
     "p_min": "sum",
     "p_max": "sum",
     "efficiency": "mean",
-    "index_carrier": lambda x: "/".join(x.dropna().astype(str)),
 }
 
 
@@ -65,9 +64,9 @@ def _group_conv(
         df.groupby(groupby, dropna=False)
         .agg(agg_dict)
         .reset_index()
+        .drop(columns="index_carrier")
         .rename(
             columns={
-                "index_carrier": "grouped_index_carriers",
                 "open_tyndp_type": "index_carrier",
             },
             errors="ignore",
