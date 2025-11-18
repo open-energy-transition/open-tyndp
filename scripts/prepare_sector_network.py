@@ -1407,7 +1407,7 @@ def add_thermal_generation_tyndp(
         DataFrame containing cost and technical parameters for different technologies
     nodes : pd.Index
         pd.Index with demand nodes
-    tyndp_conventionals : Dict[str, str]
+    tyndp_conventionals : dict[str, str]
         Dictionary mapping TYNDP conventional generation technologies to their energy carriers
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
@@ -1621,7 +1621,7 @@ def _add_conventional_thermal_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
-    tyndp_conventional_thermals: dict[str, str],
+    tyndp_conventional_thermals: list[str],
     nuclear_trajectories: pd.DataFrame,
 ) -> None:
     """
@@ -1638,7 +1638,7 @@ def _add_conventional_thermal_capacities(
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
     nuclear_trajectories : pd.DataFrame
-        Trajectories for exogneous nuclear pathways.
+        Trajectories for exogenous nuclear pathways.
     """
     logger.info(
         "Adding PEMMDB capacities and profiles to conventional thermal generation assets."
@@ -1654,7 +1654,7 @@ def _add_conventional_thermal_capacities(
 
         # Filter for capacities and add to the network
         caps = pemmdb_capacities.query("index_carrier == @tech")["p_nom"]
-        # Capacities are given in MWel, hence we need to convert to MWth
+        # Existing capacities are given in MWel, hence we need to convert to MWth
         n.links.loc[tech_i, "p_nom"] = (
             n.links.loc[tech_i, "bus1"]
             .map(caps)
@@ -1754,15 +1754,15 @@ def add_existing_pemmdb_capacities(
     n : pypsa.Network
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
-        Dataframe containing all PEMMDB capacities.
+        DataFrame containing all PEMMDB capacities.
     pemmdb_profiles : pd.DataFrame
-        Dataframe containing all PEMMDB must-run and availability profiles.
+        DataFrame containing all PEMMDB must-run and availability profiles.
     trajectories : pd.DataFrame
         DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
-        List of TYNDP conventional thermal technologie that were added to the network.
+        List of TYNDP conventional thermal technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
