@@ -212,6 +212,7 @@ rule build_tyndp_gas_demands:
         expand(
             resources("gas_demand_tyndp_{planning_horizons}.csv"),
             **config["scenario"],
+            run=config["run"]["name"],
         ),
 
 
