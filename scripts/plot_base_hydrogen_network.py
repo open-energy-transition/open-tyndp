@@ -11,7 +11,11 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
 import pypsa
-from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
+from pypsa.plot.maps.static import (
+    add_legend_circles,
+    add_legend_lines,
+    add_legend_patches,
+)
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.plot_hydrogen_network import load_projection
@@ -96,13 +100,13 @@ def plot_h2_map_base(
     )
 
     # set link widths
-    link_widths_pipes = h2_pipes / linewidth_factor
-    link_widths_imports = h2_imports / linewidth_factor
-    if link_widths_pipes.notnull().empty:
+    link_width_pipes = h2_pipes / linewidth_factor
+    link_width_imports = h2_imports / linewidth_factor
+    if link_width_pipes.notnull().empty:
         logger.info("No base H2 pipeline capacities to plot.")
         return
-    link_widths_pipes = link_widths_pipes.reindex(n.links.index).fillna(0.0)
-    link_widths_imports = link_widths_imports.reindex(n.links.index).fillna(0.0)
+    link_width_pipes = link_width_pipes.reindex(n.links.index).fillna(0.0)
+    link_width_imports = link_width_imports.reindex(n.links.index).fillna(0.0)
 
     # drop non H2 buses
     n.buses.drop(
@@ -133,12 +137,12 @@ def plot_h2_map_base(
     color_h2_imports = "#FFA500"
     color_h2_node = "#ff29d9"
 
-    n.plot(
+    n.plot.map(
         geomap=True,
-        bus_sizes=0.1,
-        bus_colors=color_h2_node,
-        link_colors=color_h2_pipe,
-        link_widths=link_widths_pipes,
+        bus_size=0.1,
+        bus_color=color_h2_node,
+        link_color=color_h2_pipe,
+        link_width=link_width_pipes,
         branch_components=["Link"],
         ax=ax,
         **map_opts,
@@ -162,11 +166,11 @@ def plot_h2_map_base(
         )
 
     if not h2_imports.empty:
-        n.plot(
+        n.plot.map(
             geomap=True,
-            bus_sizes=0,
-            link_colors=color_h2_imports,
-            link_widths=link_widths_imports,
+            bus_size=0,
+            link_color=color_h2_imports,
+            link_width=link_width_imports,
             branch_components=["Link"],
             ax=ax,
             **map_opts,
