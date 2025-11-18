@@ -253,6 +253,8 @@ def update_costs_tyndp(
     """
     Update technology and cost assumptions for TYNDP technologies based on TYNDP to PyPSA-Eur default carrier mapping.
 
+    Parameters
+    ----------
     costs : pd.DataFrame
         Cost assumptions DataFrame
     carrier_mapping_fn : str

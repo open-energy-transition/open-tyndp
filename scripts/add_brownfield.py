@@ -452,6 +452,8 @@ def remove_tyndp_conventionals_p(
     Remove TYNDP conventional capacities from previous planning horizon network
     as existing conventional capacities are given as cumulative input.
 
+    Parameters
+    ----------
     n_p : pypsa.Network
         The network with the updated parameters from the previous planning horizon.
     tyndp_conventional_thermals : list[str]
