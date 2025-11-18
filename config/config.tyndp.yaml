@@ -188,8 +188,7 @@ sector:
   transport: false
   heating: false
   biomass: true
-  industry: true
-  use_industry_load: false
+  industry: false
   shipping: false
   aviation: false
   agriculture: false
