@@ -148,19 +148,24 @@ def load_offshore_grid(
         p_max_pu=1,
     )
 
+    suffix = "H2" if scenario == "NT" else "H2 Z1"
     # Filter out radial nodes and Convert to explicit hydrogen buses
     grid = grid.query("~bus0.str.contains('OR') and ~bus1.str.contains('OR')").assign(
         bus0=lambda df: np.where(
             df.carrier == "H2 pipeline OH",
             np.where(
-                df.bus0.str.contains("OH"), df.bus0 + " H2", df.bus0.str[:2] + " H2 Z2"
+                df.bus0.str.contains("OH"),
+                df.bus0 + " H2",
+                df.bus0.str[:2] + f" {suffix}",
             ),
             df.bus0,
         ),
         bus1=lambda df: np.where(
             df.carrier == "H2 pipeline OH",
             np.where(
-                df.bus1.str.contains("OH"), df.bus1 + " H2", df.bus1.str[:2] + " H2 Z2"
+                df.bus1.str.contains("OH"),
+                df.bus1 + " H2",
+                df.bus1.str[:2] + f" {suffix}",
             ),
             df.bus1,
         ),
@@ -243,8 +248,9 @@ def load_offshore_electrolysers(
         .drop(columns="OFFSHORE_NODE")
     )
 
+    suffix = "H2" if scenario == "NT" else "H2 Z1"
     mask = electrolysers["type"] == "Radial"
-    electrolysers.loc[mask, "bus1"] = electrolysers.loc[mask, "country"] + " H2 Z2"
+    electrolysers.loc[mask, "bus1"] = electrolysers.loc[mask, "country"] + f" {suffix}"
 
     electrolysers[["capex", "opex"]] = electrolysers[["capex", "opex"]].mul(
         1e3
