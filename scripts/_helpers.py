@@ -1448,6 +1448,8 @@ def check_cyear(cyear: int, scenario: str) -> int:
 
 def get_tyndp_conventional_thermals(
     mapping: pd.DataFrame,
+    tyndp_conventional_carriers: list[str],
+    group_conventionals: bool,
     include_h2_fuel_cell: bool,
     include_h2_turbine: bool,
 ) -> tuple[dict[str, str], list[str]]:
@@ -1458,6 +1460,10 @@ def get_tyndp_conventional_thermals(
     ----------
     mapping : pd.DataFrame
         TYNDP conventional carrier mapping (grouped or ungrouped).
+    tyndp_conventional_carriers : list[str]
+        TYNDP conventional carriers.
+    group_conventionals : bool
+        Whether to group conventional thermal technologies.
     include_h2_fuel_cell : bool
         Whether to include hydrogen fuel cell technology.
     include_h2_turbine : bool
@@ -1469,6 +1475,16 @@ def get_tyndp_conventional_thermals(
         Dictionary with conventional mapping and list of conventional thermal technology names.
     """
 
+    # Filter mapping for conventional carriers while setting oil as common fuel for oil technologies
+    mapping = (
+        mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
+        .query("open_tyndp_carrier in @tyndp_conventional_carriers")
+        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
+    )
+
+    if group_conventionals:
+        mapping = mapping.groupby("open_tyndp_type").first()
+
     conventional_dict = mapping.open_tyndp_carrier.to_dict()
     conventional_thermals = list(conventional_dict)
 
@@ -1478,31 +1494,3 @@ def get_tyndp_conventional_thermals(
         conventional_thermals.append("h2-ccgt")
 
     return conventional_dict, conventional_thermals
-
-
-def prepare_tyndp_conventional_mapping(
-    carrier_mapping: pd.DataFrame,
-    conventional_carriers: list[str],
-) -> pd.DataFrame:
-    """
-    Prepare TYNDP conventional carrier mapping.
-    Filters for conventional carriers and consolidates oil variants into single oil carrier.
-
-    Parameters
-    ----------
-    carrier_mapping : pd.DataFrame
-        Full TYNDP carrier mapping.
-    conventional_carriers : list[str]
-        List of conventional carrier names to include.
-
-    Returns
-    -------
-    pd.DataFrame
-        Filtered and processed conventional carrier mapping.
-    """
-    # TODO: update if oil carriers are differentiated with TYNDP assumptions
-    return (
-        carrier_mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
-        .query("open_tyndp_carrier in @conventional_carriers")
-        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
-    )

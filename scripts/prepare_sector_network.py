@@ -31,7 +31,6 @@ from scripts._helpers import (
     get_tyndp_conventional_thermals,
     load_costs,
     make_index,
-    prepare_tyndp_conventional_mapping,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -1825,9 +1824,7 @@ def _add_conventional_thermal_capacities(
             continue
 
         # Filter for capacities and add to the network
-        caps = pemmdb_capacities.query("index_carrier == @tech").set_index("bus")[
-            "p_nom"
-        ]
+        caps = pemmdb_capacities.query("index_carrier == @tech")["p_nom"]
         # Capacities are given in MWel, hence we need to convert to MWth
         n.links.loc[tech_i, "p_nom"] = (
             n.links.loc[tech_i, "bus1"]
@@ -1839,16 +1836,15 @@ def _add_conventional_thermal_capacities(
         # Add nuclear-specific trajectories
         if tech == "nuclear":
             # Set p_nom_min and p_nom_max
-            traj_by_bus = nuclear_trajectories.set_index("bus")
             n.links.loc[tech_i, "p_nom_min"] = (
                 n.links.loc[tech_i, "bus1"]
-                .map(traj_by_bus["p_nom_min"])
+                .map(nuclear_trajectories["p_nom_min"])
                 .fillna(0.0)
                 .div(n.links.loc[tech_i, "efficiency"])
             )
             n.links.loc[tech_i, "p_nom_max"] = (
                 n.links.loc[tech_i, "bus1"]
-                .map(traj_by_bus["p_nom_max"])
+                .map(nuclear_trajectories["p_nom_max"])
                 .fillna(0.0)
                 .div(n.links.loc[tech_i, "efficiency"])
             )
@@ -1862,7 +1858,7 @@ def _add_conventional_thermal_capacities(
                 logger.info(
                     f"Enabling expansion for {tech_i_exp.values} as trajectories are not fixed but a range."
                 )
-            n.links.loc[tech_i_exp, "p_nom_extendable"] = True
+                n.links.loc[tech_i_exp, "p_nom_extendable"] = True
 
         # Profiles
         ##########
@@ -1975,7 +1971,7 @@ def add_existing_pemmdb_capacities(
     if tyndp_conventional_thermals:
         nuclear_trajectories = trajectories.query(
             "pyear == @investment_year and index_carrier == 'nuclear'"
-        )
+        ).set_index("bus")
 
         _add_conventional_thermal_capacities(
             n=n,
@@ -8077,6 +8073,19 @@ if __name__ == "__main__":
         sequestration_potential_file=snakemake.input.sequestration_potential,
     )
 
+    # Get mapping of conventional technologies and fuels and list of conventional thermal technologies
+    tyndp_conventional_dict, tyndp_conventional_thermals = (
+        get_tyndp_conventional_thermals(
+            mapping=tyndp_carrier_mapping,
+            tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
+            group_conventionals=snakemake.params.electricity[
+                "group_tyndp_conventionals"
+            ],
+            include_h2_fuel_cell=options["hydrogen_fuel_cell"],
+            include_h2_turbine=options["hydrogen_turbine"],
+        )
+    )
+
     # Initialize variables that are conditionally assigned later
     pemmdb_capacities = None
     pemmdb_profiles = None
@@ -8085,44 +8094,14 @@ if __name__ == "__main__":
     # Read in PEMMDB data and trajectories
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
-        pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities)
+        pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities).set_index(
+            "bus"
+        )
         pemmdb_profiles = xr.open_dataset(
             snakemake.input.pemmdb_profiles
         ).to_dataframe()
-    if tyndp_renewable_carriers:
+    if tyndp_renewable_carriers or "nuclear" in tyndp_conventional_thermals:
         tyndp_trajectories = pd.read_csv(snakemake.input.tyndp_trajectories)
-
-    # Extract TYNDP conventional carriers
-    tyndp_conventional_carriers = snakemake.params.conventional_carriers_tyndp
-
-    # Prepare conventional mapping
-    tyndp_conventional_mapping = prepare_tyndp_conventional_mapping(
-        carrier_mapping=tyndp_carrier_mapping,
-        conventional_carriers=tyndp_conventional_carriers,
-    )
-
-    # Optionally group TYNDP conventionals
-    if enable_pemmdb_caps and snakemake.params.electricity["group_tyndp_conventionals"]:
-        pemmdb_capacities, pemmdb_profiles = group_tyndp_conventionals(
-            pemmdb_capacities=pemmdb_capacities,
-            pemmdb_profiles=pemmdb_profiles,
-            tyndp_conventional_mapping=tyndp_conventional_mapping,
-            tyndp_conventional_carriers=tyndp_conventional_carriers,
-        )
-
-        # Group mapping itself
-        tyndp_conventional_mapping = tyndp_conventional_mapping.groupby(
-            "open_tyndp_type"
-        ).first()
-
-    # Get list of conventional thermal technologies
-    tyndp_conventional_dict, tyndp_conventional_thermals = (
-        get_tyndp_conventional_thermals(
-            mapping=tyndp_conventional_mapping,
-            include_h2_fuel_cell=options["hydrogen_fuel_cell"],
-            include_h2_turbine=options["hydrogen_turbine"],
-        )
-    )
 
     conventional_generation = {
         generator: carrier

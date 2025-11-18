@@ -17,7 +17,6 @@ from scripts._helpers import (
     configure_logging,
     get_snapshots,
     get_tyndp_conventional_thermals,
-    prepare_tyndp_conventional_mapping,
     sanitize_custom_columns,
     set_scenario_config,
     update_config_from_wildcards,
@@ -445,56 +444,6 @@ def update_dynamic_ptes_capacity(
     ].values
 
 
-def extract_conventional_thermals_tyndp(
-    tyndp_carrier_mapping: pd.DataFrame,
-    tyndp_conventional_carriers: list[str],
-    grp_convs: bool,
-    options: dict,
-) -> list[str]:
-    """
-    Extract list of TYNDP conventional thermal generation technologies.
-
-    Filters and optionally groups TYNDP conventional carriers, then returns
-    a list of technology names including optional hydrogen technologies.
-
-    Parameters
-    ----------
-    tyndp_carrier_mapping : pd.DataFrame
-        Full TYNDP carrier mapping.
-    tyndp_conventional_carriers : list[str]
-        List of TYNDP conventional carrier names to include.
-    grp_convs : bool
-        Whether to group conventional carriers by open_tyndp_type.
-    options : dict
-        Configuration options containing
-
-    Returns
-    -------
-    list[str]
-        List of conventional thermal technology names.
-    """
-    # Prepare conventional mapping
-    tyndp_conventional_mapping = prepare_tyndp_conventional_mapping(
-        carrier_mapping=tyndp_carrier_mapping,
-        conventional_carriers=tyndp_conventional_carriers,
-    )
-
-    # Optionally group TYNDP conventionals
-    if grp_convs:
-        tyndp_conventional_mapping = tyndp_conventional_mapping.groupby(
-            "open_tyndp_type"
-        ).first()
-
-    # Get list of conventional thermal technologies
-    _, tyndp_conventional_thermals = get_tyndp_conventional_thermals(
-        mapping=tyndp_conventional_mapping,
-        include_h2_fuel_cell=options["hydrogen_fuel_cell"],
-        include_h2_turbine=options["hydrogen_turbine"],
-    )
-
-    return tyndp_conventional_thermals
-
-
 def remove_tyndp_conventionals_p(
     n_p: pypsa.Network,
     tyndp_conventional_thermals: list[str],
@@ -543,7 +492,6 @@ if __name__ == "__main__":
     logger.info(f"Preparing brownfield from the file {snakemake.input.network_p}")
 
     year = int(snakemake.wildcards.planning_horizons)
-    options = snakemake.params.sector
 
     n = pypsa.Network(snakemake.input.network)
 
@@ -561,12 +509,13 @@ if __name__ == "__main__":
     tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
         "open_tyndp_index"
     )
-    # Extract TYNDP conventional carriers
-    tyndp_conventional_thermals = extract_conventional_thermals_tyndp(
-        tyndp_carrier_mapping=tyndp_carrier_mapping,
-        tyndp_conventional_carriers=snakemake.params.conventional_carriers_tyndp,
-        grp_convs=snakemake.params.electricity["group_tyndp_conventionals"],
-        options=options,
+    # Get list of conventional thermal technologies
+    _, tyndp_conventional_thermals = get_tyndp_conventional_thermals(
+        mapping=tyndp_carrier_mapping,
+        tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
+        group_conventionals=snakemake.params.group_tyndp_conventionals,
+        include_h2_fuel_cell=snakemake.params.hydrogen_fuel_cell,
+        include_h2_turbine=snakemake.params.hydrogen_turbine,
     )
 
     # Drop fixed TYNDP conventional capacities from previous year as TYNDP capacities are given as cumulative input

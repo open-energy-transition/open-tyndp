@@ -76,8 +76,6 @@ def input_profile_tech_brownfield_pecd(w):
 
 rule add_brownfield:
     params:
-        sector=config_provider("sector"),
-        electricity=config_provider("electricity"),
         H2_retrofit=config_provider("sector", "H2_retrofit"),
         H2_retrofit_capacity_per_CH4=config_provider(
             "sector", "H2_retrofit_capacity_per_CH4"
@@ -93,8 +91,13 @@ rule add_brownfield:
         ),
         offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
-        conventional_carriers_tyndp=config_provider(
+        tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
+        ),
+        hydrogen_fuel_cell=config_provider("sector", "hydrogen_fuel_cell"),
+        hydrogen_turbine=config_provider("sector", "hydrogen_turbine"),
+        group_tyndp_conventionals=config_provider(
+            "electricity", "group_tyndp_conventionals"
         ),
     input:
         unpack(input_profile_tech_brownfield),
