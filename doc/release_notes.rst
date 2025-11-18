@@ -15,7 +15,8 @@ Upcoming Open-TYNDP Release
 **Features**
 
 * Added the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
-* Added missing TYNDP supply technologies using PEMMDB capacities, must-runs and availabilities (conventional thermal generation https://github.com/open-energy-transition/open-tyndp/pull/195)
+
+* Added TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
 
 **Bugfixes and Compatibility**
 
