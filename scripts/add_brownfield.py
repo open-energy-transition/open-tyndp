@@ -147,7 +147,7 @@ def add_brownfield(
         existing_large = remaining_potential[remaining_potential < 0].index
         if len(existing_large):
             logger.warning(
-                f"Existing capacities larger than TYNPD 2024 trajectories for {list(existing_large[:3])}, adjusting technical potential to existing capacities"
+                f"Existing capacities larger than TYNDP 2024 trajectories for {list(existing_large)}, adjusting technical potential to existing capacities"
             )
             remaining_potential = remaining_potential.clip(0)
         n.generators.loc[onwind_solar_i, "p_nom_min"] = remaining_min

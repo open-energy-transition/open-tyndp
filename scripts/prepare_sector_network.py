@@ -1678,8 +1678,16 @@ def _add_conventional_thermal_capacities(
                 .div(n.links.loc[tech_i, "efficiency"])
             )
 
-            # Manually set p_nom to p_nom_min as pathway supersedes given PEMMDB capacity
-            n.links.loc[tech_i, "p_nom"] = n.links.loc[tech_i, "p_nom_min"]
+            # Set p_nom to p_nom_min if p_nom != p_nom_min as pathway supersedes given PEMMDB capacity
+            exist_mismatch_i = n.links.loc[tech_i].query("p_nom != p_nom_min").index
+            if not exist_mismatch_i.empty:
+                logger.warning(
+                    f"Existing capacities don't match with TYNDP 2024 trajectories for {list(exist_mismatch_i)}, "
+                    f"adjusting capacity as pathway supersedes given PEMMDB capacities."
+                )
+                n.links.loc[exist_mismatch_i, "p_nom"] = n.links.loc[
+                    exist_mismatch_i, "p_nom_min"
+                ]
 
             # Enable expansion if p_nom_min != p_nom_max
             tech_i_exp = n.links.loc[tech_i].query("p_nom_min != p_nom_max").index
