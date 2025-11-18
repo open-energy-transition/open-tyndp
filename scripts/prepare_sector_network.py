@@ -3390,6 +3390,7 @@ def attach_gas_load(
     n: pypsa.Network,
     gas_demand_fn: str,
     options: dict,
+    costs: pd.DataFrame,
     spatial: SimpleNamespace,
     nhours: int = 8760,
 ):
@@ -3405,6 +3406,8 @@ def attach_gas_load(
     options : dict
         Dictionary of configuration options including:
         - gas_demand_exogenously
+    costs : pd.DataFrame
+        Technology costs assumptions.
     spatial : object, optional
         Object containing spatial information about nodes and their locations.
     nhours : int
@@ -7731,6 +7734,7 @@ if __name__ == "__main__":
             n=n,
             gas_demand_fn=snakemake.input.gas_demand,
             options=options,
+            costs=costs,
             spatial=spatial,
             nhours=nhours,
         )
