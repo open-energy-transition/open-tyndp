@@ -61,6 +61,7 @@ benchmarking:
         CCGT: transformation input
         OCGT: transformation input
         gas-ccgt: transformation input
+        gas-ccgt-ccs: transformation input
         gas-ocgt: transformation input
         gas-conv: transformation input
         SMR: transformation input
@@ -116,15 +117,17 @@ benchmarking:
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
-        H2 turbine: hydrogen
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
         coal: coal + other fossil
+        coal+ccs: coal + other fossil
         lignite: coal + other fossil
+        lignite+ccs: coal + other fossil
         oil-heavy: oil
         oil-light: oil
         oil-shale: oil
         gas-ccgt: methane
+        gas-ccgt-ccs: methane
         gas-ocgt: methane
         gas-conv: methane
         battery discharger: battery
@@ -158,15 +161,17 @@ benchmarking:
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
-        H2 turbine: hydrogen
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
         coal: coal + other fossil
+        coal+ccs: coal + other fossil
         lignite: coal + other fossil
+        lignite+ccs: coal + other fossil
         oil-heavy: oil
         oil-light: oil
         oil-shale: oil
         gas-ccgt: methane
+        gas-ccgt-ccs: methane
         gas-ocgt: methane
         gas-conv: methane
         urban central solid biomass CHP: other non-res
@@ -270,14 +275,16 @@ benchmarking:
         onwind: onshore wind
         solar-pv-rooftop: solar
         solar-pv-utility: solar
-        H2 turbine: methane&hydrogen
         h2-ccgt: methane&hydrogen
         h2-fuel-cell: methane&hydrogen
         gas-ccgt: methane&hydrogen
+        gas-ccgt-ccs: methane&hydrogen
         gas-ocgt: methane&hydrogen
         gas-conv: methane&hydrogen
         coal: coal&lignite&oil
+        coal+ccs: coal&lignite&oil
         lignite: coal&lignite&oil
+        lignite+ccs: coal&lignite&oil
         oil: coal&lignite&oil
         oil-heavy: coal&lignite&oil
         oil-light: coal&lignite&oil
