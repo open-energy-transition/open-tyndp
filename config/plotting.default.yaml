@@ -345,7 +345,7 @@ plotting:
     # oil
     oil: '#c9c9c9'
     oil-shale: '#d2d2d2'
-    oil-light: '#c9c9c9'
+    oil-light: '#adadad'
     oil-heavy: '#a3a3a3'
     oil primary: '#d2d2d2'
     oil refining: '#e6e6e6'
