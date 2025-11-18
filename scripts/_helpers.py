@@ -1279,7 +1279,7 @@ def map_tyndp_carrier_names(
     # Read TYNDP carrier mapping
     carrier_mapping = (
         pd.read_csv(carrier_mapping_fn)[
-            on_columns + ["open_tyndp_carrier", "open_tyndp_index"]
+            on_columns + ["open_tyndp_carrier", "open_tyndp_index", "open_tyndp_type"]
         ]
     ).dropna()
 

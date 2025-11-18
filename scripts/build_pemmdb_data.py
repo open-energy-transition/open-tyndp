@@ -15,7 +15,8 @@ Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file c
     Field                Coordinates           Description
     ===================  ====================  =========================================================
     p_min_pu,            time, bus, carrier,   the per unit hourly availability and must-run obligations
-    p_max_pu             type                  for each bus and PEMMDB technology
+    p_max_pu             index_carrier,        for each bus and PEMMDB technology
+                         open_tyndp_type
     ===================  ====================  =========================================================
 """
 
@@ -1047,7 +1048,7 @@ def process_pemmdb_profiles(
             carrier_mapping_fn,
             ["pemmdb_carrier", "pemmdb_type"],
             drop_on_columns=True,
-        ).set_index(["time", "bus", "carrier", "index_carrier"])
+        ).set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
 
         return profiles
 
