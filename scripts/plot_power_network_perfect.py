@@ -12,7 +12,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import pandas as pd
 import pypsa
-from pypsa.plot.maps.static import add_legend_circles, add_legend_lines
+from pypsa.plot import add_legend_circles, add_legend_lines
 
 from scripts._helpers import configure_logging, retry, set_scenario_config
 from scripts.make_summary import assign_locations
@@ -113,7 +113,7 @@ def plot_map_perfect(
         fig.set_size_inches(7, 6)
         fig.suptitle(year)
 
-        n.plot.map(
+        n.plot(
             bus_sizes=costs[year] / bus_size_factor,
             bus_colors=snakemake.config["plotting"]["tech_colors"],
             line_colors=ac_color,

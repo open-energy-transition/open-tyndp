@@ -12,11 +12,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import pandas as pd
 import pypsa
-from pypsa.plot.maps.static import (
-    add_legend_circles,
-    add_legend_lines,
-    add_legend_patches,
-)
+from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
 
 from scripts._helpers import configure_logging, retry, set_scenario_config
 from scripts.make_summary import assign_locations
@@ -133,7 +129,7 @@ def plot_ch4_map(n):
 
     fig, ax = plt.subplots(figsize=(7, 6), subplot_kw={"projection": proj})
 
-    n.plot.map(
+    n.plot(
         bus_sizes=bus_sizes,
         bus_colors=bus_colors,
         link_colors=pipe_colors["gas pipeline (in 2020)"],
@@ -143,7 +139,7 @@ def plot_ch4_map(n):
         **map_opts,
     )
 
-    n.plot.map(
+    n.plot(
         ax=ax,
         bus_sizes=0.0,
         link_colors=pipe_colors["gas pipeline (available)"],
@@ -153,7 +149,7 @@ def plot_ch4_map(n):
         boundaries=map_opts["boundaries"],
     )
 
-    n.plot.map(
+    n.plot(
         ax=ax,
         bus_sizes=0.0,
         link_colors=link_color_used,

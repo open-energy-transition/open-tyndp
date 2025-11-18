@@ -11,11 +11,7 @@ import re
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pypsa
-from pypsa.plot.maps.static import (
-    add_legend_circles,
-    add_legend_lines,
-    add_legend_patches,
-)
+from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.plot_power_network import load_projection
@@ -121,7 +117,7 @@ def plot_offshore_map(
     color_oh_nodes = "#ff29d9"
     color_hm_nodes = "darkgray"
 
-    n.plot.map(
+    n.plot(
         geomap=True,
         bus_sizes=0.05,
         bus_colors=color_hm_nodes,
