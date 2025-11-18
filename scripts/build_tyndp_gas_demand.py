@@ -273,7 +273,9 @@ if __name__ == "__main__":
     pyear = int(snakemake.wildcards.planning_horizons)
 
     if scenario != "NT":
+        # TODO Remove the fallback once DE/GA are implemented
         logger.warning(f"Gas demand processing is not supported yet for {scenario}.")
+        scenario = "NT"
 
     # Load demand with interpolation
     logger.info(f"Processing gas demand for scenario: {scenario}")
