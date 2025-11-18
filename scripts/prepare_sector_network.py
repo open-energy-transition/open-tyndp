@@ -1910,7 +1910,9 @@ def add_existing_pemmdb_capacities(
 ) -> None:
     """
     Add PEMMDB existing capacities, must-runs and availabilities to the network.
-    This includes information for:
+    For onshore wind and solar technologies, the generator components will additionally be attached to the model.
+
+    The following PEMMDB technologies are included:
       - conventional thermal generation (incl. H2 fuel-cells and turbines)
       - onshore wind and solar
       - hydro
@@ -1946,7 +1948,7 @@ def add_existing_pemmdb_capacities(
     """
     logger.info("Adding PEMMDB capacities, must-runs and availabilities to components.")
 
-    # Attach onwind and solar technologies and capacities
+    # Attach onwind and solar technologies and add existing capacities
     tyndp_solar_onwind = [
         c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
     ]
@@ -1967,7 +1969,7 @@ def add_existing_pemmdb_capacities(
             trajectories=trajectories_solar_onwind,
         )
 
-    # Attach existing conventional thermal capacities
+    # Add existing conventional thermal capacities to already attached conventional technologies
     if tyndp_conventional_thermals:
         nuclear_trajectories = trajectories.query(
             "pyear == @investment_year and index_carrier == 'nuclear'"
