@@ -185,13 +185,17 @@ pypsa_eur:
   Store: []
 
 sector:
-  transport: false
+  transport: true
+  transport_emissions: true
   heating: false
+  heating_emissions: true
   biomass: true
   industry: false
-  shipping: false
-  aviation: false
+  industry_emissions: true
+  shipping: true
+  aviation: true
   agriculture: false
+  agriculture_emissions: true
   fossil_fuels: true
 
   land_transport_fuel_cell_share:  # Not modelled
@@ -202,21 +206,45 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  land_transport_electric_share:
-    2020: 0
-    2025: 0.15
-    2030: 0.3
-    2035: 0.45
-    2040: 0.7
-    2045: 0.85
-    2050: 1
-  land_transport_ice_share:  # Not modelled
+  land_transport_electric_share:  # included in exogenous demand
     2020: 0
     2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
+    2050: 0
+  land_transport_ice_share:  # TODO Improve default assumptions
+    2020: 1
+    2025: 0.95
+    2030: 0.8
+    2035: 0.55
+    2040: 0.3
+    2045: 0.15
+    2050: 0
+  shipping_hydrogen_share:
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  shipping_methanol_share:  # included in exogenous demand  # TODO Validate assumption
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  shipping_oil_share:
+    2020: 1
+    2025: 1
+    2030: 0.85
+    2035: 0.65
+    2040: 0.45
+    2045: 0.2
     2050: 0
   oil_boilers: false
   biomass_boiler: false
@@ -235,6 +263,8 @@ sector:
   gas_network: false
   gas_demand_exogenously: true
   gas_distribution_grid: false
+  biomass_to_liquid: true
+  biomass_to_liquid_cc: true
   electrobiofuels: false
   transmission_efficiency:
     enable:

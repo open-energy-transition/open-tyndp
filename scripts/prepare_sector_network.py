@@ -293,11 +293,11 @@ spatial = SimpleNamespace()
 
 def determine_emission_sectors(options):
     sectors = ["electricity"]
-    if options["transport"]:
+    if options["transport_emissions"] or options["transport"]:
         sectors += ["rail non-elec", "road non-elec"]
-    if options["heating"]:
+    if options["heating_emissions"] or options["heating"]:
         sectors += ["residential non-elec", "services non-elec"]
-    if options["industry"]:
+    if options["industry_emissions"] or options["industry"]:
         sectors += [
             "industrial non-elec",
             "industrial processes",
@@ -306,7 +306,7 @@ def determine_emission_sectors(options):
             "domestic navigation",
             "international navigation",
         ]
-    if options["agriculture"]:
+    if options["agriculture_emissions"] or options["agriculture"]:
         sectors += ["agriculture"]
 
     return sectors
