@@ -208,6 +208,10 @@ def define_spatial(
             spatial.h2_tyndp.country = buses_h2.country
             spatial.h2_tyndp.x = buses_h2.x
             spatial.h2_tyndp.y = buses_h2.y
+            spatial.buses_h2_z1 = spatial.h2_tyndp.nodes[
+                ~spatial.h2_tyndp.nodes.str.contains("IB")
+            ]
+            spatial.buses_h2_z2 = pd.Index([])
 
         else:
             spatial.h2_tyndp.nodes = pd.Index(
@@ -221,6 +225,14 @@ def define_spatial(
                 vars(spatial.h2_tyndp),
                 index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
             )
+            spatial.buses_h2_z1 = spatial.h2_tyndp.nodes[
+                ~spatial.h2_tyndp.nodes.str.contains("IB")
+                & spatial.h2_tyndp.nodes.str.contains("Z1")
+            ]
+            spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[
+                ~spatial.h2_tyndp.nodes.str.contains("IB")
+                & spatial.h2_tyndp.nodes.str.contains("Z2")
+            ]
 
     # methanol
 
@@ -2358,20 +2370,9 @@ def add_h2_topology_tyndp(
         unit="MWh_LHV",
     )
 
-    # define buses depending on tyndp scenario
-    if tyndp_scenario in ["DE", "GA"]:
-        buses_h2_z2 = spatial.h2_tyndp.nodes[
-            ~spatial.h2_tyndp.nodes.str.contains("IB")
-            & spatial.h2_tyndp.nodes.str.contains("Z2")
-        ]
-        buses_h2_z1 = spatial.h2_tyndp.nodes[
-            ~spatial.h2_tyndp.nodes.str.contains("IB")
-            & spatial.h2_tyndp.nodes.str.contains("Z1")
-        ]
-    # NT scenario only has one hydrogen zone
-    else:
-        buses_h2_z1 = spatial.h2_tyndp.nodes[~spatial.h2_tyndp.nodes.str.contains("IB")]
-        buses_h2_z2 = pd.Index([])
+    # define H2 topology
+    buses_h2_z1 = spatial.buses_h2_z1
+    buses_h2_z2 = spatial.buses_h2_z2
 
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
     add_h2_production_tyndp(
