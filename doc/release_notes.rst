@@ -13,7 +13,7 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Add CO2 emission prices configurable per planning horizon (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
+* Add CO2 emission prices configurable per planning horizon for sector-coupled models (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
 
 * Introduce a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT
   (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP
