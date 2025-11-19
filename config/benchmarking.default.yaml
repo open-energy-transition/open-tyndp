@@ -21,13 +21,14 @@ benchmarking:
       mapping:
         AC: electricity
         AC_OH: electricity
-        H2: hydrogen
-        gas: methane
         low voltage: electricity
+        H2: hydrogen
+        gas for demand: methane
         oil: liquids
+        kerosene for aviation: liquids
+        shipping oil: liquids
+        land transport oil: liquids
         coal: solids
-        naphtha for industry: liquids
-        solid biomass for industry: biofuels
 
     elec_demand:
       table_type: scenario_comparison
@@ -46,10 +47,11 @@ benchmarking:
 
     methane_demand:
       table_type: scenario_comparison
-      sheet_name: 53-
+      sheet_name: 8-
       unit: TWh
-      index_col: [2, 3]
-      header: 4
+      index_col: 2
+      header: [4, 5]
+      nrows: 15
       names:
         index:
         - carrier
@@ -59,8 +61,8 @@ benchmarking:
       mapping:
         CCGT: power generation
         OCGT: power generation
-        SMR: SMR
-        SMR CC: SMR
+        SMR: smr
+        SMR CC: smr
         gas for demand: total (excl. SMR and power generation)
 
     hydrogen_demand:

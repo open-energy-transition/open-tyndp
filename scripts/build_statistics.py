@@ -90,7 +90,7 @@ def compute_benchmark(
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
         grouper = ["bus_carrier"]
-        df = (
+        df_countries = (
             n.statistics.withdrawal(
                 comps="Load",
                 groupby=["bus"] + grouper,
@@ -100,6 +100,19 @@ def compute_benchmark(
             .groupby(level="bus_carrier")
             .sum()
         )
+
+        # Add EU level demands
+        df_eu = (
+            n.statistics.withdrawal(
+                comps="Load",
+                groupby=grouper,
+                aggregate_across_components=True,
+            )
+            .to_frame()
+            .query("bus_carrier not in @df_countries.index")[0]
+        )
+
+        df = pd.concat([df_countries, df_eu])
     elif table == "elec_demand":
         grouper = ["carrier"]
 
@@ -294,7 +307,8 @@ def compute_benchmark(
                         "home battery charger",
                         "methanolisation",
                         "electricity",
-                    ]
+                    ],
+                    errors="ignore",
                 )
                 .melt(ignore_index=False)
                 .reset_index()
