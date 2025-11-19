@@ -28,7 +28,6 @@ benchmarking:
         coal: solids
         naphtha for industry: liquids
         solid biomass for industry: biofuels
-        uranium: others
 
     elec_demand:
       table_type: scenario_comparison
