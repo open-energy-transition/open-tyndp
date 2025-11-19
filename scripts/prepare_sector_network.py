@@ -1907,7 +1907,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         "Link",
         nodes.index + f" {suffix} Electrolysis",
         bus0=nodes.index,
-        bus1=nodes.country,
+        bus1=(nodes.country + f" {suffix}").values,
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -1921,7 +1921,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
             "Link",
             nodes.index + " H2 Z2 Electrolysis",
             bus0=nodes.index,
-            bus1=nodes.country,
+            bus1=(nodes.country + " H2 Z2").values,
             p_nom_extendable=True,
             carrier="H2 Electrolysis",
             efficiency=costs.at["electrolysis", "efficiency"],
@@ -2093,7 +2093,7 @@ def add_h2_reconversion_tyndp(
         n.add(
             "Link",
             nodes.index + f" {suffix} Fuel Cell",
-            bus0=buses_h2,
+            bus0=(nodes.country + f" {suffix}").values,
             bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 Fuel Cell",
@@ -2110,7 +2110,7 @@ def add_h2_reconversion_tyndp(
         n.add(
             "Link",
             nodes.index + f" {suffix} turbine",
-            bus0=buses_h2,
+            bus0=(nodes.country + f" {suffix}").values,
             bus1=nodes.index,
             p_nom_extendable=True,
             carrier="H2 turbine",
@@ -5705,6 +5705,7 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
+    tyndp_scenario: str,
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -5895,21 +5896,14 @@ def add_industry(
         lifetime=costs.at["cement capture", "lifetime"],
     )
 
-    if not options["h2_topology_tyndp"]:
-        nodes_ind = nodes
+    if options["h2_topology_tyndp"]:
+        suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
+        nodes_ind_h2 = pd.Index(pop_layout.ct + f" {suffix}")
+
+    else:
         nodes_ind_h2 = nodes + " H2"
-        industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
-        n.add(
-            "Load",
-            nodes_ind,  # TODO Improve assumptions
-            suffix=" H2 Z2 for industry"
-            if options["h2_topology_tyndp"]
-            else " H2 for industry",  # TODO Improve assumptions
-            bus=nodes_ind_h2,  # TODO Improve assumptions
-            carrier="H2 for industry",
-            p_set=industrial_demand_zones["hydrogen"]
-            / nhours,  # TODO Improve assumptions for zones
-        )
+
+    nodes_ind = nodes
 
     # methanol for industry
 
@@ -7376,6 +7370,7 @@ def add_import_options(
     options: dict,
     gas_input_nodes: pd.DataFrame,
     h2_imports_tyndp_fn: str,
+    tyndp_scenario: str,
 ):
     """
     Add green energy import options.
@@ -7508,11 +7503,12 @@ def add_import_options(
                 marginal_cost=import_potentials_h2.marginal_cost.values,
                 e_sum_max=import_potentials_h2.e_sum_max.values,
             )
+            suffix = "H2" if tyndp_scenario == "NT" else "H2 Z1"
             n.add(
                 "Link",
                 import_potentials_h2.index,
                 bus0=import_potentials_h2.Corridor.values + " H2 import",
-                bus1=import_potentials_h2.bus1.values + " H2 Z2",
+                bus1=import_potentials_h2.bus1.values + f" {suffix}",
                 p_nom_extendable=False,
                 p_nom=import_potentials_h2.p_nom.values,
                 bidirectional=False,
@@ -7533,6 +7529,7 @@ def add_import_options(
             )
 
 
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -7817,6 +7814,7 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
+            tyndp_scenario=tyndp_scenario,
         )
 
     if options["shipping"]:
@@ -7946,6 +7944,7 @@ if __name__ == "__main__":
             options=options,
             gas_input_nodes=gas_input_nodes,
             h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
+            tyndp_scenario=tyndp_scenario,
         )
 
     if options["gas_distribution_grid"]:
