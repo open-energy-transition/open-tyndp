@@ -3441,7 +3441,7 @@ def attach_gas_load(
 
     n.add(
         "Link",
-        spatial.gas.industry,
+        spatial.gas.exo_demand,
         bus0=spatial.gas.nodes,
         bus1=spatial.gas.exo_demand,
         bus2="co2 atmosphere",
