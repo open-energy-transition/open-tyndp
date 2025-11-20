@@ -127,8 +127,6 @@ tsam = ">=2.3.1"
 [feature.test.tasks]
 
 integration-tests = """
-    snakemake -call --configfile config/test/config.tyndp.yaml &&
-	snakemake -call --configfile config/config.tyndp.yaml -n &&
     snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml &&
     snakemake -call --configfile config/test/config.overnight.yaml &&
     snakemake -call --configfile config/test/config.myopic.yaml &&
@@ -138,8 +136,6 @@ integration-tests = """
     echo "All tests completed successfully."
 """
 clean-tests = """
-    snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
-    snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
     snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml --delete-all-output ;
     snakemake -call --configfile config/test/config.overnight.yaml --delete-all-output ;
     snakemake -call --configfile config/test/config.myopic.yaml --delete-all-output ;
@@ -170,6 +166,11 @@ tyndp = """bash -c '
 	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
 	' --
+ """
+ clean-tyndp = """
+     snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
+     snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
+     echo "All tyndp outputs have been cleaned up."
  """
 
 [feature.open-tyndp.dependencies]
