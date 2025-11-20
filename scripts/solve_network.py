@@ -436,7 +436,7 @@ def prepare_network(
     foresight: str,
     renewable_carriers: list[str],
     planning_horizons: str | None,
-    co2_sequestration_potential: dict[str, float],
+    co2_sequestration_potential: dict[str, float] | None,
     limit_max_growth: dict[str, Any] | None = None,
 ) -> None:
     """
@@ -536,10 +536,14 @@ def prepare_network(
         if limit_max_growth is not None and limit_max_growth["enable"]:
             add_max_growth(n, limit_max_growth)
 
-    if n.stores.carrier.eq("co2 sequestered").any():
-        limit_dict = co2_sequestration_potential
+    if (
+        co2_sequestration_potential is not None
+        and n.stores.carrier.eq("co2 sequestered").any()
+    ):
         add_co2_sequestration_limit(
-            n, limit_dict=limit_dict, planning_horizons=planning_horizons
+            n,
+            limit_dict=co2_sequestration_potential,
+            planning_horizons=planning_horizons,
         )
 
 
