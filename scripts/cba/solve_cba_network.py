@@ -161,7 +161,6 @@ def solve_network(
     config: dict,
     params: dict,
     solving: dict,
-    rule_name: str | None = None,
     planning_horizons: str | None = None,
     **kwargs,
 ) -> None:
@@ -312,7 +311,6 @@ if __name__ == "__main__":
             params=snakemake.params,
             solving=snakemake.params.solving,
             planning_horizons=planning_horizons,
-            rule_name=snakemake.rule,
             log_fn=snakemake.log.solver,
         )
 
