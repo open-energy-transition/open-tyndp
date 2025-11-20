@@ -44,16 +44,14 @@ AGG_STRATEGIES = {
 }
 
 
-def _group_conv(
-    df: pd.DataFrame, groupby: list[str], agg_strategies: dict[str, str]
-) -> pd.DataFrame:
+def _group_conv(df: pd.DataFrame, groupby: list[str]) -> pd.DataFrame:
     """
     Group conventional carriers based on specified columns.
     """
 
     # Aggregation dict: use specific strategy if defined, else "first"
     agg_dict = {
-        col: agg_strategies.get(col, "first")
+        col: AGG_STRATEGIES.get(col, "first")
         for col in df.columns
         if col not in groupby
     }
@@ -84,9 +82,7 @@ def _group_capacities(
     caps_other = caps.query("carrier not in @conventional_carriers")
 
     # Group conventional capacities together
-    caps_conv_grouped = _group_conv(
-        caps_conv, groupby=["bus", "open_tyndp_type"], agg_strategies=AGG_STRATEGIES
-    )
+    caps_conv_grouped = _group_conv(caps_conv, groupby=["bus", "open_tyndp_type"])
 
     # Recombine
     return pd.concat([caps_conv_grouped, caps_other], ignore_index=True)
@@ -119,7 +115,6 @@ def _group_profiles(
     profiles_conv_grouped = _group_conv(
         profiles_conv_abs,
         groupby=["time", "bus", "open_tyndp_type"],
-        agg_strategies=AGG_STRATEGIES,
     )
 
     # Convert must-run and availability values back to per-unit values using grouped capacities.
