@@ -28,8 +28,10 @@ if __name__ == "__main__":
 
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
-    # TODO: Apply CBA-specific simplifications
-    # For now, pass through the network as-is
+    # Hurdle costs
+    n.links.loc[n.links.carrier == "DC", "marginal_cost"] = (
+        snakemake.params.hurdle_costs
+    )
 
     # Save simplified network
     n.export_to_netcdf(snakemake.output.network)

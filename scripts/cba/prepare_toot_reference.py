@@ -27,8 +27,8 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_toot_reference",
             planning_horizons="2030",
-            run="NT",
-            configfiles=["config/config.tyndp.yaml"],
+            run="test-sector-tyndp",
+            configfiles=["config/test/config.tyndp.yaml"],
         )
 
     configure_logging(snakemake)
@@ -53,6 +53,9 @@ if __name__ == "__main__":
     projects_added = []
     projects_created = []
     projects_in_base = []
+
+    # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
+    hurdle_costs = snakemake.params.hurdle_costs
 
     # Add transmission projects for this horizon
     for _, project in transmission_projects.iterrows():
@@ -89,13 +92,6 @@ if __name__ == "__main__":
                     f"    Link {reverse_link_id}: {original_capacity_reverse:.0f} → {n.links.loc[reverse_link_id, 'p_nom']:.0f} MW (+{capacity_reverse:.0f} MW)"
                 )
             else:
-                # Links don't exist but buses do - CREATE new links
-                # Get a template DC link for attributes
-                dc_links = n.links[n.links.carrier == "DC"]
-                assert not dc_links.empty, (
-                    "Cannot create new links: No DC links found in network"
-                )
-
                 # Create forward link
                 n.add(
                     "Link",
@@ -104,8 +100,7 @@ if __name__ == "__main__":
                     bus1=bus1,
                     carrier="DC",
                     p_nom=capacity,
-                    p_nom_extendable=False,
-                    marginal_cost=0.01,  # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
+                    marginal_cost=hurdle_costs,
                 )
 
                 # Create reverse link
@@ -116,8 +111,7 @@ if __name__ == "__main__":
                     bus1=bus0,
                     carrier="DC",
                     p_nom=capacity_reverse,
-                    p_nom_extendable=False,
-                    marginal_cost=0.01,  # Hurdle costs: 0.01 €/MWh
+                    marginal_cost=hurdle_costs,
                 )
 
                 projects_created.append(project["project_id"])
