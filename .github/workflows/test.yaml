@@ -59,11 +59,11 @@ jobs:
 
     - name: Run snakemake test workflows (sb)
       run: |
-        pixi run -e open-tyndp tyndp-sb-tests
+        pixi run -e open-tyndp tyndp-sb-test
 
     - name: Run snakemake test workflows (cba)
       run: |
-        pixi run -e open-tyndp tyndp-cba-tests
+        pixi run -e open-tyndp tyndp-cba-test
 
     - name: Run snakemake test workflows (upstream)
       run: |
