@@ -221,6 +221,10 @@ def fill_wildcards(s: str, **wildcards: str) -> str:
     Fill given (subset of) wildcards into a path with wildcards
     """
     for k, v in wildcards.items():
+        if isinstance(v, (list, tuple)):
+            assert len(v) == 1, f"Need a single entry for {k}, but found: {v}"
+            v = v[0]
+
         s = s.replace("{" + k + "}", v)
     return s
 
