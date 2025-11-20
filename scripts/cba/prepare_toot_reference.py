@@ -54,6 +54,9 @@ if __name__ == "__main__":
     projects_created = []
     projects_in_base = []
 
+    # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
+    hurdle_costs = snakemake.params.hurdle_costs
+
     # Add transmission projects for this horizon
     for _, project in transmission_projects.iterrows():
         in_reference: bool = project[f"in_reference{planning_horizons}"]
@@ -104,8 +107,7 @@ if __name__ == "__main__":
                     bus1=bus1,
                     carrier="DC",
                     p_nom=capacity,
-                    p_nom_extendable=False,
-                    marginal_cost=0.01,  # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
+                    marginal_cost=hurdle_costs,
                 )
 
                 # Create reverse link
@@ -116,8 +118,7 @@ if __name__ == "__main__":
                     bus1=bus0,
                     carrier="DC",
                     p_nom=capacity_reverse,
-                    p_nom_extendable=False,
-                    marginal_cost=0.01,  # Hurdle costs: 0.01 €/MWh
+                    marginal_cost=hurdle_costs,
                 )
 
                 projects_created.append(project["project_id"])

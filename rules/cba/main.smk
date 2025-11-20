@@ -72,6 +72,8 @@ def input_sb_network(w):
 # extract a planning horizon from the SB optimized network and apply the simplifications
 # necessary to get to the general CBA reference network
 rule simplify_sb_network:
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=input_sb_network,
     output:
@@ -83,6 +85,8 @@ rule simplify_sb_network:
 # build the reference network for toot with all projects included
 # maybe worth to merge with pint rule, if they turn out to be very similar
 rule prepare_toot_reference:
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
@@ -109,6 +113,8 @@ rule prepare_pint_reference:
 # remove the single project {cba_project} from the toot reference network
 # currently this can be either a trans123 or a stor123 project
 rule prepare_toot_project:
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=rules.prepare_toot_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
