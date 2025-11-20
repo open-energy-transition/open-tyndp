@@ -162,6 +162,7 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
         spatial.gas.biogas_to_gas = nodes + " biogas to gas"
         spatial.gas.biogas_to_gas_cc = nodes + " biogas to gas CC"
         if options.get("gas_demand_exogenously"):
+            # TODO Improve modelling of the spatially resolved option
             spatial.gas.exo_demand = nodes + " gas for demand"
     else:
         spatial.gas.nodes = ["EU gas"]
