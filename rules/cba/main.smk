@@ -140,6 +140,8 @@ rule prepare_pint_project:
 # should reuse/import functions from solve_network.py
 rule solve_cba_network:
     params:
+        solving=config_provider("solving"),
+        foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
     input:
         network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),

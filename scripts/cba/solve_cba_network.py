@@ -37,7 +37,6 @@ from scripts._helpers import (
     update_config_from_wildcards,
 )
 from scripts.solve_network import (
-    add_chp_constraints,
     add_co2_atmosphere_constraint,
     add_import_limit_constraint,
     add_operational_reserve_margin,
@@ -79,7 +78,6 @@ def extra_functionality(
         add_operational_reserve_margin(n, snapshots, config)
 
     add_co2_atmosphere_constraint(n, snapshots)
-    add_chp_constraints(n)
 
     if config["sector"]["imports"]["enable"]:
         add_import_limit_constraint(n, snapshots)
@@ -181,10 +179,6 @@ def solve_network(
         Name of the snakemake rule being executed
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn : str, optional
-        Path to DataFrame containing the offshore zone potentials trajectories
-    renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
     **kwargs
         Additional keyword arguments passed to the solver
 
@@ -295,10 +289,10 @@ if __name__ == "__main__":
         n,
         solve_opts=snakemake.params.solving["options"],
         foresight=snakemake.params.foresight,
-        renewable_carriers=snakemake.params.renewable_carriers,
+        renewable_carriers=[],
         planning_horizons=planning_horizons,
-        co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
-        limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
+        co2_sequestration_potential=None,
+        limit_max_growth=None,
     )
 
     logging_frequency = snakemake.config.get("solving", {}).get(
