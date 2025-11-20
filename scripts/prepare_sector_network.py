@@ -3405,7 +3405,10 @@ def attach_gas_load(
     nhours: int = 8760,
 ):
     """
-    Attach exogenous gas demand to the network.
+    Attach exogenous gas demand to the network as Load with CO2 emissions tracking.
+
+    Creates 'gas for demand' buses, loads, and links that consume gas from
+    main gas buses and emit CO2 to atmosphere based on gas carbon intensity.
 
     Parameters
     ----------

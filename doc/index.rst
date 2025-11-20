@@ -202,8 +202,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - 🔨
    * -
      - Methane
-     - 
-     - ⌛
+     - `#208 <https://github.com/open-energy-transition/open-tyndp/pull/208>`__, `#220 <https://github.com/open-energy-transition/open-tyndp/pull/220>`__
+     - 🔨
    * -
      - Synthetic fuels
      -

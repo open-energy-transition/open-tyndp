@@ -26,7 +26,7 @@ Upcoming Open-TYNDP Release
 
 * Add the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
 
-* Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220)
+* Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220). Introduces ``gas_demand_exogenously`` config option and ``*_emissions`` flags (``transport_emissions``, ``heating_emissions``, ``industry_emissions``, ``agriculture_emissions``) to track emissions when sectors are disabled. Removes ``use_industry_load`` config option.
 
 **Bugfixes and Compatibility**
 
