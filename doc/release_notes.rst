@@ -13,6 +13,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Introduce calculation of B1 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system costs (https://github.com/open-energy-transition/open-tyndp/pull/186).
+
 * Add CO2 emission prices configurable per planning horizon for sector-coupled models (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
 
 * Introduce a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT
