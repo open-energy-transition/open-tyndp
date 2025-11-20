@@ -101,7 +101,7 @@ if config["foresight"] != "perfect":
             plotting=config_provider("plotting"),
             foresight=config_provider("foresight"),
             tyndp_h2_topology=config_provider("sector", "h2_topology_tyndp"),
-            scenario=config_provider("tyndp_scenario"),
+            sector=config_provider("sector"),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",

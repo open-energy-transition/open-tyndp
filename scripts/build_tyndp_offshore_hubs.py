@@ -148,7 +148,7 @@ def load_offshore_grid(
         p_max_pu=1,
     )
 
-    suffix = "H2" if scenario == "NT" else "H2 Z1"
+    suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
     # Filter out radial nodes and Convert to explicit hydrogen buses
     grid = grid.query("~bus0.str.contains('OR') and ~bus1.str.contains('OR')").assign(
         bus0=lambda df: np.where(
@@ -202,7 +202,11 @@ def load_offshore_grid(
 
 
 def load_offshore_electrolysers(
-    fn: str, scenario: str, planning_horizons: list[int], countries: list[str]
+    fn: str,
+    scenario: str,
+    planning_horizons: list[int],
+    countries: list[str],
+    options: dict,
 ):
     """
     Load offshore electrolysers data and format data.
@@ -248,7 +252,7 @@ def load_offshore_electrolysers(
         .drop(columns="OFFSHORE_NODE")
     )
 
-    suffix = "H2" if scenario == "NT" else "H2 Z1"
+    suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
     mask = electrolysers["type"] == "Radial"
     electrolysers.loc[mask, "bus1"] = electrolysers.loc[mask, "country"] + f" {suffix}"
 
@@ -536,7 +540,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_tyndp_offshore_hubs")
+        snakemake = mock_snakemake(
+            "build_tyndp_offshore_hubs", configfiles="config/config.tyndp-test.yaml"
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -546,6 +552,7 @@ if __name__ == "__main__":
     planning_horizons = snakemake.params["planning_horizons"]
     countries = snakemake.params["countries"]
     extendable_carriers = snakemake.params["extendable_carriers"]
+    options = snakemake.params.sector
 
     nodes = load_offshore_hubs(snakemake.input.nodes)
 
@@ -562,6 +569,7 @@ if __name__ == "__main__":
         snakemake.params["scenario"],
         planning_horizons,
         countries,
+        options,
     )
 
     generators, zone_trajectories = load_offshore_generators(

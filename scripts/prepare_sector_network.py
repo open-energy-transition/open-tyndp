@@ -202,18 +202,8 @@ def define_spatial(
     if options["h2_topology_tyndp"] and buses_h2_file:
         spatial.h2_tyndp = SimpleNamespace()
         buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
-        if tyndp_scenario == "NT":
-            spatial.h2_tyndp.nodes = buses_h2.index
-            spatial.h2_tyndp.locations = buses_h2.index
-            spatial.h2_tyndp.country = buses_h2.country
-            spatial.h2_tyndp.x = buses_h2.x
-            spatial.h2_tyndp.y = buses_h2.y
-            spatial.buses_h2_z1 = spatial.h2_tyndp.nodes[
-                ~spatial.h2_tyndp.nodes.str.contains("IB")
-            ]
-            spatial.buses_h2_z2 = pd.Index([])
 
-        else:
+        if options["h2_zones_tyndp"]:
             spatial.h2_tyndp.nodes = pd.Index(
                 (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
             )
@@ -232,6 +222,16 @@ def define_spatial(
             spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[
                 ~spatial.h2_tyndp.nodes.str.contains("IB")
                 & spatial.h2_tyndp.nodes.str.contains("Z2")
+            ]
+        else:
+            spatial.h2_tyndp.nodes = buses_h2.index
+            spatial.h2_tyndp.locations = buses_h2.index
+            spatial.h2_tyndp.country = buses_h2.country
+            spatial.h2_tyndp.x = buses_h2.x
+            spatial.h2_tyndp.y = buses_h2.y
+            spatial.buses_h2_z1 = pd.Index([])
+            spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[
+                ~spatial.h2_tyndp.nodes.str.contains("IB")
             ]
 
     # methanol
@@ -500,7 +500,7 @@ def create_network_topology(
     return topo
 
 
-def create_h2_topology_tyndp(n, fn_h2_network, tyndp_scenario):
+def create_h2_topology_tyndp(n, fn_h2_network, options):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
 
@@ -516,7 +516,7 @@ def create_h2_topology_tyndp(n, fn_h2_network, tyndp_scenario):
     pd.DataFrame with columns bus0, bus1, length, underwater_fraction
     """
 
-    suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
+    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
     h2_pipes = h2_pipes.assign(
@@ -1883,7 +1883,7 @@ def add_electricity_grid_connection(n, costs):
     ]
 
 
-def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
+def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
     """
     Add TYNDP electrolyzers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
 
@@ -1912,7 +1912,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         The function modifies the network object in-place by adding components.
     """
 
-    suffix = "H2" if tyndp_scenario == "NT" else "H2 Z1"
+    suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
 
     # Add electrolysis to Z1 or in NT case general H2 nodes
     n.add(
@@ -1928,7 +1928,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
     )
 
     # Add electorlysis to Z2
-    if tyndp_scenario != "NT":
+    if options["h2_zones_tyndp"]:
         n.add(
             "Link",
             nodes.index + " H2 Z2 Electrolysis",
@@ -1945,9 +1945,9 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
-            buses_h2_z1 + " SMR CC",
+            buses_h2 + " SMR CC",
             bus0=spatial.gas.nodes,
-            bus1=buses_h2_z1,
+            bus1=buses_h2,
             bus2="co2 atmosphere",
             bus3=spatial.co2.nodes,
             p_nom_extendable=True,
@@ -1963,9 +1963,9 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
-            buses_h2_z1 + " SMR",
+            buses_h2 + " SMR",
             bus0=spatial.gas.nodes,
-            bus1=buses_h2_z1,
+            bus1=buses_h2,
             bus2="co2 atmosphere",
             p_nom_extendable=True,
             carrier="SMR",
@@ -1986,9 +1986,9 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         # TODO: this does currently only work for no methanol spatial
         n.add(
             "Link",
-            buses_h2_z1 + " ATR",
+            buses_h2 + " ATR",
             bus0=spatial.methanol.nodes,
-            bus1=buses_h2_z1,
+            bus1=buses_h2,
             bus2="co2 atmosphere",
             p_nom_extendable=True,
             carrier="ATR",
@@ -2047,9 +2047,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     )
 
 
-def add_h2_reconversion_tyndp(
-    n, spatial, nodes, buses_h2, costs, tyndp_scenario, options=None
-):
+def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
     """
     Adds TYNDP H2 reconversion with options for Fuel cells, H2 turbines and methanation.
 
@@ -2079,7 +2077,7 @@ def add_h2_reconversion_tyndp(
         The function modifies the network object in-place by adding components.
     """
 
-    suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
+    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
 
     if options["methanation"]:
         # TODO: this does currently only work for no gas spatial and no co2 spatial
@@ -2134,7 +2132,7 @@ def add_h2_reconversion_tyndp(
         )
 
 
-def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, tyndp_scenario):
+def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, options):
     """
     Adds TYNDP hydrogen pipelines and interzonal (Z1 <-> Z2) connections.
 
@@ -2158,7 +2156,7 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, tyndp_sce
     """
 
     h2_pipes = create_h2_topology_tyndp(
-        n=n, fn_h2_network=h2_pipes_file, tyndp_scenario=tyndp_scenario
+        n=n, fn_h2_network=h2_pipes_file, options=options
     )
     interzonal = pd.read_csv(interzonal_file, index_col=0)
 
@@ -2202,7 +2200,7 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, tyndp_sce
 
 
 def add_h2_storage_tyndp(
-    n, cavern_types, h2_cavern_file, buses_h2_z1, costs, tyndp_scenario, options={}
+    n, cavern_types, h2_cavern_file, buses_h2_z1, costs, options={}
 ):
     """
     Adds TYNDP Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions.
@@ -2259,7 +2257,7 @@ def add_h2_storage_tyndp(
 
         logger.info("Adding TYNDP H2 underground storage")
 
-        suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
+        suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
 
         n.add(
             "Store",
@@ -2301,7 +2299,6 @@ def add_h2_topology_tyndp(
     cavern_types,
     costs,
     options,
-    tyndp_scenario,
     h2_demand_file,
 ):
     """
@@ -2351,7 +2348,7 @@ def add_h2_topology_tyndp(
     # add H2 as carrier
     n.add("Carrier", "H2")
 
-    # filter for electricity nodes and H2 Z1 and Z2 buses
+    # filter for electricity nodes and H2 buses
     nodes = n.buses.loc[pop_layout.index, :].query(
         "country in @spatial.h2_tyndp.country"
     )
@@ -2375,23 +2372,23 @@ def add_h2_topology_tyndp(
     buses_h2_z2 = spatial.buses_h2_z2
 
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
+    buses_h2 = buses_h2_z1 if options["h2_zones_tyndp"] else buses_h2_z2
     add_h2_production_tyndp(
-        n=n, nodes=nodes, buses_h2_z1=buses_h2_z1, costs=costs, options=options
+        n=n, nodes=nodes, buses_h2=buses_h2, costs=costs, options=options
     )
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
-    if tyndp_scenario in ["DE", "GA"]:
+    if options["h2_zones_tyndp"]:
         add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
-    buses_h2 = buses_h2_z1 if tyndp_scenario == "NT" else buses_h2_z2
+    buses_h2 = buses_h2_z2 if options["h2_zones_tyndp"] else buses_h2_z2
     add_h2_reconversion_tyndp(
         n=n,
         spatial=spatial,
         nodes=nodes,
         buses_h2=buses_h2,
         costs=costs,
-        tyndp_scenario=tyndp_scenario,
         options=options,
     )
 
@@ -2402,7 +2399,7 @@ def add_h2_topology_tyndp(
         h2_pipes_file=h2_pipes_file,
         interzonal_file=interzonal_file,
         costs=costs,
-        tyndp_scenario=tyndp_scenario,
+        options=options,
     )
 
     # add H2 storage (Z1: H2 tanks; Z2/NT H2 nodes: Salt caverns)
@@ -2412,17 +2409,14 @@ def add_h2_topology_tyndp(
         h2_cavern_file=h2_cavern_file,
         buses_h2_z1=buses_h2_z1,
         costs=costs,
-        tyndp_scenario=tyndp_scenario,
         options=options,
     )
 
     # add exogenous hydrogen demand
-    add_h2_demand_tyndp(
-        n=n, h2_demand_file=h2_demand_file, tyndp_scenario=tyndp_scenario
-    )
+    add_h2_demand_tyndp(n=n, h2_demand_file=h2_demand_file)
 
 
-def add_h2_demand_tyndp(n, h2_demand_file, tyndp_scenario):
+def add_h2_demand_tyndp(n, h2_demand_file):
     """
     Add exogenous TYNDP hydrogen demand to the network.
     """
@@ -3051,7 +3045,6 @@ def add_gas_and_h2_infrastructure(
             cavern_types=cavern_types,
             costs=costs,
             options=options,
-            tyndp_scenario=tyndp_scenario,
             h2_demand_file=h2_demand_file,
         )
     else:
@@ -5898,13 +5891,11 @@ def add_industry(
     )
 
     if options["h2_topology_tyndp"]:
-        suffix = "H2" if tyndp_scenario == "NT" else "H2 Z2"
+        suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
         nodes_ind_h2 = pd.Index(pop_layout.ct + f" {suffix}")
 
     else:
         nodes_ind_h2 = nodes + " H2"
-
-    nodes_ind = nodes
 
     # methanol for industry
 
@@ -5947,10 +5938,10 @@ def add_industry(
     # TODO Link properly Industry to H2 topology
     n.add(
         "Link",
-        nodes_ind + " methanolisation",  # TODO Improve this assumption
+        nodes + " methanolisation",  # TODO Improve this assumption
         bus0=nodes_ind_h2,  # TODO Improve this assumption
         bus1=spatial.methanol.nodes,
-        bus2=nodes_ind,  # TODO Improve this assumption
+        bus2=nodes,
         bus3=spatial.co2.nodes,
         carrier="methanolisation",
         p_nom_extendable=True,
@@ -5990,7 +5981,7 @@ def add_industry(
     # TODO Link properly Industry to H2 topology
     n.add(
         "Link",
-        nodes_ind + " Fischer-Tropsch",  # TODO Improve assumptions
+        nodes + " Fischer-Tropsch",  # TODO Improve assumptions
         bus0=nodes_ind_h2,  # TODO Improve assumptions
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
@@ -7504,7 +7495,7 @@ def add_import_options(
                 marginal_cost=import_potentials_h2.marginal_cost.values,
                 e_sum_max=import_potentials_h2.e_sum_max.values,
             )
-            suffix = "H2" if tyndp_scenario == "NT" else "H2 Z1"
+            suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
             n.add(
                 "Link",
                 import_potentials_h2.index,
