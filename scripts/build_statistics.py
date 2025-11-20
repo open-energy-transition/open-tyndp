@@ -117,8 +117,7 @@ def compute_benchmark(
             )
             .mul(sws, axis=1)
             .sum(axis=1)
-            .to_frame()
-            .query("bus_carrier not in @df_countries.index")[0]
+            .loc[lambda s: ~s.index.isin(df_countries.index)]
         )
 
         df = pd.concat([df_countries, df_eu])
