@@ -27,8 +27,8 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_toot_reference",
             planning_horizons="2030",
-            run="NT",
-            configfiles=["config/config.tyndp.yaml"],
+            run="test-sector-tyndp",
+            configfiles=["config/test/config.tyndp.yaml"],
         )
 
     configure_logging(snakemake)
@@ -92,13 +92,6 @@ if __name__ == "__main__":
                     f"    Link {reverse_link_id}: {original_capacity_reverse:.0f} → {n.links.loc[reverse_link_id, 'p_nom']:.0f} MW (+{capacity_reverse:.0f} MW)"
                 )
             else:
-                # Links don't exist but buses do - CREATE new links
-                # Get a template DC link for attributes
-                dc_links = n.links[n.links.carrier == "DC"]
-                assert not dc_links.empty, (
-                    "Cannot create new links: No DC links found in network"
-                )
-
                 # Create forward link
                 n.add(
                     "Link",
