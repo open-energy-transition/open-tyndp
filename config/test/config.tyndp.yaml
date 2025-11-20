@@ -241,6 +241,7 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  h2_zones_tyndp: true
   gas_network: false
   electrobiofuels: false
   transmission_efficiency:
