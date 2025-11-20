@@ -143,10 +143,22 @@ rule solve_cba_network:
         solving=config_provider("solving"),
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        custom_extra_functionality=None,
     input:
         network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),
     output:
         network=resources("cba/{cba_method}/postnetworks/{name}_{planning_horizons}.nc"),
+    log:
+        solver=logs(
+            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_solver.log"
+        ),
+        memory=logs(
+            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_memory.log"
+        ),
+        python=logs(
+            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_python.log"
+        ),
+    threads: solver_threads
     script:
         "../../scripts/cba/solve_cba_network.py"
 

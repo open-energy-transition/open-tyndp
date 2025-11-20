@@ -19,6 +19,7 @@ they apply to the dispatch.
 import importlib
 import logging
 import os
+import re
 import sys
 from collections.abc import Sequence
 from functools import partial
@@ -27,8 +28,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pypsa
-import yaml
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
+from tqdm.auto import tqdm
 
 from scripts._benchmark import memory_logger
 from scripts._helpers import (
@@ -129,7 +130,7 @@ def optimize_with_rolling_horizon(
     assert len(snapshots), "Need at least one snapshot to optimize"
 
     starting_points = range(0, len(snapshots), horizon - overlap)
-    for i, start in enumerate(starting_points):
+    for i, start in tqdm(enumerate(starting_points)):
         end = min(len(snapshots), start + horizon)
         sns = snapshots[start:end]
         logger.info(
@@ -238,7 +239,14 @@ def solve_network(
     n.config = config
     n.params = params
 
-    kwargs["horizon"] = cf_solving.get("horizon", 24 * 7 // params.time_resolution)
+    if m := re.match(r"(\d+)h", params.time_resolution, re.IGNORECASE):
+        nhours = int(m.group(1))
+    else:
+        raise ValueError(
+            f"time_resolution needs to be specified like 3h, but found: {params.time_resolution}"
+        )
+
+    kwargs["horizon"] = cf_solving.get("horizon", 24 * 7 // nhours)
     kwargs["overlap"] = cf_solving.get("overlap", 0)
 
     status, condition = optimize_with_rolling_horizon(n, **kwargs)
@@ -268,7 +276,7 @@ if __name__ == "__main__":
             cba_method="toot",
             name="reference",
             planning_horizons="2030",
-            run="NT",
+            run="test-sector-tyndp",
             configfiles=["config/test/config.tyndp.yaml"],
         )
     configure_logging(snakemake)
@@ -314,12 +322,3 @@ if __name__ == "__main__":
 
     n.meta = dict(snakemake.config, **dict(wildcards=dict(snakemake.wildcards)))
     n.export_to_netcdf(snakemake.output.network)
-
-    with open(snakemake.output.config, "w") as file:
-        yaml.dump(
-            n.meta,
-            file,
-            default_flow_style=False,
-            allow_unicode=True,
-            sort_keys=False,
-        )
