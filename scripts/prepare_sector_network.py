@@ -7494,7 +7494,7 @@ def add_import_options(
                 marginal_cost=import_potentials_h2.marginal_cost.values,
                 e_sum_max=import_potentials_h2.e_sum_max.values,
             )
-            suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
+            suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
             n.add(
                 "Link",
                 import_potentials_h2.index,
