@@ -235,7 +235,9 @@ if __name__ == "__main__":
     )
 
     # Save grouped capacities and profiles
-    pemmdb_capacities_grouped.to_csv(snakemake.output.pemmdb_capacities_grouped, index=False)
+    pemmdb_capacities_grouped.to_csv(
+        snakemake.output.pemmdb_capacities_grouped, index=False
+    )
     ds_grouped = xr.Dataset(
         {
             "p_min_pu": (["sample"], pemmdb_profiles_grouped["p_min_pu"]),
