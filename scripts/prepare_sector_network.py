@@ -3427,8 +3427,6 @@ def attach_gas_load(
         Number of hours over which the annual gas demand is divided.
     """
 
-    nhours = n.snapshot_weightings.generators.sum()
-
     gas_demand = pd.read_csv(gas_demand_fn, index_col=0) / nhours
 
     if options["gas_network"]:
