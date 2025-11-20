@@ -1555,7 +1555,6 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
 
 rule group_tyndp_conventionals:
     params:
-        electricity=config_provider("electricity"),
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
@@ -1576,7 +1575,7 @@ rule group_tyndp_conventionals:
         benchmarks("group_tyndp_conventionals_{planning_horizon}")
     threads: 1
     resources:
-        mem_mb=4000,
+        mem_mb=2000,
     conda:
         "../envs/environment.yaml"
     script:
