@@ -8006,6 +8006,7 @@ if __name__ == "__main__":
             costs=costs,
             profiles_pecd=profiles_pecd,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
+            investment_year=investment_year,
         )
 
     if snakemake.params.offshore_hubs_tyndp:
