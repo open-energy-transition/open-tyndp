@@ -162,6 +162,9 @@ tyndp-cba-test = """bash -c '
     snakemake resources/tyndp/NT/cba/toot/postnetworks/reference_2030.nc --configfile config/config.tyndp.yaml -n \
     ' --
 """
+tyndp-cba = """
+    snakemake resources/tyndp/NT/cba/toot/postnetworks/reference_2030.nc --configfile config/config.tyndp.yaml
+"""
 tyndp = """bash -c '
 	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
