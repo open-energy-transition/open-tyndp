@@ -4,6 +4,8 @@
 
 NT:
   tyndp_scenario: NT
+  sector:
+    h2_zones_tyndp: false
 
 DE:
   tyndp_scenario: DE
