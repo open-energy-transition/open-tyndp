@@ -24,7 +24,6 @@ from scripts._helpers import (
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
 configfile: "config/benchmarking.default.yaml"
-configfile: "config/config.private.yaml"
 
 
 if Path("config/config.yaml").exists():
@@ -159,6 +158,12 @@ rule all:
             run=config["run"]["name"],
             **config["scenario"],
         ),
+        # COP profiles plots
+        expand(
+            RESULTS + "graphs/cop_profiles_s_{clusters}_{planning_horizons}.html",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
         lambda w: expand(
             (
                 RESULTS
@@ -208,14 +213,80 @@ rule all:
             run=config["run"]["name"],
             **config["scenario"],
         ),
+        # Explicitly list heat source types for temperature maps
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-heat_source_temperature_map_river_water.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "river_water"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-heat_source_temperature_map_sea_water.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "sea_water"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-heat_source_temperature_map_ambient_air.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "air"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        # Only river_water has energy maps
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-heat_source_energy_map_river_water.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "river_water"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        expand(
+            RESULTS
+            + "graphics/balance_timeseries/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        expand(
+            RESULTS
+            + "graphics/heatmap_timeseries/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        expand(
+            RESULTS
+            + "graphics/interactive_bus_balance/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
     default_target: True
 
 
 rule create_scenarios:
     output:
         config["run"]["scenarios"]["file"],
-    conda:
-        "envs/environment.yaml"
     script:
         "config/create_scenarios.py"
 
@@ -225,13 +296,25 @@ rule purge:
         import builtins
 
         do_purge = builtins.input(
-            "Do you really want to delete all generated resources, \nresults and docs (downloads are kept)? [y/N] "
+            "Do you really want to delete all generated files?\n"
+            "\t* resources\n"
+            "\t* results\n"
+            "\t* docs\n"
+            "Downloaded files are kept.\n"
+            "Delete all files in the folders above? [y/N] "
         )
         if do_purge == "y":
-            rmtree("resources/", ignore_errors=True)
-            rmtree("results/", ignore_errors=True)
+
+            # Remove the directories and recreate them with .gitkeep
+            for dir_path in ["resources/", "results/"]:
+                rmtree(dir_path, ignore_errors=True)
+                Path(dir_path).mkdir(parents=True, exist_ok=True)
+                (Path(dir_path) / ".gitkeep").touch()
+
             rmtree("doc/_build", ignore_errors=True)
-            print("Purging generated resources, results and docs. Downloads are kept.")
+            print(
+                "Purging all generated resources, results and docs. Downloads are kept."
+            )
         else:
             raise Exception(f"Input {do_purge}. Aborting purge.")
 
@@ -258,8 +341,6 @@ rule rulegraph:
         pdf=resources("dag_rulegraph.pdf"),
         png=resources("dag_rulegraph.png"),
         svg=resources("dag_rulegraph.svg"),
-    conda:
-        "envs/environment.yaml"
     shell:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
@@ -268,6 +349,8 @@ rule rulegraph:
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
+            dot -c
+
             echo "[Rule rulegraph] Generating PDF from DOT"
             dot -Tpdf -o {output.pdf} {output.dot} || {{ echo "Error: Failed to generate PDF. Is graphviz installed?" >&2; exit 1; }}
 
@@ -296,8 +379,6 @@ rule filegraph:
         pdf=resources("dag_filegraph.pdf"),
         png=resources("dag_filegraph.png"),
         svg=resources("dag_filegraph.svg"),
-    conda:
-        "envs/environment.yaml"
     shell:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
@@ -329,7 +410,7 @@ rule doc:
     output:
         directory("doc/_build"),
     shell:
-        "make -C doc html"
+        "pixi run build-docs {output} html"
 
 
 rule sync:

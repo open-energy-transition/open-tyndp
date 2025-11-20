@@ -33,8 +33,6 @@ rule build_electricity_demand:
         benchmarks("build_electricity_demand")
     resources:
         mem_mb=5000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_electricity_demand.py"
 
@@ -69,8 +67,6 @@ rule build_powerplants:
     threads: 1
     resources:
         mem_mb=7000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_powerplants.py"
 
@@ -122,8 +118,6 @@ rule base_network:
     threads: 4
     resources:
         mem_mb=2000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/base_network.py"
 
@@ -139,8 +133,6 @@ rule build_osm_boundaries:
     threads: 1
     resources:
         mem_mb=1500,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_osm_boundaries.py"
 
@@ -164,8 +156,6 @@ rule build_bidding_zones:
     threads: 1
     resources:
         mem_mb=1500,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_bidding_zones.py"
 
@@ -202,8 +192,6 @@ rule build_shapes:
     threads: 1
     resources:
         mem_mb=1500,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_shapes.py"
 
@@ -225,8 +213,6 @@ if config["enable"].get("build_cutout", False):
         threads: config["atlite"].get("nprocesses", 4)
         resources:
             mem_mb=config["atlite"].get("nprocesses", 4) * 1000,
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/build_cutout.py"
 
@@ -243,8 +229,6 @@ rule build_ship_raster:
         mem_mb=5000,
     benchmark:
         benchmarks("build_ship_raster")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_ship_raster.py"
 
@@ -287,8 +271,6 @@ rule determine_availability_matrix_MD_UA:
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/determine_availability_matrix_MD_UA.py"
 
@@ -355,8 +337,6 @@ rule determine_availability_matrix:
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/determine_availability_matrix.py"
 
@@ -390,8 +370,6 @@ rule build_renewable_profiles:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
     wildcard_constraints:
         technology="(?!hydro).*",  # Any technology other than hydro
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_renewable_profiles.py"
 
@@ -434,8 +412,6 @@ rule clean_pecd_data:
     threads: 4
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/clean_pecd_data.py"
 
@@ -474,8 +450,6 @@ rule build_renewable_profiles_pecd:
         mem_mb=4000,
     wildcard_constraints:
         technology="(?!hydro).*",  # Any technology other than hydro
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_renewable_profiles_pecd.py"
 
@@ -509,8 +483,6 @@ rule build_pemmdb_data:
         mem_mb=16000,
     benchmark:
         benchmarks("build_pemmdb_data_{planning_horizons}")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_pemmdb_data.py"
 
@@ -528,8 +500,6 @@ rule build_tyndp_trajectories:
     threads: 4
     benchmark:
         benchmarks("build_tyndp_trajectories")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_tyndp_trajectories.py"
 
@@ -548,8 +518,6 @@ rule build_monthly_prices:
     threads: 1
     resources:
         mem_mb=5000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_monthly_prices.py"
 
@@ -576,8 +544,6 @@ rule build_hydro_profile:
         benchmarks("build_hydro_profile")
     resources:
         mem_mb=5000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_hydro_profile.py"
 
@@ -602,8 +568,6 @@ rule clean_tyndp_hydro_inflows:
     retries: 2
     benchmark:
         benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/clean_tyndp_hydro_inflows.py"
 
@@ -655,8 +619,6 @@ rule build_tyndp_hydro_profile:
         benchmarks("build_tyndp_hydro_profile")
     resources:
         mem_mb=5000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_tyndp_hydro_profile.py"
 
@@ -679,8 +641,6 @@ rule build_line_rating:
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 1000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_line_rating.py"
 
@@ -714,8 +674,6 @@ rule build_transmission_projects:
     resources:
         mem_mb=4000,
     threads: 1
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_transmission_projects.py"
 
@@ -752,8 +710,6 @@ rule add_transmission_projects_and_dlr:
     threads: 1
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/add_transmission_projects_and_dlr.py"
 
@@ -791,8 +747,6 @@ rule build_electricity_demand_base:
         benchmarks("build_electricity_demand_base_s")
     resources:
         mem_mb=5000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_electricity_demand_base.py"
 
@@ -826,10 +780,29 @@ rule build_hac_features:
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=10000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_hac_features.py"
+
+
+rule process_cost_data:
+    params:
+        costs=config_provider("costs"),
+        max_hours=config_provider("electricity", "max_hours"),
+    input:
+        network=resources("networks/base_s.nc"),
+        costs=resources("costs_{planning_horizons}.csv"),
+        custom_costs=config_provider("costs", "custom_cost_fn"),
+    output:
+        resources("costs_{planning_horizons}_processed.csv"),
+    log:
+        logs("build_cost_data_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("build_cost_data_{planning_horizons}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    script:
+        "../scripts/process_cost_data.py"
 
 
 rule simplify_network:
@@ -861,8 +834,6 @@ rule simplify_network:
     threads: 1
     resources:
         mem_mb=12000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/simplify_network.py"
 
@@ -943,8 +914,6 @@ rule cluster_network:
     threads: 1
     resources:
         mem_mb=10000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/cluster_network.py"
 
@@ -970,7 +939,6 @@ rule add_electricity:
         renewable=config_provider("renewable"),
         electricity=config_provider("electricity"),
         conventional=config_provider("conventional"),
-        costs=config_provider("costs"),
         foresight=config_provider("foresight"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         consider_efficiency_classes=config_provider(
@@ -984,8 +952,8 @@ rule add_electricity:
         unpack(input_class_regions),
         unpack(input_conventional),
         base_network=resources("networks/base_s_{clusters}.nc"),
-        tech_costs=lambda w: resources(
-            f"costs_{config_provider('costs', 'year')(w)}.csv"
+        costs=lambda w: resources(
+            f"costs_{config_provider('costs', 'year')(w)}_processed.csv"
         ),
         regions=resources("regions_onshore_base_s_{clusters}.geojson"),
         powerplants=resources("powerplants_s_{clusters}.csv"),
@@ -1011,8 +979,6 @@ rule add_electricity:
     threads: 1
     resources:
         mem_mb=10000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/add_electricity.py"
 
@@ -1027,16 +993,15 @@ rule prepare_network:
         co2limit=config_provider("electricity", "co2limit"),
         gaslimit_enable=config_provider("electricity", "gaslimit_enable", default=False),
         gaslimit=config_provider("electricity", "gaslimit"),
-        max_hours=config_provider("electricity", "max_hours"),
-        costs=config_provider("costs"),
+        emission_prices=config_provider("costs", "emission_prices"),
         adjustments=config_provider("adjustments", "electricity"),
         autarky=config_provider("electricity", "autarky", default={}),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         transmission_limit=config_provider("electricity", "transmission_limit"),
     input:
         resources("networks/base_s_{clusters}_elec.nc"),
-        tech_costs=lambda w: resources(
-            f"costs_{config_provider('costs', 'year')(w)}.csv"
+        costs=lambda w: resources(
+            f"costs_{config_provider('costs', 'year')(w)}_processed.csv"
         ),
         co2_price=lambda w: resources("co2_price.csv") if "Ept" in w.opts else [],
     output:
@@ -1048,8 +1013,6 @@ rule prepare_network:
     threads: 1
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/prepare_network.py"
 
@@ -1093,8 +1056,6 @@ if config["electricity"]["base_network"] == "osm-raw":
         threads: 1
         resources:
             mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/clean_osm_data.py"
 
@@ -1133,8 +1094,6 @@ if config["electricity"]["base_network"] == "osm-raw":
         threads: 1
         resources:
             mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/build_osm_network.py"
 
@@ -1168,8 +1127,6 @@ if config["electricity"]["base_network"] == "tyndp":
         threads: 1
         resources:
             mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/build_tyndp_network.py"
 

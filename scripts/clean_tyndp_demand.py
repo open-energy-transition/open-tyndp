@@ -86,7 +86,7 @@ def load_elec_demand(
 
         # Fix inconsistencies in input data
         if pyear in [2040, 2050]:
-            data["PL00"].index = data["AL00"].index
+            data["PL00"].index = data["AT00"].index
             data["UK00"] = pd.read_excel(
                 demand_fn,
                 skiprows=11,
@@ -123,6 +123,9 @@ if __name__ == "__main__":
     planning_horizons = snakemake.params["planning_horizons"]
 
     # Load and prep electricity demand
+    logger.info(
+        f"Processing Electricity demand for scenario: {scenario} and climate year: {cyear}"
+    )
     tqdm_kwargs = {
         "ascii": False,
         "unit": " pyear",

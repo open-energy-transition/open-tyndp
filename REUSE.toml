@@ -20,7 +20,6 @@ SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
 path = [
-    "data/tyndp_electricity_loss_factors.csv",
     "data/tyndp_technology_map.csv",
     "doc/configtables/benchmarking.csv",
     "doc/img/tyndp/*",
@@ -34,8 +33,10 @@ SPDX-License-Identifier = "CC-BY-4.0"
 path = [
     ".github/**",
     "borg-it",
-    "envs/*.lock.yaml",
+    "pixi.lock",
     "matplotlibrc",
+    "envs/*.pin.txt",
+    "envs/environment.yaml"
 ]
 SPDX-FileCopyrightText = [
     "The Open-TYNDP Authors",

@@ -13,6 +13,24 @@ localrules:
     solve_sector_networks,
 
 
+rule process_costs:
+    input:
+        lambda w: (
+            expand(
+                resources(
+                    f"costs_{config_provider('costs', 'year')(w)}_processed.csv"
+                ),
+                run=config["run"]["name"],
+            )
+            if config_provider("foresight")(w) == "overnight"
+            else expand(
+                resources("costs_{planning_horizons}_processed.csv"),
+                **config["scenario"],
+                run=config["run"]["name"],
+            )
+        ),
+
+
 rule cluster_networks:
     input:
         expand(
@@ -176,5 +194,39 @@ rule build_pemmdb_and_trajectories:
         ),
         expand(
             resources("tyndp_trajectories.csv"),
+            run=config["run"]["name"],
+        ),
+
+
+rule build_tyndp_h2_demands:
+    input:
+        expand(
+            resources("h2_demand_tyndp_{planning_horizons}.csv"),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+
+
+rule build_tyndp_gas_demands:
+    input:
+        expand(
+            resources("gas_demand_tyndp_{planning_horizons}.csv"),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+
+
+rule rulegraphs:
+    input:
+        expand(
+            resources("dag_rulegraph.pdf"),
+            run=config["run"]["name"],
+        ),
+
+
+rule filegraphs:
+    input:
+        expand(
+            resources("dag_filegraph.pdf"),
             run=config["run"]["name"],
         ),
