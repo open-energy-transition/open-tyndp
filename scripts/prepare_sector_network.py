@@ -7958,8 +7958,8 @@ if __name__ == "__main__":
         pemmdb_profiles = xr.open_dataset(
             snakemake.input.pemmdb_profiles
         ).to_dataframe()
-    if tyndp_renewable_carriers or "nuclear" in tyndp_conventional_thermals:
-        tyndp_trajectories = pd.read_csv(snakemake.input.tyndp_trajectories)
+    if tyndp_trajectories_fn := snakemake.input.tyndp_trajectories:
+        tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
 
     conventional_generation = {
         generator: carrier

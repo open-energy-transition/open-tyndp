@@ -1618,6 +1618,15 @@ def input_pemmdb_data(w):
     }
 
 
+def include_tydnp_trajectories(w):
+    if config_provider("electricity", "tyndp_renewable_carriers")(w):
+        return True
+    elif "uranium" in config_provider("electricity", "tyndp_conventional_carriers")(w):
+        return True
+    else:
+        return False
+
+
 rule prepare_sector_network:
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
@@ -1815,7 +1824,7 @@ rule prepare_sector_network:
             [],
         ),
         tyndp_trajectories=branch(
-            config_provider("electricity", "tyndp_renewable_carriers"),
+            include_tydnp_trajectories,
             resources("tyndp_trajectories.csv"),
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
