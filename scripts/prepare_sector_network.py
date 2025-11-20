@@ -1691,7 +1691,7 @@ def _add_conventional_thermal_capacities(
             exist_mismatch_i = n.links.loc[tech_i].query("p_nom != p_nom_min").index
             if not exist_mismatch_i.empty:
                 logger.warning(
-                    f"Existing capacities don't match with TYNDP 2024 trajectories for {list(exist_mismatch_i)}, "
+                    f"Existing PEMMDB capacities don't match with TYNDP 2024 trajectories for {list(exist_mismatch_i)}, "
                     f"adjusting capacity as pathway supersedes given PEMMDB capacities."
                 )
                 n.links.loc[exist_mismatch_i, "p_nom"] = n.links.loc[

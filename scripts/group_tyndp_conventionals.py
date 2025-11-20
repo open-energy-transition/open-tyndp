@@ -30,9 +30,7 @@ import logging
 import pandas as pd
 import xarray as xr
 
-from scripts._helpers import (
-    configure_logging,
-)
+from scripts._helpers import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -224,10 +222,10 @@ if __name__ == "__main__":
             ["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]
         ]
         .query("open_tyndp_carrier in @tyndp_conventional_carriers")
-        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")
+        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")  # TODO To remove once the three carriers have been implemented
     )
 
-    # Optionally group TYNDP conventionals
+    # Group TYNDP conventionals
     pemmdb_capacities, pemmdb_profiles = group_tyndp_conventionals(
         pemmdb_capacities=pemmdb_capacities,
         pemmdb_profiles=pemmdb_profiles,

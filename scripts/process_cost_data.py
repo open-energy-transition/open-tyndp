@@ -246,7 +246,7 @@ def prepare_costs(
 
 def update_costs_tyndp(
     costs: pd.DataFrame,
-    carrier_mapping_fn: dict[str, str],
+    carrier_mapping_fn: str,
     group_tyndp_conventionals: bool,
     ccs_configs: dict[str, dict],
 ) -> pd.DataFrame:
@@ -260,7 +260,7 @@ def update_costs_tyndp(
     carrier_mapping_fn : str
         Path to file with mapping of TYNDP carriers to default PyPSA-Eur carriers.
     group_tyndp_conventionals : bool
-        Whether to TYNDP technologies are grouped.
+        Whether TYNDP technologies are grouped.
     ccs_configs : dict[str, dict]
         Dictionary mapping each ccs technology to its associated base technology, capture technology and fuel
 
