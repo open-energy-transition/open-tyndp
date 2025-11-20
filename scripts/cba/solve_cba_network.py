@@ -271,6 +271,8 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "solve_cba_network",
+            cba_method="toot",
+            name="reference",
             planning_horizons="2030",
             run="NT",
             configfiles=["config/test/config.tyndp.yaml"],
