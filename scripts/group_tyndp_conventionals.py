@@ -228,22 +228,22 @@ if __name__ == "__main__":
     )
 
     # Group TYNDP conventionals
-    pemmdb_capacities, pemmdb_profiles = group_tyndp_conventionals(
+    pemmdb_capacities_grouped, pemmdb_profiles_grouped = group_tyndp_conventionals(
         pemmdb_capacities=pemmdb_capacities,
         pemmdb_profiles=pemmdb_profiles,
         tyndp_conventional_carriers=tyndp_conventional_carriers,
     )
 
     # Save grouped capacities and profiles
-    pemmdb_capacities.to_csv(snakemake.output.pemmdb_capacities_grouped, index=False)
+    pemmdb_capacities_grouped.to_csv(snakemake.output.pemmdb_capacities_grouped, index=False)
     ds_grouped = xr.Dataset(
         {
-            "p_min_pu": (["sample"], pemmdb_profiles["p_min_pu"]),
-            "p_max_pu": (["sample"], pemmdb_profiles["p_max_pu"]),
+            "p_min_pu": (["sample"], pemmdb_profiles_grouped["p_min_pu"]),
+            "p_max_pu": (["sample"], pemmdb_profiles_grouped["p_max_pu"]),
         },
         coords={
-            column: (["sample"], pemmdb_profiles[column])
-            for column in pemmdb_profiles.columns
+            column: (["sample"], pemmdb_profiles_grouped[column])
+            for column in pemmdb_profiles_grouped.columns
             if column not in ["p_min_pu", "p_max_pu"]
         },
     )
