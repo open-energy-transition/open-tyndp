@@ -2382,12 +2382,11 @@ def add_h2_topology_tyndp(
         add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
-    buses_h2 = buses_h2_z2 if options["h2_zones_tyndp"] else buses_h2_z2
     add_h2_reconversion_tyndp(
         n=n,
         spatial=spatial,
         nodes=nodes,
-        buses_h2=buses_h2,
+        buses_h2=buses_h2_z2,
         costs=costs,
         options=options,
     )
