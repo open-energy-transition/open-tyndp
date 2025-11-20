@@ -9,10 +9,6 @@ For TOOT methodology, the reference network should contain ALL CBA projects.
 The simple_2030.nc network already contains projects where in_reference2030=True.
 This script adds the missing projects (where in_reference2030=False) to create
 the complete TOOT reference network with all projects included.
-
-Handles reference year to planning horizon mapping:
-- reference2030 → horizon 2030
-- reference2035 → horizon 2040 (if 2035 not available)
 """
 
 import logging
@@ -28,7 +24,12 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("prepare_toot_reference")
+        snakemake = mock_snakemake(
+            "prepare_toot_reference",
+            planning_horizons="2030",
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
