@@ -35,6 +35,7 @@ doc/_build
 
 config/config.yaml
 config/scenarios.yaml
+config/config.private.yaml
 
 dconf
 /data/links_p_nom.csv
@@ -113,3 +114,6 @@ CLAUDE.md
 .claude/
 .github/copilot-instructions.md
 CLAUDE.local.md
+# pixi environments
+.pixi/*
+!.pixi/config.toml

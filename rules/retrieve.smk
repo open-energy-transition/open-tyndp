@@ -44,8 +44,6 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_databundle", 
         resources:
             mem_mb=1000,
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_databundle.py"
 
@@ -55,8 +53,6 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_databundle", 
         log:
             "logs/retrieve_eurostat_data.log",
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_eurostat_data.py"
 
@@ -75,8 +71,6 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_databundle", 
         log:
             "logs/retrieve_eurostat_household_data.log",
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_eurostat_household_data.py"
 
@@ -150,8 +144,6 @@ if config["enable"]["retrieve"]:
         resources:
             mem_mb=1000,
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_bidding_zones.py"
 
@@ -246,6 +238,17 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_tyndp_pemmdb_data.log",
 
+    use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_supply_tool with:
+        params:
+            # TODO Integrate into Zenodo tyndp data bundle
+            url="https://storage.googleapis.com/open-tyndp-data-store/20240518-Supply-Tool.xlsm.zip",
+            source="Supply Tool",
+        output:
+            dir=directory("data/tyndp_2024_bundle/Supply Tool"),
+            file="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
+        log:
+            "logs/retrieve_tyndp_pemmdb_data.log",
+
     if config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
 
         use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_pecd_data_prebuilt with:
@@ -305,8 +308,6 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cost_data", T
         resources:
             mem_mb=1000,
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_cost_data.py"
 
@@ -326,8 +327,6 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_gas_infrastructure_data.log",
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_gas_infrastructure_data.py"
 
@@ -344,8 +343,6 @@ if config["enable"]["retrieve"]:
         resources:
             mem_mb=5000,
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_electricity_demand.py"
 
@@ -690,8 +687,6 @@ if config["enable"]["retrieve"]:
         resources:
             mem_mb=5000,
         retries: 2
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_monthly_fuel_prices.py"
 
@@ -755,8 +750,6 @@ if config["enable"]["retrieve"] and (
         log:
             "logs/retrieve_osm_data_{country}.log",
         threads: 1
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_osm_data.py"
 
@@ -797,8 +790,6 @@ if config["enable"]["retrieve"]:
         log:
             "logs/retrieve_osm_boundaries_{country}_adm1.log",
         threads: 1
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_osm_boundaries.py"
 
@@ -843,8 +834,6 @@ if config["enable"]["retrieve"]:
             "logs/retrieve_seawater_temperature_{year}.log",
         resources:
             mem_mb=10000,
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/retrieve_seawater_temperature.py"
 

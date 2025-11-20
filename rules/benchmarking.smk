@@ -19,8 +19,6 @@ rule clean_tyndp_benchmark:
     threads: 4
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/clean_tyndp_benchmark.py"
 
@@ -43,8 +41,6 @@ rule clean_tyndp_vp_data:
     threads: 4
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/clean_tyndp_vp_data.py"
 
@@ -73,8 +69,6 @@ rule build_statistics:
     threads: 4
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_statistics.py"
 
@@ -105,8 +99,6 @@ rule make_benchmark:
         logs("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years.log"),
     benchmark:
         benchmarks("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/make_benchmark.py"
 
@@ -142,7 +134,5 @@ rule plot_benchmark:
         logs("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years.log"),
     benchmark:
         benchmarks("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/plot_benchmark.py"
