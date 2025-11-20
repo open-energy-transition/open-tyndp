@@ -87,6 +87,9 @@ def compute_benchmark(
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
 
+    # Remove the last day of the year to have exactly 52 weeks
+    sws = remove_last_day(n.snapshot_weightings.generators)
+
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
         grouper = ["bus_carrier"]
@@ -95,7 +98,10 @@ def compute_benchmark(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
+                aggregate_time=False,
             )
+            .mul(sws, axis=1)
+            .sum(axis=1)
             .reindex(eu27_idx, level="bus")
             .groupby(level="bus_carrier")
             .sum()
@@ -107,7 +113,10 @@ def compute_benchmark(
                 comps="Load",
                 groupby=grouper,
                 aggregate_across_components=True,
+                aggregate_time=False,
             )
+            .mul(sws, axis=1)
+            .sum(axis=1)
             .to_frame()
             .query("bus_carrier not in @df_countries.index")[0]
         )
@@ -115,10 +124,6 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "elec_demand":
         grouper = ["carrier"]
-
-        # Remove the last day of the year to have exactly 52 weeks
-        sws = remove_last_day(n.snapshot_weightings.generators)
-
         df = (
             n.statistics.withdrawal(
                 comps=demand_comps,
