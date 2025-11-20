@@ -382,7 +382,7 @@ Workflow
 
 .. note::
     The graph above was generated using
-    ``snakemake --rulegraph -F | sed -n "/digraph/,/}/p" | dot -Tpng -o workflow.png``
+    ``pixi run dot -c && snakemake --rulegraph -F | sed -n "/digraph/,/}/p" | dot -Tpng -o doc/img/workflow.png``
 
 
 Learning Energy System Modelling

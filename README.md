@@ -120,23 +120,23 @@ Clone the repository:
 
     git clone https://github.com/open-energy-transition/open-tyndp
 
-You need a package manager like [mamba](https://mamba.readthedocs.io/en/latest/) to run the analysis. Users may also prefer to use [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) or [conda](https://docs.conda.io/projects/conda/en/latest/index.html). Using `mamba`, you can create an environment for `<your-os>` from within you can run it:
+PyPSA-Eur, and consequently Open-TYNDP, relies on a set of other Python packages to function.
+We manage these using [pixi](https://pixi.sh/latest/>).
+Once pixi is installed, you can activate the project environment for your operating system and have access to all the PyPSA-Eur dependencies from the command line:
 
-    mamba env create -n open-tyndp -f envs/<your-os>.lock.yaml
-
-Activate the newly created `open-tydnp` environment:
-
-    mamba activate open-tyndp
+    pixi shell -e open-tyndp
 
 ## 2. Run the analysis
 
-    make tyndp
+    pixi run tyndp
 
 This will run all analysis steps to reproduce results and build the report.
 
-To generate a PDF of the dependency graph of all steps `resources/dag_rulegraph.pdf` run:
+To list all the rules that need to be executed (dry run), run:
 
-    snakemake -c1 rulegraph --configfile config/config.tyndp.yaml
+    pixi run tyndp -n
+
+Note: The workflow automatically generates dependency graphs after successful completion (via `rulegraphs` and `filegraphs` rules). The generated graphs are saved to the `resources/` directory.
 
 # Contributing and Support
 We strongly welcome anyone interested in contributing to this project. If you have any ideas, suggestions or encounter problems, feel invited to file issues or make pull requests on GitHub.

@@ -19,8 +19,6 @@ if config["foresight"] != "perfect":
             mem_mb=4000,
         benchmark:
             benchmarks("plot_base_network/base")
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_base_network.py"
 
@@ -37,8 +35,6 @@ if config["foresight"] != "perfect":
             mem_mb=4000,
         benchmark:
             benchmarks("plot_power_network_clustered/base_s_{clusters}")
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_power_network_clustered.py"
 
@@ -64,8 +60,6 @@ if config["foresight"] != "perfect":
                 RESULTS
                 + "benchmarks/plot_power_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_power_network.py"
 
@@ -123,8 +117,6 @@ if config["foresight"] != "perfect":
                 RESULTS
                 + "benchmarks/plot_hydrogen_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_hydrogen_network.py"
 
@@ -194,8 +186,6 @@ if config["foresight"] != "perfect":
                 RESULTS
                 + "benchmarks/plot_gas_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_gas_network.py"
 
@@ -220,8 +210,6 @@ if config["foresight"] != "perfect":
                 RESULTS
                 + "benchmarks/plot_balance_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
             )
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_balance_map.py"
 
@@ -263,8 +251,6 @@ if config["foresight"] != "perfect":
                 RESULTS
                 + "benchmarks/plot_heat_source_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
             )
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_heat_source_map.py"
 
@@ -291,8 +277,6 @@ if config["foresight"] == "perfect":
         threads: 2
         resources:
             mem_mb=10000,
-        conda:
-            "../envs/environment.yaml"
         script:
             "../scripts/plot_power_network_perfect.py"
 
@@ -341,8 +325,6 @@ rule make_summary:
             RESULTS
             + "benchmarks/make_summary_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/make_summary.py"
 
@@ -458,8 +440,6 @@ rule make_global_summary:
         RESULTS + "logs/make_global_summary.log",
     benchmark:
         RESULTS + "benchmarks/make_global_summary"
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/make_global_summary.py"
 
@@ -478,8 +458,6 @@ rule make_cumulative_costs:
         RESULTS + "logs/make_cumulative_costs.log",
     benchmark:
         RESULTS + "benchmarks/make_cumulative_costs"
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/make_cumulative_costs.py"
 
@@ -509,8 +487,6 @@ rule plot_summary:
         mem_mb=10000,
     log:
         RESULTS + "logs/plot_summary.log",
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/plot_summary.py"
 
@@ -533,8 +509,6 @@ rule plot_balance_timeseries:
     benchmark:
         RESULTS
         +"benchmarks/plot_balance_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
-    conda:
-        "../envs/environment.yaml"
     output:
         directory(
             RESULTS
@@ -562,8 +536,6 @@ rule plot_heatmap_timeseries:
     benchmark:
         RESULTS
         +"benchmarks/plot_heatmap_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
-    conda:
-        "../envs/environment.yaml"
     output:
         directory(
             RESULTS
@@ -622,8 +594,6 @@ rule build_ambient_air_temperature_yearly_average:
             RESULTS
             + "benchmarks/build_ambient_air_temperature_yearly_average/base_s_{clusters}"
         )
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_ambient_air_temperature_yearly_average.py"
 

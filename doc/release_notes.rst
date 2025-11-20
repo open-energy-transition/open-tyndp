@@ -14,6 +14,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Add CO2 emission prices configurable per planning horizon for sector-coupled models (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
+
 * Introduce a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT
   (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP
   transmission and storage projects
@@ -27,6 +29,8 @@ Upcoming Open-TYNDP Release
 
 * Added TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
 
+* Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208)
+
 **Bugfixes and Compatibility**
 
 * Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
@@ -37,13 +41,17 @@ Upcoming Open-TYNDP Release
 Upcoming PyPSA-Eur Release
 ================
 
-* Fix: Allocate heat pump CAPEX on heat instead of electricity bus instead and remove nominal efficiency from CAPEX calculation
-
-* Fix: Configsettings for `heat_pump_cop_approximation` are now correctly passed to `CentralHeatingCopApproximator.py`
+* Move to [pixi](https://pixi.sh/latest/) for robust cross-platform dependency management.
 
 * Fix: Allocate heat pump CAPEX on heat instead of electricity bus instead and remove nominal efficiency from CAPEX calculation
 
 * Fix: Configsettings for `heat_pump_cop_approximation` are now correctly passed to `CentralHeatingCopApproximator.py`
+
+* Fix: Allocate heat pump CAPEX on heat instead of electricity bus instead and remove nominal efficiency from CAPEX calculation
+
+* Fix: Configsettings for `heat_pump_cop_approximation` are now correctly passed to `CentralHeatingCopApproximator.py`
+
+* Fix: Deprecation warnings from `pandas>=2.3.0` (https://github.com/PyPSA/pypsa-eur/pull/1898)
 
 * Feature: Introduce a new method to overwrite costs (https://github.com/PyPSA/pypsa-eur/pull/1752, https://github.com/PyPSA/pypsa-eur/pull/1879). Modifications to the default techno-economic assumptions can now be configured via `costs:custom_cost_fn`, which applies changes to the `resources/costs_{planning_horizons}.csv` files. The default configuration includes minor adjustments to stabilize optimization results. The existing implementation via `costs:overwrites` and `costs:capital_cost`/`costs:marginal_cost` parameters remains available but will be deprecated in a future release.
 
