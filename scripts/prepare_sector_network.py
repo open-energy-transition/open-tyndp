@@ -1753,6 +1753,7 @@ def add_existing_pemmdb_capacities(
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
     extendable_carriers: list | set,
+    investment_year: int,
 ) -> None:
     """
     Add PEMMDB existing capacities, must-runs and availabilities to the network.
@@ -1786,6 +1787,8 @@ def add_existing_pemmdb_capacities(
         Dictionary containing the paths to the PECD renewable profiles.
     extendable_carriers : list[str] | set
         List of extendable renewable energy carriers.
+    investment_year : int
+        Year for which to get trajectories.
 
     Returns
     -------
