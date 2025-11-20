@@ -57,7 +57,15 @@ jobs:
       run: |
         pixi run pylint --disable=all --enable=E0601,E0606 --output-format=parseable scripts/add_* scripts/prepare_* scripts/solve_*
 
-    - name: Run snakemake test workflows
+    - name: Run snakemake test workflows (sb)
+      run: |
+        pixi run -e open-tyndp tyndp-sb-tests
+
+    - name: Run snakemake test workflows (cba)
+      run: |
+        pixi run -e open-tyndp tyndp-cba-tests
+
+    - name: Run snakemake test workflows (upstream)
       run: |
         pixi run -e open-tyndp integration-tests
 
