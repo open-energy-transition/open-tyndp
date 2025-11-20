@@ -1488,7 +1488,9 @@ def get_tyndp_conventional_thermals(
     mapping = (
         mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
         .query("open_tyndp_carrier in @tyndp_conventional_carriers")
-        .replace({"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil")  # TODO To remove once the three carriers have been implemented
+        .replace(
+            {"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil"
+        )  # TODO To remove once the three carriers have been implemented
     )
 
     if group_conventionals:
