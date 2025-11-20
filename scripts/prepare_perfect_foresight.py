@@ -30,6 +30,15 @@ else:
 
 logger = logging.getLogger(__name__)
 
+logger.warning(
+    "Running perfect foresight is not properly tested and may not work as expected. "
+    "Use at your own risk!"
+)
+
+if PYPSA_V1:
+    msg = "PyPSA versions >=1.0 are not supported for perfect foresight."
+    raise UserWarning(msg)
+
 
 # helper functions ---------------------------------------------------
 def get_missing(df: pd.DataFrame, n: pypsa.Network, c: str) -> pd.DataFrame:
@@ -403,7 +412,7 @@ def set_carbon_constraints(
     pypsa.Network
         Network with carbon constraints added
     """
-    if co2_budget and isinstance(co2_budget, float):
+    if co2_budget is not None and isinstance(co2_budget, float):
         budget = co2_budget * 1e9  # convert to t CO2
 
         logger.info(f"add carbon budget of {budget}")

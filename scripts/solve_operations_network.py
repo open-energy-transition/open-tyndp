@@ -45,7 +45,12 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     n.optimize.fix_optimal_capacities()
-    n = prepare_network(n, solve_opts, config=snakemake.config)
+    n = prepare_network(
+        n,
+        solve_opts,
+        config=snakemake.config,
+        renewable_carriers=snakemake.params.renewable_carriers,
+    )
     n = solve_network(
         n,
         config=snakemake.config,

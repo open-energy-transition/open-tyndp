@@ -40,6 +40,7 @@ def setup(app):
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath("../scripts"))
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ------------------------------------------------
 
@@ -108,7 +109,7 @@ author = "Tom Brown (TUB, KIT, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hof
 # built documents.
 #
 # The short X.Y version.
-version = "v0.2"
+version = "v0.3"
 # The full version, including alpha/beta/rc tags.
 release = version + ""
 

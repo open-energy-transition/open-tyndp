@@ -138,7 +138,9 @@ def add_land_use_constraint_perfect(n: pypsa.Network) -> None:
         n.buses.loc[bus, name] = df_carrier.p_nom_max.values
 
 
-def add_land_use_constraint(n: pypsa.Network, planning_horizons: str) -> None:
+def add_land_use_constraint(
+    n: pypsa.Network, planning_horizons: str, renewable_carriers: list[str]
+) -> None:
     """
     Add land use constraints for renewable energy potential.
 
@@ -148,6 +150,8 @@ def add_land_use_constraint(n: pypsa.Network, planning_horizons: str) -> None:
         The PyPSA network instance
     planning_horizons : str
         The planning horizon year as string
+    renewable_carriers : list[str]
+        List of renewable carriers
 
     Returns
     -------
@@ -156,15 +160,20 @@ def add_land_use_constraint(n: pypsa.Network, planning_horizons: str) -> None:
     """
     # warning: this will miss existing offwind which is not classed AC-DC and has carrier 'offwind'
 
-    for carrier in [
-        "solar",
-        "solar rooftop",
-        "solar-hsat",
-        "onwind",
-        "offwind-ac",
-        "offwind-dc",
-        "offwind-float",
-    ]:
+    carriers = [
+        c
+        for c in [
+            "solar",
+            "solar rooftop",
+            "solar-hsat",
+            "onwind",
+            "offwind-ac",
+            "offwind-dc",
+            "offwind-float",
+        ]
+        if c in renewable_carriers
+    ]
+    for carrier in carriers:
         ext_i = (n.generators.carrier == carrier) & ~n.generators.p_nom_extendable
         grouper = n.generators.loc[ext_i].index.str.replace(
             f" {carrier}.*$", "", regex=True
@@ -425,6 +434,7 @@ def prepare_network(
     n: pypsa.Network,
     solve_opts: dict,
     foresight: str,
+    renewable_carriers: list[str],
     planning_horizons: str | None,
     co2_sequestration_potential: dict[str, float],
     limit_max_growth: dict[str, Any] | None = None,
@@ -440,6 +450,8 @@ def prepare_network(
         Dictionary of solving options containing clip_p_max_pu, load_shedding etc.
     foresight : str
         Planning foresight type ('myopic' or 'perfect')
+    renewable_carriers : list[str]
+        List of renewable carriers
     planning_horizons : str or None
         The current planning horizon year or None for perfect foresight
     co2_sequestration_potential : Dict[str, float]
@@ -458,7 +470,7 @@ def prepare_network(
             n.links_t.p_min_pu,
             n.storage_units_t.inflow,
         ):
-            df.where(df > solve_opts["clip_p_max_pu"], other=0.0, inplace=True)
+            df.where(df.abs() > solve_opts["clip_p_max_pu"], other=0.0, inplace=True)
 
     if load_shedding := solve_opts.get("load_shedding"):
         # intersect between macroeconomic and surveybased willingness to pay
@@ -517,7 +529,7 @@ def prepare_network(
         n.snapshot_weightings[:] = 8760.0 / nhours
 
     if foresight == "myopic":
-        add_land_use_constraint(n, planning_horizons)
+        add_land_use_constraint(n, planning_horizons, renewable_carriers)
 
     if foresight == "perfect":
         add_land_use_constraint_perfect(n)
@@ -1147,7 +1159,7 @@ def add_offshore_hubs_constraint(
     n,
     planning_horizons: int,
     offshore_zone_trajectories_fn,
-    carriers_tyndp: list[str],
+    renewable_carriers_tyndp: list[str],
 ):
     """
     Add two constraints on offshore hubs.
@@ -1163,7 +1175,7 @@ def add_offshore_hubs_constraint(
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn: str
         Path to the file containing the offshore zone potentials trajectories
-    carriers_tyndp : list[str], optional
+    renewable_carriers_tyndp : list[str], optional
         List of TYNDP renewable carriers
     """
     ext_i = n.generators.p_nom_extendable
@@ -1173,7 +1185,7 @@ def add_offshore_hubs_constraint(
         ),
         zone=lambda df: df.index.str.split().str[0],
     ).rename_axis("Generator-ext")
-    off_carriers = [i for i in carriers_tyndp if "offwind" in i]
+    off_carriers = [i for i in renewable_carriers_tyndp if "offwind" in i]
     off_h2_carriers = [i for i in off_carriers if "h2" in i]
 
     # Constraint DC / H2 expansion on the same layer
@@ -1258,7 +1270,7 @@ def extra_functionality(
     snapshots: pd.DatetimeIndex,
     planning_horizons: str | None = None,
     offshore_zone_trajectories_fn: str | None = None,
-    carriers_tyndp: list[str] = [],
+    renewable_carriers_tyndp: list[str] = [],
 ) -> None:
     """
     Add custom constraints and functionality.
@@ -1273,7 +1285,7 @@ def extra_functionality(
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn: str, optional
         Path to the file containing the offshore zone potentials trajectories
-    carriers_tyndp : list[str], optional
+    renewable_carriers_tyndp : list[str], optional
         List of TYNDP renewable carriers
 
     Collects supplementary constraints which will be passed to
@@ -1333,7 +1345,10 @@ def extra_functionality(
 
     if config["sector"]["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_constraint(
-            n, int(planning_horizons), offshore_zone_trajectories_fn, carriers_tyndp
+            n,
+            int(planning_horizons),
+            offshore_zone_trajectories_fn,
+            renewable_carriers_tyndp,
         )
 
     if n.params.custom_extra_functionality:
@@ -1382,7 +1397,7 @@ def solve_network(
     rule_name: str | None = None,
     planning_horizons: str | None = None,
     offshore_zone_trajectories_fn: str | None = None,
-    carriers_tyndp: list[str] = [],
+    renewable_carriers_tyndp: list[str] = [],
     **kwargs,
 ) -> None:
     """
@@ -1404,7 +1419,7 @@ def solve_network(
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn : str, optional
         Path to DataFrame containing the offshore zone potentials trajectories
-    carriers_tyndp : list[str], optional
+    renewable_carriers_tyndp : list[str], optional
         List of TYNDP renewable carriers
     **kwargs
         Additional keyword arguments passed to the solver
@@ -1437,7 +1452,7 @@ def solve_network(
         extra_functionality,
         planning_horizons=planning_horizons,
         offshore_zone_trajectories_fn=offshore_zone_trajectories_fn,
-        carriers_tyndp=carriers_tyndp,
+        renewable_carriers_tyndp=renewable_carriers_tyndp,
     )
     kwargs["transmission_losses"] = cf_solving.get("transmission_losses", False)
     kwargs["linearized_unit_commitment"] = cf_solving.get(
@@ -1535,6 +1550,7 @@ if __name__ == "__main__":
         n,
         solve_opts=snakemake.params.solving["options"],
         foresight=snakemake.params.foresight,
+        renewable_carriers=snakemake.params.renewable_carriers,
         planning_horizons=planning_horizons,
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
@@ -1555,7 +1571,7 @@ if __name__ == "__main__":
             rule_name=snakemake.rule,
             log_fn=snakemake.log.solver,
             offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
-            carriers_tyndp=snakemake.params.carriers_tyndp,
+            renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
         )
 
     logger.info(f"Maximum memory usage: {mem.mem_usage}")

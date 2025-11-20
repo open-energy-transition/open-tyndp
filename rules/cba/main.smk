@@ -5,6 +5,8 @@
 
 import pandas as pd
 
+from scripts._helpers import fill_wildcards
+
 
 wildcard_constraints:
     cba_project=r"(s|t)\d+",
@@ -27,9 +29,17 @@ rule retrieve_tyndp_cba_projects:
 
 
 # read in transmission and storage projects from excel sheets
+#
+def input_clustered_network(w):
+    scenario = config_provider("scenario")(w)
+    (clusters,) = scenario["clusters"]
+    return fill_wildcards(rules.cluster_network.output.network, clusters=clusters)
+
+
 checkpoint clean_projects:
     input:
         dir="data/tyndp_2024_bundle/cba_projects",
+        network=input_clustered_network,
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
@@ -52,11 +62,10 @@ def input_sb_network(w):
         case _:
             raise ValueError('config["foresight"] must be one of "perfect" or "myopic"')
 
-    return expand(
+    return fill_wildcards(
         RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
         **expanded_wildcards,
-        allow_missing=True,
     )
 
 
@@ -64,7 +73,6 @@ def input_sb_network(w):
 # necessary to get to the general CBA reference network
 rule simplify_sb_network:
     input:
-        # TODO add additional data that is needed
         network=input_sb_network,
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
@@ -131,6 +139,8 @@ rule prepare_pint_project:
 # solve any of the prepared networks, ie a reference or a project network
 # should reuse/import functions from solve_network.py
 rule solve_cba_network:
+    params:
+        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
     input:
         network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),
     output:

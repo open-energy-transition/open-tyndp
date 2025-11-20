@@ -38,6 +38,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -54,7 +55,9 @@ TRANSMISSION_PROJECTS_COLUMN_MAP = {
 }
 
 
-def extract_transmission_projects(excel_path: Path) -> pd.DataFrame:
+def extract_transmission_projects(
+    excel_path: Path, existing_buses: pd.Index
+) -> pd.DataFrame:
     projects = (
         pd.read_excel(
             excel_path,
@@ -77,26 +80,44 @@ def extract_transmission_projects(excel_path: Path) -> pd.DataFrame:
         **{c: projects[c].str.split("\n") for c in multiline_columns}
     ).explode(multiline_columns)
 
+    # Note: This dictionary is also defined in build_tyndp_network.py#build_links
+    replace_dict = {"UK": "GB"}
     projects = projects.assign(
-        **projects["border"].str.extract(
-            r"(?P<bus0>[A-Z0-9]{4})-(?P<bus1>[A-Z0-9]{4})$"
-        )
+        **projects["border"]
+        .replace(replace_dict, regex=True)
+        .str.extract(r"(?P<bus0>[A-Za-z0-9]{4,}) ?- ?(?P<bus1>[A-Za-z0-9]{4,})$")
     )
 
-    unclear_border = projects["bus0"].isna() | projects["bus1"].isna()
+    unclear_border = ~(
+        projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
+    )
     logger.warning(
-        "%d out of %d projects do not follow the simple <bus0>-<bus1> format, ignoring them:\n%s",
+        "%d out of %d extensions do not follow the simple <bus0>-<bus1> format or are not defined in the base network, ignoring them:\n%s",
         unclear_border.sum(),
         len(unclear_border),
         projects.loc[
             unclear_border, ["project_id", "project_name", "border"]
         ].to_string(index=False, max_colwidth=40, line_width=100),
     )
-    projects = projects.loc[~unclear_border]
+
+    empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
+    logger.warning(
+        "%d out of %d extensions have no capacity, ignoring them:\n%s",
+        empty_capacity.sum(),
+        len(empty_capacity),
+        projects.loc[
+            empty_capacity, ["project_id", "project_name", "border"]
+        ].to_string(index=False, max_colwidth=40, line_width=100),
+    )
+
+    projects = projects.loc[~(empty_capacity | unclear_border)]
+
     return projects
 
 
-def extract_storage_projects(excel_path: Path) -> pd.DataFrame:
+def extract_storage_projects(
+    excel_path: Path, existing_buses: pd.Index
+) -> pd.DataFrame:
     """
     Stub method to extract storage projects.
 
@@ -120,12 +141,17 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    network = pypsa.Network(snakemake.input.network)
+    existing_buses = network.buses.index[network.buses.carrier == "AC"].unique()
+
     transmission_projects = extract_transmission_projects(
-        Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+        Path(snakemake.input.dir) / "20250312_export_transmission.xlsx",
+        existing_buses,
     )
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
     storage_projects = extract_storage_projects(
-        Path(snakemake.input.dir) / "20250312_export_storage.xlsx"
+        Path(snakemake.input.dir) / "20250312_export_storage.xlsx",
+        existing_buses,
     )
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)

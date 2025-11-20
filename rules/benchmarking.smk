@@ -19,8 +19,6 @@ rule clean_tyndp_benchmark:
     threads: 4
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/clean_tyndp_benchmark.py"
 
@@ -34,7 +32,6 @@ rule clean_tyndp_vp_data:
         elec_demand="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
         elec_supplymix="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
         elec_flex="data/tyndp_2024_bundle/TYNDP-2024-Visualisation-Platform/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
-        loss_factors="data/tyndp_electricity_loss_factors.csv",
     output:
         RESULTS + "validation/resources/vp_data_tyndp.csv",
     log:
@@ -44,8 +41,6 @@ rule clean_tyndp_vp_data:
     threads: 4
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/clean_tyndp_vp_data.py"
 
@@ -60,7 +55,6 @@ rule build_statistics:
     input:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
-        loss_factors="data/tyndp_electricity_loss_factors.csv",
     output:
         RESULTS
         + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
@@ -75,8 +69,6 @@ rule build_statistics:
     threads: 4
     resources:
         mem_mb=4000,
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/build_statistics.py"
 
@@ -107,8 +99,6 @@ rule make_benchmark:
         logs("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years.log"),
     benchmark:
         benchmarks("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/make_benchmark.py"
 
@@ -144,7 +134,5 @@ rule plot_benchmark:
         logs("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years.log"),
     benchmark:
         benchmarks("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/plot_benchmark.py"

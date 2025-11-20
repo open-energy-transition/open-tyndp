@@ -12,7 +12,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-from _helpers import (
+
+from scripts._helpers import (
     SCENARIO_DICT,
     configure_logging,
     extract_grid_data_tyndp,
@@ -118,7 +119,7 @@ def load_h2_grid(fn):
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_network",

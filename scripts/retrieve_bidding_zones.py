@@ -63,7 +63,7 @@ def load_bidding_zones_from_electricitymaps() -> gpd.GeoDataFrame:
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake("retrieve_bidding_zones")
 

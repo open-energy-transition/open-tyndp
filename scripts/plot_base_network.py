@@ -9,13 +9,14 @@ Plot base transmission network.
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pypsa
-from _helpers import set_scenario_config
-from plot_power_network import load_projection
 from pypsa.plot import add_legend_lines
+
+from scripts._helpers import set_scenario_config
+from scripts.plot_power_network import load_projection
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake("plot_base_network", run="tyndp")
     set_scenario_config(snakemake)

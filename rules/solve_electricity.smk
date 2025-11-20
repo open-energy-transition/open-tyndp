@@ -12,7 +12,10 @@ rule solve_network:
             "sector", "co2_sequestration_potential", default=200
         ),
         custom_extra_functionality=input_custom_extra_functionality,
-        carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
+        renewable_carriers=config_provider("electricity", "renewable_carriers"),
+        renewable_carriers_tyndp=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
     input:
         network=resources("networks/base_s_{clusters}_elec_{opts}.nc"),
         offshore_zone_trajectories=branch(
@@ -36,8 +39,6 @@ rule solve_network:
         runtime=config_provider("solving", "runtime", default="6h"),
     shadow:
         shadow_config
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/solve_network.py"
 
@@ -51,6 +52,7 @@ rule solve_operations_network:
             "sector", "co2_sequestration_potential", default=200
         ),
         custom_extra_functionality=input_custom_extra_functionality,
+        renewable_carriers=config_provider("electricity", "renewable_carriers"),
     input:
         network=RESULTS + "networks/base_s_{clusters}_elec_{opts}.nc",
     output:
@@ -70,7 +72,5 @@ rule solve_operations_network:
         runtime=config_provider("solving", "runtime", default="6h"),
     shadow:
         shadow_config
-    conda:
-        "../envs/environment.yaml"
     script:
         "../scripts/solve_operations_network.py"

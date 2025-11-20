@@ -18,40 +18,38 @@ from scripts._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
     configure_logging,
-    safe_pyear,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
 
+pypsa.options.params.statistics.nice_names = False
 
-def get_loss_factors(fn: str, n: pypsa.Network, planning_horizons: int) -> pd.Series:
+
+def remove_last_day(sws: pd.Series, nhours: int = 24):
     """
-    Load and prepare loss factors.
+    Remove the last day from snapshots to ensure exactly 52 weeks of data.
 
     Parameters
     ----------
-    fn : str
-        Path to the file containing loss factors.
-    n : pypsa.Network
-        Network to use.
-    planning_horizons : int
-        Planning horizon for which to read the data.
+    sws : pd.Series
+        Snapshot weightings.
+    nhours : int, default 24
+        Number of hours to consider.
 
     Returns
     -------
-    pd.Series
-        Loss factors data.
+    tuple[pd.DatetimeIndex, pd.Series]
+        Modified snapshots and snapshot weightings with the last day removed.
     """
-    # Read data
-    pyear = safe_pyear(planning_horizons, source="TYNDP Statistics")
-    loss_factors = pd.read_csv(fn, index_col=0)[str(pyear)]
+    sws = sws.copy()
 
-    # Create index map
-    idx_map = n.buses.query("Bus.str.contains('low voltage')").country
-    loss_factors = idx_map.map(loss_factors).dropna()
+    remaining_hours = sws.iloc[::-1].cumsum() - nhours
+    sws[remaining_hours < 0] = 0
+    last_i = remaining_hours[remaining_hours >= 0].index[0]
+    sws.loc[last_i] = remaining_hours.loc[last_i]
 
-    return loss_factors
+    return sws
 
 
 def compute_benchmark(
@@ -60,7 +58,6 @@ def compute_benchmark(
     options: dict,
     eu27: list[str],
     tyndp_renewable_carriers: list[str],
-    loss_factors: pd.Series = pd.Series(),
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -77,8 +74,6 @@ def compute_benchmark(
         List of member state of European Union (EU27).
     tyndp_renewable_carriers : list[str]
         List of renewable carriers in TYNDP 2024.
-    loss_factors : pd.Series, optional
-        Series containing loss factors indexed by country.
 
     Returns
     -------
@@ -99,7 +94,6 @@ def compute_benchmark(
             n.statistics.withdrawal(
                 comps="Load",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -108,33 +102,40 @@ def compute_benchmark(
         )
     elif table == "elec_demand":
         grouper = ["carrier"]
+
+        # Remove the last day of the year to have exactly 52 weeks
+        sws = remove_last_day(n.snapshot_weightings.generators)
+
         df = (
             n.statistics.withdrawal(
                 comps=demand_comps,
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
+                aggregate_time=False,
             )
+            .mul(sws, axis=1)
+            .sum(axis=1)
             .loc[pd.IndexSlice[:, ["electricity"]]]
             .reindex(eu27_idx, level="bus")
             .dropna()
         )
-        if not loss_factors.empty:
-            df /= 1 + loss_factors.reindex(df.index, level="bus")
         df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
         # TODO Energy and non-energy industrial demand are mixed
         grouper = ["carrier"]
+        if "EU gas" in n.buses.index:
+            reindex_idx = pd.Index(["EU gas"])
+        else:
+            reindex_idx = eu27_idx
         df = (
             n.statistics.withdrawal(
                 comps=demand_comps,
                 bus_carrier="gas",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
-            .reindex(eu27_idx, level="bus")
+            .reindex(reindex_idx, level="bus")
             .groupby(by=grouper)
             .sum()
         )
@@ -147,7 +148,6 @@ def compute_benchmark(
                 comps=demand_comps,
                 bus_carrier="H2",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -161,7 +161,6 @@ def compute_benchmark(
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -191,7 +190,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -214,7 +212,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier="gas",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -229,7 +226,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier="H2",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -245,7 +241,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier="solid biomass",
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -261,7 +256,6 @@ def compute_benchmark(
                 comps=supply_comps,
                 bus_carrier=["H2", "oil", "coal", "lignite"],
                 groupby=["bus"] + grouper,
-                nice_names=False,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
@@ -284,7 +278,6 @@ def compute_benchmark(
                 n.statistics.supply(
                     bus_carrier=elec_bus_carrier,
                     groupby=["bus"] + grouper,
-                    nice_names=False,
                     aggregate_across_components=True,
                     aggregate_time=False,
                 )
@@ -358,14 +351,10 @@ if __name__ == "__main__":
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
-    loss_factors_fn = snakemake.input.loss_factors
 
     # Read network
     logger.info("Reading network")
     n = pypsa.Network(snakemake.input.network)
-
-    # Load loss factors
-    loss_factors = get_loss_factors(loss_factors_fn, n, planning_horizons)
 
     logger.info("Building benchmark from network")
     tqdm_kwargs = {
@@ -381,7 +370,6 @@ if __name__ == "__main__":
         options=options,
         eu27=eu27,
         tyndp_renewable_carriers=tyndp_renewable_carriers,
-        loss_factors=loss_factors,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:

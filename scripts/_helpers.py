@@ -11,10 +11,10 @@ import os
 import re
 import time
 from bisect import bisect_right
+from collections.abc import Callable
 from functools import partial, wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Callable, Union
 
 import atlite
 import fiona
@@ -27,6 +27,14 @@ import requests
 import xarray as xr
 import yaml
 from snakemake.utils import update_config
+from tenacity import (
+    retry as tenacity_retry,
+)
+from tenacity import (
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -206,6 +214,15 @@ def find_opt(opts, expr):
             else:
                 return True, None
     return False, None
+
+
+def fill_wildcards(s: str, **wildcards: str) -> str:
+    """
+    Fill given (subset of) wildcards into a path with wildcards
+    """
+    for k, v in wildcards.items():
+        s = s.replace("{" + k + "}", v)
+    return s
 
 
 # Define a context manager to temporarily mute print statements
@@ -422,17 +439,31 @@ def aggregate_costs(n, flatten=False, opts=None, existing_only=False):
     return costs
 
 
+@tenacity_retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    retry=retry_if_exception_type(
+        (requests.HTTPError, requests.ConnectionError, requests.Timeout)
+    ),
+)
 def progress_retrieve(url, file, disable=False):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
     Path(file).parent.mkdir(parents=True, exist_ok=True)
 
+    # Raise HTTPError for transient errors
+    # 429: Too Many Requests (rate limiting)
+    # 500, 502, 503, 504: Server errors
     if disable:
         response = requests.get(url, headers=headers, stream=True)
+        if response.status_code in (429, 500, 502, 503, 504):
+            response.raise_for_status()
         with open(file, "wb") as f:
             f.write(response.content)
     else:
         response = requests.get(url, headers=headers, stream=True)
+        if response.status_code in (429, 500, 502, 503, 504):
+            response.raise_for_status()
         total_size = int(response.headers.get("content-length", 0))
         chunk_size = 1024
 
@@ -727,7 +758,7 @@ def update_config_from_wildcards(config, w, inplace=True):
 
         for o in opts:
             if o.startswith("lv") or o.startswith("lc"):
-                config["electricity"]["transmission_expansion"] = o[1:]
+                config["electricity"]["transmission_limit"] = o[1:]
                 break
 
     if w.get("sector_opts"):
@@ -849,12 +880,24 @@ def update_config_from_wildcards(config, w, inplace=True):
         return config
 
 
+@tenacity_retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    retry=retry_if_exception_type(
+        (requests.HTTPError, requests.ConnectionError, requests.Timeout)
+    ),
+)
 def get_checksum_from_zenodo(file_url):
     parts = file_url.split("/")
     record_id = parts[parts.index("records") + 1]
     filename = parts[-1]
 
     response = requests.get(f"https://zenodo.org/api/records/{record_id}", timeout=30)
+    # Raise HTTPError for transient errors
+    # 429: Too Many Requests (rate limiting)
+    # 500, 502, 503, 504: Server errors
+    if response.status_code in (429, 500, 502, 503, 504):
+        response.raise_for_status()
     response.raise_for_status()
     data = response.json()
 
@@ -1065,7 +1108,7 @@ def rename_techs(label: str) -> str:
 
 
 def load_cutout(
-    cutout_files: Union[str, list[str]], time: Union[None, pd.DatetimeIndex] = None
+    cutout_files: str | list[str], time: None | pd.DatetimeIndex = None
 ) -> atlite.Cutout:
     """
     Load and optionally combine multiple cutout files.
@@ -1094,6 +1137,24 @@ def load_cutout(
         cutout.data = cutout.data.sel(time=time)
 
     return cutout
+
+
+def load_costs(cost_file: str) -> pd.DataFrame:
+    """
+    Load prepared cost data from CSV.
+
+    Parameters
+    ----------
+    cost_file : str
+        Path to the CSV file containing cost data
+
+    Returns
+    -------
+    costs : pd.DataFrame
+        DataFrame containing the prepared cost data
+    """
+
+    return pd.read_csv(cost_file, index_col=0)
 
 
 def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
@@ -1374,3 +1435,121 @@ def convert_units(
         )
 
     return df
+
+
+def check_cyear(cyear: int, scenario: str) -> int:
+    """Check if the climatic year is valid for the given scenario."""
+
+    valid_years = {
+        "NT": np.arange(1983, 2018).tolist(),
+        "DE": [1995, 2008, 2009],
+        "GA": [1995, 2008, 2009],
+    }
+
+    if cyear not in valid_years[scenario]:
+        logger.warning(
+            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
+        )
+        cyear = 2009
+
+    return cyear
+
+
+def interpolate_demand(
+    available_years: list[int],
+    pyear: int,
+    load_single_year_func: Callable,
+    **load_kwargs,
+) -> pd.DataFrame | pd.Series:
+    """
+    Interpolate demand between available years.
+
+    Parameters
+    ----------
+    available_years : list[int]
+        Sorted list of years for which data is available.
+    pyear : int
+        Planning year to interpolate demand for.
+    load_single_year_func : Callable
+        Function to load data for a single planning year.
+    **load_kwargs
+        Keyword arguments to pass to load_single_year_func. Must include 'pyear'
+        as a parameter key, which will be overridden with interpolation boundary years.
+
+    Returns
+    -------
+    pd.DataFrame | pd.Series
+        Interpolated demand data.
+    """
+    # Currently, only interpolation is implemented, not extrapolation
+    idx = bisect_right(available_years, pyear)
+    if idx == 0:
+        # Planning horizon is before all available years
+        logger.warning(
+            f"Year {pyear} is before the first available year {available_years[0]}. "
+            f"Falling back to first available year."
+        )
+        year_lower = year_upper = available_years[0]
+    elif idx == len(available_years):
+        # Planning horizon is after all available years
+        logger.warning(
+            f"Year {pyear} is after the latest available year {available_years[-1]}. "
+            f"Falling back to latest available year."
+        )
+        year_lower = year_upper = available_years[-1]
+    else:
+        year_lower = available_years[idx - 1]
+        year_upper = available_years[idx]
+
+    logger.debug(f"Interpolating {pyear} from {year_lower} and {year_upper}")
+
+    kwargs_lower = {**load_kwargs, "pyear": year_lower}
+    kwargs_upper = {**load_kwargs, "pyear": year_upper}
+
+    df_lower = load_single_year_func(**kwargs_lower)
+    df_upper = load_single_year_func(**kwargs_upper)
+
+    # Check if data was loaded successfully
+    if df_lower.empty and df_upper.empty:
+        logger.error("Both years failed to load")
+        return pd.DataFrame()
+    elif df_lower.empty:
+        logger.warning(
+            f"Year {year_lower} failed to load. Filling with zeros for interpolation."
+        )
+        df_lower = pd.DataFrame(0, index=df_upper.index, columns=df_upper.columns)
+    elif df_upper.empty:
+        logger.warning(
+            f"Year {year_upper} failed to load. Using data from lower year for interpolation."
+        )
+        df_upper = df_lower
+
+    if year_upper == year_lower:
+        return df_lower
+
+    # Handle column mismatches for DataFrames (only relevant for DataFrame, not Series)
+    if isinstance(df_lower, pd.DataFrame) and isinstance(df_upper, pd.DataFrame):
+        missing_in_lower = df_upper.columns.difference(df_lower.columns)
+        missing_in_upper = df_lower.columns.difference(df_upper.columns)
+
+        if len(missing_in_lower) > 0 or len(missing_in_upper) > 0:
+            logger.warning(
+                f"Column mismatch between {year_lower} and {year_upper}. "
+                f"Missing columns filled with zeros. "
+                f"Missing in {year_lower}: {list(missing_in_lower)}, "
+                f"Missing in {year_upper}: {list(missing_in_upper)}"
+            )
+        df_lower_aligned, df_upper_aligned = df_lower.align(
+            df_upper, join="outer", axis=1, fill_value=0
+        )
+    else:
+        # For Series, just align
+        df_lower_aligned, df_upper_aligned = df_lower.align(
+            df_upper, join="outer", fill_value=0
+        )
+
+    # Perform linear interpolation
+    weight = (pyear - year_lower) / (year_upper - year_lower)
+    result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
+
+    return result

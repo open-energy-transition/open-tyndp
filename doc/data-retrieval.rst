@@ -17,7 +17,6 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **License:** `custom <https://www.bgr.bund.de/DE/Gemeinsames/Produkte/Produktcenter/faq_inhalt.html?nn=6951010#doc5914388bodyText5>` and `custom <https://www.bgr.bund.de/DE/Gemeinsames/Produkte/produkte_agb.html>`
 - **Description:** Contains data on geothermal energy resources in Europe.
 
-``data/heat_demand``
 ``data/fraunhofer_heat_source_utilisation_potentials`` and ``data/dh_areas.gpkg``
 
 - **Source:** Fraunhofer Fordatis
@@ -287,3 +286,10 @@ Data in this section is retrieved and extracted in rules specified in ``rules/re
 - **Link:** https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip
 - **License:** CC-BY 4.0
 - **Description:** Contains the TYNDP 2024 Visualisation Platform data for both electricity (supply mix, flexibility options, and electricity demand) and hydrogen (supply mix and hydrogen demand).
+
+``data/tyndp_2024_bundle/Supply Tool``
+
+- **Source:** TYNDP 2024 Supply Tool, https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/20240518-Supply-Tool.xlsm.zip
+- **License:** CC-BY 4.0
+- **Description:** Contains the TYNDP 2024 Supply Tool.

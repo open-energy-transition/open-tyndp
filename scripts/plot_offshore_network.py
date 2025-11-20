@@ -11,9 +11,14 @@ import re
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import pypsa
-from _helpers import configure_logging, set_scenario_config
-from plot_power_network import load_projection
-from pypsa.plot import add_legend_circles, add_legend_lines, add_legend_patches
+from pypsa.plot.maps.static import (
+    add_legend_circles,
+    add_legend_lines,
+    add_legend_patches,
+)
+
+from scripts._helpers import configure_logging, set_scenario_config
+from scripts.plot_power_network import load_projection
 
 plt.style.use(["ggplot"])
 
@@ -80,13 +85,13 @@ def plot_offshore_map(
         )
         # set link widths
         links[links < link_lower_threshold] = 0.0
-        link_widths = links / lw_factor
-        if link_widths.notnull().empty:
+        link_width = links / lw_factor
+        if link_width.notnull().empty:
             logger.info(f"No offshore capacities for {carrier}, skipping plot.")
             return
-        link_widths = link_widths.reindex(n.links.index).fillna(0.0)
+        link_width = link_width.reindex(n.links.index).fillna(0.0)
     elif isinstance(p_nom, float) or isinstance(p_nom, int):
-        link_widths = p_nom
+        link_width = p_nom
     else:
         raise ValueError("Parameter 'p_nom' must be either str or float.")
 
@@ -116,21 +121,21 @@ def plot_offshore_map(
     color_oh_nodes = "#ff29d9"
     color_hm_nodes = "darkgray"
 
-    n.plot(
+    n.plot.map(
         geomap=True,
-        bus_sizes=0.05,
-        bus_colors=color_hm_nodes,
-        link_colors=color,
-        link_widths=link_widths,
+        bus_size=0.05,
+        bus_color=color_hm_nodes,
+        link_color=color,
+        link_width=link_width,
         branch_components=["Link"],
         ax=ax,
         **map_opts,
     )
 
-    n_oh.plot(
+    n_oh.plot.map(
         geomap=True,
-        bus_sizes=0.05,
-        bus_colors=color_oh_nodes,
+        bus_size=0.05,
+        bus_color=color_oh_nodes,
         branch_components=[],
         ax=ax,
         **map_opts,
@@ -206,7 +211,7 @@ def plot_offshore_map(
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "plot_offshore_network",

@@ -2,9 +2,9 @@
 name: Feature Request
 about: Suggest an idea for this project
 title: ''
-labels: ["needs triage"]
-type: 'Feature'
+labels: ''
 assignees: ''
+type: 'Feature'
 
 ---
 
