@@ -509,7 +509,8 @@ def prepare_network(
             p_nom=1e6,
         )
 
-    if solve_opts.get("noisy_costs"):
+    # Do not add noise to costs for sensitivity runs (they already have noisy costs from the previous iteration)
+    if solve_opts.get("noisy_costs") and "sensitivity" not in n.name.casefold():
         for t in n.iterate_components():
             # if 'capital_cost' in t.df:
             #    t.df['capital_cost'] += 1e1 + 2.*(np.random.random(len(t.df)) - 0.5)
