@@ -3457,7 +3457,7 @@ def attach_gas_load(
         bus1=spatial.gas.exo_demand,
         bus2="co2 atmosphere",
         carrier="gas for demand",
-        p_nom_extendable=True,
+        p_nom=np.inf,
         efficiency=1.0,
         efficiency2=costs.at["gas", "CO2 intensity"],
     )
