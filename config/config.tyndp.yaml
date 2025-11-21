@@ -178,16 +178,12 @@ pypsa_eur:
 
 sector:
   transport: true
-  transport_emissions: true
   heating: false
-  heating_emissions: true
   biomass: true
   industry: false
-  industry_emissions: true
   shipping: true
   aviation: true
   agriculture: false
-  agriculture_emissions: true
   fossil_fuels: true
 
   land_transport_fuel_cell_share:  # Not modelled

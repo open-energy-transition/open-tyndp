@@ -556,16 +556,12 @@ existing_capacities:
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#sector
 sector:
   transport: true
-  transport_emissions: true
   heating: true
-  heating_emissions: true
   biomass: true
   industry: true
-  industry_emissions: true
   shipping: true
   aviation: true
   agriculture: true
-  agriculture_emissions: true
   fossil_fuels: true
   district_heating:
     potential: 0.6
