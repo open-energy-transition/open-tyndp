@@ -87,25 +87,45 @@ def compute_benchmark(
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
 
+    # Optionally remove the last day of the year to have exactly 52 weeks
+    if options["remove_last_day"]:
+        sws = remove_last_day(n.snapshot_weightings.generators)
+    else:
+        sws = n.snapshot_weightings.generators
+
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
         grouper = ["bus_carrier"]
-        df = (
+        df_countries = (
             n.statistics.withdrawal(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
+                aggregate_time=False,
             )
+            .mul(sws, axis=1)
+            .sum(axis=1)
             .reindex(eu27_idx, level="bus")
             .groupby(level="bus_carrier")
             .sum()
         )
+
+        # Add EU level demands
+        df_eu = (
+            n.statistics.withdrawal(
+                comps="Load",
+                groupby=grouper,
+                aggregate_across_components=True,
+                aggregate_time=False,
+            )
+            .mul(sws, axis=1)
+            .sum(axis=1)
+            .loc[lambda s: ~s.index.isin(df_countries.index)]
+        )
+
+        df = pd.concat([df_countries, df_eu])
     elif table == "elec_demand":
         grouper = ["carrier"]
-
-        # Remove the last day of the year to have exactly 52 weeks
-        sws = remove_last_day(n.snapshot_weightings.generators)
-
         df = (
             n.statistics.withdrawal(
                 comps=demand_comps,
@@ -294,7 +314,8 @@ def compute_benchmark(
                         "home battery charger",
                         "methanolisation",
                         "electricity",
-                    ]
+                    ],
+                    errors="ignore",
                 )
                 .melt(ignore_index=False)
                 .reset_index()

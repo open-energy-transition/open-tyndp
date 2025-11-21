@@ -230,18 +230,32 @@ def load_benchmark(
     df_converted["year"] = df_converted["year"].astype(int)
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
 
-    # Remove aggregated values except for electricity demand
-    if table != "elec_demand":
+    # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
+    if table == "elec_demand":
+        df_converted = df_converted[
+            df_converted.carrier
+            == "final demand (inc. t&d losses, excl. pump storage )"
+        ]
+    # Aggregate methane demand to match input data resolution
+    elif table == "methane_demand":
+        group = ["smr", "power generation"]
+        df_other = (
+            df_converted[
+                (~df_converted.carrier.isin(group)) & (df_converted.carrier != "total")
+            ]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="total (excl. SMR and power generation)")
+        )
+        df_group = df_converted[df_converted.carrier.isin(group)]
+        df_converted = pd.concat([df_group, df_other], ignore_index=True)
+    # Remove aggregated values
+    else:
         df_converted = df_converted[
             ~df_converted.carrier.isin(
                 ["sum", "aggregated", "total generation", "total"]
             )
-        ]
-    # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
-    else:
-        df_converted = df_converted[
-            df_converted.carrier
-            == "final demand (inc. t&d losses, excl. pump storage )"
         ]
 
     return df_converted

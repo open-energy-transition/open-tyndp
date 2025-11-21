@@ -21,7 +21,7 @@ Closes # (if applicable).
 
 - [ ] I tested my contribution locally and it works as intended.
 - [ ] Code and workflow changes are sufficiently documented.
-- [ ] Changed dependencies are added to `envs/environment.yaml`.
+- [ ] Changed dependencies are added to `pixi.toml` (using `pixi add <dependency-name>`).
 - [ ] Changes in configuration options are added in `config/config.default.yaml`.
 - [ ] Changes in configuration options are documented in `doc/configtables/*.csv`.
 - [ ] Changes in configuration options are added in `config/test/*.yaml`.
@@ -30,4 +30,4 @@ Closes # (if applicable).
 - [ ] New rules are documented in the appropriate `doc/*.rst` files.
 - [ ] A release note `doc/release_notes.rst` is added.
 - [ ] Major features are documented with up-to-date information in `README` and `doc/index.rst`.
-- [ ] For any new/added Python scripts: Module docstring is added describing what the script does, its input data, and its output data.
+- [ ] Module docstrings added to new Python scripts.

@@ -272,3 +272,13 @@ Rule ``build_tyndp_h2_demand``
 ==============================================================================
 
 .. automodule:: build_tyndp_h2_demand
+
+Rule ``group_tyndp_conventionals``
+==============================================================================
+
+.. automodule:: group_tyndp_conventionals
+
+Rule ``build_tyndp_gas_demand``
+==============================================================================
+
+.. automodule:: build_tyndp_gas_demand

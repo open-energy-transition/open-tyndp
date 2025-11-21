@@ -758,7 +758,7 @@ def update_config_from_wildcards(config, w, inplace=True):
 
         for o in opts:
             if o.startswith("lv") or o.startswith("lc"):
-                config["electricity"]["transmission_expansion"] = o[1:]
+                config["electricity"]["transmission_limit"] = o[1:]
                 break
 
     if w.get("sector_opts"):
@@ -1288,7 +1288,7 @@ def map_tyndp_carrier_names(
     # Read TYNDP carrier mapping
     carrier_mapping = (
         pd.read_csv(carrier_mapping_fn)[
-            on_columns + ["open_tyndp_carrier", "open_tyndp_index"]
+            on_columns + ["open_tyndp_carrier", "open_tyndp_index", "open_tyndp_type"]
         ]
     ).dropna()
 
@@ -1453,3 +1453,155 @@ def check_cyear(cyear: int, scenario: str) -> int:
         cyear = 2009
 
     return cyear
+
+
+def get_tyndp_conventional_thermals(
+    mapping: pd.DataFrame,
+    tyndp_conventional_carriers: list[str],
+    group_conventionals: bool,
+    include_h2_fuel_cell: bool,
+    include_h2_turbine: bool,
+) -> tuple[dict[str, str], list[str]]:
+    """
+    Get list of TYNDP conventional thermal generation technologies.
+
+    Parameters
+    ----------
+    mapping : pd.DataFrame
+        TYNDP conventional carrier mapping (grouped or ungrouped).
+    tyndp_conventional_carriers : list[str]
+        TYNDP conventional carriers.
+    group_conventionals : bool
+        Whether to group conventional thermal technologies.
+    include_h2_fuel_cell : bool
+        Whether to include hydrogen fuel cell technology.
+    include_h2_turbine : bool
+        Whether to include hydrogen turbine technology.
+
+    Returns
+    -------
+    tuple[dict[str, str], list[str]]
+        Dictionary with conventional mapping and list of conventional thermal technology names.
+    """
+
+    # Filter mapping for conventional carriers while setting oil as common fuel for oil technologies
+    mapping = (
+        mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
+        .query("open_tyndp_carrier in @tyndp_conventional_carriers")
+        .replace(
+            {"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil"
+        )  # TODO To remove once the three carriers have been implemented
+    )
+
+    if group_conventionals:
+        mapping = mapping.groupby("open_tyndp_type").first()
+
+    conventional_dict = mapping.open_tyndp_carrier.to_dict()
+    conventional_thermals = list(conventional_dict)
+
+    if include_h2_fuel_cell:
+        conventional_thermals.append("h2-fuel-cell")
+    if include_h2_turbine:
+        conventional_thermals.append("h2-ccgt")
+
+    return conventional_dict, conventional_thermals
+
+
+def interpolate_demand(
+    available_years: list[int],
+    pyear: int,
+    load_single_year_func: Callable,
+    **load_kwargs,
+) -> pd.DataFrame | pd.Series:
+    """
+    Interpolate demand between available years.
+
+    Parameters
+    ----------
+    available_years : list[int]
+        Sorted list of years for which data is available.
+    pyear : int
+        Planning year to interpolate demand for.
+    load_single_year_func : Callable
+        Function to load data for a single planning year.
+    **load_kwargs
+        Keyword arguments to pass to load_single_year_func. Must include 'pyear'
+        as a parameter key, which will be overridden with interpolation boundary years.
+
+    Returns
+    -------
+    pd.DataFrame | pd.Series
+        Interpolated demand data.
+    """
+    # Currently, only interpolation is implemented, not extrapolation
+    idx = bisect_right(available_years, pyear)
+    if idx == 0:
+        # Planning horizon is before all available years
+        logger.warning(
+            f"Year {pyear} is before the first available year {available_years[0]}. "
+            f"Falling back to first available year."
+        )
+        year_lower = year_upper = available_years[0]
+    elif idx == len(available_years):
+        # Planning horizon is after all available years
+        logger.warning(
+            f"Year {pyear} is after the latest available year {available_years[-1]}. "
+            f"Falling back to latest available year."
+        )
+        year_lower = year_upper = available_years[-1]
+    else:
+        year_lower = available_years[idx - 1]
+        year_upper = available_years[idx]
+
+    logger.debug(f"Interpolating {pyear} from {year_lower} and {year_upper}")
+
+    kwargs_lower = {**load_kwargs, "pyear": year_lower}
+    kwargs_upper = {**load_kwargs, "pyear": year_upper}
+
+    df_lower = load_single_year_func(**kwargs_lower)
+    df_upper = load_single_year_func(**kwargs_upper)
+
+    # Check if data was loaded successfully
+    if df_lower.empty and df_upper.empty:
+        logger.error("Both years failed to load")
+        return pd.DataFrame()
+    elif df_lower.empty:
+        logger.warning(
+            f"Year {year_lower} failed to load. Filling with zeros for interpolation."
+        )
+        df_lower = pd.DataFrame(0, index=df_upper.index, columns=df_upper.columns)
+    elif df_upper.empty:
+        logger.warning(
+            f"Year {year_upper} failed to load. Using data from lower year for interpolation."
+        )
+        df_upper = df_lower
+
+    if year_upper == year_lower:
+        return df_lower
+
+    # Handle column mismatches for DataFrames (only relevant for DataFrame, not Series)
+    if isinstance(df_lower, pd.DataFrame) and isinstance(df_upper, pd.DataFrame):
+        missing_in_lower = df_upper.columns.difference(df_lower.columns)
+        missing_in_upper = df_lower.columns.difference(df_upper.columns)
+
+        if len(missing_in_lower) > 0 or len(missing_in_upper) > 0:
+            logger.warning(
+                f"Column mismatch between {year_lower} and {year_upper}. "
+                f"Missing columns filled with zeros. "
+                f"Missing in {year_lower}: {list(missing_in_lower)}, "
+                f"Missing in {year_upper}: {list(missing_in_upper)}"
+            )
+        df_lower_aligned, df_upper_aligned = df_lower.align(
+            df_upper, join="outer", axis=1, fill_value=0
+        )
+    else:
+        # For Series, just align
+        df_lower_aligned, df_upper_aligned = df_lower.align(
+            df_upper, join="outer", fill_value=0
+        )
+
+    # Perform linear interpolation
+    weight = (pyear - year_lower) / (year_upper - year_lower)
+    result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
+
+    return result
