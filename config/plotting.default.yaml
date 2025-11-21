@@ -315,6 +315,8 @@ plotting:
     # gas
     OCGT: '#e0986c'
     OCGT marginal: '#e0986c'
+    gas-ocgt: '#e0986c'
+    gas-conv: '#db8a35'
     OCGT-heat: '#e0986c'
     gas boiler: '#db6a25'
     gas boilers: '#db6a25'
@@ -331,6 +333,8 @@ plotting:
     biogas to gas CC: '#e51245'
     CCGT: '#a85522'
     CCGT marginal: '#a85522'
+    gas-ccgt: '#a85522'
+    gas-ccgt-ccs: '#a85255'
     allam: '#B98F76'
     gas for industry co2 to atmosphere: '#692e0a'
     gas for industry co2 to stored: '#8a3400'
@@ -341,6 +345,9 @@ plotting:
     gas pipeline new: '#a87c62'
     # oil
     oil: '#c9c9c9'
+    oil-shale: '#d2d2d2'
+    oil-light: '#adadad'
+    oil-heavy: '#a3a3a3'
     oil primary: '#d2d2d2'
     oil refining: '#e6e6e6'
     imported oil: '#a3a3a3'
@@ -362,6 +369,7 @@ plotting:
     # coal
     Coal: '#545454'
     coal: '#545454'
+    coal-ccs: '#222222'
     coal&lignite&oil: '#545454'
     Coal marginal: '#545454'
     coal for industry: '#343434'
@@ -369,6 +377,7 @@ plotting:
     Lignite: '#826837'
     lignite: '#826837'
     Lignite marginal: '#826837'
+    lignite-ccs: '#725837'
     # biomass
     biogas: '#e3d37d'
     biomass: '#baa741'
@@ -530,7 +539,9 @@ plotting:
     H2 import Pipeline: "#FFA500"
     H2 Fuel Cell: '#c251ae'
     H2 fuel cell: '#c251ae'
+    h2-fuel-cell: '#c251ae'
     H2 turbine: '#991f83'
+    h2-ccgt: '#991f83'
     H2 Electrolysis: '#ff29d9'
     H2 electrolysis: '#ff29d9'
     # ammonia

@@ -1288,7 +1288,7 @@ def map_tyndp_carrier_names(
     # Read TYNDP carrier mapping
     carrier_mapping = (
         pd.read_csv(carrier_mapping_fn)[
-            on_columns + ["open_tyndp_carrier", "open_tyndp_index"]
+            on_columns + ["open_tyndp_carrier", "open_tyndp_index", "open_tyndp_type"]
         ]
     ).dropna()
 
@@ -1453,6 +1453,58 @@ def check_cyear(cyear: int, scenario: str) -> int:
         cyear = 2009
 
     return cyear
+
+
+def get_tyndp_conventional_thermals(
+    mapping: pd.DataFrame,
+    tyndp_conventional_carriers: list[str],
+    group_conventionals: bool,
+    include_h2_fuel_cell: bool,
+    include_h2_turbine: bool,
+) -> tuple[dict[str, str], list[str]]:
+    """
+    Get list of TYNDP conventional thermal generation technologies.
+
+    Parameters
+    ----------
+    mapping : pd.DataFrame
+        TYNDP conventional carrier mapping (grouped or ungrouped).
+    tyndp_conventional_carriers : list[str]
+        TYNDP conventional carriers.
+    group_conventionals : bool
+        Whether to group conventional thermal technologies.
+    include_h2_fuel_cell : bool
+        Whether to include hydrogen fuel cell technology.
+    include_h2_turbine : bool
+        Whether to include hydrogen turbine technology.
+
+    Returns
+    -------
+    tuple[dict[str, str], list[str]]
+        Dictionary with conventional mapping and list of conventional thermal technology names.
+    """
+
+    # Filter mapping for conventional carriers while setting oil as common fuel for oil technologies
+    mapping = (
+        mapping[["open_tyndp_carrier", "open_tyndp_type", "pypsa_eur_carrier"]]
+        .query("open_tyndp_carrier in @tyndp_conventional_carriers")
+        .replace(
+            {"open_tyndp_carrier": ["oil-light", "oil-heavy", "oil-shale"]}, "oil"
+        )  # TODO To remove once the three carriers have been implemented
+    )
+
+    if group_conventionals:
+        mapping = mapping.groupby("open_tyndp_type").first()
+
+    conventional_dict = mapping.open_tyndp_carrier.to_dict()
+    conventional_thermals = list(conventional_dict)
+
+    if include_h2_fuel_cell:
+        conventional_thermals.append("h2-fuel-cell")
+    if include_h2_turbine:
+        conventional_thermals.append("h2-ccgt")
+
+    return conventional_dict, conventional_thermals
 
 
 def interpolate_demand(

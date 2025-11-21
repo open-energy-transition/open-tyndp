@@ -788,10 +788,14 @@ rule process_cost_data:
     params:
         costs=config_provider("costs"),
         max_hours=config_provider("electricity", "max_hours"),
+        group_tyndp_conventionals=config_provider(
+            "electricity", "group_tyndp_conventionals"
+        ),
     input:
         network=resources("networks/base_s.nc"),
         costs=resources("costs_{planning_horizons}.csv"),
         custom_costs=config_provider("costs", "custom_cost_fn"),
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         resources("costs_{planning_horizons}_processed.csv"),
     log:

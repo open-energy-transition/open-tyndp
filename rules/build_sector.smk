@@ -1553,6 +1553,35 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
             "../scripts/build_tyndp_offshore_hubs.py"
 
 
+rule group_tyndp_conventionals:
+    params:
+        tyndp_conventional_carriers=config_provider(
+            "electricity", "tyndp_conventional_carriers"
+        ),
+    input:
+        pemmdb_capacities=resources("pemmdb_capacities_{planning_horizon}.csv"),
+        pemmdb_profiles=resources("pemmdb_profiles_{planning_horizon}.nc"),
+        carrier_mapping="data/tyndp_technology_map.csv",
+    output:
+        pemmdb_capacities_grouped=resources(
+            "pemmdb_capacities_{planning_horizon}_grouped.csv"
+        ),
+        pemmdb_profiles_grouped=resources(
+            "pemmdb_profiles_{planning_horizon}_grouped.nc"
+        ),
+    log:
+        logs("group_tyndp_conventionals_{planning_horizon}.log"),
+    benchmark:
+        benchmarks("group_tyndp_conventionals_{planning_horizon}")
+    threads: 1
+    resources:
+        mem_mb=2000,
+    conda:
+        "../envs/environment.yaml"
+    script:
+        "../scripts/group_tyndp_conventionals.py"
+
+
 def input_offshore_hubs(w):
     offshore_files = [
         "offshore_buses",
@@ -1574,12 +1603,27 @@ def input_pemmdb_data(w):
     )(w)
     pemmdb_year = safe_pyear(w.planning_horizons, available_years, verbose=False)
 
+    grouped = ""
+    if config_provider("electricity", "group_tyndp_conventionals")(w):
+        grouped = "_grouped"
+
     return {
         "pemmdb_capacities": resources(
-            "pemmdb_capacities_" + str(pemmdb_year) + ".csv"
+            "pemmdb_capacities_" + str(pemmdb_year) + f"{grouped}.csv"
         ),
-        "pemmdb_profiles": resources("pemmdb_profiles_" + str(pemmdb_year) + ".nc"),
+        "pemmdb_profiles": resources(
+            "pemmdb_profiles_" + str(pemmdb_year) + f"{grouped}.nc"
+        ),
     }
+
+
+def include_tydnp_trajectories(w):
+    if config_provider("electricity", "tyndp_renewable_carriers")(w):
+        return True
+    elif "uranium" in config_provider("electricity", "tyndp_conventional_carriers")(w):
+        return True
+    else:
+        return False
 
 
 rule prepare_sector_network:
@@ -1588,6 +1632,9 @@ rule prepare_sector_network:
         co2_budget=config_provider("co2_budget"),
         conventional_carriers=config_provider(
             "existing_capacities", "conventional_carriers"
+        ),
+        tyndp_conventional_carriers=config_provider(
+            "electricity", "tyndp_conventional_carriers"
         ),
         foresight=config_provider("foresight"),
         sector=config_provider("sector"),
@@ -1775,7 +1822,7 @@ rule prepare_sector_network:
             [],
         ),
         tyndp_trajectories=branch(
-            config_provider("electricity", "tyndp_renewable_carriers"),
+            include_tydnp_trajectories,
             resources("tyndp_trajectories.csv"),
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
