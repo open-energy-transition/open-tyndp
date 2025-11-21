@@ -283,6 +283,19 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
     return interpolate_demand(available_years, pyear, fn, scenario, cyear)
 
 
+def align_demand_to_snapshots(demand, snapshots):
+    """
+    Convert demand index to DatetimeIndex, adjust year to match snapshots,
+    and reindex to snapshots.
+    """
+
+    demand.index = pd.to_datetime(demand.index)
+    target_year = snapshots[0].year
+    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
+
+    return demand.reindex(snapshots)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -313,6 +326,9 @@ if __name__ == "__main__":
         f"target year: {pyear}, climate year: {cyear}"
     )
     demand = load_h2_demand(fn, scenario, pyear, cyear)
+
+    # Reindex demand to fit to snapshots
+    demand = align_demand_to_snapshots(demand, snapshots)
 
     # Export to CSV
     demand.to_csv(snakemake.output.h2_demand, index=True)
