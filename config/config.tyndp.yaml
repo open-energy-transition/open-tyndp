@@ -14,6 +14,15 @@ foresight: myopic
 
 tyndp_scenario: NT
 
+# Scenarios for uncertainty analysis to consider
+# Logic for scenarios in `scripts/prepare_uncertainty_scenarios.py`,
+# see descriptions there
+uncertainty_scenarios:
+- low-demand_low-renewables
+- low-demand_high-renewables
+- high-demand_low-renewables
+- high-demand_high-renewables
+
 scenario:
   clusters:
   - all

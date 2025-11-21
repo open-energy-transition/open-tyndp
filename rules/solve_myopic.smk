@@ -174,3 +174,29 @@ rule solve_sector_network_myopic:
         "../envs/environment.yaml"
     script:
         "../scripts/solve_network.py"
+
+
+rule prepare_uncertainty_scenarios:
+    message:
+        "Preparing different scenarios for uncertainty analysis."
+    params:
+        uncertainty_scenarios=config["uncertainty_scenarios"],
+    input:
+        network=RESULTS
+        + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+    output:
+        networks=[
+            resources(s)
+            for s in [
+                "networks/"
+                + uncertain_scenario
+                + "/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
+                for uncertain_scenario in config["uncertainty_scenarios"]
+            ]
+        ],
+    log:
+        logs(
+            "prepare_uncertainty_scenarios_base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
+        ),
+    script:
+        "../scripts/prepare_uncertainty_scenarios.py"
