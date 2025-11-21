@@ -1529,6 +1529,7 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
             countries=config_provider("countries"),
             offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
             extendable_carriers=config_provider("electricity", "extendable_carriers"),
+            sector=config_provider("sector"),
         input:
             nodes="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
             grid="data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx",
@@ -1665,6 +1666,8 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
+        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
+        scenario=config_provider("tyndp_scenario"),
     input:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
@@ -1827,6 +1830,7 @@ rule prepare_sector_network:
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
         gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
+        h2_demand=resources("h2_demand_tyndp_{planning_horizons}.csv"),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
