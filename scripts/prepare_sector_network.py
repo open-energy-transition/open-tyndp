@@ -163,7 +163,7 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
         spatial.gas.biogas_to_gas_cc = nodes + " biogas to gas CC"
         if options.get("gas_demand_exogenously"):
             # TODO Improve modelling of the spatially resolved option
-            spatial.gas.exo_demand = nodes + " gas for demand"
+            spatial.gas.exo_demand = nodes + " exogenous gas demand"
     else:
         spatial.gas.nodes = ["EU gas"]
         spatial.gas.locations = ["EU"]
@@ -179,7 +179,7 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
         else:
             spatial.gas.industry_cc = ["gas for industry CC"]
         if options.get("gas_demand_exogenously"):
-            spatial.gas.exo_demand = ["EU gas for demand"]
+            spatial.gas.exo_demand = ["EU exogenous gas demand"]
 
     spatial.gas.df = pd.DataFrame(vars(spatial.gas), index=nodes)
 
@@ -3407,7 +3407,7 @@ def attach_gas_load(
     """
     Attach exogenous gas demand to the network as Load with CO2 emissions tracking.
 
-    Creates 'gas for demand' buses, loads, and links that consume gas from
+    Creates 'exogenous gas demand' buses, loads, and links that consume gas from
     main gas buses and emit CO2 to atmosphere based on gas carbon intensity.
 
     Parameters
@@ -3430,15 +3430,19 @@ def attach_gas_load(
     gas_demand = pd.read_csv(gas_demand_fn, index_col=0) / nhours
 
     if options["gas_network"]:
-        spatial_gas_demand = gas_demand.rename(index=lambda x: x + " gas for demand")
+        spatial_gas_demand = gas_demand.rename(
+            index=lambda x: x + " exogenous gas demand"
+        )
     else:
-        spatial_gas_demand = gas_demand.sum().rename({"p_nom": "EU gas for demand"})
+        spatial_gas_demand = gas_demand.sum().rename(
+            {"p_nom": "EU exogenous gas demand"}
+        )
 
     n.add(
         "Bus",
         spatial.gas.exo_demand,
         location=spatial.gas.locations,
-        carrier="gas for demand",
+        carrier="exogenous gas demand",
         unit="MWh_LHV",
     )
 
@@ -3446,7 +3450,7 @@ def attach_gas_load(
         "Load",
         spatial.gas.exo_demand,
         bus=spatial.gas.exo_demand,
-        carrier="gas for demand",
+        carrier="exogenous gas demand",
         p_set=spatial_gas_demand,
     )
 
@@ -3456,7 +3460,7 @@ def attach_gas_load(
         bus0=spatial.gas.nodes,
         bus1=spatial.gas.exo_demand,
         bus2="co2 atmosphere",
-        carrier="gas for demand",
+        carrier="exogenous gas demand",
         p_nom=np.inf,
         efficiency=1.0,
         efficiency2=costs.at["gas", "CO2 intensity"],

@@ -23,7 +23,7 @@ benchmarking:
         AC_OH: electricity
         low voltage: electricity
         H2: hydrogen
-        gas for demand: methane
+        exogenous gas demand: methane
         oil: liquids
         kerosene for aviation: liquids
         shipping oil: liquids
@@ -63,7 +63,7 @@ benchmarking:
         OCGT: power generation
         SMR: smr
         SMR CC: smr
-        gas for demand: total (excl. SMR and power generation)
+        exogenous gas demand: total (excl. SMR and power generation)
 
     hydrogen_demand:
       table_type: scenario_comparison
