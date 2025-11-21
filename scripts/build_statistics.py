@@ -87,8 +87,11 @@ def compute_benchmark(
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
 
-    # Remove the last day of the year to have exactly 52 weeks
-    sws = remove_last_day(n.snapshot_weightings.generators)
+    # Optionally remove the last day of the year to have exactly 52 weeks
+    if options["remove_last_day"]:
+        sws = remove_last_day(n.snapshot_weightings.generators)
+    else:
+        sws = n.snapshot_weightings.generators
 
     if table == "final_energy_demand":
         # TODO Clarify what renewables encompass
