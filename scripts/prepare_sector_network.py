@@ -7530,8 +7530,7 @@ if __name__ == "__main__":
             opts="",
             clusters="all",
             sector_opts="",
-            planning_horizons="2030",
-            configfiles="config/config.tyndp-test.yaml",
+            planning_horizons="2050",
         )
 
     configure_logging(snakemake)  # pylint: disable=E0606
