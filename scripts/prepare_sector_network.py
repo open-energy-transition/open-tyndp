@@ -5978,10 +5978,11 @@ def add_industry(
                 )
 
     # TODO Link properly Industry to H2 topology
+    buses_h2 = spatial.buses_h2_z2 if options["h2_topology_tyndp"] else nodes_ind_h2
     n.add(
         "Link",
-        nodes + " Fischer-Tropsch",  # TODO Improve assumptions
-        bus0=nodes_ind_h2,  # TODO Improve assumptions
+        buses_h2 + " Fischer-Tropsch",  # TODO Improve assumptions
+        bus0=buses_h2,  # TODO Improve assumptions
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
         carrier="Fischer-Tropsch",
@@ -7530,7 +7531,7 @@ if __name__ == "__main__":
             opts="",
             clusters="all",
             sector_opts="",
-            planning_horizons="2050",
+            planning_horizons="2030",
         )
 
     configure_logging(snakemake)  # pylint: disable=E0606
