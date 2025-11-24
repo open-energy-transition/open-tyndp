@@ -130,12 +130,17 @@ def optimize_with_rolling_horizon(
     assert len(snapshots), "Need at least one snapshot to optimize"
 
     starting_points = range(0, len(snapshots), horizon - overlap)
-    for i, start in tqdm(enumerate(starting_points)):
+    for i, start in tqdm(enumerate(starting_points), total=len(starting_points)):
         end = min(len(snapshots), start + horizon)
         sns = snapshots[start:end]
-        logger.info(
-            f"Optimizing network for snapshot horizon [{sns[0]}:{sns[-1]}] ({i + 1}/{len(starting_points)})."
-        )
+
+        msg = f"Optimizing network for snapshot horizon [{sns[0]}:{sns[-1]}] ({i + 1}/{len(starting_points)})."
+        logger.info(msg)
+        if log_fn := kwargs.get("log_fn"):
+            with open(log_fn, "a") as f:
+                print(20 * "=", file=f)
+                print(msg, file=f)
+                print(20 * "=" + "\n", file=f)
 
         if i:
             if not n.stores.empty:
