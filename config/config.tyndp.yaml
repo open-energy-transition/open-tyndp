@@ -163,7 +163,7 @@ load:
   - 2030
   - 2040
   - 2050
-  manual_adjustments: false
+  manual_adjustments: true
   supplement_synthetic: false
 
 pypsa_eur:
@@ -251,7 +251,7 @@ sector:
   h2_topology_tyndp: true
   gas_network: false
   gas_demand_exogenously: true
-  biomass_to_liquid: true
+  biomass_to_liquid: false
   biomass_to_liquid_cc: true
   electrobiofuels: false
   transmission_efficiency:
@@ -297,6 +297,30 @@ clustering:
     remove_stubs: false
   temporal:
     resolution_sector: 6H
+
+adjustments:
+  electricity: false
+  sector:
+    factor:
+      Generator:
+        biogas:
+          p_nom:
+            2030: 1.82
+            2040: 2.51
+          e_sum_max:
+            2030: 1.82
+            2040: 2.51
+        # solid biomass:
+        #   p_nom:
+        #     2030: 1.36
+        #     2040: 1.32
+        #   e_sum_max:
+        #     2030: 1.36
+        #     2040: 1.32
+      Link:
+        electricity distribution grid:
+          capital_cost: 1.0
+    absolute: false
 
 plotting:
   balance_map:

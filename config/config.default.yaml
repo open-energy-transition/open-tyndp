@@ -1064,21 +1064,6 @@ adjustments:
   electricity: false
   sector:
     factor:
-      Generator:
-        biogas:
-          p_nom:
-            2030: 1.82
-            2040: 2.51
-          e_sum_max:
-            2030: 1.82
-            2040: 2.51
-        solid biomass:
-          p_nom:
-            2030: 1.36
-            2040: 1.32
-          e_sum_max:
-            2030: 1.36
-            2040: 1.32
       Link:
         electricity distribution grid:
           capital_cost: 1.0
