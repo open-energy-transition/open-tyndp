@@ -153,7 +153,7 @@ rule solve_cba_network:
     input:
         network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),
     output:
-        network=resources("cba/{cba_method}/postnetworks/{name}_{planning_horizons}.nc"),
+        network=RESULTS + "cba/{cba_method}/networks/{name}_{planning_horizons}.nc",
     log:
         solver=logs(
             "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_solver.log"
@@ -172,12 +172,9 @@ rule solve_cba_network:
 # compute all metrics for a single pint or toot project comparing reference and project solution
 rule make_indicators:
     input:
-        reference=resources(
-            "cba/{cba_method}/postnetworks/reference_{planning_horizons}.nc"
-        ),
-        project=resources(
-            "cba/{cba_method}/postnetworks/project_{cba_project}_{planning_horizons}.nc"
-        ),
+        reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
+        project=RESULTS
+        + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
@@ -190,12 +187,11 @@ def input_indicators(w):
     List all indicators csv
     """
     transmission_projects = pd.read_csv(
-        checkpoints.clean_projects.get(**w).output.transmission_projects
+        checkpoints.clean_projects.get(run=w.run).output.transmission_projects
     )
     storage_projects = pd.read_csv(
-        checkpoints.clean_projects.get(**w).output.storage_projects
+        checkpoints.clean_projects.get(run=w.run).output.storage_projects
     )
-    planning_horizons = config_provider("scenario", "planning_horizons")(w)
 
     cba_projects = [
         f"t{pid}" for pid in transmission_projects["project_id"].unique()
@@ -204,8 +200,6 @@ def input_indicators(w):
     return expand(
         rules.make_indicators.output.indicators,
         cba_project=cba_projects,
-        cba_method=["toot", "pint"],  # maybe promote to config
-        planning_horizons=planning_horizons,
         allow_missing=True,
     )
 
@@ -215,7 +209,7 @@ rule collect_indicators:
     input:
         indicators=input_indicators,
     output:
-        indicators=RESULTS + "cba/indicators.csv",
+        indicators=RESULTS + "cba/{cba_method}/indicators_{planning_horizons}.csv",
     script:
         "../../scripts/cba/collect_indicators.py"
 
@@ -225,5 +219,7 @@ rule cba:
     input:
         lambda w: expand(
             rules.collect_indicators.output.indicators,
+            cba_method=["toot", "pint"],
+            planning_horizons=config_provider("scenario", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
