@@ -8141,6 +8141,7 @@ if __name__ == "__main__":
         )
 
         if snakemake.params.tyndp_scenario == "NT" and snakemake.params.scale_hydro:
+            # TODO: remove once TYNDP hydro techs are included from PEMMDB
             ppl = load_and_aggregate_powerplants(
                 snakemake.input.powerplants,
                 costs,
