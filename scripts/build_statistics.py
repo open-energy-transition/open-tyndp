@@ -268,29 +268,40 @@ def compute_benchmark(
             .sum()
         )
     elif table == "energy_imports":
-        # TODO Cannot extract gas imports
+        # TODO Account for domestic production of gas, solid and liquid fossil fuels
         # TODO No biomass import is assumed
         grouper = ["carrier"]
-        df = (
+        df_countries = (
             n.statistics.supply(
-                comps=supply_comps,
-                bus_carrier=["H2", "oil", "coal", "lignite"],
+                comps="Link",
+                bus_carrier=["H2"],
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
-            .reindex(
-                [
-                    "coal",
-                    "lignite",
-                    "oil refining",
-                    "H2 import LH2",
-                    "H2 import Pipeline",
-                ]
+            .drop(
+                index=[
+                    "H2 Electrolysis",
+                    "H2 pipeline",
+                    "H2 pipeline OH",
+                    "SMR",
+                    "SMR CC",
+                ],
+                errors="ignore",
             )
         )
+
+        # Add EU level demands
+        df_eu = n.statistics.supply(
+            comps="Generator",
+            bus_carrier=["oil primary", "coal", "lignite", "gas"],
+            groupby=grouper,
+            aggregate_across_components=True,
+        ).loc[lambda s: ~s.index.isin(df_countries.index)]
+
+        df = pd.concat([df_countries, df_eu])
     elif table == "generation_profiles":
         if n.snapshots.year[0] == 2009:
             grouper = ["carrier"]
