@@ -147,6 +147,7 @@ rule prepare_pint_project:
 rule solve_cba_network:
     params:
         solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,

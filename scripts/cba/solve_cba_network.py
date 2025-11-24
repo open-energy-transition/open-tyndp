@@ -19,7 +19,6 @@ they apply to the dispatch.
 import importlib
 import logging
 import os
-import re
 import sys
 from collections.abc import Sequence
 from functools import partial
@@ -29,6 +28,7 @@ import numpy as np
 import pandas as pd
 import pypsa
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
+from snakemake.utils import update_config
 from tqdm.auto import tqdm
 
 from scripts._benchmark import memory_logger
@@ -244,14 +244,7 @@ def solve_network(
     n.config = config
     n.params = params
 
-    if m := re.match(r"(\d+)h", params.time_resolution, re.IGNORECASE):
-        nhours = int(m.group(1))
-    else:
-        raise ValueError(
-            f"time_resolution needs to be specified like 3h, but found: {params.time_resolution}"
-        )
-
-    kwargs["horizon"] = cf_solving.get("horizon", 24 * 7 // nhours)
+    kwargs["horizon"] = cf_solving.get("horizon", 24 * 7)
     kwargs["overlap"] = cf_solving.get("overlap", 0)
 
     status, condition = optimize_with_rolling_horizon(n, **kwargs)
@@ -281,23 +274,24 @@ if __name__ == "__main__":
             cba_method="toot",
             name="reference",
             planning_horizons="2030",
-            run="test-sector-tyndp",
-            configfiles=["config/test/config.tyndp.yaml"],
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
-    solve_opts = snakemake.params.solving["options"]
+    solving = snakemake.params.solving
+    update_config(solving, snakemake.params.cba_solving)
 
-    np.random.seed(solve_opts.get("seed", 123))
+    np.random.seed(solving["options"].get("seed", 123))
 
     n = pypsa.Network(snakemake.input.network)
     planning_horizons = snakemake.wildcards.get("planning_horizons", None)
 
     prepare_network(
         n,
-        solve_opts=snakemake.params.solving["options"],
+        solve_opts=solving["options"],
         foresight=snakemake.params.foresight,
         renewable_carriers=[],
         planning_horizons=planning_horizons,
@@ -305,9 +299,7 @@ if __name__ == "__main__":
         limit_max_growth=None,
     )
 
-    logging_frequency = snakemake.config.get("solving", {}).get(
-        "mem_logging_frequency", 30
-    )
+    logging_frequency = solving.get("mem_logging_frequency", 30)
     with memory_logger(
         filename=getattr(snakemake.log, "memory", None), interval=logging_frequency
     ) as mem:
@@ -315,7 +307,7 @@ if __name__ == "__main__":
             n,
             config=snakemake.config,
             params=snakemake.params,
-            solving=snakemake.params.solving,
+            solving=solving,
             planning_horizons=planning_horizons,
             log_fn=snakemake.log.solver,
         )
