@@ -39,6 +39,7 @@ from scripts.add_electricity import (
     attach_wind_and_solar,
     calculate_annuity,
     flatten,
+    load_and_aggregate_powerplants,
     sanitize_carriers,
     sanitize_locations,
 )
@@ -1859,6 +1860,61 @@ def add_existing_pemmdb_capacities(
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             nuclear_trajectories=nuclear_trajectories,
         )
+
+
+def _add_tyndp_scaling_factor(n, pemmdb_capacities, ppl, year):
+    """
+    Add a scaling factor to existing PyPSA hydro capacities to approximately match TYNDP input capacities.
+    """
+
+    # Compute scaling factors
+    #########################
+
+    # PyPSA hydro capacities
+    pypsa_hydro = (
+        ppl.query('carrier == "ror" or carrier == "PHS" or carrier == "hydro"')
+        .groupby(["country"])
+        .sum()
+        .p_nom.div(1e3)  # GW
+    )
+
+    # TYNDP hydro capacities
+    tyndp_hydro = (
+        pemmdb_capacities.query(
+            "carrier.str.contains('hydro') and index_carrier.str.contains('turbine') and unit == 'MW' and p_nom > 0"
+        )
+        .groupby("country")
+        .sum()[["p_nom"]]
+        .div(1e3)  # GW
+        .rename(columns={"p_nom": year})
+    )
+
+    # Calculate country-wise scaling factors
+    sf_hydro = pd.concat([tyndp_hydro, pypsa_hydro], axis=1).assign(
+        sf=lambda df: df[year] / df.p_nom,
+    )[["sf"]]
+
+    # Multiply capacities by scaling factor
+    #######################################
+
+    # ror
+    ror_i = n.generators.query("carrier.str.contains('ror')").index
+    caps_scaled = n.generators.loc[ror_i, "p_nom"] * n.generators.loc[ror_i, "bus"].str[
+        :2
+    ].map(sf_hydro.sf)
+    n.generators.loc[ror_i, "p_nom"] = caps_scaled
+    # PHS
+    phs_i = n.storage_units.query("carrier.str.contains('PHS')").index
+    caps_scaled = n.storage_units.loc[phs_i, "p_nom"] * n.storage_units.loc[
+        phs_i, "bus"
+    ].str[:2].map(sf_hydro.sf)
+    n.storage_units.loc[phs_i, "p_nom"] = caps_scaled
+    # hydro
+    hydro_i = n.storage_units.query("carrier.str.contains('hydro')").index
+    caps_scaled = n.storage_units.loc[hydro_i, "p_nom"] * n.storage_units.loc[
+        hydro_i, "bus"
+    ].str[:2].map(sf_hydro.sf)
+    n.storage_units.loc[hydro_i, "p_nom"] = caps_scaled
 
 
 def add_ammonia(
@@ -7943,7 +7999,7 @@ if __name__ == "__main__":
 
     options = snakemake.params.sector
     cf_industry = snakemake.params.industry
-    tyndp_scenario = snakemake.params.scenario
+    tyndp_scenario = snakemake.params.tyndp_scenario
 
     investment_year = int(snakemake.wildcards.planning_horizons)
 
@@ -8141,6 +8197,23 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
         )
+
+        if snakemake.params.tyndp_scenario == "NT" and snakemake.params.scale_hydro:
+            # TODO: remove once TYNDP hydro techs are included from PEMMDB
+            ppl = load_and_aggregate_powerplants(
+                snakemake.input.powerplants,
+                costs,
+                snakemake.params.consider_efficiency_classes,
+                snakemake.params.aggregation_strategies,
+                snakemake.params.exclude_carriers,
+            )
+
+            _add_tyndp_scaling_factor(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                ppl=ppl,
+                year=investment_year,
+            )
 
     if options["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_tyndp(
