@@ -290,9 +290,6 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
     planning_horizons = snakemake.wildcards.get("planning_horizons", None)
 
-    # should probably already have happened in simplify_cba_network, applying twice does not hurt, though
-    n.optimize.fix_optimal_capacities()
-
     prepare_network(
         n,
         solve_opts=snakemake.params.solving["options"],
