@@ -258,16 +258,16 @@ rule extract_uncertainty_results:
         networks=[
             RESULTS
             + uncertainty_scenario
-            + "/networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
+            + "/networks/base_s_{clusters}__{sector_opts}_{planning_horizons}.nc"
             for uncertainty_scenario in config["uncertainty_scenarios"]
         ],
     output:
         network=resources(
-            "uncertainty_scenarios/line_limits_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv"
+            "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
         ),
     log:
         logs(
-            "extract_uncertainty_results_base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
+            "extract_uncertainty_results_base_s_{clusters}__{sector_opts}_{planning_horizons}.log"
         ),
     script:
         "../scripts/extract_uncertainty_results.py"
@@ -286,29 +286,29 @@ rule solve_sector_network_myopic_line_limited:
         ),
     input:
         network=resources(
-            "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
+            "networks/base_s_{clusters}__{sector_opts}_{planning_horizons}_brownfield.nc"
         ),
         offshore_zone_trajectories=branch(
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
         ),
         line_limits=resources(
-            "uncertainty_scenarios/line_limits_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv"
+            "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
         ),
     output:
         network=RESULTS
-        + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_line_limited.nc",
+        + "networks/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.nc",
         config=RESULTS
-        + "configs/config.base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_line_limited.yaml",
+        + "configs/config.base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.yaml",
     shadow:
         shadow_config
     log:
         solver=RESULTS
-        + "logs/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_line_limited_solver.log",
+        + "logs/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}_solver.log",
         memory=RESULTS
-        + "logs/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_line_limited_memory.log",
+        + "logs/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}_memory.log",
         python=RESULTS
-        + "logs/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_line_limited_python.log",
+        + "logs/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}_python.log",
     threads: solver_threads
     resources:
         mem_mb=config_provider("solving", "mem_mb"),
@@ -316,8 +316,11 @@ rule solve_sector_network_myopic_line_limited:
     benchmark:
         (
             RESULTS
-            + "benchmarks/solve_sector_network_myopic_line_limited/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            + "benchmarks/solve_sector_network_myopic/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}"
         )
     script:
         "../scripts/solve_network.py"
 
+# Need to set the ruleorder to have the `opts=lluk` wildcard version be processed
+# by the correct rule, not the `rule solve_sector_network_myopic`.
+ruleorder: solve_sector_network_myopic_line_limited > solve_sector_network_myopic
