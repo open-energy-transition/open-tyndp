@@ -2492,7 +2492,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
     if options["hydrogen_fuel_cell"]:
         n.add(
             "Link",
-            nodes.index + f" {suffix} Fuel Cell",
+            nodes.index + f" {suffix} h2-fuel-cell",
             bus0=(nodes.country + f" {suffix}").values,
             bus1=nodes.index,
             p_nom_extendable=False,
