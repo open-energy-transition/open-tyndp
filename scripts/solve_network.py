@@ -478,8 +478,7 @@ def prepare_network(
         # TODO: retrieve color and nice name from config
         n.add("Carrier", "load", color="#dd2e23", nice_name="Load shedding")
         buses_i = n.buses.index
-        if not np.isscalar(load_shedding):
-            # TODO: do not scale via sign attribute (use Eur/MWh instead of Eur/kWh)
+        if isinstance(load_shedding, bool):
             load_shedding = 1e2  # Eur/kWh
 
         n.add(
