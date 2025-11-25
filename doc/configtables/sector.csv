@@ -3,7 +3,6 @@ transport,--,"{true, false}",Flag to include transport sector.
 heating,--,"{true, false}",Flag to include heating sector.
 biomass,--,"{true, false}",Flag to include biomass sector.
 industry,--,"{true, false}",Flag to include industry sector.
-use_industry_load,--,"{true, false}",Flag to include industry-specific electrical load.
 shipping,--,"{true, false}",Flag to include shipping sector.
 aviation,--,"{true, false}",Flag to include aviation sector.
 agriculture,--,"{true, false}",Flag to include agriculture sector.
@@ -191,6 +190,7 @@ transmission_efficiency,,,Section to specify transmission losses or compression 
 H2_network,--,"{true, false}",Add option for new hydrogen pipelines
 h2_topology_tyndp,--,"{true, false}",Add option to use TYNDP h2 topology
 gas_network,--,"{true, false}","Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm   <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_   can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well."
+gas_demand_exogenously,--,"{true, false}","Add exogenous methane demand from the TYNDP 2024."
 H2_retrofit,--,"{true, false}",Add option for retrofiting existing pipelines to transport hydrogen.
 H2_retrofit_capacity _per_CH4,--,float,"The ratio for H2 capacity per original CH4 capacity of retrofitted pipelines. The `European Hydrogen Backbone (April, 2020) p.15 <https://gasforclimate2050.eu/wp-content/uploads/2020/07/2020_European-Hydrogen-Backbone_Report.pdf>`_ 60% of original natural gas capacity could be used in cost-optimal case as H2 capacity."
 "gas_network_connectivity _upgrade ",--,float,The number of desired edge connectivity (k) in the length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ used for the gas network

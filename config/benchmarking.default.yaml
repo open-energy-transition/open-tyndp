@@ -4,6 +4,7 @@
 
 benchmarking:
   enable: false
+  remove_last_day: true
 
   tables:
     final_energy_demand:
@@ -21,13 +22,14 @@ benchmarking:
       mapping:
         AC: electricity
         AC_OH: electricity
-        H2: hydrogen
-        gas: methane
         low voltage: electricity
+        H2: hydrogen
+        exogenous gas demand: methane
         oil: liquids
+        kerosene for aviation: liquids
+        shipping oil: liquids
+        land transport oil: liquids
         coal: solids
-        naphtha for industry: liquids
-        solid biomass for industry: biofuels
 
     elec_demand:
       table_type: scenario_comparison
@@ -46,23 +48,27 @@ benchmarking:
 
     methane_demand:
       table_type: scenario_comparison
-      sheet_name: 53-
+      sheet_name: 8-
       unit: TWh
-      index_col: [2, 3]
-      header: 4
+      index_col: 2
+      header: [4, 5]
+      nrows: 15
       names:
         index:
-        - year
-        - scenario
-        column:
         - carrier
+        column:
+        - scenario
+        - year
       mapping:
-        CCGT: transformation input
-        OCGT: transformation input
-        SMR: transformation input
-        SMR CC: transformation input
-        gas for industry: industry
-        gas for industry CC: industry
+        CCGT: power generation
+        OCGT: power generation
+        gas-ccgt: power generation
+        gas-ccgt-ccs: power generation
+        gas-ocgt: power generation
+        gas-conv: power generation
+        SMR: smr
+        SMR CC: smr
+        exogenous gas demand: total (excl. SMR and power generation)
 
     hydrogen_demand:
       table_type: scenario_comparison
@@ -80,6 +86,8 @@ benchmarking:
         Fischer-Tropsch: e-fuels production
         H2 for industry: industry
         H2 turbine: electricity generation and heat production
+        h2-ccgt: electricity generation and heat production
+        h2-fuel-cell: electricity generation and heat production
         Sabatier: e-fuels production
         methanolisation: e-fuels production
         H2 for shipping: international shipping
@@ -110,11 +118,19 @@ benchmarking:
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
-        H2 turbine: hydrogen
+        h2-ccgt: hydrogen
+        h2-fuel-cell: hydrogen
         coal: coal + other fossil
+        coal+ccs: coal + other fossil
         lignite: coal + other fossil
-        CCGT: methane
-        OCGT: methane
+        lignite+ccs: coal + other fossil
+        oil-heavy: oil
+        oil-light: oil
+        oil-shale: oil
+        gas-ccgt: methane
+        gas-ccgt-ccs: methane
+        gas-ocgt: methane
+        gas-conv: methane
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: chp and small thermal
@@ -146,11 +162,19 @@ benchmarking:
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
-        H2 turbine: hydrogen
+        h2-ccgt: hydrogen
+        h2-fuel-cell: hydrogen
         coal: coal + other fossil
+        coal+ccs: coal + other fossil
         lignite: coal + other fossil
-        CCGT: methane
-        OCGT: methane
+        lignite+ccs: coal + other fossil
+        oil-heavy: oil
+        oil-light: oil
+        oil-shale: oil
+        gas-ccgt: methane
+        gas-ccgt-ccs: methane
+        gas-ocgt: methane
+        gas-conv: methane
         urban central solid biomass CHP: other non-res
         ror: hydro (exc. pump storage)
         hydro: hydro (exc. pump storage)
@@ -227,7 +251,8 @@ benchmarking:
         H2 import Pipeline: hydrogen
         coal: solids
         lignite: solids
-        oil refining: liquids
+        oil primary: liquids
+        gas: methane
 
     generation_profiles:
       table_type: time_series
@@ -252,12 +277,20 @@ benchmarking:
         onwind: onshore wind
         solar-pv-rooftop: solar
         solar-pv-utility: solar
-        H2 turbine: methane&hydrogen
-        CCGT: methane&hydrogen
-        OCGT: methane&hydrogen
+        h2-ccgt: methane&hydrogen
+        h2-fuel-cell: methane&hydrogen
+        gas-ccgt: methane&hydrogen
+        gas-ccgt-ccs: methane&hydrogen
+        gas-ocgt: methane&hydrogen
+        gas-conv: methane&hydrogen
         coal: coal&lignite&oil
+        coal+ccs: coal&lignite&oil
         lignite: coal&lignite&oil
+        lignite+ccs: coal&lignite&oil
         oil: coal&lignite&oil
+        oil-heavy: coal&lignite&oil
+        oil-light: coal&lignite&oil
+        oil-shale: coal&lignite&oil
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: other res
