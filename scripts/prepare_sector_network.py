@@ -520,6 +520,9 @@ def create_h2_topology_tyndp(n, fn_h2_network, options):
         Network to create H2 topology for
     fn_h2_network : str
         Pointing to the input TYNDP H2 reference grid csv file
+    options : dict
+        Dictionary of configuration options. Key options include:
+        - h2_zones_tyndp : bool
 
     Returns
     -------
@@ -2283,8 +2286,8 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
         The PyPSA network container object
     nodes : pd.Index
         Pandas Index of electricity node locations/nodes
-    buses_h2_z1 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z1 buses
+    buses_h2 : pd.Index
+        Pandas Index of hydrogen nodes to which H2 production technologies will connect
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
@@ -2449,8 +2452,8 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`
     nodes : pd.Index
         Pandas Index of electricity node locations/nodes
-    buses_h2_z2 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z2 buses
+    buses_h2 : pd.Index
+        Pandas Index of hydrogen nodes to which H2 reconversion technologies will connect
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
@@ -2538,6 +2541,9 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, options):
         Path to CSV file containing prepped H2 interzonal connection data
     costs : pd.DataFrame
         Technology cost assumptions
+    options : dict
+        Dictionary of configuration options. Key options include:
+        - h2_zones_tyndp : bool
 
     Returns
     -------
@@ -2723,6 +2729,8 @@ def add_h2_topology_tyndp(
         Technology cost assumptions
     options : dict, optional
        Dictionary of configuration options. Defaults to empty dict if not provided.
+    h2_demand_file : str
+        Path to CSV file containing exogenous hydrogen demand time series
 
 
     Returns
@@ -2808,6 +2816,13 @@ def add_h2_topology_tyndp(
 def add_h2_demand_tyndp(n, h2_demand_file):
     """
     Add exogenous TYNDP hydrogen demand to the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    h2_demand_file : str
+        Path to CSV file containing exogenous hydrogen demand time series
     """
     logger.info("Add exogenous hydrogen demand to network")
 
@@ -3404,6 +3419,10 @@ def add_gas_and_h2_infrastructure(
         - SMR : bool
         - cc_fraction : float
         - methanation : bool
+    tyndp_scenario : str
+        TYNDP scenario name to determine whether to use TYNDP H2 topology
+    h2_demand_file : str
+        Path to CSV file containing exogenous hydrogen demand data
 
     Returns
     -------
@@ -6200,6 +6219,8 @@ def add_industry(
         Industry-specific configuration parameters
     investment_year : int
         Year for which investment costs should be considered
+    tyndp_scenario : str
+        TYNDP scenario name for scenario-specific adjustments
     HeatSystem : Enum
         Enumeration defining different heat system types
 
@@ -7845,6 +7866,8 @@ def add_import_options(
         Locations of gas input nodes split by LNG and pipeline.
     h2_imports_tyndp_fn: str,
         Path to file containing H2 import potentials, maximum capacity, offer quantity and marginal cost from TYNDP input data
+    tyndp_scenario : str
+        TYNDP scenario name to be used for H2 imports.
     """
 
     import_config = options["imports"]
