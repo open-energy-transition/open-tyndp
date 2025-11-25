@@ -35,6 +35,24 @@ from scripts.add_electricity import calculate_annuity
 
 logger = logging.getLogger(__name__)
 
+CCS_CONFIGS = {
+    "gas-ccgt-ccs": {
+        "base_tech": "gas-ccgt-new",
+        "capture_tech": "cement capture",
+        "fuel": "gas",
+    },
+    "coal-ccs": {
+        "base_tech": "coal",
+        "capture_tech": "biomass CHP capture",
+        "fuel": "coal",
+    },
+    "lignite-ccs": {
+        "base_tech": "lignite",
+        "capture_tech": "biomass CHP capture",
+        "fuel": "lignite",
+    },
+}
+
 
 def overwrite_costs(costs: pd.DataFrame, custom_costs: pd.DataFrame) -> pd.DataFrame:
     """
@@ -226,6 +244,81 @@ def prepare_costs(
     return costs
 
 
+def update_costs_tyndp(
+    costs: pd.DataFrame,
+    carrier_mapping_fn: str,
+    group_tyndp_conventionals: bool,
+    ccs_configs: dict[str, dict],
+) -> pd.DataFrame:
+    """
+    Update technology and cost assumptions for TYNDP technologies based on TYNDP to PyPSA-Eur default carrier mapping.
+
+    Parameters
+    ----------
+    costs : pd.DataFrame
+        Cost assumptions DataFrame
+    carrier_mapping_fn : str
+        Path to file with mapping of TYNDP carriers to default PyPSA-Eur carriers.
+    group_tyndp_conventionals : bool
+        Whether TYNDP technologies are grouped.
+    ccs_configs : dict[str, dict]
+        Dictionary mapping each ccs technology to its associated base technology, capture technology and fuel
+
+    Returns
+    -------
+    costs : pd.DataFrame
+        Updated cost assumptions DataFrame
+    """
+
+    carrier_col = "open_tyndp_index"
+    if group_tyndp_conventionals:
+        carrier_col = "open_tyndp_type"
+        ccs_configs["gas-ccgt-ccs"]["base_tech"] = "gas-ccgt"
+
+    tyndp_techs = (
+        pd.read_csv(carrier_mapping_fn)
+        .set_index(carrier_col)
+        .pypsa_eur_carrier.dropna()
+        .to_dict()
+    )
+
+    for tyndp_tech, pypsa_tech in tyndp_techs.items():
+        costs.loc[tyndp_tech] = costs.loc[pypsa_tech]
+
+        # Update capital and marginal cost as fixed cost and VOM are given per MWel
+        costs.loc[tyndp_tech, "capital_cost"] = (
+            costs.at[tyndp_tech, "efficiency"] * costs.at[tyndp_tech, "capital_cost"]
+        )
+        costs.loc[tyndp_tech, "marginal_cost"] = (
+            costs.at[tyndp_tech, "efficiency"] * costs.at[tyndp_tech, "VOM"]
+        )
+
+    # Add CCS techs with capture technology assumptions
+    for ccs_tech, ccs_map in ccs_configs.items():
+        # Add CCS assumptions as intermediate copy since there is no direct mapping atm
+        costs.loc[ccs_tech] = costs.loc[ccs_map["base_tech"]]
+
+        # Update capital cost with cost component for capture
+        costs.loc[ccs_tech, "capital_cost"] = (
+            costs.at[ccs_map["base_tech"], "capital_cost"]
+            + costs.at[ccs_map["capture_tech"], "capital_cost"]
+            * costs.at[ccs_map["fuel"], "CO2 intensity"]
+        )
+
+        # Remaining CO2 intensity after capture
+        costs.loc[ccs_tech, "CO2 intensity"] = costs.at[
+            ccs_map["fuel"], "CO2 intensity"
+        ] * (1 - costs.at[ccs_map["capture_tech"], "capture_rate"])
+
+        # Amount of CO2 captured
+        costs.loc[ccs_tech, "CO2 capture"] = (
+            costs.at[ccs_map["fuel"], "CO2 intensity"]
+            * costs.at[ccs_map["capture_tech"], "capture_rate"]
+        )
+
+    return costs
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -248,6 +341,14 @@ if __name__ == "__main__":
         snakemake.params.max_hours,
         nyears,
         snakemake.input.custom_costs,
+    )
+
+    # TODO: update costs via overwrite csv with actual tech assumptions, this currently serves as a placeholder
+    costs_processed = update_costs_tyndp(
+        costs=costs_processed,
+        carrier_mapping_fn=snakemake.input.carrier_mapping,
+        group_tyndp_conventionals=snakemake.params.group_tyndp_conventionals,
+        ccs_configs=CCS_CONFIGS,
     )
 
     costs_processed.to_csv(snakemake.output[0])

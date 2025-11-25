@@ -30,4 +30,4 @@ Closes # (if applicable).
 - [ ] New rules are documented in the appropriate `doc/*.rst` files.
 - [ ] A release note `doc/release_notes.rst` is added.
 - [ ] Major features are documented with up-to-date information in `README` and `doc/index.rst`.
-- [ ] For any new/added Python scripts: Module docstring is added describing what the script does, its input data, and its output data.
+- [ ] Module docstrings added to new Python scripts.

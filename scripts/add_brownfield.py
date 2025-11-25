@@ -16,6 +16,7 @@ import xarray as xr
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    get_tyndp_conventional_thermals,
     sanitize_custom_columns,
     set_scenario_config,
     update_config_from_wildcards,
@@ -146,7 +147,7 @@ def add_brownfield(
         existing_large = remaining_potential[remaining_potential < 0].index
         if len(existing_large):
             logger.warning(
-                f"Existing capacities larger than TYNPD 2024 trajectories for {list(existing_large[:3])}, adjusting technical potential to existing capacities"
+                f"Existing capacities larger than TYNDP 2024 trajectories for {list(existing_large)}, adjusting technical potential to existing capacities"
             )
             remaining_potential = remaining_potential.clip(0)
         n.generators.loc[onwind_solar_i, "p_nom_min"] = remaining_min
@@ -443,6 +444,36 @@ def update_dynamic_ptes_capacity(
     ].values
 
 
+def remove_tyndp_conventionals_p(
+    n_p: pypsa.Network,
+    tyndp_conventional_thermals: list[str],
+):
+    """
+    Remove TYNDP conventional capacities from previous planning horizon network
+    as existing conventional capacities are given as cumulative input.
+
+    Parameters
+    ----------
+    n_p : pypsa.Network
+        The network with the updated parameters from the previous planning horizon.
+    tyndp_conventional_thermals : list[str]
+        List of TYNDP conventional thermal technologies to remove capacities for.
+
+    Returns
+    -------
+    None
+        This function updates the network in place and does not return a value.
+    """
+    logger.info(
+        "Remove cumulative TYNDP conventional capacities from previous planning horizon "
+        "and replace with cumulative capacities from new planning horizon."
+    )
+
+    for tech in tyndp_conventional_thermals:
+        tech_i = n_p.links.query("carrier == @tech").index
+        n_p.remove("Link", tech_i)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -476,6 +507,24 @@ if __name__ == "__main__":
 
     if snakemake.params.tes and snakemake.params.dynamic_ptes_capacity:
         update_dynamic_ptes_capacity(n, n_p, year)
+
+    tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
+        "open_tyndp_index"
+    )
+    # Get list of conventional thermal technologies
+    _, tyndp_conventional_thermals = get_tyndp_conventional_thermals(
+        mapping=tyndp_carrier_mapping,
+        tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
+        group_conventionals=snakemake.params.group_tyndp_conventionals,
+        include_h2_fuel_cell=snakemake.params.hydrogen_fuel_cell,
+        include_h2_turbine=snakemake.params.hydrogen_turbine,
+    )
+
+    # Drop fixed TYNDP conventional capacities from previous year as TYNDP capacities are given as cumulative input
+    remove_tyndp_conventionals_p(
+        n_p=n_p,
+        tyndp_conventional_thermals=tyndp_conventional_thermals,
+    )
 
     add_brownfield(
         n,
