@@ -2843,7 +2843,7 @@ def add_h2_demand_tyndp(n, h2_demand_file):
         demand.columns,
         suffix=" exogenous demand",
         bus=demand.columns,
-        carrier="H2",
+        carrier="H2 exogenous demand",
         p_set=demand,
     )
 
