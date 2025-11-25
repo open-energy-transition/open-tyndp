@@ -73,6 +73,7 @@ def load_offshore_grid(
     planning_horizons: list[int],
     countries: list[str],
     max_capacity: dict[str, int],
+    h2_zones_tyndp: bool,
 ):
     """
     Load offshore grid (electricity and hydrogen) and format data.
@@ -91,6 +92,8 @@ def load_offshore_grid(
         List of country codes used to clean data.
     max_capacity : dict[str, int]
         Maximum transmission capacity between two offshore hubs per carrier
+    h2_zones_tyndp : bool
+        Whether to use TYNDP hydrogen zones splitting.
 
     Returns
     -------
@@ -148,7 +151,7 @@ def load_offshore_grid(
         p_max_pu=1,
     )
 
-    suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
+    suffix = "H2 Z1" if h2_zones_tyndp else "H2"
     # Filter out radial nodes and Convert to explicit hydrogen buses
     grid = grid.query("~bus0.str.contains('OR') and ~bus1.str.contains('OR')").assign(
         bus0=lambda df: np.where(
@@ -206,7 +209,7 @@ def load_offshore_electrolysers(
     scenario: str,
     planning_horizons: list[int],
     countries: list[str],
-    options: dict,
+    h2_zones_tyndp: bool,
 ):
     """
     Load offshore electrolysers data and format data.
@@ -223,6 +226,8 @@ def load_offshore_electrolysers(
         List of planning years to include in the cost data filtering.
     countries : list[str]
         List of country codes used to clean data.
+    h2_zones_tyndp : bool
+        Whether to use TYNDP hydrogen zones splitting.
 
     Returns
     -------
@@ -252,7 +257,7 @@ def load_offshore_electrolysers(
         .drop(columns="OFFSHORE_NODE")
     )
 
-    suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
+    suffix = "H2 Z1" if h2_zones_tyndp else "H2"
     mask = electrolysers["type"] == "Radial"
     electrolysers.loc[mask, "bus1"] = electrolysers.loc[mask, "country"] + f" {suffix}"
 
@@ -550,7 +555,7 @@ if __name__ == "__main__":
     planning_horizons = snakemake.params["planning_horizons"]
     countries = snakemake.params["countries"]
     extendable_carriers = snakemake.params["extendable_carriers"]
-    options = snakemake.params.sector
+    h2_zones_tyndp = snakemake.params.h2_zones_tyndp
 
     nodes = load_offshore_hubs(snakemake.input.nodes)
 
@@ -560,6 +565,7 @@ if __name__ == "__main__":
         planning_horizons,
         countries,
         snakemake.params["offshore_hubs_tyndp"]["max_capacity"],
+        h2_zones_tyndp,
     )
 
     electrolysers = load_offshore_electrolysers(
@@ -567,7 +573,7 @@ if __name__ == "__main__":
         snakemake.params["scenario"],
         planning_horizons,
         countries,
-        options,
+        h2_zones_tyndp,
     )
 
     generators, zone_trajectories = load_offshore_generators(

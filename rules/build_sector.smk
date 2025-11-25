@@ -1529,7 +1529,7 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
             countries=config_provider("countries"),
             offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
             extendable_carriers=config_provider("electricity", "extendable_carriers"),
-            sector=config_provider("sector"),
+            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
         input:
             nodes="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
             grid="data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx",
