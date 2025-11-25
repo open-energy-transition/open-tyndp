@@ -165,7 +165,7 @@ rule solve_cba_network:
         python=logs(
             "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_python.log"
         ),
-    threads: solver_threads
+    threads: 1
     script:
         "../../scripts/cba/solve_cba_network.py"
 

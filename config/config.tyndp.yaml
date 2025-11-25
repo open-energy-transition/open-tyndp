@@ -324,6 +324,7 @@ cba:
     options:
       horizon: 168
       overlap: 0
+      load_shedding: true
 
     solver:
       name: highs
@@ -331,4 +332,4 @@ cba:
 
     solver_options:
       highs-simplex:
-        parallel: off # does not speed up solution
+        parallel: "off" # does not speed up solution
