@@ -1887,11 +1887,17 @@ def _add_tyndp_scaling_factor(n, pemmdb_capacities, ppl, year):
     ].str[:2].map(sf_hydro.sf)
     n.storage_units.loc[phs_i, "p_nom"] = caps_scaled
     # hydro
+    # Scale capacities
     hydro_i = n.storage_units.query("carrier.str.contains('hydro')").index
     caps_scaled = n.storage_units.loc[hydro_i, "p_nom"] * n.storage_units.loc[
         hydro_i, "bus"
     ].str[:2].map(sf_hydro.sf)
     n.storage_units.loc[hydro_i, "p_nom"] = caps_scaled
+    # Scale inflows
+    inflow_scaled = n.storage_units_t.inflow.loc[:, hydro_i] * n.storage_units.loc[
+        hydro_i, "bus"
+    ].str[:2].map(sf_hydro.sf)
+    n.storage_units_t.inflow.loc[:, hydro_i] = inflow_scaled
 
 
 def add_ammonia(
