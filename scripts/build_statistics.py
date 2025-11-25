@@ -123,7 +123,24 @@ def compute_benchmark(
             .loc[lambda s: ~s.index.isin(df_countries.index)]
         )
 
-        df = pd.concat([df_countries, df_eu])
+        # Add Biomass to Liquid
+        df_btl = (
+            n.statistics.energy_balance(
+                comps="Link",
+                carrier="biomass to liquid",
+                bus_carrier="oil",
+                groupby=["bus0", "carrier"],
+                aggregate_across_components=True,
+                aggregate_time=False,
+            )
+            .mul(sws, axis=1)
+            .sum(axis=1)
+            .reindex(eu27_idx, level="bus0")
+            .groupby(level="carrier")
+            .sum()
+        )
+
+        df = pd.concat([df_countries, df_eu, df_btl])
     elif table == "elec_demand":
         grouper = ["carrier"]
         df = (
@@ -341,7 +358,14 @@ def compute_benchmark(
 
     df = (
         df.reset_index()
-        .rename(columns={"bus_carrier": "carrier", 0: "value", "objective": "value"})
+        .rename(
+            columns={
+                "bus_carrier": "carrier",
+                "index": "carrier",
+                0: "value",
+                "objective": "value",
+            }
+        )
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
     grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]

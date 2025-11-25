@@ -250,6 +250,11 @@ def load_benchmark(
         )
         df_group = df_converted[df_converted.carrier.isin(group)]
         df_converted = pd.concat([df_group, df_other], ignore_index=True)
+    # Remove carriers not explicitly modeled
+    elif table == "final_energy_demand":
+        df_converted = df_converted[
+            ~df_converted.carrier.isin(["total", "heat", "solids"])
+        ]
     # Remove aggregated values
     else:
         df_converted = df_converted[
