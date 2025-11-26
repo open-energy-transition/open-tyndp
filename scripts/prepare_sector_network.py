@@ -5474,7 +5474,7 @@ def add_biomass(
         carrier="solid biomass",
         p_nom=solid_biomass_potentials_spatial,
         marginal_cost=costs.at["solid biomass", "fuel"],
-        e_sum_min=0,
+        e_sum_min=solid_biomass_potentials_spatial,
         e_sum_max=solid_biomass_potentials_spatial,
     )
 
