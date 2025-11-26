@@ -25,6 +25,8 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    h2_zones_tyndp: true
 
 GA:
   tyndp_scenario: GA
@@ -44,3 +46,5 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    h2_zones_tyndp: true
