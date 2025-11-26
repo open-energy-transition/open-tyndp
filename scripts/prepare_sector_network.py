@@ -5478,6 +5478,19 @@ def add_biomass(
         e_sum_max=solid_biomass_potentials_spatial,
     )
 
+    if options["biomass_final_demand"]:
+        logger.info("Adding final energy demand for biomass.")
+        # convert from TWh to MWh
+        p_set = get(options["biomass_final_demand"], investment_year) / nhours * 1e6
+        n.add(
+            "Load",
+            spatial.biomass.nodes,
+            suffix=" final energy demand",
+            bus=spatial.biomass.nodes,
+            carrier="biomass final energy demand",
+            p_set=p_set,
+        )
+
     if options["solid_biomass_import"].get("enable", False):
         biomass_import_price = options["solid_biomass_import"]["price"]
         # convert TWh in MWh
@@ -7879,6 +7892,7 @@ def add_import_options(
             )
 
 
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake

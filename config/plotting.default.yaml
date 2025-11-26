@@ -386,6 +386,7 @@ plotting:
     solid biomass import: '#d5ca8d'
     solid biomass transport: '#baa741'
     solid biomass for industry: '#7a6d26'
+    biomass final energy demand: '#7a6d26'
     solid biomass for industry CC: '#47411c'
     solid biomass for industry co2 from atmosphere: '#736412'
     solid biomass for industry co2 to stored: '#47411c'
