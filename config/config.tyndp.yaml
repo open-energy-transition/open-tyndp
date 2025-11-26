@@ -310,6 +310,9 @@ adjustments:
           e_sum_max:
             2030: 1.82
             2040: 2.51
+          e_sum_min:
+            2030: 1.82
+            2040: 2.51
         # solid biomass:
         #   p_nom:
         #     2030: 1.36
