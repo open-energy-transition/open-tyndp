@@ -138,6 +138,7 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus0")
             .groupby(level="carrier")
             .sum()
+            .rename_axis("bus_carrier")
         )
 
         df = pd.concat([df_countries, df_eu, df_btl])
@@ -361,7 +362,6 @@ def compute_benchmark(
         .rename(
             columns={
                 "bus_carrier": "carrier",
-                "index": "carrier",
                 0: "value",
                 "objective": "value",
             }
