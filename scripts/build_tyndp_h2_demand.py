@@ -237,6 +237,7 @@ def align_demand_to_snapshots(demand, snapshots):
     return demand.reindex(snapshots)
 
 
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -258,18 +259,22 @@ if __name__ == "__main__":
     cyear = snapshots[0].year
     fn = snakemake.input.h2_demand
 
-    # Check if climatic year is valid for scenario
-    cyear = check_cyear(cyear, scenario)
+    if scenario not in ["DE", "GA", "NT"]:
+        demand = pd.Series()
 
-    # Load demand with interpolation
-    logger.info(
-        f"Processing H2 demand for scenario: {scenario}, "
-        f"target year: {pyear}, climate year: {cyear}"
-    )
-    demand = load_h2_demand(fn, scenario, pyear, cyear)
+    else:
+        # Check if climatic year is valid for scenario
+        cyear = check_cyear(cyear, scenario)
 
-    # Reindex demand to fit to snapshots
-    demand = align_demand_to_snapshots(demand, snapshots)
+        # Load demand with interpolation
+        logger.info(
+            f"Processing H2 demand for scenario: {scenario}, "
+            f"target year: {pyear}, climate year: {cyear}"
+        )
+        demand = load_h2_demand(fn, scenario, pyear, cyear)
+
+        # Reindex demand to fit to snapshots
+        demand = align_demand_to_snapshots(demand, snapshots)
 
     # Export to CSV
     demand.to_csv(snakemake.output.h2_demand, index=True)
