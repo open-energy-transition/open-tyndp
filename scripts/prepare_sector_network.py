@@ -6469,9 +6469,10 @@ def add_industry(
 
     # TODO Link properly Industry to H2 topology
     buses_h2 = spatial.buses_h2_z2 if options["h2_topology_tyndp"] else nodes_ind_h2
+    ft_name = buses_h2.str.replace(" H2 Z2", "").str.replace(" H2", "")
     n.add(
         "Link",
-        buses_h2 + " Fischer-Tropsch",  # TODO Improve assumptions
+        ft_name + " Fischer-Tropsch",  # TODO Improve assumptions
         bus0=buses_h2,  # TODO Improve assumptions
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
