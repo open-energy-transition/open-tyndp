@@ -352,9 +352,6 @@ adjustments:
             2030: 1.47
             2035: 1.40
             2040: 1.33
-      Link:
-        electricity distribution grid:
-          capital_cost: 1.0
     absolute: false
 
 plotting:
