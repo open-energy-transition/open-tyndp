@@ -163,7 +163,7 @@ load:
   - 2030
   - 2040
   - 2050
-  manual_adjustments: true
+  manual_adjustments: false
   supplement_synthetic: false
 
 pypsa_eur:
