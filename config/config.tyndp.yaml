@@ -310,24 +310,24 @@ adjustments:
       Generator:
         biogas:
           p_nom:
-            2030: 1.82
-            2040: 2.51
+            2030: 1.26  # EU27 biogas potential: PyPSA-Eur 301 TWh vs TYNDP 379 TWh
+            2040: 2.51  # EU27 biogas potential: PyPSA-Eur 306 TWh vs TYNDP 767 TWh
           e_sum_max:
-            2030: 1.82
+            2030: 1.26
             2040: 2.51
           e_sum_min:
-            2030: 1.82
+            2030: 1.26
             2040: 2.51
         solid biomass:
           p_nom:
-            2030: 1.36
-            2040: 1.32
+            2030: 1.47 # EU27 biomass potential: PyPSA-Eur 974 TWh vs TYNDP 1431 TWh
+            2040: 1.33 # EU27 biomass potential: PyPSA-Eur 950 TWh vs TYNDP 1261 TWh
           e_sum_max:
-            2030: 1.36
-            2040: 1.32
+            2030: 1.47
+            2040: 1.33
           e_sum_min:
-            2030: 1.36
-            2040: 1.32
+            2030: 1.47
+            2040: 1.33
       Link:
         electricity distribution grid:
           capital_cost: 1.0
