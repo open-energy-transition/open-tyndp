@@ -225,7 +225,7 @@ def compute_benchmark(
         grouper = ["carrier"]
         df = (
             n.statistics.supply(
-                comps=supply_comps,
+                comps=supply_comps + ["StorageUnit"],
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
@@ -240,7 +240,11 @@ def compute_benchmark(
                     "electricity distribution grid",
                     "battery discharger",
                     "home battery discharger",
-                ]
+                    "PHS",
+                    "hydro-phs",  # TODO: double check when correct hydro techs are added
+                    "hydro-phs-pure",
+                ],
+                errors="ignore",
             )
         )
     elif table == "methane_supply":
