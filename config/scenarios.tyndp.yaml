@@ -23,6 +23,9 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    force_biomass_potential: false
+    force_biogas_potential: false
 
 GA:
   tyndp_scenario: GA
@@ -42,3 +45,6 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    force_biomass_potential: false
+    force_biogas_potential: false

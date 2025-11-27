@@ -5462,6 +5462,8 @@ def add_biomass(
         unit="MWh_LHV",
     )
 
+    e_sum_min = biogas_potentials_spatial if options["force_biomass_potential"] else 0
+
     n.add(
         "Generator",
         spatial.gas.biogas,
@@ -5469,8 +5471,12 @@ def add_biomass(
         carrier="biogas",
         p_nom=biogas_potentials_spatial,
         marginal_cost=costs.at["biogas", "fuel"],
-        e_sum_min=biogas_potentials_spatial,
+        e_sum_min=e_sum_min,
         e_sum_max=biogas_potentials_spatial,
+    )
+
+    e_sum_min = (
+        solid_biomass_potentials_spatial if options["force_biomass_potential"] else 0
     )
 
     n.add(
@@ -5480,7 +5486,7 @@ def add_biomass(
         carrier="solid biomass",
         p_nom=solid_biomass_potentials_spatial,
         marginal_cost=costs.at["solid biomass", "fuel"],
-        e_sum_min=solid_biomass_potentials_spatial,
+        e_sum_min=e_sum_min,
         e_sum_max=solid_biomass_potentials_spatial,
     )
 

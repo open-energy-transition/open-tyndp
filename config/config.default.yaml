@@ -864,6 +864,8 @@ sector:
   biomass_final_demand: false
   biomass_to_liquid: false
   biomass_to_liquid_cc: true
+  force_biomass_potential: true
+  force_biogas_potential: true
   electrobiofuels: true
   biosng: false
   biosng_cc: false
