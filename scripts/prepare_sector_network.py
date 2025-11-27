@@ -5490,7 +5490,7 @@ def add_biomass(
         e_sum_max=solid_biomass_potentials_spatial,
     )
 
-    if options["biomass_final_demand"]:
+    if options["biomass_final_demand"] and not options["biomass_spatial"]:
         logger.info("Adding final energy demand for biomass.")
         # convert from TWh to MWh
         p_set = get(options["biomass_final_demand"], investment_year) / nhours * 1e6
