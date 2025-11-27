@@ -5306,6 +5306,8 @@ def add_biomass(
     cf_industry,
     pop_layout,
     biomass_potentials_file,
+    nhours,
+    investment_year,
     biomass_transport_costs_file=None,
     nyears=1,
 ):
@@ -5341,6 +5343,10 @@ def add_biomass(
     biomass_transport_costs_file : str, optional
         Path to CSV file containing biomass transport costs data.
         Required if biomass_transport or biomass_spatial options are True.
+    nhours : int
+        Number of hours in the simulation period
+    investment_year : int
+        Year for which investment costs should be considered
     nyears : float
         Number of years for which to scale the biomass potentials.
 
@@ -8193,6 +8199,8 @@ if __name__ == "__main__":
             cf_industry=cf_industry,
             pop_layout=pop_layout,
             biomass_potentials_file=snakemake.input.biomass_potentials,
+            nhours=nhours,
+            investment_year=investment_year,
             biomass_transport_costs_file=snakemake.input.biomass_transport_costs,
             nyears=nyears,
         )
