@@ -262,10 +262,7 @@ sector:
   biomass_spatial: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: true
-  biomass_final_demand: # in TWh
-    2030: 902
-    2035: 815 # linear interpolation
-    2040: 728
+  biomass_final_demand: false
   electrobiofuels: false
   transmission_efficiency:
     enable:
