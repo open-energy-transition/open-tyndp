@@ -33,7 +33,7 @@ DE:
     co2_sequestration_potential:
       # Values from TYNDP 2024 Scenario report Fig. 45, p.59
       2030: 47
-      2035: 195.5  # linearly interpolated
+      2035: 83.5  # linearly interpolated
       2040: 120
       2045: 135  # linearly interpolated
       2050: 150
