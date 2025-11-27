@@ -18,7 +18,7 @@ rule clean_tyndp_benchmark:
         benchmarks("clean_tyndp_benchmark")
     threads: 4
     resources:
-        mem_mb=4000,
+        mem_mb=8000,
     script:
         "../scripts/clean_tyndp_benchmark.py"
 
@@ -40,7 +40,7 @@ rule clean_tyndp_vp_data:
         benchmarks("clean_tyndp_vp_data")
     threads: 4
     resources:
-        mem_mb=4000,
+        mem_mb=8000,
     script:
         "../scripts/clean_tyndp_vp_data.py"
 
@@ -68,7 +68,7 @@ rule build_statistics:
         )
     threads: 4
     resources:
-        mem_mb=4000,
+        mem_mb=8000,
     script:
         "../scripts/build_statistics.py"
 
