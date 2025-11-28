@@ -4,9 +4,6 @@
 
 NT:
   tyndp_scenario: NT
-sector:
-  force_biomass_potential: true
-  force_biogas_potential: true
 
 DE:
   tyndp_scenario: DE
