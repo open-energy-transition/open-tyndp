@@ -233,7 +233,6 @@ benchmarking:
         - year
       mapping:
         solid biomass: biomass
-        biogas: biomass
 
     energy_imports:
       table_type: scenario_comparison
