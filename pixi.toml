@@ -159,12 +159,12 @@ tyndp-sb-test = """bash -c '
     ' --
 """
 tyndp-cba-test = """bash -c '
-    snakemake resources/test-sector-tyndp/cba/toot/postnetworks/reference_2030.nc --configfile config/test/config.tyndp.yaml "$@" && \
-    snakemake resources/tyndp/NT/cba/toot/postnetworks/reference_2030.nc --configfile config/config.tyndp.yaml -n \
+    snakemake results/test-sector-tyndp/cba/toot/project_t176_2030.csv --configfile config/test/config.tyndp.yaml "$@" && \
+    snakemake results/tyndp/NT/cba/toot/project_t176_2030.csv --configfile config/config.tyndp.yaml -n \
     ' --
 """
 tyndp-cba = """
-    snakemake resources/tyndp/NT/cba/toot/postnetworks/reference_2030.nc --configfile config/config.tyndp.yaml
+    snakemake results/tyndp/NT/cba/toot/project_t176_2030.csv --configfile config/config.tyndp.yaml
 """
 tyndp = """bash -c '
 	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
