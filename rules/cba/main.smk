@@ -215,11 +215,26 @@ rule collect_indicators:
         "../../scripts/cba/collect_indicators.py"
 
 
+rule plot_indicators:
+    input:
+        indicators=rules.collect_indicators.output.indicators,
+    output:
+        plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
+    script:
+        "../../scripts/cba/plot_indicators.py"
+
+
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
 rule cba:
     input:
         lambda w: expand(
             rules.collect_indicators.output.indicators,
+            cba_method=["toot", "pint"],
+            planning_horizons=config_provider("scenario", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+        ),
+        lambda w: expand(
+            rules.plot_indicators.output.plot_dir,
             cba_method=["toot", "pint"],
             planning_horizons=config_provider("scenario", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
