@@ -5462,7 +5462,11 @@ def add_biomass(
         unit="MWh_LHV",
     )
 
-    e_sum_min = biogas_potentials_spatial if options["force_biomass_potential"] else 0
+    e_sum_min_biogas = (
+        biogas_potentials_spatial if options["force_biogas_potential"] else 0
+    )
+    if options["force_biogas_potential"]:
+        logger.info("Force biogas potential to be used.")
 
     n.add(
         "Generator",
@@ -5471,13 +5475,15 @@ def add_biomass(
         carrier="biogas",
         p_nom=biogas_potentials_spatial,
         marginal_cost=costs.at["biogas", "fuel"],
-        e_sum_min=e_sum_min,
+        e_sum_min=e_sum_min_biogas,
         e_sum_max=biogas_potentials_spatial,
     )
 
-    e_sum_min = (
+    e_sum_min_biomass = (
         solid_biomass_potentials_spatial if options["force_biomass_potential"] else 0
     )
+    if options["force_biomass_potential"]:
+        logger.info("Force biomass potential to be used.")
 
     n.add(
         "Generator",
@@ -5486,7 +5492,7 @@ def add_biomass(
         carrier="solid biomass",
         p_nom=solid_biomass_potentials_spatial,
         marginal_cost=costs.at["solid biomass", "fuel"],
-        e_sum_min=e_sum_min,
+        e_sum_min=e_sum_min_biomass,
         e_sum_max=solid_biomass_potentials_spatial,
     )
 
@@ -7904,7 +7910,6 @@ def add_import_options(
             )
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
