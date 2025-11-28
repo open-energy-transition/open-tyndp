@@ -861,8 +861,8 @@ sector:
     OCGT: gas
     CCGT: gas
   keep_existing_capacities: false
-  biomass_to_liquid: false
-  biomass_to_liquid_cc: true
+  biomass_to_liquid: true
+  biomass_to_liquid_cc: false
   biomass_final_demand: false
   force_biomass_potential: false
   force_biogas_potential: false
