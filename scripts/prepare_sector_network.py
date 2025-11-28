@@ -5463,7 +5463,7 @@ def add_biomass(
     )
 
     e_sum_min_biogas = (
-        biogas_potentials_spatial if options["force_biogas_potential"] else 0
+        biogas_potentials_spatial * nyears if options["force_biogas_potential"] else 0
     )
     if options["force_biogas_potential"]:
         logger.info("Force biogas potential to be used.")
@@ -5480,7 +5480,9 @@ def add_biomass(
     )
 
     e_sum_min_biomass = (
-        solid_biomass_potentials_spatial if options["force_biomass_potential"] else 0
+        solid_biomass_potentials_spatial * nyears
+        if options["force_biomass_potential"]
+        else 0
     )
     if options["force_biomass_potential"]:
         logger.info("Force biomass potential to be used.")
@@ -5499,7 +5501,12 @@ def add_biomass(
     if options["biomass_final_demand"] and not options["biomass_spatial"]:
         logger.info("Adding final energy demand for biomass.")
         # convert from TWh to MWh
-        p_set = get(options["biomass_final_demand"], investment_year) / nhours * 1e6
+        p_set = (
+            get(options["biomass_final_demand"], investment_year)
+            * nyears
+            / nhours
+            * 1e6
+        )
         n.add(
             "Load",
             spatial.biomass.nodes,
