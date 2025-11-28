@@ -25,8 +25,6 @@ DE:
       - CCGT
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
-      2020: 1
-      2025: 0.96
       2030: 0.96
       2035: 0.7  # interpolation
       2040: 0.44
@@ -53,8 +51,6 @@ GA:
       - CCGT
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
-      2020: 1
-      2025: 0.96
       2030: 0.96
       2035: 0.73  # interpolation
       2040: 0.50
