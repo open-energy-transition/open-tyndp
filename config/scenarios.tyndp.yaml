@@ -6,9 +6,9 @@ NT:
   tyndp_scenario: NT
   sector:
     co2_sequestration_potential:
-      # Values from TYNDP 2024 Scenario report Fig. 45, p.59
+      # Values from TYNDP 2024 Supply Tool
       2030: 47
-      2035: 195.5  # linearly interpolated
+      2035: 167
       2040: 344
 
 DE:
@@ -31,11 +31,11 @@ DE:
       - CCGT
   sector:
     co2_sequestration_potential:
-      # Values from TYNDP 2024 Scenario report Fig. 45, p.59
-      2030: 47
-      2035: 83.5  # linearly interpolated
+      # Values from TYNDP 2024 Supply Tool
+      2030: 60
+      2035: 90
       2040: 120
-      2045: 135  # linearly interpolated
+      2045: 135
       2050: 150
 
 GA:
@@ -58,9 +58,9 @@ GA:
       - CCGT
   sector:
     co2_sequestration_potential:
-      # Values from TYNDP 2024 Scenario report Fig. 45, p.59
-      2030: 47
-      2035: 195.5  # linearly interpolated
+      # Values from TYNDP 2024 Supply
+      2030: 48
+      2035: 167
       2040: 344
-      2045: 398  # linearly interpolated
-      2050: 452
+      2045: 398
+      2050: 400
