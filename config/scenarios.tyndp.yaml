@@ -23,6 +23,15 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+      2020: 1
+      2025: 0.96
+      2030: 0.96
+      2035: 0.7  # interpolation
+      2040: 0.44
+      2045: 0.3  # interpolation
+      2050: 0.16
 
 GA:
   tyndp_scenario: GA
@@ -42,3 +51,12 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+      2020: 1
+      2025: 0.96
+      2030: 0.96
+      2035: 0.73  # interpolation
+      2040: 0.50
+      2045: 0.34  # interpolation
+      2050: 0.17

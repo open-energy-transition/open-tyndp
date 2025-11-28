@@ -205,14 +205,14 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  land_transport_ice_share:  # TODO Improve default assumptions
+  land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
     2020: 1
-    2025: 0.95
-    2030: 0.8
-    2035: 0.55
-    2040: 0.3
-    2045: 0.15
-    2050: 0
+    2025: 0.96
+    2030: 0.96
+    2035: 0.82  # interpolation
+    2040: 0.68
+    2045: 0.42  # interpolation
+    2050: 0.16
   shipping_hydrogen_share:
     2020: 0
     2025: 0
