@@ -1775,6 +1775,65 @@ def _add_conventional_thermal_capacities(
         n.remove("Link", links_rm)
 
 
+def _add_electrolyzer_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    trajectories: pd.DataFrame,
+) -> None:
+    """
+    Add existing onshore electrolyzer capacities from PEMMDB and TYNDP trajectories.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    trajectories: pd.DataFrame
+        TYNDP trajectories for onshore electrolyzers.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the electrolyzer capacities.
+    """
+    logger.info("Adding PEMMDB capacities to onshore electrolyzers.")
+
+    # Get indices for this technology
+    electrolyser_i = n.links.query(
+        "carrier == 'H2 Electrolysis' and not index.str.contains('DRES')"
+    ).index
+    if electrolyser_i.empty:
+        return
+
+    # Filter for capacities and add to the network
+    # TODO: Add split between zones for DE/GA
+    caps = pemmdb_capacities.query("carrier == 'electrolyser'")["p_nom"]
+    n.links.loc[electrolyser_i, ["p_nom", "p_nom_min"]] = (
+        n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
+    )
+
+    # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
+    if trajectories.empty:
+        n.links.loc[electrolyser_i, "p_nom_extendable"] = False
+        return
+
+    # Otherwise, for DE/GA, set trajectories
+    # p_nom_min as the maximum of PEMMDB capacity and p_nom_min value
+    n.links.loc[electrolyser_i, "p_nom_min"] = np.max(
+        n.links.loc[electrolyser_i, "p_nom_min"],
+        (
+            n.links.loc[electrolyser_i, "bus0"]
+            .map(trajectories["p_nom_min"])
+            .fillna(0.0)
+        ),
+    )
+    # Set p_nom_max
+    n.links.loc[electrolyser_i, "p_nom_max"] = (
+        n.links.loc[electrolyser_i, "bus1"].map(trajectories["p_nom_max"]).fillna(0.0)
+    )
+
+
 def add_existing_pemmdb_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -1782,6 +1841,7 @@ def add_existing_pemmdb_capacities(
     trajectories: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
+    h2_topology_tyndp: bool,
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
     extendable_carriers: list | set,
@@ -1813,6 +1873,8 @@ def add_existing_pemmdb_capacities(
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
+    h2_topology_tyndp : bool
+        Whether TYNDP H2 topology is modelled, so that electrolyzer capacities are added from PEMMDB.
     costs : pd.DataFrame
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
@@ -1862,6 +1924,17 @@ def add_existing_pemmdb_capacities(
             pemmdb_profiles=pemmdb_profiles,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             nuclear_trajectories=nuclear_trajectories,
+        )
+
+    if h2_topology_tyndp:
+        electrolyser_trajectories = trajectories.query(
+            "pyear == @investment_year and carrier == 'electrolyser'"
+        ).set_index("bus")
+
+        _add_electrolyzer_capacities(
+            n=n,
+            pemmdb_capacities=pemmdb_capacities,
+            trajectories=electrolyser_trajectories,
         )
 
 
@@ -8312,6 +8385,7 @@ if __name__ == "__main__":
             trajectories=tyndp_trajectories,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
+            h2_topology_tyndp=options["h2_topology_tyndp"],
             costs=costs,
             profiles_pecd=profiles_pecd,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
