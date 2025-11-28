@@ -31,6 +31,8 @@ Upcoming Open-TYNDP Release
 
 * Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220). Introduces ``sector:gas_demand_exogenously`` configuration to decide whether to attach this demand to the network. Introduces  ``benchmarking:remove_last_day`` to optionally remove the last day of the year, ensuring the benchmarked values have exactly 52 weeks. Removes ``sector:use_industry_load`` configuration as industry is now integrated in the exogenous demand.
 
+* Added TYNDP electrolyzer capacities for the National Trends scenario using PEMMDB data (https://github.com/open-energy-transition/open-tyndp/pull/248).
+
 **Bugfixes and Compatibility**
 
 * Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
