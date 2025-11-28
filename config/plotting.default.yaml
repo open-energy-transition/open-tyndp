@@ -261,7 +261,6 @@ plotting:
     PHS: "Pumped Hydro Storage"
     hydro: "Reservoir & Dam"
     battery: "Battery Storage"
-    H2: "Hydrogen Storage"
     lines: "Transmission Lines"
     ror: "Run of River"
     load: "Load Shedding"
@@ -520,6 +519,7 @@ plotting:
     H2 for industry: "#f073da"
     H2 for shipping: "#ebaee0"
     H2: '#bf13a0'
+    H2 exogenous demand: '#bf13a0'
     H2_OH: '#bf13a0'
     hydrogen: '#bf13a0'
     methane&hydrogen: '#bf13a0'
