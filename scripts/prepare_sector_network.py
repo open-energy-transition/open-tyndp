@@ -2952,9 +2952,7 @@ def add_h2_topology_tyndp(
     n.add("Carrier", "H2")
 
     # filter for electricity nodes and H2 buses
-    nodes = n.buses.loc[pop_layout.index, :].query(
-        "country in @spatial.h2_tyndp.country"
-    )
+    nodes = n.buses.query("carrier == 'AC' and country in @spatial.h2_tyndp.country")
 
     # add H2 Buses
     logger.info("Adding TYNDP H2 nodes.")
