@@ -5653,6 +5653,8 @@ def add_biomass(
     cf_industry,
     pop_layout,
     biomass_potentials_file,
+    nhours,
+    investment_year,
     biomass_transport_costs_file=None,
     nyears=1,
 ):
@@ -5688,6 +5690,10 @@ def add_biomass(
     biomass_transport_costs_file : str, optional
         Path to CSV file containing biomass transport costs data.
         Required if biomass_transport or biomass_spatial options are True.
+    nhours : int
+        Number of hours in the simulation period
+    investment_year : int
+        Year for which investment costs should be considered
     nyears : float
         Number of years for which to scale the biomass potentials.
 
@@ -5803,6 +5809,12 @@ def add_biomass(
         unit="MWh_LHV",
     )
 
+    e_sum_min_biogas = (
+        biogas_potentials_spatial * nyears if options["force_biogas_potential"] else 0
+    )
+    if options["force_biogas_potential"]:
+        logger.info("Force biogas potential to be used.")
+
     n.add(
         "Generator",
         spatial.gas.biogas,
@@ -5810,9 +5822,17 @@ def add_biomass(
         carrier="biogas",
         p_nom=biogas_potentials_spatial,
         marginal_cost=costs.at["biogas", "fuel"],
-        e_sum_min=0,
+        e_sum_min=e_sum_min_biogas,
         e_sum_max=biogas_potentials_spatial,
     )
+
+    e_sum_min_biomass = (
+        solid_biomass_potentials_spatial * nyears
+        if options["force_biomass_potential"]
+        else 0
+    )
+    if options["force_biomass_potential"]:
+        logger.info("Force biomass potential to be used.")
 
     n.add(
         "Generator",
@@ -5821,9 +5841,27 @@ def add_biomass(
         carrier="solid biomass",
         p_nom=solid_biomass_potentials_spatial,
         marginal_cost=costs.at["solid biomass", "fuel"],
-        e_sum_min=0,
+        e_sum_min=e_sum_min_biomass,
         e_sum_max=solid_biomass_potentials_spatial,
     )
+
+    if options["biomass_final_demand"] and not options["biomass_spatial"]:
+        logger.info("Adding final energy demand for biomass.")
+        # convert from TWh to MWh
+        p_set = (
+            get(options["biomass_final_demand"], investment_year)
+            * nyears
+            / nhours
+            * 1e6
+        )
+        n.add(
+            "Load",
+            spatial.biomass.nodes,
+            suffix=" final energy demand",
+            bus=spatial.biomass.nodes,
+            carrier="biomass final energy demand",
+            p_set=p_set,
+        )
 
     if options["solid_biomass_import"].get("enable", False):
         biomass_import_price = options["solid_biomass_import"]["price"]
@@ -8538,6 +8576,8 @@ if __name__ == "__main__":
             cf_industry=cf_industry,
             pop_layout=pop_layout,
             biomass_potentials_file=snakemake.input.biomass_potentials,
+            nhours=nhours,
+            investment_year=investment_year,
             biomass_transport_costs_file=snakemake.input.biomass_transport_costs,
             nyears=nyears,
         )

@@ -204,6 +204,9 @@ conventional_generation,,,Add a more detailed description of conventional carrie
 keep_existing_capacities,--,"{true, false}",Keep existing conventional carriers from the power model. Defaults to false.
 biomass_to_liquid,--,"{true, false}",Add option for transforming solid biomass into liquid fuel with the same properties as oil
 biomass_to_liquid_cc,--,"{true, false}",Add option for transforming solid biomass into liquid fuel with the same properties as oil with carbon capture
+biomass_final_demand,Twh/a,Dictionary with planning horizons as keys.,Add final energy demand for solid biomass
+force_biomass_potential,--,"{true, false}",Add option to force all solid biomass potential to be used
+force_biogas_potential,--,"{true, false}",Add option to force all biogas potential to be used
 biosng,--,"{true, false}",Add option for transforming solid biomass into synthesis gas with the same properties as natural gas
 biosng_cc,--,"{true, false}",Add option for transforming solid biomass into synthesis gas with the same properties as natural gas with carbon capture
 bioH2,--,"{true, false}",Add option for transforming solid biomass into hydrogen with carbon capture
