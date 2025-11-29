@@ -123,7 +123,25 @@ def compute_benchmark(
             .loc[lambda s: ~s.index.isin(df_countries.index)]
         )
 
-        df = pd.concat([df_countries, df_eu])
+        # Add Biomass to Liquid
+        df_btl = (
+            n.statistics.energy_balance(
+                comps="Link",
+                carrier="biomass to liquid",
+                bus_carrier="oil",
+                groupby=["bus0", "carrier"],
+                aggregate_across_components=True,
+                aggregate_time=False,
+            )
+            .mul(sws, axis=1)
+            .sum(axis=1)
+            .reindex(eu27_idx, level="bus0")
+            .groupby(level="carrier")
+            .sum()
+            .rename_axis("bus_carrier")
+        )
+
+        df = pd.concat([df_countries, df_eu, df_btl])
     elif table == "elec_demand":
         grouper = ["carrier"]
         df = (
@@ -207,7 +225,7 @@ def compute_benchmark(
         grouper = ["carrier"]
         df = (
             n.statistics.supply(
-                comps=supply_comps,
+                comps=supply_comps + ["StorageUnit"],
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
@@ -222,7 +240,11 @@ def compute_benchmark(
                     "electricity distribution grid",
                     "battery discharger",
                     "home battery discharger",
-                ]
+                    "PHS",
+                    "hydro-phs",  # TODO: double check when correct hydro techs are added
+                    "hydro-phs-pure",
+                ],
+                errors="ignore",
             )
         )
     elif table == "methane_supply":
@@ -341,7 +363,13 @@ def compute_benchmark(
 
     df = (
         df.reset_index()
-        .rename(columns={"bus_carrier": "carrier", 0: "value", "objective": "value"})
+        .rename(
+            columns={
+                "bus_carrier": "carrier",
+                0: "value",
+                "objective": "value",
+            }
+        )
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
     grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]

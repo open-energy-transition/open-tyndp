@@ -30,6 +30,8 @@ benchmarking:
         shipping oil: liquids
         land transport oil: liquids
         coal: solids
+        biomass to liquid: biofuels
+        biomass to liquid CC: biofuels
 
     elec_demand:
       table_type: scenario_comparison

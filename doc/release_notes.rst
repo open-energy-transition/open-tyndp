@@ -31,11 +31,17 @@ Upcoming Open-TYNDP Release
 
 * Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220). Introduces ``sector:gas_demand_exogenously`` configuration to decide whether to attach this demand to the network. Introduces  ``benchmarking:remove_last_day`` to optionally remove the last day of the year, ensuring the benchmarked values have exactly 52 weeks. Removes ``sector:use_industry_load`` configuration as industry is now integrated in the exogenous demand.
 
+* Add the TYNDP CCS assumptions as sequestration potentials (https://github.com/open-energy-transition/open-tyndp/pull/244)
+
 **Bugfixes and Compatibility**
 
 * Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
 
 * Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214)
+
+* Adjust the benchmarking configurations to report an approximation of imports for fossil fuels (https://github.com/open-energy-transition/open-tyndp/pull/237) and ensure that the final energy demand for biofuels is reflected correctly (https://github.com/open-energy-transition/open-tyndp/pull/239)
+
+* Add an intermediate scaling factor for hydro plants to match PEMMDB capacities (https://github.com/open-energy-transition/open-tyndp/pull/238, https://github.com/open-energy-transition/open-tyndp/pull/240)
 
 
 Upcoming PyPSA-Eur Release

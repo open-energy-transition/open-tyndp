@@ -6,6 +6,11 @@ NT:
   tyndp_scenario: NT
   sector:
     h2_zones_tyndp: false
+    co2_sequestration_potential:
+      # Values from TYNDP 2024 Supply Tool
+      2030: 47
+      2035: 167
+      2040: 344
 
 DE:
   tyndp_scenario: DE
@@ -27,6 +32,13 @@ DE:
       - CCGT
   sector:
     h2_zones_tyndp: true
+    co2_sequestration_potential:
+      # Values from TYNDP 2024 Supply Tool
+      2030: 60
+      2035: 90
+      2040: 120
+      2045: 135
+      2050: 150
 
 GA:
   tyndp_scenario: GA
@@ -48,3 +60,10 @@ GA:
       - CCGT
   sector:
     h2_zones_tyndp: true
+    co2_sequestration_potential:
+      # Values from TYNDP 2024 Supply
+      2030: 48
+      2035: 167
+      2040: 344
+      2045: 398
+      2050: 400
