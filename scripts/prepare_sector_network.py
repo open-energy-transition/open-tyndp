@@ -39,6 +39,7 @@ from scripts.add_electricity import (
     attach_wind_and_solar,
     calculate_annuity,
     flatten,
+    load_and_aggregate_powerplants,
     sanitize_carriers,
     sanitize_locations,
 )
@@ -1836,6 +1837,149 @@ def add_existing_pemmdb_capacities(
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             nuclear_trajectories=nuclear_trajectories,
         )
+
+
+def _extract_pemmdb_hydro_duration(
+    pemmdb_capacities: pd.DataFrame, tech: str | list[str], year: int
+) -> pd.DataFrame:
+    """
+    Takes a PEMMDB capacities Dataframe and calculates country-wise storage durations for the given hydro technologies.
+
+    Parameters
+    ----------
+    pemmdb_capacities : pd.DataFrame
+        DataFrame containing all PEMMDB capacities.
+    tech : str | list[str]
+        Hydro technology to calculate storage duration for.
+    year : int
+        Planning year for which the values are given.
+
+    Returns
+    -------
+    pd.DataFrame
+        Calculated storage duration max_hours.
+    """
+    if not isinstance(tech, list):
+        tech = [tech]
+
+    caps = (
+        pemmdb_capacities.loc[pemmdb_capacities.carrier.isin(tech)]
+        .query("index_carrier.str.contains('turbine') and unit == 'MW' and p_nom > 0")
+        .groupby("country")
+        .sum()[["p_nom"]]
+        .div(1e3)  # GW
+        .rename(columns={"p_nom": year})
+    )
+    store = (
+        pemmdb_capacities.loc[pemmdb_capacities.carrier.isin(tech)]
+        .query(
+            "index_carrier.str.contains('reservoir') and unit == 'MWh' and e_nom > 0"
+        )
+        .groupby("country")
+        .sum()[["e_nom"]]
+        .div(1e3)  # GWh
+        .rename(columns={"e_nom": year})
+    )
+
+    max_hours = store / caps
+
+    return max_hours
+
+
+def _add_tyndp_scaling_factor(n, pemmdb_capacities, ppl, year):
+    """
+    Add a scaling factor to existing PyPSA hydro capacities and inflows to approximately match TYNDP input capacities.
+    Replace existing storage durations for PHS and hydro with calculated values from PEMMDB input.
+    """
+
+    # Compute scaling factors
+    #########################
+
+    # PyPSA hydro capacities
+    pypsa_hydro_total = (
+        ppl.query('carrier == "ror" or carrier == "PHS" or carrier == "hydro"')
+        .groupby(["country"])
+        .sum()
+        .p_nom.div(1e3)  # GW
+    )
+
+    # TYNDP hydro capacities
+    tyndp_hydro_total = (
+        pemmdb_capacities.query(
+            "carrier.str.contains('hydro') and index_carrier.str.contains('turbine') and unit == 'MW' and p_nom > 0"
+        )
+        .groupby("country")
+        .sum()[["p_nom"]]
+        .div(1e3)  # GW
+        .rename(columns={"p_nom": year})
+    )
+
+    # Calculate country-wise scaling factors
+    sf_hydro_total = pd.concat([tyndp_hydro_total, pypsa_hydro_total], axis=1).assign(
+        sf=lambda df: df[year] / df.p_nom,
+    )[["sf"]]
+
+    # Calculate country-wise max_hours for PHS and reservoirs/pondages
+    phs_max_hours = _extract_pemmdb_hydro_duration(
+        pemmdb_capacities, ["hydro-phs", "hydro-phs-pure"], year
+    )
+    reservoir_max_hours = _extract_pemmdb_hydro_duration(
+        pemmdb_capacities, ["hydro-reservoir", "hydro-pondage"], year
+    )
+
+    # Multiply capacities by scaling factor
+    #######################################
+
+    # ror
+    #####
+    ror_i = n.generators.query("carrier.str.contains('ror')").index
+
+    # Scale capacities
+    caps_scaled = n.generators.loc[ror_i, "p_nom"] * (
+        n.generators.loc[ror_i, "bus"].str[:2].map(sf_hydro_total.sf)
+    )
+    n.generators.loc[ror_i, "p_nom"] = caps_scaled
+
+    # PHS
+    #####
+    phs_i = n.storage_units.query("carrier.str.contains('PHS')").index
+
+    # Scale capacities
+    caps_scaled = n.storage_units.loc[phs_i, "p_nom"] * (
+        n.storage_units.loc[phs_i, "bus"].str[:2].map(sf_hydro_total.sf)
+    )
+    n.storage_units.loc[phs_i, "p_nom"] = caps_scaled
+
+    # Replace max_hours where available
+    tyndp_max_hours = (
+        n.storage_units.loc[phs_i, "bus"].str[:2].map(phs_max_hours[year]).dropna()
+    )
+    n.storage_units.loc[tyndp_max_hours.index, "max_hours"] = tyndp_max_hours
+
+    # hydro
+    #######
+    hydro_i = n.storage_units.query("carrier.str.contains('hydro')").index
+
+    # Scale capacities
+    caps_scaled = n.storage_units.loc[hydro_i, "p_nom"] * (
+        n.storage_units.loc[hydro_i, "bus"].str[:2].map(sf_hydro_total.sf)
+    )
+    n.storage_units.loc[hydro_i, "p_nom"] = caps_scaled
+
+    # Replace max_hours where available
+    tyndp_max_hours = (
+        n.storage_units.loc[hydro_i, "bus"]
+        .str[:2]
+        .map(reservoir_max_hours[year])
+        .dropna()
+    )
+    n.storage_units.loc[tyndp_max_hours.index, "max_hours"] = tyndp_max_hours
+
+    # Scale inflows
+    inflow_scaled = n.storage_units_t.inflow.loc[:, hydro_i] * (
+        n.storage_units.loc[hydro_i, "bus"].str[:2].map(sf_hydro_total.sf)
+    )
+    n.storage_units_t.inflow.loc[:, hydro_i] = inflow_scaled
 
 
 def add_ammonia(
@@ -8129,6 +8273,23 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
         )
+
+        if snakemake.params.tyndp_scenario == "NT" and snakemake.params.scale_hydro:
+            # TODO: remove once TYNDP hydro techs are included from PEMMDB
+            ppl = load_and_aggregate_powerplants(
+                snakemake.input.powerplants,
+                costs,
+                snakemake.params.consider_efficiency_classes,
+                snakemake.params.aggregation_strategies,
+                snakemake.params.exclude_carriers,
+            )
+
+            _add_tyndp_scaling_factor(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                ppl=ppl,
+                year=investment_year,
+            )
 
     if options["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_tyndp(

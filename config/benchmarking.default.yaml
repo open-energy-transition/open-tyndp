@@ -30,6 +30,8 @@ benchmarking:
         shipping oil: liquids
         land transport oil: liquids
         coal: solids
+        biomass to liquid: biofuels
+        biomass to liquid CC: biofuels
 
     elec_demand:
       table_type: scenario_comparison
@@ -251,7 +253,8 @@ benchmarking:
         H2 import Pipeline: hydrogen
         coal: solids
         lignite: solids
-        oil refining: liquids
+        oil primary: liquids
+        gas: methane
 
     generation_profiles:
       table_type: time_series

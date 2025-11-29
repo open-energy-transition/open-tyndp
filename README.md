@@ -103,7 +103,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 * `cutouts`: will store raw weather data cutouts from `atlite` (does not exist initially)
 * `data`: includes input data that is not produced by any `snakemake` rule
 * `doc`: includes all files necessary to build the `readthedocs` documentation of PyPSA-Eur
-* `envs`: includes all the `mamba` environment specifications to run the workflow
+* `envs`: includes backup `conda` environments if `pixi` installation does not work.
 * `logs`: will store log files (does not exist initially)
 * `notebooks`: includes all the `notebooks` used for ad-hoc analysis
 * `report`: contains all files necessary to build the report; plots and result files are generated automatically
@@ -118,23 +118,38 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 
 Clone the repository:
 
-    git clone https://github.com/open-energy-transition/open-tyndp
-
+```sh
+git clone https://github.com/open-energy-transition/open-tyndp
+```
 PyPSA-Eur, and consequently Open-TYNDP, relies on a set of other Python packages to function.
 We manage these using [pixi](https://pixi.sh/latest/>).
 Once pixi is installed, you can activate the project environment for your operating system and have access to all the PyPSA-Eur dependencies from the command line:
 
-    pixi shell -e open-tyndp
+```sh
+pixi shell -e open-tyndp
+```
+
+>[!NOTE]
+>`pixi` will create a distinct environment in every project directory, even if you have identical copies of a project cloned locally.
+>As there is a common system-level package cache, `pixi` efficiently conserves disk space in such cases.
+
+>[!TIP]
+>If `pixi` isn't working, you can install from one of the fallback `conda` environment files found in `envs`.
+>For more details see [the PyPSA-Eur installation guide](https://pypsa-eur.readthedocs.io/en/latest/installation.html).
 
 ## 2. Run the analysis
 
-    pixi run tyndp
+```sh
+pixi run tyndp
+```
 
 This will run all analysis steps to reproduce results and build the report.
 
 To list all the rules that need to be executed (dry run), run:
 
-    pixi run tyndp -n
+```sh
+pixi run tyndp -n
+```
 
 Note: The workflow automatically generates dependency graphs after successful completion (via `rulegraphs` and `filegraphs` rules). The generated graphs are saved to the `resources/` directory.
 
