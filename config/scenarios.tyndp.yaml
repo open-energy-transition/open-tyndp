@@ -12,6 +12,21 @@ NT:
       2035: 167
       2040: 344
 
+NT-1H-20251129:
+  tyndp_scenario: NT
+  sector:
+    h2_zones_tyndp: false
+    co2_sequestration_potential:
+      # Values from TYNDP 2024 Supply Tool
+      2030: 47
+      2035: 167
+      2040: 344
+  clustering:
+    temporal:
+      resolution_sector: 1H
+  solving:
+    runtime: 12h #runtime in humanfriendly style https://humanfriendly.readthedocs.io/en/latest/
+
 DE:
   tyndp_scenario: DE
   electricity:

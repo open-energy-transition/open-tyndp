@@ -4,7 +4,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT-1H-20251129"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -352,6 +352,7 @@ adjustments:
     absolute: false
 
 plotting:
+  energy_threshold: 1.
   balance_map:
     imports_as_flows: true
     bus_carriers:
