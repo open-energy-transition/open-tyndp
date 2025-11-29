@@ -34,6 +34,12 @@ DE:
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
+    land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+      2030: 0.96
+      2035: 0.7  # interpolation
+      2040: 0.44
+      2045: 0.3  # interpolation
+      2050: 0.16
     co2_sequestration_potential:
       # Values from TYNDP 2024 Supply Tool
       2030: 60
@@ -64,6 +70,12 @@ GA:
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
+    land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+      2030: 0.96
+      2035: 0.73  # interpolation
+      2040: 0.50
+      2045: 0.34  # interpolation
+      2050: 0.17
     co2_sequestration_potential:
       # Values from TYNDP 2024 Supply
       2030: 48

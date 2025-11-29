@@ -208,48 +208,36 @@ sector:
   fossil_fuels: true
 
   land_transport_fuel_cell_share:  # Not modelled
-    2020: 0
-    2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
   land_transport_electric_share:  # included in exogenous demand
-    2020: 0
-    2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
-  land_transport_ice_share:  # TODO Improve default assumptions
-    2020: 1
-    2025: 0.95
-    2030: 0.8
-    2035: 0.55
-    2040: 0.3
-    2045: 0.15
-    2050: 0
+  land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+    2030: 0.96
+    2035: 0.82  # interpolation
+    2040: 0.68
+    2045: 0.42  # interpolation
+    2050: 0.16
   shipping_hydrogen_share:
-    2020: 0
-    2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
   shipping_methanol_share:  # included in exogenous demand  # TODO Validate assumption
-    2020: 0
-    2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
   shipping_oil_share:
-    2020: 1
-    2025: 1
     2030: 0.85
     2035: 0.65
     2040: 0.45
