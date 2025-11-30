@@ -239,11 +239,10 @@ rule solve_uncertainty_scenarios_myopic:
         + "{uncertainty_scenario}/logs/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_memory.log",
         python=RESULTS
         + "{uncertainty_scenario}/logs/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_python.log",
-    threads: solver_threads
+    threads: 1
     resources:
         mem_mb=config_provider("solving", "mem_mb"),
         runtime=config_provider("solving", "runtime", default="6h"),
-        threads=1,
     benchmark:
         (
             RESULTS
