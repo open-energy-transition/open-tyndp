@@ -7,25 +7,11 @@ Extract results from uncertainty scenarios and consolidates them.
 Consolidation yields single values for all interconnections, to be used for restricting flows exogenously.
 """
 
-import importlib
 import logging
-import os
-import re
-import sys
-from functools import partial
-from typing import Any
 
-import linopy
-import numpy as np
 import pandas as pd
 import pypsa
-import xarray as xr
-import yaml
-from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
-from pypsa.descriptors import get_activity_mask
-from pypsa.descriptors import get_switchable_as_dense as get_as_dense
 
-from scripts._benchmark import memory_logger
 from scripts._helpers import (
     configure_logging,
     set_scenario_config,
@@ -69,8 +55,16 @@ if __name__ == "__main__":
         dispatches.append(links_d)
 
     # Consolidate the results of the different scenarios by averaging
+    # TODO: Need to rethink method of aggregation
     combined = pd.concat(dispatches, axis=1)
     consolidated = combined.T.groupby(level=0).mean().T
+
+    # Calculate line limits on a p.u. basis relative to the capacity of each link
+    capacities = n.links.loc[consolidated.columns, "p_nom_opt"]
+    consolidated = consolidated.div(capacities, axis=1).abs()
+
+    # Set small values to 0
+    consolidated = consolidated.where(lambda x: x > 1e-4, 0)
 
     # Save to CSV
     consolidated.to_csv(snakemake.output["line_limits"])
