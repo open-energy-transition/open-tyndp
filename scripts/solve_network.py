@@ -1165,7 +1165,8 @@ def add_offshore_hubs_constraint(
     """
     Add two constraints on offshore hubs.
 
-    1. Constraint expansion of DC and H2 sitting on the same location, as the sum of the two capacities cannot exceed the layer potential.
+    1. Constraint expansion of DC and H2 sitting on the same location,
+       as the sum of the two capacities cannot exceed the layer potential.
     2. Constraint the maximum potential per zone.
 
     Parameters
@@ -1180,6 +1181,11 @@ def add_offshore_hubs_constraint(
         List of TYNDP renewable carriers
     """
     ext_i = n.generators.p_nom_extendable
+
+    # Dispatch models only do not have extendable generators and need to skip this constraint
+    if not ext_i.any():
+        return
+
     gens = n.generators.assign(
         layer=lambda df: df.index.str.replace(
             r"-\d{4}$", f"-{planning_horizons}", regex=True
