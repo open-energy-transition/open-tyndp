@@ -222,6 +222,9 @@ rule solve_uncertainty_scenarios_myopic:
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
         ),
+        line_limits=resources(
+            "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
+        ),
     output:
         network=RESULTS
         + "{uncertainty_scenario}/networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
@@ -240,6 +243,7 @@ rule solve_uncertainty_scenarios_myopic:
     resources:
         mem_mb=config_provider("solving", "mem_mb"),
         runtime=config_provider("solving", "runtime", default="6h"),
+        threads=1,
     benchmark:
         (
             RESULTS
@@ -248,7 +252,7 @@ rule solve_uncertainty_scenarios_myopic:
     script:
         "../scripts/solve_network.py"
 
-# TODO implement this script
+
 rule extract_uncertainty_results:
     message:
         "Extracting results from uncertainty analysis scenarios for subsequent processing."
@@ -262,7 +266,7 @@ rule extract_uncertainty_results:
             for uncertainty_scenario in config["uncertainty_scenarios"]
         ],
     output:
-        network=resources(
+        line_limits=resources(
             "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
         ),
     log:
@@ -271,6 +275,7 @@ rule extract_uncertainty_results:
         ),
     script:
         "../scripts/extract_uncertainty_results.py"
+
 
 rule solve_sector_network_myopic_line_limited:
     params:
@@ -320,6 +325,7 @@ rule solve_sector_network_myopic_line_limited:
         )
     script:
         "../scripts/solve_network.py"
+
 
 # Need to set the ruleorder to have the `opts=lluk` wildcard version be processed
 # by the correct rule, not the `rule solve_sector_network_myopic`.

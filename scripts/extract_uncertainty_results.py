@@ -73,4 +73,4 @@ if __name__ == "__main__":
     consolidated = combined.T.groupby(level=0).mean().T
 
     # Save to CSV
-    consolidated.to_csv(snakemake.output["dispatch"])
+    consolidated.to_csv(snakemake.output["line_limits"])
