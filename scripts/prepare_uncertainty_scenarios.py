@@ -92,10 +92,10 @@ def add_scenario_uncertainty(n: pypsa.Network, scenario_name: str) -> pypsa.Netw
 
     # Modify demand and renewable availability according to the scenario
     all_factors = {
-        "low-demand_low-renewables": (0.9, 0.8),
-        "low-demand_high-renewables": (0.9, 1.2),
-        "high-demand_low-renewables": (1.1, 0.8),
-        "high-demand_high-renewables": (1.1, 1.2),
+        "low-demand_low-renewables": (0.995, 1.0),
+        "low-demand_high-renewables": (0.995, 1.005),
+        "high-demand_low-renewables": (1.005, 0.995),
+        "high-demand_high-renewables": (1.005, 1.005),
     }
 
     scenario_factors = all_factors[scenario_name]

@@ -4,9 +4,9 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT"
   scenarios:
-    enable: true
+    enable: false
     file: config/scenarios.tyndp.yaml
 
 # TODO set foresight
