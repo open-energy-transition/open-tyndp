@@ -29,7 +29,7 @@ if __name__ == "__main__":
             clusters=all,
             sector_opts="",
             planning_horizons=2030,
-            configfiles="config/test/config.tyndp.yaml",
+            configfiles="config/config.tyndp.yaml",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
