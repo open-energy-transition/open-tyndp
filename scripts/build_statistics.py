@@ -242,16 +242,11 @@ def compute_benchmark(
         )
     elif table == "methane_supply":
         grouper = ["carrier"]
-        df = (
-            n.statistics.supply(
-                comps=supply_comps,
-                bus_carrier="gas",
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
+        df = n.statistics.supply(
+            comps=supply_comps,
+            bus_carrier="gas",
+            groupby=grouper,
+            aggregate_across_components=True,
         )
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
@@ -270,16 +265,11 @@ def compute_benchmark(
     elif table == "biomass_supply":
         # TODO Clarify how to deal with unsustainable sources
         grouper = ["carrier"]
-        df = (
-            n.statistics.supply(
-                comps=supply_comps,
-                bus_carrier="solid biomass",
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
+        df = n.statistics.supply(
+            comps=supply_comps,
+            bus_carrier="solid biomass",
+            groupby=grouper,
+            aggregate_across_components=True,
         )
     elif table == "energy_imports":
         # TODO Account for domestic production of gas, solid and liquid fossil fuels
