@@ -70,29 +70,29 @@ benchmarking:
         gas-conv: power generation
         SMR: smr
         SMR CC: smr
-        exogenous gas demand: total (excl. SMR and power generation)
+        exogenous gas demand: exogenous demand
 
     hydrogen_demand:
       table_type: scenario_comparison
-      sheet_name: 54-
+      sheet_name: 10-
       unit: TWh
-      index_col: [2, 3]
-      header: 4
+      index_col: 2
+      header: [4, 5]
+      nrows: 15
       names:
         index:
-        - year
-        - scenario
-        column:
         - carrier
+        column:
+        - scenario
+        - year
       mapping:
-        Fischer-Tropsch: e-fuels production
-        H2 for industry: industry
-        H2 turbine: electricity generation and heat production
-        h2-ccgt: electricity generation and heat production
-        h2-fuel-cell: electricity generation and heat production
-        Sabatier: e-fuels production
-        methanolisation: e-fuels production
-        H2 for shipping: international shipping
+        H2 turbine: power generation
+        h2-ccgt: power generation
+        h2-fuel-cell: power generation
+        Fischer-Tropsch: e-fuels
+        Sabatier: e-fuels
+        methanolisation: e-fuels
+        H2 exogenous demand: exogenous demand
 
     power_capacity:
       table_type: scenario_comparison

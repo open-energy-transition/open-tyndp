@@ -188,7 +188,7 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
-            .drop(index="H2 pipeline")
+            .drop(index="H2 pipeline", errors="ignore")
         )
     elif table == "power_capacity":
         grouper = ["carrier"]
