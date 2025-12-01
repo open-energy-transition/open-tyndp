@@ -217,7 +217,7 @@ benchmarking:
       mapping:
         H2 Electrolysis: p2g
         H2 import LH2: ammonia imports
-        H2 import Pipeline: low carbon imports
+        H2 import Pipeline: imports (renewable & low carbon)
         SMR: smr (grey)
         SMR CC: smr with ccs (blue)
 

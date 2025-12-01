@@ -265,7 +265,7 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
-            .drop(index=["H2 pipeline", "H2 pipeline OH"])
+            .drop(index=["H2 pipeline", "H2 pipeline OH"], errors="ignore")
         )
     elif table == "biomass_supply":
         # TODO Clarify how to deal with unsustainable sources
