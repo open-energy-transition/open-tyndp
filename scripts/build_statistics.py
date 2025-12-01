@@ -121,23 +121,20 @@ def compute_benchmark(
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[lambda s: ~s.index.isin(df_countries.index)]
+            .drop(index=["solid biomass"], errors="ignore")
         )
 
         # Add Biomass to Liquid
         df_btl = (
-            n.statistics.energy_balance(
+            n.statistics.withdrawal(
                 comps="Link",
-                carrier="biomass to liquid",
-                bus_carrier="oil",
-                groupby=["bus0", "carrier"],
+                carrier=["biomass to liquid", "biomass to liquid CC"],
+                groupby="carrier",
                 aggregate_across_components=True,
                 aggregate_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
-            .reindex(eu27_idx, level="bus0")
-            .groupby(level="carrier")
-            .sum()
             .rename_axis("bus_carrier")
         )
 
