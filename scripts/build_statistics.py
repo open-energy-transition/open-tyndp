@@ -94,7 +94,6 @@ def compute_benchmark(
         sws = n.snapshot_weightings.generators
 
     if table == "final_energy_demand":
-        # TODO Clarify what renewables encompass
         grouper = ["bus_carrier"]
         df_countries = (
             n.statistics.withdrawal(
@@ -157,7 +156,6 @@ def compute_benchmark(
         )
         df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
-        # TODO Energy and non-energy industrial demand are mixed
         grouper = ["carrier"]
         if "EU gas" in n.buses.index:
             reindex_idx = pd.Index(["EU gas"])
@@ -175,8 +173,6 @@ def compute_benchmark(
             .sum()
         )
     elif table == "hydrogen_demand":
-        # TODO Energy and non-energy industrial demand are mixed
-        # TODO Aviation has no H2 demand
         grouper = ["carrier"]
         df = (
             n.statistics.withdrawal(
@@ -258,7 +254,6 @@ def compute_benchmark(
             .sum()
         )
     elif table == "hydrogen_supply":
-        # TODO Clarify difference between low carbon and renewable imports
         grouper = ["carrier"]
         df = (
             n.statistics.supply(
