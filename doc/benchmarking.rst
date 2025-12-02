@@ -119,18 +119,18 @@ Example of indicators extracted from `kpis_eu27_s_all__all_years.csv` for NT sce
 ===============================  =======  =======  ========  =======  ==============  =========  ==================
 Table                            sMPE     sMAPE    sMdAPE    RMSLE    Growth Error    Missing    version
 ===============================  =======  =======  ========  =======  ==============  =========  ==================
-**Biomass supply**               0.16     0.16     0.2       0.2      0               1          v0.3+g728c63b36
-**Elec demand**                  0        0        0         0        0               0          v0.3+g728c63b36
-**Energy imports**               0.39     0.39     0.2       0.73     0.01            1          v0.3+g728c63b36
-**Final energy demand**          0.07     0.09     0.08      0.12     0.01            1          v0.3+g728c63b36
-**Generation profiles**          —        —        —         —        —               NA         v0.3+g728c63b36
-**Hydrogen demand**              -0.79    0.83     0.44      4.27     -0.03           0          v0.3+g728c63b36
-**Hydrogen supply**              -0.23    0.35     0.22      0.75     -0.02           2          v0.3+g728c63b36
-**Methane demand**               -0.11    0.22     0.16      0.26     -0.01           0          v0.3+g728c63b36
-**Methane supply**               -0.58    0.73     0.15      2.89     0               3          v0.3+g728c63b36
-**Power capacity**               0        0.08     0.02      0.17     -0.01           5          v0.3+g728c63b36
-**Power generation**             0        0.27     0.19      0.43     -0.01           4          v0.3+g728c63b36
-**Total (excl. time series)**    -0.06    0.39     0.15      1.68     0               14         v0.3+g728c63b36
+**Biomass supply**               0.12     0.12     0.09      0.17     0               1          v0.3+gf247b73f9
+**Elec demand**                  0        0        0         0        0               0          v0.3+gf247b73f9
+**Energy imports**               0.39     0.39     0.2       0.73     0.01            1          v0.3+gf247b73f9
+**Final energy demand**          0.07     0.09     0.08      0.12     0.01            1          v0.3+gf247b73f9
+**Generation profiles**          —        —        —         —        —               NA         v0.3+gf247b73f9
+**Hydrogen demand**              -0.34    0.34     0.29      0.43     -0.03           0          v0.3+gf247b73f9
+**Hydrogen supply**              -0.23    0.35     0.22      0.75     -0.02           2          v0.3+gf247b73f9
+**Methane demand**               -0.11    0.22     0.16      0.26     -0.01           0          v0.3+gf247b73f9
+**Methane supply**               -0.58    0.73     0.15      2.89     0               3          v0.3+gf247b73f9
+**Power capacity**               0        0.08     0.02      0.17     -0.01           5          v0.3+gf247b73f9
+**Power generation**             0        0.27     0.19      0.43     -0.01           4          v0.3+gf247b73f9
+**Total (excl. time series)**    -0.01    0.33     0.14      1.04     0               14         v0.3+gf247b73f9
 ===============================  =======  =======  ========  =======  ==============  =========  ==================
 
 
