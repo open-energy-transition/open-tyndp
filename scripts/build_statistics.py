@@ -292,7 +292,6 @@ def compute_benchmark(
             .drop(index=["H2 pipeline", "H2 pipeline OH"], errors="ignore")
         )
     elif table == "biomass_supply":
-        # TODO Clarify how to deal with unsustainable sources
         grouper = ["carrier"]
         df = n.statistics.supply(
             comps=supply_comps,
