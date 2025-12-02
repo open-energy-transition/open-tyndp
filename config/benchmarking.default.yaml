@@ -89,10 +89,10 @@ benchmarking:
         H2 turbine: power generation
         h2-ccgt: power generation
         h2-fuel-cell: power generation
-        Fischer-Tropsch: e-fuels
-        Sabatier: e-fuels
-        methanolisation: e-fuels
-        H2 exogenous demand: exogenous demand
+        Fischer-Tropsch: final energy demand + e-fuels
+        Sabatier: final energy demand + e-fuels
+        methanolisation: final energy demand + e-fuels
+        H2 exogenous demand: final energy demand + e-fuels
 
     power_capacity:
       table_type: scenario_comparison

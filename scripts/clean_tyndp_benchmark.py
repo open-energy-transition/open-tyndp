@@ -252,7 +252,7 @@ def load_benchmark(
         df_converted = pd.concat([df_group, df_other], ignore_index=True)
     # Aggregate hydrogen demand to match input data resolution
     elif table == "hydrogen_demand":
-        group = ["power generation", "e-fuels"]
+        group = ["power generation"]
         df_other = (
             df_converted[
                 (~df_converted.carrier.isin(group)) & (df_converted.carrier != "total")
@@ -260,7 +260,7 @@ def load_benchmark(
             .groupby(["scenario", "year", "unit", "table"])
             .sum()
             .reset_index()
-            .assign(carrier="exogenous demand")
+            .assign(carrier="final energy demand + e-fuels")
         )
         df_group = df_converted[df_converted.carrier.isin(group)]
         df_converted = pd.concat([df_group, df_other], ignore_index=True)
