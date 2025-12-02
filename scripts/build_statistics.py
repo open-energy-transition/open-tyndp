@@ -58,6 +58,7 @@ def compute_benchmark(
     options: dict,
     eu27: list[str],
     tyndp_renewable_carriers: list[str],
+    planning_horizons: int,
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -74,6 +75,8 @@ def compute_benchmark(
         List of member state of European Union (EU27).
     tyndp_renewable_carriers : list[str]
         List of renewable carriers in TYNDP 2024.
+    planning_horizons : int
+        The current planning horizon year.
 
     Returns
     -------
@@ -293,12 +296,23 @@ def compute_benchmark(
         )
     elif table == "biomass_supply":
         grouper = ["carrier"]
-        df = n.statistics.supply(
-            comps=supply_comps,
+        df_fed_btl = n.statistics.withdrawal(
+            comps=demand_comps,
             bus_carrier="solid biomass",
             groupby=grouper,
             aggregate_across_components=True,
         )
+
+        eff = float(opt["biomass_to_methane_efficiency"][planning_horizons])
+
+        df_biogas = n.statistics.energy_balance(
+            comps="Generator",
+            bus_carrier="biogas",
+            groupby=grouper,
+            aggregate_across_components=True,
+        ).div(eff)
+
+        df = pd.concat([df_fed_btl, df_biogas])
     elif table == "energy_imports":
         # TODO Account for domestic production of gas, solid and liquid fossil fuels
         # TODO No biomass import is assumed
@@ -440,6 +454,7 @@ if __name__ == "__main__":
         options=options,
         eu27=eu27,
         tyndp_renewable_carriers=tyndp_renewable_carriers,
+        planning_horizons=planning_horizons,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
