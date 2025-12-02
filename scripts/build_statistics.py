@@ -157,21 +157,36 @@ def compute_benchmark(
         df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
         grouper = ["carrier"]
-        if "EU gas" in n.buses.index:
-            reindex_idx = pd.Index(["EU gas"])
-        else:
-            reindex_idx = eu27_idx
-        df = (
+        df_countries = (
             n.statistics.withdrawal(
-                comps=demand_comps,
+                comps="Link",
                 bus_carrier="gas",
-                groupby=["bus"] + grouper,
+                groupby=["bus1"] + grouper,
                 aggregate_across_components=True,
             )
-            .reindex(reindex_idx, level="bus")
+            .reindex(eu27_idx, level="bus1")
             .groupby(by=grouper)
             .sum()
         )
+
+        df_eu = (
+            n.statistics.withdrawal(
+                comps="Link",
+                bus_carrier="gas",
+                groupby=["bus1"] + grouper,
+                aggregate_across_components=True,
+            )
+            .loc[
+                lambda s: (
+                    ~s.index.get_level_values("carrier").isin(df_countries.index)
+                )
+                & (s.index.get_level_values("bus1").str.startswith("EU"))
+            ]
+            .groupby(by=grouper)
+            .sum()
+        )
+
+        df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_demand":
         grouper = ["carrier"]
         df = (
@@ -242,12 +257,26 @@ def compute_benchmark(
         )
     elif table == "methane_supply":
         grouper = ["carrier"]
-        df = n.statistics.supply(
+        df_countries = (
+            n.statistics.supply(
+                comps="Link",
+                bus_carrier="gas",
+                groupby=["bus0"] + grouper,
+                aggregate_across_components=True,
+            )
+            .reindex(eu27_idx, level="bus0")
+            .groupby(by=grouper)
+            .sum()
+        )
+
+        df_eu = n.statistics.supply(
             comps=supply_comps,
             bus_carrier="gas",
             groupby=grouper,
             aggregate_across_components=True,
-        )
+        ).loc[lambda s: (~s.index.get_level_values("carrier").isin(df_countries.index))]
+
+        df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
         df = (
