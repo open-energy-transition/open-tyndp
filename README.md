@@ -74,11 +74,11 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 |                                                        |    Investment candidates trajectories processing    |                                      [#97](https://github.com/open-energy-transition/open-tyndp/pull/97)                                       |   ✅    |
 |                    **TYNDP demand**                    |                     Electricity                     |                                      [#14](https://github.com/open-energy-transition/open-tyndp/pull/14)                                       |   ✅    |
 |                                                        |                      Hydrogen                       |                                   [#169](https://github.com/open-energy-transition/open-tyndp/pull/169)                                        |   🔨    |
-|                                                        |                       Methane                       |                                                                                                                                                |   ⌛    |
+|                                                        |                       Methane                       |  [#208](https://github.com/open-energy-transition/open-tyndp/pull/208), [#220](https://github.com/open-energy-transition/open-tyndp/pull/220)  |   🔨    |
 |                                                        |                   Synthetic fuels                   |                                                                                                                                                |   ⌛    |
 |                                                        |                  District heating                   |                                                                                                                                                |   ⌛    |
 |                                                        |                   Energy imports                    |                                                                                                                                                |   ⌛    |
-|          **TYNDP technologies and carriers**           | TYNDP generation technologies (incl. SRES and DRES) | [# 115](https://github.com/open-energy-transition/open-tyndp/pull/115), [# 139](https://github.com/open-energy-transition/open-tyndp/pull/139) |   🔨   |
+|          **TYNDP technologies and carriers**           |                  TYNDP generation technologies (incl. SRES and DRES)                  | [#115](https://github.com/open-energy-transition/open-tyndp/pull/115), [#139](https://github.com/open-energy-transition/open-tyndp/pull/139), [#195](https://github.com/open-energy-transition/open-tyndp/pull/195) |   🔨   |
 |                                                        |                 Prosumer modelling                  |                                                                                                                                                |   ⌛    |
 |                                                        |                    EV modelling                     |                                                                                                                                                |   ⌛    |
 |                                                        |               Synthetic fuel carriers               |                                                                                                                                                |   ⌛    |
@@ -103,7 +103,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 * `cutouts`: will store raw weather data cutouts from `atlite` (does not exist initially)
 * `data`: includes input data that is not produced by any `snakemake` rule
 * `doc`: includes all files necessary to build the `readthedocs` documentation of PyPSA-Eur
-* `envs`: includes all the `mamba` environment specifications to run the workflow
+* `envs`: includes backup `conda` environments if `pixi` installation does not work.
 * `logs`: will store log files (does not exist initially)
 * `notebooks`: includes all the `notebooks` used for ad-hoc analysis
 * `report`: contains all files necessary to build the report; plots and result files are generated automatically
@@ -118,25 +118,40 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 
 Clone the repository:
 
-    git clone https://github.com/open-energy-transition/open-tyndp
+```sh
+git clone https://github.com/open-energy-transition/open-tyndp
+```
+PyPSA-Eur, and consequently Open-TYNDP, relies on a set of other Python packages to function.
+We manage these using [pixi](https://pixi.sh/latest/>).
+Once pixi is installed, you can activate the project environment for your operating system and have access to all the PyPSA-Eur dependencies from the command line:
 
-You need a package manager like [mamba](https://mamba.readthedocs.io/en/latest/) to run the analysis. Users may also prefer to use [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) or [conda](https://docs.conda.io/projects/conda/en/latest/index.html). Using `mamba`, you can create an environment for `<your-os>` from within you can run it:
+```sh
+pixi shell -e open-tyndp
+```
 
-    mamba env create -n open-tyndp -f envs/<your-os>.lock.yaml
+>[!NOTE]
+>`pixi` will create a distinct environment in every project directory, even if you have identical copies of a project cloned locally.
+>As there is a common system-level package cache, `pixi` efficiently conserves disk space in such cases.
 
-Activate the newly created `open-tydnp` environment:
-
-    mamba activate open-tyndp
+>[!TIP]
+>If `pixi` isn't working, you can install from one of the fallback `conda` environment files found in `envs`.
+>For more details see [the PyPSA-Eur installation guide](https://pypsa-eur.readthedocs.io/en/latest/installation.html).
 
 ## 2. Run the analysis
 
-    make tyndp
+```sh
+pixi run tyndp
+```
 
 This will run all analysis steps to reproduce results and build the report.
 
-To generate a PDF of the dependency graph of all steps `resources/dag_rulegraph.pdf` run:
+To list all the rules that need to be executed (dry run), run:
 
-    snakemake -c1 rulegraph --configfile config/config.tyndp.yaml
+```sh
+pixi run tyndp -n
+```
+
+Note: The workflow automatically generates dependency graphs after successful completion (via `rulegraphs` and `filegraphs` rules). The generated graphs are saved to the `resources/` directory.
 
 # Contributing and Support
 We strongly welcome anyone interested in contributing to this project. If you have any ideas, suggestions or encounter problems, feel invited to file issues or make pull requests on GitHub.

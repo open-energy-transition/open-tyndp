@@ -11,7 +11,10 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
+
 **Features**
+
+* Add CO2 emission prices configurable per planning horizon for sector-coupled models (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
 
 * Introduce a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT
   (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP
@@ -22,7 +25,13 @@ Upcoming Open-TYNDP Release
   building individual project networks, solving network optimizations, and computing CBA
   indicators.
 
-* Add the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
+* Added the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
+
+* Added TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
+
+* Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220). Introduces ``sector:gas_demand_exogenously`` configuration to decide whether to attach this demand to the network. Introduces  ``benchmarking:remove_last_day`` to optionally remove the last day of the year, ensuring the benchmarked values have exactly 52 weeks. Removes ``sector:use_industry_load`` configuration as industry is now integrated in the exogenous demand.
+
+* Add the TYNDP CCS assumptions as sequestration potentials (https://github.com/open-energy-transition/open-tyndp/pull/244)
 
 **Bugfixes and Compatibility**
 
@@ -30,10 +39,21 @@ Upcoming Open-TYNDP Release
 
 * Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214)
 
+* Adjust the benchmarking configurations to report an approximation of imports for fossil fuels (https://github.com/open-energy-transition/open-tyndp/pull/237) and ensure that the final energy demand for biofuels is reflected correctly (https://github.com/open-energy-transition/open-tyndp/pull/239)
+
+* Add an intermediate scaling factor for hydro plants to match PEMMDB capacities (https://github.com/open-energy-transition/open-tyndp/pull/238, https://github.com/open-energy-transition/open-tyndp/pull/240)
+
 
 Upcoming PyPSA-Eur Release
 ================
 
+* Add CO2 emission prices configurable per planning horizon for sector-coupled models.
+  The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
+
+* Add `custom storage plugin <https://github.com/PyPSA/snakemake-storage-plugin-cached-http>`_ to handle retrievals from zenodo to address recurring failures.
+
+* Move to [pixi](https://pixi.sh/latest/) for robust cross-platform dependency management.
+
 * Fix: Allocate heat pump CAPEX on heat instead of electricity bus instead and remove nominal efficiency from CAPEX calculation
 
 * Fix: Configsettings for `heat_pump_cop_approximation` are now correctly passed to `CentralHeatingCopApproximator.py`
@@ -41,6 +61,8 @@ Upcoming PyPSA-Eur Release
 * Fix: Allocate heat pump CAPEX on heat instead of electricity bus instead and remove nominal efficiency from CAPEX calculation
 
 * Fix: Configsettings for `heat_pump_cop_approximation` are now correctly passed to `CentralHeatingCopApproximator.py`
+
+* Fix: Deprecation warnings from `pandas>=2.3.0` (https://github.com/PyPSA/pypsa-eur/pull/1898)
 
 * Feature: Introduce a new method to overwrite costs (https://github.com/PyPSA/pypsa-eur/pull/1752, https://github.com/PyPSA/pypsa-eur/pull/1879). Modifications to the default techno-economic assumptions can now be configured via `costs:custom_cost_fn`, which applies changes to the `resources/costs_{planning_horizons}.csv` files. The default configuration includes minor adjustments to stabilize optimization results. The existing implementation via `costs:overwrites` and `costs:capital_cost`/`costs:marginal_cost` parameters remains available but will be deprecated in a future release.
 
@@ -97,6 +119,8 @@ Upcoming PyPSA-Eur Release
 * Increase minimum required `pypsa` version to 0.33.2 (https://github.com/PyPSA/pypsa-eur/pull/1849)
 
 * Running perfect foresight is now marked as unstable and may not work as expected.
+
+* Remove the hotfix in `progress_retrieve` and check that the directory exists (https://github.com/PyPSA/pypsa-eur/pull/1840).
 
 * Added minimum unit dispatch setting option for electrolysis
 

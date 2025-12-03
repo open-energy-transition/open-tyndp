@@ -38,30 +38,25 @@ snapshots:
   end: "2010-01-01"
 
 co2_budget:
-  # TODO define carbon budget compliant with EU 2030 and 2050 targets
-  2020: 0.720 # average emissions of 2019 to 2021 relative to 1990, CO2 excl LULUCF, EEA data, European Environment Agency. (2023a). Annual European Union greenhouse gas inventory 1990–2021 and inventory report 2023 - CRF Table. https://unfccc.int/documents/627830
-  2025: 0.648 # With additional measures (WAM) projection, CO2 excl LULUCF, European Environment Agency. (2023e). Member States’ greenhouse gas (GHG) emission projections 2023. https://www.eea.europa.eu/en/datahub/datahubitem-view/4b8d94a4-aed7-4e67-a54c-0623a50f48e8
-  2030: 0.450 # 55% reduction by 2030 (Ff55)
-  2035: 0.250
-  2040: 0.100 # 90% by 2040
-  2045: 0.050
-  2050: 0.000 # climate-neutral by 2050
 
 electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT, CCGT]
+    Generator: [OCGT]
 
+  conventional_carriers: [OCGT]
   tyndp_conventional_carriers:
   - gas
   - coal
   - lignite
-  - nuclear
+  - uranium
   - oil-light
   - oil-heavy
   - oil-shale
+  group_tyndp_conventionals: true
   renewable_carriers: [hydro]
+  scale_hydro_to_pemmdb: true
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -194,13 +189,12 @@ pypsa_eur:
   Store: []
 
 sector:
-  transport: false
+  transport: true
   heating: false
   biomass: true
-  industry: true
-  use_industry_load: false
-  shipping: false
-  aviation: false
+  industry: false
+  shipping: true
+  aviation: true
   agriculture: false
   fossil_fuels: true
 
@@ -212,15 +206,7 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  land_transport_electric_share:
-    2020: 0
-    2025: 0.15
-    2030: 0.3
-    2035: 0.45
-    2040: 0.7
-    2045: 0.85
-    2050: 1
-  land_transport_ice_share:  # Not modelled
+  land_transport_electric_share:  # included in exogenous demand
     2020: 0
     2025: 0
     2030: 0
@@ -228,12 +214,48 @@ sector:
     2040: 0
     2045: 0
     2050: 0
+  land_transport_ice_share:  # TODO Improve default assumptions
+    2020: 1
+    2025: 0.95
+    2030: 0.8
+    2035: 0.55
+    2040: 0.3
+    2045: 0.15
+    2050: 0
+  shipping_hydrogen_share:
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  shipping_methanol_share:  # included in exogenous demand  # TODO Validate assumption
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  shipping_oil_share:
+    2020: 1
+    2025: 1
+    2030: 0.85
+    2035: 0.65
+    2040: 0.45
+    2045: 0.2
+    2050: 0
   oil_boilers: false
   biomass_boiler: false
-  hydrogen_fuel_cell: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false
+  co2_sequestration_potential:
+    # Values from TYNDP 2024 Supply Tool
+    2030: 47
+    2035: 167
+    2040: 344
   co2_spatial: false
   co2_network: false
   methanol:
@@ -243,6 +265,9 @@ sector:
   ammonia: false
   h2_topology_tyndp: true
   gas_network: false
+  gas_demand_exogenously: true
+  biomass_to_liquid: true
+  biomass_to_liquid_cc: true
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -266,6 +291,15 @@ costs:
       offwind: 25
     efficiency:
       electrolysis: 0.68  # ToDo Account for time-varying efficiencies, currently using fixed 2020 value from TYNDP 2024
+  emission_prices:
+    enable: true
+    co2:
+      # Source: Methodology report, p32
+      2030: 113.4
+      2035: 130.2 # interpolated
+      2040: 147
+      2045: 157.5 # interpolated
+      2050: 168
 
 clustering:
   mode: administrative
@@ -287,7 +321,6 @@ plotting:
     - H2
     - gas
     - oil
-    - methanol
     - co2 stored
     H2:
       bus_factor: 0.005

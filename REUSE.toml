@@ -33,8 +33,10 @@ SPDX-License-Identifier = "CC-BY-4.0"
 path = [
     ".github/**",
     "borg-it",
-    "envs/*.lock.yaml",
+    "pixi.lock",
     "matplotlibrc",
+    "envs/*.pin.txt",
+    "envs/environment.yaml"
 ]
 SPDX-FileCopyrightText = [
     "The Open-TYNDP Authors",
