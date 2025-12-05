@@ -187,6 +187,7 @@ rule prepare_uncertainty_scenarios:
     input:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+        errors=rules.retrieve_ngv_iem_errors.output["parquet"],
     output:
         networks=[
             resources(s)
