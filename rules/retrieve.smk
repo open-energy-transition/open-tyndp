@@ -960,3 +960,13 @@ if config["enable"]["retrieve"]:
         retries: 2
         run:
             move(input[0], output[0])
+
+    rule retrieve_ngv_iem_errors:
+        input:
+            parquet=storage(
+                "https://drive.usercontent.google.com/u/0/uc?id=1uuJO7OZgE-kqy0E5Rtaf8MtwvXyk4T9l&export=download"
+            ),
+        output:
+            parquet="data/ngv_iem/relative_errors.parquet",
+        run:
+            move(input["parquet"], output["parquet"])
