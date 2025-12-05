@@ -18,10 +18,7 @@ tyndp_scenario: NT
 # Logic for scenarios in `scripts/prepare_uncertainty_scenarios.py`,
 # see descriptions there
 uncertainty_scenarios:
-- low-demand_low-renewables
-- low-demand_high-renewables
-- high-demand_low-renewables
-- high-demand_high-renewables
+- trader-forecast
 
 scenario:
   clusters:
