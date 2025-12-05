@@ -962,11 +962,16 @@ if config["enable"]["retrieve"]:
             move(input[0], output[0])
 
     rule retrieve_ngv_iem_errors:
+        message:
+            "Retrieving NGV IEM relative errors dataset..."
         input:
             parquet=storage(
-                "https://drive.usercontent.google.com/u/0/uc?id=1uuJO7OZgE-kqy0E5Rtaf8MtwvXyk4T9l&export=download"
+                "https://drive.usercontent.google.com/download?id=1uuJO7OZgE-kqy0E5Rtaf8MtwvXyk4T9l&export=download&authuser=0"
             ),
         output:
             parquet="data/ngv_iem/relative_errors.parquet",
         run:
+            assert (
+                False
+            ), "Manual download for this dataset is required. Please download it from the URL above and place it in 'data/ngv_iem/relateive_errors.parquet'"
             move(input["parquet"], output["parquet"])
