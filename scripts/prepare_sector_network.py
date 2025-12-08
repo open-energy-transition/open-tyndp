@@ -1647,10 +1647,11 @@ def add_generation(
         )
 
     # Add TYNDP conventional power plants
+    nodes_tyndp = n.buses.query("carrier == 'AC'").index
     add_thermal_generation_tyndp(
         n=n,
         costs=costs,
-        nodes=nodes,
+        nodes=nodes_tyndp,
         tyndp_conventionals=tyndp_conventionals,
         spatial=spatial,
         options=options,
