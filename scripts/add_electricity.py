@@ -446,7 +446,8 @@ def attach_wind_and_solar(
         DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max). When
         provided, these values override any p_nom_max defined in the profile itself.
     planning_horizon: int, optional
-        Planning horizon for which renewable profiles should be added. Optional input defaults to None.
+        Planning horizon for which renewable profiles should be added. Optional input defaults to None. If
+        year is part of the coordinates and planning_horizon is None, then the first year is used by default.
     """
     add_missing_carriers(n, carriers)
 
@@ -463,11 +464,10 @@ def attach_wind_and_solar(
             if ds.indexes["bus"].empty:
                 continue
 
+            # if-statement for compatibility with old profiles and with PECD data
             if planning_horizon is not None:
                 ds = ds.sel(year=planning_horizon, drop=True)
-
-            # if-statement for compatibility with old profiles
-            if "year" in ds.indexes:
+            elif "year" in ds.indexes:
                 ds = ds.sel(year=ds.year.min(), drop=True)
 
             ds = ds.stack(bus_bin=["bus", "bin"])
