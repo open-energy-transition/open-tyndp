@@ -1647,11 +1647,11 @@ def add_generation(
         )
 
     # Add TYNDP conventional power plants
-    nodes_tyndp = n.buses.query("carrier == 'AC'").index
+    # TODO: review how to use AC buses as nodes with pop_layout index used for spatial
     add_thermal_generation_tyndp(
         n=n,
         costs=costs,
-        nodes=nodes_tyndp,
+        nodes=nodes,
         tyndp_conventionals=tyndp_conventionals,
         spatial=spatial,
         options=options,
