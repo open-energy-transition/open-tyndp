@@ -41,6 +41,13 @@ def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
         # Copy the optimized capacities to the nominal capacity columns
         c.static[capacity] = c.static[f"{capacity}_opt"]
 
+    # If we increase the load in some uncertainty scenarios, then these
+    # links need to be expandable, else we create infeasibilities.
+    idx = n.components.links.static.query(
+        "`name`.str.contains(' distribution grid')"
+    ).index
+    n.components.links.static.loc[idx, "p_nom_extendable"] = True
+
     return n
 
 
@@ -247,19 +254,22 @@ def add_scenario_uncertainty(
 
             if not cols:
                 continue
-            print(f"Applying errors to {bus} {tech} for columns: {cols}")
+            logger.info(f"Applying errors to {bus} {tech} for columns: {cols}")
 
             # Apply the errors onto all columns from generators[col]
             new_p_max_pu = comp[cols].multiply(
                 1 + expanded_errors.loc[:, (bus, tech)], axis="index"
             )
 
-            # Errors may cause values outside [0, 1] which is unrealistic for availability factors
-            # clip accordingly
-            new_p_max_pu = new_p_max_pu.clip(lower=0, upper=1)
+            # Errors may cause values below which is unrealistic, so clip accordingly
+            # We could also clip > 1, but then we need to differentiate between
+            # loads (absolute timeseries) and generators (pu timeseries)
+            new_p_max_pu = new_p_max_pu.clip(lower=0)
 
             # Assign the new values back to the generators dataframe
             # (this propagates to the network object n because it is a reference, not a copy)
+            # Make sure to align snapshots first
+            new_p_max_pu = new_p_max_pu.loc[comp.index]
             comp[cols] = new_p_max_pu
 
     return n
@@ -272,8 +282,8 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_uncertainty_scenarios",
             opts="",
-            clusters="5",
-            configfiles="config/test/config.overnight.yaml",
+            clusters="all",
+            configfiles="config/config.tyndp.yaml",
             sector_opts="",
             planning_horizons="2030",
         )
@@ -288,7 +298,7 @@ if __name__ == "__main__":
 
     for uncertainty_scenario in snakemake.params.uncertainty_scenarios:
         n_uncertain = add_scenario_uncertainty(
-            n, uncertainty_scenario, error_fp=snakemake.input.errors
+            n, scenario_name=uncertainty_scenario, error_fp=snakemake.input.errors
         )
 
         output_path = [
@@ -298,6 +308,9 @@ if __name__ == "__main__":
             "Expected exactly one output path for each uncertainty scenario"
         )
         output_path = output_path[0]
+
+        # Better now than later
+        n.consistency_check()
 
         logger.info(f"Saving uncertainty scenario network to {output_path}")
         n_uncertain.export_to_netcdf(output_path)
