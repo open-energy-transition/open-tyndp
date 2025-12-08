@@ -1984,53 +1984,6 @@ def _extract_pemmdb_hydro_duration(
     return max_hours
 
 
-def _extract_pemmdb_hydro_duration(
-    pemmdb_capacities: pd.DataFrame, tech: str | list[str], year: int
-) -> pd.DataFrame:
-    """
-    Takes a PEMMDB capacities Dataframe and calculates country-wise storage durations for the given hydro technologies.
-
-    Parameters
-    ----------
-    pemmdb_capacities : pd.DataFrame
-        DataFrame containing all PEMMDB capacities.
-    tech : str | list[str]
-        Hydro technology to calculate storage duration for.
-    year : int
-        Planning year for which the values are given.
-
-    Returns
-    -------
-    pd.DataFrame
-        Calculated storage duration max_hours.
-    """
-    if not isinstance(tech, list):
-        tech = [tech]
-
-    caps = (
-        pemmdb_capacities.loc[pemmdb_capacities.carrier.isin(tech)]
-        .query("index_carrier.str.contains('turbine') and unit == 'MW' and p_nom > 0")
-        .groupby("country")
-        .sum()[["p_nom"]]
-        .div(1e3)  # GW
-        .rename(columns={"p_nom": year})
-    )
-    store = (
-        pemmdb_capacities.loc[pemmdb_capacities.carrier.isin(tech)]
-        .query(
-            "index_carrier.str.contains('reservoir') and unit == 'MWh' and e_nom > 0"
-        )
-        .groupby("country")
-        .sum()[["e_nom"]]
-        .div(1e3)  # GWh
-        .rename(columns={"e_nom": year})
-    )
-
-    max_hours = store / caps
-
-    return max_hours
-
-
 def _add_tyndp_scaling_factor(n, pemmdb_capacities, ppl, year):
     """
     Add a scaling factor to existing PyPSA hydro capacities and inflows to approximately match TYNDP input capacities.
@@ -2527,21 +2480,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
-    # Add electorlysis to Z2
-    if options["h2_zones_tyndp"]:
-        n.add(
-            "Link",
-            nodes.index + " H2 Z2 Electrolysis",
-            bus0=nodes.index,
-            bus1=(nodes.country + " H2 Z2").values,
-            p_nom_extendable=True,
-            carrier="H2 Electrolysis",
-            efficiency=costs.at["electrolysis", "efficiency"],
-            capital_cost=costs.at["electrolysis", "capital_cost"],
-            lifetime=costs.at["electrolysis", "lifetime"],
-        )
-
-    # Add electorlysis to Z2
+    # Add electrolysis to Z2
     if options["h2_zones_tyndp"]:
         n.add(
             "Link",
