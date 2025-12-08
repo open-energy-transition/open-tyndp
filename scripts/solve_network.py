@@ -1562,17 +1562,19 @@ def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
             f"The following lines from the line limits file are missing in the network: {missing_lines.tolist()}"
         )
 
-    # If there is any line already restricted, remove the existing restrictions first
-    existing_restrictions = line_limits.columns.intersection(line_p_max_pu.columns)
-    if any(existing_restrictions):
+    # Remove existing restrictions that are also part of the `line_limits` if there are any
+    # This is not problematic, as the new restrictions are build upon the old restrictions,
+    # i.e. the most restrictive limits will apply
+    existing_restricted_links = line_limits.columns.intersection(line_p_max_pu.columns)
+    if any(existing_restricted_links):
         logger.info(
-            f"Removing existing line flow restrictions for GB-connected lines: {existing_restrictions.tolist()}"
+            f"Removing existing link flow restrictions for GB-connected lines: {existing_restricted_links.tolist()}"
         )
-        line_p_max_pu = line_p_max_pu.drop(columns=existing_restrictions)
+        line_p_max_pu = line_p_max_pu.drop(columns=existing_restricted_links)
 
     # Add new restrictions
     n.components.links.dynamic["p_max_pu"] = pd.concat(
-        [n.components.links.dynamic["p_max_pu"], line_limits], axis="columns"
+        [line_p_max_pu, line_limits], axis="columns"
     )
 
     return n
