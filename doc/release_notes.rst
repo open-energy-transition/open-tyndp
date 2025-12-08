@@ -43,6 +43,8 @@ Upcoming Open-TYNDP Release
 
 * Add an intermediate scaling factor for hydro plants to match PEMMDB capacities (https://github.com/open-energy-transition/open-tyndp/pull/238, https://github.com/open-energy-transition/open-tyndp/pull/240)
 
+* Correctly attach planning year dependent renewable profiles from PECD to solar and onwind generators (https://github.com/open-energy-transition/open-tyndp/pull/265).
+
 
 Upcoming PyPSA-Eur Release
 ================
