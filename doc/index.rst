@@ -198,8 +198,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - Hydrogen
-     - `#169 <https://github.com/open-energy-transition/open-tyndp/pull/169>`__
-     - 🔨
+     - `#169 <https://github.com/open-energy-transition/open-tyndp/pull/169>`__, `#230 <https://github.com/open-energy-transition/open-tyndp/pull/230>`__
+     - ✅
    * -
      - Methane
      - `#208 <https://github.com/open-energy-transition/open-tyndp/pull/208>`__, `#220 <https://github.com/open-energy-transition/open-tyndp/pull/220>`__

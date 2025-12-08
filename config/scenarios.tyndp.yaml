@@ -5,6 +5,7 @@
 NT:
   tyndp_scenario: NT
   sector:
+    h2_zones_tyndp: false
     co2_sequestration_potential:
       # Values from TYNDP 2024 Supply Tool
       2030: 47
@@ -36,6 +37,9 @@ DE:
       2040: 0.44
       2045: 0.3  # interpolation
       2050: 0.16
+    h2_zones_tyndp: true
+    force_biomass_potential: false
+    force_biogas_potential: false
     co2_sequestration_potential:
       # Values from TYNDP 2024 Supply Tool
       2030: 60
@@ -69,6 +73,9 @@ GA:
       2040: 0.50
       2045: 0.34  # interpolation
       2050: 0.17
+    h2_zones_tyndp: true
+    force_biomass_potential: false
+    force_biogas_potential: false
     co2_sequestration_potential:
       # Values from TYNDP 2024 Supply
       2030: 48
