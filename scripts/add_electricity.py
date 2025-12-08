@@ -419,6 +419,7 @@ def attach_wind_and_solar(
     line_length_factor: float = 1.0,
     landfall_lengths: dict = None,
     trajectories: pd.DataFrame = pd.DataFrame(),
+    planning_horizon: int = None,
 ) -> None:
     """
     Attach wind and solar generators to the network.
@@ -444,6 +445,8 @@ def attach_wind_and_solar(
     trajectories : pd.DataFrame, optional, by default None
         DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max). When
         provided, these values override any p_nom_max defined in the profile itself.
+    planning_horizon: int, optional
+        Planning horizon for which renewable profiles should be added. Optional input defaults to None.
     """
     add_missing_carriers(n, carriers)
 
@@ -459,6 +462,9 @@ def attach_wind_and_solar(
         with xr.open_dataset(profile_filenames["profile_" + car]) as ds:
             if ds.indexes["bus"].empty:
                 continue
+
+            if planning_horizon is not None:
+                ds = ds.sel(year=planning_horizon, drop=True)
 
             # if-statement for compatibility with old profiles
             if "year" in ds.indexes:
