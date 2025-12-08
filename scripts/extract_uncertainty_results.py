@@ -36,10 +36,7 @@ if __name__ == "__main__":
 
     dispatches = []
     for n_fp in snakemake.input.networks:
-        # n = pypsa.Network(n_fp)
-        n = pypsa.Network(
-            "/home/user/Documents/GitHub/NGV-IEM/results/tyndp/NT/low-demand_high-renewables/networks/base_s_all___2030.nc"
-        )
+        n = pypsa.Network(n_fp)
 
         # Extract all relevant links (DC links from or to GB00)
         links_s = n.components.links.static
