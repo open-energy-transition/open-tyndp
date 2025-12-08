@@ -185,6 +185,24 @@ pypsa_eur:
   - hydro
   Store: []
 
+biomass:
+  share_unsustainable_use_retained:
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  share_sustainable_potential_available:
+    2020: 1
+    2025: 1
+    2030: 1
+    2035: 1
+    2040: 1
+    2045: 1
+    2050: 1
+
 sector:
   transport: true
   heating: false
@@ -261,10 +279,18 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  h2_zones_tyndp: false
   gas_network: false
   gas_demand_exogenously: true
+  biomass_spatial: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: true
+  force_biomass_potential: true
+  force_biogas_potential: true
+  biomass_final_demand: # in TWh
+    2030: 902
+    2035: 815 # linear interpolation
+    2040: 728
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -309,6 +335,39 @@ clustering:
     remove_stubs: false
   temporal:
     resolution_sector: 6H
+
+adjustments:
+  electricity: false
+  sector:
+    factor:
+      Generator:
+        biogas:
+          p_nom:
+            2030: 1.26  # EU27 biogas potential: PyPSA-Eur 301 TWh vs TYNDP 379 TWh
+            2035: 1.89  # interpolated
+            2040: 2.51  # EU27 biogas potential: PyPSA-Eur 306 TWh vs TYNDP 767 TWh
+          e_sum_max:
+            2030: 1.26
+            2035: 1.89
+            2040: 2.51
+          e_sum_min:
+            2030: 1.26
+            2035: 1.89
+            2040: 2.51
+        solid biomass:
+          p_nom:
+            2030: 1.47 # EU27 biomass potential: PyPSA-Eur 974 TWh vs TYNDP 1431 TWh
+            2035: 1.40 # interpolated
+            2040: 1.33 # EU27 biomass potential: PyPSA-Eur 950 TWh vs TYNDP 1261 TWh
+          e_sum_max:
+            2030: 1.47
+            2035: 1.40
+            2040: 1.33
+          e_sum_min:
+            2030: 1.47
+            2035: 1.40
+            2040: 1.33
+    absolute: false
 
 plotting:
   balance_map:

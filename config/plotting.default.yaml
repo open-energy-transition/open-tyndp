@@ -261,7 +261,6 @@ plotting:
     PHS: "Pumped Hydro Storage"
     hydro: "Reservoir & Dam"
     battery: "Battery Storage"
-    H2: "Hydrogen Storage"
     lines: "Transmission Lines"
     ror: "Run of River"
     load: "Load Shedding"
@@ -386,6 +385,7 @@ plotting:
     solid biomass import: '#d5ca8d'
     solid biomass transport: '#baa741'
     solid biomass for industry: '#7a6d26'
+    biomass final energy demand: '#7a6d26'
     solid biomass for industry CC: '#47411c'
     solid biomass for industry co2 from atmosphere: '#736412'
     solid biomass for industry co2 to stored: '#47411c'
@@ -520,6 +520,7 @@ plotting:
     H2 for industry: "#f073da"
     H2 for shipping: "#ebaee0"
     H2: '#bf13a0'
+    H2 exogenous demand: '#bf13a0'
     H2_OH: '#bf13a0'
     hydrogen: '#bf13a0'
     methane&hydrogen: '#bf13a0'
