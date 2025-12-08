@@ -1637,6 +1637,7 @@ rule prepare_sector_network:
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
+        tyndp_stores=config_provider("electricity", "tyndp_stores"),
         foresight=config_provider("foresight"),
         sector=config_provider("sector"),
         industry=config_provider("industry"),

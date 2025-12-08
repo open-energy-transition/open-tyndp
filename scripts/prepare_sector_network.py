@@ -1775,6 +1775,66 @@ def _add_conventional_thermal_capacities(
         n.remove("Link", links_rm)
 
 
+def _add_store_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    tyndp_stores: list[str],
+) -> None:
+    """
+    Add PEMMDB capacities for stor(ag)e technologies to existing assets in the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    tyndp_stores : list[str]
+        List of TYNDP storage technologies that were added to the network.
+    """
+
+    logger.info("Adding PEMMDB capacities to battery storage assets.")
+
+    if "battery" in tyndp_stores:
+        logger.info("Adding PEMMDB capacities to battery storage assets.")
+
+        tech = "battery-store"
+        stores_i = n.components.stores.static.query(
+            f"`index`.str.endswith('{tech}')"
+        ).index
+        caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
+        caps["n_index"] = caps.index + " " + caps["index_carrier"]
+        caps = caps.set_index("n_index")
+        n.components.stores.static.loc[stores_i, "e_nom"] = caps.loc[stores_i, "e_nom"]
+        n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+
+        tech = "battery-charge"
+        links_i = n.components.links.static.query(
+            f"`index`.str.endswith('{tech}')"
+        ).index
+        caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
+        caps["n_index"] = caps.index + " " + caps["index_carrier"]
+        caps = caps.set_index("n_index")
+        n.components.links.static.loc[links_i, "p_nom"] = caps.loc[links_i, "p_nom"]
+        n.components.links.static.loc[links_i, "p_nom_extendable"] = False
+        n.components.links.static.loc[links_i, "efficiency"] = (
+            caps.loc[links_i, "efficiency"] ** 0.5
+        )
+
+        tech = "battery-discharge"
+        links_i = n.components.links.static.query(
+            f"`index`.str.endswith('{tech}')"
+        ).index
+        caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
+        caps["n_index"] = caps.index + " " + caps["index_carrier"]
+        caps = caps.set_index("n_index")
+        n.components.links.static.loc[links_i, "p_nom"] = caps.loc[links_i, "p_nom"]
+        n.components.links.static.loc[links_i, "p_nom_extendable"] = False
+        n.components.links.static.loc[links_i, "efficiency"] = (
+            caps.loc[links_i, "efficiency"] ** 0.5
+        )
+
+
 def add_existing_pemmdb_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -1782,6 +1842,7 @@ def add_existing_pemmdb_capacities(
     trajectories: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
+    tyndp_stores: list[str],
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
     extendable_carriers: list | set,
@@ -1813,6 +1874,8 @@ def add_existing_pemmdb_capacities(
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
+    tyndp_stores : list[str]
+        List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
@@ -1863,6 +1926,14 @@ def add_existing_pemmdb_capacities(
             pemmdb_profiles=pemmdb_profiles,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             nuclear_trajectories=nuclear_trajectories,
+        )
+
+    # Add existing battery and other storage capacities to already attached storage technologies
+    if tyndp_stores:
+        _add_store_capacities(
+            n=n,
+            pemmdb_capacities=pemmdb_capacities,
+            tyndp_stores=tyndp_stores,
         )
 
 
@@ -3397,7 +3468,7 @@ def add_h2_pipeline_new(n, costs):
     )
 
 
-def add_battery_stores(n, nodes, costs):
+def add_battery_stores(n, nodes, costs, tyndp=False):
     """
     Adds battery stores with charger and discharger.
 
@@ -3409,6 +3480,8 @@ def add_battery_stores(n, nodes, costs):
         Pandas Index of locations/nodes
     costs : pd.DataFrame
         Technology cost assumptions
+    tyndp: bool, optional
+        Whether to use TYNDP specific methodology and naming. Defaults to False.
 
     Returns
     -------
@@ -3416,43 +3489,99 @@ def add_battery_stores(n, nodes, costs):
         The function modifies the network object in-place by adding battery store components.
     """
 
-    n.add("Carrier", "battery")
+    if tyndp:
+        logger.info("Adding TYNDP battery stores with charger and discharger.")
 
-    n.add("Bus", nodes + " battery", location=nodes, carrier="battery", unit="MWh_el")
+        n.add("Carrier", "battery")
 
-    n.add(
-        "Store",
-        nodes + " battery",
-        bus=nodes + " battery",
-        e_cyclic=True,
-        e_nom_extendable=True,
-        carrier="battery",
-        capital_cost=costs.at["battery storage", "capital_cost"],
-        lifetime=costs.at["battery storage", "lifetime"],
-    )
+        n.add(
+            "Bus",
+            nodes + " battery-store",
+            location=nodes,
+            carrier="battery",
+            unit="MWh_el",
+        )
 
-    n.add(
-        "Link",
-        nodes + " battery charger",
-        bus0=nodes,
-        bus1=nodes + " battery",
-        carrier="battery charger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        capital_cost=costs.at["battery inverter", "capital_cost"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
+        n.add(
+            "Store",
+            nodes + " battery-store",
+            bus=nodes + " battery-store",
+            carrier="battery",
+            capital_cost=costs.at["battery storage", "capital_cost"],
+            marginal_cost=costs.at["battery storage", "marginal_cost"],
+            lifetime=costs.at["battery storage", "lifetime"],
+            e_cyclic=True,
+            e_nom_extendable=True,
+        )
 
-    n.add(
-        "Link",
-        nodes + " battery discharger",
-        bus0=nodes + " battery",
-        bus1=nodes,
-        carrier="battery discharger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
+        n.add(
+            "Link",
+            nodes + " battery-charge",
+            bus0=nodes,
+            bus1=nodes + " battery-store",
+            carrier="battery",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            capital_cost=costs.at["battery inverter", "capital_cost"] / 2,
+            marginal_cost=costs.at["battery inverter", "marginal_cost"],
+            lifetime=costs.at["battery inverter", "lifetime"],
+            p_nom_extendable=False,
+        )
+
+        n.add(
+            "Link",
+            nodes + " battery-discharge",
+            bus0=nodes + " battery-store",
+            bus1=nodes,
+            carrier="battery",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            capital_cost=costs.at["battery inverter", "capital_cost"] / 2,
+            marginal_cost=costs.at["battery inverter", "marginal_cost"],
+            lifetime=costs.at["battery inverter", "lifetime"],
+            p_nom_extendable=False,
+        )
+
+    else:
+        logger.info("Adding regular battery stores with charger and discharger.")
+
+        n.add("Carrier", "battery")
+
+        n.add(
+            "Bus", nodes + " battery", location=nodes, carrier="battery", unit="MWh_el"
+        )
+
+        n.add(
+            "Store",
+            nodes + " battery",
+            bus=nodes + " battery",
+            e_cyclic=True,
+            e_nom_extendable=True,
+            carrier="battery",
+            capital_cost=costs.at["battery storage", "capital_cost"],
+            lifetime=costs.at["battery storage", "lifetime"],
+        )
+
+        n.add(
+            "Link",
+            nodes + " battery charger",
+            bus0=nodes,
+            bus1=nodes + " battery",
+            carrier="battery charger",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            capital_cost=costs.at["battery inverter", "capital_cost"],
+            p_nom_extendable=True,
+            lifetime=costs.at["battery inverter", "lifetime"],
+        )
+
+        n.add(
+            "Link",
+            nodes + " battery discharger",
+            bus0=nodes + " battery",
+            bus1=nodes,
+            carrier="battery discharger",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            p_nom_extendable=True,
+            lifetime=costs.at["battery inverter", "lifetime"],
+        )
 
 
 def add_gas_and_h2_infrastructure(
@@ -8351,6 +8480,7 @@ if __name__ == "__main__":
             trajectories=tyndp_trajectories,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
+            tyndp_stores=snakemake.params.tyndp_stores,
             costs=costs,
             profiles_pecd=profiles_pecd,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
@@ -8397,7 +8527,12 @@ if __name__ == "__main__":
             nhours=nhours,
         )
 
-    add_battery_stores(n=n, nodes=pop_layout.index, costs=costs)
+    add_battery_stores(
+        n=n,
+        nodes=pop_layout.index,
+        costs=costs,
+        tyndp="battery" in snakemake.params.tyndp_stores,
+    )
 
     if options["transport"]:
         add_land_transport(
