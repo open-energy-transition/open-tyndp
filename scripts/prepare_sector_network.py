@@ -2489,8 +2489,8 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
     ----------
     n : pypsa.Network
         The PyPSA network container object
-    nodes : pd.Index
-        Pandas Index of electricity node locations/nodes
+    nodes : pd.DataFrame
+        Pandas DataFrame with index of locations/nodes
     buses_h2 : pd.Index
         Pandas Index of hydrogen nodes to which H2 production technologies will connect
     costs : pd.DataFrame
@@ -2892,7 +2892,6 @@ def add_h2_storage_tyndp(
 
 def add_h2_topology_tyndp(
     n,
-    pop_layout,
     spatial,
     h2_cavern_file,
     h2_pipes_file,
@@ -2918,8 +2917,6 @@ def add_h2_topology_tyndp(
     ----------
     n : pypsa.Network
         The PyPSA network container object
-    pop_layout : pd.DataFrame
-        Population layout with index of locations/nodes
     spatial : object
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`
     h2_cavern_file : str
@@ -3581,7 +3578,6 @@ def add_gas_and_h2_infrastructure(
     gas_input_nodes,
     spatial,
     options,
-    tyndp_scenario,
     h2_demand_file,
 ):
     """
@@ -3622,8 +3618,6 @@ def add_gas_and_h2_infrastructure(
         - SMR : bool
         - cc_fraction : float
         - methanation : bool
-    tyndp_scenario : str
-        TYNDP scenario name to determine whether to use TYNDP H2 topology
     h2_demand_file : str
         Path to CSV file containing exogenous hydrogen demand data
 
@@ -3643,12 +3637,9 @@ def add_gas_and_h2_infrastructure(
     # Set defaults
     options = options or {}
 
-    nodes = pop_layout.index
-
     if options["h2_topology_tyndp"]:
         add_h2_topology_tyndp(
             n=n,
-            pop_layout=pop_layout,
             spatial=spatial,
             h2_cavern_file=h2_cavern_file,
             h2_pipes_file=h2_pipes_file,
@@ -3663,6 +3654,8 @@ def add_gas_and_h2_infrastructure(
         logger.info(
             "Adding base H2 components and techs: carrier, production, reconversion (optional), storage."
         )
+
+        nodes = pop_layout.index
 
         # add H2 carrier and buses
         n.add("Carrier", "H2")
@@ -8415,7 +8408,6 @@ if __name__ == "__main__":
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
-        tyndp_scenario=tyndp_scenario,
         h2_demand_file=snakemake.input.h2_demand,
     )
 
