@@ -226,9 +226,6 @@ rule solve_uncertainty_scenarios_myopic:
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
         ),
-        line_limits=resources(
-            "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
-        ),
     output:
         network=RESULTS
         + "{uncertainty_scenario}/networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
