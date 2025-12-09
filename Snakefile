@@ -24,6 +24,7 @@ from scripts._helpers import (
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
 configfile: "config/benchmarking.default.yaml"
+configfile: "config/config.tyndp.yaml"
 
 
 if Path("config/config.yaml").exists():
@@ -56,6 +57,7 @@ wildcard_constraints:
     opts=r"[-+a-zA-Z0-9\.]*",
     sector_opts=r"[-+a-zA-Z0-9\.\s]*",
     planning_horizons=r"[0-9]{4}",
+    run=r"\w+",
 
 
 include: "rules/common.smk"
@@ -278,6 +280,122 @@ rule all:
         expand(
             RESULTS
             + "graphics/interactive_bus_balance/s_{clusters}_{opts}_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        # Plots below here are for line-limits on UK (status quo model)
+        expand(
+            RESULTS
+            + "maps/base_s_{clusters}_lluk_{sector_opts}-costs-all_{planning_horizons}.pdf",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_lluk_{sector_opts}-h2_network_{planning_horizons}.pdf"
+                if config_provider("sector", "H2_network")(w)
+                else []
+            ),
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_lluk_{sector_opts}-ch4_network_{planning_horizons}.pdf"
+                if config_provider("sector", "gas_network")(w)
+                else []
+            ),
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}-balance_map_{carrier}.pdf"
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+            carrier=config_provider("plotting", "balance_map", "bus_carriers")(w),
+        ),
+        expand(
+            RESULTS
+            + "graphics/balance_timeseries/s_{clusters}_lluk_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        expand(
+            RESULTS
+            + "graphics/heatmap_timeseries/s_{clusters}_lluk_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        # Explicitly list heat source types for temperature maps
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}-heat_source_temperature_map_river_water.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "river_water"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}-heat_source_temperature_map_sea_water.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "sea_water"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}-heat_source_temperature_map_ambient_air.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "air"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        # Only river_water has energy maps
+        lambda w: expand(
+            (
+                RESULTS
+                + "maps/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}-heat_source_energy_map_river_water.html"
+                if config_provider("plotting", "enable_heat_source_maps")(w)
+                and "river_water"
+                in config_provider("sector", "heat_pump_sources", "urban central")(w)
+                else []
+            ),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        expand(
+            RESULTS
+            + "graphics/balance_timeseries/s_{clusters}_lluk_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        expand(
+            RESULTS
+            + "graphics/heatmap_timeseries/s_{clusters}_lluk_{sector_opts}_{planning_horizons}",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+        expand(
+            RESULTS
+            + "graphics/interactive_bus_balance/s_{clusters}_lluk_{sector_opts}_{planning_horizons}",
             run=config["run"]["name"],
             **config["scenario"],
         ),

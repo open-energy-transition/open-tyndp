@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+run:
+  prefix: "ngv-iem"
+  name: "status_quo"
+  scenarios:
+    enable: false
+  
+# Scenarios for uncertainty analysis to consider
+# Logic for scenarios in `scripts/prepare_uncertainty_scenarios.py`,
+# see descriptions there
+uncertainty_scenarios:
+- trader-forecast
+
+fbmc: false
+
+scenario:
+  clusters:
+  - all
+  planning_horizons:
+  - 2030
+  - 2040
+
+tyndp_scenario: NT
+
+clustering:
+  temporal:
+    resolution_sector: 1H
+
+sector:
+  h2_zones_tyndp: false
+  co2_sequestration_potential:
+    # Values from TYNDP 2024 Supply Tool
+    2030: 47
+    2035: 167
+    2040: 344
+
+benchmarking:
+  enable: false

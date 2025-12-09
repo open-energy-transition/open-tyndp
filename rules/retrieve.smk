@@ -960,3 +960,15 @@ if config["enable"]["retrieve"]:
         retries: 2
         run:
             move(input[0], output[0])
+
+    rule retrieve_ngv_iem_errors:
+        message:
+            "Retrieving NGV IEM relative errors dataset..."
+        input:
+            parquet=storage(
+                "https://drive.usercontent.google.com/download?id=12_2gVb4pjPrjAQs5CLCHU4OeZmmO8gIw&export=download"
+            ),
+        output:
+            parquet="data/ngv_iem/relative_errors.parquet",
+        run:
+            move(input["parquet"], output["parquet"])
