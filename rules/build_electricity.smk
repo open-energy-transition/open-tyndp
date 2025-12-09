@@ -501,7 +501,7 @@ rule build_tyndp_trajectories:
     benchmark:
         benchmarks("build_tyndp_trajectories")
     script:
-        "../scripts/build_tyndp_trajectories.py"
+        "../scripts/sb/build_tyndp_trajectories.py"
 
 
 rule build_monthly_prices:
@@ -569,7 +569,7 @@ rule clean_tyndp_hydro_inflows:
     benchmark:
         benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
     script:
-        "../scripts/clean_tyndp_hydro_inflows.py"
+        "../scripts/sb/clean_tyndp_hydro_inflows.py"
 
 
 def input_data_hydro_tyndp(w):
@@ -620,7 +620,7 @@ rule build_tyndp_hydro_profile:
     resources:
         mem_mb=5000,
     script:
-        "../scripts/build_tyndp_hydro_profile.py"
+        "../scripts/sb/build_tyndp_hydro_profile.py"
 
 
 rule build_line_rating:
@@ -1132,7 +1132,7 @@ if config["electricity"]["base_network"] == "tyndp":
         resources:
             mem_mb=4000,
         script:
-            "../scripts/build_tyndp_network.py"
+            "../scripts/sb/build_tyndp_network.py"
 
 
 if config["load"]["source"] == "tyndp":
@@ -1157,4 +1157,4 @@ if config["load"]["source"] == "tyndp":
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/clean_tyndp_demand.py"
+            "../scripts/sb/clean_tyndp_demand.py"

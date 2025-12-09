@@ -213,7 +213,7 @@ if config["enable"]["retrieve"]:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
         script:
-            "../scripts/retrieve_tyndp_bundle.py"
+            "../scripts/sb/retrieve_tyndp_bundle.py"
 
     rule retrieve_tyndp_pecd_data_raw:
         params:
@@ -230,7 +230,7 @@ if config["enable"]["retrieve"]:
         wildcard_constraints:
             pecd_version="(?!.*pre-built).*",  # Cannot be pre-built version
         script:
-            "../scripts/retrieve_additional_tyndp_data.py"
+            "../scripts/sb/retrieve_additional_tyndp_data.py"
 
     use rule retrieve_tyndp_pecd_data_raw as retrieve_tyndp_hydro_inflows with:
         params:

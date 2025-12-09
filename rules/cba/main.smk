@@ -25,7 +25,7 @@ rule retrieve_tyndp_cba_projects:
         "logs/retrieve_tyndp_cba_projects",
     retries: 2
     script:
-        "../../scripts/retrieve_additional_tyndp_data.py"
+        "../../scripts/sb/retrieve_additional_tyndp_data.py"
 
 
 # read in transmission and storage projects from excel sheets

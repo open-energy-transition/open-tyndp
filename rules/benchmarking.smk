@@ -20,7 +20,7 @@ rule clean_tyndp_benchmark:
     resources:
         mem_mb=8000,
     script:
-        "../scripts/clean_tyndp_benchmark.py"
+        "../scripts/sb/clean_tyndp_benchmark.py"
 
 
 rule clean_tyndp_vp_data:
@@ -42,7 +42,7 @@ rule clean_tyndp_vp_data:
     resources:
         mem_mb=8000,
     script:
-        "../scripts/clean_tyndp_vp_data.py"
+        "../scripts/sb/clean_tyndp_vp_data.py"
 
 
 rule build_statistics:

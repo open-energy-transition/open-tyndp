@@ -152,7 +152,7 @@ rule build_tyndp_gas_demand:
     conda:
         "../envs/environment.yaml"
     script:
-        "../scripts/build_tyndp_gas_demand.py"
+        "../scripts/sb/build_tyndp_gas_demand.py"
 
 
 rule build_daily_heat_demand:
@@ -967,7 +967,7 @@ rule build_tyndp_h2_demand:
     benchmark:
         benchmarks("build_tyndp_h2_demand_{planning_horizons}")
     script:
-        "../scripts/build_tyndp_h2_demand.py"
+        "../scripts/sb/build_tyndp_h2_demand.py"
 
 
 rule build_industry_sector_ratios:
@@ -1478,7 +1478,7 @@ if config["sector"]["h2_topology_tyndp"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/build_tyndp_h2_network.py"
+            "../scripts/sb/build_tyndp_h2_network.py"
 
     rule clean_tyndp_h2_imports:
         input:
@@ -1496,7 +1496,7 @@ if config["sector"]["h2_topology_tyndp"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/clean_tyndp_h2_imports.py"
+            "../scripts/sb/clean_tyndp_h2_imports.py"
 
     rule build_tyndp_h2_imports:
         params:
@@ -1517,7 +1517,7 @@ if config["sector"]["h2_topology_tyndp"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/build_tyndp_h2_imports.py"
+            "../scripts/sb/build_tyndp_h2_imports.py"
 
 
 if config["sector"]["offshore_hubs_tyndp"]["enable"]:
@@ -1551,7 +1551,7 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/build_tyndp_offshore_hubs.py"
+            "../scripts/sb/build_tyndp_offshore_hubs.py"
 
 
 rule group_tyndp_conventionals:
@@ -1580,7 +1580,7 @@ rule group_tyndp_conventionals:
     conda:
         "../envs/environment.yaml"
     script:
-        "../scripts/group_tyndp_conventionals.py"
+        "../scripts/sb/group_tyndp_conventionals.py"
 
 
 def input_offshore_hubs(w):
