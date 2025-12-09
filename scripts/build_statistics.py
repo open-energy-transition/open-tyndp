@@ -58,7 +58,6 @@ def compute_benchmark(
     options: dict,
     eu27: list[str],
     tyndp_renewable_carriers: list[str],
-    planning_horizons: int,
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -75,8 +74,6 @@ def compute_benchmark(
         List of member state of European Union (EU27).
     tyndp_renewable_carriers : list[str]
         List of renewable carriers in TYNDP 2024.
-    planning_horizons : int
-        The current planning horizon year.
 
     Returns
     -------
@@ -97,6 +94,7 @@ def compute_benchmark(
         sws = n.snapshot_weightings.generators
 
     if table == "final_energy_demand":
+        # TODO Clarify what renewables encompass
         grouper = ["bus_carrier"]
         df_countries = (
             n.statistics.withdrawal(
@@ -123,20 +121,23 @@ def compute_benchmark(
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[lambda s: ~s.index.isin(df_countries.index)]
-            .drop(index=["solid biomass"], errors="ignore")
         )
 
         # Add Biomass to Liquid
         df_btl = (
-            n.statistics.withdrawal(
+            n.statistics.energy_balance(
                 comps="Link",
-                carrier=["biomass to liquid", "biomass to liquid CC"],
-                groupby="carrier",
+                carrier="biomass to liquid",
+                bus_carrier="oil",
+                groupby=["bus0", "carrier"],
                 aggregate_across_components=True,
                 aggregate_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
+            .reindex(eu27_idx, level="bus0")
+            .groupby(level="carrier")
+            .sum()
             .rename_axis("bus_carrier")
         )
 
@@ -159,38 +160,26 @@ def compute_benchmark(
         )
         df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
+        # TODO Energy and non-energy industrial demand are mixed
         grouper = ["carrier"]
-        df_countries = (
+        if "EU gas" in n.buses.index:
+            reindex_idx = pd.Index(["EU gas"])
+        else:
+            reindex_idx = eu27_idx
+        df = (
             n.statistics.withdrawal(
-                comps="Link",
+                comps=demand_comps,
                 bus_carrier="gas",
-                groupby=["bus1"] + grouper,
+                groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .reindex(eu27_idx, level="bus1")
+            .reindex(reindex_idx, level="bus")
             .groupby(by=grouper)
             .sum()
         )
-
-        df_eu = (
-            n.statistics.withdrawal(
-                comps="Link",
-                bus_carrier="gas",
-                groupby=["bus1"] + grouper,
-                aggregate_across_components=True,
-            )
-            .loc[
-                lambda s: (
-                    ~s.index.get_level_values("carrier").isin(df_countries.index)
-                )
-                & (s.index.get_level_values("bus1").str.startswith("EU"))
-            ]
-            .groupby(by=grouper)
-            .sum()
-        )
-
-        df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_demand":
+        # TODO Energy and non-energy industrial demand are mixed
+        # TODO Aviation has no H2 demand
         grouper = ["carrier"]
         df = (
             n.statistics.withdrawal(
@@ -202,7 +191,7 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
-            .drop(index="H2 pipeline", errors="ignore")
+            .drop(index="H2 pipeline")
         )
     elif table == "power_capacity":
         grouper = ["carrier"]
@@ -260,27 +249,19 @@ def compute_benchmark(
         )
     elif table == "methane_supply":
         grouper = ["carrier"]
-        df_countries = (
+        df = (
             n.statistics.supply(
-                comps="Link",
+                comps=supply_comps,
                 bus_carrier="gas",
-                groupby=["bus0"] + grouper,
+                groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .reindex(eu27_idx, level="bus0")
+            .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
         )
-
-        df_eu = n.statistics.supply(
-            comps=supply_comps,
-            bus_carrier="gas",
-            groupby=grouper,
-            aggregate_across_components=True,
-        ).loc[lambda s: (~s.index.get_level_values("carrier").isin(df_countries.index))]
-
-        df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
+        # TODO Clarify difference between low carbon and renewable imports
         grouper = ["carrier"]
         df = (
             n.statistics.supply(
@@ -292,27 +273,22 @@ def compute_benchmark(
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
-            .drop(index=["H2 pipeline", "H2 pipeline OH"], errors="ignore")
+            .drop(index=["H2 pipeline", "H2 pipeline OH"])
         )
     elif table == "biomass_supply":
+        # TODO Clarify how to deal with unsustainable sources
         grouper = ["carrier"]
-        df_fed_btl = n.statistics.withdrawal(
-            comps=demand_comps,
-            bus_carrier="solid biomass",
-            groupby=grouper,
-            aggregate_across_components=True,
+        df = (
+            n.statistics.supply(
+                comps=supply_comps,
+                bus_carrier="solid biomass",
+                groupby=["bus"] + grouper,
+                aggregate_across_components=True,
+            )
+            .reindex(eu27_idx, level="bus")
+            .groupby(by=grouper)
+            .sum()
         )
-
-        eff = float(opt["biomass_to_methane_efficiency"][planning_horizons])
-
-        df_biogas = n.statistics.energy_balance(
-            comps="Generator",
-            bus_carrier="biogas",
-            groupby=grouper,
-            aggregate_across_components=True,
-        ).div(eff)
-
-        df = pd.concat([df_fed_btl, df_biogas])
     elif table == "energy_imports":
         # TODO Account for domestic production of gas, solid and liquid fossil fuels
         # TODO No biomass import is assumed
@@ -454,7 +430,6 @@ if __name__ == "__main__":
         options=options,
         eu27=eu27,
         tyndp_renewable_carriers=tyndp_renewable_carriers,
-        planning_horizons=planning_horizons,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:

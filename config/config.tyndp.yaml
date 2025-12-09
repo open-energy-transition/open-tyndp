@@ -225,7 +225,7 @@ sector:
     2040: 0.68
     2045: 0.42  # interpolation
     2050: 0.16
-  shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
+  shipping_hydrogen_share:
     2030: 0
     2035: 0
     2040: 0
