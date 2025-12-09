@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
-    """Disable all capacity expansion by copying optimized capacities to nominal capacities"""
+    """Disable all capacity expansion by copying optimized capacities to nominal capacities for certain sectors"""
 
     logger.info("Turning optimisation problem into dispatch problem.")
 
@@ -35,11 +35,20 @@ def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
         capacity = ext_flag.replace("_extendable", "")
         capacity_extendable = f"{capacity}_extendable"
 
+        # Some chemical links cause infeasibilities due to p_nom_min constraints
+        # Exclude these chemical links from having their capacities fixed to allow for some small flexibility
+        if c.name == "Link":
+            idx = c.static.loc[
+                c.static["carrier"].isin(["AC", "DC", "electricity", "DC_OH"])
+            ].index
+        else:
+            idx = c.static.index
+
         # Set all components to not be extendable
-        c.static[capacity_extendable] = False
+        c.static.loc[idx, capacity_extendable] = False
 
         # Copy the optimized capacities to the nominal capacity columns
-        c.static[capacity] = c.static[f"{capacity}_opt"]
+        c.static.loc[idx, capacity] = c.static.loc[idx, f"{capacity}_opt"]
 
     # If we increase the load in some uncertainty scenarios, then these
     # links need to be expandable, else we create infeasibilities.
