@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "extract_uncertainty_results",
-            clusters=all,
+            clusters="all",
             sector_opts="",
             planning_horizons=2030,
             configfiles="config/config.tyndp.yaml",
