@@ -14,3 +14,4 @@ tables,,,
 -- -- -- index,--,"List of str",Names for index levels corresponding to `index_col`.
 -- -- -- column,--,"List of str",Names for column levels corresponding to `header`.
 -- -- mapping,--,dict,Mapping from model carrier names to reference data names.
+-- -- biomass_to_methane_efficiency (optional - only for biomass supply table),--,Dictionary with planning horizons as keys.,Efficiency to convert biomass to biomethane (only used for benchmarking purposes).
