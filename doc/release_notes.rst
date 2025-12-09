@@ -47,6 +47,8 @@ Upcoming Open-TYNDP Release
 
 * Correctly attach planning year dependent renewable profiles from PECD to solar and onwind generators (https://github.com/open-energy-transition/open-tyndp/pull/265).
 
+* Correctly attach solar-pv-rooftop generators to low-voltage buses when modelling an electricity distribution grid representation (https://github.com/open-energy-transition/open-tyndp/pull/273).
+
 
 Upcoming PyPSA-Eur Release
 ================
