@@ -271,7 +271,7 @@ sector:
   force_biogas_potential: true
   biomass_final_demand: # in TWh
     2030: 902
-    2035: 815 # linear interpolation
+    2035: 815   # linear interpolation
     2040: 728
   electrobiofuels: false
   transmission_efficiency:
