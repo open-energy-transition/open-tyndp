@@ -6,6 +6,14 @@
 NT:
   tyndp_scenario: NT
 
+NT-1H-20251209:
+  tyndp_scenario: NT
+  clustering:
+    temporal:
+      resolution_sector: 1H
+  solving:
+    runtime: 12h #runtime in humanfriendly style https://humanfriendly.readthedocs.io/en/latest/
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
