@@ -70,29 +70,29 @@ benchmarking:
         gas-conv: power generation
         SMR: smr
         SMR CC: smr
-        exogenous gas demand: total (excl. SMR and power generation)
+        exogenous gas demand: exogenous demand
 
     hydrogen_demand:
       table_type: scenario_comparison
-      sheet_name: 54-
+      sheet_name: 10-
       unit: TWh
-      index_col: [2, 3]
-      header: 4
+      index_col: 2
+      header: [4, 5]
+      nrows: 15
       names:
         index:
-        - year
-        - scenario
-        column:
         - carrier
+        column:
+        - scenario
+        - year
       mapping:
-        Fischer-Tropsch: e-fuels production
-        H2 for industry: industry
-        H2 turbine: electricity generation and heat production
-        h2-ccgt: electricity generation and heat production
-        h2-fuel-cell: electricity generation and heat production
-        Sabatier: e-fuels production
-        methanolisation: e-fuels production
-        H2 for shipping: international shipping
+        H2 turbine: power generation
+        h2-ccgt: power generation
+        h2-fuel-cell: power generation
+        Fischer-Tropsch: e-fuels
+        Sabatier: e-fuels
+        methanolisation: e-fuels
+        H2 exogenous demand: exogenous demand
 
     power_capacity:
       table_type: scenario_comparison
@@ -217,16 +217,16 @@ benchmarking:
       mapping:
         H2 Electrolysis: p2g
         H2 import LH2: ammonia imports
-        H2 import Pipeline: low carbon imports
+        H2 import Pipeline: imports (renewable & low carbon)
         SMR: smr (grey)
         SMR CC: smr with ccs (blue)
 
     biomass_supply:
       table_type: scenario_comparison
-      sheet_name: 59-
+      sheet_name: 22-
       unit: TWh
       index_col: 2
-      header: [4, 5]
+      header: [3, 4]
       names:
         index:
         - carrier
@@ -234,7 +234,17 @@ benchmarking:
         - scenario
         - year
       mapping:
-        solid biomass: biomass
+        biomass final energy demand: final demand
+        biomass to liquid: for biofuels
+        biomass to liquid CC: for biofuels
+        biogas: for biomethane
+      biomass_to_methane_efficiency:
+        # Values from TYNDP 2024 Supply Tool
+        2030: 0.68
+        2035: 0.68  # Interpolated
+        2040: 0.68
+        2045: 0.68  # Interpolated
+        2050: 0.68
 
     energy_imports:
       table_type: scenario_comparison
