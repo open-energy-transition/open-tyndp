@@ -66,9 +66,9 @@ To do so, we highly recommend you install from one of our platform-specific envi
 
     $ conda update conda
 
-    $ conda create -n pypsa-eur -f envs/default_linux-64.pin.txt # select the appropriate file for your platform
+    $ conda create -n open-tyndp -f envs/default_linux-64.pin.txt # select the appropriate file for your platform
 
-    $ conda activate pypsa-eur
+    $ conda activate open-tyndp
 
 
 These platform-specific files have locked dependencies, to ensure reproducibility.
@@ -116,7 +116,7 @@ Nevertheless, you can still use open-source solvers for smaller problems.
 
     .. code:: console
 
-        $ conda activate pypsa-eur
+        $ conda activate open-tyndp
         $ conda install -c gurobi gurobi"=12.0.1"
 
     Additionally, you need to setup your `Gurobi license <https://www.gurobi.com/solutions/licensing/>`__.
