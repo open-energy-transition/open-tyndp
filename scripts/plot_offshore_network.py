@@ -234,7 +234,7 @@ if __name__ == "__main__":
         regions = gpd.read_file(snakemake.input.regions_onshore).set_index("name")
         map_opts["boundaries"] = regions.total_bounds[[0, 2, 1, 3]] + [-1, 1, -1, 1]
 
-    proj = load_projection(snakemake.params.plotting)
+    proj = load_projection(dict(name="PlateCaree"))
     map_fn = snakemake.output.map
 
     p_nom = "p_nom_opt" if snakemake.params.expanded else "p_nom"
