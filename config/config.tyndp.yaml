@@ -352,6 +352,7 @@ adjustments:
     absolute: false
 
 plotting:
+  energy_threshold: 1.
   projection:
     name: "LambertAzimuthalEqualArea"
   balance_map:
