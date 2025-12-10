@@ -419,6 +419,9 @@ rule sync:
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster}
+        rsync -uvarh --no-g {params.cluster}/resources . || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/results . || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
         """
 
 
@@ -428,4 +431,7 @@ rule sync_dry:
     shell:
         """
         rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster} -n
+        rsync -uvarh --no-g {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/results . -n || echo "No results directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
         """
