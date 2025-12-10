@@ -40,7 +40,7 @@ def group_import_corridors(df):
 
 
 def plot_h2_map_base(
-    network, map_opts, map_fn, expanded=False, regions_for_storage=None
+    network, map_opts, proj, map_fn, expanded=False, regions_for_storage=None
 ):
     """
     Plots the base hydrogen network pipelines capacities, hydrogen buses and import potentials.
@@ -54,6 +54,8 @@ def plot_h2_map_base(
         PyPSA network for plotting the hydrogen grid. Can be either presolving or post solving.
     map_opts : dict
         Map options for plotting.
+    proj : cartopy.crs.Projection
+        Projection to use for plotting.
     map_fn : str
         Path to save the final map plot to.
     expanded : bool, optional
@@ -131,7 +133,6 @@ def plot_h2_map_base(
 
     # plot H2 pipeline capacities and imports
     logger.info("Plotting base H2 pipeline and import capacities.")
-    proj = load_projection(dict(name="EqualEarth"))
     fig, ax = plt.subplots(figsize=(7, 6), subplot_kw={"projection": proj})
     color_h2_pipe = "#499a9c"
     color_h2_imports = "#FFA500"
@@ -263,4 +264,4 @@ if __name__ == "__main__":
     proj = load_projection(snakemake.params.plotting)
     map_fn = snakemake.output.map
 
-    plot_h2_map_base(n, map_opts, map_fn)
+    plot_h2_map_base(n, map_opts, proj, map_fn)

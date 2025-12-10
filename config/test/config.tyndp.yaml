@@ -365,6 +365,8 @@ solving:
   mem: 4000
 
 plotting:
+  projection:
+    name: "LambertAzimuthalEqualArea"
   balance_map:
     imports_as_flows: true
     bus_carriers:
