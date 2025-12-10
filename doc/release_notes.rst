@@ -55,7 +55,7 @@ Upcoming Open-TYNDP Release
 
 * Correctly attach solar-pv-rooftop generators to low-voltage buses when modelling an electricity distribution grid representation (https://github.com/open-energy-transition/open-tyndp/pull/273).
 
-* Change the projection for all maps to LambertAzimuthalEqualArea to align with TYNDP 2024 reports (https://github.com/open-energy-transition/open-tyndp/pull/282).
+* Change the projection for maps to LambertAzimuthalEqualArea and PlateCaree to align with TYNDP 2024 reports (https://github.com/open-energy-transition/open-tyndp/pull/282).
 
 
 Upcoming PyPSA-Eur Release
