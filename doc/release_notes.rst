@@ -55,6 +55,8 @@ Upcoming Open-TYNDP Release
 
 * Correctly attach solar-pv-rooftop generators to low-voltage buses when modelling an electricity distribution grid representation (https://github.com/open-energy-transition/open-tyndp/pull/273).
 
+* Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
+
 
 Upcoming PyPSA-Eur Release
 ================
