@@ -37,6 +37,8 @@ Upcoming Open-TYNDP Release
 
 * Added TYNDP electrolyzer capacities for the National Trends scenario using PEMMDB data (https://github.com/open-energy-transition/open-tyndp/pull/248).
 
+* Improve the overall benchmarking framework by correcting bus mappings for methane supply, biomass supply, and BtL for FED; grouping H2 pipeline imports together (low carbon and renewables); using a new H2 demand figure (Fig. 10 instead of 54) with correct grouping of exogenous demands; reducing EU-wide statistics to EU27 where possible; and improving biomass supply benchmarking with a new figure (Fig. 22 instead of 59) (https://github.com/open-energy-transition/open-tyndp/pull/281)
+
 **Bugfixes and Compatibility**
 
 * Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
@@ -50,6 +52,8 @@ Upcoming Open-TYNDP Release
 * Adjust the oil land transport demand in order to adjust the liquids demand (https://github.com/open-energy-transition/open-tyndp/pull/250)
 
 * Correctly attach planning year dependent renewable profiles from PECD to solar and onwind generators (https://github.com/open-energy-transition/open-tyndp/pull/265).
+
+* Correctly attach solar-pv-rooftop generators to low-voltage buses when modelling an electricity distribution grid representation (https://github.com/open-energy-transition/open-tyndp/pull/273).
 
 
 Upcoming PyPSA-Eur Release
