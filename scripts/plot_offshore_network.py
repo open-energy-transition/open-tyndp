@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 def plot_offshore_map(
     network,
     map_opts,
+    proj,
     map_fn,
     planning_horizons,
     carrier="DC_OH",
@@ -46,6 +47,8 @@ def plot_offshore_map(
         PyPSA network for plotting the offshore grid. Can be either presolving or post solving.
     map_opts : dict
         Map options for plotting.
+    proj : cartopy.crs.Projection
+        Projection to use for plotting.
     map_fn : str
         Path to save the final map plot to.
     planning_horizons : int
@@ -113,7 +116,6 @@ def plot_offshore_map(
 
     # plot transmission network
     logger.info("Plotting offshore transmission network.")
-    proj = load_projection(dict(name="EqualEarth"))
     fig, ax = plt.subplots(figsize=(7, 6), subplot_kw={"projection": proj})
     color_h2 = "#f081dc"
     color_dc = "darkseagreen"
@@ -240,6 +242,7 @@ if __name__ == "__main__":
     plot_offshore_map(
         n,
         map_opts,
+        proj,
         map_fn,
         snakemake.wildcards.planning_horizons,
         carrier=snakemake.wildcards.carrier,

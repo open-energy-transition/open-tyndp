@@ -352,6 +352,8 @@ adjustments:
     absolute: false
 
 plotting:
+  projection:
+    name: "LambertAzimuthalEqualArea"
   balance_map:
     imports_as_flows: true
     bus_carriers:
