@@ -34,6 +34,15 @@ authors:
   - family-names: Parzen
     given-names: Max
     orcid: https://orcid.org/0000-0002-4390-0063
+  - family-names: Zeyen
+    given-names: Lisa
+    orcid: https://orcid.org/0000-0002-7262-3296
+  - family-names: Gaete
+    given-names: Carlos
+    orcid: https://orcid.org/0000-0003-0770-7335
+  - family-names: Usher
+    given-names: Will
+    orcid: https://orcid.org/0000-0001-9367-1791
 repository-code: 'https://github.com/open-energy-transition/open-tyndp'
 license: MIT
 version: v0.3

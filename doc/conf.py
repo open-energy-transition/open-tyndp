@@ -101,8 +101,8 @@ master_doc = "index"
 
 # General information about the project.
 project = "Open-TYNDP"
-copyright = "2017-2025 Tom Brown (TUB, KIT, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (OET, TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (DTU, Aarhus University), Lisa Zeyen (TUB, KIT), Thomas Gilon (OET), Daniel Rüdt (OET), Martha Frysztacki (OET), Max Parzen (OET)"
-author = "Tom Brown (TUB, KIT, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (OET, TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (DTU, Aarhus University), Lisa Zeyen (TUB, KIT), Thomas Gilon (OET), Daniel Rüdt (OET), Martha Frysztacki (OET), Max Parzen (OET)"
+copyright = "2017-2025 Tom Brown (TUB, KIT, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (OET, TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (DTU, Aarhus University), Lisa Zeyen (OET, TUB, KIT), Thomas Gilon (OET), Daniel Rüdt (OET), Martha Frysztacki (OET), Max Parzen (OET), Carlos Gaete (OET), Will Usher (OET)"
+author = "Tom Brown (TUB, KIT, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (OET, TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (DTU, Aarhus University), Lisa Zeyen (OET, TUB, KIT), Thomas Gilon (OET), Daniel Rüdt (OET), Martha Frysztacki (OET), Max Parzen (OET), Carlos Gaete (OET), Will Usher (OET)"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
