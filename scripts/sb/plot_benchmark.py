@@ -13,7 +13,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from scripts.make_benchmark import load_data, match_temporal_resolution
 from tqdm import tqdm
 
 from scripts._helpers import (
@@ -23,6 +22,7 @@ from scripts._helpers import (
     get_version,
     set_scenario_config,
 )
+from scripts.sb.make_benchmark import load_data, match_temporal_resolution
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")
