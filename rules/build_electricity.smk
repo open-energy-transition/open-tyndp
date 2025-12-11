@@ -1132,7 +1132,7 @@ if config["electricity"]["base_network"] == "tyndp":
         resources:
             mem_mb=4000,
         script:
-            "../scripts/sb/build_tyndp_network.py"
+            "../scripts/build_tyndp_network.py"
 
 
 if config["load"]["source"] == "tyndp":
