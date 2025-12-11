@@ -471,6 +471,7 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    installation
    tutorial
    tutorial_sector
+   faq_troubleshooting
 
 .. toctree::
    :hidden:
@@ -515,6 +516,5 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    limitations
    contributing
    support
-   faq
    publications
    contributors

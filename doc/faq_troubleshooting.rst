@@ -2,9 +2,11 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
-##########################################
-FAQ
-##########################################
+.. _faq_troubleshooting:
+
+###############################################
+FAQ and Troubleshooting
+###############################################
 
 This page contains frequently asked questions about the Open-TYNDP project:
 
