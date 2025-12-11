@@ -1,5 +1,4 @@
 .. SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
-.. SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
@@ -14,15 +13,15 @@ General Questions
 
 **Q: What is Open-TYNDP?**
 
-A: Open-TYNDP is an open-source research and innovation project, which is a collaboration between Open Energy Transition (OET) and ENTSO-E. The project aims to explore the option of a complementary open-source tool in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on PyPSA-Eur. It provides one streamlined tool for the Scenario Building and the Cost-Benefit Analysis (CBA) of the TYNDP.
+A: Open-TYNDP is an open-source research and innovation project, which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__ and ENTSO-E. The project aims to explore the option of a complementary open-source tool in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on PyPSA-Eur. It provides one streamlined tool for the Scenario Building and the Cost-Benefit Analysis (CBA) of the TYNDP.
 
 **Q: How does Open-TYNDP relate to PyPSA-Eur?**
 
-A: Open-TYNDP is a soft-fork of OET/PyPSA-Eur and contains the entire Open-TYNDP project supported by OET, including code, public available data and documentation. It builds on the open-source ecosystem of PyPSA and PyPSA-Eur.
+A: Open-TYNDP is a soft-fork of OET/PyPSA-Eur and contains the entire Open-TYNDP project supported by OET, including code and documentation. The workflow automatically downloads publicly available data from an archived repository. OET/PyPSA-Eur itself is a soft-fork of PyPSA/PyPSA-Eur and builds on the open-source ecosystem of PyPSA.
 
 **Q: Is Open-TYNDP ready for production use?**
 
-A: Open-TYNDP is under active development and is not yet feature-complete. The current development status and general limitations are important to understand before using the model. Please refer to the :doc:`limitations` section for more details.
+A: Open-TYNDP is under active development and is not yet feature-complete. The current development status and general limitations are important to understand before using the model. Please refer to :doc:`limitations` and :ref:`development-status` for more details.
 
 **Q: When will Open-TYNDP be ready?**
 
@@ -33,7 +32,7 @@ Technical Questions
 
 **Q: Which operating systems are supported?**
 
-A: The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL only).
+A: The Open-TYNDP workflow is continuously tested for Linux and MacOS.
 
 **Q: I'm having trouble installing Open-TYNDP or getting started. Where should I start?**
 
@@ -67,7 +66,7 @@ Using Open-TYNDP: Flexibility and Independence
 
 **Q: Can I use Open-TYNDP with my own private data?**
 
-A: Yes, you can use Open-TYNDP with your own private data. The open-source nature of the codebase means you have full flexibility to integrate your proprietary or confidential data without any obligation to make it public.
+A: Yes, you can use Open-TYNDP with your own private data. The open-source nature of the codebase means you have full flexibility to integrate your proprietary or confidential data without any obligation to make it public. We covered this topic during the `3rd workshop <https://open-energy-transition.github.io/open-tyndp-workshops/20251203-workshop-pypsa-03.html#modify-assumptions>`__.
 
 **Q: Do I need to share my code modifications or developments?**
 
