@@ -413,7 +413,7 @@ rule clean_pecd_data:
     resources:
         mem_mb=4000,
     script:
-        "../scripts/clean_pecd_data.py"
+        "../scripts/sb/clean_pecd_data.py"
 
 
 def input_data_pecd(w):
@@ -451,7 +451,7 @@ rule build_renewable_profiles_pecd:
     wildcard_constraints:
         technology="(?!hydro).*",  # Any technology other than hydro
     script:
-        "../scripts/build_renewable_profiles_pecd.py"
+        "../scripts/sb/build_renewable_profiles_pecd.py"
 
 
 pemmdb_techs = branch(
@@ -484,7 +484,7 @@ rule build_pemmdb_data:
     benchmark:
         benchmarks("build_pemmdb_data_{planning_horizons}")
     script:
-        "../scripts/build_pemmdb_data.py"
+        "../scripts/sb/build_pemmdb_data.py"
 
 
 rule build_tyndp_trajectories:

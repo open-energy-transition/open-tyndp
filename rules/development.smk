@@ -59,4 +59,4 @@ if not config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]
         resources:
             mem_mb=1000,
         script:
-            "../scripts/prepare_pecd_release.py"
+            "../scripts/sb/prepare_pecd_release.py"

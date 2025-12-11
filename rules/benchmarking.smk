@@ -70,7 +70,7 @@ rule build_statistics:
     resources:
         mem_mb=8000,
     script:
-        "../scripts/build_statistics.py"
+        "../scripts/sb/build_statistics.py"
 
 
 rule make_benchmark:
@@ -100,7 +100,7 @@ rule make_benchmark:
     benchmark:
         benchmarks("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
     script:
-        "../scripts/make_benchmark.py"
+        "../scripts/sb/make_benchmark.py"
 
 
 rule plot_benchmark:
@@ -135,4 +135,4 @@ rule plot_benchmark:
     benchmark:
         benchmarks("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
     script:
-        "../scripts/plot_benchmark.py"
+        "../scripts/sb/plot_benchmark.py"
