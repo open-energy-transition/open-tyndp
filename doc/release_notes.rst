@@ -57,6 +57,8 @@ Upcoming Open-TYNDP Release
 
 * Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
 
+* Reduce the number of input files in `prepare_sector_network` and disable `solar_thermal` (https://github.com/open-energy-transition/open-tyndp/pull/293).
+
 
 Upcoming PyPSA-Eur Release
 ================
