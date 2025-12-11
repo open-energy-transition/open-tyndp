@@ -68,6 +68,7 @@ include: "rules/postprocess.smk"
 include: "rules/development.smk"
 include: "rules/report.smk"
 include: "rules/cba.smk"
+include: "rules/sb.smk"
 
 
 if config["foresight"] == "overnight":
@@ -85,11 +86,6 @@ if config["foresight"] == "myopic":
 if config["foresight"] == "perfect":
 
     include: "rules/solve_perfect.smk"
-
-
-if config["benchmarking"]["enable"]:
-
-    include: "rules/benchmarking.smk"
 
 
 def input_all_tyndp(w):

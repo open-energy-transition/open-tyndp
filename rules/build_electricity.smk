@@ -37,18 +37,6 @@ rule build_electricity_demand:
         "../scripts/build_electricity_demand.py"
 
 
-use rule build_electricity_demand as build_electricity_demand_tyndp with:
-    input:
-        unpack(input_elec_demand),
-        reported=resources("electricity_demand_raw_tyndp.csv"),
-    output:
-        resources("electricity_demand_{planning_horizons}.csv"),
-    log:
-        logs("build_electricity_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("build_electricity_demand_{planning_horizons}")
-
-
 rule build_powerplants:
     params:
         powerplants_filter=config_provider("electricity", "powerplants_filter"),
@@ -374,136 +362,6 @@ rule build_renewable_profiles:
         "../scripts/build_renewable_profiles.py"
 
 
-def pecd_prebuilt_version(w):
-    pre_built_version = config_provider(
-        "electricity", "pecd_renewable_profiles", "pre_built", "pecd_prebuilt_version"
-    )(w)
-    pecd_raw_version = config_provider(
-        "electricity", "pecd_renewable_profiles", "version"
-    )(w)
-    return {
-        "pecd_prebuilt": f"data/tyndp_2024_bundle/PECD/PECD_{pecd_raw_version}+pre-built.{pre_built_version}"
-    }
-
-
-rule clean_pecd_data:
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        fill_gaps_method=config_provider(
-            "electricity", "pecd_renewable_profiles", "fill_gaps_method"
-        ),
-        available_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "available_years"
-        ),
-        prebuilt_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
-        ),
-    input:
-        unpack(pecd_prebuilt_version),
-        offshore_buses="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
-        onshore_buses=resources("busmap_base_s_all.csv"),
-    output:
-        pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
-    log:
-        logs("clean_pecd_data_{technology}_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("clean_pecd_data_{technology}_{planning_horizons}")
-    threads: 4
-    resources:
-        mem_mb=4000,
-    script:
-        "../scripts/sb/clean_pecd_data.py"
-
-
-def input_data_pecd(w):
-    available_years = config_provider(
-        "electricity", "pecd_renewable_profiles", "available_years"
-    )(w)
-    planning_horizons = config_provider("scenario", "planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(year, available_years, "PECD", verbose=False)
-        for year in planning_horizons
-    )
-    return {
-        f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
-        for pyear in safe_pyears
-    }
-
-
-rule build_renewable_profiles_pecd:
-    params:
-        planning_horizons=config_provider("scenario", "planning_horizons"),
-        available_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "available_years"
-        ),
-    input:
-        unpack(input_data_pecd),
-    output:
-        profile=resources("profile_pecd_{clusters}_{technology}.nc"),
-    log:
-        logs("build_renewable_profile_pecd_{clusters}_{technology}.log"),
-    benchmark:
-        benchmarks("build_renewable_profile_pecd_{clusters}_{technology}")
-    threads: 1
-    resources:
-        mem_mb=4000,
-    wildcard_constraints:
-        technology="(?!hydro).*",  # Any technology other than hydro
-    script:
-        "../scripts/sb/build_renewable_profiles_pecd.py"
-
-
-pemmdb_techs = branch(
-    config_provider("electricity", "pemmdb_capacities", "enable"),
-    config_provider("electricity", "pemmdb_capacities", "technologies"),
-)
-
-
-rule build_pemmdb_data:
-    params:
-        pemmdb_techs=pemmdb_techs,
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        available_years=config_provider(
-            "electricity", "pemmdb_capacities", "available_years"
-        ),
-        tyndp_scenario=config_provider("tyndp_scenario"),
-    input:
-        pemmdb_dir="data/tyndp_2024_bundle/PEMMDB2",
-        carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_base_s_all.csv"),
-    output:
-        pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
-        pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
-    log:
-        logs("build_pemmdb_data_{planning_horizons}.log"),
-    threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
-    resources:
-        mem_mb=16000,
-    benchmark:
-        benchmarks("build_pemmdb_data_{planning_horizons}")
-    script:
-        "../scripts/sb/build_pemmdb_data.py"
-
-
-rule build_tyndp_trajectories:
-    params:
-        tyndp_scenario=config_provider("tyndp_scenario"),
-    input:
-        trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
-        carrier_mapping="data/tyndp_technology_map.csv",
-    output:
-        tyndp_trajectories=resources("tyndp_trajectories.csv"),
-    log:
-        logs("build_tyndp_trajectories.log"),
-    threads: 4
-    benchmark:
-        benchmarks("build_tyndp_trajectories")
-    script:
-        "../scripts/sb/build_tyndp_trajectories.py"
-
-
 rule build_monthly_prices:
     input:
         co2_price_raw="data/validation/emission-spot-primary-market-auction-report-2019-data.xls",
@@ -546,81 +404,6 @@ rule build_hydro_profile:
         mem_mb=5000,
     script:
         "../scripts/build_hydro_profile.py"
-
-
-rule clean_tyndp_hydro_inflows:
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
-        ),
-    input:
-        hydro_inflows_dir="data/tyndp_2024_bundle/Hydro Inflows",
-        busmap=resources("busmap_base_s_all.csv"),
-    output:
-        hydro_inflows_tyndp=resources(
-            "hydro_inflows_tyndp_{tech}_{planning_horizons}.csv"
-        ),
-    log:
-        logs("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}.log"),
-    threads: 4
-    retries: 2
-    benchmark:
-        benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
-    script:
-        "../scripts/sb/clean_tyndp_hydro_inflows.py"
-
-
-def input_data_hydro_tyndp(w):
-    available_years = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "available_years"
-    )(w)
-    planning_horizons = config_provider("scenario", "planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(
-            year,
-            available_years,
-            "PEMMDB hydro",
-            verbose=False,
-        )
-        for year in planning_horizons
-    )
-    technologies = config_provider(
-        "electricity", "pemmdb_hydro_profiles", "technologies"
-    )(w)
-    return {
-        f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
-            f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
-        )
-        for pyear in safe_pyears
-        for tech in technologies
-    }
-
-
-rule build_tyndp_hydro_profile:
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        planning_horizons=config_provider("scenario", "planning_horizons"),
-        available_years=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "available_years"
-        ),
-        technologies=config_provider(
-            "electricity", "pemmdb_hydro_profiles", "technologies"
-        ),
-    input:
-        unpack(input_data_hydro_tyndp),
-    output:
-        profile=resources("profile_pemmdb_hydro.nc"),
-    log:
-        logs("build_tyndp_hydro_profile.log"),
-    benchmark:
-        benchmarks("build_tyndp_hydro_profile")
-    resources:
-        mem_mb=5000,
-    script:
-        "../scripts/sb/build_tyndp_hydro_profile.py"
 
 
 rule build_line_rating:
@@ -749,18 +532,6 @@ rule build_electricity_demand_base:
         mem_mb=5000,
     script:
         "../scripts/build_electricity_demand_base.py"
-
-
-use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
-    input:
-        unpack(input_elec_demand_base),
-        load=resources("electricity_demand_{planning_horizons}.csv"),
-    output:
-        resources("electricity_demand_base_s_{planning_horizons}.nc"),
-    log:
-        logs("build_electricity_demand_base_s_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("build_electricity_demand_base_s_{planning_horizons}")
 
 
 rule build_hac_features:
@@ -1133,28 +904,3 @@ if config["electricity"]["base_network"] == "tyndp":
             mem_mb=4000,
         script:
             "../scripts/build_tyndp_network.py"
-
-
-if config["load"]["source"] == "tyndp":
-
-    rule clean_tyndp_electricity_demand:
-        params:
-            planning_horizons=config_provider("scenario", "planning_horizons"),
-            snapshots=config_provider("snapshots"),
-            scenario=config_provider("tyndp_scenario"),
-            available_years=config_provider("load", "available_years_tyndp"),
-        input:
-            electricity_demand="data/tyndp_2024_bundle/Demand Profiles",
-        output:
-            electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
-        log:
-            logs("clean_tyndp_electricity_demand.log"),
-        benchmark:
-            benchmarks("clean_tyndp_electricity_demand")
-        threads: 4
-        resources:
-            mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
-        script:
-            "../scripts/sb/clean_tyndp_electricity_demand.py"
