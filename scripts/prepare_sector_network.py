@@ -1823,12 +1823,14 @@ def _add_electrolyzer_capacities(
     # p_nom_min as the maximum of PEMMDB capacity and p_nom_min value
     # TODO: Adjust added trajectories for DE/GA to account for zonal split
     n.links.loc[electrolyser_i, "p_nom_min"] = np.maximum(
-        n.links.loc[electrolyser_i, "p_nom_min"],
+        n.links.loc[electrolyser_i, "p_nom"],
         n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_min"]).fillna(0.0),
     )
-    # Set p_nom_max
-    n.links.loc[electrolyser_i, "p_nom_max"] = (
-        n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_max"]).fillna(0.0)
+    # p_nom_max as the maximum of PEMMDB capacity and p_nom_max value
+    # TODO: Adjust added trajectories for DE/GA to account for zonal split
+    n.links.loc[electrolyser_i, "p_nom_max"] = np.maximum(
+        n.links.loc[electrolyser_i, "p_nom"],
+        n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_max"]).fillna(0.0),
     )
 
 

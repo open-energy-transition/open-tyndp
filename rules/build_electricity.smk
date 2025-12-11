@@ -1137,7 +1137,7 @@ if config["electricity"]["base_network"] == "tyndp":
 
 if config["load"]["source"] == "tyndp":
 
-    rule clean_tyndp_demand:
+    rule clean_tyndp_electricity_demand:
         params:
             planning_horizons=config_provider("scenario", "planning_horizons"),
             snapshots=config_provider("snapshots"),
@@ -1148,13 +1148,13 @@ if config["load"]["source"] == "tyndp":
         output:
             electricity_demand_prepped=resources("electricity_demand_raw_tyndp.csv"),
         log:
-            logs("clean_tyndp_demand.log"),
+            logs("clean_tyndp_electricity_demand.log"),
         benchmark:
-            benchmarks("clean_tyndp_demand")
+            benchmarks("clean_tyndp_electricity_demand")
         threads: 4
         resources:
             mem_mb=4000,
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/clean_tyndp_demand.py"
+            "../scripts/sb/clean_tyndp_electricity_demand.py"
