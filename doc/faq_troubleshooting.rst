@@ -23,7 +23,7 @@ General Questions
 
 .. admonition:: Is Open-TYNDP ready for production use?
 
-   Open-TYNDP is under active development and is not yet feature-complete. The current development status and general limitations are important to understand before using the model. Please refer to :doc:`limitations` and :ref:`development-status` for more details.
+   Open-TYNDP is under active development and is not yet feature-complete. The current development status and general limitations are important to understand before using the model. Please refer to :doc:`limitations` and :ref:`development-status` for more details. The latest version of the model is always available on `GitHub <https://github.com/open-energy-transition/open-tyndp>`__.
 
 .. admonition:: When will Open-TYNDP be ready?
 
@@ -38,7 +38,8 @@ Technical Questions
 
 .. admonition:: I'm having trouble installing Open-TYNDP or getting started. Where should I start?
 
-   The most common installation issues involve Python environment setup and solver configuration. We recommend using ``pixi`` for environment management. For solver setup, HiGHS is included by default for testing, but commercial solvers are supported as well. See :doc:`installation` for detailed platform-specific instructions and solver configuration guidance.
+   The most common installation issues involve Python environment setup and solver configuration. We recommend using ``pixi`` for environment management. For solver setup, HiGHS is included by default for testing, but commercial solvers are supported as well. See :doc:`installation` for detailed platform-specific instructions, solver configuration guidance and alternative environment manager if you prefer using ``conda``.
+
 
 .. admonition:: What computational resources do I need to run Open-TYNDP models?
 
@@ -46,7 +47,7 @@ Technical Questions
 
 .. admonition:: My workflow is failing or producing unexpected results. How do I troubleshoot?
 
-   Start by running ``snakemake -n`` (dry-run) to validate workflow structure without execution. Then, check log files in ``logs/`` and verify intermediate results at each workflow stage. For persistent issues, see :doc:`support` for community assistance channels.
+   Start by running ``snakemake -call --configfile config/config.tyndp.yaml -n`` (dry-run) to validate workflow structure without execution. Then, check log files in ``logs/`` and verify intermediate results at each workflow stage. For persistent issues, see :doc:`support` for community assistance channels.
 
 .. admonition:: I would like to develop my own features in a fork. What are your recommendations?
 
@@ -72,7 +73,7 @@ Using Open-TYNDP: Flexibility and Independence
 
 .. admonition:: Do I need to share my code modifications or developments?
 
-   No, there is no obligation to share your code modifications or developments publicly. You can keep your code and development private while still benefiting from updates and improvements in the Open-TYNDP repository. You can update your private codebase based on changes in Open-TYNDP at your own pace.
+   No, there is no obligation to share your code modifications or developments publicly. You have full governance over your own fork. You can keep your code and development private while still benefiting from updates and improvements in the Open-TYNDP repository. You can update your private codebase based on changes in Open-TYNDP at your own pace.
 
 .. admonition:: Am I required to contribute my changes back to Open-TYNDP?
 
@@ -106,7 +107,7 @@ Contributing and Support
 
 .. admonition:: Where can I get help if I encounter issues?
 
-   Please refer to the :doc:`support` page for various ways to reach out to the community, including Discord, mailing lists, and issue trackers.
+   Please refer to the :doc:`support` page for various ways to reach out to us and the community, including Discord, mailing lists, and issue trackers.
 
 .. admonition:: Where can I report bugs or request features?
 
