@@ -64,8 +64,8 @@ Model Data and Assumptions
 
    Open-TYNDP includes a comprehensive benchmarking framework that validates model outputs against published TYNDP 2024 data using a multi-criteria approach. The framework is documented in :doc:`benchmarking` and the current results for NT scenario in the dedicated section of the `3rd workshop notebook <https://open-energy-transition.github.io/open-tyndp-workshops/20251203-workshop-pypsa-03.html#benchmark-results>`__. Be aware that Open-TYNDP is under active development (see :doc:`limitations` and :ref:`development-status`), and validation is ongoing as features are implemented.
 
-Using Open-TYNDP: Flexibility and Independence
-===============================================
+Flexibility and Independence
+=============================
 
 .. admonition:: Can I use Open-TYNDP with my own private data?
 
