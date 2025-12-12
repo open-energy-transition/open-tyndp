@@ -59,6 +59,8 @@ Upcoming Open-TYNDP Release
 
 * Make sector and TYNDP dependent inputs optional in `prepare_sector_network` to avoid triggering unnecessary prerequisite rules and disable `solar_thermal` (https://github.com/open-energy-transition/open-tyndp/pull/293).
 
+*Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
+
 
 Upcoming PyPSA-Eur Release
 ================

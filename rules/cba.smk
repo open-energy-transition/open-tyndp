@@ -25,7 +25,7 @@ rule retrieve_tyndp_cba_projects:
         "logs/retrieve_tyndp_cba_projects",
     retries: 2
     script:
-        "../../scripts/retrieve_additional_tyndp_data.py"
+        "../scripts/sb/retrieve_additional_tyndp_data.py"
 
 
 # read in transmission and storage projects from excel sheets
@@ -44,7 +44,7 @@ checkpoint clean_projects:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
     script:
-        "../../scripts/cba/clean_projects.py"
+        "../scripts/cba/clean_projects.py"
 
 
 def input_sb_network(w):
@@ -77,7 +77,7 @@ rule simplify_sb_network:
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     script:
-        "../../scripts/cba/simplify_sb_network.py"
+        "../scripts/cba/simplify_sb_network.py"
 
 
 # build the reference network for toot with all projects included
@@ -90,7 +90,7 @@ rule prepare_toot_reference:
     output:
         network=resources("cba/toot/networks/reference_{planning_horizons}.nc"),
     script:
-        "../../scripts/cba/prepare_toot_reference.py"
+        "../scripts/cba/prepare_toot_reference.py"
 
 
 # build the reference network for pint with all projects removed
@@ -103,7 +103,7 @@ rule prepare_pint_reference:
     output:
         network=resources("cba/pint/networks/reference_{planning_horizons}.nc"),
     script:
-        "../../scripts/cba/prepare_pint_reference.py"
+        "../scripts/cba/prepare_pint_reference.py"
 
 
 # remove the single project {cba_project} from the toot reference network
@@ -118,7 +118,7 @@ rule prepare_toot_project:
             "cba/toot/networks/project_{cba_project}_{planning_horizons}.nc"
         ),
     script:
-        "../../scripts/cba/prepare_toot_project.py"
+        "../scripts/cba/prepare_toot_project.py"
 
 
 # add the single project {cba_project} to the pint reference network
@@ -133,7 +133,7 @@ rule prepare_pint_project:
             "cba/pint/networks/project_{cba_project}_{planning_horizons}.nc"
         ),
     script:
-        "../../scripts/cba/prepare_pint_project.py"
+        "../scripts/cba/prepare_pint_project.py"
 
 
 # solve any of the prepared networks, ie a reference or a project network
@@ -144,7 +144,7 @@ rule solve_cba_network:
     output:
         network=resources("cba/{cba_method}/postnetworks/{name}_{planning_horizons}.nc"),
     script:
-        "../../scripts/cba/solve_cba_network.py"
+        "../scripts/cba/solve_cba_network.py"
 
 
 # compute all metrics for a single pint or toot project comparing reference and project solution
@@ -160,7 +160,7 @@ rule make_indicators:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
     script:
-        "../../scripts/cba/make_indicators.py"
+        "../scripts/cba/make_indicators.py"
 
 
 def input_indicators(w):
@@ -195,7 +195,7 @@ rule collect_indicators:
     output:
         indicators=RESULTS + "cba/indicators.csv",
     script:
-        "../../scripts/cba/collect_indicators.py"
+        "../scripts/cba/collect_indicators.py"
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
