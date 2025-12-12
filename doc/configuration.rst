@@ -16,17 +16,17 @@ PyPSA-Eur has several configuration options which are documented in this section
 Configuration Files
 ===================
 
-As for PyPSA-Eur, any Open-TYNDP configuration can be set in a ``.yaml`` file. The default configurations 
+As for PyPSA-Eur, any Open-TYNDP configuration can be set in a ``.yaml`` file. The default configurations
 ``config/config.default.yaml``, ``config/plotting.default.yaml`` and ``config/benchmarking.default.yaml``
 are maintained in the repository and cover all the options that are used/ can be set.
 
-To pass your own configuration, you can create a new file, e.g. ``my_config.yaml``, 
-and specify the options you want to change. They will override the default settings and 
+To pass your own configuration, you can create a new file, e.g. ``my_config.yaml``,
+and specify the options you want to change. They will override the default settings and
 options which are not set, will be inherited from the defaults above.
 
-Another way is to use the ``config/config.yaml`` file, which does not exist in the 
-repository and is also not tracked by git. But snakemake will always use this file if 
-it exists. This way you can run snakemake with a custom config without having to 
+Another way is to use the ``config/config.yaml`` file, which does not exist in the
+repository and is also not tracked by git. But snakemake will always use this file if
+it exists. This way you can run snakemake with a custom config without having to
 specify the config file each time.
 
 Configuration order of precedence is as follows:
@@ -35,7 +35,7 @@ Configuration order of precedence is as follows:
 3. The ``config/config.yaml`` file (optional)
 4. The default configuration files ``config/config.default.yaml`` and ``config/plotting.default.yaml``
 
-To use your custom configuration file, you need to pass it to the ``snakemake`` command 
+To use your custom configuration file, you need to pass it to the ``snakemake`` command
 using the ``--configfile`` option:
 
 .. code:: console
@@ -45,7 +45,7 @@ using the ``--configfile`` option:
 .. warning::
 
     In a previous version of PyPSA-Eur (``<=2025.04.0``), a full copy of the created config
-    was stored in the ``config/config.yaml`` file. This is no longer the case. If the 
+    was stored in the ``config/config.yaml`` file. This is no longer the case. If the
     file exists, snakemake will use it, but no new copy will be created.
 
 
@@ -662,3 +662,19 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
    :header-rows: 1
    :widths: 22,7,22,33
    :file: configtables/benchmarking.csv
+
+.. _cba_cf:
+
+``cba``
+=======
+
+Cost-Benefit Analysis (CBA) configuration for evaluating TYNDP transmission and storage projects using TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies.
+
+.. literalinclude:: ../config/config.tyndp.yaml
+   :language: yaml
+   :start-at: cba:
+
+.. csv-table::
+   :header-rows: 1
+   :widths: 22,7,22,33
+   :file: configtables/cba.csv

@@ -328,3 +328,21 @@ plotting:
 
 benchmarking:
   enable: true
+
+cba:
+  hurdle_costs: 0.01 # Transmission line marginal cost
+
+  # Merged into top-level solving options
+  solving:
+    options:
+      horizon: 168
+      overlap: 0
+      load_shedding: true
+
+    solver:
+      name: highs
+      options: highs-simplex
+
+    solver_options:
+      highs-simplex:
+        parallel: "off" # does not speed up solution

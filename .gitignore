@@ -117,3 +117,6 @@ CLAUDE.local.md
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+linopy-problem-*
+linopy-solve-*
