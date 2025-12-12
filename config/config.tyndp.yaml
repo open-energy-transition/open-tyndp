@@ -318,6 +318,10 @@ benchmarking:
 
 cba:
   hurdle_costs: 0.01 # Transmission line marginal cost
+  methods:
+  - toot
+  projects:
+  - t1-t35
 
   # Merged into top-level solving options
   solving:

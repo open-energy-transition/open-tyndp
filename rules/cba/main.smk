@@ -5,6 +5,7 @@
 
 import pandas as pd
 
+from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
 
 
@@ -198,9 +199,11 @@ def input_indicators(w):
         f"t{pid}" for pid in transmission_projects["project_id"].unique()
     ] + [f"s{pid}" for pid in storage_projects["project_id"].unique()]
 
+    project_specs = config_provider("cba", "projects")(w)
+
     return expand(
         rules.make_indicators.output.indicators,
-        cba_project=cba_projects,
+        cba_project=filter_projects_by_specs(cba_projects, project_specs),
         allow_missing=True,
     )
 
@@ -229,13 +232,13 @@ rule cba:
     input:
         lambda w: expand(
             rules.collect_indicators.output.indicators,
-            cba_method=["toot", "pint"],
+            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("scenario", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
-            cba_method=["toot", "pint"],
+            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("scenario", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
