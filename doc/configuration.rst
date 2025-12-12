@@ -662,3 +662,19 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
    :header-rows: 1
    :widths: 22,7,22,33
    :file: configtables/benchmarking.csv
+
+.. _cba_cf:
+
+``cba``
+=======
+
+Cost-Benefit Analysis (CBA) configuration for evaluating TYNDP transmission and storage projects using TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies.
+
+.. literalinclude:: ../config/config.tyndp.yaml
+   :language: yaml
+   :start-at: cba:
+
+.. csv-table::
+   :header-rows: 1
+   :widths: 22,7,22,33
+   :file: configtables/cba.csv
