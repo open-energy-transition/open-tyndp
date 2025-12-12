@@ -125,7 +125,11 @@ Open-TYNDP v0.4 (15th December 2025)
 
 * Move all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
 
+* Rename `clean_tyndp_demand` to `clean_tyndp_electricity_demand` for clarity (https://github.com/open-energy-transition/open-tyndp/pull/272).
+
 **Changes**
+
+* Improve electricity demand processing and benchmarking to achieve an exact match between the benchmarked and reference values (https://github.com/open-energy-transition/open-tyndp/pull/192).
 
 * Adjust solid biomass and biogas potentials to match TYNDP assumptions across all planning horizons, removed unsustainable biomass and biogas shares from potential, and added configuration options to force biomass and biogas potentials (https://github.com/open-energy-transition/open-tyndp/pull/236).
 
@@ -151,11 +155,11 @@ Open-TYNDP v0.4 (15th December 2025)
 
 **Documentation**
 
-* NA
+* Add a FAQ to the documentation (https://github.com/open-energy-transition/open-tyndp/pull/276).
 
 **Developers Note**
 
-* NA
+* Ensure compatibility with PyPSA v1 (https://github.com/open-energy-transition/open-tyndp/pull/219).
 
 Open-TYNDP v0.3 (24th October 2025)
 ========================================
