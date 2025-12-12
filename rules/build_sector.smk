@@ -1851,8 +1851,14 @@ rule prepare_sector_network:
             resources("tyndp_trajectories.csv"),
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
-        gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
-        h2_demand=resources("h2_demand_tyndp_{planning_horizons}.csv"),
+        gas_demand=branch(
+            lambda w: config_provider("tyndp_scenario")(w),
+            resources("gas_demand_tyndp_{planning_horizons}.csv"),
+        ),
+        h2_demand=branch(
+            lambda w: config_provider("tyndp_scenario")(w),
+            resources("h2_demand_tyndp_{planning_horizons}.csv"),
+        ),
         powerplants=resources("powerplants_s_{clusters}.csv"),
     output:
         resources(
