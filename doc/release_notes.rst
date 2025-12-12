@@ -57,6 +57,8 @@ Upcoming Open-TYNDP Release
 
 * Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
 
+* Make sector and TYNDP dependent inputs optional in `prepare_sector_network` to avoid triggering unnecessary prerequisite rules and disable `solar_thermal` (https://github.com/open-energy-transition/open-tyndp/pull/293).
+
 *Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
 
 
