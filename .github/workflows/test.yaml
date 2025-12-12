@@ -68,7 +68,21 @@ jobs:
       run: |
         pixi run pylint --disable=all --enable=E0601,E0606 --output-format=parseable scripts/add_* scripts/prepare_* scripts/solve_*
 
-    - name: Run snakemake test workflows
+    - name: Run snakemake test workflows (sb)
+      env:
+        SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
+        SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
+      run: |
+        pixi run -e open-tyndp tyndp-sb-test
+
+    - name: Run snakemake test workflows (cba)
+      env:
+        SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
+        SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
+      run: |
+        pixi run -e open-tyndp tyndp-cba-test
+
+    - name: Run snakemake test workflows (upstream)
       env:
         SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
         SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
