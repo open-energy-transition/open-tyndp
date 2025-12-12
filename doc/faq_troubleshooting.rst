@@ -15,7 +15,7 @@ General Questions
 
 .. admonition:: What is Open-TYNDP?
 
-   Open-TYNDP is an open-source research and innovation project, which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__ and ENTSO-E. The project aims to explore the option of a complementary open-source tool in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on PyPSA-Eur. It provides one streamlined tool for the Scenario Building and the Cost-Benefit Analysis (CBA) of the TYNDP.
+   Open-TYNDP is an open-source research and innovation project, which is a collaboration between `Open Energy Transition (OET) <https://openenergytransition.org/>`__ and ENTSO-E. The project aims to explore the option of a complementary open-source tool in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on PyPSA-Eur. It provides one streamlined tool for the Scenario Building (SB) and the Cost-Benefit Analysis (CBA) of the TYNDP.
 
 .. admonition:: How does Open-TYNDP relate to PyPSA-Eur?
 
