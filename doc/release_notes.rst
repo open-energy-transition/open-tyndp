@@ -57,7 +57,7 @@ Upcoming Open-TYNDP Release
 
 * Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
 
-* Changed repository structure for Open-TYNDP specific scripts and rules for SB and CBA (https://github.com/open-energy-transition/open-tyndp/pull/278).
+*Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
 
 
 Upcoming PyPSA-Eur Release
