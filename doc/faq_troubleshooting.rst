@@ -52,7 +52,7 @@ Technical Questions
 
 .. admonition:: What solver do I need to solve Open-TYNDP models?
 
-    It depends on the model you want to run. We recommend using HiGHS for exploring and testing the models at low temporal resolution, typically `52SEG`. HiGHS can also be used for CBA assessments. However, the SB models are larger and require a commercial solver.
+    It depends on the model you want to run. We recommend using HiGHS for exploring and testing the models at low temporal resolution, typically `52SEG`. HiGHS can also be used for CBA assessments. However, with higher temporal resolution, the SB models are larger and require a commercial solver.
 
 
 .. admonition:: My workflow is failing or producing unexpected results. How do I troubleshoot?
