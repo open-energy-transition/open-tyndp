@@ -29,6 +29,11 @@ General Questions
 
    The project is currently back-casting the 2024 TYNDP cycle to build confidence before aligning with the 2026 TYNDP cycle in Q2 2026. The :ref:`development-status` page provides a detailed roadmap of implemented and planned features.
 
+.. admonition:: How to use Open-TYNDP?
+
+    To explore, run, and modify Open-TYNDP, we recommend cloning the repository from `GitHub <https://github.com/open-energy-transition/open-tyndp>`__, which will give you access to the latest version of the model. As Open-TYNDP relies on a set of Python packages, you also need to install these dependencies. Please refer to :ref:`clone_repo` and :ref:`deps` for more details. However, if you are only interested in getting a first hands-on experience, we also provide a lightweight web-based experience using the `interactive workshops notebooks <https://open-energy-transition.github.io/open-tyndp-workshops>`_.
+
+
 Technical Questions
 ===================
 
@@ -44,6 +49,11 @@ Technical Questions
 .. admonition:: What computational resources do I need to run Open-TYNDP models?
 
    Full TYNDP scenario runs require significant computational resources: typically 55GB RAM, 8 CPU cores, and 1h15 runtime for NT scenario and a single planning horizon, using a commercial solver such as Gurobi. However, CBA assessment requirements are lower, typically running on standard workstations and HiGHS for around a minute per project. For testing and exploration, you can use smaller configurations using reduced temporal/spatial resolution that run on standard workstations and HiGHS. The TYNDP test configuration defined by ``config/test/config.tyndp.yaml`` is a good starting point. You can also explore lightweight and web-based examples using the `interactive workshops notebook <https://open-energy-transition.github.io/open-tyndp-workshops>`_.
+
+.. admonition:: What solver do I need to solve Open-TYNDP models?
+
+    It depends on the model you want to run. We recommend using HiGHS for exploring and testing the models at low temporal resolution, typically `52SEG`. HiGHS can also be used for CBA assessments. However, the SB models are larger and require a commercial solver.
+
 
 .. admonition:: My workflow is failing or producing unexpected results. How do I troubleshoot?
 
