@@ -161,6 +161,8 @@ Open-TYNDP v0.4 (15th December 2025)
 
 * Remove `wget` commands from `retrieve` rules to improve Windows compatibility (https://github.com/open-energy-transition/open-tyndp/pull/304).
 
+* Change the projection for maps to LambertAzimuthalEqualArea and PlateCaree to align with TYNDP 2024 reports (https://github.com/open-energy-transition/open-tyndp/pull/282).
+
 **Documentation**
 
 * Add a FAQ to the documentation (https://github.com/open-energy-transition/open-tyndp/pull/276).

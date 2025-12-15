@@ -353,6 +353,9 @@ adjustments:
     absolute: false
 
 plotting:
+  energy_threshold: 1.
+  projection:
+    name: "LambertAzimuthalEqualArea"
   balance_map:
     imports_as_flows: true
     bus_carriers:
