@@ -111,6 +111,8 @@ Open-TYNDP v0.4 (15th December 2025)
 
 * Add the TOOT reference network preparation for CBA (https://github.com/open-energy-transition/open-tyndp/pull/199).
 
+* Add the TOOT project network preparation for CBA (https://github.com/open-energy-transition/open-tyndp/pull/211).
+
 * Add TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
 
 * Add TYNDP electrolyzer capacities for the National Trends scenario using PEMMDB data (https://github.com/open-energy-transition/open-tyndp/pull/248).
