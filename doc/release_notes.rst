@@ -159,6 +159,8 @@ Open-TYNDP v0.4 (15th December 2025)
 
 * Make sector and TYNDP dependent inputs optional in `prepare_sector_network` to avoid triggering unnecessary prerequisite rules and disable `solar_thermal` (https://github.com/open-energy-transition/open-tyndp/pull/293).
 
+* Remove `wget` commands from `retrieve` rules to improve Windows compatibility (https://github.com/open-energy-transition/open-tyndp/pull/304).
+
 **Documentation**
 
 * Add a FAQ to the documentation (https://github.com/open-energy-transition/open-tyndp/pull/276).
