@@ -245,6 +245,7 @@ sector:
     2050: 0
   oil_boilers: false
   biomass_boiler: false
+  solar_thermal: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false
@@ -316,7 +317,7 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
-    resolution_sector: 6H
+    resolution_sector: 52SEG  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
@@ -351,7 +352,15 @@ adjustments:
             2040: 1.33
     absolute: false
 
+solving:
+  solver:  # Use commercial solver for high resolution results in SB
+    name: highs
+    options: highs-default
+
 plotting:
+  energy_threshold: 1.
+  projection:
+    name: "LambertAzimuthalEqualArea"
   balance_map:
     imports_as_flows: true
     bus_carriers:

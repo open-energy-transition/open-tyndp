@@ -61,7 +61,17 @@ Upcoming Open-TYNDP Release
 
 * Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
 
-*Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
+* Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
+
+* Change the projection for maps to LambertAzimuthalEqualArea and PlateCaree to align with TYNDP 2024 reports (https://github.com/open-energy-transition/open-tyndp/pull/282).
+
+* Make sector and TYNDP dependent inputs optional in `prepare_sector_network` to avoid triggering unnecessary prerequisite rules and disable `solar_thermal` (https://github.com/open-energy-transition/open-tyndp/pull/293).
+
+* Remove `wget` commands from `retrieve` rules to improve Windows compatibility (https://github.com/open-energy-transition/open-tyndp/pull/304).
+
+**Documentation**
+
+* Add more FAQ questions, set the default solver to HiGHS and fix the default temporal resolution to 52SEG (https://github.com/open-energy-transition/open-tyndp/pull/303).
 
 
 Upcoming PyPSA-Eur Release

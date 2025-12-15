@@ -232,7 +232,7 @@ sector:
     2040: 0.68
     2045: 0.42  # interpolation
     2050: 0.16
-  shipping_hydrogen_share:
+  shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
     2040: 0
@@ -252,6 +252,7 @@ sector:
     2050: 0
   oil_boilers: false
   biomass_boiler: false
+  solar_thermal: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false
@@ -365,6 +366,9 @@ solving:
   mem: 4000
 
 plotting:
+  energy_threshold: 1.
+  projection:
+    name: "LambertAzimuthalEqualArea"
   balance_map:
     imports_as_flows: true
     bus_carriers:

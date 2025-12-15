@@ -1521,12 +1521,14 @@ rule prepare_sector_network:
         ),
         retro_cost=lambda w: (
             resources("retro_cost_base_s_{clusters}.csv")
-            if config_provider("sector", "retrofitting", "retro_endogen")(w)
+            if config_provider("sector", "heating")(w)
+            and config_provider("sector", "retrofitting", "retro_endogen")(w)
             else []
         ),
         floor_area=lambda w: (
             resources("floor_area_base_s_{clusters}.csv")
-            if config_provider("sector", "retrofitting", "retro_endogen")(w)
+            if config_provider("sector", "heating")(w)
+            and config_provider("sector", "retrofitting", "retro_endogen")(w)
             else []
         ),
         biomass_transport_costs=lambda w: (
@@ -1567,22 +1569,33 @@ rule prepare_sector_network:
         busmap_s=resources("busmap_base_s.csv"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
         clustered_pop_layout=resources("pop_layout_base_s_{clusters}.csv"),
-        industrial_demand=resources(
-            "industrial_energy_demand_base_s_{clusters}_{planning_horizons}.csv"
+        industrial_demand=branch(
+            lambda w: config_provider("sector", "industry")(w),
+            resources(
+                "industrial_energy_demand_base_s_{clusters}_{planning_horizons}.csv"
+            ),
         ),
-        hourly_heat_demand_total=resources(
-            "hourly_heat_demand_total_base_s_{clusters}.nc"
+        hourly_heat_demand_total=branch(
+            lambda w: config_provider("sector", "heating")(w),
+            resources("hourly_heat_demand_total_base_s_{clusters}.nc"),
         ),
-        industrial_production=resources(
-            "industrial_production_base_s_{clusters}_{planning_horizons}.csv"
+        industrial_production=branch(
+            lambda w: config_provider("sector", "industry")(w),
+            resources(
+                "industrial_production_base_s_{clusters}_{planning_horizons}.csv"
+            ),
         ),
-        district_heat_share=resources(
-            "district_heat_share_base_s_{clusters}_{planning_horizons}.csv"
+        district_heat_share=branch(
+            lambda w: config_provider("sector", "heating")(w),
+            resources("district_heat_share_base_s_{clusters}_{planning_horizons}.csv"),
         ),
         heating_efficiencies=resources("heating_efficiencies.csv"),
         temp_soil_total=resources("temp_soil_total_base_s_{clusters}.nc"),
         temp_air_total=resources("temp_air_total_base_s_{clusters}.nc"),
-        cop_profiles=resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
+        cop_profiles=branch(
+            lambda w: config_provider("sector", "heating")(w),
+            resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
+        ),
         ptes_e_max_pu_profiles=lambda w: (
             resources(
                 "ptes_e_max_pu_profiles_base_s_{clusters}_{planning_horizons}.nc"
@@ -1626,8 +1639,11 @@ rule prepare_sector_network:
             if config_provider("sector", "enhanced_geothermal", "enable")(w)
             else []
         ),
-        direct_heat_source_utilisation_profiles=resources(
-            "direct_heat_source_utilisation_profiles_base_s_{clusters}_{planning_horizons}.nc"
+        direct_heat_source_utilisation_profiles=branch(
+            lambda w: config_provider("sector", "heating")(w),
+            resources(
+                "direct_heat_source_utilisation_profiles_base_s_{clusters}_{planning_horizons}.nc"
+            ),
         ),
         ates_potentials=lambda w: (
             resources("ates_potentials_base_s_{clusters}_{planning_horizons}.csv")
@@ -1669,8 +1685,14 @@ rule prepare_sector_network:
             resources("tyndp_trajectories.csv"),
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
-        gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
-        h2_demand=resources("h2_demand_tyndp_{planning_horizons}.csv"),
+        gas_demand=branch(
+            lambda w: config_provider("tyndp_scenario")(w),
+            resources("gas_demand_tyndp_{planning_horizons}.csv"),
+        ),
+        h2_demand=branch(
+            lambda w: config_provider("tyndp_scenario")(w),
+            resources("h2_demand_tyndp_{planning_horizons}.csv"),
+        ),
         powerplants=resources("powerplants_s_{clusters}.csv"),
     output:
         resources(
