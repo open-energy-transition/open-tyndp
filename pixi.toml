@@ -128,8 +128,6 @@ tsam = ">=2.3.1"
 [feature.test.tasks]
 
 integration-tests = """
-    snakemake -call --configfile config/test/config.tyndp.yaml &&
-	snakemake -call --configfile config/config.tyndp.yaml -n &&
     snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml &&
     snakemake -call --configfile config/test/config.overnight.yaml &&
     snakemake -call --configfile config/test/config.myopic.yaml &&
@@ -139,8 +137,6 @@ integration-tests = """
     echo "All tests completed successfully."
 """
 clean-tests = """
-    snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
-    snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
     snakemake -call solve_elec_networks --configfile config/test/config.electricity.yaml --delete-all-output ;
     snakemake -call --configfile config/test/config.overnight.yaml --delete-all-output ;
     snakemake -call --configfile config/test/config.myopic.yaml --delete-all-output ;
@@ -157,11 +153,27 @@ all-tests = {depends-on = ["integration-tests", "clean-tests", "unit-tests"]}
 pytest = ">=8.4.2"
 
 [feature.open-tyndp.tasks]
+tyndp-sb-test = """bash -c '
+    snakemake -call --configfile config/test/config.tyndp.yaml -call "$@" && \
+    snakemake -call --configfile config/config.tyndp.yaml -n
+    ' --
+"""
+tyndp-cba-test = """bash -c '
+    snakemake resources/test-sector-tyndp/cba/toot/networks/reference_2030.nc --configfile config/test/config.tyndp.yaml -call "$@" && \
+    snakemake resources/tyndp/NT/cba/toot/postnetworks/reference_2030.nc --configfile config/config.tyndp.yaml -n \
+    ' --
+"""
 tyndp = """bash -c '
-	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
+	snakemake -call --configfile config/config.tyndp.yaml -call "$@" && \
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
 	' --
  """
+ clean-tyndp = """
+     snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
+     snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
+     echo "All tyndp outputs have been cleaned up."
+ """
+ all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
 pixi-pycharm = ">=0.0.9"

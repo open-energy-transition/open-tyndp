@@ -55,6 +55,10 @@ Upcoming Open-TYNDP Release
 
 * Correctly attach solar-pv-rooftop generators to low-voltage buses when modelling an electricity distribution grid representation (https://github.com/open-energy-transition/open-tyndp/pull/273).
 
+* Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
+
+* Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
+
 * Change the projection for maps to LambertAzimuthalEqualArea and PlateCaree to align with TYNDP 2024 reports (https://github.com/open-energy-transition/open-tyndp/pull/282).
 
 

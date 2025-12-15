@@ -134,27 +134,6 @@ rule cluster_gas_network:
         "../scripts/cluster_gas_network.py"
 
 
-rule build_tyndp_gas_demand:
-    params:
-        scenario=config_provider("tyndp_scenario"),
-        planning_horizons=config_provider("scenario", "planning_horizons"),
-    input:
-        supply_tool="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
-    output:
-        gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
-    threads: 1
-    resources:
-        mem_mb=1000,
-    log:
-        logs("build_tyndp_gas_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("build_tyndp_gas_demand_{planning_horizons}")
-    conda:
-        "../envs/environment.yaml"
-    script:
-        "../scripts/build_tyndp_gas_demand.py"
-
-
 rule build_daily_heat_demand:
     params:
         snapshots=config_provider("snapshots"),
@@ -951,25 +930,6 @@ rule build_ammonia_production:
         "../scripts/build_ammonia_production.py"
 
 
-rule build_tyndp_h2_demand:
-    params:
-        snapshots=config_provider("snapshots"),
-        scenario=config_provider("tyndp_scenario"),
-    input:
-        h2_demand="data/tyndp_2024_bundle/Demand Profiles",
-    output:
-        h2_demand=resources("h2_demand_tyndp_{planning_horizons}.csv"),
-    threads: 1
-    resources:
-        mem_mb=1000,
-    log:
-        logs("build_tyndp_h2_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("build_tyndp_h2_demand_{planning_horizons}")
-    script:
-        "../scripts/build_tyndp_h2_demand.py"
-
-
 rule build_industry_sector_ratios:
     params:
         industry=config_provider("industry"),
@@ -1399,19 +1359,6 @@ def input_profile_offwind(w):
     }
 
 
-pecd_techs = branch(
-    config_provider("electricity", "pecd_renewable_profiles", "enable"),
-    config_provider("electricity", "pecd_renewable_profiles", "technologies"),
-)
-
-
-def input_profile_pecd(w):
-    return {
-        f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
-        for tech in pecd_techs(w)
-    }
-
-
 rule build_egs_potentials:
     params:
         snapshots=config_provider("snapshots"),
@@ -1457,132 +1404,6 @@ def input_heat_source_power(w):
     }
 
 
-if config["sector"]["h2_topology_tyndp"]:
-
-    rule build_tyndp_h2_network:
-        params:
-            snapshots=config_provider("snapshots"),
-            scenario=config_provider("tyndp_scenario"),
-        input:
-            tyndp_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Hydrogen.xlsx",
-        output:
-            h2_grid_prepped=resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
-            interzonal_prepped=resources("h2_interzonal_tyndp_{planning_horizons}.csv"),
-        log:
-            logs("build_tyndp_h2_network_{planning_horizons}.log"),
-        benchmark:
-            benchmarks("build_tyndp_h2_network_{planning_horizons}")
-        threads: 1
-        resources:
-            mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
-        script:
-            "../scripts/build_tyndp_h2_network.py"
-
-    rule clean_tyndp_h2_imports:
-        input:
-            import_potentials_raw="data/tyndp_2024_bundle/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
-            countries_centroids="data/countries_centroids.geojson",
-        output:
-            import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
-        log:
-            logs("clean_tyndp_h2_imports.log"),
-        benchmark:
-            benchmarks("clean_tyndp_h2_imports")
-        threads: 1
-        resources:
-            mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
-        script:
-            "../scripts/clean_tyndp_h2_imports.py"
-
-    rule build_tyndp_h2_imports:
-        params:
-            scenario=config_provider("tyndp_scenario"),
-        input:
-            import_potentials_prepped=resources("h2_import_potentials_prepped.csv"),
-        output:
-            import_potentials_filtered=resources(
-                "h2_import_potentials_{planning_horizons}.csv"
-            ),
-        log:
-            logs("build_tyndp_h2_imports_{planning_horizons}.log"),
-        benchmark:
-            benchmarks("build_tyndp_h2_imports_{planning_horizons}")
-        threads: 1
-        resources:
-            mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
-        script:
-            "../scripts/build_tyndp_h2_imports.py"
-
-
-if config["sector"]["offshore_hubs_tyndp"]["enable"]:
-
-    rule build_tyndp_offshore_hubs:
-        params:
-            planning_horizons=config_provider("scenario", "planning_horizons"),
-            scenario=config_provider("tyndp_scenario"),
-            countries=config_provider("countries"),
-            offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
-            extendable_carriers=config_provider("electricity", "extendable_carriers"),
-            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
-        input:
-            nodes="data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx",
-            grid="data/tyndp_2024_bundle/Offshore hubs/GRID.xlsx",
-            electrolysers="data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx",
-            generators="data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx",
-        output:
-            offshore_buses=resources("offshore_buses.csv"),
-            offshore_grid=resources("offshore_grid.csv"),
-            offshore_electrolysers=resources("offshore_electrolysers.csv"),
-            offshore_generators=resources("offshore_generators.csv"),
-            offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
-        log:
-            logs("build_tyndp_offshore_hubs.log"),
-        benchmark:
-            benchmarks("build_tyndp_offshore_hubs")
-        threads: 1
-        resources:
-            mem_mb=4000,
-        conda:
-            "../envs/environment.yaml"
-        script:
-            "../scripts/build_tyndp_offshore_hubs.py"
-
-
-rule group_tyndp_conventionals:
-    params:
-        tyndp_conventional_carriers=config_provider(
-            "electricity", "tyndp_conventional_carriers"
-        ),
-    input:
-        pemmdb_capacities=resources("pemmdb_capacities_{planning_horizon}.csv"),
-        pemmdb_profiles=resources("pemmdb_profiles_{planning_horizon}.nc"),
-        carrier_mapping="data/tyndp_technology_map.csv",
-    output:
-        pemmdb_capacities_grouped=resources(
-            "pemmdb_capacities_{planning_horizon}_grouped.csv"
-        ),
-        pemmdb_profiles_grouped=resources(
-            "pemmdb_profiles_{planning_horizon}_grouped.nc"
-        ),
-    log:
-        logs("group_tyndp_conventionals_{planning_horizon}.log"),
-    benchmark:
-        benchmarks("group_tyndp_conventionals_{planning_horizon}")
-    threads: 1
-    resources:
-        mem_mb=2000,
-    conda:
-        "../envs/environment.yaml"
-    script:
-        "../scripts/group_tyndp_conventionals.py"
-
-
 def input_offshore_hubs(w):
     offshore_files = [
         "offshore_buses",
@@ -1593,6 +1414,19 @@ def input_offshore_hubs(w):
     if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
         return {f: resources(f"{f}.csv") for f in offshore_files}
     return {}
+
+
+pecd_techs = branch(
+    config_provider("electricity", "pecd_renewable_profiles", "enable"),
+    config_provider("electricity", "pecd_renewable_profiles", "technologies"),
+)
+
+
+def input_profile_pecd(w):
+    return {
+        f"profile_pecd_{tech}": resources("profile_pecd_{clusters}_" + tech + ".nc")
+        for tech in pecd_techs(w)
+    }
 
 
 def input_pemmdb_data(w):

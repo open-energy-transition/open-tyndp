@@ -1190,7 +1190,7 @@ def add_offshore_hubs_constraint(
     h2_gens = gens.loc[(h2_i) & (ext_i)]
     h2_gens_i = h2_gens.index
     dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
-    p_nom = n.model["Generator-p_nom"]
+    p_nom = n.model["Generator-p_nom"].rename({"name": "Generator-ext"})
 
     lhs = (
         p_nom.loc[dc_gens_i]
@@ -1215,7 +1215,7 @@ def add_offshore_hubs_constraint(
     if off_gens_i.empty:
         return
 
-    grouper_ext = gens.loc[off_gens_i].zone.rename("Generator-ext")
+    grouper_ext = gens.loc[off_gens_i].zone
     idx = pd.Index(set(limit.index).intersection(grouper_ext))
     eff_z = gens["efficiency_dc_to_b0"].reindex(off_gens_i)
     lhs = (p_nom.loc[off_gens_i] / eff_z).groupby(grouper_ext).sum().loc[idx]

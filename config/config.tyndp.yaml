@@ -370,3 +370,6 @@ plotting:
 
 benchmarking:
   enable: true
+
+cba:
+  hurdle_costs: 0.01 # Transmission line marginal cost

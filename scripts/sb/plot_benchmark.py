@@ -22,7 +22,7 @@ from scripts._helpers import (
     get_version,
     set_scenario_config,
 )
-from scripts.make_benchmark import load_data, match_temporal_resolution
+from scripts.sb.make_benchmark import load_data, match_temporal_resolution
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")

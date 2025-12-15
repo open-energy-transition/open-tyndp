@@ -288,7 +288,7 @@ if __name__ == "__main__":
     map_fn = snakemake.output.map
 
     if snakemake.params.tyndp_h2_topology:
-        from scripts.plot_base_hydrogen_network import plot_h2_map_base
+        from scripts.sb.plot_base_hydrogen_network import plot_h2_map_base
 
         if n.buses.country.isin(["MA", "DZ"]).any():
             map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
