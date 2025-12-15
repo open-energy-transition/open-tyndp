@@ -154,20 +154,20 @@ pytest = ">=8.4.2"
 
 [feature.open-tyndp.tasks]
 tyndp-sb-test = """bash -c '
-    snakemake -call --configfile config/test/config.tyndp.yaml "$@" && \
+    snakemake -call --configfile config/test/config.tyndp.yaml -call "$@" && \
     snakemake -call --configfile config/config.tyndp.yaml -n
     ' --
 """
 tyndp-cba-test = """bash -c '
-    snakemake results/test-sector-tyndp/cba/toot/project_t176_2030.csv --configfile config/test/config.tyndp.yaml "$@" && \
-    snakemake results/tyndp/NT/cba/toot/project_t176_2030.csv --configfile config/config.tyndp.yaml -n \
+    snakemake resources/test-sector-tyndp/cba/toot/networks/reference_2030.nc --configfile config/test/config.tyndp.yaml -call "$@" && \
+    snakemake resources/tyndp/NT/cba/toot/postnetworks/reference_2030.nc --configfile config/config.tyndp.yaml -n \
     ' --
 """
 tyndp-cba = """
-    snakemake results/tyndp/NT/cba/toot/project_t176_2030.csv --configfile config/config.tyndp.yaml
+    snakemake results/tyndp/NT/cba/toot/project_t176_2030.csv --configfile config/config.tyndp.yaml -call
 """
 tyndp = """bash -c '
-	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
+	snakemake -call --configfile config/config.tyndp.yaml -call "$@" && \
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
 	' --
  """
@@ -176,6 +176,7 @@ tyndp = """bash -c '
      snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
      echo "All tyndp outputs have been cleaned up."
  """
+ all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
 pixi-pycharm = ">=0.0.9"

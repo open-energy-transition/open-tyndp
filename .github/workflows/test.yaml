@@ -80,7 +80,7 @@ jobs:
         SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
         SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
       run: |
-        pixi run -e open-tyndp tyndp-cba-test -call
+        pixi run -e open-tyndp tyndp-cba-test
 
     - name: Run snakemake test workflows (upstream)
       env:

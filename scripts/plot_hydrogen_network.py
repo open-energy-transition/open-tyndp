@@ -275,6 +275,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
+    options = snakemake.params.sector
 
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
 
@@ -287,12 +288,13 @@ if __name__ == "__main__":
     map_fn = snakemake.output.map
 
     if snakemake.params.tyndp_h2_topology:
-        from scripts.plot_base_hydrogen_network import plot_h2_map_base
+        from scripts.sb.plot_base_hydrogen_network import plot_h2_map_base
 
         if n.buses.country.isin(["MA", "DZ"]).any():
             map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
 
-        regions.index = regions.index + " H2 Z2"
+        suffix = "H2" if not options["h2_zones_tyndp"] else "H2 Z2"
+        regions.index = regions.index + f" {suffix}"
         plot_h2_map_base(
             n, map_opts, map_fn, expanded=True, regions_for_storage=regions
         )

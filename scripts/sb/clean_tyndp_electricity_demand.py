@@ -111,7 +111,8 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "clean_tyndp_demand", configfiles="config/test/config.tyndp.yaml"
+            "clean_tyndp_electricity_demand",
+            configfiles="config/test/config.tyndp.yaml",
         )
 
     configure_logging(snakemake)

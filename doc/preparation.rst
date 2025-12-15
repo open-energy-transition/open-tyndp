@@ -237,7 +237,7 @@ Rule ``build_tyndp_trajectories``
 
 .. automodule:: build_tyndp_trajectories
 
-Rule ``clean_tyndp_demand``
+Rule ``clean_tyndp_electricity_demand``
 ===========================
 
-.. automodule:: clean_tyndp_demand
+.. automodule:: clean_tyndp_electricity_demand

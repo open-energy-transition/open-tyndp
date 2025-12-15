@@ -595,7 +595,7 @@ sector:
       rolling_window_ambient_temperature: 72
       relative_annual_temperature_reduction: 0.01
     ptes:
-      dynamic_capacity: true
+      dynamic_capacity: false
       supplemental_heating:
         enable: false
         booster_heat_pump: false
@@ -864,6 +864,9 @@ sector:
   keep_existing_capacities: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: false
+  biomass_final_demand: false
+  force_biomass_potential: false
+  force_biogas_potential: false
   electrobiofuels: true
   biosng: false
   biosng_cc: false

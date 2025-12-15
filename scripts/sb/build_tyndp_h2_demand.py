@@ -161,6 +161,7 @@ def load_single_year(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataF
     if scenario == "NT":
         demand_fn = get_file_path(fn, scenario, pyear)
         demand = read_h2_excel(demand_fn, scenario, pyear, cyear, h2_zone=2)
+        demand.columns = [f"{col[:2]} H2" for col in demand.columns]
     elif scenario in ["DE", "GA"]:
         demands = {}
         for h2_zone in [1, 2]:
@@ -223,6 +224,20 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
     )
 
 
+def align_demand_to_snapshots(demand, snapshots):
+    """
+    Convert demand index to DatetimeIndex, adjust year to match snapshots,
+    and reindex to snapshots.
+    """
+
+    demand.index = pd.to_datetime(demand.index)
+    target_year = snapshots[0].year
+    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
+
+    return demand.reindex(snapshots)
+
+
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
@@ -244,15 +259,22 @@ if __name__ == "__main__":
     cyear = snapshots[0].year
     fn = snakemake.input.h2_demand
 
-    # Check if climatic year is valid for scenario
-    cyear = check_cyear(cyear, scenario)
+    if scenario not in ["DE", "GA", "NT"]:
+        demand = pd.Series()
 
-    # Load demand with interpolation
-    logger.info(
-        f"Processing H2 demand for scenario: {scenario}, "
-        f"target year: {pyear}, climate year: {cyear}"
-    )
-    demand = load_h2_demand(fn, scenario, pyear, cyear)
+    else:
+        # Check if climatic year is valid for scenario
+        cyear = check_cyear(cyear, scenario)
+
+        # Load demand with interpolation
+        logger.info(
+            f"Processing H2 demand for scenario: {scenario}, "
+            f"target year: {pyear}, climate year: {cyear}"
+        )
+        demand = load_h2_demand(fn, scenario, pyear, cyear)
+
+        # Reindex demand to fit to snapshots
+        demand = align_demand_to_snapshots(demand, snapshots)
 
     # Export to CSV
     demand.to_csv(snakemake.output.h2_demand, index=True)

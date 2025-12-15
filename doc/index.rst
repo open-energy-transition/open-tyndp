@@ -66,11 +66,13 @@ The Open-TYNDP repository builds on the open-source ecosystem of `PyPSA <https:/
     :align: center
     :alt: Open-Source Ecosystem
 
-Within this ecosystem, independent organisations can develop their own private repositories using the publicly available Open-TYNDP and PyPSA-Eur codebases. This shared foundation ensures interoperability and creates opportunities for partnership through sharing and co-developing features. By using a soft-fork strategy, each private repository can contribute to and benefit from the shared research and development environment. The shared foundation also enables organisations to request support and feature development from other actors.
+Within this ecosystem, independent organisations can develop their own private repositories using the publicly available Open-TYNDP and PyPSA-Eur codebases. This shared foundation ensures interoperability and creates opportunities for partnership through sharing and co-developing features. By using a soft-fork strategy, each private repository can benefit from the shared research and development environment and voluntarily contribute features. The shared foundation also enables organisations to request support and feature development from other actors.
 
-Each organisation in this open-source ecosystem remains fully independent of the shared foundation, maintaining its own governance structure and decision-making processes regarding its codebase. Organisations are also free to keep parts of their code private.
+Each organisation in this open-source ecosystem remains fully independent of the shared foundation, maintaining its own governance structure and decision-making processes regarding its codebase. Organisations are also free to keep parts of their code and sensitive data completely private.
 
 |
+
+.. _development-status:
 
 Development status
 ==================
@@ -198,8 +200,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - Hydrogen
-     - `#169 <https://github.com/open-energy-transition/open-tyndp/pull/169>`__
-     - 🔨
+     - `#169 <https://github.com/open-energy-transition/open-tyndp/pull/169>`__, `#230 <https://github.com/open-energy-transition/open-tyndp/pull/230>`__
+     - ✅
    * -
      - Methane
      - `#208 <https://github.com/open-energy-transition/open-tyndp/pull/208>`__, `#220 <https://github.com/open-energy-transition/open-tyndp/pull/220>`__
@@ -218,7 +220,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **TYNDP technologies and carriers**
      - TYNDP generation technologies (incl. SRES and DRES)
-     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__
+     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__, `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__
      - 🔨
    * -
      - Prosumer modelling
@@ -469,6 +471,7 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    installation
    tutorial
    tutorial_sector
+   faq_troubleshooting
 
 .. toctree::
    :hidden:
