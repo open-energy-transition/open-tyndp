@@ -158,7 +158,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **Automated tests and benchmarks**
      - Automated benchmarking routine
-     - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__, `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__
+     - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__, `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__
      - ✅
    * - **TYNDP modelling features**
      - Perfect foresight optimization
@@ -250,7 +250,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * - **CBA Assessment Framework**
      - TOOT/PINT methodology
-     -
+     - `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__, `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__
      - ⌛
    * -
      - Climate years (weighted average)
