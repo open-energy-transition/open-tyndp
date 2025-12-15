@@ -59,6 +59,10 @@ Upcoming Open-TYNDP Release
 
 *Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
 
+**Documentation**
+
+* Add more FAQ questions, set the default solver to HiGHS and fix the default temporal resolution to 52SEG (https://github.com/open-energy-transition/open-tyndp/pull/303).
+
 
 Upcoming PyPSA-Eur Release
 ================
