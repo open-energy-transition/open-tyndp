@@ -234,12 +234,12 @@ rule cba:
         lambda w: expand(
             rules.collect_indicators.output.indicators,
             cba_method=config_provider("cba", "methods")(w),
-            planning_horizons=config_provider("scenario", "planning_horizons")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
             cba_method=config_provider("cba", "methods")(w),
-            planning_horizons=config_provider("scenario", "planning_horizons")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),

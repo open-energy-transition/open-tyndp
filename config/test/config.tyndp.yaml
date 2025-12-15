@@ -384,6 +384,9 @@ benchmarking:
 cba:
   hurdle_costs: 0.01 # Transmission line marginal cost
 
+  planning_horizons:
+  - 2030
+  - 2040
   methods:
   - toot
   projects:
