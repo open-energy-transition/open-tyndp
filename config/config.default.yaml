@@ -33,7 +33,7 @@ run:
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#foresight
 foresight: overnight
 
-tyndp_scenario: ''  # NT, DE or GA
+tyndp_scenario: false  # NT, DE, DA or false
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#scenario
 # Wildcard docs in https://pypsa-eur.readthedocs.io/en/latest/wildcards.html
