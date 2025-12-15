@@ -188,11 +188,12 @@ def input_indicators(w):
     """
     List all indicators csv
     """
+    run = w.get("run", config_provider("run", "name")(w))
     transmission_projects = pd.read_csv(
-        checkpoints.clean_projects.get(run=w.run).output.transmission_projects
+        checkpoints.clean_projects.get(run=run).output.transmission_projects
     )
     storage_projects = pd.read_csv(
-        checkpoints.clean_projects.get(run=w.run).output.storage_projects
+        checkpoints.clean_projects.get(run=run).output.storage_projects
     )
 
     cba_projects = [
