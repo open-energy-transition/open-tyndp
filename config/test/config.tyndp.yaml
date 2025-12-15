@@ -365,6 +365,7 @@ solving:
   mem: 4000
 
 plotting:
+  energy_threshold: 1.
   projection:
     name: "LambertAzimuthalEqualArea"
   balance_map:
