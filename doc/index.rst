@@ -262,8 +262,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **CBA Benefit Indicators**
      - B1: Socioeconomic Welfare (SEW)
-     -
-     - ⌛
+     - `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__
+     - ✅
    * -
      - B2: CO₂ Variation with societal costs
      -
