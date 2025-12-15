@@ -105,6 +105,7 @@ Upcoming PyPSA-Eur Release
 Open-TYNDP v0.4 (15th December 2025)
 ========================================
 
+
 **Features**
 
 * Introduce a workflow structure for performing Cost-Benefit Analysis (CBA) using both TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP transmission and storage projects on top of the SB results (https://github.com/open-energy-transition/open-tyndp/pull/149). The workflow structure has rules for retrieving CBA project data, processing transmission and storage projects from Excel exports, creating reference networks, building individual project networks, solving network optimizations, and computing CBA indicators.
@@ -172,6 +173,7 @@ Open-TYNDP v0.4 (15th December 2025)
 **Developers Note**
 
 * Ensure compatibility with PyPSA v1 (https://github.com/open-energy-transition/open-tyndp/pull/219).
+
 
 Open-TYNDP v0.3 (24th October 2025)
 ========================================
