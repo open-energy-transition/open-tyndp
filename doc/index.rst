@@ -251,7 +251,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
    * - **CBA Assessment Framework**
      - TOOT/PINT methodology
      - `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__, `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__
-     - ⌛
+     - 🔨
    * -
      - Climate years (weighted average)
      -
