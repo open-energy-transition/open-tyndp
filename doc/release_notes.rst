@@ -102,7 +102,7 @@ Upcoming PyPSA-Eur Release
 * Misc: Automatically update the DAGs shown in the documentation (https://github.com/PyPSA/pypsa-eur/pull/1880).
 
 
-Open-TYNDP v0.4 (15th December 2025)
+Open-TYNDP v0.4 (16th December 2025)
 ========================================
 
 
