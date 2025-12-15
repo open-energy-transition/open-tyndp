@@ -94,7 +94,11 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies (see PR `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__).
 - Added TYNDP solar, onwind and conventional thermal generation using PEMMDB capacities, must-runs and availabilities (see PRs `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__ and `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__ for solar and onwind ; `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__ for conventionals) and electrolyzer PEMMDB capacities (only for NT scenario) (see PR `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__).
 - Added CO2 emission prices per planning horizon (see PR `#198 <https://github.com/open-energy-transition/open-tyndp/pull/198>`__).
-- Introduced a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP transmission and storage projects on top of the SB results (see PR `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__).
+- Introduced a workflow structure for performing Cost-Benefit Analysis (CBA) using both TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP transmission and storage projects on top of the SB results (see PR `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__).
+- Added the TOOT reference and project network preparation for CBA (see PRs `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__).
+- Added weekly rolling horizon optimization for CBA networks (see PR `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__).
+- Introduced calculation of B1 indicator in the CBA based on changes in total system costs (see PR `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__).
+
 
 
 .. list-table::
@@ -250,7 +254,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * - **CBA Assessment Framework**
      - TOOT/PINT methodology
-     - `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__, `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__
+     - `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__, `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__, `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__
      - 🔨
    * -
      - Climate years (weighted average)
