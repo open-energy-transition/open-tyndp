@@ -27,36 +27,3 @@ if config["electricity"]["base_network"] == "osm-raw":
             mem_mb=1000,
         script:
             "../scripts/prepare_osm_network_release.py"
-
-
-if not config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
-
-    def pecd_version(w):
-        version = config_provider("electricity", "pecd_renewable_profiles", "version")(
-            w
-        )
-        return {"pecd_raw": f"data/tyndp_2024_bundle/PECD/PECD_{version}"}
-
-    rule prepare_pecd_release:
-        params:
-            cyears=config_provider(
-                "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
-            ),
-            available_pyears=config_provider(
-                "electricity", "pecd_renewable_profiles", "available_years"
-            ),
-        input:
-            unpack(pecd_version),
-        output:
-            pecd_prebuilt=directory(
-                "data/tyndp_2024_bundle/PECD/PECD_{pecd_prebuilt_version}"
-            ),
-        log:
-            "logs/prepare_pecd_release_{pecd_prebuilt_version}.log",
-        benchmark:
-            "benchmarks/prepare_pecd_release_{pecd_prebuilt_version}"
-        threads: 4
-        resources:
-            mem_mb=1000,
-        script:
-            "../scripts/prepare_pecd_release.py"

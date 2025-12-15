@@ -14,6 +14,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Adjusted solid biomass and biogas potentials to match TYNDP assumptions across all planning horizons, removed unsustainable biomass and biogas shares from potential, and added configuration options to force biomass and biogas potentials (https://github.com/open-energy-transition/open-tyndp/pull/236)
+
 * Add CO2 emission prices configurable per planning horizon for sector-coupled models (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
 
 * Introduce a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT
@@ -25,11 +27,17 @@ Upcoming Open-TYNDP Release
   building individual project networks, solving network optimizations, and computing CBA
   indicators.
 
-* Added the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
+* Added the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/230).
 
 * Added TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
 
 * Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220). Introduces ``sector:gas_demand_exogenously`` configuration to decide whether to attach this demand to the network. Introduces  ``benchmarking:remove_last_day`` to optionally remove the last day of the year, ensuring the benchmarked values have exactly 52 weeks. Removes ``sector:use_industry_load`` configuration as industry is now integrated in the exogenous demand.
+
+* Add the TYNDP CCS assumptions as sequestration potentials (https://github.com/open-energy-transition/open-tyndp/pull/244).
+
+* Added TYNDP electrolyzer capacities for the National Trends scenario using PEMMDB data (https://github.com/open-energy-transition/open-tyndp/pull/248).
+
+* Improve the overall benchmarking framework by correcting bus mappings for methane supply, biomass supply, and BtL for FED; grouping H2 pipeline imports together (low carbon and renewables); using a new H2 demand figure (Fig. 10 instead of 54) with correct grouping of exogenous demands; reducing EU-wide statistics to EU27 where possible; and improving biomass supply benchmarking with a new figure (Fig. 22 instead of 59) (https://github.com/open-energy-transition/open-tyndp/pull/281)
 
 **Bugfixes and Compatibility**
 
@@ -37,9 +45,27 @@ Upcoming Open-TYNDP Release
 
 * Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214)
 
+* Adjust the benchmarking configurations to report an approximation of imports for fossil fuels (https://github.com/open-energy-transition/open-tyndp/pull/237) and ensure that the final energy demand for biofuels is reflected correctly (https://github.com/open-energy-transition/open-tyndp/pull/239)
+
+* Add an intermediate scaling factor for hydro plants to match PEMMDB capacities (https://github.com/open-energy-transition/open-tyndp/pull/238, https://github.com/open-energy-transition/open-tyndp/pull/240)
+
+* Adjust the oil land transport demand in order to adjust the liquids demand (https://github.com/open-energy-transition/open-tyndp/pull/250)
+
+* Correctly attach planning year dependent renewable profiles from PECD to solar and onwind generators (https://github.com/open-energy-transition/open-tyndp/pull/265).
+
+* Correctly attach solar-pv-rooftop generators to low-voltage buses when modelling an electricity distribution grid representation (https://github.com/open-energy-transition/open-tyndp/pull/273).
+
+* Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
+
+*Moved all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
+
 
 Upcoming PyPSA-Eur Release
 ================
+
+* Fixed bugs with load shedding due to incorrect use of `sign` argument in `n.add` and `np.isscalar` (https://github.com/PyPSA/pypsa-eur/pull/1908).
+
+* chore: disable PTES dynamic capacity by default 
 
 * Add CO2 emission prices configurable per planning horizon for sector-coupled models.
   The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.

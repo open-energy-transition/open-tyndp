@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 
+# NT Scenario - Defined in config/config.tyndp.yaml
 NT:
   tyndp_scenario: NT
 
+# DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
   electricity:
@@ -23,7 +25,25 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+      2030: 0.96
+      2035: 0.7  # interpolation
+      2040: 0.44
+      2045: 0.3  # interpolation
+      2050: 0.16
+    h2_zones_tyndp: true
+    force_biomass_potential: false
+    force_biogas_potential: false
+    co2_sequestration_potential:
+      # Values from TYNDP 2024 Supply Tool
+      2030: 60
+      2035: 90
+      2040: 120
+      2045: 135
+      2050: 150
 
+# GA Scenario - Extends NT baseline with specific overrides below
 GA:
   tyndp_scenario: GA
   electricity:
@@ -42,3 +62,20 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  sector:
+    land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+      2030: 0.96
+      2035: 0.73  # interpolation
+      2040: 0.50
+      2045: 0.34  # interpolation
+      2050: 0.17
+    h2_zones_tyndp: true
+    force_biomass_potential: false
+    force_biogas_potential: false
+    co2_sequestration_potential:
+      # Values from TYNDP 2024 Supply Tool
+      2030: 48
+      2035: 167
+      2040: 344
+      2045: 398
+      2050: 400

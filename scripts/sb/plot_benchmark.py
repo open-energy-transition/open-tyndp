@@ -22,7 +22,7 @@ from scripts._helpers import (
     get_version,
     set_scenario_config,
 )
-from scripts.make_benchmark import load_data, match_temporal_resolution
+from scripts.sb.make_benchmark import load_data, match_temporal_resolution
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")
@@ -332,6 +332,7 @@ def plot_overview(
         ylabel=metric,
         title=f"Comparison of Open-TYNDP and TYNDP 2024 results for EU27, CY {cyear} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
+        ylim=[0, max(df_clean[metric].max() + 0.1, 1)],
     )
 
     # Add missing carriers information
