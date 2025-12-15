@@ -134,13 +134,17 @@ if config["enable"]["retrieve"]:
             "logs/retrieve_tyndp_vp_data.log",
 
     rule retrieve_countries_centroids:
+        input:
+            storage(
+                "https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson"
+            ),
         output:
             "data/countries_centroids.geojson",
         log:
             "logs/retrieve_countries_centroids.log",
         retries: 2
-        shell:
-            "wget -O {output} https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson"
+        run:
+            move(input[0], output[0])
 
 
 # Development
