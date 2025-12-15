@@ -225,7 +225,7 @@ rule plot_indicators:
     output:
         plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
     script:
-        "../../scripts/cba/plot_indicators.py"
+        "../scripts/cba/plot_indicators.py"
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
