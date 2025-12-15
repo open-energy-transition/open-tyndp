@@ -114,6 +114,10 @@ Open-TYNDP v0.4 (15th December 2025)
 
 * Add the TOOT project network preparation for CBA (https://github.com/open-energy-transition/open-tyndp/pull/211).
 
+* Add weekly rolling horizon optimization for CBA networks (https://github.com/open-energy-transition/open-tyndp/pull/217). Implements ``solve_cba_network`` rule for optimizing dispatch of TOOT and PINT reference and project networks.
+
+* Introduce calculation of B1 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system costs (https://github.com/open-energy-transition/open-tyndp/pull/186).
+
 * Add TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
 
 * Add TYNDP electrolyzer capacities for the National Trends scenario using PEMMDB data (https://github.com/open-energy-transition/open-tyndp/pull/248).

@@ -379,3 +379,25 @@ benchmarking:
 
 cba:
   hurdle_costs: 0.01 # Transmission line marginal cost
+  planning_horizons:
+  - 2030
+  - 2040
+  methods:
+  - toot
+  projects:
+  - t1-t35
+
+  # Merged into top-level solving options
+  solving:
+    options:
+      horizon: 168
+      overlap: 0
+      load_shedding: true
+
+    solver:
+      name: highs
+      options: highs-simplex
+
+    solver_options:
+      highs-simplex:
+        parallel: "off" # does not speed up solution

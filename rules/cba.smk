@@ -5,6 +5,7 @@
 
 import pandas as pd
 
+from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
 
 
@@ -145,10 +146,27 @@ rule prepare_pint_project:
 # solve any of the prepared networks, ie a reference or a project network
 # should reuse/import functions from solve_network.py
 rule solve_cba_network:
+    params:
+        solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
+        foresight=config_provider("foresight"),
+        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        custom_extra_functionality=None,
     input:
         network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),
     output:
-        network=resources("cba/{cba_method}/postnetworks/{name}_{planning_horizons}.nc"),
+        network=RESULTS + "cba/{cba_method}/networks/{name}_{planning_horizons}.nc",
+    log:
+        solver=logs(
+            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_solver.log"
+        ),
+        memory=logs(
+            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_memory.log"
+        ),
+        python=logs(
+            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_python.log"
+        ),
+    threads: 1
     script:
         "../scripts/cba/solve_cba_network.py"
 
@@ -156,12 +174,9 @@ rule solve_cba_network:
 # compute all metrics for a single pint or toot project comparing reference and project solution
 rule make_indicators:
     input:
-        reference=resources(
-            "cba/{cba_method}/postnetworks/reference_{planning_horizons}.nc"
-        ),
-        project=resources(
-            "cba/{cba_method}/postnetworks/project_{cba_project}_{planning_horizons}.nc"
-        ),
+        reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
+        project=RESULTS
+        + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
@@ -173,23 +188,23 @@ def input_indicators(w):
     """
     List all indicators csv
     """
+    run = w.get("run", config_provider("run", "name")(w))
     transmission_projects = pd.read_csv(
-        checkpoints.clean_projects.get(**w).output.transmission_projects
+        checkpoints.clean_projects.get(run=run).output.transmission_projects
     )
     storage_projects = pd.read_csv(
-        checkpoints.clean_projects.get(**w).output.storage_projects
+        checkpoints.clean_projects.get(run=run).output.storage_projects
     )
-    planning_horizons = config_provider("scenario", "planning_horizons")(w)
 
     cba_projects = [
         f"t{pid}" for pid in transmission_projects["project_id"].unique()
     ] + [f"s{pid}" for pid in storage_projects["project_id"].unique()]
 
+    project_specs = config_provider("cba", "projects")(w)
+
     return expand(
         rules.make_indicators.output.indicators,
-        cba_project=cba_projects,
-        cba_method=["toot", "pint"],  # maybe promote to config
-        planning_horizons=planning_horizons,
+        cba_project=filter_projects_by_specs(cba_projects, project_specs),
         allow_missing=True,
     )
 
@@ -199,9 +214,18 @@ rule collect_indicators:
     input:
         indicators=input_indicators,
     output:
-        indicators=RESULTS + "cba/indicators.csv",
+        indicators=RESULTS + "cba/{cba_method}/indicators_{planning_horizons}.csv",
     script:
         "../scripts/cba/collect_indicators.py"
+
+
+rule plot_indicators:
+    input:
+        indicators=rules.collect_indicators.output.indicators,
+    output:
+        plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
+    script:
+        "../scripts/cba/plot_indicators.py"
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
@@ -209,5 +233,13 @@ rule cba:
     input:
         lambda w: expand(
             rules.collect_indicators.output.indicators,
+            cba_method=config_provider("cba", "methods")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+        ),
+        lambda w: expand(
+            rules.plot_indicators.output.plot_dir,
+            cba_method=config_provider("cba", "methods")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),

@@ -154,17 +154,20 @@ pytest = ">=8.4.2"
 
 [feature.open-tyndp.tasks]
 tyndp-sb-test = """bash -c '
-    snakemake -call --configfile config/test/config.tyndp.yaml -call "$@" && \
+    snakemake -call --configfile config/test/config.tyndp.yaml "$@" && \
     snakemake -call --configfile config/config.tyndp.yaml -n
     ' --
 """
 tyndp-cba-test = """bash -c '
-    snakemake resources/test-sector-tyndp/cba/toot/networks/reference_2030.nc --configfile config/test/config.tyndp.yaml -call "$@" && \
-    snakemake resources/tyndp/NT/cba/toot/postnetworks/reference_2030.nc --configfile config/config.tyndp.yaml -n \
+    snakemake -call cba --configfile config/test/config.tyndp.yaml "$@" && \
+    snakemake -call cba --configfile config/config.tyndp.yaml -n \
     ' --
 """
+tyndp-cba = """
+    snakemake -call cba --configfile config/config.tyndp.yaml
+"""
 tyndp = """bash -c '
-	snakemake -call --configfile config/config.tyndp.yaml -call "$@" && \
+	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
 	' --
  """
