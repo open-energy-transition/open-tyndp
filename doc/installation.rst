@@ -12,6 +12,9 @@ Installation
 The subsequently described installation steps are demonstrated as shell commands, where the path before the ``%`` sign denotes the
 directory in which the commands following the ``%`` should be entered.
 
+
+.. _clone_repo:
+
 Clone the Repository
 ====================
 

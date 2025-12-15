@@ -167,6 +167,8 @@ Open-TYNDP v0.4 (15th December 2025)
 
 * Add a FAQ to the documentation (https://github.com/open-energy-transition/open-tyndp/pull/276).
 
+* Add more FAQ questions, set the default solver to HiGHS and fix the default temporal resolution to 52SEG (https://github.com/open-energy-transition/open-tyndp/pull/303).
+
 **Developers Note**
 
 * Ensure compatibility with PyPSA v1 (https://github.com/open-energy-transition/open-tyndp/pull/219).
