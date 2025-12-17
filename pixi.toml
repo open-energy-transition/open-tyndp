@@ -188,6 +188,9 @@ tyndp = """bash -c '
 [feature.open-tyndp.dependencies]
 pixi-pycharm = ">=0.0.9"
 
+[feature.open-tyndp.target.win-64.dependencies]
+git = ">=2.52.0"
+
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
 test = ["test"]
