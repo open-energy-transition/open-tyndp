@@ -1834,6 +1834,37 @@ def _add_electrolyzer_capacities(
     )
 
 
+def _add_hydro_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    tyndp_hydro: list,
+    hydro_inflows_fn: str,
+    trajectories: pd.DataFrame,
+) -> None:
+    """
+    Add existing hydro capacities and inflows from PEMMDB and TYNDP trajectories.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    tyndp_hydro : list
+        List of TYNDP hydro technologies.
+    hydro_inflows_fn : str
+        Path to file with hydro inflow profiles.
+    trajectories : pd.DataFrame
+        TYNDP trajectories for hydro technologies.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the hydro capacities and inflows.
+    """
+    logger.info("Adding PEMMDB capacities and inflows to hydro technologies.")
+
+
 def add_existing_pemmdb_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -1844,6 +1875,7 @@ def add_existing_pemmdb_capacities(
     h2_topology_tyndp: bool,
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
+    hydro_inflows_fn: str,
     extendable_carriers: list | set,
     investment_year: int,
 ) -> None:
@@ -1879,6 +1911,8 @@ def add_existing_pemmdb_capacities(
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
+    hydro_inflows_fn : str,
+        Path to file with hydro inflow profiles.
     extendable_carriers : list[str] | set
         List of extendable renewable energy carriers.
     investment_year : int
@@ -1913,9 +1947,22 @@ def add_existing_pemmdb_capacities(
             planning_horizon=investment_year,
         )
 
+    # Add existing hydro capacities and inflows
+    if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
+        trajectories_hydro = trajectories.query(
+            "pyear == @investment_year and carrier.str.startswith('hydro')"
+        )
+        _add_hydro_capacities(
+            n=n,
+            pemmdb_capacities=pemmdb_capacities,
+            tyndp_hydro=tyndp_hydro,
+            hydro_inflows_fn=hydro_inflows_fn,
+            trajectories_hydro=trajectories_hydro,
+        )
+
     # Add existing conventional thermal capacities to already attached conventional technologies
     if tyndp_conventional_thermals:
-        nuclear_trajectories = trajectories.query(
+        trajectories_nuclear = trajectories.query(
             "pyear == @investment_year and index_carrier == 'nuclear'"
         ).set_index("bus")
 
@@ -1924,18 +1971,18 @@ def add_existing_pemmdb_capacities(
             pemmdb_capacities=pemmdb_capacities,
             pemmdb_profiles=pemmdb_profiles,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
-            nuclear_trajectories=nuclear_trajectories,
+            nuclear_trajectories=trajectories_nuclear,
         )
 
     if h2_topology_tyndp:
-        electrolyser_trajectories = trajectories.query(
+        trajectories_electrolyser = trajectories.query(
             "pyear == @investment_year and carrier == 'electrolyser'"
         ).set_index("bus")
 
         _add_electrolyzer_capacities(
             n=n,
             pemmdb_capacities=pemmdb_capacities,
-            trajectories=electrolyser_trajectories,
+            trajectories=trajectories_electrolyser,
         )
 
 
@@ -8572,6 +8619,7 @@ if __name__ == "__main__":
             h2_topology_tyndp=options["h2_topology_tyndp"],
             costs=costs,
             profiles_pecd=profiles_pecd,
+            hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
         )
