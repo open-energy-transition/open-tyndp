@@ -10,6 +10,13 @@ name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 version = "0.1.0"
 
+[target.win-64.activation.env]
+
+# Local snakemake jobs often fail with status code 120, due to stdout/stderr interleaving
+# on windows, running python unbuffered works around the issue. Ideally we would stop using
+# stdout/stderr and use a proper logging infrastructure
+PYTHONUNBUFFERED = "1"
+
 [tasks]
 
 reset = """bash -c '
