@@ -46,7 +46,7 @@ electricity:
   - oil-heavy
   - oil-shale
   group_tyndp_conventionals: true
-  renewable_carriers: [hydro]
+  renewable_carriers: []
   scale_hydro_to_pemmdb: true
   tyndp_renewable_carriers:
   - other-res

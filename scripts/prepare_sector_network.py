@@ -8208,6 +8208,150 @@ def add_import_options(
             )
 
 
+def _add_phs(n, costs, nodes, carrier, inflows=False):
+    """
+    Add TYNDP PHS with or without inflows to the network.
+    """
+
+    # Add a Bus for connecting Store and Links
+    n.add("Bus", nodes + f" {carrier}", carrier=carrier, location=nodes)
+
+    # Add a dispatch Link for the turbine
+    # TODO: add marginal costs from TYNDP assumptions
+    n.add(
+        "Link",
+        nodes + f" {carrier}-turbine",
+        bus0=nodes + f" {carrier}",
+        bus1=nodes,
+        capital_cost=costs.at[
+            "PHS", "capital_cost"
+        ],  # Capital costs are tracked via the Turbine component
+        efficiency=np.sqrt(costs.at["PHS", "efficiency"]),
+    )
+
+    # Add a store Link for the pump
+    n.add(
+        "Link",
+        nodes + f" {carrier}-pump",
+        bus0=nodes,
+        bus1=nodes + f" {carrier}",
+        efficiency=np.sqrt(costs.at["PHS", "efficiency"]),
+    )
+
+    # Add a Store to track depletion of reservoir
+    n.add(
+        "Store",
+        nodes + f" {carrier}",
+        carrier=carrier,
+        bus=nodes + f" {carrier}",
+        e_cyclic=True,  # TODO: Validate cyclicity assumption
+    )
+
+    # Add inflow generator
+    if inflows:
+        n.add("Carrier", f"{carrier}-inflows", co2_emissions=0)
+        n.add(
+            "Generator",
+            nodes + f" {carrier}-inflows",
+            bus=nodes + f" {carrier}",
+            carrier=f"{carrier}-inflows",
+        )
+
+
+def add_hydro_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    tyndp_hydro: list,
+) -> None:
+    """
+    Add TYNDP hydro technology components to the network.
+
+    Adds up to five different TYNDP hydro technologies if specified via the configuration:
+
+    - Run of River (hydro-ror):
+            Generator. Inflows can be added with p_max_pu.
+    - Pondage (hydro-pondage):
+            StorageUnit with fixed max_hours as ratio between Pondage reservoir capacity
+            and turbine capacity. Inflows can be added via inflow attribute of StorageUnit.
+    - Reservoir (hydro-reservoir):
+            StorageUnit with fixed max_hours as ratio between Reservoir reservoir capacity
+            and turbine capacity. Inflows can be added via inflow attribute of StorageUnit.
+    - Pump Storage (hydro-phs):
+            Store with Reservoir capacity (extra bus), Link with turbine capacity, Link with
+            pump capacity and additional generator for inflows. Inflows can be added to the generator with p_max_pu.
+    - Pure Pump Storage (no inflows) (hydro-phs-pure):
+            Store with Reservoir capacity (extra bus), Link with turbine capacity and
+            Link with pump capacity.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies.
+    tyndp_hydro : list
+        List of TYNDP hydro technologies to attach to the network.
+
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding hydro components.
+    """
+    logger.info(f"Adding TYNDP technologies: {', '.join(tyndp_hydro)}.")
+
+    nodes = n.buses.query("carrier == 'AC'").index
+
+    # Attach hydro-ror as generator, capacities and inflows will be added later
+    if "hydro-ror" in tyndp_hydro:
+        n.add(
+            "Generator",
+            nodes + " hydro-ror",
+            carrier="hydro-ror",
+            bus=nodes,
+            efficiency=costs.at["ror", "efficiency"],
+            capital_cost=costs.at["ror", "capital_cost"],
+        )
+
+    # Attach hydro-pondage as StorageUnit, capacities and inflows will be added later
+    if "hydro-pondage" in tyndp_hydro:
+        n.add(
+            "StorageUnit",
+            nodes + " hydro-pondage",
+            carrier="hydro-pondage",
+            bus=nodes,
+            capital_cost=costs.at["hydro", "capital_cost"],
+            marginal_cost=costs.at["hydro", "marginal_cost"],
+            p_min_pu=0.0,  # only dispatch, no pumping
+            efficiency_dispatch=costs.at["hydro", "efficiency"],
+            efficiency_store=0.0,  # only dispatch, no pumping
+            cyclic_state_of_charge=True,  # TODO: Validate cyclicity assumption
+        )
+
+    # Attach hydro-reservoir as StorageUnit, capacities and inflows will be added later
+    if "hydro-reservoir" in tyndp_hydro:
+        n.add(
+            "StorageUnit",
+            nodes + " hydro-reservoir",
+            carrier="hydro-reservoir",
+            bus=nodes,
+            capital_cost=costs.at["hydro", "capital_cost"],
+            marginal_cost=costs.at["hydro", "marginal_cost"],
+            p_min_pu=0.0,  # only dispatch, no pumping
+            efficiency_dispatch=costs.at["hydro", "efficiency"],
+            efficiency_store=0.0,  # only dispatch, no pumping
+            cyclic_state_of_charge=True,  # TODO: Validate cyclicity assumption
+        )
+
+    # Attach hydro-phs as Store, Links and additional generator for inflows
+    if "hydro-phs" in tyndp_hydro:
+        _add_phs(n, costs, nodes, "hydro-phs", inflows=True)
+
+    # Attach hydro-phs-pure as Store and Links
+    if "hydro-phs-pure" in tyndp_hydro:
+        _add_phs(n, costs, nodes, "hydro-phs-pure", inflows=False)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -8394,6 +8538,13 @@ if __name__ == "__main__":
         existing_capacities=existing_capacities,
         existing_efficiencies=existing_efficiencies,
     )
+
+    if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
+        add_hydro_tyndp(
+            n=n,
+            costs=costs,
+            tyndp_hydro=tyndp_hydro,
+        )
 
     add_gas_and_h2_infrastructure(
         n=n,
