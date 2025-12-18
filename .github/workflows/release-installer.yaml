@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+
+name: Build and Attach Installer to Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to attach installer to'
+        required: true
+        type: string
+
+jobs:
+  build-and-attach-installer:
+    name: Build Windows Installer and Attach to Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.release_tag }}
+
+    - name: Setup Pixi
+      uses: prefix-dev/setup-pixi@v0.9.3
+      with:
+        pixi-version: v0.59.0
+        cache: true
+        cache-write: false
+
+    - name: Get version from release tag
+      id: get_version
+      run: |
+        TAG="${{ github.event.release.tag_name || inputs.release_tag }}"
+        VERSION=${TAG#v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+    - name: Build Windows installer
+      env:
+        VERSION: ${{ steps.get_version.outputs.version }}
+      run: |
+        utils/windows-installer/build_pixi_installer.sh
+
+    - name: Upload installer to release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload ${{ steps.get_version.outputs.tag }} utils/windows-installer/open-tyndp-*.exe --clobber
