@@ -214,6 +214,16 @@ Function RepositoryPageLeave
     # Get the directory
     ${NSD_GetText} $DirRequest $REPO_DIR
 
+    # Check for spaces in path (causes issues with Snakemake)
+    Push $REPO_DIR
+    Call CheckForSpaces
+    Pop $0
+    ${If} $0 > 0
+        MessageBox MB_OK|MB_ICONEXCLAMATION \
+            "The repository path contains spaces, which will cause problems with Snakemake.$\n$\nPlease choose a path without spaces.$\n$\nCurrent path: $REPO_DIR"
+        Abort
+    ${EndIf}
+
     # Store in registry for later use by launcher scripts
     WriteRegStr HKCU "Software\${PRODUCT_NAME}" "RepositoryPath" "$REPO_DIR"
 
@@ -512,6 +522,30 @@ SectionEnd
 # ------------------------------------------------------------------------------
 # Functions
 # ------------------------------------------------------------------------------
+
+# Check for spaces in a directory path
+# http://nsis.sourceforge.net/Check_for_spaces_in_a_directory_path
+Function CheckForSpaces
+    Exch $R0
+    Push $R1
+    Push $R2
+    Push $R3
+    StrCpy $R1 -1
+    StrCpy $R3 $R0
+    StrCpy $R0 0
+    loop:
+        StrCpy $R2 $R3 1 $R1
+        IntOp $R1 $R1 - 1
+        StrCmp $R2 "" done
+        StrCmp $R2 " " 0 loop
+        IntOp $R0 $R0 + 1
+    Goto loop
+    done:
+    Pop $R3
+    Pop $R2
+    Pop $R1
+    Exch $R0
+FunctionEnd
 
 # Function to remove a directory quickly using cmd RMDIR followed by NSIS RMDir
 # Parameters:
