@@ -244,6 +244,9 @@ FunctionEnd
 Section "Install" SecInstall
     SetOutPath "$INSTDIR"
 
+    # Locate Windows binaries
+    !insertmacro FindWindowsBinaries
+
     DetailPrint "Installing ${PRODUCT_NAME} ${PRODUCT_VERSION}..."
 
     # Create the installation directory if it doesn't exist
@@ -457,13 +460,15 @@ FunctionEnd
 # ------------------------------------------------------------------------------
 
 Section "Uninstall"
+    # Locate Windows binaries
+    !insertmacro FindWindowsBinaries
+
     DetailPrint "Removing ${PRODUCT_NAME}..."
 
     # Remove repository if requested
     ${If} $UnRemoveRepo == ${BST_CHECKED}
         ReadRegStr $REPO_DIR HKCU "Software\${PRODUCT_NAME}" "RepositoryPath"
         ${If} $REPO_DIR != ""
-        ${AndIf} ${FileExists} "$REPO_DIR"
             # Remove .pixi environment directory first
             Push "$REPO_DIR\.pixi"
             Push "pixi environment directory"
@@ -537,9 +542,6 @@ Function un.RemoveDirectory
 FunctionEnd
 
 Function .onInit
-    # Locate Windows binaries
-    !insertmacro FindWindowsBinaries
-
     # Set default repository directory
     StrCpy $REPO_DIR "$PROFILE\open-tyndp"
     StrCpy $CLONE_REPO ${BST_CHECKED}
