@@ -464,21 +464,30 @@ Section "Uninstall"
         ReadRegStr $REPO_DIR HKCU "Software\${PRODUCT_NAME}" "RepositoryPath"
         ${If} $REPO_DIR != ""
         ${AndIf} ${FileExists} "$REPO_DIR"
-            DetailPrint "Removing repository directory..."
-            RMDir /r "$REPO_DIR"
+            # Remove .pixi environment directory first
+            Push "$REPO_DIR\.pixi"
+            Push "pixi environment directory"
+            Call un.RemoveDirectory
+
+            # Remove repository directory
+            Push "$REPO_DIR"
+            Push "repository directory"
+            Call un.RemoveDirectory
         ${EndIf}
     ${EndIf}
 
     # Remove pixi cache if requested
     ${If} $UnRemovePixiCache == ${BST_CHECKED}
-        DetailPrint "Removing pixi/rattler cache..."
-        RMDir /r "$LOCALAPPDATA\rattler\cache"
+        Push "$LOCALAPPDATA\rattler\cache"
+        Push "pixi/rattler cache"
+        Call un.RemoveDirectory
     ${EndIf}
 
     # Remove snakemake cache if requested
     ${If} $UnRemoveSnakemakeCache == ${BST_CHECKED}
-        DetailPrint "Removing snakemake-pypsa-eur cache..."
-        RMDir /r "$LOCALAPPDATA\snakemake-pypsa-eur"
+        Push "$LOCALAPPDATA\snakemake-pypsa-eur"
+        Push "snakemake-pypsa-eur cache"
+        Call un.RemoveDirectory
     ${EndIf}
 
     # Remove Start Menu shortcuts
@@ -507,6 +516,25 @@ SectionEnd
 # ------------------------------------------------------------------------------
 # Functions
 # ------------------------------------------------------------------------------
+
+# Function to remove a directory quickly using cmd RMDIR followed by NSIS RMDir
+# Parameters:
+#   $0 - Directory path to remove
+#   $1 - Description of what's being removed
+Function un.RemoveDirectory
+    Pop $1  # Description
+    Pop $0  # Directory path
+
+    ${If} ${FileExists} "$0"
+        DetailPrint "Removing $1: $0"
+        # Use cmd RMDIR first (faster for large directories)
+        nsExec::Exec '"$CMD_EXE" /D /C RMDIR /Q /S "$0"'
+        # Follow up with NSIS RMDir to ensure complete removal
+        RMDir /r "$0"
+    ${Else}
+        DetailPrint "$1 not found at: $0"
+    ${EndIf}
+FunctionEnd
 
 Function .onInit
     # Locate Windows binaries
