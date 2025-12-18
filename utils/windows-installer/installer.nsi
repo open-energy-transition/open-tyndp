@@ -33,7 +33,7 @@
 
 # Installer file name
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "open-tyndp-${PRODUCT_VERSION}-pixi-Windows-x86_64.exe"
+OutFile "open-tyndp-${PRODUCT_VERSION}-Windows-x86_64.exe"
 
 # Default installation directory (user local appdata)
 InstallDir "$LOCALAPPDATA\open-tyndp"

@@ -61,13 +61,13 @@ echo ""
 
 # Build installer
 echo "Step 3/3: Building installer..."
-pixi exec --spec nsis makensis -DPRODUCT_VERSION=$VERSION -DESTIMATED_SIZE=$ESTIMATED_SIZE pixi_installer.nsi
+pixi exec --spec nsis makensis -DPRODUCT_VERSION=$VERSION -DESTIMATED_SIZE=$ESTIMATED_SIZE installer.nsi
 
 echo ""
 echo "✅ Build complete!"
-echo "   Installer: open-tyndp-${VERSION}-pixi-Windows-x86_64.exe"
+echo "   Installer: open-tyndp-${VERSION}-Windows-x86_64.exe"
 
 # Clean up bundle directory
 rm -rf repo-bundle
 
-ls -lh open-tyndp-*-pixi-Windows-x86_64.exe
+ls -lh open-tyndp-*-Windows-x86_64.exe
