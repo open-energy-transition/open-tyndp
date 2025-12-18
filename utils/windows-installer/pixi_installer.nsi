@@ -283,15 +283,12 @@ Section "Install" SecInstall
                 Goto do_env_install
             ${EndIf}
         ${Else}
-            DetailPrint "Cloning repository to $REPO_DIR..."
+            DetailPrint "Cloning repository to $REPO_DIR... using git..."
             DetailPrint "This may take several minutes depending on your internet connection..."
 
             # Create parent directory if needed
             CreateDirectory "$REPO_DIR"
 
-            # Clone using pixi exec git
-            DetailPrint "Cloning repository using pixi exec git..."
-            # Note: --verbose provides text output without progress bar control characters
             nsExec::ExecToLog '"$CMD_EXE" /D /C "$\"$PIXI_EXE$\" exec git clone --verbose $\"${PRODUCT_REPO_URL}$\" $\"$REPO_DIR$\""'
             Pop $0
             ${If} $0 != 0
