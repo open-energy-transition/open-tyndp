@@ -44,7 +44,7 @@ jobs:
       env:
         VERSION: ${{ steps.get_version.outputs.version }}
       run: |
-        utils/windows-installer/build_pixi_installer.sh
+        utils/windows-installer/build_installer.sh
 
     - name: Upload installer to release
       env:

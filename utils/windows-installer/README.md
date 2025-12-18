@@ -31,7 +31,7 @@ The Windows installer is built automatically on every GitHub release. Simply cre
 cd utils/windows-installer
 
 # Run the build script
-./build_pixi_installer.sh  # Linux/macOS/Git Bash
+./build_installer.sh  # Linux/macOS/Git Bash
 
 # Output: open-tyndp-0.4.0-pixi-Windows-x86_64.exe (~20 MB)
 ```
@@ -39,8 +39,8 @@ cd utils/windows-installer
 **File structure:**
 ```
 utils/windows-installer/
-├── build_pixi_installer.sh
-├── pixi_installer.nsi
+├── build_installer.sh
+├── installer.nsi
 ├── oet_logo.bmp
 └── oet_logo.ico
 ```
@@ -83,7 +83,7 @@ The installer is built automatically by GitHub Actions on release tags and attac
 
 ```bash
 cd utils/windows-installer
-./build_pixi_installer.sh  # Linux/macOS/Git Bash
+./build_installer.sh  # Linux/macOS/Git Bash
 ```
 
 The script automatically:
