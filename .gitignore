@@ -120,3 +120,6 @@ CLAUDE.local.md
 
 linopy-problem-*
 linopy-solve-*
+
+# Installer build artifacts
+*.exe
