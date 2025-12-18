@@ -122,6 +122,12 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 
 ## 1. Installation
 
+### Option A: Windows Installer (Recommended for Windows)
+
+For Windows users, download the latest installer (e.g., `open-tyndp-0.4.0-pixi-Windows-x86_64.exe`) from the [releases page](https://github.com/open-energy-transition/open-tyndp/releases) and run it. The installer automatically sets up everything you need, including pixi, the repository, and the conda environment. See `utils/windows-installer/README.md` for details.
+
+### Option B: Manual Installation (All Platforms)
+
 Clone the repository:
 
 ```sh
