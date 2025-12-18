@@ -69,12 +69,37 @@ BrandingText "Open Energy Transition"
 !define MUI_FINISHPAGE_LINK_LOCATION "https://github.com/open-energy-transition/open-tyndp"
 
 # ------------------------------------------------------------------------------
+# Macros
+# ------------------------------------------------------------------------------
+
+# Locate Windows binaries (cmd.exe, powershell.exe)
+# Based on https://github.com/conda/constructor/blob/main/constructor/nsis/main.nsi.tmpl
+!macro FindWindowsBinaries
+    # Find cmd.exe and powershell.exe
+    ReadEnvStr $R0 SystemRoot
+    ReadEnvStr $R1 windir
+    ${If} ${FileExists} "$R0"
+        StrCpy $CMD_EXE "$R0\System32\cmd.exe"
+        StrCpy $POWERSHELL_EXE "$R0\System32\WindowsPowerShell\v1.0\powershell.exe"
+    ${ElseIf} ${FileExists} "$R1"
+        StrCpy $CMD_EXE "$R1\System32\cmd.exe"
+        StrCpy $POWERSHELL_EXE "$R1\System32\WindowsPowerShell\v1.0\powershell.exe"
+    ${Else}
+        # Cross our fingers binaries are in PATH
+        StrCpy $CMD_EXE "cmd.exe"
+        StrCpy $POWERSHELL_EXE "powershell.exe"
+    ${EndIf}
+!macroend
+
+# ------------------------------------------------------------------------------
 # Variables
 # ------------------------------------------------------------------------------
 
 Var /GLOBAL REPO_DIR
 Var /GLOBAL CLONE_REPO
 Var /GLOBAL PIXI_EXE
+Var /GLOBAL CMD_EXE
+Var /GLOBAL POWERSHELL_EXE
 
 # Custom page variables
 Var /GLOBAL Dialog
@@ -234,7 +259,7 @@ Section "Install" SecInstall
 
     # Verify pixi works
     DetailPrint "Verifying pixi installation..."
-    nsExec::ExecToLog '"$SYSDIR\cmd.exe" /D /C "$\"$PIXI_EXE$\" --version"'
+    nsExec::ExecToLog '"$CMD_EXE" /D /C "$\"$PIXI_EXE$\" --version"'
     Pop $0
     ${If} $0 != 0
         MessageBox MB_OK|MB_ICONEXCLAMATION "Failed to verify pixi executable. Error code: $0"
@@ -264,7 +289,7 @@ Section "Install" SecInstall
             # Clone using pixi exec git
             DetailPrint "Cloning repository using pixi exec git..."
             # Note: --verbose provides text output without progress bar control characters
-            nsExec::ExecToLog '"$SYSDIR\cmd.exe" /D /C "$\"$PIXI_EXE$\" exec git clone --verbose $\"${PRODUCT_REPO_URL}$\" $\"$REPO_DIR$\""'
+            nsExec::ExecToLog '"$CMD_EXE" /D /C "$\"$PIXI_EXE$\" exec git clone --verbose $\"${PRODUCT_REPO_URL}$\" $\"$REPO_DIR$\""'
             Pop $0
             ${If} $0 != 0
                 MessageBox MB_YESNO|MB_ICONEXCLAMATION \
@@ -289,7 +314,7 @@ Section "Install" SecInstall
         # Change to repository directory and run pixi install
         # Use -v for info-level logging to show download/install progress
         SetOutPath "$REPO_DIR"
-        nsExec::ExecToLog '"$SYSDIR\cmd.exe" /D /C "$\"$PIXI_EXE$\" install -e ${PIXI_ENV_NAME} -v"'
+        nsExec::ExecToLog '"$CMD_EXE" /D /C "$\"$PIXI_EXE$\" install -e ${PIXI_ENV_NAME} -v"'
         Pop $0
         ${If} $0 != 0
             MessageBox MB_YESNO|MB_ICONEXCLAMATION \
@@ -312,9 +337,9 @@ Section "Install" SecInstall
 
     # PowerShell shortcut - launches PowerShell and executes pixi shell inside it
     CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Open-TYNDP PowerShell.lnk" \
-        "$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" \
+        "$POWERSHELL_EXE" \
         "-ExecutionPolicy ByPass -Command $\"Set-Location '$REPO_DIR'; & '$INSTDIR\pixi.exe' shell -e ${PIXI_ENV_NAME}$\"" \
-        "$WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" \
+        "$POWERSHELL_EXE" \
         0 \
         SW_SHOWNORMAL \
         "" \
@@ -322,9 +347,9 @@ Section "Install" SecInstall
 
     # CMD shortcut - launches cmd and executes pixi shell inside it
     CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Open-TYNDP Command Prompt.lnk" \
-        "$WINDIR\System32\cmd.exe" \
+        "$CMD_EXE" \
         "/C $\"cd /d $\"$REPO_DIR$\" && $\"$INSTDIR\pixi.exe$\" shell -e ${PIXI_ENV_NAME}$\"" \
-        "$WINDIR\System32\cmd.exe" \
+        "$CMD_EXE" \
         0 \
         SW_SHOWNORMAL \
         "" \
@@ -484,6 +509,9 @@ SectionEnd
 # ------------------------------------------------------------------------------
 
 Function .onInit
+    # Locate Windows binaries
+    !insertmacro FindWindowsBinaries
+
     # Set default repository directory
     StrCpy $REPO_DIR "$PROFILE\open-tyndp"
     StrCpy $CLONE_REPO ${BST_CHECKED}
