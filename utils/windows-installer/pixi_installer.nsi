@@ -16,9 +16,13 @@
 # ------------------------------------------------------------------------------
 
 !define PRODUCT_NAME "Open-TYNDP"
-# Version can be overridden via command line: makensis /DPRODUCT_VERSION=x.y.z
+# Version can be overridden via command line: makensis -DPRODUCT_VERSION=x.y.z
 !ifndef PRODUCT_VERSION
   !define PRODUCT_VERSION "0.0.0-dev"
+!endif
+# Estimated size can be overridden via command line: makensis -DESTIMATED_SIZE=12345
+!ifndef ESTIMATED_SIZE
+  !define ESTIMATED_SIZE "50000"
 !endif
 !define PRODUCT_PUBLISHER "Open Energy Transition"
 !define PRODUCT_WEB_SITE "https://github.com/open-energy-transition/open-tyndp"
@@ -59,7 +63,7 @@ BrandingText "Open Energy Transition"
 # Custom welcome page
 !define MUI_WELCOMEPAGE_TITLE "Welcome to Open-TYNDP Setup"
 !define MUI_WELCOMEPAGE_TITLE_3LINES
-!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of Open-TYNDP, a workflow for building European energy system models.$\r$\n$\r$\nOpen-TYNDP is developed by Open Energy Transition - Accelerating the energy transition through open-source tools and data.$\r$\n$\r$\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of Open-TYNDP, a workflow for building European energy system models.$\r$\n$\r$\nOpen-TYNDP is developed by Open Energy Transition - Accelerating the energy transition through open-source tools and data.$\r$\n$\r$\nThis installer includes a bundled git repository that will be extracted during installation.$\r$\n$\r$\nClick Next to continue."
 
 # Custom finish page
 !define MUI_FINISHPAGE_TITLE "Installation Complete"
@@ -143,7 +147,7 @@ UninstPage custom un.UninstallOptionsPageCreate un.UninstallOptionsPageLeave
 # ------------------------------------------------------------------------------
 
 Function RepositoryPageCreate
-    !insertmacro MUI_HEADER_TEXT "Repository Setup" "Choose where to clone and install Open-TYNDP"
+    !insertmacro MUI_HEADER_TEXT "Repository Setup" "Choose where to extract and install Open-TYNDP"
 
     nsDialogs::Create 1018
     Pop $Dialog
@@ -153,11 +157,11 @@ Function RepositoryPageCreate
     ${EndIf}
 
     # Info text
-    ${NSD_CreateLabel} 0 0 100% 24u "The Open-TYNDP repository contains the workflow scripts and configuration files.$\r$\n$\r$\nThis installer will clone the repository and use pixi to install the environment automatically.$\r$\n$\r$\nNote: Internet connection required for downloading packages from conda-forge."
+    ${NSD_CreateLabel} 0 0 100% 24u "The Open-TYNDP repository contains the workflow scripts and configuration files.$\r$\n$\r$\nThis installer will extract the bundled git repository and use pixi to install the environment automatically.$\r$\n$\r$\nNote: Internet connection required for downloading packages from conda-forge."
     Pop $Label
 
-    # Checkbox to enable/disable cloning
-    ${NSD_CreateCheckbox} 0 28u 100% 12u "Clone repository and install environment automatically"
+    # Checkbox to enable/disable extraction
+    ${NSD_CreateCheckbox} 0 28u 100% 12u "Extract repository and install environment automatically"
     Pop $CheckBox
     ${NSD_SetState} $CheckBox ${BST_CHECKED}
     ${NSD_OnClick} $CheckBox RepositoryCheckBoxClick
@@ -217,9 +221,9 @@ Function RepositoryPageLeave
         # Check if directory already exists
         ${If} ${FileExists} "$REPO_DIR\.git"
             MessageBox MB_YESNO|MB_ICONQUESTION \
-                "A Git repository already exists at:$\n$REPO_DIR$\n$\nSkip setup and use existing repository?" \
+                "A Git repository already exists at:$\n$REPO_DIR$\n$\nSkip extraction and use existing repository?" \
                 /SD IDYES \
-                IDYES skip_clone
+                IDYES skip_extract
             # User chose to not skip, abort installation
             Abort
         ${EndIf}
@@ -233,7 +237,7 @@ Function RepositoryPageLeave
             continue_anyway:
         ${EndIf}
 
-        skip_clone:
+        skip_extract:
     ${EndIf}
 FunctionEnd
 
@@ -269,7 +273,7 @@ Section "Install" SecInstall
         Abort "Installation failed"
     ${EndIf}
 
-    # Clone and setup repository if requested
+    # Extract bundled repository if requested
     ${If} $CLONE_REPO == ${BST_CHECKED}
         ${If} ${FileExists} "$REPO_DIR\.git"
             DetailPrint "Repository already exists at $REPO_DIR"
@@ -283,26 +287,16 @@ Section "Install" SecInstall
                 Goto do_env_install
             ${EndIf}
         ${Else}
-            DetailPrint "Cloning repository to $REPO_DIR... using git..."
-            DetailPrint "This may take several minutes depending on your internet connection..."
+            DetailPrint "Extracting bundled repository to $REPO_DIR..."
 
-            # Create parent directory if needed
+            # Create repository directory
             CreateDirectory "$REPO_DIR"
 
-            nsExec::ExecToLog '"$CMD_EXE" /D /C "$\"$PIXI_EXE$\" exec git clone --verbose $\"${PRODUCT_REPO_URL}$\" $\"$REPO_DIR$\""'
-            Pop $0
-            ${If} $0 != 0
-                MessageBox MB_YESNO|MB_ICONEXCLAMATION \
-                    "Failed to clone repository (error code: $0).$\n$\nDo you want to continue installation anyway?" \
-                    /SD IDYES \
-                    IDYES continue_without_clone
-                Abort "Installation cancelled"
-                continue_without_clone:
-                DetailPrint "Repository clone failed, but continuing installation..."
-                Goto skip_env_install
-            ${Else}
-                DetailPrint "Repository cloned successfully!"
-            ${EndIf}
+            # Extract all bundled repository files
+            SetOutPath "$REPO_DIR"
+            File /r "repo-bundle\*.*"
+
+            DetailPrint "Repository extracted successfully!"
         ${EndIf}
 
         do_env_install:
@@ -379,8 +373,8 @@ Section "Install" SecInstall
     WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "NoModify" 1
     WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "NoRepair" 1
 
-    # Write estimated size (pixi.exe is small, ~20 MB)
-    WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "EstimatedSize" 20480
+    # Write estimated size (calculated at build time, in KB)
+    WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "EstimatedSize" ${ESTIMATED_SIZE}
 
     DetailPrint "Installation completed successfully!"
 
