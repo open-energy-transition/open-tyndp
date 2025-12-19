@@ -340,9 +340,10 @@ Section "Install" SecInstall
     CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
 
     # PowerShell shortcut - launches PowerShell and executes pixi shell inside it
+    # Adds INSTDIR to PATH so pixi command is available
     CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Open-TYNDP PowerShell.lnk" \
         "$POWERSHELL_EXE" \
-        "-ExecutionPolicy ByPass -Command $\"Set-Location '$REPO_DIR'; & '$INSTDIR\pixi.exe' shell -e ${PIXI_ENV_NAME}$\"" \
+        "-ExecutionPolicy ByPass -Command $\"$$env:PATH = '$INSTDIR;' + $$env:PATH; Set-Location '$REPO_DIR'; & '$INSTDIR\pixi.exe' shell -e ${PIXI_ENV_NAME}$\"" \
         "$POWERSHELL_EXE" \
         0 \
         SW_SHOWNORMAL \
@@ -350,9 +351,10 @@ Section "Install" SecInstall
         "Launch PowerShell with Open-TYNDP environment"
 
     # CMD shortcut - launches cmd and executes pixi shell inside it
+    # Adds INSTDIR to PATH so pixi command is available
     CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Open-TYNDP Command Prompt.lnk" \
         "$CMD_EXE" \
-        "/C $\"cd /d $\"$REPO_DIR$\" && $\"$INSTDIR\pixi.exe$\" shell -e ${PIXI_ENV_NAME}$\"" \
+        "/C $\"set PATH=$INSTDIR;%PATH% && cd /d $\"$REPO_DIR$\" && $\"$INSTDIR\pixi.exe$\" shell -e ${PIXI_ENV_NAME}$\"" \
         "$CMD_EXE" \
         0 \
         SW_SHOWNORMAL \

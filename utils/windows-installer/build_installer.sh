@@ -44,12 +44,9 @@ echo ""
 # Download pixi executable for Windows if not present
 if [ ! -f pixi.exe ]; then
     echo "Step 2/3: Downloading pixi executable for Windows..."
-    PIXI_VERSION=$(curl -s https://api.github.com/repos/prefix-dev/pixi/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
-    echo "Latest pixi version: v$PIXI_VERSION"
-    wget "https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-pc-windows-msvc.exe" -O pixi.exe
-    echo "Downloaded pixi.exe ($(du -h pixi.exe | cut -f1))"
+    curl "https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-pc-windows-msvc.exe" -O pixi.exe
 else
-    echo "Step 2/3: Using existing pixi.exe ($(du -h pixi.exe | cut -f1))"
+    echo "Step 2/3: Using existing pixi.exe"
 fi
 PIXI_SIZE=$(du -sk pixi.exe | cut -f1)
 echo ""
