@@ -423,6 +423,7 @@ transmission_projects:
   enable: true
   include:
     tyndp2020: true
+    tyndp2024: false
     nep: true
     manual: true
   skip:

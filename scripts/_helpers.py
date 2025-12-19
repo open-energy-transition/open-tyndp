@@ -1155,14 +1155,22 @@ def load_costs(cost_file: str) -> pd.DataFrame:
     return pd.read_csv(cost_file, index_col=0)
 
 
-def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
+def make_index(
+    c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix="", separator=" "
+):
     idx = [prefix, c[cname0], connector, c[cname1], suffix]
     idx = [i for i in idx if i]
-    return " ".join(idx)
+    return separator.join(idx)
 
 
 def extract_grid_data_tyndp(
-    links, carrier="Transmission line", replace_dict: dict = {}
+    links,
+    replace_dict: dict = {},
+    expand_from_index: bool = True,
+    idx_prefix: str = "",
+    idx_connector: str = "",
+    idx_suffix: str = "",
+    idx_separator: str = " ",
 ):
     """
     Extract TYNDP reference grid data from the raw input table.
@@ -1171,10 +1179,18 @@ def extract_grid_data_tyndp(
     ----------
     links : pd.DataFrame
         DataFrame with raw links to extract grid information from
-    carrier : str
-        Name of the line carrier of the corresponding TYNDP reference grid ('H2 pipeline' or 'Transmission line')
     replace_dict : dict
         Dictionary with region names to replace
+    expand_from_index : bool
+        Whether to expand the bus0 and bus1 from index or directly use the columns
+    idx_prefix : str, optional
+        Prefix to prepend to generated indices.
+    idx_connector : str, optional
+        Separator string between bus0 and bus1 in generated indices (e.g., "->", "-").
+    idx_suffix : str, optional
+        Suffix to append to generated indices.
+    idx_separator : str, optional
+        String used to join index components (prefix, bus0, connector, bus1, suffix).
 
     Returns
     -------
@@ -1182,17 +1198,27 @@ def extract_grid_data_tyndp(
         DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1
     """
 
-    links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
-    links = pd.concat(
-        [
-            links,
-            links.Border.str.split("-", expand=True).set_axis(["bus0", "bus1"], axis=1),
-        ],
-        axis=1,
-    )
+    if expand_from_index:
+        links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
+        links = pd.concat(
+            [
+                links,
+                links.Border.str.split("-", expand=True).set_axis(
+                    ["bus0", "bus1"], axis=1
+                ),
+            ],
+            axis=1,
+        )
+    elif "bus0" in links.columns and "bus1" in links.columns:
+        links.loc[:, ["bus0", "bus1"]] = links[["bus0", "bus1"]].replace(
+            replace_dict, regex=True
+        )
+    else:
+        raise KeyError(
+            f"Columns 'bus0' and 'bus1' must be present in the input DataFrame. Available columns: {list(links.columns)}"
+        )
 
     # Create forward and reverse direction dataframes
-    # TODO: combine to bidirectional links
     forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
         columns={"Summary Direction 1": "p_nom"}
     )
@@ -1204,7 +1230,14 @@ def extract_grid_data_tyndp(
     # Combine into unidirectional links and return
     links = pd.concat([forward_links, reverse_links])
 
-    links.index = links.apply(make_index, axis=1, prefix=carrier)
+    links.index = links.apply(
+        make_index,
+        axis=1,
+        prefix=idx_prefix,
+        connector=idx_connector,
+        suffix=idx_suffix,
+        separator=idx_separator,
+    )
 
     return links
 

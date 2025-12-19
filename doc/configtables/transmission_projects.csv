@@ -2,6 +2,7 @@
 enable,bool,"{true,false}",Whether to integrate this transmission projects or not.
 include,--,,"Name of the transmission projects. They should be unique and have to be provided in the `data/transmission_projects` folder."
 -- tyndp2020,bool,"{true,false}",Whether to integrate the TYNDP 2020 dataset.
+-- tyndp2024,bool,"{true,false}","Whether to integrate to the reference grid the 2035 projects from TYNDP 2024. When enabled, projects are added to the grid from 2040 onwards, applicable only to the NT scenario."
 -- nep,bool,"{true,false}",Whether to integrate the German network development plan dataset.
 -- manual,bool,"{true,false}",Whether to integrate the manually added transmission projects. They are taken from the previously existing links_tyndp.csv file.
 skip,list,,"Type of lines to skip from all transmission projects. Possible values are: ``upgraded_lines``, ``upgraded_links``, ``new_lines``, ``new_links``."
