@@ -1834,16 +1834,273 @@ def _add_electrolyzer_capacities(
     )
 
 
+def _extract_inflows(inflow_tech_name, inflows_t, tech, tech_i, planning_horizon):
+    """
+    Extract inflows for a given hydro technology and planning horizon.
+    """
+    return (
+        inflows_t.sel(hydro_tech=inflow_tech_name, year=planning_horizon, drop=True)
+        .to_dataframe()
+        .pivot_table(values="profile", index="time", columns="bus")
+        .rename(columns=lambda x: f"{x} {tech}")
+        .reindex(tech_i, axis=1, fill_value=0.0)
+    )
+
+
+def _add_new_profiles(
+    component_t: dict,
+    attr: str,
+    new_profiles: pd.DataFrame,
+) -> None:
+    """
+    Safely add new time series data to a PyPSA network component.
+
+    Parameters
+    ----------
+    component_t : dict
+        The time-varying PyPSA component (e.g., n.generators_t).
+    attr : str
+        The attribute name (e.g., 'p_max_pu', 'inflow').
+    new_profiles : pd.DataFrame
+        New data to concatenate.
+    """
+    if new_profiles.empty:
+        return
+
+    existing = component_t[attr]
+    index_name = existing.index.name
+
+    component_t[attr] = pd.concat([existing, new_profiles], axis=1)
+    component_t[attr].index.name = index_name
+
+
+def _add_hydro_ror_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    inflows_t: xr.Dataset,
+    planning_horizon: int,
+) -> None:
+    """
+    Add hydro-ror capacities and inflows.
+    """
+    tech = "hydro-ror"
+    logger.debug(f"Adding {tech} PEMMDB capacities and inflows.")
+
+    caps = pemmdb_capacities.query("carrier == @tech")["p_nom"]
+    tech_i = n.generators.query("carrier == @tech").index
+
+    if tech_i.empty:
+        logger.warning(f"No components found for {tech}.")
+        return
+
+    # Set capacities
+    n.generators.loc[tech_i, "p_nom"] = (
+        n.generators.loc[tech_i, "bus"].map(caps).fillna(0.0)
+    )
+
+    # Process inflows
+    try:
+        inflows = _extract_inflows(
+            "Run_of_River", inflows_t, tech, tech_i, planning_horizon
+        )
+    except (KeyError, ValueError) as e:
+        logger.warning(
+            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
+        )
+        return
+
+    # Divide by capacity for p_max_pu inflow profile
+    p_max_pu = (
+        inflows.div(n.generators.loc[tech_i, "p_nom"], axis=1)
+        .fillna(0.0)  # when capacity 0
+        .clip(upper=1.0)  # clip at 1.0 assuming spillage
+    )
+
+    # Drop profiles that are all ones (default-value) or where capacity = 0
+    p_max_pu = p_max_pu.loc[
+        :, (p_max_pu != 1.0).any() & (n.generators.loc[tech_i, "p_nom"] > 0)
+    ]
+
+    # Add new profiles to the network
+    _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
+
+
+def _add_storage_unit_hydro(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    inflows_t: xr.Dataset,
+    planning_horizon: int,
+    tech: str,
+    inflow_tech_name: str,
+) -> None:
+    """
+    Add storage unit hydro capacities and inflows (hydro-pondage or hydro-reservoir).
+
+    Parameters
+    ----------
+    tech : str
+        Technology name (e.g., 'hydro-pondage', 'hydro-reservoir').
+    inflow_tech_name : str
+        Name in inflows dataset (e.g., 'Pondage', 'Reservoir').
+    """
+    logger.debug(f"Adding {tech} PEMMDB capacities and inflows")
+
+    # Extract capacities
+    p_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MW'")["p_nom"]
+    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'")["e_nom"]
+
+    tech_i = n.storage_units.query("carrier == @tech").index
+
+    if tech_i.empty:
+        logger.warning(f"No storage units found for carrier {tech}")
+        return
+
+    # Set capacities
+    n.storage_units.loc[tech_i, "p_nom"] = (
+        n.storage_units.loc[tech_i, "bus"].map(p_nom).fillna(0.0)
+    )
+
+    # Calculate and set max_hours
+    max_hours = (e_nom / p_nom).fillna(0.0)
+    n.storage_units.loc[tech_i, "max_hours"] = (
+        n.storage_units.loc[tech_i, "bus"].map(max_hours).fillna(0.0)
+    )
+
+    # Process inflows
+    try:
+        inflows = _extract_inflows(
+            inflow_tech_name, inflows_t, tech, tech_i, planning_horizon
+        )
+    except (KeyError, ValueError) as e:
+        logger.warning(
+            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
+        )
+        return
+
+    # Drop profiles with zero capacities
+    inflows = inflows.loc[:, n.storage_units.loc[tech_i, "p_nom"] > 0]
+
+    # Add new profiles to the network
+    _add_new_profiles(n.storage_units_t, "inflow", inflows)
+
+
+def _add_phs_inflows(
+    n: pypsa.Network,
+    inflows_t: xr.Dataset,
+    tech: str,
+    inflow_tech_name: str,
+    planning_horizon: int,
+) -> None:
+    """
+    Add inflows for pumped hydro storage via additional generator.
+    """
+    tech_inflow = f"{tech}-inflows"
+    gen_i = n.generators.query("carrier == @tech_inflow").index
+
+    if gen_i.empty:
+        logger.warning(f"No inflow generators found for carrier {tech_inflow}")
+        return
+
+    try:
+        inflows = _extract_inflows(
+            inflow_tech_name, inflows_t, tech_inflow, gen_i, planning_horizon
+        )
+    except (KeyError, ValueError) as e:
+        logger.warning(
+            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
+        )
+        return
+
+    # Set generator capacities based on max inflows
+    inflow_gen_caps = inflows.max(axis=0)
+    n.generators.loc[gen_i, "p_nom"] = inflow_gen_caps
+
+    # Calculate p_max_pu
+    p_max_pu = inflows.div(inflow_gen_caps, axis=1).fillna(0.0)
+
+    # Filter out constant profiles and zero capacities
+    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any() & (inflow_gen_caps > 0)]
+
+    # Add new profiles to the network
+    _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
+
+
+def _add_phs_hydro(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    inflows_t: xr.Dataset,
+    planning_horizon: int,
+    tech: str,
+    has_inflows: bool,
+    inflow_tech_name: str = None,
+) -> None:
+    """
+    Add open or closed pumped hydro storage capacities and inflows (hydro-phs or hydro-phs-pure).
+
+    Parameters
+    ----------
+    tech : str
+        Technology name ('hydro-phs' or 'hydro-phs-pure').
+    has_inflows : bool
+        Whether this PHS type has natural inflows.
+    inflow_tech_name : str, optional
+        Name in inflows dataset (e.g., 'PS_Open'), Defaults to None.
+    """
+    logger.debug(
+        f"Adding {tech} PEMMDB capacities" + (" and inflows" if has_inflows else "")
+    )
+
+    # Extract capacities
+    p_nom_turbine = pemmdb_capacities.query(
+        "carrier == @tech and index_carrier.str.contains('turbine', na=False) and unit == 'MW'"
+    )["p_nom"]
+    p_nom_pump = pemmdb_capacities.query(
+        "carrier == @tech and index_carrier.str.contains('pump', na=False) and unit == 'MW'"
+    )["p_nom"].mul(-1)  # input pump capacities are given in negative direction
+    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'").rename(
+        index=lambda x: f"{x} {tech}"
+    )["e_nom"]
+
+    # Set store capacities
+    store_i = n.stores.query("carrier == @tech").index
+
+    if not store_i.empty:
+        n.stores.loc[store_i, "e_nom"] = (
+            n.stores.loc[store_i, "bus"].map(e_nom).fillna(0.0)
+        )
+
+    # Set turbine and pump capacities
+    turbine_i = n.links.query(
+        "carrier == @tech and index.str.contains('turbine', na=False)"
+    ).index
+    pump_i = n.links.query(
+        "carrier == @tech and index.str.contains('pump', na=False)"
+    ).index
+
+    if not turbine_i.empty:
+        n.links.loc[turbine_i, "p_nom"] = (
+            n.links.loc[turbine_i, "bus1"].map(p_nom_turbine).fillna(0.0)
+        )
+
+    if not pump_i.empty:
+        n.links.loc[pump_i, "p_nom"] = (
+            n.links.loc[pump_i, "bus0"].map(p_nom_pump).fillna(0.0)
+        )
+
+    # Add inflows if applicable
+    if has_inflows:
+        _add_phs_inflows(n, inflows_t, tech, inflow_tech_name, planning_horizon)
+
+
 def _add_hydro_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     tyndp_hydro: list,
     hydro_inflows_fn: str,
-    trajectories: pd.DataFrame,
     planning_horizon: int,
 ) -> None:
     """
-    Add existing hydro capacities and inflows from PEMMDB and TYNDP trajectories.
+    Add existing hydro capacities and inflows from PEMMDB.
 
     Parameters
     ----------
@@ -1855,8 +2112,6 @@ def _add_hydro_capacities(
         List of TYNDP hydro technologies.
     hydro_inflows_fn : str
         Path to file with hydro inflow profiles.
-    trajectories : pd.DataFrame
-        TYNDP trajectories for hydro technologies.
     planning_horizon : int
         Planning horizon for which hydro inflows should be added.
 
@@ -1867,192 +2122,42 @@ def _add_hydro_capacities(
     """
     logger.info("Adding PEMMDB capacities and inflows to hydro technologies.")
 
+    # Load hydro inflows
     inflows_t = xr.open_dataset(hydro_inflows_fn)
 
-    # Attach hydro-ror capacities and inflows
-    #########################################
-    # Capacities
-    tech = "hydro-ror"
-    caps = pemmdb_capacities.query("carrier == @tech")["p_nom"]
-    tech_i = n.generators.query("carrier == @tech").index
-    n.generators.loc[tech_i, "p_nom"] = (
-        n.generators.loc[tech_i, "bus"].map(caps).fillna(0.0)
+    _add_hydro_ror_capacities(n, pemmdb_capacities, inflows_t, planning_horizon)
+    _add_storage_unit_hydro(
+        n,
+        pemmdb_capacities,
+        inflows_t,
+        planning_horizon,
+        tech="hydro-pondage",
+        inflow_tech_name="Pondage",
     )
-
-    # Inflows
-    inflows = inflows_t.sel(
-        hydro_tech="Run_of_River", year=planning_horizon, drop=True
-    ).to_dataframe()
-    p_max_pu = (
-        inflows.pivot_table(values="profile", index="time", columns="bus")
-        .rename(columns=lambda x: x + " " + tech)
-        .reindex(tech_i, axis=1, fill_value=0.0)  # no inflows where profile missing
-        .div(
-            n.generators.loc[tech_i, "p_nom"], axis=1
-        )  # divide by capacity for p_max_pu inflow profile
-        .fillna(0.0)  # when capacity 0
-        .clip(upper=1.0)  # clip at 1.0 assuming spillage
+    _add_storage_unit_hydro(
+        n,
+        pemmdb_capacities,
+        inflows_t,
+        planning_horizon,
+        tech="hydro-reservoir",
+        inflow_tech_name="Reservoir",
     )
-    # Drop columns that are all ones (default-value)
-    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
-
-    # Only keep profiles where capacity > 0
-    p_max_pu = p_max_pu.loc[:, n.generators.loc[tech_i, "p_nom"] > 0]
-
-    if not p_max_pu.empty:
-        index_name = n.generators_t.p_max_pu.index.name
-        n.generators_t.p_max_pu = pd.concat([n.generators_t.p_max_pu, p_max_pu], axis=1)
-        n.generators_t.p_max_pu.index.name = index_name
-
-    # Attach hydro-pondage as StorageUnit, capacities and inflows will be added later
-    #################################################################################
-    # Capacities
-    tech = "hydro-pondage"
-    p_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MW'")["p_nom"]
-    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'")["e_nom"]
-    max_hours = (e_nom / p_nom).fillna(0.0)
-    tech_i = n.storage_units.query("carrier == @tech").index
-    n.storage_units.loc[tech_i, "p_nom"] = (
-        n.storage_units.loc[tech_i, "bus"].map(p_nom).fillna(0.0)
+    _add_phs_hydro(
+        n,
+        pemmdb_capacities,
+        inflows_t,
+        planning_horizon,
+        tech="hydro-phs",
+        has_inflows=True,
+        inflow_tech_name="PS_Open",
     )
-    n.storage_units.loc[tech_i, "max_hours"] = (
-        n.storage_units.loc[tech_i, "bus"].map(max_hours).fillna(0.0)
-    )
-
-    # Inflows
-    inflows = (
-        inflows_t.sel(hydro_tech="Pondage", year=planning_horizon, drop=True)
-        .to_dataframe()
-        .pivot_table(values="profile", index="time", columns="bus")
-        .rename(columns=lambda x: x + " " + tech)
-        .reindex(tech_i, axis=1, fill_value=0.0)  # no inflows where profile missing
-    )
-
-    # Only keep profiles where capacity > 0
-    inflows = inflows.loc[:, n.storage_units.loc[tech_i, "p_nom"] > 0]
-
-    if not inflows.empty:
-        index_name = n.storage_units_t.inflow.index.name
-        n.storage_units_t.inflow = pd.concat(
-            [n.storage_units_t.inflow, inflows], axis=1
-        )
-        n.storage_units_t.inflow.index.name = index_name
-
-    # Attach hydro-reservoir as StorageUnit, capacities and inflows will be added later
-    ###################################################################################
-    # Capacities
-    tech = "hydro-reservoir"
-    p_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MW'")["p_nom"]
-    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'")["e_nom"]
-    max_hours = (e_nom / p_nom).fillna(0.0)
-    tech_i = n.storage_units.query("carrier == @tech").index
-    n.storage_units.loc[tech_i, "p_nom"] = (
-        n.storage_units.loc[tech_i, "bus"].map(p_nom).fillna(0.0)
-    )
-    n.storage_units.loc[tech_i, "max_hours"] = (
-        n.storage_units.loc[tech_i, "bus"].map(max_hours).fillna(0.0)
-    )
-
-    # Inflows
-    inflows = (
-        inflows_t.sel(hydro_tech="Reservoir", year=planning_horizon, drop=True)
-        .to_dataframe()
-        .pivot_table(values="profile", index="time", columns="bus")
-        .rename(columns=lambda x: x + " " + tech)
-        .reindex(tech_i, axis=1, fill_value=0.0)  # no inflows where profile missing
-    )
-
-    # Only keep profiles where capacity > 0
-    inflows = inflows.loc[:, n.storage_units.loc[tech_i, "p_nom"] > 0]
-
-    if not inflows.empty:
-        index_name = n.storage_units_t.inflow.index.name
-        n.storage_units_t.inflow = pd.concat(
-            [n.storage_units_t.inflow, inflows], axis=1
-        )
-        n.storage_units_t.inflow.index.name = index_name
-
-    # Attach hydro-phs as Store, Links and additional generator for inflows
-    #######################################################################
-    # Capacities
-    tech = "hydro-phs"
-    p_nom_turbine = pemmdb_capacities.query(
-        "carrier == @tech and index_carrier.str.contains('turbine') and unit == 'MW'"
-    )["p_nom"]
-    # Multiply pump capacity by -1 as it is given in negative direction
-    p_nom_pump = pemmdb_capacities.query(
-        "carrier == @tech and index_carrier.str.contains('pump') and unit == 'MW'"
-    )["p_nom"].mul(-1)
-    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'")["e_nom"]
-    store_i = n.stores.query("carrier == @tech").index
-    turbine_i = n.links.query(
-        "carrier == @tech and index.str.contains('turbine')"
-    ).index
-    pump_i = n.links.query("carrier == @tech and index.str.contains('pump')").index
-    n.stores.loc[store_i, "e_nom"] = n.stores.loc[store_i, "bus"].map(e_nom).fillna(0.0)
-    n.links.loc[turbine_i, "p_nom"] = (
-        n.links.loc[turbine_i, "bus1"].map(p_nom_turbine).fillna(0.0)
-    )
-    n.links.loc[pump_i, "p_nom"] = (
-        n.links.loc[pump_i, "bus0"].map(p_nom_pump).fillna(0.0)
-    )
-
-    # Inflows
-    tech_inflow = tech + "-inflows"
-    gen_i = n.generators.query("carrier == @tech_inflow").index
-    inflows = (
-        inflows_t.sel(hydro_tech="PS_Open", year=planning_horizon, drop=True)
-        .to_dataframe()
-        .pivot_table(values="profile", index="time", columns="bus")
-        .rename(columns=lambda x: x + " " + tech_inflow)
-        .reindex(gen_i, axis=1, fill_value=0.0)  # no inflows where profile missing
-    )
-    # Inflow generator capacities are defined as max inflows
-    inflow_gen_caps = inflows.max(axis=0)
-    # Which are also assigned to the generator
-    n.generators.loc[gen_i, "p_nom"] = inflow_gen_caps
-
-    # Calculate p_max_pu inflows
-    p_max_pu = (
-        inflows.div(inflow_gen_caps, axis=1).fillna(  # divide by max inflow per node
-            0.0
-        )  # when capacity 0
-    )
-
-    # Drop columns that are all ones (default-value)
-    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
-
-    # Only keep profiles where capacity > 0
-    p_max_pu = p_max_pu.loc[:, n.generators.loc[gen_i, "p_nom"] > 0]
-
-    if not p_max_pu.empty:
-        index_name = n.generators_t.p_max_pu.index.name
-        n.generators_t.p_max_pu = pd.concat([n.generators_t.p_max_pu, p_max_pu], axis=1)
-        n.generators_t.p_max_pu.index.name = index_name
-
-    # Attach hydro-phs-pure as Store and Links
-    ##########################################
-    # Capacities
-    tech = "hydro-phs-pure"
-    p_nom_turbine = pemmdb_capacities.query(
-        "carrier == @tech and index_carrier.str.contains('turbine') and unit == 'MW'"
-    )["p_nom"]
-    # Multiply pump capacity by -1 as it is given in negative direction
-    p_nom_pump = pemmdb_capacities.query(
-        "carrier == @tech and index_carrier.str.contains('pump') and unit == 'MW'"
-    )["p_nom"].mul(-1)
-    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'")["e_nom"]
-    store_i = n.stores.query("carrier == @tech").index
-    turbine_i = n.links.query(
-        "carrier == @tech and index.str.contains('turbine')"
-    ).index
-    pump_i = n.links.query("carrier == @tech and index.str.contains('pump')").index
-    n.stores.loc[store_i, "e_nom"] = n.stores.loc[store_i, "bus"].map(e_nom).fillna(0.0)
-    n.links.loc[turbine_i, "p_nom"] = (
-        n.links.loc[turbine_i, "bus1"].map(p_nom_turbine).fillna(0.0)
-    )
-    n.links.loc[pump_i, "p_nom"] = (
-        n.links.loc[pump_i, "bus0"].map(p_nom_pump).fillna(0.0)
+    _add_phs_hydro(
+        n,
+        pemmdb_capacities,
+        inflows_t,
+        planning_horizon,
+        tech="hydro-phs-pure",
+        has_inflows=False,
     )
 
 
@@ -2140,15 +2245,11 @@ def add_existing_pemmdb_capacities(
 
     # Add existing hydro capacities and inflows
     if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
-        trajectories_hydro = trajectories.query(
-            "pyear == @investment_year and carrier.str.startswith('hydro')"
-        )
         _add_hydro_capacities(
             n=n,
             pemmdb_capacities=pemmdb_capacities,
             tyndp_hydro=tyndp_hydro,
             hydro_inflows_fn=hydro_inflows_fn,
-            trajectories=trajectories_hydro,
             planning_horizon=investment_year,
         )
 
