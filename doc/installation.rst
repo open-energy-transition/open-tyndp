@@ -13,6 +13,29 @@ The subsequently described installation steps are demonstrated as shell commands
 directory in which the commands following the ``%`` should be entered.
 
 
+.. _windows_installer:
+
+Windows Installer (Recommended for Windows)
+============================================
+
+For Windows users, the easiest way to install Open-TYNDP is using the automated installer. Download the latest installer executable (e.g., ``open-tyndp-0.4.0-pixi-Windows-x86_64.exe``) from the `GitHub releases page <https://github.com/open-energy-transition/open-tyndp/releases>`__ and run it.
+
+The installer will:
+
+1. Install pixi package manager to ``%LOCALAPPDATA%\open-tyndp``
+2. Extract the repository files to your chosen installation directory
+3. Set up the conda environment automatically via ``pixi install``
+4. Create Start Menu shortcuts for easy access:
+
+   - **Open-TYNDP PowerShell** - Launch PowerShell with environment activated
+   - **Open-TYNDP Command Prompt** - Launch Command Prompt with environment activated
+
+For more details about the installer, see ``utils/windows-installer/README.md`` in the repository.
+
+.. note::
+    If you prefer manual installation or need more control over the setup process, follow the instructions below for cloning the repository and installing dependencies manually.
+
+
 .. _clone_repo:
 
 Clone the Repository
