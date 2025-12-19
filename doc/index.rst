@@ -474,6 +474,7 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :caption: Getting Started
 
    introduction
+   innovation_roadmap
    installation
    tutorial
    tutorial_sector
