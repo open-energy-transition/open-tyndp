@@ -58,6 +58,23 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
+def attach_tyndp_transmission_projects(n: pypsa.Network, fn_projects: str):
+    """
+    Attach projects to the reference grid.
+
+    Parameters
+    ----------
+    # TODO
+
+    Returns
+    -------
+    # TODO
+    """
+    # projects = pd.read_csv(fn_projects, index_col=0)  # TODO
+
+    pass
+
+
 def define_spatial(
     nodes, options, offshore_buses_fn=None, buses_h2_file=None, tyndp_scenario=None
 ):
@@ -8231,6 +8248,9 @@ if __name__ == "__main__":
     investment_year = int(snakemake.wildcards.planning_horizons)
 
     n = pypsa.Network(snakemake.input.network)
+
+    if fn_projects := snakemake.input.tyndp_projects:
+        attach_tyndp_transmission_projects(n, fn_projects)
 
     if snakemake.params.load_source == "tyndp":
         logger.info(
