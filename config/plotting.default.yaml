@@ -292,12 +292,18 @@ plotting:
     offwind-h2-fl-oh: "#9d4d96"
     # water
     hydro: '#298c81'
+    hydro-pondage: '#51dbbc'
     hydro reservoir: '#298c81'
+    hydro-reservoir: '#298c81'
+    hydro-ror: '#3dbfb0'
     ror: '#3dbfb0'
     run of river: '#3dbfb0'
     hydroelectricity: '#298c81'
     PHS: '#51dbcc'
+    hydro-phs-pure: '#51dbcc'
     hydro+PHS: "#08ad97"
+    hydro-phs: "#08ad97"
+    hydro-phs-inflows: "#08ad97"
     # solar
     solar: "#f9d002"
     solar PV: "#f9d002"
