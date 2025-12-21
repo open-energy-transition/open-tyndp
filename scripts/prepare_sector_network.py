@@ -2071,20 +2071,30 @@ def _add_phs_hydro(
 
     # Set turbine and pump capacities
     turbine_i = n.links.query(
-        "carrier == @tech and index.str.contains('turbine', na=False)"
+        "carrier.str.contains(@tech) and carrier.str.contains('turbine', na=False)"
     ).index
     pump_i = n.links.query(
-        "carrier == @tech and index.str.contains('pump', na=False)"
+        "carrier.str.contains(@tech) and carrier.str.contains('pump', na=False)"
     ).index
 
     if not turbine_i.empty:
         n.links.loc[turbine_i, "p_nom"] = (
-            n.links.loc[turbine_i, "bus1"].map(p_nom_turbine).fillna(0.0)
+            n.links.loc[turbine_i, "bus1"]
+            .map(p_nom_turbine)
+            .fillna(0.0)
+            .div(
+                n.links.loc[turbine_i, "efficiency"]
+            )  # existing capacities are given in P_el
         )
 
     if not pump_i.empty:
         n.links.loc[pump_i, "p_nom"] = (
-            n.links.loc[pump_i, "bus0"].map(p_nom_pump).fillna(0.0)
+            n.links.loc[pump_i, "bus0"]
+            .map(p_nom_pump)
+            .fillna(0.0)
+            .div(
+                n.links.loc[pump_i, "efficiency"]
+            )  # existing capacities are given in P_el
         )
 
     # Add inflows if applicable
@@ -2095,7 +2105,6 @@ def _add_phs_hydro(
 def _add_hydro_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    tyndp_hydro: list,
     hydro_inflows_fn: str,
     planning_horizon: int,
 ) -> None:
@@ -2108,8 +2117,6 @@ def _add_hydro_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    tyndp_hydro : list
-        List of TYNDP hydro technologies.
     hydro_inflows_fn : str
         Path to file with hydro inflow profiles.
     planning_horizon : int
@@ -2241,11 +2248,10 @@ def add_existing_pemmdb_capacities(
         )
 
     # Add existing hydro capacities and inflows
-    if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
+    if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
         _add_hydro_capacities(
             n=n,
             pemmdb_capacities=pemmdb_capacities,
-            tyndp_hydro=tyndp_hydro,
             hydro_inflows_fn=hydro_inflows_fn,
             planning_horizon=investment_year,
         )
@@ -8417,7 +8423,7 @@ def _add_phs(n, costs, nodes, carrier, inflows=False):
         nodes + f" {carrier}-turbine",
         bus0=nodes + f" {carrier}",
         bus1=nodes,
-        carrier=carrier,
+        carrier=f"{carrier}-turbine",
         capital_cost=costs.at[
             "PHS", "capital_cost"
         ],  # Capital costs are tracked via the Turbine component
@@ -8430,7 +8436,7 @@ def _add_phs(n, costs, nodes, carrier, inflows=False):
         nodes + f" {carrier}-pump",
         bus0=nodes,
         bus1=nodes + f" {carrier}",
-        carrier=carrier,
+        carrier=f"{carrier}-pump",
         efficiency=np.sqrt(costs.at["PHS", "efficiency"]),
     )
 

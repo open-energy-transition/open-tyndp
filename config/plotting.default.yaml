@@ -301,8 +301,12 @@ plotting:
     hydroelectricity: '#298c81'
     PHS: '#51dbcc'
     hydro-phs-pure: '#51dbcc'
+    hydro-phs-pure-pump: '#51bbcc'
+    hydro-phs-pure-turbine: '#51dbcb'
     hydro+PHS: "#08ad97"
     hydro-phs: "#08ad97"
+    hydro-phs-pump: "#088d97"
+    hydro-phs-turbine: "#089d97"
     hydro-phs-inflows: "#08ad97"
     # solar
     solar: "#f9d002"
