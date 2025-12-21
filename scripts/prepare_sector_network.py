@@ -1838,13 +1838,20 @@ def _extract_inflows(inflow_tech_name, inflows_t, tech, tech_i, planning_horizon
     """
     Extract inflows for a given hydro technology and planning horizon.
     """
-    return (
-        inflows_t.sel(hydro_tech=inflow_tech_name, year=planning_horizon, drop=True)
-        .to_dataframe()
-        .pivot_table(values="profile", index="time", columns="bus")
-        .rename(columns=lambda x: f"{x} {tech}")
-        .reindex(tech_i, axis=1, fill_value=0.0)
-    )
+    try:
+        return (
+            inflows_t.sel(hydro_tech=inflow_tech_name, year=planning_horizon, drop=True)
+            .to_dataframe()
+            .pivot_table(values="profile", index="time", columns="bus")
+            .rename(columns=lambda x: f"{x} {tech}")
+            .reindex(tech_i, axis=1, fill_value=0.0)
+        )
+
+    except (KeyError, ValueError) as e:
+        logger.warning(
+            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
+        )
+        return
 
 
 def _add_new_profiles(
@@ -1899,14 +1906,14 @@ def _add_hydro_ror_capacities(
     )
 
     # Process inflows
-    try:
-        inflows = _extract_inflows(
-            "Run_of_River", inflows_t, tech, tech_i, planning_horizon
-        )
-    except (KeyError, ValueError) as e:
-        logger.warning(
-            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
-        )
+    inflows = _extract_inflows(
+        inflow_tech_name=tech,
+        inflows_t=inflows_t,
+        tech=tech,
+        tech_i=tech_i,
+        planning_horizon=planning_horizon,
+    )
+    if inflows is None:
         return
 
     # Divide by capacity for p_max_pu inflow profile
@@ -1931,7 +1938,6 @@ def _add_storage_unit_hydro(
     inflows_t: xr.Dataset,
     planning_horizon: int,
     tech: str,
-    inflow_tech_name: str,
 ) -> None:
     """
     Add storage unit hydro capacities and inflows (hydro-pondage or hydro-reservoir).
@@ -1940,8 +1946,6 @@ def _add_storage_unit_hydro(
     ----------
     tech : str
         Technology name (e.g., 'hydro-pondage', 'hydro-reservoir').
-    inflow_tech_name : str
-        Name in inflows dataset (e.g., 'Pondage', 'Reservoir').
     """
     logger.debug(f"Adding {tech} PEMMDB capacities and inflows")
 
@@ -1967,14 +1971,14 @@ def _add_storage_unit_hydro(
     )
 
     # Process inflows
-    try:
-        inflows = _extract_inflows(
-            inflow_tech_name, inflows_t, tech, tech_i, planning_horizon
-        )
-    except (KeyError, ValueError) as e:
-        logger.warning(
-            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
-        )
+    inflows = _extract_inflows(
+        inflow_tech_name=tech,
+        inflows_t=inflows_t,
+        tech=tech,
+        tech_i=tech_i,
+        planning_horizon=planning_horizon,
+    )
+    if inflows is None:
         return
 
     # Drop profiles with zero capacities
@@ -1988,7 +1992,6 @@ def _add_phs_inflows(
     n: pypsa.Network,
     inflows_t: xr.Dataset,
     tech: str,
-    inflow_tech_name: str,
     planning_horizon: int,
 ) -> None:
     """
@@ -2001,14 +2004,14 @@ def _add_phs_inflows(
         logger.warning(f"No inflow generators found for carrier {tech_inflow}")
         return
 
-    try:
-        inflows = _extract_inflows(
-            inflow_tech_name, inflows_t, tech_inflow, gen_i, planning_horizon
-        )
-    except (KeyError, ValueError) as e:
-        logger.warning(
-            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
-        )
+    inflows = _extract_inflows(
+        inflow_tech_name=tech,
+        inflows_t=inflows_t,
+        tech=tech_inflow,
+        tech_i=gen_i,
+        planning_horizon=planning_horizon,
+    )
+    if inflows is None:
         return
 
     # Set generator capacities based on max inflows
@@ -2032,7 +2035,6 @@ def _add_phs_hydro(
     planning_horizon: int,
     tech: str,
     has_inflows: bool,
-    inflow_tech_name: str = None,
 ) -> None:
     """
     Add open or closed pumped hydro storage capacities and inflows (hydro-phs or hydro-phs-pure).
@@ -2043,8 +2045,6 @@ def _add_phs_hydro(
         Technology name ('hydro-phs' or 'hydro-phs-pure').
     has_inflows : bool
         Whether this PHS type has natural inflows.
-    inflow_tech_name : str, optional
-        Name in inflows dataset (e.g., 'PS_Open'), Defaults to None.
     """
     logger.debug(
         f"Adding {tech} PEMMDB capacities" + (" and inflows" if has_inflows else "")
@@ -2089,7 +2089,7 @@ def _add_phs_hydro(
 
     # Add inflows if applicable
     if has_inflows:
-        _add_phs_inflows(n, inflows_t, tech, inflow_tech_name, planning_horizon)
+        _add_phs_inflows(n, inflows_t, tech, planning_horizon)
 
 
 def _add_hydro_capacities(
@@ -2132,7 +2132,6 @@ def _add_hydro_capacities(
         inflows_t,
         planning_horizon,
         tech="hydro-pondage",
-        inflow_tech_name="Pondage",
     )
     _add_storage_unit_hydro(
         n,
@@ -2140,7 +2139,6 @@ def _add_hydro_capacities(
         inflows_t,
         planning_horizon,
         tech="hydro-reservoir",
-        inflow_tech_name="Reservoir",
     )
     _add_phs_hydro(
         n,
@@ -2149,7 +2147,6 @@ def _add_hydro_capacities(
         planning_horizon,
         tech="hydro-phs",
         has_inflows=True,
-        inflow_tech_name="PS_Open",
     )
     _add_phs_hydro(
         n,
