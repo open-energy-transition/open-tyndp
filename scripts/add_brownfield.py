@@ -476,7 +476,7 @@ def remove_tyndp_fixed_p(
     n_p.remove("Link", tech_i)
 
     # Remove hydro techs
-    for c in n.components[{"Generator", "StorageUnit", "Store", "Link"}]:
+    for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
         tech_i = c.static.query(
             "carrier.isin(@tyndp_hydro) or carrier == 'hydro-phs-inflows'"
         ).index
