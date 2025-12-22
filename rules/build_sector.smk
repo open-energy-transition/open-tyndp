@@ -1331,11 +1331,7 @@ rule time_aggregation:
             if config_provider("sector", "heating")(w)
             else []
         ),
-        solar_thermal_total=lambda w: (
-            resources("solar_thermal_total_base_s_{clusters}.nc")
-            if config_provider("sector", "solar_thermal")(w)
-            else []
-        ),
+        solar_thermal_total=resources("solar_thermal_total_base_s_{clusters}.nc"),
     output:
         snapshot_weightings=resources(
             "snapshot_weightings_base_s_{clusters}_elec_{opts}_{sector_opts}.csv"
