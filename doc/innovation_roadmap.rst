@@ -103,7 +103,7 @@ System Modelling Innovations
          - align national and modelling studies on storage capacities
          - incorporate techno-economic constraints of hydrogen supply
          - improve pipelines modelling to reflect transport flexibility
-     - PyPSA-Eur recently added aquifer thermal energy storage (ATES) and fixed bugs related to underground H2 cavern creation. Open-TYNDP includes regionalized H2 salt cavern potentials.
+     - PyPSA-Eur recently fixed bugs related to underground H2 cavern creation. Open-TYNDP includes regionalized H2 salt cavern potentials.
    * - Integration of Hybrid heat pumps
          - Ensure hybrid systems are correctly sized for applications, considering peak demand scenarios
          - Ensure assumptions incorporate both economics and behavioural considerations
@@ -190,6 +190,7 @@ Stakeholder Reference Group (SRG) Proposals
      - PyPSA-Eur implements a "H2 liquid" bus at each location to specifically handle hydrogen liquefaction costs for shipping demand
    * - H2 Import Quotas
            - Align hydrogen import quotas with RepowerEU targets to avoid overestimating domestic production
+     - 
    * - Electric heat pumps
            - Move heat pump modeling to PLEXOS to better capture thermal inertia and load management
      - PyPSA-Eur manages this via an energy-to-power ratio constraint for thermal storage, linking storage capacity to charger capacity to simulate load shifting
