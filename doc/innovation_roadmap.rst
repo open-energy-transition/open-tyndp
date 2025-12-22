@@ -114,33 +114,41 @@ System Modelling Innovations
    * - Gas turbine usage and peaking unit utilisation 
          - Explore dynamic operational needs of gas turbines given increasing reliance of variable renewable resources
          - Update assumptions around CH4 to H2 retrofitting projects, which have struggled to compete in current markets
-     - <TODO>
+     - Open TYNDP allows for endogenous retrofitting of CH4 pipeline capacity to H2.
    * - EV Modelling
          - Ensure that electricity flows follow charge/discharge cycles of EV batteries
      - PyPSA-Eur refined Vehicle-to-Grid (V2G) dispatch capacity and temperature-dependent energy demand correction factors for EVs.
    * - Economic Assessment
          - incorporate economic assessment of key technologies such as Steam Methane Reformers (SMR), nuclear plants, ammonia regasification terminals which are currently represented without economic attributes
-     - <TODO>
+     - Open TYNDP incorporates default capital investment and fixed and variable operation cost assumptions for all technologies
    * - Methane pricing structure and formation
-     -
+            - Resolve pricing inconsistences between synthetic natural gas, biomethane and hydrogen
+     - TODO
    * - Ammonia Import costs
-     -
+           - Ensure ammonia import costs reflect the entire supply chain
+     - Open TYNDP includes location and capacities of European ammonia plants. Ammonia import prices and volumes can be configured.
    * - Distinction in Hydrogen usage
            - Separating hydrogen used directly as a gas from hydrogen used as a feedstock for producing synthetic fuels.
      - PyPSA-Eur added a suite of technologies for methanol-to-power, reforming, and kerosene, and updated locations/capacities for ammonia plants to accurately distribute demand.
    * - Flexibility of heat pumps
-     -
+           - Incorporate heat-pump modelling into PLEXOS to better represent flexibility, thermal inertia and heat storage
+     - Open TYNDP uses an energy-to-power ratio constraiint for thermal energy storage. Proportional sizing is used for chargers and dischargers.
+       Includes an option to calculate dynamic storage capacities for thermal energy storage. Also includes aquifer thermal energy storage, and supplemental heating such as booster heat pumps.
    * - Modelling of E-fuels 
-     -
+           - Allow transportation of e-methanol, e-methane and e-kerosene via pipelines, ships or tanker trucks
+           - Incorporate full load hours into spatial optimisation of e-fuel refineries and supply infrastructure
+     - <TODO>
    * - Higher granularity topology
            - Adding more nodes per country and differentiating between prosumer and non-prosumer households for accurate grid interaction modeling
      - PyPSA-Eur supports multiple resource classes for wind and solar per region to improve accuracy at low spatial resolutions. It also allows for behind-the-meter rooftop PV modeling.
    * - Improved modelling of prosumer demand
-     -
+     - Open TYNDP allows connection of microgeneration e.g. residential solar PV to be connected to low voltage buses.
+       Residential and utility scale PV are treated separately, with separate rules in the workflow to build and cluster rooftop potentials.
+       Open TYNDP also distinguishes between stationary battery storage and EV batteries.
    * - Consider peaking units as expansion candidates
-     -
+     - PyPSA-Eur is a capacity expansion model by nature and can be set to build new peaking units whenever they are the cost-optimal way to ensure reliability.
    * - Check on remaining CO2 emissions in 2050
-     -
+     - TODO
    * - Implementation of hybrid electrolyser plants
            - Implementing plants connected to both dedicated renewables and the grid to optimize production and market coupling
      - Open-TYNDP implements offshore wind hubs where wind farms can connect to both the network and P2G units for H2 production. PyPSA-Eur added minimum unit dispatch settings for electrolysis.
@@ -148,7 +156,7 @@ System Modelling Innovations
            - Modeling practical volumes and prices for pipeline imports to evaluate energy security and dependence.
      - PyPSA-Eur implemented renewable energy imports for H2, ammonia, methanol, and oil with configurable prices and volume limits.
    * - Geographical correlation in hydrogen production
-     -
+     - Open-TYNDP ensures geographical correlation by attaching planning-year dependent renewable profiles from the PECD to specific generators within interconnected zones
 
 Stakeholder Reference Group (SRG) Proposals
 ===========================================
@@ -159,27 +167,35 @@ Stakeholder Reference Group (SRG) Proposals
 
    * - Stakeholder Reference Group
      - Open TYNDP Innovation Roadmap
-   * - Synthetic Fuels: Incorporating methanol for the maritime sector to align with decarbonization goals and identify infrastructure needs.
+   * - Synthetic Fuels
+           - Incorporating methanol for the maritime sector to align with decarbonization goals and identify infrastructure needs.
      - PyPSA-Eur introduced methanol-based technologies (e.g., biomass-to-methanol) in its 2024.09 release. Open-TYNDP defaults maritime demand to methanol.
-   * - Climatic Variability: Suggesting models run with three different climatic years to assess impact on energy security.
+   * - Climatic Variability
+           - Suggesting models run with three different climatic years to assess impact on energy security.
      - PyPSA-Eur is designed for this; it integrates with atlite to process multi-year datasets and supports spanning these in a single model.
    * - Industrial applications
-     -
+           - Verify technical and commercial viability of converting industrial gas offtakes to H2 or other carriers before grid expansion
+     - Open TYNDP uses a script to interpolate industry sector transition pathways, gradually switching processes from status quo to best-in-class energy consumption per ton of material output
    * - Sector-specific modelling
-     -
+           - Discuss the Z1 Z2 concept to streamline management across gas, electricity, and hydrogen vectors
+     - Open-TYNDP has already introduced the TYNDP H2 topology, which specifically includes the H2 Z1 and Z2 setup, production, and storage technologies
    * - EV modelling techniques
-     -
+           - refine assumptions on EV charging behavior and their impact on potential grid bottlenecks
+     - PyPSA-Eur now limits Vehicle-to-Grid (V2G) dispatch capacity based on the fraction of vehicles participating in demand-side management. It also refines temperature-dependent correction factors for EV energy demand.
    * - District heating
-     -
+           - Create a dedicated tool distinct from the ETM to simulate production from biomass, geothermal, and other sources
+     - PyPSA-Eur already features a highly detailed district heating module. Recent additions include geothermal district heating, aquifer thermal energy storage (ATES), and booster heat pumps for supplemental heating
    * - Liquified hydrogen
-     -
+           - Explore LH2 import methods to understand logistical, storage, and cost constraints
+     - PyPSA-Eur implements a "H2 liquid" bus at each location to specifically handle hydrogen liquefaction costs for shipping demand
    * - H2 Import Quotas
-     -
+           - Align hydrogen import quotas with RepowerEU targets to avoid overestimating domestic production
    * - Electric heat pumps
-     -
+           - Move heat pump modeling to PLEXOS to better capture thermal inertia and load management
+     - PyPSA-Eur manages this via an energy-to-power ratio constraint for thermal storage, linking storage capacity to charger capacity to simulate load shifting
    * - Optimisation Across Energy Vectors
            - Expanding PLEXOS to integrate electricity, gas, and hydrogen systems holistically.
-     - While the roadmap lists this as a goal, PyPSA-Eur and Open-TYNDP use the Linopy backend to optimize these vectors simultaneously by default.
+     - PyPSA-Eur and Open-TYNDP optimize these vectors simultaneously by default.
    * - Transmission System Losses
            - Reassessing losses to reflect actual power flow dynamics more accurately.
      - PyPSA-Eur allows for piecewise linear approximation of transmission losses and provides the option to disable efficiency losses for specific carriers.
@@ -187,12 +203,15 @@ Stakeholder Reference Group (SRG) Proposals
            - Integrating methane pyrolysis and waste-to-hydrogen processes.
      - PyPSA-Eur has already integrated biomass-to-hydrogen (with or without carbon capture) and supports custom technology adjustments via configuration.
    * - Flexibility in modelling
-     -
+           - Focus on load displacement (shifting demand) rather than just load reduction to maximize renewable use
+     - Open TYNDP allows for demand side management functionalities to shift loads in time as well as in magnitude.
    * - Price setting for hydrogen
-     -
+           - Revise methodology to reflect real-world contracts and costs like dehydrogenation
+     - As an integrated sector-coupled model, endogenous pricing of hydrogen includes all represented upstream processes
    * - Sensitivity to commodity prices
-     -
+           - Conduct sensitivity analyses on price fluctuations (gas, oil, H2) to understand investment risks
+     - Workflow management tool snakemake enables the simultaneous execution of multiple scenarios with single calls and configuration overrides
    * - Inclusion of emerging technologies
-     -
+     - TODO
    * - Out of scope Innovations
-     -
+     - TODO
