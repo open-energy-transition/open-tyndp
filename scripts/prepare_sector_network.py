@@ -8417,7 +8417,7 @@ def _add_phs(n, costs, nodes, carrier, inflows=False):
     n.add("Bus", nodes + f" {carrier}", carrier=carrier, location=nodes)
 
     # Add a dispatch Link for the turbine
-    # TODO: add marginal costs from TYNDP assumptions
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv (incl. marginal cost)
     n.add(
         "Link",
         nodes + f" {carrier}-turbine",
@@ -8431,6 +8431,7 @@ def _add_phs(n, costs, nodes, carrier, inflows=False):
     )
 
     # Add a store Link for the pump
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
     n.add(
         "Link",
         nodes + f" {carrier}-pump",
@@ -8505,6 +8506,7 @@ def add_hydro_tyndp(
     nodes = n.buses.query("carrier == 'AC'").index
 
     # Attach hydro-ror as generator, capacities and inflows will be added later
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
     if "hydro-ror" in tyndp_hydro:
         n.add(
             "Generator",
@@ -8516,6 +8518,7 @@ def add_hydro_tyndp(
         )
 
     # Attach hydro-pondage as StorageUnit, capacities and inflows will be added later
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
     if "hydro-pondage" in tyndp_hydro:
         n.add(
             "StorageUnit",
@@ -8531,6 +8534,7 @@ def add_hydro_tyndp(
         )
 
     # Attach hydro-reservoir as StorageUnit, capacities and inflows will be added later
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
     if "hydro-reservoir" in tyndp_hydro:
         n.add(
             "StorageUnit",
