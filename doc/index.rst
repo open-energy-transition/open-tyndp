@@ -474,11 +474,17 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :caption: Getting Started
 
    introduction
-   innovation_roadmap
    installation
    tutorial
    tutorial_sector
    faq_troubleshooting
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Open TYNDP
+
+   innovation_roadmap
 
 .. toctree::
    :hidden:
