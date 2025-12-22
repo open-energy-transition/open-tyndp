@@ -317,7 +317,7 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
-    resolution_sector: 52SEG  # Use 1H for high resolution results in SB (requires commercial solver)
+    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
