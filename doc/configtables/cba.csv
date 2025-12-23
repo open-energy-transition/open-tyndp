@@ -1,5 +1,6 @@
 ,Unit,Values,Description
 hurdle_costs,EUR/MWh,float,Marginal cost for transmission lines in Cost-Benefit Analysis networks. Used to represent congestion costs and market inefficiencies. Defaults to 0.01.
+co2_societal_cost,EUR/t,dict,Dictionary mapping planning horizons (int) to societal costs of CO2 emissions (float) in Euros per ton. These values are used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).
 planning_horizons,--,list of int,List of planning horizons for which to run CBA
 methods,--,list of str,"CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time). Defaults to ['toot']."
 projects,--,list of str,"List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35')."
