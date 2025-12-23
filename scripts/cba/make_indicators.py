@@ -35,22 +35,6 @@ from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
-RES_CARRIERS = [
-    "Onshore Wind",
-    "Run of River",
-    "Solar",
-    "offwind-ac-fb-r",
-    "offwind-ac-fl-r",
-    "offwind-dc-fb-oh",
-    "offwind-dc-fb-r",
-    "offwind-dc-fl-oh",
-    "offwind-dc-fl-r",
-    "offwind-h2-fb-oh",
-    "offwind-h2-fl-oh",
-    "solar rooftop",
-    "solar-hsat",
-]
-
 
 def calculate_total_system_cost(n):
     """
@@ -109,7 +93,9 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
     return CO2_emissions_per_carrier
 
 
-def calculate_res_capacity_per_carrier(n: pypsa.Network) -> pd.Series:
+def calculate_res_capacity_per_carrier(
+    n: pypsa.Network, res_carriers: list[str]
+) -> pd.Series:
     """
     Calculate total RES capacity per carrier (MW) using optimal capacity.
 
@@ -124,11 +110,13 @@ def calculate_res_capacity_per_carrier(n: pypsa.Network) -> pd.Series:
         A Series containing RES capacity per carrier (MW).
     """
     capacity = n.statistics.optimal_capacity().groupby("carrier").sum()
-    res_capacity = capacity.reindex(RES_CARRIERS).dropna()
+    res_capacity = capacity.reindex(res_carriers).dropna()
     return res_capacity
 
 
-def calculate_res_generation_per_carrier(n: pypsa.Network) -> pd.Series:
+def calculate_res_generation_per_carrier(
+    n: pypsa.Network, res_carriers: list[str]
+) -> pd.Series:
     """
     Calculate total RES generation per carrier (MWh/year) using energy balance.
 
@@ -145,11 +133,13 @@ def calculate_res_generation_per_carrier(n: pypsa.Network) -> pd.Series:
     energy_balance = (
         n.statistics.energy_balance(aggregate_time="sum").groupby("carrier").sum()
     )
-    res_generation = energy_balance.reindex(RES_CARRIERS).dropna()
+    res_generation = energy_balance.reindex(res_carriers).dropna()
     return res_generation
 
 
-def calculate_res_dump_per_carrier(n: pypsa.Network) -> pd.Series:
+def calculate_res_dump_per_carrier(
+    n: pypsa.Network, res_carriers: list[str]
+) -> pd.Series:
     """
     Calculate total RES dumped energy per carrier (MWh/year) using curtailment.
 
@@ -164,7 +154,7 @@ def calculate_res_dump_per_carrier(n: pypsa.Network) -> pd.Series:
         A Series containing RES dumped energy per carrier (MWh/year).
     """
     curtailed = n.statistics.curtailment().groupby("carrier").sum()
-    res_dump = curtailed.reindex(RES_CARRIERS).dropna()
+    res_dump = curtailed.reindex(res_carriers).dropna()
     return res_dump
 
 
@@ -317,6 +307,7 @@ def calculate_b3_indicator(
     n_reference: pypsa.Network,
     n_project: pypsa.Network,
     method: str,
+    res_carriers: list[str],
 ) -> dict:
     """
     Calculate B3 indicator: change in RES capacity (MW) and generation (MWh/year).
@@ -342,12 +333,12 @@ def calculate_b3_indicator(
         (n_project, n_reference) if method == "pint" else (n_reference, n_project)
     )
 
-    capacity_with = calculate_res_capacity_per_carrier(n_with)
-    capacity_without = calculate_res_capacity_per_carrier(n_without)
-    generation_with = calculate_res_generation_per_carrier(n_with)
-    generation_without = calculate_res_generation_per_carrier(n_without)
-    dump_with = calculate_res_dump_per_carrier(n_with)
-    dump_without = calculate_res_dump_per_carrier(n_without)
+    capacity_with = calculate_res_capacity_per_carrier(n_with, res_carriers)
+    capacity_without = calculate_res_capacity_per_carrier(n_without, res_carriers)
+    generation_with = calculate_res_generation_per_carrier(n_with, res_carriers)
+    generation_without = calculate_res_generation_per_carrier(n_without, res_carriers)
+    dump_with = calculate_res_dump_per_carrier(n_with, res_carriers)
+    dump_without = calculate_res_dump_per_carrier(n_without, res_carriers)
 
     capacity_diff = capacity_with.sum() - capacity_without.sum()
     generation_diff = generation_with.sum() - generation_without.sum()
@@ -401,7 +392,13 @@ if __name__ == "__main__":
     )
     indicators.update(b2_indicators)
 
-    b3_indicators = calculate_b3_indicator(n_reference, n_project, method=method)
+    res_carriers = snakemake.config.get("cba", {}).get("res_carriers")
+    b3_indicators = calculate_b3_indicator(
+        n_reference,
+        n_project,
+        method=method,
+        res_carriers=res_carriers,
+    )
     indicators.update(b3_indicators)
 
     # Add project metadata
