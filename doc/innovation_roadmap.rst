@@ -16,8 +16,8 @@ The tables below compare the current and upcoming features of the Open TYNDP wor
    :widths: 50 50
    :header-rows: 1
 
-   * - TYNDP Innovation Roadmap
-     - Open TYNDP Innovation Roadmap
+   * - Innovation Roadmap Details
+     - Comparison with PyPSA-Eur / Open-TYNDP   
    * - TYNDP 2024 brings together a suite of tools into a toolchain to develop the scenarios. These include:
            - Energy Transition Model
            - Supply Tool
@@ -25,6 +25,11 @@ The tables below compare the current and upcoming features of the Open TYNDP wor
            - PLEXOS
            - Visualisation Platform
            - Data files
+           - Antares*
+           - Promed (internal)*
+           - APG Tool (internal)*
+       asterix (*) marks tools used only for Cost Benefit Analysis
+  
      - **Current Implementation Scope:**
   
        While PyPSA-Eur theoretically has the capability to cover all components of the TYNDP toolchain (including calculating capacity factors, heat demand time series, and total annual demands), 
