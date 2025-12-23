@@ -10,7 +10,7 @@ Release Notes
 
 Upcoming Open-TYNDP Release
 ================
-
+* Docs: Add innovation roadmap comparison, mapping existing or new developments in PyPSA-Eur and Open TYNDP to desired features for TYNDP 2026 (https://github.com/open-energy-transition/open-tyndp/pull/341)
 
 Upcoming PyPSA-Eur Release
 ================
