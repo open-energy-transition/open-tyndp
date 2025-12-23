@@ -58,28 +58,31 @@ Innovations on the Energy Transition Model (ETM)
 
    * - Innovation Roadmap Details
      - Comparison with PyPSA-Eur / Open-TYNDP   
-   * - Dashboard: All graphs for the TYNDP 2026 report will be integrated into a reactive dashboard
+   * - 5.1 Dashboard: All graphs for the TYNDP 2026 report will be integrated into a reactive dashboard
      - Open TYNDP will feature a dashboard that allows users to explore the results of the scenarios interactively. PyPSA-Eur has introduced automated plotting of energy balance maps and heatmap time series. Recent updates include interactive bus-balance plots and heat-source maps.
-   * - Improvement of Reference Values
-           - Update residential space heating and hot water technology shares from national statistics rather than 2019 EUROSTAT energy statistics
+   * - 5.2 Improvement of Reference Values
+           - Update residential space heating and hot water technology shares using more granular national data rather than 2019 EUROSTAT energy statistics
      - PyPSA-Eur recently updated its energy balances to JRC-IDEES-2021, switching the reference year to 2019. Open-TYNDP has refined electricity demand and biomass potentials to achieve an exact match with reference values.
-   * - Addition of climate year functionality
+       However, this challenge is shared by Open TYNDP. For the existing heating technologies in terms of capacities per country the `DG ENER mapping analysis <https://energy.ec.europa.eu/publications/mapping-and-analyses-current-and-future-2020-2030-heatingcooling-fuel-deployment-fossilrenewables-1_en>`_ is used, an update is needed.
+       For district heating shares `Fraunhofer ISI data <https://fordatis.fraunhofer.de/handle/fordatis/341.5>`_. This data source is also used for geothermal heat potentials.
+
+   * - 5.3 Addition of climate year functionality
          - Integrate weather years into energy demand scenarios including heating demand (electricity demand from heat pumps and boilers) and all final energy demands. 
          - Produce a set of sectoral energy demand profiles for each scenario.
      - PyPSA-Eur now supports spanning multiple consecutive or meteorological weather years in a single optimization. It provides pre-built cutouts for a wide range of years (e.g., 1996, 2010–2023).
-   * - Include missing non-EU countries 
+   * - 5.4 Include missing non-EU countries 
          - Include missing non-EU countries such as Norway, Switzerland, and Serbia. 
          - Split the UK into separate datasets for Great Britain and Northern Ireland.
      - PyPSA-Eur covers the full ENTSO-E area and has recently integrated Ukraine, Moldova, and Kosovo. It supports NUTS-level clustering across these regions.
-   * - Stable ETM server for 2026 cycle
+   * - 5.5 Stable ETM server for 2026 cycle
          - ensure that a stable version of the ETM is available with consistent data and features for the duration of the 2026 cycle
      - Open-source frameworks achieve stability through version control. To manage computational environment, conda-lock files are used for dependency management and Snakemake version requirements 
        (e.g., minimum version 9.0) to ensure cross-platform reproducibility.
-   * - Integrate supply tool features in ETM 
+   * - 5.6 Integrate supply tool features in ETM 
             - Merging supply modeling features (CCS, imports, biomass) directly into the ETM to reduce interfaces and provide a coherent energy system representation
      - Open TYNDP already integrates supply and demand features into a full integrated workflow. PyPSA-Eur and Open-TYNDP are inherently integrated cross-sectoral models. 
        They already include rules for CO2 sequestration potentials (CO2Stop), CCS technologies, carbon networks, regional biomass potentials and transport costs, and automated import price configurations.
-   * - Demand profile modelling in ETM
+   * - 5.7 Demand profile modelling in ETM
          - Model hourly methane and hydrogen profiles instead of using internal ENTSOG tool ensuring full consistency with scenario assumptions
          - Model hourly electricity demand profiles, creating a strong link to scenario parameters and demand profiles while leaving flexibility for TSOs to choose adoption.
      - Open-TYNDP has implemented the attachment of exogenous TYNDP gas and hydrogen demands to the network. Unlike TYNDP's fixed hydrogen and methane demands, PyPSA-Eur models final energy service demands (industrial process heat, heating, etc.) and endogenously optimises which energy carrier (hydrogen, methane, electricity) meets each demand. This allows the model to capture technology competition and fuel switching based on relative costs and availability.
