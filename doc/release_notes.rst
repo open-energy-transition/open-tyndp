@@ -14,6 +14,7 @@ Upcoming Open-TYNDP Release
 **Features**
 
 * Introduce calculation of B2 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/348).
+* Introduce calculation of B3 indicator in the Cost-Benefit Analysis (CBA) based on renewable energy system integration (https://github.com/open-energy-transition/open-tyndp/pull/350).
 
 Upcoming PyPSA-Eur Release
 ================
