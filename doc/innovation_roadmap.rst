@@ -116,7 +116,23 @@ System Modelling Innovations
          - align national and modelling studies on storage capacities
          - incorporate techno-economic constraints of hydrogen supply
          - improve pipelines modelling to reflect transport flexibility
-     - PyPSA-Eur recently fixed bugs related to underground H2 cavern creation. Open-TYNDP includes regionalized H2 salt cavern potentials.
+     - Open-TYNDP follows the same methodology as TYNDP for hydrogen infrastructure. One could adapt back to PyPSA-Eur assumptions with some small modifications.
+     - In PyPSA-Eur
+   **Already Implemented**:
+ - PyPSA-Eur distinguishes between long-term storage in salt caverns and aquifers, and short-term storage in medium or high-pressure steel tanks
+- Technical potential constraints: Underground storage capacities in salt caverns are limited based on technical potential estimations from Caglayan et al. (2020)
+- Environmental considerations: Default configuration includes only nearshore underground storage potential (within 50 km of shore) due to environmental concerns regarding highly saline brine disposal. However, the model offers flexibility to select from three storage types: nearshore (<50 km from sea), onshore (>50 km from sea), or offshore
+- Pipeline modeling: Endogenous optimization of methane-to-hydrogen pipeline retrofitting, hydrogen transport losses, and transport flow modeling in the pipeline network
+
+ **Could Be Implemented (Minor Code Extensions):**
+- Minimum hydrogen storage fill levels to account for working gas requirements
+- Electrolyser ramp-up and ramp-down constraints reflecting technical flexibility limits
+- Minimum run requirements for electrolysers (must-run constraints)
+- Line packing in H2 pipelines: Could be modeled as additional storage capacity
+
+**Hard to Implement:**
+
+- Physical hydrogen flows with pressure modeling: Full representation of pressure-dependent flow dynamics would require fundamental changes to the transport model architecture and substantially increase computational complexity
    * - Integration of Hybrid heat pumps
          - Ensure hybrid systems are correctly sized for applications, considering peak demand scenarios
          - Ensure assumptions incorporate both economics and behavioural considerations
