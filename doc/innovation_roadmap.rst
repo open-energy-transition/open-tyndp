@@ -27,7 +27,20 @@ The tables below compare the current and upcoming features of the Open TYNDP wor
        - Visualisation Platform
        - Data files
 
-     - Open TYNDP integrates all these steps into a single integrated snakemake workflow. This ensures full reproducibility of the scenario development process and allows for easy adaptation and extension of the workflow for future TYNDPs.
+     **Current Implementation Scope:**
+While PyPSA-Eur theoretically has the capability to cover all components of the TYNDP toolchain (including calculating capacity factors, heat demand time series, and total annual demands), the current Open-TYNDP implementation for Scenario Building focuses on:
+
+- Replicating the functionalities of PLEXOS as the core market simulation tool
+- Providing automated workflow for input data processing via Snakemake
+- Implementing visualization of the results 
+We use existing outputs from Supply Tool and DFT as inputs, rather than replacing these tools in the Open-TYNDP.
+
+**Potential for Full Integration:**
+Supply Tool and DFT could be replaced within the Open-TYNDP framework, but this would require:
+
+- Code adaptations to be integrated back into PyPSA-Eur core functionality
+- Explicit assumptions about technology specifications (e.g., types of onshore wind farms, PV panel characteristics) to generate accurate capacity factors
+- Either adopting PyPSA-Eur's standard assumptions or documenting a new set of transparent assumptions (noting that existing TYNDP assumptions behind Supply Tool/DFT are not publicly available)
 
 Innovations on the Energy Transition Model (ETM)
 ===============================================
