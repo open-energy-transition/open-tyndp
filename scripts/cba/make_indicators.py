@@ -65,7 +65,25 @@ def calculate_total_system_cost(n):
     }
 
 
-def calculate_co2_emissions_per_carrier(n: pypsa.Network):
+def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
+    """
+    Calculate total CO2 emissions per carrier in the PyPSA network.
+
+    This function computes the energy balance of the network, aggregates it over the entire time period,
+    and then sums the CO2 emissions grouped by bus_carrier and carrier.
+
+    Then it filters to include only positive CO2 emissions (negative values are carbon sinks).
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network object for which to calculate CO2 emissions.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing the total CO2 emissions per carrier, indexed by carrier, with only positive values included.
+    """
     energy_balance = n.statistics.energy_balance(aggregate_time="sum")
     CO2_per_carrier = (
         energy_balance.groupby(["bus_carrier", "carrier"]).sum().loc["co2"]
@@ -75,7 +93,22 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network):
     return CO2_emissions_per_carrier
 
 
-def get_co2_ets_price(config, planning_horizon):
+def get_co2_ets_price(config, planning_horizon) -> float:
+    """
+    Retrieve the CO2 ETS price for a given planning horizon from the configuration.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing emission prices under the "costs" key.
+    planning_horizon : int or str
+        The year or period for which the CO2 ETS price is requested.
+
+    Returns
+    -------
+    float
+        The CO2 ETS price for the specified planning horizon.
+    """
     emission_prices = config.get("costs", {}).get("emission_prices", {})
     if not emission_prices.get("enable", False):
         raise KeyError("Emission prices are not enabled in the config")
@@ -158,12 +191,12 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
 
 
 def calculate_b2_indicator(
-    n_reference,
-    n_project,
-    method,
-    co2_societal_costs,
-    co2_ets_price,
-):
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str,
+    co2_societal_costs: dict,
+    co2_ets_price: float,
+) -> dict:
     """
     Calculate B2 indicator: change in CO2 emissions and societal cost.
 
