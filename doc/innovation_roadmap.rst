@@ -136,7 +136,13 @@ System Modelling Innovations
    * - Integration of Hybrid heat pumps
          - Ensure hybrid systems are correctly sized for applications, considering peak demand scenarios
          - Ensure assumptions incorporate both economics and behavioural considerations
-     - PyPSA-Eur refined heat pump CAPEX allocations and COP approximations. It also introduced river- and sea-water sourced heat pumps.
+**Already Implemented:**
+PyPSA-Eur supports hybrid heating systems as an investment option alongside standalone heat pumps, resistive heaters, and gas boilers. Various heat pump types and the calculation of the corresponding COP are included. Heating capacity sizing is endogenously optimized based on full-year hourly heating demand profiles, ensuring adequate capacity for peak demand periods while minimising total system costs. 
+
+**Not included:**
+All investment decisions are purely economics-driven based on cost optimization. Behavioral considerations, such as consumer preferences are not currently incorporated.
+
+Behavioral constraints could be integrated if formulated as explicit technical or policy constraints, for example, maximum deployment rates: Limit annual heat pump installations to realistic adoption curves (e.g., maximum 5% annual increase in heat pump penetration per region)
    * - Grid topology
          - Incorporate more detailed representation of H2 network topology that approximates physical H2 flow to ensure key H2 corridors and infrastructure are well represented
      - PyPSA-Eur supports administrative clustering (NUTS0 to NUTS3), allowing the network to be resolved at highly granular levels. Open-TYNDP uses the TYNDP H2 topology, including Z1 and Z2 setup.
