@@ -11,6 +11,10 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
+**Features**
+
+* Add TYNDP hydro technologies and associated PEMMDB capacities and inflows (https://github.com/open-energy-transition/open-tyndp/pull/338).
+
 
 Upcoming PyPSA-Eur Release
 ================

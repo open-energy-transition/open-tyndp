@@ -92,6 +92,9 @@ rule add_brownfield:
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
+        tyndp_renewable_carriers=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
         hydrogen_fuel_cell=config_provider("sector", "hydrogen_fuel_cell"),
         hydrogen_turbine=config_provider("sector", "hydrogen_turbine"),
         group_tyndp_conventionals=config_provider(
