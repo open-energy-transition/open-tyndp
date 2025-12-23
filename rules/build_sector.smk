@@ -1452,6 +1452,18 @@ def input_pemmdb_data(w):
     }
 
 
+def include_tyndp_projects(w):
+    if (
+        (int(w.planning_horizons) == 2040)
+        and (config_provider("tyndp_scenario")(w) == "NT")
+        and config_provider("transmission_projects", "enable")(w)
+        and config_provider("transmission_projects", "include", "tyndp2024")(w)
+    ):
+        return True
+    else:
+        return False
+
+
 def include_tydnp_trajectories(w):
     if config_provider("electricity", "tyndp_renewable_carriers")(w):
         return True
@@ -1679,6 +1691,10 @@ rule prepare_sector_network:
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
             resources("profile_pemmdb_hydro.nc"),
             [],
+        ),
+        tyndp_projects=branch(
+            include_tyndp_projects,
+            resources("tyndp/new_links.csv"),
         ),
         tyndp_trajectories=branch(
             include_tydnp_trajectories,

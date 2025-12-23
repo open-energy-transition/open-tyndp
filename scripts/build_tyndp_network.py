@@ -70,6 +70,14 @@ CONVERTERS_COLUMNS = [
     "geometry",
 ]
 
+# Poland organizes its lines in three sections,
+# PL00 for demand/generation, -E for exporting lines and -I for importing lines
+MAP_GRID_TYNDP = {
+    "PL00E": "PL00",
+    "PL00I": "PL00",
+    "UK": "GB",
+}
+
 
 def format_bz_names(s: str):
     s = s.replace("FR-C", "FR15").replace("UK-N", "UKNI").replace("UK", "GB")
@@ -310,18 +318,9 @@ def build_links(
         - links: A GeoDataFrame including NTC from the reference grid.
 
     """
-
-    # Poland organizes its lines in three sections,
-    # PL00 for demand/generation, -E for exporting lines and -I for importing lines
-    replace_dict = {
-        "PL00E": "PL00",
-        "PL00I": "PL00",
-        "UK": "GB",
-    }
-
     links = pd.read_excel(grid_fn)
     links = extract_grid_data_tyndp(
-        links=links, carrier="Transmission line", replace_dict=replace_dict
+        links=links, idx_prefix="Transmission line", replace_dict=MAP_GRID_TYNDP
     )
 
     # Add missing attributes
