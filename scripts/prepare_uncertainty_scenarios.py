@@ -12,6 +12,7 @@ import logging
 
 import pandas as pd
 import pypsa
+import numpy as np
 
 from scripts._helpers import (
     configure_logging,
@@ -37,12 +38,11 @@ def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
 
         # Some chemical links cause infeasibilities due to p_nom_min constraints
         # Exclude these chemical links from having their capacities fixed to allow for some small flexibility
-        if c.name == "Link":
-            idx = c.static.loc[
-                c.static["carrier"].isin(["AC", "DC", "electricity", "DC_OH"])
-            ].index
-        else:
-            idx = c.static.index
+        idx = c.static.index
+        if c.name in ["Link", "Generator"]:
+            c.static.loc[idx, "p_nom_min"] = 0
+            c.static.loc[idx, "p_nom_max"] = np.inf 
+
 
         # Set all components to not be extendable
         c.static.loc[idx, capacity_extendable] = False
@@ -52,13 +52,21 @@ def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
 
     # If we increase the load in some uncertainty scenarios, then these
     # links need to be expandable, else we create infeasibilities.
-    idx = n.components.links.static.query(
-        "`name`.str.contains(' distribution grid')"
-    ).index
-    n.components.links.static.loc[idx, "p_nom_extendable"] = True
+    # idx = n.components.links.static.query(
+    #     "`name`.str.contains(' distribution grid')"
+    # ).index
+    # n.components.links.static.loc[idx, "p_nom_extendable"] = True
 
     return n
 
+
+def fix_electrolyser_operation(n):
+    
+    electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
+    n.links_t.p_min_pu.loc[:, electrolysis_i] = abs(round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2))
+    n.links_t.p_max_pu.loc[:, electrolysis_i] = round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2)
+    
+    return n
 
 def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Network:
     """Removes components that were added in solve_network.py; we're planing on running this network through the same step again and want to avoid adding the components again."""
@@ -283,7 +291,7 @@ def add_scenario_uncertainty(
 
     return n
 
-
+#%%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
