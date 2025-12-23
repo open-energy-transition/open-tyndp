@@ -75,7 +75,7 @@ Innovations on the Energy Transition Model (ETM)
    * - Demand profile modelling in ETM
          - Model hourly methane and hydrogen profiles instead of using internal ENTSOG tool ensuring full consistency with scenario assumptions
          - Model hourly electricity demand profiles, creating a strong link to scenario parameters and demand profiles while leaving flexibility for TSOs to choose adoption.
-     - Open-TYNDP has implemented the attachment of exogenous TYNDP gas and hydrogen demands to the network. PyPSA-Eur generates hourly profiles for all energy carriers as a core function of its sector-coupled workflow.
+     - Open-TYNDP has implemented the attachment of exogenous TYNDP gas and hydrogen demands to the network. Unlike TYNDP's fixed hydrogen and methane demands, PyPSA-Eur models final energy service demands (industrial process heat, heating, etc.) and endogenously optimises which energy carrier (hydrogen, methane, electricity) meets each demand. This allows the model to capture technology competition and fuel switching based on relative costs and availability.
 
 Pan-European Market Modelling Database App
 ==========================================
