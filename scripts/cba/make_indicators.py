@@ -35,6 +35,22 @@ from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
+RES_CARRIERS = [
+    "Onshore Wind",
+    "Run of River",
+    "Solar",
+    "offwind-ac-fb-r",
+    "offwind-ac-fl-r",
+    "offwind-dc-fb-oh",
+    "offwind-dc-fb-r",
+    "offwind-dc-fl-oh",
+    "offwind-dc-fl-r",
+    "offwind-h2-fb-oh",
+    "offwind-h2-fl-oh",
+    "solar rooftop",
+    "solar-hsat",
+]
+
 
 def calculate_total_system_cost(n):
     """
@@ -91,6 +107,65 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
     CO2_emissions_per_carrier = CO2_per_carrier[CO2_per_carrier > 0]
 
     return CO2_emissions_per_carrier
+
+
+def calculate_res_capacity_per_carrier(n: pypsa.Network) -> pd.Series:
+    """
+    Calculate total RES capacity per carrier (MW) using optimal capacity.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing RES capacity per carrier (MW).
+    """
+    capacity = n.statistics.optimal_capacity().groupby("carrier").sum()
+    res_capacity = capacity.reindex(RES_CARRIERS).dropna()
+    return res_capacity
+
+
+def calculate_res_generation_per_carrier(n: pypsa.Network) -> pd.Series:
+    """
+    Calculate total RES generation per carrier (MWh/year) using energy balance.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing RES generation per carrier (MWh/year).
+    """
+    energy_balance = (
+        n.statistics.energy_balance(aggregate_time="sum").groupby("carrier").sum()
+    )
+    res_generation = energy_balance.reindex(RES_CARRIERS).dropna()
+    return res_generation
+
+
+def calculate_res_dump_per_carrier(n: pypsa.Network) -> pd.Series:
+    """
+    Calculate total RES dumped energy per carrier (MWh/year) using curtailment.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing RES dumped energy per carrier (MWh/year).
+    """
+    curtailed = n.statistics.curtailment().groupby("carrier").sum()
+    res_dump = curtailed.reindex(RES_CARRIERS).dropna()
+    return res_dump
 
 
 def get_co2_ets_price(config, planning_horizon) -> float:
@@ -238,6 +313,53 @@ def calculate_b2_indicator(
     return results
 
 
+def calculate_b3_indicator(
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str,
+) -> dict:
+    """
+    Calculate B3 indicator: change in RES capacity (MW) and generation (MWh/year).
+
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network.
+    n_project : pypsa.Network
+        Project network.
+    method : str
+        Either "pint" or "toot" (case-insensitive).
+
+    Returns
+    -------
+    dict
+        Dictionary with B3 indicators:
+        - B3_res_capacity_change_mw
+        - B3_res_generation_change_mwh
+        - B3_res_dump_change_mwh
+    """
+    n_with, n_without = (
+        (n_project, n_reference) if method == "pint" else (n_reference, n_project)
+    )
+
+    capacity_with = calculate_res_capacity_per_carrier(n_with)
+    capacity_without = calculate_res_capacity_per_carrier(n_without)
+    generation_with = calculate_res_generation_per_carrier(n_with)
+    generation_without = calculate_res_generation_per_carrier(n_without)
+    dump_with = calculate_res_dump_per_carrier(n_with)
+    dump_without = calculate_res_dump_per_carrier(n_without)
+
+    capacity_diff = capacity_with.sum() - capacity_without.sum()
+    generation_diff = generation_with.sum() - generation_without.sum()
+    dump_diff = dump_with.sum() - dump_without.sum()
+
+    return {
+        "B3_res_capacity_change_mw": capacity_diff,
+        "B3_res_generation_change_mwh": generation_diff,
+        "B3_res_dump_change_mwh": dump_diff,
+    }
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -278,6 +400,9 @@ if __name__ == "__main__":
         co2_ets_price=co2_ets_price,
     )
     indicators.update(b2_indicators)
+
+    b3_indicators = calculate_b3_indicator(n_reference, n_project, method=method)
+    indicators.update(b3_indicators)
 
     # Add project metadata
     cba_project = snakemake.wildcards.cba_project
