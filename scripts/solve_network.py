@@ -489,6 +489,18 @@ def prepare_network(
             marginal_cost=load_shedding,  # Eur/MWh
             p_nom=np.inf,
         )
+        
+        n.add(
+            "Generator",
+            buses_i,
+            " load negative",
+            bus=buses_i,
+            carrier="load",
+            marginal_cost=load_shedding,  # Eur/MWh
+            p_nom_extendable=True,
+            p_nom_min = -1,
+            p_nom_max=0
+        )
 
     if solve_opts.get("curtailment_mode"):
         n.add("Carrier", "curtailment", color="#fedfed", nice_name="Curtailment")
@@ -1576,7 +1588,7 @@ def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
 
     return n
 
-
+#%%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -1585,7 +1597,7 @@ if __name__ == "__main__":
             "solve_sector_network_myopic_line_limited",
             opts="",
             clusters="all",
-            configfiles="config/config.tyndp.yaml",
+            configfiles="config/config.ngv-status-quo.yaml",
             sector_opts="",
             planning_horizons="2030",
         )
