@@ -167,7 +167,12 @@ Behavioral constraints could be integrated if formulated as explicit technical o
      - PyPSA-Eur added a suite of technologies for methanol-to-power, reforming, and kerosene, and updated locations/capacities for ammonia plants to accurately distribute demand.
    * - Flexibility of heat pumps
            - Incorporate heat-pump modelling into PLEXOS to better represent flexibility, thermal inertia and heat storage
-     - Open TYNDP uses an energy-to-power ratio constraiint for thermal energy storage. Proportional sizing is used for chargers and dischargers.
+     - PyPSA-Eur already incorporates heat pump modelling for various types of heat pumps, including the calculation of the COP
+     - differentiates between rural/urban, service/residential, district/individual heating
+     - for district heating different types of thermal storage are modelling, including constraints on the energy-to-power ration, booster heat pumps to get to the necessary temperature level of the district heating network
+     - for individual heating small thermal storage in form from water tanks is included
+     - endogenous decision on building renovation can be modelled, with country-specific building stock data and renovation costs
+     - thermal inertia of buildings is not modelled, could be presented by a free thermal storage
        Includes an option to calculate dynamic storage capacities for thermal energy storage. Also includes aquifer thermal energy storage, and supplemental heating such as booster heat pumps.
    * - Modelling of E-fuels 
            - Allow transportation of e-methanol, e-methane and e-kerosene via pipelines, ships or tanker trucks
