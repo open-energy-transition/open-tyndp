@@ -71,7 +71,7 @@ Innovations on the Energy Transition Model (ETM)
    * - Integrate supply tool features in ETM 
             - Merging supply modeling features (CCS, imports, biomass) directly into the ETM to reduce interfaces and provide a coherent energy system representation
      - Open TYNDP already integrates supply and demand features into a full integrated workflow. PyPSA-Eur and Open-TYNDP are inherently integrated cross-sectoral models. 
-       They already include rules for CO2 sequestration potentials (CO2Stop), biomass transport costs, and automated import price configurations.
+       They already include rules for CO2 sequestration potentials (CO2Stop), CCS technologies, carbon networks, regional biomass potentials and transport costs, and automated import price configurations.
    * - Demand profile modelling in ETM
          - Model hourly methane and hydrogen profiles instead of using internal ENTSOG tool ensuring full consistency with scenario assumptions
          - Model hourly electricity demand profiles, creating a strong link to scenario parameters and demand profiles while leaving flexibility for TSOs to choose adoption.
