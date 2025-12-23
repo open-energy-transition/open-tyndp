@@ -30,7 +30,7 @@ The tables below compare the current and upcoming features of the Open TYNDP wor
            - APG Tool (internal)*
        asterix (*) marks tools used only for Cost Benefit Analysis
   
-     - **Current Implementation Scope:**
+     - **Current Implementation Scope**
   
        While PyPSA-Eur theoretically has the capability to cover all components of the TYNDP toolchain (including calculating capacity factors, heat demand time series, and total annual demands), 
        the current Open-TYNDP implementation for Scenario Building focuses on:
@@ -41,7 +41,7 @@ The tables below compare the current and upcoming features of the Open TYNDP wor
   
        We use existing outputs from Supply Tool and DFT as inputs, rather than replacing these tools in the Open-TYNDP.
 
-       **Potential for Full Integration:**
+       **Potential for Full Integration**
        
        Supply Tool and DFT could be replaced within the Open-TYNDP framework, but this would require:
 
@@ -69,7 +69,16 @@ Innovations on the Energy Transition Model (ETM)
    * - 5.3 Addition of climate year functionality
          - Integrate weather years into energy demand scenarios including heating demand (electricity demand from heat pumps and boilers) and all final energy demands. 
          - Produce a set of sectoral energy demand profiles for each scenario.
-     - PyPSA-Eur now supports spanning multiple consecutive or meteorological weather years in a single optimization. It provides pre-built cutouts for a wide range of years (e.g., 1996, 2010–2023).
+     - PyPSA-Eur now supports spanning multiple consecutive or meteorological weather years in a single optimization. It provides pre-built cutouts for a wide range of years (e.g., 1996, 2010–2023). 
+
+       **Current Implementation Scope**
+
+       The final energy demand is based on historical data in PyPSA-Eur from Eurostat.
+
+       **Potential for full integration**
+
+       Total electricity demand is endogenous in the optimisation, as it is calculated from energy service demands and the endogenous choice of demand technologies (such as heat-pumps or gas boilers). 
+       The performance of the demand technologies as well as the demand itself is therefore a function of weather parameters calculated from climate scenarios. This could be integrated into the automated Open TYNDP workflow.
    * - 5.4 Include missing non-EU countries 
          - Include missing non-EU countries such as Norway, Switzerland, and Serbia. 
          - Split the UK into separate datasets for Great Britain and Northern Ireland.
@@ -110,7 +119,16 @@ Quality Control
      - Comparison with Open-TYNDP 
    * - Perform sanity checks on each scenario, for example preventing simultaneous dispatch of electrolysers and H2/gas-fired plants, ensuring reasonable levels of curtailment and Energy Not Served, 
        comparing generator margins, corss-sector assets and storage investment costs
-     - <Validation?>
+     - **Already implemented**
+      
+       - Automated plotting of energy balances for each carrier, enabling quick identification of potential issues such as simultaneous electrolyser operation and hydrogen consumption (not sure, why this is an issue?)
+       - Curtailment with technology-specific values
+       - Comprehensive n.statistics module for rapid evaluation key metrics
+       - Basic consistency checking via n.consistency_check() to validate network topology and parameter ranges
+
+       **Could be implemented (minor code extensions)**
+
+       - Automated sanity check with warnings for scenario-specific thresholds (e.g., flagging curtailment levels above 15%)
 
 System Modelling Innovations
 ============================
@@ -127,29 +145,33 @@ System Modelling Innovations
          - align national and modelling studies on storage capacities
          - incorporate techno-economic constraints of hydrogen supply
          - improve pipelines modelling to reflect transport flexibility
-     - Open-TYNDP follows the same methodology as TYNDP for hydrogen infrastructure. One could adapt back to PyPSA-Eur assumptions with some small modifications. In PyPSA-Eur
-       **Already Implemented**:
+     - Open-TYNDP follows the same methodology as TYNDP for hydrogen infrastructure. One could adapt back to PyPSA-Eur assumptions with some small modifications.
+       **Already Implemented**
+
        - PyPSA-Eur distinguishes between long-term storage in salt caverns and aquifers, and short-term storage in medium or high-pressure steel tanks
        - Technical potential constraints: Underground storage capacities in salt caverns are limited based on technical potential estimations from Caglayan et al. (2020)
        - Environmental considerations: Default configuration includes only nearshore underground storage potential (within 50 km of shore) due to environmental concerns regarding highly saline brine disposal. However, the model offers flexibility to select from three storage types: nearshore (<50 km from sea), onshore (>50 km from sea), or offshore
        - Pipeline modeling: Endogenous optimization of methane-to-hydrogen pipeline retrofitting, hydrogen transport losses, and transport flow modeling in the pipeline network
        
-       **Could Be Implemented (Minor Code Extensions):**
+       **Could Be Implemented (Minor Code Extensions)**
+
        - Minimum hydrogen storage fill levels to account for working gas requirements
        - Electrolyser ramp-up and ramp-down constraints reflecting technical flexibility limits
        - Minimum run requirements for electrolysers (must-run constraints)
        - Line packing in H2 pipelines: Could be modeled as additional storage capacity
 
-       **Hard to Implement:**
+       **Hard to Implement**
        
        - Physical hydrogen flows with pressure modeling: Full representation of pressure-dependent flow dynamics would require fundamental changes to the transport model architecture and substantially increase computational complexity
    * - Integration of Hybrid heat pumps
          - Ensure hybrid systems are correctly sized for applications, considering peak demand scenarios
          - Ensure assumptions incorporate both economics and behavioural considerations
-     - **Already Implemented:**
+     - **Already Implemented**
+
        PyPSA-Eur supports hybrid heating systems as an investment option alongside standalone heat pumps, resistive heaters, and gas boilers. Various heat pump types and the calculation of the corresponding COP are included. 
        Heating capacity sizing is endogenously optimized based on full-year hourly heating demand profiles, ensuring adequate capacity for peak demand periods while minimising total system costs.
-       **Not included:**
+       **Not included**
+       
        All investment decisions are purely economics-driven based on cost optimization. Behavioral considerations, such as consumer preferences are not currently incorporated.
        Behavioral constraints could be integrated if formulated as explicit technical or policy constraints, for example, maximum deployment rates: 
        Limit annual heat pump installations to realistic adoption curves (e.g., maximum 5% annual increase in heat pump penetration per region)
