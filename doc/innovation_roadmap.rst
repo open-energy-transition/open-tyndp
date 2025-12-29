@@ -97,36 +97,34 @@ Pan-European Market Modelling Database App
 ==========================================
 
 .. list-table::
-   :widths: 50 50
-   :header-rows: 1    
+   :widths: 33 33 34
+   :header-rows: 1
 
    * - Innovation Roadmap Details
-     - Comparison with Open-TYNDP
+     - Current Open TYNDP Implementation  
+     - Features available in PyPSA-Eur
    * - The PEMMDB app will provide an API to allow efficient data transfer into the PLEXOS model 
      - The Open TYNDP workflow already automates data integration though REST API calls to various sources, as well as automatically downloading, extracting, transforming and filtering data for all of its inputs.
+     - All features are already implemented in Open TYNDP.
 
 Quality Control
 ===============
 
 .. list-table::
-   :widths: 50 50
-   :header-rows: 1    
+   :widths: 33 33 34
+   :header-rows: 1
 
    * - Innovation Roadmap Details
-     - Comparison with Open-TYNDP 
+     - Current Open TYNDP Implementation  
+     - Features available in PyPSA-Eur
    * - Perform sanity checks on each scenario, for example preventing simultaneous dispatch of electrolysers and H2/gas-fired plants, ensuring reasonable levels of curtailment and Energy Not Served, 
        comparing generator margins, corss-sector assets and storage investment costs
-     - **Already implemented**
-      
-       - Automated plotting of energy balances for each carrier, enabling quick identification of potential issues such as simultaneous electrolyser operation and hydrogen consumption (not sure, why this is an issue?)
-       - Curtailment with technology-specific values
-       - Comprehensive n.statistics module for rapid evaluation key metrics
-       - Basic consistency checking via n.consistency_check() to validate network topology and parameter ranges
-
-       **Could be implemented (minor code extensions)**
-
-       - Automated sanity check with warnings for scenario-specific thresholds (e.g., flagging curtailment levels above 15%)
-
+     - Open TYNDP already offers:
+           - Automated plotting of energy balances for each carrier, enabling quick identification of potential issues such as simultaneous electrolyser operation and hydrogen consumption
+           - Curtailment with technology-specific values
+           - Comprehensive n.statistics module for rapid evaluation key metrics
+           - Basic consistency checking via n.consistency_check() to validate network topology and parameter ranges
+     - Further development work could allow automated sanity checks with warnings for scenario-specific thresholds (e.g., flagging curtailment levels above 15%)
 
 System Modelling Innovations
 ============================
@@ -134,11 +132,12 @@ System Modelling Innovations
 The bulk of innovations are listed under system modelling.
 
 .. list-table::
-   :widths: 50 50
+   :widths: 33 33 34
    :header-rows: 1
 
    * - Innovation Roadmap Details
-     - Comparison with Open-TYNDP 
+     - Current Open TYNDP Implementation  
+     - Features available in PyPSA-Eur
    * - 8.1 Hydrogen storage
            - differentiate between short-term and seasonal storage needs
            - better representation of operational constraints of storage facilities such as salt caverns and aquifers
