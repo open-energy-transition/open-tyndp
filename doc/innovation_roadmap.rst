@@ -250,63 +250,82 @@ Stakeholder Reference Group (SRG) Proposals
 ===========================================
 
 .. list-table::
-   :widths: 50 50
-   :header-rows: 1    
+   :widths: 33 33 34
+   :header-rows: 1
 
-   * - Stakeholder Reference Group
-     - Open TYNDP Innovation Roadmap
+   * - Innovation Roadmap Details
+     - Current Open TYNDP Implementation  
+     - Features available in PyPSA-Eur
    * - 9.1 Synthetic Fuels
            - Incorporating methanol for the maritime sector to align with decarbonization goals and identify infrastructure needs.
-     - PyPSA-Eur introduced methanol-based technologies (e.g., biomass-to-methanol) in its 2024.09 release. Open-TYNDP defaults maritime demand to methanol.
+     - <TODO>
+     - PyPSA-Eur introduced methanol-based technologies (e.g., biomass-to-methanol) in its 2024.09 release. PyPSA-Eur defaults maritime demand to methanol.
        Methanol can be used also in various other sectors (e.g. as back up power, in industry, as kerosene). See `Glaum et al. (2025) <https://arxiv.org/html/2505.09277v1>`_
    * - 9.2 Climatic Variability
            - Suggesting models run with three different climatic years to assess impact on energy security.
+     - <TODO>
      - PyPSA-Eur is designed for this; it integrates with atlite to process multi-year datasets and supports spanning these in a single model.
+  
    * - 9.3 Industrial applications
            - Verify technical and commercial viability of converting industrial gas offtakes to H2 or other carriers before grid expansion
-     - Open TYNDP uses a script to interpolate industry sector transition pathways, gradually switching processes from status quo to best-in-class energy consumption per ton of material output
+     - Open TYNDP uses a script to interpolate industry sector transition pathways, gradually switching processes from status quo to best-in-class energy consumption per ton of material output.
        One can also choose to model the supply of process heat for industry (split in low, medium, high) endogenously, so cost-optimal solution would be found for potential switch from methane to hydrogen/power/biomass
+     - 
    * - 9.4 Sector-specific modelling
            - Discuss the Z1 Z2 concept to streamline management across gas, electricity, and hydrogen vectors
      - Open-TYNDP has already introduced the TYNDP H2 topology, which specifically includes the H2 Z1 and Z2 setup, production, and storage technologies
+     -
    * - 9.5 EV modelling techniques
            - refine assumptions on EV charging behavior and their impact on potential grid bottlenecks
+     - 
      - PyPSA-Eur now limits Vehicle-to-Grid (V2G) dispatch capacity based on the fraction of vehicles participating in demand-side management. It also refines temperature-dependent correction factors for EV energy demand.
        Since the distribution grid is modelled (even though without the corresponding topology), just as an capacity expansion with corresponding costs, one can investigate the relation between flexible EV charging and necessary distribution grid capacity
    * - 9.6 District heating
            - Create a dedicated tool distinct from the ETM to simulate production from biomass, geothermal, and other sources
+     - 
      - PyPSA-Eur already features a highly detailed district heating module. Recent additions include geothermal district heating, aquifer thermal energy storage (ATES), and booster heat pumps for supplemental heating
+
    * - 9.7 Liquified hydrogen
            - Explore LH2 import methods to understand logistical, storage, and cost constraints
+     -
      - PyPSA-Eur implements a "H2 liquid" bus at each location to specifically handle hydrogen liquefaction costs for shipping demand
    * - 9.8 H2 Import Quotas
            - Align hydrogen import quotas with RepowerEU targets to avoid overestimating domestic production
      - 
+     -
    * - 9.9 Electric heat pumps
            - Move heat pump modeling to PLEXOS to better capture thermal inertia and load management
+     - 
      - PyPSA-Eur manages this via an energy-to-power ratio constraint for thermal storage, linking storage capacity to charger capacity to simulate load shifting
    * - 9.10 Optimisation Across Energy Vectors
            - Expanding PLEXOS to integrate electricity, gas, and hydrogen systems holistically.
-     - PyPSA-Eur and Open-TYNDP optimize these vectors simultaneously by default.
+     - Open-TYNDP optimizes these vectors simultaneously by default
+     - PyPSA-Eur optimizes these vectors simultaneously by default
    * - 9.11 Transmission System Losses
            - Reassessing losses to reflect actual power flow dynamics more accurately.
+     -
      - PyPSA-Eur allows for piecewise linear approximation of transmission losses and provides the option to disable efficiency losses for specific carriers.
    * - 9.12 Additional hydrogen production pathways
            - Integrating methane pyrolysis and waste-to-hydrogen processes.
+     - 
      - PyPSA-Eur has already integrated biomass-to-hydrogen (with or without carbon capture) and supports custom technology adjustments via configuration.
    * - 9.13 Flexibility in modelling
            - Focus on load displacement (shifting demand) rather than just load reduction to maximize renewable use
      - Open TYNDP follows TYNDP methodology so exhibits the same limitation. 
-       PyPSA-Eur has higher flexibility since all sectors are modelled (instead of fixed exogenous demand for H2).
+     - PyPSA-Eur has higher flexibility since all sectors are modelled (instead of fixed exogenous demand for H2).
    * - 9.14 Price setting for hydrogen
            - Revise methodology to reflect real-world contracts and costs like dehydrogenation
      - As an integrated sector-coupled model, endogenous pricing of hydrogen includes all represented upstream processes
+     - ditto
    * - 9.15 Sensitivity to commodity prices
            - Conduct sensitivity analyses on price fluctuations (gas, oil, H2) to understand investment risks
      - Workflow management tool snakemake enables the simultaneous execution of multiple scenarios with single calls and configuration overrides
+     - ditto
    * - 9.16 Inclusion of emerging technologies
      - The collaborative approach offered by Open TYNDP provides a formal review process by which new technologies can be included in the analysis
+     - 
    * - 9.17 Out of scope Innovations
            - Carbon Capture and utilisation
            - Innovative Grid Technologies
      - Open TYNDP includes a detailed representation of CCS and CDR technologies including carbon sequestration sites
+     - 
