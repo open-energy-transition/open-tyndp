@@ -60,13 +60,32 @@ def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
     return n
 
 
-def fix_electrolyser_operation(n):
+# def fix_electrolyser_operation(n):
     
+#     electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
+#     n.links_t.p_min_pu.loc[:, electrolysis_i] = abs(round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2))
+#     n.links_t.p_max_pu.loc[:, electrolysis_i] = round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2)
+    
+#     return n
+
+def add_electrolysis_constraints(n):
     electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
-    n.links_t.p_min_pu.loc[:, electrolysis_i] = abs(round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2))
-    n.links_t.p_max_pu.loc[:, electrolysis_i] = round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2)
+    n.links_t.p_min_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
+    n.links_t.p_max_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
+    return n 
     
+def fix_generator_min(n):
+    breakpoint()
+    n.generators_t.p_min_pu += 0.0 #np.abs(n.generators_t.p_min_pu) # fix -0 to +0
+    n.generators_t.p_max_pu += 0.0 #np.abs(n.generators_t.p_max_pu)
     return n
+
+def fix_battery_min(n):
+    breakpoint()
+    battery_i = n.links[n.links.carrier.str.contains("battery")].index
+    n.links_t.p_min_pu += 0.0 #np.clip(n.links_t.p0.loc[:, battery_i],0,np.inf)
+    n.links_t.p_max_pu += 0.0 #np.clip(n.links_t.p0.loc[:, battery_i],0,np.inf)
+    return n 
 
 def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Network:
     """Removes components that were added in solve_network.py; we're planing on running this network through the same step again and want to avoid adding the components again."""
@@ -312,6 +331,9 @@ if __name__ == "__main__":
 
     n = turn_optimisation_to_dispatch(n)
     n = remove_components_added_in_solve_network_py(n)
+    n = add_electrolysis_constraints(n)
+    n = fix_generator_min(n)
+    n = fix_battery_min(n)
 
     for uncertainty_scenario in snakemake.params.uncertainty_scenarios:
         n_uncertain = add_scenario_uncertainty(
