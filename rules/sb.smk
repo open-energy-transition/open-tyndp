@@ -31,7 +31,9 @@ if config["enable"]["retrieve"]:
 
     rule retrieve_tyndp_bundle:
         input:
-            zip_file=storage("https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip")
+            zip_file=storage(
+                "https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip"
+            ),
         output:
             dir=directory("data/tyndp_2024_bundle"),
             elec_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
