@@ -94,7 +94,7 @@ if config["enable"]["retrieve"]:
             dir=directory("data/tyndp_2024_bundle/Supply Tool"),
             file="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
         log:
-            "logs/retrieve_tyndp_pemmdb_data.log",
+            "logs/retrieve_tyndp_supply_tool.log",
 
     if config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
 
