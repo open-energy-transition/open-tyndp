@@ -5,7 +5,7 @@
 
 import pandas as pd
 
-from scripts.cba._helpers import filter_projects_by_specs
+from scripts.cba._helpers import filter_projects_by_method, filter_projects_by_specs
 from scripts._helpers import fill_wildcards
 
 
@@ -131,6 +131,8 @@ rule prepare_toot_project:
 # add the single project {cba_project} to the pint reference network
 # currently this can be either a trans123 or a stor123 project
 rule prepare_pint_project:
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=rules.prepare_pint_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
@@ -186,14 +188,25 @@ rule make_indicators:
 
 def input_indicators(w):
     """
-    List all indicators csv
+    List all indicator CSV files for the given CBA method.
+
+    Filters projects based on the method (TOOT vs PINT) and user-specified
+    project specs from config.
     """
     run = w.get("run", config_provider("run", "name")(w))
+    planning_horizons = int(w.planning_horizons)
+    cba_method = w.cba_method
+
     transmission_projects = pd.read_csv(
         checkpoints.clean_projects.get(run=run).output.transmission_projects
     )
     storage_projects = pd.read_csv(
         checkpoints.clean_projects.get(run=run).output.storage_projects
+    )
+
+    # Filter projects based on CBA method
+    transmission_projects = filter_projects_by_method(
+        transmission_projects, cba_method, planning_horizons
     )
 
     cba_projects = [
