@@ -4,6 +4,60 @@
 
 import re
 
+import pandas as pd
+
+
+def filter_projects_by_method(
+    projects: pd.DataFrame, method: str, planning_horizon: int
+) -> pd.DataFrame:
+    """
+    Filter projects based on CBA method and planning horizon.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        DataFrame with project data including in_reference columns
+    method : str
+        CBA method ('toot' or 'pint')
+    planning_horizon : int
+        Planning horizon year (e.g., 2030, 2040)
+
+    Returns
+    -------
+    pd.DataFrame
+        Filtered projects appropriate for the given method
+    """
+    method = method.lower()
+    if method not in METHOD_PROJECT_FILTERS:
+        raise ValueError(
+            f"Unknown CBA method: {method}. Valid: {list(METHOD_PROJECT_FILTERS.keys())}"
+        )
+
+    return METHOD_PROJECT_FILTERS[method](projects, planning_horizon)
+
+
+def _filter_toot(projects: pd.DataFrame, planning_horizon: int) -> pd.DataFrame:
+    """TOOT: all projects with data for this planning horizon are candidates."""
+    in_ref_col = f"in_reference{planning_horizon}"
+    if in_ref_col not in projects.columns:
+        raise ValueError(f"Column {in_ref_col} not found in projects DataFrame")
+    return projects.loc[projects[in_ref_col].notna()]
+
+
+def _filter_pint(projects: pd.DataFrame, planning_horizon: int) -> pd.DataFrame:
+    """PINT: only projects with in_reference=False are candidates."""
+    in_ref_col = f"in_reference{planning_horizon}"
+    if in_ref_col not in projects.columns:
+        raise ValueError(f"Column {in_ref_col} not found in projects DataFrame")
+    return projects.loc[projects[in_ref_col] == False]
+
+
+# Registry of method-specific project filters
+METHOD_PROJECT_FILTERS = {
+    "toot": _filter_toot,
+    "pint": _filter_pint,
+}
+
 
 def filter_projects_by_specs(
     project_list: list[str], spec_list: list[str] | str | None
