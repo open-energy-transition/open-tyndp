@@ -146,8 +146,8 @@ The bulk of innovations are listed under system modelling.
            - incorporate techno-economic constraints of hydrogen supply
            - improve pipelines modelling to reflect transport flexibility
      - Open-TYNDP follows the same methodology as TYNDP for hydrogen infrastructure.
-     - One could adapt back to PyPSA-Eur assumptions with some small modifications. FOr example, the following features are already implemented in PyPSA-Eur:
-           - PyPSA-Eur distinguishes between long-term storage in salt caverns and aquifers, and short-term storage in medium or high-pressure steel tanks
+     - One could adapt back to PyPSA-Eur assumptions with some small modifications. PyPSA-Eur already implements:
+           - Long-term storage in salt caverns and aquifers, and short-term storage in medium or high-pressure steel tanks
            - Technical potential constraints - Underground storage capacities in salt caverns are limited based on technical potential estimations from Caglayan et al. (2020)
            - Environmental considerations - Default configuration includes only nearshore underground storage potential (within 50 km of shore) due to environmental concerns regarding highly saline brine disposal. 
              However, the model offers flexibility to select from three storage types: nearshore (<50 km from sea), onshore (>50 km from sea), or offshore
