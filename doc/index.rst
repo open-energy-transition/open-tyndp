@@ -482,6 +482,13 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 .. toctree::
    :hidden:
    :maxdepth: 2
+   :caption: Open TYNDP
+
+   innovation_roadmap
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
    :caption: Configuration
 
    wildcards
