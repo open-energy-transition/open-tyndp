@@ -68,20 +68,62 @@ def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
     
 #     return n
 
+def remove_low_voltage_constraints(n):
+    # breakpoint()
+    lv_i = n.links[n.links.bus1.str.contains('low voltage')].index 
+    # n.links_t.p_min_pu.loc[:, lv_i] = -np.inf
+    # n.links_t.p_max_pu.loc[:, lv_i] = np.inf
+    n.links.loc[lv_i, 'p_nom_extendable'] = True
+    return n
+
 def add_electrolysis_constraints(n):
     electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
     n.links_t.p_min_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
     n.links_t.p_max_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
     return n 
+
+def add_electrolysis_sink(n):
+    buses_i = n.buses[n.buses.carrier=='H2'].index
+    n.add(
+        "Generator",
+        buses_i,
+        " h2 sink",
+        bus=buses_i,
+        carrier="H2",
+        marginal_cost=1e9, # Eur/MWh
+        p_nom_extendable=True,
+        p_nom_min = 0,
+        p_nom_max=np.inf,
+        efficiency=1.0,
+        sign=-1.0
+    )
+    return n 
+
+def add_electrolysis_source(n):
+    buses_i = n.buses[n.buses.carrier=='H2'].index
+    n.add(
+        "Generator",
+        buses_i,
+        " h2 source",
+        bus=buses_i,
+        carrier="H2",
+        marginal_cost=1e9, # Eur/MWh
+        p_nom_extendable=True,
+        p_nom_min = 0,
+        p_nom_max=np.inf,
+        efficiency=1.0,
+        sign=+1.0
+    )
+    return n 
     
 def fix_generator_min(n):
-    breakpoint()
-    n.generators_t.p_min_pu += 0.0 #np.abs(n.generators_t.p_min_pu) # fix -0 to +0
-    n.generators_t.p_max_pu += 0.0 #np.abs(n.generators_t.p_max_pu)
+    # breakpoint()
+    n.generators_t.p_min_pu += 0.0 # fix -0 to +0, though i think the expressions evaluate the same either way
+    n.generators_t.p_max_pu += 0.0
     return n
 
 def fix_battery_min(n):
-    breakpoint()
+    # breakpoint()
     battery_i = n.links[n.links.carrier.str.contains("battery")].index
     n.links_t.p_min_pu += 0.0 #np.clip(n.links_t.p0.loc[:, battery_i],0,np.inf)
     n.links_t.p_max_pu += 0.0 #np.clip(n.links_t.p0.loc[:, battery_i],0,np.inf)
@@ -332,13 +374,18 @@ if __name__ == "__main__":
     n = turn_optimisation_to_dispatch(n)
     n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
-    n = fix_generator_min(n)
-    n = fix_battery_min(n)
+    
 
     for uncertainty_scenario in snakemake.params.uncertainty_scenarios:
         n_uncertain = add_scenario_uncertainty(
             n, scenario_name=uncertainty_scenario, error_fp=snakemake.input.errors
         )
+
+        n_uncertain = fix_generator_min(n_uncertain)
+        n_uncertain = fix_battery_min(n_uncertain)
+        n_uncertain = remove_low_voltage_constraints(n_uncertain)
+        n_uncertain = add_electrolysis_sink(n_uncertain)
+        n_uncertain = add_electrolysis_source(n_uncertain)
 
         output_path = [
             p for p in snakemake.output.networks if f"{uncertainty_scenario}" in p
@@ -350,6 +397,8 @@ if __name__ == "__main__":
 
         # Better now than later
         n.consistency_check()
+        n_uncertain.consistency_check()
+        # breakpoint()
 
         logger.info(f"Saving uncertainty scenario network to {output_path}")
         n_uncertain.export_to_netcdf(output_path)
