@@ -5,7 +5,7 @@
 
 [workspace]
 authors = ["Contributors to Open-TYNDP"]
-channels = ["conda-forge", "bioconda", "gurobi"]
+channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 version = "0.1.0"
@@ -186,6 +186,7 @@ tyndp = """bash -c '
  all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
+snakemake-minimal = { version = ">=9", channel = "https://repo.prefix.dev/open-tyndp" }
 pixi-pycharm = ">=0.0.9"
 
 [feature.open-tyndp.target.win-64.dependencies]
