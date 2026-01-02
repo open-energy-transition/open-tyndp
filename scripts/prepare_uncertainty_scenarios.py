@@ -78,8 +78,15 @@ def remove_low_voltage_constraints(n):
 
 def add_electrolysis_constraints(n):
     electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
-    n.links_t.p_min_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
-    n.links_t.p_max_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
+    # n.links_t.p_min_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf) 
+    # n.links_t.p_max_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
+    
+    n.links_t.p_min_pu.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i] / n.links.loc[electrolysis_i].p_nom
+    n.links_t.p_max_pu.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i] / n.links.loc[electrolysis_i].p_nom
+    foo = n.links_t.p_max_pu.loc[:, electrolysis_i]
+    breakpoint()
+    n.links_t.p_min_pu.fillna(0, inplace=True)
+    n.links_t.p_max_pu.fillna(0, inplace=True)
     return n 
 
 def add_electrolysis_sink(n):
@@ -318,37 +325,37 @@ def add_scenario_uncertainty(
             multiindex_tuples, names=["bus", "technology"]
         )
 
-        ## Combining the errors with the time-series data from the TYNDP model
-        # Generators
-        for bus, tech in expanded_errors.columns:
-            if "load" in tech.casefold():
-                comp = n.components["loads"].dynamic["p_set"]
-                cols = [col for col in comp.columns if col == bus]
-            else:
-                comp = n.components["generators"].dynamic["p_max_pu"]
-                cols = [
-                    col for col in comp.columns if col.startswith(bus) and tech in col
-                ]
+        # ## Combining the errors with the time-series data from the TYNDP model
+        # # Generators
+        # for bus, tech in expanded_errors.columns:
+        #     if "load" in tech.casefold():
+        #         comp = n.components["loads"].dynamic["p_set"]
+        #         cols = [col for col in comp.columns if col == bus]
+        #     else:
+        #         comp = n.components["generators"].dynamic["p_max_pu"]
+        #         cols = [
+        #             col for col in comp.columns if col.startswith(bus) and tech in col
+        #         ]
 
-            if not cols:
-                continue
-            logger.info(f"Applying errors to {bus} {tech} for columns: {cols}")
+        #     if not cols:
+        #         continue
+        #     logger.info(f"Applying errors to {bus} {tech} for columns: {cols}")
 
-            # Apply the errors onto all columns from generators[col]
-            new_p_max_pu = comp[cols].multiply(
-                1 + expanded_errors.loc[:, (bus, tech)], axis="index"
-            )
+        #     # Apply the errors onto all columns from generators[col]
+        #     new_p_max_pu = comp[cols].multiply(
+        #         1 + expanded_errors.loc[:, (bus, tech)], axis="index"
+        #     )
 
-            # Errors may cause values below which is unrealistic, so clip accordingly
-            # We could also clip > 1, but then we need to differentiate between
-            # loads (absolute timeseries) and generators (pu timeseries)
-            new_p_max_pu = new_p_max_pu.clip(lower=0)
+        #     # Errors may cause values below which is unrealistic, so clip accordingly
+        #     # We could also clip > 1, but then we need to differentiate between
+        #     # loads (absolute timeseries) and generators (pu timeseries)
+        #     new_p_max_pu = new_p_max_pu.clip(lower=0)
 
-            # Assign the new values back to the generators dataframe
-            # (this propagates to the network object n because it is a reference, not a copy)
-            # Make sure to align snapshots first
-            new_p_max_pu = new_p_max_pu.loc[comp.index]
-            comp[cols] = new_p_max_pu
+        #     # Assign the new values back to the generators dataframe
+        #     # (this propagates to the network object n because it is a reference, not a copy)
+        #     # Make sure to align snapshots first
+        #     new_p_max_pu = new_p_max_pu.loc[comp.index]
+            # comp[cols] = new_p_max_pu
 
     return n
 
@@ -370,22 +377,23 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     n = pypsa.Network(snakemake.input.network)
-
-    n = turn_optimisation_to_dispatch(n)
-    n = remove_components_added_in_solve_network_py(n)
-    n = add_electrolysis_constraints(n)
     
+    n.optimize.fix_optimal_capacities()
+    n.optimize.fix_optimal_dispatch()
+    # n = turn_optimisation_to_dispatch(n)
+    # n = remove_components_added_in_solve_network_py(n)
+    n = add_electrolysis_constraints(n)
 
     for uncertainty_scenario in snakemake.params.uncertainty_scenarios:
         n_uncertain = add_scenario_uncertainty(
             n, scenario_name=uncertainty_scenario, error_fp=snakemake.input.errors
         )
 
-        n_uncertain = fix_generator_min(n_uncertain)
-        n_uncertain = fix_battery_min(n_uncertain)
-        n_uncertain = remove_low_voltage_constraints(n_uncertain)
-        n_uncertain = add_electrolysis_sink(n_uncertain)
-        n_uncertain = add_electrolysis_source(n_uncertain)
+        # n_uncertain = fix_generator_min(n_uncertain)
+        # n_uncertain = fix_battery_min(n_uncertain)
+        # n_uncertain = remove_low_voltage_constraints(n_uncertain)
+        # n_uncertain = add_electrolysis_sink(n_uncertain)
+        # n_uncertain = add_electrolysis_source(n_uncertain)
 
         output_path = [
             p for p in snakemake.output.networks if f"{uncertainty_scenario}" in p
@@ -401,4 +409,6 @@ if __name__ == "__main__":
         # breakpoint()
 
         logger.info(f"Saving uncertainty scenario network to {output_path}")
+        n_uncertain.optimize.create_model()
+        n_uncertain.model.to_file(output_path[:-3] + '.lp', explicit_coordinate_names=True)
         n_uncertain.export_to_netcdf(output_path)
