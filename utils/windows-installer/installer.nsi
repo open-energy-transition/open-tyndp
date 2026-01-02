@@ -100,7 +100,7 @@ BrandingText "Open Energy Transition"
 # ------------------------------------------------------------------------------
 
 Var /GLOBAL REPO_DIR
-Var /GLOBAL CLONE_REPO
+Var /GLOBAL INSTALL_ENV
 Var /GLOBAL PIXI_EXE
 Var /GLOBAL CMD_EXE
 Var /GLOBAL POWERSHELL_EXE
@@ -111,7 +111,6 @@ Var /GLOBAL Label
 Var /GLOBAL DirRequest
 Var /GLOBAL DirBrowse
 Var /GLOBAL CheckBox
-Var /GLOBAL CheckBoxState
 
 # Uninstaller page variables
 Var /GLOBAL UnDialog
@@ -160,11 +159,10 @@ Function RepositoryPageCreate
     ${NSD_CreateLabel} 0 0 100% 24u "The Open-TYNDP repository contains the workflow scripts and configuration files.$\r$\n$\r$\nThis installer will extract the bundled git repository and use pixi to install the environment automatically.$\r$\n$\r$\nNote: Internet connection required for downloading packages from conda-forge."
     Pop $Label
 
-    # Checkbox to enable/disable extraction
-    ${NSD_CreateCheckbox} 0 28u 100% 12u "Extract repository and install environment automatically"
+    # Checkbox to enable/disable pixi install
+    ${NSD_CreateCheckbox} 0 28u 100% 12u "Install environment automatically (recommended, requires internet)"
     Pop $CheckBox
     ${NSD_SetState} $CheckBox ${BST_CHECKED}
-    ${NSD_OnClick} $CheckBox RepositoryCheckBoxClick
 
     # Directory label
     ${NSD_CreateLabel} 0 48u 100% 12u "Repository directory:"
@@ -180,22 +178,10 @@ Function RepositoryPageCreate
     ${NSD_OnClick} $DirBrowse RepositoryBrowseClick
 
     # Installation location info
-    ${NSD_CreateLabel} 0 82u 100% 24u "The pixi executable will be installed to:$\r$\n%LOCALAPPDATA%\open-tyndp\pixi.exe$\r$\n$\r$\nThe environment will be installed inside the repository directory using pixi."
+    ${NSD_CreateLabel} 0 82u 100% 60u "The repository will always be extracted to the directory above.$\r$\n$\r$\nThe pixi executable will be installed to:$\r$\n%LOCALAPPDATA%\open-tyndp\pixi.exe$\r$\n$\r$\nIf you choose to install the environment now, it will download ~500-800 MB and take 5-15 minutes. Otherwise, it will be installed on-demand when you first launch the shell."
     Pop $Label
 
     nsDialogs::Show
-FunctionEnd
-
-Function RepositoryCheckBoxClick
-    Pop $0
-    ${NSD_GetState} $0 $CheckBoxState
-    ${If} $CheckBoxState == ${BST_CHECKED}
-        EnableWindow $DirRequest 1
-        EnableWindow $DirBrowse 1
-    ${Else}
-        EnableWindow $DirRequest 0
-        EnableWindow $DirBrowse 0
-    ${EndIf}
 FunctionEnd
 
 Function RepositoryBrowseClick
@@ -208,8 +194,8 @@ Function RepositoryBrowseClick
 FunctionEnd
 
 Function RepositoryPageLeave
-    # Get the checkbox state
-    ${NSD_GetState} $CheckBox $CLONE_REPO
+    # Get the checkbox state for pixi install
+    ${NSD_GetState} $CheckBox $INSTALL_ENV
 
     # Get the directory
     ${NSD_GetText} $DirRequest $REPO_DIR
@@ -227,28 +213,26 @@ Function RepositoryPageLeave
     # Store in registry for later use by launcher scripts
     WriteRegStr HKCU "Software\${PRODUCT_NAME}" "RepositoryPath" "$REPO_DIR"
 
-    ${If} $CLONE_REPO == ${BST_CHECKED}
-        # Check if directory already exists
-        ${If} ${FileExists} "$REPO_DIR\.git"
-            MessageBox MB_YESNO|MB_ICONQUESTION \
-                "A Git repository already exists at:$\n$REPO_DIR$\n$\nSkip extraction and use existing repository?" \
-                /SD IDYES \
-                IDYES skip_extract
-            # User chose to not skip, abort installation
-            Abort
-        ${EndIf}
-
-        ${If} ${FileExists} "$REPO_DIR\*.*"
-            MessageBox MB_YESNO|MB_ICONQUESTION \
-                "The directory already exists and is not empty:$\n$REPO_DIR$\n$\nDo you want to continue anyway?" \
-                /SD IDNO \
-                IDYES continue_anyway
-            Abort
-            continue_anyway:
-        ${EndIf}
-
-        skip_extract:
+    # Check if directory already exists
+    ${If} ${FileExists} "$REPO_DIR\.git"
+        MessageBox MB_YESNO|MB_ICONQUESTION \
+            "A Git repository already exists at:$\n$REPO_DIR$\n$\nSkip extraction and use existing repository?" \
+            /SD IDYES \
+            IDYES skip_extract
+        # User chose to not skip, abort installation
+        Abort
     ${EndIf}
+
+    ${If} ${FileExists} "$REPO_DIR\*.*"
+        MessageBox MB_YESNO|MB_ICONQUESTION \
+            "The directory already exists and is not empty:$\n$REPO_DIR$\n$\nDo you want to continue anyway?" \
+            /SD IDNO \
+            IDYES continue_anyway
+        Abort
+        continue_anyway:
+    ${EndIf}
+
+    skip_extract:
 FunctionEnd
 
 # ------------------------------------------------------------------------------
@@ -283,56 +267,52 @@ Section "Install" SecInstall
         Abort "Installation failed"
     ${EndIf}
 
-    # Extract bundled repository if requested
-    ${If} $CLONE_REPO == ${BST_CHECKED}
-        ${If} ${FileExists} "$REPO_DIR\.git"
-            DetailPrint "Repository already exists at $REPO_DIR"
+    # Always extract bundled repository
+    ${If} ${FileExists} "$REPO_DIR\.git"
+        DetailPrint "Repository already exists at $REPO_DIR"
+    ${Else}
+        DetailPrint "Extracting bundled repository to $REPO_DIR..."
 
-            # Check if it needs environment installation
-            ${If} ${FileExists} "$REPO_DIR\.pixi\envs\default"
-                DetailPrint "Environment already installed, skipping..."
-                Goto skip_env_install
-            ${Else}
-                DetailPrint "Environment not found, will install..."
-                Goto do_env_install
-            ${EndIf}
-        ${Else}
-            DetailPrint "Extracting bundled repository to $REPO_DIR..."
+        # Create repository directory
+        CreateDirectory "$REPO_DIR"
 
-            # Create repository directory
-            CreateDirectory "$REPO_DIR"
-
-            # Extract all bundled repository files
-            SetOutPath "$REPO_DIR"
-            File /r "repo-bundle\*.*"
-
-            DetailPrint "Repository extracted successfully!"
-        ${EndIf}
-
-        do_env_install:
-        # Install the environment using pixi
-        DetailPrint "Installing environment using pixi..."
-        DetailPrint "This will download ~500-800 MB of packages from conda-forge..."
-        DetailPrint "This may take 5-15 minutes depending on your internet connection..."
-
-        # Change to repository directory and run pixi install
-        # Use -v for info-level logging to show download/install progress
+        # Extract all bundled repository files
         SetOutPath "$REPO_DIR"
-        nsExec::ExecToLog '"$CMD_EXE" /D /C "$\"$PIXI_EXE$\" install -e ${PIXI_ENV_NAME} -v"'
-        Pop $0
-        ${If} $0 != 0
-            MessageBox MB_YESNO|MB_ICONEXCLAMATION \
-                "Failed to install environment (error code: $0).$\n$\nDo you want to continue installation anyway?" \
-                /SD IDYES \
-                IDYES continue_without_env
-            Abort "Installation cancelled"
-            continue_without_env:
-            DetailPrint "Environment installation failed, but continuing..."
-        ${Else}
-            DetailPrint "Environment installed successfully!"
-        ${EndIf}
+        File /r "repo-bundle\*.*"
 
-        skip_env_install:
+        DetailPrint "Repository extracted successfully!"
+    ${EndIf}
+
+    # Install environment if requested
+    ${If} $INSTALL_ENV == ${BST_CHECKED}
+        # Check if environment already exists
+        ${If} ${FileExists} "$REPO_DIR\.pixi\envs\default"
+            DetailPrint "Environment already installed, skipping..."
+        ${Else}
+            # Install the environment using pixi
+            DetailPrint "Installing environment using pixi..."
+            DetailPrint "This will download ~500-800 MB of packages from conda-forge..."
+            DetailPrint "This may take 5-15 minutes depending on your internet connection..."
+
+            # Change to repository directory and run pixi install
+            # Use -v for info-level logging to show download/install progress
+            SetOutPath "$REPO_DIR"
+            nsExec::ExecToLog '"$CMD_EXE" /D /C "$\"$PIXI_EXE$\" install -e ${PIXI_ENV_NAME} -v"'
+            Pop $0
+            ${If} $0 != 0
+                MessageBox MB_YESNO|MB_ICONEXCLAMATION \
+                    "Failed to install environment (error code: $0).$\n$\nDo you want to continue installation anyway?" \
+                    /SD IDYES \
+                    IDYES continue_without_env
+                Abort "Installation cancelled"
+                continue_without_env:
+                DetailPrint "Environment installation failed, but continuing..."
+            ${Else}
+                DetailPrint "Environment installed successfully!"
+            ${EndIf}
+        ${EndIf}
+    ${Else}
+        DetailPrint "Environment installation skipped. It will be installed on-demand when you first launch the shell."
     ${EndIf}
 
     # Create Start Menu shortcuts directly (no .bat files needed)
@@ -571,7 +551,7 @@ FunctionEnd
 Function .onInit
     # Set default repository directory
     StrCpy $REPO_DIR "$PROFILE\open-tyndp"
-    StrCpy $CLONE_REPO ${BST_CHECKED}
+    StrCpy $INSTALL_ENV ${BST_CHECKED}
 
     # Check if already installed
     ReadRegStr $R0 ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString"
