@@ -104,6 +104,17 @@ Upcoming PyPSA-Eur Release
 * Misc: Automatically update the DAGs shown in the documentation (https://github.com/PyPSA/pypsa-eur/pull/1880).
 
 
+Open-TYNDP v0.4.1 (23rd December 2025)
+========================================
+
+
+**Bugfixes and Compatibility**
+
+* Retrieve countries_centroids.geojson using brotli encoding (https://github.com/open-energy-transition/open-tyndp/pull/334).
+
+* Ensure backward compatibility for custom offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/339).
+
+
 Open-TYNDP v0.4 (16th December 2025)
 ========================================
 

@@ -1194,7 +1194,9 @@ def add_offshore_hubs_constraint(
     h2_gens = gens.loc[(h2_i) & (ext_i)]
     h2_gens_i = h2_gens.index
     dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
-    p_nom = n.model["Generator-p_nom"].rename({"name": "Generator-ext"})
+    p_nom = n.model["Generator-p_nom"]
+    if PYPSA_V1:
+        p_nom = p_nom.rename({"name": "Generator-ext"})
 
     lhs = (
         p_nom.loc[dc_gens_i]
