@@ -127,7 +127,7 @@ def input_custom_extra_functionality(w):
         (requests.HTTPError, requests.ConnectionError, requests.Timeout)
     ),
 )
-def has_internet_access(url: str = "https://www.zenodo.org", timeout: int = 5) -> bool:
+def has_internet_access(url: str = "https://www.google.org", timeout: int = 5) -> bool:
     """
     Checks if internet connection is available by sending a HEAD request
     to a reliable server like Zenodo.

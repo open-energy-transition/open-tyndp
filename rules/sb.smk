@@ -30,6 +30,10 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
 if config["enable"]["retrieve"]:
 
     rule retrieve_tyndp_bundle:
+        input:
+            zip_file=storage(
+                "https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip"
+            ),
         output:
             dir=directory("data/tyndp_2024_bundle"),
             elec_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
@@ -94,7 +98,7 @@ if config["enable"]["retrieve"]:
             dir=directory("data/tyndp_2024_bundle/Supply Tool"),
             file="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
         log:
-            "logs/retrieve_tyndp_pemmdb_data.log",
+            "logs/retrieve_tyndp_supply_tool.log",
 
     if config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
 
