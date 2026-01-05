@@ -22,102 +22,9 @@ from scripts._helpers import (
 
 logger = logging.getLogger(__name__)
 
-
-def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
-    """Disable all capacity expansion by copying optimized capacities to nominal capacities for certain sectors"""
-
-    logger.info("Turning optimisation problem into dispatch problem.")
-
-    for c in n.components[["Generator", "Link", "Store", "StorageUnit", "Line"]]:
-        ext_flag = [col for col in c.static.columns if "extendable" in col]
-        if len(ext_flag) != 1:
-            logger.error("Expected exactly one extendable flag column")
-        ext_flag = ext_flag[0]
-        capacity = ext_flag.replace("_extendable", "")
-        capacity_extendable = f"{capacity}_extendable"
-
-        # Some chemical links cause infeasibilities due to p_nom_min constraints
-        # Exclude these chemical links from having their capacities fixed to allow for some small flexibility
-        idx = c.static.index
-        if c.name in ["Link", "Generator"]:
-            c.static.loc[idx, "p_nom_min"] = 0
-            c.static.loc[idx, "p_nom_max"] = np.inf 
-
-
-        # Set all components to not be extendable
-        c.static.loc[idx, capacity_extendable] = False
-
-        # Copy the optimized capacities to the nominal capacity columns
-        c.static.loc[idx, capacity] = c.static.loc[idx, f"{capacity}_opt"]
-
-    # If we increase the load in some uncertainty scenarios, then these
-    # links need to be expandable, else we create infeasibilities.
-    # idx = n.components.links.static.query(
-    #     "`name`.str.contains(' distribution grid')"
-    # ).index
-    # n.components.links.static.loc[idx, "p_nom_extendable"] = True
-
-    return n
-
-
-def remove_low_voltage_constraints(n):
-    # breakpoint()
-    lv_i = n.links[n.links.bus1.str.contains('low voltage')].index 
-    # n.links_t.p_min_pu.loc[:, lv_i] = -np.inf
-    # n.links_t.p_max_pu.loc[:, lv_i] = np.inf
-    n.links.loc[lv_i, 'p_nom_extendable'] = True
-    return n
-
 def add_electrolysis_constraints(n):
     electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
     n.links_t.p_set.loc[:,electrolysis_i] = abs(n.links_t.p0.loc[:,electrolysis_i])
-    return n 
-
-def add_electrolysis_sink(n):
-    buses_i = n.buses[n.buses.carrier=='H2'].index
-    n.add(
-        "Generator",
-        buses_i,
-        " h2 sink",
-        bus=buses_i,
-        carrier="H2",
-        marginal_cost=1e9, # Eur/MWh
-        p_nom_extendable=True,
-        p_nom_min = 0,
-        p_nom_max=np.inf,
-        efficiency=1.0,
-        sign=-1.0
-    )
-    return n 
-
-def add_electrolysis_source(n):
-    buses_i = n.buses[n.buses.carrier=='H2'].index
-    n.add(
-        "Generator",
-        buses_i,
-        " h2 source",
-        bus=buses_i,
-        carrier="H2",
-        marginal_cost=1e9, # Eur/MWh
-        p_nom_extendable=True,
-        p_nom_min = 0,
-        p_nom_max=np.inf,
-        efficiency=1.0,
-        sign=+1.0
-    )
-    return n 
-    
-def fix_generator_min(n):
-    # breakpoint()
-    n.generators_t.p_min_pu += 0.0 # fix -0 to +0, though i think the expressions evaluate the same either way
-    n.generators_t.p_max_pu += 0.0
-    return n
-
-def fix_battery_min(n):
-    # breakpoint()
-    battery_i = n.links[n.links.carrier.str.contains("battery")].index
-    n.links_t.p_min_pu += 0.0 #np.clip(n.links_t.p0.loc[:, battery_i],0,np.inf)
-    n.links_t.p_max_pu += 0.0 #np.clip(n.links_t.p0.loc[:, battery_i],0,np.inf)
     return n 
 
 def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Network:
@@ -309,37 +216,37 @@ def add_scenario_uncertainty(
             multiindex_tuples, names=["bus", "technology"]
         )
 
-        # ## Combining the errors with the time-series data from the TYNDP model
-        # # Generators
-        # for bus, tech in expanded_errors.columns:
-        #     if "load" in tech.casefold():
-        #         comp = n.components["loads"].dynamic["p_set"]
-        #         cols = [col for col in comp.columns if col == bus]
-        #     else:
-        #         comp = n.components["generators"].dynamic["p_max_pu"]
-        #         cols = [
-        #             col for col in comp.columns if col.startswith(bus) and tech in col
-        #         ]
+        ## Combining the errors with the time-series data from the TYNDP model
+        # Generators
+        for bus, tech in expanded_errors.columns:
+            if "load" in tech.casefold():
+                comp = n.components["loads"].dynamic["p_set"]
+                cols = [col for col in comp.columns if col == bus]
+            else:
+                comp = n.components["generators"].dynamic["p_max_pu"]
+                cols = [
+                    col for col in comp.columns if col.startswith(bus) and tech in col
+                ]
 
-        #     if not cols:
-        #         continue
-        #     logger.info(f"Applying errors to {bus} {tech} for columns: {cols}")
+            if not cols:
+                continue
+            logger.info(f"Applying errors to {bus} {tech} for columns: {cols}")
 
-        #     # Apply the errors onto all columns from generators[col]
-        #     new_p_max_pu = comp[cols].multiply(
-        #         1 + expanded_errors.loc[:, (bus, tech)], axis="index"
-        #     )
+            # Apply the errors onto all columns from generators[col]
+            new_p_max_pu = comp[cols].multiply(
+                1 + expanded_errors.loc[:, (bus, tech)], axis="index"
+            )
 
-        #     # Errors may cause values below which is unrealistic, so clip accordingly
-        #     # We could also clip > 1, but then we need to differentiate between
-        #     # loads (absolute timeseries) and generators (pu timeseries)
-        #     new_p_max_pu = new_p_max_pu.clip(lower=0)
+            # Errors may cause values below which is unrealistic, so clip accordingly
+            # We could also clip > 1, but then we need to differentiate between
+            # loads (absolute timeseries) and generators (pu timeseries)
+            new_p_max_pu = new_p_max_pu.clip(lower=0)
 
-        #     # Assign the new values back to the generators dataframe
-        #     # (this propagates to the network object n because it is a reference, not a copy)
-        #     # Make sure to align snapshots first
-        #     new_p_max_pu = new_p_max_pu.loc[comp.index]
-            # comp[cols] = new_p_max_pu
+            # Assign the new values back to the generators dataframe
+            # (this propagates to the network object n because it is a reference, not a copy)
+            # Make sure to align snapshots first
+            new_p_max_pu = new_p_max_pu.loc[comp.index]
+            comp[cols] = new_p_max_pu
 
     return n
 
