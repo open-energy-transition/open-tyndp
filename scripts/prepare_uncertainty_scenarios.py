@@ -60,14 +60,6 @@ def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
     return n
 
 
-# def fix_electrolyser_operation(n):
-    
-#     electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
-#     n.links_t.p_min_pu.loc[:, electrolysis_i] = abs(round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2))
-#     n.links_t.p_max_pu.loc[:, electrolysis_i] = round(n.links_t.p0.loc[:, electrolysis_i], ndigits=2)
-    
-#     return n
-
 def remove_low_voltage_constraints(n):
     # breakpoint()
     lv_i = n.links[n.links.bus1.str.contains('low voltage')].index 
@@ -78,15 +70,7 @@ def remove_low_voltage_constraints(n):
 
 def add_electrolysis_constraints(n):
     electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
-    # n.links_t.p_min_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf) 
-    # n.links_t.p_max_pu.loc[:, electrolysis_i] = np.clip(n.links_t.p0.loc[:, electrolysis_i],0,np.inf)
-    
-    n.links_t.p_min_pu.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i] / n.links.loc[electrolysis_i].p_nom
-    n.links_t.p_max_pu.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i] / n.links.loc[electrolysis_i].p_nom
-    foo = n.links_t.p_max_pu.loc[:, electrolysis_i]
-    breakpoint()
-    n.links_t.p_min_pu.fillna(0, inplace=True)
-    n.links_t.p_max_pu.fillna(0, inplace=True)
+    n.links_t.p_set.loc[:,electrolysis_i] = abs(n.links_t.p0.loc[:,electrolysis_i])
     return n 
 
 def add_electrolysis_sink(n):
@@ -378,22 +362,14 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
     
-    n.optimize.fix_optimal_capacities()
-    n.optimize.fix_optimal_dispatch()
-    # n = turn_optimisation_to_dispatch(n)
-    # n = remove_components_added_in_solve_network_py(n)
+    n.optimize.fix_optimal_capacities()               
+    n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
 
     for uncertainty_scenario in snakemake.params.uncertainty_scenarios:
         n_uncertain = add_scenario_uncertainty(
             n, scenario_name=uncertainty_scenario, error_fp=snakemake.input.errors
         )
-
-        # n_uncertain = fix_generator_min(n_uncertain)
-        # n_uncertain = fix_battery_min(n_uncertain)
-        # n_uncertain = remove_low_voltage_constraints(n_uncertain)
-        # n_uncertain = add_electrolysis_sink(n_uncertain)
-        # n_uncertain = add_electrolysis_source(n_uncertain)
 
         output_path = [
             p for p in snakemake.output.networks if f"{uncertainty_scenario}" in p
@@ -406,7 +382,6 @@ if __name__ == "__main__":
         # Better now than later
         n.consistency_check()
         n_uncertain.consistency_check()
-        # breakpoint()
 
         logger.info(f"Saving uncertainty scenario network to {output_path}")
         n_uncertain.optimize.create_model()
