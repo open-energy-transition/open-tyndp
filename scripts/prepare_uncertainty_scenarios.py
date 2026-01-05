@@ -240,14 +240,13 @@ def add_scenario_uncertainty(
             # Errors may cause values below which is unrealistic, so clip accordingly
             # We could also clip > 1, but then we need to differentiate between
             # loads (absolute timeseries) and generators (pu timeseries)
-            new_p_max_pu = new_p_max_pu.clip(lower=0)
+            new_p_max_pu = new_p_max_pu.clip(lower=0) #, upper=max_value)
 
             # Assign the new values back to the generators dataframe
             # (this propagates to the network object n because it is a reference, not a copy)
             # Make sure to align snapshots first
             new_p_max_pu = new_p_max_pu.loc[comp.index]
             comp[cols] = new_p_max_pu
-
     return n
 
 #%%

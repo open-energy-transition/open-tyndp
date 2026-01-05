@@ -31,7 +31,7 @@ tyndp_scenario: NT
 
 clustering:
   temporal:
-    resolution_sector: 2H
+    resolution_sector: 6H
 
 sector:
   h2_zones_tyndp: false
@@ -43,3 +43,7 @@ sector:
 
 benchmarking:
   enable: false
+
+solving:
+  options:
+    load_shedding: true
