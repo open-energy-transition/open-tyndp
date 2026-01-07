@@ -43,7 +43,7 @@ The tables below compare the current and upcoming features of the Open TYNDP wor
 
        - Code adaptations to be integrated back into PyPSA-Eur core functionality
        - Explicit assumptions about technology specifications (e.g., types of onshore wind farms, PV panel characteristics) to generate accurate capacity factors
-       - Either adopting PyPSA-Eur's stabilityandard assumptions or documenting a new set of transparent assumptions (noting that existing TYNDP assumptions behind Supply Tool/DFT are not publicly available)
+       - Either adopting PyPSA-Eur's standard assumptions or documenting a new set of transparent assumptions (noting that existing TYNDP assumptions behind Supply Tool/DFT are not publicly available)
 
 Innovations on the Energy Transition Model (ETM)
 ================================================
