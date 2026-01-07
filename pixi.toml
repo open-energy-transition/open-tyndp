@@ -77,8 +77,8 @@ plotly = ">=6.4.0"
 powerplantmatching = ">=0.5.15"
 pre-commit = ">=4.3.0"
 proj = ">=9.6.2"
-pydeck = ">=0.8"
 pylint = ">=4.0.2"
+pydeck = ">0.6"  # pypsa fails to import with pydeck <0.6, lower bound was only added from pypsa 1.0.6
 pypsa = ">=0.35.2"
 pyscipopt = ">=5.6.0"
 pytables = ">=3.10.2"
@@ -187,6 +187,7 @@ tyndp = """bash -c '
  all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
+# open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
 snakemake-minimal = { version = ">=9", channel = "https://repo.prefix.dev/open-tyndp" }
 pixi-pycharm = ">=0.0.9"
 
