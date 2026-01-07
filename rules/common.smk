@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -120,20 +121,13 @@ def input_custom_extra_functionality(w):
     return []
 
 
-@tenacity_retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    retry=retry_if_exception_type(
-        (requests.HTTPError, requests.ConnectionError, requests.Timeout)
-    ),
-)
 def has_internet_access(url: str = "https://www.google.org", timeout: int = 5) -> bool:
     """
     Checks if internet connection is available by sending a HEAD request
-    to a reliable server like Zenodo.
+    to a reliable server like Google.
 
     Parameters:
-    - url (str): The URL to check for internet connection. Default is Zenodo.
+    - url (str): The URL to check for internet connection. Default is Google.
     - timeout (int | float): The maximum time (in seconds) the request should wait.
 
     Returns:
