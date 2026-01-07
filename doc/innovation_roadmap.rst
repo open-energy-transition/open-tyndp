@@ -225,15 +225,15 @@ The bulk of innovations are listed under system modelling.
            - distribution grid with associated costs and losses can be modelled, but data for existing infrastructure of the distribution grid as well as regional investment costs is missing
            - on the distribution level connected are EV charging, rooftop PV, electricity demand for individual heating technologies
            - different types of PV panels can be modelled on the distribution grid level (see `Rahdan et al. (2025) <https://www.nature.com/articles/s41467-025-61492-9>`_, and `Rahdan et al. (2024) <https://www.sciencedirect.com/science/article/pii/S0306261924001041>`_
-   * - 8.13 Improved modelling of prosumer demand
+   * - **8.13 Improved modelling of prosumer demand**
      - Open TYNDP allows connection of microgeneration e.g. residential solar PV to be connected to low voltage buses.
        Residential and utility scale PV are treated separately, with separate rules in the workflow to build and cluster rooftop potentials.
        Open TYNDP also distinguishes between stationary/utility-scale batteries, home batteries and EV batteries.
      - All relevant features of already implemented
-   * - 8.14 Consider peaking units as expansion candidates
+   * - **8.14 Consider peaking units as expansion candidates**
      - Open TYNDP is a capacity expansion model by nature and can be set to build new peaking units whenever they are the cost-optimal way to ensure reliability.
      - All relevant features of already implemented
-   * - 8.15 Check on remaining CO2 emissions in 2050
+   * - **8.15 Check on remaining CO2 emissions in 2050**
      - Open TYNDP models the full CO2 management (not only emissions, but also CCS, storage, CO2 networks). Remaining emissions can be checked in the final csvs and automated plots.
      - A simple extension is to add an extra constraint on top of the CO2 price, e.g. that CO2 emissions have to be net-zero in 2050
    * - 8.16 Implementation of hybrid electrolyser plants
@@ -245,7 +245,7 @@ The bulk of innovations are listed under system modelling.
            - Modeling practical volumes and prices for pipeline imports to evaluate energy security and dependence.
      - <TODO>
      - PyPSA-Eur implemented renewable energy imports for H2, ammonia, methanol, and oil with configurable prices and volume limits.
-   * - 8.18 Geographical correlation in hydrogen production
+   * - **8.18 Geographical correlation in hydrogen production**
      - Open-TYNDP ensures geographical correlation by attaching planning-year dependent renewable profiles from the PECD to specific generators within interconnected zones
      - <TODO>
 
