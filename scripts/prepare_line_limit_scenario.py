@@ -86,7 +86,8 @@ def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
         "Restricting electricity flows based on line limits from uncertainty scenarios."
     )
     line_limits = pd.read_csv(line_limits_fp, index_col=0, parse_dates=True)
-    line_p_max_pu = n.components.links.dynamic["p_max_pu"]
+    line_p_max_pu = 1.05 * n.components.links.dynamic["p_max_pu"]
+    line_p_min_pu = 0.95 * n.components.links.dynamic["p_max_pu"]
 
     # Ensure that all lines for which line limits are provided exist in the network
     # (If not, then we are using the wrong input either for the network or the line limits)
@@ -105,10 +106,14 @@ def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
             f"Removing existing link flow restrictions for GB-connected lines: {existing_restricted_links.tolist()}"
         )
         line_p_max_pu = line_p_max_pu.drop(columns=existing_restricted_links)
+        line_p_min_pu = line_p_min_pu.drop(columns=existing_restricted_links)
 
     # Add new restrictions
     n.components.links.dynamic["p_max_pu"] = pd.concat(
         [line_p_max_pu, line_limits], axis="columns"
+    )
+    n.components.links.dynamic["p_min_pu"] = pd.concat(
+        [line_p_min_pu, line_limits], axis="columns"
     )
 
     return n
