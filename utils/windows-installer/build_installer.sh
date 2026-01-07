@@ -24,6 +24,9 @@ echo ""
 echo "Step 1/3: Creating shallow git clone for bundling..."
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
+# Remove left-over repo-bundle
+rm -fr repo-bundle
+
 # Create shallow clone from current HEAD
 git clone --depth 1 "file://$REPO_ROOT/.git" "repo-bundle"
 (
@@ -44,7 +47,7 @@ echo ""
 # Download pixi executable for Windows if not present
 if [ ! -f pixi.exe ]; then
     echo "Step 2/3: Downloading pixi executable for Windows..."
-    curl "https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-pc-windows-msvc.exe" -O pixi.exe
+    curl "https://github.com/prefix-dev/pixi/releases/latest/download/pixi-x86_64-pc-windows-msvc.exe" -Lo pixi.exe
 else
     echo "Step 2/3: Using existing pixi.exe"
 fi
@@ -66,5 +69,3 @@ echo "   Installer: open-tyndp-${VERSION}-Windows-x86_64.exe"
 
 # Clean up bundle directory
 rm -rf repo-bundle
-
-ls -lh open-tyndp-*-Windows-x86_64.exe
