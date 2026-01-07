@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   update-locked-environment:
+    if: ${{ github.event_name == 'push' || github.ref == 'refs/heads/master' }}
     name: Update lockfiles
     runs-on: ubuntu-latest
     defaults:
