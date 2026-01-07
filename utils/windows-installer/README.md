@@ -33,7 +33,7 @@ cd utils/windows-installer
 # Run the build script
 ./build_installer.sh  # Linux/macOS/Git Bash
 
-# Output: open-tyndp-0.4.0-pixi-Windows-x86_64.exe (~20 MB)
+# Output: open-tyndp-0.4.0-pixi-Windows-x86_64.exe (~100 MB)
 ```
 
 **File structure:**
@@ -89,7 +89,7 @@ cd utils/windows-installer
 The script automatically:
 1. Downloads pixi.exe if needed
 2. Creates a git archive of the repository
-3. Builds the NSIS installer (~50-60 MB)
+3. Builds the NSIS installer (~100MB)
 
 ---
 
@@ -107,14 +107,14 @@ The script automatically:
 **Pixi executable** (`%LOCALAPPDATA%\open-tyndp`):
 ```
 open-tyndp/
-├── pixi.exe                  # Pixi package manager (~60 MB)
+├── pixi.exe                  # Pixi package manager (~70 MB)
 └── Uninstall.exe            # Uninstaller
 ```
 
 **Repository files** (`%USERPROFILE%\open-tyndp` - if extracted):
 ```
 open-tyndp/
-├── .git/                    # Full git repository
+├── .git/                    # Shallow git repository
 ├── .pixi/
 │   └── envs/
 │       └── open-tyndp/      # Conda environment (~3 GB)
@@ -144,7 +144,7 @@ open-tyndp/
 #### Installation
 
 1. **Run the installer**
-   - Double-click `open-tyndp-0.4.0-pixi-Windows-x86_64.exe`
+   - Double-click `open-tyndp-0.4.0-Windows-x86_64.exe`
    - No admin rights required
 
 2. **Follow the wizard**
@@ -181,6 +181,7 @@ open-tyndp/
 - Check internet connection
 - Temporarily disable antivirus
 - Ensure enough disk space (~2 GB free)
+- Consider skipping the environment installation
 
 **Path contains spaces error:**
 - Choose a path without spaces (e.g., `C:\Users\YourName\open-tyndp` not `C:\Program Files\open-tyndp`)
