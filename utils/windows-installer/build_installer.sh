@@ -31,7 +31,7 @@ rm -fr repo-bundle
 git clone --depth 1 "file://$REPO_ROOT/.git" "repo-bundle"
 (
     cd "repo-bundle"
-    # Set remote to GitHub URL and expands the fetch refspec again
+    # Set remote to GitHub URL and expand the fetch refspec again
     # (so that after git fetch, git checkout/switch works normally)
     git remote set-url origin "${PRODUCT_REPO_URL:-https://github.com/open-energy-transition/open-tyndp.git}"
     git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
