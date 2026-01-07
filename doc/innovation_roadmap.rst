@@ -69,13 +69,16 @@ Innovations on the Energy Transition Model (ETM)
    * - 5.3 Addition of climate year functionality
          - Integrate weather years into energy demand scenarios including heating demand (electricity demand from heat pumps and boilers) and all final energy demands 
          - Produce a set of sectoral energy demand profiles for each scenario
-     - The final energy demand is based on historical data in PyPSA-Eur from Eurostat
+     - Open-TYNDP reproduces TYNDP 2024 methodology, so uses the same assumptions concerning final energy demand
      - PyPSA-Eur now supports spanning multiple consecutive or meteorological weather years in a single optimization. It provides pre-built cutouts for a wide range of years (e.g., 1996, 2010–2023). Total electricity demand is endogenous in the optimisation, as it is calculated from energy service demands and the endogenous choice of demand technologies (such as heat-pumps or gas boilers). The performance of the demand technologies as well as the demand itself is therefore a function of weather parameters calculated from climate scenarios. This could be integrated into the automated Open TYNDP workflow instead of using exogenous demands for e.g. natural gas.
    * - 5.4 Include missing non-EU countries 
            - Include missing non-EU countries such as Norway, Switzerland, and Serbia
            - Split the UK into separate datasets for Great Britain and Northern Ireland
-     - Open TYNDP covers the full ENTSO-E area and has recently integrated Ukraine, Moldova, and Kosovo
-     - PyPSA-Eur supports NUTS-level clustering across these regions. This makes it relatively easy to create a spatial representation including Norway, Switzerland and Serbia (or any other countries).
+     - Open TYNDP implements the same regional coverage as TYNDP 2024
+     - Open TYNDP covers the full ENTSO-E area and has recently integrated Ukraine, Moldova, and Kosovo. 
+       PyPSA-Eur supports NUTS-level clustering across these regions. 
+       This makes it relatively easy to create a spatial representation including Norway, Switzerland and Serbia (or any other countries).
+       Norway, UK & Switzerland are part of the reference grid, but new data would need to be collected
    * - 5.5 Stable ETM server for 2026 cycle
            - ensure that a stable version of the ETM is available with consistent data and features for the duration of the 2026 cycle
      - Open-source frameworks achieve stability through version control. To manage computational environment, conda-lock files are used for dependency management and Snakemake version requirements 
@@ -83,11 +86,10 @@ Innovations on the Energy Transition Model (ETM)
      - ditto
    * - 5.6 Integrate supply tool features in ETM 
             - Merging supply modeling features (CCS, imports, biomass) directly into the ETM to reduce interfaces and provide a coherent energy system representation
-     - Open TYNDP currently uses exogenous demand assumptions in line with TYNDP 2024
-     - PyPSA-Eur already integrates supply and demand features into a full integrated workflow.
-       PyPSA-Eur and Open-TYNDP are inherently integrated cross-sectoral models. 
-       They already include CO_2 sequestration potentials (``CO2Stop``), and optimising CO2 storage, CCS technologies, carbon networks, regional biomass potentials and transport costs, 
+     - Open TYNDP currently uses exogenous demand assumptions in line with TYNDP 2024. Open-TYNDP is an integrated cross-sectoral model. 
+       It already includes CO_2 sequestration potentials (``CO2Stop``), optimising CO2 storage, CCS technologies, carbon networks, regional biomass potentials and transport costs, 
        and automated import price configurations.
+     - PyPSA-Eur already integrates supply and demand features into a full integrated workflow.
    * - 5.7 Demand profile modelling in ETM
            - Model hourly methane and hydrogen profiles instead of using internal ENTSOG tool ensuring full consistency with scenario assumptions
            - Model hourly electricity demand profiles, creating a strong link to scenario parameters and demand profiles while leaving flexibility for TSOs to choose adoption
@@ -106,7 +108,7 @@ Pan-European Market Modelling Database App
      - Features available in PyPSA-Eur
    * - The PEMMDB app will provide an API to allow efficient data transfer into the PLEXOS model 
      - The Open TYNDP workflow already automates data integration through REST API calls to various sources, as well as automatically downloading, extracting, transforming and filtering data for all of its inputs.
-     - All features are already implemented in Open TYNDP
+     - 
 
 Quality Control
 ===============
@@ -177,8 +179,8 @@ The bulk of innovations are listed under system modelling.
    * - 8.4 Gas turbine usage and peaking unit utilisation 
          - Explore dynamic operational needs of gas turbines given increasing reliance of variable renewable resources
          - Update assumptions around CH4 to H2 retrofitting projects, which have struggled to compete in current markets
+     - Open-TYNDP follows TYNDP methodology 
      - Open TYNDP allows for endogenous retrofitting of CH4 plants to operate with H2, or retrofitting of gas boilers to run with H2
-     - All relevant features of already implemented
    * - 8.5 EV Modelling
          - Ensure that electricity flows follow charge/discharge cycles of EV batteries
      - Simultaneous charging/discharging is avoided in PyPSA framework used by Open TYNDP by the use of small marginal costs.
@@ -193,13 +195,13 @@ The bulk of innovations are listed under system modelling.
      - All relevant features of already implemented
    * - 8.8 Ammonia Import costs
            - Ensure ammonia import costs reflect the entire supply chain
-     - Open TYNDP includes location and capacities of European ammonia plants. Ammonia import prices and volumes can be configured.
+     - Open-TYNDP follows TYNDP methodology 
+     - PyPSA-Eur includes location and capacities of European ammonia plants. Ammonia import prices and volumes can be configured.
        Supply chain costs can be modelled directly for all green carriers. See `Neumann et al. (2025) <https://www.nature.com/articles/s41467-025-60652-1>`_
-     - All relevant features of already implemented
    * - 8.9 Distinguish between hydrogen use as energy or feedstock 
            - Separating hydrogen used directly as a gas from hydrogen used as a feedstock for producing synthetic fuels
-     - H2 use for energy and feedstock purposes is already clearly distinguished in Open TYNDP which includes a suite of technologies for methanol-to-power, reforming, and kerosene, and updated locations/capacities for ammonia plants to accurately distribute demand.
-     - All relevant features of already implemented
+     - Open-TYNDP follows TYNDP methodology 
+     - H2 use for energy and feedstock purposes is already clearly distinguished, which includes a suite of technologies for methanol-to-power, reforming, and kerosene, and updated locations/capacities for ammonia plants to accurately distribute demand.
    * - 8.10 Flexibility of heat pumps
            - Incorporate heat-pump modelling into PLEXOS to better represent flexibility, thermal inertia and heat storage
      - Open TYNDP implements the TYNDP methodology for modelling hybrid heating
@@ -226,7 +228,7 @@ The bulk of innovations are listed under system modelling.
    * - 8.13 Improved modelling of prosumer demand
      - Open TYNDP allows connection of microgeneration e.g. residential solar PV to be connected to low voltage buses.
        Residential and utility scale PV are treated separately, with separate rules in the workflow to build and cluster rooftop potentials.
-       Open TYNDP also distinguishes between stationary battery storage and EV batteries.
+       Open TYNDP also distinguishes between stationary/utility-scale batteries, home batteries and EV batteries.
      - All relevant features of already implemented
    * - 8.14 Consider peaking units as expansion candidates
      - Open TYNDP is a capacity expansion model by nature and can be set to build new peaking units whenever they are the cost-optimal way to ensure reliability.
@@ -269,9 +271,9 @@ Stakeholder Reference Group (SRG) Proposals
   
    * - 9.3 Industrial applications
            - Verify technical and commercial viability of converting industrial gas offtakes to H2 or other carriers before grid expansion
-     - Open TYNDP uses a script to interpolate industry sector transition pathways, gradually switching processes from status quo to best-in-class energy consumption per ton of material output.
-       One can also choose to model the supply of process heat for industry (split in low, medium, high) endogenously, so cost-optimal solution would be found for potential switch from methane to hydrogen/power/biomass
      - 
+     - PyPSA-Eur interpolates industry sector transition pathways, gradually switching processes from status quo to best-in-class energy consumption per ton of material output.
+       One can also choose to model the supply of process heat for industry (split in low, medium, high) endogenously, so cost-optimal solution would be found for potential switch from methane to hydrogen/power/biomass 
    * - 9.4 Sector-specific modelling
            - Discuss the Z1 Z2 concept to streamline management across gas, electricity, and hydrogen vectors
      - Open-TYNDP has already introduced the TYNDP H2 topology, which specifically includes the H2 Z1 and Z2 setup, production, and storage technologies
@@ -297,7 +299,7 @@ Stakeholder Reference Group (SRG) Proposals
    * - 9.9 Electric heat pumps
            - Move heat pump modeling to PLEXOS to better capture thermal inertia and load management
      - 
-     - PyPSA-Eur manages this via an energy-to-power ratio constraint for thermal storage, linking storage capacity to charger capacity to simulate load shifting
+     - Thermal inertia of buildings could be modelled as an additional store but is not implemented in PyPSA-Eur. Heat demand reductions by endogenous optimisation of building renovation is implemented in PyPSA-Eur.
    * - 9.10 Optimisation Across Energy Vectors
            - Expanding PLEXOS to integrate electricity, gas, and hydrogen systems holistically
      - Open-TYNDP optimizes these vectors simultaneously by default
@@ -322,7 +324,7 @@ Stakeholder Reference Group (SRG) Proposals
            - Conduct sensitivity analyses on price fluctuations (gas, oil, H2) to understand investment risks
      - Workflow management tool snakemake enables the simultaneous execution of multiple scenarios with single calls and configuration overrides
      - ditto
-   * - 9.16 Inclusion of emerging technologies
+   * - **9.16 Inclusion of emerging technologies**
      - The collaborative approach offered by Open TYNDP provides a formal review process by which new technologies can be included in the analysis
      - 
    * - 9.17 Out of scope Innovations
