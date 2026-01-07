@@ -252,7 +252,6 @@ rule solve_uncertainty_scenarios_myopic:
     script:
         "../scripts/solve_network.py"
 
-
 rule extract_uncertainty_results:
     message:
         "Extracting results from uncertainty analysis scenarios for subsequent processing."
@@ -276,6 +275,47 @@ rule extract_uncertainty_results:
     script:
         "../scripts/extract_uncertainty_results.py"
 
+rule prepare_sector_network_myopic_line_limited:
+    params:
+        solving=config_provider("solving"),
+        foresight=config_provider("foresight"),
+        co2_sequestration_potential=config_provider(
+            "sector", "co2_sequestration_potential", default=200
+        ),
+        custom_extra_functionality=input_custom_extra_functionality,
+        renewable_carriers=config_provider("electricity", "renewable_carriers"),
+        renewable_carriers_tyndp=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
+    input:
+        network=RESULTS # not sure the right way to call this file
+        + "networks/base_s_{clusters}__{sector_opts}_{planning_horizons}.nc",
+        offshore_zone_trajectories=branch(
+            config_provider("sector", "offshore_hubs_tyndp", "enable"),
+            resources("offshore_zone_trajectories.csv"),
+        ),
+        line_limits=resources(
+            "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
+        ),
+    output:
+        network=resources("networks/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.nc"),
+        # config=RESULTS
+        # + "configs/config.base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.yaml",
+    shadow:
+        shadow_config
+    log:
+        solver=RESULTS
+        + "logs/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}_solver.log",
+        memory=RESULTS
+        + "logs/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}_memory.log",
+        python=RESULTS
+        + "logs/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}_python.log",
+    threads: solver_threads
+    resources:
+        mem_mb=config_provider("solving", "mem_mb"),
+        runtime=config_provider("solving", "runtime", default="6h"),
+    script:
+        "../scripts/prepare_line_limit_scenario.py"
 
 rule solve_sector_network_myopic_line_limited:
     params:
@@ -290,15 +330,10 @@ rule solve_sector_network_myopic_line_limited:
             "electricity", "tyndp_renewable_carriers"
         ),
     input:
-        network=resources(
-            "networks/base_s_{clusters}__{sector_opts}_{planning_horizons}_brownfield.nc"
-        ),
+        network=resources("networks/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.nc"),
         offshore_zone_trajectories=branch(
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
-        ),
-        line_limits=resources(
-            "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
         ),
     output:
         network=RESULTS
@@ -326,7 +361,7 @@ rule solve_sector_network_myopic_line_limited:
     script:
         "../scripts/solve_network.py"
 
-
 # Need to set the ruleorder to have the `opts=lluk` wildcard version be processed
 # by the correct rule, not the `rule solve_sector_network_myopic`.
+ruleorder: prepare_sector_network_myopic_line_limited > prepare_sector_network
 ruleorder: solve_sector_network_myopic_line_limited > solve_sector_network_myopic

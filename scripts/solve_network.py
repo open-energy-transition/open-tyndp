@@ -1538,56 +1538,6 @@ def solve_network(
         n.model.print_infeasibilities()
         raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
-
-def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
-    """
-    Restrict electricity flows based on pre-calculated hourly line limits from and to GB.
-
-    Restrictions are put in place by limiting `p_min_pu` and `p_max_pu` of each line connected to GB.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        PyPSA network instance
-    line_limits_fp : str
-        File path to CSV containing line limits
-
-    Returns
-    -------
-    pypsa.Network
-        PyPSA network instance with restricted line flows
-    """
-    logger.info(
-        "Restricting electricity flows based on line limits from uncertainty scenarios."
-    )
-    line_limits = pd.read_csv(line_limits_fp, index_col=0, parse_dates=True)
-    line_p_max_pu = n.components.links.dynamic["p_max_pu"]
-
-    # Ensure that all lines for which line limits are provided exist in the network
-    # (If not, then we are using the wrong input either for the network or the line limits)
-    missing_lines = line_limits.columns.difference(n.components.links.static.index)
-    if not missing_lines.empty:
-        raise ValueError(
-            f"The following lines from the line limits file are missing in the network: {missing_lines.tolist()}"
-        )
-
-    # Remove existing restrictions that are also part of the `line_limits` if there are any
-    # This is not problematic, as the new restrictions are build upon the old restrictions,
-    # i.e. the most restrictive limits will apply
-    existing_restricted_links = line_limits.columns.intersection(line_p_max_pu.columns)
-    if any(existing_restricted_links):
-        logger.info(
-            f"Removing existing link flow restrictions for GB-connected lines: {existing_restricted_links.tolist()}"
-        )
-        line_p_max_pu = line_p_max_pu.drop(columns=existing_restricted_links)
-
-    # Add new restrictions
-    n.components.links.dynamic["p_max_pu"] = pd.concat(
-        [line_p_max_pu, line_limits], axis="columns"
-    )
-
-    return n
-
 #%%
 if __name__ == "__main__":
     if "snakemake" not in globals():
@@ -1622,10 +1572,10 @@ if __name__ == "__main__":
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
     )
 
-    # For simulating the status quo, restrict the line flows and limits based on
-    # uncertainty scenario results for bidding behaviour
-    if snakemake.rule == "solve_sector_network_myopic_line_limited":
-        n = restrict_elec_flows(n, line_limits_fp=snakemake.input["line_limits"])
+    # # For simulating the status quo, restrict the line flows and limits based on
+    # # uncertainty scenario results for bidding behaviour
+    # if snakemake.rule == "solve_sector_network_myopic_line_limited":
+    #     n = restrict_elec_flows(n, line_limits_fp=snakemake.input["line_limits"])
 
     logging_frequency = snakemake.config.get("solving", {}).get(
         "mem_logging_frequency", 30
