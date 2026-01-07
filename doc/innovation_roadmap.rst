@@ -282,7 +282,7 @@ Stakeholder Reference Group (SRG) Proposals
            - refine assumptions on EV charging behavior and their impact on potential grid bottlenecks
      - 
      - PyPSA-Eur now limits Vehicle-to-Grid (V2G) dispatch capacity based on the fraction of vehicles participating in demand-side management. It also refines temperature-dependent correction factors for EV energy demand.
-       Since the distribution grid is modelled (even though without the corresponding topology), just as an capacity expansion with corresponding costs, one can investigate the relation between flexible EV charging and necessary distribution grid capacity
+       Since the distribution grid is modelled (without the corresponding topology), just as an capacity expansion with corresponding costs, one can investigate the relation between flexible EV charging and necessary distribution grid capacity
    * - 9.6 District heating
            - Create a dedicated tool distinct from the ETM to simulate production from biomass, geothermal, and other sources
      - 
@@ -323,7 +323,7 @@ Stakeholder Reference Group (SRG) Proposals
    * - 9.15 Sensitivity to commodity prices
            - Conduct sensitivity analyses on price fluctuations (gas, oil, H2) to understand investment risks
      - Workflow management tool snakemake enables the simultaneous execution of multiple scenarios with single calls and configuration overrides
-     - ditto
+     - The solution space could be scanned for near optimal solutions using e.g. the MGA method (see `Millinger et al. (2025) <https://www.nature.com/articles/s41560-024-01693-6>`_)
    * - **9.16 Inclusion of emerging technologies**
      - The collaborative approach offered by Open TYNDP provides a formal review process by which new technologies can be included in the analysis
      - 
