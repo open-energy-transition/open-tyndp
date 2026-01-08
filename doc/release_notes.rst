@@ -11,6 +11,7 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
+* Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
 
 Upcoming PyPSA-Eur Release
 ================
