@@ -153,6 +153,7 @@ transmission_projects:
   enable: true
   include:
     tyndp2020: false
+    tyndp2024: true
     nep: false
     manual: false
 
