@@ -289,6 +289,7 @@ sector:
       H2 pipeline OH: 30
 
 costs:
+  custom_cost_scn: NT
   overwrites:
     lifetime:
       electrolysis: 25
