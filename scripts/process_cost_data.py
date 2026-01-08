@@ -118,8 +118,8 @@ def prepare_costs(
     nyears : float, optional
         Number of years for investment, by default 1.0
     custom_cost_scn : str, optional
-        Custom cost scenario to select from custom cost modification file (default "").
-        No custom cost are applied if None.
+        Custom cost scenario to select in custom cost modification file (default "").
+        No custom cost are applied if empty string.
 
     Returns
     -------
