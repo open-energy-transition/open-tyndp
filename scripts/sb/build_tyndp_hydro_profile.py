@@ -47,6 +47,16 @@ if __name__ == "__main__":
     technologies = snakemake.params.technologies
     pyears = snakemake.params.planning_horizons
 
+    tech_map = (
+        pd.read_csv(snakemake.input.carrier_mapping)[
+            ["pemmdb_hydro_inflows", "open_tyndp_carrier"]
+        ]
+        .dropna()
+        .set_index("pemmdb_hydro_inflows")
+        .drop_duplicates()
+        .open_tyndp_carrier
+    )
+
     inflows = []
 
     for year, technology in product(pyears, technologies):
@@ -68,7 +78,7 @@ if __name__ == "__main__":
             .rename_axis("time")
             .reset_index()
             .melt(id_vars=["time"], var_name="bus", value_name="profile")
-            .assign(year=year_i, hydro_tech=technology)
+            .assign(year=year_i, hydro_tech=tech_map[technology])
             .set_index(["bus", "time", "year", "hydro_tech"])
             .to_xarray()
         )
