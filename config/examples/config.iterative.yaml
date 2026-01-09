@@ -5,12 +5,12 @@
 tutorial: true
 
 run:
-  name: "test-sector-myopic"
+  name: "test-iterative"
   disable_progressbar: true
   shared_resources:
     policy: false
+  shared_cutouts: true
 
-foresight: myopic
 
 scenario:
   clusters:
@@ -19,8 +19,6 @@ scenario:
   - ''
   planning_horizons:
   - 2030
-  - 2040
-  - 2050
 
 countries: ['BE']
 
@@ -28,17 +26,48 @@ snapshots:
   start: "2013-03-01"
   end: "2013-03-08"
 
+electricity:
+
+  extendable_carriers:
+    Generator: [OCGT]
+    StorageUnit: [battery]
+    Store: [H2]
+    Link: [H2 pipeline]
+
+  renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float]
+
+atlite:
+  default_cutout: be-03-2013-era5
+  cutouts:
+    be-03-2013-era5:
+      module: era5
+      x: [4., 15.]
+      y: [46., 56.]
+      time: ["2013-03-01", "2013-03-08"]
+
+renewable:
+  offwind-ac:
+    max_depth: false
+  offwind-dc:
+    max_depth: false
+  offwind-float:
+    max_depth: false
+    min_depth: false
+
+clustering:
+  temporal:
+    resolution_sector: 24h
+
 sector:
-  central_heat_vent: true
-  solid_biomass_import:
-    enable: true
+  gas_network: true
+  H2_retrofit: true
   district_heating:
-    ates:
-      enable: true
     ptes:
       supplemental_heating:
         enable: true
         booster_heat_pump: true
+    ates:
+      enable: true
   heat_pump_sources:
     urban central:
     - air
@@ -65,51 +94,21 @@ sector:
   biomass_to_liquid: false
   electrobiofuels: false
 
-electricity:
-  extendable_carriers:
-    Generator: [OCGT, solar]
-    StorageUnit: [battery]
-    Store: [H2]
-    Link: [H2 pipeline]
-
-  renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float]
-
-  estimate_renewable_capacities:
-    enable: false
-
-atlite:
-  default_cutout: be-03-2013-era5
-  cutouts:
-    be-03-2013-era5:
-      module: era5
-      x: [4., 15.]
-      y: [46., 56.]
-      time: ["2013-03-01", "2013-03-08"]
-
-renewable:
-  offwind-ac:
-    max_depth: false
-  offwind-dc:
-    max_depth: false
-  offwind-float:
-    max_depth: false
-    min_depth: false
-
-clustering:
-  temporal:
-    resolution_sector: 24h
-
 industry:
-  St_primary_fraction:
-    2030: 0.6
-    2040: 0.5
-    2050: 0.4
+  HVC_environment_sequestration_fraction: 0.5
+  waste_to_energy: true
+  waste_to_energy_cc: true
 
 solving:
   solver:
     name: highs
     options: highs-simplex
-  mem: 4000
+
+  options:
+    skip_iterations: false  # Enable iterative optimization
+    track_iterations: true
+    min_iterations: 2
+    max_iterations: 3
 
 plotting:
   map:
