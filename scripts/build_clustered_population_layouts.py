@@ -40,6 +40,10 @@ if __name__ == "__main__":
 
     pop = pd.DataFrame(pop, index=clustered_regions.index)
 
+    if snakemake.params.base_network == "tyndp":
+        buses_tyndp = pd.read_csv(snakemake.input.buses_tyndp)
+        pop = pop.reindex(buses_tyndp.bus_id, fill_value=0).sort_index()
+
     pop["ct"] = pop.index.str[:2]
     country_population = pop.total.groupby(pop.ct).sum()
     pop["fraction"] = pop.total / pop.ct.map(country_population)

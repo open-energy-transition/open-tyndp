@@ -17,6 +17,11 @@ Upcoming Open-TYNDP Release
 
 * Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
 
+**Bugfixes and Compatibility**
+
+* Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to allow for consistent use of its index for selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
+
+
 Upcoming PyPSA-Eur Release
 ================
 
