@@ -1834,22 +1834,43 @@ def _add_electrolyzer_capacities(
     )
 
 
-def _extract_inflows(inflow_tech_name, inflows_t, tech, tech_i, planning_horizon):
+def _extract_inflows(
+    inflows_t: xr.Dataset, hydro_tech: str, hydro_tech_i: pd.Index, planning_horizon: int, name_sfx: str = "",
+):
     """
     Extract inflows for a given hydro technology and planning horizon.
+
+    Parameters
+    ----------
+    inflows_t : xr.Dataset
+        Dataset with inflows time series for different hydro technologies.
+    hydro_tech : str
+        Name of the hydro technology added to the network.
+    hydro_tech_i : pd.Index
+        Index of network components associated with the hydro technology.
+    planning_horizon : int
+        Planning horizon for which hydro inflows should be extracted.
+    name_sfx : str, optional
+        String suffix added to the column name of the returned inflow Dataframe
+
+    Returns
+    -------
+    pd.DataFrame
+        Hydro inflow profiles for all network nodes of the passed hydro technology.
+
     """
     try:
         return (
-            inflows_t.sel(hydro_tech=inflow_tech_name, year=planning_horizon, drop=True)
+            inflows_t.sel(hydro_tech=hydro_tech, year=planning_horizon, drop=True)
             .to_dataframe()
             .pivot_table(values="profile", index="time", columns="bus")
-            .rename(columns=lambda x: f"{x} {tech}")
-            .reindex(tech_i, axis=1, fill_value=0.0)
+            .rename(columns=lambda x: f"{x} {hydro_tech}{name_sfx}")
+            .reindex(hydro_tech_i, axis=1, fill_value=0.0)
         )
 
     except (KeyError, ValueError) as e:
         logger.warning(
-            f"Error extracting inflows for {tech} and year {planning_horizon}: {e}"
+            f"Error extracting inflows for {hydro_tech} and year {planning_horizon}: {e}"
         )
         return
 
@@ -1907,10 +1928,9 @@ def _add_hydro_ror_capacities(
 
     # Process inflows
     inflows = _extract_inflows(
-        inflow_tech_name=tech,
         inflows_t=inflows_t,
-        tech=tech,
-        tech_i=tech_i,
+        hydro_tech=tech,
+        hydro_tech_i=tech_i,
         planning_horizon=planning_horizon,
     )
     if inflows is None:
@@ -1972,10 +1992,9 @@ def _add_storage_unit_hydro(
 
     # Process inflows
     inflows = _extract_inflows(
-        inflow_tech_name=tech,
         inflows_t=inflows_t,
-        tech=tech,
-        tech_i=tech_i,
+        hydro_tech=tech,
+        hydro_tech_i=tech_i,
         planning_horizon=planning_horizon,
     )
     if inflows is None:
@@ -2005,11 +2024,11 @@ def _add_phs_inflows(
         return
 
     inflows = _extract_inflows(
-        inflow_tech_name=tech,
         inflows_t=inflows_t,
-        tech=tech_inflow,
-        tech_i=gen_i,
+        hydro_tech=tech,
+        hydro_tech_i=gen_i,
         planning_horizon=planning_horizon,
+        name_sfx="-inflows",
     )
     if inflows is None:
         return
