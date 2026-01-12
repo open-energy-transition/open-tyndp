@@ -100,7 +100,7 @@ def prepare_costs(
     custom_costs_fn: str,
     max_hours: dict = None,
     nyears: float = 1.0,
-    custom_cost_scn: str = "",
+    custom_cost_scn: str = "all",
 ) -> pd.DataFrame:
     """
     Standardize and prepare extended costs data.
@@ -118,7 +118,7 @@ def prepare_costs(
     nyears : float, optional
         Number of years for investment, by default 1.0
     custom_cost_scn : str, optional
-        Custom cost scenario to select in custom cost modification file (default "").
+        Custom cost scenario to select in custom cost modification file (default "all").
         No custom cost are applied if empty string.
 
     Returns
