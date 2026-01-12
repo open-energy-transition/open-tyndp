@@ -64,6 +64,10 @@ def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Netwo
 
     return n
 
+def extend_primary_fuel_sources(n):
+    primary_fuel_sources = ['EU lignite', 'EU coal', 'EU oil primary', 'EU uranium', 'EU gas']
+    n.generators.loc[primary_fuel_sources,'p_nom_extendable'] = True
+    return n
 
 def add_scenario_uncertainty(
     n: pypsa.Network, scenario_name: str, error_fp: str = None
@@ -271,6 +275,7 @@ if __name__ == "__main__":
     n.optimize.fix_optimal_capacities()               
     n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
+    n = extend_primary_fuel_sources(n)
 
     for uncertainty_scenario in snakemake.params.uncertainty_scenarios:
         n_uncertain = add_scenario_uncertainty(

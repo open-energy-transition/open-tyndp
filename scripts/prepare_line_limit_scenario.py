@@ -86,8 +86,8 @@ def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
         "Restricting electricity flows based on line limits from uncertainty scenarios."
     )
     line_limits = pd.read_csv(line_limits_fp, index_col=0, parse_dates=True)
-    line_p_max_pu = 1.05 * n.components.links.dynamic["p_max_pu"]
-    line_p_min_pu = 0.95 * n.components.links.dynamic["p_max_pu"]
+    line_p_max_pu = n.components.links.dynamic["p_max_pu"]
+    line_p_min_pu = n.components.links.dynamic["p_min_pu"]
 
     # Ensure that all lines for which line limits are provided exist in the network
     # (If not, then we are using the wrong input either for the network or the line limits)
@@ -110,12 +110,28 @@ def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
 
     # Add new restrictions
     n.components.links.dynamic["p_max_pu"] = pd.concat(
-        [line_p_max_pu, line_limits], axis="columns"
+        [line_p_max_pu, line_limits * 1.05], axis="columns"
     )
     n.components.links.dynamic["p_min_pu"] = pd.concat(
-        [line_p_min_pu, line_limits], axis="columns"
+        [line_p_min_pu, line_limits * 0.95], axis="columns"
     )
 
+    return n
+
+def restrict_elec_flows_v2(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
+    logger.info(
+        "Restricting electricity flows based on line limits from uncertainty scenarios."
+    )
+    line_limits = pd.read_csv(line_limits_fp, index_col=0, parse_dates=True)
+    links_i = line_limits.columns
+
+    n.components.links.dynamic["p_min_pu"][links_i] = np.clip(0.95 * line_limits, 0, 1)
+    n.components.links.dynamic["p_max_pu"][links_i] = np.clip(1.05 * line_limits, 0, 1)
+    return n 
+
+def extend_primary_fuel_sources(n):
+    primary_fuel_sources = ['EU lignite', 'EU coal', 'EU oil primary', 'EU uranium', 'EU gas']
+    n.generators.loc[primary_fuel_sources,'p_nom_extendable'] = True
     return n
 
 #%%
@@ -140,8 +156,8 @@ if __name__ == "__main__":
     n.optimize.fix_optimal_capacities()               
     n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
-
-    n = restrict_elec_flows(n, snakemake.input.line_limits)
-
+    n = extend_primary_fuel_sources(n)
+    n = restrict_elec_flows_v2(n, snakemake.input.line_limits)
+    n.name += 'status_quo'
     n.export_to_netcdf(snakemake.output.network)
     
