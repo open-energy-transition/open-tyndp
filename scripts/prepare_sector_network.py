@@ -8473,7 +8473,7 @@ def add_import_options(
             )
 
 
-def _add_phs(n, costs, nodes, carrier, inflows=False):
+def _add_phs(n, carrier, nodes, costs, inflows=False):
     """
     Add TYNDP PHS with or without inflows to the network.
     """
@@ -8566,7 +8566,7 @@ def add_hydro_tyndp(
     None
         Modifies the network object in-place by adding hydro components.
     """
-    logger.info(f"Adding TYNDP technologies: {', '.join(tyndp_hydro)}.")
+    logger.info(f"Adding TYNDP hydro technologies: {', '.join(tyndp_hydro)}.")
 
     nodes = n.buses.query("carrier == 'AC'").index
 
@@ -8616,11 +8616,11 @@ def add_hydro_tyndp(
 
     # Attach hydro-phs as Store, Links and additional generator for inflows
     if "hydro-phs" in tyndp_hydro:
-        _add_phs(n, costs, nodes, "hydro-phs", inflows=True)
+        _add_phs(n, "hydro-phs", nodes, costs, inflows=True)
 
     # Attach hydro-phs-pure as Store and Links
     if "hydro-phs-pure" in tyndp_hydro:
-        _add_phs(n, costs, nodes, "hydro-phs-pure", inflows=False)
+        _add_phs(n, "hydro-phs-pure", nodes, costs, inflows=False)
 
 
 if __name__ == "__main__":
