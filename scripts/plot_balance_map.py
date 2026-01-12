@@ -51,9 +51,9 @@ if __name__ == "__main__":
     if imports_as_flows:
         n.buses.loc[:, "carrier"] = n.buses.carrier.str.replace("import ", "")
     sanitize_carriers(n, snakemake.config)
-    pypsa.options.params.statistics.round = 3
-    pypsa.options.params.statistics.drop_zero = True
-    pypsa.options.params.statistics.nice_names = False
+    pypsa.set_option("params.statistics.round", 3)
+    pypsa.set_option("params.statistics.drop_zero", True)
+    pypsa.set_option("params.statistics.nice_names", False)
 
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
 
