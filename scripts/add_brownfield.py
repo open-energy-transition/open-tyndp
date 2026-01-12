@@ -460,6 +460,7 @@ def remove_tyndp_fixed_p(
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies to remove capacities for.
     tyndp_hydro : list[str]
+        List of TYNDP hydro technologies to remove capacities for.
 
     Returns
     -------
@@ -471,15 +472,14 @@ def remove_tyndp_fixed_p(
         "and replace with cumulative capacities from new planning horizon."
     )
 
-    # Remove conventional thermal techs
-    tech_i = n_p.links.query("carrier.isin(@tyndp_conventional_thermals)").index
-    n_p.remove("Link", tech_i)
-
-    # Remove hydro techs
+    # Remove hydro and conventional thermal techs
     for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
-        tech_i = c.static.query(
-            "carrier.isin(@tyndp_hydro) or carrier == 'hydro-phs-inflows'"
-        ).index
+        remove_carriers = (
+            tyndp_hydro + tyndp_conventional_thermals
+            if c.name == "Link"
+            else tyndp_hydro
+        )
+        tech_i = c.static.query("carrier.isin(@remove_carriers)").index
         n_p.remove(c.name, tech_i)
 
 
@@ -520,7 +520,7 @@ if __name__ == "__main__":
     tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
         "open_tyndp_index"
     )
-    # Get list of conventional thermal technologies
+    # Get lists of conventional thermal and hydro technologies
     _, tyndp_conventional_thermals = get_tyndp_conventional_thermals(
         mapping=tyndp_carrier_mapping,
         tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
@@ -528,11 +528,12 @@ if __name__ == "__main__":
         include_h2_fuel_cell=snakemake.params.hydrogen_fuel_cell,
         include_h2_turbine=snakemake.params.hydrogen_turbine,
     )
-
-    # Drop fixed TYNDP conventional and hydro capacities from previous year as TYNDP capacities are given as cumulative input
     tyndp_hydro = [
         c for c in snakemake.params.tyndp_renewable_carriers if c.startswith("hydro")
-    ]
+    ] + ["hydro-phs-turbine", "hydro-phs-pump", "hydro-phs-inflows"]
+
+    # Drop fixed TYNDP conventional and hydro capacities from previous year
+    # as TYNDP capacities are given as cumulative input
     remove_tyndp_fixed_p(
         n_p=n_p,
         tyndp_conventional_thermals=tyndp_conventional_thermals,
@@ -556,4 +557,3 @@ if __name__ == "__main__":
 
     sanitize_custom_columns(n)
     sanitize_carriers(n, snakemake.config)
-    n.export_to_netcdf(snakemake.output[0])

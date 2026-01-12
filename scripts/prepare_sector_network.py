@@ -1835,7 +1835,11 @@ def _add_electrolyzer_capacities(
 
 
 def _extract_inflows(
-    inflows_t: xr.Dataset, hydro_tech: str, hydro_tech_i: pd.Index, planning_horizon: int, name_sfx: str = "",
+    inflows_t: xr.Dataset,
+    hydro_tech: str,
+    hydro_tech_i: pd.Index,
+    planning_horizon: int,
+    name_sfx: str = "",
 ):
     """
     Extract inflows for a given hydro technology and planning horizon.
