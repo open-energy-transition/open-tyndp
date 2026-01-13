@@ -296,6 +296,4 @@ if __name__ == "__main__":
         n_uncertain.consistency_check()
 
         logger.info(f"Saving uncertainty scenario network to {output_path}")
-        n_uncertain.optimize.create_model()
-        n_uncertain.model.to_file(output_path[:-3] + '.lp', explicit_coordinate_names=True)
         n_uncertain.export_to_netcdf(output_path)
