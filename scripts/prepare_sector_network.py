@@ -2074,15 +2074,17 @@ def _add_phs_hydro(
     )
 
     # Extract capacities
-    p_nom_turbine = pemmdb_capacities.query(
-        "carrier == @tech and index_carrier.str.contains('turbine', na=False) and unit == 'MW'"
-    )["p_nom"]
-    p_nom_pump = pemmdb_capacities.query(
-        "carrier == @tech and index_carrier.str.contains('pump', na=False) and unit == 'MW'"
-    )["p_nom"].mul(-1)  # input pump capacities are given in negative direction
-    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'").rename(
-        index=lambda x: f"{x} {tech}"
-    )["e_nom"]
+    p_nom_turbine = pemmdb_capacities.loc[
+        (pemmdb_capacities["open_tyndp_type"] == f"{tech}-turbine")
+        & (pemmdb_capacities["unit"] == "MW")
+    ]["p_nom"]
+    p_nom_pump = pemmdb_capacities.loc[
+        (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
+        & (pemmdb_capacities["unit"] == "MW")
+    ]["p_nom"].mul(-1)  # input pump capacities are given in negative direction
+    e_nom = pemmdb_capacities.loc[
+        (pemmdb_capacities["carrier"] == tech) & (pemmdb_capacities["unit"] == "MWh")
+    ].rename(index=lambda x: f"{x} {tech}")["e_nom"]
 
     # Set store capacities
     store_i = n.stores.query("carrier == @tech").index
@@ -2093,12 +2095,8 @@ def _add_phs_hydro(
         )
 
     # Set turbine and pump capacities
-    turbine_i = n.links.query(
-        "carrier.str.contains(@tech) and carrier.str.contains('turbine', na=False)"
-    ).index
-    pump_i = n.links.query(
-        "carrier.str.contains(@tech) and carrier.str.contains('pump', na=False)"
-    ).index
+    turbine_i = n.links.loc[n.links.carrier == f"{tech}-turbine"].index
+    pump_i = n.links.loc[n.links.carrier == f"{tech}-pump"].index
 
     if not turbine_i.empty:
         n.links.loc[turbine_i, "p_nom"] = (
