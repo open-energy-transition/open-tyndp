@@ -489,18 +489,6 @@ def prepare_network(
             marginal_cost=load_shedding,  # Eur/MWh
             p_nom=np.inf,
         )
-        
-        n.add(
-            "Generator",
-            buses_i,
-            " load negative",
-            bus=buses_i,
-            carrier="load",
-            marginal_cost=load_shedding,  # Eur/MWh
-            p_nom_extendable=True,
-            p_nom_min = -1,
-            p_nom_max=0
-        )
 
     if solve_opts.get("curtailment_mode"):
         n.add("Carrier", "curtailment", color="#fedfed", nice_name="Curtailment")
