@@ -170,7 +170,6 @@ if __name__ == "__main__":
         mask = [pd.Timestamp(t).year in years_in_time for t in cutout_time]
         cutout = cutout.sel(time=cutout_time[mask])
     else:
-        breakpoint()
         cutout = cutout.sel(time=time)
 
     countries = snakemake.params.countries

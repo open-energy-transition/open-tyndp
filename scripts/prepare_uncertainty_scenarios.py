@@ -23,8 +23,8 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 def add_electrolysis_constraints(n):
-    "Enforce the electrolysis dispatch to the optimal dispatch found in the solved network."
-    electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
+    """Enforce the electrolysis dispatch to the optimal dispatch found in the solved network."""
+    electrolysis_i = n.links[n.links.carrier == "H2 Electrolysis"].index
     n.links_t.p_set.loc[:,electrolysis_i] = n.links_t.p0.loc[:,electrolysis_i]
     return n
 

@@ -23,9 +23,9 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 def add_electrolysis_constraints(n):
-    electrolysis_i = n.links[n.links.carrier=="H2 Electrolysis"].index
-    n.links_t.p_set.loc[:,electrolysis_i] = abs(n.links_t.p0.loc[:,electrolysis_i])
-    return n 
+    """Enforce the electrolysis dispatch to the optimal dispatch found in the solved network."""
+    electrolysis_i = n.links[n.links.carrier == "H2 Electrolysis"].index
+    n.links_t.p_set.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i]
 
 def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Network:
     """Removes components that were added in solve_network.py; we're planing on running this network through the same step again and want to avoid adding the components again."""

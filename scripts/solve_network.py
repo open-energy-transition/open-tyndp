@@ -1528,7 +1528,7 @@ def solve_network(
         n.model.print_infeasibilities()
         raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
-#%%
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -1561,11 +1561,6 @@ if __name__ == "__main__":
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
     )
-
-    # # For simulating the status quo, restrict the line flows and limits based on
-    # # uncertainty scenario results for bidding behaviour
-    # if snakemake.rule == "solve_sector_network_myopic_line_limited":
-    #     n = restrict_elec_flows(n, line_limits_fp=snakemake.input["line_limits"])
 
     logging_frequency = snakemake.config.get("solving", {}).get(
         "mem_logging_frequency", 30

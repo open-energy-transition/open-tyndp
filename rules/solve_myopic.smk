@@ -298,9 +298,9 @@ rule prepare_sector_network_myopic_line_limited:
             "uncertainty_scenarios/{clusters}_lluk_{sector_opts}_{planning_horizons}.csv"
         ),
     output:
-        network=resources("networks/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.nc"),
-        # config=RESULTS
-        # + "configs/config.base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.yaml",
+        network=resources(
+            "networks/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.nc"
+        ),
     shadow:
         shadow_config
     log:
