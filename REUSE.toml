@@ -55,5 +55,5 @@ SPDX-License-Identifier = "MIT"
 path = [
     "utils/windows-installer/oet_logo.*",
 ]
-SPDX-FileCopyrightText = "Open Energy Transition gGmbH"
-SPDX-License-Identifier = "CC-BY-4.0"
+SPDX-FileCopyrightText = "Copyright (c) 2025 Open Energy Transition gGmbH"
+SPDX-License-Identifier = "LicenseRef-AllRightsReserved"

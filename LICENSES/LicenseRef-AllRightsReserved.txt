@@ -1,0 +1,6 @@
+Proprietary License
+
+Copyright (c) 2025 Open Energy Transition gGmbH
+All rights reserved.
+
+No permission is granted to use, copy, modify, or distribute this software.
