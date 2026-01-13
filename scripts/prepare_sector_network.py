@@ -2110,12 +2110,7 @@ def _add_phs_hydro(
 
     if not pump_i.empty:
         n.links.loc[pump_i, "p_nom"] = (
-            n.links.loc[pump_i, "bus0"]
-            .map(p_nom_pump)
-            .fillna(0.0)
-            .div(
-                n.links.loc[pump_i, "efficiency"]
-            )  # existing capacities are given in P_el
+            n.links.loc[pump_i, "bus0"].map(p_nom_pump).fillna(0.0)
         )
 
     # Add inflows if applicable
