@@ -164,12 +164,12 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
-    n = pypsa.Network(snakemake.input.network)
+    n = pypsa.Network(snakemake.input["network"])
 
     n.optimize.fix_optimal_capacities()
     n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
     n = extend_primary_fuel_sources(n)
-    n = restrict_elec_flows_v2(n, snakemake.input.line_limits)
-    n.name += "status_quo"
-    n.export_to_netcdf(snakemake.output.network)
+    n = restrict_elec_flows_v2(n, snakemake.input["line_limits"])
+    n.name = f"{n.name} status_quo"
+    n.export_to_netcdf(snakemake.output["network"])
