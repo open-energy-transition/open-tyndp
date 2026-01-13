@@ -19,7 +19,7 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
-* Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to allow for consistent use of its index for selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
+* Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to enable consistent use of its index when selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
 
 
 Upcoming PyPSA-Eur Release
