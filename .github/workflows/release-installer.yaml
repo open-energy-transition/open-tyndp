@@ -35,6 +35,7 @@ jobs:
           exit 1
         fi
         git branch --force master HEAD
+        git checkout master
 
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.9.3
