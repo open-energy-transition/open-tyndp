@@ -1901,13 +1901,13 @@ def _add_new_profiles(
     component_t[attr].index.name = index_name
 
 
-def _add_hydro_ror_capacities(
+def _add_ror_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     inflows_t: xr.Dataset,
 ) -> None:
     """
-    Add hydro-ror capacities and inflows.
+    Add generator capacities and inflows to Run-of-river hydropower units (hydro-ror).
     """
     tech = "hydro-ror"
     logger.debug(f"Adding {tech} PEMMDB capacities and inflows.")
@@ -1949,14 +1949,14 @@ def _add_hydro_ror_capacities(
     _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
 
 
-def _add_storage_unit_hydro(
+def _add_reservoir_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     inflows_t: xr.Dataset,
     tech: str,
 ) -> None:
     """
-    Add storage unit hydro capacities and inflows (hydro-pondage or hydro-reservoir).
+    Add storage unit capacities and inflows to reservoir hydropower units (hydro-pondage or hydro-reservoir).
 
     Parameters
     ----------
@@ -2040,14 +2040,14 @@ def _add_phs_inflows(
     _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
 
 
-def _add_phs_hydro(
+def _add_phs_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     inflows_t: xr.Dataset,
     tech: str,
 ) -> None:
     """
-    Add open or closed pumped hydro storage capacities and inflows (hydro-phs or hydro-phs-pure).
+    Add capacities and inflows to open or closed pumped hydro storages (hydro-phs or hydro-phs-pure).
 
     Parameters
     ----------
@@ -2136,31 +2136,11 @@ def _add_hydro_capacities(
     # Load hydro inflows
     inflows_t = xr.open_dataset(hydro_inflows_fn).sel(year=planning_horizon, drop=True)
 
-    _add_hydro_ror_capacities(n, pemmdb_capacities, inflows_t)
-    _add_storage_unit_hydro(
-        n,
-        pemmdb_capacities,
-        inflows_t,
-        tech="hydro-pondage",
-    )
-    _add_storage_unit_hydro(
-        n,
-        pemmdb_capacities,
-        inflows_t,
-        tech="hydro-reservoir",
-    )
-    _add_phs_hydro(
-        n,
-        pemmdb_capacities,
-        inflows_t,
-        tech="hydro-phs",
-    )
-    _add_phs_hydro(
-        n,
-        pemmdb_capacities,
-        inflows_t,
-        tech="hydro-phs-pure",
-    )
+    _add_ror_capacities(n, pemmdb_capacities, inflows_t)
+    _add_reservoir_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-pondage")
+    _add_reservoir_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-reservoir")
+    _add_phs_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-phs")
+    _add_phs_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-phs-pure")
 
 
 def add_existing_pemmdb_capacities(
