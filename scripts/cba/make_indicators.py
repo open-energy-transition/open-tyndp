@@ -32,6 +32,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.prepare_sector_network import get
 
 logger = logging.getLogger(__name__)
 
@@ -264,10 +265,8 @@ if __name__ == "__main__":
     # Calculate indicators
     indicators = calculate_b1_indicator(n_reference, n_project, method=method)
 
-    co2_societal_costs_map = snakemake.config.get("cba", {}).get("co2_societal_cost")
-    co2_societal_costs = co2_societal_costs_map.get(
-        planning_horizon, co2_societal_costs_map.get(str(planning_horizon))
-    )
+    co2_societal_costs_map = snakemake.config["cba"]["co2_societal_cost"]
+    co2_societal_costs = get(co2_societal_costs_map, planning_horizon)
 
     co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
     b2_indicators = calculate_b2_indicator(
