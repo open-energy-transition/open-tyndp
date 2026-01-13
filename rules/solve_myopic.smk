@@ -252,6 +252,7 @@ rule solve_uncertainty_scenarios_myopic:
     script:
         "../scripts/solve_network.py"
 
+
 rule extract_uncertainty_results:
     message:
         "Extracting results from uncertainty analysis scenarios for subsequent processing."
@@ -275,6 +276,7 @@ rule extract_uncertainty_results:
     script:
         "../scripts/extract_uncertainty_results.py"
 
+
 rule prepare_sector_network_myopic_line_limited:
     params:
         solving=config_provider("solving"),
@@ -288,8 +290,9 @@ rule prepare_sector_network_myopic_line_limited:
             "electricity", "tyndp_renewable_carriers"
         ),
     input:
-        network=RESULTS # not sure the right way to call this file
+        network=RESULTS
         + "networks/base_s_{clusters}__{sector_opts}_{planning_horizons}.nc",
+        # not sure the right way to call this file
         offshore_zone_trajectories=branch(
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
@@ -317,6 +320,7 @@ rule prepare_sector_network_myopic_line_limited:
     script:
         "../scripts/prepare_line_limit_scenario.py"
 
+
 rule solve_sector_network_myopic_line_limited:
     params:
         solving=config_provider("solving"),
@@ -330,7 +334,9 @@ rule solve_sector_network_myopic_line_limited:
             "electricity", "tyndp_renewable_carriers"
         ),
     input:
-        network=resources("networks/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.nc"),
+        network=resources(
+            "networks/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}.nc"
+        ),
         offshore_zone_trajectories=branch(
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
@@ -360,6 +366,7 @@ rule solve_sector_network_myopic_line_limited:
         )
     script:
         "../scripts/solve_network.py"
+
 
 # Need to set the ruleorder to have the `opts=lluk` wildcard version be processed
 # by the correct rule, not the `rule solve_sector_network_myopic`.

@@ -12,7 +12,6 @@ import logging
 
 import pandas as pd
 import pypsa
-import numpy as np
 
 from scripts._helpers import (
     configure_logging,
@@ -22,11 +21,13 @@ from scripts._helpers import (
 
 logger = logging.getLogger(__name__)
 
+
 def add_electrolysis_constraints(n):
     """Enforce the electrolysis dispatch to the optimal dispatch found in the solved network."""
     electrolysis_i = n.links[n.links.carrier == "H2 Electrolysis"].index
-    n.links_t.p_set.loc[:,electrolysis_i] = n.links_t.p0.loc[:,electrolysis_i]
+    n.links_t.p_set.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i]
     return n
+
 
 def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Network:
     """Removes components that were added in solve_network.py; we're planing on running this network through the same step again and want to avoid adding the components again."""
@@ -65,10 +66,18 @@ def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Netwo
 
     return n
 
+
 def extend_primary_fuel_sources(n):
-    primary_fuel_sources = ['EU lignite', 'EU coal', 'EU oil primary', 'EU uranium', 'EU gas']
-    n.generators.loc[primary_fuel_sources,'p_nom_extendable'] = True
+    primary_fuel_sources = [
+        "EU lignite",
+        "EU coal",
+        "EU oil primary",
+        "EU uranium",
+        "EU gas",
+    ]
+    n.generators.loc[primary_fuel_sources, "p_nom_extendable"] = True
     return n
+
 
 def add_scenario_uncertainty(
     n: pypsa.Network, scenario_name: str, error_fp: str = None
@@ -245,7 +254,7 @@ def add_scenario_uncertainty(
             # Errors may cause values below which is unrealistic, so clip accordingly
             # We could also clip > 1, but then we need to differentiate between
             # loads (absolute timeseries) and generators (pu timeseries)
-            new_p_max_pu = new_p_max_pu.clip(lower=0) #, upper=max_value)
+            new_p_max_pu = new_p_max_pu.clip(lower=0)  # , upper=max_value)
 
             # Assign the new values back to the generators dataframe
             # (this propagates to the network object n because it is a reference, not a copy)
@@ -254,7 +263,8 @@ def add_scenario_uncertainty(
             comp[cols] = new_p_max_pu
     return n
 
-#%%
+
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -272,8 +282,8 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     n = pypsa.Network(snakemake.input.network)
-    
-    n.optimize.fix_optimal_capacities()               
+
+    n.optimize.fix_optimal_capacities()
     n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
     n = extend_primary_fuel_sources(n)

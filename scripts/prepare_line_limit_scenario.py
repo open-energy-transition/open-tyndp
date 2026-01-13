@@ -10,9 +10,9 @@ Uses an already solved network and prepares it for uncertainty analysis by:
 
 import logging
 
+import numpy as np
 import pandas as pd
 import pypsa
-import numpy as np
 
 from scripts._helpers import (
     configure_logging,
@@ -22,10 +22,13 @@ from scripts._helpers import (
 
 logger = logging.getLogger(__name__)
 
+
 def add_electrolysis_constraints(n):
     """Enforce the electrolysis dispatch to the optimal dispatch found in the solved network."""
     electrolysis_i = n.links[n.links.carrier == "H2 Electrolysis"].index
     n.links_t.p_set.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i]
+    return n
+
 
 def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Network:
     """Removes components that were added in solve_network.py; we're planing on running this network through the same step again and want to avoid adding the components again."""
@@ -63,6 +66,7 @@ def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Netwo
         )
 
     return n
+
 
 def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
     """
@@ -118,6 +122,7 @@ def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
 
     return n
 
+
 def restrict_elec_flows_v2(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
     logger.info(
         "Restricting electricity flows based on line limits from uncertainty scenarios."
@@ -127,14 +132,22 @@ def restrict_elec_flows_v2(n: pypsa.Network, line_limits_fp: str) -> pypsa.Netwo
 
     n.components.links.dynamic["p_min_pu"][links_i] = np.clip(0.95 * line_limits, 0, 1)
     n.components.links.dynamic["p_max_pu"][links_i] = np.clip(1.05 * line_limits, 0, 1)
-    return n 
-
-def extend_primary_fuel_sources(n):
-    primary_fuel_sources = ['EU lignite', 'EU coal', 'EU oil primary', 'EU uranium', 'EU gas']
-    n.generators.loc[primary_fuel_sources,'p_nom_extendable'] = True
     return n
 
-#%%
+
+def extend_primary_fuel_sources(n):
+    primary_fuel_sources = [
+        "EU lignite",
+        "EU coal",
+        "EU oil primary",
+        "EU uranium",
+        "EU gas",
+    ]
+    n.generators.loc[primary_fuel_sources, "p_nom_extendable"] = True
+    return n
+
+
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -152,12 +165,11 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     n = pypsa.Network(snakemake.input.network)
-    
-    n.optimize.fix_optimal_capacities()               
+
+    n.optimize.fix_optimal_capacities()
     n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
     n = extend_primary_fuel_sources(n)
     n = restrict_elec_flows_v2(n, snakemake.input.line_limits)
-    n.name += 'status_quo'
+    n.name += "status_quo"
     n.export_to_netcdf(snakemake.output.network)
-    
