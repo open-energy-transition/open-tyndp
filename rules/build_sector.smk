@@ -26,8 +26,6 @@ rule build_population_layouts:
 
 
 rule build_clustered_population_layouts:
-    params:
-        base_network=config_provider("electricity", "base_network"),
     input:
         pop_layout_total=resources("pop_layout_total.nc"),
         pop_layout_urban=resources("pop_layout_urban.nc"),
