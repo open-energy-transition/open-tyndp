@@ -1838,7 +1838,6 @@ def _extract_inflows(
     inflows_t: xr.Dataset,
     hydro_tech: str,
     hydro_tech_i: pd.Index,
-    planning_horizon: int,
     name_sfx: str = "",
 ):
     """
@@ -1852,8 +1851,6 @@ def _extract_inflows(
         Name of the hydro technology added to the network.
     hydro_tech_i : pd.Index
         Index of network components associated with the hydro technology.
-    planning_horizon : int
-        Planning horizon for which hydro inflows should be extracted.
     name_sfx : str, optional
         String suffix added to the column name of the returned inflow Dataframe
 
@@ -1865,7 +1862,7 @@ def _extract_inflows(
     """
     try:
         return (
-            inflows_t.sel(hydro_tech=hydro_tech, year=planning_horizon, drop=True)
+            inflows_t.sel(hydro_tech=hydro_tech, drop=True)
             .to_dataframe()
             .pivot_table(values="profile", index="time", columns="bus")
             .rename(columns=lambda x: f"{x} {hydro_tech}{name_sfx}")
@@ -1873,9 +1870,7 @@ def _extract_inflows(
         )
 
     except (KeyError, ValueError) as e:
-        logger.warning(
-            f"Error extracting inflows for {hydro_tech} and year {planning_horizon}: {e}"
-        )
+        logger.warning(f"Error extracting inflows for {hydro_tech}: {e}")
         return
 
 
@@ -1910,7 +1905,6 @@ def _add_hydro_ror_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     inflows_t: xr.Dataset,
-    planning_horizon: int,
 ) -> None:
     """
     Add hydro-ror capacities and inflows.
@@ -1935,7 +1929,6 @@ def _add_hydro_ror_capacities(
         inflows_t=inflows_t,
         hydro_tech=tech,
         hydro_tech_i=tech_i,
-        planning_horizon=planning_horizon,
     )
     if inflows is None:
         return
@@ -1960,7 +1953,6 @@ def _add_storage_unit_hydro(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     inflows_t: xr.Dataset,
-    planning_horizon: int,
     tech: str,
 ) -> None:
     """
@@ -1999,7 +1991,6 @@ def _add_storage_unit_hydro(
         inflows_t=inflows_t,
         hydro_tech=tech,
         hydro_tech_i=tech_i,
-        planning_horizon=planning_horizon,
     )
     if inflows is None:
         return
@@ -2015,7 +2006,6 @@ def _add_phs_inflows(
     n: pypsa.Network,
     inflows_t: xr.Dataset,
     tech: str,
-    planning_horizon: int,
 ) -> None:
     """
     Add inflows for pumped hydro storage via additional generator.
@@ -2031,7 +2021,6 @@ def _add_phs_inflows(
         inflows_t=inflows_t,
         hydro_tech=tech,
         hydro_tech_i=gen_i,
-        planning_horizon=planning_horizon,
         name_sfx="-inflows",
     )
     if inflows is None:
@@ -2055,7 +2044,6 @@ def _add_phs_hydro(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     inflows_t: xr.Dataset,
-    planning_horizon: int,
     tech: str,
 ) -> None:
     """
@@ -2115,7 +2103,7 @@ def _add_phs_hydro(
 
     # Add inflows if applicable
     if has_inflows:
-        _add_phs_inflows(n, inflows_t, tech, planning_horizon)
+        _add_phs_inflows(n, inflows_t, tech)
 
 
 def _add_hydro_capacities(
@@ -2146,35 +2134,31 @@ def _add_hydro_capacities(
     logger.info("Adding PEMMDB capacities and inflows to hydro technologies.")
 
     # Load hydro inflows
-    inflows_t = xr.open_dataset(hydro_inflows_fn)
+    inflows_t = xr.open_dataset(hydro_inflows_fn).sel(year=planning_horizon, drop=True)
 
-    _add_hydro_ror_capacities(n, pemmdb_capacities, inflows_t, planning_horizon)
+    _add_hydro_ror_capacities(n, pemmdb_capacities, inflows_t)
     _add_storage_unit_hydro(
         n,
         pemmdb_capacities,
         inflows_t,
-        planning_horizon,
         tech="hydro-pondage",
     )
     _add_storage_unit_hydro(
         n,
         pemmdb_capacities,
         inflows_t,
-        planning_horizon,
         tech="hydro-reservoir",
     )
     _add_phs_hydro(
         n,
         pemmdb_capacities,
         inflows_t,
-        planning_horizon,
         tech="hydro-phs",
     )
     _add_phs_hydro(
         n,
         pemmdb_capacities,
         inflows_t,
-        planning_horizon,
         tech="hydro-phs-pure",
     )
 
