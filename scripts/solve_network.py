@@ -507,7 +507,7 @@ def prepare_network(
         )
 
     # Do not add noise to costs for sensitivity runs (they already have noisy costs from the previous iteration)
-    if solve_opts.get("noisy_costs") and ("sensitivity" not in n.name.casefold() or "status_quo" not in n.name.casefold()):
+    if solve_opts.get("noisy_costs") and not any([x in n.name.casefold() for x in ["status_quo", "sensitivity"]]):
         for t in n.iterate_components():
             # if 'capital_cost' in t.df:
             #    t.df['capital_cost'] += 1e1 + 2.*(np.random.random(len(t.df)) - 0.5)
@@ -520,6 +520,8 @@ def prepare_network(
             t.df["capital_cost"] += (
                 1e-1 + 2e-2 * (np.random.random(len(t.df)) - 0.5)
             ) * t.df["length"]
+    else:
+        logger.info("Noisy costs: deactivated for this run.")
 
     if solve_opts.get("nhours"):
         nhours = solve_opts["nhours"]
