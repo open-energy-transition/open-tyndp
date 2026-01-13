@@ -66,6 +66,18 @@ def calculate_total_system_cost(n):
     }
 
 
+def check_method(method: str) -> str:
+    """
+    Normalize and validate the CBA method name.
+
+    If the method is not recognized as either "pint" or "toot", a ValueError is raised.
+    """
+    method = method.lower()
+    if method not in ["pint", "toot"]:
+        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
+    return method
+
+
 def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
     """
     Calculate total CO2 emissions per carrier in the PyPSA network.
@@ -137,10 +149,6 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
     Returns:
         dict: Dictionary with B1 and component costs
     """
-    method = method.lower()
-    if method not in ["pint", "toot"]:
-        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
-
     # Calculate costs for both scenarios
     cost_reference = calculate_total_system_cost(n_reference)
     cost_project = calculate_total_system_cost(n_project)
@@ -204,10 +212,6 @@ def calculate_b2_indicator(
     Returns totals for CO2 (t) and societal cost (EUR/year) for low/central/high
     societal cost assumptions.
     """
-    method = method.lower()
-    if method not in ["pint", "toot"]:
-        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
-
     co2_reference = calculate_co2_emissions_per_carrier(n_reference)
     co2_project = calculate_co2_emissions_per_carrier(n_project)
 
@@ -259,7 +263,7 @@ if __name__ == "__main__":
         raise ValueError("Project network is not solved")
 
     # Detect method from wildcards (toot or pint)
-    method = snakemake.wildcards.cba_method
+    method = check_method(snakemake.wildcards.cba_method)
     planning_horizon = int(snakemake.wildcards.planning_horizons)
 
     # Calculate indicators
