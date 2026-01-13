@@ -2057,7 +2057,6 @@ def _add_phs_hydro(
     inflows_t: xr.Dataset,
     planning_horizon: int,
     tech: str,
-    has_inflows: bool,
 ) -> None:
     """
     Add open or closed pumped hydro storage capacities and inflows (hydro-phs or hydro-phs-pure).
@@ -2066,9 +2065,10 @@ def _add_phs_hydro(
     ----------
     tech : str
         Technology name ('hydro-phs' or 'hydro-phs-pure').
-    has_inflows : bool
-        Whether this PHS type has natural inflows.
     """
+    # check if technology has inflows
+    has_inflows = "pure" not in tech
+
     logger.debug(
         f"Adding {tech} PEMMDB capacities" + (" and inflows" if has_inflows else "")
     )
@@ -2176,7 +2176,6 @@ def _add_hydro_capacities(
         inflows_t,
         planning_horizon,
         tech="hydro-phs",
-        has_inflows=True,
     )
     _add_phs_hydro(
         n,
@@ -2184,7 +2183,6 @@ def _add_hydro_capacities(
         inflows_t,
         planning_horizon,
         tech="hydro-phs-pure",
-        has_inflows=False,
     )
 
 
