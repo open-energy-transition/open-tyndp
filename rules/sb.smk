@@ -48,8 +48,8 @@ if config["enable"]["retrieve"]:
             offshore_generators="data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx",
             trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
         run:
-            with zipfile.ZipFile(snakemake.input.zip_file, "r") as zip_ref:
-                zip_ref.extractall(snakemake.output.dir)
+            with zipfile.ZipFile(input.zip_file, "r") as zip_ref:
+                zip_ref.extractall(output.dir)
 
     rule retrieve_tyndp_pecd_data_raw:
         params:
