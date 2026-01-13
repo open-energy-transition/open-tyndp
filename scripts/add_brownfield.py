@@ -479,7 +479,7 @@ def remove_tyndp_fixed_p(
             if c.name == "Link"
             else tyndp_hydro
         )
-        tech_i = c.static.query("carrier.isin(@remove_carriers)").index
+        tech_i = c.static.loc[c.static["carrier"].isin(remove_carriers)].index
         n_p.remove(c.name, tech_i)
 
 
@@ -557,3 +557,4 @@ if __name__ == "__main__":
 
     sanitize_custom_columns(n)
     sanitize_carriers(n, snakemake.config)
+    n.export_to_netcdf(snakemake.output[0])
