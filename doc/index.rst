@@ -98,6 +98,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added the TOOT reference and project network preparation for CBA (see PRs `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__).
 - Added weekly rolling horizon optimization for CBA networks (see PR `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__).
 - Introduced calculation of B1 indicator in the CBA based on changes in total system costs (see PR `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__).
+- Added automated Windows installer for easy setup on Windows systems (see PR `#333 <https://github.com/open-energy-transition/open-tyndp/pull/333>`__).
 - Introduced calculation of B2 indicator in the CBA based on changes in total CO2 emissions (see PR `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__).
 
 
@@ -478,6 +479,13 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    tutorial
    tutorial_sector
    faq_troubleshooting
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: Open TYNDP
+
+   innovation_roadmap
 
 .. toctree::
    :hidden:
