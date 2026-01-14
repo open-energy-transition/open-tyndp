@@ -78,14 +78,9 @@ def check_method(method: str) -> str:
     return method
 
 
-def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
+def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
     """
-    Calculate total CO2 emissions per carrier in the PyPSA network.
-
-    This function computes the energy balance of the network, aggregates it over the entire time period,
-    and then sums the CO2 emissions grouped by bus_carrier and carrier.
-
-    Then it filters to include only positive CO2 emissions (negative values are carbon sinks).
+    Calculate net CO2 emissions using the final snapshot of the CO2 store.
 
     Parameters
     ----------
@@ -94,16 +89,12 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
 
     Returns
     -------
-    pandas.Series
-        A Series containing the total CO2 emissions per carrier, indexed by carrier, with only positive values included.
+    float
+        Net CO2 emissions at the final snapshot.
     """
-    energy_balance = n.statistics.energy_balance(aggregate_time="sum")
-    CO2_per_carrier = (
-        energy_balance.groupby(["bus_carrier", "carrier"]).sum().loc["co2"]
-    )
-    CO2_emissions_per_carrier = CO2_per_carrier[CO2_per_carrier > 0]
-
-    return CO2_emissions_per_carrier
+    stores_by_carrier = n.stores_t.e.T.groupby(n.stores.carrier).sum().T
+    net_co2 = stores_by_carrier["co2"].iloc[-1]  # get final snapshot value
+    return float(net_co2)
 
 
 def get_co2_ets_price(config, planning_horizon) -> float:
@@ -212,21 +203,16 @@ def calculate_b2_indicator(
     Returns totals for CO2 (t) and societal cost (EUR/year) for low/central/high
     societal cost assumptions.
     """
+
     co2_reference = calculate_co2_emissions_per_carrier(n_reference)
     co2_project = calculate_co2_emissions_per_carrier(n_project)
 
-    all_carriers = co2_reference.index.union(co2_project.index)
-    co2_reference = co2_reference.reindex(all_carriers, fill_value=0.0)
-    co2_project = co2_project.reindex(all_carriers, fill_value=0.0)
-
     if method == "pint":
         # Reference is without project, project is with project
-        co2_diff_per_carrier = co2_reference - co2_project
+        co2_diff = co2_reference - co2_project
     else:  # toot
         # Reference is with all projects, project is without project
-        co2_diff_per_carrier = co2_project - co2_reference
-
-    co2_diff = co2_diff_per_carrier.sum()
+        co2_diff = co2_project - co2_reference
 
     results = {
         "co2_diff": co2_diff,
