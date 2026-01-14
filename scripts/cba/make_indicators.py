@@ -113,7 +113,7 @@ def calculate_res_capacity_per_carrier(
     pandas.Series
         A Series containing RES capacity per carrier (MW).
     """
-    capacity = n.statistics.optimal_capacity().groupby("carrier").sum()
+    capacity = n.statistics.optimal_capacity(nice_names=False).groupby("carrier").sum()
     res_capacity = capacity.reindex(res_carriers).dropna()
     return res_capacity
 
@@ -135,7 +135,9 @@ def calculate_res_generation_per_carrier(
         A Series containing RES generation per carrier (MWh/year).
     """
     energy_balance = (
-        n.statistics.energy_balance(aggregate_time="sum").groupby("carrier").sum()
+        n.statistics.energy_balance(aggregate_time="sum", nice_names=False)
+        .groupby("carrier")
+        .sum()
     )
     res_generation = energy_balance.reindex(res_carriers).dropna()
     return res_generation
@@ -157,7 +159,7 @@ def calculate_res_dump_per_carrier(
     pandas.Series
         A Series containing RES dumped energy per carrier (MWh/year).
     """
-    curtailed = n.statistics.curtailment().groupby("carrier").sum()
+    curtailed = n.statistics.curtailment(nice_names=False).groupby("carrier").sum()
     res_dump = curtailed.reindex(res_carriers).dropna()
     return res_dump
 
@@ -381,7 +383,9 @@ if __name__ == "__main__":
     )
     indicators.update(b2_indicators)
 
-    res_carriers = snakemake.config.get("cba", {}).get("res_carriers")
+    res_carriers = snakemake.config.get("electricity", {}).get(
+        "tyndp_renewable_carriers"
+    )
     b3_indicators = calculate_b3_indicator(
         n_reference,
         n_project,
