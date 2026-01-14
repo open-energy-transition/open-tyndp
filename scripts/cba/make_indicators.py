@@ -224,7 +224,7 @@ def calculate_b2_indicator(
 
     for level in ["low", "central", "high"]:
         b2_val = co2_diff * (co2_societal_costs[level] - co2_ets_price)
-        results[f"B2_social_cost_{level}"] = b2_val
+        results[f"B2_societal_cost_variation_{level}"] = b2_val
 
     return results
 
