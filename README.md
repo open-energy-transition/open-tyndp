@@ -51,6 +51,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added the TOOT reference and project network preparation for CBA (see PRs [#199](https://github.com/open-energy-transition/open-tyndp/pull/199), [#211](https://github.com/open-energy-transition/open-tyndp/pull/211)).
 - Added weekly rolling horizon optimization for CBA networks (see PR [#217](https://github.com/open-energy-transition/open-tyndp/pull/217)).
 - Introduced calculation of B1 indicator in the CBA based on changes in total system costs (see PR [#186](https://github.com/open-energy-transition/open-tyndp/pull/186)).
+- Added automated Windows installer for easy setup on Windows systems (see PR [#333](https://github.com/open-energy-transition/open-tyndp/pull/333)).
 
 
 
@@ -121,6 +122,12 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 # Installation and Usage
 
 ## 1. Installation
+
+### Option A: Windows Installer (Recommended for Windows)
+
+For Windows users, download the latest installer (e.g., `open-tyndp-0.4.0-pixi-Windows-x86_64.exe`) from the [releases page](https://github.com/open-energy-transition/open-tyndp/releases) and run it. The installer automatically sets up everything you need, including pixi, the repository, and the conda environment. See `utils/windows-installer/README.md` for details.
+
+### Option B: Manual Installation (All Platforms)
 
 Clone the repository:
 

@@ -32,6 +32,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.prepare_sector_network import get
 
 logger = logging.getLogger(__name__)
 
@@ -65,14 +66,21 @@ def calculate_total_system_cost(n):
     }
 
 
-def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
+def check_method(method: str) -> str:
     """
-    Calculate total CO2 emissions per carrier in the PyPSA network.
+    Normalize and validate the CBA method name.
 
-    This function computes the energy balance of the network, aggregates it over the entire time period,
-    and then sums the CO2 emissions grouped by bus_carrier and carrier.
+    If the method is not recognized as either "pint" or "toot", a ValueError is raised.
+    """
+    method = method.lower()
+    if method not in ["pint", "toot"]:
+        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
+    return method
 
-    Then it filters to include only positive CO2 emissions (negative values are carbon sinks).
+
+def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
+    """
+    Calculate net CO2 emissions using the final snapshot of the CO2 store.
 
     Parameters
     ----------
@@ -81,16 +89,12 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> pd.Series:
 
     Returns
     -------
-    pandas.Series
-        A Series containing the total CO2 emissions per carrier, indexed by carrier, with only positive values included.
+    float
+        Net CO2 emissions at the final snapshot.
     """
-    energy_balance = n.statistics.energy_balance(aggregate_time="sum")
-    CO2_per_carrier = (
-        energy_balance.groupby(["bus_carrier", "carrier"]).sum().loc["co2"]
-    )
-    CO2_emissions_per_carrier = CO2_per_carrier[CO2_per_carrier > 0]
-
-    return CO2_emissions_per_carrier
+    stores_by_carrier = n.stores_t.e.T.groupby(n.stores.carrier).sum().T
+    net_co2 = stores_by_carrier["co2"].iloc[-1]  # get final snapshot value
+    return float(net_co2)
 
 
 def calculate_res_capacity_per_carrier(
@@ -201,10 +205,6 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
     Returns:
         dict: Dictionary with B1 and component costs
     """
-    method = method.lower()
-    if method not in ["pint", "toot"]:
-        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
-
     # Calculate costs for both scenarios
     cost_reference = calculate_total_system_cost(n_reference)
     cost_project = calculate_total_system_cost(n_project)
@@ -268,25 +268,16 @@ def calculate_b2_indicator(
     Returns totals for CO2 (t) and societal cost (EUR/year) for low/central/high
     societal cost assumptions.
     """
-    method = method.lower()
-    if method not in ["pint", "toot"]:
-        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
 
     co2_reference = calculate_co2_emissions_per_carrier(n_reference)
     co2_project = calculate_co2_emissions_per_carrier(n_project)
 
-    all_carriers = co2_reference.index.union(co2_project.index)
-    co2_reference = co2_reference.reindex(all_carriers, fill_value=0.0)
-    co2_project = co2_project.reindex(all_carriers, fill_value=0.0)
-
     if method == "pint":
         # Reference is without project, project is with project
-        co2_diff_per_carrier = co2_reference - co2_project
+        co2_diff = co2_reference - co2_project
     else:  # toot
         # Reference is with all projects, project is without project
-        co2_diff_per_carrier = co2_project - co2_reference
-
-    co2_diff = co2_diff_per_carrier.sum()
+        co2_diff = co2_project - co2_reference
 
     results = {
         "co2_diff": co2_diff,
@@ -371,16 +362,14 @@ if __name__ == "__main__":
         raise ValueError("Project network is not solved")
 
     # Detect method from wildcards (toot or pint)
-    method = snakemake.wildcards.cba_method
+    method = check_method(snakemake.wildcards.cba_method)
     planning_horizon = int(snakemake.wildcards.planning_horizons)
 
     # Calculate indicators
     indicators = calculate_b1_indicator(n_reference, n_project, method=method)
 
-    co2_societal_costs_map = snakemake.config.get("cba", {}).get("co2_societal_cost")
-    co2_societal_costs = co2_societal_costs_map.get(
-        planning_horizon, co2_societal_costs_map.get(str(planning_horizon))
-    )
+    co2_societal_costs_map = snakemake.config["cba"]["co2_societal_cost"]
+    co2_societal_costs = get(co2_societal_costs_map, planning_horizon)
 
     co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
     b2_indicators = calculate_b2_indicator(
