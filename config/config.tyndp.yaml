@@ -388,20 +388,6 @@ cba:
       low: 339
       central: 628
       high: 662
-  res_carriers:
-  - Onshore Wind
-  - Run of River
-  - Solar
-  - offwind-ac-fb-r
-  - offwind-ac-fl-r
-  - offwind-dc-fb-oh
-  - offwind-dc-fb-r
-  - offwind-dc-fl-oh
-  - offwind-dc-fl-r
-  - offwind-h2-fb-oh
-  - offwind-h2-fl-oh
-  - solar rooftop
-  - solar-hsat
   planning_horizons:
   - 2030
   - 2040
