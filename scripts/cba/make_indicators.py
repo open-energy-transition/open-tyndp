@@ -215,7 +215,7 @@ def calculate_b2_indicator(
         co2_diff = co2_project - co2_reference
 
     results = {
-        "co2_diff": co2_diff,
+        "co2_variation": co2_diff,
         "co2_ets_price": co2_ets_price,
         "co2_societal_cost_low": co2_societal_costs["low"],
         "co2_societal_cost_central": co2_societal_costs["central"],
