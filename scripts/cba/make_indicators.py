@@ -340,7 +340,7 @@ def calculate_b3_indicator(
     return {
         "B3_res_capacity_change_mw": capacity_diff,
         "B3_res_generation_change_mwh": generation_diff,
-        "B3_res_dump_change_mwh": dump_diff,
+        "B3_annual_avoided_curtailment_mwh": dump_diff,
     }
 
 
