@@ -17,6 +17,9 @@ Upcoming Open-TYNDP Release
 
 * Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
 
+* Fix: Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
+
+
 Upcoming PyPSA-Eur Release
 ================
 
