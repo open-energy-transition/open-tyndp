@@ -4,10 +4,10 @@
 
 run:
   prefix: "ngv-iem"
-  name: "status_quo_mini"
+  name: "status_quo"
   scenarios:
     enable: false
-  
+
 # Scenarios for uncertainty analysis to consider
 # Logic for scenarios in `scripts/prepare_uncertainty_scenarios.py`,
 # see descriptions there
@@ -16,7 +16,7 @@ uncertainty_scenarios:
 
 snapshots:
   start: "2009-01-01"
-  end: "2009-03-01"
+  end: "2010-01-01"
 
 fbmc: false
 
@@ -31,7 +31,7 @@ tyndp_scenario: NT
 
 clustering:
   temporal:
-    resolution_sector: 6H
+    resolution_sector: 1H
 
 sector:
   h2_zones_tyndp: false
@@ -46,4 +46,7 @@ benchmarking:
 
 solving:
   options:
-    load_shedding: true
+    load_shedding: true 
+
+enable:
+  retrieve: true
