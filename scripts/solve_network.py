@@ -476,7 +476,27 @@ def prepare_network(
         # intersect between macroeconomic and surveybased willingness to pay
         # http://journal.frontiersin.org/article/10.3389/fenrg.2015.00055/full
         n.add("Carrier", "load")
-        buses_i = n.buses.index
+        # Restrict load shedding to some carriers only
+        selected_carriers = [
+            # "oil",
+            "solid biomass",
+            # "co2 sequestered",
+            # "co2 stored",
+            "H2",
+            "AC",
+            "low voltage",
+            "home battery",
+            # "import H2",
+            # "shipping oil",
+            # "kerosene for aviation",
+            # "land transport oil",
+            "H2_OH",
+            "AC_OH",
+        ]
+
+        logger.info(f"Enabling load shedding for carriers: {selected_carriers}")
+
+        buses_i = n.buses.loc[n.buses["carrier"].isin(selected_carriers)].index
         if isinstance(load_shedding, bool):
             load_shedding = 1e5  # Eur/MWh
 
