@@ -711,6 +711,25 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
+    rule clean_plexos_benchmark:
+        params:
+            benchmarking=config_provider("benchmarking"),
+            scenario=config_provider("tyndp_scenario"),
+        input:
+            plexos_file="data/tyndp_2024_bundle/TYNDP-2024-Plexos-Output/MMStandardOutputFile_{scenario}{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx",
+        output:
+            benchmarks=RESULTS
+            + "validation/resources/benchmarks_plexos_{planning_horizons}.csv",
+        log:
+            logs("clean_plexos_benchmark_{planning_horizons}.log"),
+        benchmark:
+            benchmarks("clean_plexos_benchmark_{planning_horizons}")
+        threads: 4
+        resources:
+            mem_mb=8000,
+        script:
+            "../scripts/sb/clean_plexos_benchmark.py"
+
     rule clean_tyndp_benchmark:
         params:
             benchmarking=config_provider("benchmarking"),
