@@ -127,7 +127,39 @@ def restrict_elec_flows_v2(n: pypsa.Network, line_limits_fp: str) -> pypsa.Netwo
     logger.info(
         "Restricting electricity flows based on line limits from uncertainty scenarios."
     )
-    line_limits = pd.read_csv(line_limits_fp, index_col=0, parse_dates=True)
+    line_limits = pd.read_csv(
+        line_limits_fp,
+        index_col=0,
+        parse_dates=True,
+        usecols=[
+            "snapshot",
+            # GB <-> BE
+            "BE00-GB00-DC",
+            "GB00-BE00-DC",
+            # GB <-> DK
+            "DKW1-GB00-DC",
+            "GB00-DKW1-DC",
+            # GB <-> FR
+            "FR00-GB00-DC",
+            "GB00-FR00-DC",
+            # GB <-> DE
+            "DE00-GB00-DC",
+            "GB00-DE00-DC",
+            # GB <-> NL
+            "GB00-NL00-DC",
+            "NL00-GB00-DC",
+            # The following lines are not restricted, as they follow a different allocation method
+            # # GB <-> North Ireland
+            # "GB00-GBNI-DC",
+            # "GBNI-GB00-DC",
+            # # GB <-> IE
+            # "GB00-IE00-DC",
+            # "IE00-GB00-DC",
+            # # GB <-> NO
+            # "GB00-NOS0-DC",
+            # "NOS0-GB00-DC",
+        ],
+    )
     links_i = line_limits.columns
 
     n.components.links.dynamic["p_min_pu"][links_i] = np.clip(0.95 * line_limits, 0, 1)
