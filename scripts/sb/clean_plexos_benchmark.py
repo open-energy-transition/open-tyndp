@@ -98,7 +98,7 @@ PLEXOS_CARRIER_MAPPING = {
 
 
 # look up dictionary {name of plot: [sheet_name, output_type]}
-look_up_tables = {
+LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
     "power_generation": ["Yearly Outputs", "Annual generation [GWh]"],
     "hydrogen_demand": [
@@ -129,7 +129,7 @@ def load_plexos_sheet(
     filepath : str or Path
         Path to the PLEXOS xlsx file.
     table_name : str
-        Name of the table from look_up_tables (e.g., "power_capacity").
+        Name of the table from LOOKUP_TABLES (e.g., "power_capacity").
     eu27 : list
         List of EU27 country codes.
     skiprows : int, default 5
@@ -140,7 +140,7 @@ def load_plexos_sheet(
     pd.DataFrame
         DataFrame with multi-index rows [output_type, technology] and country columns.
     """
-    sheet_name, output_type = look_up_tables[table_name]
+    sheet_name, output_type = LOOKUP_TABLES[table_name]
 
     df = pd.read_excel(
         filepath,
@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
     # Plots for which Plexos output files provide data
     tables_to_process = [
-        t for t in look_up_tables.keys() if t in options["tables"].keys()
+        t for t in LOOKUP_TABLES.keys() if t in options["tables"].keys()
     ]
 
     logger.info(f"Processing tables: {tables_to_process}")
