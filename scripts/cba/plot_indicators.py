@@ -22,12 +22,16 @@ from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
-COLORS = {
-    "capex": "#2980b9",
-    "opex": "#e67e22",
-    "beneficial": "#27ae60",
-    "not_beneficial": "#c0392b",
-}
+
+def save_figure(fig, output_dir, filename, output_formats):
+    """Save figure in specified format(s)."""
+    for fmt in output_formats:
+        filepath = output_dir / f"{filename}.{fmt}"
+        save_kwargs = {"bbox_inches": "tight"}
+        if fmt == "png":
+            save_kwargs["dpi"] = 150
+        fig.savefig(filepath, **save_kwargs)
+    logger.info(f"Saved {filename}")
 
 
 def load_and_merge_data(indicators_path, projects_path):
@@ -61,31 +65,37 @@ def load_and_merge_data(indicators_path, projects_path):
     return merged, projects["project_id"].nunique()
 
 
-def plot_b1_top_projects(df, output_dir, method, n_top=20):
-    """Waterfall chart showing B1 CAPEX/OPEX breakdown for top N projects."""
+def plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=20):
+    """Diverging bar chart showing B1 with CAPEX/OPEX breakdown for top N projects.
+
+    Each project is shown on a single row with:
+    - CAPEX change extending left from zero (negative = cost saved)
+    - OPEX change extending right from zero (positive = additional cost)
+    - Diamond marker showing the net B1 value
+    """
     df_top = df.nlargest(n_top, "B1_billion_EUR", keep="first")
     df_sorted = df_top.sort_values("B1_billion_EUR", ascending=True).reset_index(
         drop=True
     )
 
-    fig, ax = plt.subplots(figsize=(16, 10))
+    fig, ax = plt.subplots(figsize=(14, max(6, n_top * 0.5)))
     y_pos = np.arange(len(df_sorted))
     bar_height = 0.35
 
     ax.barh(
-        y_pos - bar_height / 2,
+        y_pos,
         df_sorted["capex_change_billion"],
         height=bar_height,
-        color=COLORS["capex"],
+        color=colors["capex"],
         alpha=0.9,
         edgecolor="white",
         linewidth=0.5,
     )
     ax.barh(
-        y_pos + bar_height / 2,
+        y_pos,
         df_sorted["opex_change_billion"],
         height=bar_height,
-        color=COLORS["opex"],
+        color=colors["opex"],
         alpha=0.9,
         edgecolor="white",
         linewidth=0.5,
@@ -93,9 +103,9 @@ def plot_b1_top_projects(df, output_dir, method, n_top=20):
 
     for i, (_, row) in enumerate(df_sorted.iterrows()):
         color = (
-            COLORS["beneficial"]
+            colors["beneficial"]
             if row["B1_billion_EUR"] >= 0
-            else COLORS["not_beneficial"]
+            else colors["not_beneficial"]
         )
         ax.plot(
             row["B1_billion_EUR"],
@@ -119,19 +129,27 @@ def plot_b1_top_projects(df, output_dir, method, n_top=20):
     ax.set_yticklabels(labels, fontsize=10)
 
     ax.axvline(x=0, color="black", linewidth=1.2, zorder=3)
-    ax.set_xlabel("Cost Change (Billion EUR)", fontsize=12, fontweight="bold")
+    ax.set_xlabel(
+        "◄ Savings | Costs ►  Cost Change (Billion EUR)",
+        fontsize=12,
+        fontweight="bold",
+    )
     ax.set_title(
-        f"{method.upper()} B1 Indicator: Top {n_top} Projects by Benefit\n(Positive = Beneficial)",
+        f"{method.upper()} B1 Indicator: Top {n_top} Projects by Benefit",
         fontsize=14,
         fontweight="bold",
     )
 
-    max_val = df_sorted["B1_billion_EUR"].abs().max()
+    max_val = max(
+        df_sorted["B1_billion_EUR"].abs().max(),
+        df_sorted["opex_change_billion"].abs().max(),
+        df_sorted["capex_change_billion"].abs().max(),
+    )
     for i, (_, row) in enumerate(df_sorted.iterrows()):
         total = row["B1_billion_EUR"]
-        color = COLORS["beneficial"] if total >= 0 else COLORS["not_beneficial"]
+        color = colors["beneficial"] if total >= 0 else colors["not_beneficial"]
         ax.text(
-            max_val * 1.1,
+            max_val * 1.15,
             i,
             f"{total:+.2f}B",
             va="center",
@@ -146,17 +164,17 @@ def plot_b1_top_projects(df, output_dir, method, n_top=20):
 
     legend_elements = [
         plt.Rectangle(
-            (0, 0), 1, 1, facecolor=COLORS["capex"], alpha=0.9, label="CAPEX Change"
+            (0, 0), 1, 1, facecolor=colors["capex"], alpha=0.9, label="CAPEX Change"
         ),
         plt.Rectangle(
-            (0, 0), 1, 1, facecolor=COLORS["opex"], alpha=0.9, label="OPEX Change"
+            (0, 0), 1, 1, facecolor=colors["opex"], alpha=0.9, label="OPEX Change"
         ),
         Line2D(
             [0],
             [0],
             marker="D",
             color="w",
-            markerfacecolor=COLORS["beneficial"],
+            markerfacecolor=colors["beneficial"],
             markersize=10,
             markeredgecolor="white",
             markeredgewidth=2,
@@ -167,25 +185,23 @@ def plot_b1_top_projects(df, output_dir, method, n_top=20):
             [0],
             marker="D",
             color="w",
-            markerfacecolor=COLORS["not_beneficial"],
+            markerfacecolor=colors["not_beneficial"],
             markersize=10,
             markeredgecolor="white",
             markeredgewidth=2,
             label="B1 (Not Beneficial)",
         ),
     ]
-    ax.legend(handles=legend_elements, loc="lower right", fontsize=10)
+    ax.legend(handles=legend_elements, loc="upper left", bbox_to_anchor=(0, -0.12), 
+              ncol=4, fontsize=9, frameon=False)
     ax.set_xlim(ax.get_xlim()[0], max_val * 1.4)
 
     plt.tight_layout()
-    fig.savefig(
-        output_dir / f"b1_top_{n_top}_projects.png", dpi=150, bbox_inches="tight"
-    )
+    save_figure(fig, output_dir, f"b1_top_{n_top}_projects", output_formats)
     plt.close(fig)
-    logger.info(f"Saved B1 top {n_top} projects plot")
 
 
-def plot_b1_summary(df, output_dir, method, total_projects):
+def plot_b1_summary(df, output_dir, method, colors, output_formats, total_projects):
     """Summary plot with B1 histogram."""
     beneficial = df[df["is_beneficial"]]
     not_beneficial = df[~df["is_beneficial"]]
@@ -198,7 +214,7 @@ def plot_b1_summary(df, output_dir, method, total_projects):
     ax.hist(
         beneficial["B1_billion_EUR"],
         bins=bins,
-        color=COLORS["beneficial"],
+        color=colors["beneficial"],
         alpha=0.7,
         label=f"Beneficial ({len(beneficial)})",
         edgecolor="white",
@@ -206,7 +222,7 @@ def plot_b1_summary(df, output_dir, method, total_projects):
     ax.hist(
         not_beneficial["B1_billion_EUR"],
         bins=bins,
-        color=COLORS["not_beneficial"],
+        color=colors["not_beneficial"],
         alpha=0.7,
         label=f"Not Beneficial ({len(not_beneficial)})",
         edgecolor="white",
@@ -227,12 +243,11 @@ def plot_b1_summary(df, output_dir, method, total_projects):
     ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     plt.tight_layout()
-    fig.savefig(output_dir / "b1_summary.png", dpi=150, bbox_inches="tight")
+    save_figure(fig, output_dir, "b1_summary", output_formats)
     plt.close(fig)
-    logger.info("Saved B1 summary plot")
 
 
-def plot_b1_capex_vs_opex(df, output_dir, method):
+def plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats):
     """Scatter plot of B1 CAPEX vs OPEX changes."""
     fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -242,7 +257,7 @@ def plot_b1_capex_vs_opex(df, output_dir, method):
     ax.scatter(
         beneficial["capex_change_billion"],
         beneficial["opex_change_billion"],
-        c=COLORS["beneficial"],
+        c=colors["beneficial"],
         s=80,
         alpha=0.7,
         label=f"Beneficial ({len(beneficial)})",
@@ -252,7 +267,7 @@ def plot_b1_capex_vs_opex(df, output_dir, method):
     ax.scatter(
         not_beneficial["capex_change_billion"],
         not_beneficial["opex_change_billion"],
-        c=COLORS["not_beneficial"],
+        c=colors["not_beneficial"],
         s=80,
         alpha=0.7,
         label=f"Not Beneficial ({len(not_beneficial)})",
@@ -281,9 +296,8 @@ def plot_b1_capex_vs_opex(df, output_dir, method):
     ax.grid(alpha=0.3)
 
     plt.tight_layout()
-    fig.savefig(output_dir / "b1_capex_vs_opex.png", dpi=150, bbox_inches="tight")
+    save_figure(fig, output_dir, "b1_capex_vs_opex", output_formats)
     plt.close(fig)
-    logger.info("Saved B1 CAPEX vs OPEX plot")
 
 
 # Future indicator plot functions:
@@ -291,10 +305,16 @@ def plot_b1_capex_vs_opex(df, output_dir, method):
 # def plot_b3_...
 
 
-def create_plots(indicators_path, projects_path, output_dir):
+def create_plots(indicators_path, projects_path, output_dir, params):
     """Create all CBA indicator plots."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    cba_config = params.plotting["cba"]
+    colors = cba_config["colors"]
+    output_formats = cba_config.get("output_format", ["svg"])
+    if isinstance(output_formats, str):
+        output_formats = [output_formats]
 
     df, total_projects = load_and_merge_data(indicators_path, projects_path)
     if df.empty:
@@ -305,9 +325,9 @@ def create_plots(indicators_path, projects_path, output_dir):
     logger.info(f"Creating {method.upper()} plots for {len(df)} projects")
 
     # B1 indicator plots
-    plot_b1_top_projects(df, output_dir, method, n_top=min(20, len(df)))
-    plot_b1_summary(df, output_dir, method, total_projects)
-    plot_b1_capex_vs_opex(df, output_dir, method)
+    plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=min(20, len(df)))
+    plot_b1_summary(df, output_dir, method, colors, output_formats, total_projects)
+    plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats)
 
     # Future indicators (add when implemented in make_indicators.py):
     # plot_b2_...(df, output_dir, method)
@@ -335,4 +355,5 @@ if __name__ == "__main__":
         snakemake.input.indicators,
         snakemake.input.transmission_projects,
         snakemake.output.plot_dir,
+        snakemake.params,
     )
