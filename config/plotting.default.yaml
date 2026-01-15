@@ -638,5 +638,5 @@ plotting:
       beneficial: "#27ae60"
       not_beneficial: "#c0392b"
     output_format:
-      - svg
+    - svg
       # - png  # uncomment to also generate PNG

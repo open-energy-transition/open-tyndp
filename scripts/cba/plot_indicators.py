@@ -66,7 +66,8 @@ def load_and_merge_data(indicators_path, projects_path):
 
 
 def plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=20):
-    """Diverging bar chart showing B1 with CAPEX/OPEX breakdown for top N projects.
+    """
+    Diverging bar chart showing B1 with CAPEX/OPEX breakdown for top N projects.
 
     Each project is shown on a single row with:
     - CAPEX change extending left from zero (negative = cost saved)
@@ -192,8 +193,14 @@ def plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=2
             label="B1 (Not Beneficial)",
         ),
     ]
-    ax.legend(handles=legend_elements, loc="upper left", bbox_to_anchor=(0, -0.12), 
-              ncol=4, fontsize=9, frameon=False)
+    ax.legend(
+        handles=legend_elements,
+        loc="upper left",
+        bbox_to_anchor=(0, -0.12),
+        ncol=4,
+        fontsize=9,
+        frameon=False,
+    )
     ax.set_xlim(ax.get_xlim()[0], max_val * 1.4)
 
     plt.tight_layout()
@@ -325,7 +332,9 @@ def create_plots(indicators_path, projects_path, output_dir, params):
     logger.info(f"Creating {method.upper()} plots for {len(df)} projects")
 
     # B1 indicator plots
-    plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=min(20, len(df)))
+    plot_b1_top_projects(
+        df, output_dir, method, colors, output_formats, n_top=min(20, len(df))
+    )
     plot_b1_summary(df, output_dir, method, colors, output_formats, total_projects)
     plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats)
 
