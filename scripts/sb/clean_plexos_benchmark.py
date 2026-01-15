@@ -192,6 +192,13 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     planning_horizon = int(snakemake.wildcards.planning_horizons)
 
+    # currently only implemented for NT
+    if scenario != "NT":
+        logger.warning(
+            "Processing of the data only implemented for NT scenario. Exporting empty Data Frame"
+        )
+        pd.DataFrame().to_csv(snakemake.output.benchmarks)
+
     # EU27 country codes
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
