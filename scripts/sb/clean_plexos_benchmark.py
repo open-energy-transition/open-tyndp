@@ -8,7 +8,7 @@ Reads PLEXOS MMStandardOutputFile xlsx files from both:
 - "Yearly Outputs" sheet for power and electricity data
 - "Yearly H2 Outputs" sheet for hydrogen-specific data
 
-Uses the fast calamine engine for reading xlsx files.
+Currently only implemented for the NT scenario.
 """
 
 import logging
@@ -172,7 +172,6 @@ def load_plexos_sheet(
     return final
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
