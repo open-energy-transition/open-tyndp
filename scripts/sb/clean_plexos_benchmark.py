@@ -156,7 +156,7 @@ def load_plexos_sheet(
     # Set as multiindex and keep remaining columns
     df.drop(df.columns[:2], inplace=True, axis=1)
     df.index = pd.MultiIndex.from_arrays([level0, level1])
-    df.index.names = ["output_type", "technology"]
+    df.index.names = ["output_type", "carrier"]
 
     # Rename column names to country
     df.columns = df.columns.str[:2]
@@ -167,7 +167,9 @@ def load_plexos_sheet(
     # Rename and and group
     df = df.rename(index=PLEXOS_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
 
-    return df.loc[output_type]
+    final = df.loc[output_type].rename("value").reset_index()
+    final["table"] = table_name
+    return final
 
 
 # %%
@@ -222,6 +224,10 @@ if __name__ == "__main__":
 
     if plexos_data.empty:
         logger.warning("No PLEXOS benchmark data was successfully processed")
+
+    plexos_data["scenario"] = f"TYNDP {scenario}"
+    plexos_data["year"] = planning_horizon
+    plexos_data["source"] = "Plexos output"
 
     # Save data
     plexos_data.to_csv(snakemake.output.benchmarks, index=False)
