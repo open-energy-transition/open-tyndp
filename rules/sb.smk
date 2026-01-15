@@ -719,11 +719,11 @@ if config["benchmarking"]["enable"]:
             plexos_file="data/tyndp_2024_bundle/TYNDP-2024-Plexos-Output/MMStandardOutputFile_{scenario}{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx",
         output:
             benchmarks=RESULTS
-            + "validation/resources/benchmarks_plexos_{planning_horizons}.csv",
+            + "validation/resources/benchmarks_plexos_{scenario}{planning_horizons}.csv",
         log:
-            logs("clean_plexos_benchmark_{planning_horizons}.log"),
+            logs("clean_plexos_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
-            benchmarks("clean_plexos_benchmark_{planning_horizons}")
+            benchmarks("clean_plexos_benchmark_{scenario}{planning_horizons}")
         threads: 4
         resources:
             mem_mb=8000,
