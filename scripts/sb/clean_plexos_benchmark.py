@@ -229,9 +229,6 @@ if __name__ == "__main__":
     # Convert to dictionary
     plexos_data = pd.concat(benchmarks, ignore_index=True).assign(source="PLEXOS")
 
-    if plexos_data.empty:
-        logger.warning("No PLEXOS benchmark data was successfully processed")
-
     plexos_data["scenario"] = f"TYNDP {scenario}"
     plexos_data["year"] = planning_horizon
     plexos_data["source"] = "Plexos output"
