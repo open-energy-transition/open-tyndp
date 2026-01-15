@@ -50,3 +50,10 @@ path = [
 ]
 SPDX-FileCopyrightText = "Open Energy Transition gGmbH"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = [
+    "utils/windows-installer/oet_logo.*",
+]
+SPDX-FileCopyrightText = "Copyright (c) 2025 Open Energy Transition gGmbH"
+SPDX-License-Identifier = "LicenseRef-AllRightsReserved"
