@@ -399,6 +399,11 @@ rule all:
             run=config["run"]["name"],
             **config["scenario"],
         ),
+        expand(
+            rules.solve_sector_network_myopic_no_ce.output.network,
+            run=config["run"]["name"],
+            **config["scenario"],
+        )
     default_target: True
 
 

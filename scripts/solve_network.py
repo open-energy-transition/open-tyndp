@@ -1551,6 +1551,54 @@ def solve_network(
         raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
+def set_capacities_based_on_other_network(
+    n: pypsa.Network, ref_network_path: str
+) -> pypsa.Network:
+    """
+    Set the capacities for generators, stores, links, storage_units in network `n`
+    based on another network stored in `other_network_path`.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network instance to modify.
+    other_network_path : str
+        Path to the other network file.
+
+    Returns
+    -------
+    pypsa.Network
+        The modified network with updated capacities.
+    """
+    n_ref = pypsa.Network(ref_network_path)
+
+    for c, c_attr in [
+        ("Generator", "p_nom"),
+        ("Store", "e_nom"),
+        ("Link", "p_nom"),
+        ("StorageUnit", "p_nom"),
+    ]:
+        idx = n.components[c].static.query(f"`{c_attr}_extendable` == True").index
+        # Only set for generators that are in the to-be-optimised network
+        # we are calling this function before loadshedding and other special components are added
+        idx = idx.intersection(n_ref.components[c].static.index)
+
+        # These must not be fixed, as they are modelled in other ways (keep them extendable)
+        idx = idx.difference(
+            {"EU lignite", "EU coal", "EU oil primary", "EU uranium", "EU gas"}
+        )
+
+        logger.info(
+            f"Setting capacities based on previous run for {c} at indices: {idx.tolist()}"
+        )
+        n.components[c].static.loc[idx, c_attr] = n_ref.components[c].static.loc[
+            idx, f"{c_attr}_opt"
+        ]
+        n.components[c].static.loc[idx, f"{c_attr}_extendable"] = False
+
+    return n
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -1573,6 +1621,11 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
     planning_horizons = snakemake.wildcards.get("planning_horizons", None)
+
+    if snakemake.rule == "solve_sector_network_myopic_no_ce":
+        n = set_capacities_based_on_other_network(
+            n, ref_network_path=snakemake.input["network_ref"]
+        )
 
     prepare_network(
         n,
