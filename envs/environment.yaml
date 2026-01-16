@@ -3,7 +3,6 @@ channels:
 - conda-forge
 - bioconda
 - gurobi
-- https://repo.prefix.dev/open-tyndp
 - nodefaults
 dependencies:
 - atlite >=0.3
@@ -33,7 +32,7 @@ dependencies:
 - memory_profiler >=0.61.0
 - netcdf4 >=1.7.2
 - networkx >=3.5
-- numpy >=1.26.4,<2
+- numpy >=1.26.4
 - openpyxl >=3.1.5
 - pandas >=2.1
 - plotly >=6.4.0
@@ -41,7 +40,6 @@ dependencies:
 - pre-commit >=4.3.0
 - proj >=9.6.2
 - pylint >=4.0.2
-- pydeck >0.6
 - pypsa >=0.35.2
 - pyscipopt >=5.6.0
 - pytables >=3.10.2
