@@ -479,13 +479,13 @@ def prepare_network(
         # Restrict load shedding to some carriers only
         selected_carriers = [
             # "oil",
-            "solid biomass",
+            # "solid biomass",
             # "co2 sequestered",
             # "co2 stored",
             "H2",
             "AC",
             "low voltage",
-            "home battery",
+            # "home battery",
             # "import H2",
             # "shipping oil",
             # "kerosene for aviation",
