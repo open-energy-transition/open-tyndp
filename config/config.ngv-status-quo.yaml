@@ -46,7 +46,18 @@ benchmarking:
 
 solving:
   options:
-    load_shedding: true 
+    load_shedding: true
+
+  solver_options:
+    gurobi-default:
+      threads: 32
+      method: 2 # barrier
+      crossover: 0
+      BarConvTol: 1.e-6
+      Seed: 123
+      AggFill: 0
+      PreDual: 0
+      GURO_PAR_BARDENSETHRESH: 200
 
 enable:
   retrieve: true
