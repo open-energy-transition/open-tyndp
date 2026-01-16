@@ -22,7 +22,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Check pixi file diff
+    - name: Check pixi files diff
       id: check_diff
       run: |
         if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
