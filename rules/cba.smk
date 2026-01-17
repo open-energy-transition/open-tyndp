@@ -224,7 +224,11 @@ def input_indicators(w):
 
     # Filter projects based on CBA method using method_assignment.csv
     transmission_projects = filter_projects_by_method(
-        transmission_projects, cba_method, planning_horizons, scenario, method_assignment
+        transmission_projects,
+        cba_method,
+        planning_horizons,
+        scenario,
+        method_assignment,
     )
 
     cba_projects = [
