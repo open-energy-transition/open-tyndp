@@ -5,7 +5,11 @@
 
 import pandas as pd
 
-from scripts.cba._helpers import filter_projects_by_method, filter_projects_by_specs
+from scripts.cba._helpers import (
+    filter_projects_by_method,
+    filter_projects_by_specs,
+    load_method_assignment,
+)
 from scripts._helpers import fill_wildcards
 
 
@@ -38,12 +42,15 @@ def input_clustered_network(w):
 
 
 checkpoint clean_projects:
+    params:
+        method_assignment=config_provider("cba", "method_assignment"),
     input:
         dir="data/tyndp_2024_bundle/cba_projects",
         network=input_clustered_network,
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
+        method_assignment=resources("cba/method_assignment.csv"),
     script:
         "../scripts/cba/clean_projects.py"
 
@@ -83,41 +90,28 @@ rule simplify_sb_network:
         "../scripts/cba/simplify_sb_network.py"
 
 
-# build the reference network for toot with all projects included
-# maybe worth to merge with pint rule, if they turn out to be very similar
-rule prepare_toot_reference:
+# build the unified CBA reference network
+# Adds TOOT projects (not in base grid) to create reference for both TOOT and PINT
+rule prepare_cba_reference:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
+        method_assignment=rules.clean_projects.output.method_assignment,
     output:
-        network=resources("cba/toot/networks/reference_{planning_horizons}.nc"),
+        network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/prepare_toot_reference.py"
+        "../scripts/cba/prepare_cba_reference.py"
 
 
-# build the reference network for pint with all projects removed
-# maybe worth to merge with toot rule, if they turn out to be very similar
-rule prepare_pint_reference:
-    input:
-        network=rules.simplify_sb_network.output.network,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-        storage_projects=rules.clean_projects.output.storage_projects,
-    output:
-        network=resources("cba/pint/networks/reference_{planning_horizons}.nc"),
-    script:
-        "../scripts/cba/prepare_pint_reference.py"
-
-
-# remove the single project {cba_project} from the toot reference network
-# currently this can be either a trans123 or a stor123 project
+# remove the single project {cba_project} from the CBA reference network (TOOT)
 rule prepare_toot_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_toot_reference.output.network,
+        network=rules.prepare_cba_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -128,13 +122,12 @@ rule prepare_toot_project:
         "../scripts/cba/prepare_toot_project.py"
 
 
-# add the single project {cba_project} to the pint reference network
-# currently this can be either a trans123 or a stor123 project
+# add the single project {cba_project} to the CBA reference network (PINT)
 rule prepare_pint_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_pint_reference.output.network,
+        network=rules.prepare_cba_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -173,10 +166,31 @@ rule solve_cba_network:
         "../scripts/cba/solve_cba_network.py"
 
 
+# solve the unified reference network (shared by TOOT and PINT)
+rule solve_cba_reference:
+    params:
+        solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
+        foresight=config_provider("foresight"),
+        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        custom_extra_functionality=None,
+    input:
+        network=resources("cba/networks/reference_{planning_horizons}.nc"),
+    output:
+        network=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
+    log:
+        solver=logs("cba/solve_cba_network/reference_{planning_horizons}_solver.log"),
+        memory=logs("cba/solve_cba_network/reference_{planning_horizons}_memory.log"),
+        python=logs("cba/solve_cba_network/reference_{planning_horizons}_python.log"),
+    threads: 1
+    script:
+        "../scripts/cba/solve_cba_network.py"
+
+
 # compute all metrics for a single pint or toot project comparing reference and project solution
 rule make_indicators:
     input:
-        reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
+        reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
     output:
@@ -190,12 +204,13 @@ def input_indicators(w):
     """
     List all indicator CSV files for the given CBA method.
 
-    Filters projects based on the method (TOOT vs PINT) and user-specified
-    project specs from config.
+    Filters projects based on the method (TOOT vs PINT) using method_assignment.csv
+    and user-specified project specs from config.
     """
     run = w.get("run", config_provider("run", "name")(w))
     planning_horizons = int(w.planning_horizons)
     cba_method = w.cba_method
+    scenario = run  # NT, DE, etc.
 
     transmission_projects = pd.read_csv(
         checkpoints.clean_projects.get(run=run).output.transmission_projects
@@ -203,10 +218,13 @@ def input_indicators(w):
     storage_projects = pd.read_csv(
         checkpoints.clean_projects.get(run=run).output.storage_projects
     )
+    method_assignment = load_method_assignment(
+        checkpoints.clean_projects.get(run=run).output.method_assignment
+    )
 
-    # Filter projects based on CBA method
+    # Filter projects based on CBA method using method_assignment.csv
     transmission_projects = filter_projects_by_method(
-        transmission_projects, cba_method, planning_horizons
+        transmission_projects, cba_method, planning_horizons, scenario, method_assignment
     )
 
     cba_projects = [
@@ -233,8 +251,11 @@ rule collect_indicators:
 
 
 rule plot_indicators:
+    params:
+        plotting=config_provider("plotting"),
     input:
         indicators=rules.collect_indicators.output.indicators,
+        transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
     script:

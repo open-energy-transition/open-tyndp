@@ -3,12 +3,11 @@
 # SPDX-License-Identifier: MIT
 
 """
-Add a single transmission project to the PINT reference network.
+Add a single PINT project to the unified CBA reference network.
 
-Creates project networks for PINT methodology by adding
-one project at a time to the reference network. Only projects with
-in_reference=False are valid PINT candidates. Handles multi-border projects,
-creates new links when needed, and applies hurdle costs to new DC links.
+Creates project networks for PINT methodology by adding one project at a time
+to the unified CBA reference network. Handles multi-border projects, creates
+new links when needed, and applies hurdle costs to new DC links.
 """
 
 import logging
@@ -27,11 +26,15 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_pint_project",
             cba_project="t28",
+            planning_horizons="2030",
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    # Load unified CBA reference network
     n = pypsa.Network(snakemake.input.network)
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
 
@@ -51,7 +54,7 @@ if __name__ == "__main__":
     )
 
     logger.debug(
-        f"Project {project_id} has {len(transmission_project)} border(s) to add."
+        f"PINT: Adding project {project_id} with {len(transmission_project)} border(s)"
     )
 
     # Add the project (may have multiple borders)

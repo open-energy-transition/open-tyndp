@@ -3,60 +3,132 @@
 # SPDX-License-Identifier: MIT
 
 import re
+from pathlib import Path
 
 import pandas as pd
 
 
-def filter_projects_by_method(
-    projects: pd.DataFrame, method: str, planning_horizon: int
-) -> pd.DataFrame:
+def load_method_assignment(method_assignment_path: str | Path) -> pd.DataFrame:
     """
-    Filter projects based on CBA method and planning horizon.
+    Load CBA method assignments from CSV file.
 
     Parameters
     ----------
-    projects : pd.DataFrame
-        DataFrame with project data including in_reference columns
-    method : str
-        CBA method ('toot' or 'pint')
-    planning_horizon : int
-        Planning horizon year (e.g., 2030, 2040)
+    method_assignment_path : str or Path
+        Path to method_assignment.csv
 
     Returns
     -------
     pd.DataFrame
-        Filtered projects appropriate for the given method
+        DataFrame with columns: project_id, scenario, planning_horizon, cba_method
+    """
+    return pd.read_csv(method_assignment_path)
+
+
+def filter_projects_by_method(
+    projects: pd.DataFrame,
+    method: str,
+    planning_horizon: int,
+    scenario: str,
+    method_assignment: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Filter projects based on CBA method, planning horizon, and scenario.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        DataFrame with project data
+    method : str
+        CBA method ('toot' or 'pint')
+    planning_horizon : int
+        Planning horizon year (e.g., 2030, 2040)
+    scenario : str
+        Scenario name (e.g., 'NT', 'DE')
+    method_assignment : pd.DataFrame
+        DataFrame with method assignments (from method_assignment.csv)
+
+    Returns
+    -------
+    pd.DataFrame
+        Filtered projects matching the given method, horizon, and scenario
     """
     method = method.lower()
-    if method not in METHOD_PROJECT_FILTERS:
-        raise ValueError(
-            f"Unknown CBA method: {method}. Valid: {list(METHOD_PROJECT_FILTERS.keys())}"
-        )
+    if method not in ("toot", "pint"):
+        raise ValueError(f"Unknown CBA method: {method}. Valid: toot, pint")
 
-    return METHOD_PROJECT_FILTERS[method](projects, planning_horizon)
+    # Filter method assignments for this scenario/horizon/method
+    mask = (
+        (method_assignment["scenario"] == scenario)
+        & (method_assignment["planning_horizon"] == planning_horizon)
+        & (method_assignment["cba_method"].str.lower() == method)
+    )
+    valid_project_ids = method_assignment.loc[mask, "project_id"].unique()
 
-
-def _filter_toot(projects: pd.DataFrame, planning_horizon: int) -> pd.DataFrame:
-    """TOOT: all projects with data for this planning horizon are candidates."""
-    in_ref_col = f"in_reference{planning_horizon}"
-    if in_ref_col not in projects.columns:
-        raise ValueError(f"Column {in_ref_col} not found in projects DataFrame")
-    return projects.loc[projects[in_ref_col].notna()]
-
-
-def _filter_pint(projects: pd.DataFrame, planning_horizon: int) -> pd.DataFrame:
-    """PINT: only projects with in_reference=False are candidates."""
-    in_ref_col = f"in_reference{planning_horizon}"
-    if in_ref_col not in projects.columns:
-        raise ValueError(f"Column {in_ref_col} not found in projects DataFrame")
-    return projects.loc[projects[in_ref_col] == False]
+    # Return projects matching the valid IDs
+    return projects[projects["project_id"].isin(valid_project_ids)]
 
 
-# Registry of method-specific project filters
-METHOD_PROJECT_FILTERS = {
-    "toot": _filter_toot,
-    "pint": _filter_pint,
-}
+def get_toot_projects(
+    projects: pd.DataFrame,
+    planning_horizon: int,
+    scenario: str,
+    method_assignment: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Get all TOOT projects for a given scenario and planning horizon.
+
+    Used for building the unified CBA reference network.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        DataFrame with project data
+    planning_horizon : int
+        Planning horizon year (e.g., 2030, 2040)
+    scenario : str
+        Scenario name (e.g., 'NT', 'DE')
+    method_assignment : pd.DataFrame
+        DataFrame with method assignments
+
+    Returns
+    -------
+    pd.DataFrame
+        TOOT projects for this scenario/horizon
+    """
+    return filter_projects_by_method(
+        projects, "toot", planning_horizon, scenario, method_assignment
+    )
+
+
+def get_pint_projects(
+    projects: pd.DataFrame,
+    planning_horizon: int,
+    scenario: str,
+    method_assignment: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Get all PINT projects for a given scenario and planning horizon.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        DataFrame with project data
+    planning_horizon : int
+        Planning horizon year (e.g., 2030, 2040)
+    scenario : str
+        Scenario name (e.g., 'NT', 'DE')
+    method_assignment : pd.DataFrame
+        DataFrame with method assignments
+
+    Returns
+    -------
+    pd.DataFrame
+        PINT projects for this scenario/horizon
+    """
+    return filter_projects_by_method(
+        projects, "pint", planning_horizon, scenario, method_assignment
+    )
 
 
 def filter_projects_by_specs(
