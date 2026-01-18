@@ -91,6 +91,10 @@ if __name__ == "__main__":
             )
         else:
             # Create new links
+            length = project.get("length", 0)
+            if pd.isna(length):
+                length = 0
+
             n.add(
                 "Link",
                 link_id,
@@ -99,6 +103,8 @@ if __name__ == "__main__":
                 carrier="DC",
                 p_nom=capacity,
                 marginal_cost=hurdle_costs,
+                length=length,
+                underwater_fraction=0,
             )
 
             n.add(
@@ -109,6 +115,8 @@ if __name__ == "__main__":
                 carrier="DC",
                 p_nom=capacity_reverse,
                 marginal_cost=hurdle_costs,
+                length=length,
+                underwater_fraction=0,
             )
 
             logger.debug(f"Created new links for project {project_id}:")
