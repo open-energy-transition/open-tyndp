@@ -396,6 +396,13 @@ cba:
   projects:
   - t1-t5
 
+  # Storage settings for CBA dispatch
+  storage:
+    # Carriers that should remain cyclic (short-term storage)
+    cyclic_carriers:
+    - battery
+    - home battery
+
   # Merged into top-level solving options
   solving:
     options:

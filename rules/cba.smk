@@ -75,6 +75,7 @@ def input_sb_network(w):
 rule simplify_sb_network:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
         network=input_sb_network,
     output:
