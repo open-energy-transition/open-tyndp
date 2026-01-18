@@ -92,7 +92,7 @@ rule simplify_sb_network:
 
 # build the unified CBA reference network
 # Adds TOOT projects (not in base grid) to create reference for both TOOT and PINT
-rule prepare_cba_reference:
+rule prepare_reference:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
@@ -103,7 +103,7 @@ rule prepare_cba_reference:
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/prepare_cba_reference.py"
+        "../scripts/cba/prepare_reference.py"
 
 
 # remove the single project {cba_project} from the CBA reference network (TOOT)
@@ -111,7 +111,7 @@ rule prepare_toot_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_cba_reference.output.network,
+        network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -127,7 +127,7 @@ rule prepare_pint_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_cba_reference.output.network,
+        network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
