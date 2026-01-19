@@ -157,10 +157,16 @@ all-tests = {depends-on = ["integration-tests", "clean-tests", "unit-tests"]}
 pytest = ">=8.4.2"
 
 [feature.open-tyndp.tasks]
-ngv = """bash -c '
-    snakemake -call --configfile config/config.ngv.yaml --rerun-incomplete -k -n
+ngv-iem = """bash -c '
+    snakemake -call --configfile config/config.ngv-status-quo.yaml --rerun-incomplete -k results/ngv-iem/status_quo/networks/base_s_all_lluk__2030.nc results/ngv-iem/status_quo/networks/base_s_all_lluk__2040.nc
     ' --
 """
+
+tyndp = """bash -c '
+	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
+	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
+	' --
+ """
 
 [feature.open-tyndp.dependencies]
 pixi-pycharm = ">=0.0.9"
