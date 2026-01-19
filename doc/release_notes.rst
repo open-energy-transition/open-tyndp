@@ -11,14 +11,6 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
-* Added automated Windows installer for easy setup on Windows systems (https://github.com/open-energy-transition/open-tyndp/pull/333). The installer bundles pixi, the repository, and sets up the conda environment automatically. Installer executables are automatically built and attached to GitHub releases. See ``utils/windows-installer/`` for details.
-
-* Docs: Add innovation roadmap comparison, mapping existing or new developments in PyPSA-Eur and Open TYNDP to desired features for TYNDP 2026 (https://github.com/open-energy-transition/open-tyndp/pull/341)
-
-* Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
-
-* Fix: Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
-
 
 Upcoming PyPSA-Eur Release
 ================
@@ -118,6 +110,25 @@ Upcoming PyPSA-Eur Release
   The ``purge`` rule now removes their contents but keeps the folders (https://github.com/PyPSA/pypsa-eur/pull/1764).
 
 * Misc: Automatically update the DAGs shown in the documentation (https://github.com/PyPSA/pypsa-eur/pull/1880).
+
+
+Open-TYNDP v0.4.2 (19th January 2026)
+========================================
+
+
+**Features**
+
+* Added automated Windows installer for easy setup on Windows systems (https://github.com/open-energy-transition/open-tyndp/pull/333). The installer bundles pixi, the repository, and sets up the conda environment automatically. Installer executables are automatically built and attached to GitHub releases. See ``utils/windows-installer/`` for details.
+
+**Bugfixes and Compatibility**
+
+* Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
+
+* Fix: Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
+
+**Documentation**
+
+* Docs: Add innovation roadmap comparison, mapping existing or new developments in PyPSA-Eur and Open TYNDP to desired features for TYNDP 2026 (https://github.com/open-energy-transition/open-tyndp/pull/341)
 
 
 Open-TYNDP v0.4.1 (23rd December 2025)
