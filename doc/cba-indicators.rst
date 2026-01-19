@@ -18,9 +18,12 @@ The following indicators are computed in the CBA workflow:
 B1: Social Economic Welfare (SEW)
 =================================
 
-**Methodology**
+This indicator quantifies the change in total system costs resulting from the implementation of a project.
 
-1. Compute the total system costs for the reference network and the project network. This can be done by summing together the capital expenditures (CAPEX) and operational expenditures (OPEX) of all components in the network.
+**Computation**
+
+1. Compute the total system costs for the reference network and the project network. This is done by summing together the capital expenditures (CAPEX) and 
+operational expenditures (OPEX) of all components in each network (done separately for the reference network and the project network).
 
 .. code-block:: python
 
@@ -34,7 +37,8 @@ B1: Social Economic Welfare (SEW)
    - For PINT: ``B1 = Total System Costs (Project Network) - Total System Costs (Reference Network)``
 
 **Outputs**
-The following columns are saved in the CBA indicators CSV file (`results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv`):
+
+The following columns are saved in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
 
 - ``B1_total_system_cost_change``
 - ``cost_reference``
@@ -51,6 +55,66 @@ The following columns are saved in the CBA indicators CSV file (`results/cba/{cb
 B2: Social costs of CO2 emissions
 =================================
 
+This indicator quantifies the social cost impact of CO2 emissions resulting from the implementation of a project, 
+assuming different societal cost values for CO2.
+
+**Computation**
+
+1. Extract the net CO2 from the final spashot of the CO2 store (done separately for the reference network and the project network):
+
+..code-block:: python
+
+    net_co2 = n.stores_t.e.T.groupby(n.stores.carrier).sum().T["co2"].iloc[-1]
+
+2. Calculate the difference in net CO2 emissions between the reference and project networks (depending on the method used, TOOT or PINT):
+
+   - For TOOT: ``Delta CO2 = Net CO2 (Reference Network) - Net CO2 (Project Network)``
+   - For PINT: ``Delta CO2 = Net CO2 (Project Network) - Net CO2 (Reference Network)``
+
+3. Calculate the social cost of CO2 emissions using the societal cost values ((``cba.co2_societal_cost``)) and CO2 ETS price (``costs.emission_prices.co2``):
+
+   ``B2 = Delta CO2 * (Societal Cost of CO2 - CO2 ETS Price)``
+
+   Note that the societal cost of CO2 is planning horizon specific (e.g., different values for 2030 and 2040). 
+   Additionally, there are three different values for the societal cost of CO2: low, central, and high.
+   The values for the societal cost of CO2 are taken from page 68 of the 2024 CBA Implementation Guidelines.
+
+**Outputs**
+
+The following columns are saved in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
+
+- ``co2_diff``
+- ``co2_ets_price``
+- ``co2_societal_cost_low``
+- ``co2_societal_cost_central``
+- ``co2_societal_cost_high``
+- ``B2_societal_cost_variation_low``
+- ``B2_societal_cost_variation_central``
+- ``B2_societal_cost_variation_high``
 
 B3: Renewable Energy Sources (RES) integration costs
 ====================================================
+
+This indicator is to quantify how the project improves the integration of renewable energy sources (RES) into the energy system.
+RES technologies are defined in ``electricity.tyndp_renewable_carriers`` in the configuration file.
+
+**Computation**
+
+1. Compute the total capacities, generation, and curtailment of RES technologies in both the reference and project networks.
+
+    - Capacities: ``n.statistics.optimal_capacity(...).groupby("carrier").sum()``
+    - Generation: ``n.statistics.energy_balance(aggregate_time="sum", ...).groupby("carrier").sum()``
+    - Curtailment: ``n.statistics.curtailment(...).groupby("carrier").sum()``
+
+2. Calculate the change in RES capacities, generation, and curtailment between the reference and project networks 
+(depending on the method used, TOOT or PINT):
+
+   - For TOOT: ``Delta RES = RES (Reference Network) - RES (Project Network)``
+   - For PINT: ``Delta RES = RES (Project Network) - RES (Reference Network)``
+
+**Outputs**
+
+The following columns are saved in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
+- ``B3_res_capacity_change_mw``
+- ``B3_res_generation_change_mwh``
+- ``B3_annual_avoided_curtailment_mwh``
