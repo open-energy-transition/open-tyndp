@@ -10,6 +10,10 @@ At the high-level, the Scenario Building (SB) builds and solves the base network
 The CBA does not re‑optimize capacities -- it reuses the SB’s solved network as a starting point, makes modifications (such as fixing capacities), 
 and then runs dispatch-only optimizations on the prepared networks.
 
+A diagram of the workflow between SB and CBA is shown below:
+
+.. image:: img/tyndp/SB-CBA-workflow-subsequent-h.png
+
 TOOT and PINT
 =============
 
