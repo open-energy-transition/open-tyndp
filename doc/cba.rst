@@ -17,9 +17,11 @@ A diagram of the workflow between SB and CBA is shown below:
 TOOT and PINT
 =============
 
-Within the CBA, there are two methods to evaluate the cost-benefit impact of a project: TOOT (Take Out One at a Time) and PINT (Put IN at a Time).
-The TOOT method evaluates the impact of removing a project from the reference network. 
-Conversely, the PINT method evaluates the impact of adding a project to the reference network.
+Within the CBA, there are two methods to evaluate the cost-benefit impact of a project: 
+
+- **TOOT (Take Out One at a Time)**: evaluates the impact of removing a project from the reference network
+- **PINT (Put IN at a Time)**: evaluates the impact of adding a project to the reference network
+
 The method(s) are configured in the ``cba.methods`` section of the configuration file.
 
 Build CBA Network
@@ -27,7 +29,8 @@ Build CBA Network
 
 Currently, the CBA network is built by pulling from a solved SB (Scenario Building) network (saved in ``results/networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc``). 
 The CBA network is constructed by copying the SB network and then applying certain modifications to simplify and alter the SB network (in ``scripts/cba/simplify_sb_network.py``):
-- **Fix optimal capacities**: The CBA dispatch uses SB‑optimized capacities, so the SB’s capacity expansion decisions are embed into the CBA.
+
+- **Fix optimal capacities**: The CBA dispatch uses SB‑optimized capacities, so the SB’s capacity expansion decisions are embedded into the CBA.
 - **Disable volume limits for generators and links**: The volume limits (``e_sum_min``) of generators and links are set to negative infinity, as volume limits constrain minimum energy production over the optimization period.
 - **Apply hurdle costs**: The hurdle costs from the ``cba.hurdle_costs`` configuration section are set as marginal costs for links.
 - **Disable cycling for long-term storage**: The ``e_cyclic`` and ``e_cyclic_per_period`` for stores and the ``cyclic_state_of_charge`` for storage units are set to False.
@@ -35,6 +38,7 @@ The CBA network is constructed by copying the SB network and then applying certa
 After the simiplified SB network is created, this simplified SB network is further adapted to build the CBA reference network. 
 The CBA reference grid is then used to build the project network -- the project network refers to the network used to evaluate the cost-benefit impact of a (tranmission, storage, etc) project.
 The method used to build the project network is dependent on the method used (TOOT vs PINT):
+
 - **TOOT**: The project network is built by removing the project from the CBA reference network.
 - **PINT**: The project network is built by adding the project to the CBA reference network.
 
