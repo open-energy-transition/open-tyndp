@@ -36,16 +36,16 @@ B1: Social Economic Welfare (SEW)
 **Outputs**
 The following columns are saved in the CBA indicators CSV file (`results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv`):
 
-- `B1_total_system_cost_change`
-- `cost_reference`
-- `capex_reference`
-- `opex_reference`
-- `cost_project`
-- `capex_project`
-- `opex_project`
-- `capex_change`
-- `opex_change`
-- `is_beneficial` (TRUE/FALSE)
+- ``B1_total_system_cost_change``
+- ``cost_reference``
+- ``capex_reference``
+- ``opex_reference``
+- ``cost_project``
+- ``capex_project``
+- ``opex_project``
+- ``capex_change``
+- ``opex_change``
+- ``is_beneficial`` (TRUE/FALSE)
 - ``interpretation``: a sentence stating whether the project is beneficial or not based on the B1 indicator.
 
 B2: Social costs of CO2 emissions
