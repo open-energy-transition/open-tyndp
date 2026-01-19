@@ -47,3 +47,18 @@ which may overlap (if configured). Each horizon is solved sequentially.
 Within the CBA solve, the storage state of charge (SOC) is carried over between rolling horizons: 
 `stores.e_initial` and `storage_units.state_of_charge_initial` at each rolling horizon are updated using 
 the previous rolling horizon. 
+
+The solved CBA networks are saved in:
+- Reference network: `results/cba/{cba_method}/networks/reference_{planning_horizons}.nc`
+- Project network: `results/cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc`
+
+Where `{cba_method}` is either `toot` or `pint`, depending on the method used, 
+and `{cba_project}` is the project ID of the project being evaluated.
+
+Calculate CBA Indicators
+========================
+
+After solving both the reference and project networks, several key indicators are calculated to assess benefits of each project and to determine whether the project provides a positive net benefit to the energy system.
+The indicators calculated in the CBA are described in additional detail in the `doc/cba-indicators.rst` document.
+The calculations of the CBA indicators are implemented in the `scripts/cba/make_indicators.py` script. 
+The calculated CBA indicators for each project are saved in the CSV file: `results/cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv`.
