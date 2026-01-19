@@ -19,19 +19,23 @@ B1: Social Economic Welfare (SEW)
 =================================
 
 **Methodology**
+
 1. Compute the total system costs for the reference network and the project network. This can be done by summing together the capital expenditures (CAPEX) and operational expenditures (OPEX) of all components in the network.
-```python
-capex = n.statistics.capex().sum()
-opex = n.statistics.opex(aggregate_time="sum").sum()
-total = capex + opex
-```
+
+.. code-block:: python
+
+   capex = n.statistics.capex().sum()
+   opex = n.statistics.opex(aggregate_time="sum").sum()
+   total = capex + opex
 
 2. Calculate the difference in total system costs between the reference and project networks (depending on the method used, TOOT or PINT):
-   - For TOOT: B1 = Total System Costs (Reference Network) - Total System Costs (Project Network)
-   - For PINT: B1 = Total System Costs (Project Network) - Total System Costs (Reference Network)
+
+   - For TOOT: ``B1 = Total System Costs (Reference Network) - Total System Costs (Project Network)``
+   - For PINT: ``B1 = Total System Costs (Project Network) - Total System Costs (Reference Network)``
 
 **Outputs**
 The following columns are saved in the CBA indicators CSV file (`results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv`):
+
 - `B1_total_system_cost_change`
 - `cost_reference`
 - `capex_reference`
@@ -42,7 +46,7 @@ The following columns are saved in the CBA indicators CSV file (`results/cba/{cb
 - `capex_change`
 - `opex_change`
 - `is_beneficial` (TRUE/FALSE)
--  `interpretation``: a sentence stating whether the project is beneficial or not based on the B1 indicator.
+- ``interpretation``: a sentence stating whether the project is beneficial or not based on the B1 indicator.
 
 B2: Social costs of CO2 emissions
 =================================
