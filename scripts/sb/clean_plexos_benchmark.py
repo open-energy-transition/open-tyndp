@@ -210,7 +210,7 @@ if __name__ == "__main__":
         t for t in LOOKUP_TABLES.keys() if t in options["tables"].keys()
     ]
 
-    logger.info(f"Processing tables: {tables_to_process}")
+    logger.info(f"Processing tables: {", ".join(tables_to_process)}")
 
     tqdm_kwargs = {
         "ascii": False,
