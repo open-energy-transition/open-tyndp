@@ -97,6 +97,51 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
     return float(net_co2)
 
 
+def normalize_carrier_name(name: str) -> str:
+    return name.strip().lower().replace("_", " ").replace("-", " ")
+
+
+def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
+    """
+    Load non-CO2 emission factors and convert to kg/MWh.
+
+    The input factors are in units of kg/GJ (thermal) and are converted using the
+    standard efficiency (NCV) and 1 MWh = 3.6 GJ.
+    """
+    df = pd.read_csv(path, encoding="utf-8-sig")
+    df = df[df["Fuel"].notna()]
+    df["Fuel_norm"] = df["Fuel"].astype(str).map(normalize_carrier_name)
+    efficiency = (
+        df["Standard efficiency in NCV terms"]
+        .astype(str)
+        .str.replace("%", "", regex=False)
+        .pipe(pd.to_numeric, errors="coerce")
+        / 100.0
+    )
+
+    pollutant_cols = {
+        "NOX emission factor": "B4a_nox",
+        "NH3 emission factor": "B4b_nh3",
+        "SO emission factor": "B4c_sox",
+        "PM2.5 and smaller emission factor": "B4d_pm25",
+        "PM10 emission factor": "B4e_pm10",
+        "NMVOC emission factor": "B4f_nmvoc",
+    }
+
+    factors = {}
+    for col, key in pollutant_cols.items():
+        # kg/GJ_el = kg/GJ_th / efficiency
+        # kg/MWh_el = kg/GJ_el * 3.6
+        values = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+        factors[key] = values / efficiency * 3.6
+
+    factor_df = pd.DataFrame(factors)
+    factor_df["Fuel_norm"] = df["Fuel_norm"]
+    factor_df = factor_df[efficiency.notna() & (efficiency > 0)]
+    factor_df = factor_df.groupby("Fuel_norm").agg(["min", "mean", "max"])
+    return factor_df
+
+
 def calculate_res_capacity_per_carrier(
     n: pypsa.Network, res_carriers: list[str]
 ) -> pd.Series:
@@ -344,6 +389,72 @@ def calculate_b3_indicator(
     }
 
 
+def calculate_b4_indicator(
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str,
+    emission_factors: pd.DataFrame,
+) -> dict:
+    """
+    Calculate B4 indicator: non-CO2 emissions (tons/year).
+
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network.
+    n_project : pypsa.Network
+        Project network.
+    method : str
+        Either "pint" or "toot" (case-insensitive).
+    emission_factors : pd.DataFrame
+        DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier and
+        with columns for different pollutants and statistics (min, mean, max).
+
+    Returns
+    -------
+    dict
+        Dictionary with B4 indicators for each pollutant and statistic (stat in [min, mean, max]):
+        - {pollutant}_t_per_year_{stat}
+    """
+
+    def emissions_by_stat(n: pypsa.Network) -> dict:
+        generation = (
+            n.statistics.energy_balance(aggregate_time="sum", nice_names=False)
+            .groupby("carrier")
+            .sum()
+        )
+        emissions = {stat: {} for stat in ["min", "mean", "max"]}
+
+        for carrier, mwh in generation.items():
+            fuel_norm = normalize_carrier_name(str(carrier))
+            if fuel_norm not in emission_factors.index:
+                continue
+            factors = emission_factors.loc[fuel_norm]
+            for stat in ["min", "mean", "max"]:
+                kg_per_mwh = factors.xs(stat, level=1)
+                for pollutant_key, kg_value in kg_per_mwh.items():
+                    emissions[stat].setdefault(pollutant_key, 0.0)
+                    emissions[stat][pollutant_key] += mwh * kg_value / 1000.0
+
+        return emissions
+
+    ref_emissions = emissions_by_stat(n_reference)
+    proj_emissions = emissions_by_stat(n_project)
+
+    results = {}
+    for stat in ["min", "mean", "max"]:
+        for pollutant_key in emission_factors.columns.levels[0]:
+            ref_val = ref_emissions[stat].get(pollutant_key, 0.0)
+            proj_val = proj_emissions[stat].get(pollutant_key, 0.0)
+            if method == "pint":
+                diff = ref_val - proj_val
+            else:
+                diff = proj_val - ref_val
+            results[f"{pollutant_key}_t_per_year_{stat}"] = diff
+
+    return results
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -393,6 +504,15 @@ if __name__ == "__main__":
         res_carriers=res_carriers,
     )
     indicators.update(b3_indicators)
+
+    emission_factors = load_non_co2_emission_factors(snakemake.input.non_co2_emissions)
+    b4_indicators = calculate_b4_indicator(
+        n_reference,
+        n_project,
+        method=method,
+        emission_factors=emission_factors,
+    )
+    indicators.update(b4_indicators)
 
     # Add project metadata
     cba_project = snakemake.wildcards.cba_project
