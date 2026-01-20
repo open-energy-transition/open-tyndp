@@ -164,7 +164,7 @@ def load_plexos_sheet(
     # Only consider EU27 and sum
     df = df.T.groupby(df.columns).sum().reindex(eu27).sum()
 
-    # Rename and and group
+    # Rename and group
     df = df.rename(index=PLEXOS_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
 
     final = df.loc[output_type].rename("value").reset_index()
