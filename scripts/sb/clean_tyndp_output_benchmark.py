@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script cleans the PLEXOS output data for benchmarking.
+This script cleans the TYNDP market model output data for benchmarking.
 
-Reads PLEXOS MMStandardOutputFile xlsx files from both:
+Reads TYNDP market model (MM) MMStandardOutputFile xlsx files from both:
 - "Yearly Outputs" sheet for power and electricity data
 - "Yearly H2 Outputs" sheet for hydrogen-specific data
 
@@ -28,8 +28,8 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-# Mapping from PLEXOS technology names to benchmark carrier names
-PLEXOS_CARRIER_MAPPING = {
+# Mapping from TYNDP market model (MM) technology names to benchmark carrier names
+MM_CARRIER_MAPPING = {
     # Power capacity and generation mappings
     "Nuclear": "nuclear",
     "Lignite old 1": "coal + other fossil",
@@ -83,16 +83,16 @@ PLEXOS_CARRIER_MAPPING = {
     # Hydrogen_demand
     "Native Demand (excl. H2 storage charge) [GWhH2]": "exogenous demand",
     # "power generation" - could be calculated from power sheet (H2 Fuel Cell + H2 CCGT) * efficiency
-    # "e-fuels" - not available in PLEXOS NT scenario, included in native demand
+    # "e-fuels" - not available in TYNDP market model NT scenario, included in native demand
     # Hydrogen supply from H2 sheet
     "Electrolyser (gen.)": "p2g",
     "Steam methane reformer": "smr (grey)",
-    # Note: PLEXOS doesn't distinguish between grey and blue SMR in the output files
+    # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
     # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
-    # NOT available in PLEXOS (will not appear in output):
+    # NOT available in TYNDP market model (will not appear in output):
     # - "ammonia imports"
     # - "bi product"
-    # - "smr with ccs (blue)" - PLEXOS only has generic SMR
+    # - "smr with ccs (blue)" - TYNDP market model only has generic SMR
     # - "undefined for generation" . could be calculated from power sheet (H2 Fuel Cell + H2 CCGT) * efficiency
 }
 
@@ -109,14 +109,14 @@ LOOKUP_TABLES: dict[str, list[str]] = {
 }
 
 
-def load_plexos_sheet(
+def load_MM_sheet(
     table_name: str,
     filepath: str | Path,
     eu27: list,
     skiprows: int = 5,
 ) -> pd.DataFrame:
     """
-    Read PLEXOS sheet from xlsx file.
+    Read TYNDP market model sheet from xlsx file.
 
     Annual sheets have the same structure:
     - Rows 1-4: Metadata (Scenario, Simulator, Date, Status)
@@ -127,7 +127,7 @@ def load_plexos_sheet(
     Parameters
     ----------
     filepath : str or Path
-        Path to the PLEXOS xlsx file.
+        Path to the TYNDP market model xlsx file.
     table_name : str
         Name of the table from LOOKUP_TABLES (e.g., "power_capacity").
     eu27 : list
@@ -165,7 +165,7 @@ def load_plexos_sheet(
     df = df.T.groupby(df.columns).sum().reindex(eu27).sum()
 
     # Rename and group
-    df = df.rename(index=PLEXOS_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
+    df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
 
     final = df.loc[output_type].rename("value").reset_index()
     final["table"] = table_name
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "clean_plexos_benchmark",
+            "clean_tyndp_output_benchmark",
             planning_horizons="2030",
             scenario="NT",
             configfiles="config/test/config.tyndp.yaml",
@@ -202,10 +202,10 @@ if __name__ == "__main__":
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
 
-    # PLEXOS input file
-    plexos_file = snakemake.input.plexos_file
+    # TYNDP market model output file
+    tyndp_output_file = snakemake.input.tyndp_output_file
 
-    # Plots for which Plexos output files provide data
+    # Plots for which TYNDP market model output files provide data
     tables_to_process = [
         t for t in LOOKUP_TABLES.keys() if t in options["tables"].keys()
     ]
@@ -216,22 +216,22 @@ if __name__ == "__main__":
         "ascii": False,
         "unit": " table",
         "total": len(tables_to_process),
-        "desc": "Loading PLEXOS benchmark data",
+        "desc": "Loading TYNDP market model benchmark data",
     }
 
-    func = partial(load_plexos_sheet, filepath=plexos_file, eu27=eu27, skiprows=5)
+    func = partial(load_MM_sheet, filepath=tyndp_output_file, eu27=eu27, skiprows=5)
 
     # Process in parallel
     with mp.Pool(processes=snakemake.threads) as pool:
         benchmarks = list(tqdm(pool.imap(func, tables_to_process), **tqdm_kwargs))
 
-    # Convert to dictionary
-    plexos_data = pd.concat(benchmarks, ignore_index=True)
+    # Convert market model data to dictionary
+    MM_data = pd.concat(benchmarks, ignore_index=True)
 
-    plexos_data["scenario"] = f"TYNDP {scenario}"
-    plexos_data["year"] = planning_horizon
-    plexos_data["source"] = "Plexos output"
+    MM_data["scenario"] = f"TYNDP {scenario}"
+    MM_data["year"] = planning_horizon
+    MM_data["source"] = "Market Model TYNDP output"
 
     # Save data
-    plexos_data.to_csv(snakemake.output.benchmarks, index=False)
+    MM_data.to_csv(snakemake.output.benchmarks, index=False)
     logger.info(f"\nSaved to: {snakemake.output.benchmarks}")
