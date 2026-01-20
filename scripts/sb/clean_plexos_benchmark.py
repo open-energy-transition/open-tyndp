@@ -226,7 +226,7 @@ if __name__ == "__main__":
         benchmarks = list(tqdm(pool.imap(func, tables_to_process), **tqdm_kwargs))
 
     # Convert to dictionary
-    plexos_data = pd.concat(benchmarks, ignore_index=True).assign(source="PLEXOS")
+    plexos_data = pd.concat(benchmarks, ignore_index=True)
 
     plexos_data["scenario"] = f"TYNDP {scenario}"
     plexos_data["year"] = planning_horizon
