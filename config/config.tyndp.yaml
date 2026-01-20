@@ -393,6 +393,7 @@ cba:
       horizon: 168
       overlap: 0
       load_shedding: true
+      io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
       name: highs
