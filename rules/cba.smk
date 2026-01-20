@@ -210,7 +210,7 @@ def input_indicators(w):
     run = w.get("run", config_provider("run", "name")(w))
     planning_horizons = int(w.planning_horizons)
     cba_method = w.cba_method
-    scenario = run  # NT, DE, etc.
+    scenario = config_provider("tyndp_scenario")(w)  # NT, DE, etc.
 
     transmission_projects = pd.read_csv(
         checkpoints.clean_projects.get(run=run).output.transmission_projects
@@ -268,6 +268,24 @@ rule plot_indicators:
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
 rule cba:
+    input:
+        lambda w: expand(
+            rules.collect_indicators.output.indicators,
+            cba_method=config_provider("cba", "methods")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+        ),
+        lambda w: expand(
+            rules.plot_indicators.output.plot_dir,
+            cba_method=config_provider("cba", "methods")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+        ),
+
+
+# Test rule for CBA workflow with minimal project set
+# Run with: snakemake cba_test --configfile config/config.tyndp.yaml config/test/config.cba.yaml
+rule cba_test:
     input:
         lambda w: expand(
             rules.collect_indicators.output.indicators,

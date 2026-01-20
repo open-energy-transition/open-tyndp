@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP
+# SPDX-License-Identifier: CC0-1.0
+
+# Minimal CBA test config
+# Overlays on config/test/config.tyndp.yaml to test CBA workflow independently
+# Run with: snakemake cba_test --configfile config/test/config.tyndp.yaml config/test/config.cba.yaml
+
+run:
+  name: "test-sector-tyndp"
+  disable_progressbar: true
+  shared_resources:
+    policy: false
+  shared_cutouts: true
+
+tyndp_scenario: NT
+
+enable:
+  retrieve: false
+
+clustering:
+  temporal:
+    resolution_sector: 12H
+
+cba:
+  hurdle_costs: 0.01
+  planning_horizons:
+  - 2030
+  methods:
+  - toot
+  - pint
+  projects:
+  # TOOT in reference: t4, t16
+  # TOOT not in reference: t28, t35
+  # PINT not in reference: t40, t225
+  # PINT in reference: t126
+  - t4
+  - t16
+  - t28
+  - t35
+  - t40
+  - t126
+  - t225
+  method_assignment: entsoe_labels
+  solving:
+    options:
+      horizon: 146  # 5 rolling horizon chunks (730/5)
+      overlap: 0
+      load_shedding: true
+      io_api: direct
+    solver:
+      name: highs
+      options: highs-simplex
+    solver_options:
+      highs-simplex:
+        parallel: "off"
