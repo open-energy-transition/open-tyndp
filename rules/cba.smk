@@ -177,6 +177,7 @@ rule make_indicators:
         reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
+        non_co2_emissions="data/cba/a.3_non-co2-emissions.csv",
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
