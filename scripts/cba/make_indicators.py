@@ -455,6 +455,75 @@ def calculate_b4_indicator(
     return results
 
 
+def get_indicator_units(indicator: str) -> str:
+    if indicator in {
+        "B1_total_system_cost_change",
+        "cost_reference",
+        "capex_reference",
+        "opex_reference",
+        "cost_project",
+        "capex_project",
+        "opex_project",
+        "capex_change",
+        "opex_change",
+    }:
+        return "EUR"
+    if indicator == "co2_diff":
+        return "t/year"
+    if indicator in {
+        "co2_ets_price",
+        "co2_societal_cost_low",
+        "co2_societal_cost_central",
+        "co2_societal_cost_high",
+        "co2_societal_cost",
+    }:
+        return "EUR/t"
+    if indicator == "B2_social_cost" or indicator.startswith("B2_social_cost_"):
+        return "EUR/year"
+    if indicator == "B3_res_capacity_change_mw":
+        return "MW"
+    if indicator in {"B3_res_generation_change_mwh", "B3_res_dump_change_mwh"}:
+        return "MWh/year"
+    if indicator.startswith("B4"):
+        return "t/year"
+    return ""
+
+
+def build_long_indicators(indicators: dict) -> pd.DataFrame:
+    meta = {
+        "project_id": indicators.get("project_id"),
+        "method": indicators.get("cba_method"),
+        "is_beneficial": indicators.get("is_beneficial"),
+        "interpretation": indicators.get("interpretation"),
+    }
+
+    rows = []
+    skip_keys = set(meta.keys()) | {"cba_method"}
+    for key, value in indicators.items():
+        if key in skip_keys:
+            continue
+
+        indicator = key
+        subindex = ""
+        for suffix in ["_min", "_mean", "_max", "_low", "_central", "_high"]:
+            if indicator.endswith(suffix):
+                indicator = indicator[: -len(suffix)]
+                subindex = suffix.lstrip("_")
+                break
+
+        rows.append(
+            {
+                **meta,
+                "indicator": indicator,
+                "subindex": subindex,
+                "units": get_indicator_units(indicator),
+                "value": value,
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -524,5 +593,5 @@ if __name__ == "__main__":
     )
 
     # Convert to DataFrame and save
-    df = pd.DataFrame([indicators])
+    df = build_long_indicators(indicators)
     df.to_csv(snakemake.output.indicators, index=False)
