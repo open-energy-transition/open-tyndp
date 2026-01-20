@@ -194,7 +194,7 @@ if __name__ == "__main__":
     # currently only implemented for NT
     if scenario != "NT":
         logger.warning(
-            "Processing of the data only implemented for NT scenario. Exporting empty Data Frame"
+            "Processing of TYNDP output files currently only implemented for NT scenario. Exporting empty Data Frame"
         )
         pd.DataFrame().to_csv(snakemake.output.benchmarks)
 
