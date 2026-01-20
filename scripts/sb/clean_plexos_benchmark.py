@@ -8,7 +8,7 @@ Reads PLEXOS MMStandardOutputFile xlsx files from both:
 - "Yearly Outputs" sheet for power and electricity data
 - "Yearly H2 Outputs" sheet for hydrogen-specific data
 
-Currently only implemented for the NT scenario.
+Note: Currently, only NT scenario processing is supported.
 """
 
 import logging
