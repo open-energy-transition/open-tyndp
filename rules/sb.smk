@@ -719,7 +719,7 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
         input:
-            plexos_file="data/tyndp_2024_bundle/TYNDP-2024-Plexos-Output/MMStandardOutputFile_{scenario}{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx",
+            plexos_file="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_{scenario}{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx",
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_plexos_{scenario}{planning_horizons}.csv",
