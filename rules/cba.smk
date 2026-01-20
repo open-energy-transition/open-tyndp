@@ -166,7 +166,7 @@ rule solve_cba_network:
         "../scripts/cba/solve_cba_network.py"
 
 
-# solve the unified reference network (shared by TOOT and PINT)
+# solve the reference network (shared by TOOT and PINT)
 rule solve_cba_reference:
     params:
         solving=config_provider("solving"),
