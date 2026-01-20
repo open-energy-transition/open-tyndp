@@ -384,8 +384,15 @@ cba:
   - 2040
   methods:
   - toot
+  - pint
   projects:
   - t1-t35
+  # Method assignment mode: how to determine TOOT/PINT for each project
+  # Options:
+  #   - entsoe_labels: Extract from Excel "Chosen Approach" column (default)
+  #   - custom_labels: Read from existing method_assignment.csv (for user customization)
+  #   - algorithmic: Use heuristic rules (not yet implemented)
+  method_assignment: entsoe_labels
 
   # Merged into top-level solving options
   solving:

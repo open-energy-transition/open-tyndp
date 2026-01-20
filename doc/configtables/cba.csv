@@ -1,6 +1,7 @@
 ,Unit,Values,Description
 hurdle_costs,EUR/MWh,float,Marginal cost for transmission lines in Cost-Benefit Analysis networks. Used to represent congestion costs and market inefficiencies. Defaults to 0.01.
 planning_horizons,--,list of int,List of planning horizons for which to run CBA
-methods,--,list of str,"CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time). Defaults to ['toot']."
+methods,--,list of str,"CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time). Defaults to ['toot', 'pint']."
 projects,--,list of str,"List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35')."
+method_assignment,--,"{'entsoe_labels', 'custom_labels', 'algorithmic'}","Mode for determining TOOT/PINT method assignment per project. 'entsoe_labels' extracts from Excel 'Chosen Approach' column (default), 'custom_labels' reads from existing method_assignment.csv, 'algorithmic' uses heuristic rules (not yet implemented)."
 solving,,,Configuration options specific to CBA network optimization using rolling horizon approach. Uses the same structure as the top-level ``solving`` section (see :ref:`solving_cf`) with CBA-specific defaults for ``options: horizon`` (168 hours) and ``solver: name`` (highs).
