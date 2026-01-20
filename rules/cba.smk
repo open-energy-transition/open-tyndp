@@ -90,7 +90,7 @@ rule simplify_sb_network:
         "../scripts/cba/simplify_sb_network.py"
 
 
-# build the unified CBA reference network
+# build the CBA reference network
 # Adds TOOT projects (not in base grid) to create reference for both TOOT and PINT
 rule prepare_reference:
     params:
