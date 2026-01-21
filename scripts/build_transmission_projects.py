@@ -491,7 +491,7 @@ if __name__ == "__main__":
     projects = [
         project
         for project, include in transmission_projects["include"].items()
-        if include
+        if include and project != "tyndp2024"
     ]
     paths = snakemake.input.transmission_projects
     for project in projects:
