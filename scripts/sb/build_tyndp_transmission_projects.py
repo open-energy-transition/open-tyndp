@@ -32,11 +32,15 @@ logger = logging.getLogger(__name__)
 
 
 def read_invest_projects(
-    fn_invest: str, carrier: str = "Electricity", year: int = 2035, op: str = "<="
+    fn_invest: str,
+    carrier: str = "Electricity",
+    year: int = 2035,
+    op: str = "==",
+    category: str = "Real",
 ):
     """
     Read grid investment dataset for Electricity and Hydrogen.
-    For Electricity, only consider 'Real' projects.
+    For Electricity, only consider 'Real' projects by default.
 
     #
     """
@@ -45,7 +49,7 @@ def read_invest_projects(
             f"Carrier must be 'Electricity' or 'Hydrogen', got '{carrier}'."
         )
     border_condition = (
-        "BORDER.str.contains('Real') & " if carrier == "Electricity" else ""
+        f"BORDER.str.contains('{category}') & " if carrier == "Electricity" else ""
     )
     return (
         pd.read_excel(fn_invest, sheet_name=carrier)
