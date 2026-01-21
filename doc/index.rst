@@ -86,7 +86,7 @@ Already implemented features
 The back-casting of the 2024 TYNDP cycle involves developing new features based on the published `modelling methodology report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__. Major and already implemented features are summarized below. Please, refer to the :doc:`release_notes` for a more comprehensive list of features and to the relevant `pull requests <https://github.com/open-energy-transition/open-tyndp/pulls?q=is%3Apr+label%3A%22major+feature%22>`__ for extensive documentation of the implementations.
 
 - Introduced a benchmarking framework that assesses Open-TYNDP quality against published TYNDP 2024 data (see PR `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__) and Visualisation Platform data (see PRs `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__).
-- Introduced the electricity and hydrogen reference grids from TYNDP 2024 grid data (see PRs `#18 <https://github.com/open-energy-transition/open-tyndp/pull/18>`__, `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__), including hydrogen import potentials and corridors from outside of the modelled countries (see PR `#36 <https://github.com/open-energy-transition/open-tyndp/pull/36>`__).
+- Introduced the electricity and hydrogen reference grids from TYNDP 2024 grid data (see PRs `#18 <https://github.com/open-energy-transition/open-tyndp/pull/18>`__, `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__, `#340 <https://github.com/open-energy-transition/open-tyndp/pull/340>`__), including hydrogen import potentials and corridors from outside of the modelled countries (see PR `#36 <https://github.com/open-energy-transition/open-tyndp/pull/36>`__).
 - Introduced TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics (see PR `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__).
 - Added processing, preparation and attaching of PECD v3.1 renewable profiles and PEMMDB v2.4 hydro inflows to their corresponding components (see PRs `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__, `#71 <https://github.com/open-energy-transition/open-tyndp/pull/71>`__, `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__).
 - Added processing and preparation of PEMMDB v2.4 capacity, must-run, and availability data, along with expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and DSR (see PR `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__).
@@ -175,7 +175,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **Existing infrastructure and associated parameters**
      - Electricity reference grid
-     - `#18 <https://github.com/open-energy-transition/open-tyndp/pull/18>`__
+     - `#18 <https://github.com/open-energy-transition/open-tyndp/pull/18>`__, `#340 <https://github.com/open-energy-transition/open-tyndp/pull/340>`__
      - ✅
    * -
      - Hydrogen reference grid
