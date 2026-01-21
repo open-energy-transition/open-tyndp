@@ -319,7 +319,8 @@ rule build_pemmdb_data:
 
 rule build_tyndp_transmission_projects:
     input:
-        rules.retrieve_tyndp_bundle.output.invest_grid,
+        buses=rules.build_tyndp_network.output.substations_geojson,
+        invest_grid=rules.retrieve_tyndp_bundle.output.invest_grid,
     output:
         resources("tyndp/new_links.csv"),
     log:
