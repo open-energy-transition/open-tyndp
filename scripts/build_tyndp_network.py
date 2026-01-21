@@ -320,7 +320,10 @@ def build_links(
     """
     links = pd.read_excel(grid_fn)
     links = extract_grid_data_tyndp(
-        links=links, idx_prefix="Transmission line", replace_dict=MAP_GRID_TYNDP
+        links=links,
+        idx_prefix="Transmission line",
+        replace_dict=MAP_GRID_TYNDP,
+        idx_connector="->",
     )
 
     # Add missing attributes

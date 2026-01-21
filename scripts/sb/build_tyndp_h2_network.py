@@ -71,7 +71,7 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
         )
 
         interzonal = extract_grid_data_tyndp(
-            interzonal_filtered, idx_prefix="H2 pipeline"
+            interzonal_filtered, idx_prefix="H2 pipeline", idx_connector="->"
         )
         # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
         interzonal["p_nom"] = interzonal.p_nom.mul(1e3)
@@ -106,7 +106,9 @@ def load_h2_grid(fn):
     """
 
     h2_grid_raw = pd.read_excel(fn)
-    h2_grid = extract_grid_data_tyndp(h2_grid_raw, idx_prefix="H2 pipeline")
+    h2_grid = extract_grid_data_tyndp(
+        h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
+    )
     # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
     h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
 
