@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+
+name: Build and Attach Installer to Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to attach installer to'
+        required: true
+        type: string
+
+jobs:
+  build-and-attach-installer:
+    name: Build Windows Installer and Attach to Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ env.VERSION }}
+
+    - name: Check that origin/master contains the tag and reset local master to it
+      run: |
+        git fetch origin master
+        if ! git merge-base --is-ancestor "$VERSION" origin/master; then
+          echo "Error: Tag $VERSION is not in master branch history"
+          exit 1
+        fi
+        git branch --force master HEAD
+        git checkout master
+
+    - name: Setup Pixi
+      uses: prefix-dev/setup-pixi@v0.9.3
+      with:
+        pixi-version: v0.59.0
+        cache: true
+        cache-write: false
+
+    - name: Build Windows installer
+      run: |
+        utils/windows-installer/build_installer.sh
+
+    - name: Upload installer to release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload $VERSION utils/windows-installer/open-tyndp-*.exe --clobber

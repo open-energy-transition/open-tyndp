@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 
+import zipfile
 from shutil import move
 from scripts._helpers import safe_pyear
 
@@ -30,6 +31,10 @@ if config["enable"]["retrieve"] and config["enable"].get("retrieve_cutout", True
 if config["enable"]["retrieve"]:
 
     rule retrieve_tyndp_bundle:
+        input:
+            zip_file=storage(
+                "https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip"
+            ),
         output:
             dir=directory("data/tyndp_2024_bundle"),
             elec_reference_grid="data/tyndp_2024_bundle/Line data/ReferenceGrid_Electricity.xlsx",
@@ -43,11 +48,9 @@ if config["enable"]["retrieve"]:
             offshore_generators="data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx",
             trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
             invest_grid="data/tyndp_2024_bundle/Investment Datasets/GRID.xlsx",
-        log:
-            "logs/retrieve_tyndp_bundle.log",
-        retries: 2
-        script:
-            "../scripts/sb/retrieve_tyndp_bundle.py"
+        run:
+            with zipfile.ZipFile(input.zip_file, "r") as zip_ref:
+                zip_ref.extractall(output.dir)
 
     rule retrieve_tyndp_pecd_data_raw:
         params:
@@ -95,7 +98,7 @@ if config["enable"]["retrieve"]:
             dir=directory("data/tyndp_2024_bundle/Supply Tool"),
             file="data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm",
         log:
-            "logs/retrieve_tyndp_pemmdb_data.log",
+            "logs/retrieve_tyndp_supply_tool.log",
 
     if config["electricity"]["pecd_renewable_profiles"]["pre_built"]["retrieve"]:
 
@@ -135,17 +138,18 @@ if config["enable"]["retrieve"]:
             "logs/retrieve_tyndp_vp_data.log",
 
     rule retrieve_countries_centroids:
-        input:
-            storage(
-                "https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson"
-            ),
         output:
             "data/countries_centroids.geojson",
         log:
             "logs/retrieve_countries_centroids.log",
-        retries: 2
         run:
-            move(input[0], output[0])
+            from scripts._helpers import progress_retrieve
+
+            progress_retrieve(
+                "https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson",
+                output[0],
+                disable=True,
+            )
 
 
 # Development
