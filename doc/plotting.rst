@@ -133,7 +133,7 @@ Rule ``clean_tyndp_vp_data``
 Rule ``build_statistics``
 ======================================
 
-.. automodule:: clean_tyndp_vp_data
+.. automodule:: build_statistics
 
 Rule ``make_benchmark``
 ======================================
