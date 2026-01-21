@@ -99,4 +99,4 @@ if __name__ == "__main__":
     buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
     projects = read_invest_projects(snakemake.input.invest_grid, buses)
 
-    projects.to_csv(snakemake.output[0])
+    projects.to_csv(snakemake.output[0], quotechar="'")

@@ -43,6 +43,7 @@ from scripts.add_electricity import (
     sanitize_carriers,
     sanitize_locations,
 )
+from scripts.base_network import _load_links_from_raw
 from scripts.build_energy_totals import (
     build_co2_totals,
     build_eea_co2,
@@ -60,19 +61,27 @@ logger = logging.getLogger(__name__)
 
 def attach_tyndp_transmission_projects(n: pypsa.Network, fn_projects: str):
     """
-    Attach projects to the reference grid.
+    Add TYNDP transmission projects to the network.
+
+    Updates existing DC link capacities and adds new links from the project list.
 
     Parameters
     ----------
-    # TODO
-
-    Returns
-    -------
-    # TODO
+    n : pypsa.Network
+        Network to attach projects to.
+    fn_projects : str
+        Path to CSV file containing transmission project data.
     """
-    # projects = pd.read_csv(fn_projects, index_col=0)  # TODO
+    projects = _load_links_from_raw(fn_projects)
+    projects["dc"] = True
+    # TODO underwater fraction and capital costs not defined for new links
 
-    pass
+    links = n.links[n.links.carrier == "DC"].index
+    new_links = projects.loc[list(set(projects.index) - set(links))]
+    n.links.loc[links, "p_nom"] += projects.reindex(links, fill_value=0).p_nom
+
+    if not new_links.empty:
+        n.add("Link", new_links.index, **new_links)
 
 
 def define_spatial(
