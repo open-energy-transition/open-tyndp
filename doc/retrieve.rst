@@ -191,6 +191,21 @@ Rule ``retrieve_tyndp_pemmdb_data``
 
 .. automodule:: retrieve_additional_tyndp_data
 
+Rule ``retrieve_tyndp_supply_tool``
+====================================
+
+.. automodule:: retrieve_additional_tyndp_data
+
+Rule ``retrieve_tyndp_benchmark``
+====================================
+
+.. automodule:: retrieve_additional_tyndp_data
+
+Rule ``retrieve_tyndp_vp_data``
+====================================
+
+.. automodule:: retrieve_additional_tyndp_data
+
 Rule ``retrieve_tyndp_h2_data``
 ====================================
 

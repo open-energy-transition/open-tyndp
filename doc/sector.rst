@@ -263,10 +263,20 @@ Rule ``build_tyndp_h2_network``
 
 .. automodule:: build_tyndp_h2_network
 
-Rule ``prepare_sector_network``
+Rule ``clean_tyndp_h2_imports``
 ==============================================================================
 
-.. automodule:: prepare_sector_network
+.. automodule:: clean_tyndp_h2_imports
+
+Rule ``build_tyndp_h2_imports``
+==============================================================================
+
+.. automodule:: build_tyndp_h2_imports
+
+Rule ``build_tyndp_offshore_hubs``
+==============================================================================
+
+.. automodule:: build_tyndp_offshore_hubs
 
 Rule ``build_tyndp_h2_demand``
 ==============================================================================
@@ -282,3 +292,8 @@ Rule ``build_tyndp_gas_demand``
 ==============================================================================
 
 .. automodule:: build_tyndp_gas_demand
+
+Rule ``prepare_sector_network``
+==============================================================================
+
+.. automodule:: prepare_sector_network
