@@ -4,17 +4,25 @@
 
 
 """
-#TODO
+Build TYNDP transmission projects from the Grid Investment Dataset.
+
+This script processes the TYNDP 2024 Grid Investment Dataset to extract
+transmission projects for inclusion in the reference grid.
+Projects are filtered by commissioning year and category, then formatted
+as network links with geometry attributes derived from bus locations.
 
 Inputs
 ------
-
-#TODO
+- ``data/tyndp_2024_bundle/Investment Datasets/GRID.xlsx``: Grid investment dataset
+  containing electricity and hydrogen transmission projects with capacities and
+  commissioning years.
+- ``resources/tyndp/substations.geojson``: Bus with geometry.
 
 Outputs
 -------
-
-#TODO
+- ``resources/tyndp/new_links.csv``: Processed transmission projects with bus
+  connections, capacities (p_nom), lengths, and geometry attributes ready for
+  network integration.
 """
 
 import logging
@@ -42,12 +50,31 @@ def read_invest_projects(
     year: int = 2035,
     op: str = "==",
     category: str = "Real",
-):
+) -> gpd.GeoDataFrame:
     """
     Read grid investment dataset for Electricity and Hydrogen.
-    For Electricity, only consider 'Real' projects by default.
 
-    #
+    For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
+
+    Parameters
+    ----------
+    fn_invest : str
+        Path to the investment dataset file.
+    buses : gpd.GeoDataFrame
+        GeoDataFrame of TYNDP buses with geometry.
+    carrier : str, optional
+        Energy carrier to extract: 'Electricity' or 'Hydrogen'. Default is 'Electricity'.
+    year : int, optional
+        Commissioning year to filter projects. Default is 2035.
+    op : str, optional
+        Comparison operator for year filtering (e.g., '==', '<=', '>='). Default is '=='.
+    category : str, optional
+        Project category filter for Electricity. Default is 'Real'.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Processed links with geometry.
     """
     if carrier not in ["Electricity", "Hydrogen"]:
         raise ValueError(
