@@ -42,6 +42,7 @@ if config["enable"]["retrieve"]:
             offshore_electrolysers="data/tyndp_2024_bundle/Offshore hubs/ELECTROLYSER.xlsx",
             offshore_generators="data/tyndp_2024_bundle/Offshore hubs/GENERATOR.xlsx",
             trajectories="data/tyndp_2024_bundle/Investment Datasets/TRAJECTORY.xlsx",
+            invest_grid="data/tyndp_2024_bundle/Investment Datasets/GRID.xlsx",
         log:
             "logs/retrieve_tyndp_bundle.log",
         retries: 2
@@ -314,7 +315,7 @@ rule build_pemmdb_data:
 
 rule build_tyndp_transmission_projects:
     input:
-        "data/tyndp_2024_bundle/Investment Datasets/GRID.xlsx",
+        rules.retrieve_tyndp_bundle.output.invest_grid,
     output:
         resources("tyndp/new_links.csv"),
     log:
