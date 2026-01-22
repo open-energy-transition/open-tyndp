@@ -48,6 +48,16 @@ checkpoint clean_projects:
         "../scripts/cba/clean_projects.py"
 
 
+rule clean_tyndp_indicators:
+    input:
+        transmission="data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx",
+        storage="data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx",
+    output:
+        indicators=resources("cba/tyndp_indicators.csv"),
+    script:
+        "../scripts/cba/clean_tyndp_indicators.py"
+
+
 def input_sb_network(w):
     scenario = config_provider("scenario")(w)
     expanded_wildcards = {
@@ -178,6 +188,7 @@ rule make_indicators:
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
         non_co2_emissions="data/cba/a.3_non-co2-emissions.csv",
+        benchmark=rules.clean_tyndp_indicators.output.indicators,
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
@@ -229,6 +240,29 @@ rule plot_indicators:
         "../scripts/cba/plot_indicators.py"
 
 
+rule plot_cba_benchmark:
+    input:
+        indicators=RESULTS + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
+    output:
+        plot_dir=directory(
+            RESULTS
+            + "cba/{cba_method}/benchmark_plots_project_{cba_project}_{planning_horizons}"
+        ),
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
+rule plot_all_cba_benchmark:
+    input:
+        indicators=rules.collect_indicators.output.indicators,
+    output:
+        plot_dir=directory(
+            RESULTS + "cba/{cba_method}/benchmark_plots_{planning_horizons}"
+        ),
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
 rule cba:
     input:
@@ -240,6 +274,12 @@ rule cba:
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
+            cba_method=config_provider("cba", "methods")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+        ),
+        lambda w: expand(
+            rules.plot_all_cba_benchmark.output.plot_dir,
             cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
