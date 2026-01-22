@@ -243,6 +243,7 @@ sector:
     2040: 0.45
     2045: 0.2
     2050: 0
+  bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
   oil_boilers: false
   biomass_boiler: false
   solar_thermal: false
