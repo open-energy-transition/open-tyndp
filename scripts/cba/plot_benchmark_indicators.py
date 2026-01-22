@@ -45,11 +45,19 @@ def select_model_values(df: pd.DataFrame, indicator: str) -> pd.Series:
 def plot_benchmark_indicator(
     df: pd.DataFrame, indicator: str, output_dir: Path
 ) -> None:
-    benchmark = df[
-        (df["source"] == "2024 tyndp")
-        & (df["indicator"] == indicator)
-        & (df["subindex"].isin(["min", "mean", "max"]))
-    ].copy()
+    benchmark = df[(df["source"] == "2024 tyndp") & (df["indicator"] == indicator)].copy()
+    if "value_converted" in benchmark.columns:
+        benchmark["value"] = benchmark["value_converted"].fillna(benchmark["value"])
+
+    if indicator == "B2a_societal_cost_variation":
+        benchmark = benchmark[benchmark["subindex"].isin(["low", "central", "high"])]
+        benchmark = benchmark.assign(
+            subindex=benchmark["subindex"].replace(
+                {"low": "min", "central": "mean", "high": "max"}
+            )
+        )
+    else:
+        benchmark = benchmark[benchmark["subindex"].isin(["min", "mean", "max"])]
 
     model_values = select_model_values(df, indicator)
     if benchmark.empty or model_values.empty:
@@ -61,13 +69,25 @@ def plot_benchmark_indicator(
         logger.info("Skipping %s benchmark plot (no matching projects)", indicator)
         return
 
+    benchmark = benchmark.assign(
+        subindex=benchmark["subindex"].replace({"explicit": "mean"})
+    )
     pivot = benchmark.pivot_table(
         index="project_id", columns="subindex", values="value", aggfunc="mean"
     ).reindex(model_values.index)
-    for col in ["min", "mean", "max"]:
-        if col not in pivot.columns:
-            logger.info("Skipping %s benchmark plot (missing %s)", indicator, col)
-            return
+    if "mean" not in pivot.columns:
+        if "explicit" in pivot.columns:
+            pivot["mean"] = pivot["explicit"]
+        elif "min" in pivot.columns:
+            pivot["mean"] = pivot["min"]
+        elif "max" in pivot.columns:
+            pivot["mean"] = pivot["max"]
+
+    if "min" not in pivot.columns:
+        pivot["min"] = pivot["mean"]
+    if "max" not in pivot.columns:
+        pivot["max"] = pivot["mean"]
+
     pivot = pivot.dropna(subset=["min", "mean", "max"])
 
     if pivot.empty:
@@ -81,10 +101,13 @@ def plot_benchmark_indicator(
     ymax = pivot["max"].to_numpy()
 
     plt.figure(figsize=(10, 4))
+    lower = (mean - ymin).clip(min=0)
+    upper = (ymax - mean).clip(min=0)
+
     plt.errorbar(
         x,
         mean,
-        yerr=[mean - ymin, ymax - mean],
+        yerr=[lower, upper],
         fmt="o",
         color="gray",
         ecolor="lightgray",
@@ -129,16 +152,16 @@ def create_plots(indicators_file, output_dir):
 
     benchmark_indicators = [
         "B1_total_system_cost_change",
-        "co2_variation",
-        "B2_societal_cost_variation",
+        "B2a_co2_variation",
+        "B2a_societal_cost_variation",
         "B3_res_generation_change_mwh",
-        "B3_res_capacity_change_mw",
-        "B4a_nox_t_per_year",
-        "B4b_nh3_t_per_year",
-        "B4c_sox_t_per_year",
-        "B4d_pm25_t_per_year",
-        "B4e_pm10_t_per_year",
-        "B4f_nmvoc_t_per_year",
+        "B3a_res_capacity_change_mw",
+        "B4a_nox",
+        "B4b_nh3",
+        "B4c_sox",
+        "B4d_pm25",
+        "B4e_pm10",
+        "B4f_nmvoc",
     ]
 
     for indicator in benchmark_indicators:

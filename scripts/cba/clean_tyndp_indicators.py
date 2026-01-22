@@ -34,42 +34,57 @@ EURO_SYMBOLS = {
     "\u201a\u00c7\u00a8",
 }
 
-INDICATOR_MAP_BY_SHORTCUT = {
-    "\u0394SEW": "B1_total_system_cost_change",
-    "\u0394RES": "B3_res_generation_change_mwh",
-    "\u0394RES_MW": "B3_res_capacity_change_mw",
-    "\u0394NOx": "B4a_nox_t_per_year",
-    "\u0394NH3": "B4b_nh3_t_per_year",
-    "\u0394SO2": "B4c_sox_t_per_year",
-    "\u0394PM5": "B4d_pm25_t_per_year",
-    "\u0394PM10": "B4e_pm10_t_per_year",
-    "\u0394NMVOC": "B4f_nmvoc_t_per_year",
+INDICATOR_MAP = {
+    "B1": "B1_total_system_cost_change",
+    "B3": "B3_res_generation_change_mwh",
+    "B3a": "B3a_res_capacity_change_mw",
+    "B4a": "B4a_nox",
+    "B4b": "B4b_nh3",
+    "B4c": "B4c_sox",
+    "B4d": "B4d_pm25",
+    "B4e": "B4e_pm10",
+    "B4f": "B4f_nmvoc",
 }
 
-COMPOSITE_SHORTCUTS = {
-    "co2_variation": ["\u0394CO2_market", "\u0394CO2_network"],
-    "B2_societal_cost_variation": [
-        "\u0394CO2_market_monetised",
-        "\u0394CO2_network_monetised",
-    ],
+COMPOSITE_INDICATORS = {
+    "B2a_co2_variation": {"keys": {"B2a", "B2b"}},
+    "B2a_societal_cost_variation": {
+        "keys": {
+            "B2a_euro",
+            "B2b_euro",
+            "CO2_market_SEW",
+            "CO2_network_SEW",
+        }
+    },
 }
 
-OUTPUT_UNITS = {
-    "co2_variation": "t/year",
-    "B2_societal_cost_variation": "EUR/year",
+MODEL_UNITS = {
+    "B1_total_system_cost_change": "EUR",
+    "B2a_co2_variation": "t/year",
+    "B2a_societal_cost_variation": "EUR/year",
+    "B3_res_generation_change_mwh": "MWh/year",
+    "B3a_res_capacity_change_mw": "MW",
+    "B4a_nox": "kg/year",
+    "B4b_nh3": "kg/year",
+    "B4c_sox": "kg/year",
+    "B4d_pm25": "kg/year",
+    "B4e_pm10": "kg/year",
+    "B4f_nmvoc": "kg/year",
 }
 
 UNIT_CONVERSION = {
-    "MEUR/year": (1e6, "EUR/year"),
+    "Meuro/year": (1e6, "EUR/year"),
     "ktonnes/year": (1000.0, "t/year"),
     "GWh/year": (1000.0, "MWh/year"),
-    "kg/year": (0.001, "t/year"),
+    "MWh/year": (1.0, "MWh/year"),
+    "MW": (1.0, "MW"),
+    "kg/year": (1.0, "kg/year"),
 }
 
 
 def normalize_unit(unit: str) -> str:
     unit_str = str(unit).strip()
-    unit_str = unit_str.replace("\u20ac", "EUR")
+    unit_str = unit_str.replace("\u20ac", "euro")
     unit_str = unit_str.replace(" ", "")
     return unit_str
 
@@ -91,6 +106,12 @@ def normalize_indicator_text(text: str) -> str:
     for bad in EURO_SYMBOLS:
         value = value.replace(bad, "euro")
     value = value.replace("euroeuro", "euro")
+    return value
+
+
+def normalize_indicator_key(text: str) -> str:
+    value = normalize_indicator_text(text)
+    value = value.replace(" ", "")
     return value
 
 
@@ -227,12 +248,15 @@ def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFr
     merged["indicator_raw"] = merged["indicator_raw"].fillna(merged["shortcut_norm"])
     merged["indicator_raw"] = merged["indicator_raw"].map(normalize_indicator_text)
     merged["indicator_name"] = merged["indicator_name"].map(normalize_indicator_text)
+    merged["indicator_key"] = merged["indicator_raw"].map(normalize_indicator_key)
+    merged["indicator_mapped"] = merged["indicator_key"].map(INDICATOR_MAP)
     merged["indicator"] = merged["indicator_raw"]
-    merged["indicator_mapped"] = merged["shortcut"].map(INDICATOR_MAP_BY_SHORTCUT)
 
-    unit_norm = merged["unit_raw"].map(normalize_unit)
-    merged["units"] = unit_norm.map(lambda u: UNIT_CONVERSION.get(u, (1.0, u))[1])
-    merged["value"] = convert_values(merged["value"], merged["unit_raw"])
+    merged["unit_raw"] = merged["unit_raw"].map(normalize_unit)
+    merged["value_raw"] = merged["value"]
+    merged["value_converted"] = convert_values(merged["value"], merged["unit_raw"])
+    merged["value"] = merged["value_raw"]
+    merged["units"] = merged["unit_raw"]
 
     rows.append(
         merged[
@@ -244,32 +268,40 @@ def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFr
                 "indicator_mapped",
                 "subindex",
                 "units",
+                "unit_raw",
                 "value",
+                "value_converted",
                 "indicator_name",
             ]
         ]
     )
 
-    for indicator, shortcuts in COMPOSITE_SHORTCUTS.items():
-        subset = merged[merged["shortcut"].isin(shortcuts)].copy()
+    for indicator, spec in COMPOSITE_INDICATORS.items():
+        keys = list(spec["keys"])
+        subset = merged[merged["indicator_key"].isin(keys)].copy()
         if subset.empty:
             continue
         pivot = (
             subset.pivot_table(
                 index=["project_id", "method", "subindex"],
-                columns="shortcut",
+                columns="indicator_key",
                 values="value",
                 aggfunc="sum",
             )
             .fillna(0)
             .reset_index()
         )
-        pivot["value"] = pivot[shortcuts].sum(axis=1)
+        present = [key for key in keys if key in pivot.columns]
+        if not present:
+            continue
+        pivot["value"] = pivot[present].sum(axis=1)
         pivot["indicator"] = indicator
         pivot["indicator_raw"] = None
         pivot["indicator_mapped"] = indicator
         pivot["indicator_name"] = None
-        pivot["units"] = OUTPUT_UNITS[indicator]
+        pivot["units"] = MODEL_UNITS.get(indicator, "")
+        pivot["unit_raw"] = None
+        pivot["value_converted"] = pivot["value"]
         rows.append(
             pivot[
                 [
@@ -280,7 +312,9 @@ def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFr
                     "indicator_mapped",
                     "subindex",
                     "units",
+                    "unit_raw",
                     "value",
+                    "value_converted",
                     "indicator_name",
                 ]
             ]
@@ -337,7 +371,9 @@ if __name__ == "__main__":
                 "indicator_name",
                 "subindex",
                 "units",
+                "unit_raw",
                 "value",
+                "value_converted",
                 "scenario",
                 "planning_horizon",
                 "type",
