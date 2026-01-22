@@ -397,7 +397,7 @@ def calculate_b4_indicator(
     emission_factors: pd.DataFrame,
 ) -> dict:
     """
-    Calculate B4 indicator: non-CO2 emissions (tons/year).
+    Calculate B4 indicator: non-CO2 emissions (kg/year).
 
     Parameters
     ----------
@@ -415,7 +415,7 @@ def calculate_b4_indicator(
     -------
     dict
         Dictionary with B4 indicators for each pollutant and statistic (stat in [min, mean, max]):
-        - {pollutant}_t_per_year_{stat}
+        - {pollutant}_{stat}
     """
 
     def emissions_by_stat(n: pypsa.Network) -> dict:
@@ -435,7 +435,7 @@ def calculate_b4_indicator(
                 kg_per_mwh = factors.xs(stat, level=1)
                 for pollutant_key, kg_value in kg_per_mwh.items():
                     emissions[stat].setdefault(pollutant_key, 0.0)
-                    emissions[stat][pollutant_key] += mwh * kg_value / 1000.0
+                    emissions[stat][pollutant_key] += mwh * kg_value
 
         return emissions
 
@@ -451,7 +451,7 @@ def calculate_b4_indicator(
                 diff = ref_val - proj_val
             else:
                 diff = proj_val - ref_val
-            results[f"{pollutant_key}_t_per_year_{stat}"] = diff
+            results[f"{pollutant_key}_{stat}"] = diff
 
     return results
 
@@ -492,7 +492,7 @@ def get_indicator_units(indicator: str) -> str:
     }:
         return "MWh/year"
     if indicator.startswith("B4"):
-        return "t/year"
+        return "kg/year"
     return ""
 
 
