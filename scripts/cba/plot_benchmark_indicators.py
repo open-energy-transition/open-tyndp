@@ -42,7 +42,9 @@ def select_model_values(df: pd.DataFrame, indicator: str) -> pd.Series:
     return model.groupby("project_id")["value"].mean()
 
 
-def plot_benchmark_indicator(df: pd.DataFrame, indicator: str, output_dir: Path) -> None:
+def plot_benchmark_indicator(
+    df: pd.DataFrame, indicator: str, output_dir: Path
+) -> None:
     benchmark = df[
         (df["source"] == "2024 tyndp")
         & (df["indicator"] == indicator)

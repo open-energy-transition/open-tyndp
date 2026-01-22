@@ -576,9 +576,7 @@ def load_benchmark_rows(
         )
 
     benchmark["method"] = (
-        benchmark.get("method", None)
-        .astype(str)
-        .str.upper()
+        benchmark.get("method", None).astype(str).str.upper()
         if "method" in benchmark.columns
         else None
     )
@@ -586,7 +584,19 @@ def load_benchmark_rows(
     benchmark["is_beneficial"] = None
     benchmark["interpretation"] = None
 
-    return benchmark[["project_id", "method", "is_beneficial", "interpretation", "indicator", "subindex", "units", "value", "source"]]
+    return benchmark[
+        [
+            "project_id",
+            "method",
+            "is_beneficial",
+            "interpretation",
+            "indicator",
+            "subindex",
+            "units",
+            "value",
+            "source",
+        ]
+    ]
 
 
 if __name__ == "__main__":
@@ -673,7 +683,9 @@ if __name__ == "__main__":
     )
 
     if not benchmark_rows.empty:
-        benchmark_rows = benchmark_rows.reindex(columns=df_model.columns, fill_value=None)
+        benchmark_rows = benchmark_rows.reindex(
+            columns=df_model.columns, fill_value=None
+        )
         df = pd.concat([df_model, benchmark_rows], ignore_index=True)
     else:
         df = df_model
