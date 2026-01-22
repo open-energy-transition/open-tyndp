@@ -45,7 +45,9 @@ def select_model_values(df: pd.DataFrame, indicator: str) -> pd.Series:
 def plot_benchmark_indicator(
     df: pd.DataFrame, indicator: str, output_dir: Path
 ) -> None:
-    benchmark = df[(df["source"] == "2024 tyndp") & (df["indicator"] == indicator)].copy()
+    benchmark = df[
+        (df["source"] == "2024 tyndp") & (df["indicator"] == indicator)
+    ].copy()
     if "value_converted" in benchmark.columns:
         benchmark["value"] = benchmark["value_converted"].fillna(benchmark["value"])
 
