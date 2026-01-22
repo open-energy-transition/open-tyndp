@@ -32,6 +32,12 @@ DE:
       2040: 0.44
       2045: 0.3  # interpolation
       2050: 0.16
+    land_transport_electric_share:
+      2030: 0.207
+      2035: 0.481  # interpolation
+      2040: 0.7557
+      2045: 0.915  # interpolation
+      2050: 1.07432
     bev_charge_rate: 0.0074  # 7.4 kW per vehicle, p.96 of Methodology Report TYNDP 2024
     bev_energy:
       2030: 0.06  # 60 kWh per vehicle, p.96 of Methodology Report TYNDP 2024
@@ -85,6 +91,12 @@ GA:
       2040: 0.50
       2045: 0.34  # interpolation
       2050: 0.17
+    land_transport_electric_share:
+      2030: 0.111
+      2035: 0.364 # interpolated
+      2040: 0.617
+      2045: 0.791 # interpolated
+      2050: 0.965
     bev_charge_rate: 0.0072  # 7.2 kW per vehicle, p.96 of Methodology Report TYNDP 2024
     bev_energy:
       2030: 0.06  # 60 kWh per vehicle, p.96 of Methodology Report TYNDP 2024
