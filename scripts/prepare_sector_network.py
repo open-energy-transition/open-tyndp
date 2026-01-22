@@ -4173,8 +4173,8 @@ def add_EVs(
         - bev_charge_rate: float
         - bev_charge_efficiency: float
         - bev_dsm: bool
-        - bev_energy: float
-        - bev_dsm_availability: float
+        - bev_energy: float or dict
+        - bev_dsm_availability: float or dict
         - v2g: bool
 
     Returns
@@ -4254,8 +4254,8 @@ def add_EVs(
     if options["bev_dsm"]:
         e_nom = (
             number_cars
-            * options["bev_energy"]
-            * options["bev_dsm_availability"]
+            * get(options["bev_energy"], investment_year)
+            * get(options["bev_dsm_availability"], investment_year)
             * electric_share
         )
 
@@ -4279,7 +4279,7 @@ def add_EVs(
                 suffix=" V2G",
                 bus1=spatial.nodes,
                 bus0=spatial.nodes + " EV battery",
-                p_nom=p_nom * options["bev_dsm_availability"],
+                p_nom=p_nom * get(options["bev_dsm_availability"], investment_year),
                 carrier="V2G",
                 p_max_pu=avail_profile.loc[n.snapshots, spatial.nodes],
                 lifetime=1,
