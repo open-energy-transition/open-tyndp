@@ -33,6 +33,12 @@ DE:
       2045: 0.3  # interpolation
       2050: 0.16
     bev_charge_rate: 0.0074  # 7.4 kW per vehicle, p.96 of Methodology Report TYNDP 2024
+    bev_energy:
+      2030: 0.06  # 60 kWh per vehicle, p.96 of Methodology Report TYNDP 2024
+      2035: 0.072
+      2040: 0.083
+      2045: 0.092
+      2050: 0.1
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
@@ -71,6 +77,12 @@ GA:
       2045: 0.34  # interpolation
       2050: 0.17
     bev_charge_rate: 0.0072  # 7.2 kW per vehicle, p.96 of Methodology Report TYNDP 2024
+    bev_energy:
+      2030: 0.06  # 60 kWh per vehicle, p.96 of Methodology Report TYNDP 2024
+      2035: 0.066
+      2040: 0.072
+      2045: 0.081
+      2050: 0.09
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
