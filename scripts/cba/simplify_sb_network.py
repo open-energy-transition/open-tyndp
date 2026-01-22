@@ -30,28 +30,30 @@ def summarize_counts(s: pd.Series):
 def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: list):
     """
     Remove capacity constraints on primary fuel source generators for CBA rolling horizon.
-    
+
     When using capacities fixed from Scenario Building in rolling horizon optimization,
     peak fuel production can be artificially limited. Since primary fuel sources incur no
-    capital costs, unlimited capacity ensures sufficient fuel supply without changing the 
+    capital costs, unlimited capacity ensures sufficient fuel supply without changing the
     objective function.
-    
+
     Parameters
     ----------
     n : pypsa.Network
         Network to modify
     tyndp_conventional_carriers : list
-        List of conventional carrier names from TYNDP data, which may include 
-        fuel sub-types (e.g., 'oil-light', 'oil-heavy'). These are grouped by 
+        List of conventional carrier names from TYNDP data, which may include
+        fuel sub-types (e.g., 'oil-light', 'oil-heavy'). These are grouped by
         their base fuel type (e.g., 'oil').
-    
+
     Returns
     -------
     pypsa.Network
         Modified network with infinite capacity for primary fuel sources
     """
     # split for 'oil-light', 'oil-heavy', 'oil-shale' -> 'oil'
-    primary_fuel_carriers = pd.Series([carrier.split("-")[0] for carrier in tyndp_conventional_carriers]).unique()
+    primary_fuel_carriers = pd.Series(
+        [carrier.split("-")[0] for carrier in tyndp_conventional_carriers]
+    ).unique()
     gen_i = n.generators[n.generators.carrier.isin(primary_fuel_carriers)]
     n.generators.loc[gen_i, "p_nom"] = inf
     return n
