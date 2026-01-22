@@ -27,6 +27,7 @@ References:
 """
 
 import logging
+from pathlib import Path
 
 import pandas as pd
 import pypsa
@@ -470,6 +471,8 @@ def get_indicator_units(indicator: str) -> str:
         return "EUR"
     if indicator == "co2_diff":
         return "t/year"
+    if indicator == "co2_variation":
+        return "t/year"
     if indicator in {
         "co2_ets_price",
         "co2_societal_cost_low",
@@ -479,6 +482,8 @@ def get_indicator_units(indicator: str) -> str:
     }:
         return "EUR/t"
     if indicator == "B2_social_cost" or indicator.startswith("B2_social_cost_"):
+        return "EUR/year"
+    if indicator == "B2_societal_cost_variation":
         return "EUR/year"
     if indicator == "B3_res_capacity_change_mw":
         return "MW"
@@ -495,6 +500,7 @@ def build_long_indicators(indicators: dict) -> pd.DataFrame:
         "method": indicators.get("cba_method"),
         "is_beneficial": indicators.get("is_beneficial"),
         "interpretation": indicators.get("interpretation"),
+        "source": indicators.get("source", "model"),
     }
 
     rows = []
@@ -522,6 +528,65 @@ def build_long_indicators(indicators: dict) -> pd.DataFrame:
         )
 
     return pd.DataFrame(rows)
+
+
+def load_benchmark_rows(
+    benchmark_path: str | Path,
+    project_id: int,
+    planning_horizon: int,
+    scenario: str | None,
+    project_type: str | None,
+) -> pd.DataFrame:
+    path = Path(benchmark_path)
+    if not path.exists():
+        logger.warning("Benchmark file %s not found, skipping", path)
+        return pd.DataFrame()
+
+    benchmark = pd.read_csv(path)
+    if benchmark.empty:
+        return pd.DataFrame()
+
+    required = {"project_id", "planning_horizon"}
+    if not required.issubset(benchmark.columns):
+        logger.warning("Benchmark file missing required columns: %s", required)
+        return pd.DataFrame()
+
+    benchmark = benchmark.loc[
+        (benchmark["project_id"] == project_id)
+        & (benchmark["planning_horizon"] == planning_horizon)
+    ].copy()
+
+    if project_type and "type" in benchmark.columns:
+        benchmark = benchmark.loc[benchmark["type"] == project_type]
+
+    if scenario and "scenario" in benchmark.columns:
+        scenario_matches = benchmark["scenario"] == scenario
+        if not scenario_matches.any():
+            scenario_matches = benchmark["scenario"].str.startswith(scenario)
+        if not scenario_matches.any():
+            scenario_matches = benchmark["scenario"].str.endswith(scenario)
+        benchmark = benchmark.loc[scenario_matches]
+
+    if benchmark.empty:
+        return pd.DataFrame()
+
+    if "indicator_mapped" in benchmark.columns:
+        benchmark["indicator"] = benchmark["indicator_mapped"].fillna(
+            benchmark["indicator"]
+        )
+
+    benchmark["method"] = (
+        benchmark.get("method", None)
+        .astype(str)
+        .str.upper()
+        if "method" in benchmark.columns
+        else None
+    )
+    benchmark["source"] = "2024 tyndp"
+    benchmark["is_beneficial"] = None
+    benchmark["interpretation"] = None
+
+    return benchmark[["project_id", "method", "is_beneficial", "interpretation", "indicator", "subindex", "units", "value", "source"]]
 
 
 if __name__ == "__main__":
@@ -593,5 +658,24 @@ if __name__ == "__main__":
     )
 
     # Convert to DataFrame and save
-    df = build_long_indicators(indicators)
+    df_model = build_long_indicators(indicators)
+
+    scenario = snakemake.config.get("tyndp_scenario") or snakemake.config.get(
+        "run", {}
+    ).get("name")
+    project_type = "storage" if cba_project.startswith("s") else "transmission"
+    benchmark_rows = load_benchmark_rows(
+        snakemake.input.benchmark,
+        indicators["project_id"],
+        planning_horizon,
+        scenario,
+        project_type,
+    )
+
+    if not benchmark_rows.empty:
+        benchmark_rows = benchmark_rows.reindex(columns=df_model.columns, fill_value=None)
+        df = pd.concat([df_model, benchmark_rows], ignore_index=True)
+    else:
+        df = df_model
+
     df.to_csv(snakemake.output.indicators, index=False)
