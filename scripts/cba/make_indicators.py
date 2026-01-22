@@ -328,7 +328,7 @@ def calculate_b2_indicator(
         co2_diff = co2_project - co2_reference
 
     results = {
-        "co2_variation": co2_diff,
+        "B2a_co2_variation": co2_diff,
         "co2_ets_price": co2_ets_price,
         "co2_societal_cost_low": co2_societal_costs["low"],
         "co2_societal_cost_central": co2_societal_costs["central"],
@@ -337,7 +337,7 @@ def calculate_b2_indicator(
 
     for level in ["low", "central", "high"]:
         b2_val = co2_diff * (co2_societal_costs[level] - co2_ets_price)
-        results[f"B2_societal_cost_variation_{level}"] = b2_val
+        results[f"B2a_societal_cost_variation_{level}"] = b2_val
 
     return results
 
@@ -364,7 +364,7 @@ def calculate_b3_indicator(
     -------
     dict
         Dictionary with B3 indicators:
-        - B3_res_capacity_change_mw
+        - B3a_res_capacity_change_mw
         - B3_res_generation_change_mwh
         - B3_res_dump_change_mwh
     """
@@ -384,7 +384,7 @@ def calculate_b3_indicator(
     dump_diff = dump_with.sum() - dump_without.sum()
 
     return {
-        "B3_res_capacity_change_mw": capacity_diff,
+        "B3a_res_capacity_change_mw": capacity_diff,
         "B3_res_generation_change_mwh": generation_diff,
         "B3_annual_avoided_curtailment_mwh": dump_diff,
     }
@@ -471,7 +471,7 @@ def get_indicator_units(indicator: str) -> str:
         return "EUR"
     if indicator == "co2_diff":
         return "t/year"
-    if indicator == "co2_variation":
+    if indicator == "B2a_co2_variation":
         return "t/year"
     if indicator in {
         "co2_ets_price",
@@ -481,13 +481,15 @@ def get_indicator_units(indicator: str) -> str:
         "co2_societal_cost",
     }:
         return "EUR/t"
-    if indicator == "B2_social_cost" or indicator.startswith("B2_social_cost_"):
+    if indicator == "B2a_societal_cost_variation":
         return "EUR/year"
-    if indicator == "B2_societal_cost_variation":
-        return "EUR/year"
-    if indicator == "B3_res_capacity_change_mw":
+    if indicator == "B3a_res_capacity_change_mw":
         return "MW"
-    if indicator in {"B3_res_generation_change_mwh", "B3_res_dump_change_mwh"}:
+    if indicator in {
+        "B3_res_generation_change_mwh",
+        "B3_res_dump_change_mwh",
+        "B3_annual_avoided_curtailment_mwh",
+    }:
         return "MWh/year"
     if indicator.startswith("B4"):
         return "t/year"
@@ -576,9 +578,7 @@ def load_benchmark_rows(
         )
 
     benchmark["method"] = (
-        benchmark.get("method", None)
-        .astype(str)
-        .str.upper()
+        benchmark.get("method", None).astype(str).str.upper()
         if "method" in benchmark.columns
         else None
     )
@@ -586,7 +586,19 @@ def load_benchmark_rows(
     benchmark["is_beneficial"] = None
     benchmark["interpretation"] = None
 
-    return benchmark[["project_id", "method", "is_beneficial", "interpretation", "indicator", "subindex", "units", "value", "source"]]
+    return benchmark[
+        [
+            "project_id",
+            "method",
+            "is_beneficial",
+            "interpretation",
+            "indicator",
+            "subindex",
+            "units",
+            "value",
+            "source",
+        ]
+    ]
 
 
 if __name__ == "__main__":
@@ -673,7 +685,9 @@ if __name__ == "__main__":
     )
 
     if not benchmark_rows.empty:
-        benchmark_rows = benchmark_rows.reindex(columns=df_model.columns, fill_value=None)
+        benchmark_rows = benchmark_rows.reindex(
+            columns=df_model.columns, fill_value=None
+        )
         df = pd.concat([df_model, benchmark_rows], ignore_index=True)
     else:
         df = df_model
