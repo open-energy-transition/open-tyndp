@@ -39,6 +39,14 @@ DE:
       2040: 0.083
       2045: 0.092
       2050: 0.1
+    bev_dsm_availability:
+    # TODO we currently do not model the split between street and prosumer charging
+    # thus for the availability a weighting of 70% street and 30% prosumer charging is assumed (p.96 of Methodology Report TYNDP 2024)
+      2030: 0.21  # 21% of BEV capacity available for DSM, p.96 of Methodology Report TYNDP 2024
+      2035: 0.26
+      2040: 0.31
+      2045: 0.36
+      2050: 0.41
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
@@ -83,6 +91,14 @@ GA:
       2040: 0.072
       2045: 0.081
       2050: 0.09
+    bev_dsm_availability:
+    # TODO we currently do not model the split between street and prosumer charging
+    # thus for the availability a weighting of 70% street and 30% prosumer charging is assumed (p.96 of Methodology Report TYNDP 2024)
+      2030: 0.105  # 10.5% of BEV capacity available for DSM, p.96 of Methodology Report TYNDP 2024
+      2035: 0.13
+      2040: 0.155
+      2045: 0.18
+      2050: 0.205
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
