@@ -26,19 +26,20 @@ def summarize_counts(s: pd.Series):
         ret += f"- {key} ({count})\n"
     return ret
 
+
 def extend_primary_fuel_sources(n: pypsa.Network):
     """
     Remove capacity constraints on primary fuel source generators for CBA rolling horizon.
-    
-    When using capacities fixed from Scenario Building in rolling horizon optimization, 
-    peak fuel production can be artificially limited. Since primary fuel sources incur no 
+
+    When using capacities fixed from Scenario Building in rolling horizon optimization,
+    peak fuel production can be artificially limited. Since primary fuel sources incur no
     capital costs, unlimited capacity ensures sufficient fuel supply without changing the objective.
-    
+
     Parameters
     ----------
     n : pypsa.Network
         Network to modify
-        
+
     Returns
     -------
     pypsa.Network
@@ -53,6 +54,7 @@ def extend_primary_fuel_sources(n: pypsa.Network):
     ]
     n.generators.loc[primary_fuel_sources, "p_nom"] = inf
     return n
+
 
 def disable_volume_limits(n: pypsa.Network):
     """
