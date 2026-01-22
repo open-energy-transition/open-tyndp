@@ -242,7 +242,8 @@ rule plot_indicators:
 
 rule plot_cba_benchmark:
     input:
-        indicators=RESULTS + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
+        indicators=RESULTS
+        + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
     output:
         plot_dir=directory(
             RESULTS
