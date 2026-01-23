@@ -88,11 +88,11 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Introduced a benchmarking framework that assesses Open-TYNDP quality against published TYNDP 2024 data (see PR `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__) and Visualisation Platform data (see PRs `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__).
 - Introduced the electricity and hydrogen reference grids from TYNDP 2024 grid data (see PRs `#18 <https://github.com/open-energy-transition/open-tyndp/pull/18>`__, `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__), including hydrogen import potentials and corridors from outside of the modelled countries (see PR `#36 <https://github.com/open-energy-transition/open-tyndp/pull/36>`__).
 - Introduced TYNDP offshore wind hubs topology with both electric and hydrogen infrastructure, offshore electrolysers, and detailed wind farm characteristics (see PR `#54 <https://github.com/open-energy-transition/open-tyndp/pull/54>`__).
-- Added processing, preparation and attaching of PECD v3.1 renewable profiles and PEMMDB v2.4 hydro inflows to their corresponding components (see PRs `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__, `#71 <https://github.com/open-energy-transition/open-tyndp/pull/71>`__, `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__).
+- Added processing, preparation and attaching of PECD v3.1 renewable profiles and PEMMDB v2.4 hydro inflows to their corresponding components (see PRs `#53 <https://github.com/open-energy-transition/open-tyndp/pull/53>`__, `#71 <https://github.com/open-energy-transition/open-tyndp/pull/71>`__, `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__, `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__).
 - Added processing and preparation of PEMMDB v2.4 capacity, must-run, and availability data, along with expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and DSR (see PR `#97 <https://github.com/open-energy-transition/open-tyndp/pull/97>`__).
 - Added the TYNDP electricity, hydrogen, methane demands as exogenous demands (see PRs `#14 <https://github.com/open-energy-transition/open-tyndp/pull/14>`__ for electricity; `#169 <https://github.com/open-energy-transition/open-tyndp/pull/169>`__ and `#230 <https://github.com/open-energy-transition/open-tyndp/pull/230>`__ for hydrogen ; and `#208 <https://github.com/open-energy-transition/open-tyndp/pull/208>`__ and `#220 <https://github.com/open-energy-transition/open-tyndp/pull/220>`__ for methane).
 - Added option to use the TYNDP H2 topology including the TYNDP H2 reference grid, H2 Z1 and Z2 setup, production, reconversion and storage technologies (see PR `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__).
-- Added TYNDP solar, onwind and conventional thermal generation using PEMMDB capacities, must-runs and availabilities (see PRs `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__ and `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__ for solar and onwind ; `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__ for conventionals) and electrolyzer PEMMDB capacities (only for NT scenario) (see PR `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__).
+- Added TYNDP solar, onwind, hydro and conventional thermal generation using PEMMDB capacities, must-runs and availabilities (see PRs `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__ and `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__ for solar and onwind ; `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__ for hydro  ; `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__ for conventionals) and electrolyzer PEMMDB capacities (only for NT scenario) (see PR `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__).
 - Added CO2 emission prices per planning horizon (see PR `#198 <https://github.com/open-energy-transition/open-tyndp/pull/198>`__).
 - Introduced a workflow structure for performing Cost-Benefit Analysis (CBA) using both TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP transmission and storage projects on top of the SB results (see PR `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__).
 - Added the TOOT reference and project network preparation for CBA (see PRs `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__).
@@ -192,7 +192,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - Hydro inflows
-     - `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__
+     - `#77 <https://github.com/open-energy-transition/open-tyndp/pull/77>`__, `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__
      - ✅
    * -
      - PEMMDB capacities & must-runs processing
@@ -228,7 +228,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **TYNDP technologies and carriers**
      - TYNDP generation technologies (incl. SRES and DRES)
-     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__, `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__
+     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__, `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__,  `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__
      - 🔨
    * -
      - Prosumer modelling

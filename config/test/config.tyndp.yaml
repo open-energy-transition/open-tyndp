@@ -292,6 +292,7 @@ sector:
       H2 pipeline OH: 30
 
 costs:
+  custom_cost_scn: NT
   overwrites:
     lifetime:
       electrolysis: 25
@@ -413,6 +414,7 @@ cba:
       horizon: 168
       overlap: 0
       load_shedding: true
+      io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
       name: highs

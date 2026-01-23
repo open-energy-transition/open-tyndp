@@ -139,6 +139,11 @@ benchmarking:
         PHS: hydro and pumped storage
         hydro: hydro and pumped storage
         ror: hydro and pumped storage
+        hydro-phs-turbine: hydro and pumped storage
+        hydro-phs-pure-turbine: hydro and pumped storage
+        hydro-ror: hydro and pumped storage
+        hydro-pondage: hydro and pumped storage
+        hydro-reservoir: hydro and pumped storage
 
     power_generation:
       table_type: scenario_comparison
@@ -180,6 +185,9 @@ benchmarking:
         urban central solid biomass CHP: other non-res
         ror: hydro (exc. pump storage)
         hydro: hydro (exc. pump storage)
+        hydro-ror: hydro (exc. pump storage)
+        hydro-pondage: hydro (exc. pump storage)
+        hydro-reservoir: hydro (exc. pump storage)
 
     methane_supply:
       table_type: scenario_comparison

@@ -11,15 +11,21 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
-* Added automated Windows installer for easy setup on Windows systems (https://github.com/open-energy-transition/open-tyndp/pull/333). The installer bundles pixi, the repository, and sets up the conda environment automatically. Installer executables are automatically built and attached to GitHub releases. See ``utils/windows-installer/`` for details.
 
-* Docs: Add innovation roadmap comparison, mapping existing or new developments in PyPSA-Eur and Open TYNDP to desired features for TYNDP 2026 (https://github.com/open-energy-transition/open-tyndp/pull/341)
+**Features**
 
-* Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
+* Add TYNDP hydro technologies and associated PEMMDB capacities and inflows (https://github.com/open-energy-transition/open-tyndp/pull/338). The following technologies are introduced: `hydro-ror`, `hydro-reservoir`, `hydro-pondage`, `hydro-phs` and `hydro-phs-pure`.
 
-* Fix: Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
+* Introduce calculation of B2 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/348).
 
-* Docs: Integrate Open-TYNDP specific data into the data versioning system introduced upstream (see https://github.com/PyPSA/pypsa-eur/pull/1675) (https://github.com/open-energy-transition/open-tyndp/pull/363). Consequently, the rule `retrieve_additional_tyndp_data` is deprecated.
+* Add scenario column to the `custom_costs.csv` file to allow for shared adjustments across scenarios (https://github.com/open-energy-transition/open-tyndp/pull/361).
+
+* Scaled EV electricity demand and adjusted EV parameters to match TYNDP 2024 assumptions (EV charging efficiency, EV charging rate, capacity available for DSM, car efficiency) (https://github.com/open-energy-transition/open-tyndp/pull/142).
+
+**Bugfixes and Compatibility**
+
+* Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to enable consistent use of its index when selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
+
 
 **Features**
 
@@ -34,15 +40,15 @@ Upcoming PyPSA-Eur Release
 
 * Added interactive (html) balance maps `results/maps/interactive/` (https://github.com/PyPSA/pypsa-eur/pull/1935) based on https://docs.pypsa.org/latest/user-guide/plotting/explore/. Settings for interactive maps can be found in `plotting.default.yaml` under `plotting["balance_map_interactive"]`.
 
-* Relocated and modified static (pdf) balance maps to `results/maps/static/` (https://github.com/PyPSA/pypsa-eur/pull/1935) for better organization. 
+* Relocated and modified static (pdf) balance maps to `results/maps/static/` (https://github.com/PyPSA/pypsa-eur/pull/1935) for better organization.
 
-* With https://github.com/PyPSA/pypsa-eur/pull/1935, note that bus carriers for balance maps containing spaces need to be specified with underscores `_` in the configuration file, e.g., `co2_stored` instead of `co2 stored`. This is to ensure compatibility with queue managers like slurm. 
+* With https://github.com/PyPSA/pypsa-eur/pull/1935, note that bus carriers for balance maps containing spaces need to be specified with underscores `_` in the configuration file, e.g., `co2_stored` instead of `co2 stored`. This is to ensure compatibility with queue managers like slurm.
 
 * Fix building osm network using overpass API (https://github.com/PyPSA/pypsa-eur/pull/1940).
 
 * Added configuration option to set overpass API URL, maximum retries, timeout and user agent information (https://github.com/PyPSA/pypsa-eur/pull/1940 and https://pypsa-eur.readthedocs.io/en/latest/configuration.html#overpass_api). For a list of public overpass APIs see `here <https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances>`_.
 
-* Refactored `solve_network.py` and `solve_operations_network.py` to separate optimization problem preparation from solving, enabling inspection of optimization problems before solve execution. 
+* Refactored `solve_network.py` and `solve_operations_network.py` to separate optimization problem preparation from solving, enabling inspection of optimization problems before solve execution.
 
 * Added example configurations for rolling horizon and iterative optimization modes in `config/examples/`.
 
@@ -159,6 +165,27 @@ Upcoming PyPSA-Eur Release
   The ``purge`` rule now removes their contents but keeps the folders (https://github.com/PyPSA/pypsa-eur/pull/1764).
 
 * Misc: Automatically update the DAGs shown in the documentation (https://github.com/PyPSA/pypsa-eur/pull/1880).
+
+
+Open-TYNDP v0.4.2 (23rd January 2026)
+========================================
+
+
+**Features**
+
+* Add automated Windows installer for easy setup on Windows systems (https://github.com/open-energy-transition/open-tyndp/pull/333). The installer bundles pixi, the repository, and sets up the conda environment automatically. Installer executables are automatically built and attached to GitHub releases. See ``utils/windows-installer/`` for details.
+
+* Integrate Open-TYNDP specific data into the data versioning system introduced upstream (see https://github.com/PyPSA/pypsa-eur/pull/1675) (https://github.com/open-energy-transition/open-tyndp/pull/363). Consequently, the rule `retrieve_additional_tyndp_data` is deprecated.
+
+**Bugfixes and Compatibility**
+
+* Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
+
+* Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
+
+**Documentation**
+
+* Add innovation roadmap comparison, mapping existing or new developments in PyPSA-Eur and Open TYNDP to desired features for TYNDP 2026 (https://github.com/open-energy-transition/open-tyndp/pull/341)
 
 
 Open-TYNDP v0.4.1 (23rd December 2025)
