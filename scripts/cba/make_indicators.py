@@ -295,12 +295,12 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
     }
     units = {
         "B1_total_system_cost_change": "EUR/year",
-        "cost_reference": "EUR",
-        "capex_reference": "EUR",
-        "opex_reference": "EUR",
-        "cost_project": "EUR",
-        "capex_project": "EUR",
-        "opex_project": "EUR",
+        "cost_reference": "EUR/year",
+        "capex_reference": "EUR/year",
+        "opex_reference": "EUR/year",
+        "cost_project": "EUR/year",
+        "capex_project": "EUR/year",
+        "opex_project": "EUR/year",
     }
 
     if method == "pint":
@@ -310,8 +310,8 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         results["capex_change"] = cost_project["capex"] - cost_reference["capex"]
         results["opex_change"] = cost_project["opex"] - cost_reference["opex"]
 
-    units["capex_change"] = "EUR"
-    units["opex_change"] = "EUR"
+    units["capex_change"] = "EUR/year"
+    units["opex_change"] = "EUR/year"
 
     return results, units
 
@@ -517,12 +517,16 @@ def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
                 subindex = suffix.lstrip("_")
                 break
 
+        unit = units.get(key, "")
+        if not unit:
+            unit = units.get(indicator, "")
+
         rows.append(
             {
                 **meta,
                 "indicator": indicator,
                 "subindex": subindex,
-                "units": units.get(indicator, ""),
+                "units": unit,
                 "value": value,
             }
         )
