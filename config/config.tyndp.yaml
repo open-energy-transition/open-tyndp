@@ -46,8 +46,7 @@ electricity:
   - oil-heavy
   - oil-shale
   group_tyndp_conventionals: true
-  renewable_carriers: [hydro]
-  scale_hydro_to_pemmdb: true
+  renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -313,7 +312,8 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
-    resolution_sector: 52SEG  # Use 1H for high resolution results in SB (requires commercial solver)
+    # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
+    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false

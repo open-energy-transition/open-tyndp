@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: CC0-1.0
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#top-level-configuration
-version: v0.4.1
+version: v0.4.2
 tutorial: false
 
 logging:
@@ -137,7 +137,6 @@ electricity:
   tyndp_conventional_carriers: []
   group_tyndp_conventionals: true
   renewable_carriers: [solar, solar-hsat, onwind, offwind-ac, offwind-dc, offwind-float, hydro]
-  scale_hydro_to_pemmdb: false
   tyndp_renewable_carriers: []
   tyndp_stores: []
 

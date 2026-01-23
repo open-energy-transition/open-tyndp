@@ -1550,13 +1550,7 @@ rule prepare_sector_network:
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
         offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
-        consider_efficiency_classes=config_provider(
-            "clustering", "consider_efficiency_classes"
-        ),
-        aggregation_strategies=config_provider("clustering", "aggregation_strategies"),
-        exclude_carriers=config_provider("clustering", "exclude_carriers"),
         tyndp_scenario=config_provider("tyndp_scenario"),
-        scale_hydro=config_provider("electricity", "scale_hydro_to_pemmdb"),
     input:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
@@ -1750,7 +1744,6 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("h2_demand_tyndp_{planning_horizons}.csv"),
         ),
-        powerplants=resources("powerplants_s_{clusters}.csv"),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
