@@ -577,10 +577,11 @@ rule process_cost_data:
         group_tyndp_conventionals=config_provider(
             "electricity", "group_tyndp_conventionals"
         ),
+        custom_cost_scn=config_provider("costs", "custom_cost_scn"),
     input:
         network=resources("networks/base_s.nc"),
         costs=rules.retrieve_cost_data.output["costs"],
-        custom_costs=config_provider("costs", "custom_cost_fn"),
+        custom_costs="data/custom_costs.csv",
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
         resources("costs_{planning_horizons}_processed.csv"),

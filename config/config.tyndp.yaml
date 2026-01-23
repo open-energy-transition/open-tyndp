@@ -46,8 +46,7 @@ electricity:
   - oil-heavy
   - oil-shale
   group_tyndp_conventionals: true
-  renewable_carriers: [hydro]
-  scale_hydro_to_pemmdb: true
+  renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -287,6 +286,7 @@ sector:
       H2 pipeline OH: 30
 
 costs:
+  custom_cost_scn: NT
   overwrites:
     lifetime:
       electrolysis: 25
@@ -315,7 +315,8 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
-    resolution_sector: 52SEG  # Use 1H for high resolution results in SB (requires commercial solver)
+    # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
+    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
@@ -384,6 +385,15 @@ benchmarking:
 
 cba:
   hurdle_costs: 0.01 # Transmission line marginal cost
+  co2_societal_cost: # euros/t; 2024 CBA Implementation Guidelines, p. 68
+    2030:
+      low: 126
+      central: 238
+      high: 315
+    2040:
+      low: 339
+      central: 628
+      high: 662
   planning_horizons:
   - 2030
   - 2040
@@ -398,6 +408,7 @@ cba:
       horizon: 168
       overlap: 0
       load_shedding: true
+      io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
       name: highs
