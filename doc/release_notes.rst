@@ -12,12 +12,53 @@ Upcoming Open-TYNDP Release
 ================
 
 
+**Features**
+
+* Add TYNDP hydro technologies and associated PEMMDB capacities and inflows (https://github.com/open-energy-transition/open-tyndp/pull/338). The following technologies are introduced: `hydro-ror`, `hydro-reservoir`, `hydro-pondage`, `hydro-phs` and `hydro-phs-pure`.
+
+* Introduce calculation of B2 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/348).
+
+* Add scenario column to the `custom_costs.csv` file to allow for shared adjustments across scenarios (https://github.com/open-energy-transition/open-tyndp/pull/361).
+
+* Scaled EV electricity demand and adjusted EV parameters to match TYNDP 2024 assumptions (EV charging efficiency, EV charging rate, capacity available for DSM, car efficiency) (https://github.com/open-energy-transition/open-tyndp/pull/142).
+
+**Bugfixes and Compatibility**
+
+* Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to enable consistent use of its index when selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
+
+
 Upcoming PyPSA-Eur Release
 ================
 
+* Fix compatibility of rules `build_gas_input_locations` and `build_gas_network` with pyogrio >=0.12.0 (https://github.com/PyPSA/pypsa-eur/pull/1955).
+
+* Added interactive (html) balance maps `results/maps/interactive/` (https://github.com/PyPSA/pypsa-eur/pull/1935) based on https://docs.pypsa.org/latest/user-guide/plotting/explore/. Settings for interactive maps can be found in `plotting.default.yaml` under `plotting["balance_map_interactive"]`.
+
+* Relocated and modified static (pdf) balance maps to `results/maps/static/` (https://github.com/PyPSA/pypsa-eur/pull/1935) for better organization.
+
+* With https://github.com/PyPSA/pypsa-eur/pull/1935, note that bus carriers for balance maps containing spaces need to be specified with underscores `_` in the configuration file, e.g., `co2_stored` instead of `co2 stored`. This is to ensure compatibility with queue managers like slurm.
+
+* Fix building osm network using overpass API (https://github.com/PyPSA/pypsa-eur/pull/1940).
+
+* Added configuration option to set overpass API URL, maximum retries, timeout and user agent information (https://github.com/PyPSA/pypsa-eur/pull/1940 and https://pypsa-eur.readthedocs.io/en/latest/configuration.html#overpass_api). For a list of public overpass APIs see `here <https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances>`_.
+
+* Refactored `solve_network.py` and `solve_operations_network.py` to separate optimization problem preparation from solving, enabling inspection of optimization problems before solve execution.
+
+* Added example configurations for rolling horizon and iterative optimization modes in `config/examples/`.
+
+* Added existing biomass decentral/rural residential and services heating capacity.
+
+* Fix parsing in Swiss passenger cars data (https://github.com/PyPSA/pypsa-eur/pull/1934 and https://github.com/PyPSA/pypsa-eur/pull/1936).
+
+* Fix: ValueError with `cop_heat_pump` in `prepare_sector_network.py` if `tim_dep_hp_cop` is `false`.
+
+* Fixed OSM raw data cleaning to include `section` line relation role.
+
+* Fixed missing raw OSM HVDC links defined using the ``power=circuit`` tag (NOTE: ``type=route``+``route=power`` is `deprecated <https://wiki.openstreetmap.org/wiki/Tag%3Aroute%3Dpower>`_).
+
 * Fixed bugs with load shedding due to incorrect use of `sign` argument in `n.add` and `np.isscalar` (https://github.com/PyPSA/pypsa-eur/pull/1908).
 
-* chore: disable PTES dynamic capacity by default 
+* chore: disable PTES dynamic capacity by default
 
 * Add CO2 emission prices configurable per planning horizon for sector-coupled models.
   The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
@@ -92,14 +133,53 @@ Upcoming PyPSA-Eur Release
 
 * Running perfect foresight is now marked as unstable and may not work as expected.
 
+* Add residential heat demand-side management (DSM) based on `smartEn study <https://smarten.eu/wp-content/uploads/2022/10/SmartEN-DSF-benefits-2030-Report_DIGITAL-1.pdf>`_ methodology. See new settings under `sector: residential_heat`.
+
 * Remove the hotfix in `progress_retrieve` and check that the directory exists (https://github.com/PyPSA/pypsa-eur/pull/1840).
 
 * Added minimum unit dispatch setting option for electrolysis
+
+* Feature: All input data to the model is now version controlled. The data versions are listed in `data/versions.csv` and can be configured in the configfile. (https://github.com/PyPSA/pypsa-eur/pull/1675)
+
+* Deprecate `shared_cutouts`: This configuration entry is no longer supported. Cutouts are always shared.
+  To use scenario specific cutouts with different time or spatial resolution, make sure to name those cutouts differently in the `atlite:` configuration entry.
+
+* Move cutouts into `data/cutouts/` directory for consistency. Note: This will trigger all cutouts to be re-downloaded or rebuild. If you need to retain downloaded cutouts, move them manually into `data/cutouts/`.
+
+* Deprecate the ability to determine ``cutout`` bounds based on ``regions_onshore`` and ``regions_offshore``.
+  Instead ``cutouts`` need to have their bounds explicitly defined in the configuration file.
+
+* Moved configuration for ``cutout`` preparation into a nested dictionary ``prepare_kwargs``.
+  This allows to pass any keyword argument supported by ``atlite.Cutout.prepare()`` like ``tmpdir``.
+
+* Deprecate the configuration options ``enable: retrieve``, ``enable: retrieve_databundle``, and ``enable: retrieve_cost_data``.
+  Instead, the rules are always included in the workflow. If no internet connection is available, the rules will fail.
 
 * Misc: Empty folders that are automatically generated by ``snakemake`` have been added to the repository, e.g. ``resources/`` and ``results/``.
   The ``purge`` rule now removes their contents but keeps the folders (https://github.com/PyPSA/pypsa-eur/pull/1764).
 
 * Misc: Automatically update the DAGs shown in the documentation (https://github.com/PyPSA/pypsa-eur/pull/1880).
+
+
+Open-TYNDP v0.4.2 (23rd January 2026)
+========================================
+
+
+**Features**
+
+* Add automated Windows installer for easy setup on Windows systems (https://github.com/open-energy-transition/open-tyndp/pull/333). The installer bundles pixi, the repository, and sets up the conda environment automatically. Installer executables are automatically built and attached to GitHub releases. See ``utils/windows-installer/`` for details.
+
+* Integrate Open-TYNDP specific data into the data versioning system introduced upstream (see https://github.com/PyPSA/pypsa-eur/pull/1675) (https://github.com/open-energy-transition/open-tyndp/pull/363). Consequently, the rule `retrieve_additional_tyndp_data` is deprecated.
+
+**Bugfixes and Compatibility**
+
+* Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
+
+* Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
+
+**Documentation**
+
+* Add innovation roadmap comparison, mapping existing or new developments in PyPSA-Eur and Open TYNDP to desired features for TYNDP 2026 (https://github.com/open-energy-transition/open-tyndp/pull/341)
 
 
 Open-TYNDP v0.4.1 (23rd December 2025)
@@ -965,7 +1045,6 @@ PyPSA-Eur v2025.01.0 (24th January 2025)
   (https://github.com/PyPSA/pypsa-eur/pull/1474)
 
 * Updating all base shapes (country_shapes, europe_shape, nuts3_shapes, ...). The workflow has been modified to use higher resolution and more harmonised shapes (NUTS3 2021 01M data and OSM administration level 1 for non-NUTS3 countries, such as BA, MD, UA, and XK). Data sources for population and GDP p.c. have been updated to JRC ARDECO https://urban.jrc.ec.europa.eu/ardeco/ -- 2019 values are used. `build_gdp_pop_non_nuts3` (originally created to build regional GDP p.c. and population data for MD and UA) is now integrated into `build_shapes` and extended to build regional values for all non-NUTS3 countries using cutouts of the updated datasets `GDP_per_capita_PPP_1990_2015_v2.nc` and `ppp_2019_1km_Aggregated.tif`,
-
 
 PyPSA-Eur 0.13.0 (13th September 2024)
 ======================================
