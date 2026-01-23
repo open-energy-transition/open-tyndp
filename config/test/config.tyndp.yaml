@@ -291,6 +291,7 @@ sector:
       H2 pipeline OH: 30
 
 costs:
+  custom_cost_scn: NT
   overwrites:
     lifetime:
       electrolysis: 25
@@ -389,6 +390,15 @@ benchmarking:
 
 cba:
   hurdle_costs: 0.01 # Transmission line marginal cost
+  co2_societal_cost: # euros/t; 2024 CBA Implementation Guidelines, p. 68
+    2030:
+      low: 126
+      central: 238
+      high: 315
+    2040:
+      low: 339
+      central: 628
+      high: 662
   planning_horizons:
   - 2030
   - 2040
@@ -403,6 +413,7 @@ cba:
       horizon: 168
       overlap: 0
       load_shedding: true
+      io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
       name: highs

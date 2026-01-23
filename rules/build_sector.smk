@@ -32,6 +32,10 @@ rule build_clustered_population_layouts:
         pop_layout_rural=resources("pop_layout_rural.nc"),
         regions_onshore=resources("regions_onshore_base_s_{clusters}.geojson"),
         cutout=lambda w: input_cutout(w),
+        buses_tyndp=branch(
+            lambda w: config_provider("electricity", "base_network")(w) == "tyndp",
+            resources("tyndp/build/buses.csv"),
+        ),
     output:
         clustered_pop_layout=resources("pop_layout_base_s_{clusters}.csv"),
     log:

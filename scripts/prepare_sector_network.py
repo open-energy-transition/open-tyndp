@@ -3057,6 +3057,7 @@ def add_h2_storage_tyndp(
 
 def add_h2_topology_tyndp(
     n,
+    pop_layout,
     spatial,
     h2_cavern_file,
     h2_pipes_file,
@@ -3082,6 +3083,8 @@ def add_h2_topology_tyndp(
     ----------
     n : pypsa.Network
         The PyPSA network container object
+    pop_layout : pd.DataFrame
+        Population layout with index of locations/nodes
     spatial : object
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`
     h2_cavern_file : str
@@ -3114,7 +3117,9 @@ def add_h2_topology_tyndp(
     n.add("Carrier", "H2")
 
     # filter for electricity nodes and H2 buses
-    nodes = n.buses.query("carrier == 'AC' and country in @spatial.h2_tyndp.country")
+    nodes = n.buses.loc[pop_layout.index, :].query(
+        "country in @spatial.h2_tyndp.country"
+    )
 
     # add H2 Buses
     logger.info("Adding TYNDP H2 nodes.")
@@ -3805,6 +3810,7 @@ def add_gas_and_h2_infrastructure(
     if options["h2_topology_tyndp"]:
         add_h2_topology_tyndp(
             n=n,
+            pop_layout=pop_layout,
             spatial=spatial,
             h2_cavern_file=h2_cavern_file,
             h2_pipes_file=h2_pipes_file,

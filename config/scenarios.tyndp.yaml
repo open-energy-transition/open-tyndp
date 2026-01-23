@@ -44,6 +44,8 @@ DE:
       2040: 120
       2045: 135
       2050: 150
+  costs:
+    custom_cost_scn: DE
 
 # GA Scenario - Extends NT baseline with specific overrides below
 GA:
@@ -83,3 +85,5 @@ GA:
       2040: 344
       2045: 398
       2050: 400
+  costs:
+    custom_cost_scn: GA
