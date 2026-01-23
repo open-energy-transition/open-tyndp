@@ -187,8 +187,6 @@ tyndp = """bash -c '
  all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
-# open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
-snakemake-minimal = { version = ">=9", channel = "https://repo.prefix.dev/open-tyndp" }
 pixi-pycharm = ">=0.0.9"
 
 [feature.open-tyndp.target.win-64.dependencies]
