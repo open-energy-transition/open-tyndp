@@ -52,7 +52,7 @@ def read_invest_projects(
     category: str = "Real",
 ) -> gpd.GeoDataFrame:
     """
-    Read grid investment dataset for Electricity and Hydrogen.
+    Read grid investment dataset for Electricity or Hydrogen.
 
     For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
 
@@ -124,6 +124,6 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
-    projects = read_invest_projects(snakemake.input.invest_grid, buses)
+    new_links = read_invest_projects(snakemake.input.invest_grid, buses)
 
-    projects.to_csv(snakemake.output[0], quotechar="'")
+    new_links.to_csv(snakemake.output[0], quotechar="'")
