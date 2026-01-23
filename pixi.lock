@@ -11208,6 +11208,7 @@ packages:
   - libgcc >=14
   - python_abi 3.12.* *_cp312
   license: BSD-3-Clause
+  license_family: BSD
   size: 320386
   timestamp: 1769155979897
 - conda: https://conda.anaconda.org/conda-forge/linux-64/contourpy-1.3.3-py314h97ea11e_4.conda
@@ -11221,6 +11222,7 @@ packages:
   - __glibc >=2.17,<3.0.a0
   - python_abi 3.14.* *_cp314
   license: BSD-3-Clause
+  license_family: BSD
   size: 324013
   timestamp: 1769155968691
 - conda: https://conda.anaconda.org/conda-forge/osx-64/contourpy-1.3.3-py312hb0c38da_4.conda
@@ -11233,6 +11235,7 @@ packages:
   - libcxx >=19
   - python_abi 3.12.* *_cp312
   license: BSD-3-Clause
+  license_family: BSD
   size: 298198
   timestamp: 1769156053873
 - conda: https://conda.anaconda.org/conda-forge/osx-64/contourpy-1.3.3-py314h22a2ed9_4.conda
@@ -11245,6 +11248,7 @@ packages:
   - __osx >=10.13
   - python_abi 3.14.* *_cp314
   license: BSD-3-Clause
+  license_family: BSD
   size: 301747
   timestamp: 1769156235399
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/contourpy-1.3.3-py312h3093aea_4.conda
@@ -11258,6 +11262,7 @@ packages:
   - libcxx >=19
   - python_abi 3.12.* *_cp312
   license: BSD-3-Clause
+  license_family: BSD
   size: 286084
   timestamp: 1769156157865
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/contourpy-1.3.3-py314hf8a3a22_4.conda
@@ -11271,6 +11276,7 @@ packages:
   - libcxx >=19
   - python_abi 3.14.* *_cp314
   license: BSD-3-Clause
+  license_family: BSD
   size: 290405
   timestamp: 1769156069514
 - conda: https://conda.anaconda.org/conda-forge/win-64/contourpy-1.3.3-py312h78d62e6_4.conda
@@ -11284,6 +11290,7 @@ packages:
   - ucrt >=10.0.20348.0
   - python_abi 3.12.* *_cp312
   license: BSD-3-Clause
+  license_family: BSD
   size: 244035
   timestamp: 1769155978578
 - conda: https://conda.anaconda.org/conda-forge/win-64/contourpy-1.3.3-py314hf309875_4.conda
@@ -11297,6 +11304,7 @@ packages:
   - ucrt >=10.0.20348.0
   - python_abi 3.14.* *_cp314
   license: BSD-3-Clause
+  license_family: BSD
   size: 247437
   timestamp: 1769155978556
 - conda: https://conda.anaconda.org/conda-forge/noarch/copernicusmarine-2.3.0-pyhd8ed1ab_0.conda
@@ -14714,6 +14722,7 @@ packages:
   - python >=3.10
   - python
   license: MIT
+  license_family: MIT
   size: 25946
   timestamp: 1769161799923
 - conda: https://conda.anaconda.org/conda-forge/noarch/joblib-1.5.3-pyhd8ed1ab_0.conda
