@@ -135,9 +135,9 @@ if __name__ == "__main__":
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
-    h2_grid = load_h2_grid(fn=snakemake.input.tyndp_reference_grid)
+    h2_grid = load_h2_grid(fn=snakemake.input.h2_reference_grid)
     interzonal = load_h2_interzonal_connections(
-        fn=snakemake.input.tyndp_reference_grid, scenario=scenario, pyear=pyear
+        fn=snakemake.input.h2_reference_grid, scenario=scenario, pyear=pyear
     )
 
     # Save prepped H2 grid and interzonal

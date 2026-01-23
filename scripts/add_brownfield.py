@@ -444,13 +444,13 @@ def update_dynamic_ptes_capacity(
     ].values
 
 
-def remove_tyndp_conventionals_p(
+def remove_tyndp_fixed_p(
     n_p: pypsa.Network,
     tyndp_conventional_thermals: list[str],
 ):
     """
-    Remove TYNDP conventional capacities from previous planning horizon network
-    as existing conventional capacities are given as cumulative input.
+    Remove TYNDP fixed capacities from previous planning horizon network
+    as existing fixed capacities are given as cumulative input.
 
     Parameters
     ----------
@@ -465,13 +465,25 @@ def remove_tyndp_conventionals_p(
         This function updates the network in place and does not return a value.
     """
     logger.info(
-        "Remove cumulative TYNDP conventional capacities from previous planning horizon "
-        "and replace with cumulative capacities from new planning horizon."
+        "Remove cumulative TYNDP fixed capacities from previous planning horizon "
+        "and replace with cumulative fixed capacities from new planning horizon."
     )
 
-    for tech in tyndp_conventional_thermals:
-        tech_i = n_p.links.query("carrier == @tech").index
-        n_p.remove("Link", tech_i)
+    # Remove conventional thermal techs
+    for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
+        remove_carriers = (
+            tyndp_conventional_thermals + ["H2 Electrolysis"]
+            if c.name == "Link"
+            else []
+        )
+        attr = "e" if c.name == "Store" else "p"
+
+        # Filter for carriers to be removed and for assets that are fixed assets (i.e. not extendable)
+        tech_i = c.static.loc[
+            (c.static["carrier"].isin(remove_carriers))
+            & (c.static[f"{attr}_nom_extendable"] == False)
+        ].index
+        n_p.remove(c.name, tech_i)
 
 
 if __name__ == "__main__":
@@ -521,7 +533,7 @@ if __name__ == "__main__":
     )
 
     # Drop fixed TYNDP conventional capacities from previous year as TYNDP capacities are given as cumulative input
-    remove_tyndp_conventionals_p(
+    remove_tyndp_fixed_p(
         n_p=n_p,
         tyndp_conventional_thermals=tyndp_conventional_thermals,
     )
