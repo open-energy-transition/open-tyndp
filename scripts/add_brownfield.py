@@ -450,8 +450,8 @@ def remove_tyndp_fixed_p(
     tyndp_hydro: list[str],
 ):
     """
-    Remove TYNDP conventional and hydro capacities from previous planning horizon network
-    as existing conventional capacities are given as cumulative input.
+    Remove TYNDP fixed capacities from previous planning horizon network
+    as existing fixed capacities are given as cumulative input.
 
     Parameters
     ----------
@@ -468,18 +468,24 @@ def remove_tyndp_fixed_p(
         This function updates the network in place and does not return a value.
     """
     logger.info(
-        "Remove cumulative TYNDP conventional and hydro capacities from previous planning horizon "
-        "and replace with cumulative capacities from new planning horizon."
+        "Remove cumulative TYNDP fixed capacities from previous planning horizon "
+        "and replace with cumulative fixed capacities from new planning horizon."
     )
 
-    # Remove hydro and conventional thermal techs
+    # Remove conventional thermal techs
     for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
         remove_carriers = (
-            tyndp_hydro + tyndp_conventional_thermals
+            tyndp_hydro + tyndp_conventional_thermals + ["H2 Electrolysis"]
             if c.name == "Link"
             else tyndp_hydro
         )
-        tech_i = c.static.loc[c.static["carrier"].isin(remove_carriers)].index
+        attr = "e" if c.name == "Store" else "p"
+
+        # Filter for carriers to be removed and for assets that are fixed assets (i.e. not extendable)
+        tech_i = c.static.loc[
+            (c.static["carrier"].isin(remove_carriers))
+            & (c.static[f"{attr}_nom_extendable"] == False)
+        ].index
         n_p.remove(c.name, tech_i)
 
 

@@ -8,7 +8,6 @@ run:
   disable_progressbar: true
   shared_resources:
     policy: false
-  shared_cutouts: true
 
 # TODO set foresight
 foresight: myopic
@@ -78,10 +77,7 @@ electricity:
 
   pecd_renewable_profiles:
     enable: true
-    version: 3.1
     pre_built:
-      retrieve: true
-      pecd_prebuilt_version: 0.1
       cyears:
       - 1995
       - 2008
@@ -376,18 +372,24 @@ plotting:
     - H2
     - gas
     - oil
-    - co2 stored
+    - co2_stored
     H2:
       bus_factor: 0.005
       branch_factor: 0.04
       flow_factor: 25
+  balance_map_interactive:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - co2_stored
 
 benchmarking:
   enable: true
 
 cba:
   hurdle_costs: 0.01 # Transmission line marginal cost
-
   planning_horizons:
   - 2030
   - 2040
