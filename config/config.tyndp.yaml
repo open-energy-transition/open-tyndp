@@ -427,7 +427,7 @@ cba:
     #          nearest, rolling_mean (requires rolling_window)
     resample_method: ffill
     # Window size for rolling_mean method (number of snapshots), ignored for other methods
-    rolling_window: null
+    rolling_window:
 
   # Rolling horizon solving options for CBA dispatch
   solving:

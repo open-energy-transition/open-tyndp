@@ -120,16 +120,22 @@ def resample_msv_to_target(
     elif method == "rolling_mean":
         # Forward fill first, then apply rolling mean to smooth
         if rolling_window is None:
-            raise ValueError("rolling_window must be specified when method='rolling_mean'")
+            raise ValueError(
+                "rolling_window must be specified when method='rolling_mean'"
+            )
         msv_resampled = msv.reindex(target_snapshots, method="ffill")
-        msv_resampled = msv_resampled.rolling(window=rolling_window, min_periods=1, center=True).mean()
+        msv_resampled = msv_resampled.rolling(
+            window=rolling_window, min_periods=1, center=True
+        ).mean()
         logger.info(f"Applied rolling mean with window={rolling_window} snapshots")
 
     else:
         # Default: Forward fill - each MSV value applies until the next one
         # This is most appropriate for shadow prices which represent discrete time periods
         if method != "ffill":
-            logger.warning(f"Unknown resampling method '{method}', falling back to 'ffill'")
+            logger.warning(
+                f"Unknown resampling method '{method}', falling back to 'ffill'"
+            )
         msv_resampled = msv.reindex(target_snapshots, method="ffill")
 
     # Fill any remaining NaNs at the beginning with backward fill

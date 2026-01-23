@@ -31,25 +31,25 @@ cba:
   projects:
     # === TOOT Projects ===
     # In reference grid (removing them tests TOOT methodology)
-    - t4      # tested - status changed with MSV
-    - t16     # tested - large benefit reduction with MSV
-    - t1      # new
-    - t29     # new
+  - t4        # tested - status changed with MSV
+  - t16       # tested - large benefit reduction with MSV
+  - t1        # new
+  - t29       # new
     # Not in reference grid
-    - t28     # tested - status changed with MSV
-    - t35     # tested
-    - t33     # new
-    - t47     # new
+  - t28       # tested - status changed with MSV
+  - t35       # tested
+  - t33       # new
+  - t47       # new
     # === PINT Projects ===
     # Not in reference grid (adding them tests PINT methodology)
-    - t40     # tested
-    - t225    # tested - status changed with MSV
-    - t239    # new
-    - t243    # new
+  - t40       # tested
+  - t225      # tested - status changed with MSV
+  - t239      # new
+  - t243      # new
     # In reference grid
-    - t126    # tested
-    - t267    # new
-    - t276    # new
+  - t126      # tested
+  - t267      # new
+  - t276      # new
   method_assignment: entsoe_labels
 
   # MSV extraction settings
@@ -65,7 +65,7 @@ cba:
     # Options: ffill, bfill, interpolate, nearest, rolling_mean
     resample_method: ffill
     # Window size for rolling_mean method (number of snapshots)
-    rolling_window: null
+    rolling_window:
 
   # Rolling horizon solving options for CBA dispatch
   solving:

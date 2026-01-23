@@ -424,7 +424,7 @@ cba:
     resolution: false  # Use native resolution (12H) since network is already at 12H
     extreme_threshold: 1000.0
     resample_method: ffill
-    rolling_window: null
+    rolling_window:
 
   # Rolling horizon solving options for CBA dispatch
   solving:

@@ -88,13 +88,15 @@ def compute_pairwise_differences(
         msv = n.stores_t.marginal_cost[stores]
         diff = (ref_msv[stores] - msv).abs()
         for store in stores:
-            records.append({
-                "reference": reference,
-                "method": method,
-                "store": store,
-                "max_abs_diff": diff[store].max(),
-                "mean_abs_diff": diff[store].mean(),
-            })
+            records.append(
+                {
+                    "reference": reference,
+                    "method": method,
+                    "store": store,
+                    "max_abs_diff": diff[store].max(),
+                    "mean_abs_diff": diff[store].mean(),
+                }
+            )
     return pd.DataFrame(records)
 
 
@@ -112,14 +114,16 @@ def compute_snapshot_differences(
         msv = n.stores_t.marginal_cost[stores]
         for store in stores:
             n_diff = (ref_msv[store] != msv[store]).sum()
-            records.append({
-                "reference": reference,
-                "method": method,
-                "store": store,
-                "snapshots_different": n_diff,
-                "total_snapshots": len(ref_msv),
-                "pct_different": n_diff / len(ref_msv) * 100,
-            })
+            records.append(
+                {
+                    "reference": reference,
+                    "method": method,
+                    "store": store,
+                    "snapshots_different": n_diff,
+                    "total_snapshots": len(ref_msv),
+                    "pct_different": n_diff / len(ref_msv) * 100,
+                }
+            )
     return pd.DataFrame(records)
 
 

@@ -115,7 +115,9 @@ rule solve_cba_msv_extraction:
     params:
         cba_solving=config_provider("cba", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
-        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        msv_extreme_threshold=config_provider(
+            "cba", "msv_extraction", "extreme_threshold"
+        ),
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
     input:
         network=rules.prepare_reference.output.network,
@@ -172,7 +174,9 @@ rule solve_cba_network:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
-        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        msv_extreme_threshold=config_provider(
+            "cba", "msv_extraction", "extreme_threshold"
+        ),
         msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
         msv_rolling_window=config_provider("cba", "msv_extraction", "rolling_window"),
     input:
@@ -204,7 +208,9 @@ rule solve_cba_reference:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
-        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        msv_extreme_threshold=config_provider(
+            "cba", "msv_extraction", "extreme_threshold"
+        ),
         msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
         msv_rolling_window=config_provider("cba", "msv_extraction", "rolling_window"),
     input:
@@ -349,7 +355,9 @@ rule solve_cba_reference_msv_method:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
-        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        msv_extreme_threshold=config_provider(
+            "cba", "msv_extraction", "extreme_threshold"
+        ),
         msv_resample_method=lambda w: w.msv_method,
         msv_rolling_window=config_provider("cba", "msv_extraction", "rolling_window"),
     input:
@@ -376,7 +384,8 @@ rule compare_msv_resample_methods:
     input:
         ffill=RESULTS + "cba/msv_test/reference_{planning_horizons}_ffill.nc",
         nearest=RESULTS + "cba/msv_test/reference_{planning_horizons}_nearest.nc",
-        interpolate=RESULTS + "cba/msv_test/reference_{planning_horizons}_interpolate.nc",
+        interpolate=RESULTS
+        + "cba/msv_test/reference_{planning_horizons}_interpolate.nc",
         bfill=RESULTS + "cba/msv_test/reference_{planning_horizons}_bfill.nc",
     output:
         output_dir=directory(RESULTS + "cba/msv_test/comparison_{planning_horizons}"),
