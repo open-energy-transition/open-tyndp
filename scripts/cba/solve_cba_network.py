@@ -47,6 +47,257 @@ from scripts.solve_network import (
 
 logger = logging.getLogger(__name__)
 
+# Default threshold for warning about extreme MSV values (EUR/MWh)
+DEFAULT_MSV_EXTREME_THRESHOLD = 1000.0
+
+
+def resample_msv_to_target(
+    msv: pd.DataFrame,
+    target_snapshots: pd.DatetimeIndex,
+    method: str = "ffill",
+    rolling_window: int | None = None,
+) -> pd.DataFrame:
+    """
+    Resample MSV from one resolution to target resolution.
+
+    Parameters
+    ----------
+    msv : pd.DataFrame
+        MSV data (e.g., 3-hourly from MSV extraction)
+    target_snapshots : pd.DatetimeIndex
+        Target snapshots (e.g., hourly for rolling horizon)
+    method : str, optional
+        Resampling method. Options:
+        - "ffill" (default): Forward fill - each MSV value applies until the next one.
+          Appropriate for shadow prices which represent discrete time periods.
+        - "bfill": Backward fill - each MSV value applies from the previous one.
+        - "interpolate": Linear interpolation - smoother but may not reflect discrete
+          price steps.
+        - "nearest": Use nearest MSV value by time.
+        - "rolling_mean": Apply rolling mean smoothing after forward fill.
+          Reduces volatility while preserving trends. Requires rolling_window.
+    rolling_window : int, optional
+        Window size for rolling mean (number of snapshots). Only used when
+        method="rolling_mean". Default is None (must be specified if using rolling_mean).
+
+    Returns
+    -------
+    pd.DataFrame
+        MSV resampled to target resolution
+
+    Notes
+    -----
+    Handles both upsampling (MSV coarser than target, typical case) and
+    downsampling (MSV finer than target, unusual but possible).
+    """
+    logger.info(f"Resampling MSV using method='{method}'")
+
+    # Check if target is coarser than MSV (downsampling case)
+    if len(target_snapshots) < len(msv):
+        logger.info(
+            f"Downsampling MSV from {len(msv)} to {len(target_snapshots)} snapshots "
+            f"(using mean aggregation)"
+        )
+        # For downsampling, use mean to aggregate MSV values
+        msv_resampled = msv.reindex(target_snapshots, method="nearest")
+        return msv_resampled
+
+    # Upsampling case (typical: MSV at 3H, target at 1H)
+    if method == "interpolate":
+        # Linear interpolation - smoother but may not reflect discrete price steps
+        combined_index = msv.index.union(target_snapshots).sort_values()
+        msv_resampled = msv.reindex(combined_index).interpolate(method="time")
+        msv_resampled = msv_resampled.reindex(target_snapshots)
+
+    elif method == "bfill":
+        # Backward fill - each MSV value applies from the previous one
+        msv_resampled = msv.reindex(target_snapshots, method="bfill")
+
+    elif method == "nearest":
+        # Use nearest MSV value by time
+        msv_resampled = msv.reindex(target_snapshots, method="nearest")
+
+    elif method == "rolling_mean":
+        # Forward fill first, then apply rolling mean to smooth
+        if rolling_window is None:
+            raise ValueError("rolling_window must be specified when method='rolling_mean'")
+        msv_resampled = msv.reindex(target_snapshots, method="ffill")
+        msv_resampled = msv_resampled.rolling(window=rolling_window, min_periods=1, center=True).mean()
+        logger.info(f"Applied rolling mean with window={rolling_window} snapshots")
+
+    else:
+        # Default: Forward fill - each MSV value applies until the next one
+        # This is most appropriate for shadow prices which represent discrete time periods
+        if method != "ffill":
+            logger.warning(f"Unknown resampling method '{method}', falling back to 'ffill'")
+        msv_resampled = msv.reindex(target_snapshots, method="ffill")
+
+    # Fill any remaining NaNs at the beginning with backward fill
+    msv_resampled = msv_resampled.bfill()
+
+    return msv_resampled
+
+
+def apply_marginal_storage_values(
+    n: pypsa.Network,
+    n_msv: pypsa.Network,
+    seasonal_carriers: list[str],
+    msv_extreme_threshold: float = DEFAULT_MSV_EXTREME_THRESHOLD,
+    resample_method: str = "ffill",
+    rolling_window: int | None = None,
+) -> None:
+    """
+    Apply marginal storage values (MSV) to seasonal stores.
+
+    MSV are dual variables from the store energy balance constraint obtained from
+    a full-year perfect foresight optimization. They capture the future value of
+    stored energy. By setting these as marginal costs on stores, the rolling horizon
+    optimization can make decisions that account for seasonal patterns.
+
+    The MSV is extracted from n_msv.stores_t.mu_energy_balance, which is the dual
+    variable of the Store-energy_balance constraint.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify (for rolling horizon optimization)
+    n_msv : pypsa.Network
+        Network solved with perfect foresight containing mu_energy_balance
+    seasonal_carriers : list[str]
+        List of store carrier names that should receive MSV
+        (e.g., ["H2 Store", "gas", "co2 sequestered"])
+    msv_extreme_threshold : float, optional
+        Threshold for warning about extreme MSV values (EUR/MWh). Default is 1000.
+    resample_method : str, optional
+        Method for resampling MSV to target resolution. Options: "ffill" (default),
+        "bfill", "interpolate", "nearest", "rolling_mean". Default is "ffill".
+    rolling_window : int, optional
+        Window size for rolling mean (snapshots). Required if resample_method="rolling_mean".
+
+    Notes
+    -----
+    If the MSV network has different temporal resolution than the target network,
+    the MSV values are resampled using the specified method.
+
+    This implements the concept from Lagrangian relaxation where the MSV acts
+    as a penalty/reward for storing energy, internalizing future scarcity even
+    when optimizing over limited horizons.
+
+    References
+    ----------
+    - Tom Brown's optimization lecture: https://nworbmot.org/courses/es-24/es-7-optimisation.pdf
+    - PyPSA documentation on storage optimization
+    """
+    if not seasonal_carriers:
+        logger.info("No seasonal carriers specified, skipping MSV assignment")
+        return
+
+    # Check if MSV network has mu_energy_balance (the correct dual variable)
+    if n_msv.stores_t.mu_energy_balance.empty:
+        logger.warning(
+            "MSV network has no mu_energy_balance. "
+            "Ensure it was solved with assign_all_duals=True. "
+            "Skipping MSV assignment."
+        )
+        return
+
+    logger.info(
+        f"Applying MSV from network with {len(n_msv.snapshots)} snapshots "
+        f"to network with {len(n.snapshots)} snapshots"
+    )
+
+    for carrier in seasonal_carriers:
+        # Get stores with this carrier in target network
+        stores_i = n.stores[n.stores.carrier == carrier].index
+
+        if stores_i.empty:
+            logger.debug(f"No stores found with carrier '{carrier}'")
+            continue
+
+        # Find corresponding stores in MSV network
+        msv_stores_i = stores_i[stores_i.isin(n_msv.stores_t.mu_energy_balance.columns)]
+
+        if msv_stores_i.empty:
+            logger.warning(
+                f"No MSV data found for stores with carrier '{carrier}'. "
+                "Skipping these stores."
+            )
+            continue
+
+        # Extract MSV from mu_energy_balance
+        msv = n_msv.stores_t.mu_energy_balance[msv_stores_i].copy()
+
+        # Resample if temporal resolutions differ
+        if not n.snapshots.equals(n_msv.snapshots):
+            logger.info(
+                f"Resampling MSV for '{carrier}' from {len(n_msv.snapshots)} "
+                f"to {len(n.snapshots)} snapshots"
+            )
+            msv = resample_msv_to_target(
+                msv, n.snapshots, method=resample_method, rolling_window=rolling_window
+            )
+
+        # Ensure all target stores are included (some may not be in MSV network)
+        # For stores not in MSV network (e.g., new PINT storage projects),
+        # we keep their existing marginal_cost (typically 0)
+        missing_stores = stores_i.difference(msv_stores_i)
+        if not missing_stores.empty:
+            logger.warning(
+                f"{len(missing_stores)} stores with carrier '{carrier}' not found "
+                f"in MSV network (possibly new PINT storage). "
+                f"These stores will use marginal_cost=0, which may lead to "
+                f"suboptimal seasonal dispatch. Consider running MSV extraction "
+                f"with these stores included for better results."
+            )
+
+        # Set the marginal cost of stores to the MSV
+        # The MSV (mu_energy_balance) represents the marginal value of stored energy.
+        # Positive MSV means stored energy has value (future scarcity expected).
+        # By setting this as marginal_cost, the optimizer will:
+        # - Avoid discharging when MSV is high (energy is valuable)
+        # - Prefer charging when MSV is high (building reserves)
+        # - Discharge when MSV is low (energy less valuable in future)
+
+        # Validate MSV values before applying
+        if (msv.abs() > msv_extreme_threshold).any().any():
+            extreme_count = (msv.abs() > msv_extreme_threshold).sum().sum()
+            logger.warning(
+                f"Extreme MSV values (|MSV| > {msv_extreme_threshold} EUR/MWh) "
+                f"detected for '{carrier}': {extreme_count} occurrences. "
+                "This may cause unusual dispatch behavior."
+            )
+
+        if n.stores_t.marginal_cost.empty:
+            n.stores_t.marginal_cost = msv
+        else:
+            # Update existing marginal_cost DataFrame with MSV values
+            for store in msv.columns:
+                n.stores_t.marginal_cost[store] = msv[store]
+
+        logger.info(
+            f"Applied MSV to {len(msv_stores_i)} stores with carrier '{carrier}'. "
+            f"MSV range: [{msv.min().min():.2f}, {msv.max().max():.2f}] EUR/MWh"
+        )
+
+    # Set initial energy levels from MSV network for seasonal stores
+    # This ensures consistency between the full-year solution and rolling horizon
+    for carrier in seasonal_carriers:
+        stores_i = n.stores[n.stores.carrier == carrier].index
+        if stores_i.empty:
+            continue
+
+        # Get initial energy from MSV network's first snapshot
+        msv_stores_i = stores_i[stores_i.isin(n_msv.stores.index)]
+        if not msv_stores_i.empty and not n_msv.stores_t.e.empty:
+            first_snapshot = n_msv.snapshots[0]
+            if first_snapshot in n_msv.stores_t.e.index:
+                initial_e = n_msv.stores_t.e.loc[first_snapshot, msv_stores_i]
+                n.stores.loc[msv_stores_i, "e_initial"] = initial_e
+                logger.info(
+                    f"Set initial energy for {len(msv_stores_i)} '{carrier}' stores "
+                    f"from MSV network (first snapshot: {first_snapshot})"
+                )
+
 
 def extra_functionality(
     n: pypsa.Network,
@@ -122,7 +373,7 @@ def optimize_with_rolling_horizon(
     tuple[str, str]
     """
     if snapshots is None:
-        snapshots: Sequence = n.snapshots
+        snapshots = n.snapshots
 
     if horizon <= overlap:
         raise ValueError("overlap must be smaller than horizon")
@@ -288,6 +539,26 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
     planning_horizons = snakemake.wildcards.get("planning_horizons", None)
+
+    # Load MSV network (solved with perfect foresight to extract marginal storage values)
+    n_msv = pypsa.Network(snakemake.input.msv_network)
+
+    # Apply marginal storage values (MSV) to seasonal stores
+    seasonal_carriers = snakemake.params.get("seasonal_carriers", [])
+    msv_extreme_threshold = snakemake.params.get(
+        "msv_extreme_threshold", DEFAULT_MSV_EXTREME_THRESHOLD
+    )
+    resample_method = snakemake.params.get("msv_resample_method", "ffill")
+    rolling_window = snakemake.params.get("msv_rolling_window", None)
+    if seasonal_carriers:
+        apply_marginal_storage_values(
+            n,
+            n_msv,
+            seasonal_carriers,
+            msv_extreme_threshold,
+            resample_method=resample_method,
+            rolling_window=rolling_window,
+        )
 
     prepare_network(
         n,

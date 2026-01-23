@@ -402,7 +402,31 @@ cba:
   #   - algorithmic: Use heuristic rules (not yet implemented)
   method_assignment: entsoe_labels
 
+  # Storage settings for CBA dispatch
+  storage:
+    # Carriers that should remain cyclic (short-term storage and fuel stores)
+    cyclic_carriers:
+    - battery
+    - home battery
+    - lignite
+    - coal
+    - oil
+    - uranium
 
+    # Carriers with seasonal behavior that need marginal storage values (MSV)
+    seasonal_carriers:
+    - H2 Store
+    - gas
+    - co2 sequestered
+
+  # MSV extraction settings (perfect foresight dispatch for reference network)
+  msv_extraction:
+    resolution: false  # Use native resolution (12H) since network is already at 12H
+    extreme_threshold: 1000.0
+    resample_method: ffill
+    rolling_window: null
+
+  # Rolling horizon solving options for CBA dispatch
   solving:
     options:
       horizon: 168

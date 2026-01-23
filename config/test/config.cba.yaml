@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP
 # SPDX-License-Identifier: CC0-1.0
 
-# Minimal CBA test config
+# CBA test config
 # Overlays on config/test/config.tyndp.yaml to test CBA workflow independently
 # Run with: snakemake cba_test --configfile config/test/config.tyndp.yaml config/test/config.cba.yaml
 
@@ -29,23 +29,55 @@ cba:
   - toot
   - pint
   projects:
-  # TOOT in reference: t4, t16
-  # TOOT not in reference: t28, t35
-  # PINT not in reference: t40, t225
-  # PINT in reference: t126
-  - t4
-  - t16
-  - t28
-  - t35
-  - t40
-  - t126
-  - t225
+    # === TOOT Projects ===
+    # In reference grid (removing them tests TOOT methodology)
+    - t4      # tested - status changed with MSV
+    - t16     # tested - large benefit reduction with MSV
+    - t1      # new
+    - t29     # new
+    # Not in reference grid
+    - t28     # tested - status changed with MSV
+    - t35     # tested
+    - t33     # new
+    - t47     # new
+    # === PINT Projects ===
+    # Not in reference grid (adding them tests PINT methodology)
+    - t40     # tested
+    - t225    # tested - status changed with MSV
+    - t239    # new
+    - t243    # new
+    # In reference grid
+    - t126    # tested
+    - t267    # new
+    - t276    # new
   method_assignment: entsoe_labels
+
+  # MSV extraction settings
+  # Controls how marginal storage values are extracted from perfect foresight solve
+  msv_extraction:
+    # Temporal resolution for MSV extraction
+    # Options: false (use native resolution), "24H", "48H", etc.
+    # Lower resolution = faster solve but less accurate MSV
+    resolution: 24H  # Coarser than target (12H) to test resampling
+    # Threshold for warning about extreme MSV values (EUR/MWh)
+    extreme_threshold: 1000.0
+    # Method for resampling MSV to target network resolution
+    # Options: ffill, bfill, interpolate, nearest, rolling_mean
+    resample_method: ffill
+    # Window size for rolling_mean method (number of snapshots)
+    rolling_window: null
+
+  # Rolling horizon solving options for CBA dispatch
   solving:
     options:
-      horizon: 146  # 5 rolling horizon chunks (730/5)
+      # Rolling horizon window size (snapshots)
+      # 146 = ~73 days at 12H resolution, gives 5 chunks for full year
+      horizon: 146
+      # Overlap between windows (0 = no overlap)
       overlap: 0
+      # Enable load shedding to ensure feasibility
       load_shedding: true
+      # I/O API for solver (direct = ~20% faster with HiGHS)
       io_api: direct
     solver:
       name: highs

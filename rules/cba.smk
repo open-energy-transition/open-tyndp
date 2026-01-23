@@ -15,6 +15,7 @@ from scripts._helpers import fill_wildcards
 
 wildcard_constraints:
     cba_project=r"(s|t)\d+",
+    msv_method=r"(ffill|bfill|nearest|interpolate)",
 
 
 rule retrieve_tyndp_cba_projects:
@@ -82,6 +83,8 @@ def input_sb_network(w):
 rule simplify_sb_network:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
     input:
         network=input_sb_network,
     output:
@@ -104,6 +107,27 @@ rule prepare_reference:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
         "../scripts/cba/prepare_reference.py"
+
+
+# Solve reference network with perfect foresight to extract MSV
+# This runs once per planning horizon and provides MSV for all rolling horizon solves
+rule solve_cba_msv_extraction:
+    params:
+        cba_solving=config_provider("cba", "solving"),
+        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
+        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+    input:
+        network=rules.prepare_reference.output.network,
+    output:
+        network=resources("cba/networks/reference_{planning_horizons}_msv.nc"),
+    log:
+        solver=logs("cba/solve_cba_msv_extraction/{planning_horizons}_solver.log"),
+        memory=logs("cba/solve_cba_msv_extraction/{planning_horizons}_memory.log"),
+        python=logs("cba/solve_cba_msv_extraction/{planning_horizons}_python.log"),
+    threads: 1
+    script:
+        "../scripts/cba/solve_cba_msv_extraction.py"
 
 
 # remove the single project {cba_project} from the CBA reference network (TOOT)
@@ -147,8 +171,13 @@ rule solve_cba_network:
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
+        msv_rolling_window=config_provider("cba", "msv_extraction", "rolling_window"),
     input:
         network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),
+        msv_network=rules.solve_cba_msv_extraction.output.network,
     output:
         network=RESULTS + "cba/{cba_method}/networks/{name}_{planning_horizons}.nc",
     log:
@@ -174,8 +203,13 @@ rule solve_cba_reference:
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
+        msv_rolling_window=config_provider("cba", "msv_extraction", "rolling_window"),
     input:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
+        msv_network=rules.solve_cba_msv_extraction.output.network,
     output:
         network=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
     log:
@@ -299,3 +333,52 @@ rule cba_test:
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
+
+
+# Compare MSV resampling methods
+# Run with: snakemake compare_msv_resample_methods --configfile config/test/config.tyndp.yaml config/test/config.cba.yaml
+# Solves reference network with each resample method and compares results
+
+
+# Solve reference network with specific MSV resample method (for comparison testing)
+rule solve_cba_reference_msv_method:
+    params:
+        solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
+        foresight=config_provider("foresight"),
+        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        custom_extra_functionality=None,
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+        msv_extreme_threshold=config_provider("cba", "msv_extraction", "extreme_threshold"),
+        msv_resample_method=lambda w: w.msv_method,
+        msv_rolling_window=config_provider("cba", "msv_extraction", "rolling_window"),
+    input:
+        network=resources("cba/networks/reference_{planning_horizons}.nc"),
+        msv_network=rules.solve_cba_msv_extraction.output.network,
+    output:
+        network=RESULTS + "cba/msv_test/reference_{planning_horizons}_{msv_method}.nc",
+    log:
+        solver=logs(
+            "cba/solve_cba_reference_msv_test/{planning_horizons}_{msv_method}_solver.log"
+        ),
+        memory=logs(
+            "cba/solve_cba_reference_msv_test/{planning_horizons}_{msv_method}_memory.log"
+        ),
+        python=logs(
+            "cba/solve_cba_reference_msv_test/{planning_horizons}_{msv_method}_python.log"
+        ),
+    threads: 1
+    script:
+        "../scripts/cba/solve_cba_network.py"
+
+
+rule compare_msv_resample_methods:
+    input:
+        ffill=RESULTS + "cba/msv_test/reference_{planning_horizons}_ffill.nc",
+        nearest=RESULTS + "cba/msv_test/reference_{planning_horizons}_nearest.nc",
+        interpolate=RESULTS + "cba/msv_test/reference_{planning_horizons}_interpolate.nc",
+        bfill=RESULTS + "cba/msv_test/reference_{planning_horizons}_bfill.nc",
+    output:
+        output_dir=directory(RESULTS + "cba/msv_test/comparison_{planning_horizons}"),
+    script:
+        "../scripts/cba/compare_resample_methods.py"

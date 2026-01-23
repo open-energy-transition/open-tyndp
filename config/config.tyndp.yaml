@@ -394,7 +394,42 @@ cba:
   #   - algorithmic: Use heuristic rules (not yet implemented)
   method_assignment: entsoe_labels
 
-  # Merged into top-level solving options
+  # Storage settings for CBA dispatch
+  storage:
+    # Carriers that should remain cyclic (short-term storage and fuel stores)
+    # These will maintain e_cyclic=True in simplify_sb_network
+    cyclic_carriers:
+    - battery
+    - home battery
+    - lignite
+    - coal
+    - oil
+    - uranium
+
+    # Carriers with seasonal behavior that need marginal storage values (MSV)
+    # These will have e_cyclic=False and marginal costs set from shadow prices
+    seasonal_carriers:
+    - H2 Store
+    - gas
+    - co2 sequestered
+
+  # MSV extraction settings (perfect foresight dispatch for reference network)
+  # Solves full year with fixed capacities to extract marginal storage values
+  msv_extraction:
+    # Temporal resolution for MSV extraction (e.g., 3H, 6H, 24H, or false for full hourly)
+    # Lower resolution reduces solve time while still capturing seasonal patterns
+    resolution: 3H
+    # Threshold for warning about extreme MSV values (EUR/MWh)
+    # Values above this threshold may indicate model issues or unusual scarcity
+    extreme_threshold: 1000.0
+    # Method for resampling MSV to target network resolution
+    # Options: ffill (forward fill), bfill (backward fill), interpolate (linear),
+    #          nearest, rolling_mean (requires rolling_window)
+    resample_method: ffill
+    # Window size for rolling_mean method (number of snapshots), ignored for other methods
+    rolling_window: null
+
+  # Rolling horizon solving options for CBA dispatch
   solving:
     options:
       horizon: 168
