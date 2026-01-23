@@ -22,41 +22,10 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def turn_optimisation_to_dispatch(n: pypsa.Network) -> pypsa.Network:
-    """Disable all capacity expansion by copying optimized capacities to nominal capacities for certain sectors"""
-
-    logger.info("Turning optimisation problem into dispatch problem.")
-
-    for c in n.components[["Generator", "Link", "Store", "StorageUnit", "Line"]]:
-        ext_flag = [col for col in c.static.columns if "extendable" in col]
-        if len(ext_flag) != 1:
-            logger.error("Expected exactly one extendable flag column")
-        ext_flag = ext_flag[0]
-        capacity = ext_flag.replace("_extendable", "")
-        capacity_extendable = f"{capacity}_extendable"
-
-        # Some chemical links cause infeasibilities due to p_nom_min constraints
-        # Exclude these chemical links from having their capacities fixed to allow for some small flexibility
-        if c.name == "Link":
-            idx = c.static.loc[
-                c.static["carrier"].isin(["AC", "DC", "electricity", "DC_OH"])
-            ].index
-        else:
-            idx = c.static.index
-
-        # Set all components to not be extendable
-        c.static.loc[idx, capacity_extendable] = False
-
-        # Copy the optimized capacities to the nominal capacity columns
-        c.static.loc[idx, capacity] = c.static.loc[idx, f"{capacity}_opt"]
-
-    # If we increase the load in some uncertainty scenarios, then these
-    # links need to be expandable, else we create infeasibilities.
-    idx = n.components.links.static.query(
-        "`name`.str.contains(' distribution grid')"
-    ).index
-    n.components.links.static.loc[idx, "p_nom_extendable"] = True
-
+def add_electrolysis_constraints(n):
+    """Enforce the electrolysis dispatch to the optimal dispatch found in the solved network."""
+    electrolysis_i = n.links[n.links.carrier == "H2 Electrolysis"].index
+    n.links_t.p_set.loc[:, electrolysis_i] = n.links_t.p0.loc[:, electrolysis_i]
     return n
 
 
@@ -95,6 +64,18 @@ def remove_components_added_in_solve_network_py(n: pypsa.Network) -> pypsa.Netwo
             name=gens_i,
         )
 
+    return n
+
+
+def extend_primary_fuel_sources(n):
+    primary_fuel_sources = [
+        "EU lignite",
+        "EU coal",
+        "EU oil primary",
+        "EU uranium",
+        "EU gas",
+    ]
+    n.generators.loc[primary_fuel_sources, "p_nom_extendable"] = True
     return n
 
 
@@ -273,17 +254,17 @@ def add_scenario_uncertainty(
             # Errors may cause values below which is unrealistic, so clip accordingly
             # We could also clip > 1, but then we need to differentiate between
             # loads (absolute timeseries) and generators (pu timeseries)
-            new_p_max_pu = new_p_max_pu.clip(lower=0)
+            new_p_max_pu = new_p_max_pu.clip(lower=0)  # , upper=max_value)
 
             # Assign the new values back to the generators dataframe
             # (this propagates to the network object n because it is a reference, not a copy)
             # Make sure to align snapshots first
             new_p_max_pu = new_p_max_pu.loc[comp.index]
             comp[cols] = new_p_max_pu
-
     return n
 
 
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -302,8 +283,10 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    n = turn_optimisation_to_dispatch(n)
+    n.optimize.fix_optimal_capacities()
     n = remove_components_added_in_solve_network_py(n)
+    n = add_electrolysis_constraints(n)
+    n = extend_primary_fuel_sources(n)
 
     for uncertainty_scenario in snakemake.params.uncertainty_scenarios:
         n_uncertain = add_scenario_uncertainty(
@@ -320,6 +303,7 @@ if __name__ == "__main__":
 
         # Better now than later
         n.consistency_check()
+        n_uncertain.consistency_check()
 
         logger.info(f"Saving uncertainty scenario network to {output_path}")
         n_uncertain.export_to_netcdf(output_path)

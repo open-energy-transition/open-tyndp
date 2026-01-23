@@ -476,7 +476,27 @@ def prepare_network(
         # intersect between macroeconomic and surveybased willingness to pay
         # http://journal.frontiersin.org/article/10.3389/fenrg.2015.00055/full
         n.add("Carrier", "load")
-        buses_i = n.buses.index
+        # Restrict load shedding to some carriers only
+        selected_carriers = [
+            # "oil",
+            # "solid biomass",
+            # "co2 sequestered",
+            # "co2 stored",
+            "H2",
+            "AC",
+            "low voltage",
+            # "home battery",
+            # "import H2",
+            # "shipping oil",
+            # "kerosene for aviation",
+            # "land transport oil",
+            "H2_OH",
+            "AC_OH",
+        ]
+
+        logger.info(f"Enabling load shedding for carriers: {selected_carriers}")
+
+        buses_i = n.buses.loc[n.buses["carrier"].isin(selected_carriers)].index
         if isinstance(load_shedding, bool):
             load_shedding = 1e5  # Eur/MWh
 
@@ -507,7 +527,9 @@ def prepare_network(
         )
 
     # Do not add noise to costs for sensitivity runs (they already have noisy costs from the previous iteration)
-    if solve_opts.get("noisy_costs") and "sensitivity" not in n.name.casefold():
+    if solve_opts.get("noisy_costs") and not any(
+        [x in n.name.casefold() for x in ["status_quo", "sensitivity"]]
+    ):
         for t in n.iterate_components():
             # if 'capital_cost' in t.df:
             #    t.df['capital_cost'] += 1e1 + 2.*(np.random.random(len(t.df)) - 0.5)
@@ -520,6 +542,8 @@ def prepare_network(
             t.df["capital_cost"] += (
                 1e-1 + 2e-2 * (np.random.random(len(t.df)) - 0.5)
             ) * t.df["length"]
+    else:
+        logger.info("Noisy costs: deactivated for this run.")
 
     if solve_opts.get("nhours"):
         nhours = solve_opts["nhours"]
@@ -1527,52 +1551,50 @@ def solve_network(
         raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
-def restrict_elec_flows(n: pypsa.Network, line_limits_fp: str) -> pypsa.Network:
+def set_capacities_based_on_other_network(
+    n: pypsa.Network, ref_network_path: str
+) -> pypsa.Network:
     """
-    Restrict electricity flows based on pre-calculated hourly line limits from and to GB.
-
-    Restrictions are put in place by limiting `p_min_pu` and `p_max_pu` of each line connected to GB.
+    Set the capacities for generators, stores, links, storage_units in network `n`
+    based on another network stored in `other_network_path`.
 
     Parameters
     ----------
     n : pypsa.Network
-        PyPSA network instance
-    line_limits_fp : str
-        File path to CSV containing line limits
+        The PyPSA network instance to modify.
+    other_network_path : str
+        Path to the other network file.
 
     Returns
     -------
     pypsa.Network
-        PyPSA network instance with restricted line flows
+        The modified network with updated capacities.
     """
-    logger.info(
-        "Restricting electricity flows based on line limits from uncertainty scenarios."
-    )
-    line_limits = pd.read_csv(line_limits_fp, index_col=0, parse_dates=True)
-    line_p_max_pu = n.components.links.dynamic["p_max_pu"]
+    n_ref = pypsa.Network(ref_network_path)
 
-    # Ensure that all lines for which line limits are provided exist in the network
-    # (If not, then we are using the wrong input either for the network or the line limits)
-    missing_lines = line_limits.columns.difference(n.components.links.static.index)
-    if not missing_lines.empty:
-        raise ValueError(
-            f"The following lines from the line limits file are missing in the network: {missing_lines.tolist()}"
+    for c, c_attr in [
+        ("Generator", "p_nom"),
+        ("Store", "e_nom"),
+        ("Link", "p_nom"),
+        ("StorageUnit", "p_nom"),
+    ]:
+        idx = n.components[c].static.query(f"`{c_attr}_extendable` == True").index
+        # Only set for generators that are in the to-be-optimised network
+        # we are calling this function before loadshedding and other special components are added
+        idx = idx.intersection(n_ref.components[c].static.index)
+
+        # These must not be fixed, as they are modelled in other ways (keep them extendable)
+        idx = idx.difference(
+            {"EU lignite", "EU coal", "EU oil primary", "EU uranium", "EU gas"}
         )
 
-    # Remove existing restrictions that are also part of the `line_limits` if there are any
-    # This is not problematic, as the new restrictions are build upon the old restrictions,
-    # i.e. the most restrictive limits will apply
-    existing_restricted_links = line_limits.columns.intersection(line_p_max_pu.columns)
-    if any(existing_restricted_links):
         logger.info(
-            f"Removing existing link flow restrictions for GB-connected lines: {existing_restricted_links.tolist()}"
+            f"Setting capacities based on previous run for {c} at indices: {idx.tolist()}"
         )
-        line_p_max_pu = line_p_max_pu.drop(columns=existing_restricted_links)
-
-    # Add new restrictions
-    n.components.links.dynamic["p_max_pu"] = pd.concat(
-        [line_p_max_pu, line_limits], axis="columns"
-    )
+        n.components[c].static.loc[idx, c_attr] = n_ref.components[c].static.loc[
+            idx, f"{c_attr}_opt"
+        ]
+        n.components[c].static.loc[idx, f"{c_attr}_extendable"] = False
 
     return n
 
@@ -1585,7 +1607,7 @@ if __name__ == "__main__":
             "solve_sector_network_myopic_line_limited",
             opts="",
             clusters="all",
-            configfiles="config/config.tyndp.yaml",
+            configfiles="config/config.ngv-status-quo.yaml",
             sector_opts="",
             planning_horizons="2030",
         )
@@ -1600,6 +1622,11 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
     planning_horizons = snakemake.wildcards.get("planning_horizons", None)
 
+    if snakemake.rule == "solve_sector_network_myopic_no_ce":
+        n = set_capacities_based_on_other_network(
+            n, ref_network_path=snakemake.input["network_ref"]
+        )
+
     prepare_network(
         n,
         solve_opts=snakemake.params.solving["options"],
@@ -1609,11 +1636,6 @@ if __name__ == "__main__":
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
     )
-
-    # For simulating the status quo, restrict the line flows and limits based on
-    # uncertainty scenario results for bidding behaviour
-    if snakemake.rule == "solve_sector_network_myopic_line_limited":
-        n = restrict_elec_flows(n, line_limits_fp=snakemake.input["line_limits"])
 
     logging_frequency = snakemake.config.get("solving", {}).get(
         "mem_logging_frequency", 30

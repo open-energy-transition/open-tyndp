@@ -156,22 +156,13 @@ all-tests = {depends-on = ["integration-tests", "clean-tests", "unit-tests"]}
 [feature.test.dependencies]
 pytest = ">=8.4.2"
 
-[feature.open-tyndp.tasks]
-ngv-iem = """bash -c '
-    snakemake -call --configfile config/config.ngv-status-quo.yaml --rerun-incomplete -k results/ngv-iem/status_quo/networks/base_s_all_lluk__2030.nc results/ngv-iem/status_quo/networks/base_s_all_lluk__2040.nc
-    ' --
+[feature.ngv.tasks]
+ngv = """bash -c '
+    snakemake --cores all --configfile config/config.ngv.yaml --rerun-incomplete --keep-going
+    '
 """
-
-tyndp = """bash -c '
-	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
-	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
-	' --
- """
-
-[feature.open-tyndp.dependencies]
-pixi-pycharm = ">=0.0.9"
 
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
 test = ["test"]
-open-tyndp = ["open-tyndp", "test"]  # for ease, we include test deps in our working environment
+ngv = ["ngv", "test"]  # for ease, we include test deps in our working environment

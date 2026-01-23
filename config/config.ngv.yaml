@@ -4,15 +4,19 @@
 
 run:
   prefix: "ngv-iem"
-  name: "status_quo"
+  name: "latest"
   scenarios:
     enable: false
-  
+
 # Scenarios for uncertainty analysis to consider
 # Logic for scenarios in `scripts/prepare_uncertainty_scenarios.py`,
 # see descriptions there
 uncertainty_scenarios:
 - trader-forecast
+
+snapshots:
+  start: "2009-01-01"
+  end: "2010-01-01"
 
 fbmc: false
 
@@ -39,3 +43,16 @@ sector:
 
 benchmarking:
   enable: false
+
+solving:
+  options:
+    load_shedding: 4e3
+
+  solver_options:
+    gurobi-default:
+      BarConvTol: 1.e-6
+    cplex-default:
+      barrier.convergetol: 1.e-6
+
+enable:
+  retrieve: true
