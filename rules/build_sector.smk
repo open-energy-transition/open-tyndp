@@ -1457,15 +1457,10 @@ def input_pemmdb_data(w):
 
 
 def include_tyndp_projects(w):
-    if (
-        (int(w.planning_horizons) == 2040)
-        and (config_provider("tyndp_scenario")(w) == "NT")
-        and config_provider("transmission_projects", "enable")(w)
-        and config_provider("transmission_projects", "include", "tyndp2024")(w)
-    ):
-        return True
-    else:
+    horizons = config_provider("tyndp_investment_candidates", "elec_projects")(w)
+    if not horizons:
         return False
+    return int(w.planning_horizons) in horizons
 
 
 def include_tydnp_trajectories(w):

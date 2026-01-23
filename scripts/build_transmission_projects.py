@@ -1,4 +1,3 @@
-# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -492,7 +491,7 @@ if __name__ == "__main__":
     projects = [
         project
         for project, include in transmission_projects["include"].items()
-        if include and project != "tyndp2024"
+        if include
     ]
     paths = snakemake.input.transmission_projects
     for project in projects:

@@ -213,7 +213,7 @@ Switches for some rules and optional features.
 
 .. _CO2_budget_cf:
 
-``co2 budget``
+``co2_budget``
 ==============
 
 .. literalinclude:: ../config/config.default.yaml
@@ -397,12 +397,12 @@ overwrite the existing values.
    :widths: 22,7,22,33
    :file: configtables/links.csv
 
-.. _transformers_cf:
+.. _transmission_projects_cf:
 
-``transmission projects``
+``transmission_projects``
 =========================
 
-Allows to define additional transmission projects that will be added to the base network, e.g., from the TYNDP 2020 dataset. The projects are read in from the CSV files in the subfolder of ``data/transmission_projects/``. New transmission projects, e.g. from TYNDP 2024, can be added in a new subfolder of transmission projects, e.g. ``data/transmission_projects/tyndp2024`` while extending the list of ``transmission_projects`` in the ``config.yaml`` by ``tyndp2024``. The CSV files in the project folder should have the same columns as the CSV files in the template folder ``data/transmission_projects/template``.
+Allows to define additional transmission projects that will be added to the base network, e.g., from the TYNDP 2020 dataset. The projects are read in from the CSV files in the subfolder of ``data/transmission_projects/``. New transmission projects can be added in a new subfolder of transmission projects while extending the list of ``transmission_projects`` in the ``config.yaml``. The CSV files in the project folder should have the same columns as the CSV files in the template folder ``data/transmission_projects/template``.
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
@@ -413,6 +413,23 @@ Allows to define additional transmission projects that will be added to the base
    :header-rows: 1
    :widths: 22,7,22,33
    :file: configtables/transmission_projects.csv
+
+.. _tyndp_investment_candidates_cf:
+
+``tyndp_investment_candidates``
+===============================
+
+Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration only applies to the TYNDP base network and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: tyndp_investment_candidates:
+   :end-before: # docs
+
+.. csv-table::
+   :header-rows: 1
+   :widths: 22,7,22,33
+   :file: configtables/tyndp_investment_candidates.csv
 
 .. _transformers_cf:
 

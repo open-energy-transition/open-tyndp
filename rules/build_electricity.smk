@@ -442,7 +442,7 @@ rule build_transmission_projects:
             for name, include in config_provider("transmission_projects", "include")(
                 w
             ).items()
-            if include and name != "tyndp2024"
+            if include
         ],
     output:
         new_lines=resources("transmission_projects/new_lines.csv"),
