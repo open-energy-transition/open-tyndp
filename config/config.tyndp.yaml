@@ -150,11 +150,7 @@ links:
   p_min_pu: 0
 
 transmission_projects:
-  enable: true
-  include:
-    tyndp2020: false
-    nep: false
-    manual: false
+  enable: false
 
 tyndp_investment_candidates:
   elec_projects: [2040]
