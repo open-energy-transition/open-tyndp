@@ -60,7 +60,9 @@ def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
 def benchmark_range(
     df: pd.DataFrame, indicator: str
 ) -> tuple[float, float, float] | None:
-    benchmark = df[(df["source"] == "2024 tyndp") & (df["indicator"] == indicator)].copy()
+    benchmark = df[
+        (df["source"] == "2024 tyndp") & (df["indicator"] == indicator)
+    ].copy()
     if benchmark.empty:
         return None
     if "value_converted" in benchmark.columns:
@@ -74,7 +76,9 @@ def benchmark_range(
             )
         )
     else:
-        benchmark = benchmark[benchmark["subindex"].isin(["min", "mean", "max", "explicit"])]
+        benchmark = benchmark[
+            benchmark["subindex"].isin(["min", "mean", "max", "explicit"])
+        ]
 
     benchmark = benchmark.assign(
         subindex=benchmark["subindex"].replace({"explicit": "mean"})
