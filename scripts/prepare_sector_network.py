@@ -4344,6 +4344,7 @@ def add_EVs(
     electric_share: pd.Series,
     number_cars: pd.Series,
     temperature: pd.DataFrame,
+    investment_year: int,
     spatial: SimpleNamespace,
     options: dict,
 ) -> None:
@@ -4370,6 +4371,8 @@ def add_EVs(
         Number of cars per node
     temperature : pd.DataFrame
         Ambient temperature per node and timestamp
+    investment_year : int
+        Year for which to get the transport shares
     spatial : SimpleNamespace
         Spatial configuration containing at least:
         - nodes: list or Index of node names
@@ -4383,8 +4386,8 @@ def add_EVs(
         - bev_charge_rate: float
         - bev_charge_efficiency: float
         - bev_dsm: bool
-        - bev_energy: float
-        - bev_dsm_availability: float
+        - bev_energy: float or dict
+        - bev_dsm_availability: float or dict
         - v2g: bool
 
     Returns
@@ -4464,8 +4467,8 @@ def add_EVs(
     if options["bev_dsm"]:
         e_nom = (
             number_cars
-            * options["bev_energy"]
-            * options["bev_dsm_availability"]
+            * get(options["bev_energy"], investment_year)
+            * get(options["bev_dsm_availability"], investment_year)
             * electric_share
         )
 
@@ -4489,7 +4492,7 @@ def add_EVs(
                 suffix=" V2G",
                 bus1=spatial.nodes,
                 bus0=spatial.nodes + " EV battery",
-                p_nom=p_nom * options["bev_dsm_availability"],
+                p_nom=p_nom * get(options["bev_dsm_availability"], investment_year),
                 carrier="V2G",
                 p_max_pu=avail_profile.loc[n.snapshots, spatial.nodes],
                 lifetime=1,
@@ -4783,6 +4786,7 @@ def add_land_transport(
             shares["electric"],
             number_cars,
             temperature,
+            investment_year,
             spatial,
             options,
         )

@@ -20,6 +20,8 @@ Upcoming Open-TYNDP Release
 
 * Add scenario column to the `custom_costs.csv` file to allow for shared adjustments across scenarios (https://github.com/open-energy-transition/open-tyndp/pull/361).
 
+* Scaled EV electricity demand and adjusted EV parameters to match TYNDP 2024 assumptions (EV charging efficiency, EV charging rate, capacity available for DSM, car efficiency) (https://github.com/open-energy-transition/open-tyndp/pull/142).
+
 * Add the 2035 reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/340).
 
 **Bugfixes and Compatibility**
