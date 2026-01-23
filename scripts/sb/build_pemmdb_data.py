@@ -1178,7 +1178,7 @@ if __name__ == "__main__":
         freq="h",
     )
     # drop leap year day
-    if sns_year_h.is_leap_year.any():
+    if snakemake.params.drop_leap_day and sns_year_h.is_leap_year.any():
         sns_year_h = sns_year_h[~((sns_year_h.month == 2) & (sns_year_h.day == 29))]
 
     # Only climate years 1995, 2008 and 2009 are available for all technologies and countries
