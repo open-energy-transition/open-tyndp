@@ -32,6 +32,17 @@ DE:
       2040: 0.44
       2045: 0.3  # interpolation
       2050: 0.16
+    # EV demand scaling (temporary approach):
+    # Currently scaled to match PLEXOS demand values from: 
+    # EV-Modelling-Inputs/EV Modelling Inputs/EV_VEHICLES.xlsx (PLEXOS DEMAND [TWh])
+    #
+    # Why scaling is needed:
+    # - Using Eurostat vehicle numbers instead of TYNDP projections
+    # - Assuming historic km/vehicle patterns rather than future increases
+    # - These assumptions can result in scaling factors > 1.0
+    #
+    # Note: Final EV electricity demand differs between scenarios (DE/GA) 
+    # due to varying assumptions on vehicle efficiency and total km driven
     land_transport_electric_share:
       2030: 0.207
       2035: 0.481  # interpolation
@@ -91,6 +102,17 @@ GA:
       2040: 0.50
       2045: 0.34  # interpolation
       2050: 0.17
+    # EV demand scaling (temporary approach):
+    # Currently scaled to match PLEXOS demand values from: 
+    # EV-Modelling-Inputs/EV Modelling Inputs/EV_VEHICLES.xlsx (PLEXOS DEMAND [TWh])
+    #
+    # Why scaling is needed:
+    # - Using Eurostat vehicle numbers instead of TYNDP projections
+    # - Assuming historic km/vehicle patterns rather than future increases
+    # - These assumptions can result in scaling factors > 1.0
+    #
+    # Note: Final EV electricity demand differs between scenarios (DE/GA) 
+    # due to varying assumptions on vehicle efficiency and total km driven
     land_transport_electric_share:
       2030: 0.111
       2035: 0.364 # interpolated
