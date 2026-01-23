@@ -255,8 +255,13 @@ def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFr
     merged["unit_raw"] = merged["unit_raw"].map(normalize_unit)
     merged["value_raw"] = merged["value"]
     merged["value_converted"] = convert_values(merged["value"], merged["unit_raw"])
+    mapped_mask = merged["indicator_mapped"].notna()
     merged["value"] = merged["value_raw"]
+    merged.loc[mapped_mask, "value"] = merged.loc[mapped_mask, "value_converted"]
     merged["units"] = merged["unit_raw"]
+    merged.loc[mapped_mask, "units"] = merged.loc[mapped_mask, "indicator_mapped"].map(
+        MODEL_UNITS
+    )
 
     rows.append(
         merged[
