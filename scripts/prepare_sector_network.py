@@ -4134,6 +4134,7 @@ def add_EVs(
     electric_share: pd.Series,
     number_cars: pd.Series,
     temperature: pd.DataFrame,
+    investment_year: int,
     spatial: SimpleNamespace,
     options: dict,
 ) -> None:
@@ -4160,6 +4161,8 @@ def add_EVs(
         Number of cars per node
     temperature : pd.DataFrame
         Ambient temperature per node and timestamp
+    investment_year : int
+        Year for which to get the transport shares
     spatial : SimpleNamespace
         Spatial configuration containing at least:
         - nodes: list or Index of node names
@@ -4573,6 +4576,7 @@ def add_land_transport(
             shares["electric"],
             number_cars,
             temperature,
+            investment_year,
             spatial,
             options,
         )
