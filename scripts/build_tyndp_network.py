@@ -412,7 +412,7 @@ if __name__ == "__main__":
     )
 
     # Build links
-    links = build_links(snakemake.input.reference_grid, buses)
+    links = build_links(snakemake.input.elec_reference_grid, buses)
 
     # Build placeholder lines, converters and transformers as empty DataFrames
     lines = gpd.GeoDataFrame(columns=LINES_COLUMNS, geometry="geometry").set_index(
