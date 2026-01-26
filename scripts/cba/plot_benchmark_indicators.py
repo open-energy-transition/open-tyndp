@@ -174,6 +174,7 @@ def plot_project_benchmarks(
     )
     plt.xticks(list(x), labels, rotation=45, ha="right")
     plt.ylabel("Value")
+    plt.axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
     if project_label:
         plt.title(f"CBA indicator benchmark ({project_label})")
     else:
