@@ -19,6 +19,8 @@ Upcoming Open-TYNDP Release
 
 * Fix: Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
 
+* Fix: Enable unlimited capacity for primary fuel generators in CBA rolling horizon (https://github.com/open-energy-transition/open-tyndp/pull/408).
+
 
 Upcoming PyPSA-Eur Release
 ================
