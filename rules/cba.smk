@@ -7,26 +7,32 @@ import pandas as pd
 
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
+from shutil import unpack_archive, copy2
 
 
 wildcard_constraints:
     cba_project=r"(s|t)\d+",
 
 
-rule retrieve_tyndp_cba_projects:
-    params:
-        # TODO Integrate into Zenodo tyndp data bundle
-        url="https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip",
-        source="CBA project explorer",
-    input:
-        "data/tyndp_2024_bundle",
-    output:
-        dir=directory("data/tyndp_2024_bundle/cba_projects"),
-    log:
-        "logs/retrieve_tyndp_cba_projects",
-    retries: 2
-    script:
-        "../scripts/sb/retrieve_additional_tyndp_data.py"
+if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_tyndp_cba_projects:
+        params:
+            source="CBA project explorer",
+        input:
+            # TODO Integrate into Zenodo tyndp data bundle
+            zip_file=storage(CBA_PROJECTS_DATASET["url"]),
+            dir=rules.retrieve_tyndp.output.dir,
+        output:
+            dir=directory(CBA_PROJECTS_DATASET["folder"]),
+        log:
+            "logs/retrieve_tyndp_cba_projects",
+        run:
+            copy2(input["zip_file"], output["dir"] + ".zip")
+            unpack_archive(output["dir"] + ".zip", output["dir"])
+            os.remove(output["dir"] + ".zip")
 
 
 # read in transmission and storage projects from excel sheets
@@ -39,7 +45,7 @@ def input_clustered_network(w):
 
 checkpoint clean_projects:
     input:
-        dir="data/tyndp_2024_bundle/cba_projects",
+        dir=rules.retrieve_tyndp_cba_projects.output.dir,
         network=input_clustered_network,
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
@@ -221,8 +227,11 @@ rule collect_indicators:
 
 
 rule plot_indicators:
+    params:
+        plotting=config_provider("plotting"),
     input:
         indicators=rules.collect_indicators.output.indicators,
+        transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
     script:

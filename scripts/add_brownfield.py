@@ -65,7 +65,8 @@ def add_brownfield(
     # electric transmission grid set optimised capacities of previous as minimum
     n.lines.s_nom_min = n_p.lines.s_nom_opt
     dc_i = n.links[n.links.carrier == "DC"].index
-    n.links.loc[dc_i, "p_nom_min"] = n_p.links.loc[dc_i, "p_nom_opt"]
+    dc_i_p = dc_i.intersection(n_p.links.index)
+    n.links.loc[dc_i_p, "p_nom_min"] = n_p.links.loc[dc_i_p, "p_nom_opt"]
 
     for c in n_p.iterate_components(["Link", "Generator", "Store"]):
         attr = "e" if c.name == "Store" else "p"
@@ -447,6 +448,7 @@ def update_dynamic_ptes_capacity(
 def remove_tyndp_fixed_p(
     n_p: pypsa.Network,
     tyndp_conventional_thermals: list[str],
+    tyndp_hydro: list[str],
 ):
     """
     Remove TYNDP fixed capacities from previous planning horizon network
@@ -458,6 +460,8 @@ def remove_tyndp_fixed_p(
         The network with the updated parameters from the previous planning horizon.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies to remove capacities for.
+    tyndp_hydro : list[str]
+        List of TYNDP hydro technologies to remove capacities for.
 
     Returns
     -------
@@ -472,9 +476,9 @@ def remove_tyndp_fixed_p(
     # Remove conventional thermal techs
     for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
         remove_carriers = (
-            tyndp_conventional_thermals + ["H2 Electrolysis"]
+            tyndp_hydro + tyndp_conventional_thermals + ["H2 Electrolysis"]
             if c.name == "Link"
-            else []
+            else tyndp_hydro
         )
         attr = "e" if c.name == "Store" else "p"
 
@@ -523,7 +527,7 @@ if __name__ == "__main__":
     tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
         "open_tyndp_index"
     )
-    # Get list of conventional thermal technologies
+    # Get lists of conventional thermal and hydro technologies
     _, tyndp_conventional_thermals = get_tyndp_conventional_thermals(
         mapping=tyndp_carrier_mapping,
         tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
@@ -531,11 +535,16 @@ if __name__ == "__main__":
         include_h2_fuel_cell=snakemake.params.hydrogen_fuel_cell,
         include_h2_turbine=snakemake.params.hydrogen_turbine,
     )
+    tyndp_hydro = [
+        c for c in snakemake.params.tyndp_renewable_carriers if c.startswith("hydro")
+    ] + ["hydro-phs-turbine", "hydro-phs-pump", "hydro-phs-inflows"]
 
-    # Drop fixed TYNDP conventional capacities from previous year as TYNDP capacities are given as cumulative input
+    # Drop fixed TYNDP conventional and hydro capacities from previous year
+    # as TYNDP capacities are given as cumulative input
     remove_tyndp_fixed_p(
         n_p=n_p,
         tyndp_conventional_thermals=tyndp_conventional_thermals,
+        tyndp_hydro=tyndp_hydro,
     )
 
     add_brownfield(

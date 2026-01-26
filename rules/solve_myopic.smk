@@ -22,9 +22,6 @@ rule add_existing_baseyear:
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
         ),
         powerplants=resources("powerplants_s_{clusters}.csv"),
-        busmap_s=resources("busmap_base_s.csv"),
-        busmap=resources("busmap_base_s_{clusters}.csv"),
-        clustered_pop_layout=resources("pop_layout_base_s_{clusters}.csv"),
         costs=lambda w: resources(
             f"costs_{config_provider("scenario", "planning_horizons",0)(w)}_processed.csv"
         ),
@@ -92,6 +89,9 @@ rule add_brownfield:
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
+        tyndp_renewable_carriers=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
         hydrogen_fuel_cell=config_provider("sector", "hydrogen_fuel_cell"),
         hydrogen_turbine=config_provider("sector", "hydrogen_turbine"),
         group_tyndp_conventionals=config_provider(
@@ -100,14 +100,10 @@ rule add_brownfield:
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfield_pecd),
-        simplify_busmap=resources("busmap_base_s.csv"),
-        cluster_busmap=resources("busmap_base_s_{clusters}.csv"),
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
         ),
         network_p=solved_previous_horizon,  #solved network at previous time step
-        costs=resources("costs_{planning_horizons}_processed.csv"),
-        cop_profiles=resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
         resources(
@@ -147,7 +143,6 @@ rule solve_sector_network_myopic:
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
         ),
-        costs=resources("costs_{planning_horizons}_processed.csv"),
         offshore_zone_trajectories=branch(
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
