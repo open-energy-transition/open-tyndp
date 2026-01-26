@@ -22,16 +22,16 @@ Upcoming Open-TYNDP Release
 
 * Scaled EV electricity demand and adjusted EV parameters to match TYNDP 2024 assumptions (EV charging efficiency, EV charging rate, capacity available for DSM, car efficiency) (https://github.com/open-energy-transition/open-tyndp/pull/142).
 
+* Introduce calculation of B2 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/348).
+
+* Introduce calculation of B3 indicators in the Cost-Benefit Analysis (CBA) based on renewable energy integration (https://github.com/open-energy-transition/open-tyndp/pull/350).
+
+* Introduce calculation of B4 indicator in the Cost-Benefit Analysis (CBA) based on changes in non-CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/398).
+
 **Bugfixes and Compatibility**
 
 * Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to enable consistent use of its index when selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
 
-
-**Features**
-
-* Introduce calculation of B2 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/348).
-
-* Introduce calculation of B3 indicators in the Cost-Benefit Analysis (CBA) based on renewable energy integration (https://github.com/open-energy-transition/open-tyndp/pull/350).
 
 Upcoming PyPSA-Eur Release
 ================
