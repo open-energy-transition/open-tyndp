@@ -23,6 +23,7 @@ MODEL_SUBINDEX_PREFERENCE = {
     "B2a_societal_cost_variation": ["central", "mean", ""],
 }
 
+
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     model = df[(df["source"] == "model") & (df["indicator"] == indicator)].copy()
     if model.empty:
