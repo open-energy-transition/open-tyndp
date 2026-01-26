@@ -3,30 +3,52 @@
 # SPDX-License-Identifier: MIT
 #
 
+import os
 import pandas as pd
 
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
+from shutil import unpack_archive, copy2
 
 
 wildcard_constraints:
     cba_project=r"(s|t)\d+",
 
 
-rule retrieve_tyndp_cba_projects:
-    params:
-        # TODO Integrate into Zenodo tyndp data bundle
-        url="https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip",
-        source="CBA project explorer",
-    input:
-        "data/tyndp_2024_bundle",
-    output:
-        dir=directory("data/tyndp_2024_bundle/cba_projects"),
-    log:
-        "logs/retrieve_tyndp_cba_projects",
-    retries: 2
-    script:
-        "../scripts/sb/retrieve_additional_tyndp_data.py"
+if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_tyndp_cba_projects:
+        params:
+            source="CBA project explorer",
+        input:
+            # TODO Integrate into Zenodo tyndp data bundle
+            zip_file=storage(CBA_PROJECTS_DATASET["url"]),
+            dir=rules.retrieve_tyndp.output.dir,
+        output:
+            dir=directory(CBA_PROJECTS_DATASET["folder"]),
+        log:
+            "logs/retrieve_tyndp_cba_projects",
+        run:
+            copy2(input["zip_file"], output["dir"] + ".zip")
+            unpack_archive(output["dir"] + ".zip", output["dir"])
+            os.remove(output["dir"] + ".zip")
+
+
+if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
+    "source"
+] in ["archive"]:
+
+    rule retrieve_tyndp_cba_non_co2_emissions:
+        input:
+            file=storage(CBA_NON_CO2_DATASET["url"]),
+        output:
+            file=resources("cba/a.3_non-co2-emissions.csv"),
+        log:
+            logs("retrieve_tyndp_cba_non_co2_emissions.log"),
+        run:
+            copy2(input["file"], output["file"])
 
 
 # read in transmission and storage projects from excel sheets
@@ -39,7 +61,7 @@ def input_clustered_network(w):
 
 checkpoint clean_projects:
     input:
-        dir="data/tyndp_2024_bundle/cba_projects",
+        dir=rules.retrieve_tyndp_cba_projects.output.dir,
         network=input_clustered_network,
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
@@ -187,8 +209,7 @@ rule make_indicators:
         reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
-        non_co2_emissions="data/cba/a.3_non-co2-emissions.csv",
-        benchmark=rules.clean_tyndp_indicators.output.indicators,
+        non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",

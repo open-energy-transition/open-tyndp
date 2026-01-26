@@ -487,11 +487,51 @@ def calculate_b4_indicator(
                 diff = ref_val - proj_val
             else:
                 diff = proj_val - ref_val
-            key = f"{pollutant_key}_{stat}"
-            results[key] = diff
-            units[key] = "kg/year"
+            results[f"{pollutant_key}_t_per_year_{stat}"] = diff
 
-    return results, units
+    return results
+
+
+INDICATOR_UNITS = {
+    "B1_total_system_cost_change": "EUR/year",
+    "cost_reference": "EUR/year",
+    "capex_reference": "EUR/year",
+    "opex_reference": "EUR/year",
+    "cost_project": "EUR/year",
+    "capex_project": "EUR/year",
+    "opex_project": "EUR/year",
+    "capex_change": "EUR/year",
+    "opex_change": "EUR/year",
+    "co2_variation": "t/year",
+    "co2_ets_price": "EUR/t",
+    "co2_societal_cost": "EUR/t",
+    "B2_societal_cost_variation": "EUR/year",
+    "B3_res_capacity_change_mw": "MW",
+    "B3_res_generation_change_mwh": "MWh/year",
+    "B3_annual_avoided_curtailment_mwh": "MWh/year",
+    "B4a_nox_t_per_year": "t/year",
+    "B4b_nh3_t_per_year": "t/year",
+    "B4c_sox_t_per_year": "t/year",
+    "B4d_pm25_t_per_year": "t/year",
+    "B4e_pm10_t_per_year": "t/year",
+    "B4f_nmvoc_t_per_year": "t/year",
+}
+
+
+def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
+    indicators = set(df["indicator"])
+    missing = indicators - set(INDICATOR_UNITS)
+    if missing:
+        raise ValueError(
+            f"Missing units for indicators: {sorted(missing)}. "
+            "Update INDICATOR_UNITS to continue."
+        )
+    extra = set(INDICATOR_UNITS) - indicators
+    if extra:
+        logger.warning("Unused indicator units defined: %s", sorted(extra))
+    df = df.copy()
+    df["units"] = df["indicator"].map(INDICATOR_UNITS)
+    return df
 
 
 def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
@@ -526,7 +566,6 @@ def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
                 **meta,
                 "indicator": indicator,
                 "subindex": subindex,
-                "units": unit,
                 "value": value,
             }
         )
@@ -704,4 +743,5 @@ if __name__ == "__main__":
     else:
         df = df_model
 
+    df = apply_indicator_units(df)
     df.to_csv(snakemake.output.indicators, index=False)
