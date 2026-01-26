@@ -1261,6 +1261,9 @@ data:
   tyndp_cba_projects:
     source: archive
     version: latest
+  tyndp_cba_non_co2_emissions:
+    source: archive
+    version: latest
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:

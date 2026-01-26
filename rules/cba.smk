@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 #
 
+import os
 import pandas as pd
 
 from scripts.cba._helpers import filter_projects_by_specs
@@ -33,6 +34,21 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
             copy2(input["zip_file"], output["dir"] + ".zip")
             unpack_archive(output["dir"] + ".zip", output["dir"])
             os.remove(output["dir"] + ".zip")
+
+
+if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
+    "source"
+] in ["archive"]:
+
+    rule retrieve_tyndp_cba_non_co2_emissions:
+        input:
+            file=storage(CBA_NON_CO2_DATASET["url"]),
+        output:
+            file=resources("cba/a.3_non-co2-emissions.csv"),
+        log:
+            logs("retrieve_tyndp_cba_non_co2_emissions.log"),
+        run:
+            copy2(input["file"], output["file"])
 
 
 # read in transmission and storage projects from excel sheets
@@ -183,7 +199,7 @@ rule make_indicators:
         reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
-        non_co2_emissions="data/cba/a.3_non-co2-emissions.csv",
+        non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",

@@ -119,3 +119,5 @@
 "tyndp_vis_plfm","primary","unknown","['unsupported']","https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/",""
 "tyndp_cba_projects","archive","unknown","['latest', 'supported']","https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip",""
 "tyndp_cba_projects","primary","unknown","['unsupported']","https://tyndp2024.entsoe.eu/projects-map",""
+"tyndp_cba_non_co2_emissions","archive","unknown","['latest', 'supported']","https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv",""
+"tyndp_cba_non_co2_emissions","primary","unknown","['unsupported']","https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1","Annex A.3, page 108"
