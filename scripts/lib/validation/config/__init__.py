@@ -1,9 +1,10 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 
 """
-Config validation for PyPSA-EUR.
+Config validation for Open-TYNDP.
 
 The schema is exported to both `config/config.default.yaml` and `config/schema.json`.
 The json schema is also contributed to the schemastore.org and matches
@@ -93,11 +94,11 @@ class ConfigSchema(BaseModel):
     # TODO Change to extra='forbid' once schema covers all config options
     # For soft-forks it is recommended to either extend the schema for full config
     # coverage or allow extra fields with extra='allow'
-    model_config = ConfigDict(extra="allow", title="PyPSA-Eur Configuration")
+    model_config = ConfigDict(extra="allow", title="Open-TYNDP Configuration")
 
     # Top-level fields (from TopLevelConfig)
     version: str = Field(
-        "v2025.07.0", description="Version of PyPSA-Eur. Descriptive only."
+        "v0.4.2", description="Version of Open-TYNDP. Descriptive only."
     )
     tutorial: bool = Field(
         False,
@@ -114,7 +115,7 @@ class ConfigSchema(BaseModel):
 
     run: RunConfig = Field(
         default_factory=RunConfig,
-        description="Run configuration for PyPSA-EUR workflow execution.",
+        description="Run configuration for Open-TYNDP workflow execution.",
     )
     foresight: ForesightConfig = Field(
         default_factory=ForesightConfig,
@@ -280,7 +281,7 @@ def generate_config_defaults(path: str = "config/config.default.yaml") -> dict:
         data[key] = value
 
         field_name = convert_to_field_name(key)
-        docs_url = f"https://pypsa-eur.readthedocs.io/en/latest/configuration.html#{field_name}"
+        docs_url = f"https://open-tyndp.readthedocs.io/en/latest/configuration.html#{field_name}"
         data.yaml_set_comment_before_after_key(key, before=f"\ndocs in {docs_url}")
 
     # Write to file

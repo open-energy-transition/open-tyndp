@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -5,7 +6,7 @@
 """
 Run configuration block.
 
-See # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#run
+See # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#run
 """
 
 from pydantic import Field
@@ -51,7 +52,7 @@ class RunConfig(ConfigModel):
     name: str | list[str] = Field(
         "",
         description="Specify a name for your run. Results will be stored under this name. If ``scenario: enable:`` is set to ``true``, the name must contain a subset of scenario names defined in ``scenario: file:``. If the name is 'all', all defined scenarios will be run.",
-        examples=["my-pypsa-eur-run"],
+        examples=["my-open-tyndp-run"],
     )
 
     scenarios: _ScenariosConfig = Field(

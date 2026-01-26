@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -5,7 +6,7 @@
 """
 Costs configuration.
 
-See docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#costs
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#costs
 """
 
 from pydantic import BaseModel, ConfigDict, Field

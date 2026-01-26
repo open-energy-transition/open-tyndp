@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -5,7 +6,7 @@
 """
 CO2 budget configuration.
 
-See docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#co2-budget
+See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#co2-budget
 """
 
 from pydantic import Field, RootModel
