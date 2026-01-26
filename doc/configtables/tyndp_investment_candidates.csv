@@ -1,0 +1,2 @@
+,Unit,Values,Description
+elec_projects,list,,List of planning horizons (e.g. ``[2040]``) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list ``[]`` to disable.

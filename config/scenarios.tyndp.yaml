@@ -25,6 +25,8 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  tyndp_investment_candidates:
+    elec_projects: []
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
@@ -32,6 +34,39 @@ DE:
       2040: 0.44
       2045: 0.3  # interpolation
       2050: 0.16
+    # EV demand scaling (temporary approach):
+    # Currently scaled to match PLEXOS demand values from: 
+    # EV-Modelling-Inputs/EV Modelling Inputs/EV_VEHICLES.xlsx (PLEXOS DEMAND [TWh])
+    #
+    # Why scaling is needed:
+    # - Using Eurostat vehicle numbers instead of TYNDP projections
+    # - Assuming historic km/vehicle patterns rather than future increases
+    # - These assumptions can result in scaling factors > 1.0
+    #
+    # Note: Final EV electricity demand differs between scenarios (DE/GA) 
+    # due to varying assumptions on vehicle efficiency and total km driven
+    land_transport_electric_share:
+      2030: 0.207
+      2035: 0.481  # interpolation
+      2040: 0.7557
+      2045: 0.915  # interpolation
+      2050: 1.07432
+    bev_charge_rate: 0.0074  # 7.4 kW per vehicle, p.96 of Methodology Report TYNDP 2024
+    bev_energy:
+      2030: 0.06  # 60 kWh per vehicle, p.96 of Methodology Report TYNDP 2024
+      2035: 0.072
+      2040: 0.083
+      2045: 0.092
+      2050: 0.1
+    bev_dsm_availability:
+    # TODO we currently do not model the split between street and prosumer charging
+    # thus for the availability a weighting of 70% street and 30% prosumer charging is assumed (p.96 of Methodology Report TYNDP 2024)
+      2030: 0.21  # 21% of BEV capacity available for DSM, p.96 of Methodology Report TYNDP 2024
+      2035: 0.26
+      2040: 0.31
+      2045: 0.36
+      2050: 0.41
+    transport_electric_efficiency: 58.8 # unit: 100km/MWh_el -> 170 Wh per km -> 0.017 MWh per 100 km, p.96 of Methodology Report TYNDP 2024
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
@@ -42,6 +77,8 @@ DE:
       2040: 120
       2045: 135
       2050: 150
+  costs:
+    custom_cost_scn: DE
 
 # GA Scenario - Extends NT baseline with specific overrides below
 GA:
@@ -62,6 +99,8 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
+  tyndp_investment_candidates:
+    elec_projects: []
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
@@ -69,6 +108,39 @@ GA:
       2040: 0.50
       2045: 0.34  # interpolation
       2050: 0.17
+    # EV demand scaling (temporary approach):
+    # Currently scaled to match PLEXOS demand values from: 
+    # EV-Modelling-Inputs/EV Modelling Inputs/EV_VEHICLES.xlsx (PLEXOS DEMAND [TWh])
+    #
+    # Why scaling is needed:
+    # - Using Eurostat vehicle numbers instead of TYNDP projections
+    # - Assuming historic km/vehicle patterns rather than future increases
+    # - These assumptions can result in scaling factors > 1.0
+    #
+    # Note: Final EV electricity demand differs between scenarios (DE/GA) 
+    # due to varying assumptions on vehicle efficiency and total km driven
+    land_transport_electric_share:
+      2030: 0.111
+      2035: 0.364 # interpolated
+      2040: 0.617
+      2045: 0.791 # interpolated
+      2050: 0.965
+    bev_charge_rate: 0.0072  # 7.2 kW per vehicle, p.96 of Methodology Report TYNDP 2024
+    bev_energy:
+      2030: 0.06  # 60 kWh per vehicle, p.96 of Methodology Report TYNDP 2024
+      2035: 0.066
+      2040: 0.072
+      2045: 0.081
+      2050: 0.09
+    bev_dsm_availability:
+    # TODO we currently do not model the split between street and prosumer charging
+    # thus for the availability a weighting of 70% street and 30% prosumer charging is assumed (p.96 of Methodology Report TYNDP 2024)
+      2030: 0.105  # 10.5% of BEV capacity available for DSM, p.96 of Methodology Report TYNDP 2024
+      2035: 0.13
+      2040: 0.155
+      2045: 0.18
+      2050: 0.205
+    transport_electric_efficiency: 50 # unit: 100km/MWh_el -> 200 Wh per km -> 0.02 MWh per 100 km, p.96 of Methodology Report TYNDP 2024
     h2_zones_tyndp: true
     force_biomass_potential: false
     force_biogas_potential: false
@@ -79,3 +151,5 @@ GA:
       2040: 344
       2045: 398
       2050: 400
+  costs:
+    custom_cost_scn: GA

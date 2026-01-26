@@ -77,7 +77,6 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_pecd_release",
             clusters="all",
-            pecd_prebuilt_version="3.1+pre-built.0.1",
         )
     configure_logging(snakemake)  # pylint: disable=possibly-used-before-assignment
     set_scenario_config(snakemake)
@@ -98,7 +97,6 @@ if __name__ == "__main__":
     # Input and output directories and prebuilt version
     dir_pecd = snakemake.input.pecd_raw
     prebuilt_dir = snakemake.output.pecd_prebuilt
-    prebuilt_version = snakemake.wildcards.pecd_prebuilt_version
 
     # Iterate over available planning years
     #######################################
@@ -119,7 +117,7 @@ if __name__ == "__main__":
             "ascii": False,
             "unit": " nodes",
             "total": len(pecd_files),
-            "desc": f"Building PECD prebuilt version {prebuilt_version} for year {year}",
+            "desc": f"Building PECD prebuilt for year {year}",
         }
 
         func = partial(
