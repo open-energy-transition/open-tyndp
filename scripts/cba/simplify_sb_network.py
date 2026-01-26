@@ -54,7 +54,7 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
     primary_fuel_carriers = pd.Series(
         [carrier.split("-")[0] for carrier in tyndp_conventional_carriers]
     ).unique()
-    mask = n.generators.carrier.str.contains('|'.join(primary_fuel_carriers))
+    mask = n.generators.carrier.str.contains("|".join(primary_fuel_carriers))
     gen_i = n.generators[mask].index
     n.generators.loc[gen_i, "p_nom"] = inf
     return n
