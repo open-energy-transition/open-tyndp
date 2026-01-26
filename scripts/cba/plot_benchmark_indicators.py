@@ -104,7 +104,9 @@ def benchmark_range(
     return min_val, mean_val, max_val
 
 
-def plot_project_benchmarks(df: pd.DataFrame, output_path: Path) -> None:
+def plot_project_benchmarks(
+    df: pd.DataFrame, output_path: Path, project_label: str | None = None
+) -> None:
     indicators = [i for i in INDICATOR_ORDER if i in df["indicator"].unique()]
     if not indicators:
         logger.info("No benchmark indicators available to plot")
@@ -161,7 +163,7 @@ def plot_project_benchmarks(df: pd.DataFrame, output_path: Path) -> None:
         color="gray",
         ecolor="lightgray",
         capsize=3,
-        label="2024 TYNDP mean +/- min/max",
+        label="2024 TYNDP (mean ± min/max)",
     )
     plt.scatter(
         x,
@@ -172,7 +174,11 @@ def plot_project_benchmarks(df: pd.DataFrame, output_path: Path) -> None:
     )
     plt.xticks(list(x), labels, rotation=45, ha="right")
     plt.ylabel("Value")
-    plt.title("CBA indicator benchmark")
+    if project_label:
+        plt.title(f"CBA indicator benchmark ({project_label})")
+    else:
+        plt.title("CBA indicator benchmark")
+    plt.legend(loc="best")
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
@@ -197,14 +203,24 @@ def create_plots(indicators_file, output_path, planning_horizon=None):
             logger.info("No model projects found in indicators file")
             return
         project_id = project_ids[0]
+        project_label = (
+            f"t{int(project_id)}_{planning_horizon}"
+            if planning_horizon
+            else f"t{int(project_id)}"
+        )
         project_df = df[df["project_id"] == project_id].copy()
-        plot_project_benchmarks(project_df, output_path)
+        plot_project_benchmarks(project_df, output_path, project_label)
     else:
         for project_id in project_ids:
             project_df = df[df["project_id"] == project_id].copy()
             suffix = f"_{planning_horizon}" if planning_horizon else ""
             output_file = output_dir / f"project_{int(project_id)}{suffix}.png"
-            plot_project_benchmarks(project_df, output_file)
+            project_label = (
+                f"t{int(project_id)}_{planning_horizon}"
+                if planning_horizon
+                else f"t{int(project_id)}"
+            )
+            plot_project_benchmarks(project_df, output_file, project_label)
 
     logger.info("Benchmark plots saved to %s", output_dir)
 
