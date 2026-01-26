@@ -146,6 +146,13 @@ def plot_project_benchmarks(df: pd.DataFrame, output_path: Path) -> None:
     upper = abs(ymax - mean)
 
     plt.figure(figsize=(max(10, len(labels) * 0.6), 5))
+    values = list(mean) + list(ymin) + list(ymax) + list(model_values)
+    nonzero = [abs(v) for v in values if v not in (0, None) and not pd.isna(v)]
+    if nonzero:
+        abs_max = max(nonzero)
+        abs_min = min(nonzero)
+        if abs_min > 0 and abs_max / abs_min >= 1e3:
+            plt.yscale("symlog", linthresh=max(abs_min, 1.0))
     plt.errorbar(
         x,
         mean,
