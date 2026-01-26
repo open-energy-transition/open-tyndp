@@ -76,6 +76,7 @@ rule clean_tyndp_indicators:
         storage="data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx",
     output:
         indicators=resources("cba/tyndp_indicators.csv"),
+        readme=resources("cba/tyndp_indicators_name_unit.csv"),
     script:
         "../scripts/cba/clean_tyndp_indicators.py"
 
@@ -210,6 +211,7 @@ rule make_indicators:
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
         non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,
+        benchmark=rules.clean_tyndp_indicators.output.indicators,
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
