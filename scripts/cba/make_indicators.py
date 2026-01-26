@@ -282,8 +282,9 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         else:
             interpretation = "The project increases costs as removing it decreases costs compared to the reference scenario with all projects."
 
+    b1_meuro = b1 / 1e6
     results = {
-        "B1_total_system_cost_change": b1,
+        "B1_total_system_cost_change": b1_meuro,
         "is_beneficial": is_beneficial,
         "interpretation": interpretation,
         "cost_reference": cost_reference["total"],
@@ -294,7 +295,7 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         "opex_project": cost_project["opex"],
     }
     units = {
-        "B1_total_system_cost_change": "EUR/year",
+        "B1_total_system_cost_change": "Meuro/year",
         "cost_reference": "EUR/year",
         "capex_reference": "EUR/year",
         "opex_reference": "EUR/year",
@@ -340,15 +341,16 @@ def calculate_b2_indicator(
         # Reference is with all projects, project is without project
         co2_diff = co2_project - co2_reference
 
+    co2_diff_ktonnes = co2_diff / 1000.0
     results = {
-        "B2a_co2_variation": co2_diff,
+        "B2a_co2_variation": co2_diff_ktonnes,
         "co2_ets_price": co2_ets_price,
         "co2_societal_cost_low": co2_societal_costs["low"],
         "co2_societal_cost_central": co2_societal_costs["central"],
         "co2_societal_cost_high": co2_societal_costs["high"],
     }
     units = {
-        "B2a_co2_variation": "t/year",
+        "B2a_co2_variation": "ktonnes/year",
         "co2_ets_price": "EUR/t",
         "co2_societal_cost_low": "EUR/t",
         "co2_societal_cost_central": "EUR/t",
@@ -357,13 +359,13 @@ def calculate_b2_indicator(
 
     for level in ["low", "central", "high"]:
         b2_val = co2_diff * (co2_societal_costs[level] - co2_ets_price)
-        results[f"B2a_societal_cost_variation_{level}"] = b2_val
+        results[f"B2a_societal_cost_variation_{level}"] = b2_val / 1e6
 
     units.update(
         {
-            "B2a_societal_cost_variation_low": "EUR/year",
-            "B2a_societal_cost_variation_central": "EUR/year",
-            "B2a_societal_cost_variation_high": "EUR/year",
+            "B2a_societal_cost_variation_low": "Meuro/year",
+            "B2a_societal_cost_variation_central": "Meuro/year",
+            "B2a_societal_cost_variation_high": "Meuro/year",
         }
     )
 
@@ -408,18 +410,18 @@ def calculate_b3_indicator(
     dump_without = calculate_res_dump_per_carrier(n_without, res_carriers)
 
     capacity_diff = capacity_with.sum() - capacity_without.sum()
-    generation_diff = generation_with.sum() - generation_without.sum()
+    generation_diff_mwh = generation_with.sum() - generation_without.sum()
     dump_diff_mwh = dump_with.sum() - dump_without.sum()
     avoided_curtailment_gwh = dump_diff_mwh / 1000.0
 
     results = {
         "B3a_res_capacity_change_mw": capacity_diff,
-        "B3_res_generation_change_mwh": generation_diff,
+        "B3_res_generation_change_mwh": generation_diff_mwh / 1000.0,
         "B3_annual_avoided_curtailment": avoided_curtailment_gwh,
     }
     units = {
         "B3a_res_capacity_change_mw": "MW",
-        "B3_res_generation_change_mwh": "MWh/year",
+        "B3_res_generation_change_mwh": "GWh/year",
         "B3_annual_avoided_curtailment": "GWh/year",
     }
     return results, units
@@ -487,51 +489,10 @@ def calculate_b4_indicator(
                 diff = ref_val - proj_val
             else:
                 diff = proj_val - ref_val
-            results[f"{pollutant_key}_t_per_year_{stat}"] = diff
+            results[f"{pollutant_key}_{stat}"] = diff
+            units[f"{pollutant_key}_{stat}"] = "kg/year"
 
-    return results
-
-
-INDICATOR_UNITS = {
-    "B1_total_system_cost_change": "EUR/year",
-    "cost_reference": "EUR/year",
-    "capex_reference": "EUR/year",
-    "opex_reference": "EUR/year",
-    "cost_project": "EUR/year",
-    "capex_project": "EUR/year",
-    "opex_project": "EUR/year",
-    "capex_change": "EUR/year",
-    "opex_change": "EUR/year",
-    "co2_variation": "t/year",
-    "co2_ets_price": "EUR/t",
-    "co2_societal_cost": "EUR/t",
-    "B2_societal_cost_variation": "EUR/year",
-    "B3_res_capacity_change_mw": "MW",
-    "B3_res_generation_change_mwh": "MWh/year",
-    "B3_annual_avoided_curtailment_mwh": "MWh/year",
-    "B4a_nox_t_per_year": "t/year",
-    "B4b_nh3_t_per_year": "t/year",
-    "B4c_sox_t_per_year": "t/year",
-    "B4d_pm25_t_per_year": "t/year",
-    "B4e_pm10_t_per_year": "t/year",
-    "B4f_nmvoc_t_per_year": "t/year",
-}
-
-
-def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
-    indicators = set(df["indicator"])
-    missing = indicators - set(INDICATOR_UNITS)
-    if missing:
-        raise ValueError(
-            f"Missing units for indicators: {sorted(missing)}. "
-            "Update INDICATOR_UNITS to continue."
-        )
-    extra = set(INDICATOR_UNITS) - indicators
-    if extra:
-        logger.warning("Unused indicator units defined: %s", sorted(extra))
-    df = df.copy()
-    df["units"] = df["indicator"].map(INDICATOR_UNITS)
-    return df
+    return results, units
 
 
 def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
@@ -566,6 +527,7 @@ def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
                 **meta,
                 "indicator": indicator,
                 "subindex": subindex,
+                "units": unit,
                 "value": value,
             }
         )
@@ -743,5 +705,4 @@ if __name__ == "__main__":
     else:
         df = df_model
 
-    df = apply_indicator_units(df)
     df.to_csv(snakemake.output.indicators, index=False)
