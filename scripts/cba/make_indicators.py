@@ -455,38 +455,46 @@ def calculate_b4_indicator(
     return results
 
 
-def get_indicator_units(indicator: str) -> str:
-    if indicator in {
-        "B1_total_system_cost_change",
-        "cost_reference",
-        "capex_reference",
-        "opex_reference",
-        "cost_project",
-        "capex_project",
-        "opex_project",
-        "capex_change",
-        "opex_change",
-    }:
-        return "EUR"
-    if indicator == "co2_diff":
-        return "t/year"
-    if indicator in {
-        "co2_ets_price",
-        "co2_societal_cost_low",
-        "co2_societal_cost_central",
-        "co2_societal_cost_high",
-        "co2_societal_cost",
-    }:
-        return "EUR/t"
-    if indicator == "B2_social_cost" or indicator.startswith("B2_social_cost_"):
-        return "EUR/year"
-    if indicator == "B3_res_capacity_change_mw":
-        return "MW"
-    if indicator in {"B3_res_generation_change_mwh", "B3_res_dump_change_mwh"}:
-        return "MWh/year"
-    if indicator.startswith("B4"):
-        return "t/year"
-    return ""
+INDICATOR_UNITS = {
+    "B1_total_system_cost_change": "EUR/year",
+    "cost_reference": "EUR/year",
+    "capex_reference": "EUR/year",
+    "opex_reference": "EUR/year",
+    "cost_project": "EUR/year",
+    "capex_project": "EUR/year",
+    "opex_project": "EUR/year",
+    "capex_change": "EUR/year",
+    "opex_change": "EUR/year",
+    "co2_variation": "t/year",
+    "co2_ets_price": "EUR/t",
+    "co2_societal_cost": "EUR/t",
+    "B2_societal_cost_variation": "EUR/year",
+    "B3_res_capacity_change_mw": "MW",
+    "B3_res_generation_change_mwh": "MWh/year",
+    "B3_annual_avoided_curtailment_mwh": "MWh/year",
+    "B4a_nox_t_per_year": "t/year",
+    "B4b_nh3_t_per_year": "t/year",
+    "B4c_sox_t_per_year": "t/year",
+    "B4d_pm25_t_per_year": "t/year",
+    "B4e_pm10_t_per_year": "t/year",
+    "B4f_nmvoc_t_per_year": "t/year",
+}
+
+
+def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
+    indicators = set(df["indicator"])
+    missing = indicators - set(INDICATOR_UNITS)
+    if missing:
+        raise ValueError(
+            f"Missing units for indicators: {sorted(missing)}. "
+            "Update INDICATOR_UNITS to continue."
+        )
+    extra = set(INDICATOR_UNITS) - indicators
+    if extra:
+        logger.warning("Unused indicator units defined: %s", sorted(extra))
+    df = df.copy()
+    df["units"] = df["indicator"].map(INDICATOR_UNITS)
+    return df
 
 
 def build_long_indicators(indicators: dict) -> pd.DataFrame:
@@ -516,7 +524,6 @@ def build_long_indicators(indicators: dict) -> pd.DataFrame:
                 **meta,
                 "indicator": indicator,
                 "subindex": subindex,
-                "units": get_indicator_units(indicator),
                 "value": value,
             }
         )
@@ -594,4 +601,5 @@ if __name__ == "__main__":
 
     # Convert to DataFrame and save
     df = build_long_indicators(indicators)
+    df = apply_indicator_units(df)
     df.to_csv(snakemake.output.indicators, index=False)
