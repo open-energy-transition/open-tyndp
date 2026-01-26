@@ -23,22 +23,6 @@ MODEL_SUBINDEX_PREFERENCE = {
     "B2a_societal_cost_variation": ["central", "mean", ""],
 }
 
-INDICATOR_ORDER = [
-    "B1_total_system_cost_change",
-    "B2a_co2_variation",
-    "B2a_societal_cost_variation",
-    "B3_res_generation_change_mwh",
-    "B3a_res_capacity_change_mw",
-    "B3_annual_avoided_curtailment",
-    "B4a_nox",
-    "B4b_nh3",
-    "B4c_sox",
-    "B4d_pm25",
-    "B4e_pm10",
-    "B4f_nmvoc",
-]
-
-
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     model = df[(df["source"] == "model") & (df["indicator"] == indicator)].copy()
     if model.empty:
@@ -107,7 +91,7 @@ def benchmark_range(
 def plot_project_benchmarks(
     df: pd.DataFrame, output_path: Path, project_label: str | None = None
 ) -> None:
-    indicators = [i for i in INDICATOR_ORDER if i in df["indicator"].unique()]
+    indicators = sorted(df["indicator"].dropna().unique())
     if not indicators:
         logger.info("No benchmark indicators available to plot")
         return
