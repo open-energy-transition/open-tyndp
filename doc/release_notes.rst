@@ -19,6 +19,8 @@ Upcoming Open-TYNDP Release
 
 * Fix: Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
 
+* Feat: Set short-term storage to cyclic in CBA dispatch (https://github.com/open-energy-transition/open-tyndp/pull/385).
+
 
 Upcoming PyPSA-Eur Release
 ================
