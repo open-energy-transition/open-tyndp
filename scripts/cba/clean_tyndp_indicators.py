@@ -20,12 +20,6 @@ logger = logging.getLogger(__name__)
 STAT_MAP = {
     "weighted avg": "mean",
     "avg": "mean",
-    "max": "max",
-    "min": "min",
-    "low": "low",
-    "mid": "central",
-    "high": "high",
-    "explicit": "explicit",
 }
 
 EURO_SYMBOLS = {
@@ -35,6 +29,8 @@ EURO_SYMBOLS = {
 
 INDICATOR_MAP = {
     "B1": "B1_total_system_cost_change",
+    "B2a": "B2a_co2_variation",
+    "B2a_euro": "B2a_societal_cost_variation",
     "B3": "B3_res_generation_change_mwh",
     "B3a": "B3a_res_capacity_change_mw",
     "B4a": "B4a_nox",
@@ -43,18 +39,6 @@ INDICATOR_MAP = {
     "B4d": "B4d_pm25",
     "B4e": "B4e_pm10",
     "B4f": "B4f_nmvoc",
-}
-
-COMPOSITE_INDICATORS = {
-    "B2a_co2_variation": {"keys": {"B2a", "B2b"}},
-    "B2a_societal_cost_variation": {
-        "keys": {
-            "B2a_euro",
-            "B2b_euro",
-            "CO2_market_SEW",
-            "CO2_network_SEW",
-        }
-    },
 }
 
 MODEL_UNITS = {
@@ -268,36 +252,6 @@ def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFr
     ]
     base = merged[cols]
 
-    composite_rows = []
-    for indicator, spec in COMPOSITE_INDICATORS.items():
-        keys = list(spec["keys"])
-        subset = merged[merged["indicator_key"].isin(keys)].copy()
-        if subset.empty:
-            continue
-        pivot = (
-            subset.pivot_table(
-                index=["project_id", "method", "subindex"],
-                columns="indicator_key",
-                values="value",
-                aggfunc="sum",
-            )
-            .fillna(0)
-            .reset_index()
-        )
-        present = [key for key in keys if key in pivot.columns]
-        if not present:
-            continue
-        pivot["value"] = pivot[present].sum(axis=1)
-        pivot["indicator"] = indicator
-        pivot["indicator_raw"] = None
-        pivot["indicator_mapped"] = indicator
-        pivot["indicator_name"] = None
-        pivot["units"] = MODEL_UNITS.get(indicator, "")
-        pivot["unit_raw"] = None
-        composite_rows.append(pivot[cols])
-
-    if composite_rows:
-        return pd.concat([base, *composite_rows], ignore_index=True)
     return base
 
 
