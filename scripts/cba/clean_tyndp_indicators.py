@@ -43,6 +43,7 @@ INDICATOR_MAP = {
     "B4f": "B4f_nmvoc",
 }
 
+
 def _normalize_text(value: str) -> str:
     text = str(value).strip().translate(TRANSLATE_MAP)
     text = text.replace("\u00e2\u0082\u00ac", "euro")
