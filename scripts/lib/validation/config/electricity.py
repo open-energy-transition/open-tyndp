@@ -11,7 +11,7 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#elect
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
@@ -140,8 +140,17 @@ class _PecdPreBuiltConfig(BaseModel):
 
     cyears: list[int] = Field(
         default_factory=lambda: [1995, 2008, 2009],
-        description="Climate years for pre-built PECD profiles.",
+        description="List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
     )
+
+    @field_validator("cyears")
+    @classmethod
+    def validate_cyears(cls, v: list[int]) -> list[int]:
+        """Validate that climate years are between 1982 and 2019."""
+        for year in v:
+            if not 1982 <= year <= 2019:
+                raise ValueError(f"Climate year {year} must be between 1982 and 2019")
+        return v
 
 
 class _PecdRenewableProfilesConfig(BaseModel):
@@ -149,28 +158,37 @@ class _PecdRenewableProfilesConfig(BaseModel):
 
     enable: bool = Field(
         False,
-        description="Enable PECD (Pan-European Climate Database) renewable profiles from ENTSO-E.",
+        description="Activate PECD renewable profiles from TYNDP 2024 instead of default renewable profiles for specified renewable technologies below.",
     )
     pre_built: _PecdPreBuiltConfig = Field(
         default_factory=_PecdPreBuiltConfig,
-        description="Pre-built PECD profiles configuration.",
+        description="A new pre-built version is prepared when the configured PECD version (`tyndp_pecd`) is not already set to a pre-built version.",
     )
     fill_gaps_method: str = Field(
         "zero",
-        description="Method to fill gaps in PECD profiles.",
+        description="The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.",
     )
     available_years: list[int] = Field(
         default_factory=lambda: [2030, 2040, 2050],
-        description="Available years for PECD profiles.",
+        description="List of years for which PECD data is available.",
     )
-    technologies: list[str] = Field(
+    technologies: list[
+        Literal[
+            "Wind_Offshore",
+            "LFSolarPVRooftop",
+            "LFSolarPVUtility",
+            "CSP_noStorage",
+            "CSP_withStorage",
+            "Wind_Onshore",
+        ]
+    ] = Field(
         default_factory=lambda: [
             "Wind_Offshore",
             "LFSolarPVRooftop",
             "LFSolarPVUtility",
             "Wind_Onshore",
         ],
-        description="Technologies for PECD profiles.",
+        description="The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",
     )
 
 
@@ -179,13 +197,15 @@ class _PemmdbHydroProfilesConfig(BaseModel):
 
     enable: bool = Field(
         False,
-        description="Enable PEMMDB (Pan-European Market Modelling Database) hydro profiles.",
+        description="Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
     )
     available_years: list[int] = Field(
         default_factory=lambda: [2030, 2040, 2050],
-        description="Available years for PEMMDB hydro profiles.",
+        description="List of years for which PEMMDB hydro inflows data is available.",
     )
-    technologies: list[str] = Field(
+    technologies: list[
+        Literal["Run of River", "Pondage", "Reservoir", "PS Open", "PS Closed"]
+    ] = Field(
         default_factory=lambda: [
             "Run of River",
             "Pondage",
@@ -193,7 +213,7 @@ class _PemmdbHydroProfilesConfig(BaseModel):
             "PS Open",
             "PS Closed",
         ],
-        description="Hydro technologies for PEMMDB profiles.",
+        description="The hydro technologies for which PEMMDB hydro inflows data is used.",
     )
 
 
@@ -202,17 +222,35 @@ class _PemmdbCapacitiesConfig(BaseModel):
 
     enable: bool = Field(
         False,
-        description="Enable PEMMDB capacities.",
+        description="Activate PEMMDB capacities, must-runs and availabilities from TYNDP 2024.",
     )
     nprocesses: int = Field(
         4,
-        description="Number of processes for PEMMDB capacities processing.",
+        description="Number of parallel processes when reading pemmdb data.",
     )
     available_years: list[int] = Field(
         default_factory=lambda: [2030, 2040, 2050],
-        description="Available years for PEMMDB capacities.",
+        description="List of years for which PEMMDB data is available.",
     )
-    technologies: list[str] = Field(
+    technologies: list[
+        Literal[
+            "Solar",
+            "Wind",
+            "Hydro",
+            "Other_RES",
+            "Gas",
+            "Nuclear",
+            "Hard_coal",
+            "Lignite",
+            "Light_oil",
+            "Heavy_oil",
+            "Oil_shale",
+            "Other_Non-RES",
+            "Hydrogen",
+            "Electrolyser",
+            "Battery",
+        ]
+    ] = Field(
         default_factory=lambda: [
             "Solar",
             "Wind",
@@ -230,7 +268,7 @@ class _PemmdbCapacitiesConfig(BaseModel):
             "Electrolyser",
             "Battery",
         ],
-        description="Technologies for PEMMDB capacities.",
+        description="The PEMMDB technologies which are available and which data shall be used.",
     )
 
 
@@ -303,7 +341,9 @@ class ElectricityConfig(BaseModel):
         description="List of conventional power plants to include in the model from `resources/powerplants_s_{clusters}.csv`. If an included carrier is also listed in `extendable_carriers`, the capacity is taken as a lower bound.",
     )
     tyndp_conventional_carriers: list[
-        Literal["gas", "coal", "lignite", "nuclear", "oil-light", "oil-heavy", "oil-shale"]
+        Literal[
+            "gas", "coal", "lignite", "nuclear", "oil-light", "oil-heavy", "oil-shale"
+        ]
     ] = Field(
         default_factory=list,
         description="List of TYNDP conventional power plants to include in the model.",
