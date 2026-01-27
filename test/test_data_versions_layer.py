@@ -26,8 +26,8 @@ VALID_TAGS = {
 not_empty = [Check.str_length(min_value=1), Check.str_matches(r"\S")]
 valid_tags = Check(lambda s: all(t in VALID_TAGS for t in s.split()), element_wise=True)
 url_safe = Check.str_matches(
-    r"^[a-z0-9_\-\.]+$",
-    error="Version must be URL-safe (only alphanumeric, hyphen, underscore, dot)",
+    r"^[a-z0-9_\-\.+]+$",
+    error="Version must be URL-safe (only alphanumeric, hyphen, underscore, dot, plus)",
 )
 
 

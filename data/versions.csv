@@ -122,26 +122,26 @@ synthetic_electricity_demand,v2,archive,latest supported,2026-01-20,the primary 
 synthetic_electricity_demand,0.1.0,archive,deprecated might-work,2026-01-13,,https://data.pypsa.org/workflows/eur/synthetic_electricity_demand/0.1.0/demand_hourly.csv
 tyndp,2024,primary,latest supported,2025-12-02,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
 tyndp,2024,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/tyndp/2024
+tyndp_benchmark,20240522,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip
+tyndp_benchmark,20240522,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx
+tyndp_bundle,2024,primary,not-supported,2026-01-27,Open-TYNDP specific data bundle,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
+tyndp_bundle,2024,archive,latest supported,2026-01-27,Open-TYNDP specific data bundle,https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip
+tyndp_cba_projects,unknown,primary,not-supported,2026-01-27,,https://tyndp2024.entsoe.eu/projects-map
+tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip
+tyndp_hydro_inflows,unknown,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip
+tyndp_hydro_inflows,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip
+tyndp_pecd,3.1+pre-built.0.1,archive,latest supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
+tyndp_pecd,3.1,primary,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
+tyndp_pecd,3.1,archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
+tyndp_pemmdb,2.5,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PEMMDB2.zip
+tyndp_pemmdb,2.5,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PEMMDB.zip
+tyndp_supply_tool,20240518,primary,supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip
+tyndp_supply_tool,20240518,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/20240518-Supply-Tool.xlsm.zip
+tyndp_vis_plfm,unknown,primary,not-supported,2026-01-27,,https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/
+tyndp_vis_plfm,20250117,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip
 wdpa,unknown,primary,latest supported,2025-12-02,"WDPA changes its URL every month, the URL here is used as a template and {bYYYY} is replaced inside the retrieve.smk.",https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_{bYYYY}_Public_shp.zip
 wdpa,2025-07,archive,latest supported,2025-12-02,"We are legally not allowed to redistribute this dataset, luckily the web archive is keeping copies of it.",https://web.archive.org/web/20250715071823if_/https%3A//d1gam3xoknrgr2.cloudfront.net/current/WDPA_Jul2025_Public_shp.zip
 wdpa_marine,unknown,primary,latest supported,2025-12-02,"WDPA maritime changes its URL every month, the URL here is used as a template and {bYYYY} is replaced inside the retrieve.smk.",https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_{bYYYY}_Public_marine_shp.zip
 wdpa_marine,2025-07,archive,latest supported,2025-12-02,"We are legally not allowed to redistribute this dataset, luckily the web archive is keeping copies of it.",https://web.archive.org/web/20250715084308if_/https%3A//d1gam3xoknrgr2.cloudfront.net/current/WDPA_WDOECM_Jul2025_Public_marine_shp.zip
 worldbank_urban_population,unknown,primary,latest might-work,2025-12-02,"This is the original World Bank API link, which is sometimes updated; it is not guaranteed to work with the current codebase and data changes without notice.",https://api.worldbank.org/v2/en/indicator/SP.URB.TOTL.IN.ZS?downloadformat=csv
 worldbank_urban_population,2025-08-14,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/worldbank_urban_population/2025-08-14/API_SP.URB.TOTL.IN.ZS_DS2_en_csv_v2_22447.zip
-tyndp_benchmark,20240522,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx
-tyndp_benchmark,20240522,primary,unsupported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip
-tyndp_bundle,2024,primary,unsupported,2026-01-27,Open-TYNDP specific data bundle,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
-tyndp_bundle,2024,archive,latest supported,2026-01-27,Open-TYNDP specific data bundle,https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip
-tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip
-tyndp_cba_projects,unknown,primary,unsupported,2026-01-27,,https://tyndp2024.entsoe.eu/projects-map
-tyndp_hydro_inflows,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip
-tyndp_hydro_inflows,unknown,primary,unsupported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip
-tyndp_pecd,3.1,archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_pecd,3.1+pre-built.0.1,archive,latest supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_pecd,3.1,primary,unsupported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
-tyndp_pemmdb,2.5,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PEMMDB.zip
-tyndp_pemmdb,2.5,primary,unsupported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PEMMDB2.zip
-tyndp_supply_tool,20240518,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/20240518-Supply-Tool.xlsm.zip
-tyndp_supply_tool,20240518,primary,supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip
-tyndp_vis_plfm,20250117,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip
-tyndp_vis_plfm,unknown,primary,unsupported,2026-01-27,,https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/
