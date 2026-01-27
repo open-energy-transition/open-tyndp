@@ -2,23 +2,23 @@
 ---
 # yaml-language-server: $schema=./schema.json
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#version
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#version
 version: v0.4.2
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#tutorial
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#logging
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#logging
 logging:
   level: INFO
   format: "%(levelname)s:%(name)s:%(message)s"
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#remote
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#remote
 remote:
   ssh: ""
   path: ""
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#run
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#run
 run:
   prefix: ""
   name: ""
@@ -31,12 +31,13 @@ run:
     exclude: []
   use_shadow_directory: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#foresight
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#foresight
 foresight: overnight
 
-tyndp_scenario: false  # NT, DE, DA or false
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
+tyndp_scenario: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#scenario
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#scenario
 scenario:
   clusters:
   - 50
@@ -47,7 +48,7 @@ scenario:
   planning_horizons:
   - 2050
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#countries
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#countries
 countries:
 - AL
 - AT
@@ -84,17 +85,17 @@ countries:
 - SK
 - XK
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#snapshots
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#snapshots
 snapshots:
   start: "2013-01-01"
   end: "2014-01-01"
   inclusive: left
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#enable
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#enable
 enable:
   drop_leap_day: true
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#co2_budget
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#co2_budget
 co2_budget:
   2020: 0.72
   2025: 0.648
@@ -104,7 +105,7 @@ co2_budget:
   2045: 0.05
   2050: 0.0
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#electricity
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#electricity
 electricity:
   voltages:
   - 220.0
@@ -146,8 +147,7 @@ electricity:
   powerplants_filter: "(DateOut >= 2024 or DateOut != DateOut) and not (Country == 'Germany' and Fueltype == 'Nuclear')"
   custom_powerplants: false
   everywhere_powerplants: []
-
-    conventional_carriers:
+  conventional_carriers:
   - nuclear
   - oil
   - OCGT
@@ -168,7 +168,6 @@ electricity:
   - hydro
   tyndp_renewable_carriers: []
   tyndp_stores: []
-
   pecd_renewable_profiles:
     enable: false
     pre_built:
@@ -186,7 +185,6 @@ electricity:
     - LFSolarPVRooftop
     - LFSolarPVUtility
     - Wind_Onshore
-
   pemmdb_hydro_profiles:
     enable: false
     available_years:
@@ -199,7 +197,6 @@ electricity:
     - Reservoir
     - PS Open
     - PS Closed
-
   pemmdb_capacities:
     enable: false
     nprocesses: 4
@@ -219,20 +216,15 @@ electricity:
     - Light_oil
     - Heavy_oil
     - Oil_shale
-    - Other_Non-RES
+    - "Other_Non-RES"
     - Hydrogen
     - Electrolyser
     - Battery
-
   estimate_renewable_capacities:
     enable: true
     from_gem: true
     year: 2020
     expansion_limit: false
-    technologies:
-    - Offshore
-    - Onshore
-    - PV
     technology_mapping:
       Offshore: "offwind-ac"
       Onshore: onwind
@@ -242,7 +234,7 @@ electricity:
     by_country: false
   transmission_limit: vopt
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#atlite
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#atlite
 atlite:
   default_cutout: "europe-2013-sarah3-era5"
   nprocesses: 16
@@ -272,7 +264,7 @@ atlite:
         monthly_requests: true
         tmpdir: ./cutouts_tmp/
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#renewable
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#renewable
 renewable:
   onwind:
     cutout: default
@@ -482,14 +474,14 @@ renewable:
     eia_correct_by_capacity: false
     eia_approximate_missing: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#conventional
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#conventional
 conventional:
   unit_commitment: false
   dynamic_fuel_price: false
   nuclear:
     p_max_pu: data/nuclear_p_max_pu.csv
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#lines
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#lines
 lines:
   types:
     63.0: "94-AL1/15-ST1A 20.0"
@@ -518,7 +510,7 @@ lines:
     max_voltage_difference: false
     max_line_rating: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#links
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#links
 links:
   p_max_pu: 1.0
   p_min_pu: -1.0
@@ -527,7 +519,7 @@ links:
   length_factor: 1.25
   under_construction: keep
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#transmission_projects
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transmission_projects
 transmission_projects:
   enable: true
   include:
@@ -543,19 +535,19 @@ transmission_projects:
   - confirmed
   new_link_capacity: zero
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
 tyndp_investment_candidates:
   elec_projects: []
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#transformers
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
 transformers:
   x: 0.1
   s_nom: 2000.0
   type: ""
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#load
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#load
 load:
-  source: opsd # opsd, tyndp
+  source: opsd
   fill_gaps:
     enable: true
     interpolate_limit: 3
@@ -572,7 +564,7 @@ load:
     gdp: 0.6
     population: 0.4
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#pypsa_eur
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#pypsa_eur
 pypsa_eur:
   Bus:
   - AC
@@ -591,13 +583,13 @@ pypsa_eur:
   - hydro
   Store: []
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#energy
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#energy
 energy:
   energy_totals_year: 2019
   base_emissions_year: 1990
   emissions: CO2
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#biomass
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#biomass
 biomass:
   year: 2030
   scenario: ENS_Med
@@ -640,7 +632,7 @@ biomass:
     2045: 1
     2050: 1
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#solar_thermal
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#solar_thermal
 solar_thermal:
   clearsky_model: simple
   orientation:
@@ -648,7 +640,7 @@ solar_thermal:
     azimuth: 180.0
   cutout: default
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#existing_capacities
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#existing_capacities
 existing_capacities:
   grouping_years_power:
   - 1920
@@ -686,7 +678,7 @@ existing_capacities:
   - oil
   - uranium
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#sector
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#sector
 sector:
   transport: true
   heating: true
@@ -995,6 +987,7 @@ sector:
       efficiency_static: 0.97
   H2_network: true
   h2_topology_tyndp: false
+  h2_zones_tyndp: false
   gas_network: true
   gas_demand_exogenously: false
   H2_retrofit: false
@@ -1067,7 +1060,7 @@ sector:
       DC_OH: 10
       H2 pipeline OH: 30
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#industry
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#industry
 industry:
   St_primary_fraction:
     2020: 0.6
@@ -1153,7 +1146,7 @@ industry:
   reference_year: 2019
   oil_refining_emissions: 0.013
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#costs
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#costs
 costs:
   year: 2050
   social_discountrate: 0.02
@@ -1176,7 +1169,7 @@ costs:
     co2: 0.0
     co2_monthly_prices: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#clustering
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#clustering
 clustering:
   mode: busmap
   administrative:
@@ -1209,7 +1202,7 @@ clustering:
     resolution_elec: false
     resolution_sector: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#adjustments
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#adjustments
 adjustments:
   electricity: false
   sector:
@@ -1219,7 +1212,7 @@ adjustments:
           capital_cost: 1.0
     absolute: false
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#solving
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#solving
 solving:
   options:
     clip_p_max_pu: 0.01
@@ -1342,7 +1335,7 @@ solving:
   memory_logging_frequency: 5
   runtime: 48h
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#data
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#data
 data:
   hotmaps_industrial_sites:
     source: archive
@@ -1391,9 +1384,6 @@ data:
     version: latest
   scigrid_gas:
     source: primary
-    version: latest
-  seawater_temperature:
-    source: archive
     version: latest
   synthetic_electricity_demand:
     source: primary
@@ -1449,9 +1439,6 @@ data:
   tyndp:
     source: archive
     version: latest
-  tyndp_bundle:
-    source: archive
-    version: latest
   powerplants:
     source: primary
     version: latest
@@ -1488,6 +1475,18 @@ data:
   jrc_ardeco:
     source: archive
     version: latest
+  seawater_temperature:
+    source: archive
+    version: latest
+  bidding_zones_electricitymaps:
+    source: archive
+    version: latest
+  bidding_zones_entsoepy:
+    source: archive
+    version: latest
+  tyndp_bundle:
+    source: archive
+    version: latest
   cutout_additional:
     source: archive
     version: latest
@@ -1513,7 +1512,7 @@ data:
     source: archive
     version: latest
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#overpass_api
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:
   url: "https://overpass-api.de/api/interpreter"
   max_tries: 5
@@ -1523,6 +1522,6 @@ overpass_api:
     email: "contact@pypsa.org"
     website: "https://github.com/PyPSA/pypsa-eur"
 
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#secrets
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#secrets
 secrets:
   corine: ""

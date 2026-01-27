@@ -35,7 +35,6 @@ class PypsaEurConfig(ConfigModel):
             "solar-hsat",
             "solar",
             "ror",
-            "nuclear",
         ],
         description="Generator carriers to keep from PyPSA-Eur.",
     )
