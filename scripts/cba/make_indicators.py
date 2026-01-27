@@ -32,6 +32,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.prepare_sector_network import get
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,131 @@ def calculate_total_system_cost(n):
     }
 
 
+def check_method(method: str) -> str:
+    """
+    Normalize and validate the CBA method name.
+
+    If the method is not recognized as either "pint" or "toot", a ValueError is raised.
+    """
+    method = method.lower()
+    if method not in ["pint", "toot"]:
+        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
+    return method
+
+
+def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
+    """
+    Calculate net CO2 emissions using the final snapshot of the CO2 store.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network object for which to calculate CO2 emissions.
+
+    Returns
+    -------
+    float
+        Net CO2 emissions at the final snapshot.
+    """
+    stores_by_carrier = n.stores_t.e.T.groupby(n.stores.carrier).sum().T
+    net_co2 = stores_by_carrier["co2"].iloc[-1]  # get final snapshot value
+    return float(net_co2)
+
+
+def calculate_res_capacity_per_carrier(
+    n: pypsa.Network, res_carriers: list[str]
+) -> pd.Series:
+    """
+    Calculate total RES capacity per carrier (MW) using optimal capacity.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing RES capacity per carrier (MW).
+    """
+    capacity = n.statistics.optimal_capacity(nice_names=False).groupby("carrier").sum()
+    res_capacity = capacity.reindex(res_carriers).dropna()
+    return res_capacity
+
+
+def calculate_res_generation_per_carrier(
+    n: pypsa.Network, res_carriers: list[str]
+) -> pd.Series:
+    """
+    Calculate total RES generation per carrier (MWh/year) using energy balance.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing RES generation per carrier (MWh/year).
+    """
+    energy_balance = (
+        n.statistics.energy_balance(aggregate_time="sum", nice_names=False)
+        .groupby("carrier")
+        .sum()
+    )
+    res_generation = energy_balance.reindex(res_carriers).dropna()
+    return res_generation
+
+
+def calculate_res_dump_per_carrier(
+    n: pypsa.Network, res_carriers: list[str]
+) -> pd.Series:
+    """
+    Calculate total RES dumped energy per carrier (MWh/year) using curtailment.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing RES dumped energy per carrier (MWh/year).
+    """
+    curtailed = n.statistics.curtailment(nice_names=False).groupby("carrier").sum()
+    res_dump = curtailed.reindex(res_carriers).dropna()
+    return res_dump
+
+
+def get_co2_ets_price(config, planning_horizon) -> float:
+    """
+    Retrieve the CO2 ETS price for a given planning horizon from the configuration.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration dictionary containing emission prices under the "costs" key.
+    planning_horizon : int or str
+        The year or period for which the CO2 ETS price is requested.
+
+    Returns
+    -------
+    float
+        The CO2 ETS price for the specified planning horizon.
+    """
+    emission_prices = config.get("costs", {}).get("emission_prices", {})
+    if not emission_prices.get("enable", False):
+        raise KeyError("Emission prices are not enabled in the config")
+
+    co2_prices = emission_prices.get("co2", {})
+    price = co2_prices.get(planning_horizon, co2_prices.get(str(planning_horizon)))
+    if price is None:
+        raise KeyError(f"Missing CO2 ETS price for {planning_horizon}")
+    return float(price)
+
+
 def calculate_b1_indicator(n_reference, n_project, method="pint"):
     """
     Calculate B1 indicator: change in total system cost.
@@ -81,10 +207,6 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
     Returns:
         dict: Dictionary with B1 and component costs
     """
-    method = method.lower()
-    if method not in ["pint", "toot"]:
-        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
-
     # Calculate costs for both scenarios
     cost_reference = calculate_total_system_cost(n_reference)
     cost_project = calculate_total_system_cost(n_project)
@@ -135,6 +257,93 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
     return results
 
 
+def calculate_b2_indicator(
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str,
+    co2_societal_costs: dict,
+    co2_ets_price: float,
+) -> dict:
+    """
+    Calculate B2 indicator: change in CO2 emissions and societal cost.
+
+    Returns totals for CO2 (t) and societal cost (EUR/year) for low/central/high
+    societal cost assumptions.
+    """
+
+    co2_reference = calculate_co2_emissions_per_carrier(n_reference)
+    co2_project = calculate_co2_emissions_per_carrier(n_project)
+
+    if method == "pint":
+        # Reference is without project, project is with project
+        co2_diff = co2_reference - co2_project
+    else:  # toot
+        # Reference is with all projects, project is without project
+        co2_diff = co2_project - co2_reference
+
+    results = {
+        "co2_variation": co2_diff,
+        "co2_ets_price": co2_ets_price,
+        "co2_societal_cost_low": co2_societal_costs["low"],
+        "co2_societal_cost_central": co2_societal_costs["central"],
+        "co2_societal_cost_high": co2_societal_costs["high"],
+    }
+
+    for level in ["low", "central", "high"]:
+        b2_val = co2_diff * (co2_societal_costs[level] - co2_ets_price)
+        results[f"B2_societal_cost_variation_{level}"] = b2_val
+
+    return results
+
+
+def calculate_b3_indicator(
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str,
+    res_carriers: list[str],
+) -> dict:
+    """
+    Calculate B3 indicator: change in RES capacity (MW) and generation (MWh/year).
+
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network.
+    n_project : pypsa.Network
+        Project network.
+    method : str
+        Either "pint" or "toot" (case-insensitive).
+
+    Returns
+    -------
+    dict
+        Dictionary with B3 indicators:
+        - B3_res_capacity_change_mw
+        - B3_res_generation_change_mwh
+        - B3_res_dump_change_mwh
+    """
+    n_with, n_without = (
+        (n_project, n_reference) if method == "pint" else (n_reference, n_project)
+    )
+
+    capacity_with = calculate_res_capacity_per_carrier(n_with, res_carriers)
+    capacity_without = calculate_res_capacity_per_carrier(n_without, res_carriers)
+    generation_with = calculate_res_generation_per_carrier(n_with, res_carriers)
+    generation_without = calculate_res_generation_per_carrier(n_without, res_carriers)
+    dump_with = calculate_res_dump_per_carrier(n_with, res_carriers)
+    dump_without = calculate_res_dump_per_carrier(n_without, res_carriers)
+
+    capacity_diff = capacity_with.sum() - capacity_without.sum()
+    generation_diff = generation_with.sum() - generation_without.sum()
+    dump_diff = dump_with.sum() - dump_without.sum()
+
+    return {
+        "B3_res_capacity_change_mw": capacity_diff,
+        "B3_res_generation_change_mwh": generation_diff,
+        "B3_annual_avoided_curtailment_mwh": dump_diff,
+    }
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -155,10 +364,35 @@ if __name__ == "__main__":
         raise ValueError("Project network is not solved")
 
     # Detect method from wildcards (toot or pint)
-    method = snakemake.wildcards.cba_method
+    method = check_method(snakemake.wildcards.cba_method)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
 
     # Calculate indicators
     indicators = calculate_b1_indicator(n_reference, n_project, method=method)
+
+    co2_societal_costs_map = snakemake.config["cba"]["co2_societal_cost"]
+    co2_societal_costs = get(co2_societal_costs_map, planning_horizon)
+
+    co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
+    b2_indicators = calculate_b2_indicator(
+        n_reference,
+        n_project,
+        method=method,
+        co2_societal_costs=co2_societal_costs,
+        co2_ets_price=co2_ets_price,
+    )
+    indicators.update(b2_indicators)
+
+    res_carriers = snakemake.config.get("electricity", {}).get(
+        "tyndp_renewable_carriers"
+    )
+    b3_indicators = calculate_b3_indicator(
+        n_reference,
+        n_project,
+        method=method,
+        res_carriers=res_carriers,
+    )
+    indicators.update(b3_indicators)
 
     # Add project metadata
     cba_project = snakemake.wildcards.cba_project

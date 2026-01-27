@@ -5,7 +5,6 @@
 
 import contextlib
 import copy
-import hashlib
 import logging
 import os
 import re
@@ -27,14 +26,6 @@ import requests
 import xarray as xr
 import yaml
 from snakemake.utils import update_config
-from tenacity import (
-    retry as tenacity_retry,
-)
-from tenacity import (
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -443,13 +434,6 @@ def aggregate_costs(n, flatten=False, opts=None, existing_only=False):
     return costs
 
 
-@tenacity_retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    retry=retry_if_exception_type(
-        (requests.HTTPError, requests.ConnectionError, requests.Timeout)
-    ),
-)
 def progress_retrieve(url, file, disable=False):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
@@ -878,78 +862,6 @@ def update_config_from_wildcards(config, w, inplace=True):
         return config
 
 
-@tenacity_retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    retry=retry_if_exception_type(
-        (requests.HTTPError, requests.ConnectionError, requests.Timeout)
-    ),
-)
-def get_checksum_from_zenodo(file_url):
-    parts = file_url.split("/")
-    record_id = parts[parts.index("records") + 1]
-    filename = parts[-1]
-
-    response = requests.get(f"https://zenodo.org/api/records/{record_id}", timeout=30)
-    # Raise HTTPError for transient errors
-    # 429: Too Many Requests (rate limiting)
-    # 500, 502, 503, 504: Server errors
-    if response.status_code in (429, 500, 502, 503, 504):
-        response.raise_for_status()
-    response.raise_for_status()
-    data = response.json()
-
-    for file in data["files"]:
-        if file["key"] == filename:
-            return file["checksum"]
-    return None
-
-
-def validate_checksum(file_path, zenodo_url=None, checksum=None):
-    """
-    Validate file checksum against provided or Zenodo-retrieved checksum.
-    Calculates the hash of a file using 64KB chunks. Compares it against a
-    given checksum or one from a Zenodo URL.
-
-    Parameters
-    ----------
-    file_path : str
-        Path to the file for checksum validation.
-    zenodo_url : str, optional
-        URL of the file on Zenodo to fetch the checksum.
-    checksum : str, optional
-        Checksum (format 'hash_type:checksum_value') for validation.
-
-    Raises
-    ------
-    AssertionError
-        If the checksum does not match, or if neither `checksum` nor `zenodo_url` is provided.
-
-
-    Examples
-    --------
-    >>> validate_checksum("/path/to/file", checksum="md5:abc123...")
-    >>> validate_checksum(
-    ...     "/path/to/file",
-    ...     zenodo_url="https://zenodo.org/records/12345/files/example.txt",
-    ... )
-
-    If the checksum is invalid, an AssertionError will be raised.
-    """
-    assert checksum or zenodo_url, "Either checksum or zenodo_url must be provided"
-    if zenodo_url:
-        checksum = get_checksum_from_zenodo(zenodo_url)
-    hash_type, checksum = checksum.split(":")
-    hasher = hashlib.new(hash_type)
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):  # 64kb chunks
-            hasher.update(chunk)
-    calculated_checksum = hasher.hexdigest()
-    assert calculated_checksum == checksum, (
-        "Checksum is invalid. This may be due to an incomplete download. Delete the file and re-execute the rule."
-    )
-
-
 def get_snapshots(
     snapshots: dict, drop_leap_day: bool = False, freq: str = "h", **kwargs
 ) -> pd.DatetimeIndex:
@@ -1155,14 +1067,22 @@ def load_costs(cost_file: str) -> pd.DataFrame:
     return pd.read_csv(cost_file, index_col=0)
 
 
-def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
+def make_index(
+    c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix="", separator=" "
+):
     idx = [prefix, c[cname0], connector, c[cname1], suffix]
     idx = [i for i in idx if i]
-    return " ".join(idx)
+    return separator.join(idx)
 
 
 def extract_grid_data_tyndp(
-    links, carrier="Transmission line", replace_dict: dict = {}
+    links,
+    replace_dict: dict = {},
+    expand_from_index: bool = True,
+    idx_prefix: str = "",
+    idx_connector: str = "",
+    idx_suffix: str = "",
+    idx_separator: str = " ",
 ):
     """
     Extract TYNDP reference grid data from the raw input table.
@@ -1171,10 +1091,18 @@ def extract_grid_data_tyndp(
     ----------
     links : pd.DataFrame
         DataFrame with raw links to extract grid information from
-    carrier : str
-        Name of the line carrier of the corresponding TYNDP reference grid ('H2 pipeline' or 'Transmission line')
     replace_dict : dict
         Dictionary with region names to replace
+    expand_from_index : bool
+        Whether to expand the bus0 and bus1 from index or directly use the columns
+    idx_prefix : str, optional
+        Prefix to prepend to generated indices.
+    idx_connector : str, optional
+        Separator string between bus0 and bus1 in generated indices (e.g., "->", "-").
+    idx_suffix : str, optional
+        Suffix to append to generated indices.
+    idx_separator : str, optional
+        String used to join index components (prefix, bus0, connector, bus1, suffix).
 
     Returns
     -------
@@ -1182,17 +1110,27 @@ def extract_grid_data_tyndp(
         DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1
     """
 
-    links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
-    links = pd.concat(
-        [
-            links,
-            links.Border.str.split("-", expand=True).set_axis(["bus0", "bus1"], axis=1),
-        ],
-        axis=1,
-    )
+    if expand_from_index:
+        links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
+        links = pd.concat(
+            [
+                links,
+                links.Border.str.split("-", expand=True).set_axis(
+                    ["bus0", "bus1"], axis=1
+                ),
+            ],
+            axis=1,
+        )
+    elif "bus0" in links.columns and "bus1" in links.columns:
+        links.loc[:, ["bus0", "bus1"]] = links[["bus0", "bus1"]].replace(
+            replace_dict, regex=True
+        )
+    else:
+        raise KeyError(
+            f"Columns 'bus0' and 'bus1' must be present in the input DataFrame. Available columns: {list(links.columns)}"
+        )
 
     # Create forward and reverse direction dataframes
-    # TODO: combine to bidirectional links
     forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
         columns={"Summary Direction 1": "p_nom"}
     )
@@ -1204,7 +1142,14 @@ def extract_grid_data_tyndp(
     # Combine into unidirectional links and return
     links = pd.concat([forward_links, reverse_links])
 
-    links.index = links.apply(make_index, axis=1, prefix=carrier)
+    links.index = links.apply(
+        make_index,
+        axis=1,
+        prefix=idx_prefix,
+        connector=idx_connector,
+        suffix=idx_suffix,
+        separator=idx_separator,
+    )
 
     return links
 

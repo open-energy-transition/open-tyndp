@@ -1,7 +1,6 @@
 ,Unit,Values,Description
 voltages,kV,"Any subset of {220., 300., 330., 380., 400., 500., 750.}. Distribution grid (experimental, set base_network to `osm-raw`): Any subset of {63., 66., 90., 110., 132., 150., 220., 300., 330., 380., 400., 500., 750.}.",Voltage levels to consider
 base_network,--,"Any value in {'entsoegridkit', 'osm-prebuilt', 'osm-raw'}","Specify the underlying base network, i.e. GridKit (based on ENTSO-E web map extract, OpenStreetMap (OSM) prebuilt or raw (built from raw OSM data), takes longer."
-osm-prebuilt-version,--,"float, any value in range 0.1-0.6","Choose the version of the prebuilt OSM network. Defaults to latest Zenodo release."
 gaslimit_enable,bool,true or false,Add an overall absolute gas limit configured in ``electricity: gaslimit``.
 gaslimit,MWhth,float or false,Global gas usage limit
 co2limit_enable,bool,true or false,"Add an overall absolute carbon-dioxide emissions limit configured in ``electricity: co2limit`` in :mod:`prepare_network`. **Warning:** This option should currently only be used with electricity-only networks, not for sector-coupled networks."
@@ -36,10 +35,7 @@ tyndp_renewable_carriers,--,"Any subset of {solar-pv, solar-pv-utility, solar-pv
 tyndp_stores,--,"Any subset of {battery, h2_cavern, h2_tank}",List of TYNDP storage units (battery and/or hydrogen).
 pecd_renewable_profiles,,,
 -- enable,bool,"{true, false}",Activate PECD renewable profiles from TYNDP 2024 instead of default renewable profiles for specified renewable technologies below.
--- version,,str,"Version of the raw PECD data, e.g. ``3.1``."
--- pre_built,,,
--- -- retrieve,bool,"{true, false}","Whether to retrieve already prepared PECD pre-built dataset of the PECD pre-built version as specified below. If ``false``, the pre-built will be created from scratch using PECD raw data."
--- -- pecd_prebuilt_version,,str,"Version of the PECD pre-built."
+-- pre_built,,,"A new pre-built version is prepared when the configured PECD version (``tyndp_pecd``) is not already set to a pre-built version."
 -- -- cyears,--,list,"List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019."
 -- fill_gaps_method,,str,"The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar."
 -- available_years,--,list,"List of years for which PECD data is available."
