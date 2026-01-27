@@ -1375,6 +1375,26 @@
             }
           }
         },
+        "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "synthetic_electricity_demand": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -1956,26 +1976,6 @@
           }
         },
         "jrc_ardeco": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "seawater_temperature": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -3074,7 +3074,7 @@
       "properties": {
         "source": {
           "default": "opsd",
-          "description": "Source of load data. 'opsd' uses Open Power System Data, 'tyndp' uses TYNDP load data.",
+          "description": "Data source used for the electrical load (OSPD or TYNDP, default: OPSD).",
           "enum": [
             "opsd",
             "tyndp"
@@ -3102,7 +3102,7 @@
           }
         },
         "available_years_tyndp": {
-          "description": "Available years for TYNDP load data.",
+          "description": "List of years for which TYNDP demand data is available.",
           "items": {
             "type": "integer"
           },
@@ -4378,16 +4378,6 @@
         }
       }
     },
-    "SecretsConfig": {
-      "description": "Configuration for top level `secrets` settings.",
-      "properties": {
-        "corine": {
-          "default": "",
-          "description": "API token for corine dataset retrieval. You can also pass the token by setting the environment variable \"CORINE_API_TOKEN\". See `scripts/retrieve_corine_dataset_primary.py` for more instructions.",
-          "type": "string"
-        }
-      }
-    },
     "SectorConfig": {
       "description": "Configuration for `sector` settings.",
       "properties": {
@@ -5198,7 +5188,7 @@
         },
         "h2_zones_tyndp": {
           "default": false,
-          "description": "Use TYNDP H2 zones for hydrogen network.",
+          "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
           "type": "boolean"
         },
         "gas_network": {
@@ -5209,7 +5199,7 @@
         },
         "gas_demand_exogenously": {
           "default": false,
-          "description": "Define gas demand exogenously from TYNDP data.",
+          "description": "Add exogenous methane demand from the TYNDP 2024.",
           "type": "boolean"
         },
         "H2_retrofit": {
@@ -5294,16 +5284,16 @@
             }
           ],
           "default": false,
-          "description": "Biomass final demand in TWh. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
+          "description": "Biomass final demand in TWh/a. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
         },
         "force_biomass_potential": {
           "default": false,
-          "description": "Force biomass potential to TYNDP values.",
+          "description": "Add option to force all solid biomass potential to be used\t.",
           "type": "boolean"
         },
         "force_biogas_potential": {
           "default": false,
-          "description": "Force biogas potential to TYNDP values.",
+          "description": "Add option to force all biogas potential to be used.",
           "type": "boolean"
         },
         "electrobiofuels": {
@@ -5429,13 +5419,6 @@
               "description": "Add option to include renewable energy imports.",
               "type": "boolean"
             },
-            "carriers": {
-              "description": "List of carriers for which imports are enabled.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
             "limit": {
               "default": null,
               "description": "Maximum allowed renewable energy imports (TWh).",
@@ -5460,23 +5443,15 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Enable TYNDP offshore hubs.",
+              "description": "Add option to include TYNDP offshore hubs.",
               "type": "boolean"
             },
             "max_capacity": {
-              "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
-              "properties": {
-                "DC_OH": {
-                  "default": 10,
-                  "description": "Maximum capacity for DC offshore hub connections (GW).",
-                  "type": "number"
-                },
-                "H2 pipeline OH": {
-                  "default": 30,
-                  "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
-                  "type": "number"
-                }
-              }
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
+              "type": "object"
             }
           }
         }
@@ -7186,13 +7161,6 @@
           "description": "Add option to include renewable energy imports.",
           "type": "boolean"
         },
-        "carriers": {
-          "description": "List of carriers for which imports are enabled.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
         "limit": {
           "default": null,
           "description": "Maximum allowed renewable energy imports (TWh).",
@@ -7365,43 +7333,20 @@
         }
       }
     },
-    "_OffshoreHubsMaxCapacityConfig": {
-      "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
-      "properties": {
-        "DC_OH": {
-          "default": 10,
-          "description": "Maximum capacity for DC offshore hub connections (GW).",
-          "type": "number"
-        },
-        "H2 pipeline OH": {
-          "default": 30,
-          "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
-          "type": "number"
-        }
-      }
-    },
     "_OffshoreHubsTyndpConfig": {
       "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
       "properties": {
         "enable": {
           "default": false,
-          "description": "Enable TYNDP offshore hubs.",
+          "description": "Add option to include TYNDP offshore hubs.",
           "type": "boolean"
         },
         "max_capacity": {
-          "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
-          "properties": {
-            "DC_OH": {
-              "default": 10,
-              "description": "Maximum capacity for DC offshore hub connections (GW).",
-              "type": "number"
-            },
-            "H2 pipeline OH": {
-              "default": 30,
-              "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
-              "type": "number"
-            }
-          }
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
+          "type": "object"
         }
       }
     },
@@ -10879,7 +10824,7 @@
       "properties": {
         "source": {
           "default": "opsd",
-          "description": "Source of load data. 'opsd' uses Open Power System Data, 'tyndp' uses TYNDP load data.",
+          "description": "Data source used for the electrical load (OSPD or TYNDP, default: OPSD).",
           "enum": [
             "opsd",
             "tyndp"
@@ -10907,7 +10852,7 @@
           }
         },
         "available_years_tyndp": {
-          "description": "Available years for TYNDP load data.",
+          "description": "List of years for which TYNDP demand data is available.",
           "items": {
             "type": "integer"
           },
@@ -11970,7 +11915,7 @@
         },
         "h2_zones_tyndp": {
           "default": false,
-          "description": "Use TYNDP H2 zones for hydrogen network.",
+          "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
           "type": "boolean"
         },
         "gas_network": {
@@ -11981,7 +11926,7 @@
         },
         "gas_demand_exogenously": {
           "default": false,
-          "description": "Define gas demand exogenously from TYNDP data.",
+          "description": "Add exogenous methane demand from the TYNDP 2024.",
           "type": "boolean"
         },
         "H2_retrofit": {
@@ -12066,16 +12011,16 @@
             }
           ],
           "default": false,
-          "description": "Biomass final demand in TWh. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
+          "description": "Biomass final demand in TWh/a. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
         },
         "force_biomass_potential": {
           "default": false,
-          "description": "Force biomass potential to TYNDP values.",
+          "description": "Add option to force all solid biomass potential to be used\t.",
           "type": "boolean"
         },
         "force_biogas_potential": {
           "default": false,
-          "description": "Force biogas potential to TYNDP values.",
+          "description": "Add option to force all biogas potential to be used.",
           "type": "boolean"
         },
         "electrobiofuels": {
@@ -12201,13 +12146,6 @@
               "description": "Add option to include renewable energy imports.",
               "type": "boolean"
             },
-            "carriers": {
-              "description": "List of carriers for which imports are enabled.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
             "limit": {
               "default": null,
               "description": "Maximum allowed renewable energy imports (TWh).",
@@ -12232,23 +12170,15 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Enable TYNDP offshore hubs.",
+              "description": "Add option to include TYNDP offshore hubs.",
               "type": "boolean"
             },
             "max_capacity": {
-              "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
-              "properties": {
-                "DC_OH": {
-                  "default": 10,
-                  "description": "Maximum capacity for DC offshore hub connections (GW).",
-                  "type": "number"
-                },
-                "H2 pipeline OH": {
-                  "default": 30,
-                  "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
-                  "type": "number"
-                }
-              }
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
+              "type": "object"
             }
           }
         }
@@ -13580,6 +13510,26 @@
             }
           }
         },
+        "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "synthetic_electricity_demand": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -14180,26 +14130,6 @@
             }
           }
         },
-        "seawater_temperature": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "bidding_zones_electricitymaps": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -14460,16 +14390,6 @@
               "type": "string"
             }
           }
-        }
-      }
-    },
-    "secrets": {
-      "description": "Configuration for top level `secrets` settings.",
-      "properties": {
-        "corine": {
-          "default": "",
-          "description": "API token for corine dataset retrieval. You can also pass the token by setting the environment variable \"CORINE_API_TOKEN\". See `scripts/retrieve_corine_dataset_primary.py` for more instructions.",
-          "type": "string"
         }
       }
     },
