@@ -2262,6 +2262,7 @@
               "coal",
               "lignite",
               "nuclear",
+              "uranium",
               "oil-light",
               "oil-heavy",
               "oil-shale"
@@ -2297,7 +2298,13 @@
               "offwind-dc-fb-oh",
               "offwind-dc-fl-oh",
               "offwind-h2-fb-oh",
-              "offwind-h2-fl-oh"
+              "offwind-h2-fl-oh",
+              "other-res",
+              "hydro-ror",
+              "hydro-reservoir",
+              "hydro-pondage",
+              "hydro-phs",
+              "hydro-phs-pure"
             ],
             "type": "string"
           },
@@ -2383,11 +2390,11 @@
               "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
               "items": {
                 "enum": [
-                  "Run of River",
+                  "Run_of_River",
                   "Pondage",
                   "Reservoir",
-                  "PS Open",
-                  "PS Closed"
+                  "PS_Open",
+                  "PS_Closed"
                 ],
                 "type": "string"
               },
@@ -7563,11 +7570,11 @@
           "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
           "items": {
             "enum": [
-              "Run of River",
+              "Run_of_River",
               "Pondage",
               "Reservoir",
-              "PS Open",
-              "PS Closed"
+              "PS_Open",
+              "PS_Closed"
             ],
             "type": "string"
           },
@@ -8660,11 +8667,19 @@
       }
     },
     "co2_budget": {
-      "additionalProperties": {
-        "type": "number"
-      },
-      "description": "Configuration for `co2_budget` settings.",
-      "type": "object"
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "Configuration for `co2_budget` settings.",
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "CO2 budget as fraction of 1990 emissions per planning horizon year."
     },
     "electricity": {
       "description": "Configuration for `electricity` settings.",
@@ -8839,6 +8854,7 @@
               "coal",
               "lignite",
               "nuclear",
+              "uranium",
               "oil-light",
               "oil-heavy",
               "oil-shale"
@@ -8874,7 +8890,13 @@
               "offwind-dc-fb-oh",
               "offwind-dc-fl-oh",
               "offwind-h2-fb-oh",
-              "offwind-h2-fl-oh"
+              "offwind-h2-fl-oh",
+              "other-res",
+              "hydro-ror",
+              "hydro-reservoir",
+              "hydro-pondage",
+              "hydro-phs",
+              "hydro-phs-pure"
             ],
             "type": "string"
           },
@@ -8960,11 +8982,11 @@
               "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
               "items": {
                 "enum": [
-                  "Run of River",
+                  "Run_of_River",
                   "Pondage",
                   "Reservoir",
-                  "PS Open",
-                  "PS Closed"
+                  "PS_Open",
+                  "PS_Closed"
                 ],
                 "type": "string"
               },

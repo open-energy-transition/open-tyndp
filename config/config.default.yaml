@@ -192,11 +192,11 @@ electricity:
     - 2040
     - 2050
     technologies:
-    - Run of River
+    - Run_of_River
     - Pondage
     - Reservoir
-    - PS Open
-    - PS Closed
+    - PS_Open
+    - PS_Closed
   pemmdb_capacities:
     enable: false
     nprocesses: 4

@@ -32,6 +32,7 @@ country_runoff,2025-08-13,primary,latest supported,2025-12-02,,https://zenodo.or
 country_runoff,2025-08-13,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/country_runoff/2025-08-13/era5-runoff-per-country.csv
 cutout,v1.0,archive,latest supported,2026-01-13,Pre-build cutouts for PyPSA-Eur,https://data.pypsa.org/workflows/cutout/v1.0
 cutout,unknown,build,latest supported,2025-12-02,Build latest cutouts using ERA5/SARAH3 data.,
+cutout_additional,v0.1-beta,archive,latest supported,2025-12-02,Pre-built cutout of 2009 for PyPSA-Eur,https://storage.googleapis.com/open-tyndp-data-store/
 dh_areas,341.5,primary,latest supported,2025-12-02,,https://fordatis.fraunhofer.de/bitstream/fordatis/341.5/2/dh_areas.gpkg
 dh_areas,341.5,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/dh_areas/341.5/dh_areas.gpkg
 eez,v12_20231025,primary,latest supported,2025-12-02,API request used,https://www.marineregions.org/download_file.php

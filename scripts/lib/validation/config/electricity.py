@@ -204,14 +204,14 @@ class _PemmdbHydroProfilesConfig(BaseModel):
         description="List of years for which PEMMDB hydro inflows data is available.",
     )
     technologies: list[
-        Literal["Run of River", "Pondage", "Reservoir", "PS Open", "PS Closed"]
+        Literal["Run_of_River", "Pondage", "Reservoir", "PS_Open", "PS_Closed"]
     ] = Field(
         default_factory=lambda: [
-            "Run of River",
+            "Run_of_River",
             "Pondage",
             "Reservoir",
-            "PS Open",
-            "PS Closed",
+            "PS_Open",
+            "PS_Closed",
         ],
         description="The hydro technologies for which PEMMDB hydro inflows data is used.",
     )
@@ -342,7 +342,7 @@ class ElectricityConfig(BaseModel):
     )
     tyndp_conventional_carriers: list[
         Literal[
-            "gas", "coal", "lignite", "nuclear", "oil-light", "oil-heavy", "oil-shale"
+            "gas", "coal", "lignite", "nuclear", "uranium", "oil-light", "oil-heavy", "oil-shale"
         ]
     ] = Field(
         default_factory=list,
@@ -378,6 +378,12 @@ class ElectricityConfig(BaseModel):
             "offwind-dc-fl-oh",
             "offwind-h2-fb-oh",
             "offwind-h2-fl-oh",
+            "other-res",
+            "hydro-ror",
+            "hydro-reservoir",
+            "hydro-pondage",
+            "hydro-phs",
+            "hydro-phs-pure",
         ]
     ] = Field(
         default_factory=list,
