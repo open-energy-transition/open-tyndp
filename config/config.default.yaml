@@ -1536,6 +1536,10 @@ cba:
   methods:
   - toot
   projects: []
+  storage:
+    cyclic_carriers:
+    - battery
+    - home battery
   solving:
     options:
       horizon: 168

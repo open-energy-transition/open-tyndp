@@ -494,6 +494,18 @@
           },
           "type": "array"
         },
+        "storage": {
+          "description": "Configuration for `cba.storage` settings.",
+          "properties": {
+            "cyclic_carriers": {
+              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
         "solving": {
           "description": "Configuration for `cba.solving` settings.",
           "properties": {
@@ -6073,6 +6085,18 @@
           },
           "description": "CBA solver options.",
           "type": "object"
+        }
+      }
+    },
+    "_CbaStorageConfig": {
+      "description": "Configuration for `cba.storage` settings.",
+      "properties": {
+        "cyclic_carriers": {
+          "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       }
     },
@@ -14155,6 +14179,18 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "storage": {
+          "description": "Configuration for `cba.storage` settings.",
+          "properties": {
+            "cyclic_carriers": {
+              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
         },
         "solving": {
           "description": "Configuration for `cba.solving` settings.",

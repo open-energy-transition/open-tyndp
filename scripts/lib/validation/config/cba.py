@@ -15,6 +15,15 @@ from pydantic import BaseModel, Field
 from scripts.lib.validation.config._base import ConfigModel
 
 
+class _CbaStorageConfig(ConfigModel):
+    """Configuration for `cba.storage` settings."""
+
+    cyclic_carriers: list[str] = Field(
+        default_factory=lambda: ["battery", "home battery"],
+        description="Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+    )
+
+
 class _CbaSolvingConfig(ConfigModel):
     """Configuration for `cba.solving` settings."""
 
@@ -59,6 +68,10 @@ class CbaConfig(BaseModel):
     projects: list[str] = Field(
         default_factory=list,
         description="List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+    )
+    storage: _CbaStorageConfig = Field(
+        default_factory=_CbaStorageConfig,
+        description="Storage configuration for CBA workflow.",
     )
     solving: _CbaSolvingConfig = Field(
         default_factory=_CbaSolvingConfig,
