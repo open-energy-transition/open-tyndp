@@ -20,7 +20,6 @@ from ruamel.yaml import YAML
 from scripts.lib.validation.config._base import ConfigModel
 from scripts.lib.validation.config.adjustments import AdjustmentsConfig
 from scripts.lib.validation.config.atlite import AtliteConfig
-from scripts.lib.validation.config.benchmarking import BenchmarkingConfig
 from scripts.lib.validation.config.biomass import BiomassConfig
 from scripts.lib.validation.config.cba import CbaConfig
 from scripts.lib.validation.config.clustering import ClusteringConfig
@@ -238,10 +237,6 @@ class ConfigSchema(BaseModel):
     overpass_api: OverpassApiConfig = Field(
         default_factory=OverpassApiConfig,
         description="Overpass API configuration for OSM data retrieval.",
-    )
-    benchmarking: BenchmarkingConfig = Field(
-        default_factory=BenchmarkingConfig,
-        description="Benchmarking configuration for comparing model results with reference data.",
     )
     cba: CbaConfig = Field(
         default_factory=CbaConfig,

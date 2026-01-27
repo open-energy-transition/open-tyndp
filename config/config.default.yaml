@@ -1528,12 +1528,6 @@ overpass_api:
     email: "contact@pypsa.org"
     website: "https://github.com/PyPSA/pypsa-eur"
 
-# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#benchmarking
-benchmarking:
-  enable: false
-  remove_last_day: false
-  tables: {}
-
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#cba
 cba:
   hurdle_costs: 0.01

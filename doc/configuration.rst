@@ -164,15 +164,16 @@ Therefore the user can run different configurations within the same directory.
 ``tyndp_scenario``
 =============
 
+.. jsonschema:: ../config/schema.json#/properties/tyndp_scenario
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: tyndp_scenario:
    :end-at: tyndp_scenario:
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/tyndp_scenario.csv
 
 .. _scenario:
 
@@ -499,7 +500,7 @@ Allows to define additional transmission projects that will be added to the base
 
 Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration only applies to the TYNDP base network and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
 
-.. jsonschema:: ../config/schema.json#/$defs/TYNDPInvestmentCandidatesConfig
+.. jsonschema:: ../config/schema.json#/$defs/TyndpInvestmentCandidatesConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -827,29 +828,31 @@ See the `data/versions.csv` file for all available datasets and their sources/ve
 .. _benchmarking_cf:
 
 ``benchmarking``
-=============
+================
+
+.. jsonschema:: ../config/schema.json#/$defs/BenchmarkingConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/benchmarking.default.yaml
    :language: yaml
    :start-at: benchmarking:
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/benchmarking.csv
-
 .. _cba_cf:
 
 ``cba``
-========
+=======
 
 Cost-Benefit Analysis (CBA) configuration for evaluating TYNDP transmission and storage projects using TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies.
 
-.. literalinclude:: ../config/config.tyndp.yaml
+.. jsonschema:: ../config/schema.json#/$defs/CbaConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: cba:
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/cba.csv
