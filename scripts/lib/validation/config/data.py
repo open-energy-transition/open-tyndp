@@ -216,3 +216,39 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="JRC ARDECO data source configuration.",
     )
+    tyndp_bundle: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP bundle data source configuration.",
+    )
+    cutout_additional: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="Additional cutout data source configuration.",
+    )
+    tyndp_pecd: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP PECD (Pan-European Climate Database) data source configuration.",
+    )
+    tyndp_hydro_inflows: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP hydro inflows data source configuration.",
+    )
+    tyndp_pemmdb: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP PEMMDB (Pan-European Market Modelling Database) data source configuration.",
+    )
+    tyndp_supply_tool: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP supply tool data source configuration.",
+    )
+    tyndp_benchmark: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP benchmark data source configuration.",
+    )
+    tyndp_vis_plfm: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP visualisation platform data source configuration.",
+    )
+    tyndp_cba_projects: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP CBA projects data source configuration.",
+    )

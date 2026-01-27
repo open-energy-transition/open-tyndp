@@ -1525,3 +1525,28 @@ overpass_api:
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#secrets
 secrets:
   corine: ""
+
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#benchmarking
+benchmarking:
+  enable: false
+  remove_last_day: false
+  tables: {}
+
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#cba
+cba:
+  hurdle_costs: 0.01
+  co2_societal_cost: {}
+  planning_horizons: []
+  methods:
+  - toot
+  projects: []
+  solving:
+    options:
+      horizon: 168
+      overlap: 0
+      load_shedding: true
+      io_api: direct
+    solver:
+      name: highs
+      options: "highs-simplex"
+    solver_options: {}

@@ -380,6 +380,146 @@
         }
       }
     },
+    "BenchmarkingConfig": {
+      "description": "Configuration for top level `benchmarking` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Switch to enable or disable benchmarking functionality for comparing model results with reference data.",
+          "type": "boolean"
+        },
+        "remove_last_day": {
+          "default": false,
+          "description": "Switch to optionally remove the last day of the year to ensure the benchmarked values have exactly 52 weeks.",
+          "type": "boolean"
+        },
+        "tables": {
+          "additionalProperties": {
+            "description": "Configuration for `benchmarking.tables.{table_name}` settings.",
+            "properties": {
+              "table_type": {
+                "description": "Table type configuration to use.",
+                "enum": [
+                  "scenario_comparison",
+                  "time_series"
+                ],
+                "type": "string"
+              },
+              "sheet_name": {
+                "description": "Excel sheet name containing reference data.",
+                "type": "string"
+              },
+              "unit": {
+                "description": "Data unit (e.g. TWh or GW) for conversion to the base unit using the unit conversion factors defined in `benchmarking:unit_conversion`.",
+                "type": "string"
+              },
+              "index_col": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  }
+                ],
+                "description": "Column index or list of column indices to use as row index when reading tables. This is an Excel-like index, starting at 1."
+              },
+              "header": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  }
+                ],
+                "description": "Row number or list of row numbers to use as column headers when reading tables. This is an Excel-like index, starting at 1."
+              },
+              "nrows": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Number of rows to read from reference data (optional)."
+              },
+              "ncolumns": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Number of columns to read from reference data (optional)."
+              },
+              "names": {
+                "description": "Configuration for `benchmarking.tables.{table_name}.names` settings.",
+                "properties": {
+                  "index": {
+                    "description": "Names for index levels corresponding to `index_col`.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "column": {
+                    "description": "Names for column levels corresponding to `header`.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                }
+              },
+              "mapping": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Mapping from model carrier names to reference data names.",
+                "type": "object"
+              },
+              "biomass_to_methane_efficiency": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Efficiency to convert biomass to biomethane. Dictionary with planning horizons as keys. Only used for biomass supply table benchmarking."
+              }
+            },
+            "required": [
+              "table_type",
+              "sheet_name",
+              "unit",
+              "index_col",
+              "header"
+            ]
+          },
+          "description": "Tables configuration for benchmarking. Each key is a table name, and the value contains the table configuration.",
+          "type": "object"
+        }
+      }
+    },
     "BiomassConfig": {
       "description": "Configuration for `biomass` settings.",
       "properties": {
@@ -448,6 +588,76 @@
           },
           "description": "Share determines phase-in of ENSPRESO biomass potentials.",
           "type": "object"
+        }
+      }
+    },
+    "CbaConfig": {
+      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "properties": {
+        "hurdle_costs": {
+          "default": 0.01,
+          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "type": "number"
+        },
+        "co2_societal_cost": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "type": "object"
+        },
+        "planning_horizons": {
+          "description": "List of planning horizons for which to run CBA.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "methods": {
+          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "items": {
+            "enum": [
+              "toot",
+              "pint"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "projects": {
+          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "solving": {
+          "description": "Configuration for `cba.solving` settings.",
+          "properties": {
+            "options": {
+              "additionalProperties": true,
+              "description": "CBA-specific solving options.",
+              "type": "object"
+            },
+            "solver": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "CBA solver configuration.",
+              "type": "object"
+            },
+            "solver_options": {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "description": "CBA solver options.",
+              "type": "object"
+            }
+          }
         }
       }
     },
@@ -738,17 +948,10 @@
             }
           }
         },
-        "custom_cost_fn": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": "data/custom_costs.csv",
-          "description": "Path to the custom costs file. None if it should not be used. Default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results."
+        "custom_cost_scn": {
+          "default": "all",
+          "description": "Name of the custom costs scenario. Empty string if custom costs should not be used. Per default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results for 'all' scenarios.",
+          "type": "string"
         },
         "overwrites": {
           "additionalProperties": {
@@ -1771,6 +1974,246 @@
               "type": "string"
             }
           }
+        },
+        "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "bidding_zones_electricitymaps": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "bidding_zones_entsoepy": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_bundle": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "cutout_additional": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_pecd": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_hydro_inflows": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_pemmdb": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_supply_tool": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_benchmark": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_vis_plfm": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_cba_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -1939,12 +2382,192 @@
           },
           "type": "array"
         },
+        "tyndp_conventional_carriers": {
+          "description": "List of TYNDP conventional power plants to include in the model.",
+          "items": {
+            "enum": [
+              "gas",
+              "coal",
+              "lignite",
+              "nuclear",
+              "oil-light",
+              "oil-heavy",
+              "oil-shale"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "group_tyndp_conventionals": {
+          "default": true,
+          "description": "Whether to group together different TYNDP conventional technologies according to a predetermined mapping specified in `data/tyndp_technology_map.csv`.",
+          "type": "boolean"
+        },
         "renewable_carriers": {
           "description": "List of renewable generators to include in the model.",
           "items": {
             "type": "string"
           },
           "type": "array"
+        },
+        "tyndp_renewable_carriers": {
+          "description": "List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.",
+          "items": {
+            "enum": [
+              "solar-pv",
+              "solar-pv-utility",
+              "solar-pv-rooftop",
+              "onwind",
+              "offwind-ac-fb-r",
+              "offwind-ac-fl-r",
+              "offwind-dc-fb-r",
+              "offwind-dc-fl-r",
+              "offwind-dc-fb-oh",
+              "offwind-dc-fl-oh",
+              "offwind-h2-fb-oh",
+              "offwind-h2-fl-oh"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tyndp_stores": {
+          "description": "List of TYNDP storage units (battery and/or hydrogen).",
+          "items": {
+            "enum": [
+              "battery",
+              "h2_cavern",
+              "h2_tank"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pecd_renewable_profiles": {
+          "description": "Configuration for `electricity.pecd_renewable_profiles` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Activate PECD renewable profiles from TYNDP 2024 instead of default renewable profiles for specified renewable technologies below.",
+              "type": "boolean"
+            },
+            "pre_built": {
+              "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
+              "properties": {
+                "cyears": {
+                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "fill_gaps_method": {
+              "default": "zero",
+              "description": "The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.",
+              "type": "string"
+            },
+            "available_years": {
+              "description": "List of years for which PECD data is available.",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "technologies": {
+              "description": "The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",
+              "items": {
+                "enum": [
+                  "Wind_Offshore",
+                  "LFSolarPVRooftop",
+                  "LFSolarPVUtility",
+                  "CSP_noStorage",
+                  "CSP_withStorage",
+                  "Wind_Onshore"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "pemmdb_hydro_profiles": {
+          "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+              "type": "boolean"
+            },
+            "available_years": {
+              "description": "List of years for which PEMMDB hydro inflows data is available.",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "technologies": {
+              "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
+              "items": {
+                "enum": [
+                  "Run of River",
+                  "Pondage",
+                  "Reservoir",
+                  "PS Open",
+                  "PS Closed"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "pemmdb_capacities": {
+          "description": "Configuration for `electricity.pemmdb_capacities` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Activate PEMMDB capacities, must-runs and availabilities from TYNDP 2024.",
+              "type": "boolean"
+            },
+            "nprocesses": {
+              "default": 4,
+              "description": "Number of parallel processes when reading pemmdb data.",
+              "type": "integer"
+            },
+            "available_years": {
+              "description": "List of years for which PEMMDB data is available.",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "technologies": {
+              "description": "The PEMMDB technologies which are available and which data shall be used.",
+              "items": {
+                "enum": [
+                  "Solar",
+                  "Wind",
+                  "Hydro",
+                  "Other_RES",
+                  "Gas",
+                  "Nuclear",
+                  "Hard_coal",
+                  "Lignite",
+                  "Light_oil",
+                  "Heavy_oil",
+                  "Oil_shale",
+                  "Other_Non-RES",
+                  "Hydrogen",
+                  "Electrolyser",
+                  "Battery"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
         },
         "estimate_renewable_capacities": {
           "description": "Configuration for `electricity.estimate_renewable_capacities` settings.",
@@ -2449,6 +3072,15 @@
     "LoadConfig": {
       "description": "Configuration for `load` settings.",
       "properties": {
+        "source": {
+          "default": "opsd",
+          "description": "Source of load data. 'opsd' uses Open Power System Data, 'tyndp' uses TYNDP load data.",
+          "enum": [
+            "opsd",
+            "tyndp"
+          ],
+          "type": "string"
+        },
         "fill_gaps": {
           "description": "Configuration for `load.fill_gaps` settings.",
           "properties": {
@@ -2468,6 +3100,13 @@
               "type": "string"
             }
           }
+        },
+        "available_years_tyndp": {
+          "description": "Available years for TYNDP load data.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
         },
         "manual_adjustments": {
           "default": true,
@@ -3631,7 +4270,7 @@
           "default": "",
           "description": "Specify a name for your run. Results will be stored under this name. If ``scenario: enable:`` is set to ``true``, the name must contain a subset of scenario names defined in ``scenario: file:``. If the name is 'all', all defined scenarios will be run.",
           "examples": [
-            "my-pypsa-eur-run"
+            "my-open-tyndp-run"
           ]
         },
         "scenarios": {
@@ -4313,6 +4952,11 @@
           "description": "Add option for transforming natural gas into hydrogen and CO2 using Steam Methane Reforming (SMR) and Carbon Capture (CC).",
           "type": "boolean"
         },
+        "ATR": {
+          "default": false,
+          "description": "Add option for autothermal reforming (ATR) to produce hydrogen from natural gas.",
+          "type": "boolean"
+        },
         "regional_oil_demand": {
           "default": true,
           "description": "Spatially resolve oil demand. Set to true if regional CO2 constraints needed.",
@@ -4547,10 +5191,25 @@
           "description": "Add option for new hydrogen pipelines.",
           "type": "boolean"
         },
+        "h2_topology_tyndp": {
+          "default": false,
+          "description": "Use TYNDP H2 topology for hydrogen network.",
+          "type": "boolean"
+        },
+        "h2_zones_tyndp": {
+          "default": false,
+          "description": "Use TYNDP H2 zones for hydrogen network.",
+          "type": "boolean"
+        },
         "gas_network": {
           "default": true,
           "description": "Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
           "markdownDescription": "Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted [k-edge augmentation algorithm ](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation) can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
+          "type": "boolean"
+        },
+        "gas_demand_exogenously": {
+          "default": false,
+          "description": "Define gas demand exogenously from TYNDP data.",
           "type": "boolean"
         },
         "H2_retrofit": {
@@ -4620,6 +5279,31 @@
         "biomass_to_liquid_cc": {
           "default": false,
           "description": "Add option for transforming solid biomass into liquid fuel with the same properties as oil with carbon capture.",
+          "type": "boolean"
+        },
+        "biomass_final_demand": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            }
+          ],
+          "default": false,
+          "description": "Biomass final demand in TWh. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
+        },
+        "force_biomass_potential": {
+          "default": false,
+          "description": "Force biomass potential to TYNDP values.",
+          "type": "boolean"
+        },
+        "force_biogas_potential": {
+          "default": false,
+          "description": "Force biogas potential to TYNDP values.",
           "type": "boolean"
         },
         "electrobiofuels": {
@@ -4745,6 +5429,13 @@
               "description": "Add option to include renewable energy imports.",
               "type": "boolean"
             },
+            "carriers": {
+              "description": "List of carriers for which imports are enabled.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
             "limit": {
               "default": null,
               "description": "Maximum allowed renewable energy imports (TWh).",
@@ -4761,6 +5452,31 @@
               },
               "description": "Price for importing renewable energy of carrier.",
               "type": "object"
+            }
+          }
+        },
+        "offshore_hubs_tyndp": {
+          "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Enable TYNDP offshore hubs.",
+              "type": "boolean"
+            },
+            "max_capacity": {
+              "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
+              "properties": {
+                "DC_OH": {
+                  "default": 10,
+                  "description": "Maximum capacity for DC offshore hub connections (GW).",
+                  "type": "number"
+                },
+                "H2 pipeline OH": {
+                  "default": 30,
+                  "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
+                  "type": "number"
+                }
+              }
             }
           }
         }
@@ -5269,6 +5985,18 @@
         }
       }
     },
+    "TyndpInvestmentCandidatesConfig": {
+      "description": "Configuration for top level `tyndp_investment_candidates` settings.",
+      "properties": {
+        "elec_projects": {
+          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      }
+    },
     "_AdjustmentConfig": {
       "description": "Configuration for adjustment settings (factor/absolute)",
       "properties": {
@@ -5418,6 +6146,146 @@
         }
       }
     },
+    "_BenchmarkingTableConfig": {
+      "description": "Configuration for `benchmarking.tables.{table_name}` settings.",
+      "properties": {
+        "table_type": {
+          "description": "Table type configuration to use.",
+          "enum": [
+            "scenario_comparison",
+            "time_series"
+          ],
+          "type": "string"
+        },
+        "sheet_name": {
+          "description": "Excel sheet name containing reference data.",
+          "type": "string"
+        },
+        "unit": {
+          "description": "Data unit (e.g. TWh or GW) for conversion to the base unit using the unit conversion factors defined in `benchmarking:unit_conversion`.",
+          "type": "string"
+        },
+        "index_col": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Column index or list of column indices to use as row index when reading tables. This is an Excel-like index, starting at 1."
+        },
+        "header": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Row number or list of row numbers to use as column headers when reading tables. This is an Excel-like index, starting at 1."
+        },
+        "nrows": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of rows to read from reference data (optional)."
+        },
+        "ncolumns": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Number of columns to read from reference data (optional)."
+        },
+        "names": {
+          "description": "Configuration for `benchmarking.tables.{table_name}.names` settings.",
+          "properties": {
+            "index": {
+              "description": "Names for index levels corresponding to `index_col`.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "column": {
+              "description": "Names for column levels corresponding to `header`.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "mapping": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Mapping from model carrier names to reference data names.",
+          "type": "object"
+        },
+        "biomass_to_methane_efficiency": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Efficiency to convert biomass to biomethane. Dictionary with planning horizons as keys. Only used for biomass supply table benchmarking."
+        }
+      },
+      "required": [
+        "table_type",
+        "sheet_name",
+        "unit",
+        "index_col",
+        "header"
+      ]
+    },
+    "_BenchmarkingTableNamesConfig": {
+      "description": "Configuration for `benchmarking.tables.{table_name}.names` settings.",
+      "properties": {
+        "index": {
+          "description": "Names for index levels corresponding to `index_col`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "column": {
+          "description": "Names for column levels corresponding to `header`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      }
+    },
     "_BiomassClassesConfig": {
       "description": "Configuration for `biomass.classes` settings.",
       "properties": {
@@ -5485,6 +6353,31 @@
           "default": false,
           "description": "Add option for using gas-fired Combined Heat and Power (CHP) for decentral areas.",
           "type": "boolean"
+        }
+      }
+    },
+    "_CbaSolvingConfig": {
+      "description": "Configuration for `cba.solving` settings.",
+      "properties": {
+        "options": {
+          "additionalProperties": true,
+          "description": "CBA-specific solving options.",
+          "type": "object"
+        },
+        "solver": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "CBA solver configuration.",
+          "type": "object"
+        },
+        "solver_options": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": "CBA solver options.",
+          "type": "object"
         }
       }
     },
@@ -6293,6 +7186,13 @@
           "description": "Add option to include renewable energy imports.",
           "type": "boolean"
         },
+        "carriers": {
+          "description": "List of carriers for which imports are enabled.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "limit": {
           "default": null,
           "description": "Maximum allowed renewable energy imports (TWh).",
@@ -6462,6 +7362,46 @@
           "default": true,
           "description": "Whether to delete the worker instance when an error occurs during job execution.",
           "type": "boolean"
+        }
+      }
+    },
+    "_OffshoreHubsMaxCapacityConfig": {
+      "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
+      "properties": {
+        "DC_OH": {
+          "default": 10,
+          "description": "Maximum capacity for DC offshore hub connections (GW).",
+          "type": "number"
+        },
+        "H2 pipeline OH": {
+          "default": 30,
+          "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
+          "type": "number"
+        }
+      }
+    },
+    "_OffshoreHubsTyndpConfig": {
+      "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Enable TYNDP offshore hubs.",
+          "type": "boolean"
+        },
+        "max_capacity": {
+          "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
+          "properties": {
+            "DC_OH": {
+              "default": 10,
+              "description": "Maximum capacity for DC offshore hub connections (GW).",
+              "type": "number"
+            },
+            "H2 pipeline OH": {
+              "default": 30,
+              "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
+              "type": "number"
+            }
+          }
         }
       }
     },
@@ -6805,6 +7745,144 @@
           "default": 180.0,
           "description": "The angle between the North and the sun with panels on the local horizon.",
           "type": "number"
+        }
+      }
+    },
+    "_PecdPreBuiltConfig": {
+      "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
+      "properties": {
+        "cyears": {
+          "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      }
+    },
+    "_PecdRenewableProfilesConfig": {
+      "description": "Configuration for `electricity.pecd_renewable_profiles` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Activate PECD renewable profiles from TYNDP 2024 instead of default renewable profiles for specified renewable technologies below.",
+          "type": "boolean"
+        },
+        "pre_built": {
+          "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
+          "properties": {
+            "cyears": {
+              "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "fill_gaps_method": {
+          "default": "zero",
+          "description": "The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.",
+          "type": "string"
+        },
+        "available_years": {
+          "description": "List of years for which PECD data is available.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "technologies": {
+          "description": "The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",
+          "items": {
+            "enum": [
+              "Wind_Offshore",
+              "LFSolarPVRooftop",
+              "LFSolarPVUtility",
+              "CSP_noStorage",
+              "CSP_withStorage",
+              "Wind_Onshore"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        }
+      }
+    },
+    "_PemmdbCapacitiesConfig": {
+      "description": "Configuration for `electricity.pemmdb_capacities` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Activate PEMMDB capacities, must-runs and availabilities from TYNDP 2024.",
+          "type": "boolean"
+        },
+        "nprocesses": {
+          "default": 4,
+          "description": "Number of parallel processes when reading pemmdb data.",
+          "type": "integer"
+        },
+        "available_years": {
+          "description": "List of years for which PEMMDB data is available.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "technologies": {
+          "description": "The PEMMDB technologies which are available and which data shall be used.",
+          "items": {
+            "enum": [
+              "Solar",
+              "Wind",
+              "Hydro",
+              "Other_RES",
+              "Gas",
+              "Nuclear",
+              "Hard_coal",
+              "Lignite",
+              "Light_oil",
+              "Heavy_oil",
+              "Oil_shale",
+              "Other_Non-RES",
+              "Hydrogen",
+              "Electrolyser",
+              "Battery"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        }
+      }
+    },
+    "_PemmdbHydroProfilesConfig": {
+      "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+          "type": "boolean"
+        },
+        "available_years": {
+          "description": "List of years for which PEMMDB hydro inflows data is available.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "technologies": {
+          "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
+          "items": {
+            "enum": [
+              "Run of River",
+              "Pondage",
+              "Reservoir",
+              "PS Open",
+              "PS Closed"
+            ],
+            "type": "string"
+          },
+          "type": "array"
         }
       }
     },
@@ -7589,8 +8667,8 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v2025.07.0",
-      "description": "Version of PyPSA-Eur. Descriptive only.",
+      "default": "v0.4.2",
+      "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
     "tutorial": {
@@ -7659,7 +8737,7 @@
           "default": "",
           "description": "Specify a name for your run. Results will be stored under this name. If ``scenario: enable:`` is set to ``true``, the name must contain a subset of scenario names defined in ``scenario: file:``. If the name is 'all', all defined scenarios will be run.",
           "examples": [
-            "my-pypsa-eur-run"
+            "my-open-tyndp-run"
           ]
         },
         "scenarios": {
@@ -7732,6 +8810,16 @@
         "perfect"
       ],
       "type": "string"
+    },
+    "tyndp_scenario": {
+      "default": false,
+      "description": "Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
+      "enum": [
+        "NT",
+        "DE",
+        "GA",
+        false
+      ]
     },
     "scenario": {
       "description": "Configuration for top level `scenario` settings.",
@@ -8054,12 +9142,192 @@
           },
           "type": "array"
         },
+        "tyndp_conventional_carriers": {
+          "description": "List of TYNDP conventional power plants to include in the model.",
+          "items": {
+            "enum": [
+              "gas",
+              "coal",
+              "lignite",
+              "nuclear",
+              "oil-light",
+              "oil-heavy",
+              "oil-shale"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "group_tyndp_conventionals": {
+          "default": true,
+          "description": "Whether to group together different TYNDP conventional technologies according to a predetermined mapping specified in `data/tyndp_technology_map.csv`.",
+          "type": "boolean"
+        },
         "renewable_carriers": {
           "description": "List of renewable generators to include in the model.",
           "items": {
             "type": "string"
           },
           "type": "array"
+        },
+        "tyndp_renewable_carriers": {
+          "description": "List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.",
+          "items": {
+            "enum": [
+              "solar-pv",
+              "solar-pv-utility",
+              "solar-pv-rooftop",
+              "onwind",
+              "offwind-ac-fb-r",
+              "offwind-ac-fl-r",
+              "offwind-dc-fb-r",
+              "offwind-dc-fl-r",
+              "offwind-dc-fb-oh",
+              "offwind-dc-fl-oh",
+              "offwind-h2-fb-oh",
+              "offwind-h2-fl-oh"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tyndp_stores": {
+          "description": "List of TYNDP storage units (battery and/or hydrogen).",
+          "items": {
+            "enum": [
+              "battery",
+              "h2_cavern",
+              "h2_tank"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pecd_renewable_profiles": {
+          "description": "Configuration for `electricity.pecd_renewable_profiles` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Activate PECD renewable profiles from TYNDP 2024 instead of default renewable profiles for specified renewable technologies below.",
+              "type": "boolean"
+            },
+            "pre_built": {
+              "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
+              "properties": {
+                "cyears": {
+                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "fill_gaps_method": {
+              "default": "zero",
+              "description": "The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.",
+              "type": "string"
+            },
+            "available_years": {
+              "description": "List of years for which PECD data is available.",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "technologies": {
+              "description": "The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",
+              "items": {
+                "enum": [
+                  "Wind_Offshore",
+                  "LFSolarPVRooftop",
+                  "LFSolarPVUtility",
+                  "CSP_noStorage",
+                  "CSP_withStorage",
+                  "Wind_Onshore"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "pemmdb_hydro_profiles": {
+          "description": "Configuration for `electricity.pemmdb_hydro_profiles` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
+              "type": "boolean"
+            },
+            "available_years": {
+              "description": "List of years for which PEMMDB hydro inflows data is available.",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "technologies": {
+              "description": "The hydro technologies for which PEMMDB hydro inflows data is used.",
+              "items": {
+                "enum": [
+                  "Run of River",
+                  "Pondage",
+                  "Reservoir",
+                  "PS Open",
+                  "PS Closed"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "pemmdb_capacities": {
+          "description": "Configuration for `electricity.pemmdb_capacities` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Activate PEMMDB capacities, must-runs and availabilities from TYNDP 2024.",
+              "type": "boolean"
+            },
+            "nprocesses": {
+              "default": 4,
+              "description": "Number of parallel processes when reading pemmdb data.",
+              "type": "integer"
+            },
+            "available_years": {
+              "description": "List of years for which PEMMDB data is available.",
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "technologies": {
+              "description": "The PEMMDB technologies which are available and which data shall be used.",
+              "items": {
+                "enum": [
+                  "Solar",
+                  "Wind",
+                  "Hydro",
+                  "Other_RES",
+                  "Gas",
+                  "Nuclear",
+                  "Hard_coal",
+                  "Lignite",
+                  "Light_oil",
+                  "Heavy_oil",
+                  "Oil_shale",
+                  "Other_Non-RES",
+                  "Hydrogen",
+                  "Electrolyser",
+                  "Battery"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
         },
         "estimate_renewable_capacities": {
           "description": "Configuration for `electricity.estimate_renewable_capacities` settings.",
@@ -9574,6 +10842,18 @@
         }
       }
     },
+    "tyndp_investment_candidates": {
+      "description": "Configuration for top level `tyndp_investment_candidates` settings.",
+      "properties": {
+        "elec_projects": {
+          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      }
+    },
     "transformers": {
       "description": "Configuration for `transformers` settings.",
       "properties": {
@@ -9597,6 +10877,15 @@
     "load": {
       "description": "Configuration for `load` settings.",
       "properties": {
+        "source": {
+          "default": "opsd",
+          "description": "Source of load data. 'opsd' uses Open Power System Data, 'tyndp' uses TYNDP load data.",
+          "enum": [
+            "opsd",
+            "tyndp"
+          ],
+          "type": "string"
+        },
         "fill_gaps": {
           "description": "Configuration for `load.fill_gaps` settings.",
           "properties": {
@@ -9616,6 +10905,13 @@
               "type": "string"
             }
           }
+        },
+        "available_years_tyndp": {
+          "description": "Available years for TYNDP load data.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
         },
         "manual_adjustments": {
           "default": true,
@@ -10428,6 +11724,11 @@
           "description": "Add option for transforming natural gas into hydrogen and CO2 using Steam Methane Reforming (SMR) and Carbon Capture (CC).",
           "type": "boolean"
         },
+        "ATR": {
+          "default": false,
+          "description": "Add option for autothermal reforming (ATR) to produce hydrogen from natural gas.",
+          "type": "boolean"
+        },
         "regional_oil_demand": {
           "default": true,
           "description": "Spatially resolve oil demand. Set to true if regional CO2 constraints needed.",
@@ -10662,10 +11963,25 @@
           "description": "Add option for new hydrogen pipelines.",
           "type": "boolean"
         },
+        "h2_topology_tyndp": {
+          "default": false,
+          "description": "Use TYNDP H2 topology for hydrogen network.",
+          "type": "boolean"
+        },
+        "h2_zones_tyndp": {
+          "default": false,
+          "description": "Use TYNDP H2 zones for hydrogen network.",
+          "type": "boolean"
+        },
         "gas_network": {
           "default": true,
           "description": "Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
           "markdownDescription": "Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted [k-edge augmentation algorithm ](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation) can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
+          "type": "boolean"
+        },
+        "gas_demand_exogenously": {
+          "default": false,
+          "description": "Define gas demand exogenously from TYNDP data.",
           "type": "boolean"
         },
         "H2_retrofit": {
@@ -10735,6 +12051,31 @@
         "biomass_to_liquid_cc": {
           "default": false,
           "description": "Add option for transforming solid biomass into liquid fuel with the same properties as oil with carbon capture.",
+          "type": "boolean"
+        },
+        "biomass_final_demand": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            }
+          ],
+          "default": false,
+          "description": "Biomass final demand in TWh. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values."
+        },
+        "force_biomass_potential": {
+          "default": false,
+          "description": "Force biomass potential to TYNDP values.",
+          "type": "boolean"
+        },
+        "force_biogas_potential": {
+          "default": false,
+          "description": "Force biogas potential to TYNDP values.",
           "type": "boolean"
         },
         "electrobiofuels": {
@@ -10860,6 +12201,13 @@
               "description": "Add option to include renewable energy imports.",
               "type": "boolean"
             },
+            "carriers": {
+              "description": "List of carriers for which imports are enabled.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
             "limit": {
               "default": null,
               "description": "Maximum allowed renewable energy imports (TWh).",
@@ -10876,6 +12224,31 @@
               },
               "description": "Price for importing renewable energy of carrier.",
               "type": "object"
+            }
+          }
+        },
+        "offshore_hubs_tyndp": {
+          "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Enable TYNDP offshore hubs.",
+              "type": "boolean"
+            },
+            "max_capacity": {
+              "description": "Configuration for `sector.offshore_hubs_tyndp.max_capacity` settings.",
+              "properties": {
+                "DC_OH": {
+                  "default": 10,
+                  "description": "Maximum capacity for DC offshore hub connections (GW).",
+                  "type": "number"
+                },
+                "H2 pipeline OH": {
+                  "default": 30,
+                  "description": "Maximum capacity for H2 pipeline offshore hub connections (GW).",
+                  "type": "number"
+                }
+              }
             }
           }
         }
@@ -11149,17 +12522,10 @@
             }
           }
         },
-        "custom_cost_fn": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": "data/custom_costs.csv",
-          "description": "Path to the custom costs file. None if it should not be used. Default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results."
+        "custom_cost_scn": {
+          "default": "all",
+          "description": "Name of the custom costs scenario. Empty string if custom costs should not be used. Per default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results for 'all' scenarios.",
+          "type": "string"
         },
         "overwrites": {
           "additionalProperties": {
@@ -12813,6 +14179,246 @@
               "type": "string"
             }
           }
+        },
+        "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "bidding_zones_electricitymaps": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "bidding_zones_entsoepy": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_bundle": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "cutout_additional": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_pecd": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_hydro_inflows": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_pemmdb": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_supply_tool": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_benchmark": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_vis_plfm": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_cba_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -12866,8 +14472,218 @@
           "type": "string"
         }
       }
+    },
+    "benchmarking": {
+      "description": "Configuration for top level `benchmarking` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Switch to enable or disable benchmarking functionality for comparing model results with reference data.",
+          "type": "boolean"
+        },
+        "remove_last_day": {
+          "default": false,
+          "description": "Switch to optionally remove the last day of the year to ensure the benchmarked values have exactly 52 weeks.",
+          "type": "boolean"
+        },
+        "tables": {
+          "additionalProperties": {
+            "description": "Configuration for `benchmarking.tables.{table_name}` settings.",
+            "properties": {
+              "table_type": {
+                "description": "Table type configuration to use.",
+                "enum": [
+                  "scenario_comparison",
+                  "time_series"
+                ],
+                "type": "string"
+              },
+              "sheet_name": {
+                "description": "Excel sheet name containing reference data.",
+                "type": "string"
+              },
+              "unit": {
+                "description": "Data unit (e.g. TWh or GW) for conversion to the base unit using the unit conversion factors defined in `benchmarking:unit_conversion`.",
+                "type": "string"
+              },
+              "index_col": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  }
+                ],
+                "description": "Column index or list of column indices to use as row index when reading tables. This is an Excel-like index, starting at 1."
+              },
+              "header": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "items": {
+                      "type": "integer"
+                    },
+                    "type": "array"
+                  }
+                ],
+                "description": "Row number or list of row numbers to use as column headers when reading tables. This is an Excel-like index, starting at 1."
+              },
+              "nrows": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Number of rows to read from reference data (optional)."
+              },
+              "ncolumns": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Number of columns to read from reference data (optional)."
+              },
+              "names": {
+                "description": "Configuration for `benchmarking.tables.{table_name}.names` settings.",
+                "properties": {
+                  "index": {
+                    "description": "Names for index levels corresponding to `index_col`.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "column": {
+                    "description": "Names for column levels corresponding to `header`.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                }
+              },
+              "mapping": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Mapping from model carrier names to reference data names.",
+                "type": "object"
+              },
+              "biomass_to_methane_efficiency": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Efficiency to convert biomass to biomethane. Dictionary with planning horizons as keys. Only used for biomass supply table benchmarking."
+              }
+            },
+            "required": [
+              "table_type",
+              "sheet_name",
+              "unit",
+              "index_col",
+              "header"
+            ]
+          },
+          "description": "Tables configuration for benchmarking. Each key is a table name, and the value contains the table configuration.",
+          "type": "object"
+        }
+      }
+    },
+    "cba": {
+      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "properties": {
+        "hurdle_costs": {
+          "default": 0.01,
+          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "type": "number"
+        },
+        "co2_societal_cost": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object"
+          },
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "type": "object"
+        },
+        "planning_horizons": {
+          "description": "List of planning horizons for which to run CBA.",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "methods": {
+          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "items": {
+            "enum": [
+              "toot",
+              "pint"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "projects": {
+          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "solving": {
+          "description": "Configuration for `cba.solving` settings.",
+          "properties": {
+            "options": {
+              "additionalProperties": true,
+              "description": "CBA-specific solving options.",
+              "type": "object"
+            },
+            "solver": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "CBA solver configuration.",
+              "type": "object"
+            },
+            "solver_options": {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "description": "CBA solver options.",
+              "type": "object"
+            }
+          }
+        }
+      }
     }
   },
-  "title": "PyPSA-Eur Configuration",
+  "title": "Open-TYNDP Configuration",
   "type": "object"
 }

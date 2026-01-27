@@ -70,9 +70,9 @@ class CostsConfig(BaseModel):
         default_factory=_FillValuesConfig,
         description="Default values if not specified for a technology in `resources/costs.csv`.",
     )
-    custom_cost_fn: str | None = Field(
-        "data/custom_costs.csv",
-        description="Path to the custom costs file. None if it should not be used. Default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results.",
+    custom_cost_scn: str = Field(
+        "all",
+        description="Name of the custom costs scenario. Empty string if custom costs should not be used. Per default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results for 'all' scenarios.",
     )
     overwrites: dict[str, dict[str, float]] = Field(
         default_factory=dict,

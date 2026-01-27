@@ -9,6 +9,8 @@ Load configuration.
 See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#load
 """
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from scripts.lib.validation.config._base import ConfigModel
@@ -47,9 +49,17 @@ class _DistributionKeyConfig(BaseModel):
 class LoadConfig(BaseModel):
     """Configuration for `load` settings."""
 
+    source: Literal["opsd", "tyndp"] = Field(
+        "opsd",
+        description="Data source used for the electrical load (OSPD or TYNDP, default: OPSD).",
+    )
     fill_gaps: _FillGapsConfig = Field(
         default_factory=_FillGapsConfig,
         description="Gaps filling strategy used.",
+    )
+    available_years_tyndp: list[int] = Field(
+        default_factory=lambda: [2030, 2040, 2050],
+        description="List of years for which TYNDP demand data is available.",
     )
     manual_adjustments: bool = Field(
         True,

@@ -135,6 +135,105 @@ class _AutarkyConfig(BaseModel):
     )
 
 
+class _PecdPreBuiltConfig(BaseModel):
+    """Configuration for `electricity.pecd_renewable_profiles.pre_built` settings."""
+
+    cyears: list[int] = Field(
+        default_factory=lambda: [1995, 2008, 2009],
+        description="Climate years for pre-built PECD profiles.",
+    )
+
+
+class _PecdRenewableProfilesConfig(BaseModel):
+    """Configuration for `electricity.pecd_renewable_profiles` settings."""
+
+    enable: bool = Field(
+        False,
+        description="Enable PECD (Pan-European Climate Database) renewable profiles from ENTSO-E.",
+    )
+    pre_built: _PecdPreBuiltConfig = Field(
+        default_factory=_PecdPreBuiltConfig,
+        description="Pre-built PECD profiles configuration.",
+    )
+    fill_gaps_method: str = Field(
+        "zero",
+        description="Method to fill gaps in PECD profiles.",
+    )
+    available_years: list[int] = Field(
+        default_factory=lambda: [2030, 2040, 2050],
+        description="Available years for PECD profiles.",
+    )
+    technologies: list[str] = Field(
+        default_factory=lambda: [
+            "Wind_Offshore",
+            "LFSolarPVRooftop",
+            "LFSolarPVUtility",
+            "Wind_Onshore",
+        ],
+        description="Technologies for PECD profiles.",
+    )
+
+
+class _PemmdbHydroProfilesConfig(BaseModel):
+    """Configuration for `electricity.pemmdb_hydro_profiles` settings."""
+
+    enable: bool = Field(
+        False,
+        description="Enable PEMMDB (Pan-European Market Modelling Database) hydro profiles.",
+    )
+    available_years: list[int] = Field(
+        default_factory=lambda: [2030, 2040, 2050],
+        description="Available years for PEMMDB hydro profiles.",
+    )
+    technologies: list[str] = Field(
+        default_factory=lambda: [
+            "Run of River",
+            "Pondage",
+            "Reservoir",
+            "PS Open",
+            "PS Closed",
+        ],
+        description="Hydro technologies for PEMMDB profiles.",
+    )
+
+
+class _PemmdbCapacitiesConfig(BaseModel):
+    """Configuration for `electricity.pemmdb_capacities` settings."""
+
+    enable: bool = Field(
+        False,
+        description="Enable PEMMDB capacities.",
+    )
+    nprocesses: int = Field(
+        4,
+        description="Number of processes for PEMMDB capacities processing.",
+    )
+    available_years: list[int] = Field(
+        default_factory=lambda: [2030, 2040, 2050],
+        description="Available years for PEMMDB capacities.",
+    )
+    technologies: list[str] = Field(
+        default_factory=lambda: [
+            "Solar",
+            "Wind",
+            "Hydro",
+            "Other_RES",
+            "Gas",
+            "Nuclear",
+            "Hard_coal",
+            "Lignite",
+            "Light_oil",
+            "Heavy_oil",
+            "Oil_shale",
+            "Other_Non-RES",
+            "Hydrogen",
+            "Electrolyser",
+            "Battery",
+        ],
+        description="Technologies for PEMMDB capacities.",
+    )
+
+
 class ElectricityConfig(BaseModel):
     """Configuration for `electricity` settings."""
 
@@ -203,6 +302,16 @@ class ElectricityConfig(BaseModel):
         ],
         description="List of conventional power plants to include in the model from `resources/powerplants_s_{clusters}.csv`. If an included carrier is also listed in `extendable_carriers`, the capacity is taken as a lower bound.",
     )
+    tyndp_conventional_carriers: list[
+        Literal["gas", "coal", "lignite", "nuclear", "oil-light", "oil-heavy", "oil-shale"]
+    ] = Field(
+        default_factory=list,
+        description="List of TYNDP conventional power plants to include in the model.",
+    )
+    group_tyndp_conventionals: bool = Field(
+        True,
+        description="Whether to group together different TYNDP conventional technologies according to a predetermined mapping specified in `data/tyndp_technology_map.csv`.",
+    )
     renewable_carriers: list[str] = Field(
         default_factory=lambda: [
             "solar",
@@ -214,6 +323,41 @@ class ElectricityConfig(BaseModel):
             "hydro",
         ],
         description="List of renewable generators to include in the model.",
+    )
+    tyndp_renewable_carriers: list[
+        Literal[
+            "solar-pv",
+            "solar-pv-utility",
+            "solar-pv-rooftop",
+            "onwind",
+            "offwind-ac-fb-r",
+            "offwind-ac-fl-r",
+            "offwind-dc-fb-r",
+            "offwind-dc-fl-r",
+            "offwind-dc-fb-oh",
+            "offwind-dc-fl-oh",
+            "offwind-h2-fb-oh",
+            "offwind-h2-fl-oh",
+        ]
+    ] = Field(
+        default_factory=list,
+        description="List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.",
+    )
+    tyndp_stores: list[Literal["battery", "h2_cavern", "h2_tank"]] = Field(
+        default_factory=list,
+        description="List of TYNDP storage units (battery and/or hydrogen).",
+    )
+    pecd_renewable_profiles: _PecdRenewableProfilesConfig = Field(
+        default_factory=_PecdRenewableProfilesConfig,
+        description="PECD (Pan-European Climate Database) renewable profiles configuration.",
+    )
+    pemmdb_hydro_profiles: _PemmdbHydroProfilesConfig = Field(
+        default_factory=_PemmdbHydroProfilesConfig,
+        description="PEMMDB hydro profiles configuration.",
+    )
+    pemmdb_capacities: _PemmdbCapacitiesConfig = Field(
+        default_factory=_PemmdbCapacitiesConfig,
+        description="PEMMDB capacities configuration.",
     )
     estimate_renewable_capacities: _EstimateRenewableCapacitiesConfig = Field(
         default_factory=_EstimateRenewableCapacitiesConfig,

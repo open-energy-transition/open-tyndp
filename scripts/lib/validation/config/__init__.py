@@ -20,7 +20,9 @@ from ruamel.yaml import YAML
 from scripts.lib.validation.config._base import ConfigModel
 from scripts.lib.validation.config.adjustments import AdjustmentsConfig
 from scripts.lib.validation.config.atlite import AtliteConfig
+from scripts.lib.validation.config.benchmarking import BenchmarkingConfig
 from scripts.lib.validation.config.biomass import BiomassConfig
+from scripts.lib.validation.config.cba import CbaConfig
 from scripts.lib.validation.config.clustering import ClusteringConfig
 from scripts.lib.validation.config.co2_budget import Co2BudgetConfig
 from scripts.lib.validation.config.conventional import ConventionalConfig
@@ -86,6 +88,15 @@ class SecretsConfig(ConfigModel):
     )
 
 
+class TyndpInvestmentCandidatesConfig(ConfigModel):
+    """Configuration for top level `tyndp_investment_candidates` settings."""
+
+    elec_projects: list[int] = Field(
+        default_factory=list,
+        description="List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
+    )
+
+
 class ConfigSchema(BaseModel):
     """
     Combined configuration schema for PyPSA-EUR.
@@ -120,6 +131,10 @@ class ConfigSchema(BaseModel):
     foresight: ForesightConfig = Field(
         default_factory=ForesightConfig,
         description="Foresight mode for the optimization. See Foresight Options for detailed explanations.",
+    )
+    tyndp_scenario: Literal["NT", "DE", "GA", False] = Field(
+        False,
+        description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
     )
     scenario: ScenarioConfig = Field(
         default_factory=ScenarioConfig,
@@ -168,6 +183,10 @@ class ConfigSchema(BaseModel):
     transmission_projects: TransmissionProjectsConfig = Field(
         default_factory=TransmissionProjectsConfig,
         description="Transmission projects configuration.",
+    )
+    tyndp_investment_candidates: TyndpInvestmentCandidatesConfig = Field(
+        default_factory=TyndpInvestmentCandidatesConfig,
+        description="TYNDP investment candidates configuration.",
     )
     transformers: TransformersConfig = Field(
         default_factory=TransformersConfig,
@@ -232,6 +251,14 @@ class ConfigSchema(BaseModel):
     secrets: SecretsConfig = Field(
         default_factory=SecretsConfig,
         description="Secrets configuration for API tokens.",
+    )
+    benchmarking: BenchmarkingConfig = Field(
+        default_factory=BenchmarkingConfig,
+        description="Benchmarking configuration for comparing model results with reference data.",
+    )
+    cba: CbaConfig = Field(
+        default_factory=CbaConfig,
+        description="Cost-Benefit Analysis (CBA) configuration.",
     )
 
 

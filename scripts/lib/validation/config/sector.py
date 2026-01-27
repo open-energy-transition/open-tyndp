@@ -709,6 +709,10 @@ class SectorConfig(BaseModel):
         True,
         description="Add option for transforming natural gas into hydrogen and CO2 using Steam Methane Reforming (SMR) and Carbon Capture (CC).",
     )
+    ATR: bool = Field(
+        False,
+        description="Add option for autothermal reforming (ATR) to produce hydrogen from natural gas.",
+    )
 
     regional_oil_demand: bool = Field(
         True,
@@ -844,9 +848,21 @@ class SectorConfig(BaseModel):
     )
 
     H2_network: bool = Field(True, description="Add option for new hydrogen pipelines.")
+    h2_topology_tyndp: bool = Field(
+        False,
+        description="Use TYNDP H2 topology for hydrogen network.",
+    )
+    h2_zones_tyndp: bool = Field(
+        False,
+        description="Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
+    )
     gas_network: bool = Field(
         True,
         description="Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
+    )
+    gas_demand_exogenously: bool = Field(
+        False,
+        description="Add exogenous methane demand from the TYNDP 2024.",
     )
     H2_retrofit: bool = Field(
         False,
@@ -896,6 +912,18 @@ class SectorConfig(BaseModel):
     biomass_to_liquid_cc: bool = Field(
         False,
         description="Add option for transforming solid biomass into liquid fuel with the same properties as oil with carbon capture.",
+    )
+    biomass_final_demand: bool | dict[int, float] = Field(
+        False,
+        description="Biomass final demand in TWh/a. Can be a boolean (false to disable) or a dictionary mapping planning horizons to demand values.",
+    )
+    force_biomass_potential: bool = Field(
+        False,
+        description="Add option to force all solid biomass potential to be used	.",
+    )
+    force_biogas_potential: bool = Field(
+        False,
+        description="Add option to force all biogas potential to be used.",
     )
     electrobiofuels: bool = Field(True, description="Electrobiofuels.")
     biosng: bool = Field(
