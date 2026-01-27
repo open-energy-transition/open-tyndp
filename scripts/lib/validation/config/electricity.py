@@ -342,7 +342,14 @@ class ElectricityConfig(BaseModel):
     )
     tyndp_conventional_carriers: list[
         Literal[
-            "gas", "coal", "lignite", "nuclear", "uranium", "oil-light", "oil-heavy", "oil-shale"
+            "gas",
+            "coal",
+            "lignite",
+            "nuclear",
+            "uranium",
+            "oil-light",
+            "oil-heavy",
+            "oil-shale",
         ]
     ] = Field(
         default_factory=list,
