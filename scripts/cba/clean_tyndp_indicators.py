@@ -22,10 +22,12 @@ STAT_MAP = {
     "avg": "mean",
 }
 
-EURO_SYMBOLS = {
-    "\u00e2\u0082\u00ac",
-    "\u201a\u00c7\u00a8",
-}
+TRANSLATE_MAP = str.maketrans(
+    {
+        "\u0394": "",
+        "\u20ac": "euro",
+    }
+)
 
 INDICATOR_MAP = {
     "B1": "B1_total_system_cost_change",
@@ -41,27 +43,10 @@ INDICATOR_MAP = {
     "B4f": "B4f_nmvoc",
 }
 
-MODEL_UNITS = {
-    "B1_total_system_cost_change": "Meuro/year",
-    "B2a_co2_variation": "ktonnes/year",
-    "B2a_societal_cost_variation": "Meuro/year",
-    "B3_res_generation_change_mwh": "GWh/year",
-    "B3a_res_capacity_change_mw": "MW",
-    "B4a_nox": "kg/year",
-    "B4b_nh3": "kg/year",
-    "B4c_sox": "kg/year",
-    "B4d_pm25": "kg/year",
-    "B4e_pm10": "kg/year",
-    "B4f_nmvoc": "kg/year",
-}
-
-
 def _normalize_text(value: str) -> str:
-    text = str(value).strip()
-    text = text.replace("\u0394", "")
-    text = text.replace("\u20ac", "euro")
-    for bad in EURO_SYMBOLS:
-        text = text.replace(bad, "euro")
+    text = str(value).strip().translate(TRANSLATE_MAP)
+    text = text.replace("\u00e2\u0082\u00ac", "euro")
+    text = text.replace("\u201a\u00c7\u00a8", "euro")
     return text.replace("euroeuro", "euro")
 
 
@@ -78,7 +63,7 @@ def normalize_indicator_text(text: str) -> str:
 
 
 def normalize_indicator_key(text: str) -> str:
-    return normalize_indicator_text(text).replace(" ", "")
+    return _normalize_text(text).replace(" ", "")
 
 
 def parse_project_id(series: pd.Series) -> pd.Series:
