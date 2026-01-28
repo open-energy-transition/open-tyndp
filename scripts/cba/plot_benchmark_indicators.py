@@ -192,12 +192,8 @@ def plot_project_benchmarks(
         ax.set_xticklabels(labels, rotation=45, ha="right")
         offsets = {"low": -0.15, "central": 0.0, "high": 0.15}
         for level in levels:
-            model_val = select_value_by_subindex(
-                df, b2a_special, "model", level
-            )
-            bench_val = select_value_by_subindex(
-                df, b2a_special, "2024 tyndp", level
-            )
+            model_val = select_value_by_subindex(df, b2a_special, "model", level)
+            bench_val = select_value_by_subindex(df, b2a_special, "2024 tyndp", level)
             if bench_val is not None:
                 ax.scatter(
                     [base_x + offsets[level]],
