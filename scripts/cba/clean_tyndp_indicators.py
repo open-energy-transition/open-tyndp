@@ -22,13 +22,6 @@ STAT_MAP = {
     "avg": "mean",
 }
 
-TRANSLATE_MAP = str.maketrans(
-    {
-        "\u0394": "",
-        "\u20ac": "euro",
-    }
-)
-
 INDICATOR_MAP = {
     "B1": "B1_total_system_cost_change",
     "B2a": "B2a_co2_variation",
@@ -44,27 +37,48 @@ INDICATOR_MAP = {
 }
 
 
-def _normalize_text(value: str) -> str:
-    text = str(value).strip().translate(TRANSLATE_MAP)
-    text = text.replace("\u00e2\u0082\u00ac", "euro")
-    text = text.replace("\u201a\u00c7\u00a8", "euro")
-    return text.replace("euroeuro", "euro")
+def normalize_text(
+    value: str, *, drop_spaces: bool = False, monetised: bool = False
+) -> str:
+    """
+    Normalize text for parsing the TYNDP Excel data.
+
+    Strips whitespace, remove Delta symbol, replace Euro symbols with 'euro',
+    standardizes spelling of 'monetised'/'monetized', and optionally removes spaces.
+    """
+    text = (
+        str(value)
+        .strip()
+        .replace("\u0394", "")
+        .replace("\u20ac", "euro")
+        .replace("\u00e2\u0082\u00ac", "euro")
+        .replace("\u201a\u00c7\u00a8", "euro")
+    )
+    if monetised:
+        text = text.replace("monetized", "monetised")
+    if drop_spaces:
+        text = text.replace(" ", "")
+    return text
 
 
 def normalize_unit(unit: str) -> str:
-    return _normalize_text(unit).replace(" ", "")
+    """Normalize unit strings."""
+    return normalize_text(unit, drop_spaces=True)
 
 
 def normalize_shortcut(shortcut: str) -> str:
-    return _normalize_text(shortcut).replace("monetized", "monetised")
+    """Normalize Readme shortcut text."""
+    return normalize_text(shortcut, monetised=True)
 
 
 def normalize_indicator_text(text: str) -> str:
-    return _normalize_text(text)
+    """Normalize indicator text."""
+    return normalize_text(text)
 
 
 def normalize_indicator_key(text: str) -> str:
-    return _normalize_text(text).replace(" ", "")
+    """Normalize indicator key."""
+    return normalize_text(text, drop_spaces=True)
 
 
 def parse_project_id(series: pd.Series) -> pd.Series:
@@ -75,6 +89,7 @@ def parse_project_id(series: pd.Series) -> pd.Series:
 
 
 def load_readme_mapping(excel_path: Path) -> pd.DataFrame:
+    """Load the Readme mapping table (F6:I25) from the TYNDP workbook."""
     mapping = pd.read_excel(
         excel_path,
         sheet_name="Readme",
@@ -93,6 +108,7 @@ def load_readme_mapping(excel_path: Path) -> pd.DataFrame:
 
 
 def extract_readme_table(excel_path: Path) -> pd.DataFrame:
+    """Return a normalized readme table for export as CSV."""
     mapping = load_readme_mapping(excel_path)
     if mapping.empty:
         return pd.DataFrame(columns=["shortcut", "full_name", "indicator", "unit"])
@@ -112,6 +128,11 @@ def extract_readme_table(excel_path: Path) -> pd.DataFrame:
 
 
 def scenario_sheets(excel_path: Path) -> list[str]:
+    """
+    List scenario sheets.
+
+    This assumes scenarios are named starting with 2030 or 2040.
+    """
     xl = pd.ExcelFile(excel_path)
     return [
         name
@@ -121,11 +142,13 @@ def scenario_sheets(excel_path: Path) -> list[str]:
 
 
 def parse_scenario_name(sheet_name: str) -> tuple[str, int]:
+    """Parse scenario name into label and planning horizon."""
     year = int(sheet_name[:4])
     return sheet_name, year
 
 
 def extract_sheet(excel_path: Path, sheet_name: str) -> pd.DataFrame:
+    """Extract long-format indicator rows from a single scenario sheet."""
     df = pd.read_excel(excel_path, sheet_name=sheet_name, header=[0, 1])
     df = normalize_headers(df)
 
@@ -183,6 +206,7 @@ def extract_sheet(excel_path: Path, sheet_name: str) -> pd.DataFrame:
 
 
 def normalize_headers(df: pd.DataFrame) -> pd.DataFrame:
+    """Fill forward top-level headers in a multi-index header row."""
     level0 = []
     prev = None
     for col in df.columns:
@@ -198,6 +222,7 @@ def normalize_headers(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFrame:
+    """Join Readme metadata onto indicator data."""
     long["shortcut_norm"] = long["shortcut"].map(normalize_shortcut)
     mapping = mapping.copy()
     mapping["Shortcut_norm"] = mapping["Shortcut"].map(normalize_shortcut)
@@ -242,6 +267,7 @@ def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFr
 
 
 def process_excel(excel_path: Path, project_type: str) -> pd.DataFrame:
+    """Process all scenario sheets for a given workbook and project type."""
     mapping = load_readme_mapping(excel_path)
     frames = []
     for sheet_name in scenario_sheets(excel_path):
