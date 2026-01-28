@@ -205,7 +205,7 @@ def _load_links_from_eg(buses, links):
     return links
 
 
-def _load_links_from_raw(buses, links):
+def _load_links_from_raw(links, buses=pd.DataFrame()):
     links = pd.read_csv(
         links,
         quotechar="'",
@@ -222,7 +222,8 @@ def _load_links_from_raw(buses, links):
 
     links["length"] /= 1e3
 
-    links = _remove_dangling_branches(links, buses)
+    if not buses.empty:
+        links = _remove_dangling_branches(links, buses)
 
     # Add DC line parameters
     links["carrier"] = "DC"
@@ -711,7 +712,7 @@ def base_network(
         lines = _set_electrical_parameters_lines_eg(lines, config)
         links = _set_electrical_parameters_links_eg(links, config, links_p_nom)
     elif base_network in {"osm", "tyndp"}:
-        links = _load_links_from_raw(buses, links)
+        links = _load_links_from_raw(links, buses)
         converters = _load_converters_from_raw(buses, converters)
 
         # Set electrical parameters of lines and links

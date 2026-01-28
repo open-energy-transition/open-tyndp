@@ -438,6 +438,10 @@ transmission_projects:
     #- under_consideration
   new_link_capacity: zero #keep or zero
 
+# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
+tyndp_investment_candidates:
+  elec_projects: []
+
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#transformers
 transformers:
   x: 0.1
