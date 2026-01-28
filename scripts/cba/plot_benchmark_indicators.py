@@ -14,6 +14,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.lines import Line2D
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -108,121 +109,190 @@ def format_project_label(project_id: int, planning_horizon: str | None) -> str:
 def plot_project_benchmarks(
     df: pd.DataFrame, output_path: Path, project_label: str | None = None
 ) -> None:
-    """Plot benchmark ranges and model values for a single project."""
+    """Plot one subplot per indicator with its own y-axis and legend."""
     indicators = sorted(df["indicator"].dropna().unique())
     if not indicators:
         logger.info("No benchmark indicators available to plot")
         return
 
-    labels = []
-    model_values = []
-    means = []
-    mins = []
-    maxs = []
-    b2a_special = None
-
+    plot_items = []
     for indicator in indicators:
         if indicator == "B2a_societal_cost_variation":
-            b2a_special = indicator
+            levels = ["low", "central", "high"]
+            has_any = any(
+                select_value_by_subindex(df, indicator, src, lvl) is not None
+                for src in ["model", "2024 tyndp"]
+                for lvl in levels
+            )
+            if has_any:
+                plot_items.append(indicator)
             continue
 
         model_val = select_model_value(df, indicator)
         bench = benchmark_range(df, indicator)
         if model_val is None or bench is None:
             continue
-        min_val, mean_val, max_val = bench
+        plot_items.append(indicator)
+
+    if not plot_items:
+        logger.info("No complete benchmark data to plot")
+        return
+
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=len(plot_items),
+        figsize=(max(1.7 * len(plot_items), 10), 4.2),
+        squeeze=False,
+        sharey=False,
+    )
+
+    legend_handles = []
+    legend_labels = []
+
+    for ax, indicator in zip(axes[0], plot_items):
+        ax.axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
+
+        if indicator == "B2a_societal_cost_variation":
+            levels = ["low", "central", "high"]
+            level_colors = {
+                "low": "tab:orange",
+                "central": "tab:green",
+                "high": "tab:red",
+            }
+            offsets = {"low": -0.1, "central": 0.0, "high": 0.1}
+            x = 0.0
+            for level in levels:
+                model_val = select_value_by_subindex(df, indicator, "model", level)
+                bench_val = select_value_by_subindex(df, indicator, "2024 tyndp", level)
+                if bench_val is not None:
+                    ax.scatter(
+                        [x + offsets[level]],
+                        [bench_val],
+                        color=level_colors[level],
+                        marker="x",
+                        zorder=3,
+                    )
+                    label = f"2024 TYNDP {level}"
+                    if label not in legend_labels:
+                        legend_handles.append(
+                            Line2D(
+                                [0],
+                                [0],
+                                marker="x",
+                                color=level_colors[level],
+                                linestyle="None",
+                            )
+                        )
+                        legend_labels.append(label)
+                if model_val is not None:
+                    ax.scatter(
+                        [x + offsets[level]],
+                        [model_val],
+                        color=level_colors[level],
+                        marker="o",
+                        zorder=4,
+                    )
+                    label = f"Model {level}"
+                    if label not in legend_labels:
+                        legend_handles.append(
+                            Line2D(
+                                [0],
+                                [0],
+                                marker="o",
+                                color=level_colors[level],
+                                linestyle="None",
+                            )
+                        )
+                        legend_labels.append(label)
+            ax.set_xticks([])
+        else:
+            model_val = select_model_value(df, indicator)
+            min_val, mean_val, max_val = benchmark_range(df, indicator)
+            lower = abs(mean_val - min_val)
+            upper = abs(max_val - mean_val)
+
+            ax.errorbar(
+                [0],
+                [mean_val],
+                yerr=[[lower], [upper]],
+                fmt="o",
+                color="gray",
+                ecolor="lightgray",
+                capsize=3,
+            )
+            label = "2024 TYNDP (mean ± min/max)"
+            if label not in legend_labels:
+                legend_handles.append(
+                    Line2D([0], [0], marker="o", color="gray", linestyle="None")
+                )
+                legend_labels.append(label)
+            ax.scatter(
+                [0],
+                [model_val],
+                color="tab:blue",
+                zorder=3,
+            )
+            if "Model" not in legend_labels:
+                legend_handles.append(
+                    Line2D([0], [0], marker="o", color="tab:blue", linestyle="None")
+                )
+                legend_labels.append("Model")
+            ax.set_xticks([])
+
+        ylim = ax.get_ylim()
+        values = [v for v in ylim if v != 0]
+        if values:
+            abs_max = max(abs(v) for v in values)
+            abs_min = min(abs(v) for v in values)
+            if abs_min > 0 and abs_max / abs_min >= 1e3:
+                ax.set_yscale("symlog", linthresh=max(abs_min, 1.0))
+
         units = df.loc[
             (df["indicator"] == indicator) & (df["source"] == "model"), "units"
         ].dropna()
         unit_label = units.iloc[0] if not units.empty else ""
-        labels.append(f"{indicator} ({unit_label})" if unit_label else indicator)
-        model_values.append(model_val)
-        means.append(mean_val)
-        mins.append(min_val)
-        maxs.append(max_val)
+        title = f"{indicator} ({unit_label})" if unit_label else indicator
+        ax.set_ylabel(title)
 
-    if not labels:
-        logger.info("No complete benchmark data to plot")
-        return
-
-    x = range(len(labels))
-    mean = pd.Series(means).to_numpy()
-    ymin = pd.Series(mins).to_numpy()
-    ymax = pd.Series(maxs).to_numpy()
-    lower = abs(mean - ymin)
-    upper = abs(ymax - mean)
-
-    fig, ax = plt.subplots(figsize=(max(10, len(labels) * 0.6), 5))
-    # Switch to symlog if values span multiple orders of magnitude.
-    values = list(mean) + list(ymin) + list(ymax) + list(model_values)
-    nonzero = [abs(v) for v in values if v not in (0, None) and not pd.isna(v)]
-    if nonzero:
-        abs_max = max(nonzero)
-        abs_min = min(nonzero)
-        if abs_min > 0 and abs_max / abs_min >= 1e3:
-            ax.set_yscale("symlog", linthresh=max(abs_min, 1.0))
-    ax.errorbar(
-        x,
-        mean,
-        yerr=[lower, upper],
-        fmt="o",
-        color="gray",
-        ecolor="lightgray",
-        capsize=3,
-        label="2024 TYNDP (mean ± min/max)",
-    )
-    ax.scatter(
-        x,
-        model_values,
-        color="tab:blue",
-        zorder=3,
-        label="Model",
-    )
-    ax.set_xticks(list(x))
-    ax.set_xticklabels(labels, rotation=45, ha="right")
-    ax.set_ylabel("Value")
-    ax.axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
-
-    if b2a_special:
-        levels = ["low", "central", "high"]
-        level_colors = {"low": "tab:orange", "central": "tab:green", "high": "tab:red"}
-        base_x = len(labels)
-        labels.append("B2a_societal_cost_variation")
-        ax.set_xticks(list(range(len(labels))))
-        ax.set_xticklabels(labels, rotation=45, ha="right")
-        offsets = {"low": -0.15, "central": 0.0, "high": 0.15}
-        for level in levels:
-            model_val = select_value_by_subindex(
-                df, b2a_special, "model", level
-            )
-            bench_val = select_value_by_subindex(
-                df, b2a_special, "2024 tyndp", level
-            )
-            if bench_val is not None:
-                ax.scatter(
-                    [base_x + offsets[level]],
-                    [bench_val],
-                    color=level_colors[level],
-                    marker="x",
-                    label=f"2024 TYNDP {level}",
-                    zorder=3,
-                )
-            if model_val is not None:
-                ax.scatter(
-                    [base_x + offsets[level]],
-                    [model_val],
-                    color=level_colors[level],
-                    marker="o",
-                    label=f"Model {level}",
-                    zorder=4,
-                )
     if project_label:
-        ax.set_title(f"CBA indicator benchmark ({project_label})")
-    else:
-        ax.set_title("CBA indicator benchmark")
-    ax.legend(loc="best")
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=150)
+        fig.suptitle(f"CBA indicator benchmark ({project_label})")
+    b2a_order = [
+        "2024 TYNDP low",
+        "2024 TYNDP central",
+        "2024 TYNDP high",
+        "Model low",
+        "Model central",
+        "Model high",
+    ]
+    b2a_items = [(h, l) for h, l in zip(legend_handles, legend_labels) if l in b2a_order]
+    other_items = [(h, l) for h, l in zip(legend_handles, legend_labels) if l not in b2a_order]
+
+    if b2a_items:
+        ordered_b2a = [(h, l) for l in b2a_order for h, l2 in b2a_items if l2 == l]
+        b2a_handles = [h for h, _ in ordered_b2a]
+        b2a_labels = [l for _, l in ordered_b2a]
+        fig.legend(
+            b2a_handles,
+            b2a_labels,
+            loc="lower center",
+            bbox_to_anchor=(0.5, -0.02),
+            ncol=3,
+            frameon=False,
+        )
+
+    if other_items:
+        other_handles = [h for h, _ in other_items]
+        other_labels = [l for _, l in other_items]
+        fig.legend(
+            other_handles,
+            other_labels,
+            loc="lower center",
+            bbox_to_anchor=(0.12, -0.02),
+            ncol=1,
+            frameon=False,
+        )
+    fig.tight_layout(rect=[0, 0.12, 1, 0.96])
+    fig.savefig(output_path, dpi=400)
     plt.close(fig)
 
 
