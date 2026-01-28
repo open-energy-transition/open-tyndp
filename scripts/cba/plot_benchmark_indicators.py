@@ -247,12 +247,13 @@ def plot_project_benchmarks(
 
     if project_label:
         fig.suptitle(f"CBA indicator benchmark ({project_label})")
+    # Interleaved to account for matplotlib's column-major legend layout.
     b2a_order = [
         "2024 TYNDP low",
-        "2024 TYNDP central",
-        "2024 TYNDP high",
         "Model low",
+        "2024 TYNDP central",
         "Model central",
+        "2024 TYNDP high",
         "Model high",
     ]
     b2a_items = [
@@ -263,7 +264,8 @@ def plot_project_benchmarks(
     ]
 
     if b2a_items:
-        ordered_b2a = [(h, l) for l in b2a_order for h, l2 in b2a_items if l2 == l]
+        b2a_map = {l: h for h, l in b2a_items}
+        ordered_b2a = [(b2a_map[l], l) for l in b2a_order if l in b2a_map]
         b2a_handles = [h for h, _ in ordered_b2a]
         b2a_labels = [l for _, l in ordered_b2a]
         fig.legend(
