@@ -25,7 +25,7 @@ MODEL_SUBINDEX_PREFERENCE = {
 
 
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
-    model = df[(df["source"] == "model") & (df["indicator"] == indicator)].copy()
+    model = df[(df["source"] == "model") & (df["indicator"] == indicator)]
     if model.empty:
         return None
 
@@ -50,8 +50,6 @@ def benchmark_range(
     ].copy()
     if benchmark.empty:
         return None
-    if "value_converted" in benchmark.columns:
-        benchmark["value"] = benchmark["value_converted"].fillna(benchmark["value"])
 
     if indicator == "B2a_societal_cost_variation":
         benchmark = benchmark[benchmark["subindex"].isin(["low", "central", "high"])]
@@ -89,6 +87,12 @@ def benchmark_range(
     return min_val, mean_val, max_val
 
 
+def format_project_label(project_id: int, planning_horizon: str | None) -> str:
+    if planning_horizon:
+        return f"t{project_id}_{planning_horizon}"
+    return f"t{project_id}"
+
+
 def plot_project_benchmarks(
     df: pd.DataFrame, output_path: Path, project_label: str | None = None
 ) -> None:
@@ -109,12 +113,10 @@ def plot_project_benchmarks(
         if model_val is None or bench is None:
             continue
         min_val, mean_val, max_val = bench
-        units = (
-            df.loc[(df["indicator"] == indicator) & (df["source"] == "model"), "units"]
-            .dropna()
-            .unique()
-        )
-        unit_label = units[0] if len(units) else ""
+        units = df.loc[
+            (df["indicator"] == indicator) & (df["source"] == "model"), "units"
+        ].dropna()
+        unit_label = units.iloc[0] if not units.empty else ""
         labels.append(f"{indicator} ({unit_label})" if unit_label else indicator)
         model_values.append(model_val)
         means.append(mean_val)
@@ -188,24 +190,17 @@ def create_plots(indicators_file, output_path, planning_horizon=None):
         if len(project_ids) == 0:
             logger.info("No model projects found in indicators file")
             return
-        project_id = project_ids[0]
-        project_label = (
-            f"t{int(project_id)}_{planning_horizon}"
-            if planning_horizon
-            else f"t{int(project_id)}"
-        )
+        project_id = int(project_ids[0])
+        project_label = format_project_label(project_id, planning_horizon)
         project_df = df[df["project_id"] == project_id].copy()
         plot_project_benchmarks(project_df, output_path, project_label)
     else:
         for project_id in project_ids:
             project_df = df[df["project_id"] == project_id].copy()
+            project_id = int(project_id)
             suffix = f"_{planning_horizon}" if planning_horizon else ""
-            output_file = output_dir / f"project_{int(project_id)}{suffix}.png"
-            project_label = (
-                f"t{int(project_id)}_{planning_horizon}"
-                if planning_horizon
-                else f"t{int(project_id)}"
-            )
+            output_file = output_dir / f"project_{project_id}{suffix}.png"
+            project_label = format_project_label(project_id, planning_horizon)
             plot_project_benchmarks(project_df, output_file, project_label)
 
     logger.info("Benchmark plots saved to %s", output_dir)
