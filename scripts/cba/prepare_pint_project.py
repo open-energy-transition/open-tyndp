@@ -34,7 +34,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Load unified CBA reference network
+    # Load CBA reference network
     n = pypsa.Network(snakemake.input.network)
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
 
