@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: MIT
 
 """
-Prepare TOOT reference network by ensuring all CBA projects are included.
+Prepare reference network by ensuring all CBA projects are included.
 
-For TOOT methodology, the reference network should contain ALL CBA projects.
-The simple_2030.nc network already contains projects where in_reference2030=True.
-This script adds the missing projects (where in_reference2030=False) to create
-the complete TOOT reference network with all projects included.
+Modify the input network from the SB to get the CBA reference network.
+
+This script adds the missing projects to create
+the complete reference network with all projects included.
 """
 
 import logging
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "prepare_toot_reference",
+            "prepare_reference",
             planning_horizons="2030",
             run="test-sector-tyndp",
             configfiles=["config/test/config.tyndp.yaml"],
@@ -44,12 +44,11 @@ if __name__ == "__main__":
     planning_horizons = int(snakemake.wildcards.planning_horizons)
 
     logger.debug(f"\n{'=' * 80}")
-    logger.debug("PREPARING TOOT REFERENCE NETWORK")
+    logger.debug("PREPARING REFERENCE NETWORK")
     logger.debug(f"{'=' * 80}")
     logger.debug(f"Current planning horizon: {planning_horizons}")
 
-    # For TOOT: Add projects that are NOT in the reference (in_reference=False)
-    # the reference network should have ALL projects
+    # Add projects that are NOT in the SB network
     projects_added = []
     projects_created = []
     projects_in_base = []
@@ -67,7 +66,7 @@ if __name__ == "__main__":
         reverse_link_id = f"{bus1}-{bus0}-DC"
 
         if not in_reference:
-            # Project is NOT in the base network - ADD it to create TOOT reference
+            # Project is NOT in the base network - ADD it to create reference
             capacity = project["p_nom 0->1"]
             capacity_reverse = project["p_nom 1->0"]
 
@@ -167,7 +166,7 @@ if __name__ == "__main__":
 
     # Summary
     logger.info(f"\n{'=' * 80}")
-    logger.info("TOOT REFERENCE PREPARATION SUMMARY")
+    logger.info("REFERENCE PREPARATION SUMMARY")
     logger.info(f"{'=' * 80}")
 
     if projects_added:
@@ -200,5 +199,5 @@ if __name__ == "__main__":
     # Save reference network with all projects
     n.export_to_netcdf(snakemake.output.network)
     logger.info(
-        f"TOOT reference network saved (horizon {planning_horizons}, {len(projects_added)} capacity added, {len(projects_created)} links created)"
+        f"Reference network saved (horizon {planning_horizons}, {len(projects_added)} capacity added, {len(projects_created)} links created)"
     )
