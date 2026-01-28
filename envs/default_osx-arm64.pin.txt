@@ -7,7 +7,7 @@ https://conda.anaconda.org/conda-forge/osx-arm64/tk-8.6.13-h010d191_3.conda#a9d8
 https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h5e97a16_3.conda#068d497125e4bf8a66bf707254fff5ae
 https://conda.anaconda.org/conda-forge/osx-arm64/readline-8.3-h46df422_0.conda#f8381319127120ce51e081dce4865cf4
 https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2026.1.4-hbd8a1cb_0.conda#bddacf101bb4dd0e51811cb69c7790e2
-https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.0-h5503f6c_0.conda#b34dc4172653c13dcf453862f251af2b
+https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.6.1-hd24854e_1.conda#f4f6ad63f98f64191c3e77c5f5f29d76
 https://conda.anaconda.org/conda-forge/osx-arm64/icu-78.2-h38cb7af_0.conda#1e93aca311da0210e660d2247812fa02
 https://conda.anaconda.org/conda-forge/osx-arm64/libsqlite-3.51.2-h1ae2325_0.conda#4b0bf313c53c3e89692f020fb55d5f2c
 https://conda.anaconda.org/conda-forge/osx-arm64/liblzma-5.8.2-h8088a28_0.conda#009f0d956d7bfb00de86901d16e486c7
@@ -31,7 +31,7 @@ https://conda.anaconda.org/conda-forge/osx-arm64/libcxx-21.1.8-hf598326_0.conda#
 https://conda.anaconda.org/conda-forge/osx-arm64/libcblas-3.11.0-5_hb0561ab_openblas.conda#efd8bd15ca56e9d01748a3beab8404eb
 https://conda.anaconda.org/conda-forge/osx-arm64/numpy-1.26.4-py312h8442bc7_0.conda#d83fc83d589e2625a3451c9a7e21047c
 https://conda.anaconda.org/conda-forge/osx-arm64/scipy-1.17.0-py312h0f234b1_1.conda#1f5a9253e1c3484a5c1df0b8145a9ce3
-https://conda.anaconda.org/conda-forge/noarch/setuptools-80.10.1-pyh332efcf_0.conda#cb72cedd94dd923c6a9405a3d3b1c018
+https://conda.anaconda.org/conda-forge/noarch/setuptools-80.10.2-pyh332efcf_0.conda#7b446fcbb6779ee479debb4fd7453e6c
 https://conda.anaconda.org/conda-forge/noarch/joblib-1.5.3-pyhd8ed1ab_0.conda#615de2a4d97af50c350e5cf160149e77
 https://conda.anaconda.org/conda-forge/osx-arm64/scikit-learn-1.8.0-np2py312he5ca3e3_1.conda#ed7887c51edfa304c69a424279cec675
 https://conda.anaconda.org/conda-forge/noarch/ply-3.11-pyhd8ed1ab_3.conda#fd5062942bfa1b0bd5e0d2a4397b099e
@@ -396,7 +396,7 @@ https://conda.anaconda.org/conda-forge/noarch/pure_eval-0.2.3-pyhd8ed1ab_1.conda
 https://conda.anaconda.org/conda-forge/noarch/executing-2.2.1-pyhd8ed1ab_0.conda#ff9efb7f7469aed3c4a8106ffa29593c
 https://conda.anaconda.org/conda-forge/noarch/asttokens-3.0.1-pyhd8ed1ab_0.conda#9673a61a297b00016442e022d689faa6
 https://conda.anaconda.org/conda-forge/noarch/stack_data-0.6.3-pyhd8ed1ab_1.conda#b1b505328da7a6b246787df4b5a49fbc
-https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.4.0-pyhd8ed1ab_0.conda#cba8aff819d6eec578c9994f6eb58934
+https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.5.0-pyhd8ed1ab_0.conda#7ad8004c0115a5e73b65e0b8b94a8d75
 https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.52-pyha770c72_0.conda#edb16f14d920fb3faf17f5ce582942d6
 https://conda.anaconda.org/conda-forge/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda#d0d408b1f18883a944376da5cf8101ea
 https://conda.anaconda.org/conda-forge/noarch/parso-0.8.5-pyhcf101f3_0.conda#a110716cdb11cf51482ff4000dc253d7
@@ -461,7 +461,7 @@ https://conda.anaconda.org/conda-forge/noarch/pystac-1.14.3-pyhd8ed1ab_0.conda#7
 https://conda.anaconda.org/conda-forge/osx-arm64/h5py-3.15.1-nompi_py312h4eecd6b_101.conda#1f19a033f9c3f388c8f3d3c1643d6611
 https://conda.anaconda.org/conda-forge/noarch/h5netcdf-1.8.1-pyhd8ed1ab_0.conda#ca7f9ba8762d3e360e47917a10e23760
 https://conda.anaconda.org/conda-forge/noarch/jmespath-1.1.0-pyhcf101f3_1.conda#cc73a9bd315659dc5307a5270f44786f
-https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.34-pyhd8ed1ab_0.conda#54bcb8039fe8f63c9990afe552df4fdc
+https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.35-pyhd8ed1ab_0.conda#6b6f1429c0cef269e48dca88b73768e6
 https://conda.anaconda.org/conda-forge/noarch/s3transfer-0.16.0-pyhd8ed1ab_0.conda#061b5affcffeef245d60ec3007d1effd
 https://conda.anaconda.org/conda-forge/noarch/boto3-1.42.34-pyhd8ed1ab_0.conda#8461fcbfd947f60cabe4719fb3a55189
 https://conda.anaconda.org/conda-forge/osx-arm64/libutf8proc-2.11.3-h2431656_0.conda#2255add2f6ae77d0a96624a5cbde6d45
