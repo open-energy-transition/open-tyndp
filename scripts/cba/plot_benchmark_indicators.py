@@ -21,6 +21,7 @@ from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
+
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     """Pick a representative model value for a given indicator."""
     model = df[(df["source"] == "model") & (df["indicator"] == indicator)]
