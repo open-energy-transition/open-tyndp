@@ -264,8 +264,12 @@ def plot_project_benchmarks(
         "Model central",
         "Model high",
     ]
-    b2a_items = [(h, l) for h, l in zip(legend_handles, legend_labels) if l in b2a_order]
-    other_items = [(h, l) for h, l in zip(legend_handles, legend_labels) if l not in b2a_order]
+    b2a_items = [
+        (h, l) for h, l in zip(legend_handles, legend_labels) if l in b2a_order
+    ]
+    other_items = [
+        (h, l) for h, l in zip(legend_handles, legend_labels) if l not in b2a_order
+    ]
 
     if b2a_items:
         ordered_b2a = [(h, l) for l in b2a_order for h, l2 in b2a_items if l2 == l]
