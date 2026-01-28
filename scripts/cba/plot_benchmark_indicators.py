@@ -4,9 +4,10 @@
 """
 Create benchmark plots for CBA indicators.
 
-This script reads a indicators CSV file (single project or collected) that
-includes model rows and TYNDP benchmark rows, and generates plots comparing
-model values (dot) to TYNDP min/mean/max bands.
+This script reads a indicators CSV file that
+includes model rows and TYNDP benchmark rows,
+and generates plots comparing model values
+to the 2024 TYNDP values.
 """
 
 import logging
