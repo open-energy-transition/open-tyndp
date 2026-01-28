@@ -21,23 +21,13 @@ from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
-MODEL_SUBINDEX_PREFERENCE = {
-    "B2a_societal_cost_variation": ["central", "mean", ""],
-}
-
-
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     """Pick a representative model value for a given indicator."""
     model = df[(df["source"] == "model") & (df["indicator"] == indicator)]
     if model.empty:
         return None
 
-    if indicator.startswith("B4"):
-        candidates = ["mean", ""]
-    else:
-        candidates = MODEL_SUBINDEX_PREFERENCE.get(indicator, ["", "mean", "central"])
-
-    for subindex in candidates:
+    for subindex in ["mean", "central", ""]:
         subset = model[model["subindex"] == subindex]
         if not subset.empty:
             return subset["value"].mean()
