@@ -28,9 +28,9 @@ Upcoming Open-TYNDP Release
 
 * Introduce calculation of B3 indicators in the Cost-Benefit Analysis (CBA) based on renewable energy integration (https://github.com/open-energy-transition/open-tyndp/pull/350).
 
-* Introduce calculation of B4 indicator in the Cost-Benefit Analysis (CBA) based on changes in non-CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/398).
-
 * Set short-term storage to cyclic in CBA dispatch (https://github.com/open-energy-transition/open-tyndp/pull/385).
+
+* Introduce calculation of B4 indicator in the Cost-Benefit Analysis (CBA) based on changes in non-CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/398).
 
 **Bugfixes and Compatibility**
 
