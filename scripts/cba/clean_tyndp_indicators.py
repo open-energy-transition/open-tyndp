@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 STAT_MAP = {
     "weighted avg": "mean",
     "avg": "mean",
+    "mid": "central",
 }
 
 INDICATOR_MAP = {
@@ -68,7 +69,10 @@ def normalize_unit(unit: str) -> str:
 
 def normalize_shortcut(shortcut: str) -> str:
     """Normalize Readme shortcut text."""
-    return normalize_text(shortcut, monetised=True)
+    text = normalize_text(shortcut, monetised=True)
+    text = text.replace("CO2_market_SEW", "CO2_market_monetised")
+    text = text.replace("CO2_network_SEW", "CO2_network_monetised")
+    return text
 
 
 def normalize_indicator_text(text: str) -> str:

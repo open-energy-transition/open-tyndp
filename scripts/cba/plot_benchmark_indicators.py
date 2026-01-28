@@ -25,6 +25,7 @@ MODEL_SUBINDEX_PREFERENCE = {
 
 
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
+    """Pick a representative model value for a given indicator."""
     model = df[(df["source"] == "model") & (df["indicator"] == indicator)]
     if model.empty:
         return None
@@ -42,9 +43,24 @@ def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     return model["value"].mean()
 
 
+def select_value_by_subindex(
+    df: pd.DataFrame, indicator: str, source: str, subindex: str
+) -> float | None:
+    """Return the mean value for a given indicator/subindex/source."""
+    subset = df[
+        (df["source"] == source)
+        & (df["indicator"] == indicator)
+        & (df["subindex"] == subindex)
+    ]
+    if subset.empty:
+        return None
+    return float(subset["value"].mean())
+
+
 def benchmark_range(
     df: pd.DataFrame, indicator: str
 ) -> tuple[float, float, float] | None:
+    """Return (min, mean, max) range for a benchmark indicator."""
     benchmark = df[
         (df["source"] == "2024 tyndp") & (df["indicator"] == indicator)
     ].copy()
@@ -53,11 +69,6 @@ def benchmark_range(
 
     if indicator == "B2a_societal_cost_variation":
         benchmark = benchmark[benchmark["subindex"].isin(["low", "central", "high"])]
-        benchmark = benchmark.assign(
-            subindex=benchmark["subindex"].replace(
-                {"low": "min", "central": "mean", "high": "max"}
-            )
-        )
     else:
         benchmark = benchmark[
             benchmark["subindex"].isin(["min", "mean", "max", "explicit"])
@@ -88,6 +99,7 @@ def benchmark_range(
 
 
 def format_project_label(project_id: int, planning_horizon: str | None) -> str:
+    """Format plot title label from project id and planning horizon."""
     if planning_horizon:
         return f"t{project_id}_{planning_horizon}"
     return f"t{project_id}"
@@ -96,6 +108,7 @@ def format_project_label(project_id: int, planning_horizon: str | None) -> str:
 def plot_project_benchmarks(
     df: pd.DataFrame, output_path: Path, project_label: str | None = None
 ) -> None:
+    """Plot benchmark ranges and model values for a single project."""
     indicators = sorted(df["indicator"].dropna().unique())
     if not indicators:
         logger.info("No benchmark indicators available to plot")
@@ -106,8 +119,13 @@ def plot_project_benchmarks(
     means = []
     mins = []
     maxs = []
+    b2a_special = None
 
     for indicator in indicators:
+        if indicator == "B2a_societal_cost_variation":
+            b2a_special = indicator
+            continue
+
         model_val = select_model_value(df, indicator)
         bench = benchmark_range(df, indicator)
         if model_val is None or bench is None:
@@ -134,15 +152,16 @@ def plot_project_benchmarks(
     lower = abs(mean - ymin)
     upper = abs(ymax - mean)
 
-    plt.figure(figsize=(max(10, len(labels) * 0.6), 5))
+    fig, ax = plt.subplots(figsize=(max(10, len(labels) * 0.6), 5))
+    # Switch to symlog if values span multiple orders of magnitude.
     values = list(mean) + list(ymin) + list(ymax) + list(model_values)
     nonzero = [abs(v) for v in values if v not in (0, None) and not pd.isna(v)]
     if nonzero:
         abs_max = max(nonzero)
         abs_min = min(nonzero)
         if abs_min > 0 and abs_max / abs_min >= 1e3:
-            plt.yscale("symlog", linthresh=max(abs_min, 1.0))
-    plt.errorbar(
+            ax.set_yscale("symlog", linthresh=max(abs_min, 1.0))
+    ax.errorbar(
         x,
         mean,
         yerr=[lower, upper],
@@ -152,27 +171,63 @@ def plot_project_benchmarks(
         capsize=3,
         label="2024 TYNDP (mean ± min/max)",
     )
-    plt.scatter(
+    ax.scatter(
         x,
         model_values,
         color="tab:blue",
         zorder=3,
         label="Model",
     )
-    plt.xticks(list(x), labels, rotation=45, ha="right")
-    plt.ylabel("Value")
-    plt.axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(labels, rotation=45, ha="right")
+    ax.set_ylabel("Value")
+    ax.axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
+
+    if b2a_special:
+        levels = ["low", "central", "high"]
+        level_colors = {"low": "tab:orange", "central": "tab:green", "high": "tab:red"}
+        base_x = len(labels)
+        labels.append("B2a_societal_cost_variation")
+        ax.set_xticks(list(range(len(labels))))
+        ax.set_xticklabels(labels, rotation=45, ha="right")
+        offsets = {"low": -0.15, "central": 0.0, "high": 0.15}
+        for level in levels:
+            model_val = select_value_by_subindex(
+                df, b2a_special, "model", level
+            )
+            bench_val = select_value_by_subindex(
+                df, b2a_special, "2024 tyndp", level
+            )
+            if bench_val is not None:
+                ax.scatter(
+                    [base_x + offsets[level]],
+                    [bench_val],
+                    color=level_colors[level],
+                    marker="x",
+                    label=f"2024 TYNDP {level}",
+                    zorder=3,
+                )
+            if model_val is not None:
+                ax.scatter(
+                    [base_x + offsets[level]],
+                    [model_val],
+                    color=level_colors[level],
+                    marker="o",
+                    label=f"Model {level}",
+                    zorder=4,
+                )
     if project_label:
-        plt.title(f"CBA indicator benchmark ({project_label})")
+        ax.set_title(f"CBA indicator benchmark ({project_label})")
     else:
-        plt.title("CBA indicator benchmark")
-    plt.legend(loc="best")
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=150)
-    plt.close()
+        ax.set_title("CBA indicator benchmark")
+    ax.legend(loc="best")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
 
 
 def create_plots(indicators_file, output_path, planning_horizon=None):
+    """Create benchmark plots from a per-project or collected indicators file."""
     output_path = Path(output_path)
     output_dir = output_path if output_path.suffix == "" else output_path.parent
     output_dir.mkdir(parents=True, exist_ok=True)
