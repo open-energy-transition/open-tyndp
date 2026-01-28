@@ -5,9 +5,12 @@
 
 master
 
+.env
+
 .snakemake*
 .ipynb_checkpoints
 __pycache__
+*.egg-info
 *dconf
 gurobi.log
 .vscode
@@ -37,7 +40,6 @@ config/config.yaml
 config/scenarios.yaml
 config/config.private.yaml
 
-dconf
 /data/links_p_nom.csv
 /data/*totals.csv
 /data/biomass*
@@ -50,7 +52,6 @@ dconf
 /data/transport_data.csv
 /data/.nfs*
 /data/retro/*
-/data/bundle/nuts*
 data/gas_network/scigrid-gas/
 data/costs_*.csv
 !/data/custom_costs.csv
@@ -120,3 +121,6 @@ CLAUDE.local.md
 
 linopy-problem-*
 linopy-solve-*
+
+# Installer build artifacts
+*.exe

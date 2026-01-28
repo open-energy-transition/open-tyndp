@@ -5,10 +5,17 @@
 
 [workspace]
 authors = ["Contributors to Open-TYNDP"]
-channels = ["conda-forge", "bioconda", "gurobi"]
+channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 version = "0.1.0"
+
+[target.win-64.activation.env]
+
+# Local snakemake jobs often fail with status code 120, due to stdout/stderr interleaving
+# on windows, running python unbuffered works around the issue. Ideally we would stop using
+# stdout/stderr and use a proper logging infrastructure
+PYTHONUNBUFFERED = "1"
 
 [tasks]
 
@@ -63,7 +70,7 @@ matplotlib = ">=3.10.7"
 memory_profiler = ">=0.61.0"
 netcdf4 = ">=1.7.2"
 networkx = ">=3.5"
-numpy = ">=1.26.4"
+numpy = ">=1.26.4,<2"
 openpyxl = ">=3.1.5"
 pandas = ">=2.1"
 plotly = ">=6.4.0"
@@ -71,6 +78,7 @@ powerplantmatching = ">=0.5.15"
 pre-commit = ">=4.3.0"
 proj = ">=9.6.2"
 pylint = ">=4.0.2"
+pydeck = ">0.6"  # pypsa fails to import with pydeck <0.6, lower bound was only added from pypsa 1.0.6
 pypsa = ">=0.35.2"
 pyscipopt = ">=5.6.0"
 pytables = ">=3.10.2"
@@ -179,7 +187,12 @@ tyndp = """bash -c '
  all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
+# open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
+snakemake-minimal = { version = ">=9.14.6", channel = "https://repo.prefix.dev/open-tyndp" }
 pixi-pycharm = ">=0.0.9"
+
+[feature.open-tyndp.target.win-64.dependencies]
+git = ">=2.52.0"
 
 [environments]
 doc = { features = ["doc"], no-default-feature = true }

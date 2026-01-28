@@ -2,7 +2,46 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
+# LFS files
 *.h5 filter=lfs diff=lfs merge=lfs -text
 *.zip filter=lfs diff=lfs merge=lfs -text
+
 # SCM syntax highlighting & preventing 3-way merges
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true
+
+# Line ending normalization
+* text=auto
+
+# Shell scripts must use LF (even on Windows)
+*.sh text eol=lf
+
+# NSIS scripts use LF
+*.nsi text eol=lf
+
+# Windows batch files use CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Python uses LF
+*.py text eol=lf
+
+# Config/data files use LF
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.csv text eol=lf
+*.tsv text eol=lf
+pixi.lock text eol=lf
+
+# Binary files
+*.exe binary
+*.dll binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.bmp binary
+*.gz binary
+*.tar binary
+*.pdf binary
