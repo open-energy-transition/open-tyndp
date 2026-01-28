@@ -60,7 +60,7 @@ assuming different societal cost values for CO2.
 
 **Computation**
 
-1. Extract the net CO2 from the final spashot of the CO2 store (done separately for the reference network and the project network):
+1. Extract the net CO2 from the final snapshot of the CO2 store (done separately for the reference network and the project network):
 
 ..code-block:: python
 
