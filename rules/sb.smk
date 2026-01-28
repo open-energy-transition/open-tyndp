@@ -733,7 +733,26 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
-    rule clean_tyndp_benchmark:
+    rule clean_tyndp_output_benchmark:
+        params:
+            benchmarking=config_provider("benchmarking"),
+            scenario=config_provider("tyndp_scenario"),
+        input:
+            tyndp_output_file="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_{scenario}{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx",
+        output:
+            benchmarks=RESULTS
+            + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+        log:
+            logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
+        benchmark:
+            benchmarks("clean_tyndp_output_benchmark_{scenario}{planning_horizons}")
+        threads: 4
+        resources:
+            mem_mb=8000,
+        script:
+            "../scripts/sb/clean_tyndp_output_benchmark.py"
+
+    rule clean_tyndp_report_benchmark:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
@@ -743,14 +762,14 @@ if config["benchmarking"]["enable"]:
         output:
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
         log:
-            logs("clean_tyndp_benchmark.log"),
+            logs("clean_tyndp_report_benchmark.log"),
         benchmark:
-            benchmarks("clean_tyndp_benchmark")
+            benchmarks("clean_tyndp_report_benchmark")
         threads: 4
         resources:
             mem_mb=8000,
         script:
-            "../scripts/sb/clean_tyndp_benchmark.py"
+            "../scripts/sb/clean_tyndp_report_benchmark.py"
 
     rule clean_tyndp_vp_data:
         params:
