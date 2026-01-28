@@ -394,9 +394,9 @@ def calculate_b3_indicator(
     -------
     dict
         Dictionary with B3 indicators:
-        - B3a_res_capacity_change_mw
-        - B3_res_generation_change_mwh
-        - B3_res_dump_change_mwh
+        - B3a_res_capacity_change
+        - B3_res_generation_change
+        - B3_annual_avoided_curtailment
     """
     n_with, n_without = (
         (n_project, n_reference) if method == "pint" else (n_reference, n_project)
@@ -415,13 +415,13 @@ def calculate_b3_indicator(
     avoided_curtailment_gwh = dump_diff_mwh / 1000.0
 
     results = {
-        "B3a_res_capacity_change_mw": capacity_diff,
-        "B3_res_generation_change_mwh": generation_diff_mwh / 1000.0,
+        "B3a_res_capacity_change": capacity_diff,
+        "B3_res_generation_change": generation_diff_mwh / 1000.0,
         "B3_annual_avoided_curtailment": avoided_curtailment_gwh,
     }
     units = {
-        "B3a_res_capacity_change_mw": "MW",
-        "B3_res_generation_change_mwh": "GWh/year",
+        "B3a_res_capacity_change": "MW",
+        "B3_res_generation_change": "GWh/year",
         "B3_annual_avoided_curtailment": "GWh/year",
     }
     return results, units
