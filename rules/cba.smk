@@ -97,6 +97,10 @@ def input_sb_network(w):
 rule simplify_sb_network:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
+        tyndp_conventional_carriers=config_provider(
+            "electricity", "tyndp_conventional_carriers"
+        ),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
         network=input_sb_network,
     output:
@@ -243,8 +247,11 @@ rule collect_indicators:
 
 
 rule plot_indicators:
+    params:
+        plotting=config_provider("plotting"),
     input:
         indicators=rules.collect_indicators.output.indicators,
+        transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
     script:

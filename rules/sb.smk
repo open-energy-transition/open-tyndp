@@ -358,6 +358,23 @@ rule build_pemmdb_data:
         "../scripts/sb/build_pemmdb_data.py"
 
 
+rule build_tyndp_transmission_projects:
+    input:
+        buses=rules.build_tyndp_network.output.substations_geojson,
+        invest_grid=rules.retrieve_tyndp.output.invest_grid,
+    output:
+        resources("tyndp/new_links.csv"),
+    log:
+        logs("build_tyndp_transmission_projects.log"),
+    benchmark:
+        benchmarks("build_tyndp_transmission_projects")
+    resources:
+        mem_mb=1000,
+    threads: 1
+    script:
+        "../scripts/sb/build_tyndp_transmission_projects.py"
+
+
 rule build_tyndp_trajectories:
     params:
         tyndp_scenario=config_provider("tyndp_scenario"),

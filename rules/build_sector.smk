@@ -1498,6 +1498,13 @@ def input_pemmdb_data(w):
     }
 
 
+def include_tyndp_projects(w):
+    horizons = config_provider("tyndp_investment_candidates", "elec_projects")(w)
+    if not horizons:
+        return False
+    return int(w.planning_horizons) in horizons
+
+
 def include_tydnp_trajectories(w):
     if config_provider("electricity", "tyndp_renewable_carriers")(w):
         return True
@@ -1723,6 +1730,10 @@ rule prepare_sector_network:
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
             resources("profile_pemmdb_hydro.nc"),
             [],
+        ),
+        tyndp_projects=branch(
+            include_tyndp_projects,
+            resources("tyndp/new_links.csv"),
         ),
         tyndp_trajectories=branch(
             include_tydnp_trajectories,

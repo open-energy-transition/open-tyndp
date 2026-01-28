@@ -146,11 +146,10 @@ links:
   p_min_pu: 0
 
 transmission_projects:
-  enable: true
-  include:
-    tyndp2020: false
-    nep: false
-    manual: false
+  enable: false
+
+tyndp_investment_candidates:
+  elec_projects: [2040]
 
 load:
   source: tyndp # opsd, tyndp
@@ -401,6 +400,14 @@ cba:
   - toot
   projects:
   - t1-t35
+
+  # Storage settings for CBA dispatch
+  storage:
+    # Carriers that should remain cyclic (short-term storage)
+    # These will maintain e_cyclic=True in simplify_sb_network
+    cyclic_carriers:
+    - battery
+    - home battery
 
   # Merged into top-level solving options
   solving:
