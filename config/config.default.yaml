@@ -1265,6 +1265,9 @@ data:
   tyndp_cba_projects:
     source: archive
     version: latest
+  cba_guidelines_reference_projects:
+    source: archive
+    version: latest
 
 # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:

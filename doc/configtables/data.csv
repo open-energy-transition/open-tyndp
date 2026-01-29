@@ -161,3 +161,6 @@ tyndp_vis_plfm,,,
 tyndp_cba_projects,,,
 -- source,str,"{archive, primary}","Source of the TYNDP Cost-Benefit Analysis (CBA) projects data."
 -- version,str,,"Version of the TYNDP CBA projects data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source."
+cba_guidelines_reference_projects,,,
+-- source,str,"{archive, primary}","Source of the CBA Guidelines reference grid projects data."
+-- version,str,,"Version of the CBA Guidelines reference grid projects data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source."
