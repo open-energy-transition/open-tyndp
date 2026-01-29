@@ -55,6 +55,28 @@ Technical Questions
     It depends on the model you want to run. We recommend using HiGHS for exploring and testing the models at low temporal resolution, typically `52SEG`. HiGHS can also be used for CBA assessments. However, with higher temporal resolution, the SB models are larger and require a commercial solver.
 
 
+.. admonition:: What should I do if the Open-TYNDP workflow is not running through?
+
+   If you're experiencing issues running the workflow, please try the following troubleshooting steps:
+
+   1. **Ensure you're on the latest version**: Pull the latest changes from the repository, as recent bug fixes may resolve your issue: ``git pull origin master``
+
+   2. **Update your environment**: Make sure your environment is up to date with the latest dependencies. For pixi users: ``pixi update``. For conda users: ``conda env update -f envs/environment.yaml`` followed by ``conda activate open-tyndp``.
+
+   3. **Perform a clean run**: Clear cached results and force Snakemake to rebuild everything from scratch: ``snakemake -F``
+
+   4. **Review your configuration**: Check if you made any recent changes to ``config.yaml`` that might be causing issues. Try reverting to the default configuration to see if the problem persists. Verify that all file paths and settings are correct.
+
+   5. **Clear temporary and cache files**: Sometimes corrupted temporary files can cause issues. Remove the ``.snakemake`` directory: ``rm -rf .snakemake``
+
+   6. **Verify data downloads**: Ensure that all data retrieval steps completed successfully. Check if downloaded input files are complete and not corrupted.
+
+   7. **Test with a minimal configuration**: Try running the workflow with a simplified configuration (e.g., fewer scenarios, smaller geographical scope, single weather year) to isolate the issue.
+
+   8. **Check for specific error messages**: Look at the terminal output for specific error messages that indicate which rule is failing and why.
+
+   If none of these steps resolve your problem, please feel free to open an issue on our `GitHub repository <https://github.com/open-energy-transition/open-tyndp>`__ or contact us directly (see :doc:`support`).
+
 .. admonition:: My workflow is failing or producing unexpected results. How do I troubleshoot?
 
    Start by running ``snakemake -call --configfile config/config.tyndp.yaml -n`` (dry-run) to validate workflow structure without execution. Then, check log files in ``logs/`` and verify intermediate results at each workflow stage. For persistent issues, see :doc:`support` for community assistance channels.
