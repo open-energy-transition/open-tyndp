@@ -161,3 +161,6 @@ tyndp_vis_plfm,,,
 tyndp_cba_projects,,,
 -- source,str,"{archive, primary}","Source of the TYNDP Cost-Benefit Analysis (CBA) projects data."
 -- version,str,,"Version of the TYNDP CBA projects data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source."
+tyndp_cba_non_co2_emissions,,,
+-- source,str,"{archive, primary}","Source of the TYNDP CBA non-CO2 emissions factors data."
+-- version,str,,"Version of the TYNDP CBA non-CO2 emissions factors data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source."
