@@ -2716,8 +2716,10 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
             p_nom_extendable=True,
             carrier="SMR CC",
             efficiency=costs.at["SMR CC", "efficiency"],
-            efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
-            efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
+            efficiency2=costs.at["gas", "CO2 intensity"]
+            * (1 - costs.at["SMR CC", "capture_rate"]),
+            efficiency3=costs.at["gas", "CO2 intensity"]
+            * costs.at["SMR CC", "capture_rate"],
             capital_cost=costs.at["SMR CC", "capital_cost"],
             lifetime=costs.at["SMR CC", "lifetime"],
         )

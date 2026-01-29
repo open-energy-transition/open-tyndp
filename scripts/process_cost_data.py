@@ -38,17 +38,14 @@ logger = logging.getLogger(__name__)
 CCS_CONFIGS = {
     "gas-ccgt-ccs": {
         "base_tech": "gas-ccgt-new",
-        "capture_tech": "cement capture",
         "fuel": "gas",
     },
     "coal-ccs": {
         "base_tech": "coal",
-        "capture_tech": "biomass CHP capture",
         "fuel": "coal",
     },
     "lignite-ccs": {
         "base_tech": "lignite",
-        "capture_tech": "biomass CHP capture",
         "fuel": "lignite",
     },
 }
@@ -302,24 +299,19 @@ def update_costs_tyndp(
     # Add CCS techs with capture technology assumptions
     for ccs_tech, ccs_map in ccs_configs.items():
         # Add CCS assumptions as intermediate copy since there is no direct mapping atm
+        capture_rate = costs.at[ccs_tech, "capture_rate"]
         costs.loc[ccs_tech] = costs.loc[ccs_map["base_tech"]]
-
-        # Update capital cost with cost component for capture
-        costs.loc[ccs_tech, "capital_cost"] = (
-            costs.at[ccs_map["base_tech"], "capital_cost"]
-            + costs.at[ccs_map["capture_tech"], "capital_cost"]
-            * costs.at[ccs_map["fuel"], "CO2 intensity"]
-        )
+        costs.at[ccs_tech, "capture_rate"] = capture_rate
 
         # Remaining CO2 intensity after capture
         costs.loc[ccs_tech, "CO2 intensity"] = costs.at[
             ccs_map["fuel"], "CO2 intensity"
-        ] * (1 - costs.at[ccs_map["capture_tech"], "capture_rate"])
+        ] * (1 - costs.at[ccs_tech, "capture_rate"])
 
         # Amount of CO2 captured
         costs.loc[ccs_tech, "CO2 capture"] = (
             costs.at[ccs_map["fuel"], "CO2 intensity"]
-            * costs.at[ccs_map["capture_tech"], "capture_rate"]
+            * costs.at[ccs_tech, "capture_rate"]
         )
 
     return costs
