@@ -36,6 +36,16 @@ from scripts.prepare_sector_network import get
 
 logger = logging.getLogger(__name__)
 
+CARRIER_TO_FUEL_MAP = {
+    "gas": "gas",
+    "coal": "hard coal",
+    "lignite": "lignite",
+    "uranium": "nuclear",
+    "oil-light": "light oil",
+    "oil-heavy": "heavy oil",
+    "oil-shale": "oil shale",
+}
+
 
 def calculate_total_system_cost(n):
     """
@@ -97,10 +107,6 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
     return float(net_co2)
 
 
-def normalize_carrier_name(name: str) -> str:
-    return name.strip().lower().replace("_", " ").replace("-", " ")
-
-
 def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
     """
     Load non-CO2 emission factors and convert to kg/MWh.
@@ -110,7 +116,7 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
     """
     df = pd.read_csv(path, encoding="utf-8-sig")
     df = df[df["Fuel"].notna()]
-    df["Fuel_norm"] = df["Fuel"].astype(str).map(normalize_carrier_name)
+    df["Fuel_norm"] = df["Fuel"].astype(str).str.strip().str.lower()
     efficiency = (
         df["Standard efficiency in NCV terms"]
         .astype(str)
@@ -394,6 +400,7 @@ def calculate_b4_indicator(
     n_project: pypsa.Network,
     method: str,
     emission_factors: pd.DataFrame,
+    conventional_carriers: list[str],
 ) -> dict:
     """
     Calculate B4 indicator: non-CO2 emissions (tons/year).
@@ -424,12 +431,21 @@ def calculate_b4_indicator(
             .sum()
         )
         emissions = {stat: {} for stat in ["min", "mean", "max"]}
+        missing_map = []
+        missing_factor = []
 
-        for carrier, mwh in generation.items():
-            fuel_norm = normalize_carrier_name(str(carrier))
-            if fuel_norm not in emission_factors.index:
+        for carrier in conventional_carriers:
+            if carrier not in CARRIER_TO_FUEL_MAP:
+                missing_map.append(carrier)
                 continue
-            factors = emission_factors.loc[fuel_norm]
+            fuel = CARRIER_TO_FUEL_MAP[carrier]
+            if fuel not in emission_factors.index:
+                missing_factor.append(fuel)
+                continue
+            if carrier not in generation.index:
+                continue
+            mwh = generation.loc[carrier]
+            factors = emission_factors.loc[fuel]
             for stat in ["min", "mean", "max"]:
                 kg_per_mwh = factors.xs(stat, level=1)
                 for pollutant_key, kg_value in kg_per_mwh.items():
@@ -506,11 +522,15 @@ if __name__ == "__main__":
     indicators.update(b3_indicators)
 
     emission_factors = load_non_co2_emission_factors(snakemake.input.non_co2_emissions)
+    conventional_carriers = snakemake.config.get("electricity", {}).get(
+        "tyndp_conventional_carriers", []
+    )
     b4_indicators = calculate_b4_indicator(
         n_reference,
         n_project,
         method=method,
         emission_factors=emission_factors,
+        conventional_carriers=conventional_carriers,
     )
     indicators.update(b4_indicators)
 
