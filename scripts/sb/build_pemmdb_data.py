@@ -560,7 +560,6 @@ def _process_thermal_hydrogen_profiles(
     tyndp_scenario: str,
     pyear_i: int,
     sns: pd.DatetimeIndex,
-    sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
     Extract and clean thermal (conventionals & hydrogen) profiles.
@@ -612,13 +611,12 @@ def _process_thermal_hydrogen_profiles(
         .T
     )
     # Map to hourly Datetime index
-    months = sns_year_h.month_name().str[:3]
-    df = must_runs.loc[months].set_axis(sns_year_h, axis=0)
+    months = sns.month_name().str[:3]
+    df = must_runs.loc[months].set_axis(sns, axis=0)
 
     # Flatten and turn into xarray dataset
     profiles = (
-        df.loc[sns]
-        .melt(value_name="p_min_pu", ignore_index=False)
+        df.melt(value_name="p_min_pu", ignore_index=False)
         .rename_axis("time", axis="index")
         .assign(bus=node, p_max_pu=1.0)  # also set p_max_pu with default value of 1.0
         .set_index(["bus", "pemmdb_carrier", "pemmdb_type"], append=True)
@@ -1013,7 +1011,6 @@ def process_pemmdb_profiles(
                 tyndp_scenario,
                 pyear_i,
                 sns,
-                sns_year_h,
             )
 
         # Other RES
@@ -1172,10 +1169,9 @@ if __name__ == "__main__":
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
-    sns_year_h = pd.date_range(
-        start=f"{cyear}-01-01",
-        periods=8760,
-        freq="h",
+    sns_year_h = get_snapshots(
+        {"start": f"{cyear}-01-01", "end": f"{cyear + 1}-01-01", "inclusive": "left"},
+        drop_leap_day=True,
     )
 
     # Only climate years 1995, 2008 and 2009 are available for all technologies and countries

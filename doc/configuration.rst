@@ -75,7 +75,9 @@ It is common conduct to analyse energy system optimisation models for **multiple
 e.g. assessing their sensitivity towards changing the temporal and/or geographical resolution or investigating how
 investment changes as more ambitious greenhouse-gas emission reduction targets are applied.
 
-The ``run`` section is used for running and storing scenarios with different configurations which are not covered by :ref:`wildcards`. It determines the path at which resources, networks and results are stored. Therefore the user can run different configurations within the same directory. If a run with a non-empty name should use cutouts shared across runs, set ``shared_cutouts`` to `true`.
+The ``run`` section is used for running and storing scenarios with different configurations which are not covered by :ref:`wildcards`.
+It determines the path at which resources, networks and results are stored.
+Therefore the user can run different configurations within the same directory.
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
@@ -213,7 +215,7 @@ Switches for some rules and optional features.
 
 .. _CO2_budget_cf:
 
-``co2 budget``
+``co2_budget``
 ==============
 
 .. literalinclude:: ../config/config.default.yaml
@@ -397,12 +399,12 @@ overwrite the existing values.
    :widths: 22,7,22,33
    :file: configtables/links.csv
 
-.. _transformers_cf:
+.. _transmission_projects_cf:
 
-``transmission projects``
+``transmission_projects``
 =========================
 
-Allows to define additional transmission projects that will be added to the base network, e.g., from the TYNDP 2020 dataset. The projects are read in from the CSV files in the subfolder of ``data/transmission_projects/``. New transmission projects, e.g. from TYNDP 2024, can be added in a new subfolder of transmission projects, e.g. ``data/transmission_projects/tyndp2024`` while extending the list of ``transmission_projects`` in the ``config.yaml`` by ``tyndp2024``. The CSV files in the project folder should have the same columns as the CSV files in the template folder ``data/transmission_projects/template``.
+Allows to define additional transmission projects that will be added to the base network, e.g., from the TYNDP 2020 dataset. The projects are read in from the CSV files in the subfolder of ``data/transmission_projects/``. New transmission projects can be added in a new subfolder of transmission projects while extending the list of ``transmission_projects`` in the ``config.yaml``. The CSV files in the project folder should have the same columns as the CSV files in the template folder ``data/transmission_projects/template``.
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
@@ -413,6 +415,23 @@ Allows to define additional transmission projects that will be added to the base
    :header-rows: 1
    :widths: 22,7,22,33
    :file: configtables/transmission_projects.csv
+
+.. _tyndp_investment_candidates_cf:
+
+``tyndp_investment_candidates``
+===============================
+
+Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration only applies to the TYNDP base network and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: tyndp_investment_candidates:
+   :end-before: # docs
+
+.. csv-table::
+   :header-rows: 1
+   :widths: 22,7,22,33
+   :file: configtables/tyndp_investment_candidates.csv
 
 .. _transformers_cf:
 
@@ -621,6 +640,31 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
    :widths: 22,7,22,33
    :file: configtables/adjustments.csv
 
+.. _data_cf:
+
+``data``
+========
+
+Controls which versions of input data are used for building the model.
+Versions that are available for each dataset can be found in `data/versions.csv`.
+By default, we retrieve the `latest` supported version for each dataset from an archive source.
+This means that when upgrading between PyPSA-Eur versions, new versions of input data may also be downloaded and used.
+To freeze a model to a specific version of input data, you can set a specific version in the `version` field for each dataset to one specific version as listed in `data/versions.csv`.
+
+Some datasets support `primary` or `build` as a source option, meaning that the data can be retrieved from the original
+data source or build it from the latest available data.
+See the `data/versions.csv` file for all available datasets and their sources/versions that are supported.
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: data:
+   :end-before: # docs
+
+.. csv-table::
+   :header-rows: 1
+   :widths: 22,7,22,33
+   :file: configtables/data.csv
+
 .. _solving_cf:
 
 ``solving``
@@ -666,7 +710,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. _cba_cf:
 
 ``cba``
-=======
+========
 
 Cost-Benefit Analysis (CBA) configuration for evaluating TYNDP transmission and storage projects using TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies.
 
