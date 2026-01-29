@@ -5,7 +5,7 @@
 Extract and clean 2024 TYNDP CBA indicators for transmission and storage projects.
 
 Reads scenario sheets (tabs starting with 2030/2040), maps shortcuts using the
-Readme table (F6:I25), and writes a long-format CSV for benchmarking.
+table on the "Readme" tab, and outputs a long-format CSV.
 """
 
 import logging
@@ -17,12 +17,15 @@ from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
+# Mapping of naming conventions of indicator results to standardized names
 STAT_MAP = {
     "weighted avg": "mean",
     "avg": "mean",
     "mid": "central",
 }
 
+# Mapping of indicator shortcut names to standardized indicator names
+# These should match the indicator names used in the Open-TYNDP CBA
 INDICATOR_MAP = {
     "B1": "B1_total_system_cost_change",
     "B2a": "B2a_co2_variation",
@@ -45,7 +48,7 @@ def normalize_text(
     Normalize text for parsing the TYNDP Excel data.
 
     Strips whitespace, remove Delta symbol, replace Euro symbols with 'euro',
-    standardizes spelling of 'monetised'/'monetized', and optionally removes spaces.
+    standardizes spelling.
     """
     text = (
         str(value)
@@ -92,8 +95,13 @@ def parse_project_id(series: pd.Series) -> pd.Series:
     return numeric.fillna(extracted)
 
 
-def load_readme_mapping(excel_path: Path) -> pd.DataFrame:
-    """Load the Readme mapping table (F6:I25) from the TYNDP workbook."""
+def extract_readme_table(excel_path: Path) -> pd.DataFrame:
+    """
+    Load and normalize the Readme mapping table (F6:I25) from the TYNDP workbook.
+
+    The Readme table is a table of indicator names, descriptions, shortcuts (shorthand name),
+    and units. Returns a normalized DataFrame for export as CSV.
+    """
     mapping = pd.read_excel(
         excel_path,
         sheet_name="Readme",
@@ -106,15 +114,6 @@ def load_readme_mapping(excel_path: Path) -> pd.DataFrame:
     missing = required - set(mapping.columns)
     if missing:
         logger.warning("Readme mapping missing columns: %s", sorted(missing))
-        return pd.DataFrame(columns=["Shortcut", "Full name", "Indicator", "Unit"])
-    mapping = mapping.dropna(subset=["Shortcut", "Indicator"]).copy()
-    return mapping
-
-
-def extract_readme_table(excel_path: Path) -> pd.DataFrame:
-    """Return a normalized readme table for export as CSV."""
-    mapping = load_readme_mapping(excel_path)
-    if mapping.empty:
         return pd.DataFrame(columns=["shortcut", "full_name", "indicator", "unit"])
     cleaned = mapping.rename(
         columns={
@@ -131,9 +130,9 @@ def extract_readme_table(excel_path: Path) -> pd.DataFrame:
     return cleaned[["shortcut", "full_name", "indicator", "unit"]]
 
 
-def scenario_sheets(excel_path: Path) -> list[str]:
+def get_scenarios_sheets(excel_path: Path) -> list[str]:
     """
-    List scenario sheets.
+    Automatically detect and list scenario sheets in the Excel file.
 
     This assumes scenarios are named starting with 2030 or 2040.
     """
@@ -225,22 +224,26 @@ def normalize_headers(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFrame:
-    """Join Readme metadata onto indicator data."""
+def join_indicator_data(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFrame:
+    """
+    Join Readme metadata onto indicator data.
+
+    Some data processing and normalization is applied to match the indicators
+    between the two tables.
+    """
     long["shortcut_norm"] = long["shortcut"].map(normalize_shortcut)
     mapping = mapping.copy()
-    mapping["Shortcut_norm"] = mapping["Shortcut"].map(normalize_shortcut)
     merged = long.merge(
-        mapping[["Shortcut_norm", "Indicator", "Unit", "Full name"]],
+        mapping[["shortcut", "indicator", "unit", "full_name"]],
         left_on="shortcut_norm",
-        right_on="Shortcut_norm",
+        right_on="shortcut",
         how="left",
     )
     merged = merged.rename(
         columns={
-            "Indicator": "indicator_raw",
-            "Unit": "unit_raw",
-            "Full name": "indicator_name",
+            "indicator": "indicator_raw",
+            "unit": "unit_raw",
+            "full_name": "indicator_name",
         }
     )
     merged["indicator_raw"] = merged["indicator_raw"].fillna(merged["shortcut_norm"])
@@ -270,16 +273,16 @@ def build_benchmark_rows(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFr
     return base
 
 
-def process_excel(excel_path: Path, project_type: str) -> pd.DataFrame:
+def process_benchmark_excel(excel_path: Path, project_type: str) -> pd.DataFrame:
     """Process all scenario sheets for a given workbook and project type."""
-    mapping = load_readme_mapping(excel_path)
+    mapping = extract_readme_table(excel_path)
     frames = []
-    for sheet_name in scenario_sheets(excel_path):
+    for sheet_name in get_scenarios_sheets(excel_path):
         scenario, planning_horizon = parse_scenario_name(sheet_name)
         long = extract_sheet(excel_path, sheet_name)
         if long.empty:
             continue
-        bench = build_benchmark_rows(long, mapping)
+        bench = join_indicator_data(long, mapping)
         if bench.empty:
             continue
         bench["scenario"] = scenario
@@ -304,29 +307,10 @@ if __name__ == "__main__":
     storage_path = Path(snakemake.input.storage)
 
     output_frames = [
-        process_excel(transmission_path, "transmission"),
-        process_excel(storage_path, "storage"),
+        process_benchmark_excel(transmission_path, "transmission"),
+        process_benchmark_excel(storage_path, "storage"),
     ]
     output = pd.concat([df for df in output_frames if not df.empty], ignore_index=True)
-
-    if output.empty:
-        output = pd.DataFrame(
-            columns=[
-                "project_id",
-                "method",
-                "indicator",
-                "indicator_raw",
-                "indicator_mapped",
-                "indicator_name",
-                "subindex",
-                "units",
-                "unit_raw",
-                "value",
-                "scenario",
-                "planning_horizon",
-                "type",
-            ]
-        )
 
     output.to_csv(snakemake.output.indicators, index=False)
 
