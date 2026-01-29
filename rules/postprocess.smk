@@ -7,6 +7,8 @@
 if config["foresight"] != "perfect":
 
     rule plot_base_network:
+        message:
+            "Plotting base power network"
         params:
             plotting=config_provider("plotting"),
         input:
@@ -23,6 +25,8 @@ if config["foresight"] != "perfect":
             "../scripts/plot_base_network.py"
 
     rule plot_power_network_clustered:
+        message:
+            "Plotting clustered power network for {wildcards.clusters} clusters"
         params:
             plotting=config_provider("plotting"),
         input:
@@ -39,6 +43,8 @@ if config["foresight"] != "perfect":
             "../scripts/plot_power_network_clustered.py"
 
     rule plot_power_network:
+        message:
+            "Plotting power network for {wildcards.clusters} clusters, {wildcards.opts} electric options, {wildcards.sector_opts} sector options and {wildcards.planning_horizons} planning horizons"
         params:
             plotting=config_provider("plotting"),
             transmission_limit=config_provider("electricity", "transmission_limit"),
@@ -64,6 +70,8 @@ if config["foresight"] != "perfect":
             "../scripts/plot_power_network.py"
 
     rule plot_hydrogen_network:
+        message:
+            "Plotting hydrogen network for {wildcards.clusters} clusters, {wildcards.opts} electric options, {wildcards.sector_opts} sector options and {wildcards.planning_horizons} planning horizons"
         params:
             plotting=config_provider("plotting"),
             foresight=config_provider("foresight"),
@@ -95,6 +103,8 @@ if config["foresight"] != "perfect":
             "../scripts/plot_hydrogen_network.py"
 
     rule plot_gas_network:
+        message:
+            "Plotting methane network for {wildcards.clusters} clusters, {wildcards.opts} electric options, {wildcards.sector_opts} sector options and {wildcards.planning_horizons} planning horizon"
         params:
             plotting=config_provider("plotting"),
         input:
@@ -119,6 +129,8 @@ if config["foresight"] != "perfect":
             "../scripts/plot_gas_network.py"
 
     rule plot_balance_map:
+        message:
+            "Plotting balance map for {wildcards.clusters} clusters, {wildcards.opts} electric options, {wildcards.sector_opts} sector options, {wildcards.planning_horizons} planning horizons and {wildcards.carrier} carrier"
         params:
             plotting=config_provider("plotting"),
             settings=lambda w: config_provider("plotting", "balance_map", w.carrier),
@@ -224,6 +236,8 @@ if config["foresight"] == "perfect":
         }
 
     rule plot_power_network_perfect:
+        message:
+            "Plotting power network with perfect foresight for {wildcards.clusters} clusters, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
         params:
             plotting=config_provider("plotting"),
         input:
@@ -240,6 +254,8 @@ if config["foresight"] == "perfect":
 
 
 rule make_summary:
+    message:
+        "Creating optimization results summary statistics"
     input:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
@@ -288,6 +304,8 @@ rule make_summary:
 
 
 rule make_global_summary:
+    message:
+        "Creating global summary of optimization results for all scenarios"
     params:
         scenario=config_provider("scenario"),
         RDIR=RDIR,
@@ -403,6 +421,8 @@ rule make_global_summary:
 
 
 rule make_cumulative_costs:
+    message:
+        "Calculating cumulative costs over time horizon"
     params:
         scenario=config_provider("scenario"),
     input:
@@ -421,6 +441,8 @@ rule make_cumulative_costs:
 
 
 rule plot_summary:
+    message:
+        "Plotting summary statistics and results"
     params:
         countries=config_provider("countries"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
@@ -450,6 +472,8 @@ rule plot_summary:
 
 
 rule plot_balance_timeseries:
+    message:
+        "Plotting energy balance time series for {wildcards.clusters} clusters, {wildcards.opts} electric options, {wildcards.sector_opts} sector options and {wildcards.planning_horizons} planning horizons"
     params:
         plotting=config_provider("plotting"),
         snapshots=config_provider("snapshots"),
@@ -477,6 +501,8 @@ rule plot_balance_timeseries:
 
 
 rule plot_heatmap_timeseries:
+    message:
+        "Plotting heatmap time series visualization for {wildcards.clusters} clusters, {wildcards.opts} electric options, {wildcards.sector_opts} sector options and {wildcards.planning_horizons} planning horizons"
     params:
         plotting=config_provider("plotting"),
         snapshots=config_provider("snapshots"),
@@ -517,6 +543,8 @@ STATISTICS_BARPLOTS = [
 
 
 rule plot_base_statistics:
+    message:
+        "Plotting base scenario statistics for {wildcards.clusters} clusters and {wildcards.opts} electric options"
     params:
         plotting=config_provider("plotting"),
         barplots=STATISTICS_BARPLOTS,

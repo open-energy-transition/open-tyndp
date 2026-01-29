@@ -6,6 +6,8 @@
 
 
 rule build_population_layouts:
+    message:
+        "Building population layout data (total, urban, rural) from NUTS3 shapes and World Bank statistics"
     input:
         nuts3_shapes=resources("nuts3_shapes.geojson"),
         urban_percent=rules.retrieve_worldbank_urban_population.output["csv"],
@@ -26,6 +28,8 @@ rule build_population_layouts:
 
 
 rule build_clustered_population_layouts:
+    message:
+        "Clustering population layouts for {wildcards.clusters} clusters"
     input:
         pop_layout_total=resources("pop_layout_total.nc"),
         pop_layout_urban=resources("pop_layout_urban.nc"),
@@ -49,6 +53,8 @@ rule build_clustered_population_layouts:
 
 
 rule build_clustered_solar_rooftop_potentials:
+    message:
+        "Building solar rooftop potentials for {wildcards.clusters} clusters"
     input:
         pop_layout=resources("pop_layout_total.nc"),
         class_regions=resources("regions_by_class_{clusters}_solar.geojson"),
@@ -66,6 +72,8 @@ rule build_clustered_solar_rooftop_potentials:
 
 
 rule build_simplified_population_layouts:
+    message:
+        "Building simplified population layouts for base scenario"
     input:
         pop_layout_total=resources("pop_layout_total.nc"),
         pop_layout_urban=resources("pop_layout_urban.nc"),
@@ -85,6 +93,8 @@ rule build_simplified_population_layouts:
 
 
 rule build_gas_network:
+    message:
+        "Building cleaned gas network from SciGRID-Gas data"
     input:
         gas_network=rules.retrieve_gas_infrastructure_data.output["gas_network"],
     output:
@@ -100,6 +110,8 @@ rule build_gas_network:
 
 
 rule build_gas_input_locations:
+    message:
+        "Building gas input locations for {wildcards.clusters} clusters"
     input:
         gem="data/gem/Europe-Gas-Tracker-2024-05.xlsx",
         entry=rules.retrieve_gas_infrastructure_data.output["entry"],
@@ -122,6 +134,8 @@ rule build_gas_input_locations:
 
 
 rule cluster_gas_network:
+    message:
+        "Clustering gas network for {wildcards.clusters} clusters"
     input:
         cleaned_gas_network=resources("gas_network.csv"),
         regions_onshore=resources("regions_onshore_base_s_{clusters}.geojson"),
@@ -139,6 +153,8 @@ rule cluster_gas_network:
 
 
 rule build_daily_heat_demand:
+    message:
+        "Building daily heat demand profiles for {wildcards.clusters} clusters"
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -162,6 +178,8 @@ rule build_daily_heat_demand:
 
 
 rule build_hourly_heat_demand:
+    message:
+        "Building hourly heat demand profiles from daily demand for {wildcards.clusters} clusters"
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -186,6 +204,8 @@ rule build_hourly_heat_demand:
 
 
 rule build_temperature_profiles:
+    message:
+        "Building temperature profiles for {wildcards.clusters} clusters"
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -210,6 +230,8 @@ rule build_temperature_profiles:
 
 
 rule build_central_heating_temperature_profiles:
+    message:
+        "Building central heating temperature profiles for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         max_forward_temperature_central_heating_baseyear=config_provider(
             "sector",
@@ -302,6 +324,8 @@ rule build_dh_areas:
 
 
 rule build_geothermal_heat_potential:
+    message:
+        "Building geothermal heat potential estimates for {wildcards.clusters} clusters"
     params:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         countries=config_provider("countries"),
@@ -340,6 +364,8 @@ rule build_geothermal_heat_potential:
 
 
 rule build_ates_potentials:
+    message:
+        "Building aquifer thermal energy storage (ATES) potentials for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         max_top_temperature=config_provider(
             "sector",
@@ -618,6 +644,8 @@ rule build_sea_heat_potential:
 
 
 rule build_cop_profiles:
+    message:
+        "Building coefficient of performance (COP) profiles for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         heat_pump_sink_T_decentral_heating=config_provider(
             "sector", "heat_pump_sink_T_individual_heating"
@@ -655,6 +683,8 @@ rule build_cop_profiles:
 
 
 rule build_ptes_operations:
+    message:
+        "Building thermal energy storage operations profiles for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         max_ptes_top_temperature=config_provider(
             "sector",
@@ -698,6 +728,8 @@ rule build_ptes_operations:
 
 
 rule build_direct_heat_source_utilisation_profiles:
+    message:
+        "Building direct heat source utilization profiles for industrial applications for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         direct_utilisation_heat_sources=config_provider(
             "sector", "district_heating", "direct_utilisation_heat_sources"
@@ -729,6 +761,8 @@ rule build_direct_heat_source_utilisation_profiles:
 
 
 rule build_solar_thermal_profiles:
+    message:
+        "Building solar thermal generation profiles for {wildcards.clusters} clusters"
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -751,6 +785,8 @@ rule build_solar_thermal_profiles:
 
 
 rule build_energy_totals:
+    message:
+        "Building energy totals"
     params:
         countries=config_provider("countries"),
         energy=config_provider("energy"),
@@ -792,7 +828,7 @@ if (COUNTRY_HDD_DATASET := dataset_version("country_hdd"))["source"] in ["build"
             cutouts=["cutouts/europe-1940-2024-era5.nc"],
             country_shapes=resources("country_shapes.geojson"),
         output:
-            era5_hdd=f"{COUNTRY_HDD_DATASET["folder"]}/era5-HDD-per-country.csv",
+            era5_hdd=f"{COUNTRY_HDD_DATASET['folder']}/era5-HDD-per-country.csv",
         log:
             logs("build_country_hdd.log"),
         benchmark:
@@ -804,8 +840,10 @@ if (COUNTRY_HDD_DATASET := dataset_version("country_hdd"))["source"] in ["build"
 
 
 rule build_heat_totals:
+    message:
+        "Building heat totals"
     input:
-        hdd=f"{COUNTRY_HDD_DATASET["folder"]}/era5-HDD-per-country.csv",
+        hdd=f"{COUNTRY_HDD_DATASET['folder']}/era5-HDD-per-country.csv",
         energy_totals=resources("energy_totals.csv"),
     output:
         heat_totals=resources("heat_totals.csv"),
@@ -821,6 +859,8 @@ rule build_heat_totals:
 
 
 rule build_biomass_potentials:
+    message:
+        "Building biomass potential estimates for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         biomass=config_provider("biomass"),
     input:
@@ -851,6 +891,8 @@ rule build_biomass_potentials:
 
 
 rule build_biomass_transport_costs:
+    message:
+        "Building biomass transport cost"
     input:
         sc1="data/biomass_transport_costs_supplychain1.csv",
         sc2="data/biomass_transport_costs_supplychain2.csv",
@@ -868,6 +910,8 @@ rule build_biomass_transport_costs:
 
 
 rule build_co2_sequestration_potentials:
+    message:
+        "Building CO2 sequestration potentials"
     input:
         storage_table=rules.retrieve_co2stop.output["storage_table"],
         storage_map=rules.retrieve_co2stop.output["storage_map"],
@@ -889,6 +933,8 @@ rule build_co2_sequestration_potentials:
 
 
 rule build_clustered_co2_sequestration_potentials:
+    message:
+        "Clustering CO2 sequestration potentials for {wildcards.clusters} clusters"
     params:
         sequestration_potential=config_provider(
             "sector", "regional_co2_sequestration_potential"
@@ -913,6 +959,8 @@ rule build_clustered_co2_sequestration_potentials:
 
 
 rule build_salt_cavern_potentials:
+    message:
+        "Building salt cavern potential for hydrogen storage for {wildcards.clusters} clusters"
     input:
         salt_caverns=rules.retrieve_h2_salt_caverns.output["geojson"],
         regions_onshore=resources("regions_onshore_base_s_{clusters}.geojson"),
@@ -931,6 +979,8 @@ rule build_salt_cavern_potentials:
 
 
 rule build_ammonia_production:
+    message:
+        "Building ammonia production capacity and location data"
     input:
         usgs=rules.retrieve_nitrogen_statistics.output["xlsx"],
     output:
@@ -947,6 +997,8 @@ rule build_ammonia_production:
 
 
 rule build_industry_sector_ratios:
+    message:
+        "Building industry sector energy demand ratios"
     params:
         industry=config_provider("industry"),
         ammonia=config_provider("sector", "ammonia", default=False),
@@ -967,6 +1019,8 @@ rule build_industry_sector_ratios:
 
 
 rule build_industry_sector_ratios_intermediate:
+    message:
+        "Building intermediate industry sector ratios for {wildcards.planning_horizons} planning horizon"
     params:
         industry=config_provider("industry"),
     input:
@@ -993,6 +1047,8 @@ rule build_industry_sector_ratios_intermediate:
 
 
 rule build_industrial_production_per_country:
+    message:
+        "Building industrial production statistics per country"
     params:
         industry=config_provider("industry"),
         countries=config_provider("countries"),
@@ -1017,6 +1073,8 @@ rule build_industrial_production_per_country:
 
 
 rule build_industrial_production_per_country_tomorrow:
+    message:
+        "Building future industrial production projections for {wildcards.planning_horizons} planning horizon"
     params:
         industry=config_provider("industry"),
     input:
@@ -1043,6 +1101,8 @@ rule build_industrial_production_per_country_tomorrow:
 
 
 rule build_industrial_distribution_key:
+    message:
+        "Building industrial activity distribution mapping key for {wildcards.clusters} clusters"
     params:
         hotmaps_locate_missing=config_provider(
             "industry", "hotmaps_locate_missing", default=False
@@ -1072,6 +1132,8 @@ rule build_industrial_distribution_key:
 
 
 rule build_industrial_production_per_node:
+    message:
+        "Distributing industrial production to network nodes for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     input:
         industrial_distribution_key=resources(
             "industrial_distribution_key_base_s_{clusters}.csv"
@@ -1099,6 +1161,8 @@ rule build_industrial_production_per_node:
 
 
 rule build_industrial_energy_demand_per_node:
+    message:
+        "Building industrial energy demand per network node for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     input:
         industry_sector_ratios=resources(
             "industry_sector_ratios_{planning_horizons}.csv"
@@ -1131,6 +1195,8 @@ rule build_industrial_energy_demand_per_node:
 
 
 rule build_industrial_energy_demand_per_country_today:
+    message:
+        "Building current industrial energy demand by country"
     params:
         countries=config_provider("countries"),
         industry=config_provider("industry"),
@@ -1157,6 +1223,8 @@ rule build_industrial_energy_demand_per_country_today:
 
 
 rule build_industrial_energy_demand_per_node_today:
+    message:
+        "Building current industrial energy demand per network node for {wildcards.clusters} clusters"
     input:
         industrial_distribution_key=resources(
             "industrial_distribution_key_base_s_{clusters}.csv"
@@ -1180,6 +1248,8 @@ rule build_industrial_energy_demand_per_node_today:
 
 
 rule build_retro_cost:
+    message:
+        "Building retrofitting cost estimates for building efficiency improvements for {wildcards.clusters} clusters"
     params:
         retrofitting=config_provider("sector", "retrofitting"),
         countries=config_provider("countries"),
@@ -1208,6 +1278,8 @@ rule build_retro_cost:
 
 
 rule build_population_weighted_energy_totals:
+    message:
+        "Building population-weighted energy demand totals for {wildcards.clusters} clusters"
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -1228,6 +1300,8 @@ rule build_population_weighted_energy_totals:
 
 
 rule build_shipping_demand:
+    message:
+        "Building shipping fuel demand projections for {wildcards.clusters} clusters"
     input:
         ports=rules.retrieve_attributed_ports.output["json"],
         scope=resources("europe_shape.geojson"),
@@ -1279,6 +1353,8 @@ if MOBILITY_PROFILES_DATASET["source"] in ["build"]:
 
 
 rule build_transport_demand:
+    message:
+        "Building transport energy demand profiles for {wildcards.clusters} clusters"
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -1291,8 +1367,8 @@ rule build_transport_demand:
             "pop_weighted_energy_totals_s_{clusters}.csv"
         ),
         transport_data=resources("transport_data.csv"),
-        traffic_data_KFZ=f"{MOBILITY_PROFILES_DATASET["folder"]}/kfz.csv",
-        traffic_data_Pkw=f"{MOBILITY_PROFILES_DATASET["folder"]}/pkw.csv",
+        traffic_data_KFZ=f"{MOBILITY_PROFILES_DATASET['folder']}/kfz.csv",
+        traffic_data_Pkw=f"{MOBILITY_PROFILES_DATASET['folder']}/pkw.csv",
         temp_air_total=resources("temp_air_total_base_s_{clusters}.nc"),
     output:
         transport_demand=resources("transport_demand_s_{clusters}.csv"),
@@ -1311,6 +1387,8 @@ rule build_transport_demand:
 
 
 rule build_district_heat_share:
+    message:
+        "Building district heating penetration share data for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         sector=config_provider("sector"),
         energy_totals_year=config_provider("energy", "energy_totals_year"),
@@ -1333,6 +1411,8 @@ rule build_district_heat_share:
 
 
 rule build_existing_heating_distribution:
+    message:
+        "Building existing heating technology distribution data for {wildcards.clusters} clusters and {wildcards.planning_horizons} planning horizon"
     params:
         baseyear=config_provider("scenario", "planning_horizons", 0),
         sector=config_provider("sector"),
@@ -1366,6 +1446,8 @@ rule build_existing_heating_distribution:
 
 
 rule time_aggregation:
+    message:
+        "Performing time series aggregation for temporal resolution reduction for {wildcards.clusters} clusters and {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
         time_resolution=config_provider("clustering", "temporal"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -1406,6 +1488,8 @@ def input_profile_offwind(w):
 
 
 rule build_egs_potentials:
+    message:
+        "Building enhanced geothermal system (EGS) potential estimates for {wildcards.clusters} clusters"
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -1515,6 +1599,8 @@ def include_tydnp_trajectories(w):
 
 
 rule prepare_sector_network:
+    message:
+        "Preparing integrated sector-coupled energy network for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizon, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         co2_budget=config_provider("co2_budget"),
@@ -1612,7 +1698,7 @@ rule prepare_sector_network:
             "biomass_potentials_s_{clusters}_{planning_horizons}.csv"
         ),
         costs=lambda w: (
-            resources(f"costs_{config_provider("costs", "year")(w)}_processed.csv")
+            resources(f"costs_{config_provider('costs', 'year')(w)}_processed.csv")
             if config_provider("foresight")(w) == "overnight"
             else resources("costs_{planning_horizons}_processed.csv")
         ),

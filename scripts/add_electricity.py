@@ -1213,7 +1213,7 @@ if __name__ == "__main__":
             tech_map = {
                 key: value
                 for key, value in estimate_renewable_caps["technology_mapping"].items()
-                if key in estimate_renewable_caps["technologies"]
+                if key in estimate_renewable_caps["technology_mapping"].keys()
             }
             expansion_limit = estimate_renewable_caps["expansion_limit"]
             year = estimate_renewable_caps["year"]
