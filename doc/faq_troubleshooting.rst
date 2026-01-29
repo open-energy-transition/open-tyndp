@@ -63,6 +63,12 @@ Technical Questions
 
    We recommend following the `soft-fork strategy <https://open-energy-transition.github.io/handbook/docs/Engineering/SoftForkStrategy>`_ maintained by Open Energy Transition (OET). This approach allows you to maintain your own fork with custom features while staying synchronized with upstream improvements from both Open-TYNDP and PyPSA-Eur. The strategy provides guidance on organizing changes, managing merge conflicts, and contributing improvements back to the upstream repositories when appropriate.
 
+.. admonition:: Why do I get a ValueError about renaming 'name' in the offshore constraints?
+
+   This error occurs when running Open-TYNDP code with an older PyPSA version (e.g., 0.35.2) from a recycled conda environment. The Open-TYNDP master branch is compatible with PyPSA v1, which uses different dimension naming than older versions (`Issue #337 <https://github.com/open-energy-transition/open-tyndp/issues/337>`_).
+
+   **Fix:** Always recreate your conda/pixi environment when cloning or updating the repository. Update to Open-TYNDP v0.4.1 or later for backward compatibility (`PR #339 <https://github.com/open-energy-transition/open-tyndp/pull/339>`_). We recommend using the most recent locked environment for each release.
+
 Model Data and Assumptions
 ===========================
 
