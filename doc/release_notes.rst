@@ -38,6 +38,8 @@ Upcoming Open-TYNDP Release
 
 * Enable unlimited capacity for primary fuel generators in CBA rolling horizon (https://github.com/open-energy-transition/open-tyndp/pull/408).
 
+* Fix processing of H2 demand profiles and PEMMDB profiles for compatibility with the climate year being a leap year like 2008 (https://github.com/open-energy-transition/open-tyndp/pull/414).
+
 
 Upcoming PyPSA-Eur Release
 ================
