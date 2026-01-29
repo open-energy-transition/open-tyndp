@@ -35,9 +35,9 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
             os.remove(output["dir"] + ".zip")
 
 
-if (
-    CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects")
-)["source"] in ["archive"]:
+if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects"))[
+    "source"
+] in ["archive"]:
 
     rule retreive_cba_guidelines_reference_projects:
         input:
@@ -67,6 +67,7 @@ checkpoint clean_projects:
         storage_projects=resources("cba/storage_projects.csv"),
     script:
         "../scripts/cba/clean_projects.py"
+
 
 def input_sb_network(w):
     scenario = config_provider("scenario")(w)
@@ -120,6 +121,7 @@ rule prepare_reference:
     script:
         "../scripts/cba/prepare_reference.py"
 
+
 # assign cba method to each project, based on table from CBA guidelines annex B.1
 # and from full list of CBA projects
 rule assign_cba_project_method:
@@ -130,6 +132,7 @@ rule assign_cba_project_method:
         methods=resources("cba/cba_project_methods.csv"),
     script:
         "../scripts/cba/assign_cba_project_method.py"
+
 
 # remove the single project {cba_project} from the toot reference network
 # currently this can be either a trans123 or a stor123 project
