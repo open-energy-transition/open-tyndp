@@ -282,9 +282,8 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         else:
             interpretation = "The project increases costs as removing it decreases costs compared to the reference scenario with all projects."
 
-    b1_meuro = b1 / 1e6
     results = {
-        "B1_total_system_cost_change": b1_meuro,
+        "B1_total_system_cost_change": b1 / 1e6,  # convert to Meuro/year
         "is_beneficial": is_beneficial,
         "interpretation": interpretation,
         "cost_reference": cost_reference["total"],
