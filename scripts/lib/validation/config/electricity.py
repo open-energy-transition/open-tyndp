@@ -345,7 +345,6 @@ class ElectricityConfig(BaseModel):
             "gas",
             "coal",
             "lignite",
-            "nuclear",
             "uranium",
             "oil-light",
             "oil-heavy",
