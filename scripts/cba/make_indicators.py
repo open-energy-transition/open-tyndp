@@ -426,7 +426,7 @@ def calculate_b4_indicator(
 
     def emissions_by_stat(n: pypsa.Network) -> dict:
         generation = (
-            n.statistics.energy_balance(aggregate_time="sum", nice_names=False)
+            n.statistics.energy_balance(nice_names=False)
             .groupby("carrier")
             .sum()
         )
