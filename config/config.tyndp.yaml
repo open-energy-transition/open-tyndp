@@ -399,6 +399,7 @@ cba:
   - 2040
   methods:
   - toot
+  - pint
   projects:
   - t1-t35
 
