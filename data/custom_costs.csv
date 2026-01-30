@@ -42,7 +42,9 @@ all,2035,electrolysis,efficiency,0.7,per unit,"TYNDP 2024 Scenarios Methodology 
 all,2040,electrolysis,efficiency,0.71,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,2045,electrolysis,efficiency,0.725,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,2050,electrolysis,efficiency,0.74,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
-all,all,SMR CC,capture_rate,0.87029,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",assume gas emission factor
+all,all,SMR,efficiency,0.77,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,SMR CC,efficiency,0.77,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,SMR CC,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 DE,2030,biogas CC,capture_rate,0.5,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
 DE,2035,biogas CC,capture_rate,0.6,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
 DE,2040,biogas CC,capture_rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
@@ -63,18 +65,6 @@ GA,2035,BtL,capture rate,0.365,per unit,"TYNDP 2024 Scenarios Methodology Report
 GA,2040,BtL,capture rate,0.48,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
 GA,2045,BtL,capture rate,0.59,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
 GA,2050,BtL,capture rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
-all,2030,gas-ccgt-ccs,capture_rate,0.1,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2035,gas-ccgt-ccs,capture_rate,0.15,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2040,gas-ccgt-ccs,capture_rate,0.2,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2045,gas-ccgt-ccs,capture_rate,0.25,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2050,gas-ccgt-ccs,capture_rate,0.3,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2030,coal-ccs,capture_rate,0.3,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2035,coal-ccs,capture_rate,0.45,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2040,coal-ccs,capture_rate,0.6,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2045,coal-ccs,capture_rate,0.75,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2050,coal-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2030,lignite-ccs,capture_rate,0.3,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2035,lignite-ccs,capture_rate,0.45,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2040,lignite-ccs,capture_rate,0.6,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2045,lignite-ccs,capture_rate,0.75,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
-all,2050,lignite-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+all,all,gas-ccgt-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,coal-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,lignite-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
