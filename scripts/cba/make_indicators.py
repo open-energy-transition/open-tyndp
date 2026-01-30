@@ -550,29 +550,15 @@ def load_benchmark_rows(
     if benchmark.empty:
         return pd.DataFrame()
 
-    required = {"project_id", "planning_horizon"}
-    if not required.issubset(benchmark.columns):
-        logger.warning("Benchmark file missing required columns: %s", required)
-        return pd.DataFrame()
-
     benchmark = benchmark.loc[
         (benchmark["project_id"] == project_id)
         & (benchmark["planning_horizon"] == planning_horizon)
+        & (benchmark["type"] == project_type)
+        & (benchmark["scenario"] == scenario)
     ].copy()
 
-    if project_type and "type" in benchmark.columns:
-        benchmark = benchmark.loc[benchmark["type"] == project_type]
-
-    if scenario and "scenario" in benchmark.columns:
-        scenario_matches = benchmark["scenario"] == scenario
-        if not scenario_matches.any():
-            scenario_matches = benchmark["scenario"].str.startswith(scenario)
-        if not scenario_matches.any():
-            scenario_matches = benchmark["scenario"].str.endswith(scenario)
-        benchmark = benchmark.loc[scenario_matches]
-
     if benchmark.empty:
-        return pd.DataFrame()
+        raise ValueError("No benchmark rows found")
 
     if "indicator_mapped" in benchmark.columns:
         benchmark["indicator"] = benchmark["indicator_mapped"].fillna(
