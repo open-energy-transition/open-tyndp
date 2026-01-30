@@ -469,6 +469,82 @@ def calculate_b4_indicator(
     return results
 
 
+INDICATOR_UNITS = {
+    "B1_total_system_cost_change": "EUR/year",
+    "cost_reference": "EUR/year",
+    "capex_reference": "EUR/year",
+    "opex_reference": "EUR/year",
+    "cost_project": "EUR/year",
+    "capex_project": "EUR/year",
+    "opex_project": "EUR/year",
+    "capex_change": "EUR/year",
+    "opex_change": "EUR/year",
+    "co2_variation": "t/year",
+    "co2_ets_price": "EUR/t",
+    "co2_societal_cost": "EUR/t",
+    "B2_societal_cost_variation": "EUR/year",
+    "B3_res_capacity_change_mw": "MW",
+    "B3_res_generation_change_mwh": "MWh/year",
+    "B3_annual_avoided_curtailment_mwh": "MWh/year",
+    "B4a_nox_t_per_year": "t/year",
+    "B4b_nh3_t_per_year": "t/year",
+    "B4c_sox_t_per_year": "t/year",
+    "B4d_pm25_t_per_year": "t/year",
+    "B4e_pm10_t_per_year": "t/year",
+    "B4f_nmvoc_t_per_year": "t/year",
+}
+
+
+def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
+    indicators = set(df["indicator"])
+    missing = indicators - set(INDICATOR_UNITS)
+    if missing:
+        raise ValueError(
+            f"Missing units for indicators: {sorted(missing)}. "
+            "Update INDICATOR_UNITS to continue."
+        )
+    extra = set(INDICATOR_UNITS) - indicators
+    if extra:
+        logger.warning("Unused indicator units defined: %s", sorted(extra))
+    df = df.copy()
+    df["units"] = df["indicator"].map(INDICATOR_UNITS)
+    return df
+
+
+def build_long_indicators(indicators: dict) -> pd.DataFrame:
+    meta = {
+        "project_id": indicators.get("project_id"),
+        "method": indicators.get("cba_method"),
+        "is_beneficial": indicators.get("is_beneficial"),
+        "interpretation": indicators.get("interpretation"),
+    }
+
+    rows = []
+    skip_keys = set(meta.keys()) | {"cba_method"}
+    for key, value in indicators.items():
+        if key in skip_keys:
+            continue
+
+        indicator = key
+        subindex = ""
+        for suffix in ["_min", "_mean", "_max", "_low", "_central", "_high"]:
+            if indicator.endswith(suffix):
+                indicator = indicator[: -len(suffix)]
+                subindex = suffix.lstrip("_")
+                break
+
+        rows.append(
+            {
+                **meta,
+                "indicator": indicator,
+                "subindex": subindex,
+                "value": value,
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -542,5 +618,6 @@ if __name__ == "__main__":
     )
 
     # Convert to DataFrame and save
-    df = pd.DataFrame([indicators])
+    df = build_long_indicators(indicators)
+    df = apply_indicator_units(df)
     df.to_csv(snakemake.output.indicators, index=False)
