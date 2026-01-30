@@ -269,7 +269,7 @@ rule plot_cba_benchmark:
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
     output:
         plot_file=RESULTS
-        + "cba/{cba_method}/benchmark/project_{cba_project}_{planning_horizons}.png",
+        + "cba/{cba_method}/validation/project_{cba_project}_{planning_horizons}.png",
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
