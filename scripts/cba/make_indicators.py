@@ -500,7 +500,7 @@ def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
         "method": indicators.get("cba_method"),
         "is_beneficial": indicators.get("is_beneficial"),
         "interpretation": indicators.get("interpretation"),
-        "source": indicators.get("source", "model"),
+        "source": indicators.get("source", "Open-TYNDP"),
     }
 
     rows = []
@@ -584,7 +584,7 @@ def load_benchmark_rows(
         if "method" in benchmark.columns
         else None
     )
-    benchmark["source"] = "2024 tyndp"
+    benchmark["source"] = "TYNDP 2024"
     benchmark["is_beneficial"] = None
     benchmark["interpretation"] = None
 

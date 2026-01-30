@@ -5,8 +5,8 @@
 Create benchmark plots for CBA indicators.
 
 This script reads a indicators CSV file that
-includes model rows and TYNDP benchmark rows,
-and generates plots comparing model values
+includes Open-TYNDP rows and TYNDP benchmark rows,
+and generates plots comparing Open-TYNDP values
 to the 2024 TYNDP values.
 """
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     """Pick a representative model value for a given indicator."""
-    model = df[(df["source"] == "model") & (df["indicator"] == indicator)]
+    model = df[(df["source"] == "Open-TYNDP") & (df["indicator"] == indicator)]
     if model.empty:
         return None
 
@@ -55,7 +55,7 @@ def benchmark_range(
 ) -> tuple[float, float, float] | None:
     """Return (min, mean, max) range for a benchmark indicator."""
     benchmark = df[
-        (df["source"] == "2024 tyndp") & (df["indicator"] == indicator)
+        (df["source"] == "TYNDP 2024") & (df["indicator"] == indicator)
     ].copy()
     if benchmark.empty:
         return None
@@ -113,7 +113,7 @@ def plot_project_benchmarks(
             levels = ["low", "central", "high"]
             has_any = any(
                 select_value_by_subindex(df, indicator, src, lvl) is not None
-                for src in ["model", "2024 tyndp"]
+                for src in ["Open-TYNDP", "TYNDP 2024"]
                 for lvl in levels
             )
             if has_any:
@@ -154,8 +154,8 @@ def plot_project_benchmarks(
             offsets = {"low": -0.1, "central": 0.0, "high": 0.1}
             x = 0.0
             for level in levels:
-                model_val = select_value_by_subindex(df, indicator, "model", level)
-                bench_val = select_value_by_subindex(df, indicator, "2024 tyndp", level)
+                model_val = select_value_by_subindex(df, indicator, "Open-TYNDP", level)
+                bench_val = select_value_by_subindex(df, indicator, "TYNDP 2024", level)
                 if bench_val is not None:
                     ax.scatter(
                         [x + offsets[level]],
@@ -240,7 +240,7 @@ def plot_project_benchmarks(
                 ax.set_yscale("symlog", linthresh=max(abs_min, 1.0))
 
         units = df.loc[
-            (df["indicator"] == indicator) & (df["source"] == "model"), "units"
+            (df["indicator"] == indicator) & (df["source"] == "Open-TYNDP"), "units"
         ].dropna()
         unit_label = units.iloc[0] if not units.empty else ""
         title = f"{indicator} ({unit_label})" if unit_label else indicator
@@ -306,9 +306,9 @@ def create_plots(indicators_file, output_path, planning_horizon=None):
         return
 
     if "source" not in df.columns:
-        df["source"] = "model"
+        df["source"] = "Open-TYNDP"
 
-    project_ids = df.loc[df["source"] == "model", "project_id"].dropna().unique()
+    project_ids = df.loc[df["source"] == "Open-TYNDP", "project_id"].dropna().unique()
     if output_path.suffix:
         if len(project_ids) == 0:
             logger.info("No model projects found in indicators file")
