@@ -278,7 +278,7 @@ rule plot_all_cba_benchmark:
     input:
         indicators=rules.collect_indicators.output.indicators,
     output:
-        plot_dir=directory(RESULTS + "cba/{cba_method}/benchmark"),
+        plot_dir=directory(RESULTS + "cba/{cba_method}/{planning_horizons}/(benchmark"),
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
