@@ -673,6 +673,8 @@ if __name__ == "__main__":
     scenario = snakemake.config.get("tyndp_scenario") or snakemake.config.get(
         "run", {}
     ).get("name")
+    if scenario and not str(scenario)[:4].isdigit():
+        scenario = f"{planning_horizon}{scenario}"
     project_type = "storage" if cba_project.startswith("s") else "transmission"
     benchmark_rows = load_benchmark_rows(
         snakemake.input.benchmark,
