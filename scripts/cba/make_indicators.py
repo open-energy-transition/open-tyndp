@@ -426,9 +426,7 @@ def calculate_b4_indicator(
 
     def emissions_by_stat(n: pypsa.Network) -> dict:
         generation = (
-            n.statistics.energy_balance(nice_names=False)
-            .groupby("carrier")
-            .sum()
+            n.statistics.energy_balance(nice_names=False).groupby("carrier").sum()
         )
         emissions = {stat: {} for stat in ["min", "mean", "max"]}
         missing_map = []
