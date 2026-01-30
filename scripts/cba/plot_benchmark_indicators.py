@@ -184,7 +184,7 @@ def plot_project_benchmarks(
                         marker="o",
                         zorder=4,
                     )
-                    label = f"Model {level}"
+                    label = f"Open-TYNDP {level}"
                     if label not in legend_labels:
                         legend_handles.append(
                             Line2D(
@@ -224,11 +224,11 @@ def plot_project_benchmarks(
                 color="tab:blue",
                 zorder=3,
             )
-            if "Model" not in legend_labels:
+            if "Open-TYNDP" not in legend_labels:
                 legend_handles.append(
                     Line2D([0], [0], marker="o", color="tab:blue", linestyle="None")
                 )
-                legend_labels.append("Model")
+                legend_labels.append("Open-TYNDP")
             ax.set_xticks([])
 
         ylim = ax.get_ylim()
@@ -251,11 +251,11 @@ def plot_project_benchmarks(
     # Interleaved to account for matplotlib's column-major legend layout.
     b2a_order = [
         "2024 TYNDP low",
-        "Model low",
+        "Open-TYNDP low",
         "2024 TYNDP central",
-        "Model central",
+        "Open-TYNDP central",
         "2024 TYNDP high",
-        "Model high",
+        "Open-TYNDP high",
     ]
     b2a_items = [
         (h, l) for h, l in zip(legend_handles, legend_labels) if l in b2a_order
