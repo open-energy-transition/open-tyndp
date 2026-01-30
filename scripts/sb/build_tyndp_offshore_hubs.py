@@ -267,6 +267,13 @@ def load_offshore_electrolysers(
         1e3
     )  # kEUR/MW to EUR/MW
 
+    if scenario == "NT":  # NT is a dispatch scenario
+        electrolysers["p_nom_extendable"] = False
+    else:
+        electrolysers["p_nom_extendable"] = ~electrolysers[
+            ["capex", "opex"]
+        ].isna().any(axis=1)
+
     # rename UK in GB
     electrolysers[["bus0", "bus1", "country"]] = electrolysers[
         ["bus0", "bus1", "country"]

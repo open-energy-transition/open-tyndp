@@ -4040,7 +4040,7 @@ def add_offshore_electrolysers_tyndp(
         offshore_electrolysers.index,
         bus0=offshore_electrolysers.bus0,
         bus1=offshore_electrolysers.bus1,
-        p_nom_extendable=True,
+        p_nom_extendable=offshore_electrolysers.p_nom_extendable,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
         capital_cost=offshore_electrolysers.capital_cost,
