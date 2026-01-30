@@ -130,17 +130,18 @@ def extract_readme_table(excel_path: Path) -> pd.DataFrame:
     return cleaned[["shortcut", "full_name", "indicator", "unit"]]
 
 
-def get_scenarios_sheets(excel_path: Path) -> list[str]:
+def get_scenarios_sheets(excel_path: Path, planning_horizons: list[int]) -> list[str]:
     """
     Automatically detect and list scenario sheets in the Excel file.
 
-    This assumes scenarios are named starting with 2030 or 2040.
+    This assumes scenarios are named starting with one of the planning horizons.
     """
     xl = pd.ExcelFile(excel_path)
+    prefixes = tuple(str(horizon) for horizon in planning_horizons)
     return [
         name
         for name in xl.sheet_names
-        if name[:4].isdigit() and name.startswith(("2030", "2040"))
+        if name[:4].isdigit() and name.startswith(prefixes)
     ]
 
 
@@ -273,11 +274,13 @@ def join_indicator_data(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFra
     return base
 
 
-def process_benchmark_excel(excel_path: Path, project_type: str) -> pd.DataFrame:
+def process_benchmark_excel(
+    excel_path: Path, project_type: str, planning_horizons: list[int]
+) -> pd.DataFrame:
     """Process all scenario sheets for a given workbook and project type."""
     mapping = extract_readme_table(excel_path)
     frames = []
-    for sheet_name in get_scenarios_sheets(excel_path):
+    for sheet_name in get_scenarios_sheets(excel_path, planning_horizons):
         scenario, planning_horizon = parse_scenario_name(sheet_name)
         long = extract_sheet(excel_path, sheet_name)
         if long.empty:
@@ -296,19 +299,18 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake(
-            "clean_tyndp_indicators", run="NT", configfiles=["config/config.tyndp.yaml"]
-        )
+        snakemake = mock_snakemake("clean_tyndp_indicators")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    planning_horizons = snakemake.config["cba"]["planning_horizons"]
     transmission_path = Path(snakemake.input.transmission)
     storage_path = Path(snakemake.input.storage)
 
     output_frames = [
-        process_benchmark_excel(transmission_path, "transmission"),
-        process_benchmark_excel(storage_path, "storage"),
+        process_benchmark_excel(transmission_path, "transmission", planning_horizons),
+        process_benchmark_excel(storage_path, "storage", planning_horizons),
     ]
     output = pd.concat([df for df in output_frames if not df.empty], ignore_index=True)
 
