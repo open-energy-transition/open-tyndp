@@ -550,6 +550,9 @@ def load_benchmark_rows(
     if benchmark.empty:
         return pd.DataFrame()
 
+    if scenario and not str(scenario)[:4].isdigit():
+        scenario = f"{planning_horizon}{scenario}"
+
     benchmark = benchmark.loc[
         (benchmark["project_id"] == project_id)
         & (benchmark["planning_horizon"] == planning_horizon)
@@ -673,8 +676,6 @@ if __name__ == "__main__":
     scenario = snakemake.config.get("tyndp_scenario") or snakemake.config.get(
         "run", {}
     ).get("name")
-    if scenario and not str(scenario)[:4].isdigit():
-        scenario = f"{planning_horizon}{scenario}"
     project_type = "storage" if cba_project.startswith("s") else "transmission"
     benchmark_rows = load_benchmark_rows(
         snakemake.input.benchmark,
