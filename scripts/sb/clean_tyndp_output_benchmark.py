@@ -74,8 +74,8 @@ MM_CARRIER_MAPPING = {
     "Pump Storage - Closed Loop (pump)": "hydro and pumped storage (load)",
     "Others renewable": "chp and small thermal",  # >TODO check if that could be small scale res
     "Others non-renewable": "other non-res",
-    "Battery Storage discharge (gen.)": "battery",
-    "Battery Storage charge (load)": "battery (load)",
+    "Battery Storage discharge (gen.)": "battery discharge",
+    "Battery Storage charge (load)": "battery charge (load)",
     "Hydrogen CCGT": "hydrogen",
     "Hydrogen Fuel Cell": "hydrogen",
     "Demand Side Response Explicit": "demand shedding",
@@ -172,6 +172,38 @@ def load_MM_sheet(
     return final
 
 
+def set_load_sign(
+    MM_data: pd.DataFrame,
+    key_word: str = "load",
+    tables: list = ["power_generation", "hydrogen_supply"],
+) -> pd.DataFrame:
+    """
+    Set negative sign for load values in market model data.
+
+    Identifies carriers containing the specified keyword in their name
+    and negates their values to represent consumption/load.
+
+    Parameters
+    ----------
+    MM_data : pd.DataFrame
+        Market model data with columns 'carrier', 'table', and 'value'.
+    key_word : str, default "load"
+        Keyword to identify load carriers in the carrier column.
+    tables : list, default ["power_generation", "hydrogen_supply"]
+        List of table names to apply the sign conversion to.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with negated values for identified load carriers.
+    """
+    load_i = MM_data[
+        (MM_data.carrier.str.contains(key_word)) & MM_data.table.isin(tables)
+    ].index
+    MM_data.loc[load_i, "value"] *= -1
+    return MM_data
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -227,6 +259,9 @@ if __name__ == "__main__":
 
     # Convert market model data to dictionary
     MM_data = pd.concat(benchmarks, ignore_index=True)
+
+    # set negative sign for loads
+    MM_data = set_load_sign(MM_data)
 
     MM_data["scenario"] = f"TYNDP {scenario}"
     MM_data["year"] = planning_horizon
