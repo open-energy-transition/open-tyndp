@@ -34,9 +34,17 @@ def save_figure(fig, output_dir, filename, output_formats):
     logger.info(f"Saved {filename}")
 
 
+def get_indicator_series(df: pd.DataFrame, indicator: str) -> pd.Series:
+    """Return a project_id-indexed Series for a single indicator."""
+    series = df.loc[df["indicator"] == indicator, ["project_id", "value"]]
+    if series.empty:
+        return pd.Series(dtype=float)
+    return series.set_index("project_id")["value"]
+
+
 def load_and_merge_data(indicators_path, projects_path):
     """Load indicators and merge with project metadata."""
-    indicators = pd.read_csv(indicators_path)
+    raw = pd.read_csv(indicators_path)
     projects = pd.read_csv(projects_path)
 
     border_counts = projects.groupby("project_id").size().rename("border_count")
@@ -57,7 +65,28 @@ def load_and_merge_data(indicators_path, projects_path):
         projects_agg["p_nom 0->1"] + projects_agg["p_nom 1->0"]
     )
 
-    merged = indicators.merge(projects_agg, on="project_id", how="left")
+    base = raw.copy()
+    # filter for Open-TYNDP source (to get model results)
+    if "source" in base.columns:
+        base = base[base["source"] == "Open-TYNDP"]
+
+    meta_cols = [c for c in ["method", "is_beneficial", "interpretation"] if c in base]
+    meta = base.groupby("project_id")[meta_cols].first().reset_index()
+    print(meta)
+
+    metrics = meta[["project_id"]].copy()
+    metrics["B1_total_system_cost_change"] = metrics["project_id"].map(
+        get_indicator_series(base, "B1_total_system_cost_change")
+    )
+    metrics["capex_change"] = metrics["project_id"].map(
+        get_indicator_series(base, "capex_change")
+    )
+    metrics["opex_change"] = metrics["project_id"].map(
+        get_indicator_series(base, "opex_change")
+    )
+    indicators_wide = meta.merge(metrics, on="project_id", how="left")
+
+    merged = indicators_wide.merge(projects_agg, on="project_id", how="left")
     merged["B1_billion_EUR"] = merged["B1_total_system_cost_change"] / 1e9
     merged["capex_change_billion"] = merged["capex_change"] / 1e9
     merged["opex_change_billion"] = merged["opex_change"] / 1e9
@@ -328,7 +357,7 @@ def create_plots(indicators_path, projects_path, output_dir, params):
         logger.warning("No indicators data to plot")
         return
 
-    method = df["cba_method"].iloc[0].lower()
+    method = df["method"].iloc[0].lower()
     logger.info(f"Creating {method.upper()} plots for {len(df)} projects")
 
     # B1 indicator plots
