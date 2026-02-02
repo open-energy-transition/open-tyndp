@@ -1,2 +1,0 @@
-,Unit,Values,Description
-tyndp_scenario,--,"{""NT"",""DE"",""GA"", "false"}","Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules."
