@@ -6,7 +6,6 @@ SPDX-PackageDownloadLocation = "https://github.com/open-energy-transition/open-t
 
 [[annotations]]
 path = [
-    "doc/configtables/*",
     "doc/data_inventory.csv",
     "doc/img/*",
     "test/test_data/*",
