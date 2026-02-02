@@ -69,7 +69,7 @@ CARRIER_BUS_COMPONENT = {
     "gas-ocgt": ("gas", "Link"),
     "coal": ("coal", "Generator"),
     "lignite": ("lignite", "Generator"),
-    "uranium": ("uranium", "Generator"),
+    "uranium": ("uranium", "Link"),
     "oil-heavy": ("oil", "Link"),
     "oil-light": ("oil", "Link"),
     "oil-shale": ("oil", "Link"),
