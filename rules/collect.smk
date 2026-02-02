@@ -32,6 +32,8 @@ rule process_costs:
 
 
 rule cluster_networks:
+    message:
+        "Collecting clustered network files"
     input:
         expand(
             resources("networks/base_s_{clusters}.nc"),
@@ -41,6 +43,8 @@ rule cluster_networks:
 
 
 rule prepare_elec_networks:
+    message:
+        "Collecting prepared electricity network files"
     input:
         expand(
             resources("networks/base_s_{clusters}_elec_{opts}.nc"),
@@ -50,6 +54,8 @@ rule prepare_elec_networks:
 
 
 rule prepare_sector_networks:
+    message:
+        "Collecting prepared sector-coupled network files"
     input:
         expand(
             resources(
@@ -61,6 +67,8 @@ rule prepare_sector_networks:
 
 
 rule solve_elec_networks:
+    message:
+        "Collecting solved electricity network files"
     input:
         expand(
             RESULTS + "networks/base_s_{clusters}_elec_{opts}.nc",
@@ -70,6 +78,8 @@ rule solve_elec_networks:
 
 
 rule solve_sector_networks:
+    message:
+        "Collecting solved sector-coupled network files"
     input:
         expand(
             RESULTS
@@ -80,137 +90,57 @@ rule solve_sector_networks:
 
 
 rule solve_sector_networks_perfect:
+    message:
+        "Collecting solved sector-coupled network files with perfect foresight"
     input:
         expand(
             RESULTS
-            + "maps/base_s_{clusters}_{opts}_{sector_opts}-costs-all_{planning_horizons}.pdf",
+            + "maps/static/base_s_{clusters}_{opts}_{sector_opts}-costs-all_{planning_horizons}.pdf",
             **config["scenario"],
             run=config["run"]["name"],
         ),
 
 
-rule plot_balance_maps:
-    input:
-        lambda w: expand(
-            (
-                RESULTS
-                + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-balance_map_{carrier}.pdf"
-            ),
-            **config["scenario"],
-            run=config["run"]["name"],
-            carrier=config_provider("plotting", "balance_map", "bus_carriers")(w),
-        ),
+def balance_map_paths(kind, w):
+    """
+    kind = "static" or "interactive"
+    """
+    cfg_key = "balance_map" if kind == "static" else "balance_map_interactive"
 
-
-rule plot_power_networks_clustered:
-    input:
-        expand(
-            resources("maps/power-network-s-{clusters}.pdf"),
-            **config["scenario"],
-            run=config["run"]["name"],
-        ),
-
-
-rule clean_pecd_datas:
-    input:
-        lambda w: expand(
-            resources("pecd_data_{technology}_{planning_horizons}.csv"),
-            **config["scenario"],
-            run=config["run"]["name"],
-            technology=config_provider(
-                "electricity", "pecd_renewable_profiles", "technologies"
-            )(w),
-        ),
-
-
-rule build_renewable_profiles_pecds:
-    input:
-        lambda w: expand(
-            resources("profile_pecd_{clusters}_{technology}.nc"),
-            **config["scenario"],
-            run=config["run"]["name"],
-            technology=config_provider(
-                "electricity", "pecd_renewable_profiles", "technologies"
-            )(w),
-        ),
-
-
-rule prepare_benchmarks:
-    input:
-        expand(
-            RESULTS
-            + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
-            **config["scenario"],
-            run=config["run"]["name"],
-        ),
-        expand(
-            RESULTS + "validation/resources/benchmarks_tyndp.csv",
-            run=config["run"]["name"],
-        ),
-        expand(
-            RESULTS + "validation/resources/vp_data_tyndp.csv",
-            run=config["run"]["name"],
-        ),
-
-
-rule make_benchmarks:
-    input:
-        expand(
-            RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
-            **config["scenario"],
-            run=config["run"]["name"],
-        ),
-
-
-rule plot_benchmarks:
-    input:
-        expand(
-            RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
-            **config["scenario"],
-            run=config["run"]["name"],
-        ),
-
-
-def input_pemmdb_datas(w):
-    available_years = config_provider(
-        "electricity", "pemmdb_capacities", "available_years"
-    )(w)
-    return list(
-        {
-            safe_pyear(year, available_years, verbose=False)
-            for year in config_provider("scenario", "planning_horizons")(w)
-        }
+    return expand(
+        RESULTS
+        + f"maps/{kind}/base_s_{{clusters}}_{{opts}}_{{sector_opts}}_{{planning_horizons}}"
+        f"-balance_map_{{carrier}}.{'pdf'if kind== 'static' else 'html'}",
+        **config["scenario"],
+        run=config["run"]["name"],
+        carrier=config_provider("plotting", cfg_key, "bus_carriers")(w),
     )
 
 
-rule build_pemmdb_and_trajectories:
+rule plot_balance_maps:
+    message:
+        "Plotting energy balance maps"
+    input:
+        static=lambda w: balance_map_paths("static", w),
+        interactive=lambda w: balance_map_paths("interactive", w),
+
+
+rule plot_balance_maps_static:
+    input:
+        lambda w: balance_map_paths("static", w),
+
+
+rule plot_balance_maps_interactive:
+    input:
+        lambda w: balance_map_paths("interactive", w),
+
+
+rule plot_power_networks_clustered:
+    message:
+        "Plotting clustered power network topology"
     input:
         expand(
-            resources("pemmdb_capacities_{planning_horizons}.csv"),
-            planning_horizons=input_pemmdb_datas,
-            run=config["run"]["name"],
-        ),
-        expand(
-            resources("tyndp_trajectories.csv"),
-            run=config["run"]["name"],
-        ),
-
-
-rule build_tyndp_h2_demands:
-    input:
-        expand(
-            resources("h2_demand_tyndp_{planning_horizons}.csv"),
-            **config["scenario"],
-            run=config["run"]["name"],
-        ),
-
-
-rule build_tyndp_gas_demands:
-    input:
-        expand(
-            resources("gas_demand_tyndp_{planning_horizons}.csv"),
+            resources("maps/power-network-s-{clusters}.pdf"),
             **config["scenario"],
             run=config["run"]["name"],
         ),

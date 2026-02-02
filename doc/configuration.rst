@@ -16,17 +16,17 @@ PyPSA-Eur has several configuration options which are documented in this section
 Configuration Files
 ===================
 
-As for PyPSA-Eur, any Open-TYNDP configuration can be set in a ``.yaml`` file. The default configurations 
+As for PyPSA-Eur, any Open-TYNDP configuration can be set in a ``.yaml`` file. The default configurations
 ``config/config.default.yaml``, ``config/plotting.default.yaml`` and ``config/benchmarking.default.yaml``
 are maintained in the repository and cover all the options that are used/ can be set.
 
-To pass your own configuration, you can create a new file, e.g. ``my_config.yaml``, 
-and specify the options you want to change. They will override the default settings and 
+To pass your own configuration, you can create a new file, e.g. ``my_config.yaml``,
+and specify the options you want to change. They will override the default settings and
 options which are not set, will be inherited from the defaults above.
 
-Another way is to use the ``config/config.yaml`` file, which does not exist in the 
-repository and is also not tracked by git. But snakemake will always use this file if 
-it exists. This way you can run snakemake with a custom config without having to 
+Another way is to use the ``config/config.yaml`` file, which does not exist in the
+repository and is also not tracked by git. But snakemake will always use this file if
+it exists. This way you can run snakemake with a custom config without having to
 specify the config file each time.
 
 Configuration order of precedence is as follows:
@@ -35,7 +35,7 @@ Configuration order of precedence is as follows:
 3. The ``config/config.yaml`` file (optional)
 4. The default configuration files ``config/config.default.yaml`` and ``config/plotting.default.yaml``
 
-To use your custom configuration file, you need to pass it to the ``snakemake`` command 
+To use your custom configuration file, you need to pass it to the ``snakemake`` command
 using the ``--configfile`` option:
 
 .. code:: console
@@ -45,26 +45,75 @@ using the ``--configfile`` option:
 .. warning::
 
     In a previous version of PyPSA-Eur (``<=2025.04.0``), a full copy of the created config
-    was stored in the ``config/config.yaml`` file. This is no longer the case. If the 
+    was stored in the ``config/config.yaml`` file. This is no longer the case. If the
     file exists, snakemake will use it, but no new copy will be created.
 
 
-.. _toplevel_cf:
+.. _version_cf:
 
-Top-level configuration
-=======================
+``version``
+===========
 
-"Remote" indicates the address of a server used for data exchange, often for clusters and data pushing/pulling.
+.. jsonschema:: ../config/schema.json#/properties/version
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: version:
    :end-before: # docs
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/toplevel.csv
+.. _tutorial_cf:
+
+``tutorial``
+============
+
+.. jsonschema:: ../config/schema.json#/properties/tutorial
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: tutorial:
+   :end-before: # docs
+
+.. _logging_cf:
+
+``logging``
+===========
+
+.. jsonschema:: ../config/schema.json#/$defs/LoggingConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: logging:
+   :end-before: # docs
+
+.. _remote_cf:
+
+``remote``
+==========
+
+"Remote" indicates the address of a server used for data exchange, often for clusters and data pushing/pulling.
+
+.. jsonschema:: ../config/schema.json#/$defs/RemoteConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: remote:
+   :end-before: # docs
 
 .. _run_cf:
 
@@ -75,32 +124,36 @@ It is common conduct to analyse energy system optimisation models for **multiple
 e.g. assessing their sensitivity towards changing the temporal and/or geographical resolution or investigating how
 investment changes as more ambitious greenhouse-gas emission reduction targets are applied.
 
-The ``run`` section is used for running and storing scenarios with different configurations which are not covered by :ref:`wildcards`. It determines the path at which resources, networks and results are stored. Therefore the user can run different configurations within the same directory. If a run with a non-empty name should use cutouts shared across runs, set ``shared_cutouts`` to `true`.
+The ``run`` section is used for running and storing scenarios with different configurations which are not covered by :ref:`wildcards`.
+It determines the path at which resources, networks and results are stored.
+Therefore the user can run different configurations within the same directory.
+
+.. jsonschema:: ../config/schema.json#/$defs/RunConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: run:
    :end-before: # docs
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/run.csv
-
 .. _foresight_cf:
 
 ``foresight``
 =============
 
+.. jsonschema:: ../config/schema.json#/$defs/ForesightConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: foresight:
-   :end-at: foresight:
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/foresight.csv
+   :end-before: # docs
 
 .. note::
     If you use myopic or perfect foresight, the planning horizon in
@@ -111,15 +164,16 @@ The ``run`` section is used for running and storing scenarios with different con
 ``tyndp_scenario``
 =============
 
+.. jsonschema:: ../config/schema.json#/properties/tyndp_scenario
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: tyndp_scenario:
    :end-at: tyndp_scenario:
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/tyndp_scenario.csv
 
 .. _scenario:
 
@@ -152,30 +206,32 @@ An exemplary dependency graph (starting from the simplification rules) then look
 
 .. image:: img/scenarios.png
 
+.. jsonschema:: ../config/schema.json#/$defs/ScenarioConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: scenario:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/scenario.csv
 
 .. _countries:
 
 ``countries``
 =============
 
+.. jsonschema:: ../config/schema.json#/$defs/CountriesConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: countries:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/countries.csv
 
 .. _snapshots_cf:
 
@@ -184,15 +240,16 @@ An exemplary dependency graph (starting from the simplification rules) then look
 
 Specifies the temporal range to build an energy system model for as arguments to `pandas.date_range <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html>`__
 
+.. jsonschema:: ../config/schema.json#/$defs/SnapshotsConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: snapshots:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/snapshots.csv
 
 .. _enable_cf:
 
@@ -201,30 +258,32 @@ Specifies the temporal range to build an energy system model for as arguments to
 
 Switches for some rules and optional features.
 
+.. jsonschema:: ../config/schema.json#/$defs/EnableConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
-   :start-after: #enable
+   :start-after: # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#enable
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/enable.csv
 
 .. _CO2_budget_cf:
 
-``co2 budget``
+``co2_budget``
 ==============
+
+.. jsonschema:: ../config/schema.json#/$defs/Co2BudgetConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: co2_budget:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/co2_budget.csv
 
 .. note::
     this parameter is over-ridden if ``Co2Lx`` or ``cb`` is set in
@@ -235,15 +294,16 @@ Switches for some rules and optional features.
 ``electricity``
 ===============
 
+.. jsonschema:: ../config/schema.json#/$defs/ElectricityConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: electricity:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/electricity.csv
 
 .. _atlite_cf:
 
@@ -252,15 +312,16 @@ Switches for some rules and optional features.
 
 Define and specify the ``atlite.Cutout`` used for calculating renewable potentials and time-series. All options except for ``features`` are directly used as `cutout parameters <https://atlite.readthedocs.io/en/latest/ref_api.html#cutout>`__.
 
+.. jsonschema:: ../config/schema.json#/$defs/AtliteConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: atlite:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/atlite.csv
 
 .. _renewable_cf:
 
@@ -270,15 +331,16 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``onwind``
 ----------
 
+.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/onwind
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: renewable:
-   :end-before:   offwind-ac:
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/onwind.csv
+   :end-before: "offwind-ac":
 
 .. note::
    Notes on ``capacity_per_sqkm``. ScholzPhd Tab 4.3.1: 10MW/km^2 and assuming 30% fraction of the already restricted
@@ -292,15 +354,24 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``offwind-x``
 --------------
 
+.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/offwind-ac
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
-   :start-at:   offwind-ac:
-   :end-before:   solar:
+   :start-at: "offwind-ac":
+   :end-before: solar:
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/offwind.csv
+.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/offwind-dc
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/offwind-float
+   :lift_description:
+   :hide_key: /**/additionalProperties
 
 .. note::
    Notes on ``capacity_per_sqkm``. ScholzPhd Tab 4.3.1: 10MW/km^2 and assuming 20% fraction of the already restricted
@@ -315,15 +386,16 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``solar``
 ---------------
 
+.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/solar
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at:   solar:
    :end-before:   hydro:
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/solar.csv
 
 .. note::
    Notes on ``capacity_per_sqkm``. ScholzPhd Tab 4.3.1: 170 MW/km^2 and assuming 1% of the area can be used for solar PV panels.
@@ -337,17 +409,18 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``hydro``
 ---------------
 
+.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/hydro
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at:   hydro:
    :end-before: # docs
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/hydro.csv
-
-.. _lines_cf:
+.. _conventional_cf:
 
 ``conventional``
 ================
@@ -359,90 +432,116 @@ with country specific values. Then, the values are read in and applied to all
 generators of the given carrier in the given country. Note that the value(s)
 overwrite the existing values.
 
+.. jsonschema:: ../config/schema.json#/$defs/ConventionalConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at:   conventional:
    :end-before: # docs
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/conventional.csv
+.. _lines_cf:
 
 ``lines``
-=============
+=========
+
+.. jsonschema:: ../config/schema.json#/$defs/LinesConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: lines:
    :end-before: # docs
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/lines.csv
-
 .. _links_cf:
 
 ``links``
 =============
+
+.. jsonschema:: ../config/schema.json#/$defs/LinksConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: links:
    :end-before: # docs
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/links.csv
+.. _transmission_projects_cf:
 
-.. _transformers_cf:
-
-``transmission projects``
+``transmission_projects``
 =========================
 
-Allows to define additional transmission projects that will be added to the base network, e.g., from the TYNDP 2020 dataset. The projects are read in from the CSV files in the subfolder of ``data/transmission_projects/``. New transmission projects, e.g. from TYNDP 2024, can be added in a new subfolder of transmission projects, e.g. ``data/transmission_projects/tyndp2024`` while extending the list of ``transmission_projects`` in the ``config.yaml`` by ``tyndp2024``. The CSV files in the project folder should have the same columns as the CSV files in the template folder ``data/transmission_projects/template``.
+Allows to define additional transmission projects that will be added to the base network, e.g., from the TYNDP 2020 dataset. The projects are read in from the CSV files in the subfolder of ``data/transmission_projects/``. New transmission projects can be added in a new subfolder of transmission projects while extending the list of ``transmission_projects`` in the ``config.yaml``. The CSV files in the project folder should have the same columns as the CSV files in the template folder ``data/transmission_projects/template``.
+
+.. jsonschema:: ../config/schema.json#/$defs/TransmissionProjectsConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: transmission_projects:
    :end-before: # docs
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/transmission_projects.csv
+.. _tyndp_investment_candidates_cf:
+
+``tyndp_investment_candidates``
+===============================
+
+Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration only applies to the TYNDP base network and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
+
+.. jsonschema:: ../config/schema.json#/$defs/TyndpInvestmentCandidatesConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: tyndp_investment_candidates:
+   :end-before: # docs
 
 .. _transformers_cf:
 
 ``transformers``
 ================
 
+.. jsonschema:: ../config/schema.json#/$defs/TransformersConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: transformers:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/transformers.csv
 
 .. _load_cf:
 
 ``load``
 =============
 
+.. jsonschema:: ../config/schema.json#/$defs/LoadConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
-   :start-after: # docs-load
+   :start-at: load:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/load.csv
 
 .. _energy_cf:
 
@@ -452,15 +551,16 @@ Allows to define additional transmission projects that will be added to the base
 .. note::
    Only used for sector-coupling studies.
 
+.. jsonschema:: ../config/schema.json#/$defs/EnergyConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: energy:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/energy.csv
 
 .. _biomass_cf:
 
@@ -470,15 +570,16 @@ Allows to define additional transmission projects that will be added to the base
 .. note::
    Only used for sector-coupling studies.
 
+.. jsonschema:: ../config/schema.json#/$defs/BiomassConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: biomass:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/biomass.csv
 
 The list of available biomass is given by the category in `ENSPRESO_BIOMASS <https://cidportal.jrc.ec.europa.eu/ftp/jrc-opendata/ENSPRESO/ENSPRESO_BIOMASS.xlsx>`__, namely:
 
@@ -508,15 +609,16 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. note::
    Only used for sector-coupling studies.
 
+.. jsonschema:: ../config/schema.json#/$defs/SolarThermalConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: solar_thermal:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/solar-thermal.csv
 
 .. _existing_capacities_cf:
 
@@ -526,15 +628,16 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. note::
    Only used for sector-coupling studies. The value for grouping years are only used in myopic or perfect foresight scenarios.
 
+.. jsonschema:: ../config/schema.json#/$defs/ExistingCapacitiesConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: existing_capacities:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/existing_capacities.csv
 
 .. _sector_cf:
 
@@ -544,15 +647,18 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. note::
    Only used for sector-coupling studies.
 
-.. literalinclude:: ../config/config.default.yaml
-   :language: yaml
-   :start-at: sector:
-   :end-before: # docs
+.. dropdown:: Details
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/sector.csv
+   .. jsonschema:: ../config/schema.json#/$defs/SectorConfig
+      :lift_description:
+      :hide_key: /**/additionalProperties
+
+.. dropdown:: YAML Syntax
+
+   .. literalinclude:: ../config/config.default.yaml
+      :language: yaml
+      :start-at: sector:
+      :end-before: # docs
 
 .. _industry_cf:
 
@@ -562,30 +668,32 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. note::
    Only used for sector-coupling studies.
 
+.. jsonschema:: ../config/schema.json#/$defs/IndustryConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
-   :start-at: # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#industry
+   :start-after: # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#industry
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/industry.csv
 
 .. _costs_cf:
 
 ``costs``
 =============
 
+.. jsonschema:: ../config/schema.json#/$defs/CostsConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: costs:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/costs.csv
 
 
 .. _clustering_cf:
@@ -593,15 +701,16 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 ``clustering``
 ==============
 
+.. jsonschema:: ../config/schema.json#/$defs/ClusteringConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: clustering:
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/clustering.csv
 
 .. tip::
    use ``min`` in ``p_nom_max:`` for more conservative assumptions.
@@ -611,29 +720,96 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 ``adjustments``
 ===============
 
+.. jsonschema:: ../config/schema.json#/$defs/AdjustmentsConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
-   :start-at: adjustments:
+   :start-after: # docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#adjustments
    :end-before: # docs
-
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/adjustments.csv
 
 .. _solving_cf:
 
 ``solving``
-=============
+===========
+
+.. jsonschema:: ../config/schema.json#/$defs/SolvingConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/config.default.yaml
    :language: yaml
    :start-at: solving:
+   :end-before: # docs
+
+.. _data_cf:
+
+``data``
+========
+
+Controls which versions of input data are used for building the model.
+Versions that are available for each dataset can be found in `data/versions.csv`.
+By default, we retrieve the `latest` supported version for each dataset from an archive source.
+This means that when upgrading between PyPSA-Eur versions, new versions of input data may also be downloaded and used.
+To freeze a model to a specific version of input data, you can set a specific version in the `version` field for each dataset to one specific version as listed in `data/versions.csv`.
+
+Some datasets support `primary` or `build` as a source option, meaning that the data can be retrieved from the original
+data source or build it from the latest available data.
+See the `data/versions.csv` file for all available datasets and their sources/versions that are supported.
+
+.. dropdown:: Details
+
+   .. jsonschema:: ../config/schema.json#/$defs/DataConfig
+      :lift_description:
+      :hide_key: /**/additionalProperties
+
+.. dropdown:: YAML Syntax
+
+   .. literalinclude:: ../config/config.default.yaml
+      :language: yaml
+      :start-at: data:
+      :end-before: # docs
 
 .. csv-table::
    :header-rows: 1
    :widths: 22,7,22,33
-   :file: configtables/solving.csv
+   :file: configtables/data.csv
+
+.. _overpass_api_cf:
+
+``overpass_api``
+================
+
+.. jsonschema:: ../config/schema.json#/$defs/OverpassApiConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: overpass_api:
+   :end-before: # docs
+
+.. _secrets_cf:
+
+``secrets``
+===========
+
+.. jsonschema:: ../config/schema.json#/$defs/SecretsConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: secrets:
 
 .. _plotting_cf:
 
@@ -652,13 +828,31 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. _benchmarking_cf:
 
 ``benchmarking``
-=============
+================
+
+.. jsonschema:: ../config/schema.json#/$defs/BenchmarkingConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
 
 .. literalinclude:: ../config/benchmarking.default.yaml
    :language: yaml
    :start-at: benchmarking:
 
-.. csv-table::
-   :header-rows: 1
-   :widths: 22,7,22,33
-   :file: configtables/benchmarking.csv
+.. _cba_cf:
+
+``cba``
+=======
+
+Cost-Benefit Analysis (CBA) configuration for evaluating TYNDP transmission and storage projects using TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies.
+
+.. jsonschema:: ../config/schema.json#/$defs/CbaConfig
+   :lift_description:
+   :hide_key: /**/additionalProperties
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: cba:
