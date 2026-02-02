@@ -378,7 +378,7 @@ def calculate_b2_indicator(
     method: str,
     co2_societal_costs: dict,
     co2_ets_price: float,
-) -> dict:
+) -> tuple[dict, dict]:
     """
     Calculate B2 indicator: change in CO2 emissions and societal cost.
 
@@ -415,14 +415,7 @@ def calculate_b2_indicator(
     for level in ["low", "central", "high"]:
         b2_val = co2_diff * (co2_societal_costs[level] - co2_ets_price)
         results[f"B2a_societal_cost_variation_{level}"] = b2_val / 1e6
-
-    units.update(
-        {
-            "B2a_societal_cost_variation_low": "Meuro/year",
-            "B2a_societal_cost_variation_central": "Meuro/year",
-            "B2a_societal_cost_variation_high": "Meuro/year",
-        }
-    )
+        units[f"B2a_societal_cost_variation_{level}"] = "Meuro/year"
 
     return results, units
 
@@ -432,7 +425,7 @@ def calculate_b3_indicator(
     n_project: pypsa.Network,
     method: str,
     res_carriers: list[str],
-) -> dict:
+) -> tuple[dict, dict]:
     """
     Calculate B3 indicator: change in RES capacity (MW) and generation (MWh/year).
 
@@ -447,7 +440,7 @@ def calculate_b3_indicator(
 
     Returns
     -------
-    dict
+    tuple[dict, dict]
         Dictionary with B3 indicators:
         - B3a_res_capacity_change
         - B3_res_generation_change
@@ -488,7 +481,7 @@ def calculate_b4_indicator(
     method: str,
     emission_factors: pd.DataFrame,
     conventional_carriers: list[str],
-) -> dict:
+) -> tuple[dict, dict]:
     """
     Calculate B4 indicator: non-CO2 emissions (kg/year).
 
@@ -583,6 +576,7 @@ def calculate_b4_indicator(
                 proj_emissions[pollutant_key] += float(proj_mwh) * kg_value
 
     results = {}
+    units = {}
     for pollutant_key in pollutant_keys:
         ref_val = ref_emissions.get(pollutant_key, 0.0)
         proj_val = proj_emissions.get(pollutant_key, 0.0)
@@ -591,32 +585,40 @@ def calculate_b4_indicator(
         else:
             diff = proj_val - ref_val
         results[pollutant_key] = diff
+        units[pollutant_key] = "kg/year"
 
-    return results
+    return results, units
 
 
 def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
-    indicators = set(df["indicator"])
-    missing = indicators - set(INDICATOR_UNITS)
-    if missing:
-        raise ValueError(
-            f"Missing units for indicators: {sorted(missing)}. "
-            "Update INDICATOR_UNITS to continue."
+    df = df.copy()
+    missing_units = df["units"].isna() | (df["units"] == "")
+    df.loc[missing_units, "units"] = df.loc[missing_units, "indicator"].map(
+        INDICATOR_UNITS
+    )
+    unresolved = (
+        df.loc[df["units"].isna() | (df["units"] == ""), "indicator"]
+        .dropna()
+        .unique()
+        .tolist()
+    )
+    if unresolved:
+        logger.warning(
+            "Skipping units for unmapped indicators: %s", sorted(unresolved)
         )
-    extra = set(INDICATOR_UNITS) - indicators
+    extra = set(INDICATOR_UNITS) - set(df["indicator"])
     if extra:
         logger.warning("Unused indicator units defined: %s", sorted(extra))
-    df = df.copy()
-    df["units"] = df["indicator"].map(INDICATOR_UNITS)
     return df
 
 
-def build_long_indicators(indicators: dict) -> pd.DataFrame:
+def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
     meta = {
         "project_id": indicators.get("project_id"),
         "method": indicators.get("cba_method"),
         "is_beneficial": indicators.get("is_beneficial"),
         "interpretation": indicators.get("interpretation"),
+        "source": indicators.get("source", "Open-TYNDP"),
     }
 
     rows = []
@@ -633,11 +635,16 @@ def build_long_indicators(indicators: dict) -> pd.DataFrame:
                 subindex = suffix.lstrip("_")
                 break
 
+        unit = units.get(key, "")
+        if not unit:
+            unit = units.get(indicator, "")
+
         rows.append(
             {
                 **meta,
                 "indicator": indicator,
                 "subindex": subindex,
+                "units": unit,
                 "value": value,
             }
         )
@@ -766,7 +773,7 @@ if __name__ == "__main__":
     conventional_carriers = snakemake.config.get("electricity", {}).get(
         "tyndp_conventional_carriers", []
     )
-    b4_indicators = calculate_b4_indicator(
+    b4_indicators, b4_units = calculate_b4_indicator(
         n_reference,
         n_project,
         method=method,
@@ -780,7 +787,7 @@ if __name__ == "__main__":
     cba_project = snakemake.wildcards.cba_project
     indicators["project_id"] = int(cba_project[1:])  # assuming format 't123'
     indicators["cba_method"] = method.upper()
-
+    indicators.update(units)
     logger.info(
         f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Euros"
     )
@@ -808,5 +815,6 @@ if __name__ == "__main__":
     else:
         df = df_model
 
+    print(df)
     df = apply_indicator_units(df)
     df.to_csv(snakemake.output.indicators, index=False)
