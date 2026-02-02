@@ -264,3 +264,7 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP CBA projects data source configuration.",
     )
+    ngv_iem_errors: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="NGV IEM errors data source configuration.",
+    )
