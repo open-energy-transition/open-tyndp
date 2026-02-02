@@ -406,7 +406,7 @@ rule all:
             rules.solve_sector_network_myopic_no_ce.output.network,
             run=config["run"]["name"],
             **config["scenario"],
-        )
+        ),
         lambda w: balance_map_paths("static", w),
         lambda w: balance_map_paths("interactive", w),
     default_target: True
