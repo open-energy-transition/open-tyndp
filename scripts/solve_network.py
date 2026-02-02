@@ -436,7 +436,7 @@ def prepare_network(
     foresight: str,
     renewable_carriers: list[str],
     planning_horizons: str | None,
-    co2_sequestration_potential: dict[str, float],
+    co2_sequestration_potential: dict[str, float] | None,
     limit_max_growth: dict[str, Any] | None = None,
 ) -> None:
     """
@@ -550,7 +550,7 @@ def prepare_network(
         n.set_snapshots(n.snapshots[:nhours])
         n.snapshot_weightings[:] = 8760.0 / nhours
 
-    if foresight == "myopic":
+    if foresight == "myopic" and planning_horizons:
         add_land_use_constraint(n, planning_horizons, renewable_carriers)
 
     if foresight == "perfect":
@@ -558,10 +558,14 @@ def prepare_network(
         if limit_max_growth is not None and limit_max_growth["enable"]:
             add_max_growth(n, limit_max_growth)
 
-    if n.stores.carrier.eq("co2 sequestered").any():
-        limit_dict = co2_sequestration_potential
+    if (
+        co2_sequestration_potential is not None
+        and n.stores.carrier.eq("co2 sequestered").any()
+    ):
         add_co2_sequestration_limit(
-            n, limit_dict=limit_dict, planning_horizons=planning_horizons
+            n,
+            limit_dict=co2_sequestration_potential,
+            planning_horizons=planning_horizons,
         )
 
 
@@ -1222,6 +1226,8 @@ def add_offshore_hubs_constraint(
     h2_gens_i = h2_gens.index
     dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
     p_nom = n.model["Generator-p_nom"]
+    if PYPSA_V1:
+        p_nom = p_nom.rename({"name": "Generator-ext"})
 
     lhs = (
         p_nom.loc[dc_gens_i]
@@ -1246,7 +1252,7 @@ def add_offshore_hubs_constraint(
     if off_gens_i.empty:
         return
 
-    grouper_ext = gens.loc[off_gens_i].zone.rename("Generator-ext")
+    grouper_ext = gens.loc[off_gens_i].zone
     idx = pd.Index(set(limit.index).intersection(grouper_ext))
     eff_z = gens["efficiency_dc_to_b0"].reindex(off_gens_i)
     lhs = (p_nom.loc[off_gens_i] / eff_z).groupby(grouper_ext).sum().loc[idx]
@@ -1417,138 +1423,154 @@ def check_objective_value(n: pypsa.Network, solving: dict) -> None:
             )
 
 
-def solve_network(
-    n: pypsa.Network,
+def collect_kwargs(
     config: dict,
-    params: dict,
     solving: dict,
-    rule_name: str | None = None,
     planning_horizons: str | None = None,
-    offshore_zone_trajectories_fn: str | None = None,
-    renewable_carriers_tyndp: list[str] = [],
-    **kwargs,
-) -> None:
+    log_fn: str | None = None,
+    mode: str = "single",
+) -> tuple[dict, dict]:
     """
-    Solve network optimization problem.
+    Prepare keyword arguments separated for model creation and model solving.
 
     Parameters
     ----------
-    n : pypsa.Network
-        The PyPSA network instance
-    config : Dict
+    config : dict
         Configuration dictionary containing solver settings
-    params : Dict
-        Dictionary of solving parameters
-    solving : Dict
+    solving : dict
         Dictionary of solving options and configuration
-    rule_name : str, optional
-        Name of the snakemake rule being executed
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn : str, optional
-        Path to DataFrame containing the offshore zone potentials trajectories
-    renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
-    **kwargs
-        Additional keyword arguments passed to the solver
+    log_fn : str, optional
+        Path to solver log file
+    mode : str, optional
+        Optimization mode: 'single', 'rolling_horizon', or 'iterative'
+        Default is 'single'
 
     Returns
     -------
-    n : pypsa.Network
-        Solved network instance
-    status : str
-        Solution status
-    condition : str
-        Termination condition
-
-    Raises
-    ------
-    RuntimeError
-        If solving status is infeasible or warning
-    ObjectiveValueError
-        If objective value differs from expected value
+    tuple[dict, dict]
+        Two dictionaries: (model_kwargs, solve_kwargs)
+        - model_kwargs: Arguments for n.optimize.create_model()
+        - solve_kwargs: Arguments for n.optimize.solve_model()
+        For 'rolling_horizon' and 'iterative' modes, returns merged kwargs
+        with additional mode-specific parameters
     """
     set_of_options = solving["solver"]["options"]
     cf_solving = solving["options"]
 
-    kwargs["multi_investment_periods"] = config["foresight"] == "perfect"
-    kwargs["solver_options"] = (
-        solving["solver_options"][set_of_options] if set_of_options else {}
-    )
-    kwargs["solver_name"] = solving["solver"]["name"]
-    kwargs["extra_functionality"] = partial(
-        extra_functionality,
-        planning_horizons=planning_horizons,
-        offshore_zone_trajectories_fn=offshore_zone_trajectories_fn,
-        renewable_carriers_tyndp=renewable_carriers_tyndp,
-    )
-    kwargs["transmission_losses"] = cf_solving.get("transmission_losses", False)
-    kwargs["linearized_unit_commitment"] = cf_solving.get(
+    # Model creation kwargs
+    model_kwargs = {}
+    model_kwargs["multi_investment_periods"] = config["foresight"] == "perfect"
+    model_kwargs["transmission_losses"] = cf_solving.get("transmission_losses", False)
+    model_kwargs["linearized_unit_commitment"] = cf_solving.get(
         "linearized_unit_commitment", False
     )
-    kwargs["assign_all_duals"] = cf_solving.get("assign_all_duals", False)
-    kwargs["io_api"] = cf_solving.get("io_api", None)
+
+    # Solve kwargs
+    solver_name = solving["solver"]["name"]
+    solver_options = solving["solver_options"][set_of_options] if set_of_options else {}
+
+    solve_kwargs = {}
+    solve_kwargs["solver_name"] = solver_name
+    solve_kwargs["solver_options"] = solver_options
+    solve_kwargs["assign_all_duals"] = cf_solving.get("assign_all_duals", False)
+    solve_kwargs["io_api"] = cf_solving.get("io_api", None)
+    solve_kwargs["keep_files"] = cf_solving.get("keep_files", False)
+
+    if log_fn:
+        solve_kwargs["log_fn"] = log_fn
 
     oetc = solving.get("oetc", None)
     if oetc:
         oetc["credentials"] = OetcCredentials(
             email=os.environ["OETC_EMAIL"], password=os.environ["OETC_PASSWORD"]
         )
-        oetc["solver"] = kwargs["solver_name"]
-        oetc["solver_options"] = kwargs["solver_options"]
+        oetc["solver"] = solver_name
+        oetc["solver_options"] = solver_options
         oetc_settings = OetcSettings(**oetc)
         oetc_handler = OetcHandler(oetc_settings)
-        kwargs["remote"] = oetc_handler
+        solve_kwargs["remote"] = oetc_handler
 
-    kwargs["model_kwargs"] = cf_solving.get("model_kwargs", {})
-    kwargs["keep_files"] = cf_solving.get("keep_files", False)
-
-    if kwargs["solver_name"] == "gurobi":
+    if solver_name == "gurobi":
         logging.getLogger("gurobipy").setLevel(logging.CRITICAL)
 
-    rolling_horizon = cf_solving.pop("rolling_horizon", False)
-    skip_iterations = cf_solving.pop("skip_iterations", False)
-    if not n.lines.s_nom_extendable.any():
-        skip_iterations = True
-        logger.info("No expandable lines found. Skipping iterative solving.")
+    # Handle special modes
+    if mode == "rolling_horizon":
+        all_kwargs = {**model_kwargs, **solve_kwargs}
+        all_kwargs["horizon"] = cf_solving.get("horizon", 365)
+        all_kwargs["overlap"] = cf_solving.get("overlap", 0)
+        return all_kwargs, {}
 
-    # add to network for extra_functionality
+    elif mode == "iterative":
+        all_kwargs = {**model_kwargs, **solve_kwargs}
+        all_kwargs["track_iterations"] = cf_solving["track_iterations"]
+        all_kwargs["min_iterations"] = cf_solving["min_iterations"]
+        all_kwargs["max_iterations"] = cf_solving["max_iterations"]
+
+        if cf_solving["post_discretization"].get("enable", False):
+            logger.info("Add post-discretization parameters.")
+            all_kwargs.update(cf_solving["post_discretization"])
+
+        return all_kwargs, {}
+
+    return model_kwargs, solve_kwargs
+
+
+def create_optimization_model(
+    n: pypsa.Network,
+    config: dict,
+    params: dict,
+    model_kwargs: dict,
+    solve_kwargs: dict,
+    planning_horizons: str | None = None,
+    offshore_zone_trajectories_fn: str | None = None,
+    renewable_carriers_tyndp: list[str] = [],
+) -> None:
+    """
+    Prepare optimization problem by creating model and adding extra functionality.
+
+    This function:
+    1. Attaches config and params to network for extra_functionality
+    2. Creates the optimization model
+    3. Adds extra functionality (custom constraints)
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network instance
+    config : dict
+        Configuration dictionary containing solver settings
+    params : dict
+        Dictionary of solving parameters
+    model_kwargs : dict
+        Arguments for n.optimize.create_model()
+    solve_kwargs : dict
+        Arguments for n.optimize.solve_model()
+    planning_horizons : str, optional
+        The current planning horizon year or None in perfect foresight
+    offshore_zone_trajectories_fn : str, optional
+        Path to DataFrame containing the offshore zone potentials trajectories
+    renewable_carriers_tyndp : list[str], optional
+        List of TYNDP renewable carriers
+    """
+    # Add config and params to network for extra_functionality
     n.config = config
     n.params = params
 
-    if rolling_horizon and rule_name == "solve_operations_network":
-        kwargs["horizon"] = cf_solving.get("horizon", 365)
-        kwargs["overlap"] = cf_solving.get("overlap", 0)
-        n.optimize.optimize_with_rolling_horizon(**kwargs)
-        status, condition = "", ""
-    elif skip_iterations:
-        status, condition = n.optimize(**kwargs)
-    else:
-        kwargs["track_iterations"] = cf_solving["track_iterations"]
-        kwargs["min_iterations"] = cf_solving["min_iterations"]
-        kwargs["max_iterations"] = cf_solving["max_iterations"]
-        if cf_solving["post_discretization"].pop("enable"):
-            logger.info("Add post-discretization parameters.")
-            kwargs.update(cf_solving["post_discretization"])
-        status, condition = n.optimize.optimize_transmission_expansion_iteratively(
-            **kwargs
-        )
+    # Create optimization model
+    logger.info("Creating optimization model...")
+    n.optimize.create_model(**model_kwargs)
 
-    if not rolling_horizon:
-        if status != "ok":
-            logger.warning(
-                f"Solving status '{status}' with termination condition '{condition}'"
-            )
-        check_objective_value(n, solving)
-
-    if "warning" in condition:
-        raise RuntimeError("Solving status 'warning'. Discarding solution.")
-
-    if "infeasible" in condition:
-        labels = n.model.compute_infeasibilities()
-        logger.info(f"Labels:\n{labels}")
-        n.model.print_infeasibilities()
-        raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
+    # Add extra functionality (custom constraints)
+    logger.info("Adding extra functionality (custom constraints)...")
+    extra_functionality(
+        n,
+        n.snapshots,
+        planning_horizons,
+        offshore_zone_trajectories_fn,
+        renewable_carriers_tyndp,
+    )
 
 
 def set_capacities_based_on_other_network(
@@ -1616,9 +1638,11 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     solve_opts = snakemake.params.solving["options"]
+    cf_solving = snakemake.params.solving["options"]
 
     np.random.seed(solve_opts.get("seed", 123))
 
+    # Load network
     n = pypsa.Network(snakemake.input.network)
     planning_horizons = snakemake.wildcards.get("planning_horizons", None)
 
@@ -1627,6 +1651,7 @@ if __name__ == "__main__":
             n, ref_network_path=snakemake.input["network_ref"]
         )
 
+    # Prepare network (settings before solving)
     prepare_network(
         n,
         solve_opts=snakemake.params.solving["options"],
@@ -1637,25 +1662,107 @@ if __name__ == "__main__":
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
     )
 
+    # Determine solve mode
+    rolling_horizon = cf_solving.get("rolling_horizon", False)
+    skip_iterations = cf_solving.get("skip_iterations", False)
+
+    if not n.lines.s_nom_extendable.any():
+        skip_iterations = True
+        logger.info("No expandable lines found. Skipping iterative solving.")
+
     logging_frequency = snakemake.config.get("solving", {}).get(
         "mem_logging_frequency", 30
     )
+
+    # Solve network based on mode
     with memory_logger(
         filename=getattr(snakemake.log, "memory", None), interval=logging_frequency
     ) as mem:
-        solve_network(
-            n,
-            config=snakemake.config,
-            params=snakemake.params,
-            solving=snakemake.params.solving,
-            planning_horizons=planning_horizons,
-            rule_name=snakemake.rule,
-            log_fn=snakemake.log.solver,
-            offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
-            renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
-        )
+        if rolling_horizon and snakemake.rule == "solve_operations_network":
+            logger.info("Using rolling horizon optimization...")
+            all_kwargs, _ = collect_kwargs(
+                snakemake.config,
+                snakemake.params.solving,
+                planning_horizons,
+                log_fn=snakemake.log.solver,
+                mode="rolling_horizon",
+            )
+
+            n.config = snakemake.config
+            n.params = snakemake.params
+            all_kwargs["extra_functionality"] = partial(
+                extra_functionality,
+                planning_horizons=planning_horizons,
+                offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
+                renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
+            )
+            n.optimize.optimize_with_rolling_horizon(**all_kwargs)
+            status, condition = "", ""
+
+        elif skip_iterations:
+            logger.info("Using single-pass optimization...")
+            model_kwargs, solve_kwargs = collect_kwargs(
+                snakemake.config,
+                snakemake.params.solving,
+                planning_horizons,
+                log_fn=snakemake.log.solver,
+                mode="single",
+            )
+            create_optimization_model(
+                n,
+                config=snakemake.config,
+                params=snakemake.params,
+                model_kwargs=model_kwargs,
+                solve_kwargs=solve_kwargs,
+                planning_horizons=planning_horizons,
+                offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
+                renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
+            )
+
+            logger.info("Solving model...")
+            status, condition = n.optimize.solve_model(**solve_kwargs)
+
+        else:
+            logger.info("Using iterative transmission expansion optimization...")
+
+            all_kwargs, _ = collect_kwargs(
+                snakemake.config,
+                snakemake.params.solving,
+                planning_horizons,
+                log_fn=snakemake.log.solver,
+                mode="iterative",
+            )
+
+            n.config = snakemake.config
+            n.params = snakemake.params
+            all_kwargs["extra_functionality"] = partial(
+                extra_functionality,
+                planning_horizons=planning_horizons,
+                offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
+                renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
+            )
+            status, condition = n.optimize.optimize_transmission_expansion_iteratively(
+                **all_kwargs
+            )
 
     logger.info(f"Maximum memory usage: {mem.mem_usage}")
+
+    # Check results
+    if not rolling_horizon:
+        if status != "ok":
+            logger.warning(
+                f"Solving status '{status}' with termination condition '{condition}'"
+            )
+        check_objective_value(n, snakemake.params.solving)
+
+    if "warning" in condition:
+        raise RuntimeError("Solving status 'warning'. Discarding solution.")
+
+    if "infeasible" in condition:
+        labels = n.model.compute_infeasibilities()
+        logger.info(f"Labels:\n{labels}")
+        n.model.print_infeasibilities()
+        raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
     n.meta = dict(snakemake.config, **dict(wildcards=dict(snakemake.wildcards)))
     n.export_to_netcdf(snakemake.output.network)

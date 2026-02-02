@@ -47,6 +47,9 @@ benchmarking:
 solving:
   options:
     load_shedding: 4e3
+  solver:
+    name: gurobi
+    options: gurobi-default
 
   solver_options:
     gurobi-default:

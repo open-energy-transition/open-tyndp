@@ -65,6 +65,8 @@ extensions = [
     #'sphinxcontrib.tikz',
     #'rinoh.frontend.sphinx',
     "sphinx.ext.imgconverter",  # for SVG conversion
+    "sphinx-jsonschema",
+    "sphinx_design",
 ]
 
 autodoc_mock_imports = [
@@ -101,15 +103,15 @@ master_doc = "index"
 
 # General information about the project.
 project = "Open-TYNDP"
-copyright = "2017-2025 Tom Brown (TUB, KIT, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (OET, TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (DTU, Aarhus University), Lisa Zeyen (TUB, KIT), Thomas Gilon (OET), Daniel Rüdt (OET), Martha Frysztacki (OET), Max Parzen (OET)"
-author = "Tom Brown (TUB, KIT, FIAS), Jonas Hoersch (OET, KIT, FIAS), Fabian Hofmann (OET, TUB, FIAS), Fabian Neumann (TUB, KIT), Marta Victoria (DTU, Aarhus University), Lisa Zeyen (TUB, KIT), Thomas Gilon (OET), Daniel Rüdt (OET), Martha Frysztacki (OET), Max Parzen (OET)"
+copyright = "PyPSA-Eur and Open-TYNDP Contributors"
+author = "PyPSA-Eur and Open-TYNDP Contributors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = "v0.3"
+version = "v0.4.2"
 # The full version, including alpha/beta/rc tags.
 release = version + ""
 
@@ -186,7 +188,7 @@ html_short_title = "Open-TYNDP"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "img/pypsa-logo.png"
+html_logo = "img/logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

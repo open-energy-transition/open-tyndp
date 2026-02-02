@@ -57,7 +57,7 @@ Workflow
 --------
 
 #. New configuration files `config/benchmarking.default.yaml`.
-#. `retrieve_additional_tyndp_data`: Retrieve the TYNDP 2024 Scenarios Report Data Figures package for benchmarking purposes. This rule will be deprecated once the data bundle has been updated (https://github.com/open-energy-transition/open-tyndp/issues/87).
+#. `retrieve_tyndp_benchmark`: Retrieve the TYNDP 2024 Scenarios Report Data Figures package for benchmarking purposes. This rule will be deprecated once the data bundle has been updated (https://github.com/open-energy-transition/open-tyndp/issues/87).
 #. (new) `clean_tyndp_benchmark`: Read and process the raw TYNDP 2024 Scenarios Report data. The output data structure is a long-format table.
 #. (new) `clean_tyndp_vp_data`: Read and process the TYNDP 2024 Visualisation Platform data for benchmarking purposes. The output data structure is a long-format table.
 #. (new) `build_statistics`: Compute the benchmark statistics from the optimised network. Run for every planning horizon. The output data structure is a long-format table.
@@ -82,32 +82,31 @@ Outputs
 .. warning::
     Open-TYNDP is under active development and is not yet feature-complete. The current `development status <https://open-tyndp.readthedocs.io/en/latest/index.html#development-status>`__ and the general `Limitations <https://open-tyndp.readthedocs.io/en/latest/limitations.html>`__ are important to understand before using the model. The following outputs are presented for illustrative purposes and do not reflect the quality of the results.
 
-Example of indicators extracted from `power_generation_s_all__all_years.csv` for NT scenario with 45SEG:
+Example of indicators extracted from `power_generation_s_all__all_years.csv` for NT scenario with hourly resolution:
 
 ================================  =======  =======  ========  =======  ================  ==================
 Carrier                           sMPE     sMAPE    sMdAPE    RMSLE    Growth Error      version
 ================================  =======  =======  ========  =======  ================  ==================
-**Battery**                       -2.00    2.00     2.00      10.82    -0.20             v0.3+g73ce5330a
-**Coal + other fossil**           0.27     0.27     0.27      0.28     0.00              v0.3+g73ce5330a
-**Hydro and pumped storage**      -0.16    0.16     0.16      0.17     -0.01             v0.3+g73ce5330a
-**Hydrogen**                      0.00     0.01     0.01      0.01     0.00              v0.3+g73ce5330a
-**Methane**                       -0.02    0.02     0.02      0.02     -0.00             v0.3+g73ce5330a
-**Nuclear**                       -0.00    0.00     0.00      0.00     -0.00             v0.3+g73ce5330a
-**Oil**                           0.04     0.05     0.05      0.06     -0.01             v0.3+g73ce5330a
-**Solar**                         -0.05    0.05     0.05      0.05     -0.00             v0.3+g73ce5330a
-**Wind offshore**                 -0.00    0.00     0.00      0.00     0.00              v0.3+g73ce5330a
-**Wind onshore**                  -0.05    0.05     0.05      0.06     -0.00             v0.3+g73ce5330a
-**CHP and small thermal**         —        —        —         —        —                 v0.3+g73ce5330a
-**Demand shedding**               —        —        —         —        —                 v0.3+g73ce5330a
-**Small scale res**               —        —        —         —        —                 v0.3+g73ce5330a
-**Biofuels**                      —        —        —         —        —                 v0.3+g73ce5330a
+**Coal + other fossil**           0.77     0.77     0.77      0.97     -0.09             v0.3+g8776987e7
+**Hydro (exc. pump storage)**     0.14     0.14     0.14      0.14     0.01              v0.3+g8776987e7
+**Hydrogen**                      -0.16    0.16     0.16      0.22     0.03              v0.3+g8776987e7
+**Methane**                       -0.28    0.28     0.28      0.28     -0.01             v0.3+g8776987e7
+**Nuclear**                       0.32     0.32     0.32      0.32     0                 v0.3+g8776987e7
+**Oil**                           -0.54    0.54     0.54      0.67     -0.07             v0.3+g8776987e7
+**Solar**                         -0.09    0.09     0.09      0.09     0                 v0.3+g8776987e7
+**Wind offshore**                 -0.06    0.06     0.06      0.07     -0.01             v0.3+g8776987e7
+**Wind onshore**                  -0.09    0.09     0.09      0.1      -0.01             v0.3+g8776987e7
+**Other res**                     —        —        —         —        —                 v0.3+g8776987e7
+**Other non-res**                 —        —        —         —        —                 v0.3+g8776987e7
+**Biofuels**                      —        —        —         —        —                 v0.3+g8776987e7
+**OCGT**                          —        —        —         —        —                 v0.3+g8776987e7
 ================================  =======  =======  ========  =======  ================  ==================
 
-Example of figure created for the final energy demand for NT scenario in 2030 with 45SEG:
+Example of figure created for the final energy demand for NT scenario in 2030 with hourly resolution:
 
 .. image:: img/tyndp/benchmarking_fed_NT_2030.png
 
-Example of figure including Visualisation Platform data created for the power capacity for NT scenario in 2030 with 45SEG:
+Example of figure including Visualisation Platform data created for the power capacity for NT scenario in 2030 with hourly resolution:
 
 .. image:: img/tyndp/benchmarking_power_capacity_NT_2030_w_vis_pltfm.png
 
@@ -115,25 +114,25 @@ Example of figure created for the generation profiles for DE scenario in 2040 wi
 
 .. image:: img/tyndp/benchmarking_gen_profiles_DE_2040.png
 
-Example of indicators extracted from `kpis_eu27_s_all__all_years.csv` for NT scenario with 45SEG:
+Example of indicators extracted from `kpis_eu27_s_all__all_years.csv` for NT scenario with hourly resolution:
 
-===============================  =======  =======  ========  =======  ==============  =========  ==================
-Table                            sMPE     sMAPE    sMdAPE    RMSLE    Growth Error    Missing    version
-===============================  =======  =======  ========  =======  ==============  =========  ==================
-**Final energy demand**          -0.77    0.81     0.96      1.27     0.02            4          v0.3+g73ce5330a
-**Electricity demand**           -0.00    0.00     0.00      0.00     -0.00           0          v0.3+g73ce5330a
-**Methane demand**               -0.44    0.44     0.44      0.59     —               8          v0.3+g73ce5330a
-**Hydrogen demand**              -0.56    0.56     0.56      0.73     —               10         v0.3+g73ce5330a
-**Power capacity**               -0.20    0.26     0.04      3.42     -0.01           5          v0.3+g73ce5330a
-**Power generation**             -0.19    0.52     0.35      1.10     -0.01           4          v0.3+g73ce5330a
-**Methane supply**               —        —        —         —        —               NA         v0.3+g73ce5330a
-**Hydrogen supply**              -1.02    1.31     1.63      12.65    0.03            3          v0.3+g73ce5330a
-**Biomass supply**               -1.48    1.48     1.48      4.44     0.51            1          v0.3+g73ce5330a
-**Energy imports**               -1.34    1.36     2.00      27.07    0.14            2          v0.3+g73ce5330a
-**Generation profiles**          —        —        —         —        —               NA         v0.3+g73ce5330a
-**Total (excl. time series)**    -0.62    0.87     0.71      9.02     0.02            31         v0.3+g73ce5330a
-===============================  =======  =======  ========  =======  ==============  =========  ==================
+===========================  =======  =======  ========  =======  ================  =========  ==================
+Metric                       sMPE     sMAPE    sMdAPE    RMSLE    Growth Error      Missing    version
+===========================  =======  =======  ========  =======  ================  =========  ==================
+biomass_supply               0.12     0.12     0.09      0.17     0                 1          v0.3+g8776987e7
+elec_demand                  0        0        0         0        0                 0          v0.3+g8776987e7
+energy_imports               0.39     0.39     0.2       0.73     0.01              1          v0.3+g8776987e7
+final_energy_demand          0.07     0.09     0.08      0.12     0.01              1          v0.3+g8776987e7
+generation_profiles          —        —        —         —        —                 NA         v0.3+g8776987e7
+hydrogen_demand              -0.79    0.84     0.45      4.03     -0.03             0          v0.3+g8776987e7
+hydrogen_supply              -0.23    0.36     0.22      0.74     -0.02             2          v0.3+g8776987e7
+methane_demand               -0.12    0.22     0.16      0.27     -0.01             0          v0.3+g8776987e7
+methane_supply               -0.58    0.73     0.15      2.65     0                 3          v0.3+g8776987e7
+power_capacity               0        0.08     0.02      0.17     -0.01             5          v0.3+g8776987e7
+power_generation             0        0.27     0.19      0.43     -0.01             4          v0.3+g8776987e7
+Total (excl. time series)    -0.07    0.38     0.14      1.58     0                 14         v0.3+g8776987e7
+===========================  =======  =======  ========  =======  ================  =========  ==================
 
-Example of summary figure created for DE scenario:
+Example of summary figure created for NT scenario:
 
 .. image:: img/tyndp/benchmarking_overview_NT.png

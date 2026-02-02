@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../schema.json
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: CC0-1.0
@@ -46,8 +47,7 @@ electricity:
   - oil-heavy
   - oil-shale
   group_tyndp_conventionals: true
-  renewable_carriers: [hydro]
-  scale_hydro_to_pemmdb: true
+  renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
   - hydro-ror
@@ -75,10 +75,7 @@ electricity:
 
   pecd_renewable_profiles:
     enable: true
-    version: 3.1
     pre_built:
-      retrieve: true
-      pecd_prebuilt_version: 0.1
       cyears:
       - 1995
       - 2008
@@ -150,11 +147,10 @@ links:
   p_min_pu: 0
 
 transmission_projects:
-  enable: true
-  include:
-    tyndp2020: false
-    nep: false
-    manual: false
+  enable: false
+
+tyndp_investment_candidates:
+  elec_projects: [2040]
 
 load:
   source: tyndp # opsd, tyndp
@@ -225,7 +221,7 @@ sector:
     2040: 0.68
     2045: 0.42  # interpolation
     2050: 0.16
-  shipping_hydrogen_share:
+  shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
     2040: 0
@@ -243,8 +239,10 @@ sector:
     2040: 0.45
     2045: 0.2
     2050: 0
+  bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
   oil_boilers: false
   biomass_boiler: false
+  solar_thermal: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false
@@ -288,6 +286,7 @@ sector:
       H2 pipeline OH: 30
 
 costs:
+  custom_cost_scn: NT
   overwrites:
     lifetime:
       electrolysis: 25
@@ -316,7 +315,8 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
-    resolution_sector: 6H
+    # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
+    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
@@ -351,7 +351,15 @@ adjustments:
             2040: 1.33
     absolute: false
 
+solving:
+  solver:  # Use commercial solver for high resolution results in SB
+    name: highs
+    options: highs-default
+
 plotting:
+  energy_threshold: 1.
+  projection:
+    name: "LambertAzimuthalEqualArea"
   balance_map:
     imports_as_flows: true
     bus_carriers:
@@ -359,11 +367,62 @@ plotting:
     - H2
     - gas
     - oil
-    - co2 stored
+    - co2_stored
     H2:
       bus_factor: 0.005
       branch_factor: 0.04
       flow_factor: 25
+  balance_map_interactive:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - co2_stored
 
 benchmarking:
   enable: true
+
+cba:
+  hurdle_costs: 0.01 # Transmission line marginal cost
+  co2_societal_cost: # euros/t; 2024 CBA Implementation Guidelines, p. 68
+    2030:
+      low: 126
+      central: 238
+      high: 315
+    2040:
+      low: 339
+      central: 628
+      high: 662
+  planning_horizons:
+  - 2030
+  - 2040
+  methods:
+  - toot
+  - pint
+  projects:
+  - t1-t35
+
+  # Storage settings for CBA dispatch
+  storage:
+    # Carriers that should remain cyclic (short-term storage)
+    # These will maintain e_cyclic=True in simplify_sb_network
+    cyclic_carriers:
+    - battery
+    - home battery
+
+  # Merged into top-level solving options
+  solving:
+    options:
+      horizon: 168
+      overlap: 0
+      load_shedding: true
+      io_api: direct  # 20% faster than default lp mode for rolling horizon
+
+    solver:
+      name: highs
+      options: highs-simplex
+
+    solver_options:
+      highs-simplex:
+        parallel: "off" # does not speed up solution

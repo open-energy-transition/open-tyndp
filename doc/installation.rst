@@ -12,8 +12,39 @@ Installation
 The subsequently described installation steps are demonstrated as shell commands, where the path before the ``%`` sign denotes the
 directory in which the commands following the ``%`` should be entered.
 
+
+.. _windows_installer:
+
+Option A: Windows Installer (Recommended for Windows)
+=====================================================
+
+For Windows users, the easiest way to install Open-TYNDP is using the automated installer. Download the latest installer executable (e.g., ``open-tyndp-0.4.0-pixi-Windows-x86_64.exe``) from the `GitHub releases page <https://github.com/open-energy-transition/open-tyndp/releases>`__ and run it.
+
+The installer will:
+
+1. Install pixi package manager to ``%LOCALAPPDATA%\open-tyndp``
+2. Extract the repository files to your chosen installation directory
+3. Set up the conda environment automatically via ``pixi install``
+4. Create Start Menu shortcuts for easy access:
+
+   - **Open-TYNDP PowerShell** - Launch PowerShell with environment activated
+   - **Open-TYNDP Command Prompt** - Launch Command Prompt with environment activated
+
+For more details about the installer, see ``utils/windows-installer/README.md`` in the repository.
+
+.. note::
+    If you prefer manual installation or need more control over the setup process, follow the instructions below for cloning the repository and installing dependencies manually.
+
+
+.. _manual_installation
+
+Option B: Manual installation (All Platforms)
+=============================================
+
+.. _clone_repo:
+
 Clone the Repository
-====================
+--------------------
 
 First of all, clone the `Open-TYNDP repository <https://github.com/open-energy-transition/open-tyndp>`__ using the version control system ``git`` in the command line.
 
@@ -25,10 +56,10 @@ First of all, clone the `Open-TYNDP repository <https://github.com/open-energy-t
 .. _deps:
 
 Install Python Dependencies
-===============================
+---------------------------
 
 Preferred method: ``pixi``
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 PyPSA-Eur, and consequently Open-TYNDP, relies on a set of other Python packages to function.
 We manage these using `pixi <https://pixi.sh/latest/>`_.
@@ -46,7 +77,7 @@ Once pixi is installed, you can activate the project environment for your operat
     We don't currently support linux operating systems using ARM processors since certain packages, such as ``PySCIPOpt``, require being built from source.
 
 Legacy method: ``conda``
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you cannot access ``pixi`` on your machine, you can also install using `conda <https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html>`_ (or ``mamba``/``micromamba``).
 To do so, we highly recommend you install from one of our platform-specific environment files:
@@ -84,7 +115,7 @@ If you are having difficulties with the above files, you can also install direct
 
 
 Install a Solver
-================
+----------------
 
 PyPSA passes the PyPSA-Eur network model to an external solver for performing the optimisation.
 PyPSA is known to work with the free software
@@ -112,6 +143,7 @@ Nevertheless, you can still use open-source solvers for smaller problems.
     The rules :mod:`cluster_network` solves a mixed-integer quadratic optimisation problem for clustering.
     The open-source solvers HiGHS, Cbc and GlPK cannot handle this. A fallback to SCIP is implemented in this case, which is included in the standard environment specifications.
     For an open-source solver setup install for example HiGHS **and** SCIP in your ``conda`` environment on OSX/Linux.
+
     To install the default solver Gurobi, run
 
     .. code:: console
@@ -120,3 +152,27 @@ Nevertheless, you can still use open-source solvers for smaller problems.
         $ conda install -c gurobi gurobi"=12.0.1"
 
     Additionally, you need to setup your `Gurobi license <https://www.gurobi.com/solutions/licensing/>`__.
+
+    To use Xpress, install the ``xpress`` Python package and ensure you have:
+
+    - ``XPRESSDIR`` environment variable pointing to your Xpress installation
+    - ``XPAUTH_PATH`` environment variable pointing to your license directory
+    - A valid Xpress license file
+
+    Then configure the solver in your config file:
+
+    .. code:: yaml
+
+        solving:
+          solver:
+            name: xpress
+            options: xpress-default
+
+    For GPU-accelerated solving, use:
+
+    .. code:: yaml
+
+        solving:
+          solver:
+            name: xpress
+            options: xpress-gpu
