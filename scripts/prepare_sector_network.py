@@ -42,6 +42,7 @@ from scripts.add_electricity import (
     sanitize_carriers,
     sanitize_locations,
 )
+from scripts.base_network import _load_links_from_raw
 from scripts.build_energy_totals import (
     build_co2_totals,
     build_eea_co2,
@@ -55,6 +56,31 @@ from scripts.prepare_network import maybe_adjust_costs_and_potentials
 
 spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
+
+
+def attach_tyndp_transmission_projects(n: pypsa.Network, fn_projects: str):
+    """
+    Add TYNDP transmission projects to the network.
+
+    Updates existing DC link capacities and adds new links from the project list.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to attach projects to.
+    fn_projects : str
+        Path to CSV file containing transmission project data.
+    """
+    projects = _load_links_from_raw(fn_projects)
+    projects["dc"] = True
+    # TODO underwater fraction and capital costs not defined for new links
+
+    links = n.links[n.links.carrier == "DC"].index
+    new_links = projects.loc[list(set(projects.index) - set(links))]
+    n.links.loc[links, "p_nom"] += projects.reindex(links, fill_value=0).p_nom
+
+    if not new_links.empty:
+        n.add("Link", new_links.index, **new_links)
 
 
 def define_spatial(
@@ -8634,6 +8660,9 @@ if __name__ == "__main__":
     investment_year = int(snakemake.wildcards.planning_horizons)
 
     n = pypsa.Network(snakemake.input.network)
+
+    if fn_projects := snakemake.input.tyndp_projects:
+        attach_tyndp_transmission_projects(n, fn_projects)
 
     if snakemake.params.load_source == "tyndp":
         logger.info(

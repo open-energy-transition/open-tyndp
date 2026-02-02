@@ -4,4 +4,6 @@ co2_societal_cost,EUR/t,dict,Dictionary mapping planning horizons (int) to socie
 planning_horizons,--,list of int,List of planning horizons for which to run CBA
 methods,--,list of str,"CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time). Defaults to ['toot']."
 projects,--,list of str,"List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35')."
+storage,,,
+-- cyclic_carriers,--,list of str,"Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network. Defaults to ['battery', 'home battery']."
 solving,,,Configuration options specific to CBA network optimization using rolling horizon approach. Uses the same structure as the top-level ``solving`` section (see :ref:`solving_cf`) with CBA-specific defaults for ``options: horizon`` (168 hours), ``options: io_api`` (direct), and ``solver: name`` (highs).

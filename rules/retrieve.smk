@@ -858,6 +858,7 @@ if (TYDNP_DATASET := dataset_version("tyndp_bundle"))["source"] in [
             offshore_electrolysers=f"{TYDNP_DATASET['folder']}/Offshore hubs/ELECTROLYSER.xlsx",
             offshore_generators=f"{TYDNP_DATASET['folder']}/Offshore hubs/GENERATOR.xlsx",
             trajectories=f"{TYDNP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
+            invest_grid=f"{TYDNP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
         run:
             with ZipFile(input["zip_file"], "r") as zip_ref:
                 zip_ref.extractall(output["dir"])

@@ -70,6 +70,14 @@ CONVERTERS_COLUMNS = [
     "geometry",
 ]
 
+# Poland organizes its lines in three sections,
+# PL00 for demand/generation, -E for exporting lines and -I for importing lines
+MAP_GRID_TYNDP = {
+    "PL00E": "PL00",
+    "PL00I": "PL00",
+    "UK": "GB",
+}
+
 
 def format_bz_names(s: str):
     s = s.replace("FR-C", "FR15").replace("UK-N", "UKNI").replace("UK", "GB")
@@ -290,41 +298,26 @@ def build_buses(
     return buses, buses_h2
 
 
-def build_links(
-    grid_fn,
+def add_links_missing_attributes(
+    links: pd.DataFrame,
     buses: gpd.GeoDataFrame,
     geo_crs: str = GEO_CRS,
     distance_crs: str = DISTANCE_CRS,
 ):
     """
-    Process reference grid information to produce link data. p_nom are NTC values.
+    Add geometry attributes to links based on connected bus locations.
 
     Parameters
     ----------
-        - grid_fn (str | Path): Path to bidding zone shape file.
+        - links (pd.DataFrame): DataFrame of links with 'bus0' and 'bus1' columns.
+        - buses (gpd.GeoDataFrame): GeoDataFrame of electrical buses including country and coordinates.
         - geo_crs (CRS, optional): Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-        - distance_crs (CRS, optional): Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
+        - distance_crs (CRS, optional): Coordinate reference system for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns
     -------
-        - links: A GeoDataFrame including NTC from the reference grid.
-
+        - links: DataFrame with added geometry columns.
     """
-
-    # Poland organizes its lines in three sections,
-    # PL00 for demand/generation, -E for exporting lines and -I for importing lines
-    replace_dict = {
-        "PL00E": "PL00",
-        "PL00I": "PL00",
-        "UK": "GB",
-    }
-
-    links = pd.read_excel(grid_fn)
-    links = extract_grid_data_tyndp(
-        links=links, carrier="Transmission line", replace_dict=replace_dict
-    )
-
-    # Add missing attributes
     links = links.merge(
         buses["geometry"], how="left", left_on="bus0", right_index=True
     ).merge(
@@ -388,6 +381,37 @@ def build_links(
         )[LINKS_COLUMNS]
     )
     links = gpd.GeoDataFrame(links, geometry="geometry", crs=geo_crs)
+
+    return links
+
+
+def build_links(
+    grid_fn,
+    buses: gpd.GeoDataFrame,
+):
+    """
+    Process reference grid information to produce link data. p_nom are NTC values.
+
+    Parameters
+    ----------
+        - grid_fn (str | Path): Path to bidding zone shape file.
+        - buses (gpd.GeoDataFrame): GeoDataFrame of electrical buses including country and coordinates.
+
+    Returns
+    -------
+        - links: A GeoDataFrame including NTC from the reference grid.
+
+    """
+    links = pd.read_excel(grid_fn)
+    links = extract_grid_data_tyndp(
+        links=links,
+        idx_prefix="Transmission line",
+        replace_dict=MAP_GRID_TYNDP,
+        idx_connector="->",
+    )
+
+    # Add missing attributes
+    links = add_links_missing_attributes(links, buses)
 
     return links
 

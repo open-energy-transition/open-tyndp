@@ -764,3 +764,14 @@ plotting:
     import NH3: '#e2ed74'
     import oil: '#93eda2'
     import methanol: '#87d0e6'
+
+  # CBA indicator plot settings
+  cba:
+    colors:
+      capex: "#2980b9"
+      opex: "#e67e22"
+      beneficial: "#27ae60"
+      not_beneficial: "#c0392b"
+    output_format:
+    - svg
+      # - png  # uncomment to also generate PNG
