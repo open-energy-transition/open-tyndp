@@ -226,10 +226,10 @@ https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2#9a668
 https://conda.anaconda.org/conda-forge/win-64/numexpr-2.14.1-py312h0c4f959_101.conda#6e1f10382b5cc01f2a2d23a7f6681f9f
 https://conda.anaconda.org/conda-forge/win-64/libaec-1.1.5-haf901d7_0.conda#43b6385cfad52a7083f2c41984eb4e91
 https://conda.anaconda.org/conda-forge/win-64/hdf5-1.14.6-nompi_h89f0904_105.conda#c1caaf8a28c0eb3be85566e63a5fcb5a
-https://conda.anaconda.org/conda-forge/win-64/c-blosc2-2.22.0-h2af8807_1.conda#eb7c33dcf2ff0cea48cd13f0ebba44f5
-https://conda.anaconda.org/conda-forge/win-64/pytables-3.10.2-py312h20cef2e_10.conda#9b6ea0c099abd05ba2e0015a8e80c508
+https://conda.anaconda.org/conda-forge/win-64/c-blosc2-2.23.0-h2af8807_0.conda#cb7cd55fdc0dc4b47d04414d4665e6af
+https://conda.anaconda.org/conda-forge/win-64/pytables-3.10.2-py312h20cef2e_11.conda#9e49e5c432df6ad3220794119aa68c6b
 https://conda.anaconda.org/conda-forge/noarch/pydeck-0.9.1-pyhd8ed1ab_0.conda#4b13d1d2d5cba37be9fa3c0922bbf995
-https://conda.anaconda.org/conda-forge/noarch/narwhals-2.15.0-pyhcf101f3_0.conda#37926bb0db8b04b8b99945076e1442d0
+https://conda.anaconda.org/conda-forge/noarch/narwhals-2.16.0-pyhcf101f3_0.conda#648a62e4e4cf1605abf73e7f48b87d5e
 https://conda.anaconda.org/conda-forge/noarch/plotly-6.5.2-pyhd8ed1ab_0.conda#7702bcd70891dd0154d765a69e1afa94
 https://conda.anaconda.org/conda-forge/win-64/libzip-1.11.2-h3135430_0.conda#09066edc7810e4bd1b41ad01a6cc4706
 https://conda.anaconda.org/conda-forge/win-64/hdf4-4.2.15-h5557f11_7.conda#84344a916a73727c1326841007b52ca8
@@ -416,7 +416,7 @@ https://conda.anaconda.org/conda-forge/noarch/parso-0.8.5-pyhcf101f3_0.conda#a11
 https://conda.anaconda.org/conda-forge/noarch/jedi-0.19.2-pyhd8ed1ab_1.conda#a4f4c5dc9b80bc50e0d3dc4e6e8f1bd9
 https://conda.anaconda.org/conda-forge/noarch/ipython_pygments_lexers-1.1.1-pyhd8ed1ab_0.conda#bd80ba060603cc228d9d81c257093119
 https://conda.anaconda.org/conda-forge/noarch/decorator-5.2.1-pyhd8ed1ab_0.conda#9ce473d1d1be1cc3810856a48b3fab32
-https://conda.anaconda.org/conda-forge/noarch/ipython-9.9.0-pyhe2676ad_0.conda#fe785355648dec69d2f06fa14c9e6e84
+https://conda.anaconda.org/conda-forge/noarch/ipython-9.10.0-pyhe2676ad_0.conda#d44777fc7219cb62865dfdcba308ea0d
 https://conda.anaconda.org/conda-forge/win-64/debugpy-1.8.20-py312ha1a9051_0.conda#032746a0b0663920f0afb18cec61062b
 https://conda.anaconda.org/conda-forge/noarch/comm-0.2.3-pyhe01879c_0.conda#2da13f2b299d8e1995bafbbe9689a2f7
 https://conda.anaconda.org/conda-forge/noarch/ipykernel-7.1.0-pyh6dadd2b_0.conda#f22cb16c5ad68fd33d0f65c8739b6a06

@@ -58,7 +58,7 @@ dependencies:
 - seaborn >=0.13.2
 - shapely >=2.0
 - snakemake-executor-plugin-cluster-generic >=1.0.9
-- snakemake-minimal >=9
+- snakemake-minimal >=9.16.2
 - snakemake-storage-plugin-http >=0.3
 - tenacity >=9.1.2
 - tqdm >=4.67.1
