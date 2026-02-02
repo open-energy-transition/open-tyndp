@@ -287,22 +287,6 @@ rule all:
             **config["scenario"],
         ),
         # Plots below here are for line-limits on UK (status quo model)
-        expand(
-            RESULTS
-            + "maps/base_s_{clusters}_lluk_{sector_opts}-costs-all_{planning_horizons}.pdf",
-            run=config["run"]["name"],
-            **config["scenario"],
-        ),
-        lambda w: expand(
-            (
-                RESULTS
-                + "maps/base_s_{clusters}_lluk_{sector_opts}-h2_network_{planning_horizons}.pdf"
-                if config_provider("sector", "H2_network")(w)
-                else []
-            ),
-            run=config["run"]["name"],
-            **config["scenario"],
-        ),
         lambda w: expand(
             (
                 RESULTS
@@ -312,15 +296,6 @@ rule all:
             ),
             run=config["run"]["name"],
             **config["scenario"],
-        ),
-        lambda w: expand(
-            (
-                RESULTS
-                + "maps/base_s_{clusters}_lluk_{sector_opts}_{planning_horizons}-balance_map_{carrier}.pdf"
-            ),
-            **config["scenario"],
-            run=config["run"]["name"],
-            carrier=config_provider("plotting", "balance_map", "bus_carriers")(w),
         ),
         expand(
             RESULTS
