@@ -35,7 +35,7 @@ DE:
       2045: 0.3  # interpolation
       2050: 0.16
     # EV demand scaling (temporary approach):
-    # Currently scaled to match PLEXOS demand values from: 
+    # Currently scaled to match PLEXOS demand values from:
     # EV-Modelling-Inputs/EV Modelling Inputs/EV_VEHICLES.xlsx (PLEXOS DEMAND [TWh])
     #
     # Why scaling is needed:
@@ -43,7 +43,7 @@ DE:
     # - Assuming historic km/vehicle patterns rather than future increases
     # - These assumptions can result in scaling factors > 1.0
     #
-    # Note: Final EV electricity demand differs between scenarios (DE/GA) 
+    # Note: Final EV electricity demand differs between scenarios (DE/GA)
     # due to varying assumptions on vehicle efficiency and total km driven
     land_transport_electric_share:
       2030: 0.207
@@ -109,7 +109,7 @@ GA:
       2045: 0.34  # interpolation
       2050: 0.17
     # EV demand scaling (temporary approach):
-    # Currently scaled to match PLEXOS demand values from: 
+    # Currently scaled to match PLEXOS demand values from:
     # EV-Modelling-Inputs/EV Modelling Inputs/EV_VEHICLES.xlsx (PLEXOS DEMAND [TWh])
     #
     # Why scaling is needed:
@@ -117,7 +117,7 @@ GA:
     # - Assuming historic km/vehicle patterns rather than future increases
     # - These assumptions can result in scaling factors > 1.0
     #
-    # Note: Final EV electricity demand differs between scenarios (DE/GA) 
+    # Note: Final EV electricity demand differs between scenarios (DE/GA)
     # due to varying assumptions on vehicle efficiency and total km driven
     land_transport_electric_share:
       2030: 0.111
@@ -153,3 +153,78 @@ GA:
       2050: 400
   costs:
     custom_cost_scn: GA
+
+
+.cba-common: &cba-common
+  # Merged into top-level solving options
+  solving:
+    options:
+      horizon: 168
+      overlap: 0
+      load_shedding: true
+
+    solver:
+      name: highs
+      options: highs-simplex
+
+    solver_options:
+      highs-simplex:
+        parallel: "off" # does not speed up solution
+
+
+cba-NT-cy1995:
+  <<: *cba-common
+  snapshots:
+    start: "1995-01-01"
+    end: "1996-01-01"
+
+  atlite:
+    default_cutout: europe-1995-sarah3-era5
+
+  cba:
+    sb_scenario: NT
+
+cba-NT-cy2008:
+  <<: *cba-common
+  snapshots:
+    start: "2008-01-01"
+    end: "2009-01-01"
+
+  atlite:
+    default_cutout: europe-2008-sarah3-era5
+
+  cba:
+    sb_scenario: NT
+
+cba-NT-cy2009:
+  <<: *cba-common
+  snapshots:
+    start: "2009-01-01"
+    end: "2010-01-01"
+
+  atlite:
+    default_cutout: europe-2009-sarah3-era5
+
+  cba:
+    sb_scenario: NT
+
+
+cba-DE-cy2009:
+  <<: *cba-common
+  cba:
+    sb_scenario: DE
+
+  snapshots:
+    start: "2009-01-01"
+    end: "2010-01-01"
+
+  atlite:
+    default_cutout: europe-2009-sarah3-era5
+
+cba-NT:
+  cba:
+    scenarios: [cba-NT-cy2009, cba-NT-cy2008, cba-NT-cy1995]
+
+cba-DE:
+  cba:
+    scenarios: [cba-DE-cy2009]

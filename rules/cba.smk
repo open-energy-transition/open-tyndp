@@ -54,13 +54,16 @@ checkpoint clean_projects:
         "../scripts/cba/clean_projects.py"
 
 
-def input_sb_network(w):
+def input_sb_network(w, run=None):
     scenario = config_provider("scenario")(w)
     expanded_wildcards = {
         "clusters": scenario["clusters"],
         "opts": scenario["opts"],
         "sector_opts": scenario["sector_opts"],
     }
+    if run is not None:
+        expanded_wildcards["run"] = run
+
     match config_provider("foresight")(w):
         case "perfect":
             expanded_wildcards["planning_horizons"] = "all"
@@ -87,6 +90,9 @@ rule simplify_sb_network:
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
         network=input_sb_network,
+        sb_network=lambda w: input_sb_network(
+            w, run=config_provider("cba", "sb_scenario")(w)
+        ),
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     script:
@@ -173,7 +179,6 @@ rule solve_cba_reference_network:
 rule solve_cba_network:
     params:
         solving=config_provider("solving"),
-        cba_solving=config_provider("cba", "solving"),
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
@@ -244,6 +249,20 @@ rule collect_indicators:
         "../scripts/cba/collect_indicators.py"
 
 
+rule average_indicators:
+    input:
+        indicators=lambda w: expand(
+            rules.collect_indicators.output.indicators,
+            run=config_provider("cba", "scenarios")(w),
+            allow_missing=True,
+        ),
+    output:
+        indicators=RESULTS
+        + "cba/{cba_method}/ensemble_indicators_{planning_horizons}.csv",
+    script:
+        "../scripts/cba/average_indicators.py"
+
+
 rule plot_indicators:
     params:
         plotting=config_provider("plotting"),
@@ -257,17 +276,27 @@ rule plot_indicators:
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
+
+
+def cba_scenarios(w):
+    return [
+        name
+        for name in config["run"]["name"]
+        if scenario_config(name).get("cba", {}).get("scenarios") is not None
+    ]
+
+
 rule cba:
     input:
         lambda w: expand(
-            rules.collect_indicators.output.indicators,
+            rules.average_indicators.output.indicators,
             cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=config_provider("run", "name")(w),
+            run=cba_scenarios(w),
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
             cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=config_provider("run", "name")(w),
+            run=cba_scenarios(w),
         ),

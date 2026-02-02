@@ -410,19 +410,3 @@ cba:
     cyclic_carriers:
     - battery
     - home battery
-
-  # Merged into top-level solving options
-  solving:
-    options:
-      horizon: 168
-      overlap: 0
-      load_shedding: true
-      io_api: direct  # 20% faster than default lp mode for rolling horizon
-
-    solver:
-      name: highs
-      options: highs-simplex
-
-    solver_options:
-      highs-simplex:
-        parallel: "off" # does not speed up solution
