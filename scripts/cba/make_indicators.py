@@ -787,7 +787,6 @@ if __name__ == "__main__":
     cba_project = snakemake.wildcards.cba_project
     indicators["project_id"] = int(cba_project[1:])  # assuming format 't123'
     indicators["cba_method"] = method.upper()
-    indicators.update(units)
     logger.info(
         f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Euros"
     )
@@ -815,6 +814,5 @@ if __name__ == "__main__":
     else:
         df = df_model
 
-    print(df)
     df = apply_indicator_units(df)
     df.to_csv(snakemake.output.indicators, index=False)
