@@ -486,6 +486,30 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :caption: Open TYNDP
 
    innovation_roadmap
+   cba
+   cba-indicators
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: References
+
+   release_notes
+   licenses
+   data_sources
+   validation
+   benchmarking
+   limitations
+   contributing
+   support
+   publications
+   contributors
+
+.. raw:: html
+
+   <hr>
+
+PyPSA-Eur related pages
 
 .. toctree::
    :hidden:
@@ -516,19 +540,3 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 
    spatial_resolution
    supply_demand
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   :caption: References
-
-   release_notes
-   licenses
-   data_sources
-   validation
-   benchmarking
-   limitations
-   contributing
-   support
-   publications
-   contributors
