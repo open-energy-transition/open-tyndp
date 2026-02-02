@@ -36,14 +36,63 @@ from scripts.prepare_sector_network import get
 
 logger = logging.getLogger(__name__)
 
-CARRIER_TO_FUEL_MAP = {
-    "gas": "gas",
-    "coal": "hard coal",
-    "lignite": "lignite",
-    "uranium": "nuclear",
-    "oil-light": "light oil",
-    "oil-heavy": "heavy oil",
-    "oil-shale": "oil shale",
+INDICATOR_UNITS = {
+    "B1_total_system_cost_change": "EUR/year",
+    "cost_reference": "EUR/year",
+    "capex_reference": "EUR/year",
+    "opex_reference": "EUR/year",
+    "cost_project": "EUR/year",
+    "capex_project": "EUR/year",
+    "opex_project": "EUR/year",
+    "capex_change": "EUR/year",
+    "opex_change": "EUR/year",
+    "co2_variation": "t/year",
+    "co2_ets_price": "EUR/t",
+    "co2_societal_cost": "EUR/t",
+    "B2_societal_cost_variation": "EUR/year",
+    "B3_res_capacity_change_mw": "MW",
+    "B3_res_generation_change_mwh": "MWh/year",
+    "B3_annual_avoided_curtailment_mwh": "MWh/year",
+    "B4a_nox": "kg/year",
+    "B4b_nh3": "kg/year",
+    "B4c_sox": "kg/year",
+    "B4d_pm25": "kg/year",
+    "B4e_pm10": "kg/year",
+    "B4f_nmvoc": "kg/year",
+}
+
+CARRIER_BUS_COMPONENT = {
+    "OCGT": ("gas", "Link"),
+    "gas-ccgt": ("gas", "Link"),
+    "gas-ccgt-ccs": ("gas", "Link"),
+    "gas-conv": ("gas", "Link"),
+    "gas-ocgt": ("gas", "Link"),
+    "coal": ("coal", "Generator"),
+    "lignite": ("lignite", "Generator"),
+    "uranium": ("uranium", "Generator"),
+    "oil-heavy": ("oil", "Link"),
+    "oil-light": ("oil", "Link"),
+    "oil-shale": ("oil", "Link"),
+}
+
+CARRIER_TO_EMISSION_FACTORS = {
+    "OCGT": ("Gas", ["OCGT old", "OCGT new"]),
+    "gas-ccgt": (
+        "Gas",
+        ["CCGT old 1", "CCGT old 2", "CCGT present 1", "CCGT present 2", "CCGT new"],
+    ),
+    "gas-ccgt-ccs": (
+        "Gas",
+        ["CCGT CCS"],
+    ),
+    "gas-conv": ("Gas", ["conventional old 1", "conventional old 2", "OCGT old"]),
+    "gas-ocgt": ("Gas", ["OCGT old", "OCGT new"]),
+    "coal": ("Hard coal", ["old 1", "old 2", "new"]),
+    "lignite": ("Lignite", ["old 1", "old 2", "new"]),
+    "uranium": ("Nuclear", []),
+    "oil-heavy": ("Heavy Oil", ["old 1", "old 2"]),
+    "oil-light": ("Light Oil", []),
+    "oil-shale": ("Oil shale", ["old", "new"]),
 }
 
 
@@ -115,8 +164,9 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
     standard efficiency (NCV) and 1 MWh = 3.6 GJ.
     """
     df = pd.read_csv(path, encoding="utf-8-sig")
-    df = df[df["Fuel"].notna()]
+    df = df[df["Fuel"].notna()].copy()
     df["Fuel_norm"] = df["Fuel"].astype(str).str.strip().str.lower()
+    df["Type_norm"] = df["Type"].fillna("").astype(str).str.strip().str.lower()
     efficiency = (
         df["Standard efficiency in NCV terms"]
         .astype(str)
@@ -143,8 +193,8 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
 
     factor_df = pd.DataFrame(factors)
     factor_df["Fuel_norm"] = df["Fuel_norm"]
+    factor_df["Type_norm"] = df["Type_norm"]
     factor_df = factor_df[efficiency.notna() & (efficiency > 0)]
-    factor_df = factor_df.groupby("Fuel_norm").agg(["min", "mean", "max"])
     return factor_df
 
 
@@ -424,75 +474,88 @@ def calculate_b4_indicator(
         - {pollutant}_t_per_year_{stat}
     """
 
-    def emissions_by_stat(n: pypsa.Network) -> dict:
-        generation = (
-            n.statistics.energy_balance(nice_names=False).groupby("carrier").sum()
+    pollutant_keys = [
+        col for col in emission_factors.columns if col not in ("Fuel_norm", "Type_norm")
+    ]
+
+    # initialize emissions dictionary
+    ref_emissions = {key: 0.0 for key in pollutant_keys}
+    proj_emissions = {key: 0.0 for key in pollutant_keys}
+
+    for carrier in conventional_carriers:
+        # if carrier from conventional_carriers is 'gas', expand to gas sub-carriers:
+        # OCGT, gas-ccgt, gas-ccgt-ccs, gas-conv, gas-ocgt
+        carriers = (
+            ["OCGT", "gas-ccgt", "gas-ccgt-ccs", "gas-conv", "gas-ocgt"]
+            if carrier == "gas"
+            else [carrier]
         )
-        emissions = {stat: {} for stat in ["min", "mean", "max"]}
-        missing_map = []
-        missing_factor = []
+        for subcarrier in carriers:
+            if subcarrier not in CARRIER_BUS_COMPONENT:
+                raise ValueError(
+                    f"Carrier '{subcarrier}' missing in CARRIER_BUS_COMPONENT"
+                )
+            if subcarrier not in CARRIER_TO_EMISSION_FACTORS:
+                raise ValueError(
+                    f"Carrier '{subcarrier}' missing in CARRIER_TO_EMISSION_FACTORS"
+                )
+            bus_carrier, component = CARRIER_BUS_COMPONENT[subcarrier]
+            fuel, types = CARRIER_TO_EMISSION_FACTORS[subcarrier]
 
-        for carrier in conventional_carriers:
-            if carrier not in CARRIER_TO_FUEL_MAP:
-                missing_map.append(carrier)
-                continue
-            fuel = CARRIER_TO_FUEL_MAP[carrier]
-            if fuel not in emission_factors.index:
-                missing_factor.append(fuel)
-                continue
-            if carrier not in generation.index:
-                continue
-            mwh = generation.loc[carrier]
-            factors = emission_factors.loc[fuel]
-            for stat in ["min", "mean", "max"]:
-                kg_per_mwh = factors.xs(stat, level=1)
-                for pollutant_key, kg_value in kg_per_mwh.items():
-                    emissions[stat].setdefault(pollutant_key, 0.0)
-                    emissions[stat][pollutant_key] += mwh * kg_value / 1000.0
+            # get the energy balance for carrier in reference and project networks
+            # get the absolute value and take the sum
+            ref_mwh = (
+                n_reference.statistics.energy_balance(
+                    nice_names=False,
+                    carrier=subcarrier,
+                    bus_carrier=bus_carrier,
+                    components=[component],
+                )
+                .abs()
+                .sum()
+            )
+            proj_mwh = (
+                n_project.statistics.energy_balance(
+                    nice_names=False,
+                    carrier=subcarrier,
+                    bus_carrier=bus_carrier,
+                    components=[component],
+                )
+                .abs()
+                .sum()
+            )
 
-        return emissions
+            fuel_norm = str(fuel).strip().lower()
+            type_norms = [t.strip().lower() for t in types]
+            factors = emission_factors[emission_factors["Fuel_norm"] == fuel_norm]
+            # if there are specific types for a given fuel, filter for those
+            # otherwise, filter for empty type
+            if type_norms:
+                factors = factors[factors["Type_norm"].isin(type_norms)]
+            else:
+                factors = factors[factors["Type_norm"] == ""]
+            if factors.empty:
+                raise ValueError(
+                    f"No emission factors found for carrier '{subcarrier}'"
+                )
 
-    ref_emissions = emissions_by_stat(n_reference)
-    proj_emissions = emissions_by_stat(n_project)
+            # if multiple factors exist for a carrier, take the mean
+            kg_per_mwh = factors[pollutant_keys].agg("mean")
+            for pollutant_key, kg_value in kg_per_mwh.items():
+                ref_emissions[pollutant_key] += float(ref_mwh) * kg_value
+                proj_emissions[pollutant_key] += float(proj_mwh) * kg_value
 
     results = {}
-    for stat in ["min", "mean", "max"]:
-        for pollutant_key in emission_factors.columns.levels[0]:
-            ref_val = ref_emissions[stat].get(pollutant_key, 0.0)
-            proj_val = proj_emissions[stat].get(pollutant_key, 0.0)
-            if method == "pint":
-                diff = ref_val - proj_val
-            else:
-                diff = proj_val - ref_val
-            results[f"{pollutant_key}_t_per_year_{stat}"] = diff
+    for pollutant_key in pollutant_keys:
+        ref_val = ref_emissions.get(pollutant_key, 0.0)
+        proj_val = proj_emissions.get(pollutant_key, 0.0)
+        if method == "pint":
+            diff = ref_val - proj_val
+        else:
+            diff = proj_val - ref_val
+        results[pollutant_key] = diff
 
     return results
-
-
-INDICATOR_UNITS = {
-    "B1_total_system_cost_change": "EUR/year",
-    "cost_reference": "EUR/year",
-    "capex_reference": "EUR/year",
-    "opex_reference": "EUR/year",
-    "cost_project": "EUR/year",
-    "capex_project": "EUR/year",
-    "opex_project": "EUR/year",
-    "capex_change": "EUR/year",
-    "opex_change": "EUR/year",
-    "co2_variation": "t/year",
-    "co2_ets_price": "EUR/t",
-    "co2_societal_cost": "EUR/t",
-    "B2_societal_cost_variation": "EUR/year",
-    "B3_res_capacity_change_mw": "MW",
-    "B3_res_generation_change_mwh": "MWh/year",
-    "B3_annual_avoided_curtailment_mwh": "MWh/year",
-    "B4a_nox_t_per_year": "t/year",
-    "B4b_nh3_t_per_year": "t/year",
-    "B4c_sox_t_per_year": "t/year",
-    "B4d_pm25_t_per_year": "t/year",
-    "B4e_pm10_t_per_year": "t/year",
-    "B4f_nmvoc_t_per_year": "t/year",
-}
 
 
 def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
