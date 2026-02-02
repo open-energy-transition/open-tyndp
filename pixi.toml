@@ -172,10 +172,10 @@ all-tests = {depends-on = ["integration-tests", "clean-tests", "unit-tests"]}
 [feature.test.dependencies]
 pytest = ">=8.4.2"
 
-[feature.ngv.tasks]
-ngv = """bash -c '
-    snakemake --cores all --configfile config/config.ngv.yaml --rerun-incomplete --keep-going
-    '
+[feature.ngv.tasks.model]
+args = [{"arg" = "dryrun", "default" = ""}]
+cmd = """
+    snakemake --cores all --configfile config/config.ngv.yaml --rerun-incomplete --keep-going {{ dryrun }}
 """
 
 [environments]
