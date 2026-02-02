@@ -36,7 +36,9 @@ path = [
     "pixi.lock",
     "matplotlibrc",
     "envs/*.pin.txt",
-    "envs/environment.yaml"
+    "envs/environment.yaml",
+    "config/config.default.yaml",
+    "config/schema.json"
 ]
 SPDX-FileCopyrightText = [
     "The Open-TYNDP Authors",
