@@ -65,6 +65,10 @@ class CbaConfig(BaseModel):
         default_factory=lambda: ["toot"],
         description="CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
     )
+    area: list[Literal["tyndp", "entso-e", "eu27"]] = Field(
+        default_factory=lambda: ["tyndp"],
+        description="Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+    )
     projects: list[str] = Field(
         default_factory=list,
         description="List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
