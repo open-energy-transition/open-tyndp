@@ -76,29 +76,25 @@ def input_sb_network(w):
     )
 
 
-# extract a planning horizon from the SB optimized network and apply the simplifications
-# necessary to get to the general CBA reference network
-rule simplify_sb_network:
+# Prepare base network for CBA (common for both MSV extraction and reference)
+# Fixes optimal capacities and adds hurdle costs
+rule prepare_cba_base:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
-        tyndp_conventional_carriers=config_provider(
-            "electricity", "tyndp_conventional_carriers"
-        ),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
         network=input_sb_network,
     output:
-        network=resources("cba/networks/simple_{planning_horizons}.nc"),
+        network=resources("cba/networks/base_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/simplify_sb_network.py"
+        "../scripts/cba/prepare_cba_base.py"
 
 
-# build the reference network
+# Build the reference network by ensuring all CBA projects are included
+# Must come right after prepare_cba_base so that both MSV extraction and
+# rolling horizon dispatch use the same reference (same projects)
 rule prepare_reference:
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.simplify_sb_network.output.network,
+        network=rules.prepare_cba_base.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -107,13 +103,48 @@ rule prepare_reference:
         "../scripts/cba/prepare_reference.py"
 
 
+# Simplify reference network for rolling horizon dispatch
+# Disables cyclicity for seasonal stores (they will receive MSV instead)
+rule simplify_sb_network:
+    params:
+        tyndp_conventional_carriers=config_provider(
+            "electricity", "tyndp_conventional_carriers"
+        ),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+    input:
+        network=rules.prepare_reference.output.network,
+    output:
+        network=resources("cba/networks/simple_{planning_horizons}.nc"),
+    script:
+        "../scripts/cba/simplify_sb_network.py"
+
+
+# Extract Marginal Storage Values (MSV) via perfect foresight optimization
+# Uses reference network (with cyclicity enabled) to get meaningful shadow prices
+rule solve_cba_msv_extraction:
+    params:
+        solving=config_provider("solving"),
+        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+    input:
+        network=rules.prepare_reference.output.network,
+    output:
+        network=resources("cba/networks/msv_{planning_horizons}.nc"),
+    log:
+        solver=logs("cba/solve_cba_msv_extraction/{planning_horizons}_solver.log"),
+        memory=logs("cba/solve_cba_msv_extraction/{planning_horizons}_memory.log"),
+        python=logs("cba/solve_cba_msv_extraction/{planning_horizons}_python.log"),
+    threads: 1
+    script:
+        "../scripts/cba/solve_cba_msv_extraction.py"
+
+
 # remove the single project {cba_project} from the toot reference network
 # currently this can be either a trans123 or a stor123 project
 rule prepare_toot_project:
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_reference.output.network,
+        network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -130,7 +161,7 @@ rule prepare_pint_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_reference.output.network,
+        network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -142,6 +173,7 @@ rule prepare_pint_project:
 
 
 # solve the reference network which is independent of the method
+# Uses simplified network (non-cyclic seasonal stores) + MSV from perfect foresight
 rule solve_cba_reference_network:
     params:
         solving=config_provider("solving"),
@@ -149,8 +181,11 @@ rule solve_cba_reference_network:
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+        msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
     input:
-        network=resources("cba/networks/reference_{planning_horizons}.nc"),
+        network=rules.simplify_sb_network.output.network,
+        msv_network=rules.solve_cba_msv_extraction.output.network,
     output:
         network=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
     log:
@@ -177,8 +212,11 @@ rule solve_cba_network:
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+        msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
     input:
         network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),
+        msv_network=rules.solve_cba_msv_extraction.output.network,
     output:
         network=RESULTS + "cba/{cba_method}/networks/{name}_{planning_horizons}.nc",
     log:

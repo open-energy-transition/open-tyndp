@@ -3,10 +3,15 @@
 # SPDX-License-Identifier: MIT
 
 """
-Simplify SB (Scenario Building) network for CBA analysis.
+Simplify CBA base network for rolling horizon dispatch.
 
-Extracts a planning horizon from the optimized network and applies
-simplifications needed for CBA reference network.
+Takes the CBA base network (with fixed capacities and hurdle costs) and applies
+simplifications needed for CBA rolling horizon optimization:
+- Extend primary fuel source capacities
+- Disable volume limits
+- Disable cyclicity for seasonal stores (they will receive MSV instead)
+- Keep cyclicity for short-term storage (batteries)
+- Disable global constraints
 """
 
 import logging
@@ -83,8 +88,10 @@ def disable_global_constraints(n: pypsa.Network):
     """
     Remove global constraints that are not needed for CBA analysis.
 
-    Removes constraints on biomass sustainability and CO2 sequestration limits
-    to allow unconstrained operation in the reference network.
+    Removes constraints on biomass sustainability to allow unconstrained
+    operation in the reference network.
+
+    Note: co2_sequestration_limit is already removed in prepare_cba_base.py
 
     Parameters
     ----------
@@ -94,17 +101,18 @@ def disable_global_constraints(n: pypsa.Network):
     if "unsustainable biomass limit" in n.global_constraints.index:
         logger.info('Removing GlobalConstraint "unustainable biomass limit"')
         n.remove("GlobalConstraint", "unsustainable biomass limit")
-    if "co2_sequestration_limit" in n.global_constraints.index:
-        logger.info('Removing GlobalConstraint "co2_sequestration_limit"')
-        n.remove("GlobalConstraint", "co2_sequestration_limit")
 
 
-def disable_store_cyclicity(n: pypsa.Network, cyclic_carriers: list[str] | None = None):
+def disable_store_cyclicity(
+    n: pypsa.Network,
+    cyclic_carriers: list[str] | None = None,
+    seasonal_carriers: list[str] | None = None,
+):
     """
     Disable cyclic state of charge constraints for stores and storage units.
 
     Cyclic constraints force storage to end at the same state of charge as it started.
-    For CBA, long-term storage should be free to have different start/end states,
+    For CBA rolling horizon, seasonal storage should be non-cyclic (they receive MSV instead),
     while short-term storage (e.g., batteries) should remain cyclic.
 
     Parameters
@@ -114,9 +122,15 @@ def disable_store_cyclicity(n: pypsa.Network, cyclic_carriers: list[str] | None 
     cyclic_carriers : list[str], optional
         List of carrier names that should remain cyclic (e.g., ["battery", "home battery"]).
         If None, all storage cyclicity is disabled.
+    seasonal_carriers : list[str], optional
+        List of carrier names that are seasonal (e.g., ["H2 Store", "gas"]).
+        These will have cyclicity disabled and will receive MSV during solving.
+        Used for logging purposes.
     """
     if cyclic_carriers is None:
         cyclic_carriers = []
+    if seasonal_carriers is None:
+        seasonal_carriers = []
 
     # Disable cyclicity for stores (except cyclic_carriers)
     has_e_cyclic = n.stores["e_cyclic"]
@@ -133,6 +147,13 @@ def disable_store_cyclicity(n: pypsa.Network, cyclic_carriers: list[str] | None 
         if kept_cyclic.any():
             stats = summarize_counts(n.stores.loc[kept_cyclic, "carrier"])
             logger.info(f"Keeping e_cyclic=True for short-term storage:\n{stats}")
+
+    # Log seasonal carriers that will receive MSV
+    if seasonal_carriers:
+        is_seasonal = n.stores["carrier"].isin(seasonal_carriers)
+        if is_seasonal.any():
+            stats = summarize_counts(n.stores.loc[is_seasonal, "carrier"])
+            logger.info(f"Seasonal stores (will receive MSV):\n{stats}")
 
     has_e_cyclic_per_period = n.stores["e_cyclic_per_period"]
     to_disable_per_period = has_e_cyclic_per_period & ~is_cyclic_carrier
@@ -170,29 +191,23 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Load the solved base network
-    # The wildcard has been expanded to {clusters}_{opts}_{sector_opts}_{planning_horizons}
+    # Load the CBA base network (already has fixed capacities and hurdle costs)
     n = pypsa.Network(snakemake.input.network)
 
-    # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
-
-    n.optimize.fix_optimal_capacities()
-
+    # Extend primary fuel sources capacity
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
     n = extend_primary_fuel_sources(n, tyndp_conventional_carriers)
 
     disable_volume_limits(n)
 
-    # Get cyclic carriers from config (short-term storage that should remain cyclic)
+    # Get storage carrier settings from config
     cyclic_carriers = snakemake.params.get("cyclic_carriers", [])
-    disable_store_cyclicity(n, cyclic_carriers=cyclic_carriers)
+    seasonal_carriers = snakemake.params.get("seasonal_carriers", [])
+    disable_store_cyclicity(
+        n, cyclic_carriers=cyclic_carriers, seasonal_carriers=seasonal_carriers
+    )
 
     disable_global_constraints(n)
-
-    # Hurdle costs
-    n.links.loc[n.links.carrier == "DC", "marginal_cost"] = (
-        snakemake.params.hurdle_costs
-    )
 
     # Save simplified network
     n.export_to_netcdf(snakemake.output.network)

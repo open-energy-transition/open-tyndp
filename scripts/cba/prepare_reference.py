@@ -5,10 +5,12 @@
 """
 Prepare reference network by ensuring all CBA projects are included.
 
-Modify the input network from the SB to get the CBA reference network.
+Modify the input network from prepare_cba_base to get the CBA reference network.
 
-This script adds the missing projects to create
+This script adds the missing projects (from TOOT list) to create
 the complete reference network with all projects included.
+
+TODO: Implement project addition logic - currently just passes through the network.
 """
 
 import logging
@@ -34,22 +36,26 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Load simplified network
+    # Load base network (already has fixed capacities and hurdle costs)
     n = pypsa.Network(snakemake.input.network)
 
     # Load project definitions
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
+    storage_projects = pd.read_csv(snakemake.input.storage_projects)
 
     # Get planning horizons from config
     planning_horizons = int(snakemake.wildcards.planning_horizons)
 
-    logger.debug(f"\n{'=' * 80}")
-    logger.debug("PREPARING REFERENCE NETWORK")
-    logger.debug(f"{'=' * 80}")
-    logger.debug(f"Current planning horizon: {planning_horizons}")
+    logger.info(f"\n{'=' * 80}")
+    logger.info("PREPARING REFERENCE NETWORK")
+    logger.info(f"{'=' * 80}")
+    logger.info(f"Current planning horizon: {planning_horizons}")
 
-    # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
-    hurdle_costs = snakemake.params.hurdle_costs
+    # TODO: Add missing TOOT projects that are not already in the SB network
+    # This ensures that the reference network has all projects included,
+    # so that both MSV extraction and TOOT/PINT use the same baseline.
+    #
+    # For now, pass through the network unchanged (assumes SB already has all projects)
 
     # Save reference network with all projects
     n.export_to_netcdf(snakemake.output.network)
