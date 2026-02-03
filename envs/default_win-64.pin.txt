@@ -226,8 +226,8 @@ https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2#9a668
 https://conda.anaconda.org/conda-forge/win-64/numexpr-2.14.1-py312h0c4f959_101.conda#6e1f10382b5cc01f2a2d23a7f6681f9f
 https://conda.anaconda.org/conda-forge/win-64/libaec-1.1.5-haf901d7_0.conda#43b6385cfad52a7083f2c41984eb4e91
 https://conda.anaconda.org/conda-forge/win-64/hdf5-1.14.6-nompi_h89f0904_105.conda#c1caaf8a28c0eb3be85566e63a5fcb5a
-https://conda.anaconda.org/conda-forge/win-64/c-blosc2-2.22.0-h2af8807_1.conda#eb7c33dcf2ff0cea48cd13f0ebba44f5
-https://conda.anaconda.org/conda-forge/win-64/pytables-3.10.2-py312h20cef2e_10.conda#9b6ea0c099abd05ba2e0015a8e80c508
+https://conda.anaconda.org/conda-forge/win-64/c-blosc2-2.23.0-h2af8807_0.conda#cb7cd55fdc0dc4b47d04414d4665e6af
+https://conda.anaconda.org/conda-forge/win-64/pytables-3.10.2-py312h20cef2e_11.conda#9e49e5c432df6ad3220794119aa68c6b
 https://conda.anaconda.org/conda-forge/noarch/pydeck-0.9.1-pyhd8ed1ab_0.conda#4b13d1d2d5cba37be9fa3c0922bbf995
 https://conda.anaconda.org/conda-forge/noarch/narwhals-2.15.0-pyhcf101f3_0.conda#37926bb0db8b04b8b99945076e1442d0
 https://conda.anaconda.org/conda-forge/noarch/plotly-6.5.2-pyhd8ed1ab_0.conda#7702bcd70891dd0154d765a69e1afa94

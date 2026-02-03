@@ -230,8 +230,8 @@ https://conda.anaconda.org/conda-forge/noarch/py-cpuinfo-9.0.0-pyhd8ed1ab_1.cond
 https://conda.anaconda.org/conda-forge/osx-64/numexpr-2.14.1-py312hd12f69b_1.conda#42ca06bfb47a5aa48940404b96082f31
 https://conda.anaconda.org/conda-forge/osx-64/libaec-1.1.5-he7c3a48_0.conda#975f98248cde8d54884c6d1eb5184e13
 https://conda.anaconda.org/conda-forge/osx-64/hdf5-1.14.6-nompi_h4b07496_105.conda#bb19aadbe30c465c18c77678ac2eae09
-https://conda.anaconda.org/conda-forge/osx-64/c-blosc2-2.22.0-hedb7e5f_1.conda#13038523111830630683530ea54eb503
-https://conda.anaconda.org/conda-forge/osx-64/pytables-3.10.2-py312he4c742b_10.conda#6698fa5a79d807f18c68a9423ed62960
+https://conda.anaconda.org/conda-forge/osx-64/c-blosc2-2.23.0-h548f922_0.conda#6c3e0b3532d30e1c80d2dc9901eff55f
+https://conda.anaconda.org/conda-forge/osx-64/pytables-3.10.2-py312hde43864_11.conda#b4c8331ee7ae2189e22b399ec1a16c48
 https://conda.anaconda.org/conda-forge/noarch/pydeck-0.9.1-pyhd8ed1ab_0.conda#4b13d1d2d5cba37be9fa3c0922bbf995
 https://conda.anaconda.org/conda-forge/noarch/narwhals-2.15.0-pyhcf101f3_0.conda#37926bb0db8b04b8b99945076e1442d0
 https://conda.anaconda.org/conda-forge/noarch/plotly-6.5.2-pyhd8ed1ab_0.conda#7702bcd70891dd0154d765a69e1afa94
