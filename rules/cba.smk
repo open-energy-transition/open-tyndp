@@ -72,8 +72,7 @@ checkpoint clean_projects:
 
 rule clean_tyndp_indicators:
     input:
-        transmission="data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx",
-        storage="data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx",
+        dir=rules.retrieve_tyndp_cba_projects.output.dir,
     output:
         indicators=resources("cba/tyndp_indicators.csv"),
         readme=resources("cba/tyndp_indicators_name_unit.csv"),

@@ -305,8 +305,8 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     planning_horizons = snakemake.config["cba"]["planning_horizons"]
-    transmission_path = Path(snakemake.input.transmission)
-    storage_path = Path(snakemake.input.storage)
+    transmission_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+    storage_path = Path(snakemake.input.dir) / "20250312_export_storage.xlsx"
 
     output_frames = [
         process_benchmark_excel(transmission_path, "transmission", planning_horizons),
