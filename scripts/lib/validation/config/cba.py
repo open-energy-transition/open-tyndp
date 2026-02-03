@@ -69,8 +69,8 @@ class CbaConfig(BaseModel):
         default_factory=list,
         description="List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
     )
-    area: list[Literal["tyndp", "entso-e", "eu27"]] = Field(
-        default_factory=lambda: ["tyndp"],
+    area: Literal["tyndp", "entso-e", "eu27"] = Field(
+        default="tyndp",
         description="Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
     )
     storage: _CbaStorageConfig = Field(

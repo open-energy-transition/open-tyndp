@@ -1539,8 +1539,7 @@ cba:
   methods:
   - toot
   projects: []
-  area:
-  - tyndp
+  area: tyndp
   storage:
     cyclic_carriers:
     - battery
