@@ -291,7 +291,7 @@ rule plot_cba_benchmark:
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
     output:
         plot_file=RESULTS
-        + "cba/{cba_method}/validation/project_{cba_project}_{planning_horizons}.png",
+        + "cba/{cba_method}/validation_{planning_horizons}/project_{cba_project}.png",
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
@@ -300,7 +300,7 @@ rule plot_all_cba_benchmark:
     input:
         indicators=rules.collect_indicators.output.indicators,
     output:
-        plot_dir=directory(RESULTS + "cba/{cba_method}/{planning_horizons}/(benchmark"),
+        plot_dir=directory(RESULTS + "cba/{cba_method}/validation_{planning_horizons}"),
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
