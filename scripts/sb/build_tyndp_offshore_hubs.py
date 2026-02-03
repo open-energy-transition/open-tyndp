@@ -175,8 +175,10 @@ def load_offshore_grid(
     )
 
     # Handle missing data
-    # TODO Validate assumption
-    grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
+    if scenario == "NT":  # NT is a dispatch scenario
+        grid["p_nom_extendable"] = False
+    else:
+        grid["p_nom_extendable"] = ~grid[["capex", "opex"]].isna().any(axis=1)
     grid[["capex", "opex"]] = grid[["capex", "opex"]].fillna(0)
     grid["p_nom_min"] = grid["p_nom_min"].fillna(0)
 
@@ -264,6 +266,13 @@ def load_offshore_electrolysers(
     electrolysers[["capex", "opex"]] = electrolysers[["capex", "opex"]].mul(
         1e3
     )  # kEUR/MW to EUR/MW
+
+    if scenario == "NT":  # NT is a dispatch scenario
+        electrolysers["p_nom_extendable"] = False
+    else:
+        electrolysers["p_nom_extendable"] = ~electrolysers[
+            ["capex", "opex"]
+        ].isna().any(axis=1)
 
     # rename UK in GB
     electrolysers[["bus0", "bus1", "country"]] = electrolysers[
@@ -518,9 +527,13 @@ def load_offshore_generators(
     # Validate that all required cost assumptions are defined
     if generators[["capex", "opex"]].isna().any().any():
         raise ValueError("Missing generator cost data in input dataset.")
-    generators["p_nom_extendable"] = generators["carrier"].isin(
-        extendable_carriers["Generator"]
-    )
+
+    if scenario == "NT":  # NT is a dispatch scenario
+        generators["p_nom_extendable"] = False
+    else:
+        generators["p_nom_extendable"] = generators["carrier"].isin(
+            extendable_carriers["Generator"]
+        )
 
     # Rename UK in GB
     generators[["bus", "location"]] = generators[["bus", "location"]].replace(

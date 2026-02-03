@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../schema.json
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: CC0-1.0
@@ -242,6 +243,7 @@ sector:
   oil_boilers: false
   biomass_boiler: false
   solar_thermal: false
+  methanation: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false

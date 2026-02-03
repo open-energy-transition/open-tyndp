@@ -11,3 +11,60 @@ all,all,battery inverter,marginal_cost,0,EUR/MWh,Default value to prevent mathem
 all,all,home battery storage,marginal_cost,0,EUR/MWh,Default value to prevent mathematical degeneracy in optimisation,
 all,all,water tank charger,marginal_cost,0.03,EUR/MWh,Default value to prevent mathematical degeneracy in optimisation,
 all,all,central water pit charger,marginal_cost,0.025,EUR/MWh,Default value to prevent mathematical degeneracy in optimisation,
+all,all,all,lifetime,25,years,TYNDP 2024,
+all,all,nuclear,VOM,9,EUR/MWh_e,ERAA 2025 Common Data,
+all,all,oil,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,coal,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,uranium,fuel,6.12,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2030,lignite,fuel,6.48,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume G2 and neglect regional lignite fuel cost variation"
+all,2035,lignite,fuel,6.48,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume G2 and neglect regional lignite fuel cost variation"
+all,2040,lignite,fuel,6.48,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume G2 and neglect regional lignite fuel cost variation"
+all,2045,lignite,fuel,6.48,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume G2 and neglect regional lignite fuel cost variation"
+all,2050,lignite,fuel,6.48,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume G2 and neglect regional lignite fuel cost variation"
+all,2030,coal,fuel,6.48,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2035,coal,fuel,6.12,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2040,coal,fuel,5.76,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2045,coal,fuel,5.76,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2050,coal,fuel,5.76,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2030,gas,fuel,22.68,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2035,gas,fuel,21.6,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2040,gas,fuel,20.52,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2045,gas,fuel,19.26,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2050,gas,fuel,18,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+all,2030,oil,fuel,33.12,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
+all,2035,oil,fuel,32.58,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
+all,2040,oil,fuel,32.04,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
+all,2045,oil,fuel,31.5,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
+all,2050,oil,fuel,30.96,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
+all,2030,electrolysis,efficiency,0.69,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
+all,2035,electrolysis,efficiency,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
+all,2040,electrolysis,efficiency,0.71,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
+all,2045,electrolysis,efficiency,0.725,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
+all,2050,electrolysis,efficiency,0.74,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
+all,all,SMR,efficiency,0.77,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,SMR CC,efficiency,0.77,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,SMR CC,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+DE,2030,biogas CC,capture_rate,0.5,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+DE,2035,biogas CC,capture_rate,0.6,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+DE,2040,biogas CC,capture_rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+DE,2045,biogas CC,capture_rate,0.8,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+DE,2050,biogas CC,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+DE,2030,BtL,capture rate,0.5,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+DE,2035,BtL,capture rate,0.6,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+DE,2040,BtL,capture rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+DE,2045,BtL,capture rate,0.8,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+DE,2050,BtL,capture rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+GA,2030,biogas CC,capture_rate,0.25,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+GA,2035,biogas CC,capture_rate,0.365,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+GA,2040,biogas CC,capture_rate,0.48,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+GA,2045,biogas CC,capture_rate,0.59,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+GA,2050,biogas CC,capture_rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
+GA,2030,BtL,capture rate,0.25,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+GA,2035,BtL,capture rate,0.365,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+GA,2040,BtL,capture rate,0.48,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+GA,2045,BtL,capture rate,0.59,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+GA,2050,BtL,capture rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",assume same as biogas CC
+all,all,gas-ccgt-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,coal-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,lignite-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",

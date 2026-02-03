@@ -596,13 +596,18 @@ def update_wind_solar_costs(
 
     # NB: solar costs are also manipulated for rooftop
     # when distribution grid is inserted
-    n.generators.loc[n.generators.carrier == "solar", "capital_cost"] = costs.at[
-        "solar-utility", "capital_cost"
-    ]
+    carrier_cost_dict = {
+        "solar": "solar-utility",
+        "solar-hsat": "solar-hsat",
+        "onwind": "onwind",
+    }
 
-    n.generators.loc[n.generators.carrier == "onwind", "capital_cost"] = costs.at[
-        "onwind", "capital_cost"
-    ]
+    for carrier, cost_key in carrier_cost_dict.items():
+        if carrier not in n.generators.carrier.values:
+            continue
+        n.generators.loc[n.generators.carrier == carrier, "capital_cost"] = costs.at[
+            cost_key, "capital_cost"
+        ]
 
     # for offshore wind, need to calculated connection costs
     for key, fn in profiles.items():
@@ -2716,8 +2721,10 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
             p_nom_extendable=True,
             carrier="SMR CC",
             efficiency=costs.at["SMR CC", "efficiency"],
-            efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
-            efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
+            efficiency2=costs.at["gas", "CO2 intensity"]
+            * (1 - costs.at["SMR CC", "capture_rate"]),
+            efficiency3=costs.at["gas", "CO2 intensity"]
+            * costs.at["SMR CC", "capture_rate"],
             capital_cost=costs.at["SMR CC", "capital_cost"],
             lifetime=costs.at["SMR CC", "lifetime"],
         )
@@ -3486,6 +3493,15 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes):
         "Adding natural gas infrastructure, incl. LNG terminals, production, storage and entry-points."
     )
 
+    add_carrier_buses(
+        n=n,
+        carrier="gas",
+        costs=costs,
+        spatial=spatial,
+        options=options,
+        cf_industry=None,
+    )
+
     if options["H2_retrofit"]:
         gas_pipes["p_nom_max"] = gas_pipes.p_nom
         gas_pipes["p_nom_min"] = 0.0
@@ -4038,7 +4054,7 @@ def add_offshore_electrolysers_tyndp(
         offshore_electrolysers.index,
         bus0=offshore_electrolysers.bus0,
         bus1=offshore_electrolysers.bus1,
-        p_nom_extendable=True,
+        p_nom_extendable=offshore_electrolysers.p_nom_extendable,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
         capital_cost=offshore_electrolysers.capital_cost,
@@ -6714,6 +6730,17 @@ def add_industry(
     - Process emission handling
     """
     logger.info("Add industrial demand")
+
+    # Ensure the gas carrier bus exists before adding any gas-for-industry links.
+    add_carrier_buses(
+        n=n,
+        carrier="gas",
+        costs=costs,
+        spatial=spatial,
+        options=options,
+        cf_industry=None,
+    )
+
     # add oil buses for shipping, aviation and naptha for industry
     add_carrier_buses(
         n,
@@ -6738,6 +6765,12 @@ def add_industry(
 
     # 1e6 to convert TWh to MWh
     industrial_demand = pd.read_csv(industrial_demand_file, index_col=0) * 1e6 * nyears
+
+    if not options["biomass"]:
+        raise ValueError(
+            "Industry demand includes solid biomass, but `sector.biomass` is disabled. "
+            "Enable `sector: {biomass: true}` in config."
+        )
 
     n.add(
         "Bus",
