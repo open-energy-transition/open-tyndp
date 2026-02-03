@@ -494,6 +494,18 @@
           },
           "type": "array"
         },
+        "area": {
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "items": {
+            "enum": [
+              "tyndp",
+              "entso-e",
+              "eu27"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -14236,6 +14248,18 @@
         "projects": {
           "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
           "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "area": {
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "items": {
+            "enum": [
+              "tyndp",
+              "entso-e",
+              "eu27"
+            ],
             "type": "string"
           },
           "type": "array"
