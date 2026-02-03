@@ -6,7 +6,6 @@ SPDX-PackageDownloadLocation = "https://github.com/open-energy-transition/open-t
 
 [[annotations]]
 path = [
-    "doc/configtables/*",
     "doc/data_inventory.csv",
     "doc/img/*",
     "test/test_data/*",
@@ -36,7 +35,9 @@ path = [
     "pixi.lock",
     "matplotlibrc",
     "envs/*.pin.txt",
-    "envs/environment.yaml"
+    "envs/environment.yaml",
+    "config/config.default.yaml",
+    "config/schema.json"
 ]
 SPDX-FileCopyrightText = [
     "The Open-TYNDP Authors",

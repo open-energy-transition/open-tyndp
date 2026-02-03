@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../schema.json
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
@@ -404,8 +405,9 @@ cba:
   - 2040
   methods:
   - toot
+  - pint
   projects:
-  - t1-t5
+  - t1-t35
 
   # Storage settings for CBA dispatch
   storage:

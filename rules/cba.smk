@@ -120,9 +120,8 @@ rule simplify_sb_network:
         "../scripts/cba/simplify_sb_network.py"
 
 
-# build the reference network for toot with all projects included
-# maybe worth to merge with pint rule, if they turn out to be very similar
-rule prepare_toot_reference:
+# build the reference network
+rule prepare_reference:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
@@ -130,22 +129,9 @@ rule prepare_toot_reference:
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
-        network=resources("cba/toot/networks/reference_{planning_horizons}.nc"),
+        network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/prepare_toot_reference.py"
-
-
-# build the reference network for pint with all projects removed
-# maybe worth to merge with toot rule, if they turn out to be very similar
-rule prepare_pint_reference:
-    input:
-        network=rules.simplify_sb_network.output.network,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-        storage_projects=rules.clean_projects.output.storage_projects,
-    output:
-        network=resources("cba/pint/networks/reference_{planning_horizons}.nc"),
-    script:
-        "../scripts/cba/prepare_pint_reference.py"
+        "../scripts/cba/prepare_reference.py"
 
 
 # remove the single project {cba_project} from the toot reference network
@@ -154,7 +140,7 @@ rule prepare_toot_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_toot_reference.output.network,
+        network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -168,8 +154,10 @@ rule prepare_toot_project:
 # add the single project {cba_project} to the pint reference network
 # currently this can be either a trans123 or a stor123 project
 rule prepare_pint_project:
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_pint_reference.output.network,
+        network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -180,7 +168,34 @@ rule prepare_pint_project:
         "../scripts/cba/prepare_pint_project.py"
 
 
-# solve any of the prepared networks, ie a reference or a project network
+# solve the reference network which is independent of the method
+rule solve_cba_reference_network:
+    params:
+        solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
+        foresight=config_provider("foresight"),
+        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        custom_extra_functionality=None,
+    input:
+        network=resources("cba/networks/reference_{planning_horizons}.nc"),
+    output:
+        network=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
+    log:
+        solver=logs(
+            "cba/solve_cba_reference_network/reference_{planning_horizons}_solver.log"
+        ),
+        memory=logs(
+            "cba/solve_cba_reference_network/reference_{planning_horizons}_memory.log"
+        ),
+        python=logs(
+            "cba/solve_cba_reference_network/reference_{planning_horizons}_python.log"
+        ),
+    threads: 1
+    script:
+        "../scripts/cba/solve_cba_network.py"
+
+
+# solve any of the prepared project network
 # should reuse/import functions from solve_network.py
 rule solve_cba_network:
     params:
@@ -211,7 +226,7 @@ rule solve_cba_network:
 # compute all metrics for a single pint or toot project comparing reference and project solution
 rule make_indicators:
     input:
-        reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
+        reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
         non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,

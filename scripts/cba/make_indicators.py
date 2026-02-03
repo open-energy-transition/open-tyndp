@@ -62,38 +62,12 @@ INDICATOR_UNITS = {
     "B4f_nmvoc": "kg/year",
 }
 
-CARRIER_BUS_COMPONENT = {
-    "OCGT": ("gas", "Link"),
-    "gas-ccgt": ("gas", "Link"),
-    "gas-ccgt-ccs": ("gas", "Link"),
-    "gas-conv": ("gas", "Link"),
-    "gas-ocgt": ("gas", "Link"),
-    "coal": ("coal", "Generator"),
-    "lignite": ("lignite", "Generator"),
-    "uranium": ("uranium", "Link"),
-    "oil-heavy": ("oil", "Link"),
-    "oil-light": ("oil", "Link"),
-    "oil-shale": ("oil", "Link"),
-}
-
 CARRIER_TO_EMISSION_FACTORS = {
-    "OCGT": ("Gas", ["OCGT old", "OCGT new"]),
-    "gas-ccgt": (
-        "Gas",
-        ["CCGT old 1", "CCGT old 2", "CCGT present 1", "CCGT present 2", "CCGT new"],
-    ),
-    "gas-ccgt-ccs": (
-        "Gas",
-        ["CCGT CCS"],
-    ),
-    "gas-conv": ("Gas", ["conventional old 1", "conventional old 2", "OCGT old"]),
-    "gas-ocgt": ("Gas", ["OCGT old", "OCGT new"]),
-    "coal": ("Hard coal", ["old 1", "old 2", "new"]),
-    "lignite": ("Lignite", ["old 1", "old 2", "new"]),
-    "uranium": ("Nuclear", []),
-    "oil-heavy": ("Heavy Oil", ["old 1", "old 2"]),
-    "oil-light": ("Light Oil", []),
-    "oil-shale": ("Oil shale", ["old", "new"]),
+    "gas": ("Gas", "Gas biofuel"),
+    "coal": ("Hard coal", "Hard Coal biofuel"),
+    "lignite": ("Lignite", "Lignite biofuel"),
+    "uranium": ("Nuclear", None),
+    "oil": ("Light Oil", "Light Oil biofuel"),  # all oil fuels have same factors
 }
 
 
@@ -158,24 +132,9 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
 
 
 def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
-    """
-    Load non-CO2 emission factors and convert to kg/MWh.
-
-    The input factors are in units of kg/GJ (thermal) and are converted using the
-    standard efficiency (NCV) and 1 MWh = 3.6 GJ.
-    """
+    """Load non-CO2 emission factors and compute mean values."""
     df = pd.read_csv(path, encoding="utf-8-sig")
-    df = df[df["Fuel"].notna()].copy()
-    df["Fuel_norm"] = df["Fuel"].astype(str).str.strip().str.lower()
-    df["Type_norm"] = df["Type"].fillna("").astype(str).str.strip().str.lower()
-    efficiency = (
-        df["Standard efficiency in NCV terms"]
-        .astype(str)
-        .str.replace("%", "", regex=False)
-        .pipe(pd.to_numeric, errors="coerce")
-        / 100.0
-    )
-
+    df = df[df["Fuel"].notna()]
     pollutant_cols = {
         "NOX emission factor": "B4a_nox",
         "NH3 emission factor": "B4b_nh3",
@@ -184,19 +143,15 @@ def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
         "PM10 emission factor": "B4e_pm10",
         "NMVOC emission factor": "B4f_nmvoc",
     }
-
-    factors = {}
-    for col, key in pollutant_cols.items():
-        # kg/GJ_el = kg/GJ_th / efficiency
-        # kg/MWh_el = kg/GJ_el * 3.6
-        values = pd.to_numeric(df[col], errors="coerce").fillna(0.0)
-        factors[key] = values / efficiency * 3.6
-
-    factor_df = pd.DataFrame(factors)
-    factor_df["Fuel_norm"] = df["Fuel_norm"]
-    factor_df["Type_norm"] = df["Type_norm"]
-    factor_df = factor_df[efficiency.notna() & (efficiency > 0)]
-    return factor_df
+    factors = pd.DataFrame(
+        {
+            key: pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+            for col, key in pollutant_cols.items()
+        }
+    )
+    factors["Fuel"] = df["Fuel"]
+    df_mean = factors.groupby("Fuel")[list(pollutant_cols.values())].mean()
+    return df_mean
 
 
 def calculate_res_capacity_per_carrier(
@@ -500,80 +455,77 @@ def calculate_b4_indicator(
     Returns
     -------
     dict
-        Dictionary with B4 indicators for each pollutant and statistic (stat in [min, mean, max]):
-        - {pollutant}_{stat}
+        Dictionary with B4 indicators for each pollutant:
+        - B4{sub}_{pollutant}
     """
 
-    pollutant_keys = [
-        col for col in emission_factors.columns if col not in ("Fuel_norm", "Type_norm")
-    ]
+    pollutant_keys = list(emission_factors.columns)
+
+    normalized = []
+    for c in conventional_carriers:
+        normalized.append("oil" if c.startswith("oil-") else c)
+    conventional_carriers = sorted(set(normalized))
 
     # initialize emissions dictionary
     ref_emissions = {key: 0.0 for key in pollutant_keys}
     proj_emissions = {key: 0.0 for key in pollutant_keys}
 
+    # function to check if link is biofuel/biomass/biogas link
+    def is_biofuel_link(link_carrier: str, network: pypsa.Network) -> bool:
+        links = network.links[network.links.carrier == link_carrier]
+        if links.empty:
+            return False
+        buses = links[["bus0", "bus1"]].astype(str).agg(" ".join, axis=1).str.lower()
+        return buses.str.contains("biofuel|biomass|biogas", regex=True).any()
+
     for carrier in conventional_carriers:
-        # if carrier from conventional_carriers is 'gas', expand to gas sub-carriers:
-        # OCGT, gas-ccgt, gas-ccgt-ccs, gas-conv, gas-ocgt
-        carriers = (
-            ["OCGT", "gas-ccgt", "gas-ccgt-ccs", "gas-conv", "gas-ocgt"]
-            if carrier == "gas"
-            else [carrier]
+        if carrier not in CARRIER_TO_EMISSION_FACTORS:
+            raise ValueError(
+                f"Carrier '{carrier}' missing in CARRIER_TO_EMISSION_FACTORS"
+            )
+        regular_fuel, biofuel = CARRIER_TO_EMISSION_FACTORS[carrier]
+
+        ref_balance = n_reference.statistics.energy_balance(
+            nice_names=False, bus_carrier=carrier
         )
-        for subcarrier in carriers:
-            if subcarrier not in CARRIER_BUS_COMPONENT:
-                raise ValueError(
-                    f"Carrier '{subcarrier}' missing in CARRIER_BUS_COMPONENT"
-                )
-            if subcarrier not in CARRIER_TO_EMISSION_FACTORS:
-                raise ValueError(
-                    f"Carrier '{subcarrier}' missing in CARRIER_TO_EMISSION_FACTORS"
-                )
-            bus_carrier, component = CARRIER_BUS_COMPONENT[subcarrier]
-            fuel, types = CARRIER_TO_EMISSION_FACTORS[subcarrier]
+        proj_balance = n_project.statistics.energy_balance(
+            nice_names=False, bus_carrier=carrier
+        )
 
-            # get the energy balance for carrier in reference and project networks
-            # get the absolute value and take the sum
-            ref_mwh = (
-                n_reference.statistics.energy_balance(
-                    nice_names=False,
-                    carrier=subcarrier,
-                    bus_carrier=bus_carrier,
-                    components=[component],
-                )
-                .abs()
-                .sum()
-            )
-            proj_mwh = (
-                n_project.statistics.energy_balance(
-                    nice_names=False,
-                    carrier=subcarrier,
-                    bus_carrier=bus_carrier,
-                    components=[component],
-                )
-                .abs()
-                .sum()
-            )
+        # use only positive values
+        ref_balance = ref_balance[ref_balance > 0]
+        proj_balance = proj_balance[proj_balance > 0]
 
-            fuel_norm = str(fuel).strip().lower()
-            type_norms = [t.strip().lower() for t in types]
-            factors = emission_factors[emission_factors["Fuel_norm"] == fuel_norm]
-            # if there are specific types for a given fuel, filter for those
-            # otherwise, filter for empty type
-            if type_norms:
-                factors = factors[factors["Type_norm"].isin(type_norms)]
-            else:
-                factors = factors[factors["Type_norm"] == ""]
-            if factors.empty:
-                raise ValueError(
-                    f"No emission factors found for carrier '{subcarrier}'"
-                )
+        # if regular fuel, use regular emission factors
+        # if biofuel, use biofuel emission factors
+        fuel_key = str(regular_fuel).strip()
+        if fuel_key not in emission_factors.index:
+            raise ValueError(f"No emission factors found for fuel '{regular_fuel}'")
+        regular_factors = emission_factors.loc[fuel_key]
+        biofuel_factors = None
+        if biofuel:
+            biofuel_key = str(biofuel).strip()
+            if biofuel_key not in emission_factors.index:
+                raise ValueError(f"No emission factors found for fuel '{biofuel}'")
+            biofuel_factors = emission_factors.loc[biofuel_key]
 
-            # if multiple factors exist for a carrier, take the mean
-            kg_per_mwh = factors[pollutant_keys].agg("mean")
-            for pollutant_key, kg_value in kg_per_mwh.items():
-                ref_emissions[pollutant_key] += float(ref_mwh) * kg_value
-                proj_emissions[pollutant_key] += float(proj_mwh) * kg_value
+        def accumulate(balance, emissions, network):
+            for (component, item, _), value in balance.items():
+                if component == "Generator":
+                    factors = regular_factors
+                elif component == "Link" and biofuel_factors is not None:
+                    factors = (
+                        biofuel_factors
+                        if is_biofuel_link(item, network)
+                        else regular_factors
+                    )
+                else:
+                    factors = regular_factors
+                for pollutant_key, kg_value in factors.items():
+                    emissions[pollutant_key] += float(value) * kg_value
+
+        accumulate(ref_balance, ref_emissions, n_reference)
+        accumulate(proj_balance, proj_emissions, n_project)
 
     results = {}
     units = {}
@@ -603,9 +555,7 @@ def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
         .tolist()
     )
     if unresolved:
-        logger.warning(
-            "Skipping units for unmapped indicators: %s", sorted(unresolved)
-        )
+        logger.warning("Skipping units for unmapped indicators: %s", sorted(unresolved))
     extra = set(INDICATOR_UNITS) - set(df["indicator"])
     if extra:
         logger.warning("Unused indicator units defined: %s", sorted(extra))
