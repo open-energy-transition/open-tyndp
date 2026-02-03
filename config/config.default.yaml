@@ -1539,6 +1539,7 @@ cba:
   methods:
   - toot
   projects: []
+  area: tyndp # options: tyndp (TODO: entso-e, eu27)
   storage:
     cyclic_carriers:
     - battery
