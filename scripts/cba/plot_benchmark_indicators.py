@@ -98,8 +98,23 @@ def format_project_label(project_id: int, planning_horizon: str | None) -> str:
     return f"t{project_id}"
 
 
+def format_area_subtitle(area: str | None) -> str | None:
+    """Map cba.area to a plot subtitle."""
+    if not area:
+        return None
+    mapping = {
+        "tyndp": "Impact of the project on the whole area of the TYNDP Study",
+        "entso-e": "Impact of the project on the ENTSO-E area",
+        "eu27": "Impact of the project on the EU27 area",
+    }
+    return mapping.get(str(area).lower())
+
+
 def plot_project_benchmarks(
-    df: pd.DataFrame, output_path: Path, project_label: str | None = None
+    df: pd.DataFrame,
+    output_path: Path,
+    project_label: str | None = None,
+    area_subtitle: str | None = None,
 ) -> None:
     """Plot one subplot per indicator with its own y-axis and legend."""
     indicators = sorted(df["indicator"].dropna().unique())
@@ -247,7 +262,9 @@ def plot_project_benchmarks(
         ax.set_ylabel(title)
 
     if project_label:
-        fig.suptitle(f"CBA indicator benchmark ({project_label})")
+        fig.suptitle(f"CBA indicator benchmark ({project_label})", y=0.98)
+    if area_subtitle:
+        fig.text(0.5, 0.92, area_subtitle, ha="center", va="center")
     # Interleaved to account for matplotlib's column-major legend layout.
     b2a_order = [
         "2024 TYNDP low",
@@ -289,12 +306,12 @@ def plot_project_benchmarks(
             ncol=1,
             frameon=False,
         )
-    fig.tight_layout(rect=[0, 0.12, 1, 0.96])
+    fig.tight_layout(rect=[0, 0.12, 1, 0.90])
     fig.savefig(output_path, dpi=400)
     plt.close(fig)
 
 
-def create_plots(indicators_file, output_path, planning_horizon=None):
+def create_plots(indicators_file, output_path, planning_horizon=None, area=None):
     """Create benchmark plots from a per-project or collected indicators file."""
     output_path = Path(output_path)
     output_dir = output_path if output_path.suffix == "" else output_path.parent
@@ -316,7 +333,9 @@ def create_plots(indicators_file, output_path, planning_horizon=None):
         project_id = int(project_ids[0])
         project_label = format_project_label(project_id, planning_horizon)
         project_df = df[df["project_id"] == project_id].copy()
-        plot_project_benchmarks(project_df, output_path, project_label)
+        plot_project_benchmarks(
+            project_df, output_path, project_label, format_area_subtitle(area)
+        )
     else:
         for project_id in project_ids:
             project_df = df[df["project_id"] == project_id].copy()
@@ -324,7 +343,9 @@ def create_plots(indicators_file, output_path, planning_horizon=None):
             suffix = f"_{planning_horizon}" if planning_horizon else ""
             output_file = output_dir / f"project_{project_id}{suffix}.png"
             project_label = format_project_label(project_id, planning_horizon)
-            plot_project_benchmarks(project_df, output_file, project_label)
+            plot_project_benchmarks(
+                project_df, output_file, project_label, format_area_subtitle(area)
+            )
 
     logger.info("Benchmark plots saved to %s", output_dir)
 
@@ -340,4 +361,5 @@ if __name__ == "__main__":
 
     planning_horizon = snakemake.wildcards.get("planning_horizons")
     output_target = snakemake.output.get("plot_file") or snakemake.output.plot_dir
-    create_plots(snakemake.input.indicators, output_target, planning_horizon)
+    area = snakemake.config.get("cba", {}).get("area")
+    create_plots(snakemake.input.indicators, output_target, planning_horizon, area)
