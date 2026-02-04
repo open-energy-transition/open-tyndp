@@ -2,9 +2,9 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
-###################
+####################################
 TYNDP 2024 data bundle for PyPSA-Eur
-###################
+####################################
 
 Data in this section is downloaded and extracted from the TYNDP 2024 data bundle for PyPSA-Eur
 (https://zenodo.org/records/14230568). Originally published by ENTSO-E and ENTSOG under
@@ -79,4 +79,4 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 - **Link:** https://zenodo.org/records/14230568
 - **License:** CC-BY 4.0
 - **Description:** Contains 177 transmission and 33 storage projects, which have been
-assessed by TYNDP 2024 in its Cost-Benefit Analysis.
+  assessed by TYNDP 2024 in its Cost-Benefit Analysis.
