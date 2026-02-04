@@ -145,3 +145,13 @@ Rule ``plot_benchmark``
 
 .. automodule:: plot_benchmark
 
+Rule ``launch_explorer``
+======================================
+
+.. automodule:: launch_explorer
+
+Rule ``close_explorers``
+======================================
+
+Closes all open local instances of launched PyPSA-Explorers and frees up used ports again.
+
