@@ -29,7 +29,6 @@ of the Store-energy_balance constraint.
 
 import logging
 
-import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
