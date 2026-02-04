@@ -31,3 +31,7 @@ class ConventionalConfig(ConfigModel):
         default_factory=lambda: {"p_max_pu": "data/nuclear_p_max_pu.csv"},
         description="For any carrier/technology overwrite attributes as listed below.",
     )
+    tyndp_availability_profiles: bool = Field(
+        False,
+        description="Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and planned outages.",
+    )

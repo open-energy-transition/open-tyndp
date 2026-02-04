@@ -754,6 +754,11 @@
           },
           "description": "For any carrier/technology overwrite attributes as listed below.",
           "type": "object"
+        },
+        "tyndp_availability_profiles": {
+          "default": false,
+          "description": "Enable TYNDP 2024 specific availability profiles.",
+          "type": "boolean"
         }
       }
     },
@@ -10359,6 +10364,11 @@
           },
           "description": "For any carrier/technology overwrite attributes as listed below.",
           "type": "object"
+        },
+        "tyndp_availability_profiles": {
+          "default": false,
+          "description": "Enable TYNDP 2024 specific availability profiles.",
+          "type": "boolean"
         }
       }
     },
