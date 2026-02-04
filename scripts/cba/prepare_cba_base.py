@@ -57,8 +57,8 @@ if __name__ == "__main__":
     hurdle_costs = snakemake.params.hurdle_costs
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
-# TODO: for DE/GA add merging of the two H2 zones
-# TODO: for DE/GA add EV electricity consumption from SB as fixed demand
+    # TODO: for DE/GA add merging of the two H2 zones
+    # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
 
     # Save base network
     n.export_to_netcdf(snakemake.output.network)
