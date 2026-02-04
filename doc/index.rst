@@ -485,6 +485,8 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :maxdepth: 2
    :caption: Open TYNDP
 
+   scenarios
+   benchmarking
    innovation_roadmap
 
 .. toctree::
@@ -526,7 +528,6 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    licenses
    data_sources
    validation
-   benchmarking
    limitations
    contributing
    support
