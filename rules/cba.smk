@@ -114,6 +114,7 @@ rule simplify_sb_network:
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
     input:
         network=rules.prepare_reference.output.network,
+        network_msv=rules.solve_cba_msv_extraction.output.network,
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     script:
