@@ -87,6 +87,13 @@ def load_and_merge_data(indicators_path, projects_path):
     indicators_wide = meta.merge(metrics, on="project_id", how="left")
 
     merged = indicators_wide.merge(projects_agg, on="project_id", how="left")
+    if "is_beneficial" in merged.columns:
+        merged["is_beneficial"] = (
+            merged["is_beneficial"]
+            .astype(str)
+            .str.lower()
+            .map({"true": True, "false": False, "1": True, "0": False})
+        )
     merged["B1_billion_EUR"] = merged["B1_total_system_cost_change"] / 1e9
     merged["capex_change_billion"] = merged["capex_change"] / 1e9
     merged["opex_change_billion"] = merged["opex_change"] / 1e9
@@ -239,8 +246,8 @@ def plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=2
 
 def plot_b1_summary(df, output_dir, method, colors, output_formats, total_projects):
     """Summary plot with B1 histogram."""
-    beneficial = df[df["is_beneficial"]]
-    not_beneficial = df[~df["is_beneficial"]]
+    beneficial = df[df["is_beneficial"] == True]
+    not_beneficial = df[df["is_beneficial"] == False]
 
     fig, ax = plt.subplots(figsize=(10, 6))
 

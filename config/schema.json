@@ -494,6 +494,16 @@
           },
           "type": "array"
         },
+        "area": {
+          "default": "tyndp",
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "enum": [
+            "tyndp",
+            "entso-e",
+            "eu27"
+          ],
+          "type": "string"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -14239,6 +14249,16 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "area": {
+          "default": "tyndp",
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "enum": [
+            "tyndp",
+            "entso-e",
+            "eu27"
+          ],
+          "type": "string"
         },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",

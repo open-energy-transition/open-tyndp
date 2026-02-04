@@ -264,8 +264,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * -
      - CBA Benchmarking
-     -
-     - ⌛
+     - `#405 <https://github.com/open-energy-transition/open-tyndp/pull/405>`__
+     - ✅
    * - **CBA Benefit Indicators**
      - B1: Socioeconomic Welfare (SEW)
      - `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__
