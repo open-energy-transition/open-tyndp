@@ -8516,6 +8516,11 @@
         false
       ]
     },
+    "launch_explorer": {
+      "default": false,
+      "description": "Switch to launch the PyPSA-Explorer with the result networks.",
+      "type": "boolean"
+    },
     "scenario": {
       "description": "Configuration for top level `scenario` settings.",
       "properties": {

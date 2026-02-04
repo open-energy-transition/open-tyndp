@@ -973,3 +973,67 @@ rule build_tyndp_gas_demands:
             **config["scenario"],
             run=config["run"]["name"],
         ),
+
+
+rule launch_explorer:
+    input:
+        expand(
+            RESULTS
+            + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+    output:
+        RESULTS + "logs/explorer_launched.log",
+    run:
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        output_log = str(output[0])
+        input_files = list(input)
+
+        Path(output_log).touch()
+
+        # Use sys.executable to get the current Python interpreter
+        cmd = [
+            sys.executable,
+            "scripts/sb/launch_explorer.py",
+            output_log,
+        ] + input_files
+
+        print(f"Launching PyPSA-Explorer...")
+
+        # Launch with better error handling
+        process = subprocess.Popen(
+            cmd,
+            stdout=open(output_log, "w"),
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+
+        print(f"Explorer subprocess started with PID: {process.pid}")
+        print(f"Check logfile {output_log} for the explorer URL and output.")
+
+
+rule close_explorers:
+    run:
+        import psutil
+
+        print("Closing all explorer instances...")
+        killed_count = 0
+
+        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+            try:
+                cmdline = proc.info.get("cmdline", [])
+                if cmdline and "launch_explorer.py" in " ".join(cmdline):
+                    proc.kill()
+                    print(f"Killed explorer process (PID: {proc.info['pid']})")
+                    killed_count += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+
+        if killed_count == 0:
+            print("No explorer processes found running")
+        else:
+            print(f"Closed {killed_count} explorer instance(s)")
