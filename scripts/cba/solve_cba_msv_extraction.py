@@ -36,47 +36,6 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def resample_network(n: pypsa.Network, resolution: str) -> pypsa.Network:
-    """
-    Resample network snapshots to a coarser resolution.
-
-    Uses the same approach as prepare_network.average_every_nhours.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        Network to resample
-    resolution : str
-        Target resolution (e.g., "24h", "48h")
-
-    Returns
-    -------
-    pypsa.Network
-        Resampled network
-    """
-    original_snapshots = len(n.snapshots)
-
-    # Create new network with empty snapshots
-    m = n.copy(snapshots=[])
-
-    # Resample snapshot weightings (sum to preserve total weight)
-    snapshot_weightings = n.snapshot_weightings.resample(resolution).sum()
-    m.set_snapshots(snapshot_weightings.index)
-    m.snapshot_weightings = snapshot_weightings
-
-    # Resample all time-varying data (mean for rates/power values)
-    for c in n.iterate_components():
-        pnl = getattr(m, c.list_name + "_t")
-        for k, df in c.pnl.items():
-            if not df.empty:
-                pnl[k] = df.resample(resolution).mean()
-
-    logger.info(
-        f"Resampled network from {original_snapshots} to {len(m.snapshots)} snapshots "
-        f"(resolution: {resolution})"
-    )
-
-    return m
 
 
 if __name__ == "__main__":
