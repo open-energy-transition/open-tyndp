@@ -180,8 +180,8 @@ def extend_primary_fuel_sources(n):
 
 def remove_line_limits_offshore_gb(
     n: pypsa.Network
-): -> pypsa.Network 
-"""
+) -> pypsa.Network: 
+    """
     Makes the line limit between GB offshore nodes and GB onshore nodes effectively infinite
     by making them extendable.
 
