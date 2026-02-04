@@ -57,7 +57,8 @@ if __name__ == "__main__":
     hurdle_costs = snakemake.params.hurdle_costs
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
-
+# TODO: for DE/GA add merging of the two H2 zones
+# TODO: for DE/GA add EV electricity consumption from SB as fixed demand
     # Remove CO2 sequestration limit - not used in rolling horizon dispatch
     # so MSV should also be extracted without it for consistency
     if "co2_sequestration_limit" in n.global_constraints.index:
