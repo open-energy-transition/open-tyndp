@@ -263,6 +263,30 @@ def add_scenario_uncertainty(
             comp[cols] = new_p_max_pu
     return n
 
+def remove_line_limits_offshore_gb(
+    n: pypsa.Network
+): -> pypsa.Network 
+"""
+    Makes the line limit between GB offshore nodes and GB onshore nodes effectively infinite
+    by making them extendable.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The input network used as a base for the uncertainty scenario.
+        This network will not be modified, a modified copy is returned.
+    
+    Returns
+    -------
+    pypsa.Network
+        A new network modified according to the specified uncertainty scenario.
+    """
+    mask_gb = n.links['bus0'].str.contains('GB', na=False) & n.links['bus1'].str.contains('GB', na=False)
+    mask_dc_oh = n.links.carrier == 'DC_OH'
+    n.links.loc[mask_gb & mask_dc_oh, 'p_nom_extendable'] = True
+
+    return n 
+
 
 # %%
 if __name__ == "__main__":
@@ -284,6 +308,7 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     n.optimize.fix_optimal_capacities()
+    n = remove_line_limits_offshore_gb(n)
     n = remove_components_added_in_solve_network_py(n)
     n = add_electrolysis_constraints(n)
     n = extend_primary_fuel_sources(n)
