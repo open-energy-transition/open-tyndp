@@ -59,11 +59,6 @@ if __name__ == "__main__":
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
 # TODO: for DE/GA add merging of the two H2 zones
 # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
-    # Remove CO2 sequestration limit - not used in rolling horizon dispatch
-    # so MSV should also be extracted without it for consistency
-    if "co2_sequestration_limit" in n.global_constraints.index:
-        logger.info('Removing GlobalConstraint "co2_sequestration_limit"')
-        n.remove("GlobalConstraint", "co2_sequestration_limit")
 
     # Save base network
     n.export_to_netcdf(snakemake.output.network)
