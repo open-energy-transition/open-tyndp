@@ -147,7 +147,9 @@ def load_offshore_grid(
     grid = grid.merge(
         grid_costs, how="outer", on=["bus0", "bus1", "pyear", "scenario", "carrier"]
     ).assign(
-        p_min_pu=0,
+        p_min_pu=lambda x: np.where(
+            x["bus0"].str.contains("OH") & x["bus1"].str.contains("OH"), -1, 0
+        ),
         p_max_pu=1,
     )
 
