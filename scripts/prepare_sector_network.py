@@ -2721,8 +2721,10 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
             p_nom_extendable=True,
             carrier="SMR CC",
             efficiency=costs.at["SMR CC", "efficiency"],
-            efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
-            efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
+            efficiency2=costs.at["gas", "CO2 intensity"]
+            * (1 - costs.at["SMR CC", "capture_rate"]),
+            efficiency3=costs.at["gas", "CO2 intensity"]
+            * costs.at["SMR CC", "capture_rate"],
             capital_cost=costs.at["SMR CC", "capital_cost"],
             lifetime=costs.at["SMR CC", "lifetime"],
         )
@@ -4052,7 +4054,7 @@ def add_offshore_electrolysers_tyndp(
         offshore_electrolysers.index,
         bus0=offshore_electrolysers.bus0,
         bus1=offshore_electrolysers.bus1,
-        p_nom_extendable=True,
+        p_nom_extendable=offshore_electrolysers.p_nom_extendable,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
         capital_cost=offshore_electrolysers.capital_cost,
