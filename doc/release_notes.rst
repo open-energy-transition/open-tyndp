@@ -32,6 +32,8 @@ Upcoming Open-TYNDP Release
 
 * Set short-term storage to cyclic in CBA dispatch (https://github.com/open-energy-transition/open-tyndp/pull/385).
 
+* Add Marginal Storage Value (MSV) extraction for CBA seasonal storage dispatch. MSV addresses rolling horizon myopia by extracting shadow prices from perfect foresight optimization and applying them as marginal costs to seasonal stores (H2, gas, CO2 sequestered), guiding dispatch to account for future storage value (https://github.com/open-energy-transition/open-tyndp/pull/441).
+
 * Extend PyPSA-Eur validation schema for configuration files to Open-TYNDP specific configurations (see https://github.com/PyPSA/pypsa-eur/pull/1912) (https://github.com/open-energy-transition/open-tyndp/pull/419). Find a detailed explanation in the contributors documentation
 
 **Bugfixes and Compatibility**
