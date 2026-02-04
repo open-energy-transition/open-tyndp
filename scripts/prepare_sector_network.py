@@ -8668,6 +8668,12 @@ def add_hydro_tyndp(
         _add_phs(n, "hydro-phs-pure", nodes, costs, inflows=False)
 
 
+def add_offshore_reverse_flow(n):
+    dupe_dc_links = n.links.loc[links.carrier=='DC_OH']
+    dupe_dc_links[["bus0", "bus1"]] = dupe_dc_links[["bus1", "bus0"]].values
+    n.links = pd.concat([n.links, dupe_dc_links])
+    return n 
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -8908,6 +8914,7 @@ if __name__ == "__main__":
             spatial=spatial,
             nyears=nyears,
         )
+        n = add_offshore_reverse_flow(n)
 
     if options["gas_demand_exogenously"]:
         attach_gas_load(
