@@ -18,8 +18,8 @@ We discuss the relevant configuration settings and the implications of these imp
 Background information can be found in the report from ENTSO-E and ENTSO-G 
 `TYNDP 2024 Scenarios Methdoology Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__.
 
-A description of the storylines underlying the NT, DE and GA scenarios can be found in 
-`TYNDP_2024_Scenarios_Storyline_Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf>`__
+A description of the storylines underlying the NT, DE and GA scenarios can be found in the
+`TYNDP 2024 Scenarios Storyline Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf>`__
 
 National Trends+
 ~~~~~~~~~~~~~~~~
@@ -56,7 +56,7 @@ Distributed Energy
    strong decentralised drive towards decarbonisation through local initiatives by citizens,
    communities and businesses, supported by authorities*
 
-   -- ENTSO-E
+   -- `TYNDP 2024 Scenarios Storyline Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf>`__
 
 Global Ambition
 ---------------
@@ -68,8 +68,7 @@ Global Ambition
    very wide range of technologies (many being centralised) and the use of global energy
    trade as a tool to accelerate decarbonisation.*
 
-   -- ENTSO-E
-
+   -- `TYNDP 2024 Scenarios Storyline Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf>`__
 
 Open TYNDP Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~
