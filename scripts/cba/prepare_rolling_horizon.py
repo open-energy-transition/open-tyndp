@@ -83,13 +83,6 @@ def disable_store_cyclicity(
             stats = summarize_counts(n.stores.loc[kept_cyclic, "carrier"])
             logger.info(f"Keeping e_cyclic=True for short-term storage:\n{stats}")
 
-    # Log seasonal carriers that will receive MSV
-    if seasonal_carriers:
-        is_seasonal = n.stores["carrier"].isin(seasonal_carriers)
-        if is_seasonal.any():
-            stats = summarize_counts(n.stores.loc[is_seasonal, "carrier"])
-            logger.info(f"Seasonal stores (will receive MSV):\n{stats}")
-
     has_e_cyclic_per_period = n.stores["e_cyclic_per_period"]
     to_disable_per_period = has_e_cyclic_per_period & ~is_cyclic_carrier
 
