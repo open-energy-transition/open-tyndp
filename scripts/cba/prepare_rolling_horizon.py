@@ -14,9 +14,8 @@ Takes the reference network and applies modifications for rolling horizon:
 
 import logging
 
-import pypsa
-
 import pandas as pd
+import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba._helpers import summarize_counts
@@ -36,7 +35,7 @@ def disable_global_constraints(n: pypsa.Network):
     if "co2_sequestration_limit" in n.global_constraints.index:
         logger.info('Removing GlobalConstraint "co2_sequestration_limit"')
         n.remove("GlobalConstraint", "co2_sequestration_limit")
-    
+
     if "unsustainable biomass limit" in n.global_constraints.index:
         logger.info('Removing GlobalConstraint "unsustainable biomass limit"')
         n.remove("GlobalConstraint", "unsustainable biomass limit")
@@ -115,7 +114,8 @@ def disable_store_cyclicity(
             logger.info(
                 f"Keeping cyclic_state_of_charge=True for short-term storage:\n{stats}"
             )
-            
+
+
 def resample_msv_to_target(
     msv: pd.DataFrame,
     target_snapshots: pd.DatetimeIndex,
@@ -243,7 +243,7 @@ if __name__ == "__main__":
             planning_horizons="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
-            )
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     )
 
     disable_global_constraints(n)
-    
+
     # Load MSV network and apply MSV to seasonal stores
     msv_network_path = snakemake.input.get("network_msv", None)
     if msv_network_path:

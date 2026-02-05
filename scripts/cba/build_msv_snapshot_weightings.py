@@ -46,6 +46,7 @@ if __name__ == "__main__":
         # Output empty CSV for non-hourly resolutions (handled differently)
         logger.info("No hourly resolution specified, creating empty weightings file")
         import pandas as pd
+
         pd.DataFrame().to_csv(snakemake.output.snapshot_weightings)
     else:
         logger.info(f"Resampling snapshot weightings to {resolution}")

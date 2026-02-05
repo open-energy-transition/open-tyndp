@@ -112,7 +112,9 @@ rule build_msv_snapshot_weightings:
     input:
         network=rules.prepare_reference.output.network,
     output:
-        snapshot_weightings=resources("cba/msv_snapshot_weightings_{planning_horizons}.csv"),
+        snapshot_weightings=resources(
+            "cba/msv_snapshot_weightings_{planning_horizons}.csv"
+        ),
     script:
         "../scripts/cba/build_msv_snapshot_weightings.py"
 

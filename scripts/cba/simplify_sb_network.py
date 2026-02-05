@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
     # Load the solved network from scenario building
     n = pypsa.Network(snakemake.input.network)
-    
+
     # Extend primary fuel sources capacity
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
     extend_primary_fuel_sources(n, tyndp_conventional_carriers)

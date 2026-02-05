@@ -23,8 +23,8 @@ import logging
 
 import pypsa
 
-from scripts.prepare_sector_network import set_temporal_aggregation
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.prepare_sector_network import set_temporal_aggregation
 
 logger = logging.getLogger(__name__)
 
