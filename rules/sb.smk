@@ -986,6 +986,7 @@ rule launch_explorer:
     output:
         RESULTS + "logs/explorer_launched.log",
     run:
+        import platform
         import subprocess
         import sys
         from pathlib import Path
@@ -995,7 +996,7 @@ rule launch_explorer:
 
         Path(output_log).touch()
 
-        # Use sys.executable to get the current Python interpreter
+        # Define command line executable
         cmd = [
             sys.executable,
             "scripts/sb/launch_explorer.py",
@@ -1004,16 +1005,23 @@ rule launch_explorer:
 
         print(f"Launching PyPSA-Explorer...")
 
-        # Launch with better error handling
-        process = subprocess.Popen(
-            cmd,
-            stdout=open(output_log, "w"),
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
+        popen_kwargs = {
+            "stdout": open(output_log, "w"),
+            "stderr": subprocess.STDOUT,
+        }
+
+        # Use creationflags for Windows and start_new_session for Linux/Unix
+        print(platform.system())
+        if platform.system() == "Windows":
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            popen_kwargs["start_new_session"] = True
+
+        process = subprocess.Popen(cmd, **popen_kwargs)
 
         print(f"Explorer subprocess started with PID: {process.pid}")
         print(f"Check logfile {output_log} for the explorer URL and output.")
+
 
 
 rule close_explorers:
