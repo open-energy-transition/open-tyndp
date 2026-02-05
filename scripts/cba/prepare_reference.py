@@ -34,9 +34,16 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    def normalize_bus_name(bus):
+        """Correct instances of UK00/UKNI to GB00/GBNI."""
+        return {"UK00": "GB00", "UKNI": "GBNI"}.get(bus, bus)
+
     def update_or_add_link(n, bus0, bus1, delta, hurdle_costs):
         if pd.isna(delta) or delta == 0:
             return
+
+        bus0 = normalize_bus_name(bus0)
+        bus1 = normalize_bus_name(bus1)
 
         link_name = f"{bus0}-{bus1}-DC"
         if link_name in n.links.index:
