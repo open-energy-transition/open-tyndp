@@ -12,6 +12,7 @@ the complete reference network with all projects included.
 """
 
 import logging
+
 import pandas as pd
 import pypsa
 
