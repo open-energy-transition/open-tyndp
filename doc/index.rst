@@ -100,6 +100,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Introduced calculation of B1 indicator in the CBA based on changes in total system costs (see PR `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__).
 - Added automated Windows installer for easy setup on Windows systems (see PR `#333 <https://github.com/open-energy-transition/open-tyndp/pull/333>`__).
 - Introduced calculation of B2 indicator in the CBA based on changes in total CO2 emissions (see PR `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__).
+- Introduced calculation of B3 indicator in the CBA based on renewable energy system integration (see PR `#350 <https://github.com/open-energy-transition/open-tyndp/pull/350>`__).
 
 
 .. list-table::
@@ -275,8 +276,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - B3: DRES Integration (curtailment reduction)
-     -
-     - ⌛
+     - `#350 <https://github.com/open-energy-transition/open-tyndp/pull/350>`__
+     - ✅
    * -
      - B4: Non-CO₂ Emissions (NOx, SOx, PM2.5/10, NMVOC, NH₃)
      -

@@ -508,6 +508,7 @@ rule build_tyndp_gas_demand:
 rule build_tyndp_h2_demand:
     params:
         snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
         scenario=config_provider("tyndp_scenario"),
     input:
         h2_demand=rules.retrieve_tyndp.output.demand_profiles,

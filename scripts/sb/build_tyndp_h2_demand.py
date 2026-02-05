@@ -255,7 +255,9 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params["scenario"]
     pyear = int(snakemake.wildcards.planning_horizons)
-    snapshots = get_snapshots(snakemake.params.snapshots)
+    snapshots = get_snapshots(
+        snakemake.params.snapshots, snakemake.params.drop_leap_day
+    )
     cyear = snapshots[0].year
     fn = snakemake.input.h2_demand
 

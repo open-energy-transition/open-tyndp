@@ -252,8 +252,8 @@ def compute_benchmark(
                     "battery discharger",
                     "home battery discharger",
                     "PHS",
-                    "hydro-phs",  # TODO: double check when correct hydro techs are added
-                    "hydro-phs-pure",
+                    "hydro-phs-turbine",
+                    "hydro-phs-pure-turbine",
                 ],
                 errors="ignore",
             )
