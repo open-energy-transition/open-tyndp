@@ -88,4 +88,4 @@ if __name__ == "__main__":
     df_invest_strict = read_invest(invest_path, year=2035, op="==")
     df_gl_projects = read_guidelines(guidelines_path)
     output = build_table(df_invest_strict, df_gl_projects)
-    output.to_csv(snakemake.output.table_csv, index=True)
+    output.to_csv(snakemake.output.corrections_csv, index=True)
