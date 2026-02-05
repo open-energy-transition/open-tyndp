@@ -145,6 +145,25 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             os.remove(output["dir"] + ".zip")
 
 
+if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["archive"]:
+
+    rule retrieve_tyndp_nuclear_profiles:
+        input:
+            # TODO Derive this from Market Outputs directly
+            zip_file=storage(NUC_PROFILES["url"]),
+            dir=rules.retrieve_tyndp.output.dir,
+        output:
+            dir=directory(NUC_PROFILES["folder"]),
+            nuclear_p_max_pu_2030=f"{NUC_PROFILES["folder"]}/nuclear_p_max_pu_2030.csv",
+            nuclear_p_max_pu_2040=f"{NUC_PROFILES["folder"]}/nuclear_p_max_pu_2040.csv",
+        log:
+            "logs/retrieve_tyndp_nuclear_profiles.log",
+        run:
+            copy2(input["zip_file"], output["dir"] + ".zip")
+            unpack_archive(output["dir"] + ".zip", output["dir"])
+            os.remove(output["dir"] + ".zip")
+
+
 if (MM_OUTPUT_DATASET := dataset_version("tyndp_mm_output_file"))["source"] in [
     "archive"
 ]:
@@ -754,31 +773,7 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
-    def get_tyndp_mm_output(wildcards):
-        """Get MM output file path for given planning horizon."""
-        base_path = rules.retrieve_tyndp_mm_output.output.dir
-        return f"{base_path}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_{wildcards.scenario}{wildcards.planning_horizons}_Plexos_CY2009_2.5_v40.xlsx"
-
-    rule clean_tyndp_output_benchmark:
-        params:
-            benchmarking=config_provider("benchmarking"),
-            scenario=config_provider("tyndp_scenario"),
-        input:
-            tyndp_output_file=get_tyndp_mm_output,
-        output:
-            benchmarks=RESULTS
-            + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-        log:
-            logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
-        benchmark:
-            benchmarks("clean_tyndp_output_benchmark_{scenario}{planning_horizons}")
-        threads: 4
-        resources:
-            mem_mb=8000,
-        script:
-            "../scripts/sb/clean_tyndp_output_benchmark.py"
-
-    rule clean_tyndp_report_benchmark:
+    rule clean_tyndp_benchmark:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
@@ -788,14 +783,14 @@ if config["benchmarking"]["enable"]:
         output:
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
         log:
-            logs("clean_tyndp_report_benchmark.log"),
+            logs("clean_tyndp_benchmark.log"),
         benchmark:
-            benchmarks("clean_tyndp_report_benchmark")
+            benchmarks("clean_tyndp_benchmark")
         threads: 4
         resources:
             mem_mb=8000,
         script:
-            "../scripts/sb/clean_tyndp_report_benchmark.py"
+            "../scripts/sb/clean_tyndp_benchmark.py"
 
     rule clean_tyndp_vp_data:
         params:
@@ -885,13 +880,6 @@ if config["benchmarking"]["enable"]:
             results=expand(
                 RESULTS
                 + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
-                planning_horizons=config_provider("scenario", "planning_horizons"),
-                allow_missing=True,
-            ),
-            mm_data=expand(
-                RESULTS
-                + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-                scenario=config_provider("scenario", "tyndp_scenario"),
                 planning_horizons=config_provider("scenario", "planning_horizons"),
                 allow_missing=True,
             ),
