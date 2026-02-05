@@ -212,35 +212,23 @@ def apply_msv_to_network(
             f"(method: {resample_method})"
         )
 
-    for carrier in seasonal_carriers:
-        # Get stores with this carrier in target network
-        stores_i = n.stores[n.stores.carrier == carrier].index
-        if stores_i.empty:
-            logger.debug(f"No stores found with carrier '{carrier}'")
-            continue
-
-        # Find corresponding stores in MSV network
-        msv_stores_i = stores_i[stores_i.isin(n_msv.stores_t.mu_energy_balance.columns)]
-        if msv_stores_i.empty:
-            logger.warning(f"No MSV data for stores with carrier '{carrier}'")
-            continue
-
-        # Extract MSV
-        msv = n_msv.stores_t.mu_energy_balance[msv_stores_i].copy()
-
+    for c in ["Store", "StorageUnit"]:
+        # select carriers
+        carriers = (
+            seasonal_carriers if c == "Store" else n_msv.c[c].static.carrier.unique()
+        )
+        # get index
+        s_i = n_msv.c[c].static[n_msv.c[c].static.carrier.isin(carriers)].index
+        # get shadow prices
+        msv = n_msv.c[c].dynamic["mu_energy_balance"][s_i]
         # Resample if needed
         if needs_resample:
             msv = resample_msv_to_target(msv, n.snapshots, method=resample_method)
-
-        # Apply MSV as marginal_cost
-        if n.stores_t.marginal_cost.empty:
-            n.stores_t.marginal_cost = msv
-        else:
-            for store in msv.columns:
-                n.stores_t.marginal_cost[store] = msv[store]
+        # set shadow prices as marginal cost
+        n.c[c].dynamic["marginal_cost"].loc[:, s_i] = msv
 
         logger.info(
-            f"Applied MSV to {len(msv_stores_i)} stores with carrier '{carrier}'. "
+            f"Applied MSV to {len(s_i)} {c}. "
             f"MSV range: [{msv.min().min():.2f}, {msv.max().max():.2f}] EUR/MWh"
         )
 
