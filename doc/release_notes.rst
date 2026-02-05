@@ -32,7 +32,7 @@ Upcoming Open-TYNDP Release
 
 * Set short-term storage to cyclic in CBA dispatch (https://github.com/open-energy-transition/open-tyndp/pull/385).
 
-* Add availability profiles for nuclear power plants (https://github.com/open-energy-transition/open-tyndp/pull/447). The profiles are derived from the Market Outputs files for the NT scenario. Generation time series are normalized to per-unit values and resampled weekly, retaining the maximum availability factor per week to account for maintenance schedules and planned outages.
+* Add availability profiles for nuclear power plants (https://github.com/open-energy-transition/open-tyndp/pull/447). The profiles are derived from the Market Outputs files for the NT scenario. Generation time series are normalized to per-unit values and resampled weekly, retaining the maximum availability factor per week to account for maintenance schedules and forced outages.
 
 **Changes**
 

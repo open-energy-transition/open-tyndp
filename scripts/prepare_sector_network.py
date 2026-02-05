@@ -1778,13 +1778,15 @@ def _add_conventional_thermal_capacities(
                 )
                 n.links.loc[tech_i_exp, "p_nom_extendable"] = True
 
-            # Set availability profiles as p_max_pu, accounting for maintenance schedules and planned outages
-            nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
-            nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
-            n.links_t.p_max_pu.loc[:, nuclear_profiles.columns] = nuclear_profiles
-
         # Profiles
         ##########
+
+        # (nuclear only) Define availability profiles,
+        # accounting for maintenance schedules and planned outages
+        if tech == "nuclear":
+            nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
+            nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
+
         # Filter for profiles
         profiles = pemmdb_profiles.query("index_carrier == @tech")
         p_min_pu = (
@@ -1792,6 +1794,14 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
+        # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
+        # TODO Improve assumption for DE / GA
+        if tech == "nuclear":
+            common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
+            if not common_cols.empty:
+                p_min_pu[common_cols] = np.minimum(
+                    p_min_pu[common_cols], nuclear_profiles[common_cols]
+                )
         # Drop columns that are all zeros (default-value)
         p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
 
@@ -1800,6 +1810,14 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
+        # For nuclear, take the maximum of p_max_pu and nuclear_profiles to account for outages
+        # TODO Improve assumption for DE / GA
+        if tech == "nuclear":
+            common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
+            if not common_cols.empty:
+                p_max_pu[common_cols] = np.minimum(
+                    p_max_pu[common_cols], nuclear_profiles[common_cols]
+                )
         # Drop columns that are all ones (default-value)
         p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
 
