@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-from scripts._helpers import safe_pyear
-
 
 def input_elec_demand(w):
     return {

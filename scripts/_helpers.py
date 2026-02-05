@@ -1170,7 +1170,7 @@ def extract_grid_data_tyndp(
 
 def safe_pyear(
     year: int | str,
-    available_years: list = [2030, 2040, 2050],
+    available_years: list[int] = [2030, 2040, 2050],
     source: str = "TYNDP",
     verbose: bool = True,
 ) -> int:
@@ -1182,7 +1182,7 @@ def safe_pyear(
     ----------
     year : int
         Planning horizon year which will be checked and possibly adjusted to previous available year.
-    available_years : list, optional
+    available_years : list[int], optional
         List of available years. Defaults to [2030, 2040, 2050].
     source : str, optional
         Source of the data for which availability will be checked. For logging purpose only. Defaults to "TYNDP".
