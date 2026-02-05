@@ -145,6 +145,25 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             os.remove(output["dir"] + ".zip")
 
 
+if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["archive"]:
+
+    rule retrieve_tyndp_nuclear_profiles:
+        input:
+            # TODO Derive this from Market Outputs directly
+            zip_file=storage(NUC_PROFILES["url"]),
+            dir=rules.retrieve_tyndp.output.dir,
+        output:
+            dir=directory(NUC_PROFILES["folder"]),
+            nuclear_p_max_pu_2030=f"{NUC_PROFILES["folder"]}/nuclear_p_max_pu_2030.csv",
+            nuclear_p_max_pu_2040=f"{NUC_PROFILES["folder"]}/nuclear_p_max_pu_2040.csv",
+        log:
+            "logs/retrieve_tyndp_nuclear_profiles.log",
+        run:
+            copy2(input["zip_file"], output["dir"] + ".zip")
+            unpack_archive(output["dir"] + ".zip", output["dir"])
+            os.remove(output["dir"] + ".zip")
+
+
 # Versioning not implemented as the dataset is used only for plotting
 # License - MIT - Copyright (c) 2021 Gavin Rehkemper
 # Website: https://github.com/gavinr/world-countries-centroids

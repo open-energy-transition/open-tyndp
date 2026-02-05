@@ -764,6 +764,11 @@
           },
           "description": "For any carrier/technology overwrite attributes as listed below.",
           "type": "object"
+        },
+        "tyndp_availability_profiles": {
+          "default": false,
+          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "type": "boolean"
         }
       }
     },
@@ -2078,6 +2083,26 @@
           }
         },
         "tyndp_cba_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_nuclear_profiles": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -10369,6 +10394,11 @@
           },
           "description": "For any carrier/technology overwrite attributes as listed below.",
           "type": "object"
+        },
+        "tyndp_availability_profiles": {
+          "default": false,
+          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "type": "boolean"
         }
       }
     },
@@ -14125,6 +14155,26 @@
           }
         },
         "tyndp_cba_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_nuclear_profiles": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {

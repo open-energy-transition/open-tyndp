@@ -264,6 +264,10 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP CBA projects data source configuration.",
     )
+    tyndp_nuclear_profiles: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP nuclear profiles data source configuration.",
+    )
     tyndp_cba_non_co2_emissions: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="TYNDP CBA non-CO2 emissions data source configuration.",
