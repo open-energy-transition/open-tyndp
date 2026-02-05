@@ -772,8 +772,6 @@ if config["benchmarking"]["enable"]:
             logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
             benchmarks("clean_tyndp_output_benchmark_{scenario}{planning_horizons}")
-        wildcard_constraints:
-            scenario="NT",
         threads: 4
         resources:
             mem_mb=8000,
@@ -887,6 +885,13 @@ if config["benchmarking"]["enable"]:
             results=expand(
                 RESULTS
                 + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
+                planning_horizons=config_provider("scenario", "planning_horizons"),
+                allow_missing=True,
+            ),
+            mm_data=expand(
+                RESULTS
+                + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                scenario=config_provider("scenario", "tyndp_scenario"),
                 planning_horizons=config_provider("scenario", "planning_horizons"),
                 allow_missing=True,
             ),
