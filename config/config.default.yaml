@@ -1491,25 +1491,7 @@ data:
   bidding_zones_entsoepy:
     source: archive
     version: latest
-  tyndp_bundle:
-    source: archive
-    version: latest
-  cutout_additional:
-    source: archive
-    version: latest
   tyndp_pecd:
-    source: archive
-    version: latest
-  tyndp_hydro_inflows:
-    source: archive
-    version: latest
-  tyndp_pemmdb:
-    source: archive
-    version: latest
-  tyndp_supply_tool:
-    source: archive
-    version: latest
-  tyndp_benchmark:
     source: archive
     version: latest
   tyndp_vis_plfm:

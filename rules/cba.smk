@@ -22,9 +22,7 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
         params:
             source="CBA project explorer",
         input:
-            # TODO Integrate into Zenodo tyndp data bundle
             zip_file=storage(CBA_PROJECTS_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
         output:
             dir=directory(CBA_PROJECTS_DATASET["folder"]),
         log:
