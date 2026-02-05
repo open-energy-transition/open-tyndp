@@ -1835,7 +1835,7 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("h2_demand_tyndp_{planning_horizons}.csv"),
         ),
-        nuclear_profiles=branch(
+        tyndp_nuclear_profiles=branch(
             config_provider("tyndp_scenario")
             and config_provider("conventional", "tyndp_availability_profiles"),
             lambda w: (

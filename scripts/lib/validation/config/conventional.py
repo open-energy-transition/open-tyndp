@@ -33,5 +33,5 @@ class ConventionalConfig(ConfigModel):
     )
     tyndp_availability_profiles: bool = Field(
         False,
-        description="Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and planned outages.",
+        description="Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
     )

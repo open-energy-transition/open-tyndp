@@ -757,7 +757,7 @@
         },
         "tyndp_availability_profiles": {
           "default": false,
-          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and planned outages.",
+          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
           "type": "boolean"
         }
       }
@@ -10367,7 +10367,7 @@
         },
         "tyndp_availability_profiles": {
           "default": false,
-          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and planned outages.",
+          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
           "type": "boolean"
         }
       }

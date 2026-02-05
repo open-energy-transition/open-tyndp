@@ -1782,7 +1782,7 @@ def _add_conventional_thermal_capacities(
         ##########
 
         # (nuclear only) Define availability profiles,
-        # accounting for maintenance schedules and planned outages
+        # accounting for maintenance schedules and forced outages
         if tech == "nuclear":
             nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
             nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
@@ -1810,7 +1810,7 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
-        # For nuclear, take the maximum of p_max_pu and nuclear_profiles to account for outages
+        # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
         # TODO Improve assumption for DE / GA
         if tech == "nuclear":
             common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
@@ -8876,9 +8876,13 @@ if __name__ == "__main__":
         ).to_dataframe()
     if tyndp_trajectories_fn := snakemake.input.tyndp_trajectories:
         tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
-    if tyndp_nuclear_profiles_fn := snakemake.input.nuclear_profiles:
+    if tyndp_nuclear_profiles_fn := snakemake.input.tyndp_nuclear_profiles:
         tyndp_nuclear_profiles = pd.read_csv(
             tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
+        )
+        # Use 2009 profiles for all climate years
+        tyndp_nuclear_profiles.index = tyndp_nuclear_profiles.index.map(
+            lambda t: t.replace(year=n.snapshots.year[0])
         )
 
     conventional_generation = {
