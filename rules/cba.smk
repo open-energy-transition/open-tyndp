@@ -108,6 +108,18 @@ rule simplify_sb_network:
         "../scripts/cba/simplify_sb_network.py"
 
 
+# build reference corrections between SB investments and CBA guidelines
+rule fix_reference_sb_to_cba:
+    input:
+        invest_grid=rules.retrieve_tyndp.output.invest_grid,
+        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
+        transmission_projects=rules.clean_projects.output.transmission_projects,
+    output:
+        table_csv=resources("cba/reference_sb_to_cba.csv"),
+    script:
+        "../scripts/cba/fix_reference_sb_to_cba.py"
+
+
 # build the reference network
 rule prepare_reference:
     params:
