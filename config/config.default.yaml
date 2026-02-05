@@ -483,6 +483,7 @@ conventional:
   dynamic_fuel_price: false
   nuclear:
     p_max_pu: data/nuclear_p_max_pu.csv
+  tyndp_availability_profiles: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#lines
 lines:
@@ -1518,6 +1519,9 @@ data:
     source: archive
     version: latest
   tyndp_cba_projects:
+    source: archive
+    version: latest
+  tyndp_nuclear_profiles:
     source: archive
     version: latest
 

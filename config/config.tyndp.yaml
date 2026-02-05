@@ -144,6 +144,9 @@ atlite:
       dy: 0.3
       time: ['2009', '2009']
 
+conventional:
+  tyndp_availability_profiles: true
+
 links:
   p_max_pu: 1.0
   p_min_pu: 0

@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
+from scripts._helpers import safe_pyear
 
 
 rule build_population_layouts:
@@ -1833,6 +1834,15 @@ rule prepare_sector_network:
         h2_demand=branch(
             config_provider("tyndp_scenario"),
             resources("h2_demand_tyndp_{planning_horizons}.csv"),
+        ),
+        tyndp_nuclear_profiles=branch(
+            config_provider("tyndp_scenario")
+            and config_provider("conventional", "tyndp_availability_profiles"),
+            lambda w: (
+                rules.retrieve_tyndp_nuclear_profiles.output[
+                    f"nuclear_p_max_pu_{safe_pyear(w.planning_horizons, available_years=[2030,2040], verbose= False)}"
+                ]
+            ),
         ),
     output:
         resources(

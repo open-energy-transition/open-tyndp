@@ -151,6 +151,9 @@ renewable:
     max_depth: false
     min_depth: false
 
+conventional:
+  tyndp_availability_profiles: true
+
 links:
   p_max_pu: 1.0
   p_min_pu: 0
