@@ -16,6 +16,7 @@ import logging
 
 import pandas as pd
 import pypsa
+from numpy import inf, isfinite
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba._helpers import summarize_counts
@@ -157,6 +158,23 @@ def resample_msv_to_target(
     return msv_resampled
 
 
+def disable_volume_limits(n: pypsa.Network):
+    """
+    Disable minimum energy production limits (e_sum_min) for generators and links.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify
+    """
+    for c in n.components[{"Generator", "Link"}]:
+        has_e_sum_min = isfinite(c.static.get("e_sum_min", []))
+        if has_e_sum_min.any():
+            stats = summarize_counts(c.static.loc[has_e_sum_min, "carrier"])
+            logger.info(f"Disabling e_sum_min volume limits of:\n{stats}")
+            c.static.loc[has_e_sum_min, "e_sum_min"] = -inf
+
+
 def apply_msv_to_network(
     n: pypsa.Network,
     n_msv: pypsa.Network,
@@ -259,6 +277,9 @@ if __name__ == "__main__":
     )
 
     disable_global_constraints(n)
+
+    # disable volume limits
+    disable_volume_limits(n)
 
     # Load MSV network and apply MSV to seasonal stores
     msv_network_path = snakemake.input.get("network_msv", None)

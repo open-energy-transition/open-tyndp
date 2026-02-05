@@ -45,7 +45,6 @@ if __name__ == "__main__":
 
     # Load base network
     n = pypsa.Network(snakemake.input.network)
-    logger.info(f"Loaded base network with {len(n.snapshots)} snapshots")
 
     # Optional: resample to coarser resolution for faster solve
     msv_resolution = snakemake.params.get("msv_resolution", False)
