@@ -23,7 +23,13 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("prepare_toot_project", cba_project="t1")
+        snakemake = mock_snakemake(
+            "prepare_toot_project",
+            cba_project="t1",
+            planning_horizons="2030",
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)

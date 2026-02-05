@@ -76,15 +76,14 @@ def input_sb_network(w):
     )
 
 
-# extract a planning horizon from the SB optimized network and apply the simplifications
-# necessary to get to the general CBA reference network
+# Simplify scenario building network for CBA
+# Fixes capacities, adds hurdle costs, extends primary fuel sources, disables volume limits
 rule simplify_sb_network:
     params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=input_sb_network,
     output:
@@ -93,10 +92,9 @@ rule simplify_sb_network:
         "../scripts/cba/simplify_sb_network.py"
 
 
-# build the reference network
+# Build reference network with all TOOT projects included
+# Ensures MSV extraction and rolling horizon use the same baseline
 rule prepare_reference:
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
@@ -107,13 +105,66 @@ rule prepare_reference:
         "../scripts/cba/prepare_reference.py"
 
 
-# remove the single project {cba_project} from the toot reference network
-# currently this can be either a trans123 or a stor123 project
-rule prepare_toot_project:
+# Generate snapshot weightings for MSV extraction temporal aggregation
+rule build_msv_snapshot_weightings:
     params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
+        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
     input:
         network=rules.prepare_reference.output.network,
+    output:
+        snapshot_weightings=resources(
+            "cba/msv_snapshot_weightings_{planning_horizons}.csv"
+        ),
+    script:
+        "../scripts/cba/build_msv_snapshot_weightings.py"
+
+
+def input_msv_snapshot_weightings(w):
+    """Return snapshot weightings file only if MSV resolution requires it."""
+    resolution = config_provider("cba", "msv_extraction", "resolution")(w)
+    if resolution and "h" in str(resolution).lower():
+        return rules.build_msv_snapshot_weightings.output.snapshot_weightings
+    return []
+
+
+# Extract MSV via perfect foresight solve (full year with cyclicity enabled)
+rule solve_cba_msv_extraction:
+    params:
+        solving=config_provider("solving"),
+        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+    input:
+        network=rules.prepare_reference.output.network,
+        snapshot_weightings=input_msv_snapshot_weightings,
+    output:
+        network=resources("cba/networks/msv_{planning_horizons}.nc"),
+    log:
+        solver=logs("cba/solve_cba_msv_extraction/{planning_horizons}_solver.log"),
+        memory=logs("cba/solve_cba_msv_extraction/{planning_horizons}_memory.log"),
+        python=logs("cba/solve_cba_msv_extraction/{planning_horizons}_python.log"),
+    threads: 1
+    script:
+        "../scripts/cba/solve_cba_msv_extraction.py"
+
+
+# Prepare network for rolling horizon: disable seasonal cyclicity, apply MSV
+rule prepare_rolling_horizon:
+    params:
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
+        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+    input:
+        network=rules.prepare_reference.output.network,
+        network_msv=rules.solve_cba_msv_extraction.output.network,
+    output:
+        network=resources("cba/networks/rl_{planning_horizons}.nc"),
+    script:
+        "../scripts/cba/prepare_rolling_horizon.py"
+
+
+# Remove project {cba_project} from reference for TOOT evaluation
+rule prepare_toot_project:
+    input:
+        network=rules.prepare_rolling_horizon.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -124,13 +175,12 @@ rule prepare_toot_project:
         "../scripts/cba/prepare_toot_project.py"
 
 
-# add the single project {cba_project} to the pint reference network
-# currently this can be either a trans123 or a stor123 project
+# Add project {cba_project} to reference for PINT evaluation
 rule prepare_pint_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_reference.output.network,
+        network=rules.prepare_rolling_horizon.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -141,7 +191,7 @@ rule prepare_pint_project:
         "../scripts/cba/prepare_pint_project.py"
 
 
-# solve the reference network which is independent of the method
+# Solve reference network with rolling horizon (MSV already applied)
 rule solve_cba_reference_network:
     params:
         solving=config_provider("solving"),
@@ -150,7 +200,7 @@ rule solve_cba_reference_network:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
     input:
-        network=resources("cba/networks/reference_{planning_horizons}.nc"),
+        network=rules.prepare_rolling_horizon.output.network,
     output:
         network=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
     log:
@@ -168,8 +218,7 @@ rule solve_cba_reference_network:
         "../scripts/cba/solve_cba_network.py"
 
 
-# solve any of the prepared project network
-# should reuse/import functions from solve_network.py
+# Solve TOOT/PINT project network with rolling horizon
 rule solve_cba_network:
     params:
         solving=config_provider("solving"),
@@ -196,7 +245,7 @@ rule solve_cba_network:
         "../scripts/cba/solve_cba_network.py"
 
 
-# compute all metrics for a single pint or toot project comparing reference and project solution
+# Compute CBA indicators comparing reference and project networks
 rule make_indicators:
     input:
         reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
@@ -234,7 +283,7 @@ def input_indicators(w):
     )
 
 
-# collect the indicators for all transmission_projects into a single overview csv
+# Collect indicators for all projects into overview CSV
 rule collect_indicators:
     input:
         indicators=input_indicators,

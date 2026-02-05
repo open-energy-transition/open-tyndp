@@ -498,11 +498,44 @@
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
               "items": {
                 "type": "string"
               },
               "type": "array"
+            },
+            "seasonal_carriers": {
+              "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "msv_extraction": {
+          "description": "Configuration for `cba.msv_extraction` settings.",
+          "properties": {
+            "resolution": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": false,
+              "description": "Temporal resolution for MSV extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+            },
+            "resample_method": {
+              "default": "ffill",
+              "description": "Method for resampling MSV to target network resolution.",
+              "enum": [
+                "ffill",
+                "interpolate"
+              ],
+              "type": "string"
             }
           }
         },
@@ -6069,6 +6102,32 @@
         }
       }
     },
+    "_CbaMsvExtractionConfig": {
+      "description": "Configuration for `cba.msv_extraction` settings.",
+      "properties": {
+        "resolution": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": false,
+          "description": "Temporal resolution for MSV extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+        },
+        "resample_method": {
+          "default": "ffill",
+          "description": "Method for resampling MSV to target network resolution.",
+          "enum": [
+            "ffill",
+            "interpolate"
+          ],
+          "type": "string"
+        }
+      }
+    },
     "_CbaSolvingConfig": {
       "description": "Configuration for `cba.solving` settings.",
       "properties": {
@@ -6098,7 +6157,14 @@
       "description": "Configuration for `cba.storage` settings.",
       "properties": {
         "cyclic_carriers": {
-          "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+          "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "seasonal_carriers": {
+          "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
           "items": {
             "type": "string"
           },
@@ -14204,11 +14270,44 @@
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
               "items": {
                 "type": "string"
               },
               "type": "array"
+            },
+            "seasonal_carriers": {
+              "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "msv_extraction": {
+          "description": "Configuration for `cba.msv_extraction` settings.",
+          "properties": {
+            "resolution": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": false,
+              "description": "Temporal resolution for MSV extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+            },
+            "resample_method": {
+              "default": "ffill",
+              "description": "Method for resampling MSV to target network resolution.",
+              "enum": [
+                "ffill",
+                "interpolate"
+              ],
+              "type": "string"
             }
           }
         },

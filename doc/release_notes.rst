@@ -32,6 +32,8 @@ Upcoming Open-TYNDP Release
 
 * Set short-term storage to cyclic in CBA dispatch (https://github.com/open-energy-transition/open-tyndp/pull/385).
 
+* Implements rolling horizon optimisation with marginal storage values (water values) for seasonal storage components, maintaining operation of long-term stores close to perfect foresight optimization (https://github.com/open-energy-transition/open-tyndp/pull/441).
+
 **Changes**
 
 * Improve general assumptions for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/430). This includes refining assumptions relating to efficiencies, fuel costs and extendable technologies.

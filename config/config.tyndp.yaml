@@ -407,10 +407,26 @@ cba:
   # Storage settings for CBA dispatch
   storage:
     # Carriers that should remain cyclic (short-term storage)
-    # These will maintain e_cyclic=True in simplify_sb_network
+    # These will maintain e_cyclic=True in prepare_rolling_horizon
     cyclic_carriers:
     - battery
     - home battery
+    # Seasonal carriers that will receive MSV (long-term storage)
+    # These will have cyclicity disabled and MSV applied as marginal_cost
+    seasonal_carriers:
+    - H2 Store
+    - gas
+    - co2 sequestered
+
+  # MSV (Marginal Storage Value) extraction settings
+  msv_extraction:
+    # Temporal resolution for MSV extraction solve
+    # Options: false (use native resolution), "24H", "48H", etc.
+    # Lower resolution = faster solve but less granular MSV
+    resolution: false
+    # Method for resampling MSV to target network resolution
+    # Options: ffill (forward fill), interpolate (linear interpolation)
+    resample_method: ffill
 
   # Merged into top-level solving options
   solving:
