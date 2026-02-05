@@ -6,7 +6,7 @@
 TYNDP 2024 data
 ###################
 
-The TYNDP 2024 data is downloaded and extracted using the `retrieve_tyndp`, `retrieve_tyndp_pecd`, `retrieve_tyndp_vp_data` and `retrieve_tyndp_cba_projects` rules. Originally published by ENTSO-E and ENTSOG under
+The TYNDP 2024 data is downloaded and extracted using the ``retrieve_tyndp``, ``retrieve_tyndp_pecd``, ``retrieve_tyndp_vp_data`` and ``retrieve_tyndp_cba_projects`` rules. Originally published by ENTSO-E and ENTSOG under
 Creative Commons Attribution 4.0 International License (CC-BY 4.0).
 The original data files can be found under https://2024.entsos-tyndp-scenarios.eu/download/.
 
@@ -14,16 +14,14 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 
 - **Source:** TYNDP 2024 Project Sheets, https://tyndp2024.entsoe.eu/projects-map
 - **Link:** https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip
-- **Description:** Contains 177 transmission and 33 storage projects, which have been
-assessed by TYNDP 2024 in its Cost-Benefit Analysis.
+- **Description:** Contains 177 transmission and 33 storage projects, which have been assessed by TYNDP 2024 in its Cost-Benefit Analysis.
 
 ``Demand Profiles``
 
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://2024.entsos-tyndp-scenarios.eu/download/Demand-Profiles.zip
 - **Description:** Contains hourly demand profiles for CH4, electricity (market and prosumer),
-  H2 (heat, zone 1 and zone 2), synthetic fuels (e-diesel, e-kerosene, sng).
-
+  H2 (heat, zone 1 and zone 2), synthetic fuels (e-diesel, e-kerosene, SNG).
 
 ``EV Modelling Inputs``
 
@@ -42,8 +40,7 @@ assessed by TYNDP 2024 in its Cost-Benefit Analysis.
 
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://2024.entsos-tyndp-scenarios.eu/download/Hydrogen.zip
-- **Description:** Contains H2 import generators properties, synthetic fuel generators properties,
-  CO2 synthetic fuel ratios, synthetic fuel lines, H2 storage data, and SMR figures.
+- **Description:** Contains H2 import generator properties, synthetic fuel generator properties, CO2 synthetic fuel ratios, synthetic fuel lines, H2 storage data, and SMR figures.
 
 ``Hydro Inflows``
 
@@ -106,8 +103,7 @@ assessed by TYNDP 2024 in its Cost-Benefit Analysis.
 
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://2024.entsos-tyndp-scenarios.eu/download/TYNDP-2024-Scenarios-Package-20250128.zip
-- **Description:** Contains the TYNDP Scenarios Report Data Figures data and calculation
-    used to produce the figures in the Scenarios Report.
+- **Description:** Contains the TYNDP Scenarios Report Data Figures data and calculations used to produce the figures in the Scenarios Report.
 
 ``TYNDP-2024-Visualisation-Platform``
 
