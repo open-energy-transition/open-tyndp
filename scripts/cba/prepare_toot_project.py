@@ -30,9 +30,24 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
+    methods = pd.read_csv(snakemake.input.methods)
 
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
+
+    method_row = methods[
+        (methods["project_id"] == project_id)
+        & (methods["planning_horizon"] == planning_horizon)
+    ]
+    if method_row.empty or method_row.iloc[0]["method"] != "TOOT":
+        logger.info(
+            "Skipping project %s for TOOT (assigned method: %s)",
+            cba_project,
+            None if method_row.empty else method_row.iloc[0]["method"],
+        )
+        n.export_to_netcdf(snakemake.output.network)
+        raise SystemExit(0)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
