@@ -133,6 +133,7 @@ tyndp_cba_projects,unknown,primary,not-supported,2026-01-27,,https://tyndp2024.e
 tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip
 tyndp_hydro_inflows,unknown,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip
 tyndp_hydro_inflows,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip
+tyndp_nuclear_profiles,v40,archive,latest supported,2026-02-04,Data derived from the NT Market Outputs of the TYNDP 2024,https://storage.googleapis.com/open-tyndp-data-store/nuclear_p_max_pu.zip
 tyndp_pecd,3.1+pre-built.0.1,archive,latest supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,3.1,primary,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
 tyndp_pecd,3.1,archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
