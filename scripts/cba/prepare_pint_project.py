@@ -37,24 +37,10 @@ if __name__ == "__main__":
     # Load CBA reference network
     n = pypsa.Network(snakemake.input.network)
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
-    methods = pd.read_csv(snakemake.input.methods)
 
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
-
-    method_row = methods[
-        (methods["project_id"] == project_id)
-        & (methods["planning_horizon"] == planning_horizon)
-    ]
-    if method_row.empty or method_row.iloc[0]["method"] != "PINT":
-        logger.info(
-            "Skipping project %s for PINT (assigned method: %s)",
-            cba_project,
-            None if method_row.empty else method_row.iloc[0]["method"],
-        )
-        n.export_to_netcdf(snakemake.output.network)
-        raise SystemExit(0)
+    _ = pd.read_csv(snakemake.input.methods)
 
     # Hurdle costs for new DC links
     hurdle_costs = snakemake.params.hurdle_costs
