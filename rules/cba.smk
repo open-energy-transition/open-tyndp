@@ -109,6 +109,7 @@ rule prepare_reference:
 rule build_msv_snapshot_weightings:
     params:
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
     input:
         network=rules.prepare_reference.output.network,
     output:
