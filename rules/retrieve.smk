@@ -963,7 +963,6 @@ if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
             benchmark=storage(
                 TYDNP_DATASET["url"] + "/TYNDP-2024-Scenarios-Package-20250128.zip"
             ),
-            pecd=storage(TYDNP_DATASET["url"] + "/PECD.zip"),
             demand_profiles=storage(TYDNP_DATASET["url"] + "/Demand-Profiles.zip"),
             ev_modelling=storage(TYDNP_DATASET["url"] + "/EV-Modelling-Inputs.zip"),
             hybrid_hp_modelling=storage(
