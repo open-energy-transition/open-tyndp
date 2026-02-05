@@ -4,23 +4,15 @@
 """
 Extract Marginal Storage Values (MSV) via perfect foresight optimization.
 
-This script solves the CBA base network with perfect foresight (full year) to extract
-the dual variables (shadow prices) from the store energy balance constraint. These MSV
-values capture the future value of stored energy and are used to guide seasonal storage
-dispatch in rolling horizon optimization.
-
-The MSV is extracted from n.stores_t.mu_energy_balance, which is the dual variable
-of the Store-energy_balance constraint.
-
-**Key Features**
-
-- Optional temporal resampling before solve (e.g., 3H → 24H for faster solve)
-- Extracts mu_energy_balance for seasonal stores
-- Stores with cyclic constraint enabled to get meaningful shadow prices
+Solves the reference network with perfect foresight (full year) to extract
+shadow prices from store energy balance constraints. These MSV values capture
+the future value of stored energy and guide seasonal storage dispatch in
+rolling horizon optimization.
 
 **Inputs**
 
-- ``resources/cba/networks/base_{planning_horizons}.nc``: CBA base network
+- ``resources/cba/networks/reference_{planning_horizons}.nc``: Reference network
+- ``resources/cba/msv_snapshot_weightings_{planning_horizons}.csv``: Snapshot weightings (optional)
 
 **Outputs**
 
@@ -31,6 +23,7 @@ import logging
 
 import pypsa
 
+from scripts.prepare_sector_network import set_temporal_aggregation
 from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
@@ -43,7 +36,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "solve_cba_msv_extraction",
             planning_horizons="2030",
-            run="test-sector-tyndp",
+            run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
 
@@ -56,8 +49,9 @@ if __name__ == "__main__":
 
     # Optional: resample to coarser resolution for faster solve
     msv_resolution = snakemake.params.get("msv_resolution", False)
+    snapshot_weightings = snakemake.input.get("snapshot_weightings", None)
     if msv_resolution:
-        n = resample_network(n, msv_resolution)
+        n = set_temporal_aggregation(n, msv_resolution, snapshot_weightings)
 
     # Get solver settings
     solving = snakemake.params.get("solving", {})

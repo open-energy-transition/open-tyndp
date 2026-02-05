@@ -20,7 +20,24 @@ class _CbaStorageConfig(ConfigModel):
 
     cyclic_carriers: list[str] = Field(
         default_factory=lambda: ["battery", "home battery"],
-        description="Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+        description="Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
+    )
+    seasonal_carriers: list[str] = Field(
+        default_factory=lambda: ["H2 Store", "gas", "co2 sequestered"],
+        description="Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+    )
+
+
+class _CbaMsvExtractionConfig(ConfigModel):
+    """Configuration for `cba.msv_extraction` settings."""
+
+    resolution: bool | str = Field(
+        default=False,
+        description="Temporal resolution for MSV extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve.",
+    )
+    resample_method: Literal["ffill", "interpolate"] = Field(
+        default="ffill",
+        description="Method for resampling MSV to target network resolution.",
     )
 
 
@@ -72,6 +89,10 @@ class CbaConfig(BaseModel):
     storage: _CbaStorageConfig = Field(
         default_factory=_CbaStorageConfig,
         description="Storage configuration for CBA workflow.",
+    )
+    msv_extraction: _CbaMsvExtractionConfig = Field(
+        default_factory=_CbaMsvExtractionConfig,
+        description="MSV extraction settings for seasonal storage dispatch.",
     )
     solving: _CbaSolvingConfig = Field(
         default_factory=_CbaSolvingConfig,
