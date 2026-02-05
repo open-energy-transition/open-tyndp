@@ -1559,9 +1559,9 @@ def add_generation(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
-    ext_carriers,
-    existing_capacities=None,
-    existing_efficiencies=None,
+    ext_carriers: dict[str, list[str]],
+    existing_capacities: pd.Series | None = None,
+    existing_efficiencies: pd.Series | None = None,
 ) -> None:
     """
     Add conventional electricity generation to the network.
@@ -1589,6 +1589,12 @@ def add_generation(
         Configuration dictionary containing settings for the model
     cf_industry : dict
         Dictionary of industrial conversion factors, needed for carrier buses
+    ext_carriers : dict[str, list[str]]
+        Dictionary mapping component types to lists of extendable carriers
+    existing_capacities : pd.Series | None
+        Existing generation capacities by generator type
+    existing_efficiencies : pd.Series | None
+        Existing generation efficiencies by generator type
 
     Returns
     -------
@@ -1695,6 +1701,7 @@ def _add_conventional_thermal_capacities(
     pemmdb_profiles: pd.DataFrame,
     tyndp_conventional_thermals: list[str],
     nuclear_trajectories: pd.DataFrame,
+    nuclear_profiles: pd.DataFrame,
 ) -> None:
     """
     Add PEMMDB capacities and profiles to conventional thermal generation assets in the network.
@@ -1711,6 +1718,8 @@ def _add_conventional_thermal_capacities(
         List of TYNDP conventional thermal technologies that were added to the network.
     nuclear_trajectories : pd.DataFrame
         Trajectories for exogenous nuclear pathways.
+    nuclear_profiles : pd.DataFrame
+        DataFrame containing the availability profiles of nuclear power plants.
     """
     logger.info(
         "Adding PEMMDB capacities and profiles to conventional thermal generation assets."
@@ -1771,6 +1780,13 @@ def _add_conventional_thermal_capacities(
 
         # Profiles
         ##########
+
+        # (nuclear only) Define availability profiles,
+        # accounting for maintenance schedules and forced outages
+        if tech == "nuclear":
+            nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
+            nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
+
         # Filter for profiles
         profiles = pemmdb_profiles.query("index_carrier == @tech")
         p_min_pu = (
@@ -1778,6 +1794,14 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
+        # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
+        # TODO Improve assumption for DE / GA
+        if tech == "nuclear":
+            common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
+            if not common_cols.empty:
+                p_min_pu[common_cols] = np.minimum(
+                    p_min_pu[common_cols], nuclear_profiles[common_cols]
+                )
         # Drop columns that are all zeros (default-value)
         p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
 
@@ -1786,6 +1810,14 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
+        # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
+        # TODO Improve assumption for DE / GA
+        if tech == "nuclear":
+            common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
+            if not common_cols.empty:
+                p_max_pu[common_cols] = np.minimum(
+                    p_max_pu[common_cols], nuclear_profiles[common_cols]
+                )
         # Drop columns that are all ones (default-value)
         p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
 
@@ -2184,6 +2216,7 @@ def add_existing_pemmdb_capacities(
     h2_topology_tyndp: bool,
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
+    nuclear_profiles: pd.DataFrame,
     hydro_inflows_fn: str,
     extendable_carriers: list | set,
     investment_year: int,
@@ -2220,6 +2253,8 @@ def add_existing_pemmdb_capacities(
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
+    nuclear_profiles : pd.DataFrame
+        DataFrame containing the availability profiles of nuclear power plants.
     hydro_inflows_fn : str,
         Path to file with hydro inflow profiles.
     extendable_carriers : list[str] | set
@@ -2277,6 +2312,7 @@ def add_existing_pemmdb_capacities(
             pemmdb_profiles=pemmdb_profiles,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             nuclear_trajectories=trajectories_nuclear,
+            nuclear_profiles=nuclear_profiles,
         )
 
     if h2_topology_tyndp:
@@ -8827,8 +8863,9 @@ if __name__ == "__main__":
     pemmdb_capacities = None
     pemmdb_profiles = None
     tyndp_trajectories = None
+    tyndp_nuclear_profiles = None
 
-    # Read in PEMMDB data and trajectories
+    # Read in PEMMDB data, trajectories and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
         pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities).set_index(
@@ -8839,6 +8876,14 @@ if __name__ == "__main__":
         ).to_dataframe()
     if tyndp_trajectories_fn := snakemake.input.tyndp_trajectories:
         tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
+    if tyndp_nuclear_profiles_fn := snakemake.input.tyndp_nuclear_profiles:
+        tyndp_nuclear_profiles = pd.read_csv(
+            tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
+        )
+        # Use 2009 profiles for all climate years
+        tyndp_nuclear_profiles.index = tyndp_nuclear_profiles.index.map(
+            lambda t: t.replace(year=n.snapshots.year[0])
+        )
 
     conventional_generation = {
         generator: carrier
@@ -8893,6 +8938,7 @@ if __name__ == "__main__":
             h2_topology_tyndp=options["h2_topology_tyndp"],
             costs=costs,
             profiles_pecd=profiles_pecd,
+            nuclear_profiles=tyndp_nuclear_profiles,
             hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
