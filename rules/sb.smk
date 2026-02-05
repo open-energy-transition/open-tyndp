@@ -145,6 +145,26 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             os.remove(output["dir"] + ".zip")
 
 
+if (MM_OUTPUT_DATASET := dataset_version("tyndp_mm_output_file"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_tyndp_mm_output:
+        input:
+            zip_file=storage(MM_OUTPUT_DATASET["url"]),
+            dir=rules.retrieve_tyndp.output.dir,
+        output:
+            dir=directory(MM_OUTPUT_DATASET["folder"]),
+            nt2030=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
+            nt2040=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
+        log:
+            "logs/retrieve_tyndp_mm_output.log",
+        run:
+            copy2(input["zip_file"], output["dir"] + ".zip")
+            unpack_archive(output["dir"] + ".zip", output["dir"])
+            os.remove(output["dir"] + ".zip")
+
+
 # Versioning not implemented as the dataset is used only for plotting
 # License - MIT - Copyright (c) 2021 Gavin Rehkemper
 # Website: https://github.com/gavinr/world-countries-centroids
@@ -734,12 +754,17 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
+    def get_tyndp_mm_output(wildcards):
+        """Get MM output file path for given planning horizon."""
+        base_path = rules.retrieve_tyndp_mm_output.output.dir
+        return f"{base_path}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_{wildcards.scenario}{wildcards.planning_horizons}_Plexos_CY2009_2.5_v40.xlsx"
+
     rule clean_tyndp_output_benchmark:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
         input:
-            tyndp_output_file="data/tyndp_2024_bundle/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_{scenario}{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx",
+            tyndp_output_file=get_tyndp_mm_output,
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
@@ -747,6 +772,8 @@ if config["benchmarking"]["enable"]:
             logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
             benchmarks("clean_tyndp_output_benchmark_{scenario}{planning_horizons}")
+        wildcard_constraints:
+            scenario="NT",
         threads: 4
         resources:
             mem_mb=8000,
