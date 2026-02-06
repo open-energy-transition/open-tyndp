@@ -7,26 +7,32 @@ import pandas as pd
 
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
+from shutil import unpack_archive, copy2
 
 
 wildcard_constraints:
     cba_project=r"(s|t)\d+",
 
 
-rule retrieve_tyndp_cba_projects:
-    params:
-        # TODO Integrate into Zenodo tyndp data bundle
-        url="https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip",
-        source="CBA project explorer",
-    input:
-        "data/tyndp_2024_bundle",
-    output:
-        dir=directory("data/tyndp_2024_bundle/cba_projects"),
-    log:
-        "logs/retrieve_tyndp_cba_projects",
-    retries: 2
-    script:
-        "../scripts/sb/retrieve_additional_tyndp_data.py"
+if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_tyndp_cba_projects:
+        params:
+            source="CBA project explorer",
+        input:
+            # TODO Integrate into Zenodo tyndp data bundle
+            zip_file=storage(CBA_PROJECTS_DATASET["url"]),
+            dir=rules.retrieve_tyndp.output.dir,
+        output:
+            dir=directory(CBA_PROJECTS_DATASET["folder"]),
+        log:
+            "logs/retrieve_tyndp_cba_projects",
+        run:
+            copy2(input["zip_file"], output["dir"] + ".zip")
+            unpack_archive(output["dir"] + ".zip", output["dir"])
+            os.remove(output["dir"] + ".zip")
 
 
 # read in transmission and storage projects from excel sheets
@@ -39,7 +45,7 @@ def input_clustered_network(w):
 
 checkpoint clean_projects:
     input:
-        dir="data/tyndp_2024_bundle/cba_projects",
+        dir=rules.retrieve_tyndp_cba_projects.output.dir,
         network=input_clustered_network,
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
@@ -75,6 +81,10 @@ def input_sb_network(w):
 rule simplify_sb_network:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
+        tyndp_conventional_carriers=config_provider(
+            "electricity", "tyndp_conventional_carriers"
+        ),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
         network=input_sb_network,
     output:
@@ -83,9 +93,8 @@ rule simplify_sb_network:
         "../scripts/cba/simplify_sb_network.py"
 
 
-# build the reference network for toot with all projects included
-# maybe worth to merge with pint rule, if they turn out to be very similar
-rule prepare_toot_reference:
+# build the reference network
+rule prepare_reference:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
@@ -93,22 +102,9 @@ rule prepare_toot_reference:
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
-        network=resources("cba/toot/networks/reference_{planning_horizons}.nc"),
+        network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/prepare_toot_reference.py"
-
-
-# build the reference network for pint with all projects removed
-# maybe worth to merge with toot rule, if they turn out to be very similar
-rule prepare_pint_reference:
-    input:
-        network=rules.simplify_sb_network.output.network,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-        storage_projects=rules.clean_projects.output.storage_projects,
-    output:
-        network=resources("cba/pint/networks/reference_{planning_horizons}.nc"),
-    script:
-        "../scripts/cba/prepare_pint_reference.py"
+        "../scripts/cba/prepare_reference.py"
 
 
 # remove the single project {cba_project} from the toot reference network
@@ -117,7 +113,7 @@ rule prepare_toot_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_toot_reference.output.network,
+        network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -131,8 +127,10 @@ rule prepare_toot_project:
 # add the single project {cba_project} to the pint reference network
 # currently this can be either a trans123 or a stor123 project
 rule prepare_pint_project:
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=rules.prepare_pint_reference.output.network,
+        network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
     output:
@@ -143,7 +141,34 @@ rule prepare_pint_project:
         "../scripts/cba/prepare_pint_project.py"
 
 
-# solve any of the prepared networks, ie a reference or a project network
+# solve the reference network which is independent of the method
+rule solve_cba_reference_network:
+    params:
+        solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
+        foresight=config_provider("foresight"),
+        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        custom_extra_functionality=None,
+    input:
+        network=resources("cba/networks/reference_{planning_horizons}.nc"),
+    output:
+        network=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
+    log:
+        solver=logs(
+            "cba/solve_cba_reference_network/reference_{planning_horizons}_solver.log"
+        ),
+        memory=logs(
+            "cba/solve_cba_reference_network/reference_{planning_horizons}_memory.log"
+        ),
+        python=logs(
+            "cba/solve_cba_reference_network/reference_{planning_horizons}_python.log"
+        ),
+    threads: 1
+    script:
+        "../scripts/cba/solve_cba_network.py"
+
+
+# solve any of the prepared project network
 # should reuse/import functions from solve_network.py
 rule solve_cba_network:
     params:
@@ -174,7 +199,7 @@ rule solve_cba_network:
 # compute all metrics for a single pint or toot project comparing reference and project solution
 rule make_indicators:
     input:
-        reference=RESULTS + "cba/{cba_method}/networks/reference_{planning_horizons}.nc",
+        reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
     output:
@@ -220,8 +245,11 @@ rule collect_indicators:
 
 
 rule plot_indicators:
+    params:
+        plotting=config_provider("plotting"),
     input:
         indicators=rules.collect_indicators.output.indicators,
+        transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
     script:

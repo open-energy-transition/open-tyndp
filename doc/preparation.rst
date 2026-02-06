@@ -73,6 +73,11 @@ Rule ``base_network``
 
 .. automodule:: base_network
 
+Rule ``build_natura``
+=============================
+
+.. automodule:: build_natura
+
 
 Rule ``build_transmission_projects``
 ====================================
@@ -112,13 +117,22 @@ Rule ``build_electricity_demand_base``
 
 .. automodule:: build_electricity_demand_base
 
+Rule ``build_electricity_demand_base_tyndp``
+=======================================
+
+.. automodule:: build_electricity_demand_base
+
 .. _electricity_demand:
 
 Rule ``build_electricity_demand``
 ==================================
 
-
 .. automodule:: build_electricity_demand
+
+Rule ``build_electricity_demand_tyndp``
+==================================
+
+.. automodule:: build_electricity_demand_tyndp
 
 Rule ``build_hac_features``
 =================================
@@ -231,6 +245,11 @@ Rule ``build_pemmdb_data``
 ===========================
 
 .. automodule:: build_pemmdb_data
+
+Rule ``build_tyndp_transmission_projects``
+===========================
+
+.. automodule:: build_tyndp_transmission_projects
 
 Rule ``build_tyndp_trajectories``
 ===========================
