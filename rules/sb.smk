@@ -155,8 +155,8 @@ if (MM_OUTPUT_DATASET := dataset_version("tyndp_mm_output_file"))["source"] in [
             dir=rules.retrieve_tyndp.output.dir,
         output:
             dir=directory(MM_OUTPUT_DATASET["folder"]),
-            nt2030=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
-            nt2040=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
+            NT2030=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
+            NT2040=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
         log:
             "logs/retrieve_tyndp_mm_output.log",
         run:
