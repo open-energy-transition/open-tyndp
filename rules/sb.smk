@@ -778,7 +778,9 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
         input:
-            tyndp_output_file=lambda w: rules.retrieve_tyndp_mm_output.output[f"{w.scenario}{w.planning_horizons}"],
+            tyndp_output_file=lambda w: rules.retrieve_tyndp_mm_output.output[
+                f"{w.scenario}{w.planning_horizons}"
+            ],
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
