@@ -14,7 +14,7 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Add `clean_market_model_benchmark` script for preprocessing Market Model benchmark data. The script maps Market Model output data to the naming convention used in the benchmarking plots (https://github.com/open-energy-transition/open-tyndp/pull/372).
+* Add preprocessing of Market Model benchmark data. All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots (https://github.com/open-energy-transition/open-tyndp/pull/372).
 
 * Add the PINT project network preparation for Cost-Benefit Analysis (CBA) and adjust workflow to single reference grid (https://github.com/open-energy-transition/open-tyndp/pull/353).
 
