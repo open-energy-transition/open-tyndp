@@ -33,7 +33,6 @@ if __name__ == "__main__":
 
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
-    method = pd.read_csv(snakemake.input.methods)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
@@ -47,7 +46,7 @@ if __name__ == "__main__":
         f"Project {project_id} has {len(transmission_project)} transmission projects."
     )
 
-    for method, project in transmission_project.iterrows():
+    for _, project in transmission_project.iterrows():
         bus0 = project["bus0"]
         bus1 = project["bus1"]
         link_id = f"{bus0}-{bus1}-DC"
