@@ -259,7 +259,7 @@ def compute_benchmark(
             )
         )
 
-        # TYNDP 2024 generations includes curtailments for renewables
+        # TYNDP 2024 report available generation for renewables (incl. curtailment)
         res_carriers = df.filter(regex="offwind.*|solar.*|onwind").index
         res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
 
