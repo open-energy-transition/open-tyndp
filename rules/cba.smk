@@ -139,7 +139,7 @@ rule prepare_toot_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.clean_projects.output.methods,
+        methods=rules.clean_projects.output.methods, # not used in script; preserves dependency on checkpoint output
     output:
         network=resources(
             "cba/toot/networks/project_{cba_project}_{planning_horizons}.nc"
@@ -157,7 +157,7 @@ rule prepare_pint_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.clean_projects.output.methods,
+        methods=rules.clean_projects.output.methods, # not used in script; preserves dependency on checkpoint output
     output:
         network=resources(
             "cba/pint/networks/project_{cba_project}_{planning_horizons}.nc"
