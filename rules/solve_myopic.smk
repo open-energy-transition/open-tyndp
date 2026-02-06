@@ -5,6 +5,8 @@
 
 
 rule add_existing_baseyear:
+    message:
+        "Adding existing infrastructure for base year for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizons, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
         baseyear=config_provider("scenario", "planning_horizons", 0),
         sector=config_provider("sector"),
@@ -22,11 +24,8 @@ rule add_existing_baseyear:
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
         ),
         powerplants=resources("powerplants_s_{clusters}.csv"),
-        busmap_s=resources("busmap_base_s.csv"),
-        busmap=resources("busmap_base_s_{clusters}.csv"),
-        clustered_pop_layout=resources("pop_layout_base_s_{clusters}.csv"),
         costs=lambda w: resources(
-            f"costs_{config_provider("scenario", "planning_horizons",0)(w)}_processed.csv"
+            f"costs_{config_provider('scenario', 'planning_horizons',0)(w)}_processed.csv"
         ),
         cop_profiles=resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
         existing_heating_distribution=resources(
@@ -73,6 +72,8 @@ def input_profile_tech_brownfield_pecd(w):
 
 
 rule add_brownfield:
+    message:
+        "Adding brownfield constraints for existing infrastructure for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizons, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
         H2_retrofit=config_provider("sector", "H2_retrofit"),
         H2_retrofit_capacity_per_CH4=config_provider(
@@ -92,6 +93,9 @@ rule add_brownfield:
         tyndp_conventional_carriers=config_provider(
             "electricity", "tyndp_conventional_carriers"
         ),
+        tyndp_renewable_carriers=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
         hydrogen_fuel_cell=config_provider("sector", "hydrogen_fuel_cell"),
         hydrogen_turbine=config_provider("sector", "hydrogen_turbine"),
         group_tyndp_conventionals=config_provider(
@@ -100,14 +104,10 @@ rule add_brownfield:
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfield_pecd),
-        simplify_busmap=resources("busmap_base_s.csv"),
-        cluster_busmap=resources("busmap_base_s_{clusters}.csv"),
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
         ),
         network_p=solved_previous_horizon,  #solved network at previous time step
-        costs=resources("costs_{planning_horizons}_processed.csv"),
-        cop_profiles=resources("cop_profiles_base_s_{clusters}_{planning_horizons}.nc"),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
         resources(
@@ -132,6 +132,8 @@ ruleorder: add_existing_baseyear > add_brownfield
 
 
 rule solve_sector_network_myopic:
+    message:
+        "Solving sector-coupled network with myopic foresight for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizons, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
         solving=config_provider("solving"),
         foresight=config_provider("foresight"),
@@ -147,7 +149,6 @@ rule solve_sector_network_myopic:
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
         ),
-        costs=resources("costs_{planning_horizons}_processed.csv"),
         offshore_zone_trajectories=branch(
             config_provider("sector", "offshore_hubs_tyndp", "enable"),
             resources("offshore_zone_trajectories.csv"),
