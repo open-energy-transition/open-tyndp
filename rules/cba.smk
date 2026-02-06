@@ -64,6 +64,10 @@ checkpoint clean_projects:
         network=input_clustered_network,
         guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
     output:
+        # TODO: The toot_projects and pint_projects outputs are likely only
+        # transmission projects (no storage). In order to confirm, we should check 
+        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv) 
+        # contains only transmission or also storage projects.
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
