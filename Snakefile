@@ -151,6 +151,16 @@ def input_all_tyndp(w):
                 **config["scenario"],
             )
         )
+
+    if config_provider("launch_explorer")(w):
+        files.extend(
+            expand(
+                RESULTS + "logs/explorer_launched.log",
+                run=config["run"]["name"],
+                **config["scenario"],
+            )
+        )
+
     return files
 
 

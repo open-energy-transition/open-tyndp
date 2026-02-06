@@ -37,6 +37,9 @@ foresight: overnight
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
 tyndp_scenario: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#launch_explorer
+launch_explorer: false
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#scenario
 scenario:
   clusters:

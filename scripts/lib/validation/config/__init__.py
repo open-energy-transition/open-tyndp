@@ -126,6 +126,10 @@ class ConfigSchema(BaseModel):
         False,
         description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
     )
+    launch_explorer: bool = Field(
+        False,
+        description="Switch to launch the PyPSA-Explorer with the result networks.",
+    )
     scenario: ScenarioConfig = Field(
         default_factory=ScenarioConfig,
         description="Scenario configuration defining wildcards for the workflow.",
