@@ -140,6 +140,70 @@ def extract_storage_projects(
     return pd.DataFrame(columns=["project_id", "project_name"])
 
 
+def normalize_yes_no(value: str) -> str:
+    return str(value).strip().lower()
+
+
+def compute_method(flag: str) -> str:
+    return "TOOT" if flag == "yes" else "PINT"
+
+
+def build_method_assignments(
+    guidelines: pd.DataFrame, projects: pd.DataFrame
+) -> pd.DataFrame:
+    guidelines = guidelines.rename(
+        columns={
+            "ID": "project_id",
+            "Project_name": "project_name",
+            "In_ref_grid_2030": "in_ref_2030",
+            "In_ref_grid_2040": "in_ref_2040",
+        }
+    )
+
+    for col in ["in_ref_2030", "in_ref_2040"]:
+        if col in guidelines.columns:
+            guidelines[col] = guidelines[col].map(normalize_yes_no)
+
+    base = guidelines[["project_id", "project_name", "in_ref_2030", "in_ref_2040"]]
+    base = base.dropna(subset=["project_id"])
+
+    agg = base.groupby("project_id", as_index=False).agg(
+        project_name=("project_name", "first"),
+        in_ref_2030=("in_ref_2030", lambda s: "yes" if (s == "yes").any() else "no"),
+        in_ref_2040=("in_ref_2040", lambda s: "yes" if (s == "yes").any() else "no"),
+    )
+
+    all_project_ids = projects["project_id"].unique()
+    assigned = []
+    for horizon, col in [(2030, "in_ref_2030"), (2040, "in_ref_2040")]:
+        rows = agg[["project_id", "in_ref_2030", "in_ref_2040"]].copy()
+        rows["planning_horizon"] = horizon
+        rows["method"] = rows[col].map(compute_method)
+        rows = rows.rename(
+            columns={
+                "in_ref_2030": "in_ref_grid_2030",
+                "in_ref_2040": "in_ref_grid_2040",
+            }
+        )
+
+        missing_ids = set(all_project_ids) - set(rows["project_id"])
+        if missing_ids:
+            missing_rows = pd.DataFrame(
+                {
+                    "project_id": list(missing_ids),
+                    "in_ref_grid_2030": "no",
+                    "in_ref_grid_2040": "no",
+                    "planning_horizon": horizon,
+                    "method": "PINT",
+                }
+            )
+            rows = pd.concat([rows, missing_rows], ignore_index=True)
+        assigned.append(rows)
+
+    assigned = pd.concat(assigned, ignore_index=True)
+    return projects.merge(assigned, on="project_id", how="left")
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -165,3 +229,13 @@ if __name__ == "__main__":
         existing_buses,
     )
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
+
+    guidelines = pd.read_csv(snakemake.input.guidelines)
+    methods = build_method_assignments(guidelines, transmission_projects)
+    methods.to_csv(snakemake.output.methods, index=False)
+    methods.loc[methods["method"] == "TOOT"].to_csv(
+        snakemake.output.toot_projects, index=False
+    )
+    methods.loc[methods["method"] == "PINT"].to_csv(
+        snakemake.output.pint_projects, index=False
+    )

@@ -62,9 +62,13 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         network=input_clustered_network,
+        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
+        methods=resources("cba/cba_project_methods.csv"),
+        toot_projects=resources("cba/toot_projects.csv"),
+        pint_projects=resources("cba/pint_projects.csv"),
     script:
         "../scripts/cba/clean_projects.py"
 
@@ -122,18 +126,6 @@ rule prepare_reference:
         "../scripts/cba/prepare_reference.py"
 
 
-# assign cba method to each project, based on table from CBA guidelines annex B.1
-# and from full list of CBA projects
-rule assign_cba_project_method:
-    input:
-        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-    output:
-        methods=resources("cba/cba_project_methods.csv"),
-    script:
-        "../scripts/cba/assign_cba_project_method.py"
-
-
 # remove the single project {cba_project} from the toot reference network
 # currently this can be either a trans123 or a stor123 project
 rule prepare_toot_project:
@@ -143,7 +135,7 @@ rule prepare_toot_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.assign_cba_project_method.output.methods,
+        methods=rules.clean_projects.output.methods,
     output:
         network=resources(
             "cba/toot/networks/project_{cba_project}_{planning_horizons}.nc"
@@ -161,7 +153,7 @@ rule prepare_pint_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.assign_cba_project_method.output.methods,
+        methods=rules.clean_projects.output.methods,
     output:
         network=resources(
             "cba/pint/networks/project_{cba_project}_{planning_horizons}.nc"
@@ -243,16 +235,19 @@ def input_indicators(w):
     List all indicators csv
     """
     run = w.get("run", config_provider("run", "name")(w))
-    transmission_projects = pd.read_csv(
-        checkpoints.clean_projects.get(run=run).output.transmission_projects
-    )
-    storage_projects = pd.read_csv(
-        checkpoints.clean_projects.get(run=run).output.storage_projects
-    )
+    if w.cba_method == "toot":
+        projects_path = checkpoints.clean_projects.get(run=run).output.toot_projects
+    elif w.cba_method == "pint":
+        projects_path = checkpoints.clean_projects.get(run=run).output.pint_projects
+    else:
+        projects_path = checkpoints.clean_projects.get(run=run).output.transmission_projects
 
-    cba_projects = [
-        f"t{pid}" for pid in transmission_projects["project_id"].unique()
-    ] + [f"s{pid}" for pid in storage_projects["project_id"].unique()]
+    projects = pd.read_csv(projects_path)
+    if "planning_horizon" in projects.columns:
+        projects = projects.loc[
+            projects["planning_horizon"] == int(w.planning_horizons)
+        ]
+    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
 
     project_specs = config_provider("cba", "projects")(w)
 
