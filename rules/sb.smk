@@ -773,10 +773,6 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
-    def get_tyndp_mm_output(wildcards):
-        """Get MM output file path for given planning horizon."""
-        base_path = rules.retrieve_tyndp_mm_output.output.dir
-        return f"{base_path}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_{wildcards.scenario}{wildcards.planning_horizons}_Plexos_CY2009_2.5_v40.xlsx"
 
     rule clean_tyndp_output_benchmark:
         params:
