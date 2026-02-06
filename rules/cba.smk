@@ -240,7 +240,9 @@ def input_indicators(w):
     elif w.cba_method == "pint":
         projects_path = checkpoints.clean_projects.get(run=run).output.pint_projects
     else:
-        projects_path = checkpoints.clean_projects.get(run=run).output.transmission_projects
+        projects_path = checkpoints.clean_projects.get(
+            run=run
+        ).output.transmission_projects
 
     projects = pd.read_csv(projects_path)
     if "planning_horizon" in projects.columns:
