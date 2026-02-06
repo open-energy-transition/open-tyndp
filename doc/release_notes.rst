@@ -42,6 +42,12 @@ Upcoming Open-TYNDP Release
 
 * Extend PyPSA-Eur validation schema for configuration files to Open-TYNDP specific configurations (see https://github.com/PyPSA/pypsa-eur/pull/1912) (https://github.com/open-energy-transition/open-tyndp/pull/419). Find a detailed explanation in the contributors documentation
 
+* Introduce calculation of B4 indicator in the Cost-Benefit Analysis (CBA) based on changes in non-CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/398).
+
+* Reformat CBA indicators output CSV to long format and to include units (https://github.com/open-energy-transition/open-tyndp/pull/401).
+
+* Add benchmarking of CBA indicators against TYNDP 2024 reported values (https://github.com/open-energy-transition/open-tyndp/pull/405).
+
 **Bugfixes and Compatibility**
 
 * Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to enable consistent use of its index when selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
