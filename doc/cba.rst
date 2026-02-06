@@ -36,7 +36,7 @@ The CBA network is constructed by copying the SB network and then applying certa
 - **Disable cycling for long-term storage**: The ``e_cyclic`` and ``e_cyclic_per_period`` for stores and the ``cyclic_state_of_charge`` for storage units are set to False.
 
 After the simiplified SB network is created, this simplified SB network is further adapted to build the CBA reference network. 
-The CBA reference grid is then used to build the project network -- the project network refers to the network used to evaluate the cost-benefit impact of a (tranmission, storage, etc) project.
+The CBA reference grid is then used to build the project network -- the project network refers to the network used to evaluate the cost-benefit impact of a (transmission, storage, etc) project.
 The method used to build the project network is dependent on the method used (TOOT vs PINT):
 
 - **TOOT**: The project network is built by removing the project from the CBA reference network.
