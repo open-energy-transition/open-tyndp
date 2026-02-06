@@ -3,7 +3,7 @@
 # yaml-language-server: $schema=./schema.json
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#version
-version: v0.4.2
+version: v0.5
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
