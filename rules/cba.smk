@@ -139,7 +139,7 @@ rule prepare_toot_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.clean_projects.output.methods, # not used in script; preserves dependency on checkpoint output
+        methods=rules.clean_projects.output.methods,  # not used in script; preserves dependency on checkpoint output
     output:
         network=resources(
             "cba/toot/networks/project_{cba_project}_{planning_horizons}.nc"
@@ -157,7 +157,7 @@ rule prepare_pint_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.clean_projects.output.methods, # not used in script; preserves dependency on checkpoint output
+        methods=rules.clean_projects.output.methods,  # not used in script; preserves dependency on checkpoint output
     output:
         network=resources(
             "cba/pint/networks/project_{cba_project}_{planning_horizons}.nc"
@@ -244,7 +244,9 @@ def input_indicators(w):
     elif w.cba_method == "pint":
         projects_path = checkpoints.clean_projects.get(run=run).output.pint_projects
     else:
-        raise ValueError(f"Unknown cba_method {w.cba_method}. Must be one of 'toot' or 'pint'.")
+        raise ValueError(
+            f"Unknown cba_method {w.cba_method}. Must be one of 'toot' or 'pint'."
+        )
 
     projects = pd.read_csv(projects_path)
     if "planning_horizon" in projects.columns:
