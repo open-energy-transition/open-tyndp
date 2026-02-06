@@ -788,6 +788,8 @@ if config["benchmarking"]["enable"]:
             logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
             benchmarks("clean_tyndp_output_benchmark_{scenario}{planning_horizons}")
+        wildcard_constraints:
+            planning_horizons="(2030|2040)",  # Only years with MM output data
         threads: 4
         resources:
             mem_mb=8000,
@@ -904,11 +906,15 @@ if config["benchmarking"]["enable"]:
                 planning_horizons=config_provider("scenario", "planning_horizons"),
                 allow_missing=True,
             ),
-            mm_data=expand(
+            mm_data=lambda w: expand(
                 RESULTS
                 + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-                scenario="NT",  # TODO: use config_provider("tyndp_scenario") when implemented for DE / GA
-                planning_horizons=config_provider("scenario", "planning_horizons"),
+                scenario="NT",
+                planning_horizons=[
+                    year
+                    for year in config_provider("scenario", "planning_horizons")(w)
+                    if str(year) in ["2030", "2040"]  # Only years with MM output data
+                ],
                 allow_missing=True,
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
