@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
-    _ = pd.read_csv(snakemake.input.methods)
+    method = pd.read_csv(snakemake.input.methods)
 
     # Hurdle costs for new DC links
     hurdle_costs = snakemake.params.hurdle_costs
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     )
 
     # Add the project (may have multiple borders)
-    for _, project in transmission_project.iterrows():
+    for method, project in transmission_project.iterrows():
         bus0 = project["bus0"]
         bus1 = project["bus1"]
         link_id = f"{bus0}-{bus1}-DC"
