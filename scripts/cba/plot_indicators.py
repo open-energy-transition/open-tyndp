@@ -36,7 +36,19 @@ def save_figure(fig, output_dir, filename, output_formats):
 
 def load_and_merge_data(indicators_path, projects_path):
     """Load indicators and merge with project metadata."""
-    indicators = pd.read_csv(indicators_path)
+    indicators_path = Path(indicators_path)
+    # It is possible the indicators file could be empty during a test,
+    # after we extended the checkpoint to only run TOOT or PINT for a project
+    # (instead of running both methods for all projects).
+    # In that case, we should handle the empty file gracefully.
+    if indicators_path.stat().st_size == 0:
+        logger.warning("Indicators file is empty: %s", indicators_path)
+        return pd.DataFrame(), 0
+    try:
+        indicators = pd.read_csv(indicators_path)
+    except pd.errors.EmptyDataError:
+        logger.warning("Indicators file is empty: %s", indicators_path)
+        return pd.DataFrame(), 0
     projects = pd.read_csv(projects_path)
 
     border_counts = projects.groupby("project_id").size().rename("border_count")
