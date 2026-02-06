@@ -35,6 +35,21 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
             os.remove(output["dir"] + ".zip")
 
 
+if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects"))[
+    "source"
+] in ["archive"]:
+
+    rule retreive_cba_guidelines_reference_projects:
+        input:
+            file=storage(CBA_GUIDELINES_DATASET["url"]),
+        output:
+            file=resources("cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv"),
+        log:
+            logs("retreive_cba_guidelines_reference_projects.log"),
+        run:
+            copy2(input["file"], output["file"])
+
+
 # read in transmission and storage projects from excel sheets
 #
 def input_clustered_network(w):
@@ -47,9 +62,17 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         network=input_clustered_network,
+        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
     output:
+        # TODO: The toot_projects and pint_projects outputs are likely only
+        # transmission projects (no storage). In order to confirm, we should check 
+        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv) 
+        # contains only transmission or also storage projects.
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
+        methods=resources("cba/cba_project_methods.csv"),
+        toot_projects=resources("cba/toot_projects.csv"),
+        pint_projects=resources("cba/pint_projects.csv"),
     script:
         "../scripts/cba/clean_projects.py"
 
@@ -116,6 +139,7 @@ rule prepare_toot_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
+        methods=rules.clean_projects.output.methods,  # not used in script; preserves dependency on checkpoint output
     output:
         network=resources(
             "cba/toot/networks/project_{cba_project}_{planning_horizons}.nc"
@@ -133,6 +157,7 @@ rule prepare_pint_project:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
+        methods=rules.clean_projects.output.methods,  # not used in script; preserves dependency on checkpoint output
     output:
         network=resources(
             "cba/pint/networks/project_{cba_project}_{planning_horizons}.nc"
@@ -214,16 +239,21 @@ def input_indicators(w):
     List all indicators csv
     """
     run = w.get("run", config_provider("run", "name")(w))
-    transmission_projects = pd.read_csv(
-        checkpoints.clean_projects.get(run=run).output.transmission_projects
-    )
-    storage_projects = pd.read_csv(
-        checkpoints.clean_projects.get(run=run).output.storage_projects
-    )
+    if w.cba_method == "toot":
+        projects_path = checkpoints.clean_projects.get(run=run).output.toot_projects
+    elif w.cba_method == "pint":
+        projects_path = checkpoints.clean_projects.get(run=run).output.pint_projects
+    else:
+        raise ValueError(
+            f"Unknown cba_method {w.cba_method}. Must be one of 'toot' or 'pint'."
+        )
 
-    cba_projects = [
-        f"t{pid}" for pid in transmission_projects["project_id"].unique()
-    ] + [f"s{pid}" for pid in storage_projects["project_id"].unique()]
+    projects = pd.read_csv(projects_path)
+    if "planning_horizon" in projects.columns:
+        projects = projects.loc[
+            projects["planning_horizon"] == int(w.planning_horizons)
+        ]
+    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
 
     project_specs = config_provider("cba", "projects")(w)
 

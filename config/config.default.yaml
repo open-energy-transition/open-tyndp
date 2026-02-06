@@ -1524,6 +1524,9 @@ data:
   tyndp_nuclear_profiles:
     source: archive
     version: latest
+  cba_guidelines_reference_projects:
+    source: archive
+    version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:
