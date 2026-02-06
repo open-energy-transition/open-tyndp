@@ -1515,6 +1515,9 @@ data:
   tyndp_vis_plfm:
     source: archive
     version: latest
+  tyndp_mm_output_file:
+    source: archive
+    version: latest
   tyndp_cba_projects:
     source: archive
     version: latest

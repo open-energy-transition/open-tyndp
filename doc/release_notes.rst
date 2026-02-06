@@ -14,6 +14,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Add preprocessing of Market Model benchmark data. All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots (https://github.com/open-energy-transition/open-tyndp/pull/372).
+
 * Add the PINT project network preparation for Cost-Benefit Analysis (CBA) and adjust workflow to single reference grid (https://github.com/open-energy-transition/open-tyndp/pull/353).
 
 * Add TYNDP hydro technologies and associated PEMMDB capacities and inflows (https://github.com/open-energy-transition/open-tyndp/pull/338). The following technologies are introduced: `hydro-ror`, `hydro-reservoir`, `hydro-pondage`, `hydro-phs` and `hydro-phs-pure`.
