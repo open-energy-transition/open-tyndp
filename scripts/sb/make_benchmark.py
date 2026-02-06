@@ -27,7 +27,11 @@ logger = logging.getLogger(__name__)
 
 
 def load_data(
-    benchmarks_fn: str, results_fn: str, scenario: str, vp_data_fn: str = ""
+    benchmarks_fn: str,
+    results_fn: str,
+    scenario: str,
+    vp_data_fn: str = "",
+    mm_data_fn: str = "",
 ) -> pd.DataFrame:
     """
     Load Open-TYNDP and TYNDP 2024 results.
@@ -42,6 +46,8 @@ def load_data(
         Name of scenario to compare.
     vp_data_fn : str (optional)
         Path to the Visualisation data file.
+    mm_data_fn : str (optional)
+        Path to the Market Model Output data file.
 
     Returns
     -------
@@ -73,6 +79,20 @@ def load_data(
         else:
             logger.info(
                 "Skipping comparison with Visualisation Platform data, as only available in TYNDP 2024 for the climate years 1995, 2008 and 2009."
+            )
+
+    # Add Market Model Outputs (optional)
+    if mm_data_fn:
+        mm_data = []
+        for fn in mm_data_fn:
+            mm_data.append(pd.read_csv(fn))
+        mm_data = pd.concat(mm_data)
+        if not mm_data.empty:
+            available_years = set(mm_data.year).intersection(available_years)
+            benchmarks_raw = pd.concat([benchmarks_raw, mm_data])
+        else:
+            logger.info(
+                "Skipping comparison with Market Model Output data, as only available in TYNDP 2024 for NT 2030 and NT 2040."
             )
 
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
