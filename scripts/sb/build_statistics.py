@@ -258,6 +258,18 @@ def compute_benchmark(
                 errors="ignore",
             )
         )
+
+        # TYNDP 2024 generations includes curtailments for renewables
+        res_carriers = df.filter(regex="offwind.*|solar.*|onwind").index
+        res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
+
+        res_gen = (
+            (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
+            .groupby(n.generators.carrier)
+            .sum()
+        )
+        df.loc[res_carriers] = res_gen.values
+
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (
