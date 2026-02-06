@@ -773,7 +773,6 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
-
     rule clean_tyndp_output_benchmark:
         params:
             benchmarking=config_provider("benchmarking"),
