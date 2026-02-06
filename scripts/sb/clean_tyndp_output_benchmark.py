@@ -269,6 +269,9 @@ if __name__ == "__main__":
     # set negative sign for loads
     MM_data = set_load_sign(MM_data)
 
+    # clean data for benchmarking
+    MM_data = MM_data[~MM_data.carrier.str.contains("load|battery discharge")]
+
     MM_data["scenario"] = f"TYNDP {scenario}"
     MM_data["year"] = planning_horizon
     MM_data["source"] = "TYNDP 2024 Market Outputs"
