@@ -13,6 +13,7 @@ Note: Currently, only NT scenario processing is supported.
 
 import logging
 import multiprocessing as mp
+import re
 from functools import partial
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from tqdm import tqdm
 
 from scripts._helpers import (
     configure_logging,
+    convert_units,
     set_scenario_config,
 )
 
@@ -166,8 +168,12 @@ def load_MM_sheet(
 
     # Rename and group
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
+    df = df.loc[output_type].rename("value").reset_index()
 
-    final = df.loc[output_type].rename("value").reset_index()
+    # Adjust unit
+    df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
+    final = convert_units(df)
+
     final["table"] = table_name
     return final
 
@@ -263,9 +269,12 @@ if __name__ == "__main__":
     # set negative sign for loads
     MM_data = set_load_sign(MM_data)
 
+    # clean data for benchmarking
+    MM_data = MM_data[~MM_data.carrier.str.contains("load|battery discharge")]
+
     MM_data["scenario"] = f"TYNDP {scenario}"
     MM_data["year"] = planning_horizon
-    MM_data["source"] = "Market Model TYNDP output"
+    MM_data["source"] = "TYNDP 2024 Market Outputs"
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)

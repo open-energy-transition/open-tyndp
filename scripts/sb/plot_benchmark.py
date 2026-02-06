@@ -78,7 +78,7 @@ def _plot_scenario_comparison(
 
     df[idx].plot.bar(
         ax=ax,
-        color=["#1f77b4", "#ff7f0e", "#aeff39"],
+        color=["#1f77b4", "#ff7f0e", "#aeff39", "#e377c2"],
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
@@ -195,7 +195,11 @@ def plot_benchmark(
     options: dict,
     colors: dict,
     model_col: str = "Open-TYNDP",
-    rfc_col: list[str] = ["TYNDP 2024", "TYNDP 2024 Vis Pltfm"],
+    rfc_col: list[str] = [
+        "TYNDP 2024",
+        "TYNDP 2024 Vis Pltfm",
+        "TYNDP 2024 Market Outputs",
+    ],
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -393,6 +397,7 @@ if __name__ == "__main__":
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
     vp_data_fn = snakemake.input.vp_data
+    mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -401,7 +406,7 @@ if __name__ == "__main__":
 
     # Load data
     benchmarks_raw = load_data(
-        benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn
+        benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn, mm_data_fn
     )
 
     # Produce benchmark figures
