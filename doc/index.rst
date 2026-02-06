@@ -261,11 +261,11 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
    * -
      - Climate years (weighted average)
      -
-     - ⌛
+     - 🔨
    * -
      - CBA Benchmarking
      -
-     - ⌛
+     - 🔨
    * - **CBA Benefit Indicators**
      - B1: Socioeconomic Welfare (SEW)
      - `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__
@@ -280,12 +280,12 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - B4: Non-CO₂ Emissions (NOx, SOx, PM2.5/10, NMVOC, NH₃)
-     -
-     - ⌛
+     - `#398 <https://github.com/open-energy-transition/open-tyndp/pull/398>`__
+     - ✅
    * -
      - B5: Grid Losses, B6: Adequacy, B7: Flexibility, B8: Stability, B9: Reserves reduction
-     -
-     - ⌛
+     - n/a
+     - 
 
 .. seealso::
   See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
@@ -487,6 +487,30 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :caption: Open TYNDP
 
    innovation_roadmap
+   cba
+   cba-indicators
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: References
+
+   release_notes
+   licenses
+   data_sources
+   validation
+   benchmarking
+   limitations
+   contributing
+   support
+   publications
+   contributors
+
+.. raw:: html
+
+   <hr>
+
+PyPSA-Eur related pages
 
 .. toctree::
    :hidden:
@@ -517,19 +541,3 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 
    spatial_resolution
    supply_demand
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   :caption: References
-
-   release_notes
-   licenses
-   data_sources
-   validation
-   benchmarking
-   limitations
-   contributing
-   support
-   publications
-   contributors
