@@ -244,9 +244,7 @@ def input_indicators(w):
     elif w.cba_method == "pint":
         projects_path = checkpoints.clean_projects.get(run=run).output.pint_projects
     else:
-        projects_path = checkpoints.clean_projects.get(
-            run=run
-        ).output.transmission_projects
+        raise ValueError(f"Unknown cba_method {w.cba_method}. Must be one of 'toot' or 'pint'.")
 
     projects = pd.read_csv(projects_path)
     if "planning_horizon" in projects.columns:
