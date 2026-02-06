@@ -910,7 +910,7 @@ if config["benchmarking"]["enable"]:
             mm_data=expand(
                 RESULTS
                 + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-                scenario=config_provider("scenario", "tyndp_scenario"),
+                scenario="NT",  # TODO: use config_provider("tyndp_scenario") when implemented for DE / GA
                 planning_horizons=config_provider("scenario", "planning_horizons"),
                 allow_missing=True,
             ),
