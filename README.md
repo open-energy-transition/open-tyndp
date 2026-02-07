@@ -176,6 +176,14 @@ For any questions about Open-TYNDP or other queries, reach out via the [pypsa-op
 
 Sign Up for the [project newsletter](https://openenergytransitionnewsletter.eo.page/tyndp-oet) for updates!
 
+# Citation
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg)](https://doi.org/10.5281/zenodo.18494363)
+
+If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar.
+
+This work builds upon [PyPSA-Eur](https://github.com/pypsa/pypsa-eur) and follows the methodology described in [ENTSO-E's and entsog's TYNDP 2024 Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
+
 # Licence
 
 Open-TYNDP is a soft-fork of PyPSA-Eur, relying on a similar licensing strategy. As with PyPSA-Eur, the code in Open-TYNDP is released as free software under the
