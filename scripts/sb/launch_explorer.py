@@ -10,7 +10,6 @@ To close all running explorer instances when finished, run:
 """
 
 import logging
-import socket
 import sys
 import webbrowser
 from pathlib import Path
@@ -20,24 +19,6 @@ import pypsa
 from pypsa_explorer import create_app
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_PORT = 8050
-
-
-def find_free_port(start_port=8050, max_attempts=50):
-    """
-    Find the first available port starting from start_port.
-    """
-    for port in range(start_port, start_port + max_attempts):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("127.0.0.1", port))
-                return port
-        except OSError:
-            continue
-    raise RuntimeError(
-        f"Could not find free port in range {start_port}-{start_port + max_attempts}"
-    )
 
 
 def import_network(fn: str):
@@ -79,12 +60,14 @@ if __name__ == "__main__":
         configure_logging(snakemake)
         files = snakemake.input
         output_log = snakemake.output[0]
+        port = snakemake.params.port
         print("Running from Snakemake directly.")
     else:
         # Running from command line
         logging.basicConfig(level=logging.INFO)
         output_log = sys.argv[1]
-        files = sys.argv[2:]
+        port = int(sys.argv[2])
+        files = sys.argv[3:]
         print("Running from command line.")
 
     # Add file handler to write to explorer_launched.log
@@ -98,17 +81,14 @@ if __name__ == "__main__":
     networks = {fn.split("_")[-1].split(".")[0]: import_network(fn) for fn in files}
     logger.info(f"Successfully loaded {len(networks)} networks: {networks}")
 
-    # Find free port
-    PORT = find_free_port(start_port=DEFAULT_PORT, max_attempts=50)
-    logger.info(f"Using available port {PORT}")
-
     # Create the PyPSA-Explorer dash app
     app = create_app(networks)
 
     # Open browser with short delay
     logger.info("Launching PyPSA-Explorer...")
-    Timer(1.5, open_browser, args=[PORT]).start()
+    logger.info(f"Using available port {port}.")
+    Timer(1.5, open_browser, args=[port]).start()
 
     # Launch the App
-    logger.info(f"Explorer launched in background at http://127.0.0.1:{PORT}")
-    app.run(port=PORT, debug=False)
+    logger.info(f"Explorer launched in background at http://127.0.0.1:{port}")
+    app.run(port=port, debug=False)

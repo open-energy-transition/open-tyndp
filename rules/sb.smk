@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 
-from scripts._helpers import safe_pyear
+from scripts._helpers import safe_pyear, find_free_port
 from shutil import unpack_archive, rmtree, copy2
 
 
@@ -995,6 +995,8 @@ rule build_tyndp_gas_demands:
 
 
 rule launch_explorer:
+    params:
+        port=find_free_port(start_port=8050, max_attempts=50),
     input:
         expand(
             RESULTS
@@ -1020,6 +1022,7 @@ rule launch_explorer:
             sys.executable,
             "scripts/sb/launch_explorer.py",
             output_log,
+            str(params.port),
         ] + input_files
 
         print(f"Launching PyPSA-Explorer...")
@@ -1030,7 +1033,6 @@ rule launch_explorer:
         }
 
         # Use creationflags for Windows and start_new_session for Linux/Unix
-        print(platform.system())
         if platform.system() == "Windows":
             popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
         else:
@@ -1039,7 +1041,10 @@ rule launch_explorer:
         process = subprocess.Popen(cmd, **popen_kwargs)
 
         print(f"Explorer subprocess started with PID: {process.pid}")
-        print(f"Check logfile {output_log} for the explorer URL and output.")
+        print(f"PyPSA-Explorer is running at http://127.0.0.1:{params.port}.")
+        print(
+            f"Your browser should open automatically. If not, click the link above."
+        )
 
 
 
@@ -1061,6 +1066,6 @@ rule close_explorers:
                 pass
 
         if killed_count == 0:
-            print("No explorer processes found running")
+            print("No explorer processes found running.")
         else:
-            print(f"Closed {killed_count} explorer instance(s)")
+            print(f"Closed {killed_count} explorer instance(s).")
