@@ -23,11 +23,11 @@ Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Cont
 .. image:: https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp
     :alt: GitHub repo size
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg
+    :target: https://doi.org/10.5281/zenodo.18494363
+
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg
     :target: https://doi.org/10.5281/zenodo.3520874
-
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.14230568.svg
-    :target: https://doi.org/10.5281/zenodo.14230568
 
 .. image:: https://img.shields.io/badge/snakemake-≥7.19-brightgreen.svg?style=flat
     :target: https://snakemake.readthedocs.io
