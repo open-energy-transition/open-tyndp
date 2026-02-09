@@ -264,8 +264,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * -
      - CBA Benchmarking
-     -
-     - ⌛
+     - `#405 <https://github.com/open-energy-transition/open-tyndp/pull/405>`__
+     - ✅
    * - **CBA Benefit Indicators**
      - B1: Socioeconomic Welfare (SEW)
      - `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__
@@ -280,8 +280,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - B4: Non-CO₂ Emissions (NOx, SOx, PM2.5/10, NMVOC, NH₃)
-     -
-     - ⌛
+     - `#398 <https://github.com/open-energy-transition/open-tyndp/pull/398>`__
+     - ✅
    * -
      - B5: Grid Losses, B6: Adequacy, B7: Flexibility, B8: Stability, B9: Reserves reduction
      -
