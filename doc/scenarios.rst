@@ -8,17 +8,17 @@
 Open TYNDP Scenarios
 ####################
 
-The modelling for the reference, National Trends (NT), 
+The modelling for the reference, National Trends+ (NT+), 
 and the deviation, Distributed Energy (DE) and Global Ambition (GA), scenarios
 differ in terms of assumptions, storyline and method (capacity expansion vs dispatch modelling).
 
-Here we explain these modelling differences and these differences have been implemented into open-tyndp.
+Here we explain these modelling differences and how these differences have been implemented into open-tyndp.
 We discuss the relevant configuration settings and the implications of these implementation decisions.
 
 Background information can be found in the report from ENTSO-E and ENTSO-G 
 `TYNDP 2024 Scenarios Methdoology Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__.
 
-A description of the storylines underlying the NT, DE and GA scenarios can be found in the
+A description of the storylines underlying the NT+, DE and GA scenarios can be found in the
 `TYNDP 2024 Scenarios Storyline Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf>`__
 
 National Trends+
@@ -27,20 +27,20 @@ National Trends+
 The NT+ scenario was developed in alignment with the National Energy and Climate Plans that were available during the development
 of TYNDP 2024 (e.g. during 2023). 
 
-- Uses predefined final energy demands and generation capacity collected from transmission system operators.
+- Uses predefined final energy demands and generation capacity collected from transmission system operators
+- Modelled as a pure dispatch problem, with fixed generation capacities for 2030 and 2040
 - All energy carriers included in final energy demand, not just electricity and gas (as with TYDNP < 2024)
-- Run for 2030 and 2040
 
 Deviation Scenarios
 ~~~~~~~~~~~~~~~~~~~
 
 - Begins with National Trends+ 2030 scenario results for grid topology, generation capacity and final energy demands
 - Uses predefined final energy demands for 2040 and 2050 collected from transmission system operators and public consultation
-- Capacity expansion model is used to identify where and when investment in generation capacity is required
+- Capacity expansion model is used to identify where and when investment in renewable generation capacity and storage is required
 - Exogenous constraints on generation investment are imposed to force:
     - no new nuclear power capacity
     - all existing fossil gas plants are decommissioned
-- upper and lower bounds are also imposed to force trajectories for
+- Upper and lower bounds are also imposed to force trajectories for
     - the expansion of solar, wind, prosumer batteries and large scale batteries
     - H2 import potentials
 
