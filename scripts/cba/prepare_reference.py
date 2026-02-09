@@ -114,7 +114,7 @@ if __name__ == "__main__":
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
     hurdle_costs = snakemake.params.hurdle_costs
 
-    if planning_horizons == 2040:
+    if planning_horizons in [2035, 2040]:
         corrections = pd.read_csv(snakemake.input.corrections, index_col=0)
         corrections = corrections[
             ["Correction - Summary Direction 1", "Correction - Summary Direction 2"]
