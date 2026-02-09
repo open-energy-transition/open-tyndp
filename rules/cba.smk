@@ -156,40 +156,19 @@ rule prepare_reference:
         "../scripts/cba/prepare_reference.py"
 
 
-# remove the single project {cba_project} from the toot reference network
-# currently this can be either a trans123 or a stor123 project
-rule prepare_toot_project:
+# add or remove the cba project based on assigned method
+rule prepare_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=rules.prepare_reference.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.clean_projects.output.methods,  # not used in script; preserves dependency on checkpoint output
+        methods=rules.clean_projects.output.methods,
     output:
-        network=resources(
-            "cba/toot/networks/project_{cba_project}_{planning_horizons}.nc"
-        ),
+        network=resources("cba/networks/project_{cba_project}_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/prepare_toot_project.py"
-
-
-# add the single project {cba_project} to the pint reference network
-# currently this can be either a trans123 or a stor123 project
-rule prepare_pint_project:
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
-    input:
-        network=rules.prepare_reference.output.network,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-        storage_projects=rules.clean_projects.output.storage_projects,
-        methods=rules.clean_projects.output.methods,  # not used in script; preserves dependency on checkpoint output
-    output:
-        network=resources(
-            "cba/pint/networks/project_{cba_project}_{planning_horizons}.nc"
-        ),
-    script:
-        "../scripts/cba/prepare_pint_project.py"
+        "../scripts/cba/prepare_project.py"
 
 
 # solve the reference network which is independent of the method
@@ -229,18 +208,18 @@ rule solve_cba_network:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
     input:
-        network=resources("cba/{cba_method}/networks/{name}_{planning_horizons}.nc"),
+        network=resources("cba/networks/project_{cba_project}_{planning_horizons}.nc"),
     output:
-        network=RESULTS + "cba/{cba_method}/networks/{name}_{planning_horizons}.nc",
+        network=RESULTS + "cba/networks/project_{cba_project}_{planning_horizons}.nc",
     log:
         solver=logs(
-            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_solver.log"
+            "cba/solve_cba_network/project_{cba_project}_{planning_horizons}_solver.log"
         ),
         memory=logs(
-            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_memory.log"
+            "cba/solve_cba_network/project_{cba_project}_{planning_horizons}_memory.log"
         ),
         python=logs(
-            "cba/solve_cba_network/{cba_method}_{name}_{planning_horizons}_python.log"
+            "cba/solve_cba_network/project_{cba_project}_{planning_horizons}_python.log"
         ),
     threads: 1
     script:
@@ -251,13 +230,12 @@ rule solve_cba_network:
 rule make_indicators:
     input:
         reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
-        project=RESULTS
-        + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
+        project=RESULTS + "cba/networks/project_{cba_project}_{planning_horizons}.nc",
         non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,
         benchmark=rules.clean_tyndp_indicators.output.indicators,
+        methods=rules.clean_projects.output.methods,
     output:
-        indicators=RESULTS
-        + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
+        indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
     script:
         "../scripts/cba/make_indicators.py"
 
@@ -267,16 +245,7 @@ def input_indicators(w):
     List all indicators csv
     """
     run = w.get("run", config_provider("run", "name")(w))
-    if w.cba_method == "toot":
-        projects_path = checkpoints.clean_projects.get(run=run).output.toot_projects
-    elif w.cba_method == "pint":
-        projects_path = checkpoints.clean_projects.get(run=run).output.pint_projects
-    else:
-        raise ValueError(
-            f"Unknown cba_method {w.cba_method}. Must be one of 'toot' or 'pint'."
-        )
-
-    projects = pd.read_csv(projects_path)
+    projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
     if "planning_horizon" in projects.columns:
         projects = projects.loc[
             projects["planning_horizon"] == int(w.planning_horizons)
@@ -297,7 +266,7 @@ rule collect_indicators:
     input:
         indicators=input_indicators,
     output:
-        indicators=RESULTS + "cba/{cba_method}/indicators_{planning_horizons}.csv",
+        indicators=RESULTS + "cba/indicators_{planning_horizons}.csv",
     script:
         "../scripts/cba/collect_indicators.py"
 
@@ -309,18 +278,17 @@ rule plot_indicators:
         indicators=rules.collect_indicators.output.indicators,
         transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
-        plot_dir=directory(RESULTS + "cba/{cba_method}/plots_{planning_horizons}"),
+        plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
     script:
         "../scripts/cba/plot_indicators.py"
 
 
 rule plot_cba_benchmark:
     input:
-        indicators=RESULTS
-        + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
+        indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
     output:
         plot_file=RESULTS
-        + "cba/{cba_method}/validation_{planning_horizons}/project_{cba_project}.png",
+        + "cba/validation_{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
@@ -329,7 +297,7 @@ rule plot_all_cba_benchmark:
     input:
         indicators=rules.collect_indicators.output.indicators,
     output:
-        plot_dir=directory(RESULTS + "cba/{cba_method}/validation_{planning_horizons}"),
+        plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
@@ -339,19 +307,16 @@ rule cba:
     input:
         lambda w: expand(
             rules.collect_indicators.output.indicators,
-            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
-            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
         lambda w: expand(
             rules.plot_all_cba_benchmark.output.plot_dir,
-            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
         ),
