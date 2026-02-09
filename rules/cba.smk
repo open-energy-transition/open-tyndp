@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 #
 
+import os
 import pandas as pd
 
 from scripts.cba._helpers import filter_projects_by_specs
@@ -33,6 +34,21 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
             os.remove(output["dir"] + ".zip")
 
 
+if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
+    "source"
+] in ["archive"]:
+
+    rule retrieve_tyndp_cba_non_co2_emissions:
+        input:
+            file=storage(CBA_NON_CO2_DATASET["url"]),
+        output:
+            file=resources("cba/a.3_non-co2-emissions.csv"),
+        log:
+            logs("retrieve_tyndp_cba_non_co2_emissions.log"),
+        run:
+            copy2(input["file"], output["file"])
+
+
 # read in transmission and storage projects from excel sheets
 #
 def input_clustered_network(w):
@@ -50,6 +66,16 @@ checkpoint clean_projects:
         storage_projects=resources("cba/storage_projects.csv"),
     script:
         "../scripts/cba/clean_projects.py"
+
+
+rule clean_tyndp_indicators:
+    input:
+        dir=rules.retrieve_tyndp_cba_projects.output.dir,
+    output:
+        indicators=resources("cba/tyndp_indicators.csv"),
+        readme=resources("cba/tyndp_indicators_name_unit.csv"),
+    script:
+        "../scripts/cba/clean_tyndp_indicators.py"
 
 
 def input_sb_network(w):
@@ -200,6 +226,8 @@ rule make_indicators:
         reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
         project=RESULTS
         + "cba/{cba_method}/networks/project_{cba_project}_{planning_horizons}.nc",
+        non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,
+        benchmark=rules.clean_tyndp_indicators.output.indicators,
     output:
         indicators=RESULTS
         + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
@@ -254,6 +282,26 @@ rule plot_indicators:
         "../scripts/cba/plot_indicators.py"
 
 
+rule plot_cba_benchmark:
+    input:
+        indicators=RESULTS
+        + "cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv",
+    output:
+        plot_file=RESULTS
+        + "cba/{cba_method}/validation_{planning_horizons}/project_{cba_project}.png",
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
+rule plot_all_cba_benchmark:
+    input:
+        indicators=rules.collect_indicators.output.indicators,
+    output:
+        plot_dir=directory(RESULTS + "cba/{cba_method}/validation_{planning_horizons}"),
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
 rule cba:
     input:
@@ -265,6 +313,12 @@ rule cba:
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
+            cba_method=config_provider("cba", "methods")(w),
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+        ),
+        lambda w: expand(
+            rules.plot_all_cba_benchmark.output.plot_dir,
             cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),

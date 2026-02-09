@@ -2,9 +2,9 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
-###################
+###############
 TYNDP 2024 data
-###################
+###############
 
 The TYNDP 2024 data is downloaded and extracted using the ``retrieve_tyndp``, ``retrieve_tyndp_pecd``, ``retrieve_tyndp_vp_data`` and ``retrieve_tyndp_cba_projects`` rules. Originally published by ENTSO-E and ENTSOG under
 Creative Commons Attribution 4.0 International License (CC-BY 4.0).
@@ -116,3 +116,9 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 - **Source:** Derived from TYNDP 2024 Market Outputs
 - **Link:** https://storage.googleapis.com/open-tyndp-data-store/nuclear_p_max_pu.zip
 - **Description:** Contains availability profiles for nuclear power plants, derived from normalized generation time series in TYNDP 2024 Market Outputs. Resampled weekly, retaining maximum availability factor per week to account for maintenance schedules and forced outages.
+
+``cba/a.3_non-co2-emissions.csv``
+
+- **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv
+- **Description:** Contains a CSV file of the extracted Annex A.3 non-CO2 emissions factors table.
