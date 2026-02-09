@@ -119,7 +119,7 @@ The following variables are added to the ``indicator`` column in the CBA indicat
     - ``B3_annual_avoided_curtailment``
 
 
-B4: Renewable Energy Sources (RES) integration costs
+B4: Non-direct greenhouse emissions
 ====================================================
 
 This indicator quantifies the social cost impact of non-CO2 emissions (pollutants) resulting from the implementation of a project.
