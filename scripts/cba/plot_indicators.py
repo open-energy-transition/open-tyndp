@@ -307,7 +307,9 @@ def plot_b1_summary(
     plt.close(fig)
 
 
-def plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats, filename_suffix=""):
+def plot_b1_capex_vs_opex(
+    df, output_dir, method, colors, output_formats, filename_suffix=""
+):
     """Scatter plot of B1 CAPEX vs OPEX changes."""
     fig, ax = plt.subplots(figsize=(10, 8))
 
