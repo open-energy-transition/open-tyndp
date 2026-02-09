@@ -88,12 +88,8 @@ The following variables are added to the ``indicator`` column in the CBA indicat
 
     - ``co2_diff``
     - ``co2_ets_price``
-    - ``co2_societal_cost_low``
-    - ``co2_societal_cost_central``
-    - ``co2_societal_cost_high``
-    - ``B2_societal_cost_variation_low``
-    - ``B2_societal_cost_variation_central``
-    - ``B2_societal_cost_variation_high``
+    - ``co2_societal_cost`` (with ``subindex``: ``low``, ``central``, ``high``)
+    - ``B2a_societal_cost_variation`` (with ``subindex``: ``low``, ``central``, ``high``)
 
 B3: Renewable Energy Sources (RES) integration costs
 ====================================================
