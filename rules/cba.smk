@@ -87,8 +87,6 @@ checkpoint clean_projects:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
-        toot_projects=resources("cba/toot_projects.csv"),
-        pint_projects=resources("cba/pint_projects.csv"),
     script:
         "../scripts/cba/clean_projects.py"
 
