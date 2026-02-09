@@ -1005,6 +1005,14 @@ if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
                     TYDNP_DATASET["url"] + "/Investment-Datasets.zip"
                 ),
                 offshore_hubs=storage(TYDNP_DATASET["url"] + "/Offshore-hubs.zip"),
+                market_outputs_nt2030_cy2009=storage(
+                    TYDNP_DATASET["url"]
+                    + "/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip"
+                ),
+                market_outputs_nt2040_cy2009=storage(
+                    TYDNP_DATASET["url"]
+                    + "/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip"
+                ),
             output:
                 line_data_zip=f"{TYDNP_DATASET['folder']}/Line-data.zip",
                 nodes_zip=f"{TYDNP_DATASET['folder']}/Nodes.zip",
@@ -1038,6 +1046,10 @@ if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
                 offshore_grid=f"{TYDNP_DATASET['folder']}/Offshore hubs/GRID.xlsx",
                 offshore_electrolysers=f"{TYDNP_DATASET['folder']}/Offshore hubs/ELECTROLYSER.xlsx",
                 offshore_generators=f"{TYDNP_DATASET['folder']}/Offshore hubs/GENERATOR.xlsx",
+                market_outputs_nt2030_cy2009_zip=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
+                market_outputs_nt2030_cy2009=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
+                market_outputs_nt2040_cy2009_zip=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip",
+                market_outputs_nt2040_cy2009=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
             log:
                 "logs/retrieve_tyndp.log",
             run:

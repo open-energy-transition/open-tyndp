@@ -46,26 +46,6 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             os.remove(output["dir"] + ".zip")
 
 
-if (MM_OUTPUT_DATASET := dataset_version("tyndp_mm_output_file"))["source"] in [
-    "archive"
-]:
-
-    rule retrieve_tyndp_mm_output:
-        input:
-            zip_file=storage(MM_OUTPUT_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
-        output:
-            dir=directory(MM_OUTPUT_DATASET["folder"]),
-            NT2030=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
-            NT2040=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
-        log:
-            "logs/retrieve_tyndp_mm_output.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-
 if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["archive"]:
 
     rule retrieve_tyndp_nuclear_profiles:
@@ -678,9 +658,10 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
         input:
-            tyndp_output_file=lambda w: rules.retrieve_tyndp_mm_output.output[
-                f"{w.scenario}{w.planning_horizons}"
-            ],
+            tyndp_output_file=lambda w: getattr(
+                rules.retrieve_tyndp.output,
+                f"market_outputs_{w.scenario.lower()}{w.planning_horizons}_cy{config['snapshots']['start'][:4]}",
+            ),
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",

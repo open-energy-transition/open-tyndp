@@ -126,8 +126,6 @@ tyndp_cba_non_co2_emissions,2024,primary,not-supported,2026-01-26,Annex A.3 page
 tyndp_cba_non_co2_emissions,2024,archive,latest supported,2026-01-26,,https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv
 tyndp_cba_projects,unknown,primary,not-supported,2026-01-27,,https://tyndp2024.entsoe.eu/projects-map
 tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip
-tyndp_mm_output_file,2024,primary,not-supported,2026-02-05,"Market Model Standard output file from the TYNDP 2024, on website below “ENTSO-E & ENTSOG TYNDP 2024 Scenarios  – Outputs”",https://2024.entsos-tyndp-scenarios.eu/download/
-tyndp_mm_output_file,2024,archive,latest supported,2026-02-05,Market Model Standard output file from the TYNDP 2024,https://storage.googleapis.com/open-tyndp-data-store/TYNDP-2024-Scenarios-Outputs.zip
 tyndp_nuclear_profiles,v40,archive,latest supported,2026-02-04,Data derived from the NT Market Outputs of the TYNDP 2024,https://storage.googleapis.com/open-tyndp-data-store/nuclear_p_max_pu.zip
 tyndp_pecd,3.1+pre-built.0.1,archive,latest supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,3.1,primary,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
