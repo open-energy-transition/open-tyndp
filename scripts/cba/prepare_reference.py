@@ -92,8 +92,6 @@ if __name__ == "__main__":
             carrier="DC",
             p_nom=delta,
             p_nom_max=delta,
-            p_min_pu=-1.0,
-            p_max_pu=1.0,
             efficiency=1.0,
             marginal_cost=hurdle_costs,
             capital_cost=0.0,
