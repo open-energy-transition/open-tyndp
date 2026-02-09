@@ -40,6 +40,11 @@ operational expenditures (OPEX) of all components in each network (done separate
 
 The following columns are saved in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
 
+    - ``is_beneficial`` (TRUE/FALSE)
+    - ``interpretation``: a sentence stating whether the project is beneficial or not based on the B1 indicator.
+
+Additionally, the following variables are added to the ``indicator`` column (with corresponding ``unit`` and ``value`` entries):
+
     - ``B1_total_system_cost_change``
     - ``cost_reference``
     - ``capex_reference``
@@ -49,8 +54,6 @@ The following columns are saved in the CBA indicators CSV file (``results/cba/{c
     - ``opex_project``
     - ``capex_change``
     - ``opex_change``
-    - ``is_beneficial`` (TRUE/FALSE)
-    - ``interpretation``: a sentence stating whether the project is beneficial or not based on the B1 indicator.
 
 B2: Social costs of CO2 emissions
 =================================
