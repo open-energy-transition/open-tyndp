@@ -14,7 +14,7 @@ The following indicators are computed in the CBA workflow:
 - B1: Social Economic Welfare (SEW)
 - B2: Social costs of CO2 emissions
 - B3: Renewable Energy Sources (RES) integration costs
-
+- B4: Non-direct greenhouse emissions
 B1: Social Economic Welfare (SEW)
 =================================
 
