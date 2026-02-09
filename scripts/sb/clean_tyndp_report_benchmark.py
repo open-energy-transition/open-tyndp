@@ -296,7 +296,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("clean_tyndp_benchmark")
+        snakemake = mock_snakemake("clean_tyndp_report_benchmark")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)

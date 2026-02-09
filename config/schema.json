@@ -494,6 +494,16 @@
           },
           "type": "array"
         },
+        "area": {
+          "default": "tyndp",
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "enum": [
+            "tyndp",
+            "entso-e",
+            "eu27"
+          ],
+          "type": "string"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -2072,6 +2082,26 @@
             }
           }
         },
+        "tyndp_mm_output_file": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "tyndp_cba_projects": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -2093,6 +2123,26 @@
           }
         },
         "tyndp_nuclear_profiles": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_cba_non_co2_emissions": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -8561,6 +8611,11 @@
         false
       ]
     },
+    "launch_explorer": {
+      "default": false,
+      "description": "Switch to launch the PyPSA-Explorer with the result networks.",
+      "type": "boolean"
+    },
     "scenario": {
       "description": "Configuration for top level `scenario` settings.",
       "properties": {
@@ -14144,6 +14199,26 @@
             }
           }
         },
+        "tyndp_mm_output_file": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "tyndp_cba_projects": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -14165,6 +14240,26 @@
           }
         },
         "tyndp_nuclear_profiles": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_cba_non_co2_emissions": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -14289,6 +14384,16 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "area": {
+          "default": "tyndp",
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "enum": [
+            "tyndp",
+            "entso-e",
+            "eu27"
+          ],
+          "type": "string"
         },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 
-from scripts._helpers import safe_pyear
+from scripts._helpers import safe_pyear, find_free_port
 from shutil import unpack_archive, rmtree, copy2
 
 
@@ -139,6 +139,26 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             elec_supply=f"{VIS_PLFM_DATASET["folder"]}/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
         log:
             "logs/retrieve_tyndp_vp_data.log",
+        run:
+            copy2(input["zip_file"], output["dir"] + ".zip")
+            unpack_archive(output["dir"] + ".zip", output["dir"])
+            os.remove(output["dir"] + ".zip")
+
+
+if (MM_OUTPUT_DATASET := dataset_version("tyndp_mm_output_file"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_tyndp_mm_output:
+        input:
+            zip_file=storage(MM_OUTPUT_DATASET["url"]),
+            dir=rules.retrieve_tyndp.output.dir,
+        output:
+            dir=directory(MM_OUTPUT_DATASET["folder"]),
+            NT2030=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
+            NT2040=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
+        log:
+            "logs/retrieve_tyndp_mm_output.log",
         run:
             copy2(input["zip_file"], output["dir"] + ".zip")
             unpack_archive(output["dir"] + ".zip", output["dir"])
@@ -753,7 +773,30 @@ if config["foresight"] != "perfect":
 
 if config["benchmarking"]["enable"]:
 
-    rule clean_tyndp_benchmark:
+    rule clean_tyndp_output_benchmark:
+        params:
+            benchmarking=config_provider("benchmarking"),
+            scenario=config_provider("tyndp_scenario"),
+        input:
+            tyndp_output_file=lambda w: rules.retrieve_tyndp_mm_output.output[
+                f"{w.scenario}{w.planning_horizons}"
+            ],
+        output:
+            benchmarks=RESULTS
+            + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+        log:
+            logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
+        benchmark:
+            benchmarks("clean_tyndp_output_benchmark_{scenario}{planning_horizons}")
+        wildcard_constraints:
+            planning_horizons="(2030|2040)",  # Only years with MM output data
+        threads: 4
+        resources:
+            mem_mb=8000,
+        script:
+            "../scripts/sb/clean_tyndp_output_benchmark.py"
+
+    rule clean_tyndp_report_benchmark:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
@@ -763,14 +806,14 @@ if config["benchmarking"]["enable"]:
         output:
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
         log:
-            logs("clean_tyndp_benchmark.log"),
+            logs("clean_tyndp_report_benchmark.log"),
         benchmark:
-            benchmarks("clean_tyndp_benchmark")
+            benchmarks("clean_tyndp_report_benchmark")
         threads: 4
         resources:
             mem_mb=8000,
         script:
-            "../scripts/sb/clean_tyndp_benchmark.py"
+            "../scripts/sb/clean_tyndp_report_benchmark.py"
 
     rule clean_tyndp_vp_data:
         params:
@@ -861,6 +904,17 @@ if config["benchmarking"]["enable"]:
                 RESULTS
                 + "validation/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
                 planning_horizons=config_provider("scenario", "planning_horizons"),
+                allow_missing=True,
+            ),
+            mm_data=lambda w: expand(
+                RESULTS
+                + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                scenario="NT",
+                planning_horizons=[
+                    year
+                    for year in config_provider("scenario", "planning_horizons")(w)
+                    if str(year) in ["2030", "2040"]  # Only years with MM output data
+                ],
                 allow_missing=True,
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
@@ -992,3 +1046,80 @@ rule build_tyndp_gas_demands:
             **config["scenario"],
             run=config["run"]["name"],
         ),
+
+
+rule launch_explorer:
+    params:
+        port=find_free_port(start_port=8050, max_attempts=50),
+    input:
+        expand(
+            RESULTS
+            + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+            run=config["run"]["name"],
+            **config["scenario"],
+        ),
+    output:
+        RESULTS + "logs/explorer_launched.log",
+    run:
+        import platform
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        output_log = str(output[0])
+        input_files = list(input)
+
+        Path(output_log).touch()
+
+        # Define command line executable
+        cmd = [
+            sys.executable,
+            "scripts/sb/launch_explorer.py",
+            output_log,
+            str(params.port),
+        ] + input_files
+
+        print(f"Launching PyPSA-Explorer...")
+
+        popen_kwargs = {
+            "stdout": open(output_log, "w"),
+            "stderr": subprocess.STDOUT,
+        }
+
+        # Use creationflags for Windows and start_new_session for Linux/Unix
+        if platform.system() == "Windows":
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            popen_kwargs["start_new_session"] = True
+
+        process = subprocess.Popen(cmd, **popen_kwargs)
+
+        print(f"Explorer subprocess started with PID: {process.pid}")
+        print(f"PyPSA-Explorer is running at http://127.0.0.1:{params.port}.")
+        print(
+            f"Your browser should open automatically. If not, click the link above."
+        )
+
+
+
+rule close_explorers:
+    run:
+        import psutil
+
+        print("Closing all explorer instances...")
+        killed_count = 0
+
+        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+            try:
+                cmdline = proc.info.get("cmdline", [])
+                if cmdline and "launch_explorer.py" in " ".join(cmdline):
+                    proc.kill()
+                    print(f"Killed explorer process (PID: {proc.info['pid']})")
+                    killed_count += 1
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+
+        if killed_count == 0:
+            print("No explorer processes found running.")
+        else:
+            print(f"Closed {killed_count} explorer instance(s).")
