@@ -629,7 +629,14 @@ def load_benchmark_rows(
     ].copy()
 
     if benchmark.empty:
-        raise ValueError("No benchmark rows found")
+        logger.warning(
+            "No benchmark rows found for project %s (horizon %s, scenario %s, type %s)",
+            project_id,
+            planning_horizon,
+            scenario,
+            project_type,
+        )
+        return pd.DataFrame()
 
     if "indicator_mapped" in benchmark.columns:
         benchmark["indicator"] = benchmark["indicator_mapped"].fillna(
