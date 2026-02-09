@@ -84,7 +84,6 @@ def load_and_merge_data(indicators_path, projects_path):
 
     meta_cols = [c for c in ["method", "is_beneficial", "interpretation"] if c in base]
     meta = base.groupby("project_id")[meta_cols].first().reset_index()
-    print(meta)
 
     metrics = meta[["project_id"]].copy()
     metrics["B1_total_system_cost_change"] = metrics["project_id"].map(
@@ -113,7 +112,9 @@ def load_and_merge_data(indicators_path, projects_path):
     return merged, projects["project_id"].nunique()
 
 
-def plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=20):
+def plot_b1_top_projects(
+    df, output_dir, method, colors, output_formats, n_top=20, filename_suffix=""
+):
     """
     Diverging bar chart showing B1 with CAPEX/OPEX breakdown for top N projects.
 
@@ -252,11 +253,15 @@ def plot_b1_top_projects(df, output_dir, method, colors, output_formats, n_top=2
     ax.set_xlim(ax.get_xlim()[0], max_val * 1.4)
 
     plt.tight_layout()
-    save_figure(fig, output_dir, f"b1_top_{n_top}_projects", output_formats)
+    save_figure(
+        fig, output_dir, f"b1_top_{n_top}_projects{filename_suffix}", output_formats
+    )
     plt.close(fig)
 
 
-def plot_b1_summary(df, output_dir, method, colors, output_formats, total_projects):
+def plot_b1_summary(
+    df, output_dir, method, colors, output_formats, total_projects, filename_suffix=""
+):
     """Summary plot with B1 histogram."""
     beneficial = df[df["is_beneficial"] == True]
     not_beneficial = df[df["is_beneficial"] == False]
@@ -298,11 +303,11 @@ def plot_b1_summary(df, output_dir, method, colors, output_formats, total_projec
     ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     plt.tight_layout()
-    save_figure(fig, output_dir, "b1_summary", output_formats)
+    save_figure(fig, output_dir, f"b1_summary{filename_suffix}", output_formats)
     plt.close(fig)
 
 
-def plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats):
+def plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats, filename_suffix=""):
     """Scatter plot of B1 CAPEX vs OPEX changes."""
     fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -351,7 +356,7 @@ def plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats):
     ax.grid(alpha=0.3)
 
     plt.tight_layout()
-    save_figure(fig, output_dir, "b1_capex_vs_opex", output_formats)
+    save_figure(fig, output_dir, f"b1_capex_vs_opex{filename_suffix}", output_formats)
     plt.close(fig)
 
 
@@ -371,20 +376,42 @@ def create_plots(indicators_path, projects_path, output_dir, params):
     if isinstance(output_formats, str):
         output_formats = [output_formats]
 
-    df, total_projects = load_and_merge_data(indicators_path, projects_path)
+    df, _ = load_and_merge_data(indicators_path, projects_path)
     if df.empty:
         logger.warning("No indicators data to plot")
         return
 
-    method = df["method"].iloc[0].lower()
-    logger.info(f"Creating {method.upper()} plots for {len(df)} projects")
+    method_col = "cba_method" if "cba_method" in df.columns else "method"
+    if method_col not in df.columns:
+        df[method_col] = "UNKNOWN"
 
-    # B1 indicator plots
-    plot_b1_top_projects(
-        df, output_dir, method, colors, output_formats, n_top=min(20, len(df))
-    )
-    plot_b1_summary(df, output_dir, method, colors, output_formats, total_projects)
-    plot_b1_capex_vs_opex(df, output_dir, method, colors, output_formats)
+    for method, method_df in df.groupby(method_col):
+        method_label = str(method).strip().upper()
+        suffix = f"_{method_label.lower()}"
+        logger.info("Creating %s plots for %d projects", method_label, len(method_df))
+
+        method_total = method_df["project_id"].nunique()
+        plot_b1_top_projects(
+            method_df,
+            output_dir,
+            method_label,
+            colors,
+            output_formats,
+            n_top=min(20, len(method_df)),
+            filename_suffix=suffix,
+        )
+        plot_b1_summary(
+            method_df,
+            output_dir,
+            method_label,
+            colors,
+            output_formats,
+            method_total,
+            filename_suffix=suffix,
+        )
+        plot_b1_capex_vs_opex(
+            method_df, output_dir, method_label, colors, output_formats, suffix
+        )
 
     # Future indicators (add when implemented in make_indicators.py):
     # plot_b2_...(df, output_dir, method)
@@ -399,7 +426,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "plot_indicators",
-            cba_method="toot",
             planning_horizons="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
