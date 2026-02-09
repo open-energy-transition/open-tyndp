@@ -19,6 +19,7 @@ from scripts._helpers import (
     get_scenarios,
     get_shadow,
     path_provider,
+    script_path_provider,
 )
 from scripts.lib.validation.config import validate_config
 
@@ -44,6 +45,7 @@ exclude_from_shared = run["shared_resources"]["exclude"]
 logs = path_provider("logs/", RDIR, shared_resources, exclude_from_shared)
 benchmarks = path_provider("benchmarks/", RDIR, shared_resources, exclude_from_shared)
 resources = path_provider("resources/", RDIR, shared_resources, exclude_from_shared)
+scripts = script_path_provider(Path(workflow.snakefile).parent)
 
 RESULTS = "results/" + RDIR
 
