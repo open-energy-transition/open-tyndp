@@ -109,3 +109,9 @@ assessed by TYNDP 2024 in its Cost-Benefit Analysis.
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://storage.googleapis.com/open-tyndp-data-store/20240518-Supply-Tool.xlsm.zip
 - **Description:** Contains the TYNDP 2024 Supply Tool.
+
+``cba/a.3_non-co2-emissions.csv``
+
+- **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
+- **Link:** https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv
+- **Description:** Contains a CSV file of the extracted Annex A.3 non-CO2 emissions factors table.
