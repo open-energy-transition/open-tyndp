@@ -112,7 +112,7 @@ RES technologies are defined in ``electricity.tyndp_renewable_carriers`` in the 
 
 **Outputs**
 
-The following columns are saved in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
+The following variables are added to the ``indicator`` column in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
 
     - ``B3a_res_capacity_change``
     - ``B3_res_generation_change``
