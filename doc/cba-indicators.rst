@@ -151,9 +151,9 @@ For the following pollutants emissions factors are considered:
 
 The following variables are added to the ``indicator`` column in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
 
-    - ``B4_NOX``
-    - ``B4_NH3``
-    - ``B4_SO2``
-    - ``B4_PM2.5``
-    - ``B4_PM10``
-    - ``B4_NMVOC``
+    - ``B4a_nox``
+    - ``B4b_nh3``
+    - ``B4c_sox``
+    - ``B4d_pm25``
+    - ``B4e_pm10``
+    - ``B4f_nmvoc``
