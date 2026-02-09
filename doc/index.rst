@@ -101,6 +101,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added automated Windows installer for easy setup on Windows systems (see PR `#333 <https://github.com/open-energy-transition/open-tyndp/pull/333>`__).
 - Introduced calculation of B2 indicator in the CBA based on changes in total CO2 emissions (see PR `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__).
 - Introduced calculation of B3 indicator in the CBA based on renewable energy system integration (see PR `#350 <https://github.com/open-energy-transition/open-tyndp/pull/350>`__).
+- Automatically launched PyPSA-Explorer to investigate run results (see PR `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__).
 
 
 .. list-table::
@@ -160,8 +161,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - TYNDP plotting routines
-     -
-     - ⌛
+     - `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__
+     - 🔨
    * - **Automated tests and benchmarks**
      - Automated benchmarking routine
      - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__, `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__

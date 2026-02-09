@@ -36,6 +36,8 @@ Upcoming Open-TYNDP Release
 
 * Add availability profiles for nuclear power plants (https://github.com/open-energy-transition/open-tyndp/pull/447). The profiles are derived from the Market Outputs files for the NT scenario. Generation time series are normalized to per-unit values and resampled weekly, retaining the maximum availability factor per week to account for maintenance schedules and forced outages.
 
+* Add PyPSA-Explorer to workflow (https://github.com/open-energy-transition/open-tyndp/pull/443). The explorer will launch automatically in a new browser tab.
+
 **Changes**
 
 * Improve general assumptions for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/430). This includes refining assumptions relating to efficiencies, fuel costs and extendable technologies.
