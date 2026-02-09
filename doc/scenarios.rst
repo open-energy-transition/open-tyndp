@@ -107,7 +107,7 @@ to form the two deviation scenarios are defined in ``config/scenarios.tyndp.yaml
    * - transmission_projects
      - Enables projects; all source sets disabled.
    * - load
-     - Demand source and year availability; gap fill and adjustments disabled.
+     - Demand source and year availability; default gap fill and adjustments disabled.
    * - pypsa_eur
      - Carrier-to-component mappings for imported PyPSA-Eur data.
    * - biomass
@@ -121,7 +121,7 @@ to form the two deviation scenarios are defined in ``config/scenarios.tyndp.yaml
    * - adjustments
      - Optional scaling factors for sector components; currently off.
    * - solving
-     - Solver selection and option set (HiGHS).
+     - Solver selection and option set (uses HiGHS by default).
    * - plotting
      - Thresholds, map projection, balance map settings and factors.
    * - benchmarking
