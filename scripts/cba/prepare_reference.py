@@ -91,8 +91,6 @@ if __name__ == "__main__":
             bus1=bus1,
             carrier="DC",
             p_nom=delta,
-            p_nom_extendable=False,
-            p_nom_min=0.0,
             p_nom_max=delta,
             p_min_pu=-1.0,
             p_max_pu=1.0,
