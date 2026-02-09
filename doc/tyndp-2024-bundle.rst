@@ -2,9 +2,9 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
-###################
-TYNDP 2024 data bundle
-###################
+###############
+TYNDP 2024 data
+###############
 
 Data in this section is downloaded and extracted from the TYNDP 2024 data bundle for PyPSA-Eur
 (https://zenodo.org/records/14230568). Originally published by ENTSO-E and ENTSOG under
