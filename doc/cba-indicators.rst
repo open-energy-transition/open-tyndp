@@ -84,7 +84,7 @@ assuming different societal cost values for CO2.
 
 **Outputs**
 
-The following columns are saved in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
+The following variables are added to the ``indicator`` column in the CBA indicators CSV file (``results/cba/{cba_method}/indicators/cba_indicators_{planning_horizons}.csv``):
 
     - ``co2_diff``
     - ``co2_ets_price``
