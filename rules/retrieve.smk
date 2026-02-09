@@ -983,7 +983,7 @@ if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
 
         rule retrieve_tyndp:
             message:
-                "Retrieving TYNDP network topology data"
+                "Retrieving TYNDP 2024 data package"
             input:
                 line_data=storage(TYDNP_DATASET["url"] + "/Line-data.zip"),
                 nodes=storage(TYDNP_DATASET["url"] + "/Nodes.zip"),
