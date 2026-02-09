@@ -127,6 +127,8 @@ tyndp_benchmark,20240522,primary,not-supported,2026-01-27,,https://2024-data.ent
 tyndp_benchmark,20240522,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx
 tyndp_bundle,2024,primary,not-supported,2026-01-27,Open-TYNDP specific data bundle,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
 tyndp_bundle,2024,archive,latest supported,2026-01-27,Open-TYNDP specific data bundle,https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip
+tyndp_cba_non_co2_emissions,2024,primary,not-supported,2026-01-26,Annex A.3 page 108,https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
+tyndp_cba_non_co2_emissions,2024,archive,latest supported,2026-01-26,,https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv
 tyndp_cba_projects,unknown,primary,not-supported,2026-01-27,,https://tyndp2024.entsoe.eu/projects-map
 tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip
 tyndp_hydro_inflows,unknown,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip

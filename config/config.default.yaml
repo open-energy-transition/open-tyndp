@@ -37,6 +37,9 @@ foresight: overnight
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
 tyndp_scenario: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#launch_explorer
+launch_explorer: false
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#scenario
 scenario:
   clusters:
@@ -1524,6 +1527,9 @@ data:
   tyndp_nuclear_profiles:
     source: archive
     version: latest
+  tyndp_cba_non_co2_emissions:
+    source: archive
+    version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:
@@ -1543,6 +1549,7 @@ cba:
   methods:
   - toot
   projects: []
+  area: tyndp
   storage:
     cyclic_carriers:
     - battery

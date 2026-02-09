@@ -206,6 +206,9 @@ pixi-pycharm = ">=0.0.9"
 [feature.open-tyndp.target.win-64.dependencies]
 git = ">=2.52.0"
 
+[feature.open-tyndp.pypi-dependencies]
+pypsa-explorer = ">=0.1.1"
+
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
 test = ["test"]
