@@ -203,17 +203,27 @@ Open-TYNDP v0.5 (9th February 2026)
 
 * Introduce calculation of B3 indicators in the Cost-Benefit Analysis (CBA) based on renewable energy integration (https://github.com/open-energy-transition/open-tyndp/pull/350).
 
+* Introduce calculation of B4 indicator in the Cost-Benefit Analysis (CBA) based on changes in non-CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/398).
+
 * Set short-term storage to cyclic in CBA dispatch (https://github.com/open-energy-transition/open-tyndp/pull/385).
 
 * Add availability profiles for nuclear power plants (https://github.com/open-energy-transition/open-tyndp/pull/447). The profiles are derived from the Market Outputs files for the NT scenario. Generation time series are normalized to per-unit values and resampled weekly, retaining the maximum availability factor per week to account for maintenance schedules and forced outages.
+
+* Add PyPSA-Explorer to workflow (https://github.com/open-energy-transition/open-tyndp/pull/443). The explorer will launch automatically in a new browser tab.
+
+* Add automated plotting for CBA indicators (https://github.com/open-energy-transition/open-tyndp/pull/352).
+
+* Add benchmarking of CBA indicators against TYNDP 2024 reported values (https://github.com/open-energy-transition/open-tyndp/pull/405).
 
 **Changes**
 
 * Improve general assumptions for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/430). This includes refining assumptions relating to efficiencies, fuel costs and extendable technologies.
 
-* Extend PyPSA-Eur validation schema for configuration files to Open-TYNDP specific configurations (see https://github.com/PyPSA/pypsa-eur/pull/1912) (https://github.com/open-energy-transition/open-tyndp/pull/419). Find a detailed explanation in the contributors documentation
+* Extend PyPSA-Eur validation schema for configuration files to Open-TYNDP specific configurations (see https://github.com/PyPSA/pypsa-eur/pull/1912) (https://github.com/open-energy-transition/open-tyndp/pull/419). Find a detailed explanation in the contributors documentation.
 
-* Add automated plotting for CBA indicators (https://github.com/open-energy-transition/open-tyndp/pull/352).
+* Assign CBA method assignment of projects before creation of project network, using data from CBA Implementation Guide (https://github.com/open-energy-transition/open-tyndp/pull/426).
+
+* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450). 
 
 * Add preprocessing of Market Model benchmark data (https://github.com/open-energy-transition/open-tyndp/pull/372). All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots.
 
@@ -227,11 +237,19 @@ Open-TYNDP v0.5 (9th February 2026)
 
 * Fix to allow for bidirectional electricity and hydrogen interconnections between offshore hubs (https://github.com/open-energy-transition/open-tyndp/pull/445). To shore connections remain unidirectional as defined in the inputs.
 
+* Improve power generation benchmarking for renewables (https://github.com/open-energy-transition/open-tyndp/pull/457). Reported values now include curtailment.
+
 **Documentation**
+
+* Docs: Add documentation describing the CBA workflow and CBA indicators (https://github.com/open-energy-transition/open-tyndp/pull/392).
 
 **Developers Note**
 
 * Add scenario column to the `custom_costs.csv` file to allow for shared adjustments across scenarios (https://github.com/open-energy-transition/open-tyndp/pull/361).
+
+* Align the data structure of the TYNDP archives with that of upstream (https://github.com/open-energy-transition/open-tyndp/pull/451). These changes ensure that all the data is retrieved in an identical structure to the primary source, and as individual compressed archives.
+
+* Reformat CBA indicators output CSV to long format and to include units (https://github.com/open-energy-transition/open-tyndp/pull/401).
 
 
 Open-TYNDP v0.4.2 (23rd January 2026)

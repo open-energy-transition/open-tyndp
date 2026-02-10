@@ -37,6 +37,9 @@ foresight: overnight
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
 tyndp_scenario: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#launch_explorer
+launch_explorer: false
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#scenario
 scenario:
   clusters:
@@ -1491,37 +1494,22 @@ data:
   bidding_zones_entsoepy:
     source: archive
     version: latest
-  tyndp_bundle:
-    source: archive
-    version: latest
-  cutout_additional:
-    source: archive
-    version: latest
   tyndp_pecd:
     source: archive
     version: latest
-  tyndp_hydro_inflows:
-    source: archive
-    version: latest
-  tyndp_pemmdb:
-    source: archive
-    version: latest
-  tyndp_supply_tool:
-    source: archive
-    version: latest
-  tyndp_benchmark:
-    source: archive
-    version: latest
   tyndp_vis_plfm:
-    source: archive
-    version: latest
-  tyndp_mm_output_file:
     source: archive
     version: latest
   tyndp_cba_projects:
     source: archive
     version: latest
   tyndp_nuclear_profiles:
+    source: archive
+    version: latest
+  tyndp_cba_non_co2_emissions:
+    source: archive
+    version: latest
+  cba_guidelines_reference_projects:
     source: archive
     version: latest
 
@@ -1543,6 +1531,7 @@ cba:
   methods:
   - toot
   projects: []
+  area: tyndp
   storage:
     cyclic_carriers:
     - battery

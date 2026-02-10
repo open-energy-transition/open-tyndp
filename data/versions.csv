@@ -11,6 +11,8 @@ bidding_zones_electricitymaps,v1.238.0,primary,latest supported,2026-01-22,,http
 bidding_zones_electricitymaps,v1.238.0,archive,latest supported,2026-01-22,,https://data.pypsa.org/workflows/eur/bidding_zones_electricitymaps/v1.238.0/world.geojson
 bidding_zones_entsoepy,v0.6.18,primary,latest supported,2026-01-22,,https://raw.githubusercontent.com/EnergieID/entsoe-py/refs/tags/V0.6.18/entsoe/geo/geojson
 bidding_zones_entsoepy,v0.6.18,archive,latest supported,2026-01-22,,https://data.pypsa.org/workflows/eur/bidding_zones_entsoepy/v0.6.18
+cba_guidelines_reference_projects,unknown,archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv
+cba_guidelines_reference_projects,2024,primary,not-supported,2026-02-05,,https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
 co2stop,26-august-2020,primary,latest supported,2025-12-02,,https://setis.ec.europa.eu/document/download/786a884f-0b33-4789-b744-28004b16bd1a_en?filename=co2jrc_openformats.zip
 co2stop,26-august-2020,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/co2stop/26-august-2020/co2jrc_openformats.zip
 copernicus_land_cover,v3.0.1,primary,latest supported,2025-12-02,"The primary is already from Zenodo, documentation in https://zenodo.org/records/4723921",https://zenodo.org/records/3939050/files/PROBAV_LC100_global_v3.0.1_2019-nrt_Discrete-Classification-map_EPSG-4326.tif
@@ -32,7 +34,6 @@ country_runoff,2025-08-13,primary,latest supported,2025-12-02,,https://zenodo.or
 country_runoff,2025-08-13,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/country_runoff/2025-08-13/era5-runoff-per-country.csv
 cutout,v1.0,archive,latest supported,2026-01-13,Pre-build cutouts for PyPSA-Eur,https://data.pypsa.org/workflows/cutout/v1.0
 cutout,unknown,build,latest supported,2025-12-02,Build latest cutouts using ERA5/SARAH3 data.,
-cutout_additional,v0.1-beta,archive,latest supported,2025-12-02,Pre-built cutout of 2009 for PyPSA-Eur,https://storage.googleapis.com/open-tyndp-data-store/
 dh_areas,341.5,primary,latest supported,2025-12-02,,https://fordatis.fraunhofer.de/bitstream/fordatis/341.5/2/dh_areas.gpkg
 dh_areas,341.5,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/dh_areas/341.5/dh_areas.gpkg
 eez,v12_20231025,primary,latest supported,2025-12-02,API request used,https://www.marineregions.org/download_file.php
@@ -121,26 +122,16 @@ ship_raster,v5,archive,latest supported,2026-01-13,,https://data.pypsa.org/workf
 synthetic_electricity_demand,v2,primary,latest supported,2025-12-02,the primary is already from Zenodo published by original authors,https://zenodo.org/records/10820928/files/demand_hourly.csv
 synthetic_electricity_demand,v2,archive,latest supported,2026-01-20,the primary is already from Zenodo published by original authors,https://data.pypsa.org/workflows/eur/synthetic_electricity_demand/v2
 synthetic_electricity_demand,0.1.0,archive,deprecated might-work,2026-01-13,,https://data.pypsa.org/workflows/eur/synthetic_electricity_demand/0.1.0/demand_hourly.csv
-tyndp,2024,primary,latest supported,2025-12-02,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
-tyndp,2024,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/tyndp/2024
-tyndp_benchmark,20240522,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip
-tyndp_benchmark,20240522,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx
-tyndp_bundle,2024,primary,not-supported,2026-01-27,Open-TYNDP specific data bundle,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
-tyndp_bundle,2024,archive,latest supported,2026-01-27,Open-TYNDP specific data bundle,https://zenodo.org/records/14230568/files/TYNDP_2024_data_bundle.zip
+tyndp,2024,primary,latest supported,2026-02-05,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
+tyndp,2024,archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024
+tyndp_cba_non_co2_emissions,2024,primary,not-supported,2026-01-26,Annex A.3 page 108,https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
+tyndp_cba_non_co2_emissions,2024,archive,latest supported,2026-01-26,,https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv
 tyndp_cba_projects,unknown,primary,not-supported,2026-01-27,,https://tyndp2024.entsoe.eu/projects-map
 tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip
-tyndp_hydro_inflows,unknown,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip
-tyndp_hydro_inflows,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/Hydro_Inflows.zip
-tyndp_mm_output_file,2024,primary,not-supported,2026-02-05,"Market Model Standard output file from the TYNDP 2024, on website below “ENTSO-E & ENTSOG TYNDP 2024 Scenarios  – Outputs”",https://2024.entsos-tyndp-scenarios.eu/download/
-tyndp_mm_output_file,2024,archive,latest supported,2026-02-05,Market Model Standard output file from the TYNDP 2024,https://storage.googleapis.com/open-tyndp-data-store/TYNDP-2024-Scenarios-Outputs.zip
 tyndp_nuclear_profiles,v40,archive,latest supported,2026-02-04,Data derived from the NT Market Outputs of the TYNDP 2024,https://storage.googleapis.com/open-tyndp-data-store/nuclear_p_max_pu.zip
 tyndp_pecd,3.1+pre-built.0.1,archive,latest supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,3.1,primary,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
 tyndp_pecd,3.1,archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_pemmdb,2.5,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PEMMDB2.zip
-tyndp_pemmdb,2.5,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PEMMDB.zip
-tyndp_supply_tool,20240518,primary,supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip
-tyndp_supply_tool,20240518,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/20240518-Supply-Tool.xlsm.zip
 tyndp_vis_plfm,unknown,primary,not-supported,2026-01-27,,https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/
 tyndp_vis_plfm,20250117,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip
 wdpa,unknown,primary,latest supported,2025-12-02,"WDPA changes its URL every month, the URL here is used as a template and {bYYYY} is replaced inside the retrieve.smk.",https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_{bYYYY}_Public_shp.zip

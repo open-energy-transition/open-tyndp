@@ -8,6 +8,7 @@ import copy
 import logging
 import os
 import re
+import socket
 import time
 from bisect import bisect_right
 from collections.abc import Callable
@@ -1562,3 +1563,19 @@ def interpolate_demand(
     result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
 
     return result
+
+
+def find_free_port(start_port=8050, max_attempts=50):
+    """
+    Find the first available port starting from start_port.
+    """
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("127.0.0.1", port))
+                return port
+        except OSError:
+            continue
+    raise RuntimeError(
+        f"Could not find free port in range {start_port}-{start_port + max_attempts}"
+    )
