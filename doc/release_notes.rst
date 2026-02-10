@@ -186,7 +186,7 @@ Upcoming PyPSA-Eur Release
 
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
 
-Open-TYNDP v0.5 (9th February 2026)
+Open-TYNDP v0.5 (10th February 2026)
 ========================================
 
 **Features**
