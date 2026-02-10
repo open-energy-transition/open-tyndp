@@ -59,9 +59,9 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
         input:
             file=storage(CBA_GUIDELINES_DATASET["url"]),
         output:
-            file=resources("cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv"),
+            file=f"{CBA_GUIDELINES_DATASET['folder']}/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         log:
-            logs("retreive_cba_guidelines_reference_projects.log"),
+            "logs/retreive_cba_guidelines_reference_projects.log",
         run:
             copy2(input["file"], output["file"])
 
