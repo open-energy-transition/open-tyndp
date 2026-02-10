@@ -261,7 +261,11 @@ def compute_benchmark(
 
         # TYNDP 2024 report available generation for renewables (incl. curtailment)
         res_carriers = df.filter(regex="offwind.*|solar.*|onwind").index
-        res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
+        res_idx = (
+            n.generators[n.generators.carrier.isin(res_carriers)]
+            .query("bus in @eu27_idx")
+            .index
+        )
 
         res_gen = (
             (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
