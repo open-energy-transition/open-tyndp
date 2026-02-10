@@ -780,7 +780,8 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
             snapshots=config_provider("snapshots"),
-            colors=config_provider("plotting", "tech_colors"),
+            tech_colors=config_provider("plotting", "tech_colors"),
+            bench_colors=config_provider("plotting", "benchmarking", "colors"),
         input:
             results=expand(
                 RESULTS

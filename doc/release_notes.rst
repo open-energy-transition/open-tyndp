@@ -41,6 +41,8 @@ Upcoming Open-TYNDP Release
 
 * Add PyPSA-Explorer to workflow (https://github.com/open-energy-transition/open-tyndp/pull/443). The explorer will launch automatically in a new browser tab.
 
+* Add Market Model outputs to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/458). Additional minor fixes: SMR and SMR with CCS are now reported as a single group, and e-fuels are excluded from hydrogen demand since they are already accounted for in the exogenous demand.
+
 **Changes**
 
 * Improve general assumptions for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/430). This includes refining assumptions relating to efficiencies, fuel costs and extendable technologies.
