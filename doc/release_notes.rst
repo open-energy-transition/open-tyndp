@@ -40,7 +40,7 @@ Upcoming Open-TYNDP Release
 
 * Improve general assumptions for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/430). This includes refining assumptions relating to efficiencies, fuel costs and extendable technologies.
 
-* Extend PyPSA-Eur validation schema for configuration files to Open-TYNDP specific configurations (see https://github.com/PyPSA/pypsa-eur/pull/1912) (https://github.com/open-energy-transition/open-tyndp/pull/419). Find a detailed explanation in the contributors documentation
+* Extend PyPSA-Eur validation schema for configuration files to Open-TYNDP specific configurations (see https://github.com/PyPSA/pypsa-eur/pull/1912) (https://github.com/open-energy-transition/open-tyndp/pull/419). Find a detailed explanation in the contributors documentation.
 
 **Bugfixes and Compatibility**
 
@@ -51,6 +51,8 @@ Upcoming Open-TYNDP Release
 * Fix processing of H2 demand profiles and PEMMDB profiles for compatibility with the climate year being a leap year like 2008 (https://github.com/open-energy-transition/open-tyndp/pull/414).
 
 * Fix to allow for bidirectional electricity and hydrogen interconnections between offshore hubs (https://github.com/open-energy-transition/open-tyndp/pull/445). To shore connections remain unidirectional as defined in the inputs.
+
+* Improve power generation benchmarking for renewables (https://github.com/open-energy-transition/open-tyndp/pull/457). Reported values now include curtailment.
 
 
 Upcoming PyPSA-Eur Release
