@@ -195,7 +195,7 @@ Open-TYNDP v0.5 (9th February 2026)
 
 * Add TYNDP hydro technologies and associated PEMMDB capacities and inflows (https://github.com/open-energy-transition/open-tyndp/pull/338). The following technologies are introduced: `hydro-ror`, `hydro-reservoir`, `hydro-pondage`, `hydro-phs` and `hydro-phs-pure`.
 
-* Scaled EV electricity demand and adjusted EV parameters to match TYNDP 2024 assumptions (EV charging efficiency, EV charging rate, capacity available for DSM, car efficiency) (https://github.com/open-energy-transition/open-tyndp/pull/142).
+* Scaled EV electricity demand and adjusted EV parameters to match TYNDP 2024 assumptions (EV charging efficiency, EV charging rate, capacity available for DSM, car efficiency) (https://github.com/open-energy-transition/open-tyndp/pull/409).
 
 * Add the 2035 reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/340).
 
@@ -215,6 +215,8 @@ Open-TYNDP v0.5 (9th February 2026)
 
 * Add benchmarking of CBA indicators against TYNDP 2024 reported values (https://github.com/open-energy-transition/open-tyndp/pull/405).
 
+* Add Market Model outputs to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/458). Additional minor fixes: SMR and SMR with CCS are now reported as a single group, and e-fuels are excluded from hydrogen demand since they are already accounted for in the exogenous demand.
+
 **Changes**
 
 * Improve general assumptions for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/430). This includes refining assumptions relating to efficiencies, fuel costs and extendable technologies.
@@ -226,6 +228,8 @@ Open-TYNDP v0.5 (9th February 2026)
 * Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450). 
 
 * Add preprocessing of Market Model benchmark data (https://github.com/open-energy-transition/open-tyndp/pull/372). All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots.
+
+* Enable ``io_api`` direct mode for CBA rolling horizon to improve performance (https://github.com/open-energy-transition/open-tyndp/pull/402).
 
 **Bugfixes and Compatibility**
 
@@ -241,7 +245,11 @@ Open-TYNDP v0.5 (9th February 2026)
 
 **Documentation**
 
-* Docs: Add documentation describing the CBA workflow and CBA indicators (https://github.com/open-energy-transition/open-tyndp/pull/392).
+* Add documentation describing the CBA workflow and CBA indicators (https://github.com/open-energy-transition/open-tyndp/pull/392).
+
+* Explain the Open TYNDP implementation of the scenario approach (https://github.com/open-energy-transition/open-tyndp/pull/449).
+
+* Add FAQ entry for PyPSA v1 compatibility issue (https://github.com/open-energy-transition/open-tyndp/pull/381).
 
 **Developers Note**
 
