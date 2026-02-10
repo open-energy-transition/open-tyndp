@@ -101,6 +101,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added automated Windows installer for easy setup on Windows systems (see PR `#333 <https://github.com/open-energy-transition/open-tyndp/pull/333>`__).
 - Introduced calculation of B2 indicator in the CBA based on changes in total CO2 emissions (see PR `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__).
 - Introduced calculation of B3 indicator in the CBA based on renewable energy system integration (see PR `#350 <https://github.com/open-energy-transition/open-tyndp/pull/350>`__).
+- Automatically launched PyPSA-Explorer to investigate run results (see PR `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__).
 
 
 .. list-table::
@@ -160,8 +161,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - TYNDP plotting routines
-     -
-     - ⌛
+     - `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__
+     - 🔨
    * - **Automated tests and benchmarks**
      - Automated benchmarking routine
      - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__, `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__
@@ -261,11 +262,11 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
    * -
      - Climate years (weighted average)
      -
-     - ⌛
+     - 🔨
    * -
-     - CBA Benchmarking
-     -
-     - ⌛
+     - **CBA Benchmarking**
+     - `#405 <https://github.com/open-energy-transition/open-tyndp/pull/405>`__
+     - ✅
    * - **CBA Benefit Indicators**
      - B1: Socioeconomic Welfare (SEW)
      - `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__
@@ -280,12 +281,12 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - B4: Non-CO₂ Emissions (NOx, SOx, PM2.5/10, NMVOC, NH₃)
-     -
-     - ⌛
+     - `#398 <https://github.com/open-energy-transition/open-tyndp/pull/398>`__
+     - ✅
    * -
      - B5: Grid Losses, B6: Adequacy, B7: Flexibility, B8: Stability, B9: Reserves reduction
-     -
-     - ⌛
+     - n/a
+     - 
 
 .. seealso::
   See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
@@ -486,7 +487,33 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :maxdepth: 2
    :caption: Open TYNDP
 
+   scenarios
+   benchmarking
    innovation_roadmap
+   cba
+   cba-indicators
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: References
+
+   release_notes
+   licenses
+   data_sources
+   validation
+   benchmarking
+   limitations
+   contributing
+   support
+   publications
+   contributors
+
+.. raw:: html
+
+   <hr>
+
+PyPSA-Eur related pages
 
 .. toctree::
    :hidden:
@@ -517,19 +544,3 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 
    spatial_resolution
    supply_demand
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   :caption: References
-
-   release_notes
-   licenses
-   data_sources
-   validation
-   benchmarking
-   limitations
-   contributing
-   support
-   publications
-   contributors

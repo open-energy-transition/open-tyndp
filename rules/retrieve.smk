@@ -949,59 +949,121 @@ rule retrieve_monthly_fuel_prices:
 if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
     "primary",
     "archive",
-] and not config["tyndp_scenario"]:
+]:
 
-    rule retrieve_tyndp:
-        message:
-            "Retrieving TYNDP network topology data"
-        input:
-            line_data=storage(TYDNP_DATASET["url"] + "/Line-data.zip"),
-            nodes=storage(TYDNP_DATASET["url"] + "/Nodes.zip"),
-        output:
-            line_data_zip=f"{TYDNP_DATASET['folder']}/Line-data.zip",
-            nodes_zip=f"{TYDNP_DATASET['folder']}/Nodes.zip",
-            elec_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
-            nodes=f"{TYDNP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
-        log:
-            "logs/retrieve_tyndp.log",
-        run:
-            for key in input.keys():
-                # Keep zip file
-                copy2(input[key], output[f"{key}_zip"])
+    if not config["tyndp_scenario"]:
 
-                # unzip
-                output_folder = Path(output[f"{key}_zip"]).parent
-                unpack_archive(output[f"{key}_zip"], output_folder)
+        rule retrieve_tyndp:
+            message:
+                "Retrieving TYNDP network topology data"
+            input:
+                line_data=storage(TYDNP_DATASET["url"] + "/Line-data.zip"),
+                nodes=storage(TYDNP_DATASET["url"] + "/Nodes.zip"),
+            output:
+                line_data_zip=f"{TYDNP_DATASET['folder']}/Line-data.zip",
+                nodes_zip=f"{TYDNP_DATASET['folder']}/Nodes.zip",
+                elec_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
+                nodes=f"{TYDNP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
+            log:
+                "logs/retrieve_tyndp.log",
+            run:
+                for key in input.keys():
+                    # Keep zip file
+                    copy2(input[key], output[f"{key}_zip"])
 
-                # Remove __MACOSX directory if it exists
-                macosx_dir = output_folder / "__MACOSX"
-                rmtree(macosx_dir, ignore_errors=True)
+                    # unzip
+                    output_folder = Path(output[f"{key}_zip"]).parent
+                    unpack_archive(output[f"{key}_zip"], output_folder)
 
+                    # Remove __MACOSX directory if it exists
+                    macosx_dir = output_folder / "__MACOSX"
+                    rmtree(macosx_dir, ignore_errors=True)
 
+    else:
 
-if (TYDNP_DATASET := dataset_version("tyndp_bundle"))["source"] in [
-    "archive"
-] and config["tyndp_scenario"]:
+        rule retrieve_tyndp:
+            message:
+                "Retrieving TYNDP 2024 data package"
+            input:
+                line_data=storage(TYDNP_DATASET["url"] + "/Line-data.zip"),
+                nodes=storage(TYDNP_DATASET["url"] + "/Nodes.zip"),
+                hydro_inflows=storage(TYDNP_DATASET["url"] + "/Hydro-Inflows.zip"),
+                pemmdb=storage(TYDNP_DATASET["url"] + "/PEMMDB2.zip"),
+                supply_tool=storage(
+                    TYDNP_DATASET["url"] + "/20240518-Supply-Tool.xlsm.zip"
+                ),
+                benchmark=storage(
+                    TYDNP_DATASET["url"] + "/TYNDP-2024-Scenarios-Package-20250128.zip"
+                ),
+                demand_profiles=storage(TYDNP_DATASET["url"] + "/Demand-Profiles.zip"),
+                ev_modelling=storage(TYDNP_DATASET["url"] + "/EV-Modelling-Inputs.zip"),
+                hybrid_hp_modelling=storage(
+                    TYDNP_DATASET["url"] + "/Hybrid-Heat-Pump-Modelling-Inputs.zip"
+                ),
+                hydrogen=storage(TYDNP_DATASET["url"] + "/Hydrogen.zip"),
+                investment_datasets=storage(
+                    TYDNP_DATASET["url"] + "/Investment-Datasets.zip"
+                ),
+                offshore_hubs=storage(TYDNP_DATASET["url"] + "/Offshore-hubs.zip"),
+                market_outputs_NT2030_CY2009=storage(
+                    TYDNP_DATASET["url"]
+                    + "/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip"
+                ),
+                market_outputs_NT2040_CY2009=storage(
+                    TYDNP_DATASET["url"]
+                    + "/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip"
+                ),
+            output:
+                line_data_zip=f"{TYDNP_DATASET['folder']}/Line-data.zip",
+                nodes_zip=f"{TYDNP_DATASET['folder']}/Nodes.zip",
+                elec_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
+                h2_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
+                nodes=f"{TYDNP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
+                hydro_inflows_zip=f"{TYDNP_DATASET['folder']}/Hydro-Inflows.zip",
+                hydro_inflows=directory(f"{TYDNP_DATASET['folder']}/Hydro Inflows"),
+                pemmdb_zip=f"{TYDNP_DATASET['folder']}/PEMMDB2.zip",
+                pemmdb=directory(f"{TYDNP_DATASET['folder']}/PEMMDB2"),
+                supply_tool_zip=f"{TYDNP_DATASET['folder']}/20240518-Supply-Tool.xlsm.zip",
+                supply_tool=f"{TYDNP_DATASET['folder']}/20240518-Supply-Tool.xlsm",
+                benchmark_zip=f"{TYDNP_DATASET['folder']}/TYNDP-2024-Scenarios-Package-20250128.zip",
+                benchmark=f"{TYDNP_DATASET['folder']}/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
+                demand_profiles_zip=f"{TYDNP_DATASET['folder']}/Demand-Profiles.zip",
+                demand_profiles=directory(f"{TYDNP_DATASET['folder']}/Demand Profiles"),
+                ev_modelling_zip=f"{TYDNP_DATASET['folder']}/EV-Modelling-Inputs.zip",
+                ev_modelling=directory(f"{TYDNP_DATASET['folder']}/EV Modelling Inputs"),
+                hybrid_hp_modelling_zip=f"{TYDNP_DATASET['folder']}/Hybrid-Heat-Pump-Modelling-Inputs.zip",
+                hybrid_hp_modelling=directory(
+                    f"{TYDNP_DATASET['folder']}/Hybrid Heat Pump Modelling Inputs"
+                ),
+                hydrogen_zip=f"{TYDNP_DATASET['folder']}/Hydrogen.zip",
+                hydrogen=directory(f"{TYDNP_DATASET['folder']}/Hydrogen"),
+                h2_imports=f"{TYDNP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+                investment_datasets_zip=f"{TYDNP_DATASET['folder']}/Investment-Datasets.zip",
+                trajectories=f"{TYDNP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
+                invest_grid=f"{TYDNP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
+                offshore_hubs_zip=f"{TYDNP_DATASET['folder']}/Offshore-hubs.zip",
+                offshore_nodes=f"{TYDNP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
+                offshore_grid=f"{TYDNP_DATASET['folder']}/Offshore hubs/GRID.xlsx",
+                offshore_electrolysers=f"{TYDNP_DATASET['folder']}/Offshore hubs/ELECTROLYSER.xlsx",
+                offshore_generators=f"{TYDNP_DATASET['folder']}/Offshore hubs/GENERATOR.xlsx",
+                market_outputs_NT2030_CY2009_zip=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
+                market_outputs_NT2030_CY2009=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
+                market_outputs_NT2040_CY2009_zip=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip",
+                market_outputs_NT2040_CY2009=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
+            log:
+                "logs/retrieve_tyndp.log",
+            run:
+                for key in input.keys():
+                    # Keep zip file
+                    copy2(input[key], output[f"{key}_zip"])
 
-    rule retrieve_tyndp:
-        input:
-            zip_file=storage(TYDNP_DATASET["url"]),
-        output:
-            dir=directory(TYDNP_DATASET["folder"]),
-            elec_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
-            nodes=f"{TYDNP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
-            h2_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
-            demand_profiles=directory(f"{TYDNP_DATASET['folder']}/Demand Profiles"),
-            h2_imports=f"{TYDNP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
-            offshore_nodes=f"{TYDNP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
-            offshore_grid=f"{TYDNP_DATASET['folder']}/Offshore hubs/GRID.xlsx",
-            offshore_electrolysers=f"{TYDNP_DATASET['folder']}/Offshore hubs/ELECTROLYSER.xlsx",
-            offshore_generators=f"{TYDNP_DATASET['folder']}/Offshore hubs/GENERATOR.xlsx",
-            trajectories=f"{TYDNP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
-            invest_grid=f"{TYDNP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
-        run:
-            with ZipFile(input["zip_file"], "r") as zip_ref:
-                zip_ref.extractall(output["dir"])
+                    # unzip
+                    output_folder = Path(output[f"{key}_zip"]).parent
+                    unpack_archive(output[f"{key}_zip"], output_folder)
+
+                    # Remove __MACOSX directory if it exists
+                    macosx_dir = output_folder / "__MACOSX"
+                    rmtree(macosx_dir, ignore_errors=True)
 
 
 

@@ -27,6 +27,7 @@ References:
 """
 
 import logging
+from pathlib import Path
 
 import pandas as pd
 import pypsa
@@ -35,6 +36,39 @@ from scripts._helpers import configure_logging, set_scenario_config
 from scripts.prepare_sector_network import get
 
 logger = logging.getLogger(__name__)
+
+INDICATOR_UNITS = {
+    "B1_total_system_cost_change": "EUR/year",
+    "cost_reference": "EUR/year",
+    "capex_reference": "EUR/year",
+    "opex_reference": "EUR/year",
+    "cost_project": "EUR/year",
+    "capex_project": "EUR/year",
+    "opex_project": "EUR/year",
+    "capex_change": "EUR/year",
+    "opex_change": "EUR/year",
+    "co2_variation": "t/year",
+    "co2_ets_price": "EUR/t",
+    "co2_societal_cost": "EUR/t",
+    "B2a_societal_cost_variation": "EUR/year",
+    "B3_res_capacity_change": "MW",
+    "B3_res_generation_change": "MWh/year",
+    "B3_annual_avoided_curtailment": "MWh/year",
+    "B4a_nox": "kg/year",
+    "B4b_nh3": "kg/year",
+    "B4c_sox": "kg/year",
+    "B4d_pm25": "kg/year",
+    "B4e_pm10": "kg/year",
+    "B4f_nmvoc": "kg/year",
+}
+
+CARRIER_TO_EMISSION_FACTORS = {
+    "gas": ("Gas", "Gas biofuel"),
+    "coal": ("Hard coal", "Hard Coal biofuel"),
+    "lignite": ("Lignite", "Lignite biofuel"),
+    "uranium": ("Nuclear", None),
+    "oil": ("Light Oil", "Light Oil biofuel"),  # all oil fuels have same factors
+}
 
 
 def calculate_total_system_cost(n):
@@ -95,6 +129,29 @@ def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
     stores_by_carrier = n.stores_t.e.T.groupby(n.stores.carrier).sum().T
     net_co2 = stores_by_carrier["co2"].iloc[-1]  # get final snapshot value
     return float(net_co2)
+
+
+def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
+    """Load non-CO2 emission factors and compute mean values."""
+    df = pd.read_csv(path, encoding="utf-8-sig")
+    df = df[df["Fuel"].notna()]
+    pollutant_cols = {
+        "NOX emission factor": "B4a_nox",
+        "NH3 emission factor": "B4b_nh3",
+        "SO emission factor": "B4c_sox",
+        "PM2.5 and smaller emission factor": "B4d_pm25",
+        "PM10 emission factor": "B4e_pm10",
+        "NMVOC emission factor": "B4f_nmvoc",
+    }
+    factors = pd.DataFrame(
+        {
+            key: pd.to_numeric(df[col], errors="coerce").fillna(0.0)
+            for col, key in pollutant_cols.items()
+        }
+    )
+    factors["Fuel"] = df["Fuel"]
+    df_mean = factors.groupby("Fuel")[list(pollutant_cols.values())].mean()
+    return df_mean
 
 
 def calculate_res_capacity_per_carrier(
@@ -236,16 +293,26 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         else:
             interpretation = "The project increases costs as removing it decreases costs compared to the reference scenario with all projects."
 
-    results = {}
-    results["B1_total_system_cost_change"] = b1  # in Euros. Positive is beneficial.
-    results["is_beneficial"] = is_beneficial
-    results["interpretation"] = interpretation
-    results["cost_reference"] = cost_reference["total"]
-    results["capex_reference"] = cost_reference["capex"]
-    results["opex_reference"] = cost_reference["opex"]
-    results["cost_project"] = cost_project["total"]
-    results["capex_project"] = cost_project["capex"]
-    results["opex_project"] = cost_project["opex"]
+    results = {
+        "B1_total_system_cost_change": b1 / 1e6,  # convert to Meuro/year
+        "is_beneficial": is_beneficial,
+        "interpretation": interpretation,
+        "cost_reference": cost_reference["total"],
+        "capex_reference": cost_reference["capex"],
+        "opex_reference": cost_reference["opex"],
+        "cost_project": cost_project["total"],
+        "capex_project": cost_project["capex"],
+        "opex_project": cost_project["opex"],
+    }
+    units = {
+        "B1_total_system_cost_change": "Meuro/year",
+        "cost_reference": "EUR/year",
+        "capex_reference": "EUR/year",
+        "opex_reference": "EUR/year",
+        "cost_project": "EUR/year",
+        "capex_project": "EUR/year",
+        "opex_project": "EUR/year",
+    }
 
     if method == "pint":
         results["capex_change"] = cost_reference["capex"] - cost_project["capex"]
@@ -254,7 +321,10 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         results["capex_change"] = cost_project["capex"] - cost_reference["capex"]
         results["opex_change"] = cost_project["opex"] - cost_reference["opex"]
 
-    return results
+    units["capex_change"] = "EUR/year"
+    units["opex_change"] = "EUR/year"
+
+    return results, units
 
 
 def calculate_b2_indicator(
@@ -263,7 +333,7 @@ def calculate_b2_indicator(
     method: str,
     co2_societal_costs: dict,
     co2_ets_price: float,
-) -> dict:
+) -> tuple[dict, dict]:
     """
     Calculate B2 indicator: change in CO2 emissions and societal cost.
 
@@ -281,19 +351,28 @@ def calculate_b2_indicator(
         # Reference is with all projects, project is without project
         co2_diff = co2_project - co2_reference
 
+    co2_diff_ktonnes = co2_diff / 1000.0
     results = {
-        "co2_variation": co2_diff,
+        "B2a_co2_variation": co2_diff_ktonnes,
         "co2_ets_price": co2_ets_price,
         "co2_societal_cost_low": co2_societal_costs["low"],
         "co2_societal_cost_central": co2_societal_costs["central"],
         "co2_societal_cost_high": co2_societal_costs["high"],
     }
+    units = {
+        "B2a_co2_variation": "ktonnes/year",
+        "co2_ets_price": "EUR/t",
+        "co2_societal_cost_low": "EUR/t",
+        "co2_societal_cost_central": "EUR/t",
+        "co2_societal_cost_high": "EUR/t",
+    }
 
     for level in ["low", "central", "high"]:
         b2_val = co2_diff * (co2_societal_costs[level] - co2_ets_price)
-        results[f"B2_societal_cost_variation_{level}"] = b2_val
+        results[f"B2a_societal_cost_variation_{level}"] = b2_val / 1e6
+        units[f"B2a_societal_cost_variation_{level}"] = "Meuro/year"
 
-    return results
+    return results, units
 
 
 def calculate_b3_indicator(
@@ -301,7 +380,7 @@ def calculate_b3_indicator(
     n_project: pypsa.Network,
     method: str,
     res_carriers: list[str],
-) -> dict:
+) -> tuple[dict, dict]:
     """
     Calculate B3 indicator: change in RES capacity (MW) and generation (MWh/year).
 
@@ -316,11 +395,11 @@ def calculate_b3_indicator(
 
     Returns
     -------
-    dict
+    tuple[dict, dict]
         Dictionary with B3 indicators:
-        - B3_res_capacity_change_mw
-        - B3_res_generation_change_mwh
-        - B3_res_dump_change_mwh
+        - B3a_res_capacity_change
+        - B3_res_generation_change
+        - B3_annual_avoided_curtailment
     """
     n_with, n_without = (
         (n_project, n_reference) if method == "pint" else (n_reference, n_project)
@@ -334,14 +413,251 @@ def calculate_b3_indicator(
     dump_without = calculate_res_dump_per_carrier(n_without, res_carriers)
 
     capacity_diff = capacity_with.sum() - capacity_without.sum()
-    generation_diff = generation_with.sum() - generation_without.sum()
-    dump_diff = dump_with.sum() - dump_without.sum()
+    generation_diff_mwh = generation_with.sum() - generation_without.sum()
+    dump_diff_mwh = dump_with.sum() - dump_without.sum()
+    avoided_curtailment_gwh = dump_diff_mwh / 1000.0
 
-    return {
-        "B3_res_capacity_change_mw": capacity_diff,
-        "B3_res_generation_change_mwh": generation_diff,
-        "B3_annual_avoided_curtailment_mwh": dump_diff,
+    results = {
+        "B3a_res_capacity_change": capacity_diff,
+        "B3_res_generation_change": generation_diff_mwh / 1000.0,
+        "B3_annual_avoided_curtailment": avoided_curtailment_gwh,
     }
+    units = {
+        "B3a_res_capacity_change": "MW",
+        "B3_res_generation_change": "GWh/year",
+        "B3_annual_avoided_curtailment": "GWh/year",
+    }
+    return results, units
+
+
+def calculate_b4_indicator(
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str,
+    emission_factors: pd.DataFrame,
+    conventional_carriers: list[str],
+) -> tuple[dict, dict]:
+    """
+    Calculate B4 indicator: non-CO2 emissions (kg/year).
+
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network.
+    n_project : pypsa.Network
+        Project network.
+    method : str
+        Either "pint" or "toot" (case-insensitive).
+    emission_factors : pd.DataFrame
+        DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier and
+        with columns for different pollutants and statistics (min, mean, max).
+
+    Returns
+    -------
+    dict
+        Dictionary with B4 indicators for each pollutant:
+        - B4{sub}_{pollutant}
+    """
+
+    pollutant_keys = list(emission_factors.columns)
+
+    normalized = []
+    for c in conventional_carriers:
+        normalized.append("oil" if c.startswith("oil-") else c)
+    conventional_carriers = sorted(set(normalized))
+
+    # initialize emissions dictionary
+    ref_emissions = {key: 0.0 for key in pollutant_keys}
+    proj_emissions = {key: 0.0 for key in pollutant_keys}
+
+    # function to check if link is biofuel/biomass/biogas link
+    def is_biofuel_link(link_carrier: str, network: pypsa.Network) -> bool:
+        links = network.links[network.links.carrier == link_carrier]
+        if links.empty:
+            return False
+        buses = links[["bus0", "bus1"]].astype(str).agg(" ".join, axis=1).str.lower()
+        return buses.str.contains("biofuel|biomass|biogas", regex=True).any()
+
+    for carrier in conventional_carriers:
+        if carrier not in CARRIER_TO_EMISSION_FACTORS:
+            raise ValueError(
+                f"Carrier '{carrier}' missing in CARRIER_TO_EMISSION_FACTORS"
+            )
+        regular_fuel, biofuel = CARRIER_TO_EMISSION_FACTORS[carrier]
+
+        ref_balance = n_reference.statistics.energy_balance(
+            nice_names=False, bus_carrier=carrier
+        )
+        proj_balance = n_project.statistics.energy_balance(
+            nice_names=False, bus_carrier=carrier
+        )
+
+        # use only positive values
+        ref_balance = ref_balance[ref_balance > 0]
+        proj_balance = proj_balance[proj_balance > 0]
+
+        # if regular fuel, use regular emission factors
+        # if biofuel, use biofuel emission factors
+        fuel_key = str(regular_fuel).strip()
+        if fuel_key not in emission_factors.index:
+            raise ValueError(f"No emission factors found for fuel '{regular_fuel}'")
+        regular_factors = emission_factors.loc[fuel_key]
+        biofuel_factors = None
+        if biofuel:
+            biofuel_key = str(biofuel).strip()
+            if biofuel_key not in emission_factors.index:
+                raise ValueError(f"No emission factors found for fuel '{biofuel}'")
+            biofuel_factors = emission_factors.loc[biofuel_key]
+
+        def accumulate(balance, emissions, network):
+            for (component, item, _), value in balance.items():
+                if component == "Generator":
+                    factors = regular_factors
+                elif component == "Link" and biofuel_factors is not None:
+                    factors = (
+                        biofuel_factors
+                        if is_biofuel_link(item, network)
+                        else regular_factors
+                    )
+                else:
+                    factors = regular_factors
+                for pollutant_key, kg_value in factors.items():
+                    emissions[pollutant_key] += float(value) * kg_value
+
+        accumulate(ref_balance, ref_emissions, n_reference)
+        accumulate(proj_balance, proj_emissions, n_project)
+
+    results = {}
+    units = {}
+    for pollutant_key in pollutant_keys:
+        ref_val = ref_emissions.get(pollutant_key, 0.0)
+        proj_val = proj_emissions.get(pollutant_key, 0.0)
+        if method == "pint":
+            diff = ref_val - proj_val
+        else:
+            diff = proj_val - ref_val
+        results[pollutant_key] = diff
+        units[pollutant_key] = "kg/year"
+
+    return results, units
+
+
+def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    missing_units = df["units"].isna() | (df["units"] == "")
+    df.loc[missing_units, "units"] = df.loc[missing_units, "indicator"].map(
+        INDICATOR_UNITS
+    )
+    unresolved = (
+        df.loc[df["units"].isna() | (df["units"] == ""), "indicator"]
+        .dropna()
+        .unique()
+        .tolist()
+    )
+    if unresolved:
+        logger.warning("Skipping units for unmapped indicators: %s", sorted(unresolved))
+    extra = set(INDICATOR_UNITS) - set(df["indicator"])
+    if extra:
+        logger.warning("Unused indicator units defined: %s", sorted(extra))
+    return df
+
+
+def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
+    meta = {
+        "project_id": indicators.get("project_id"),
+        "method": indicators.get("cba_method"),
+        "is_beneficial": indicators.get("is_beneficial"),
+        "interpretation": indicators.get("interpretation"),
+        "source": indicators.get("source", "Open-TYNDP"),
+    }
+
+    rows = []
+    skip_keys = set(meta.keys()) | {"cba_method"}
+    for key, value in indicators.items():
+        if key in skip_keys:
+            continue
+
+        indicator = key
+        subindex = ""
+        for suffix in ["_min", "_mean", "_max", "_low", "_central", "_high"]:
+            if indicator.endswith(suffix):
+                indicator = indicator[: -len(suffix)]
+                subindex = suffix.lstrip("_")
+                break
+
+        unit = units.get(key, "")
+        if not unit:
+            unit = units.get(indicator, "")
+
+        rows.append(
+            {
+                **meta,
+                "indicator": indicator,
+                "subindex": subindex,
+                "units": unit,
+                "value": value,
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
+def load_benchmark_rows(
+    benchmark_path: str | Path,
+    project_id: int,
+    planning_horizon: int,
+    scenario: str | None,
+    project_type: str | None,
+) -> pd.DataFrame:
+    path = Path(benchmark_path)
+    if not path.exists():
+        logger.warning("Benchmark file %s not found, skipping", path)
+        return pd.DataFrame()
+
+    benchmark = pd.read_csv(path)
+    if benchmark.empty:
+        return pd.DataFrame()
+
+    if scenario and not str(scenario)[:4].isdigit():
+        scenario = f"{planning_horizon}{scenario}"
+
+    benchmark = benchmark.loc[
+        (benchmark["project_id"] == project_id)
+        & (benchmark["planning_horizon"] == planning_horizon)
+        & (benchmark["type"] == project_type)
+        & (benchmark["scenario"] == scenario)
+    ].copy()
+
+    if benchmark.empty:
+        raise ValueError("No benchmark rows found")
+
+    if "indicator_mapped" in benchmark.columns:
+        benchmark["indicator"] = benchmark["indicator_mapped"].fillna(
+            benchmark["indicator"]
+        )
+
+    benchmark["method"] = (
+        benchmark.get("method", None).astype(str).str.upper()
+        if "method" in benchmark.columns
+        else None
+    )
+    benchmark["source"] = "TYNDP 2024"
+    benchmark["is_beneficial"] = None
+    benchmark["interpretation"] = None
+
+    return benchmark[
+        [
+            "project_id",
+            "method",
+            "is_beneficial",
+            "interpretation",
+            "indicator",
+            "subindex",
+            "units",
+            "value",
+            "source",
+        ]
+    ]
 
 
 if __name__ == "__main__":
@@ -368,13 +684,20 @@ if __name__ == "__main__":
     planning_horizon = int(snakemake.wildcards.planning_horizons)
 
     # Calculate indicators
-    indicators = calculate_b1_indicator(n_reference, n_project, method=method)
+    indicators = {}
+    units = {}
+
+    b1_indicators, b1_units = calculate_b1_indicator(
+        n_reference, n_project, method=method
+    )
+    indicators.update(b1_indicators)
+    units.update(b1_units)
 
     co2_societal_costs_map = snakemake.config["cba"]["co2_societal_cost"]
     co2_societal_costs = get(co2_societal_costs_map, planning_horizon)
 
     co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
-    b2_indicators = calculate_b2_indicator(
+    b2_indicators, b2_units = calculate_b2_indicator(
         n_reference,
         n_project,
         method=method,
@@ -382,27 +705,64 @@ if __name__ == "__main__":
         co2_ets_price=co2_ets_price,
     )
     indicators.update(b2_indicators)
+    units.update(b2_units)
 
     res_carriers = snakemake.config.get("electricity", {}).get(
         "tyndp_renewable_carriers"
     )
-    b3_indicators = calculate_b3_indicator(
+    b3_indicators, b3_units = calculate_b3_indicator(
         n_reference,
         n_project,
         method=method,
         res_carriers=res_carriers,
     )
     indicators.update(b3_indicators)
+    units.update(b3_units)
+
+    emission_factors = load_non_co2_emission_factors(snakemake.input.non_co2_emissions)
+    conventional_carriers = snakemake.config.get("electricity", {}).get(
+        "tyndp_conventional_carriers", []
+    )
+    b4_indicators, b4_units = calculate_b4_indicator(
+        n_reference,
+        n_project,
+        method=method,
+        emission_factors=emission_factors,
+        conventional_carriers=conventional_carriers,
+    )
+    indicators.update(b4_indicators)
+    units.update(b4_units)
 
     # Add project metadata
     cba_project = snakemake.wildcards.cba_project
     indicators["project_id"] = int(cba_project[1:])  # assuming format 't123'
     indicators["cba_method"] = method.upper()
-
     logger.info(
         f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Euros"
     )
 
     # Convert to DataFrame and save
-    df = pd.DataFrame([indicators])
+    df_model = build_long_indicators(indicators, units)
+
+    scenario = snakemake.config.get("tyndp_scenario") or snakemake.config.get(
+        "run", {}
+    ).get("name")
+    project_type = "storage" if cba_project.startswith("s") else "transmission"
+    benchmark_rows = load_benchmark_rows(
+        snakemake.input.benchmark,
+        indicators["project_id"],
+        planning_horizon,
+        scenario,
+        project_type,
+    )
+
+    if not benchmark_rows.empty:
+        benchmark_rows = benchmark_rows.reindex(
+            columns=df_model.columns, fill_value=None
+        )
+        df = pd.concat([df_model, benchmark_rows], ignore_index=True)
+    else:
+        df = df_model
+
+    df = apply_indicator_units(df)
     df.to_csv(snakemake.output.indicators, index=False)
