@@ -275,7 +275,7 @@ def compute_benchmark(
             .groupby(n.generators.carrier)
             .sum()
         )
-        df = df.reindex(df.index.union(res_carriers))
+        df = df.reindex(df.index.union(res_carriers).rename("carrier"))
         df.loc[res_gen.index] = res_gen.values
 
     elif table == "methane_supply":
@@ -410,7 +410,6 @@ def compute_benchmark(
         .rename(
             columns={
                 "bus_carrier": "carrier",
-                "index": "carrier",
                 0: "value",
                 "objective": "value",
             }
