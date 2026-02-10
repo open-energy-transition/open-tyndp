@@ -259,8 +259,9 @@ def compute_benchmark(
             )
         )
 
-        # TYNDP 2024 report available generation for renewables (incl. curtailment)
+        # TYNDP 2024 report available generation for renewables (pre-curtailment)
         # and add H2 offwind capacities in MWh_e
+        # TODO Review once solar thermals are integrated
         res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
         res_idx = (
             n.generators[n.generators.carrier.isin(res_carriers)]

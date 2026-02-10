@@ -64,6 +64,8 @@ def _plot_scenario_comparison(
     fig, ax = plt.subplots(figsize=(12, 8))
 
     table_title = table.replace("_", " ").title()
+    if table == "power_generation":
+        table_title += " (pre-curtailment)"
     idx = [model_col] + [c for c in rfc_col if c in df.columns]
 
     tyndp_str = "TYNDP 2024"
