@@ -252,10 +252,11 @@ def load_benchmark(
         df_converted = pd.concat([df_group, df_other], ignore_index=True)
     # Aggregate hydrogen demand to match input data resolution
     elif table == "hydrogen_demand":
-        group = ["power generation", "e-fuels"]
+        group = ["power generation"]
         df_other = (
             df_converted[
-                (~df_converted.carrier.isin(group)) & (df_converted.carrier != "total")
+                (~df_converted.carrier.isin(group))
+                & (~df_converted.carrier.isin(["total", "e-fuels"]))
             ]
             .groupby(["scenario", "year", "unit", "table"])
             .sum()
@@ -273,6 +274,17 @@ def load_benchmark(
             .sum()
             .reset_index()
             .assign(carrier="imports (renewable & low carbon)")
+        )
+        df_group = df_converted[~df_converted.carrier.isin(to_group)]
+        df_converted = pd.concat([df_group, df_other], ignore_index=True)
+
+        to_group = ["smr (grey)", "smr with ccs (blue)"]
+        df_other = (
+            df_converted[df_converted.carrier.isin(to_group)]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="smr (grey) and smr with ccs (blue)")
         )
         df_group = df_converted[~df_converted.carrier.isin(to_group)]
         df_converted = pd.concat([df_group, df_other], ignore_index=True)
@@ -338,7 +350,7 @@ if __name__ == "__main__":
 
     # Combine all benchmark data
     benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
-        source="TYNDP 2024"
+        source="TYNDP 2024 Scenarios"
     )
     if benchmarks_combined.empty:
         logger.warning("No benchmark data was successfully processed")
