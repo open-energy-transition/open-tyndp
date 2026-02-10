@@ -248,3 +248,7 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP CBA non-CO2 emissions data source configuration.",
     )
+    cba_guidelines_reference_projects: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP CBA Guidelines Annex B.1 Table with reference projects data source configuration.",
+    )

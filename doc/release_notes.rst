@@ -53,6 +53,10 @@ Upcoming Open-TYNDP Release
 
 * Add benchmarking of CBA indicators against TYNDP 2024 reported values (https://github.com/open-energy-transition/open-tyndp/pull/405).
 
+* Assign CBA method assignment of projects before creation of project network, using data from CBA Implementation Guide (https://github.com/open-energy-transition/open-tyndp/pull/426).
+
+* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450). 
+
 **Bugfixes and Compatibility**
 
 * Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to enable consistent use of its index when selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).

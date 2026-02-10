@@ -629,7 +629,14 @@ def load_benchmark_rows(
     ].copy()
 
     if benchmark.empty:
-        raise ValueError("No benchmark rows found")
+        logger.warning(
+            "No benchmark rows found for project %s (horizon %s, scenario %s, type %s)",
+            project_id,
+            planning_horizon,
+            scenario,
+            project_type,
+        )
+        return pd.DataFrame()
 
     if "indicator_mapped" in benchmark.columns:
         benchmark["indicator"] = benchmark["indicator_mapped"].fillna(
@@ -679,9 +686,20 @@ if __name__ == "__main__":
     if not n_project.is_solved:
         raise ValueError("Project network is not solved")
 
-    # Detect method from wildcards (toot or pint)
-    method = check_method(snakemake.wildcards.cba_method)
     planning_horizon = int(snakemake.wildcards.planning_horizons)
+    # Detect method from assignments (toot or pint)
+    cba_project = snakemake.wildcards.cba_project
+    project_id = int(cba_project[1:])
+    methods = pd.read_csv(snakemake.input.methods)
+    method_row = methods[
+        (methods["project_id"] == project_id)
+        & (methods["planning_horizon"] == planning_horizon)
+    ]
+    if method_row.empty:
+        raise ValueError(
+            f"Missing CBA method for project {project_id} and horizon {planning_horizon}"
+        )
+    method = check_method(method_row["method"].iloc[0])
 
     # Calculate indicators
     indicators = {}
@@ -734,8 +752,7 @@ if __name__ == "__main__":
     units.update(b4_units)
 
     # Add project metadata
-    cba_project = snakemake.wildcards.cba_project
-    indicators["project_id"] = int(cba_project[1:])  # assuming format 't123'
+    indicators["project_id"] = project_id  # assuming format 't123'
     indicators["cba_method"] = method.upper()
     logger.info(
         f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Euros"

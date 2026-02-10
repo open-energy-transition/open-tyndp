@@ -317,7 +317,15 @@ def create_plots(indicators_file, output_path, planning_horizon=None, area=None)
     output_dir = output_path if output_path.suffix == "" else output_path.parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(indicators_file)
+    indicators_file = Path(indicators_file)
+    if indicators_file.stat().st_size == 0:
+        logger.warning("Indicators file is empty: %s", indicators_file)
+        return
+    try:
+        df = pd.read_csv(indicators_file)
+    except pd.errors.EmptyDataError:
+        logger.warning("Indicators file is empty: %s", indicators_file)
+        return
     if df.empty:
         logger.warning("No indicators data to plot")
         return
