@@ -276,6 +276,17 @@ def load_benchmark(
         )
         df_group = df_converted[~df_converted.carrier.isin(to_group)]
         df_converted = pd.concat([df_group, df_other], ignore_index=True)
+
+        to_group = ["smr (grey)", "smr with ccs (blue)"]
+        df_other = (
+            df_converted[df_converted.carrier.isin(to_group)]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="smr (grey) and smr with ccs (blue)")
+        )
+        df_group = df_converted[~df_converted.carrier.isin(to_group)]
+        df_converted = pd.concat([df_group, df_other], ignore_index=True)
     # Remove carriers not explicitly modeled
     elif table == "final_energy_demand":
         df_converted = df_converted[

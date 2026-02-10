@@ -88,7 +88,7 @@ MM_CARRIER_MAPPING = {
     # "e-fuels" - not available in TYNDP market model NT scenario, included in native demand
     # Hydrogen supply from H2 sheet
     "Electrolyser (gen.)": "p2g",
-    "Steam methane reformer": "smr (grey)",
+    "Steam methane reformer": "smr (grey) and smr with ccs (blue)",
     # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
     # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
     # NOT available in TYNDP market model (will not appear in output):
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     MM_data = set_load_sign(MM_data)
 
     # clean data for benchmarking
-    MM_data = MM_data[~MM_data.carrier.str.contains("load|battery discharge")]
+    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
 
     MM_data["scenario"] = f"TYNDP {scenario}"
     MM_data["year"] = planning_horizon
