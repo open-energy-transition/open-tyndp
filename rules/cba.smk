@@ -23,13 +23,11 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
         params:
             source="CBA project explorer",
         input:
-            # TODO Integrate into Zenodo tyndp data bundle
             zip_file=storage(CBA_PROJECTS_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
         output:
             dir=directory(CBA_PROJECTS_DATASET["folder"]),
         log:
-            "logs/retrieve_tyndp_cba_projects",
+            "logs/retrieve_tyndp_cba_projects.log",
         run:
             copy2(input["zip_file"], output["dir"] + ".zip")
             unpack_archive(output["dir"] + ".zip", output["dir"])
@@ -44,9 +42,9 @@ if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
         input:
             file=storage(CBA_NON_CO2_DATASET["url"]),
         output:
-            file=resources("cba/a.3_non-co2-emissions.csv"),
+            file=f"{CBA_NON_CO2_DATASET["folder"]}/a.3_non-co2-emissions.csv",
         log:
-            logs("retrieve_tyndp_cba_non_co2_emissions.log"),
+            "logs/retrieve_tyndp_cba_non_co2_emissions.log",
         run:
             copy2(input["file"], output["file"])
 

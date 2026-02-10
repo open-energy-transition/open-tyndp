@@ -10,35 +10,14 @@ from shutil import unpack_archive, rmtree, copy2
 # Retrieve
 ##########
 
-if (CUTOUT_ADDITIONAL_DATASET := dataset_version("cutout_additional"))["source"] in [
-    "archive"
-]:
-
-    rule retrieve_additional_cutout:
-        input:
-            storage(CUTOUT_ADDITIONAL_DATASET["url"] + "{cutout}.nc"),
-        output:
-            CUTOUT_DATASET["folder"] + "/{cutout}.nc",
-        log:
-            "logs/retrieve_additional_cutout/{cutout}.log",
-        resources:
-            mem_mb=5000,
-        retries: 2
-        run:
-            copy2(input[0], output[0])
-
-    ruleorder: retrieve_additional_cutout > retrieve_cutout
-
 
 if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ["archive"]:
 
     rule retrieve_tyndp_pecd:
         input:
-            # TODO Integrate into Zenodo tyndp data bundle
             zip_file=storage(
                 PECD_DATASET["url"] + f"PECD_{PECD_DATASET["version"]}.zip"
             ),
-            dir=rules.retrieve_tyndp.output.dir,
         output:
             dir=directory(PECD_DATASET["folder"]),
         log:
@@ -49,89 +28,11 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ["archive"]:
             os.remove(output["dir"] + ".zip")
 
 
-if (TYNDP_HYDRO_INFLOWS_DATASET := dataset_version("tyndp_hydro_inflows"))[
-    "source"
-] in ["archive"]:
-
-    rule retrieve_tyndp_hydro_inflows:
-        input:
-            # TODO Integrate into Zenodo tyndp data bundle
-            zip_file=storage(TYNDP_HYDRO_INFLOWS_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
-        output:
-            dir=directory(TYNDP_HYDRO_INFLOWS_DATASET["folder"]),
-        log:
-            "logs/retrieve_tyndp_hydro_inflows.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-
-if (PEMMDB_DATASET := dataset_version("tyndp_pemmdb"))["source"] in ["archive"]:
-
-    rule retrieve_tyndp_pemmdb_data:
-        input:
-            # TODO Integrate into Zenodo tyndp data bundle
-            zip_file=storage(PEMMDB_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
-        output:
-            dir=directory(PEMMDB_DATASET["folder"]),
-        log:
-            "logs/retrieve_tyndp_pemmdb_data.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-
-if (SUPPLY_TOOL_DATASET := dataset_version("tyndp_supply_tool"))["source"] in [
-    "archive"
-]:
-
-    rule retrieve_tyndp_supply_tool:
-        input:
-            # TODO Integrate into Zenodo tyndp data bundle
-            zip_file=storage(SUPPLY_TOOL_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
-        output:
-            dir=directory(SUPPLY_TOOL_DATASET["folder"]),
-            file=f"{SUPPLY_TOOL_DATASET["folder"]}/20240518-Supply-Tool.xlsm",
-        log:
-            "logs/retrieve_tyndp_supply_tool.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-            # Remove __MACOSX directory if it exists
-            macosx_dir = f"{output["dir"]}/__MACOSX"
-            rmtree(macosx_dir, ignore_errors=True)
-
-
-if (BENCHMARK_DATASET := dataset_version("tyndp_benchmark"))["source"] in ["archive"]:
-
-    rule retrieve_tyndp_benchmark:
-        input:
-            # TODO Integrate into Zenodo tyndp data bundle
-            file=storage(BENCHMARK_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
-        output:
-            dir=directory(BENCHMARK_DATASET["folder"]),
-            file=f"{BENCHMARK_DATASET["folder"]}/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
-        log:
-            "logs/retrieve_tyndp_benchmark.log",
-        run:
-            copy2(input["file"], output["file"])
-
-
 if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archive"]:
 
     rule retrieve_tyndp_vp_data:
         input:
-            # TODO Integrate into Zenodo tyndp data bundle
             zip_file=storage(VIS_PLFM_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
         output:
             dir=directory(VIS_PLFM_DATASET["folder"]),
             elec_demand=f"{VIS_PLFM_DATASET["folder"]}/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
@@ -145,33 +46,12 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             os.remove(output["dir"] + ".zip")
 
 
-if (MM_OUTPUT_DATASET := dataset_version("tyndp_mm_output_file"))["source"] in [
-    "archive"
-]:
-
-    rule retrieve_tyndp_mm_output:
-        input:
-            zip_file=storage(MM_OUTPUT_DATASET["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
-        output:
-            dir=directory(MM_OUTPUT_DATASET["folder"]),
-            NT2030=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
-            NT2040=f"{MM_OUTPUT_DATASET['folder']}/TYNDP-2024-Scenarios-Outputs/MMStandardOutputFile_NT/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
-        log:
-            "logs/retrieve_tyndp_mm_output.log",
-        run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
-
-
 if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["archive"]:
 
     rule retrieve_tyndp_nuclear_profiles:
         input:
             # TODO Derive this from Market Outputs directly
             zip_file=storage(NUC_PROFILES["url"]),
-            dir=rules.retrieve_tyndp.output.dir,
         output:
             dir=directory(NUC_PROFILES["folder"]),
             nuclear_p_max_pu_2030=f"{NUC_PROFILES["folder"]}/nuclear_p_max_pu_2030.csv",
@@ -380,7 +260,7 @@ rule build_pemmdb_data:
         ),
         tyndp_scenario=config_provider("tyndp_scenario"),
     input:
-        pemmdb_dir=rules.retrieve_tyndp_pemmdb_data.output.dir,
+        pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
     output:
@@ -439,7 +319,7 @@ rule clean_tyndp_hydro_inflows:
             "electricity", "pemmdb_hydro_profiles", "available_years"
         ),
     input:
-        hydro_inflows_dir=rules.retrieve_tyndp_hydro_inflows.output.dir,
+        hydro_inflows_dir=rules.retrieve_tyndp.output.hydro_inflows,
         busmap=resources("busmap_base_s_all.csv"),
     output:
         hydro_inflows_tyndp=resources(
@@ -528,7 +408,7 @@ rule build_tyndp_gas_demand:
         scenario=config_provider("tyndp_scenario"),
         planning_horizons=config_provider("scenario", "planning_horizons"),
     input:
-        supply_tool=rules.retrieve_tyndp_supply_tool.output.file,
+        supply_tool=rules.retrieve_tyndp.output.supply_tool,
     output:
         gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),
     threads: 1
@@ -778,9 +658,11 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
         input:
-            tyndp_output_file=lambda w: rules.retrieve_tyndp_mm_output.output[
-                f"{w.scenario}{w.planning_horizons}"
-            ],
+            # TODO Generalize hardcoded climate year CY2009 for DE / GA
+            tyndp_output_file=lambda w: getattr(
+                rules.retrieve_tyndp.output,
+                f"market_outputs_{w.scenario}{w.planning_horizons}_CY2009",
+            ),
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
@@ -802,7 +684,7 @@ if config["benchmarking"]["enable"]:
             scenario=config_provider("tyndp_scenario"),
             snapshots=config_provider("snapshots"),
         input:
-            scenarios_figures=rules.retrieve_tyndp_benchmark.output.file,
+            scenarios_figures=rules.retrieve_tyndp.output.benchmark,
         output:
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
         log:
