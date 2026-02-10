@@ -27,7 +27,7 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
         output:
             dir=directory(CBA_PROJECTS_DATASET["folder"]),
         log:
-            "logs/retrieve_tyndp_cba_projects",
+            "logs/retrieve_tyndp_cba_projects.log",
         run:
             copy2(input["zip_file"], output["dir"] + ".zip")
             unpack_archive(output["dir"] + ".zip", output["dir"])
@@ -44,7 +44,7 @@ if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
         output:
             file=f"{CBA_NON_CO2_DATASET["folder"]}/a.3_non-co2-emissions.csv",
         log:
-            logs("retrieve_tyndp_cba_non_co2_emissions.log"),
+            "logs/retrieve_tyndp_cba_non_co2_emissions.log",
         run:
             copy2(input["file"], output["file"])
 

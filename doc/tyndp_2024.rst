@@ -44,8 +44,8 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 
 ``Hydro Inflows``
 
-- **Source:** TYNDP 2024 Scenarios, https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip
-- **Link:** https://2024.entsos-tyndp-scenarios.eu/download/Hydro-Inflows.zip
+- **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
+- **Link:** https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip
 - **Description:** Contains hourly hydro inflows for climate years from 1982 to 2017, for all modelled hydro technologies, per node and planning horizon.
 
 ``Investment Datasets``
@@ -60,6 +60,12 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Line-data.zip
 - **Description:** Contains electricity and hydrogen reference grids and e-market prosumer wheeling charge.
+
+``Market Outputs for NT``
+
+- **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
+- **Link:** https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/MMStandardOutputFile_NT{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx.zip
+- **Description:** Contains market model standard output files for the National Trends (NT) scenario and climate year 2009 (available for both 2030 and 2040 planning horizons).
 
 ``Nodes``
 

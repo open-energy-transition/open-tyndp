@@ -170,7 +170,7 @@ class DataConfig(BaseModel):
     )
     tyndp: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
-        description="TYNDP data source configuration.",
+        description="TYNDP 2024 data source configuration.",
     )
     powerplants: _DataSourceConfig = Field(
         default_factory=lambda: _DataSourceConfig(source="primary"),

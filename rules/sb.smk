@@ -658,9 +658,10 @@ if config["benchmarking"]["enable"]:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
         input:
+            # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=lambda w: getattr(
                 rules.retrieve_tyndp.output,
-                f"market_outputs_{w.scenario.lower()}{w.planning_horizons}_cy{config['snapshots']['start'][:4]}",
+                f"market_outputs_{w.scenario}{w.planning_horizons}_CY2009",
             ),
         output:
             benchmarks=RESULTS
