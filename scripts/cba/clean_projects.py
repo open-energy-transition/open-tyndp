@@ -233,9 +233,3 @@ if __name__ == "__main__":
     guidelines = pd.read_csv(snakemake.input.guidelines)
     methods = build_method_assignments(guidelines, transmission_projects)
     methods.to_csv(snakemake.output.methods, index=False)
-    methods.loc[methods["method"] == "TOOT"].to_csv(
-        snakemake.output.toot_projects, index=False
-    )
-    methods.loc[methods["method"] == "PINT"].to_csv(
-        snakemake.output.pint_projects, index=False
-    )
