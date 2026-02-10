@@ -15,7 +15,7 @@ The licensing of the Open-TYNDP project follows a similar approach to PyPSA-Eur 
 * Modified source code is licensed as free software under `MIT <LICENSES/MIT.txt>`__ with attribution to OET and its authors.
 * Modifications to the original documentation are licensed under `CC-BY-4.0 <LICENSES/CC-BY-4.0.txt>`__ with attribution to OET and its authors.
 * Modifications to the original configuration files are licensed under `CC0-1.0 <LICENSES/CC0-1.0.txt>`__ with attribution to OET and its authors.
-* Additional data sources are the TYNDP 2024 Scenarios that are licensed under `CC-BY-4.0 <LICENSES/CC-BY-4.0.txt>`__ by ENTSO-E and ENTSOG (see :doc:`tyndp-2024-bundle`).
+* Additional data sources are the TYNDP 2024 Scenarios that are licensed under `CC-BY-4.0 <LICENSES/CC-BY-4.0.txt>`__ by ENTSO-E and ENTSOG (see :doc:`tyndp_2024`).
 
 The original PyPSA-Eur model is released under multiple licenses:
 
