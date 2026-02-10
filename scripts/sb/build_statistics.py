@@ -260,19 +260,23 @@ def compute_benchmark(
         )
 
         # TYNDP 2024 report available generation for renewables (incl. curtailment)
-        res_carriers = df.filter(regex="offwind.*|solar.*|onwind").index
+        # and add H2 offwind capacities in MWh_e
+        res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
         res_idx = (
             n.generators[n.generators.carrier.isin(res_carriers)]
             .query("bus in @eu27_idx")
             .index
         )
+        eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
 
         res_gen = (
             (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
+            .div(eff_dc_to_b0)
             .groupby(n.generators.carrier)
             .sum()
         )
-        df.loc[res_carriers] = res_gen.values
+        df = df.reindex(df.index.union(res_carriers))
+        df.loc[res_gen.index] = res_gen.values
 
     elif table == "methane_supply":
         grouper = ["carrier"]
@@ -406,6 +410,7 @@ def compute_benchmark(
         .rename(
             columns={
                 "bus_carrier": "carrier",
+                "index": "carrier",
                 0: "value",
                 "objective": "value",
             }
