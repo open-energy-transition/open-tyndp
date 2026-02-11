@@ -4,7 +4,7 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 
 #############################################################################################################
-Open-TYNDP: An open energy planning model for ENTSO-E's and entsog's TYNDP Scenario Building and Cost-Benefit Analysis based on PyPSA-Eur
+Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
 #############################################################################################################
 
 .. image:: https://img.shields.io/github/v/release/open-energy-transition/open-tyndp?include_prereleases

@@ -16,7 +16,7 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
 [![REUSE status](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
 
-# Open-TYNDP: An open energy planning model for ENTSO-E's and entsog's TYNDP Scenario Building and Cost-Benefit Analysis based on PyPSA-Eur
+# Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
 <img src="https://raw.githubusercontent.com/open-energy-transition/oet-website/main/assets/img/oet-logo-red-n-subtitle.png" alt="Open Energy Transition Logo" width="260" height="100" align="right">
 
 > [!WARNING]
