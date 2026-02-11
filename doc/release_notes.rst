@@ -21,6 +21,8 @@ Upcoming Open-TYNDP Release
 
 * Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
 
+* Update the Citation for improved reference of original work and Zenodo archive (https://github.com/open-energy-transition/open-tyndp/pull/459).
+
 **Developers Note**
 
 Upcoming PyPSA-Eur Release
