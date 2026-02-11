@@ -11,6 +11,17 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
+**Features**
+
+**Changes**
+
+**Bugfixes and Compatibility**
+
+**Documentation**
+
+* Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
+
+**Developers Note**
 
 Upcoming PyPSA-Eur Release
 ================
