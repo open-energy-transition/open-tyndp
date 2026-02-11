@@ -4,9 +4,7 @@
 
 cff-version: 1.2.0
 title: >-
-  Open-TYNDP: An open energy planning model for ENTSO-E's
-  and entsog's TYNDP Scenario Building and Cost-Benefit
-  Analysis based on PyPSA-Eur
+  Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
 message: >-
   If you use this package, please cite it in the following
   way.
@@ -58,9 +56,7 @@ version: v0.5
 preferred-citation:
   type: software
   title: >-
-    Open-TYNDP: An open energy planning model for ENTSO-E's
-    and entsog's TYNDP Scenario Building and Cost-Benefit
-    Analysis based on PyPSA-Eur
+    Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
   authors:
     - name: Open Energy Transition
     - family-names: Gilon
