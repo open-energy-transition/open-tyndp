@@ -179,6 +179,8 @@ Sign Up for the [project newsletter](https://openenergytransitionnewsletter.eo.p
 
 # Citation
 
+If you want to cite a specific Open-TYNDP version, since v0.5, each release is archived on Zenodo with a release-specific DOI:
+
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg)](https://doi.org/10.5281/zenodo.18494363)
 
 If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of [Open-TYNDP](https://github.com/open-energy-transition/open-tyndp).
