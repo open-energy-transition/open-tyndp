@@ -47,7 +47,7 @@ authors:
 identifiers:
   - type: doi
     value: 10.5281/zenodo.18494363
-    description: "Zenodo record archiving released versions of Open-TYNDP starting with v0.5."
+    description: 'Zenodo record archiving released versions of Open-TYNDP starting with v0.5.'
 repository-code: 'https://github.com/open-energy-transition/open-tyndp'
 license: MIT
 version: v0.5
@@ -87,14 +87,14 @@ preferred-citation:
       given-names: Max
       orcid: https://orcid.org/0000-0002-4390-0063
   doi: 10.5281/zenodo.18494363
-  repository-code: "https://github.com/open-energy-transition/open-tyndp"
+  repository-code: 'https://github.com/open-energy-transition/open-tyndp'
   version: v0.5
   license: MIT
 
 # Reference the original work
 references:
   - type: article
-    title: "PyPSA-Eur: An open optimisation model of the European transmission system"
+    title: 'PyPSA-Eur: An open optimisation model of the European transmission system'
     authors:
       - family-names: Hörsch
         given-names: Jonas
@@ -115,8 +115,8 @@ references:
     start: 207
     end: 215
   - type: software
-    title: "PyPSA-Eur: An open sector-coupled optimisation model of the European energy system"
-    repository-code: "https://github.com/pypsa/pypsa-eur"
+    title: 'PyPSA-Eur: An open sector-coupled optimisation model of the European energy system'
+    repository-code: 'https://github.com/pypsa/pypsa-eur'
     doi: 10.5281/zenodo.15864616
     version: v2025.07.0
     license: MIT
@@ -163,9 +163,9 @@ references:
       - family-names: Seibold
         given-names: Toni
   - type: report
-    title: "TYNDP 2024 Scenarios Methodology Report"
+    title: 'TYNDP 2024 Scenarios Methodology Report'
     authors:
       - name: ENTSO-E
       - name: entsog
     year: 2025
-    url: "https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/"
+    url: 'https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/'
