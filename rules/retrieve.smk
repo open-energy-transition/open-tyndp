@@ -112,7 +112,7 @@ elif (CORINE_DATASET := dataset_version("corine"))["source"] in ["primary"]:
             mem_mb=1000,
         retries: 2
         script:
-            "../scripts/retrieve_corine_dataset_primary.py"
+            scripts("retrieve_corine_dataset_primary.py")
 
 
 if (H2_SALT_CAVERNS_DATASET := dataset_version("h2_salt_caverns"))["source"] in [
@@ -477,20 +477,169 @@ if (SCIGRID_GAS_DATASET := dataset_version("scigrid_gas"))["source"] in [
             unpack_archive(output["zip_file"], output_folder)
 
 
-rule retrieve_electricity_demand:
-    message:
-        "Retrieving electricity demand data"
-    params:
-        versions=["2019-06-05", "2020-10-06"],
-    output:
-        "data/electricity_demand_raw.csv",
-    log:
-        "logs/retrieve_electricity_demand.log",
-    resources:
-        mem_mb=5000,
-    retries: 2
-    script:
-        "../scripts/retrieve_electricity_demand.py"
+if (OPSD_DEMAND_DATA := dataset_version("opsd_electricity_demand"))["source"] in [
+    "build"
+]:
+
+    rule retrieve_electricity_demand_opsd:
+        message:
+            "Retrieving electricity demand data from OPSD from build source"
+        params:
+            versions=["2019-06-05", "2020-10-06"],
+        output:
+            csv=f"{OPSD_DEMAND_DATA['folder']}/electricity_demand_opsd_raw.csv",
+        log:
+            "logs/retrieve_electricity_demand_opsd.log",
+        resources:
+            mem_mb=5000,
+        retries: 2
+        script:
+            scripts("retrieve_electricity_demand_opsd.py")
+
+
+if (OPSD_DEMAND_DATA := dataset_version("opsd_electricity_demand"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_electricity_demand_opsd:
+        message:
+            "Retrieving electricity demand data from OPSD from archive"
+        input:
+            csv=storage(OPSD_DEMAND_DATA["url"]),
+        output:
+            csv=f"{OPSD_DEMAND_DATA['folder']}/electricity_demand_opsd_raw.csv",
+        retries: 2
+        run:
+            copy2(input["csv"], output["csv"])
+
+
+if (ENTSOE_DEMAND_DATA := dataset_version("entsoe_electricity_demand"))["source"] in [
+    "build"
+]:
+
+    ENTSOE_COUNTRIES = [
+        "AL",
+        "AT",
+        "BE",
+        "BA",
+        "BG",
+        "CH",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MD",
+        "ME",
+        "MK",
+        "NL",
+        "NO",
+        "PL",
+        "PT",
+        "RO",
+        "RS",
+        "SE",
+        "SI",
+        "SK",
+        "UA",
+        "XK",
+    ]
+
+    rule retrieve_electricity_demand_entsoe_country:
+        message:
+            "Retrieving electricity demand data from ENTSO-E for {wildcards.country}"
+        params:
+            entsoe_token=os.environ.get("ENTSOE_API_TOKEN", ""),
+        output:
+            csv=f"{ENTSOE_DEMAND_DATA['folder']}"
+            + "/electricity_demand_entsoe_raw_{country}.csv",
+        log:
+            "logs/retrieve_electricity_demand_entsoe_{country}.log",
+        resources:
+            mem_mb=2000,
+        retries: 2
+        script:
+            scripts("retrieve_electricity_demand_entsoe.py")
+
+    rule retrieve_electricity_demand_entsoe:
+        message:
+            "Retrieving electricity demand data from ENTSO-E from build source"
+        input:
+            csvs=expand(
+                f"{ENTSOE_DEMAND_DATA['folder']}"
+                + "/electricity_demand_entsoe_raw_{country}.csv",
+                country=ENTSOE_COUNTRIES,
+            ),
+        output:
+            csv=f"{ENTSOE_DEMAND_DATA['folder']}/electricity_demand_entsoe_raw.csv",
+        run:
+            import pandas as pd
+
+            loads = [pd.read_csv(csv, index_col=0) for csv in input.csvs]
+            df = pd.concat(loads, axis=1, join="outer").sort_index()
+            df.to_csv(output.csv)
+
+
+if (ENTSOE_DEMAND_DATA := dataset_version("entsoe_electricity_demand"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_electricity_demand_entsoe:
+        message:
+            "Retrieving electricity demand data from ENTSO-E from archive"
+        input:
+            csv=storage(ENTSOE_DEMAND_DATA["url"]),
+        output:
+            csv=f"{ENTSOE_DEMAND_DATA['folder']}/electricity_demand_entsoe_raw.csv",
+        retries: 2
+        run:
+            copy2(input["csv"], output["csv"])
+
+
+if (NESO_DEMAND_DATA := dataset_version("neso_electricity_demand"))["source"] in [
+    "build"
+]:
+
+    rule retrieve_electricity_demand_neso:
+        message:
+            "Retrieving electricity demand data from NESO from build source"
+        output:
+            csv=f"{NESO_DEMAND_DATA['folder']}/electricity_demand_neso_raw.csv",
+        log:
+            "logs/retrieve_electricity_demand_neso.log",
+        resources:
+            mem_mb=5000,
+        retries: 2
+        script:
+            scripts("retrieve_electricity_demand_neso.py")
+
+
+if (NESO_DEMAND_DATA := dataset_version("neso_electricity_demand"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_electricity_demand_neso:
+        message:
+            "Retrieving electricity demand data from NESO from archive"
+        input:
+            csv=storage(NESO_DEMAND_DATA["url"]),
+        output:
+            csv=f"{NESO_DEMAND_DATA['folder']}/electricity_demand_neso_raw.csv",
+        retries: 2
+        run:
+            copy2(input["csv"], output["csv"])
 
 
 if (
@@ -764,6 +913,20 @@ if (GEM_GSPT_DATASET := dataset_version("gem_gspt"))["source"] in [
             copy2(input["xlsx"], output["xlsx"])
 
 
+if (GEM_GCCT_DATASET := dataset_version("gem_gcct"))["source"] in [
+    "primary",
+    "archive",
+]:
+
+    rule retrieve_gem_cement_concrete_tracker:
+        input:
+            xlsx=storage(GEM_GCCT_DATASET["url"]),
+        output:
+            xlsx=f"{GEM_GCCT_DATASET['folder']}/Global-Cement-and-Concrete-Tracker.xlsx",
+        run:
+            copy2(input["xlsx"], output["xlsx"])
+
+
 if (BFS_ROAD_VEHICLE_STOCK_DATASET := dataset_version("bfs_road_vehicle_stock"))[
     "source"
 ] in [
@@ -943,7 +1106,7 @@ rule retrieve_monthly_fuel_prices:
         mem_mb=5000,
     retries: 2
     script:
-        "../scripts/retrieve_monthly_fuel_prices.py"
+        scripts("retrieve_monthly_fuel_prices.py")
 
 
 if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
@@ -1125,7 +1288,7 @@ elif OSM_DATASET["source"] == "build":
             "logs/retrieve_osm_data_{country}.log",
         threads: 1
         script:
-            "../scripts/retrieve_osm_data.py"
+            scripts("retrieve_osm_data.py")
 
     rule retrieve_osm_data_raw_all:
         input:
@@ -1167,7 +1330,7 @@ elif NATURA_DATASET["source"] == "build":
         log:
             "logs/build_natura.log",
         script:
-            "../scripts/build_natura.py"
+            scripts("build_natura.py")
 
 
 if (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
@@ -1183,7 +1346,7 @@ if (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
             "logs/retrieve_osm_boundaries_{country}_adm1.log",
         threads: 1
         script:
-            "../scripts/retrieve_osm_boundaries.py"
+            scripts("retrieve_osm_boundaries.py")
 
 elif (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
     "archive"
@@ -1263,7 +1426,7 @@ if (LAU_REGIONS_DATASET := dataset_version("lau_regions"))["source"] in [
         resources:
             mem_mb=10000,
         script:
-            "../scripts/retrieve_seawater_temperature.py"
+            scripts("retrieve_seawater_temperature.py")
 
     rule retrieve_hera_data_test_cutout:
         message:
