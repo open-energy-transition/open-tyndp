@@ -3732,64 +3732,6 @@ def add_h2_pipeline_new(n, costs):
     )
 
 
-def add_battery_stores(n, nodes, costs):
-    """
-    Adds battery stores with charger and discharger.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network container object
-    nodes : pd.Index
-        Pandas Index of locations/nodes
-    costs : pd.DataFrame
-        Technology cost assumptions
-
-    Returns
-    -------
-    None
-        The function modifies the network object in-place by adding battery store components.
-    """
-
-    n.add("Carrier", "battery")
-
-    n.add("Bus", nodes + " battery", location=nodes, carrier="battery", unit="MWh_el")
-
-    n.add(
-        "Store",
-        nodes + " battery",
-        bus=nodes + " battery",
-        e_cyclic=True,
-        e_nom_extendable=True,
-        carrier="battery",
-        capital_cost=costs.at["battery storage", "capital_cost"],
-        lifetime=costs.at["battery storage", "lifetime"],
-    )
-
-    n.add(
-        "Link",
-        nodes + " battery charger",
-        bus0=nodes,
-        bus1=nodes + " battery",
-        carrier="battery charger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        capital_cost=costs.at["battery inverter", "capital_cost"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
-
-    n.add(
-        "Link",
-        nodes + " battery discharger",
-        bus0=nodes + " battery",
-        bus1=nodes,
-        carrier="battery discharger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
-
-
 def add_h2_gas_infrastructure(
     n,
     costs,
@@ -8990,8 +8932,6 @@ if __name__ == "__main__":
             spatial=spatial,
             nhours=nhours,
         )
-
-    add_battery_stores(n=n, nodes=pop_layout.index, costs=costs)
 
     if options["transport"]:
         add_land_transport(

@@ -8,7 +8,7 @@ authors = ["Contributors to Open-TYNDP"]
 channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "2025.07.0"
+version = "v0.5"
 
 [target.win-64.activation.env]
 
