@@ -95,6 +95,7 @@ preferred-citation:
   version: v0.5
   license: MIT
 
+# Reference the original work
 references:
   - type: article
     title: "PyPSA-Eur: An open optimisation model of the European transmission system"

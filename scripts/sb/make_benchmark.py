@@ -27,7 +27,11 @@ logger = logging.getLogger(__name__)
 
 
 def load_data(
-    benchmarks_fn: str, results_fn: str, scenario: str, vp_data_fn: str = ""
+    benchmarks_fn: str,
+    results_fn: str,
+    scenario: str,
+    vp_data_fn: str = "",
+    mm_data_fn: str = "",
 ) -> pd.DataFrame:
     """
     Load Open-TYNDP and TYNDP 2024 results.
@@ -42,6 +46,8 @@ def load_data(
         Name of scenario to compare.
     vp_data_fn : str (optional)
         Path to the Visualisation data file.
+    mm_data_fn : str (optional)
+        Path to the Market Model Output data file.
 
     Returns
     -------
@@ -75,6 +81,20 @@ def load_data(
                 "Skipping comparison with Visualisation Platform data, as only available in TYNDP 2024 for the climate years 1995, 2008 and 2009."
             )
 
+    # Add Market Model Outputs (optional)
+    if mm_data_fn:
+        mm_data = []
+        for fn in mm_data_fn:
+            mm_data.append(pd.read_csv(fn))
+        mm_data = pd.concat(mm_data)
+        if not mm_data.empty:
+            available_years = set(mm_data.year).intersection(available_years)
+            benchmarks_raw = pd.concat([benchmarks_raw, mm_data])
+        else:
+            logger.info(
+                "Skipping comparison with Market Model Output data, as only available in TYNDP 2024 for NT 2030 and NT 2040."
+            )
+
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
     return benchmarks_raw
@@ -84,7 +104,7 @@ def match_temporal_resolution(
     df: pd.DataFrame,
     snapshots: dict[str, str],
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024",
+    rfc_col: str = "TYNDP 2024 Scenarios",
 ) -> pd.DataFrame:
     """
     Match temporal resolution against reference data. Hourly time series from the rfc_col will be
@@ -98,7 +118,7 @@ def match_temporal_resolution(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     model_col : str, default "Open-TYNDP"
         Column name for model values with potentially lower temporal resolution.
-    rfc_col : str, default "TYNDP 2024"
+    rfc_col : str, default "TYNDP 2024 Scenarios"
         Column name for reference values with hourly temporal resolution.
 
     Returns
@@ -267,7 +287,7 @@ def compute_all_indicators(
     df: pd.DataFrame,
     table: str,
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024",
+    rfc_col: str = "TYNDP 2024 Scenarios",
     eps: float = 1e-6,
     carrier: str = None,
     df_na: pd.DataFrame = None,
@@ -283,7 +303,7 @@ def compute_all_indicators(
         Benchmark metric to compute.
     model_col : str, default "Open-TYNDP"
         Column name for model/projected values (ŷᵢ).
-    rfc_col : str, default "TYNDP 2024"
+    rfc_col : str, default "TYNDP 2024 Scenarios"
         Column name for reference/actual values (yᵢ).
     eps: float, default 1e-6
         Small value used when the denominator is zero.

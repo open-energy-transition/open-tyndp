@@ -98,9 +98,7 @@ class ConfigSchema(BaseModel):
     model_config = ConfigDict(extra="allow", title="Open-TYNDP Configuration")
 
     # Top-level fields (from TopLevelConfig)
-    version: str = Field(
-        "v0.4.2", description="Version of Open-TYNDP. Descriptive only."
-    )
+    version: str = Field("v0.5", description="Version of Open-TYNDP. Descriptive only.")
     tutorial: bool = Field(
         False,
         description="Switch to retrieve the tutorial data set instead of the full data set.",
@@ -125,6 +123,10 @@ class ConfigSchema(BaseModel):
     tyndp_scenario: Literal["NT", "DE", "GA", False] = Field(
         False,
         description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
+    )
+    launch_explorer: bool = Field(
+        False,
+        description="Switch to launch the PyPSA-Explorer with the result networks.",
     )
     scenario: ScenarioConfig = Field(
         default_factory=ScenarioConfig,

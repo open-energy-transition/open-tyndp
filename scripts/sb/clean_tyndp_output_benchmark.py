@@ -13,6 +13,7 @@ Note: Currently, only NT scenario processing is supported.
 
 import logging
 import multiprocessing as mp
+import re
 from functools import partial
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from tqdm import tqdm
 
 from scripts._helpers import (
     configure_logging,
+    convert_units,
     set_scenario_config,
 )
 
@@ -72,7 +74,7 @@ MM_CARRIER_MAPPING = {
     "Pump Storage - Closed Loop (turbine)": "hydro and pumped storage",
     "Pump Storage - Open Loop (pump)": "hydro and pumped storage (load)",
     "Pump Storage - Closed Loop (pump)": "hydro and pumped storage (load)",
-    "Others renewable": "chp and small thermal",  # >TODO check if that could be small scale res
+    "Others renewable": "other res",
     "Others non-renewable": "other non-res",
     "Battery Storage discharge (gen.)": "battery discharge",
     "Battery Storage charge (load)": "battery charge (load)",
@@ -86,7 +88,7 @@ MM_CARRIER_MAPPING = {
     # "e-fuels" - not available in TYNDP market model NT scenario, included in native demand
     # Hydrogen supply from H2 sheet
     "Electrolyser (gen.)": "p2g",
-    "Steam methane reformer": "smr (grey)",
+    "Steam methane reformer": "smr (grey) and smr with ccs (blue)",
     # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
     # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
     # NOT available in TYNDP market model (will not appear in output):
@@ -166,8 +168,12 @@ def load_MM_sheet(
 
     # Rename and group
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
+    df = df.loc[output_type].rename("value").reset_index()
 
-    final = df.loc[output_type].rename("value").reset_index()
+    # Adjust unit
+    df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
+    final = convert_units(df)
+
     final["table"] = table_name
     return final
 
@@ -263,9 +269,43 @@ if __name__ == "__main__":
     # set negative sign for loads
     MM_data = set_load_sign(MM_data)
 
+    # clean data for benchmarking
+    # remove load and storages
+    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
+    # remove pumped storages from generation
+    MM_data = MM_data.query(
+        "not(table=='power_generation' and carrier=='hydro and pumped storage')"
+    )
+    # aggregate hydro capacities
+    hydro = (
+        MM_data.query(
+            "table=='power_capacity' and (carrier == 'hydro (exc. pump storage)' or carrier == 'hydro and pumped storage')"
+        )
+        .sum(numeric_only=True)
+        .value
+    )
+    MM_data.loc[
+        MM_data.query(
+            "table=='power_capacity' and carrier=='hydro and pumped storage'"
+        ).index,
+        "value",
+    ] = hydro
+    MM_data = MM_data.query(
+        "not(table=='power_capacity' and carrier=='hydro (exc. pump storage)')"
+    )
+    # rename other res to small scale res
+    MM_data.loc[
+        MM_data.query("table=='power_capacity' and carrier=='other res'").index,
+        "carrier",
+    ] = "small scale res"
+    MM_data.loc[
+        MM_data.query("table=='power_capacity' and carrier=='other non-res'").index,
+        "carrier",
+    ] = "chp and small thermal"
+
     MM_data["scenario"] = f"TYNDP {scenario}"
     MM_data["year"] = planning_horizon
-    MM_data["source"] = "Market Model TYNDP output"
+    MM_data["source"] = "TYNDP 2024 Market Outputs"
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)

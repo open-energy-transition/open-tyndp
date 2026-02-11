@@ -166,6 +166,8 @@ benchmarking:
         offwind-dc-fb-oh: wind offshore
         offwind-ac-fl-r: wind offshore
         offwind-ac-fb-r: wind offshore
+        offwind-h2-fb-oh: wind offshore
+        offwind-h2-fl-oh: wind offshore
         onwind: wind onshore
         solar-pv-rooftop: solar
         solar-pv-utility: solar
@@ -226,8 +228,8 @@ benchmarking:
         H2 Electrolysis: p2g
         H2 import LH2: ammonia imports
         H2 import Pipeline: imports (renewable & low carbon)
-        SMR: smr (grey)
-        SMR CC: smr with ccs (blue)
+        SMR: smr (grey) and smr with ccs (blue)
+        SMR CC: smr (grey) and smr with ccs (blue)
 
     biomass_supply:
       table_type: scenario_comparison
