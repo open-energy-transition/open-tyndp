@@ -160,7 +160,7 @@ if config["load"]["source"] == "tyndp":
 use rule build_electricity_demand as build_electricity_demand_tyndp with:
     input:
         unpack(input_elec_demand),
-        reported=rules.clean_tyndp_electricity_demand.output.electricity_demand_prepped,
+        tyndp=rules.clean_tyndp_electricity_demand.output.electricity_demand_prepped,
     output:
         resources("electricity_demand_{planning_horizons}.csv"),
     log:

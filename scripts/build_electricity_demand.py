@@ -21,13 +21,12 @@ from scripts._helpers import configure_logging, get_snapshots, set_scenario_conf
 logger = logging.getLogger(__name__)
 
 OPSD_DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+TYNDP_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
-def load_timeseries_opsd(
-    fn, years, countries, planning_horizons=None, date_format=None
-):
+def load_timeseries(fn, years, countries, date_format=None, countries_regex=False):
     """
-    Read and pre-filter OPSD load data.
+    Read and pre-filter load data.
 
     Parameters
     ----------
@@ -38,89 +37,28 @@ def load_timeseries_opsd(
         File name or url location (file format .csv)
     countries : listlike
         Countries for which to read load data.
+    countries_regex : bool
+        If True, use regex-based partial matching on column names.
+        If False, filter columns by exact country name match (default).
 
     Returns
     -------
     load : pd.DataFrame
         Load time-series with UTC timestamps x ISO-2 countries
     """
-    return (
+    df = (
         pd.read_csv(fn, index_col=0, parse_dates=[0], date_format=date_format)
         .tz_localize(None)
         .dropna(how="all", axis=0)
         .rename(columns={"GB_UKM": "GB"})
-        .filter(items=countries)
-        .loc[years]
     )
-
-
-def load_timeseries_tyndp(
-    fn, years, countries, planning_horizons=2030, date_format=None
-):
-    """
-    Read and pre-filter TYNDP load data.
-
-    Parameters
-    ----------
-    years : None or slice()
-        Years for which to read load data (defaults to
-        slice("2018","2019"))
-    fn : str
-        File name or url location (file format .csv)
-    countries : listlike
-        Countries for which to read load data.
-
-    Returns
-    -------
-    load : pd.DataFrame
-        Load time-series with UTC timestamps x ISO-2 countries
-    """
-    planning_slice = slice(str(planning_horizons), str(planning_horizons))
-
-    demand = (
-        pd.read_csv(fn, index_col=0, parse_dates=[0], date_format=date_format)
-        .tz_localize(None)
-        .dropna(how="all", axis=0)
-        .loc[planning_slice]
-    )
-
-    # need to reindex load time series to snapshots year
-    cyear = years.start.year
-    if cyear != years.stop.year:
-        logger.warning(
-            "Snapshots covers more than one year, consider limiting your analysis to a single full year."
-        )
-    demand.index = demand.index.map(lambda t: t.replace(year=cyear))
-
-    return demand
-
-
-def load_timeseries(*args, **kwargs):
-    """
-    Read load data
-
-    Parameters
-    ----------
-    fn : str
-        File name or url location (file format .csv)
-    years : slice(pandas.DatetimeIndex)
-        Years for which to read load data
-    countries : listlike
-        Countries for which to read load data.
-    planning_horizons : int, optional
-        Planning horizons for which to read load data (only for TYNDP demand data).
-
-    Returns
-    -------
-    load : pd.DataFrame
-        Load time-series with UTC timestamps x ISO-2 countries
-    """
-    if snakemake.params.load["source"] == "tyndp":
-        return load_timeseries_tyndp(*args, **kwargs)
+    if countries_regex:
+        df = df.filter(regex="|".join(countries))
     else:
-        if snakemake.params.load["source"] != "opsd":
-            logger.warning("Undefined load source, using the default OPSD as default.")
-        return load_timeseries_opsd(*args, **kwargs)
+        df = df.filter(items=countries)
+    if years is not None:
+        df = df.loc[years]
+    return df
 
 
 def consecutive_nans(ds):
@@ -314,64 +252,71 @@ if __name__ == "__main__":
     time_shift = snakemake.params.load["fill_gaps"]["time_shift_for_large_gaps"]
 
     if snakemake.params.load["source"] == "tyndp":
-        planning_horizons = int(snakemake.wildcards.planning_horizons)
+        planning_slice = slice(
+            str(snakemake.wildcards.planning_horizons),
+            str(snakemake.wildcards.planning_horizons),
+        )
+
+        load = load_timeseries(
+            snakemake.input.tyndp,
+            planning_slice,
+            countries,
+            TYNDP_DATE_FORMAT,
+            countries_regex=True,
+        )
     else:
-        planning_horizons = None
+        opsd = load_timeseries(snakemake.input.opsd, years, countries, OPSD_DATE_FORMAT)
 
-    opsd = load_timeseries(
-        snakemake.input.opsd, years, countries, planning_horizons, OPSD_DATE_FORMAT
-    )
+        entsoe = load_timeseries(snakemake.input.entsoe, years, countries)
 
-    entsoe = load_timeseries(snakemake.input.entsoe, years, countries)
+        neso = load_timeseries(snakemake.input.neso, years, countries)
 
-    neso = load_timeseries(snakemake.input.neso, years, countries)
+        load = entsoe.combine_first(opsd).combine_first(neso)
 
-    load = entsoe.combine_first(opsd).combine_first(neso)
+        # zero values are considered missing values
+        load.replace(0, np.nan, inplace=True)
 
-    # zero values are considered missing values
-    load.replace(0, np.nan, inplace=True)
+        if "UA" in countries:
+            # use 2021 as template for filling missing years
+            s = load.loc["2021", "UA"]
+            fill_values = repeat_years(s, range(2010, 2026))
+            load["UA"] = load["UA"].combine_first(fill_values)
 
-    if "UA" in countries:
-        # use 2021 as template for filling missing years
-        s = load.loc["2021", "UA"]
-        fill_values = repeat_years(s, range(2010, 2026))
-        load["UA"] = load["UA"].combine_first(fill_values)
+        if "MD" in countries:
+            # use 2022 as template for filling missing years
+            s = load.loc["2022", "MD"]
+            fill_values = repeat_years(s, range(2010, 2025))
+            load["MD"] = load["MD"].combine_first(fill_values)
 
-    if "MD" in countries:
-        # use 2022 as template for filling missing years
-        s = load.loc["2022", "MD"]
-        fill_values = repeat_years(s, range(2010, 2025))
-        load["MD"] = load["MD"].combine_first(fill_values)
+        if "AL" in countries:
+            # use 2024 as template for filling missing and erroneous years
+            s = load.loc["2024", "AL"]
+            fill_values = repeat_years(s, range(2010, 2026))
+            load.loc[fill_values.index, "AL"] = fill_values
 
-    if "AL" in countries:
-        # use 2024 as template for filling missing and erroneous years
-        s = load.loc["2024", "AL"]
-        fill_values = repeat_years(s, range(2010, 2026))
-        load.loc[fill_values.index, "AL"] = fill_values
+        if "BA" in countries:
+            # use 2024 as template for filling missing and erroneous years
+            s = load.loc["2024", "BA"]
+            fill_values = repeat_years(s, range(2010, 2026))
+            load["BA"] = load["BA"].combine_first(fill_values)
 
-    if "BA" in countries:
-        # use 2024 as template for filling missing and erroneous years
-        s = load.loc["2024", "BA"]
-        fill_values = repeat_years(s, range(2010, 2026))
-        load["BA"] = load["BA"].combine_first(fill_values)
+        if "XK" in countries:
+            # use 2024 as template for filling missing and erroneous years
+            s = load.loc["2024", "XK"]
+            fill_values = repeat_years(s, range(2010, 2024))
+            load["XK"] = load["XK"].combine_first(fill_values)
 
-    if "XK" in countries:
-        # use 2024 as template for filling missing and erroneous years
-        s = load.loc["2024", "XK"]
-        fill_values = repeat_years(s, range(2010, 2024))
-        load["XK"] = load["XK"].combine_first(fill_values)
+        if "MK" in countries:
+            # use 2024 as template for filling missing and erroneous years
+            s = load.loc["2024", "MK"]
+            fill_values = repeat_years(s, range(2025, 2026))
+            load["MK"] = load["MK"].combine_first(fill_values)
 
-    if "MK" in countries:
-        # use 2024 as template for filling missing and erroneous years
-        s = load.loc["2024", "MK"]
-        fill_values = repeat_years(s, range(2025, 2026))
-        load["MK"] = load["MK"].combine_first(fill_values)
-
-    if "CY" in countries:
-        # use 2021 as template for filling missing years
-        s = load.loc["2021", "CY"]
-        fill_values = repeat_years(s, range(2010, 2026))
-        load["CY"] = load["CY"].combine_first(fill_values)
+        if "CY" in countries:
+            # use 2021 as template for filling missing years
+            s = load.loc["2021", "CY"]
+            fill_values = repeat_years(s, range(2010, 2026))
+            load["CY"] = load["CY"].combine_first(fill_values)
 
     if snakemake.params.load["source"] == "opsd":
         if snakemake.params.load["manual_adjustments"]:
