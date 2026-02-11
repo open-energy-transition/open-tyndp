@@ -12,14 +12,11 @@ Note: Currently, only NT scenario processing is supported.
 """
 
 import logging
-import multiprocessing as mp
 import re
-from functools import partial
 from pathlib import Path
 
 import country_converter as coco
 import pandas as pd
-from tqdm import tqdm
 
 from scripts._helpers import (
     configure_logging,
@@ -160,22 +157,24 @@ def load_MM_sheet(
     df.index = pd.MultiIndex.from_arrays([level0, level1])
     df.index.names = ["output_type", "carrier"]
 
+    # Rename and group
+    df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
+    df = df.loc[output_type]
+
     # Rename column names to country
     df.columns = df.columns.str[:2]
+    df_ct = df.T.groupby(df.columns).sum().T
 
     # Only consider EU27 and sum
     df = df.T.groupby(df.columns).sum().reindex(eu27).sum()
 
-    # Rename and group
-    df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
-    df = df.loc[output_type].rename("value").reset_index()
-
     # Adjust unit
+    df = df.rename("value").reset_index()
     df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
     final = convert_units(df)
 
     final["table"] = table_name
-    return final
+    return final, df_ct
 
 
 def set_load_sign(
@@ -210,6 +209,7 @@ def set_load_sign(
     return MM_data
 
 
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -250,21 +250,15 @@ if __name__ == "__main__":
 
     logger.info(f"Processing tables: {', '.join(tables_to_process)}")
 
-    tqdm_kwargs = {
-        "ascii": False,
-        "unit": " table",
-        "total": len(tables_to_process),
-        "desc": "Loading TYNDP market model benchmark data",
-    }
+    benchmarks = {}
+    df_ct = {}
+    for table in tables_to_process:
+        benchmarks[table], df_ct[table] = load_MM_sheet(
+            table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+        )
 
-    func = partial(load_MM_sheet, filepath=tyndp_output_file, eu27=eu27, skiprows=5)
-
-    # Process in parallel
-    with mp.Pool(processes=snakemake.threads) as pool:
-        benchmarks = list(tqdm(pool.imap(func, tables_to_process), **tqdm_kwargs))
-
-    # Convert market model data to dictionary
-    MM_data = pd.concat(benchmarks, ignore_index=True)
+    MM_data = pd.concat(benchmarks).reset_index(drop=True)
+    MM_data_ct = pd.concat(df_ct)
 
     # set negative sign for loads
     MM_data = set_load_sign(MM_data)
@@ -309,4 +303,5 @@ if __name__ == "__main__":
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
+    MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     logger.info(f"\nSaved to: {snakemake.output.benchmarks}")
