@@ -9,10 +9,11 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Test workflows](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml/badge.svg)](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml)
 [![Documentation](https://readthedocs.org/projects/open-tyndp/badge/?version=latest)](https://open-tyndp.readthedocs.io/en/latest/?badge=latest)
 ![Size](https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp)
+[![Zenodo Open-TYNDP](https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg)](https://doi.org/10.5281/zenodo.18494363)
 [![Zenodo PyPSA-Eur](https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg)](https://doi.org/10.5281/zenodo.3520874)
 [![Zenodo PyPSA-Eur-Sec](https://zenodo.org/badge/DOI/10.5281/zenodo.3938042.svg)](https://doi.org/10.5281/zenodo.3938042)
-[![Snakemake](https://img.shields.io/badge/snakemake-≥9-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
 [![Zenodo TYNDP data](https://zenodo.org/badge/DOI/10.5281/zenodo.14230568.svg)](https://doi.org/10.5281/zenodo.14230568)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥9-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
 [![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
 [![REUSE status](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
 
@@ -176,6 +177,16 @@ We strongly welcome anyone interested in contributing to this project. If you ha
 For any questions about Open-TYNDP or other queries, reach out via the [pypsa-open-tyndp](https://discord.com/channels/911692131440148490/1414977512089321564) channel or <a href="mailto:tyndp@openenergytransition.org">tyndp@openenergytransition.org</a>.
 
 Sign Up for the [project newsletter](https://openenergytransitionnewsletter.eo.page/tyndp-oet) for updates!
+
+# Citation
+
+If you want to cite a specific Open-TYNDP version, since v0.5, each release is archived on Zenodo with a release-specific DOI:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg)](https://doi.org/10.5281/zenodo.18494363)
+
+If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of [Open-TYNDP](https://github.com/open-energy-transition/open-tyndp).
+
+This work builds upon [PyPSA-Eur](https://github.com/pypsa/pypsa-eur) and follows the methodology described in [ENTSO-E's and entsog's TYNDP 2024 Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
 
 # Licence
 
