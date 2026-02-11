@@ -181,7 +181,7 @@ Sign Up for the [project newsletter](https://openenergytransitionnewsletter.eo.p
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg)](https://doi.org/10.5281/zenodo.18494363)
 
-If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar.
+If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of [Open-TYNDP](https://github.com/open-energy-transition/open-tyndp).
 
 This work builds upon [PyPSA-Eur](https://github.com/pypsa/pypsa-eur) and follows the methodology described in [ENTSO-E's and entsog's TYNDP 2024 Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
 
