@@ -15,11 +15,9 @@ on:
         type: string
 
 jobs:
-  build-and-attach-installer:
-    name: Build Windows Installer and Attach to Release
+  build-and-sign-installer:
+    name: Build and Sign Windows Installer
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     env:
       VERSION: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
@@ -48,8 +46,53 @@ jobs:
       run: |
         utils/windows-installer/build_installer.sh
 
+    - uses: ossign/ossign-action@v1
+      with:
+        # Github Token (read-only)
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+        # Only install the OSSign CLI, don't sign anything
+        # The command can then be run with "ossign" in a later step
+        installOnly: false
+
+        # The configuration to use
+        config: |
+          tokenType: azureTrusted
+          azureTrusted:
+            tenantId: "my-tenant-id"
+            clientId: "my-client-id"
+            clientSecret: "my-client-secret"
+            region: "neu"
+            account: "my-account"
+            profile: "my-profile"
+          timestampUrl: http://timestamp.globalsign.com/tsa/advanced
+          msTimestampUrl: http://timestamp.microsoft.com/tsa
+
+        inputFiles: utils/windows-installer/open-tyndp-*.exe
+        signatureType: pecoff
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: installer
+        path: utils/windows-installer/open-tyndp-*.exe
+
+  upload-installer:
+    name: Upload Installer to Release
+    needs: build-and-sign-installer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+    - name: Download installer artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: installer
+
     - name: Upload installer to release
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        gh release upload $VERSION utils/windows-installer/open-tyndp-*.exe --clobber
+        gh release upload $VERSION open-tyndp-*.exe --clobber
