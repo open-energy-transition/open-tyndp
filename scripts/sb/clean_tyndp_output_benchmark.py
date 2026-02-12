@@ -395,7 +395,7 @@ if __name__ == "__main__":
     prices_ct = {}
     for table in LOOKUP_TABLES.keys():
         if "price" in table:
-            prices[table], prices_ct[table] = load_MM_sheet(
+            _, prices_ct[table] = load_MM_sheet(
                 table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
             )
     prices_ct = pd.concat(prices_ct)
