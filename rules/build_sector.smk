@@ -1588,7 +1588,7 @@ def include_tyndp_projects(w):
     return int(w.planning_horizons) in horizons
 
 
-def include_tydnp_trajectories(w):
+def include_tyndp_trajectories(w):
     if config_provider("electricity", "tyndp_renewable_carriers")(w):
         return True
     elif "uranium" in config_provider("electricity", "tyndp_conventional_carriers")(w):
