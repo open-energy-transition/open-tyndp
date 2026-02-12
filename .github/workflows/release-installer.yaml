@@ -25,6 +25,8 @@ jobs:
     - uses: actions/checkout@v6
       with:
         ref: ${{ env.TAG || github.ref }}
+        fetch-depth: 0
+        fetch-tags: true
 
     - name: Check that origin/master contains the tag and reset local master to it
       if: ${{ env.TAG }}
@@ -77,6 +79,21 @@ jobs:
       with:
         name: installer
         path: utils/windows-installer/open-tyndp-*.exe
+
+    - name: Comment on PR with artifact link
+      if: github.event_name == 'pull_request'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+        LINK="[Download artifact](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+        BODY="Signed Windows installer built successfully."
+        EXISTING=$(gh api "$COMMENTS_URL" --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$BODY\"))) | .id" | tail -1)
+        if [ -n "$EXISTING" ]; then
+          gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" -f body="$BODY $LINK"
+        else
+          gh api "$COMMENTS_URL" -f body="$BODY $LINK"
+        fi
 
   upload-installer:
     name: Upload Installer to Release
