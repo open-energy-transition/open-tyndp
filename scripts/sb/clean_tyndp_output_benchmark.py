@@ -105,8 +105,20 @@ LOOKUP_TABLES: dict[str, list[str]] = {
         "Native Demand (excl. H2 storage charge) [GWhH2]",
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
+    # prices
+    "prices_electricity": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
+    "prices_electricity_wo_loads": [
+        "Yearly Outputs",
+        "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
+    ],
+    "prices_H2": ["Yearly H2 Outputs", "Marginal Cost Yearly Average [€/MWhH2]"],
+    "prices_H2_wo_loads": [
+        "Yearly H2 Outputs",
+        "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]",
+    ],
 }
 
+# look up dictionary for crossborder exchanges
 CROSS_BORDER_DICT: dict[str, str] = {
     "electricity": "Crossborder exchanges",
     "H2": "Crossborder H2 exchanges",
@@ -379,8 +391,19 @@ if __name__ == "__main__":
         )
     crossborder = pd.concat(crossborder, axis=1)
 
+    # load prices
+    prices = {}
+    prices_ct = {}
+    for table in LOOKUP_TABLES.keys():
+        if "price" in table:
+            prices[table], prices_ct[table] = load_MM_sheet(
+                table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+            )
+    prices_ct = pd.concat(prices_ct)
+
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     crossborder.to_csv(snakemake.output.crossborder)
+    prices_ct.to_csv(snakemake.output.prices_ct)
     logger.info(f"\nSaved to: {snakemake.output.benchmarks}")
