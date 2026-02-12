@@ -83,7 +83,7 @@ jobs:
   comment-on-pr:
     name: Comment on PR
     if: github.event_name == 'pull_request' && always()
-    needs: build-and-sign-installer
+    needs: build-and-sign
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -95,7 +95,7 @@ jobs:
         COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
         PREFIX="Signed Windows installer"
         RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        if [ "${{ needs.build-and-sign-installer.result }}" = "success" ]; then
+        if [ "${{ needs.build-and-sign.result }}" = "success" ]; then
           ARTIFACT_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name == "installer") | .id')
           BODY="$PREFIX built successfully. [Download artifact]($RUN_URL/artifacts/$ARTIFACT_ID)."
         else
@@ -111,7 +111,7 @@ jobs:
   upload-to-release:
     name: Upload to Release
     if: github.event_name != 'pull_request'
-    needs: build-and-sign-installer
+    needs: build-and-sign
     runs-on: ubuntu-latest
     permissions:
       contents: write
