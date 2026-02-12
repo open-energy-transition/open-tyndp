@@ -322,14 +322,13 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
     return MM_data
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "clean_tyndp_output_benchmark",
-            planning_horizons="2030",
+            planning_horizons="2040",
             scenario="NT",
             configfiles="config/test/config.tyndp.yaml",
         )
@@ -405,5 +404,5 @@ if __name__ == "__main__":
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     crossborder.to_csv(snakemake.output.crossborder)
-    prices_ct.to_csv(snakemake.output.prices_ct)
+    prices_ct.to_csv(snakemake.output.prices)
     logger.info(f"\nSaved to: {snakemake.output.benchmarks}")
