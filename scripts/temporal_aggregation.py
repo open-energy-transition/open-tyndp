@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 def set_temporal_aggregation(
     n: pypsa.Network, resolution: str, snapshot_weightings_fn: str
-):
+) -> pypsa.Network:
     """
     Aggregate time-varying data to the given snapshots.
 
