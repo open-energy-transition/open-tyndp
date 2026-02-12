@@ -55,16 +55,19 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         config: |
-          tokenType: azureTrusted
-          azureTrusted:
-            tenantId: "${{ vars.AZURE_TENANT_ID }}"
-            clientId: "${{ vars.AZURE_CLIENT_ID }}"
-            clientSecret: "${{ secrets.AZURE_CLIENT_SECRET }}"
-            region: "${{ vars.AZURE_REGION }}"
-            account: "${{ vars.AZURE_SIGNING_ACCOUNT }}"
-            profile: "${{ vars.AZURE_CERTIFICATE_PROFILE }}"
-          timestampUrl: http://timestamp.globalsign.com/tsa/advanced
-          msTimestampUrl: http://timestamp.microsoft.com/tsa
+          {
+            "tokenType": "azureTrusted",
+            "azureTrusted": {
+              "tenantId": "${{ vars.AZURE_TENANT_ID }}",
+              "clientId": "${{ vars.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "region": "${{ vars.AZURE_REGION }}",
+              "account": "${{ vars.AZURE_SIGNING_ACCOUNT }}",
+              "profile": "${{ vars.AZURE_CERTIFICATE_PROFILE }}"
+            },
+            "timestampUrl": "http://timestamp.globalsign.com/tsa/advanced",
+            "msTimestampUrl": "http://timestamp.microsoft.com/tsa"
+          }
 
         inputFiles: utils/windows-installer/open-tyndp-*.exe
         fileType: pecoff
