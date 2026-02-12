@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -79,7 +79,7 @@ def set_temporal_aggregation(
         m.set_snapshots(snapshot_weightings.index)
         m.snapshot_weightings = snapshot_weightings
 
-        # Aggregation all time-varying data.
+        # Aggregate all time-varying data.
         for c in n.iterate_components():
             pnl = getattr(m, c.list_name + "_t")
             for k, df in c.pnl.items():
