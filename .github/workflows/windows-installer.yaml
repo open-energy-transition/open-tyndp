@@ -5,7 +5,8 @@
 name: Windows Installer
 
 on:
-  pull_request:
+  issue_comment:
+    types: [created]
   release:
     types: [published]
   workflow_dispatch:
@@ -18,13 +19,16 @@ on:
 jobs:
   build-and-sign:
     name: Build and Sign
+    if: >-
+      github.event_name != 'issue_comment' ||
+      (github.event.issue.pull_request && github.event.comment.body == '/build-installer')
     runs-on: ubuntu-latest
     env:
       TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
     - uses: actions/checkout@v6
       with:
-        ref: ${{ env.TAG || github.ref }}
+        ref: ${{ env.TAG || github.event.issue.pull_request && format('refs/pull/{0}/head', github.event.issue.number) }}
         fetch-depth: 0
         fetch-tags: true
 
@@ -82,7 +86,7 @@ jobs:
 
   comment-on-pr:
     name: Comment on PR
-    if: github.event_name == 'pull_request' && always()
+    if: (github.event_name == 'issue_comment') && always()
     needs: build-and-sign
     runs-on: ubuntu-latest
     permissions:
@@ -92,7 +96,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
+        COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
         PREFIX="Signed Windows installer"
         RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         if [ "${{ needs.build-and-sign.result }}" = "success" ]; then
@@ -110,7 +114,7 @@ jobs:
 
   upload-to-release:
     name: Upload to Release
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'issue_comment'
     needs: build-and-sign
     runs-on: ubuntu-latest
     permissions:
