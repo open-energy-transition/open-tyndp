@@ -21,7 +21,9 @@ jobs:
     name: Build and Sign
     if: >-
       github.event_name != 'issue_comment' ||
-      (github.event.issue.pull_request && github.event.comment.body == '/build-installer')
+      (github.event.issue.pull_request
+       && github.event.comment.body == '/build-installer'
+       && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
     runs-on: ubuntu-latest
     env:
       TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
