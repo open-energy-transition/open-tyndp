@@ -214,7 +214,9 @@ def load_MM_sheet(
     df = df.loc[output_type]
 
     # Rename column names to country
-    df.columns = df.columns.str[:2]
+    df.rename(
+        columns=lambda x: x.replace("UK", "GB").replace("IB", "")[:2], inplace=True
+    )
     df_ct = df.T.groupby(df.columns).sum().T
 
     # Only consider EU27 and sum
