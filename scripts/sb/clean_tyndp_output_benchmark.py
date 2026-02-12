@@ -107,12 +107,12 @@ LOOKUP_TABLES: dict[str, list[str]] = {
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
     # prices
     "prices_electricity": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
-    "prices_electricity_wo_loads": [
+    "prices_electricity_excl_shed": [
         "Yearly Outputs",
         "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
     ],
     "prices_H2": ["Yearly H2 Outputs", "Marginal Cost Yearly Average [€/MWhH2]"],
-    "prices_H2_wo_loads": [
+    "prices_H2_excl_shed": [
         "Yearly H2 Outputs",
         "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]",
     ],
