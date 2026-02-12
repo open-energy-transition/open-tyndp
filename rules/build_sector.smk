@@ -1448,7 +1448,7 @@ rule build_existing_heating_distribution:
 
 rule build_snapshot_weightings:
     message:
-        "Performing time series aggregation for temporal resolution reduction for {wildcards.clusters} clusters and {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
+        "Defining time series aggregation for temporal resolution reduction for {wildcards.clusters} clusters and {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
         time_resolution=config_provider("clustering", "temporal"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
@@ -1864,6 +1864,8 @@ rule prepare_sector_network:
 
 
 rule temporal_aggregation:
+    message:
+        "Performing time series aggregation for temporal resolution reduction for {wildcards.clusters} clusters and {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     params:
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
     input:
