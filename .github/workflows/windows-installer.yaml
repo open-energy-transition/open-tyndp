@@ -88,7 +88,7 @@ jobs:
 
   comment-on-pr:
     name: Comment on PR
-    if: (github.event_name == 'issue_comment') && always()
+    if: github.event_name == 'issue_comment' && always() && needs.build-and-sign.result != 'skipped'
     needs: build-and-sign
     runs-on: ubuntu-latest
     permissions:
