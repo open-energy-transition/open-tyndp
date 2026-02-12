@@ -5,6 +5,7 @@
 name: Build and Attach Installer to Release
 
 on:
+  pull_request:
   release:
     types: [published]
   workflow_dispatch:
@@ -19,17 +20,18 @@ jobs:
     name: Build and Sign Windows Installer
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ github.event.release.tag_name || inputs.release_tag }}
+      TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
     - uses: actions/checkout@v6
       with:
-        ref: ${{ env.VERSION }}
+        ref: ${{ env.TAG || github.ref }}
 
     - name: Check that origin/master contains the tag and reset local master to it
+      if: ${{ env.TAG }}
       run: |
         git fetch origin master
-        if ! git merge-base --is-ancestor "$VERSION" origin/master; then
-          echo "Error: Tag $VERSION is not in master branch history"
+        if ! git merge-base --is-ancestor "$TAG" origin/master; then
+          echo "Error: Tag $TAG is not in master branch history"
           exit 1
         fi
         git branch --force master HEAD
@@ -43,6 +45,8 @@ jobs:
         cache-write: false
 
     - name: Build Windows installer
+      env:
+        VERSION: ${{ env.TAG }}
       run: |
         utils/windows-installer/build_installer.sh
 
@@ -79,12 +83,13 @@ jobs:
 
   upload-installer:
     name: Upload Installer to Release
+    if: github.event_name != 'pull_request'
     needs: build-and-sign-installer
     runs-on: ubuntu-latest
     permissions:
       contents: write
     env:
-      VERSION: ${{ github.event.release.tag_name || inputs.release_tag }}
+      TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
     - name: Download installer artifact
       uses: actions/download-artifact@v4
@@ -95,4 +100,4 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        gh release upload $VERSION open-tyndp-*.exe --clobber
+        gh release upload $TAG open-tyndp-*.exe --clobber
