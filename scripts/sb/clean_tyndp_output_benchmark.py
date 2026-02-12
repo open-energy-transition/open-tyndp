@@ -224,6 +224,9 @@ def load_MM_sheet(
     df = df.rename("value").reset_index()
     df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
     final = convert_units(df)
+    df_ct["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
+    for col in df_ct.columns[df_ct.columns != "unit"]:
+        df_ct = convert_units(df_ct, value_col=col)
 
     final["table"] = table_name
     return final, df_ct
