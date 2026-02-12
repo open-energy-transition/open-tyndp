@@ -94,12 +94,12 @@ jobs:
       run: |
         COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
         PREFIX="Signed Windows installer"
+        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         if [ "${{ needs.build-and-sign-installer.result }}" = "success" ]; then
-          LINK="[Download artifact](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
-          BODY="$PREFIX built successfully. $LINK"
+          ARTIFACT_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name == "installer") | .id')
+          BODY="$PREFIX built successfully. [Download artifact]($RUN_URL/artifacts/$ARTIFACT_ID)."
         else
-          LINK="[View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
-          BODY="$PREFIX build failed. $LINK"
+          BODY="$PREFIX build failed. [View logs]($RUN_URL)."
         fi
         EXISTING=$(gh api "$COMMENTS_URL" --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$PREFIX\"))) | .id" | tail -1)
         if [ -n "$EXISTING" ]; then
