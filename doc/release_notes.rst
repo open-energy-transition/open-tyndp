@@ -15,7 +15,7 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
-* Refactor the temporal aggregation of a sector-coupled model as a separate rule (TODO). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
+* Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
 
 **Bugfixes and Compatibility**
 
