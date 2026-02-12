@@ -318,7 +318,7 @@ if __name__ == "__main__":
             fill_values = repeat_years(s, range(2010, 2026))
             load["CY"] = load["CY"].combine_first(fill_values)
 
-    if snakemake.params.load["source"] == "opsd":
+    if snakemake.params.load["source"] != "tyndp":
         if snakemake.params.load["manual_adjustments"]:
             load = manual_adjustment(load, snakemake.input[0], countries)
 
