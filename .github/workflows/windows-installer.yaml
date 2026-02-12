@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-name: Build and Attach Installer to Release
+name: Windows Installer
 
 on:
   pull_request:
