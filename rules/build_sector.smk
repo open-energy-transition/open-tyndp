@@ -1821,7 +1821,7 @@ rule prepare_sector_network:
             resources("tyndp/new_links.csv"),
         ),
         tyndp_trajectories=branch(
-            include_tydnp_trajectories,
+            include_tyndp_trajectories,
             resources("tyndp_trajectories.csv"),
         ),
         carrier_mapping="data/tyndp_technology_map.csv",
