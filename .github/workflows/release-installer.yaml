@@ -63,12 +63,12 @@ jobs:
         config: |
           tokenType: azureTrusted
           azureTrusted:
-            tenantId: "my-tenant-id"
-            clientId: "my-client-id"
-            clientSecret: "my-client-secret"
-            region: "neu"
-            account: "my-account"
-            profile: "my-profile"
+            tenantId: "${{ vars.AZURE_TENANT_ID }}"
+            clientId: "${{ vars.AZURE_CLIENT_ID }}"
+            clientSecret: "${{ secrets.AZURE_CLIENT_SECRET }}"
+            region: "${{ vars.AZURE_REGION }}"
+            account: "${{ vars.AZURE_SIGNING_ACCOUNT }}"
+            profile: "${{ vars.AZURE_CERTIFICATE_PROFILE }}"
           timestampUrl: http://timestamp.globalsign.com/tsa/advanced
           msTimestampUrl: http://timestamp.microsoft.com/tsa
 
