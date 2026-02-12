@@ -681,6 +681,7 @@ existing_capacities:
   - coal
   - oil
   - uranium
+  uniform_renewable_profiles: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#sector
 sector:

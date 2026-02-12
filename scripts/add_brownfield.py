@@ -490,6 +490,39 @@ def remove_tyndp_fixed_p(
         n_p.remove(c.name, tech_i)
 
 
+def harmonize_renewable_profiles(
+    n: pypsa.Network,
+    year: int,
+    carriers: set[str],
+) -> None:
+    """
+    Overwrite brownfield generators' p_max_pu with the current planning
+    horizon's profiles so all vintages share the same capacity factors.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network containing both current-year and brownfield generators.
+    year : int
+        The current planning horizon year.
+    carriers : set[str]
+        Set of renewable carrier names to harmonize profiles for.
+
+    Returns
+    -------
+    None
+        Modifies ``n.generators_t.p_max_pu`` in place.
+    """
+    for carrier in carriers:
+        print(carrier)
+
+        gens = n.generators[n.generators.carrier == carrier]
+        brownfield_gens = gens[gens.build_year != year].index
+        n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
+            brownfield_gens.str[:-4] + str(year)
+        ]
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -557,6 +590,13 @@ if __name__ == "__main__":
         offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
         carriers_tyndp=snakemake.params.carriers_tyndp,
     )
+
+    if snakemake.params.uniform_renewable_profiles:
+        all_carriers = set(snakemake.params.carriers) | set(
+            snakemake.params.tyndp_renewable_carriers
+        )
+        carriers = [c for c in all_carriers if any(kw in c for kw in ["solar", "wind"])]
+        harmonize_renewable_profiles(n, year, carriers)
 
     disable_grid_expansion_if_limit_hit(n)
 

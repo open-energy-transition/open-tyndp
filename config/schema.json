@@ -2541,6 +2541,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "uniform_renewable_profiles": {
+          "default": false,
+          "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
+          "type": "boolean"
         }
       }
     },
@@ -10831,6 +10836,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "uniform_renewable_profiles": {
+          "default": false,
+          "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
+          "type": "boolean"
         }
       }
     },
