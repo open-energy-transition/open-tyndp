@@ -80,8 +80,15 @@ jobs:
         name: installer
         path: utils/windows-installer/open-tyndp-*.exe
 
+  comment-on-pr:
+    name: Comment on PR with Artifact Link
+    if: github.event_name == 'pull_request'
+    needs: build-and-sign-installer
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
     - name: Comment on PR with artifact link
-      if: github.event_name == 'pull_request'
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
