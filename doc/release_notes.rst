@@ -13,6 +13,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Sign windows installers using Azure Artifact Signing (https://github.com/open-energy-transition/open-tyndp/pull/471).
+
 **Changes**
 
 **Bugfixes and Compatibility**
@@ -238,7 +240,7 @@ Open-TYNDP v0.5 (10th February 2026)
 
 * Assign CBA method assignment of projects before creation of project network, using data from CBA Implementation Guide (https://github.com/open-energy-transition/open-tyndp/pull/426).
 
-* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450). 
+* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450).
 
 * Add preprocessing of Market Model benchmark data (https://github.com/open-energy-transition/open-tyndp/pull/372). All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots.
 
