@@ -82,7 +82,7 @@ jobs:
 
   comment-on-pr:
     name: Comment on PR with Artifact Link
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && always()
     needs: build-and-sign-installer
     runs-on: ubuntu-latest
     permissions:
@@ -93,13 +93,19 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments"
-        LINK="[Download artifact](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
-        BODY="Signed Windows installer built successfully."
-        EXISTING=$(gh api "$COMMENTS_URL" --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$BODY\"))) | .id" | tail -1)
-        if [ -n "$EXISTING" ]; then
-          gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" -f body="$BODY $LINK"
+        PREFIX="Signed Windows installer"
+        if [ "${{ needs.build-and-sign-installer.result }}" = "success" ]; then
+          LINK="[Download artifact](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+          BODY="$PREFIX built successfully. $LINK"
         else
-          gh api "$COMMENTS_URL" -f body="$BODY $LINK"
+          LINK="[View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})."
+          BODY="$PREFIX build failed. $LINK"
+        fi
+        EXISTING=$(gh api "$COMMENTS_URL" --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$PREFIX\"))) | .id" | tail -1)
+        if [ -n "$EXISTING" ]; then
+          gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" -f body="$BODY"
+        else
+          gh api "$COMMENTS_URL" -f body="$BODY"
         fi
 
   upload-installer:
