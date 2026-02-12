@@ -107,6 +107,46 @@ LOOKUP_TABLES: dict[str, list[str]] = {
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
 }
 
+CROSS_BORDER_DICT: dict[str, str] = {
+    "electricity": "Crossborder exchanges",
+    "H2": "Crossborder H2 exchanges",
+}
+
+
+def load_crossborder_sheet(
+    sheet_name: str,
+    filepath: str | Path,
+    skiprows: int = 5,
+) -> pd.DataFrame:
+    df = pd.read_excel(
+        filepath,
+        sheet_name=sheet_name,
+        skiprows=skiprows,
+        usecols=lambda x: x not in [0],  # Skip column indices 0 and 1
+        index_col=[0],
+        nrows=6,
+        header=None,
+    )
+
+    # rename UK -> GB
+    df.iloc[-1, :].replace("UK", "GB")
+
+    # set links names as column
+    df = df.set_axis(df.iloc[5], axis=1).drop(df.index[-2:])
+
+    # add buses
+    df.loc["bus0", :] = df.columns.str.split("->").str[0]
+    df.loc["bus1", :] = df.columns.str.split("->").str[1]
+
+    # rename axis for H2 flows to align with electricity
+    df = df.rename(index=lambda x: x.replace("H2", ""))
+
+    # rename axis names
+    df.columns.rename("Links", inplace=True)
+    df.index.rename("Parameter", inplace=True)
+
+    return df
+
 
 def load_MM_sheet(
     table_name: str,
@@ -331,7 +371,16 @@ if __name__ == "__main__":
     MM_data["year"] = planning_horizon
     MM_data["source"] = "TYNDP 2024 Market Outputs"
 
+    # load crossborder data
+    crossborder = {}
+    for key in CROSS_BORDER_DICT.keys():
+        crossborder[key] = load_crossborder_sheet(
+            CROSS_BORDER_DICT[key], tyndp_output_file
+        )
+    crossborder = pd.concat(crossborder, axis=1)
+
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
+    crossborder.to_csv(snakemake.output.crossborder)
     logger.info(f"\nSaved to: {snakemake.output.benchmarks}")
