@@ -134,7 +134,7 @@ def load_crossborder_sheet(
         filepath,
         sheet_name=sheet_name,
         skiprows=skiprows,
-        usecols=lambda x: x not in [0],  # Skip column indices 0 and 1
+        usecols=lambda x: x not in [0],  # Skip column indice 0
         index_col=[0],
         nrows=6,
         header=None,
