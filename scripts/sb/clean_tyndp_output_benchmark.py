@@ -393,20 +393,19 @@ if __name__ == "__main__":
         crossborder[key] = load_crossborder_sheet(
             CROSS_BORDER_DICT[key], tyndp_output_file
         )
-    crossborder = pd.concat(crossborder, axis=1)
+    crossborder_agg = pd.concat(crossborder, axis=1)
 
     # load prices
-    prices = {}
     prices_ct = {}
     for table in LOOKUP_TABLES.keys():
         if "price" in table:
             _, prices_ct[table] = load_MM_sheet(
                 table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
             )
-    prices_ct = pd.concat(prices_ct)
+    prices = pd.concat(prices_ct)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
-    crossborder.to_csv(snakemake.output.crossborder)
-    prices_ct.to_csv(snakemake.output.prices)
+    crossborder_agg.to_csv(snakemake.output.crossborder)
+    prices.to_csv(snakemake.output.prices)
