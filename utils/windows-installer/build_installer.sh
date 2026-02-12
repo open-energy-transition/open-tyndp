@@ -20,9 +20,6 @@ VERSION=${VERSION#v}  # Remove 'v' prefix if present
 echo "Building installer version: $VERSION"
 echo ""
 
-# Fail
-exit 1
-
 # Create shallow clone for bundling
 echo "Step 1/3: Creating shallow git clone for bundling..."
 REPO_ROOT=$(git rev-parse --show-toplevel)
