@@ -50,16 +50,10 @@ jobs:
       run: |
         utils/windows-installer/build_installer.sh
 
-    - uses: ossign/ossign-action@v1
+    - name: Sign Windows installer
+      uses: ossign/ossign@1.0.10
       with:
-        # Github Token (read-only)
         token: ${{ secrets.GITHUB_TOKEN }}
-
-        # Only install the OSSign CLI, don't sign anything
-        # The command can then be run with "ossign" in a later step
-        installOnly: false
-
-        # The configuration to use
         config: |
           tokenType: azureTrusted
           azureTrusted:
@@ -73,7 +67,7 @@ jobs:
           msTimestampUrl: http://timestamp.microsoft.com/tsa
 
         inputFiles: utils/windows-installer/open-tyndp-*.exe
-        signatureType: pecoff
+        fileType: pecoff
 
     - name: Upload installer artifact
       uses: actions/upload-artifact@v4
