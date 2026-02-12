@@ -209,6 +209,67 @@ def set_load_sign(
     return MM_data
 
 
+def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean market model data for benchmarking analysis.
+
+    Performs the following operations:
+    - Removes load and storage discharge entries
+    - Excludes pumped storage from power generation table
+    - Aggregates hydro capacities (combines regular hydro and pumped storage)
+    - Renames carrier categories for consistency with benchmark data
+
+    Parameters
+    ----------
+    MM_data : pd.DataFrame
+        Market model data with columns 'carrier', 'table', and 'value'.
+        Expected to contain power capacity and generation data.
+
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned DataFrame with aggregated hydro capacities and
+        standardized carrier names.
+    """
+    # remove load and storages
+    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
+
+    # remove pumped storages from generation
+    MM_data = MM_data.query(
+        "not(table=='power_generation' and carrier=='hydro and pumped storage')"
+    )
+
+    # aggregate hydro capacities
+    hydro = (
+        MM_data.query(
+            "table=='power_capacity' and (carrier == 'hydro (exc. pump storage)' or carrier == 'hydro and pumped storage')"
+        )
+        .sum(numeric_only=True)
+        .value
+    )
+    MM_data.loc[
+        MM_data.query(
+            "table=='power_capacity' and carrier=='hydro and pumped storage'"
+        ).index,
+        "value",
+    ] = hydro
+    MM_data = MM_data.query(
+        "not(table=='power_capacity' and carrier=='hydro (exc. pump storage)')"
+    )
+
+    # rename other res to small scale res
+    MM_data.loc[
+        MM_data.query("table=='power_capacity' and carrier=='other res'").index,
+        "carrier",
+    ] = "small scale res"
+    MM_data.loc[
+        MM_data.query("table=='power_capacity' and carrier=='other non-res'").index,
+        "carrier",
+    ] = "chp and small thermal"
+
+    return MM_data
+
+
 # %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
@@ -264,38 +325,7 @@ if __name__ == "__main__":
     MM_data = set_load_sign(MM_data)
 
     # clean data for benchmarking
-    # remove load and storages
-    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
-    # remove pumped storages from generation
-    MM_data = MM_data.query(
-        "not(table=='power_generation' and carrier=='hydro and pumped storage')"
-    )
-    # aggregate hydro capacities
-    hydro = (
-        MM_data.query(
-            "table=='power_capacity' and (carrier == 'hydro (exc. pump storage)' or carrier == 'hydro and pumped storage')"
-        )
-        .sum(numeric_only=True)
-        .value
-    )
-    MM_data.loc[
-        MM_data.query(
-            "table=='power_capacity' and carrier=='hydro and pumped storage'"
-        ).index,
-        "value",
-    ] = hydro
-    MM_data = MM_data.query(
-        "not(table=='power_capacity' and carrier=='hydro (exc. pump storage)')"
-    )
-    # rename other res to small scale res
-    MM_data.loc[
-        MM_data.query("table=='power_capacity' and carrier=='other res'").index,
-        "carrier",
-    ] = "small scale res"
-    MM_data.loc[
-        MM_data.query("table=='power_capacity' and carrier=='other non-res'").index,
-        "carrier",
-    ] = "chp and small thermal"
+    MM_data = clean_MM_data_for_benchmarking(MM_data)
 
     MM_data["scenario"] = f"TYNDP {scenario}"
     MM_data["year"] = planning_horizon
