@@ -405,4 +405,3 @@ if __name__ == "__main__":
     MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     crossborder.to_csv(snakemake.output.crossborder)
     prices_ct.to_csv(snakemake.output.prices)
-    logger.info(f"\nSaved to: {snakemake.output.benchmarks}")
