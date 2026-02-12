@@ -15,6 +15,8 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Harmonize renewable profiles across all assets regardless of build year (https://github.com/open-energy-transition/open-tyndp/pull/473). When `existing_capacities:uniform_renewable_profiles` is enabled, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.
+
 **Bugfixes and Compatibility**
 
 **Documentation**
