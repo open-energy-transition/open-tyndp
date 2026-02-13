@@ -23,8 +23,14 @@ Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Cont
 .. image:: https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp
     :alt: GitHub repo size
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg
+    :target: https://doi.org/10.5281/zenodo.18494363
+
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg
     :target: https://doi.org/10.5281/zenodo.3520874
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3938042.svg
+    :target: https://doi.org/10.5281/zenodo.3938042
 
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.14230568.svg
     :target: https://doi.org/10.5281/zenodo.14230568
@@ -289,8 +295,28 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 .. seealso::
   See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
 
+|
+
+Citing Open-TYNDP
+==================
+
+If you want to cite a specific Open-TYNDP version, since v0.5, each release is archived on Zenodo with a release-specific DOI:
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg
+   :target: https://doi.org/10.5281/zenodo.18494363
+   :alt: DOI
+   :align: left
+
+|
+
+If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of `Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>`__.
+
+This work builds upon `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ and follows the methodology described in `ENTSO-E's and entsog's TYNDP 2024 Scenarios Methodology Report <https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/>`__.
+
+|
+
 Background on PyPSA-Eur
-=========
+==================
 
 Electricity System
 ------------------

@@ -13,13 +13,19 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
+
 **Changes**
+
+* Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
 
 **Bugfixes and Compatibility**
 
 **Documentation**
 
 * Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
+
+* Update the Citation for improved reference of original work and add Zenodo archive (https://github.com/open-energy-transition/open-tyndp/pull/459).
 
 **Developers Note**
 
@@ -251,7 +257,7 @@ Open-TYNDP v0.5 (10th February 2026)
 
 * Assign CBA method assignment of projects before creation of project network, using data from CBA Implementation Guide (https://github.com/open-energy-transition/open-tyndp/pull/426).
 
-* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450). 
+* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450).
 
 * Add preprocessing of Market Model benchmark data (https://github.com/open-energy-transition/open-tyndp/pull/372). All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots.
 
