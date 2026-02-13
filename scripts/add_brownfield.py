@@ -514,8 +514,6 @@ def harmonize_renewable_profiles(
         Modifies ``n.generators_t.p_max_pu`` in place.
     """
     for carrier in carriers:
-        print(carrier)
-
         gens = n.generators[n.generators.carrier == carrier]
         brownfield_gens = gens[gens.build_year != year].index
         n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
