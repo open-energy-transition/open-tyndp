@@ -2206,10 +2206,49 @@ def _add_hydro_capacities(
     _add_phs_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-phs-pure")
 
 
-def add_existing_pemmdb_capacities(
+def _add_smr_capacities(
+    n: pypsa.Network,
+    smr_capacities: pd.DataFrame,
+) -> None:
+    """
+    Add existing SMR and SMR CC capacities and potential must-runs.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    smr_capacities : pd.DataFrame
+        Existing SMR and SMR CC capacities.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the SMR and SMR CC capacities.
+    """
+    logger.info("Adding SMR and SMR CC capacities.")
+
+    # SMR components
+    smr_i = n.links.query("carrier.str.contains('SMR')").index
+
+    # Add capacities for SMR and SMR CC
+    smr_caps = smr_capacities.p_nom
+    n.links.loc[smr_i, ["p_nom", "p_nom_min"]] = smr_caps.reindex(
+        n.links.loc[smr_i, :].index
+    ).fillna(0.0)
+
+    # Add must-runs if given for any units
+    if (smr_capacities.p_min_pu > 0).any():
+        smr_p_min_pu = smr_capacities.p_min_pu
+        n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(
+            n.links.loc[smr_i, :].index
+        ).fillna(0.0)
+
+
+def add_existing_tyndp_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
+    smr_capacities: pd.DataFrame,
     trajectories: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
@@ -2220,18 +2259,20 @@ def add_existing_pemmdb_capacities(
     hydro_inflows_fn: str,
     extendable_carriers: list | set,
     investment_year: int,
+    enable_pemmdb_caps: bool,
 ) -> None:
     """
-    Add PEMMDB existing capacities, must-runs and availabilities to the network.
+    Add existing TYNDP capacities, must-runs and availabilities to the network.
     For onshore wind and solar technologies, the generator components will additionally be attached to the model.
 
-    The following PEMMDB technologies are included:
+    The following TYNDP technologies are included:
       - conventional thermal generation (incl. H2 fuel-cells and turbines)
       - onshore wind and solar
       - hydro
       - electrolysers
       - other RES and other Non-RES
       - battery storages
+      - SMR and SMR CC
 
     Parameters
     ----------
@@ -2241,6 +2282,8 @@ def add_existing_pemmdb_capacities(
         DataFrame containing all PEMMDB capacities.
     pemmdb_profiles : pd.DataFrame
         DataFrame containing all PEMMDB must-run and availability profiles.
+    smr_capacities : pd.DataFrame
+        DataFrame containing existing SMR capacities.
     trajectories : pd.DataFrame
         DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
@@ -2248,7 +2291,7 @@ def add_existing_pemmdb_capacities(
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
     h2_topology_tyndp : bool
-        Whether TYNDP H2 topology is modelled, so that electrolyzer capacities are added from PEMMDB.
+        Whether TYNDP H2 topology is modeled, so that existing capacities are added for associated components.
     costs : pd.DataFrame
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
@@ -2261,69 +2304,82 @@ def add_existing_pemmdb_capacities(
         List of extendable renewable energy carriers.
     investment_year : int
         Year for which to get trajectories.
+    enable_pemmdb_caps : bool
+        Whether to include PEMMDB capacities.
 
     Returns
     -------
     None
         Modifies the network object in-place by adding information to the generation components.
     """
-    logger.info("Adding PEMMDB capacities, must-runs and availabilities to components.")
 
-    # Attach onwind and solar technologies and add existing capacities
-    tyndp_solar_onwind = [
-        c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
-    ]
-
-    if tyndp_solar_onwind:
-        ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
-        trajectories_solar_onwind = trajectories.query(
-            "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+    if enable_pemmdb_caps:
+        logger.info(
+            "Adding PEMMDB capacities, must-runs and availabilities to components."
         )
 
-        attach_wind_and_solar(
-            n=n,
-            costs=costs,
-            ppl=ppl,
-            profile_filenames=profiles_pecd,
-            carriers=tyndp_solar_onwind,
-            extendable_carriers=extendable_carriers,
-            trajectories=trajectories_solar_onwind,
-            planning_horizon=investment_year,
-        )
+        # Attach onwind and solar technologies and add existing capacities
+        tyndp_solar_onwind = [
+            c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
+        ]
 
-    # Add existing hydro capacities and inflows
-    if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
-        _add_hydro_capacities(
-            n=n,
-            pemmdb_capacities=pemmdb_capacities,
-            hydro_inflows_fn=hydro_inflows_fn,
-            planning_horizon=investment_year,
-        )
+        if tyndp_solar_onwind:
+            ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
+            trajectories_solar_onwind = trajectories.query(
+                "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+            )
 
-    # Add existing conventional thermal capacities to already attached conventional technologies
-    if tyndp_conventional_thermals:
-        trajectories_nuclear = trajectories.query(
-            "pyear == @investment_year and index_carrier == 'nuclear'"
-        ).set_index("bus")
+            attach_wind_and_solar(
+                n=n,
+                costs=costs,
+                ppl=ppl,
+                profile_filenames=profiles_pecd,
+                carriers=tyndp_solar_onwind,
+                extendable_carriers=extendable_carriers,
+                trajectories=trajectories_solar_onwind,
+                planning_horizon=investment_year,
+            )
 
-        _add_conventional_thermal_capacities(
-            n=n,
-            pemmdb_capacities=pemmdb_capacities,
-            pemmdb_profiles=pemmdb_profiles,
-            tyndp_conventional_thermals=tyndp_conventional_thermals,
-            nuclear_trajectories=trajectories_nuclear,
-            nuclear_profiles=nuclear_profiles,
-        )
+        # Add existing hydro capacities and inflows
+        if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
+            _add_hydro_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                hydro_inflows_fn=hydro_inflows_fn,
+                planning_horizon=investment_year,
+            )
+
+        # Add existing conventional thermal capacities to already attached conventional technologies
+        if tyndp_conventional_thermals:
+            trajectories_nuclear = trajectories.query(
+                "pyear == @investment_year and index_carrier == 'nuclear'"
+            ).set_index("bus")
+
+            _add_conventional_thermal_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                pemmdb_profiles=pemmdb_profiles,
+                tyndp_conventional_thermals=tyndp_conventional_thermals,
+                nuclear_trajectories=trajectories_nuclear,
+                nuclear_profiles=nuclear_profiles,
+            )
+
+        if h2_topology_tyndp:
+            trajectories_electrolyser = trajectories.query(
+                "pyear == @investment_year and carrier == 'electrolyser'"
+            ).set_index("bus")
+
+            _add_electrolyzer_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                trajectories=trajectories_electrolyser,
+            )
 
     if h2_topology_tyndp:
-        trajectories_electrolyser = trajectories.query(
-            "pyear == @investment_year and carrier == 'electrolyser'"
-        ).set_index("bus")
-
-        _add_electrolyzer_capacities(
+        logger.info("Adding SMR and SMR CC capacities.")
+        _add_smr_capacities(
             n=n,
-            pemmdb_capacities=pemmdb_capacities,
-            trajectories=trajectories_electrolyser,
+            smr_capacities=smr_capacities,
         )
 
 
@@ -2754,7 +2810,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
             bus1=buses_h2,
             bus2="co2 atmosphere",
             bus3=spatial.co2.nodes,
-            p_nom_extendable=True,
+            p_nom_extendable=False,
             carrier="SMR CC",
             efficiency=costs.at["SMR CC", "efficiency"],
             efficiency2=costs.at["gas", "CO2 intensity"]
@@ -2773,7 +2829,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
             bus0=spatial.gas.nodes,
             bus1=buses_h2,
             bus2="co2 atmosphere",
-            p_nom_extendable=True,
+            p_nom_extendable=False,
             carrier="SMR",
             efficiency=costs.at["SMR", "efficiency"],
             efficiency2=costs.at["gas", "CO2 intensity"],
@@ -8864,6 +8920,7 @@ if __name__ == "__main__":
     pemmdb_profiles = None
     tyndp_trajectories = None
     tyndp_nuclear_profiles = None
+    smr_capacities = None
 
     # Read in PEMMDB data, trajectories and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
@@ -8927,11 +8984,15 @@ if __name__ == "__main__":
         h2_demand_file=snakemake.input.h2_demand,
     )
 
-    if enable_pemmdb_caps:
-        add_existing_pemmdb_capacities(
+    if options["h2_topology_tyndp"]:
+        smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
+
+    if enable_pemmdb_caps or options["h2_topology_tyndp"]:
+        add_existing_tyndp_capacities(
             n=n,
             pemmdb_capacities=pemmdb_capacities,
             pemmdb_profiles=pemmdb_profiles,
+            smr_capacities=smr_capacities,
             trajectories=tyndp_trajectories,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
@@ -8942,6 +9003,7 @@ if __name__ == "__main__":
             hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
+            enable_pemmdb_caps=enable_pemmdb_caps,
         )
 
     if options["offshore_hubs_tyndp"]["enable"]:
