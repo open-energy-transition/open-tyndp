@@ -243,6 +243,7 @@ def compute_benchmark(
                 aggregate_time=False,
             )
             .mul(sws, axis=1)
+            .sum(axis=1)
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
