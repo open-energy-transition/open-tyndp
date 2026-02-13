@@ -476,7 +476,9 @@ def remove_tyndp_fixed_p(
     # Remove conventional thermal techs
     for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
         remove_carriers = (
-            tyndp_hydro + tyndp_conventional_thermals + ["H2 Electrolysis"]
+            tyndp_hydro
+            + tyndp_conventional_thermals
+            + ["H2 Electrolysis", "H2 pipeline"]
             if c.name == "Link"
             else tyndp_hydro
         )
