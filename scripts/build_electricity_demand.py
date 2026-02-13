@@ -264,6 +264,14 @@ if __name__ == "__main__":
             TYNDP_DATE_FORMAT,
             countries_regex=True,
         )
+
+        # need to reindex load time series to snapshots year
+        cyear = snapshots[0].year
+        if cyear != snapshots[-1].year:
+            logger.warning(
+                "Snapshots covers more than one year, consider limiting your analysis to a single full year."
+            )
+        load.index = load.index.map(lambda t: t.replace(year=cyear))
     else:
         opsd = load_timeseries(snakemake.input.opsd, years, countries, OPSD_DATE_FORMAT)
 
