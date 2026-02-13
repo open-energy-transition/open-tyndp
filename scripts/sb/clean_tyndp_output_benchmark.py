@@ -353,6 +353,12 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
     return MM_data
 
 
+def assign_meta_data(df, planning_horizon, scenario):
+    df["scenario"] = f"TYNDP {scenario}"
+    df["year"] = planning_horizon
+    df["source"] = "TYNDP 2024 Market Outputs"
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -409,10 +415,6 @@ if __name__ == "__main__":
     # clean data for benchmarking
     MM_data = clean_MM_data_for_benchmarking(MM_data)
 
-    MM_data["scenario"] = f"TYNDP {scenario}"
-    MM_data["year"] = planning_horizon
-    MM_data["source"] = "TYNDP 2024 Market Outputs"
-
     # load crossborder data
     crossborder = {}
     for key in CROSS_BORDER_DICT.keys():
@@ -429,6 +431,12 @@ if __name__ == "__main__":
                 table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
             )
     prices = pd.concat(prices_ct)
+
+    # assign meta data
+    assign_meta_data(MM_data, planning_horizon, scenario)
+    assign_meta_data(MM_data_ct, planning_horizon, scenario)
+    assign_meta_data(prices, planning_horizon, scenario)
+    assign_meta_data(crossborder_agg, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
