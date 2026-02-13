@@ -1788,30 +1788,30 @@ rule prepare_sector_network:
             if config_provider("sector", "district_heating", "ates", "enable")(w)
             else []
         ),
-        h2_grid_tyndp=lambda w: (
-            resources("h2_reference_grid_tyndp_{planning_horizons}.csv")
-            if config_provider("sector", "h2_topology_tyndp")(w)
-            else []
+        h2_grid_tyndp=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
+            [],
         ),
-        interzonal_prepped=lambda w: (
-            resources("h2_interzonal_tyndp_{planning_horizons}.csv")
-            if config_provider("sector", "h2_topology_tyndp")(w)
-            else []
+        interzonal_prepped=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("h2_interzonal_tyndp_{planning_horizons}.csv"),
+            [],
         ),
-        buses_h2=lambda w: (
-            resources("tyndp/build/geojson/buses_h2.geojson")
-            if config_provider("sector", "h2_topology_tyndp")(w)
-            else []
+        buses_h2=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("tyndp/build/geojson/buses_h2.geojson"),
+            [],
         ),
         load=lambda w: (
             resources("electricity_demand_base_s_{planning_horizons}.nc")
             if config_provider("load", "source")(w) == "tyndp"
             else []
         ),
-        h2_imports_tyndp=lambda w: (
-            resources("h2_import_potentials_{planning_horizons}.csv")
-            if config_provider("sector", "h2_topology_tyndp")(w)
-            else []
+        h2_imports_tyndp=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("h2_import_potentials_{planning_horizons}.csv"),
+            [],
         ),
         profile_pemmdb_hydro=branch(
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
@@ -1843,6 +1843,11 @@ rule prepare_sector_network:
                     f"nuclear_p_max_pu_{safe_pyear(w.planning_horizons, available_years=[2030,2040], verbose= False)}"
                 ]
             ),
+        ),
+        tyndp_smr=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("smr_data_prepped_{planning_horizons}.csv"),
+            [],
         ),
     output:
         resources(
