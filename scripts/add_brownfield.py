@@ -520,7 +520,7 @@ def harmonize_renewable_profiles(
         brownfield_gens = gens[gens.build_year != year].index
         n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
             brownfield_gens.str[:-4] + str(year)
-        ]
+        ].values
 
 
 if __name__ == "__main__":
