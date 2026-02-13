@@ -24,7 +24,9 @@ rule build_electricity_demand:
         load=config_provider("load"),
     input:
         unpack(input_elec_demand),
-        reported=ancient("data/electricity_demand_raw.csv"),
+        opsd=rules.retrieve_electricity_demand_opsd.output["csv"],
+        neso=rules.retrieve_electricity_demand_neso.output["csv"],
+        entsoe=rules.retrieve_electricity_demand_entsoe.output["csv"],
     output:
         resources("electricity_demand.csv"),
     log:
@@ -34,7 +36,7 @@ rule build_electricity_demand:
     resources:
         mem_mb=5000,
     script:
-        "../scripts/build_electricity_demand.py"
+        scripts("build_electricity_demand.py")
 
 
 rule build_powerplants:
@@ -59,7 +61,7 @@ rule build_powerplants:
     resources:
         mem_mb=7000,
     script:
-        "../scripts/build_powerplants.py"
+        scripts("build_powerplants.py")
 
 
 def input_base_network(w):
@@ -111,7 +113,7 @@ rule base_network:
     resources:
         mem_mb=2000,
     script:
-        "../scripts/base_network.py"
+        scripts("base_network.py")
 
 
 rule build_osm_boundaries:
@@ -128,7 +130,7 @@ rule build_osm_boundaries:
     resources:
         mem_mb=1500,
     script:
-        "../scripts/build_osm_boundaries.py"
+        scripts("build_osm_boundaries.py")
 
 
 rule build_bidding_zones:
@@ -153,7 +155,7 @@ rule build_bidding_zones:
     resources:
         mem_mb=1500,
     script:
-        "../scripts/build_bidding_zones.py"
+        scripts("build_bidding_zones.py")
 
 
 rule build_shapes:
@@ -191,7 +193,7 @@ rule build_shapes:
     resources:
         mem_mb=1500,
     script:
-        "../scripts/build_shapes.py"
+        scripts("build_shapes.py")
 
 
 if CUTOUT_DATASET["source"] in ["build"]:
@@ -211,7 +213,7 @@ if CUTOUT_DATASET["source"] in ["build"]:
         resources:
             mem_mb=config["atlite"].get("nprocesses", 4) * 1000,
         script:
-            "../scripts/build_cutout.py"
+            scripts("build_cutout.py")
 
 
 rule build_ship_raster:
@@ -229,7 +231,7 @@ rule build_ship_raster:
     benchmark:
         benchmarks("build_ship_raster")
     script:
-        "../scripts/build_ship_raster.py"
+        scripts("build_ship_raster.py")
 
 
 rule determine_availability_matrix_MD_UA:
@@ -273,7 +275,7 @@ rule determine_availability_matrix_MD_UA:
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
     script:
-        "../scripts/determine_availability_matrix_MD_UA.py"
+        scripts("determine_availability_matrix_MD_UA.py")
 
 
 # Optional input when having Ukraine (UA) or Moldova (MD) in the countries list
@@ -337,7 +339,7 @@ rule determine_availability_matrix:
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
     script:
-        "../scripts/determine_availability_matrix.py"
+        scripts("determine_availability_matrix.py")
 
 
 rule build_renewable_profiles:
@@ -372,7 +374,7 @@ rule build_renewable_profiles:
     wildcard_constraints:
         technology="(?!hydro).*",  # Any technology other than hydro
     script:
-        "../scripts/build_renewable_profiles.py"
+        scripts("build_renewable_profiles.py")
 
 
 rule build_monthly_prices:
@@ -392,7 +394,7 @@ rule build_monthly_prices:
     resources:
         mem_mb=5000,
     script:
-        "../scripts/build_monthly_prices.py"
+        scripts("build_monthly_prices.py")
 
 
 if COUNTRY_RUNOFF_DATASET["source"] == "build":
@@ -411,10 +413,8 @@ if COUNTRY_RUNOFF_DATASET["source"] == "build":
             logs("build_country_runoff.log"),
         benchmark:
             benchmarks("build_country_runoff")
-        conda:
-            "../envs/environment.yaml"
         script:
-            "../scripts/build_country_runoff.py"
+            scripts("build_country_runoff.py")
 
 
 rule build_hydro_profile:
@@ -442,7 +442,7 @@ rule build_hydro_profile:
     resources:
         mem_mb=5000,
     script:
-        "../scripts/build_hydro_profile.py"
+        scripts("build_hydro_profile.py")
 
 
 rule build_line_rating:
@@ -466,7 +466,7 @@ rule build_line_rating:
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 1000,
     script:
-        "../scripts/build_line_rating.py"
+        scripts("build_line_rating.py")
 
 
 rule build_transmission_projects:
@@ -501,7 +501,7 @@ rule build_transmission_projects:
         mem_mb=4000,
     threads: 1
     script:
-        "../scripts/build_transmission_projects.py"
+        scripts("build_transmission_projects.py")
 
 
 rule add_transmission_projects_and_dlr:
@@ -539,7 +539,7 @@ rule add_transmission_projects_and_dlr:
     resources:
         mem_mb=4000,
     script:
-        "../scripts/add_transmission_projects_and_dlr.py"
+        scripts("add_transmission_projects_and_dlr.py")
 
 
 def input_class_regions(w):
@@ -578,7 +578,7 @@ rule build_electricity_demand_base:
     resources:
         mem_mb=5000,
     script:
-        "../scripts/build_electricity_demand_base.py"
+        scripts("build_electricity_demand_base.py")
 
 
 rule build_hac_features:
@@ -601,7 +601,7 @@ rule build_hac_features:
     resources:
         mem_mb=10000,
     script:
-        "../scripts/build_hac_features.py"
+        scripts("build_hac_features.py")
 
 
 rule process_cost_data:
@@ -627,7 +627,7 @@ rule process_cost_data:
     resources:
         mem_mb=4000,
     script:
-        "../scripts/process_cost_data.py"
+        scripts("process_cost_data.py")
 
 
 rule simplify_network:
@@ -662,7 +662,7 @@ rule simplify_network:
     resources:
         mem_mb=12000,
     script:
-        "../scripts/simplify_network.py"
+        scripts("simplify_network.py")
 
 
 # Optional input when using custom busmaps - Needs to be tailored to selected base_network
@@ -744,7 +744,7 @@ rule cluster_network:
     resources:
         mem_mb=10000,
     script:
-        "../scripts/cluster_network.py"
+        scripts("cluster_network.py")
 
 
 def input_profile_tech(w):
@@ -811,7 +811,7 @@ rule add_electricity:
     resources:
         mem_mb=10000,
     script:
-        "../scripts/add_electricity.py"
+        scripts("add_electricity.py")
 
 
 rule prepare_network:
@@ -847,7 +847,7 @@ rule prepare_network:
     resources:
         mem_mb=4000,
     script:
-        "../scripts/prepare_network.py"
+        scripts("prepare_network.py")
 
 
 if (
@@ -895,7 +895,7 @@ if (
         resources:
             mem_mb=4000,
         script:
-            "../scripts/clean_osm_data.py"
+            scripts("clean_osm_data.py")
 
     rule build_osm_network:
         message:
@@ -932,7 +932,7 @@ if (
         resources:
             mem_mb=4000,
         script:
-            "../scripts/build_osm_network.py"
+            scripts("build_osm_network.py")
 
 
 if config["electricity"]["base_network"] == "tyndp":
@@ -967,4 +967,4 @@ if config["electricity"]["base_network"] == "tyndp":
         resources:
             mem_mb=4000,
         script:
-            "../scripts/build_tyndp_network.py"
+            scripts("build_tyndp_network.py")

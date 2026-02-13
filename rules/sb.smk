@@ -126,7 +126,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         resources:
             mem_mb=1000,
         script:
-            "../scripts/sb/prepare_pecd_release.py"
+            scripts("sb/prepare_pecd_release.py")
 
 
 # Build electricity
@@ -154,13 +154,13 @@ if config["load"]["source"] == "tyndp":
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/clean_tyndp_electricity_demand.py"
+            scripts("sb/clean_tyndp_electricity_demand.py")
 
 
 use rule build_electricity_demand as build_electricity_demand_tyndp with:
     input:
         unpack(input_elec_demand),
-        reported=rules.clean_tyndp_electricity_demand.output.electricity_demand_prepped,
+        tyndp=rules.clean_tyndp_electricity_demand.output.electricity_demand_prepped,
     output:
         resources("electricity_demand_{planning_horizons}.csv"),
     log:
@@ -203,7 +203,7 @@ rule clean_pecd_data:
     resources:
         mem_mb=4000,
     script:
-        "../scripts/sb/clean_pecd_data.py"
+        scripts("sb/clean_pecd_data.py")
 
 
 def input_data_pecd(w):
@@ -241,7 +241,7 @@ rule build_renewable_profiles_pecd:
     wildcard_constraints:
         technology="(?!hydro).*",  # Any technology other than hydro
     script:
-        "../scripts/sb/build_renewable_profiles_pecd.py"
+        scripts("sb/build_renewable_profiles_pecd.py")
 
 
 pemmdb_techs = branch(
@@ -274,7 +274,7 @@ rule build_pemmdb_data:
     benchmark:
         benchmarks("build_pemmdb_data_{planning_horizons}")
     script:
-        "../scripts/sb/build_pemmdb_data.py"
+        scripts("sb/build_pemmdb_data.py")
 
 
 rule build_tyndp_transmission_projects:
@@ -291,7 +291,7 @@ rule build_tyndp_transmission_projects:
         mem_mb=1000,
     threads: 1
     script:
-        "../scripts/sb/build_tyndp_transmission_projects.py"
+        scripts("sb/build_tyndp_transmission_projects.py")
 
 
 rule build_tyndp_trajectories:
@@ -308,7 +308,7 @@ rule build_tyndp_trajectories:
     benchmark:
         benchmarks("build_tyndp_trajectories")
     script:
-        "../scripts/sb/build_tyndp_trajectories.py"
+        scripts("sb/build_tyndp_trajectories.py")
 
 
 rule clean_tyndp_hydro_inflows:
@@ -332,7 +332,7 @@ rule clean_tyndp_hydro_inflows:
     benchmark:
         benchmarks("clean_tyndp_hydro_inflows_{tech}_{planning_horizons}")
     script:
-        "../scripts/sb/clean_tyndp_hydro_inflows.py"
+        scripts("sb/clean_tyndp_hydro_inflows.py")
 
 
 def input_data_hydro_tyndp(w):
@@ -384,7 +384,7 @@ rule build_tyndp_hydro_profile:
     resources:
         mem_mb=5000,
     script:
-        "../scripts/sb/build_tyndp_hydro_profile.py"
+        scripts("sb/build_tyndp_hydro_profile.py")
 
 
 use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
@@ -421,7 +421,7 @@ rule build_tyndp_gas_demand:
     conda:
         "../envs/environment.yaml"
     script:
-        "../scripts/sb/build_tyndp_gas_demand.py"
+        scripts("sb/build_tyndp_gas_demand.py")
 
 
 rule build_tyndp_h2_demand:
@@ -441,7 +441,7 @@ rule build_tyndp_h2_demand:
     benchmark:
         benchmarks("build_tyndp_h2_demand_{planning_horizons}")
     script:
-        "../scripts/sb/build_tyndp_h2_demand.py"
+        scripts("sb/build_tyndp_h2_demand.py")
 
 
 if config["sector"]["h2_topology_tyndp"]:
@@ -465,7 +465,7 @@ if config["sector"]["h2_topology_tyndp"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/build_tyndp_h2_network.py"
+            scripts("sb/build_tyndp_h2_network.py")
 
     rule clean_tyndp_h2_imports:
         input:
@@ -483,7 +483,7 @@ if config["sector"]["h2_topology_tyndp"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/clean_tyndp_h2_imports.py"
+            scripts("sb/clean_tyndp_h2_imports.py")
 
     rule build_tyndp_h2_imports:
         params:
@@ -504,7 +504,7 @@ if config["sector"]["h2_topology_tyndp"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/build_tyndp_h2_imports.py"
+            scripts("sb/build_tyndp_h2_imports.py")
 
     rule clean_tyndp_smr:
         params:
@@ -557,7 +557,7 @@ if config["sector"]["offshore_hubs_tyndp"]["enable"]:
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/build_tyndp_offshore_hubs.py"
+            scripts("sb/build_tyndp_offshore_hubs.py")
 
 
 rule group_tyndp_conventionals:
@@ -586,7 +586,7 @@ rule group_tyndp_conventionals:
     conda:
         "../envs/environment.yaml"
     script:
-        "../scripts/sb/group_tyndp_conventionals.py"
+        scripts("sb/group_tyndp_conventionals.py")
 
 
 # Postprocess
@@ -619,7 +619,7 @@ if config["foresight"] != "perfect":
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/plot_base_hydrogen_network.py"
+            scripts("sb/plot_base_hydrogen_network.py")
 
     rule plot_base_offshore_network:
         params:
@@ -647,7 +647,7 @@ if config["foresight"] != "perfect":
         conda:
             "../envs/environment.yaml"
         script:
-            "../scripts/sb/plot_offshore_network.py"
+            scripts("sb/plot_offshore_network.py")
 
     use rule plot_base_offshore_network as plot_offshore_network with:
         params:
@@ -695,7 +695,7 @@ if config["benchmarking"]["enable"]:
         resources:
             mem_mb=8000,
         script:
-            "../scripts/sb/clean_tyndp_output_benchmark.py"
+            scripts("sb/clean_tyndp_output_benchmark.py")
 
     rule clean_tyndp_report_benchmark:
         params:
@@ -714,7 +714,7 @@ if config["benchmarking"]["enable"]:
         resources:
             mem_mb=8000,
         script:
-            "../scripts/sb/clean_tyndp_report_benchmark.py"
+            scripts("sb/clean_tyndp_report_benchmark.py")
 
     rule clean_tyndp_vp_data:
         params:
@@ -735,7 +735,7 @@ if config["benchmarking"]["enable"]:
         resources:
             mem_mb=8000,
         script:
-            "../scripts/sb/clean_tyndp_vp_data.py"
+            scripts("sb/clean_tyndp_vp_data.py")
 
     rule build_statistics:
         params:
@@ -762,7 +762,7 @@ if config["benchmarking"]["enable"]:
         resources:
             mem_mb=8000,
         script:
-            "../scripts/sb/build_statistics.py"
+            scripts("sb/build_statistics.py")
 
     rule make_benchmark:
         params:
@@ -792,7 +792,7 @@ if config["benchmarking"]["enable"]:
         benchmark:
             benchmarks("make_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
         script:
-            "../scripts/sb/make_benchmark.py"
+            scripts("sb/make_benchmark.py")
 
     rule plot_benchmark:
         params:
@@ -838,7 +838,7 @@ if config["benchmarking"]["enable"]:
         benchmark:
             benchmarks("plot_benchmark_s_{clusters}_{opts}_{sector_opts}_all_years")
         script:
-            "../scripts/sb/plot_benchmark.py"
+            scripts("sb/plot_benchmark.py")
 
 
 # Collect

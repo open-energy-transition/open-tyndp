@@ -36,6 +36,8 @@ from scripts._helpers import (
 )
 from scripts.add_electricity import (
     attach_load,
+    attach_storageunits,
+    attach_stores,
     attach_wind_and_solar,
     calculate_annuity,
     flatten,
@@ -3786,65 +3788,7 @@ def add_h2_pipeline_new(n, costs):
     )
 
 
-def add_battery_stores(n, nodes, costs):
-    """
-    Adds battery stores with charger and discharger.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network container object
-    nodes : pd.Index
-        Pandas Index of locations/nodes
-    costs : pd.DataFrame
-        Technology cost assumptions
-
-    Returns
-    -------
-    None
-        The function modifies the network object in-place by adding battery store components.
-    """
-
-    n.add("Carrier", "battery")
-
-    n.add("Bus", nodes + " battery", location=nodes, carrier="battery", unit="MWh_el")
-
-    n.add(
-        "Store",
-        nodes + " battery",
-        bus=nodes + " battery",
-        e_cyclic=True,
-        e_nom_extendable=True,
-        carrier="battery",
-        capital_cost=costs.at["battery storage", "capital_cost"],
-        lifetime=costs.at["battery storage", "lifetime"],
-    )
-
-    n.add(
-        "Link",
-        nodes + " battery charger",
-        bus0=nodes,
-        bus1=nodes + " battery",
-        carrier="battery charger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        capital_cost=costs.at["battery inverter", "capital_cost"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
-
-    n.add(
-        "Link",
-        nodes + " battery discharger",
-        bus0=nodes + " battery",
-        bus1=nodes,
-        carrier="battery discharger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
-
-
-def add_gas_and_h2_infrastructure(
+def add_h2_gas_infrastructure(
     n,
     costs,
     pop_layout,
@@ -3859,7 +3803,7 @@ def add_gas_and_h2_infrastructure(
     h2_demand_file,
 ):
     """
-    Add storage and grid infrastructure to the network for gas and hydrogen.
+    Add hydrogen and gas infrastructure to the network.
 
     Parameters
     ----------
@@ -3910,6 +3854,7 @@ def add_gas_and_h2_infrastructure(
     This function adds multiple types of storage and grid infrastructure, some of which needs to be enabled in options:
     - Hydrogen infrastructure (electrolysis, SMR (optional), fuel cells (optional), storage, pipelines (optional))
     - Gas network infrastructure (optional)
+    - Carbon capture and conversion facilities (if enabled in options)
     """
 
     # Set defaults
@@ -8728,6 +8673,7 @@ if __name__ == "__main__":
 
     options = snakemake.params.sector
     cf_industry = snakemake.params.industry
+    ext_carriers = snakemake.params.electricity.get("extendable_carriers", dict())
     tyndp_scenario = snakemake.params.tyndp_scenario
 
     investment_year = int(snakemake.wildcards.planning_horizons)
@@ -8753,6 +8699,7 @@ if __name__ == "__main__":
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
     nhours = n.snapshot_weightings.generators.sum()
     nyears = nhours / 8760
+    max_hours = snakemake.params.electricity["max_hours"]
 
     costs = load_costs(snakemake.input.costs)
 
@@ -8917,7 +8864,7 @@ if __name__ == "__main__":
             tyndp_hydro=tyndp_hydro,
         )
 
-    add_gas_and_h2_infrastructure(
+    add_h2_gas_infrastructure(
         n=n,
         costs=costs,
         pop_layout=pop_layout,
@@ -8930,6 +8877,25 @@ if __name__ == "__main__":
         spatial=spatial,
         options=options,
         h2_demand_file=snakemake.input.h2_demand,
+    )
+
+    # Hydrogen already implemented in add_h2_gas_infrastructure
+    extendable_storageunits = list(set(ext_carriers.get("StorageUnit", [])) - {"H2"})
+    extendable_stores = list(set(ext_carriers.get("Store", [])) - {"H2"})
+
+    attach_storageunits(
+        n=n,
+        costs=costs,
+        buses_i=pop_layout.index,
+        extendable_carriers=extendable_storageunits,
+        max_hours=max_hours,
+    )
+
+    attach_stores(
+        n=n,
+        costs=costs,
+        buses_i=pop_layout.index,
+        extendable_carriers=extendable_stores,
     )
 
     if options["h2_topology_tyndp"]:
@@ -8976,8 +8942,6 @@ if __name__ == "__main__":
             spatial=spatial,
             nhours=nhours,
         )
-
-    add_battery_stores(n=n, nodes=pop_layout.index, costs=costs)
 
     if options["transport"]:
         add_land_transport(
