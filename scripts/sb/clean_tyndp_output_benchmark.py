@@ -146,6 +146,9 @@ def load_crossborder_sheet(
     # set links names as column
     df = df.set_axis(df.iloc[5], axis=1).drop(df.index[-2:])
 
+    # Rename column names
+    df.rename(columns=lambda x: x.replace("UK", "GB"), inplace=True)
+
     # add buses
     df.loc["bus0", :] = df.columns.str.split("->").str[0]
     df.loc["bus1", :] = df.columns.str.split("->").str[1]
