@@ -6,7 +6,7 @@ Applies the time aggregation, using snapshot weightings, on the sector-coupled n
 
 Description
 -----------
-Reads the snapshots weightings from the CSV file prepared in ``build_snapshot_weightings`` 
+Reads the snapshots weightings from the CSV file prepared in ``build_snapshot_weightings``
 and applies it on the time-varying network data prepared in ``prepare_sector_network.py``.
 """
 
