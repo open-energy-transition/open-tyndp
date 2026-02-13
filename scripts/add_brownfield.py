@@ -495,7 +495,7 @@ def remove_tyndp_fixed_p(
 def harmonize_renewable_profiles(
     n: pypsa.Network,
     year: int,
-    carriers: set[str],
+    carriers: list[str],
 ) -> None:
     """
     Overwrite brownfield generators' p_max_pu with the current planning
