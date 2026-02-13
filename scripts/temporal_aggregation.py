@@ -58,6 +58,9 @@ def set_temporal_aggregation(
         return n
     else:
         # Otherwise, use the provided snapshots
+        logger.info(
+            f"Apply {resolution} temporal aggregation using snapshot weightings."
+        )
         snapshot_weightings = pd.read_csv(
             snapshot_weightings_fn, index_col=0, parse_dates=True
         )
