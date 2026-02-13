@@ -16,6 +16,7 @@ import re
 from pathlib import Path
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
@@ -125,6 +126,22 @@ CROSS_BORDER_DICT: dict[str, str] = {
 }
 
 
+def normalize_direction(df, cols):
+    mask = df["bus0"] > df["bus1"]
+    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
+
+    # Add bus0, bus1, and border to assignments
+    assignments.update(
+        {
+            "bus0": np.where(mask, df["bus1"], df["bus0"]),
+            "bus1": np.where(mask, df["bus0"], df["bus1"]),
+            "border": lambda df: df.bus0 + "->" + df.bus1,
+        }
+    )
+
+    return df.assign(**assignments)
+
+
 def load_crossborder_sheet(
     sheet_name: str,
     filepath: str | Path,
@@ -140,25 +157,25 @@ def load_crossborder_sheet(
         header=None,
     )
 
-    # rename UK -> GB
-    df.iloc[-1, :].replace("UK", "GB")
-
     # set links names as column
     df = df.set_axis(df.iloc[5], axis=1).drop(df.index[-2:])
 
     # Rename column names
     df.rename(columns=lambda x: x.replace("UK", "GB"), inplace=True)
+    df.rename(columns=lambda x: x.replace("_", " "), inplace=True)  # for H2
 
+    # normalize direction
+    attributes = df.index
     # add buses
     df.loc["bus0", :] = df.columns.str.split("->").str[0]
     df.loc["bus1", :] = df.columns.str.split("->").str[1]
+    df = normalize_direction(df.T.reset_index(drop=True), cols=attributes)
 
+    # set index
+    df = df.set_index("border").T
+    df.index.rename("Parameter", inplace=True)
     # rename axis for H2 flows to align with electricity
     df = df.rename(index=lambda x: x.replace("H2", ""))
-
-    # rename axis names
-    df.columns.rename("Links", inplace=True)
-    df.index.rename("Parameter", inplace=True)
 
     return df
 
