@@ -17,6 +17,8 @@ Upcoming Open-TYNDP Release
 
 * Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
 
+* Harmonize renewable profiles across all assets regardless of build year (https://github.com/open-energy-transition/open-tyndp/pull/473). When `existing_capacities:uniform_renewable_profiles` is enabled, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.
+
 **Bugfixes and Compatibility**
 
 * Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
