@@ -13,11 +13,13 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
-
 **Changes**
 
 **Bugfixes and Compatibility**
+
+* Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
+
+* Fix for myopic pathway optimization using the TYNDP H2 reference grid to account for cumulative capacities between planning horizons (https://github.com/open-energy-transition/open-tyndp/pull/475).
 
 **Documentation**
 
