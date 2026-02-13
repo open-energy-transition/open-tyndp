@@ -177,7 +177,12 @@ def load_crossborder_sheet(
     # rename axis for H2 flows to align with electricity
     df = df.rename(index=lambda x: x.replace("H2", ""))
 
-    return df
+    # convert units
+    df.loc["Sum [MWh]:"] = df.loc["Sum [GWh]:"].astype(float) * 1e3
+    df.drop("Sum [GWh]:", inplace=True)
+    df["unit"] = df.index.str.extract(r"\[(.*?)\]", expand=False)
+
+    return df.sort_index()
 
 
 def load_MM_sheet(
