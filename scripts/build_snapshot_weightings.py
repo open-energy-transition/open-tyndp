@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Defines the time aggregation, known as snapshot weightings, to be used for sector-coupled network.
+Defines the time aggregation, known as ``snapshot_weightings``, to be used for sector-coupled network.
 
 Description
 -----------
