@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 """
@@ -6,7 +7,7 @@ Applies the time aggregation, using snapshot weightings, on the sector-coupled n
 
 Description
 -----------
-Reads the snapshots weightings from the CSV file prepared in ``build_snapshot_weightings``
+Reads the snapshot weightings from the CSV file prepared in ``build_snapshot_weightings``
 and applies it on the time-varying network data prepared in ``prepare_sector_network.py``.
 """
 
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def set_temporal_aggregation(
-    n: pypsa.Network, resolution: str, snapshot_weightings_fn: str
+    n: pypsa.Network, resolution: str | bool, snapshot_weightings_fn: str
 ) -> pypsa.Network:
     """
     Aggregate time-varying data to the given snapshots.
@@ -35,7 +36,7 @@ def set_temporal_aggregation(
     ----------
     n : pypsa.Network
         PyPSA network with hourly resolution.
-    resolution : str
+    resolution : str | bool
         Temporal resolution specification.
     snapshot_weightings_fn : str
         Path to CSV file containing snapshot weightings for aggregation.
