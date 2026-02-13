@@ -564,10 +564,10 @@ Function .onInit
 
         uninst:
             # Run the uninstaller
-            ExecWait '$R0 _?=$INSTDIR'
-            # Check if uninstallation was successful
-            ${If} ${FileExists} "$INSTDIR\Uninstall.exe"
-                MessageBox MB_OK|MB_ICONEXCLAMATION "Uninstallation failed or was cancelled. Please uninstall manually before installing again."
+            ExecWait '$R0 _?=$INSTDIR' $0
+            # Check return code: 0 = success, non-zero = failure/cancelled
+            ${If} $0 != 0
+                MessageBox MB_OK|MB_ICONEXCLAMATION "Uninstallation failed or was cancelled (exit code: $0). Please uninstall manually before installing again."
                 Abort
             ${EndIf}
     ${EndIf}
