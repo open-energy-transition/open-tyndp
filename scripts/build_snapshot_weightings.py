@@ -1,15 +1,16 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
 """
-Defines the time aggregation to be used for sector-coupled network.
+Defines the time aggregation, known as ``snapshot_weightings``, to be used for sector-coupled network.
 
 Description
 -----------
 Computes a time aggregation scheme for the given network, in the form of a CSV
 file with the snapshot weightings, indexed by the new subset of snapshots. This
 rule only computes said aggregation scheme; aggregation of time-varying network
-data is done in ``prepare_sector_network.py``.
+data is done in ``temporal_aggregation.py``.
 """
 
 import logging
@@ -33,11 +34,11 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "time_aggregation",
-            configfiles="test/config.overnight.yaml",
+            "build_snapshot_weightings",
+            configfiles="config/test/config.overnight.yaml",
             opts="",
-            clusters="37",
-            sector_opts="Co2L0-24h-T-H-B-I-A-dist1",
+            clusters="5",
+            sector_opts="",
             planning_horizons="2030",
         )
 
