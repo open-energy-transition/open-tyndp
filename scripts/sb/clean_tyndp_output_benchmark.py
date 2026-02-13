@@ -12,14 +12,12 @@ Note: Currently, only NT scenario processing is supported.
 """
 
 import logging
-import multiprocessing as mp
 import re
-from functools import partial
 from pathlib import Path
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
-from tqdm import tqdm
 
 from scripts._helpers import (
     configure_logging,
@@ -108,7 +106,83 @@ LOOKUP_TABLES: dict[str, list[str]] = {
         "Native Demand (excl. H2 storage charge) [GWhH2]",
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
+    # prices
+    "prices_electricity": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
+    "prices_electricity_excl_shed": [
+        "Yearly Outputs",
+        "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
+    ],
+    "prices_H2": ["Yearly H2 Outputs", "Marginal Cost Yearly Average [€/MWhH2]"],
+    "prices_H2_excl_shed": [
+        "Yearly H2 Outputs",
+        "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]",
+    ],
 }
+
+# look up dictionary for crossborder exchanges
+CROSS_BORDER_DICT: dict[str, str] = {
+    "electricity": "Crossborder exchanges",
+    "H2": "Crossborder H2 exchanges",
+}
+
+
+def normalize_direction(df, cols):
+    mask = df["bus0"] > df["bus1"]
+    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
+
+    # Add bus0, bus1, and border to assignments
+    assignments.update(
+        {
+            "bus0": np.where(mask, df["bus1"], df["bus0"]),
+            "bus1": np.where(mask, df["bus0"], df["bus1"]),
+            "border": lambda df: df.bus0 + "->" + df.bus1,
+        }
+    )
+
+    return df.assign(**assignments)
+
+
+def load_crossborder_sheet(
+    sheet_name: str,
+    filepath: str | Path,
+    skiprows: int = 5,
+) -> pd.DataFrame:
+    df = pd.read_excel(
+        filepath,
+        sheet_name=sheet_name,
+        skiprows=skiprows,
+        usecols=lambda x: x not in [0],  # Skip column indice 0
+        index_col=[0],
+        nrows=6,
+        header=None,
+    )
+
+    # set links names as column
+    df = df.set_axis(df.iloc[5], axis=1).drop(df.index[-2:])
+
+    # Rename column names
+    df.rename(columns=lambda x: x.replace("UK", "GB"), inplace=True)
+    df.rename(columns=lambda x: x.replace("_", " "), inplace=True)  # for H2
+
+    # normalize direction
+    attributes = df.index
+    # add buses
+    df.loc["bus0", :] = df.columns.str.split("->").str[0]
+    df.loc["bus1", :] = df.columns.str.split("->").str[1]
+    df = normalize_direction(df.T.reset_index(drop=True), cols=attributes)
+
+    # set index
+    df = df.set_index("border").T
+    df.index.rename("Parameter", inplace=True)
+    # rename axis for H2 flows to align with electricity
+    df = df.rename(index=lambda x: x.replace("H2", ""))
+
+    # convert units
+    df.loc["Sum [MWh]:"] = df.loc["Sum [GWh]:"].astype(float) * 1e3
+    df.drop("Sum [GWh]:", inplace=True)
+    df["unit"] = df.index.str.extract(r"\[(.*?)\]", expand=False)
+
+    return df.sort_index()
 
 
 def load_MM_sheet(
@@ -160,22 +234,30 @@ def load_MM_sheet(
     df.index = pd.MultiIndex.from_arrays([level0, level1])
     df.index.names = ["output_type", "carrier"]
 
+    # Rename and group
+    df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
+    df = df.loc[output_type]
+
     # Rename column names to country
-    df.columns = df.columns.str[:2]
+    df.rename(
+        columns=lambda x: x.replace("UK", "GB").replace("IB", "")[:2], inplace=True
+    )
+    df_ct = df.T.groupby(df.columns).sum().T
 
     # Only consider EU27 and sum
     df = df.T.groupby(df.columns).sum().reindex(eu27).sum()
 
-    # Rename and group
-    df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
-    df = df.loc[output_type].rename("value").reset_index()
-
     # Adjust unit
+    df = df.rename("value").reset_index()
     df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
     final = convert_units(df)
+    df_ct["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
+    if "price" not in table_name:
+        for col in df_ct.columns[df_ct.columns != "unit"]:
+            df_ct = convert_units(df_ct, value_col=col)
 
     final["table"] = table_name
-    return final
+    return final, df_ct
 
 
 def set_load_sign(
@@ -210,13 +292,80 @@ def set_load_sign(
     return MM_data
 
 
+def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean market model data for benchmarking analysis.
+
+    Performs the following operations:
+    - Removes load and storage discharge entries
+    - Excludes pumped storage from power generation table
+    - Aggregates hydro capacities (combines regular hydro and pumped storage)
+    - Renames carrier categories for consistency with benchmark data
+
+    Parameters
+    ----------
+    MM_data : pd.DataFrame
+        Market model data with columns 'carrier', 'table', and 'value'.
+        Expected to contain power capacity and generation data.
+
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned DataFrame with aggregated hydro capacities and
+        standardized carrier names.
+    """
+    # remove load and storages
+    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
+
+    # remove pumped storages from generation
+    MM_data = MM_data.query(
+        "not(table=='power_generation' and carrier=='hydro and pumped storage')"
+    )
+
+    # aggregate hydro capacities
+    hydro = (
+        MM_data.query(
+            "table=='power_capacity' and (carrier == 'hydro (exc. pump storage)' or carrier == 'hydro and pumped storage')"
+        )
+        .sum(numeric_only=True)
+        .value
+    )
+    MM_data.loc[
+        MM_data.query(
+            "table=='power_capacity' and carrier=='hydro and pumped storage'"
+        ).index,
+        "value",
+    ] = hydro
+    MM_data = MM_data.query(
+        "not(table=='power_capacity' and carrier=='hydro (exc. pump storage)')"
+    )
+
+    # rename other res to small scale res
+    MM_data.loc[
+        MM_data.query("table=='power_capacity' and carrier=='other res'").index,
+        "carrier",
+    ] = "small scale res"
+    MM_data.loc[
+        MM_data.query("table=='power_capacity' and carrier=='other non-res'").index,
+        "carrier",
+    ] = "chp and small thermal"
+
+    return MM_data
+
+
+def assign_meta_data(df, planning_horizon, scenario):
+    df["scenario"] = f"TYNDP {scenario}"
+    df["year"] = planning_horizon
+    df["source"] = "TYNDP 2024 Market Outputs"
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "clean_tyndp_output_benchmark",
-            planning_horizons="2030",
+            planning_horizons="2040",
             scenario="NT",
             configfiles="config/test/config.tyndp.yaml",
         )
@@ -250,63 +399,47 @@ if __name__ == "__main__":
 
     logger.info(f"Processing tables: {', '.join(tables_to_process)}")
 
-    tqdm_kwargs = {
-        "ascii": False,
-        "unit": " table",
-        "total": len(tables_to_process),
-        "desc": "Loading TYNDP market model benchmark data",
-    }
+    benchmarks = {}
+    df_ct = {}
+    for table in tables_to_process:
+        benchmarks[table], df_ct[table] = load_MM_sheet(
+            table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+        )
 
-    func = partial(load_MM_sheet, filepath=tyndp_output_file, eu27=eu27, skiprows=5)
-
-    # Process in parallel
-    with mp.Pool(processes=snakemake.threads) as pool:
-        benchmarks = list(tqdm(pool.imap(func, tables_to_process), **tqdm_kwargs))
-
-    # Convert market model data to dictionary
-    MM_data = pd.concat(benchmarks, ignore_index=True)
+    MM_data = pd.concat(benchmarks).reset_index(drop=True)
+    MM_data_ct = pd.concat(df_ct)
 
     # set negative sign for loads
     MM_data = set_load_sign(MM_data)
 
     # clean data for benchmarking
-    # remove load and storages
-    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
-    # remove pumped storages from generation
-    MM_data = MM_data.query(
-        "not(table=='power_generation' and carrier=='hydro and pumped storage')"
-    )
-    # aggregate hydro capacities
-    hydro = (
-        MM_data.query(
-            "table=='power_capacity' and (carrier == 'hydro (exc. pump storage)' or carrier == 'hydro and pumped storage')"
-        )
-        .sum(numeric_only=True)
-        .value
-    )
-    MM_data.loc[
-        MM_data.query(
-            "table=='power_capacity' and carrier=='hydro and pumped storage'"
-        ).index,
-        "value",
-    ] = hydro
-    MM_data = MM_data.query(
-        "not(table=='power_capacity' and carrier=='hydro (exc. pump storage)')"
-    )
-    # rename other res to small scale res
-    MM_data.loc[
-        MM_data.query("table=='power_capacity' and carrier=='other res'").index,
-        "carrier",
-    ] = "small scale res"
-    MM_data.loc[
-        MM_data.query("table=='power_capacity' and carrier=='other non-res'").index,
-        "carrier",
-    ] = "chp and small thermal"
+    MM_data = clean_MM_data_for_benchmarking(MM_data)
 
-    MM_data["scenario"] = f"TYNDP {scenario}"
-    MM_data["year"] = planning_horizon
-    MM_data["source"] = "TYNDP 2024 Market Outputs"
+    # load crossborder data
+    crossborder = {}
+    for key in CROSS_BORDER_DICT.keys():
+        crossborder[key] = load_crossborder_sheet(
+            CROSS_BORDER_DICT[key], tyndp_output_file
+        )
+    crossborder_agg = pd.concat(crossborder, axis=1)
+
+    # load prices
+    prices_ct = {}
+    for table in LOOKUP_TABLES.keys():
+        if "price" in table:
+            _, prices_ct[table] = load_MM_sheet(
+                table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+            )
+    prices = pd.concat(prices_ct)
+
+    # assign meta data
+    assign_meta_data(MM_data, planning_horizon, scenario)
+    assign_meta_data(MM_data_ct, planning_horizon, scenario)
+    assign_meta_data(prices, planning_horizon, scenario)
+    assign_meta_data(crossborder_agg, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
-    logger.info(f"\nSaved to: {snakemake.output.benchmarks}")
+    MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
+    crossborder_agg.to_csv(snakemake.output.crossborder)
+    prices.to_csv(snakemake.output.prices)
