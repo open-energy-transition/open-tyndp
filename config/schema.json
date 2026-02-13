@@ -1042,6 +1042,26 @@
             }
           }
         },
+        "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "co2stop": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -1283,6 +1303,66 @@
           }
         },
         "synthetic_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "opsd_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "entsoe_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "neso_electricity_demand": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -2130,6 +2210,42 @@
               "markdownDescription": "Maximum state of charge capacity of the battery in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
               "type": "number"
             },
+            "li-ion": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lfp": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "vanadium": {
+              "default": 10,
+              "description": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lair": {
+              "default": 12,
+              "description": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "pair": {
+              "default": 24,
+              "description": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "iron-air": {
+              "default": 100,
+              "description": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
             "H2": {
               "default": 168,
               "description": "Maximum state of charge capacity of the hydrogen storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
@@ -2149,14 +2265,14 @@
               "type": "array"
             },
             "StorageUnit": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
             "Store": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
@@ -2928,7 +3044,7 @@
               "type": "boolean"
             },
             "interpolate_limit": {
-              "default": 3,
+              "default": 6,
               "description": "Maximum gap size (consecutive nans) which interpolated linearly.",
               "type": "integer"
             },
@@ -3184,31 +3300,39 @@
               "type": "number"
             },
             "corine": {
-              "description": "Configuration for CORINE land cover settings.",
-              "properties": {
-                "grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
-                  "items": {
-                    "type": "integer"
-                  },
-                  "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
                 },
-                "distance": {
-                  "default": 1000,
-                  "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
-                  "type": "number"
-                },
-                "distance_grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
-                  "items": {
-                    "type": "integer"
+                {
+                  "description": "Configuration for CORINE land cover settings.",
+                  "properties": {
+                    "grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    },
+                    "distance": {
+                      "default": 1000,
+                      "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
+                      "type": "number"
+                    },
+                    "distance_grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "grid_codes"
+                  ]
                 }
-              },
-              "required": [
-                "grid_codes"
-              ]
+              ],
+              "description": "CORINE land cover configuration."
             },
             "luisa": {
               "anyOf": [
@@ -3312,11 +3436,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -3487,11 +3618,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -3662,11 +3800,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -3844,11 +3989,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -3961,11 +4113,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -6688,14 +6847,14 @@
           "type": "array"
         },
         "StorageUnit": {
-          "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+          "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "Store": {
-          "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+          "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
           "items": {
             "type": "string"
           },
@@ -6719,7 +6878,7 @@
           "type": "boolean"
         },
         "interpolate_limit": {
-          "default": 3,
+          "default": 6,
           "description": "Maximum gap size (consecutive nans) which interpolated linearly.",
           "type": "integer"
         },
@@ -6948,6 +7107,42 @@
           "markdownDescription": "Maximum state of charge capacity of the battery in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
           "type": "number"
         },
+        "li-ion": {
+          "default": 6,
+          "description": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "lfp": {
+          "default": 6,
+          "description": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "vanadium": {
+          "default": 10,
+          "description": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "lair": {
+          "default": 12,
+          "description": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "pair": {
+          "default": 24,
+          "description": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "iron-air": {
+          "default": 100,
+          "description": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
         "H2": {
           "default": 168,
           "description": "Maximum state of charge capacity of the hydrogen storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
@@ -7131,11 +7326,18 @@
           "type": "number"
         },
         "corine": {
-          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
         },
         "luisa": {
           "anyOf": [
@@ -7306,31 +7508,39 @@
           "type": "number"
         },
         "corine": {
-          "description": "Configuration for CORINE land cover settings.",
-          "properties": {
-            "grid_codes": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+          "anyOf": [
+            {
+              "type": "boolean"
             },
-            "distance": {
-              "default": 1000,
-              "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
-              "type": "number"
-            },
-            "distance_grid_codes": {
-              "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
-              "items": {
-                "type": "integer"
+            {
+              "description": "Configuration for CORINE land cover settings.",
+              "properties": {
+                "grid_codes": {
+                  "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                "distance": {
+                  "default": 1000,
+                  "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
+                  "type": "number"
+                },
+                "distance_grid_codes": {
+                  "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
               },
-              "type": "array"
+              "required": [
+                "grid_codes"
+              ]
             }
-          },
-          "required": [
-            "grid_codes"
-          ]
+          ],
+          "description": "CORINE land cover configuration."
         },
         "luisa": {
           "anyOf": [
@@ -7893,11 +8103,18 @@
           "type": "number"
         },
         "corine": {
-          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
         },
         "luisa": {
           "anyOf": [
@@ -8731,6 +8948,42 @@
               "markdownDescription": "Maximum state of charge capacity of the battery in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
               "type": "number"
             },
+            "li-ion": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lfp": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "vanadium": {
+              "default": 10,
+              "description": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lair": {
+              "default": 12,
+              "description": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "pair": {
+              "default": 24,
+              "description": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "iron-air": {
+              "default": 100,
+              "description": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
             "H2": {
               "default": 168,
               "description": "Maximum state of charge capacity of the hydrogen storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
@@ -8750,14 +9003,14 @@
               "type": "array"
             },
             "StorageUnit": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
             "Store": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
@@ -9376,31 +9629,39 @@
               "type": "number"
             },
             "corine": {
-              "description": "Configuration for CORINE land cover settings.",
-              "properties": {
-                "grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
-                  "items": {
-                    "type": "integer"
-                  },
-                  "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
                 },
-                "distance": {
-                  "default": 1000,
-                  "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
-                  "type": "number"
-                },
-                "distance_grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
-                  "items": {
-                    "type": "integer"
+                {
+                  "description": "Configuration for CORINE land cover settings.",
+                  "properties": {
+                    "grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    },
+                    "distance": {
+                      "default": 1000,
+                      "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
+                      "type": "number"
+                    },
+                    "distance_grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "grid_codes"
+                  ]
                 }
-              },
-              "required": [
-                "grid_codes"
-              ]
+              ],
+              "description": "CORINE land cover configuration."
             },
             "luisa": {
               "anyOf": [
@@ -9504,11 +9765,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -9679,11 +9947,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -9854,11 +10129,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -10036,11 +10318,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -10153,11 +10442,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -10574,7 +10870,7 @@
               "type": "boolean"
             },
             "interpolate_limit": {
-              "default": 3,
+              "default": 6,
               "description": "Maximum gap size (consecutive nans) which interpolated linearly.",
               "type": "integer"
             },
@@ -13029,6 +13325,26 @@
             }
           }
         },
+        "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "co2stop": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -13270,6 +13586,66 @@
           }
         },
         "synthetic_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "opsd_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "entsoe_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "neso_electricity_demand": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {

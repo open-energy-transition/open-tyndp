@@ -15,9 +15,15 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
+
 * Harmonize renewable profiles across all assets regardless of build year (https://github.com/open-energy-transition/open-tyndp/pull/473). When `existing_capacities:uniform_renewable_profiles` is enabled, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.
 
 **Bugfixes and Compatibility**
+
+* Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
+
+* Fix for myopic pathway optimization using the TYNDP H2 reference grid to account for cumulative capacities between planning horizons and add back CH-IT H2 pipeline connections (https://github.com/open-energy-transition/open-tyndp/pull/475).
 
 **Documentation**
 
@@ -29,6 +35,19 @@ Upcoming Open-TYNDP Release
 
 Upcoming PyPSA-Eur Release
 ================
+
+* Add script path getter helper method to allow for rule inheritance in nested snakefiles.
+
+* Include new storage technologies such as li-ion, vanadium, lfp, lair, pair and iron-air. These technologies can now be configured as either store-link combinations or standalone storage units.
+  Implemented in both `add_electricity.py` and `prepare_sector_network.py` (https://github.com/PyPSA/pypsa-eur/pull/1961).
+  
+* Updated data sources for country-level electricity demand time series. In addition to the OPSD data (``retrieve_electricity_demand_opsd``, demand time series
+  are now downloaded via the ENTSO-E Transparency Platform API (``retrieve_electricity_demand_entsoe`` environment variable ``ENTSOE_API_KEY`` required)
+  and from the NESO data portal for Great Britain and Northern Ireland (``retrieve_electricity_demand_neso``).
+  Manual corrections and gap filling methods have been applied and checked for data until the end of 2025.
+  (https://github.com/PyPSA/pypsa-eur/pull/1828).
+
+* Applied scaling of kW and GW to MW for custom_costs as well (https://github.com/PyPSA/pypsa-eur/pull/2023).
 
 * Fix wildcards error in `clean_osm_data` rule message introduced in github.com/PyPSA/pypsa-eur/pull/1846 by replacing `wildcards.country` with expanded `config["countries"]` list (https://github.com/PyPSA/pypsa-eur/pull/2022).
 
@@ -160,6 +179,8 @@ Upcoming PyPSA-Eur Release
 * Fix `retrieve_eurostat_data` and `retrieve_eurostat_household_data` on Windows by avoiding a double access to a temporary file.
   (https://github.com/PyPSA/pypsa-eur/pull/1825)
 
+* Update GEM steel plant tracker and use initial release of GEM cement plant tracker.
+
 * Added integration with the OETC platform
 
 * Remove pinned environment files mention in the pre-commit-config-yaml (https://github.com/PyPSA/pypsa-eur/pull/1837)
@@ -240,7 +261,7 @@ Open-TYNDP v0.5 (10th February 2026)
 
 * Assign CBA method assignment of projects before creation of project network, using data from CBA Implementation Guide (https://github.com/open-energy-transition/open-tyndp/pull/426).
 
-* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450). 
+* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450).
 
 * Add preprocessing of Market Model benchmark data (https://github.com/open-energy-transition/open-tyndp/pull/372). All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots.
 
@@ -553,7 +574,7 @@ Open-TYNDP v0.2 (23rd July 2025)
 
 * Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
 
-* Add a dedicated `Open-TYDNP documentation <https://open-tyndp.readthedocs.io/en/latest/>`__ website (https://github.com/open-energy-transition/open-tyndp/pull/80).
+* Add a dedicated `Open-TYNDP documentation <https://open-tyndp.readthedocs.io/en/latest/>`__ website (https://github.com/open-energy-transition/open-tyndp/pull/80).
 
 **Changes**
 

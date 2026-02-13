@@ -131,6 +131,12 @@ electricity:
     contingency: 4000
   max_hours:
     battery: 6
+    "li-ion": 6
+    lfp: 6
+    vanadium: 10
+    lair: 12
+    pair: 24
+    "iron-air": 100
     H2: 168
   extendable_carriers:
     Generator:
@@ -554,7 +560,7 @@ load:
   source: opsd
   fill_gaps:
     enable: true
-    interpolate_limit: 3
+    interpolate_limit: 6
     time_shift_for_large_gaps: 1w
   available_years_tyndp:
   - 2030
@@ -1363,6 +1369,9 @@ data:
   gem_europe_gas_tracker:
     source: archive
     version: latest
+  gem_gcct:
+    source: archive
+    version: latest
   co2stop:
     source: archive
     version: latest
@@ -1401,6 +1410,15 @@ data:
     version: latest
   synthetic_electricity_demand:
     source: primary
+    version: latest
+  opsd_electricity_demand:
+    source: archive
+    version: latest
+  entsoe_electricity_demand:
+    source: archive
+    version: latest
+  neso_electricity_demand:
+    source: archive
     version: latest
   copernicus_land_cover:
     source: primary

@@ -258,10 +258,10 @@ Rule ``cluster_gas_network``
 
 .. automodule:: cluster_gas_network
 
-Rule ``time_aggregation``
+Rule ``build_snapshot_weightings``
 ==============================================================================
 
-.. automodule:: time_aggregation
+.. automodule:: build_snapshot_weightings
 
 Rule ``build_tyndp_h2_network``
 ==============================================================================
@@ -302,3 +302,8 @@ Rule ``prepare_sector_network``
 ==============================================================================
 
 .. automodule:: prepare_sector_network
+
+Rule ``temporal_aggregation``
+==============================================================================
+
+.. automodule:: temporal_aggregation

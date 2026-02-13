@@ -86,7 +86,7 @@ checkpoint clean_projects:
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
     script:
-        "../scripts/cba/clean_projects.py"
+        scripts("cba/clean_projects.py")
 
 
 rule clean_tyndp_indicators:
@@ -96,7 +96,7 @@ rule clean_tyndp_indicators:
         indicators=resources("cba/tyndp_indicators.csv"),
         readme=resources("cba/tyndp_indicators_name_unit.csv"),
     script:
-        "../scripts/cba/clean_tyndp_indicators.py"
+        scripts("cba/clean_tyndp_indicators.py")
 
 
 def input_sb_network(w):
@@ -135,7 +135,7 @@ rule simplify_sb_network:
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/simplify_sb_network.py"
+        scripts("cba/simplify_sb_network.py")
 
 
 # build reference corrections between SB investments and CBA guidelines
@@ -147,7 +147,7 @@ rule fix_reference_sb_to_cba:
     output:
         corrections_csv=resources("cba/reference_sb_to_cba.csv"),
     script:
-        "../scripts/cba/fix_reference_sb_to_cba.py"
+        scripts("cba/fix_reference_sb_to_cba.py")
 
 
 # build the reference network
@@ -162,7 +162,7 @@ rule prepare_reference:
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/prepare_reference.py"
+        scripts("cba/prepare_reference.py")
 
 
 # add or remove the cba project based on assigned method
@@ -177,7 +177,7 @@ rule prepare_project:
     output:
         network=resources("cba/networks/project_{cba_project}_{planning_horizons}.nc"),
     script:
-        "../scripts/cba/prepare_project.py"
+        scripts("cba/prepare_project.py")
 
 
 # solve the reference network which is independent of the method
@@ -204,7 +204,7 @@ rule solve_cba_reference_network:
         ),
     threads: 1
     script:
-        "../scripts/cba/solve_cba_network.py"
+        scripts("cba/solve_cba_network.py")
 
 
 # solve any of the prepared project network
@@ -232,7 +232,7 @@ rule solve_cba_network:
         ),
     threads: 1
     script:
-        "../scripts/cba/solve_cba_network.py"
+        scripts("cba/solve_cba_network.py")
 
 
 # compute all metrics for a single pint or toot project comparing reference and project solution
@@ -246,7 +246,7 @@ rule make_indicators:
     output:
         indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
     script:
-        "../scripts/cba/make_indicators.py"
+        scripts("cba/make_indicators.py")
 
 
 def input_indicators(w):
@@ -277,7 +277,7 @@ rule collect_indicators:
     output:
         indicators=RESULTS + "cba/indicators_{planning_horizons}.csv",
     script:
-        "../scripts/cba/collect_indicators.py"
+        scripts("cba/collect_indicators.py")
 
 
 rule plot_indicators:
@@ -289,7 +289,7 @@ rule plot_indicators:
     output:
         plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
     script:
-        "../scripts/cba/plot_indicators.py"
+        scripts("cba/plot_indicators.py")
 
 
 rule plot_cba_benchmark:
@@ -299,7 +299,7 @@ rule plot_cba_benchmark:
         plot_file=RESULTS
         + "cba/validation_{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
     script:
-        "../scripts/cba/plot_benchmark_indicators.py"
+        scripts("cba/plot_benchmark_indicators.py")
 
 
 rule plot_all_cba_benchmark:
@@ -308,7 +308,7 @@ rule plot_all_cba_benchmark:
     output:
         plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
     script:
-        "../scripts/cba/plot_benchmark_indicators.py"
+        scripts("cba/plot_benchmark_indicators.py")
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
