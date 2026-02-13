@@ -240,7 +240,9 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
+                aggregate_time=False,
             )
+            .mul(sws, axis=1)
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
