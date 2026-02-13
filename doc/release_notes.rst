@@ -13,13 +13,15 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
+* Sign windows installers using Azure Artifact Signing (https://github.com/open-energy-transition/open-tyndp/pull/471).
 
 **Changes**
 
 * Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
 
 **Bugfixes and Compatibility**
+
+* Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
 
 **Documentation**
 
