@@ -90,8 +90,8 @@ def calculate_total_system_cost(n):
         raise ValueError("Network must be solved before calculating costs")
 
     # Use PyPSA's built-in statistics methods
-    capex = n.statistics.capex().sum()
-    opex = n.statistics.opex(aggregate_time="sum").sum()
+    capex = n.statistics.capex().sum() / 1e6
+    opex = n.statistics.opex(aggregate_time="sum").sum() / 1e6
     total = capex + opex
     return {
         "total": total,
@@ -265,8 +265,8 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         dict: Dictionary with B1 and component costs
     """
     # Calculate costs for both scenarios
-    cost_reference = calculate_total_system_cost(n_reference) / 1e6 # convert to Meuro/year
-    cost_project = calculate_total_system_cost(n_project) / 1e6 # convert to Meuro/year
+    cost_reference = calculate_total_system_cost(n_reference)
+    cost_project = calculate_total_system_cost(n_project)
 
     if method == "pint":
         # PINT: positive B1 means beneficial (project reduces costs)
