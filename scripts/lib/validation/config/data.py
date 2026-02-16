@@ -268,3 +268,7 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP CBA Guidelines Annex B.1 Table with reference projects data source configuration.",
     )
+    tyndp_sb_results: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP solved SB network results data source configuration.",
+    )
