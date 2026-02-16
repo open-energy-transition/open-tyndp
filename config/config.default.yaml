@@ -1522,6 +1522,9 @@ data:
   tyndp_cba_projects:
     source: archive
     version: latest
+  tyndp_sb_results:
+    source: archive
+    version: latest
   tyndp_nuclear_profiles:
     source: archive
     version: latest
@@ -1547,6 +1550,9 @@ cba:
   hurdle_costs: 0.01
   co2_societal_cost: {}
   planning_horizons: []
+  sb_to_cba:
+    use_presolved: false
+    sb_version: latest
   methods:
   - toot
   projects: []

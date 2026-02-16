@@ -46,6 +46,19 @@ class _CbaSolvingConfig(ConfigModel):
     )
 
 
+class _CbaSbToCbaConfig(ConfigModel):
+    """Configuration for decoupling the SB -> CBA workflow."""
+
+    use_presolved: bool = Field(
+        False,
+        description="If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+    )
+    sb_version: str = Field(
+        "latest",
+        description="Version tag for the pre-solved SB network archive (used when sb_to_cba.use_presolved is true).",
+    )
+
+
 class CbaConfig(BaseModel):
     """Configuration for top level `cba` (Cost-Benefit Analysis) settings."""
 
@@ -60,6 +73,10 @@ class CbaConfig(BaseModel):
     planning_horizons: list[int] = Field(
         default_factory=list,
         description="List of planning horizons for which to run CBA.",
+    )
+    sb_to_cba: _CbaSbToCbaConfig = Field(
+        default_factory=_CbaSbToCbaConfig,
+        description="Settings for using pre-solved SB networks as inputs to the CBA workflow.",
     )
     methods: list[Literal["toot", "pint"]] = Field(
         default_factory=lambda: ["toot"],
