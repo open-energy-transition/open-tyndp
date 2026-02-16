@@ -95,6 +95,7 @@ def read_invest_projects(
                 "TO NODE": "bus1",
             }
         )
+        .replace({"UK": "GB"}, regex=True)
         .query("bus0 in @buses.index & bus1 in @buses.index")
         .groupby(["bus0", "bus1"])
         .sum()[["Summary Direction 1", "Summary Direction 2"]]
