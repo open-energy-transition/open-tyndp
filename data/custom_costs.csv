@@ -68,3 +68,10 @@ GA,2050,BtL,capture rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, 
 all,all,gas-ccgt-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,coal-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,lignite-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,SMR CC,efficiency,0.695,per unit,"TYNDP 2024 SMR figures HEAT RATE [GJ_CH4/MWh_H2] converted to [MWh_H2/MWH_CH4]"
+all,all,SMR,efficiency,0.759,per unit,"TYNDP 2024 SMR figures HEAT RATE [GJ_CH4/MWh_H2] converted to [MWh_H2/MWH_CH4]"
+NT,2030,SMR CC,VOM,4.47,EUR/MWh,"TYNDP 2024 SMR figures VO&M CHARGE [€/MWh]"
+NT,2040,SMR CC,VOM,21.6,EUR/MWh,"TYNDP 2024 SMR figures VO&M CHARGE [€/MWh]"
+DE,all,SMR CC,VOM,4.47,EUR/MWh,"TYNDP 2024 SMR figures VO&M CHARGE [€/MWh]"
+GA,all,SMR CC,VOM,4.47,EUR/MWh,"TYNDP 2024 SMR figures VO&M CHARGE [€/MWh]"
+all,all,SMR,VOM,3.38,EUR/MWh,"TYNDP 2024 SMR figures VO&M CHARGE [€/MWh]"
