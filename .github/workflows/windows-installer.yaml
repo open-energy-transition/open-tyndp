@@ -1,0 +1,136 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+
+name: Windows Installer
+
+on:
+  issue_comment:
+    types: [created]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to attach installer to'
+        required: true
+        type: string
+
+jobs:
+  build-and-sign:
+    name: Build and Sign
+    if: >-
+      github.event_name != 'issue_comment' ||
+      (github.event.issue.pull_request
+       && github.event.comment.body == '/build-installer'
+       && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ env.TAG || github.event.issue.pull_request && format('refs/pull/{0}/head', github.event.issue.number) }}
+        fetch-depth: 0
+        fetch-tags: true
+
+    - name: Check that origin/master contains the tag and reset local master to it
+      if: ${{ env.TAG }}
+      run: |
+        git fetch origin master
+        if ! git merge-base --is-ancestor "$TAG" origin/master; then
+          echo "Error: Tag $TAG is not in master branch history"
+          exit 1
+        fi
+        git branch --force master HEAD
+        git checkout master
+
+    - name: Setup Pixi
+      uses: prefix-dev/setup-pixi@v0.9.3
+      with:
+        pixi-version: v0.59.0
+        cache: true
+        cache-write: false
+
+    - name: Build Windows installer
+      env:
+        VERSION: ${{ env.TAG }}
+      run: |
+        utils/windows-installer/build_installer.sh
+
+    - name: Sign Windows installer
+      uses: ossign/ossign@1.0.10
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        config: |
+          {
+            "tokenType": "azureTrusted",
+            "azureTrusted": {
+              "tenantId": "${{ vars.AZURE_TENANT_ID }}",
+              "clientId": "${{ vars.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "region": "${{ vars.AZURE_REGION }}",
+              "account": "${{ vars.AZURE_SIGNING_ACCOUNT }}",
+              "profile": "${{ vars.AZURE_CERTIFICATE_PROFILE }}"
+            },
+            "timestampUrl": "http://timestamp.globalsign.com/tsa/advanced",
+            "msTimestampUrl": "http://timestamp.microsoft.com/tsa"
+          }
+
+        inputFiles: utils/windows-installer/open-tyndp-*.exe
+        fileType: pecoff
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: installer
+        path: utils/windows-installer/open-tyndp-*.exe
+
+  comment-on-pr:
+    name: Comment on PR
+    if: github.event_name == 'issue_comment' && always() && needs.build-and-sign.result != 'skipped'
+    needs: build-and-sign
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+    - name: Comment on PR with artifact link
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
+        PREFIX="Signed Windows installer"
+        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        if [ "${{ needs.build-and-sign.result }}" = "success" ]; then
+          ARTIFACT_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name == "installer") | .id')
+          BODY="$PREFIX built successfully. [Download artifact]($RUN_URL/artifacts/$ARTIFACT_ID)."
+        else
+          BODY="$PREFIX build failed. [View logs]($RUN_URL)."
+        fi
+        EXISTING=$(gh api "$COMMENTS_URL" --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$PREFIX\"))) | .id" | tail -1)
+        if [ -n "$EXISTING" ]; then
+          gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" -f body="$BODY"
+        else
+          gh api "$COMMENTS_URL" -f body="$BODY"
+        fi
+
+  upload-to-release:
+    name: Upload to Release
+    if: github.event_name != 'issue_comment'
+    needs: build-and-sign
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+    steps:
+    - name: Download installer artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: installer
+
+    - name: Upload installer to release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload $TAG open-tyndp-*.exe --clobber
