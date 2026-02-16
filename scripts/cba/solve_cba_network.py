@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 import pypsa
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
-from snakemake.utils import update_config
+# from snakemake.utils import update_config
 from tqdm.auto import tqdm
 
 from scripts._benchmark import memory_logger
@@ -259,10 +259,12 @@ def solve_network(
         raise RuntimeError("Solving status 'warning'. Discarding solution.")
 
     if "infeasible" in condition:
-        labels = n.model.compute_infeasibilities()
-        logger.info(f"Labels:\n{labels}")
-        n.model.print_infeasibilities()
-        raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
+        solver_name = solving["solver"]["name"]
+        if solver_name in ["gurobi", "xpress"]:
+            labels = n.model.compute_infeasibilities()
+            logger.info(f"Labels:\n{labels}")
+            n.model.print_infeasibilities()
+            raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
 if __name__ == "__main__":
@@ -281,7 +283,7 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     solving = snakemake.params.solving
-    update_config(solving, snakemake.params.cba_solving)
+    # update_config(solving, snakemake.params.cba_solving)
 
     np.random.seed(solving["options"].get("seed", 123))
 

@@ -38,20 +38,20 @@ from scripts.prepare_sector_network import get
 logger = logging.getLogger(__name__)
 
 INDICATOR_UNITS = {
-    "B1_total_system_cost_change": "EUR/year",
-    "cost_reference": "EUR/year",
-    "capex_reference": "EUR/year",
-    "opex_reference": "EUR/year",
-    "cost_project": "EUR/year",
-    "capex_project": "EUR/year",
-    "opex_project": "EUR/year",
-    "capex_change": "EUR/year",
-    "opex_change": "EUR/year",
-    "co2_variation": "t/year",
+    "B1_total_system_cost_change": "Meuro/year",
+    "cost_reference": "Meuro/year",
+    "capex_reference": "Meuro/year",
+    "opex_reference": "Meuro/year",
+    "cost_project": "Meuro/year",
+    "capex_project": "Meuro/year",
+    "opex_project": "Meuro/year",
+    "capex_change": "Meuro/year",
+    "opex_change": "Meuro/year",
+    "B2a_co2_variation": "t/year",
     "co2_ets_price": "EUR/t",
     "co2_societal_cost": "EUR/t",
-    "B2a_societal_cost_variation": "EUR/year",
-    "B3_res_capacity_change": "MW",
+    "B2a_societal_cost_variation": "Meuro/year",
+    "B3a_res_capacity_change": "MW",
     "B3_res_generation_change": "MWh/year",
     "B3_annual_avoided_curtailment": "MWh/year",
     "B4a_nox": "kg/year",
@@ -306,12 +306,12 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
     }
     units = {
         "B1_total_system_cost_change": "Meuro/year",
-        "cost_reference": "EUR/year",
-        "capex_reference": "EUR/year",
-        "opex_reference": "EUR/year",
-        "cost_project": "EUR/year",
-        "capex_project": "EUR/year",
-        "opex_project": "EUR/year",
+        "cost_reference": "Meuro/year",
+        "capex_reference": "Meuro/year",
+        "opex_reference": "Meuro/year",
+        "cost_project": "Meuro/year",
+        "capex_project": "Meuro/year",
+        "opex_project": "Meuro/year",
     }
 
     if method == "pint":
@@ -321,8 +321,8 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         results["capex_change"] = cost_project["capex"] - cost_reference["capex"]
         results["opex_change"] = cost_project["opex"] - cost_reference["opex"]
 
-    units["capex_change"] = "EUR/year"
-    units["opex_change"] = "EUR/year"
+    units["capex_change"] = "Meuro/year"
+    units["opex_change"] = "Meuro/year"
 
     return results, units
 
