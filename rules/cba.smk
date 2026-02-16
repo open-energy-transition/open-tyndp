@@ -4,6 +4,10 @@
 #
 
 import os
+import shutil
+from pathlib import Path
+from zipfile import ZipFile
+
 import pandas as pd
 
 from scripts.cba._helpers import filter_projects_by_specs
@@ -64,6 +68,35 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
             copy2(input["file"], output["file"])
 
 
+if config.get("cba", {}).get("sb_to_cba", {}).get("use_presolved", False):
+    if (SB_RESULTS_DATASET := dataset_version("tyndp_sb_results"))["source"] in [
+        "archive"
+    ]:
+
+        rule retrieve_tyndp_sb_results:
+            input:
+                zip_file=storage(SB_RESULTS_DATASET["url"]),
+            output:
+                network=f"{SB_RESULTS_DATASET['folder']}/networks/base_s_all___{{planning_horizons}}.nc",
+            log:
+                "logs/retrieve_tyndp_sb_results_{planning_horizons}.log",
+            run:
+                target_suffix = (
+                    f"networks/base_s_all___{wildcards.planning_horizons}.nc"
+                )
+                with ZipFile(input["zip_file"], "r") as zf:
+                    matches = [m for m in zf.namelist() if m.endswith(target_suffix)]
+                    if not matches:
+                        raise ValueError(
+                            f"Could not find '{target_suffix}' in {input['zip_file']}."
+                        )
+                    member = matches[0]
+                    out_path = Path(output["network"])
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, out_path.open("wb") as dst:
+                        shutil.copyfileobj(src, dst)
+
+
 # read in transmission and storage projects from excel sheets
 #
 def input_clustered_network(w):
@@ -101,10 +134,37 @@ rule clean_tyndp_indicators:
 
 def input_sb_network(w):
     scenario = config_provider("scenario")(w)
+    (clusters,) = scenario["clusters"]
+    (opts,) = scenario["opts"]
+    (sector_opts,) = scenario["sector_opts"]
+
+    if config_provider("cba", "sb_to_cba", "use_presolved", default=False)(w):
+        sb_version = config_provider("cba", "sb_to_cba", "sb_version", default="latest")(w)
+        # If sb_version is not "latest", raise error (for now) until we add functionality to handle gathering different Zenodo versions
+        if sb_version != "latest":
+            raise ValueError(
+                "Only cba.sb_to_cba.sb_version='latest' is supported for presolved SB runs at the moment."
+            )
+        # Check that options match the presolved network naming convention
+        if clusters != "all" or opts != "" or sector_opts != "":
+            raise ValueError(
+                "Presolved SB runs require scenario.clusters=['all'], "
+                "scenario.opts=[''], and scenario.sector_opts=[''] to match "
+                "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
+            )
+        horizon = int(w.planning_horizons)
+        # If CBA planning horizon = 2035, use the 2040 SB network
+        if horizon == 2035:
+            horizon = 2040
+        sb_dataset = dataset_version("tyndp_sb_results")
+        return (
+            f"{sb_dataset['folder']}/networks/base_s_all___{horizon}.nc"
+        )
+
     expanded_wildcards = {
-        "clusters": scenario["clusters"],
-        "opts": scenario["opts"],
-        "sector_opts": scenario["sector_opts"],
+        "clusters": clusters,
+        "opts": opts,
+        "sector_opts": sector_opts,
     }
     match config_provider("foresight")(w):
         case "perfect":
