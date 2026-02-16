@@ -85,7 +85,9 @@ if config.get("cba", {}).get("sb_to_cba", {}).get("use_presolved", False):
                     f"networks/base_s_all___{wildcards.planning_horizons}.nc"
                 )
                 with ZipFile(input["zip_file"], "r") as zf:
-                    matches = [m for m in zf.namelist() if m.endswith(target_suffix)]
+                    matches = [
+                        m for m in zf.namelist() if m.endswith(target_suffix)
+                    ]
                     if not matches:
                         raise ValueError(
                             f"Could not find '{target_suffix}' in {input['zip_file']}."
@@ -95,6 +97,7 @@ if config.get("cba", {}).get("sb_to_cba", {}).get("use_presolved", False):
                     out_path.parent.mkdir(parents=True, exist_ok=True)
                     with zf.open(member) as src, out_path.open("wb") as dst:
                         shutil.copyfileobj(src, dst)
+
 
 
 # read in transmission and storage projects from excel sheets
@@ -139,7 +142,9 @@ def input_sb_network(w):
     (sector_opts,) = scenario["sector_opts"]
 
     if config_provider("cba", "sb_to_cba", "use_presolved", default=False)(w):
-        sb_version = config_provider("cba", "sb_to_cba", "sb_version", default="latest")(w)
+        sb_version = config_provider(
+            "cba", "sb_to_cba", "sb_version", default="latest"
+        )(w)
         # If sb_version is not "latest", raise error (for now) until we add functionality to handle gathering different Zenodo versions
         if sb_version != "latest":
             raise ValueError(
@@ -157,9 +162,7 @@ def input_sb_network(w):
         if horizon == 2035:
             horizon = 2040
         sb_dataset = dataset_version("tyndp_sb_results")
-        return (
-            f"{sb_dataset['folder']}/networks/base_s_all___{horizon}.nc"
-        )
+        return f"{sb_dataset['folder']}/networks/base_s_all___{horizon}.nc"
 
     expanded_wildcards = {
         "clusters": clusters,
