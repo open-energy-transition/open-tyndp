@@ -265,8 +265,8 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         dict: Dictionary with B1 and component costs
     """
     # Calculate costs for both scenarios
-    cost_reference = calculate_total_system_cost(n_reference)
-    cost_project = calculate_total_system_cost(n_project)
+    cost_reference = calculate_total_system_cost(n_reference) / 1e6 # convert to Meuro/year
+    cost_project = calculate_total_system_cost(n_project) / 1e6 # convert to Meuro/year
 
     if method == "pint":
         # PINT: positive B1 means beneficial (project reduces costs)
@@ -294,7 +294,7 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
             interpretation = "The project increases costs as removing it decreases costs compared to the reference scenario with all projects."
 
     results = {
-        "B1_total_system_cost_change": b1 / 1e6,  # convert to Meuro/year
+        "B1_total_system_cost_change": b1,
         "is_beneficial": is_beneficial,
         "interpretation": interpretation,
         "cost_reference": cost_reference["total"],
