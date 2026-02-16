@@ -53,7 +53,7 @@ rule add_existing_baseyear:
             "add_existing_baseyear/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
-        "../scripts/add_existing_baseyear.py"
+        scripts("add_existing_baseyear.py")
 
 
 def input_profile_tech_brownfield(w):
@@ -101,6 +101,9 @@ rule add_brownfield:
         group_tyndp_conventionals=config_provider(
             "electricity", "group_tyndp_conventionals"
         ),
+        uniform_renewable_profiles=config_provider(
+            "existing_capacities", "uniform_renewable_profiles"
+        ),
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfield_pecd),
@@ -125,7 +128,7 @@ rule add_brownfield:
             "add_brownfield/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
-        "../scripts/add_brownfield.py"
+        scripts("add_brownfield.py")
 
 
 ruleorder: add_existing_baseyear > add_brownfield
@@ -177,4 +180,4 @@ rule solve_sector_network_myopic:
             + "benchmarks/solve_sector_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
-        "../scripts/solve_network.py"
+        scripts("solve_network.py")

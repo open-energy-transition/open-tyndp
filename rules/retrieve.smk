@@ -112,7 +112,7 @@ elif (CORINE_DATASET := dataset_version("corine"))["source"] in ["primary"]:
             mem_mb=1000,
         retries: 2
         script:
-            "../scripts/retrieve_corine_dataset_primary.py"
+            scripts("retrieve_corine_dataset_primary.py")
 
 
 if (H2_SALT_CAVERNS_DATASET := dataset_version("h2_salt_caverns"))["source"] in [
@@ -477,20 +477,169 @@ if (SCIGRID_GAS_DATASET := dataset_version("scigrid_gas"))["source"] in [
             unpack_archive(output["zip_file"], output_folder)
 
 
-rule retrieve_electricity_demand:
-    message:
-        "Retrieving electricity demand data"
-    params:
-        versions=["2019-06-05", "2020-10-06"],
-    output:
-        "data/electricity_demand_raw.csv",
-    log:
-        "logs/retrieve_electricity_demand.log",
-    resources:
-        mem_mb=5000,
-    retries: 2
-    script:
-        "../scripts/retrieve_electricity_demand.py"
+if (OPSD_DEMAND_DATA := dataset_version("opsd_electricity_demand"))["source"] in [
+    "build"
+]:
+
+    rule retrieve_electricity_demand_opsd:
+        message:
+            "Retrieving electricity demand data from OPSD from build source"
+        params:
+            versions=["2019-06-05", "2020-10-06"],
+        output:
+            csv=f"{OPSD_DEMAND_DATA['folder']}/electricity_demand_opsd_raw.csv",
+        log:
+            "logs/retrieve_electricity_demand_opsd.log",
+        resources:
+            mem_mb=5000,
+        retries: 2
+        script:
+            scripts("retrieve_electricity_demand_opsd.py")
+
+
+if (OPSD_DEMAND_DATA := dataset_version("opsd_electricity_demand"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_electricity_demand_opsd:
+        message:
+            "Retrieving electricity demand data from OPSD from archive"
+        input:
+            csv=storage(OPSD_DEMAND_DATA["url"]),
+        output:
+            csv=f"{OPSD_DEMAND_DATA['folder']}/electricity_demand_opsd_raw.csv",
+        retries: 2
+        run:
+            copy2(input["csv"], output["csv"])
+
+
+if (ENTSOE_DEMAND_DATA := dataset_version("entsoe_electricity_demand"))["source"] in [
+    "build"
+]:
+
+    ENTSOE_COUNTRIES = [
+        "AL",
+        "AT",
+        "BE",
+        "BA",
+        "BG",
+        "CH",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "GR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MD",
+        "ME",
+        "MK",
+        "NL",
+        "NO",
+        "PL",
+        "PT",
+        "RO",
+        "RS",
+        "SE",
+        "SI",
+        "SK",
+        "UA",
+        "XK",
+    ]
+
+    rule retrieve_electricity_demand_entsoe_country:
+        message:
+            "Retrieving electricity demand data from ENTSO-E for {wildcards.country}"
+        params:
+            entsoe_token=os.environ.get("ENTSOE_API_TOKEN", ""),
+        output:
+            csv=f"{ENTSOE_DEMAND_DATA['folder']}"
+            + "/electricity_demand_entsoe_raw_{country}.csv",
+        log:
+            "logs/retrieve_electricity_demand_entsoe_{country}.log",
+        resources:
+            mem_mb=2000,
+        retries: 2
+        script:
+            scripts("retrieve_electricity_demand_entsoe.py")
+
+    rule retrieve_electricity_demand_entsoe:
+        message:
+            "Retrieving electricity demand data from ENTSO-E from build source"
+        input:
+            csvs=expand(
+                f"{ENTSOE_DEMAND_DATA['folder']}"
+                + "/electricity_demand_entsoe_raw_{country}.csv",
+                country=ENTSOE_COUNTRIES,
+            ),
+        output:
+            csv=f"{ENTSOE_DEMAND_DATA['folder']}/electricity_demand_entsoe_raw.csv",
+        run:
+            import pandas as pd
+
+            loads = [pd.read_csv(csv, index_col=0) for csv in input.csvs]
+            df = pd.concat(loads, axis=1, join="outer").sort_index()
+            df.to_csv(output.csv)
+
+
+if (ENTSOE_DEMAND_DATA := dataset_version("entsoe_electricity_demand"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_electricity_demand_entsoe:
+        message:
+            "Retrieving electricity demand data from ENTSO-E from archive"
+        input:
+            csv=storage(ENTSOE_DEMAND_DATA["url"]),
+        output:
+            csv=f"{ENTSOE_DEMAND_DATA['folder']}/electricity_demand_entsoe_raw.csv",
+        retries: 2
+        run:
+            copy2(input["csv"], output["csv"])
+
+
+if (NESO_DEMAND_DATA := dataset_version("neso_electricity_demand"))["source"] in [
+    "build"
+]:
+
+    rule retrieve_electricity_demand_neso:
+        message:
+            "Retrieving electricity demand data from NESO from build source"
+        output:
+            csv=f"{NESO_DEMAND_DATA['folder']}/electricity_demand_neso_raw.csv",
+        log:
+            "logs/retrieve_electricity_demand_neso.log",
+        resources:
+            mem_mb=5000,
+        retries: 2
+        script:
+            scripts("retrieve_electricity_demand_neso.py")
+
+
+if (NESO_DEMAND_DATA := dataset_version("neso_electricity_demand"))["source"] in [
+    "archive"
+]:
+
+    rule retrieve_electricity_demand_neso:
+        message:
+            "Retrieving electricity demand data from NESO from archive"
+        input:
+            csv=storage(NESO_DEMAND_DATA["url"]),
+        output:
+            csv=f"{NESO_DEMAND_DATA['folder']}/electricity_demand_neso_raw.csv",
+        retries: 2
+        run:
+            copy2(input["csv"], output["csv"])
 
 
 if (
@@ -764,6 +913,20 @@ if (GEM_GSPT_DATASET := dataset_version("gem_gspt"))["source"] in [
             copy2(input["xlsx"], output["xlsx"])
 
 
+if (GEM_GCCT_DATASET := dataset_version("gem_gcct"))["source"] in [
+    "primary",
+    "archive",
+]:
+
+    rule retrieve_gem_cement_concrete_tracker:
+        input:
+            xlsx=storage(GEM_GCCT_DATASET["url"]),
+        output:
+            xlsx=f"{GEM_GCCT_DATASET['folder']}/Global-Cement-and-Concrete-Tracker.xlsx",
+        run:
+            copy2(input["xlsx"], output["xlsx"])
+
+
 if (BFS_ROAD_VEHICLE_STOCK_DATASET := dataset_version("bfs_road_vehicle_stock"))[
     "source"
 ] in [
@@ -943,10 +1106,10 @@ rule retrieve_monthly_fuel_prices:
         mem_mb=5000,
     retries: 2
     script:
-        "../scripts/retrieve_monthly_fuel_prices.py"
+        scripts("retrieve_monthly_fuel_prices.py")
 
 
-if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
+if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
     "primary",
     "archive",
 ]:
@@ -957,13 +1120,13 @@ if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
             message:
                 "Retrieving TYNDP network topology data"
             input:
-                line_data=storage(TYDNP_DATASET["url"] + "/Line-data.zip"),
-                nodes=storage(TYDNP_DATASET["url"] + "/Nodes.zip"),
+                line_data=storage(TYNDP_DATASET["url"] + "/Line-data.zip"),
+                nodes=storage(TYNDP_DATASET["url"] + "/Nodes.zip"),
             output:
-                line_data_zip=f"{TYDNP_DATASET['folder']}/Line-data.zip",
-                nodes_zip=f"{TYDNP_DATASET['folder']}/Nodes.zip",
-                elec_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
-                nodes=f"{TYDNP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
+                line_data_zip=f"{TYNDP_DATASET['folder']}/Line-data.zip",
+                nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
+                elec_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
+                nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
             log:
                 "logs/retrieve_tyndp.log",
             run:
@@ -985,71 +1148,71 @@ if (TYDNP_DATASET := dataset_version("tyndp"))["source"] in [
             message:
                 "Retrieving TYNDP 2024 data package"
             input:
-                line_data=storage(TYDNP_DATASET["url"] + "/Line-data.zip"),
-                nodes=storage(TYDNP_DATASET["url"] + "/Nodes.zip"),
-                hydro_inflows=storage(TYDNP_DATASET["url"] + "/Hydro-Inflows.zip"),
-                pemmdb=storage(TYDNP_DATASET["url"] + "/PEMMDB2.zip"),
+                line_data=storage(TYNDP_DATASET["url"] + "/Line-data.zip"),
+                nodes=storage(TYNDP_DATASET["url"] + "/Nodes.zip"),
+                hydro_inflows=storage(TYNDP_DATASET["url"] + "/Hydro-Inflows.zip"),
+                pemmdb=storage(TYNDP_DATASET["url"] + "/PEMMDB2.zip"),
                 supply_tool=storage(
-                    TYDNP_DATASET["url"] + "/20240518-Supply-Tool.xlsm.zip"
+                    TYNDP_DATASET["url"] + "/20240518-Supply-Tool.xlsm.zip"
                 ),
                 benchmark=storage(
-                    TYDNP_DATASET["url"] + "/TYNDP-2024-Scenarios-Package-20250128.zip"
+                    TYNDP_DATASET["url"] + "/TYNDP-2024-Scenarios-Package-20250128.zip"
                 ),
-                demand_profiles=storage(TYDNP_DATASET["url"] + "/Demand-Profiles.zip"),
-                ev_modelling=storage(TYDNP_DATASET["url"] + "/EV-Modelling-Inputs.zip"),
+                demand_profiles=storage(TYNDP_DATASET["url"] + "/Demand-Profiles.zip"),
+                ev_modelling=storage(TYNDP_DATASET["url"] + "/EV-Modelling-Inputs.zip"),
                 hybrid_hp_modelling=storage(
-                    TYDNP_DATASET["url"] + "/Hybrid-Heat-Pump-Modelling-Inputs.zip"
+                    TYNDP_DATASET["url"] + "/Hybrid-Heat-Pump-Modelling-Inputs.zip"
                 ),
-                hydrogen=storage(TYDNP_DATASET["url"] + "/Hydrogen.zip"),
+                hydrogen=storage(TYNDP_DATASET["url"] + "/Hydrogen.zip"),
                 investment_datasets=storage(
-                    TYDNP_DATASET["url"] + "/Investment-Datasets.zip"
+                    TYNDP_DATASET["url"] + "/Investment-Datasets.zip"
                 ),
-                offshore_hubs=storage(TYDNP_DATASET["url"] + "/Offshore-hubs.zip"),
+                offshore_hubs=storage(TYNDP_DATASET["url"] + "/Offshore-hubs.zip"),
                 market_outputs_NT2030_CY2009=storage(
-                    TYDNP_DATASET["url"]
+                    TYNDP_DATASET["url"]
                     + "/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip"
                 ),
                 market_outputs_NT2040_CY2009=storage(
-                    TYDNP_DATASET["url"]
+                    TYNDP_DATASET["url"]
                     + "/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip"
                 ),
             output:
-                line_data_zip=f"{TYDNP_DATASET['folder']}/Line-data.zip",
-                nodes_zip=f"{TYDNP_DATASET['folder']}/Nodes.zip",
-                elec_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
-                h2_reference_grid=f"{TYDNP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
-                nodes=f"{TYDNP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
-                hydro_inflows_zip=f"{TYDNP_DATASET['folder']}/Hydro-Inflows.zip",
-                hydro_inflows=directory(f"{TYDNP_DATASET['folder']}/Hydro Inflows"),
-                pemmdb_zip=f"{TYDNP_DATASET['folder']}/PEMMDB2.zip",
-                pemmdb=directory(f"{TYDNP_DATASET['folder']}/PEMMDB2"),
-                supply_tool_zip=f"{TYDNP_DATASET['folder']}/20240518-Supply-Tool.xlsm.zip",
-                supply_tool=f"{TYDNP_DATASET['folder']}/20240518-Supply-Tool.xlsm",
-                benchmark_zip=f"{TYDNP_DATASET['folder']}/TYNDP-2024-Scenarios-Package-20250128.zip",
-                benchmark=f"{TYDNP_DATASET['folder']}/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
-                demand_profiles_zip=f"{TYDNP_DATASET['folder']}/Demand-Profiles.zip",
-                demand_profiles=directory(f"{TYDNP_DATASET['folder']}/Demand Profiles"),
-                ev_modelling_zip=f"{TYDNP_DATASET['folder']}/EV-Modelling-Inputs.zip",
-                ev_modelling=directory(f"{TYDNP_DATASET['folder']}/EV Modelling Inputs"),
-                hybrid_hp_modelling_zip=f"{TYDNP_DATASET['folder']}/Hybrid-Heat-Pump-Modelling-Inputs.zip",
+                line_data_zip=f"{TYNDP_DATASET['folder']}/Line-data.zip",
+                nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
+                elec_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
+                h2_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
+                nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
+                hydro_inflows_zip=f"{TYNDP_DATASET['folder']}/Hydro-Inflows.zip",
+                hydro_inflows=directory(f"{TYNDP_DATASET['folder']}/Hydro Inflows"),
+                pemmdb_zip=f"{TYNDP_DATASET['folder']}/PEMMDB2.zip",
+                pemmdb=directory(f"{TYNDP_DATASET['folder']}/PEMMDB2"),
+                supply_tool_zip=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm.zip",
+                supply_tool=f"{TYNDP_DATASET['folder']}/20240518-Supply-Tool.xlsm",
+                benchmark_zip=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package-20250128.zip",
+                benchmark=f"{TYNDP_DATASET['folder']}/TYNDP-2024-Scenarios-Package/TYNDP_2024-Scenario-Report-Data-Figures_240522.xlsx",
+                demand_profiles_zip=f"{TYNDP_DATASET['folder']}/Demand-Profiles.zip",
+                demand_profiles=directory(f"{TYNDP_DATASET['folder']}/Demand Profiles"),
+                ev_modelling_zip=f"{TYNDP_DATASET['folder']}/EV-Modelling-Inputs.zip",
+                ev_modelling=directory(f"{TYNDP_DATASET['folder']}/EV Modelling Inputs"),
+                hybrid_hp_modelling_zip=f"{TYNDP_DATASET['folder']}/Hybrid-Heat-Pump-Modelling-Inputs.zip",
                 hybrid_hp_modelling=directory(
-                    f"{TYDNP_DATASET['folder']}/Hybrid Heat Pump Modelling Inputs"
+                    f"{TYNDP_DATASET['folder']}/Hybrid Heat Pump Modelling Inputs"
                 ),
-                hydrogen_zip=f"{TYDNP_DATASET['folder']}/Hydrogen.zip",
-                hydrogen=directory(f"{TYDNP_DATASET['folder']}/Hydrogen"),
-                h2_imports=f"{TYDNP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
-                investment_datasets_zip=f"{TYDNP_DATASET['folder']}/Investment-Datasets.zip",
-                trajectories=f"{TYDNP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
-                invest_grid=f"{TYDNP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
-                offshore_hubs_zip=f"{TYDNP_DATASET['folder']}/Offshore-hubs.zip",
-                offshore_nodes=f"{TYDNP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
-                offshore_grid=f"{TYDNP_DATASET['folder']}/Offshore hubs/GRID.xlsx",
-                offshore_electrolysers=f"{TYDNP_DATASET['folder']}/Offshore hubs/ELECTROLYSER.xlsx",
-                offshore_generators=f"{TYDNP_DATASET['folder']}/Offshore hubs/GENERATOR.xlsx",
-                market_outputs_NT2030_CY2009_zip=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
-                market_outputs_NT2030_CY2009=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
-                market_outputs_NT2040_CY2009_zip=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip",
-                market_outputs_NT2040_CY2009=f"{TYDNP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
+                hydrogen_zip=f"{TYNDP_DATASET['folder']}/Hydrogen.zip",
+                hydrogen=directory(f"{TYNDP_DATASET['folder']}/Hydrogen"),
+                h2_imports=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+                investment_datasets_zip=f"{TYNDP_DATASET['folder']}/Investment-Datasets.zip",
+                trajectories=f"{TYNDP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
+                invest_grid=f"{TYNDP_DATASET['folder']}/Investment Datasets/GRID.xlsx",
+                offshore_hubs_zip=f"{TYNDP_DATASET['folder']}/Offshore-hubs.zip",
+                offshore_nodes=f"{TYNDP_DATASET['folder']}/Offshore hubs/NODE.xlsx",
+                offshore_grid=f"{TYNDP_DATASET['folder']}/Offshore hubs/GRID.xlsx",
+                offshore_electrolysers=f"{TYNDP_DATASET['folder']}/Offshore hubs/ELECTROLYSER.xlsx",
+                offshore_generators=f"{TYNDP_DATASET['folder']}/Offshore hubs/GENERATOR.xlsx",
+                market_outputs_NT2030_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx.zip",
+                market_outputs_NT2030_CY2009=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2030_Plexos_CY2009_2.5_v40.xlsx",
+                market_outputs_NT2040_CY2009_zip=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip",
+                market_outputs_NT2040_CY2009=f"{TYNDP_DATASET['folder']}/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx",
             log:
                 "logs/retrieve_tyndp.log",
             run:
@@ -1125,7 +1288,7 @@ elif OSM_DATASET["source"] == "build":
             "logs/retrieve_osm_data_{country}.log",
         threads: 1
         script:
-            "../scripts/retrieve_osm_data.py"
+            scripts("retrieve_osm_data.py")
 
     rule retrieve_osm_data_raw_all:
         input:
@@ -1167,7 +1330,7 @@ elif NATURA_DATASET["source"] == "build":
         log:
             "logs/build_natura.log",
         script:
-            "../scripts/build_natura.py"
+            scripts("build_natura.py")
 
 
 if (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
@@ -1183,7 +1346,7 @@ if (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
             "logs/retrieve_osm_boundaries_{country}_adm1.log",
         threads: 1
         script:
-            "../scripts/retrieve_osm_boundaries.py"
+            scripts("retrieve_osm_boundaries.py")
 
 elif (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
     "archive"
@@ -1263,7 +1426,7 @@ if (LAU_REGIONS_DATASET := dataset_version("lau_regions"))["source"] in [
         resources:
             mem_mb=10000,
         script:
-            "../scripts/retrieve_seawater_temperature.py"
+            scripts("retrieve_seawater_temperature.py")
 
     rule retrieve_hera_data_test_cutout:
         message:

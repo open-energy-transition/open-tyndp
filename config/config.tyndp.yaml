@@ -198,6 +198,9 @@ biomass:
     2045: 1
     2050: 1
 
+existing_capacities:
+  uniform_renewable_profiles: true
+
 sector:
   transport: true
   heating: false

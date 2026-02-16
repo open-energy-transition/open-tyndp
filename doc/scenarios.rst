@@ -29,7 +29,7 @@ of TYNDP 2024 (e.g. during 2023).
 
 - Uses predefined final energy demands and generation capacity collected from transmission system operators
 - Modelled as a pure dispatch problem, with fixed generation capacities for 2030 and 2040
-- All energy carriers included in final energy demand, not just electricity and gas (as with TYDNP < 2024)
+- All energy carriers included in final energy demand, not just electricity and gas (as with TYNDP < 2024)
 
 Deviation Scenarios
 ~~~~~~~~~~~~~~~~~~~
