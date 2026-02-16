@@ -5,10 +5,10 @@
 """
 Prepare network for CBA rolling horizon dispatch.
 
-Takes the reference network and applies modifications for rolling horizon:
-- Disable cyclicity for seasonal stores (they receive MSV instead)
-- Keep cyclicity for short-term storage (batteries)
-- Apply MSV as marginal costs to seasonal stores
+Modifications applied:
+- cyclic_carriers: keep cyclicity (short-term, e.g., batteries)
+- seasonal_carriers: disable cyclicity, apply MSV + initial state from PF
+- accumulator_carriers: disable cyclicity, apply MSV, start empty
 - Remove global constraints not needed for CBA
 """
 
@@ -46,26 +46,20 @@ def disable_store_cyclicity(
     n: pypsa.Network,
     cyclic_carriers: list[str] | None = None,
     seasonal_carriers: list[str] | None = None,
+    accumulator_carriers: list[str] | None = None,
 ):
     """
     Disable cyclic constraints for stores and storage units.
 
-    For rolling horizon with MSV, seasonal storage should be non-cyclic
-    while short-term storage (batteries) remains cyclic.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        Network to modify
-    cyclic_carriers : list[str], optional
-        Carriers that should remain cyclic (e.g., ["battery", "home battery"]).
-    seasonal_carriers : list[str], optional
-        Carriers that are seasonal (e.g., ["H2 Store", "gas"]). Used for logging.
+    cyclic_carriers remain cyclic; all others become non-cyclic.
+    seasonal_carriers and accumulator_carriers are used for logging only.
     """
     if cyclic_carriers is None:
         cyclic_carriers = []
     if seasonal_carriers is None:
         seasonal_carriers = []
+    if accumulator_carriers is None:
+        accumulator_carriers = []
 
     # Disable cyclicity for stores (except cyclic_carriers)
     has_e_cyclic = n.stores["e_cyclic"]
@@ -176,28 +170,22 @@ def apply_msv_to_network(
     n: pypsa.Network,
     n_msv: pypsa.Network,
     seasonal_carriers: list[str],
+    accumulator_carriers: list[str] | None = None,
     resample_method: str = "ffill",
 ) -> None:
     """
-    Apply Marginal Storage Values (MSV) to seasonal stores.
+    Apply MSV (mu_energy_balance duals) as marginal_cost to Store and StorageUnit
+    components whose carrier is in seasonal_carriers or accumulator_carriers.
 
-    The MSV (mu_energy_balance dual variable) from perfect foresight is applied
-    as marginal_cost to stores, guiding rolling horizon dispatch to account for
-    seasonal storage value.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        Target network for rolling horizon optimization
-    n_msv : pypsa.Network
-        Network with MSV from perfect foresight solve
-    seasonal_carriers : list[str]
-        List of carrier names that should receive MSV
-    resample_method : str, optional
-        Method for resampling MSV to target resolution ("ffill" or "interpolate")
+    Only explicitly configured carriers receive MSV.
     """
-    if not seasonal_carriers:
-        logger.info("No seasonal carriers specified, skipping MSV application")
+    if accumulator_carriers is None:
+        accumulator_carriers = []
+
+    all_msv_carriers = seasonal_carriers + accumulator_carriers
+
+    if not all_msv_carriers:
+        logger.info("No seasonal or accumulator carriers specified, skipping MSV application")
         return
 
     if n_msv.stores_t.mu_energy_balance.empty:
@@ -217,12 +205,8 @@ def apply_msv_to_network(
         )
 
     for c in ["Store", "StorageUnit"]:
-        # select carriers
-        carriers = (
-            seasonal_carriers if c == "Store" else n_msv.c[c].static.carrier.unique()
-        )
-        # get index
-        s_i = n_msv.c[c].static[n_msv.c[c].static.carrier.isin(carriers)].index
+        # Filter to configured carriers only (same logic for both component types)
+        s_i = n_msv.c[c].static[n_msv.c[c].static.carrier.isin(all_msv_carriers)].index
         # get shadow prices
         msv = n_msv.c[c].dynamic["mu_energy_balance"][s_i]
         # Resample if needed
@@ -235,6 +219,43 @@ def apply_msv_to_network(
             f"Applied MSV to {len(s_i)} {c}. "
             f"MSV range: [{msv.min().min():.2f}, {msv.max().max():.2f}] EUR/MWh"
         )
+
+
+def set_initial_state_from_pf(
+    n: pypsa.Network,
+    n_msv: pypsa.Network,
+    seasonal_carriers: list[str],
+) -> None:
+    """
+    Set initial storage state from PF solution for seasonal_carriers.
+
+    Store: e_initial = PF e(t=-1).
+    StorageUnit: state_of_charge_initial = PF soc(t=-1).
+
+    Not applied to accumulator_carriers (they start empty).
+    """
+    # Set e_initial for seasonal stores from PF e(t=-1)
+    if not n_msv.stores_t.e.empty:
+        pf_e_initial = n_msv.stores_t.e.iloc[-1]
+        # Filter to seasonal carriers only
+        seasonal_stores = n.stores[n.stores.carrier.isin(seasonal_carriers)].index
+        common_stores = seasonal_stores.intersection(pf_e_initial.index)
+        if len(common_stores) > 0:
+            n.stores.loc[common_stores, "e_initial"] = pf_e_initial.loc[common_stores]
+            stats = summarize_counts(n.stores.loc[common_stores, "carrier"])
+            logger.info(f"Set e_initial from PF for {len(common_stores)} stores:\n{stats}")
+
+    # Set state_of_charge_initial for storage units from PF soc(t=-1)
+    if not n_msv.storage_units_t.state_of_charge.empty:
+        pf_soc_initial = n_msv.storage_units_t.state_of_charge.iloc[-1]
+        # Filter to seasonal carriers only
+        seasonal_sus = n.storage_units[n.storage_units.carrier.isin(seasonal_carriers)].index
+        common_sus = seasonal_sus.intersection(pf_soc_initial.index)
+        if len(common_sus) > 0:
+            n.storage_units.loc[common_sus, "state_of_charge_initial"] = pf_soc_initial.loc[common_sus]
+            stats = summarize_counts(n.storage_units.loc[common_sus, "carrier"])
+            logger.info(f"Set state_of_charge_initial from PF for {len(common_sus)} storage units:\n{stats}")
+
 
 
 if __name__ == "__main__":
@@ -257,8 +278,14 @@ if __name__ == "__main__":
     # Get storage carrier settings from config
     cyclic_carriers = snakemake.params.get("cyclic_carriers", [])
     seasonal_carriers = snakemake.params.get("seasonal_carriers", [])
+    accumulator_carriers = snakemake.params.get("accumulator_carriers", [])
+
+    # Disable cyclicity (cyclic_carriers remain cyclic)
     disable_store_cyclicity(
-        n, cyclic_carriers=cyclic_carriers, seasonal_carriers=seasonal_carriers
+        n,
+        cyclic_carriers=cyclic_carriers,
+        seasonal_carriers=seasonal_carriers,
+        accumulator_carriers=accumulator_carriers,
     )
 
     disable_global_constraints(n)
@@ -266,12 +293,19 @@ if __name__ == "__main__":
     # disable volume limits
     disable_volume_limits(n)
 
-    # Load MSV network and apply MSV to seasonal stores
+    # Load MSV network and apply to configured carriers
     msv_network_path = snakemake.input.get("network_msv", None)
     if msv_network_path:
         n_msv = pypsa.Network(msv_network_path)
         resample_method = snakemake.params.get("msv_resample_method", "ffill")
-        apply_msv_to_network(n, n_msv, seasonal_carriers, resample_method)
+
+        apply_msv_to_network(
+            n, n_msv, seasonal_carriers, accumulator_carriers, resample_method
+        )
+
+        # Initial state from PF for seasonal only (accumulators start empty)
+        set_initial_state_from_pf(n, n_msv, seasonal_carriers)
+
     else:
         logger.info("No MSV network provided, skipping MSV application")
 

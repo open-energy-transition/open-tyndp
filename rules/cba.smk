@@ -132,8 +132,10 @@ def input_msv_snapshot_weightings(w):
 rule solve_cba_msv_extraction:
     params:
         solving=config_provider("solving"),
+        msv_solving=config_provider("cba", "msv_extraction", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+        accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
     input:
         network=rules.prepare_reference.output.network,
         snapshot_weightings=input_msv_snapshot_weightings,
@@ -153,6 +155,7 @@ rule prepare_rolling_horizon:
     params:
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
+        accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
     input:
         network=rules.prepare_reference.output.network,
         network_msv=rules.solve_cba_msv_extraction.output.network,

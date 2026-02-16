@@ -23,8 +23,29 @@ class _CbaStorageConfig(ConfigModel):
         description="Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
     )
     seasonal_carriers: list[str] = Field(
-        default_factory=lambda: ["H2 Store", "gas", "co2 sequestered"],
-        description="Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+        default_factory=lambda: ["H2 Store", "gas"],
+        description="Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
+    )
+    accumulator_carriers: list[str] = Field(
+        default_factory=lambda: ["co2 sequestered"],
+        description="Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
+    )
+
+
+class _CbaMsvSolvingConfig(ConfigModel):
+    """MSV extraction solving settings."""
+
+    options: dict[str, Any] = Field(
+        default_factory=lambda: {"load_shedding": False},
+        description="Load shedding disabled by default to avoid distorting duals.",
+    )
+    solver: dict[str, str] = Field(
+        default_factory=lambda: {"name": "highs", "options": "highs-simplex"},
+        description="Solver for MSV extraction.",
+    )
+    solver_options: dict[str, dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Solver-specific options.",
     )
 
 
@@ -38,6 +59,10 @@ class _CbaMsvExtractionConfig(ConfigModel):
     resample_method: Literal["ffill", "interpolate"] = Field(
         default="ffill",
         description="Method for resampling MSV to target network resolution.",
+    )
+    solving: _CbaMsvSolvingConfig = Field(
+        default_factory=_CbaMsvSolvingConfig,
+        description="MSV extraction solving config (separate from rolling horizon).",
     )
 
 

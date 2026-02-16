@@ -129,6 +129,8 @@ def optimize_with_rolling_horizon(
 
     assert len(snapshots), "Need at least one snapshot to optimize"
 
+    fallback_solver = kwargs.pop("fallback_solver", None)
+
     starting_points = range(0, len(snapshots), horizon - overlap)
     for i, start in tqdm(enumerate(starting_points), total=len(starting_points)):
         end = min(len(snapshots), start + horizon)
@@ -155,7 +157,21 @@ def optimize_with_rolling_horizon(
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
             )
-            return status, condition
+            # Retry with fallback solver if configured
+            if fallback_solver:
+                logger.info(
+                    f"Retrying window {i + 1}/{len(starting_points)} "
+                    f"with fallback solver '{fallback_solver['name']}'"
+                )
+                retry_kwargs = {**kwargs}
+                retry_kwargs["solver_name"] = fallback_solver["name"]
+                retry_kwargs["solver_options"] = fallback_solver.get("options", {})
+                status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
+            if status != "ok":
+                logger.warning(
+                    f"Fallback also failed: {status} / {condition}"
+                )
+                return status, condition
 
     return status, condition  # pyright: ignore[reportPossiblyUnboundVariable]
 
@@ -236,6 +252,15 @@ def solve_network(
 
     kwargs["model_kwargs"] = cf_solving.get("model_kwargs", {})
     kwargs["keep_files"] = cf_solving.get("keep_files", False)
+
+    # Configure fallback solver
+    fallback_solver = solving.get("fallback_solver", None)
+    if fallback_solver:
+        fb_options_key = fallback_solver.get("options", "")
+        kwargs["fallback_solver"] = {
+            "name": fallback_solver["name"],
+            "options": solving.get("solver_options", {}).get(fb_options_key, {}),
+        }
 
     if kwargs["solver_name"] == "gurobi":
         logging.getLogger("gurobipy").setLevel(logging.CRITICAL)

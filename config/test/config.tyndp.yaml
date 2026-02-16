@@ -418,11 +418,15 @@ cba:
     cyclic_carriers:
     - battery
     - home battery
-    # Seasonal carriers that will receive MSV (long-term storage)
-    # These will have cyclicity disabled and MSV applied as marginal_cost
+    # Seasonal carriers: MSV + initial state from PF
     seasonal_carriers:
     - H2 Store
     - gas
+    - hydro-phs
+    - hydro-phs-pure
+    - hydro-reservoir
+    # Accumulator carriers: MSV only, start empty
+    accumulator_carriers:
     - co2 sequestered
 
   # MSV (Marginal Storage Value) extraction settings
@@ -434,13 +438,21 @@ cba:
     # Method for resampling MSV to target network resolution
     # Options: ffill (forward fill), interpolate (linear interpolation)
     resample_method: ffill
+    # MSV extraction solving (perfect foresight)
+    # load_shedding disabled to avoid distorting dual values
+    solving:
+      options:
+        load_shedding: false
+      solver:
+        name: highs
+        options: highs-simplex
 
-  # Merged into top-level solving options
+  # Rolling horizon solving settings
   solving:
     options:
       horizon: 168
       overlap: 0
-      load_shedding: true
+      load_shedding: true  # enabled for rolling horizon dispatch
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:

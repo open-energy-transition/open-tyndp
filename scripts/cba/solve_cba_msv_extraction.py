@@ -22,9 +22,11 @@ rolling horizon optimization.
 import logging
 
 import pypsa
+from snakemake.utils import update_config
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.prepare_sector_network import set_temporal_aggregation
+from scripts.solve_network import prepare_network
 
 logger = logging.getLogger(__name__)
 
@@ -52,18 +54,31 @@ if __name__ == "__main__":
     if msv_resolution:
         n = set_temporal_aggregation(n, msv_resolution, snapshot_weightings)
 
-    # Get solver settings
+    # Merge base solving with MSV-specific overrides
     solving = snakemake.params.get("solving", {})
-    solver_name = solving.get("solver", {}).get("name", "highs")
-    solver_options = solving.get("solver", {}).get("options", "highs-default")
+    msv_solving = snakemake.params.get("msv_solving", {})
+    update_config(solving, msv_solving)
 
-    logger.info(f"Solving MSV extraction with {solver_name} ({solver_options})")
+    solver_name = solving.get("solver", {}).get("name", "highs")
+    solver_options_key = solving.get("solver", {}).get("options", "highs-default")
+
+    # Prepare network (e.g., load_shedding setup)
+    solve_opts = solving.get("options", {})
+    prepare_network(
+        n,
+        solve_opts=solve_opts,
+        foresight="perfect",
+        renewable_carriers=[],
+        planning_horizons=snakemake.wildcards.get("planning_horizons", None),
+        co2_sequestration_potential=None,
+        limit_max_growth=None,
+    )
 
     # Solve with perfect foresight (full year, single optimization)
     # assign_all_duals=True ensures we get mu_energy_balance
     status, termination_condition = n.optimize(
         solver_name=solver_name,
-        solver_options=solving.get("solver_options", {}).get(solver_options, {}),
+        solver_options=solving.get("solver_options", {}).get(solver_options_key, {}),
         assign_all_duals=True,
     )
 
@@ -73,22 +88,31 @@ if __name__ == "__main__":
 
     logger.info(f"MSV extraction solve completed: {termination_condition}")
 
-    # Log MSV statistics for seasonal carriers
+    # Log MSV statistics for configured carriers (Store and StorageUnit)
     seasonal_carriers = snakemake.params.get("seasonal_carriers", [])
-    if not n.stores_t.mu_energy_balance.empty:
-        for carrier in seasonal_carriers:
-            stores_i = n.stores[n.stores.carrier == carrier].index
-            stores_i = stores_i[stores_i.isin(n.stores_t.mu_energy_balance.columns)]
-            if stores_i.empty:
+    accumulator_carriers = snakemake.params.get("accumulator_carriers", [])
+    all_msv_carriers = seasonal_carriers + accumulator_carriers
+
+    for component, dual_attr in [
+        ("stores", "mu_energy_balance"),
+        ("storage_units", "mu_energy_balance"),
+    ]:
+        dual_df = getattr(getattr(n, f"{component}_t"), dual_attr, None)
+        if dual_df is None or dual_df.empty:
+            continue
+        static = getattr(n, component)
+        for carrier in all_msv_carriers:
+            idx = static[static.carrier == carrier].index
+            idx = idx[idx.isin(dual_df.columns)]
+            if idx.empty:
                 continue
-            msv = n.stores_t.mu_energy_balance[stores_i]
+            msv = dual_df[idx]
+            label = "Store" if component == "stores" else "StorageUnit"
             logger.info(
-                f"MSV for '{carrier}': "
+                f"MSV for '{carrier}' ({label}): "
                 f"min={msv.min().min():.2f}, max={msv.max().max():.2f}, "
                 f"mean={msv.mean().mean():.2f} EUR/MWh"
             )
-    else:
-        logger.warning("No mu_energy_balance extracted - check solver settings")
 
     # Save network with MSV
     n.export_to_netcdf(snakemake.output.network)
