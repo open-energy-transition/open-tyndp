@@ -1522,9 +1522,6 @@ data:
   tyndp_cba_projects:
     source: archive
     version: latest
-  tyndp_sb_results:
-    source: archive
-    version: latest
   tyndp_nuclear_profiles:
     source: archive
     version: latest
@@ -1532,6 +1529,9 @@ data:
     source: archive
     version: latest
   cba_guidelines_reference_projects:
+    source: archive
+    version: latest
+  tyndp_sb_results:
     source: archive
     version: latest
 
