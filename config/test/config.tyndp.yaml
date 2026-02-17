@@ -451,7 +451,7 @@ cba:
   solving:
     options:
       horizon: 168
-      overlap: 0
+      overlap: 1
       load_shedding: true  # enabled for rolling horizon dispatch
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
