@@ -201,6 +201,7 @@ tyndp = """bash -c '
 [feature.open-tyndp.dependencies]
 # open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
 snakemake-minimal = { version = ">=9.14.6", channel = "https://repo.prefix.dev/open-tyndp" }
+snakemake-storage-plugin-cached-http = ">=0.3"
 pixi-pycharm = ">=0.0.9"
 
 [feature.open-tyndp.target.win-64.dependencies]
