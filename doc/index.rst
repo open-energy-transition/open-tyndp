@@ -302,8 +302,8 @@ Citing Open-TYNDP
 
 If you want to cite a specific Open-TYNDP version, since v0.5, each release is archived on Zenodo with a release-specific DOI:
 
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg
-   :target: https://doi.org/10.5281/zenodo.18494363
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18672148.svg
+   :target: https://doi.org/10.5281/zenodo.18672148
    :alt: DOI
    :align: left
 

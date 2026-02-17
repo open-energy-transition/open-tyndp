@@ -8539,7 +8539,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.5",
+      "default": "v0.5.1",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },

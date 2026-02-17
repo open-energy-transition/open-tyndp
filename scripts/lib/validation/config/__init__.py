@@ -98,7 +98,9 @@ class ConfigSchema(BaseModel):
     model_config = ConfigDict(extra="allow", title="Open-TYNDP Configuration")
 
     # Top-level fields (from TopLevelConfig)
-    version: str = Field("v0.5", description="Version of Open-TYNDP. Descriptive only.")
+    version: str = Field(
+        "v0.5.1", description="Version of Open-TYNDP. Descriptive only."
+    )
     tutorial: bool = Field(
         False,
         description="Switch to retrieve the tutorial data set instead of the full data set.",
