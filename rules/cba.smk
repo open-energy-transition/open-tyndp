@@ -71,16 +71,13 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
 def presolved_sb_network_path(w, horizon=None):
     sb_version = config_provider("cba", "sb_to_cba", "sb_version", default="latest")(w)
     target_horizon = horizon if horizon is not None else w.planning_horizons
-    return (
-        RESULTS
-        + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
-    )
+    return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
 
 
 if config.get("cba", {}).get("sb_to_cba", {}).get("use_presolved", False):
-    if (SB_SOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))["source"] in [
-        "archive"
-    ]:
+    if (SB_SOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
+        "source"
+    ] in ["archive"]:
 
         rule retrieve_presolved_sb_networks:
             input:
