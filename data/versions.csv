@@ -97,6 +97,8 @@ nitrogen_statistics,2022,primary,latest supported,2025-12-02,,https://d9-wret.s3
 nitrogen_statistics,2022,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/nitrogen_statistics/2022/nitro-ert.xlsx
 nuts3_population,13-03-2025,primary,latest supported,2025-12-02,,https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nama_10r_3popgdp?format=TSV&compressed=true
 nuts3_population,13-03-2025,archive,latest supported,2026-01-13,earlier part of zenodo bundle,https://data.pypsa.org/workflows/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
+open_tyndp_prelim,0.5,primary,not-supported,2026-02-16,Open-TYNDP preliminary outcomes,https://zenodo.org/records/18608106
+open_tyndp_prelim,0.5,archive,latest supported,2026-02-16,Open-TYNDP preliminary outcomes (results-0.5.zip),https://zenodo.org/records/18608106/files/results-0.5.zip
 opsd_electricity_demand,unknown,build,latest supported,2026-02-02,multiple versions concatenated,https://data.open-power-system-data.org/time_series/
 opsd_electricity_demand,2026-02-02,archive,latest supported,2026-02-03,,https://data.pypsa.org/workflows/eur/opsd_electricity_demand/2026-02-02/electricity_demand_opsd_raw.csv
 osm,unknown,build,latest supported,2025-12-02,Latest dataset built using OSM data. No single URL available to access the data. See the related scripts and documentation for details.,
@@ -141,8 +143,6 @@ tyndp_nuclear_profiles,v40,archive,latest supported,2026-02-04,Data derived from
 tyndp_pecd,3.1+pre-built.0.1,archive,latest supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,3.1,primary,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
 tyndp_pecd,3.1,archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_sb_results,0.5,primary,not-supported,2026-02-16,Pre-solved SB network results for Open-TYNDP,https://zenodo.org/records/18608106
-tyndp_sb_results,0.5,archive,latest supported,2026-02-16,Pre-solved SB network results (results-0.5.zip),https://zenodo.org/records/18608106/files/results-0.5.zip
 tyndp_vis_plfm,unknown,primary,not-supported,2026-01-27,,https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/
 tyndp_vis_plfm,20250117,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip
 wdpa,unknown,primary,latest supported,2025-12-02,"WDPA changes its URL every month, the URL here is used as a template and {bYYYY} is replaced inside the retrieve.smk.",https://d1gam3xoknrgr2.cloudfront.net/current/WDPA_{bYYYY}_Public_shp.zip

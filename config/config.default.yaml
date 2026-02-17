@@ -1531,7 +1531,7 @@ data:
   cba_guidelines_reference_projects:
     source: archive
     version: latest
-  tyndp_sb_results:
+  open_tyndp_prelim:
     source: archive
     version: latest
 

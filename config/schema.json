@@ -2137,7 +2137,7 @@
             }
           }
         },
-        "tyndp_sb_results": {
+        "open_tyndp_prelim": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -14455,7 +14455,7 @@
             }
           }
         },
-        "tyndp_sb_results": {
+        "open_tyndp_prelim": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {

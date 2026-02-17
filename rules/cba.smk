@@ -69,17 +69,17 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
 
 
 if config.get("cba", {}).get("sb_to_cba", {}).get("use_presolved", False):
-    if (SB_RESULTS_DATASET := dataset_version("tyndp_sb_results"))["source"] in [
+    if (SB_SOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))["source"] in [
         "archive"
     ]:
 
-        rule retrieve_tyndp_sb_results:
+        rule retrieve_presolved_sb_networks:
             input:
-                zip_file=storage(SB_RESULTS_DATASET["url"]),
+                zip_file=storage(SB_SOLVED_NETWORKS_DATASET["url"]),
             output:
-                network=f"{SB_RESULTS_DATASET['folder']}/networks/base_s_all___{{planning_horizons}}.nc",
+                network=f"{SB_SOLVED_NETWORKS_DATASET['folder']}/networks/base_s_all___{{planning_horizons}}.nc",
             log:
-                "logs/retrieve_tyndp_sb_results_{planning_horizons}.log",
+                "logs/retrieve_presolved_sb_networks_{planning_horizons}.log",
             run:
                 target_suffix = (
                     f"networks/base_s_all___{wildcards.planning_horizons}.nc"
@@ -161,7 +161,7 @@ def input_sb_network(w):
         # If CBA planning horizon = 2035, use the 2040 SB network
         if horizon == 2035:
             horizon = 2040
-        sb_dataset = dataset_version("tyndp_sb_results")
+        sb_dataset = dataset_version("open_tyndp_prelim")
         return f"{sb_dataset['folder']}/networks/base_s_all___{horizon}.nc"
 
     expanded_wildcards = {
