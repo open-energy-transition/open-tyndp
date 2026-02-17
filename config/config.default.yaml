@@ -1563,7 +1563,8 @@ cba:
     options:
       horizon: 168
       overlap: 0
-      load_shedding: true
+      load_shedding:
+        enable: true
       io_api: direct
     solver:
       name: highs
