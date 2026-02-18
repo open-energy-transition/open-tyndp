@@ -15,19 +15,11 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
-* Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
-
 **Bugfixes and Compatibility**
 
-* Fix windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
-
-* Fix for myopic pathway optimization using the TYNDP H2 reference grid to account for cumulative capacities between planning horizons and add back CH-IT H2 pipeline connections (https://github.com/open-energy-transition/open-tyndp/pull/475).
+* Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
 
 **Documentation**
-
-* Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
-
-* Update the Citation for improved reference of original work and add Zenodo archive (https://github.com/open-energy-transition/open-tyndp/pull/459).
 
 **Developers Note**
 
@@ -38,7 +30,7 @@ Upcoming PyPSA-Eur Release
 
 * Include new storage technologies such as li-ion, vanadium, lfp, lair, pair and iron-air. These technologies can now be configured as either store-link combinations or standalone storage units.
   Implemented in both `add_electricity.py` and `prepare_sector_network.py` (https://github.com/PyPSA/pypsa-eur/pull/1961).
-  
+
 * Updated data sources for country-level electricity demand time series. In addition to the OPSD data (``retrieve_electricity_demand_opsd``, demand time series
   are now downloaded via the ENTSO-E Transparency Platform API (``retrieve_electricity_demand_entsoe`` environment variable ``ENTSOE_API_KEY`` required)
   and from the NESO data portal for Great Britain and Northern Ireland (``retrieve_electricity_demand_neso``).
@@ -219,6 +211,45 @@ Upcoming PyPSA-Eur Release
 * Fix the WDPA links to function on Windows (https://github.com/PyPSA/pypsa-eur/pull/2008).
 
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
+
+
+Open-TYNDP v0.5.1 (18th February 2026)
+========================================
+
+**Features**
+
+* Sign Windows installers using Azure Artifact Signing (https://github.com/open-energy-transition/open-tyndp/pull/471).
+
+**Changes**
+
+* Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
+
+* Harmonize renewable profiles across all assets regardless of build year (https://github.com/open-energy-transition/open-tyndp/pull/473). When `existing_capacities:uniform_renewable_profiles` is enabled, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.
+
+**Bugfixes and Compatibility**
+
+* Fix Windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
+
+* Fix for myopic pathway optimization using the TYNDP H2 reference grid to account for cumulative capacities between planning horizons and add back CH-IT H2 pipeline connections (https://github.com/open-energy-transition/open-tyndp/pull/475).
+
+* Fix for GB connections in 2035 reference grid based on the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/489).
+
+* Allow specifying the build_year of investment candidates to be added as new links to the 2040 reference grid via the config file and add both 2030 and 2035 projects to 2040 reference grid (https://github.com/open-energy-transition/open-tyndp/pull/496).
+
+* Use conda-forge dependency for PyPSA-Explorer package instead of pypi (https://github.com/open-energy-transition/open-tyndp/pull/491).
+
+**Documentation**
+
+* Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
+
+* Update the Citation for improved reference of original work and add Zenodo archive (https://github.com/open-energy-transition/open-tyndp/pull/459).
+
+**Developers Note**
+
+* Verify checksums of data packages downloaded through GCP (https://github.com/open-energy-transition/open-tyndp/pull/486).
+
+* Pin grpcio<1.78 to silence warnings that are cluttering the log (https://github.com/open-energy-transition/open-tyndp/pull/498).
+
 
 Open-TYNDP v0.5 (10th February 2026)
 ========================================

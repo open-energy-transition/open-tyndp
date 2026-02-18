@@ -3,7 +3,7 @@
 # yaml-language-server: $schema=./schema.json
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#version
-version: v0.5
+version: v0.5.1
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
@@ -547,7 +547,7 @@ transmission_projects:
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
 tyndp_investment_candidates:
-  elec_projects: []
+  elec_projects: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
 transformers:
@@ -687,6 +687,7 @@ existing_capacities:
   - coal
   - oil
   - uranium
+  uniform_renewable_profiles: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#sector
 sector:

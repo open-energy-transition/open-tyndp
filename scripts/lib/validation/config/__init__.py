@@ -81,9 +81,9 @@ class RemoteConfig(ConfigModel):
 class TyndpInvestmentCandidatesConfig(ConfigModel):
     """Configuration for top level `tyndp_investment_candidates` settings."""
 
-    elec_projects: list[int] = Field(
-        default_factory=list,
-        description="List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
+    elec_projects: dict[int, list[int]] = Field(
+        default_factory=dict,
+        description="Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
     )
 
 
@@ -98,7 +98,9 @@ class ConfigSchema(BaseModel):
     model_config = ConfigDict(extra="allow", title="Open-TYNDP Configuration")
 
     # Top-level fields (from TopLevelConfig)
-    version: str = Field("v0.5", description="Version of Open-TYNDP. Descriptive only.")
+    version: str = Field(
+        "v0.5.1", description="Version of Open-TYNDP. Descriptive only."
+    )
     tutorial: bool = Field(
         False,
         description="Switch to retrieve the tutorial data set instead of the full data set.",

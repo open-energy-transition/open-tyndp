@@ -15,8 +15,8 @@ echo ""
 # Get version from git tag if not provided
 if [ -z "$VERSION" ]; then
     VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "0.0.0-dev")
-    VERSION=${VERSION#v}  # Remove 'v' prefix if present
 fi
+VERSION=${VERSION#v}  # Remove 'v' prefix if present
 echo "Building installer version: $VERSION"
 echo ""
 

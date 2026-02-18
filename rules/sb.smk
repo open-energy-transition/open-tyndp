@@ -277,16 +277,24 @@ rule build_pemmdb_data:
         scripts("sb/build_pemmdb_data.py")
 
 
+def get_elec_project_build_years(w):
+    return config_provider("tyndp_investment_candidates", "elec_projects")(w)[
+        int(w.planning_horizons)
+    ]
+
+
 rule build_tyndp_transmission_projects:
+    params:
+        build_years=get_elec_project_build_years,
     input:
         buses=rules.build_tyndp_network.output.substations_geojson,
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
     output:
-        resources("tyndp/new_links.csv"),
+        resources("tyndp/new_links_{planning_horizons}.csv"),
     log:
-        logs("build_tyndp_transmission_projects.log"),
+        logs("build_tyndp_transmission_projects_{planning_horizons}.log"),
     benchmark:
-        benchmarks("build_tyndp_transmission_projects")
+        benchmarks("build_tyndp_transmission_projects_{planning_horizons}")
     resources:
         mem_mb=1000,
     threads: 1

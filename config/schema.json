@@ -2657,6 +2657,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "uniform_renewable_profiles": {
+          "default": false,
+          "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
+          "type": "boolean"
         }
       }
     },
@@ -5956,11 +5961,14 @@
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
         "elec_projects": {
-          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
-          "items": {
-            "type": "integer"
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
           },
-          "type": "array"
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
         }
       }
     },
@@ -8534,7 +8542,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.5",
+      "default": "v0.5.1",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
@@ -10816,11 +10824,14 @@
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
         "elec_projects": {
-          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
-          "items": {
-            "type": "integer"
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
           },
-          "type": "array"
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
         }
       }
     },
@@ -11127,6 +11138,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "uniform_renewable_profiles": {
+          "default": false,
+          "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
+          "type": "boolean"
         }
       }
     },

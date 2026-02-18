@@ -101,6 +101,9 @@ rule add_brownfield:
         group_tyndp_conventionals=config_provider(
             "electricity", "group_tyndp_conventionals"
         ),
+        uniform_renewable_profiles=config_provider(
+            "existing_capacities", "uniform_renewable_profiles"
+        ),
     input:
         unpack(input_profile_tech_brownfield),
         unpack(input_profile_tech_brownfield_pecd),
