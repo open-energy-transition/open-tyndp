@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 import pypsa
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
+
 # from snakemake.utils import update_config
 from tqdm.auto import tqdm
 
