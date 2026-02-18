@@ -1818,7 +1818,7 @@ rule prepare_sector_network:
         ),
         tyndp_projects=branch(
             include_tyndp_projects,
-            resources("tyndp/new_links.csv"),
+            resources("tyndp/new_links_{planning_horizons}.csv"),
         ),
         tyndp_trajectories=branch(
             include_tyndp_trajectories,

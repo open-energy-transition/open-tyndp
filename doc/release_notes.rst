@@ -232,6 +232,8 @@ Open-TYNDP v0.5.1 (18th February 2026)
 
 * Fix for GB connections in 2035 reference grid based on the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/489).
 
+* Allow specifying the build_year of investment candidates to be added as new links to the 2040 reference grid via the config file and add both 2030 and 2035 projects to 2040 reference grid (https://github.com/open-energy-transition/open-tyndp/pull/496).
+
 **Documentation**
 
 * Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
