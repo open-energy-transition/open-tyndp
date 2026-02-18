@@ -407,7 +407,7 @@ cba:
   - toot
   - pint
   projects:
-  - all
+  - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
 
   # Storage settings for CBA dispatch
