@@ -162,6 +162,7 @@ rule prepare_reference:
     script:
         scripts("cba/prepare_reference.py")
 
+
 # Generate snapshot weightings for MSV extraction temporal aggregation
 rule build_msv_snapshot_weightings:
     params:
@@ -205,6 +206,7 @@ rule solve_cba_msv_extraction:
     threads: 1
     script:
         "../scripts/cba/solve_cba_msv_extraction.py"
+
 
 # Prepare network for rolling horizon: disable seasonal cyclicity, apply MSV
 rule prepare_rolling_horizon:
