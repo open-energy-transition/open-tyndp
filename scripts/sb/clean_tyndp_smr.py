@@ -19,7 +19,9 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def load_smr_data(fn, pyear, h2_zones_tyndp):
+def load_smr_data(
+    fn: str, pyear: int, h2_zones_tyndp: bool, scenario: str
+) -> pd.DataFrame:
     """
     Load and clean TYNDP SMR capacity, must run and CCS information.
 
@@ -31,6 +33,8 @@ def load_smr_data(fn, pyear, h2_zones_tyndp):
         Planning horizon to read SMR data for.
     h2_zones_tyndp : bool
         Whether TYNDP H2 nodes are split into two zones (Z1, Z1)
+    scenario : str
+        TYNDP scenario to filter for.
 
     Returns
     -------
@@ -57,7 +61,7 @@ def load_smr_data(fn, pyear, h2_zones_tyndp):
         pd.read_excel(fn)
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .query("year == @pyear")
+        .query("year == @pyear and scenario == @scenario")
         .assign(
             bus=lambda df: df.bus + suffix,
             carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
@@ -85,13 +89,15 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = snakemake.wildcards.planning_horizons
+    pyear = int(snakemake.wildcards.planning_horizons)
     smr_fn = snakemake.input.smr
     scenario = snakemake.params.tyndp_scenario
     h2_zones_tyndp = snakemake.params.h2_zones_tyndp
 
     # Load and prep SMR data
-    smr = load_smr_data(fn=smr_fn, pyear=pyear, h2_zones_tyndp=h2_zones_tyndp)
+    smr = load_smr_data(
+        fn=smr_fn, pyear=pyear, h2_zones_tyndp=h2_zones_tyndp, scenario=scenario
+    )
 
     # Save clean H2 SMR data
     smr.to_csv(snakemake.output.smr_prepped)
