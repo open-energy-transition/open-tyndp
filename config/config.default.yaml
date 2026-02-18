@@ -547,7 +547,7 @@ transmission_projects:
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
 tyndp_investment_candidates:
-  elec_projects: []
+  elec_projects: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
 transformers:
