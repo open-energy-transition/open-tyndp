@@ -133,4 +133,4 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        gh release upload $TAG open-tyndp-*.exe --clobber
+        gh release upload $TAG open-tyndp-*.exe --clobber --repo ${{ github.repository }}
