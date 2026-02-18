@@ -52,7 +52,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added the PINT and TOOT reference and project network preparation for CBA (see PRs [#199](https://github.com/open-energy-transition/open-tyndp/pull/199), [#211](https://github.com/open-energy-transition/open-tyndp/pull/211), [#353](https://github.com/open-energy-transition/open-tyndp/pull/353)).
 - Added weekly rolling horizon optimization for CBA networks (see PR [#217](https://github.com/open-energy-transition/open-tyndp/pull/217), [#385](https://github.com/open-energy-transition/open-tyndp/pull/385)).
 - Introduced calculation of B1, B2, B3 and B4 indicator in the CBA (see PRs [#186](https://github.com/open-energy-transition/open-tyndp/pull/186), [#348](https://github.com/open-energy-transition/open-tyndp/pull/348), [#350](https://github.com/open-energy-transition/open-tyndp/pull/350), [#398](https://github.com/open-energy-transition/open-tyndp/pull/398)).
-- Added automated Windows installer with Azure Artifact Signing for easy setup on Windows systems (see PR [#333](https://github.com/open-energy-transition/open-tyndp/pull/333)).
+- Added automated Windows installer with Azure Artifact Signing for easy setup on Windows systems (see PR [#333](https://github.com/open-energy-transition/open-tyndp/pull/333), [#471](https://github.com/open-energy-transition/open-tyndp/pull/471)).
 - Automatically launched PyPSA-Explorer to investigate run results (see PR [#443](https://github.com/open-energy-transition/open-tyndp/pull/443)).
 
 
