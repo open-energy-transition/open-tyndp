@@ -96,7 +96,7 @@ Model Data and Assumptions
 
 .. admonition:: What data sources and assumptions does Open-TYNDP use, and where can I find them?
 
-   Open-TYNDP integrates TYNDP 2024 data (electricity demand, hydrogen topology, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in :doc:`tyndp-2024-bundle`. The Open-TYNDP reproduces the 2024 TYNDP-specific assumptions and methodology based on the `TYNDP 2024 Scenarios Methodology Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__.
+   Open-TYNDP integrates TYNDP 2024 data (electricity demand, hydrogen topology, PECD renewable profiles, PEMMDB capacities, CBA projects and more) with PyPSA-Eur's open-source workflow. All data sources and their licenses are documented in :doc:`tyndp_2024`. The Open-TYNDP reproduces the 2024 TYNDP-specific assumptions and methodology based on the `TYNDP 2024 Scenarios Methodology Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Methodology_Report_Final_Version_250128.pdf>`__.
 
 .. admonition:: How can I verify that Open-TYNDP results are reliable and accurate?
 

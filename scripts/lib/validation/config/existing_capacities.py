@@ -65,3 +65,7 @@ class ExistingCapacitiesConfig(ConfigModel):
         default_factory=lambda: ["lignite", "coal", "oil", "uranium"],
         description="List of conventional power plants to include in the sectoral network.",
     )
+    uniform_renewable_profiles: bool = Field(
+        False,
+        description="Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
+    )

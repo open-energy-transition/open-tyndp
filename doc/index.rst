@@ -23,8 +23,14 @@ Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Cont
 .. image:: https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp
     :alt: GitHub repo size
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18494363.svg
+    :target: https://doi.org/10.5281/zenodo.18494363
+
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg
     :target: https://doi.org/10.5281/zenodo.3520874
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3938042.svg
+    :target: https://doi.org/10.5281/zenodo.3938042
 
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.14230568.svg
     :target: https://doi.org/10.5281/zenodo.14230568
@@ -95,12 +101,11 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added TYNDP solar, onwind, hydro and conventional thermal generation using PEMMDB capacities, must-runs and availabilities (see PRs `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__ and `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__ for solar and onwind ; `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__ for hydro  ; `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__ for conventionals) and electrolyzer PEMMDB capacities (only for NT scenario) (see PR `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__).
 - Added CO2 emission prices per planning horizon (see PR `#198 <https://github.com/open-energy-transition/open-tyndp/pull/198>`__).
 - Introduced a workflow structure for performing Cost-Benefit Analysis (CBA) using both TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP transmission and storage projects on top of the SB results (see PR `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__).
-- Added the TOOT reference and project network preparation for CBA (see PRs `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__).
-- Added weekly rolling horizon optimization for CBA networks (see PR `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__).
-- Introduced calculation of B1 indicator in the CBA based on changes in total system costs (see PR `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__).
-- Added automated Windows installer for easy setup on Windows systems (see PR `#333 <https://github.com/open-energy-transition/open-tyndp/pull/333>`__).
-- Introduced calculation of B2 indicator in the CBA based on changes in total CO2 emissions (see PR `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__).
-- Introduced calculation of B3 indicator in the CBA based on renewable energy system integration (see PR `#350 <https://github.com/open-energy-transition/open-tyndp/pull/350>`__).
+- Added the PINT and TOOT reference and project network preparation for CBA (see PRs `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__, `#353 <https://github.com/open-energy-transition/open-tyndp/pull/353>`__).
+- Added weekly rolling horizon optimization for CBA networks (see PRs `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__, `#385 <https://github.com/open-energy-transition/open-tyndp/pull/385>`__).
+- Introduced calculation of B1, B2, B3 and B4 indicator in the CBA (see PRs `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__, `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__, `#350 <https://github.com/open-energy-transition/open-tyndp/pull/350>`__, `#398 <https://github.com/open-energy-transition/open-tyndp/pull/398>`__).
+- Added automated Windows installer with Azure Artifact Signing for easy setup on Windows systems (see PR `#333 <https://github.com/open-energy-transition/open-tyndp/pull/333>`__, `#471 <https://github.com/open-energy-transition/open-tyndp/pull/471>`__).
+- Automatically launched PyPSA-Explorer to investigate run results (see PR `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__).
 
 
 .. list-table::
@@ -160,8 +165,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - TYNDP plotting routines
-     -
-     - ⌛
+     - `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__
+     - 🔨
    * - **Automated tests and benchmarks**
      - Automated benchmarking routine
      - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__, `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__
@@ -228,7 +233,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **TYNDP technologies and carriers**
      - TYNDP generation technologies (incl. SRES and DRES)
-     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__, `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__,  `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__
+     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__, `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__, `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__, `#447 <https://github.com/open-energy-transition/open-tyndp/pull/447>`__
      - 🔨
    * -
      - Prosumer modelling
@@ -256,16 +261,16 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * - **CBA Assessment Framework**
      - TOOT/PINT methodology
-     - `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__, `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__, `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__
+     - `#149 <https://github.com/open-energy-transition/open-tyndp/pull/149>`__, `#199 <https://github.com/open-energy-transition/open-tyndp/pull/199>`__, `#211 <https://github.com/open-energy-transition/open-tyndp/pull/211>`__, `#217 <https://github.com/open-energy-transition/open-tyndp/pull/217>`__, `#353 <https://github.com/open-energy-transition/open-tyndp/pull/353>`__, `#385 <https://github.com/open-energy-transition/open-tyndp/pull/385>`__, `#426 <https://github.com/open-energy-transition/open-tyndp/pull/426>`__
      - 🔨
    * -
      - Climate years (weighted average)
      -
-     - ⌛
+     - 🔨
    * -
-     - CBA Benchmarking
-     -
-     - ⌛
+     - **CBA Benchmarking**
+     - `#405 <https://github.com/open-energy-transition/open-tyndp/pull/405>`__
+     - ✅
    * - **CBA Benefit Indicators**
      - B1: Socioeconomic Welfare (SEW)
      - `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__
@@ -280,18 +285,38 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - B4: Non-CO₂ Emissions (NOx, SOx, PM2.5/10, NMVOC, NH₃)
-     -
-     - ⌛
+     - `#398 <https://github.com/open-energy-transition/open-tyndp/pull/398>`__
+     - ✅
    * -
      - B5: Grid Losses, B6: Adequacy, B7: Flexibility, B8: Stability, B9: Reserves reduction
-     -
-     - ⌛
+     - n/a
+     - 
 
 .. seealso::
   See also the `GitHub repository issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ for a comprehensive list of currently open issues.
 
+|
+
+Citing Open-TYNDP
+==================
+
+If you want to cite a specific Open-TYNDP version, since v0.5, each release is archived on Zenodo with a release-specific DOI:
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18672148.svg
+   :target: https://doi.org/10.5281/zenodo.18672148
+   :alt: DOI
+   :align: left
+
+|
+
+If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of `Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>`__.
+
+This work builds upon `PyPSA-Eur <https://github.com/pypsa/pypsa-eur>`__ and follows the methodology described in `ENTSO-E's and entsog's TYNDP 2024 Scenarios Methodology Report <https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/>`__.
+
+|
+
 Background on PyPSA-Eur
-=========
+==================
 
 Electricity System
 ------------------
@@ -486,7 +511,33 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :maxdepth: 2
    :caption: Open TYNDP
 
+   scenarios
+   benchmarking
    innovation_roadmap
+   cba
+   cba-indicators
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+   :caption: References
+
+   release_notes
+   licenses
+   data_sources
+   validation
+   benchmarking
+   limitations
+   contributing
+   support
+   publications
+   contributors
+
+.. raw:: html
+
+   <hr>
+
+PyPSA-Eur related pages
 
 .. toctree::
    :hidden:
@@ -517,19 +568,3 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 
    spatial_resolution
    supply_demand
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   :caption: References
-
-   release_notes
-   licenses
-   data_sources
-   validation
-   benchmarking
-   limitations
-   contributing
-   support
-   publications
-   contributors

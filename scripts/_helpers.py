@@ -8,6 +8,7 @@ import copy
 import logging
 import os
 import re
+import socket
 import time
 from bisect import bisect_right
 from collections.abc import Callable
@@ -166,6 +167,27 @@ def path_provider(dir, rdir, shared_resources, exclude_from_shared):
         shared_resources=shared_resources,
         exclude_from_shared=exclude_from_shared,
     )
+
+
+def script_path_provider(project_dir: Path) -> Callable[[str], Path]:
+    """
+    Returns a function that provides the full path to a script given its name.
+
+    Parameters
+    ----------
+    project_dir : Path
+        The root directory of the project (where the script directory is located).
+
+    Returns
+    -------
+    Callable[[str], Path]
+        A function that takes a script name as input and returns the full path to the script.
+    """
+
+    def _get_script_path(script: str) -> Path:
+        return Path("file://") / project_dir / "scripts" / script
+
+    return _get_script_path
 
 
 def get_shadow(run):
@@ -1170,7 +1192,7 @@ def extract_grid_data_tyndp(
 
 def safe_pyear(
     year: int | str,
-    available_years: list = [2030, 2040, 2050],
+    available_years: list[int] = [2030, 2040, 2050],
     source: str = "TYNDP",
     verbose: bool = True,
 ) -> int:
@@ -1182,7 +1204,7 @@ def safe_pyear(
     ----------
     year : int
         Planning horizon year which will be checked and possibly adjusted to previous available year.
-    available_years : list, optional
+    available_years : list[int], optional
         List of available years. Defaults to [2030, 2040, 2050].
     source : str, optional
         Source of the data for which availability will be checked. For logging purpose only. Defaults to "TYNDP".
@@ -1562,3 +1584,19 @@ def interpolate_demand(
     result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
 
     return result
+
+
+def find_free_port(start_port=8050, max_attempts=50):
+    """
+    Find the first available port starting from start_port.
+    """
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("127.0.0.1", port))
+                return port
+        except OSError:
+            continue
+    raise RuntimeError(
+        f"Could not find free port in range {start_port}-{start_port + max_attempts}"
+    )

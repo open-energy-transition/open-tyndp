@@ -8,7 +8,7 @@ authors = ["Contributors to Open-TYNDP"]
 channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "0.1.0"
+version = "v0.5.1"
 
 [target.win-64.activation.env]
 
@@ -109,6 +109,7 @@ snakemake-storage-plugin-cached-http = ">=0.2.1"
 pandera = ">=0.28.1"
 natsort = ">=8.4.0"
 snakemake-logger-plugin-pypsa = ">=0.1.0"
+grpcio = "<1.78"   # remove after resolution of https://github.com/conda-forge/grpc-cpp-feedstock/issues/422 
 
 [target.unix.dependencies]
 snakemake-executor-plugin-slurm = ">=1.9.2"
@@ -201,6 +202,8 @@ tyndp = """bash -c '
 [feature.open-tyndp.dependencies]
 # open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
 snakemake-minimal = { version = ">=9.14.6", channel = "https://repo.prefix.dev/open-tyndp" }
+snakemake-storage-plugin-cached-http = ">=0.3"
+pypsa-explorer = ">=0.1.1"
 pixi-pycharm = ">=0.0.9"
 
 [feature.open-tyndp.target.win-64.dependencies]

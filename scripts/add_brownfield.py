@@ -476,7 +476,9 @@ def remove_tyndp_fixed_p(
     # Remove conventional thermal techs
     for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
         remove_carriers = (
-            tyndp_hydro + tyndp_conventional_thermals + ["H2 Electrolysis"]
+            tyndp_hydro
+            + tyndp_conventional_thermals
+            + ["H2 Electrolysis", "H2 pipeline"]
             if c.name == "Link"
             else tyndp_hydro
         )
@@ -488,6 +490,37 @@ def remove_tyndp_fixed_p(
             & (c.static[f"{attr}_nom_extendable"] == False)
         ].index
         n_p.remove(c.name, tech_i)
+
+
+def harmonize_renewable_profiles(
+    n: pypsa.Network,
+    year: int,
+    carriers: list[str],
+) -> None:
+    """
+    Overwrite brownfield generators' p_max_pu with the current planning
+    horizon's profiles so all vintages share the same capacity factors.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network containing both current-year and brownfield generators.
+    year : int
+        The current planning horizon year.
+    carriers : set[str]
+        Set of renewable carrier names to harmonize profiles for.
+
+    Returns
+    -------
+    None
+        Modifies ``n.generators_t.p_max_pu`` in place.
+    """
+    for carrier in carriers:
+        gens = n.generators[n.generators.carrier == carrier]
+        brownfield_gens = gens[gens.build_year != year].index
+        n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
+            brownfield_gens.str[:-4] + str(year)
+        ].values
 
 
 if __name__ == "__main__":
@@ -557,6 +590,13 @@ if __name__ == "__main__":
         offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
         carriers_tyndp=snakemake.params.carriers_tyndp,
     )
+
+    if snakemake.params.uniform_renewable_profiles:
+        all_carriers = set(snakemake.params.carriers) | set(
+            snakemake.params.tyndp_renewable_carriers
+        )
+        carriers = [c for c in all_carriers if any(kw in c for kw in ["solar", "wind"])]
+        harmonize_renewable_profiles(n, year, carriers)
 
     disable_grid_expansion_if_limit_hit(n)
 

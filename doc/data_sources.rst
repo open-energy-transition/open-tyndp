@@ -15,8 +15,9 @@ data sources.
    :maxdepth: 1
 
    ../data-base-network
+   ../data-cutouts
    ../data-repos
-   ../tyndp-2024-bundle
+   ../tyndp_2024
 
 .. _managing_data_versions:
 

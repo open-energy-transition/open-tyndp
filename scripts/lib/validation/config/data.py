@@ -52,6 +52,10 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="GEM Europe Gas Tracker data source configuration.",
     )
+    gem_gcct: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="GEM Global Cement and Concrete Tracker data source configuration.",
+    )
     co2stop: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="CO2Stop data source configuration.",
@@ -103,6 +107,18 @@ class DataConfig(BaseModel):
     synthetic_electricity_demand: _DataSourceConfig = Field(
         default_factory=lambda: _DataSourceConfig(source="primary"),
         description="Synthetic electricity demand data source configuration.",
+    )
+    opsd_electricity_demand: _DataSourceConfig = Field(
+        default_factory=lambda: _DataSourceConfig(source="archive"),
+        description="OPSD electricity demand data source configuration.",
+    )
+    entsoe_electricity_demand: _DataSourceConfig = Field(
+        default_factory=lambda: _DataSourceConfig(source="archive"),
+        description="ENTSO-E electricity demand data source configuration.",
+    )
+    neso_electricity_demand: _DataSourceConfig = Field(
+        default_factory=lambda: _DataSourceConfig(source="archive"),
+        description="NESO electricity demand data source configuration.",
     )
     copernicus_land_cover: _DataSourceConfig = Field(
         default_factory=lambda: _DataSourceConfig(source="primary"),
@@ -170,7 +186,7 @@ class DataConfig(BaseModel):
     )
     tyndp: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
-        description="TYNDP data source configuration.",
+        description="TYNDP 2024 data source configuration.",
     )
     powerplants: _DataSourceConfig = Field(
         default_factory=lambda: _DataSourceConfig(source="primary"),
@@ -228,33 +244,9 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="Entsoepy bidding zones data source configuration.",
     )
-    tyndp_bundle: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP bundle data source configuration.",
-    )
-    cutout_additional: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="Additional cutout data source configuration.",
-    )
     tyndp_pecd: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="TYNDP PECD (Pan-European Climate Database) data source configuration.",
-    )
-    tyndp_hydro_inflows: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP hydro inflows data source configuration.",
-    )
-    tyndp_pemmdb: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP PEMMDB (Pan-European Market Modelling Database) data source configuration.",
-    )
-    tyndp_supply_tool: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP supply tool data source configuration.",
-    )
-    tyndp_benchmark: _DataSourceConfig = Field(
-        default_factory=_DataSourceConfig,
-        description="TYNDP benchmark data source configuration.",
     )
     tyndp_vis_plfm: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
@@ -263,4 +255,16 @@ class DataConfig(BaseModel):
     tyndp_cba_projects: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="TYNDP CBA projects data source configuration.",
+    )
+    tyndp_nuclear_profiles: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP nuclear profiles data source configuration.",
+    )
+    tyndp_cba_non_co2_emissions: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP CBA non-CO2 emissions data source configuration.",
+    )
+    cba_guidelines_reference_projects: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP CBA Guidelines Annex B.1 Table with reference projects data source configuration.",
     )

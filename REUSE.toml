@@ -1,5 +1,5 @@
 version = 1
-SPDX-PackageName = "Open-TYDNP"
+SPDX-PackageName = "Open-TYNDP"
 SPDX-PackageSupplier = "Open Energy Transition gGmbH <tyndp@openenergytransition.org>"
 SPDX-PackageOriginator = "Tom Brown <t.brown@tu-berlin.de>"
 SPDX-PackageDownloadLocation = "https://github.com/open-energy-transition/open-tyndp"

@@ -60,13 +60,16 @@ def _plot_scenario_comparison(
     model_col: str,
     rfc_col: list[str],
     source_unit: str,
+    bench_colors: dict,
 ):
     fig, ax = plt.subplots(figsize=(12, 8))
 
     table_title = table.replace("_", " ").title()
+    if table == "power_generation":
+        table_title += " (pre-curtailment)"
     idx = [model_col] + [c for c in rfc_col if c in df.columns]
 
-    tyndp_str = "TYNDP 2024"
+    tyndp_str = "TYNDP 2024 Scenarios"
     if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
         tyndp_str_ext = "TYNDP 2024 Scenarios"
         idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
@@ -76,9 +79,10 @@ def _plot_scenario_comparison(
     df = df.set_index("carrier")
     df.index = [textwrap.fill(label, width=30) for label in df.index]
 
+    bar_colors = [bench_colors.get(col, "grey") for col in idx]
     df[idx].plot.bar(
         ax=ax,
-        color=["#1f77b4", "#ff7f0e", "#aeff39"],
+        color=bar_colors,
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
@@ -109,7 +113,7 @@ def _plot_time_series(
     model_col: str,
     rfc_col: str,
     source_unit: str,
-    colors: dict,
+    tech_colors: dict,
 ):
     fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -130,7 +134,7 @@ def _plot_time_series(
         ax.scatter(
             carrier_data[model_col],
             carrier_data[rfc_col],
-            c=colors.get(carrier, "grey"),
+            c=tech_colors.get(carrier, "grey"),
             label=carrier,
             edgecolors="grey",
             s=20,
@@ -193,9 +197,14 @@ def plot_benchmark(
     scenario: str,
     snapshots: dict[str, str],
     options: dict,
-    colors: dict,
+    tech_colors: dict,
+    bench_colors: dict,
     model_col: str = "Open-TYNDP",
-    rfc_col: list[str] = ["TYNDP 2024", "TYNDP 2024 Vis Pltfm"],
+    rfc_col: list[str] = [
+        "TYNDP 2024 Scenarios",
+        "TYNDP 2024 Vis Pltfm",
+        "TYNDP 2024 Market Outputs",
+    ],
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -214,11 +223,13 @@ def plot_benchmark(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration containing table units and conversions.
-    colors : dict,
-        Dictionary of colors to be used for each technology.
+    tech_colors : dict
+        Dictionary mapping technology/carrier names to colors for time series.
+    bench_colors : dict
+        Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_col : list[str], default ["TYNDP 2024", "TYNDP 2024 Vis Pltfm"]
+    rfc_col : list[str], default ["TYNDP 2024 Scenarios", "TYNDP 2024 Vis Pltfm"]
         Column names for reference values.
     """
 
@@ -270,6 +281,7 @@ def plot_benchmark(
                 model_col,
                 rfc_col,
                 source_unit,
+                bench_colors,
             )
         elif table_type == "time_series":
             rfc_col_str = [c for c in rfc_col if c in bench_year.columns][0]
@@ -286,7 +298,7 @@ def plot_benchmark(
                 model_col,
                 rfc_col_str,
                 source_unit,
-                colors,
+                tech_colors,
             )
 
 
@@ -388,11 +400,13 @@ if __name__ == "__main__":
 
     # Parameters
     options = snakemake.params["benchmarking"]
-    colors = snakemake.params["colors"]
+    tech_colors = snakemake.params["tech_colors"]
+    bench_colors = snakemake.params["bench_colors"]
     scenario = snakemake.params["scenario"]
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
     vp_data_fn = snakemake.input.vp_data
+    mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -401,7 +415,7 @@ if __name__ == "__main__":
 
     # Load data
     benchmarks_raw = load_data(
-        benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn
+        benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn, mm_data_fn
     )
 
     # Produce benchmark figures
@@ -421,7 +435,8 @@ if __name__ == "__main__":
         scenario=scenario,
         snapshots=snapshots,
         options=options,
-        colors=colors,
+        tech_colors=tech_colors,
+        bench_colors=bench_colors,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:

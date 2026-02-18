@@ -15,6 +15,8 @@ foresight: myopic
 
 tyndp_scenario: NT
 
+launch_explorer: false
+
 scenario:
   clusters:
   - all
@@ -149,6 +151,9 @@ renewable:
     max_depth: false
     min_depth: false
 
+conventional:
+  tyndp_availability_profiles: true
+
 links:
   p_max_pu: 1.0
   p_min_pu: 0
@@ -157,7 +162,10 @@ transmission_projects:
   enable: false
 
 tyndp_investment_candidates:
-  elec_projects: [2040]
+  elec_projects:
+    2040:
+    - 2030
+    - 2035
 
 load:
   source: tyndp # opsd, tyndp
@@ -199,6 +207,9 @@ biomass:
     2040: 1
     2045: 1
     2050: 1
+
+existing_capacities:
+  uniform_renewable_profiles: true
 
 sector:
   transport: true
@@ -410,6 +421,7 @@ cba:
   - pint
   projects:
   - t1-t35
+  area: tyndp # options: tyndp (TODO: entso-e, eu27)
 
   # Storage settings for CBA dispatch
   storage:
@@ -456,7 +468,8 @@ cba:
     options:
       horizon: 168
       overlap: 1
-      load_shedding: true  # enabled for rolling horizon dispatch
+      load_shedding:
+        enable: true  # enabled for rolling horizon dispatch
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
