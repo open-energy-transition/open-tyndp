@@ -281,7 +281,7 @@ rule collect_indicators:
     input:
         indicators=input_indicators,
     output:
-        indicators=RESULTS + "cba/{cba_method}/indicators_{planning_horizons}.csv",
+        indicators=RESULTS + "cba/indicators_{planning_horizons}.csv",
     script:
         "../scripts/cba/collect_indicators.py"
 
@@ -293,7 +293,6 @@ rule plot_indicators:
         indicators=lambda w: expand(
             rules.collect_indicators.output.indicators,
             **config["scenario"],
-            cba_method=config_provider("cba", "methods")(w),
             run=config_provider("cba", "scenarios")(w),
             # allow_missing=True,
         ),
@@ -344,24 +343,19 @@ rule cba:
         lambda w: expand(
             rules.collect_indicators.output.indicators,
             # rules.average_indicators.output.indicators,
-            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             # run=config_provider("run", "name")(w),
             run=cba_scenarios(w),
         ),
         lambda w: expand(
             rules.plot_indicator.output.plot_dir,
-            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             # run=config_provider("run", "name")(w),
             run=cba_scenarios(w),
         ),
         lambda w: expand(
             rules.plot_all_cba_benchmark.output.plot_dir,
-            cba_method=config_provider("cba", "methods")(w),
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             # run=config_provider("run", "name")(w),
             run=cba_scenarios(w),
         ),
-
-
