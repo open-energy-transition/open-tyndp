@@ -43,6 +43,8 @@ Upcoming Open-TYNDP Release
 
 **Developers Note**
 
+* Pin grpcio<1.78 to silence warnings that are cluttering the log (https://github.com/open-energy-transition/open-tyndp/pull/498).
+
 Upcoming PyPSA-Eur Release
 ================
 
