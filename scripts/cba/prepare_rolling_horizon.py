@@ -382,6 +382,90 @@ def fix_reservoir_soc_from_pf(
 
 
 # ============================================================================
+# EXPERIMENTAL Approach 3: Fix reservoir SOC at window boundaries only
+#
+# Like Approach 2, but only pins SOC at the first and last snapshot of each
+# RH window instead of every hour.  The optimizer is free to choose its own
+# dispatch/spill path between endpoints, eliminating the hourly p_nom
+# violations that make Approach 2 infeasible for 2040.
+# ============================================================================
+
+
+def fix_reservoir_soc_at_boundaries(
+    n: pypsa.Network,
+    n_msv: pypsa.Network,
+    carriers: list[str] | None = None,
+    horizon: int = 168,
+    overlap: int = 1,
+) -> None:
+    """
+    Fix reservoir SOC only at rolling-horizon window boundaries.
+
+    Sets state_of_charge_set at the first and last snapshot of each RH window,
+    leaving all other snapshots as NaN (unconstrained).  This guides the
+    seasonal SOC trajectory while giving the optimizer freedom to choose the
+    hourly dispatch path.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Target network for rolling horizon (will be modified in place).
+    n_msv : pypsa.Network
+        Network with perfect foresight solution.
+    carriers : list[str], optional
+        Carriers to fix. Defaults to ["hydro-reservoir"].
+    horizon : int
+        Number of snapshots per RH window. Default 168 (one week at 1H).
+    overlap : int
+        Number of overlapping snapshots between consecutive windows. Default 1.
+    """
+    if carriers is None:
+        carriers = ["hydro-reservoir"]
+
+    if n_msv.storage_units_t.state_of_charge.empty:
+        logger.warning("PF network has no state_of_charge data, skipping SOC boundary fix")
+        return
+
+    sus_i = n.storage_units[n.storage_units.carrier.isin(carriers)].index
+    common = sus_i.intersection(n_msv.storage_units_t.state_of_charge.columns)
+
+    if len(common) == 0:
+        logger.info(f"No StorageUnits with carriers {carriers} found, skipping SOC boundary fix")
+        return
+
+    pf_soc = n_msv.storage_units_t.state_of_charge[common]
+
+    # Resample if snapshots differ
+    if not n.snapshots.equals(n_msv.snapshots):
+        pf_soc = resample_msv_to_target(pf_soc, n.snapshots, method="ffill")
+
+    # Compute window boundary indices (same logic as optimize_with_rolling_horizon)
+    n_sns = len(n.snapshots)
+    step = horizon - overlap
+    boundary_idx = set()
+    for start in range(0, n_sns, step):
+        end = min(n_sns - 1, start + horizon - 1)
+        boundary_idx.add(start)
+        boundary_idx.add(end)
+    boundary_snapshots = n.snapshots[sorted(boundary_idx)]
+
+    # Build sparse SOC set: NaN everywhere, PF values at boundaries only
+    import numpy as np
+    soc_sparse = pd.DataFrame(
+        np.nan, index=n.snapshots, columns=common,
+    )
+    soc_sparse.loc[boundary_snapshots, common] = pf_soc.loc[boundary_snapshots, common]
+
+    n.storage_units_t.state_of_charge_set[common] = soc_sparse
+
+    stats = summarize_counts(n.storage_units.loc[common, "carrier"])
+    logger.info(
+        f"Fixed state_of_charge_set at {len(boundary_snapshots)} boundary snapshots "
+        f"(out of {n_sns}) for {len(common)} StorageUnits:\n{stats}"
+    )
+
+
+# ============================================================================
 
 
 if __name__ == "__main__":
@@ -432,8 +516,14 @@ if __name__ == "__main__":
         # Initial state from PF for seasonal only (accumulators start empty)
         set_initial_state_from_pf(n, n_msv, seasonal_carriers)
 
-        # EXPERIMENTAL: fix reservoir SOC to PF trajectory (Approach 2)
-        fix_reservoir_soc_from_pf(n, n_msv, carriers=["hydro-reservoir"])
+        # EXPERIMENTAL: fix reservoir SOC at window boundaries (Approach 3)
+        cba_solving = snakemake.config.get("cba", {}).get("solving", {}).get("options", {})
+        fix_reservoir_soc_at_boundaries(
+            n, n_msv,
+            carriers=["hydro-reservoir"],
+            horizon=cba_solving.get("horizon", 168),
+            overlap=cba_solving.get("overlap", 1),
+        )
 
     else:
         logger.info("No MSV network provided, skipping MSV application")
