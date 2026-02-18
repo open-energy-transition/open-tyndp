@@ -369,6 +369,12 @@ adjustments:
     absolute: false
 
 solving:
+  options:
+    load_shedding:
+      enable: true
+      apply_to_all_carriers: false
+      carriers:
+        H2: 100000
   solver:
     name: highs
     options: highs-default
