@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "cba-NT" # "all"
+  name: [cba-NT-cy1995, cba-NT-cy2008, cba-NT-cy2009]
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -407,7 +407,7 @@ cba:
   - toot
   - pint
   projects:
-  - all
+  - t1-t37 # all
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
 
   # Storage settings for CBA dispatch
