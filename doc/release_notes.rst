@@ -17,6 +17,8 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
+* Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
+
 **Documentation**
 
 **Developers Note**
