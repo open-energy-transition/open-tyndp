@@ -509,6 +509,7 @@ if config["sector"]["h2_topology_tyndp"]:
     rule clean_tyndp_smr:
         params:
             tyndp_scenario=config_provider("tyndp_scenario"),
+            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
         input:
             smr=rules.retrieve_tyndp.output.smr,
         output:
