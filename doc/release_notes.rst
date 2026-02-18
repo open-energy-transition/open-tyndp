@@ -234,6 +234,8 @@ Open-TYNDP v0.5.1 (18th February 2026)
 
 * Allow specifying the build_year of investment candidates to be added as new links to the 2040 reference grid via the config file and add both 2030 and 2035 projects to 2040 reference grid (https://github.com/open-energy-transition/open-tyndp/pull/496).
 
+* Use conda-forge dependency for PyPSA-Explorer package instead of pypi (https://github.com/open-energy-transition/open-tyndp/pull/491).
+
 **Documentation**
 
 * Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
@@ -243,6 +245,8 @@ Open-TYNDP v0.5.1 (18th February 2026)
 **Developers Note**
 
 * Verify checksums of data packages downloaded through GCP (https://github.com/open-energy-transition/open-tyndp/pull/486).
+
+* Pin grpcio<1.78 to silence warnings that are cluttering the log (https://github.com/open-energy-transition/open-tyndp/pull/498).
 
 
 Open-TYNDP v0.5 (10th February 2026)
