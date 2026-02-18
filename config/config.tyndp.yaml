@@ -155,7 +155,10 @@ transmission_projects:
   enable: false
 
 tyndp_investment_candidates:
-  elec_projects: [2040]
+  elec_projects:
+    2040:
+    - 2030
+    - 2035
 
 load:
   source: tyndp # opsd, tyndp
