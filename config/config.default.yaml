@@ -1221,7 +1221,11 @@ adjustments:
 solving:
   options:
     clip_p_max_pu: 0.01
-    load_shedding: false
+    load_shedding:
+      enable: false
+      default_price: 100000
+      apply_to_all_carriers: true
+      carriers: {}
     curtailment_mode: false
     noisy_costs: true
     skip_iterations: true
@@ -1559,7 +1563,8 @@ cba:
     options:
       horizon: 168
       overlap: 0
-      load_shedding: true
+      load_shedding:
+        enable: true
       io_api: direct
     solver:
       name: highs
