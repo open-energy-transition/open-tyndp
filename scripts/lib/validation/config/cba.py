@@ -31,7 +31,7 @@ class _CbaSolvingConfig(ConfigModel):
         default_factory=lambda: {
             "horizon": 168,
             "overlap": 0,
-            "load_shedding": True,
+            "load_shedding": {"enable": True},
             "io_api": "direct",
         },
         description="CBA-specific solving options.",
