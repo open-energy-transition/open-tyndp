@@ -14,6 +14,7 @@ Modifications applied:
 
 import logging
 
+import numpy as np
 import pandas as pd
 import pypsa
 from numpy import inf, isfinite
@@ -257,9 +258,6 @@ def set_initial_state_from_pf(
             logger.info(f"Set state_of_charge_initial from PF for {len(common_sus)} storage units:\n{stats}")
 
 
-
-
-
 def fix_reservoir_soc_at_boundaries(
     n: pypsa.Network,
     n_msv: pypsa.Network,
@@ -319,7 +317,6 @@ def fix_reservoir_soc_at_boundaries(
     boundary_snapshots = n.snapshots[sorted(boundary_idx)]
 
     # Build sparse SOC set: NaN everywhere, PF values at boundaries only
-    import numpy as np
     soc_sparse = pd.DataFrame(
         np.nan, index=n.snapshots, columns=common,
     )
@@ -332,9 +329,6 @@ def fix_reservoir_soc_at_boundaries(
         f"Fixed state_of_charge_set at {len(boundary_snapshots)} boundary snapshots "
         f"(out of {n_sns}) for {len(common)} StorageUnits:\n{stats}"
     )
-
-
-# ============================================================================
 
 
 if __name__ == "__main__":
@@ -385,11 +379,12 @@ if __name__ == "__main__":
         # Initial state from PF for seasonal only (accumulators start empty)
         set_initial_state_from_pf(n, n_msv, seasonal_carriers)
 
-        # EXPERIMENTAL: fix reservoir SOC at window boundaries (Approach 3)
+        # Fix reservoir SOC at RH window boundaries from PF trajectory
+        soc_boundary_carriers = snakemake.params.get("soc_boundary_carriers", [])
         cba_solving = snakemake.config.get("cba", {}).get("solving", {}).get("options", {})
         fix_reservoir_soc_at_boundaries(
             n, n_msv,
-            carriers=["hydro-reservoir"],
+            carriers=soc_boundary_carriers,
             horizon=cba_solving.get("horizon", 168),
             overlap=cba_solving.get("overlap", 1),
         )

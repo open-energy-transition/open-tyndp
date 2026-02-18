@@ -156,6 +156,7 @@ rule prepare_rolling_horizon:
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
         accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
+        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
     input:
         network=rules.prepare_reference.output.network,
         network_msv=rules.solve_cba_msv_extraction.output.network,

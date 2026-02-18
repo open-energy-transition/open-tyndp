@@ -1548,6 +1548,8 @@ cba:
     - hydro-reservoir
     accumulator_carriers:
     - co2 sequestered
+    soc_boundary_carriers:
+    - hydro-reservoir
   msv_extraction:
     resolution: false
     resample_method: ffill

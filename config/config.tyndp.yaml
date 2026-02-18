@@ -421,6 +421,10 @@ cba:
     # Accumulator carriers: MSV only, start empty
     accumulator_carriers:
     - co2 sequestered
+    # SOC boundary carriers: fix state_of_charge at RH window boundaries from PF
+    # (applies to StorageUnit components only)
+    soc_boundary_carriers:
+    - hydro-reservoir
 
   # MSV (Marginal Storage Value) extraction settings
   msv_extraction:

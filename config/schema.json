@@ -510,6 +510,20 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "accumulator_carriers": {
+              "description": "Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "soc_boundary_carriers": {
+              "description": "Carriers whose state_of_charge is fixed at RH window boundaries from PF. Applies to StorageUnit components only.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
             }
           }
         },
@@ -6165,6 +6179,20 @@
         },
         "seasonal_carriers": {
           "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "accumulator_carriers": {
+          "description": "Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "soc_boundary_carriers": {
+          "description": "Carriers whose state_of_charge is fixed at RH window boundaries from PF. Applies to StorageUnit components only.",
           "items": {
             "type": "string"
           },
@@ -14278,6 +14306,20 @@
             },
             "seasonal_carriers": {
               "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "accumulator_carriers": {
+              "description": "Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "soc_boundary_carriers": {
+              "description": "Carriers whose state_of_charge is fixed at RH window boundaries from PF. Applies to StorageUnit components only.",
               "items": {
                 "type": "string"
               },

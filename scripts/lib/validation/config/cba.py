@@ -30,6 +30,10 @@ class _CbaStorageConfig(ConfigModel):
         default_factory=lambda: ["co2 sequestered"],
         description="Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
     )
+    soc_boundary_carriers: list[str] = Field(
+        default_factory=lambda: ["hydro-reservoir"],
+        description="Carriers whose state_of_charge is fixed at RH window boundaries from PF. Applies to StorageUnit components only.",
+    )
 
 
 class _CbaMsvSolvingConfig(ConfigModel):
