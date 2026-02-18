@@ -293,7 +293,7 @@ https://conda.anaconda.org/conda-forge/noarch/geopandas-base-1.1.2-pyha770c72_0.
 https://conda.anaconda.org/conda-forge/noarch/branca-0.8.2-pyhd8ed1ab_0.conda#1fcdf88e7a8c296d3df8409bf0690db4
 https://conda.anaconda.org/conda-forge/noarch/folium-0.20.0-pyhd8ed1ab_0.conda#a6997a7dcd6673c0692c61dfeaea14ab
 https://conda.anaconda.org/conda-forge/noarch/geopandas-1.1.2-pyhd8ed1ab_0.conda#3b9d40bef27d094e48bb1a821e86a252
-https://conda.anaconda.org/conda-forge/noarch/pypsa-1.0.7-pyhd8ed1ab_0.conda#e451a3c0ab3ad6fbe7bf83c59f0e2f9b
+https://conda.anaconda.org/conda-forge/noarch/pypsa-1.1.0-pyhd8ed1ab_0.conda#d5c919eb3a7124b47dff09883443aed2
 https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.14.0-pyha770c72_0.conda#385dca77a8b0ec6fa9b92cb62d09b43b
 https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.0-pyhcf101f3_0.conda#72e780e9aa2d0a3295f59b1874e3768b
 https://conda.anaconda.org/conda-forge/noarch/mccabe-0.7.0-pyhd8ed1ab_1.conda#827064ddfe0de2917fb29f1da4f8f533
