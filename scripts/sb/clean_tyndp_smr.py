@@ -66,8 +66,11 @@ def load_smr_data(
             bus=lambda df: df.bus + suffix,
             carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
             p_min_pu=lambda df: np.where(df.must_run, 1, 0),
+            efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
+            p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
+            unit="MW_CH4",
         )
-        .drop(columns=["heat_rate", "marginal_cost", "must_run", "ccs"])
+        .drop(columns=["heat_rate", "marginal_cost", "must_run", "ccs", "efficiency"])
     )
 
     smr.index = smr.bus + " " + smr.carrier
