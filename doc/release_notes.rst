@@ -15,7 +15,7 @@ Upcoming Open-TYNDP Release
 
 * Add option to model carrier-specific load shedding with associated shedding costs (https://github.com/open-energy-transition/open-tyndp/pull/494).
 
-* Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding (https://github.com/open-energy-transition/open-tyndp/pull/490).
+* Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
 **Changes**
 

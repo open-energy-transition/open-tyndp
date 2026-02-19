@@ -374,7 +374,7 @@ solving:
       enable: true
       apply_to_all_carriers: false
       carriers:
-        H2: 100000
+        H2: 3000
   solver:
     name: highs
     options: highs-default
