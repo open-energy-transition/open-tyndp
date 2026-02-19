@@ -328,8 +328,7 @@ rule average_indicators:
             allow_missing=True,
         ),
     output:
-        indicators=RESULTS
-        + "cba/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
+        indicators=RESULTS + "cba/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     script:
         "../scripts/cba/average_indicators.py"
 
@@ -379,18 +378,18 @@ rule cba:
         lambda w: expand(
             rules.average_indicators.output.indicators,
             planning_horizons=config["cba"]["planning_horizons"],
-            cba_project=["t4", "t16"],  # config_provider("run", "name")(w),
+            cba_project=["t4", "t16", "t28", "t33", "t35"], # config_provider("run", "name")(w),
             run=cba_scenarios(w),
         ),
-        # lambda w: expand(
-        #     rules.plot_indicators.output.plot_dir,
-        #     planning_horizons=config_provider("cba", "planning_horizons")(w),
-        #     run=config_provider("run", "name")(w),
-        #     # run=cba_scenarios(w),
-        # ),
-        # lambda w: expand(
-        #     rules.plot_all_cba_benchmark.output.plot_dir,
-        #     planning_horizons=config_provider("cba", "planning_horizons")(w),
-        #     run=config_provider("run", "name")(w),
-        #     # run=cba_scenarios(w),
-        # ),
+        lambda w: expand(
+            rules.plot_indicators.output.plot_dir,
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+            # run=cba_scenarios(w),
+        ),
+        lambda w: expand(
+            rules.plot_all_cba_benchmark.output.plot_dir,
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=config_provider("run", "name")(w),
+            # run=cba_scenarios(w),
+        ),

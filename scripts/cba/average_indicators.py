@@ -117,10 +117,8 @@ def average_indicators_csv(input_files, output_file):
 
     df = pd.read_csv (output_file)
     for INDICATOR_UNIT in INDICATOR_UNITS:
-        # print (df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].value)
-        # print (df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].cyear_weight)
-        print (INDICATOR_UNIT, (df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].value*
-                df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].cyear_weight).sum())
+        print (f'{INDICATOR_UNIT}: {(df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].value*
+                                     df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].cyear_weight).sum()}')
 
 
 if __name__ == "__main__":
