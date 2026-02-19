@@ -349,6 +349,7 @@ def create_plots(indicators_file, output_path, planning_horizon=None, area=None)
             project_df = df[df["project_id"] == project_id].copy()
             project_id = int(project_id)
             suffix = f"_{planning_horizon}" if planning_horizon else ""
+            # TODO the project_id does not contain a "t" as it is used if the filename is defined in cba.smk
             output_file = output_dir / f"project_{project_id}{suffix}.png"
             project_label = format_project_label(project_id, planning_horizon)
             plot_project_benchmarks(

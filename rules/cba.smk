@@ -307,6 +307,36 @@ def input_weatheryears(w):
     )
 
 
+rule plot_indicators:
+    params:
+        plotting=config_provider("plotting"),
+    input:
+        indicators=rules.collect_indicators.output.indicators,
+        transmission_projects=rules.clean_projects.output.transmission_projects,
+    output:
+        plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
+    script:
+        "../scripts/cba/plot_indicators.py"
+
+
+rule plot_cba_benchmark:
+    input:
+        indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
+    output:
+        plot_file=RESULTS + "cba/validation_{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
+rule plot_all_cba_benchmark:
+    input:
+        indicators=rules.collect_indicators.output.indicators,
+    output:
+        plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
 rule average_indicators_test:
     input:
         indicators=[
@@ -331,37 +361,6 @@ rule average_indicators:
         indicators=RESULTS + "cba/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     script:
         "../scripts/cba/average_indicators.py"
-
-
-rule plot_indicators:
-    params:
-        plotting=config_provider("plotting"),
-    input:
-        indicators=rules.collect_indicators.output.indicators,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-    output:
-        plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
-    script:
-        "../scripts/cba/plot_indicators.py"
-
-
-rule plot_cba_benchmark:
-    input:
-        indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
-    output:
-        plot_file=RESULTS
-        + "cba/validation_{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
-    script:
-        "../scripts/cba/plot_benchmark_indicators.py"
-
-
-rule plot_all_cba_benchmark:
-    input:
-        indicators=rules.collect_indicators.output.indicators,
-    output:
-        plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
-    script:
-        "../scripts/cba/plot_benchmark_indicators.py"
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
