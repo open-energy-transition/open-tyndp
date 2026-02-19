@@ -159,8 +159,12 @@ def disable_volume_limits(n: pypsa.Network):
         has_e_sum_min = isfinite(c.static.get("e_sum_min", []))
         if has_e_sum_min.any():
             stats = summarize_counts(c.static.loc[has_e_sum_min, "carrier"])
-            logger.info(f"Disabling e_sum_min volume limits of:\n{stats}")
+            logger.info(f"Disabling e_sum_min, e_sum_max, and p_set of:\n{stats}")
             c.static.loc[has_e_sum_min, "e_sum_min"] = -inf
+            c.static.loc[has_e_sum_min, "e_sum_max"] = inf
+            c.dynamic.p_set.loc[:, c.static[has_e_sum_min].index] = c.dynamic.p.loc[
+                :, c.static[has_e_sum_min].index
+            ]
 
 
 def apply_msv_to_network(
