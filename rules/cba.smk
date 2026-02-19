@@ -286,11 +286,62 @@ rule collect_indicators:
         "../scripts/cba/collect_indicators.py"
 
 
+def input_weatheryears(w):
+    """
+    List all indicators csv for a specific project
+    """
+    run = w.get("run", config_provider("run", "name")(w))
+    print (run, w.planning_horizons)
+    projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
+    if "planning_horizon" in projects.columns:
+        projects = projects.loc[
+            projects["planning_horizon"] == int(w.planning_horizons)
+        ]
+    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+    project_specs = config_provider("cba", "projects")(w)
+
+    return expand(
+        rules.make_indicators.output.indicators,
+        cba_project=filter_projects_by_specs(cba_projects, project_specs),
+        allow_missing=True,
+    )
+
+
+rule average_indicators_test:
+    input:
+        indicators = [
+            "results/tyndp/cba-NT-cy1995/cba/project_t4_2030.csv",
+            "results/tyndp/cba-NT-cy2008/cba/project_t4_2030.csv",
+            "results/tyndp/cba-NT-cy2009/cba/project_t4_2030.csv",
+        ]
+    output:
+        indicators = "results/tyndp/cba-NT/ensemble_indicators_t4_2030.csv"
+    script:
+        "../scripts/cba/average_indicators.py"
+
+
 rule average_indicators:
     input:
-        indicators=input_indicators,
+        # indicators = input_weatheryears,
+        indicators = lambda w: expand(
+#            "results/tyndp/cba-NT-cy1995/" + "cba/project_t4_2030.csv",
+#            "results/tyndp/cba-NT-cy2008/" + "cba/project_t4_2030.csv",
+#            "results/tyndp/cba-NT-cy2009/" + "cba/project_t4_2030.csv",
+
+#            "results/tyndp/cba-{tyndp_scenario}-{cyear}/" + "cba/project_t4_2030.csv",
+
+            # RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
+
+            "{fpath}/{tyndp_scenario}/" + "cba-{tyndp_scenario}-{cyear}/" + "cba/project_{cba_project}_{planning_horizons}.csv",
+
+            fpath = "results/" + "tyndp",               # get_rdir(config.name),
+            cyear = config_provider("scenario", "electricity", "pecd_renewable_profiles", "pre_built", "cyears")(w),
+            tyndp_scenario = config_provider("scenario", "cba", "sb_scenario")(w),
+            allow_missing=True
+        )
     output:
-        indicators=RESULTS + "cba/ensemble_indicators_{planning_horizons}.csv",
+#         "results/tyndp/cba/NT" + "ensemble_indicators_t4_2030.csv",
+        indicators = "results/tyndp/cba/{tyndp_scenario}/" + "ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     script:
         "../scripts/cba/average_indicators.py"
 
@@ -341,6 +392,7 @@ rule cba:
             rules.average_indicators.output.indicators,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
+            cba_project=["t4", "t16"]                     # config_provider("run", "name")(w),
             # run=cba_scenarios(w),
         ),
         lambda w: expand(
