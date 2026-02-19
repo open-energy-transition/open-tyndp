@@ -437,6 +437,7 @@ cba:
       overlap: 0
       load_shedding:
         enable: true
+        apply_to_all_carriers: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
