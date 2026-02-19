@@ -17,6 +17,8 @@ tyndp_scenario: NT
 
 launch_explorer: false
 
+launch_explorer: false
+
 scenario:
   clusters:
   - all
