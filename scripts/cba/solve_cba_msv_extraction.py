@@ -25,7 +25,7 @@ import pypsa
 from snakemake.utils import update_config
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.prepare_sector_network import set_temporal_aggregation
+from scripts.temporal_aggregation import set_temporal_aggregation
 from scripts.solve_network import prepare_network
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,9 @@ if __name__ == "__main__":
 
     # Prepare network (e.g., load_shedding setup)
     solve_opts = solving.get("options", {})
+    # Normalize load_shedding: allow bool or dict
+    if isinstance(solve_opts.get("load_shedding"), bool):
+        solve_opts["load_shedding"] = {"enable": solve_opts["load_shedding"]}
     prepare_network(
         n,
         solve_opts=solve_opts,
