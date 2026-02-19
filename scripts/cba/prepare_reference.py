@@ -116,12 +116,6 @@ if __name__ == "__main__":
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
     hurdle_costs = snakemake.params.hurdle_costs
 
-    # TODO: Add missing TOOT projects that are not already in the SB network
-    # This ensures that the reference network has all TOOT projects included,
-    # so that both MSV extraction and TOOT/PINT use the same baseline.
-    #
-    # For now, pass through the network unchanged (assumes SB already has all TOOT projects)
-
     if planning_horizons in [2035, 2040]:
         corrections = pd.read_csv(snakemake.input.corrections, index_col=0)
         corrections = corrections[
