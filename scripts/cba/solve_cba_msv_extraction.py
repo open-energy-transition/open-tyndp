@@ -25,8 +25,8 @@ import pypsa
 from snakemake.utils import update_config
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.temporal_aggregation import set_temporal_aggregation
 from scripts.solve_network import prepare_network
+from scripts.temporal_aggregation import set_temporal_aggregation
 
 logger = logging.getLogger(__name__)
 
