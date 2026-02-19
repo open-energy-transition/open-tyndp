@@ -217,9 +217,7 @@ rule prepare_rolling_horizon:
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
         accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
-        msv_resample_method=config_provider(
-            "cba", "msv_extraction", "resample_method"
-        ),
+        msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
     input:
         network=rules.prepare_reference.output.network,
         network_msv=rules.solve_cba_msv_extraction.output.network,
