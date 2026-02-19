@@ -112,12 +112,6 @@ def load_h2_grid(fn):
     # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
     h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
 
-    # remove H2 pipeline capacity between CH and ITIB as of updated model topology (https://tyndp2024.entsog.eu/h2igi-report/)
-    ch_ibit_i = h2_grid.query(
-        "index.str.contains('CH') and index.str.contains('IT')"
-    ).index
-    h2_grid.loc[ch_ibit_i, "p_nom"] = 0.0
-
     return h2_grid
 
 

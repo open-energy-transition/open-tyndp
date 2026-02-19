@@ -168,9 +168,7 @@ def optimize_with_rolling_horizon(
                 retry_kwargs["solver_options"] = fallback_solver.get("options", {})
                 status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
             if status != "ok":
-                logger.warning(
-                    f"Fallback also failed: {status} / {condition}"
-                )
+                logger.warning(f"Fallback also failed: {status} / {condition}")
                 return status, condition
 
     return status, condition  # pyright: ignore[reportPossiblyUnboundVariable]
@@ -296,7 +294,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "solve_cba_network",
-            cba_method="toot",
             name="reference",
             planning_horizons="2030",
             run="NT",

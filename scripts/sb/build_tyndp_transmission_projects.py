@@ -47,8 +47,7 @@ def read_invest_projects(
     fn_invest: str,
     buses: gpd.GeoDataFrame,
     carrier: str = "Electricity",
-    year: int = 2035,
-    op: str = "==",
+    years: list[int] = [2030, 2035],
     category: str = "Real",
 ) -> gpd.GeoDataFrame:
     """
@@ -64,10 +63,8 @@ def read_invest_projects(
         GeoDataFrame of TYNDP buses with geometry.
     carrier : str, optional
         Energy carrier to extract: 'Electricity' or 'Hydrogen'. Default is 'Electricity'.
-    year : int, optional
-        Commissioning year to filter projects. Default is 2035.
-    op : str, optional
-        Comparison operator for year filtering (e.g., '==', '<=', '>='). Default is '=='.
+    years : list[int], optional
+        Commissioning years to filter projects. Default is [2030, 2035].
     category : str, optional
         Project category filter for Electricity. Default is 'Real'.
 
@@ -86,7 +83,7 @@ def read_invest_projects(
 
     projects = (
         pd.read_excel(fn_invest, sheet_name=carrier)
-        .query(f"{border_condition}YEAR {op} {year}")
+        .query(f"{border_condition}YEAR in @years")
         .rename(
             columns={
                 "DIRECT CAPACITY INCREASE (MW)": "Summary Direction 1",
@@ -95,6 +92,7 @@ def read_invest_projects(
                 "TO NODE": "bus1",
             }
         )
+        .replace({"UK": "GB"}, regex=True)
         .query("bus0 in @buses.index & bus1 in @buses.index")
         .groupby(["bus0", "bus1"])
         .sum()[["Summary Direction 1", "Summary Direction 2"]]
@@ -123,7 +121,12 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    # Parameters
+    build_years = snakemake.params.build_years
+
     buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
-    new_links = read_invest_projects(snakemake.input.invest_grid, buses)
+    new_links = read_invest_projects(
+        snakemake.input.invest_grid, buses, years=build_years
+    )
 
     new_links.to_csv(snakemake.output[0], quotechar="'")

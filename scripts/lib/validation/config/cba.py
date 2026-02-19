@@ -23,7 +23,13 @@ class _CbaStorageConfig(ConfigModel):
         description="Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
     )
     seasonal_carriers: list[str] = Field(
-        default_factory=lambda: ["H2 Store", "gas"],
+        default_factory=lambda: [
+            "H2 Store",
+            "gas",
+            "hydro-phs",
+            "hydro-phs-pure",
+            "hydro-reservoir",
+        ],
         description="Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
     )
     accumulator_carriers: list[str] = Field(
@@ -76,8 +82,8 @@ class _CbaSolvingConfig(ConfigModel):
     options: dict[str, Any] = Field(
         default_factory=lambda: {
             "horizon": 168,
-            "overlap": 0,
-            "load_shedding": True,
+            "overlap": 1,
+            "load_shedding": {"enable": True},
             "io_api": "direct",
         },
         description="CBA-specific solving options.",
@@ -114,6 +120,10 @@ class CbaConfig(BaseModel):
     projects: list[str] = Field(
         default_factory=list,
         description="List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+    )
+    area: Literal["tyndp", "entso-e", "eu27"] = Field(
+        default="tyndp",
+        description="Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
     )
     storage: _CbaStorageConfig = Field(
         default_factory=_CbaStorageConfig,

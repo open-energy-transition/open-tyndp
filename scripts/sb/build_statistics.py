@@ -240,7 +240,10 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
+                aggregate_time=False,
             )
+            .mul(sws, axis=1)
+            .sum(axis=1)
             .reindex(eu27_idx, level="bus")
             .groupby(by=grouper)
             .sum()
@@ -258,6 +261,27 @@ def compute_benchmark(
                 errors="ignore",
             )
         )
+
+        # TYNDP 2024 report available generation for renewables (pre-curtailment)
+        # and add H2 offwind capacities in MWh_e
+        # TODO Review once solar thermals are integrated
+        res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
+        res_idx = (
+            n.generators[n.generators.carrier.isin(res_carriers)]
+            .query("bus in @eu27_idx")
+            .index
+        )
+        eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
+
+        res_gen = (
+            (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
+            .div(eff_dc_to_b0)
+            .groupby(n.generators.carrier)
+            .sum()
+        )
+        df = df.reindex(df.index.union(res_carriers).rename("carrier"))
+        df.loc[res_gen.index] = res_gen.values
+
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (

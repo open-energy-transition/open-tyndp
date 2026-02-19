@@ -24,7 +24,7 @@ Closes # (if applicable).
 - [ ] Changes in configuration options are documented in `doc/configtables/*.csv`.
 - [ ] Changes in configuration options are added in `config/test/*.yaml`.
 - [ ] Open-TYNDP SPDX license header added to all touched files.
-- [ ] For new data sources or versions, [these instructions](https://pypsa-eur.readthedocs.io/en/latest/data_sources.html) have been followed.
+- [ ] For new data sources or versions, [these instructions](https://open-tyndp.readthedocs.io/en/latest/data_sources.html) have been followed.
 - [ ] New rules are documented in the appropriate `doc/*.rst` files.
 - [ ] A release note `doc/release_notes.rst` is added.
 - [ ] Major features are documented with up-to-date information in `README` and `doc/index.rst`.

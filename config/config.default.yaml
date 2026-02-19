@@ -3,7 +3,7 @@
 # yaml-language-server: $schema=./schema.json
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#version
-version: v0.4.2
+version: v0.5.1
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
@@ -36,6 +36,9 @@ foresight: overnight
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
 tyndp_scenario: false
+
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#launch_explorer
+launch_explorer: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#scenario
 scenario:
@@ -128,6 +131,12 @@ electricity:
     contingency: 4000
   max_hours:
     battery: 6
+    "li-ion": 6
+    lfp: 6
+    vanadium: 10
+    lair: 12
+    pair: 24
+    "iron-air": 100
     H2: 168
   extendable_carriers:
     Generator:
@@ -480,6 +489,7 @@ conventional:
   dynamic_fuel_price: false
   nuclear:
     p_max_pu: data/nuclear_p_max_pu.csv
+  tyndp_availability_profiles: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#lines
 lines:
@@ -537,7 +547,7 @@ transmission_projects:
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
 tyndp_investment_candidates:
-  elec_projects: []
+  elec_projects: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
 transformers:
@@ -550,7 +560,7 @@ load:
   source: opsd
   fill_gaps:
     enable: true
-    interpolate_limit: 3
+    interpolate_limit: 6
     time_shift_for_large_gaps: 1w
   available_years_tyndp:
   - 2030
@@ -677,6 +687,7 @@ existing_capacities:
   - coal
   - oil
   - uranium
+  uniform_renewable_profiles: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#sector
 sector:
@@ -1210,7 +1221,11 @@ adjustments:
 solving:
   options:
     clip_p_max_pu: 0.01
-    load_shedding: false
+    load_shedding:
+      enable: false
+      default_price: 100000
+      apply_to_all_carriers: true
+      carriers: {}
     curtailment_mode: false
     noisy_costs: true
     skip_iterations: true
@@ -1358,6 +1373,9 @@ data:
   gem_europe_gas_tracker:
     source: archive
     version: latest
+  gem_gcct:
+    source: archive
+    version: latest
   co2stop:
     source: archive
     version: latest
@@ -1396,6 +1414,15 @@ data:
     version: latest
   synthetic_electricity_demand:
     source: primary
+    version: latest
+  opsd_electricity_demand:
+    source: archive
+    version: latest
+  entsoe_electricity_demand:
+    source: archive
+    version: latest
+  neso_electricity_demand:
+    source: archive
     version: latest
   copernicus_land_cover:
     source: primary
@@ -1490,31 +1517,22 @@ data:
   bidding_zones_entsoepy:
     source: archive
     version: latest
-  tyndp_bundle:
-    source: archive
-    version: latest
-  cutout_additional:
-    source: archive
-    version: latest
   tyndp_pecd:
-    source: archive
-    version: latest
-  tyndp_hydro_inflows:
-    source: archive
-    version: latest
-  tyndp_pemmdb:
-    source: archive
-    version: latest
-  tyndp_supply_tool:
-    source: archive
-    version: latest
-  tyndp_benchmark:
     source: archive
     version: latest
   tyndp_vis_plfm:
     source: archive
     version: latest
   tyndp_cba_projects:
+    source: archive
+    version: latest
+  tyndp_nuclear_profiles:
+    source: archive
+    version: latest
+  tyndp_cba_non_co2_emissions:
+    source: archive
+    version: latest
+  cba_guidelines_reference_projects:
     source: archive
     version: latest
 
@@ -1536,6 +1554,7 @@ cba:
   methods:
   - toot
   projects: []
+  area: tyndp
   storage:
     cyclic_carriers:
     - battery
@@ -1543,13 +1562,13 @@ cba:
     seasonal_carriers:
     - H2 Store
     - gas
-    - hydro-phs
-    - hydro-phs-pure
-    - hydro-reservoir
+    - "hydro-phs"
+    - "hydro-phs-pure"
+    - "hydro-reservoir"
     accumulator_carriers:
     - co2 sequestered
     soc_boundary_carriers:
-    - hydro-reservoir
+    - "hydro-reservoir"
   msv_extraction:
     resolution: false
     resample_method: ffill
@@ -1564,7 +1583,8 @@ cba:
     options:
       horizon: 168
       overlap: 1
-      load_shedding: true
+      load_shedding:
+        enable: true
       io_api: direct
     solver:
       name: highs

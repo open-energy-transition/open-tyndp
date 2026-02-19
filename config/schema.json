@@ -494,6 +494,16 @@
           },
           "type": "array"
         },
+        "area": {
+          "default": "tyndp",
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "enum": [
+            "tyndp",
+            "entso-e",
+            "eu27"
+          ],
+          "type": "string"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -505,7 +515,7 @@
               "type": "array"
             },
             "seasonal_carriers": {
-              "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+              "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
               "items": {
                 "type": "string"
               },
@@ -550,6 +560,31 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "MSV extraction solving settings.",
+              "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Load shedding disabled by default to avoid distorting duals.",
+                  "type": "object"
+                },
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options.",
+                  "type": "object"
+                }
+              }
             }
           }
         },
@@ -801,6 +836,11 @@
           },
           "description": "For any carrier/technology overwrite attributes as listed below.",
           "type": "object"
+        },
+        "tyndp_availability_profiles": {
+          "default": false,
+          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "type": "boolean"
         }
       }
     },
@@ -1074,6 +1114,26 @@
             }
           }
         },
+        "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "co2stop": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -1315,6 +1375,66 @@
           }
         },
         "synthetic_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "opsd_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "entsoe_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "neso_electricity_demand": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -1954,127 +2074,7 @@
             }
           }
         },
-        "tyndp_bundle": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "cutout_additional": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "tyndp_pecd": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_hydro_inflows": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_pemmdb": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_supply_tool": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_benchmark": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -2115,6 +2115,66 @@
           }
         },
         "tyndp_cba_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_nuclear_profiles": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_cba_non_co2_emissions": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "cba_guidelines_reference_projects": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -2222,6 +2282,42 @@
               "markdownDescription": "Maximum state of charge capacity of the battery in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
               "type": "number"
             },
+            "li-ion": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lfp": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "vanadium": {
+              "default": 10,
+              "description": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lair": {
+              "default": 12,
+              "description": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "pair": {
+              "default": 24,
+              "description": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "iron-air": {
+              "default": 100,
+              "description": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
             "H2": {
               "default": 168,
               "description": "Maximum state of charge capacity of the hydrogen storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
@@ -2241,14 +2337,14 @@
               "type": "array"
             },
             "StorageUnit": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
             "Store": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
@@ -2633,6 +2729,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "uniform_renewable_profiles": {
+          "default": false,
+          "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
+          "type": "boolean"
         }
       }
     },
@@ -3015,7 +3116,7 @@
               "type": "boolean"
             },
             "interpolate_limit": {
-              "default": 3,
+              "default": 6,
               "description": "Maximum gap size (consecutive nans) which interpolated linearly.",
               "type": "integer"
             },
@@ -3271,31 +3372,39 @@
               "type": "number"
             },
             "corine": {
-              "description": "Configuration for CORINE land cover settings.",
-              "properties": {
-                "grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
-                  "items": {
-                    "type": "integer"
-                  },
-                  "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
                 },
-                "distance": {
-                  "default": 1000,
-                  "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
-                  "type": "number"
-                },
-                "distance_grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
-                  "items": {
-                    "type": "integer"
+                {
+                  "description": "Configuration for CORINE land cover settings.",
+                  "properties": {
+                    "grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    },
+                    "distance": {
+                      "default": 1000,
+                      "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
+                      "type": "number"
+                    },
+                    "distance_grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "grid_codes"
+                  ]
                 }
-              },
-              "required": [
-                "grid_codes"
-              ]
+              ],
+              "description": "CORINE land cover configuration."
             },
             "luisa": {
               "anyOf": [
@@ -3399,11 +3508,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -3574,11 +3690,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -3749,11 +3872,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -3931,11 +4061,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -4048,11 +4185,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -5480,16 +5624,32 @@
               "type": "number"
             },
             "load_shedding": {
-              "anyOf": [
-                {
+              "description": "Configuration for `solving.options.load_shedding` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                {
+                "default_price": {
+                  "default": 100000,
+                  "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
                   "type": "number"
+                },
+                "apply_to_all_carriers": {
+                  "default": true,
+                  "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+                  "type": "object"
                 }
-              ],
-              "default": false,
-              "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+              }
             },
             "curtailment_mode": {
               "default": false,
@@ -5889,11 +6049,14 @@
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
         "elec_projects": {
-          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
-          "items": {
-            "type": "integer"
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
           },
-          "type": "array"
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
         }
       }
     },
@@ -6139,6 +6302,56 @@
             "interpolate"
           ],
           "type": "string"
+        },
+        "solving": {
+          "description": "MSV extraction solving settings.",
+          "properties": {
+            "options": {
+              "additionalProperties": true,
+              "description": "Load shedding disabled by default to avoid distorting duals.",
+              "type": "object"
+            },
+            "solver": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Solver for MSV extraction.",
+              "type": "object"
+            },
+            "solver_options": {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "description": "Solver-specific options.",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "_CbaMsvSolvingConfig": {
+      "description": "MSV extraction solving settings.",
+      "properties": {
+        "options": {
+          "additionalProperties": true,
+          "description": "Load shedding disabled by default to avoid distorting duals.",
+          "type": "object"
+        },
+        "solver": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Solver for MSV extraction.",
+          "type": "object"
+        },
+        "solver_options": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": "Solver-specific options.",
+          "type": "object"
         }
       }
     },
@@ -6178,7 +6391,7 @@
           "type": "array"
         },
         "seasonal_carriers": {
-          "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+          "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
           "items": {
             "type": "string"
           },
@@ -6822,14 +7035,14 @@
           "type": "array"
         },
         "StorageUnit": {
-          "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+          "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "Store": {
-          "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+          "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
           "items": {
             "type": "string"
           },
@@ -6853,7 +7066,7 @@
           "type": "boolean"
         },
         "interpolate_limit": {
-          "default": 3,
+          "default": 6,
           "description": "Maximum gap size (consecutive nans) which interpolated linearly.",
           "type": "integer"
         },
@@ -7073,6 +7286,34 @@
         }
       }
     },
+    "_LoadSheddingConfig": {
+      "description": "Configuration for `solving.options.load_shedding` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+          "type": "boolean"
+        },
+        "default_price": {
+          "default": 100000,
+          "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
+          "type": "number"
+        },
+        "apply_to_all_carriers": {
+          "default": true,
+          "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+          "type": "boolean"
+        },
+        "carriers": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "default": {},
+          "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+          "type": "object"
+        }
+      }
+    },
     "_MaxHoursConfig": {
       "description": "Configuration for `electricity.max_hours` settings.",
       "properties": {
@@ -7080,6 +7321,42 @@
           "default": 6,
           "description": "Maximum state of charge capacity of the battery in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
           "markdownDescription": "Maximum state of charge capacity of the battery in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "li-ion": {
+          "default": 6,
+          "description": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "lfp": {
+          "default": 6,
+          "description": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "vanadium": {
+          "default": 10,
+          "description": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "lair": {
+          "default": 12,
+          "description": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "pair": {
+          "default": 24,
+          "description": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+          "type": "number"
+        },
+        "iron-air": {
+          "default": 100,
+          "description": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+          "markdownDescription": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
           "type": "number"
         },
         "H2": {
@@ -7265,11 +7542,18 @@
           "type": "number"
         },
         "corine": {
-          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
         },
         "luisa": {
           "anyOf": [
@@ -7440,31 +7724,39 @@
           "type": "number"
         },
         "corine": {
-          "description": "Configuration for CORINE land cover settings.",
-          "properties": {
-            "grid_codes": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+          "anyOf": [
+            {
+              "type": "boolean"
             },
-            "distance": {
-              "default": 1000,
-              "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
-              "type": "number"
-            },
-            "distance_grid_codes": {
-              "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
-              "items": {
-                "type": "integer"
+            {
+              "description": "Configuration for CORINE land cover settings.",
+              "properties": {
+                "grid_codes": {
+                  "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                },
+                "distance": {
+                  "default": 1000,
+                  "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
+                  "type": "number"
+                },
+                "distance_grid_codes": {
+                  "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
               },
-              "type": "array"
+              "required": [
+                "grid_codes"
+              ]
             }
-          },
-          "required": [
-            "grid_codes"
-          ]
+          ],
+          "description": "CORINE land cover configuration."
         },
         "luisa": {
           "anyOf": [
@@ -8027,11 +8319,18 @@
           "type": "number"
         },
         "corine": {
-          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
         },
         "luisa": {
           "anyOf": [
@@ -8159,16 +8458,32 @@
           "type": "number"
         },
         "load_shedding": {
-          "anyOf": [
-            {
+          "description": "Configuration for `solving.options.load_shedding` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
               "type": "boolean"
             },
-            {
+            "default_price": {
+              "default": 100000,
+              "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
               "type": "number"
+            },
+            "apply_to_all_carriers": {
+              "default": true,
+              "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "default": {},
+              "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+              "type": "object"
             }
-          ],
-          "default": false,
-          "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+          }
         },
         "curtailment_mode": {
           "default": false,
@@ -8456,7 +8771,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.4.2",
+      "default": "v0.5.1",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
@@ -8609,6 +8924,11 @@
         "GA",
         false
       ]
+    },
+    "launch_explorer": {
+      "default": false,
+      "description": "Switch to launch the PyPSA-Explorer with the result networks.",
+      "type": "boolean"
     },
     "scenario": {
       "description": "Configuration for top level `scenario` settings.",
@@ -8860,6 +9180,42 @@
               "markdownDescription": "Maximum state of charge capacity of the battery in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
               "type": "number"
             },
+            "li-ion": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lfp": {
+              "default": 6,
+              "description": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the lithium-ion-LFP storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "vanadium": {
+              "default": 10,
+              "description": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the vanadium-redox-flow storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "lair": {
+              "default": 12,
+              "description": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the liquid-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "pair": {
+              "default": 24,
+              "description": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the compressed-air-adiabatic storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
+            "iron-air": {
+              "default": 100,
+              "description": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
+              "markdownDescription": "Maximum state of charge capacity of the iron-air storage in terms of hours at full output capacity `p_nom`. Cf. [PyPSA documentation ](https://pypsa.readthedocs.io/en/latest/components.html#storage-unit).",
+              "type": "number"
+            },
             "H2": {
               "default": 168,
               "description": "Maximum state of charge capacity of the hydrogen storage in terms of hours at full output capacity `p_nom`. Cf. `PyPSA documentation <https://pypsa.readthedocs.io/en/latest/components.html#storage-unit>`_.",
@@ -8879,14 +9235,14 @@
               "type": "array"
             },
             "StorageUnit": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
             "Store": {
-              "description": "Adds extendable storage units (battery and/or hydrogen) at every node/bus after clustering without capacity limits and with zero initial capacity.",
+              "description": "Adds extendable storage units at every node/bus after clustering without capacity limits and with zero initial capacity. Supported technologies include battery, H2, li-ion, vanadium, lfp, lair, pair, and iron-air.",
               "items": {
                 "type": "string"
               },
@@ -9505,31 +9861,39 @@
               "type": "number"
             },
             "corine": {
-              "description": "Configuration for CORINE land cover settings.",
-              "properties": {
-                "grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
-                  "items": {
-                    "type": "integer"
-                  },
-                  "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
                 },
-                "distance": {
-                  "default": 1000,
-                  "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
-                  "type": "number"
-                },
-                "distance_grid_codes": {
-                  "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
-                  "items": {
-                    "type": "integer"
+                {
+                  "description": "Configuration for CORINE land cover settings.",
+                  "properties": {
+                    "grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for wind turbine placement.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    },
+                    "distance": {
+                      "default": 1000,
+                      "description": "Distance in meters to keep from areas specified in `distance_grid_codes`.",
+                      "type": "number"
+                    },
+                    "distance_grid_codes": {
+                      "description": "Specifies areas according to CORINE Land Cover codes to which wind turbines must maintain a distance specified in the setting `distance`.",
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    }
                   },
-                  "type": "array"
+                  "required": [
+                    "grid_codes"
+                  ]
                 }
-              },
-              "required": [
-                "grid_codes"
-              ]
+              ],
+              "description": "CORINE land cover configuration."
             },
             "luisa": {
               "anyOf": [
@@ -9633,11 +9997,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -9808,11 +10179,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -9983,11 +10361,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
               "anyOf": [
@@ -10165,11 +10550,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -10282,11 +10674,18 @@
               "type": "number"
             },
             "corine": {
-              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement.",
-              "items": {
-                "type": "integer"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              ],
+              "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for solar panel placement."
             },
             "luisa": {
               "anyOf": [
@@ -10433,6 +10832,11 @@
           },
           "description": "For any carrier/technology overwrite attributes as listed below.",
           "type": "object"
+        },
+        "tyndp_availability_profiles": {
+          "default": false,
+          "description": "Use TYNDP 2024 hourly availability profiles (currently only for nuclear power plants), accounting for maintenance schedules and forced outages.",
+          "type": "boolean"
         }
       }
     },
@@ -10649,11 +11053,14 @@
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
         "elec_projects": {
-          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
-          "items": {
-            "type": "integer"
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
           },
-          "type": "array"
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
         }
       }
     },
@@ -10698,7 +11105,7 @@
               "type": "boolean"
             },
             "interpolate_limit": {
-              "default": 3,
+              "default": 6,
               "description": "Maximum gap size (consecutive nans) which interpolated linearly.",
               "type": "integer"
             },
@@ -10960,6 +11367,11 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "uniform_renewable_profiles": {
+          "default": false,
+          "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
+          "type": "boolean"
         }
       }
     },
@@ -12726,16 +13138,32 @@
               "type": "number"
             },
             "load_shedding": {
-              "anyOf": [
-                {
+              "description": "Configuration for `solving.options.load_shedding` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                {
+                "default_price": {
+                  "default": 100000,
+                  "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
                   "type": "number"
+                },
+                "apply_to_all_carriers": {
+                  "default": true,
+                  "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+                  "type": "object"
                 }
-              ],
-              "default": false,
-              "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+              }
             },
             "curtailment_mode": {
               "default": false,
@@ -13148,6 +13576,26 @@
             }
           }
         },
+        "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "co2stop": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -13389,6 +13837,66 @@
           }
         },
         "synthetic_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "opsd_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "entsoe_electricity_demand": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "neso_electricity_demand": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -14028,127 +14536,7 @@
             }
           }
         },
-        "tyndp_bundle": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "cutout_additional": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "tyndp_pecd": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_hydro_inflows": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_pemmdb": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_supply_tool": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_benchmark": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -14189,6 +14577,66 @@
           }
         },
         "tyndp_cba_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_nuclear_profiles": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_cba_non_co2_emissions": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "cba_guidelines_reference_projects": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -14294,6 +14742,16 @@
           },
           "type": "array"
         },
+        "area": {
+          "default": "tyndp",
+          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "enum": [
+            "tyndp",
+            "entso-e",
+            "eu27"
+          ],
+          "type": "string"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -14305,7 +14763,7 @@
               "type": "array"
             },
             "seasonal_carriers": {
-              "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+              "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
               "items": {
                 "type": "string"
               },
@@ -14350,6 +14808,31 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "MSV extraction solving settings.",
+              "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Load shedding disabled by default to avoid distorting duals.",
+                  "type": "object"
+                },
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options.",
+                  "type": "object"
+                }
+              }
             }
           }
         },

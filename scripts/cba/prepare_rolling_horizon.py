@@ -159,9 +159,9 @@ def disable_volume_limits(n: pypsa.Network):
         has_e_sum_min = isfinite(c.static.get("e_sum_min", []))
         if has_e_sum_min.any():
             stats = summarize_counts(c.static.loc[has_e_sum_min, "carrier"])
-            logger.info(f"Disabling e_sum_min volume limits of:\n{stats}")
+            logger.info(f"Disabling e_sum_min, e_sum_max, and p_set of:\n{stats}")
             c.static.loc[has_e_sum_min, "e_sum_min"] = -inf
-            # TODO this should be later changed by adding MSV as well
+            c.static.loc[has_e_sum_min, "e_sum_max"] = inf
             c.dynamic.p_set.loc[:, c.static[has_e_sum_min].index] = c.dynamic.p.loc[
                 :, c.static[has_e_sum_min].index
             ]
@@ -186,7 +186,9 @@ def apply_msv_to_network(
     all_msv_carriers = seasonal_carriers + accumulator_carriers
 
     if not all_msv_carriers:
-        logger.info("No seasonal or accumulator carriers specified, skipping MSV application")
+        logger.info(
+            "No seasonal or accumulator carriers specified, skipping MSV application"
+        )
         return
 
     if n_msv.stores_t.mu_energy_balance.empty:
@@ -244,18 +246,26 @@ def set_initial_state_from_pf(
         if len(common_stores) > 0:
             n.stores.loc[common_stores, "e_initial"] = pf_e_initial.loc[common_stores]
             stats = summarize_counts(n.stores.loc[common_stores, "carrier"])
-            logger.info(f"Set e_initial from PF for {len(common_stores)} stores:\n{stats}")
+            logger.info(
+                f"Set e_initial from PF for {len(common_stores)} stores:\n{stats}"
+            )
 
     # Set state_of_charge_initial for storage units from PF soc(t=-1)
     if not n_msv.storage_units_t.state_of_charge.empty:
         pf_soc_initial = n_msv.storage_units_t.state_of_charge.iloc[-1]
         # Filter to seasonal carriers only
-        seasonal_sus = n.storage_units[n.storage_units.carrier.isin(seasonal_carriers)].index
+        seasonal_sus = n.storage_units[
+            n.storage_units.carrier.isin(seasonal_carriers)
+        ].index
         common_sus = seasonal_sus.intersection(pf_soc_initial.index)
         if len(common_sus) > 0:
-            n.storage_units.loc[common_sus, "state_of_charge_initial"] = pf_soc_initial.loc[common_sus]
+            n.storage_units.loc[common_sus, "state_of_charge_initial"] = (
+                pf_soc_initial.loc[common_sus]
+            )
             stats = summarize_counts(n.storage_units.loc[common_sus, "carrier"])
-            logger.info(f"Set state_of_charge_initial from PF for {len(common_sus)} storage units:\n{stats}")
+            logger.info(
+                f"Set state_of_charge_initial from PF for {len(common_sus)} storage units:\n{stats}"
+            )
 
 
 def fix_reservoir_soc_at_boundaries(
@@ -290,14 +300,18 @@ def fix_reservoir_soc_at_boundaries(
         carriers = ["hydro-reservoir"]
 
     if n_msv.storage_units_t.state_of_charge.empty:
-        logger.warning("PF network has no state_of_charge data, skipping SOC boundary fix")
+        logger.warning(
+            "PF network has no state_of_charge data, skipping SOC boundary fix"
+        )
         return
 
     sus_i = n.storage_units[n.storage_units.carrier.isin(carriers)].index
     common = sus_i.intersection(n_msv.storage_units_t.state_of_charge.columns)
 
     if len(common) == 0:
-        logger.info(f"No StorageUnits with carriers {carriers} found, skipping SOC boundary fix")
+        logger.info(
+            f"No StorageUnits with carriers {carriers} found, skipping SOC boundary fix"
+        )
         return
 
     pf_soc = n_msv.storage_units_t.state_of_charge[common]
@@ -318,7 +332,9 @@ def fix_reservoir_soc_at_boundaries(
 
     # Build sparse SOC set: NaN everywhere, PF values at boundaries only
     soc_sparse = pd.DataFrame(
-        np.nan, index=n.snapshots, columns=common,
+        np.nan,
+        index=n.snapshots,
+        columns=common,
     )
     soc_sparse.loc[boundary_snapshots, common] = pf_soc.loc[boundary_snapshots, common]
 
@@ -381,9 +397,12 @@ if __name__ == "__main__":
 
         # Fix reservoir SOC at RH window boundaries from PF trajectory
         soc_boundary_carriers = snakemake.params.get("soc_boundary_carriers", [])
-        cba_solving = snakemake.config.get("cba", {}).get("solving", {}).get("options", {})
+        cba_solving = (
+            snakemake.config.get("cba", {}).get("solving", {}).get("options", {})
+        )
         fix_reservoir_soc_at_boundaries(
-            n, n_msv,
+            n,
+            n_msv,
             carriers=soc_boundary_carriers,
             horizon=cba_solving.get("horizon", 168),
             overlap=cba_solving.get("overlap", 1),
