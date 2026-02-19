@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: [cba-NT-cy1995, cba-NT-cy2008, cba-NT-cy2009]
+  name: [cba-NT]
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
