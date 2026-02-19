@@ -515,7 +515,7 @@
               "type": "array"
             },
             "seasonal_carriers": {
-              "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+              "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
               "items": {
                 "type": "string"
               },
@@ -560,6 +560,31 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "MSV extraction solving settings.",
+              "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Load shedding disabled by default to avoid distorting duals.",
+                  "type": "object"
+                },
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options.",
+                  "type": "object"
+                }
+              }
             }
           }
         },
@@ -6277,6 +6302,56 @@
             "interpolate"
           ],
           "type": "string"
+        },
+        "solving": {
+          "description": "MSV extraction solving settings.",
+          "properties": {
+            "options": {
+              "additionalProperties": true,
+              "description": "Load shedding disabled by default to avoid distorting duals.",
+              "type": "object"
+            },
+            "solver": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Solver for MSV extraction.",
+              "type": "object"
+            },
+            "solver_options": {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "description": "Solver-specific options.",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "_CbaMsvSolvingConfig": {
+      "description": "MSV extraction solving settings.",
+      "properties": {
+        "options": {
+          "additionalProperties": true,
+          "description": "Load shedding disabled by default to avoid distorting duals.",
+          "type": "object"
+        },
+        "solver": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Solver for MSV extraction.",
+          "type": "object"
+        },
+        "solver_options": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": "Solver-specific options.",
+          "type": "object"
         }
       }
     },
@@ -6316,7 +6391,7 @@
           "type": "array"
         },
         "seasonal_carriers": {
-          "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+          "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
           "items": {
             "type": "string"
           },
@@ -14688,7 +14763,7 @@
               "type": "array"
             },
             "seasonal_carriers": {
-              "description": "Seasonal carriers that will receive MSV (long-term storage). These will have cyclicity disabled and MSV applied as marginal_cost.",
+              "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
               "items": {
                 "type": "string"
               },
@@ -14733,6 +14808,31 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "MSV extraction solving settings.",
+              "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Load shedding disabled by default to avoid distorting duals.",
+                  "type": "object"
+                },
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options.",
+                  "type": "object"
+                }
+              }
             }
           }
         },

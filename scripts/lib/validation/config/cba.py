@@ -23,7 +23,13 @@ class _CbaStorageConfig(ConfigModel):
         description="Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
     )
     seasonal_carriers: list[str] = Field(
-        default_factory=lambda: ["H2 Store", "gas"],
+        default_factory=lambda: [
+            "H2 Store",
+            "gas",
+            "hydro-phs",
+            "hydro-phs-pure",
+            "hydro-reservoir",
+        ],
         description="Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
     )
     accumulator_carriers: list[str] = Field(
@@ -76,7 +82,7 @@ class _CbaSolvingConfig(ConfigModel):
     options: dict[str, Any] = Field(
         default_factory=lambda: {
             "horizon": 168,
-            "overlap": 0,
+            "overlap": 1,
             "load_shedding": {"enable": True},
             "io_api": "direct",
         },

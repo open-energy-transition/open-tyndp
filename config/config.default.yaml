@@ -1562,13 +1562,13 @@ cba:
     seasonal_carriers:
     - H2 Store
     - gas
-    - hydro-phs
-    - hydro-phs-pure
-    - hydro-reservoir
+    - "hydro-phs"
+    - "hydro-phs-pure"
+    - "hydro-reservoir"
     accumulator_carriers:
     - co2 sequestered
     soc_boundary_carriers:
-    - hydro-reservoir
+    - "hydro-reservoir"
   msv_extraction:
     resolution: false
     resample_method: ffill
