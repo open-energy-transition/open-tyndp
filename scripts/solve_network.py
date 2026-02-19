@@ -430,6 +430,63 @@ def add_retrofit_gas_boiler_constraint(
     n.model.add_constraints(lhs == rhs, name="gas_retrofit")
 
 
+def add_load_balance_components(n, config, carrier_name, sign=1):
+    """
+    Add load shedding or energy sinks to the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network to be modified.
+    config : dict
+        The load shedding or energy sinks settings.
+    carrier_name : str
+        The name of the carrier. Either `load` or `sink`.
+    sign : float
+        Direction of the added generators. Positive for load shedding, negative for sinks.
+
+    Returns
+    -------
+    None
+        Modifies PyPSA network in place.
+    """
+    n.add("Carrier", carrier_name)
+
+    carriers = config.get("carriers", {})
+    default_price = config.get("default_price")
+
+    logger.info(
+        f"Add {'load shedding' if carrier_name == 'load' else 'energy sinks'} for "
+        f"{'all carriers' if config.get('apply_to_all_carriers') else ', '.join(carriers)}."
+    )
+
+    for bus_carrier, price in carriers.items():
+        buses_i = n.buses[n.buses.carrier == bus_carrier].index
+        n.add(
+            "Generator",
+            buses_i,
+            f" {carrier_name}",
+            bus=buses_i,
+            carrier=carrier_name,
+            marginal_cost=sign * price,
+            p_nom=np.inf,
+            sign=sign,
+        )
+
+    if config.get("apply_to_all_carriers", False):
+        buses_rest_i = n.buses[~n.buses.carrier.isin(carriers)].index
+        n.add(
+            "Generator",
+            buses_rest_i,
+            f" {carrier_name}",
+            bus=buses_rest_i,
+            carrier=carrier_name,
+            marginal_cost=sign * default_price,
+            p_nom=np.inf,
+            sign=sign,
+        )
+
+
 def prepare_network(
     n: pypsa.Network,
     solve_opts: dict,
@@ -473,36 +530,10 @@ def prepare_network(
             df.where(df.abs() > solve_opts["clip_p_max_pu"], other=0.0, inplace=True)
 
     if (load_shedding := solve_opts.get("load_shedding", {})).get("enable", False):
-        n.add("Carrier", "load")
+        add_load_balance_components(n, load_shedding, "load")
 
-        carriers = load_shedding.get("carriers", {})
-        # intersect between macroeconomic and surveybased willingness to pay
-        # http://journal.frontiersin.org/article/10.3389/fenrg.2015.00055/full
-        default_price = load_shedding.get("default_price")  # Eur/MWh
-
-        for shed_carrier, shed_price in carriers.items():
-            buses_i = n.buses[n.buses.carrier == shed_carrier].index
-            n.add(
-                "Generator",
-                buses_i,
-                " load",
-                bus=buses_i,
-                carrier="load",
-                marginal_cost=shed_price,  # Eur/MWh
-                p_nom=np.inf,
-            )
-
-        if load_shedding.get("apply_to_all_carriers", False):
-            buses_rest_i = n.buses[~n.buses.carrier.isin(carriers)].index
-            n.add(
-                "Generator",
-                buses_rest_i,
-                " load",
-                bus=buses_rest_i,
-                carrier="load",
-                marginal_cost=default_price,  # Eur/MWh
-                p_nom=np.inf,
-            )
+    if (energy_sinks := solve_opts.get("energy_sinks", {})).get("enable", False):
+        add_load_balance_components(n, energy_sinks, "sink", sign=-1)
 
     if solve_opts.get("curtailment_mode"):
         n.add("Carrier", "curtailment", color="#fedfed", nice_name="Curtailment")
@@ -1564,10 +1595,10 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "solve_sector_network",
+            "solve_sector_network_myopic",
             opts="",
-            clusters="5",
-            configfiles="config/test/config.overnight.yaml",
+            clusters="all",
+            configfiles="config/test/config.tyndp.yaml",
             sector_opts="",
             planning_horizons="2030",
         )
