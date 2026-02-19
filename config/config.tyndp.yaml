@@ -458,11 +458,13 @@ cba:
 
   # Rolling horizon solving settings
   solving:
+    # Merged into top-level solving options
     options:
       horizon: 168
-      overlap: 1
+      overlap: 0
       load_shedding:
-        enable: true  # enabled for rolling horizon dispatch
+        enable: true
+        apply_to_all_carriers: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
