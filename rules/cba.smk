@@ -152,6 +152,8 @@ rule fix_reference_sb_to_cba:
 # Build reference network with all TOOT projects included
 # Ensures MSV extraction and rolling horizon use the same baseline
 rule prepare_reference:
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
@@ -215,6 +217,9 @@ rule prepare_rolling_horizon:
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
         accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
+        msv_resample_method=config_provider(
+            "cba", "msv_extraction", "resample_method"
+        ),
     input:
         network=rules.prepare_reference.output.network,
         network_msv=rules.solve_cba_msv_extraction.output.network,
@@ -227,6 +232,7 @@ rule prepare_rolling_horizon:
 # add or remove the cba project based on assigned method
 rule prepare_project:
     params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
         accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
