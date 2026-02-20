@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 #
 
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -13,6 +14,8 @@ import pandas as pd
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
 from shutil import unpack_archive, copy2
+
+logger = logging.getLogger(__name__)
 
 
 wildcard_constraints:
@@ -151,6 +154,11 @@ def input_sb_network(w):
     (sector_opts,) = scenario["sector_opts"]
 
     if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(w):
+        scenario_name = config_provider("tyndp_scenario")(w)
+        if scenario_name != "NT":
+            raise ValueError(
+                "Presolved SB networks are only currently available for the NT scenario."
+            )
         sb_version = config_provider(
             "cba", "cba_scenario_input", "sb_version", default="latest"
         )(w)
@@ -167,8 +175,13 @@ def input_sb_network(w):
                 "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
             )
         horizon = int(w.planning_horizons)
-        # If CBA planning horizon = 2035, use the 2040 SB network
-        if horizon == 2035:
+        # If CBA planning horizon not in [2030, 2040] (such as horizon == 2035), use the 2040 SB network
+        if horizon not in [2030, 2040]:
+            logger.warning(
+                "Presolved SB networks are only available for 2030 and 2040. "
+                "Falling back to 2040 for CBA planning horizon %s.",
+                w.planning_horizons,
+            )
             horizon = 2040
         return presolved_sb_network_path(w, horizon)
 
