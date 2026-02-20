@@ -184,10 +184,10 @@ def load_crossborder_sheet(
 
     # rename index
     stats_labels = {
-      "Avg [MW]:": "avg",
-      "Max [MW]:": "max",
-      "Min [MW]:": "min",
-      "Sum [MWh]:": "sum",
+        "Avg [MW]:": "avg",
+        "Max [MW]:": "max",
+        "Min [MW]:": "min",
+        "Sum [MWh]:": "sum",
     }
     df.rename(index=stats_labels, inplace=True)
 
