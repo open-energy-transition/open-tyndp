@@ -69,7 +69,9 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
 
 
 def presolved_sb_network_path(w, horizon=None):
-    sb_version = config_provider("cba", "cba_scenario_input", "sb_version", default="latest")(w)
+    sb_version = config_provider(
+        "cba", "cba_scenario_input", "sb_version", default="latest"
+    )(w)
     target_horizon = horizon if horizon is not None else w.planning_horizons
     return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
 
