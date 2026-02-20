@@ -162,7 +162,10 @@ transmission_projects:
   enable: false
 
 tyndp_investment_candidates:
-  elec_projects: [2040]
+  elec_projects:
+    2040:
+    - 2030
+    - 2035
 
 load:
   source: tyndp # opsd, tyndp
@@ -436,7 +439,8 @@ cba:
     options:
       horizon: 168
       overlap: 0
-      load_shedding: true
+      load_shedding:
+        enable: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:

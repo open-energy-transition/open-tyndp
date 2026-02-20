@@ -5587,16 +5587,32 @@
               "type": "number"
             },
             "load_shedding": {
-              "anyOf": [
-                {
+              "description": "Configuration for `solving.options.load_shedding` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                {
+                "default_price": {
+                  "default": 100000,
+                  "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
                   "type": "number"
+                },
+                "apply_to_all_carriers": {
+                  "default": true,
+                  "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+                  "type": "object"
                 }
-              ],
-              "default": false,
-              "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+              }
             },
             "curtailment_mode": {
               "default": false,
@@ -5996,11 +6012,14 @@
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
         "elec_projects": {
-          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
-          "items": {
-            "type": "integer"
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
           },
-          "type": "array"
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
         }
       }
     },
@@ -7144,6 +7163,34 @@
             "type": "number"
           },
           "description": "The historic maximum relative growth of a carrier.",
+          "type": "object"
+        }
+      }
+    },
+    "_LoadSheddingConfig": {
+      "description": "Configuration for `solving.options.load_shedding` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+          "type": "boolean"
+        },
+        "default_price": {
+          "default": 100000,
+          "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
+          "type": "number"
+        },
+        "apply_to_all_carriers": {
+          "default": true,
+          "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+          "type": "boolean"
+        },
+        "carriers": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "default": {},
+          "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
           "type": "object"
         }
       }
@@ -8292,16 +8339,32 @@
           "type": "number"
         },
         "load_shedding": {
-          "anyOf": [
-            {
+          "description": "Configuration for `solving.options.load_shedding` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
               "type": "boolean"
             },
-            {
+            "default_price": {
+              "default": 100000,
+              "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
               "type": "number"
+            },
+            "apply_to_all_carriers": {
+              "default": true,
+              "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "default": {},
+              "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+              "type": "object"
             }
-          ],
-          "default": false,
-          "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+          }
         },
         "curtailment_mode": {
           "default": false,
@@ -8589,7 +8652,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.5",
+      "default": "v0.5.1",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
@@ -10871,11 +10934,14 @@
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
         "elec_projects": {
-          "description": "List of planning horizons (e.g. [2040]) for which TYNDP 2024 electricity transmission investment candidates should be added to the reference grid. Use an empty list [] to disable.",
-          "items": {
-            "type": "integer"
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
           },
-          "type": "array"
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
         }
       }
     },
@@ -12953,16 +13019,32 @@
               "type": "number"
             },
             "load_shedding": {
-              "anyOf": [
-                {
+              "description": "Configuration for `solving.options.load_shedding` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                {
+                "default_price": {
+                  "default": 100000,
+                  "description": "The default price for load-shedding in EUR/MWh. Per default 1e5 Eur/MWh is assumed.",
                   "type": "number"
+                },
+                "apply_to_all_carriers": {
+                  "default": true,
+                  "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load shedding price in EUR/MWh. If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+                  "type": "object"
                 }
-              ],
-              "default": false,
-              "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+              }
             },
             "curtailment_mode": {
               "default": false,
