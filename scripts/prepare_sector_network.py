@@ -2820,6 +2820,8 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
             efficiency3=costs.at["gas", "CO2 intensity"]
             * costs.at["SMR CC", "capture_rate"],
             capital_cost=costs.at["SMR CC", "capital_cost"],
+            marginal_cost=costs.at["SMR CC", "VOM"]
+            * costs.at["SMR CC", "efficiency"],  # NB: SMR CC VOM is per MWh_H2
             lifetime=costs.at["SMR CC", "lifetime"],
         )
 
@@ -2836,6 +2838,8 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
             efficiency=costs.at["SMR", "efficiency"],
             efficiency2=costs.at["gas", "CO2 intensity"],
             capital_cost=costs.at["SMR", "capital_cost"],
+            marginal_cost=costs.at["SMR", "VOM"]
+            * costs.at["SMR", "efficiency"],  # NB: SMR VOM is per MWh_H2
             lifetime=costs.at["SMR", "lifetime"],
         )
 
