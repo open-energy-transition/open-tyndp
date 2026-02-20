@@ -127,7 +127,7 @@ CROSS_BORDER_DICT: dict[str, str] = {
 
 
 def normalize_direction(df, cols):
-    mask = df["bus0"] > df["bus1"]
+    mask = (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X")
     assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
 
     # Add bus0, bus1, and border to assignments
