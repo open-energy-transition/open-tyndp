@@ -626,7 +626,7 @@ def load_benchmark_rows(
     benchmark = benchmark.loc[
         (benchmark["project_id"] == project_id)
         & (benchmark["planning_horizon"] == planning_horizon)
-        & (benchmark["type"] == project_type)
+        & (benchmark["project_type"] == project_type)
         & (benchmark["scenario"] == scenario)
     ].copy()
 
@@ -657,6 +657,8 @@ def load_benchmark_rows(
     return benchmark[
         [
             "project_id",
+            "project_code",
+            "project_type",
             "method",
             "is_beneficial",
             "interpretation",
