@@ -21,6 +21,8 @@ Upcoming Open-TYNDP Release
 
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
 
+* Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
+
 **Documentation**
 
 **Developers Note**
