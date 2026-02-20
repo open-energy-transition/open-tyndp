@@ -47,7 +47,7 @@ class _CbaSolvingConfig(ConfigModel):
 
 
 class _CbaSbToCbaConfig(ConfigModel):
-    """Configuration for decoupling the SB -> CBA workflow."""
+    """Configuration for using pre-solved SB networks in the CBA workflow."""
 
     use_presolved: bool = Field(
         False,
@@ -55,7 +55,7 @@ class _CbaSbToCbaConfig(ConfigModel):
     )
     sb_version: str = Field(
         "latest",
-        description="Version tag for the pre-solved SB network archive (used when sb_to_cba.use_presolved is true).",
+        description="Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
     )
 
 
@@ -74,7 +74,7 @@ class CbaConfig(BaseModel):
         default_factory=list,
         description="List of planning horizons for which to run CBA.",
     )
-    sb_to_cba: _CbaSbToCbaConfig = Field(
+    cba_scenario_input: _CbaSbToCbaConfig = Field(
         default_factory=_CbaSbToCbaConfig,
         description="Settings for using pre-solved SB networks as inputs to the CBA workflow.",
     )

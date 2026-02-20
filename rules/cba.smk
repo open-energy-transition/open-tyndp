@@ -69,12 +69,12 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
 
 
 def presolved_sb_network_path(w, horizon=None):
-    sb_version = config_provider("cba", "sb_to_cba", "sb_version", default="latest")(w)
+    sb_version = config_provider("cba", "cba_scenario_input", "sb_version", default="latest")(w)
     target_horizon = horizon if horizon is not None else w.planning_horizons
     return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
 
 
-if config.get("cba", {}).get("sb_to_cba", {}).get("use_presolved", False):
+if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
     if (SB_SOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
         "source"
     ] in ["archive"]:
@@ -84,7 +84,7 @@ if config.get("cba", {}).get("sb_to_cba", {}).get("use_presolved", False):
                 zip_file=storage(SB_SOLVED_NETWORKS_DATASET["url"]),
             output:
                 network=RESULTS
-                + f"networks/presolved-{config['cba']['sb_to_cba']['sb_version']}/base_s_all___{{planning_horizons}}.nc",
+                + f"networks/presolved-{config['cba']['cba_scenario_input']['sb_version']}/base_s_all___{{planning_horizons}}.nc",
             log:
                 logs("retrieve_presolved_sb_networks_{planning_horizons}.log"),
             run:
@@ -148,14 +148,14 @@ def input_sb_network(w):
     (opts,) = scenario["opts"]
     (sector_opts,) = scenario["sector_opts"]
 
-    if config_provider("cba", "sb_to_cba", "use_presolved", default=False)(w):
+    if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(w):
         sb_version = config_provider(
-            "cba", "sb_to_cba", "sb_version", default="latest"
+            "cba", "cba_scenario_input", "sb_version", default="latest"
         )(w)
         # If sb_version is not "latest", raise error (for now) until we add functionality to handle gathering different Zenodo versions
         if sb_version != "latest":
             raise ValueError(
-                "Only cba.sb_to_cba.sb_version='latest' is supported for presolved SB runs at the moment."
+                "Only cba.cba_scenario_input.sb_version='latest' is supported for presolved SB runs at the moment."
             )
         # Check that options match the presolved network naming convention
         if clusters != "all" or opts != "" or sector_opts != "":
