@@ -182,6 +182,15 @@ def load_crossborder_sheet(
     df.drop("Sum [GWh]:", inplace=True)
     df["unit"] = df.index.str.extract(r"\[(.*?)\]", expand=False)
 
+    # rename index
+    stats_labels = {
+      "Avg [MW]:": "avg",
+      "Max [MW]:": "max",
+      "Min [MW]:": "min",
+      "Sum [MWh]:": "sum",
+    }
+    df.rename(index=stats_labels, inplace=True)
+
     return df.sort_index()
 
 
