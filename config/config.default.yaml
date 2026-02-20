@@ -1550,7 +1550,7 @@ cba:
   hurdle_costs: 0.01
   co2_societal_cost: {}
   planning_horizons: []
-  sb_to_cba:
+  cba_scenario_input:
     use_presolved: false
     sb_version: latest
   methods:

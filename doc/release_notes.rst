@@ -19,7 +19,7 @@ Upcoming Open-TYNDP Release
 
 * Harmonize renewable profiles across all assets regardless of build year (https://github.com/open-energy-transition/open-tyndp/pull/473). When `existing_capacities:uniform_renewable_profiles` is enabled, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.
 
-* Add option to run decoupled version of SB and CBA workflows, where CBA uses already solved SB networks from Zenodo release instead of running entire SB workflow (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:sb_to_cba:use_presolved` to `true` in the configuration file.
+* Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:sb_to_cba:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
 
 **Bugfixes and Compatibility**
 

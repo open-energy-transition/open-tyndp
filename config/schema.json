@@ -476,8 +476,8 @@
           },
           "type": "array"
         },
-        "sb_to_cba": {
-          "description": "Configuration for decoupling the SB -> CBA workflow.",
+        "cba_scenario_input: {
+          "description": "Configuration for using pre-solved SB networks in CBA.",
           "properties": {
             "use_presolved": {
               "default": false,
@@ -486,7 +486,7 @@
             },
             "sb_version": {
               "default": "latest",
-              "description": "Version tag for the pre-solved SB network archive (used when sb_to_cba.use_presolved is true).",
+              "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
               "type": "string"
             }
           }
