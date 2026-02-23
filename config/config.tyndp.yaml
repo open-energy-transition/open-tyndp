@@ -449,12 +449,6 @@ cba:
     resample_method: ffill
     # MSV extraction solving (perfect foresight)
     # load_shedding disabled to avoid distorting dual values
-    solving:
-      options:
-        load_shedding: false
-      solver:
-        name: highs
-        options: highs-simplex
 
   # Rolling horizon solving settings
   solving:
