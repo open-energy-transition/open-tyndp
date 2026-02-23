@@ -75,13 +75,6 @@ def disable_store_cyclicity(
             stats = summarize_counts(n.stores.loc[kept_cyclic, "carrier"])
             logger.info(f"Keeping e_cyclic=True for short-term storage:\n{stats}")
 
-    has_e_cyclic_per_period = n.stores["e_cyclic_per_period"]
-    to_disable_per_period = has_e_cyclic_per_period & ~is_cyclic_carrier
-
-    if to_disable_per_period.any():
-        stats = summarize_counts(n.stores.loc[to_disable_per_period, "carrier"])
-        logger.info(f"Disabling e_cyclic_per_period for stores:\n{stats}")
-        n.stores.loc[to_disable_per_period, "e_cyclic_per_period"] = False
 
     # Disable cyclicity for storage units (except cyclic_carriers)
     has_cyclic_soc = n.storage_units["cyclic_state_of_charge"]
