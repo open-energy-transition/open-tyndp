@@ -48,10 +48,9 @@ def disable_store_cyclicity(
     cyclic_carriers: list[str] | None = None,
 ):
     """
-    Disable cyclic constraints for stores and storage units.
-
-    cyclic_carriers remain cyclic; all others become non-cyclic.
-    seasonal_carriers and accumulator_carriers are used for logging only.
+    Within each rolling horizon window, enforce cyclic state-of-charge only
+    for cyclic_carriers. All other stores and storage units are made non-cyclic,
+    as appropriate for long-term seasonal storage.
     """
     if cyclic_carriers is None:
         cyclic_carriers = []
