@@ -378,7 +378,6 @@ if __name__ == "__main__":
 
     # Load MSV network and apply to configured carriers
     msv_network_path = snakemake.input.network_msv
-    if msv_network_path:
         n_msv = pypsa.Network(msv_network_path)
         resample_method = snakemake.params.get("msv_resample_method", "ffill")
 
