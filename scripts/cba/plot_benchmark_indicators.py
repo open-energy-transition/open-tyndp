@@ -91,11 +91,11 @@ def benchmark_range(
     return min_val, mean_val, max_val
 
 
-def format_project_label(project_id: int, planning_horizon: str | None) -> str:
-    """Format plot title label from project id and planning horizon."""
+def format_project_label(project_code: str, planning_horizon: str | None) -> str:
+    """Format plot title label from project code and planning horizon."""
     if planning_horizon:
-        return f"t{project_id}_{planning_horizon}"
-    return f"t{project_id}"
+        return f"{project_code}_{planning_horizon}"
+    return project_code
 
 
 def format_area_subtitle(area: str | None) -> str | None:
@@ -339,7 +339,11 @@ def create_plots(indicators_file, output_path, planning_horizon=None, area=None)
             logger.info("No model projects found in indicators file")
             return
         project_id = int(project_ids[0])
-        project_label = format_project_label(project_id, planning_horizon)
+        project_code_series = df.loc[
+            df["project_id"] == project_id, "project_code"
+        ].dropna()
+        project_code = str(project_code_series.iloc[0])
+        project_label = format_project_label(project_code, planning_horizon)
         project_df = df[df["project_id"] == project_id].copy()
         plot_project_benchmarks(
             project_df, output_path, project_label, format_area_subtitle(area)
@@ -348,9 +352,13 @@ def create_plots(indicators_file, output_path, planning_horizon=None, area=None)
         for project_id in project_ids:
             project_df = df[df["project_id"] == project_id].copy()
             project_id = int(project_id)
+            project_code_series = df.loc[
+                df["project_id"] == project_id, "project_code"
+            ].dropna()
+            project_code = str(project_code_series.iloc[0])
             suffix = f"_{planning_horizon}" if planning_horizon else ""
-            output_file = output_dir / f"project_{project_id}{suffix}.png"
-            project_label = format_project_label(project_id, planning_horizon)
+            output_file = output_dir / f"project_{project_code}{suffix}.png"
+            project_label = format_project_label(project_code, planning_horizon)
             plot_project_benchmarks(
                 project_df, output_file, project_label, format_area_subtitle(area)
             )

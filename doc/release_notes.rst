@@ -15,6 +15,8 @@ Upcoming Open-TYNDP Release
 
 * Add option to model carrier-specific load shedding with associated shedding costs (https://github.com/open-energy-transition/open-tyndp/pull/494).
 
+* Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
+
 * Add option to model carrier-specific load sinks with associated costs (https://github.com/open-energy-transition/open-tyndp/pull/505).
 
 **Changes**
@@ -22,6 +24,8 @@ Upcoming Open-TYNDP Release
 **Bugfixes and Compatibility**
 
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
+
+* Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
 
 **Documentation**
 
