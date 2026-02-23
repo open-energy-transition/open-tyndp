@@ -345,7 +345,7 @@ rule plot_all_cba_benchmark:
 #             "results/tyndp/cba-NT-cy2009/cba/project_t4_2030.csv",
 #         ],
 #     output:
-#         indicators="results/tyndp/cba-NT/ensemble_indicators_t4_2030.csv",
+#         indicators="results/tyndp/cba/ensemble_indicators_t4_2030.csv",
 #     script:
 #         "../scripts/cba/average_indicators.py"
 
@@ -372,23 +372,44 @@ def cba_scenarios(w):
     ]
 
 
+def input_projects(w):
+    """
+    List all projects
+    """
+    run = w.get("run", config_provider("run", "name")(w))
+    projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
+    if "planning_horizon" in projects.columns:
+        projects = projects.loc[
+            projects["planning_horizon"] == int(w.planning_horizons)
+        ]
+    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+
+    project_specs = config_provider("cba", "projects")(w)
+
+    return expand(
+        cba_project=filter_projects_by_specs(cba_projects, project_specs),
+        allow_missing=True,
+    )
+
+
 rule cba:
     input:
         lambda w: expand(
             rules.average_indicators.output.indicators,
             planning_horizons=config["cba"]["planning_horizons"],
-            cba_project=["t4", "t16", "t28", "t33", "t35"], # config_provider("run", "name")(w),
+            cba_project=["t4", "t16", "t28", "t33", "t35"], # input_projects(w)
             run=cba_scenarios(w),
+            # run=config_provider("run", "name")(w),
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=config_provider("run", "name")(w),
-            # run=cba_scenarios(w),
+            # run=config_provider("run", "name")(w),
+            run=cba_scenarios(w),
         ),
         lambda w: expand(
             rules.plot_all_cba_benchmark.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=config_provider("run", "name")(w),
-            # run=cba_scenarios(w),
+            # run=config_provider("run", "name")(w),
+            run=cba_scenarios(w),
         ),
