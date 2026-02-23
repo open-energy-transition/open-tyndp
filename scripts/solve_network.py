@@ -1594,10 +1594,10 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "solve_sector_network_myopic",
+            "solve_sector_network",
             opts="",
-            clusters="all",
-            configfiles="config/test/config.tyndp.yaml",
+            clusters="5",
+            configfiles="config/test/config.overnight.yaml",
             sector_opts="",
             planning_horizons="2030",
         )
