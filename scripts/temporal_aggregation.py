@@ -84,9 +84,9 @@ def set_temporal_aggregation(
         m.snapshot_weightings = snapshot_weightings
 
         # Aggregate all time-varying data.
-        for c in n.iterate_components():
+        for c in n.components:
             pnl = getattr(m, c.list_name + "_t")
-            for k, df in c.pnl.items():
+            for k, df in c.dynamic.items():
                 if not df.empty:
                     if c.list_name == "stores" and k == "e_max_pu":
                         pnl[k] = df.groupby(aggregation_map).min()

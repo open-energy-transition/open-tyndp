@@ -152,9 +152,19 @@ class _SolvingOptionsConfig(BaseModel):
     keep_files: bool = Field(
         False, description="Whether to keep LPs and MPS files after solving."
     )
+    store_model: bool = Field(
+        False,
+        description="Store the linopy model to a NetCDF file after solving. Not supported with rolling_horizon. Not scenario-aware.",
+    )
     model_kwargs: _ModelKwargsConfig = Field(
         default_factory=_ModelKwargsConfig, description="Model kwargs for linopy."
     )
+
+    @model_validator(mode="after")
+    def check_store_model_rolling_horizon(self):
+        if self.rolling_horizon and self.store_model:
+            raise ValueError("store_model is not supported with rolling_horizon")
+        return self
 
 
 class _AggPNomLimitsConfig(BaseModel):
