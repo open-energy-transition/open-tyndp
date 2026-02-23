@@ -6405,7 +6405,7 @@
           "type": "array"
         },
         "soc_boundary_carriers": {
-          "description": "Carriers whose state_of_charge is fixed at RH window boundaries from PF. Applies to StorageUnit components only.",
+          "description": "Carriers whose state of charge (SOC) is fixed at rolling horizon window boundaries using values from the perfect foresight (full-year) optimisation.",
           "items": {
             "type": "string"
           },
