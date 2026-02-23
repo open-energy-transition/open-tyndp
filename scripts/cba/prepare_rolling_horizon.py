@@ -178,10 +178,10 @@ def apply_msv_to_network(
 
     Only explicitly configured carriers receive MSV.
     """
-    if accumulator_carriers is None:
-        accumulator_carriers = []
-
-    all_msv_carriers = seasonal_carriers + accumulator_carriers
+    all_msv_carriers = [
+        c for c in list(n.stores.carrier.unique()) + list(n.storage_units.carrier.unique())
+        if c not in cyclic_carriers
+    ]
 
     if not all_msv_carriers:
         logger.info(
