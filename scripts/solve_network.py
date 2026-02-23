@@ -430,9 +430,9 @@ def add_retrofit_gas_boiler_constraint(
     n.model.add_constraints(lhs == rhs, name="gas_retrofit")
 
 
-def add_load_balance_components(n, config, carrier_name, sign=1):
+def add_load_balance_components(n, config, sign=1):
     """
-    Add load shedding or energy sinks to the network.
+    Add load shedding or energy sinks to the network with carrier 'load'.
 
     Parameters
     ----------
@@ -440,8 +440,6 @@ def add_load_balance_components(n, config, carrier_name, sign=1):
         The PyPSA network to be modified.
     config : dict
         The load shedding or energy sinks settings.
-    carrier_name : str
-        The name of the carrier. Either `load` or `sink`.
     sign : float
         Direction of the added generators. Positive for load shedding, negative for sinks.
 
@@ -450,13 +448,14 @@ def add_load_balance_components(n, config, carrier_name, sign=1):
     None
         Modifies PyPSA network in place.
     """
-    n.add("Carrier", carrier_name)
+    if "load" not in n.carriers.index:
+        n.add("Carrier", "load")
 
     carriers = config.get("carriers", {})
     default_price = config.get("default_price")
 
     logger.info(
-        f"Add {'load shedding' if carrier_name == 'load' else 'energy sinks'} for "
+        f"Add {'load shedding' if sign > 0 else 'energy sinks'} for "
         f"{'all carriers' if config.get('apply_to_all_carriers') else ', '.join(carriers)}."
     )
 
@@ -465,9 +464,9 @@ def add_load_balance_components(n, config, carrier_name, sign=1):
         n.add(
             "Generator",
             buses_i,
-            f" {carrier_name}",
+            " load",
             bus=buses_i,
-            carrier=carrier_name,
+            carrier="load",
             marginal_cost=sign * price,
             p_nom=np.inf,
             sign=sign,
@@ -478,9 +477,9 @@ def add_load_balance_components(n, config, carrier_name, sign=1):
         n.add(
             "Generator",
             buses_rest_i,
-            f" {carrier_name}",
+            " load",
             bus=buses_rest_i,
-            carrier=carrier_name,
+            carrier="load",
             marginal_cost=sign * default_price,
             p_nom=np.inf,
             sign=sign,
@@ -530,10 +529,10 @@ def prepare_network(
             df.where(df.abs() > solve_opts["clip_p_max_pu"], other=0.0, inplace=True)
 
     if (load_shedding := solve_opts.get("load_shedding", {})).get("enable", False):
-        add_load_balance_components(n, load_shedding, "load")
+        add_load_balance_components(n, load_shedding)
 
     if (energy_sinks := solve_opts.get("energy_sinks", {})).get("enable", False):
-        add_load_balance_components(n, energy_sinks, "sink", sign=-1)
+        add_load_balance_components(n, energy_sinks, sign=-1)
 
     if solve_opts.get("curtailment_mode"):
         n.add("Carrier", "curtailment", color="#fedfed", nice_name="Curtailment")
