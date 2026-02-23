@@ -286,8 +286,6 @@ def fix_reservoir_soc_at_boundaries(
     overlap : int
         Number of overlapping snapshots between consecutive windows. Default 1.
     """
-    if carriers is None:
-        carriers = ["hydro-reservoir"]
 
     if n_msv.storage_units_t.state_of_charge.empty:
         logger.warning(
