@@ -364,8 +364,6 @@ if __name__ == "__main__":
 
     # Get storage carrier settings from config
     cyclic_carriers = snakemake.params.get("cyclic_carriers", [])
-    seasonal_carriers = snakemake.params.get("seasonal_carriers", [])
-    accumulator_carriers = snakemake.params.get("accumulator_carriers", [])
 
     # Disable cyclicity (cyclic_carriers remain cyclic)
     disable_store_cyclicity(
