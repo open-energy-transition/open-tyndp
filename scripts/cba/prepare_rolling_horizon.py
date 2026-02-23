@@ -46,8 +46,6 @@ def disable_global_constraints(n: pypsa.Network):
 def disable_store_cyclicity(
     n: pypsa.Network,
     cyclic_carriers: list[str] | None = None,
-    seasonal_carriers: list[str] | None = None,
-    accumulator_carriers: list[str] | None = None,
 ):
     """
     Disable cyclic constraints for stores and storage units.
