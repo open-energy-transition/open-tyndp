@@ -337,17 +337,17 @@ rule plot_all_cba_benchmark:
         "../scripts/cba/plot_benchmark_indicators.py"
 
 
-rule average_indicators_test:
-    input:
-        indicators=[
-            "results/tyndp/cba-NT-cy1995/cba/project_t4_2030.csv",
-            "results/tyndp/cba-NT-cy2008/cba/project_t4_2030.csv",
-            "results/tyndp/cba-NT-cy2009/cba/project_t4_2030.csv",
-        ],
-    output:
-        indicators="results/tyndp/cba-NT/ensemble_indicators_t4_2030.csv",
-    script:
-        "../scripts/cba/average_indicators.py"
+# rule average_indicators_test:
+#     input:
+#         indicators=[
+#             "results/tyndp/cba-NT-cy1995/cba/project_t4_2030.csv",
+#             "results/tyndp/cba-NT-cy2008/cba/project_t4_2030.csv",
+#             "results/tyndp/cba-NT-cy2009/cba/project_t4_2030.csv",
+#         ],
+#     output:
+#         indicators="results/tyndp/cba-NT/ensemble_indicators_t4_2030.csv",
+#     script:
+#         "../scripts/cba/average_indicators.py"
 
 
 rule average_indicators:

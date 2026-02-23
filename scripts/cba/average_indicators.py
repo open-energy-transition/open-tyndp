@@ -37,7 +37,7 @@ INDICATOR_UNITS = {
 cyear_weightings = {
     1995: 0.233, 
     2008: 0.367,
-    2009: 0.400
+    2009: 0.400,
 }
 
 def average_indicators_csv(input_files, output_file):
@@ -80,13 +80,13 @@ def average_indicators_csv(input_files, output_file):
             # check if input_file shows reference to required weather year
             cyear_match = False
             cyear = None
-            for cyear in cyear_weightings:
-                cyear_str = "cy" + str(cyear)
+            cyear_weight = 1
+            for cy in cyear_weightings:
+                cyear_str = "cy" + str(cy)
                 if cyear_str in input_file:
                     cyear_match = True
-                    cyear_pos = input_file.find(cyear_str)
-                    cyear = input_file[cyear_pos+2:cyear_pos+6]
-                    cyear_weight = cyear_weightings[int(cyear)]
+                    cyear = cy
+                    cyear_weight = cyear_weightings[cy]
 
             if cyear_match:
                 logger.info(f"Process file {input_file} ...")
@@ -106,19 +106,55 @@ def average_indicators_csv(input_files, output_file):
 
                     # Write all data rows
                     for row in reader:
-                        row.insert(0, cyear)
-                        row.insert(0, cyear_weight)
+                        if 'Open-TYNDP' in row:
+                            row.insert(0, str(cyear))
+                            row.insert(0, cyear_weight)
+                        else:
+                            row.insert(0, '') # cyear
+                            row.insert(0, 1) # cyear_weight
                         writer.writerow(row)
                         row_count += 1
             else:
-                logger.info(f"No need to process file {input_files}")
+                logger.info(f"Problem in catching cyear and cyear_weight: cy={cy}, cyear={cyear}, cyear_weight={cyear_weight}")
 
     logger.info(f"Collected {row_count} rows from {len(input_files)} files")
 
-    df = pd.read_csv (output_file)
+    df = pd.read_csv (output_file, index_col=False)
+    row_count = 0
+    project_id = df.project_id.unique()[0]
+    method = df.method.unique()[0]
+    alternative_subindex = {'min': 'low', 'mean': 'central', 'max': 'high'}
+
+    # loop through all coolected indicators
     for INDICATOR_UNIT in INDICATOR_UNITS:
-        print (f'{INDICATOR_UNIT}: {(df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].value*
-                                     df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].cyear_weight).sum()}')
+        units = df[(df.indicator == INDICATOR_UNIT)].units.unique()[0]
+        indicator_values = {
+            'min': (df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].value).min(),
+            'mean': (df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].value*
+                     df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].cyear_weight).sum(),
+            'max': (df[(df.indicator == INDICATOR_UNIT) & (df.source == 'Open-TYNDP')].value).max(),
+        }
+
+        for subindex in ['min', 'mean', 'max']:
+            if INDICATOR_UNIT == 'B2a_societal_cost_variation':
+                subindex_to_use = alternative_subindex[subindex]
+            else:
+                subindex_to_use = subindex
+
+            df.loc[len(df)] = dict({
+                'cyear_weight': 1.0, 
+                'project_id': project_id, 
+                'method': method, 
+                'source': 'Open-TYNDP', 
+                'indicator': INDICATOR_UNIT, 
+                'subindex': subindex_to_use, 
+                'units': units, 
+                'value': indicator_values[subindex]
+            })
+            row_count += 1
+
+    df.to_csv(output_file, index=False)
+    logger.info(f"Added {row_count} rows with averaged indices")
 
 
 if __name__ == "__main__":
@@ -129,11 +165,6 @@ if __name__ == "__main__":
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
-
-    scenario = snakemake.config.get("run", {}).get("name")
-    # print (scenario)
-    projects = snakemake.config["cba"]["projects"]
-    # print (projects)
 
     # Collect all indicators into a single CSV
     average_indicators_csv(snakemake.input.indicators, snakemake.output.indicators)
