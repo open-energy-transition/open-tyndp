@@ -8,7 +8,6 @@ Creates the base CBA network with:
 - Fixed optimal capacities from scenario building
 - Hurdle costs on DC links
 - Extended primary fuel source capacities
-- Disabled volume limits
 
 **Inputs**
 
