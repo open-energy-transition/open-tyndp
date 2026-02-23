@@ -15,6 +15,8 @@ Upcoming Open-TYNDP Release
 
 * Add option to model carrier-specific load shedding with associated shedding costs (https://github.com/open-energy-transition/open-tyndp/pull/494).
 
+* Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
+
 * Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
 **Changes**
@@ -22,6 +24,8 @@ Upcoming Open-TYNDP Release
 **Bugfixes and Compatibility**
 
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
+
+* Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
 
 **Documentation**
 

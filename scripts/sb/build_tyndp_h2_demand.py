@@ -238,7 +238,6 @@ def align_demand_to_snapshots(demand, snapshots):
     return demand.reindex(snapshots)
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
