@@ -453,10 +453,10 @@ def add_load_balance_components(n, config, sign=1):
 
     carriers = config.get("carriers", {})
     default_price = config.get("default_price")
+    balance_comp = "shedding" if sign > 0 else "sink"
 
     logger.info(
-        f"Add {'load shedding' if sign > 0 else 'load sinks'} for "
-        f"{'all carriers' if config.get('apply_to_all_carriers') else ', '.join(carriers)}."
+        f"Add load {balance_comp} for {'all carriers' if config.get('apply_to_all_carriers') else ', '.join(carriers)}."
     )
 
     for bus_carrier, price in carriers.items():
@@ -464,10 +464,10 @@ def add_load_balance_components(n, config, sign=1):
         n.add(
             "Generator",
             buses_i,
-            " load",
+            f" load {balance_comp}",
             bus=buses_i,
             carrier="load",
-            marginal_cost=sign * price,
+            marginal_cost=price,
             p_nom=np.inf,
             sign=sign,
         )
@@ -477,10 +477,10 @@ def add_load_balance_components(n, config, sign=1):
         n.add(
             "Generator",
             buses_rest_i,
-            " load",
+            f" load {balance_comp}",
             bus=buses_rest_i,
             carrier="load",
-            marginal_cost=sign * default_price,
+            marginal_cost=default_price,
             p_nom=np.inf,
             sign=sign,
         )
