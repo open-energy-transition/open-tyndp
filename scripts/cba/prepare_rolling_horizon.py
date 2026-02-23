@@ -350,7 +350,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Load the CBA reference network (already has fixed capacities and hurdle costs)
-    n = pypsa.Network(snakemake.input.get("network", None))
+    n = pypsa.Network(snakemake.input.network)
 
     # Get storage carrier settings from config
     cyclic_carriers = snakemake.params.get("cyclic_carriers", [])
