@@ -1226,7 +1226,7 @@ solving:
       default_price: 100000
       apply_to_all_carriers: true
       carriers: {}
-    energy_sinks:
+    load_sinks:
       enable: false
       default_price: 100000
       apply_to_all_carriers: false

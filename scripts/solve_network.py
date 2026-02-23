@@ -432,16 +432,16 @@ def add_retrofit_gas_boiler_constraint(
 
 def add_load_balance_components(n, config, sign=1):
     """
-    Add load shedding or energy sinks to the network with carrier 'load'.
+    Add load shedding or load sinks to the network with carrier 'load'.
 
     Parameters
     ----------
     n : pypsa.Network
         The PyPSA network to be modified.
     config : dict
-        The load shedding or energy sinks settings.
+        The load shedding or load sinks settings.
     sign : float
-        Direction of the added generators. Positive for load shedding, negative for sinks.
+        Direction of the added generators. Positive for load shedding, negative for load sinks.
 
     Returns
     -------
@@ -455,7 +455,7 @@ def add_load_balance_components(n, config, sign=1):
     default_price = config.get("default_price")
 
     logger.info(
-        f"Add {'load shedding' if sign > 0 else 'energy sinks'} for "
+        f"Add {'load shedding' if sign > 0 else 'load sinks'} for "
         f"{'all carriers' if config.get('apply_to_all_carriers') else ', '.join(carriers)}."
     )
 
@@ -531,8 +531,8 @@ def prepare_network(
     if (load_shedding := solve_opts.get("load_shedding", {})).get("enable", False):
         add_load_balance_components(n, load_shedding)
 
-    if (energy_sinks := solve_opts.get("energy_sinks", {})).get("enable", False):
-        add_load_balance_components(n, energy_sinks, sign=-1)
+    if (load_sinks := solve_opts.get("load_sinks", {})).get("enable", False):
+        add_load_balance_components(n, load_sinks, sign=-1)
 
     if solve_opts.get("curtailment_mode"):
         n.add("Carrier", "curtailment", color="#fedfed", nice_name="Curtailment")
