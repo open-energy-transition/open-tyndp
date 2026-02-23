@@ -369,8 +369,6 @@ if __name__ == "__main__":
     disable_store_cyclicity(
         n,
         cyclic_carriers=cyclic_carriers,
-        seasonal_carriers=seasonal_carriers,
-        accumulator_carriers=accumulator_carriers,
     )
 
     disable_global_constraints(n)
