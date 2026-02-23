@@ -529,7 +529,7 @@
               "type": "array"
             },
             "soc_boundary_carriers": {
-              "description": "Carriers whose state_of_charge is fixed at RH window boundaries from PF. Applies to StorageUnit components only.",
+              "description": "Storage Unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
               "items": {
                 "type": "string"
               },
