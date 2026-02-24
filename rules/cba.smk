@@ -209,6 +209,10 @@ def input_sb_network(w):
                     "Using 2040 inputs instead."
                 ),
             )
+            # converts the same value to a string so fill_wildcards() can safely call .replace().
+            expanded_wildcards["planning_horizons"] = str(
+                expanded_wildcards["planning_horizons"]
+            )
         case _:
             raise ValueError('config["foresight"] must be one of "perfect" or "myopic"')
 
