@@ -51,11 +51,13 @@ def select_value_by_subindex(
 
 
 def benchmark_range(
-    df: pd.DataFrame, indicator: str
+    df: pd.DataFrame,
+    indicator: str,
+    source: str="TYNDP 2024"
 ) -> tuple[float, float, float] | None:
     """Return (min, mean, max) range for a benchmark indicator."""
     benchmark = df[
-        (df["source"] == "TYNDP 2024") & (df["indicator"] == indicator)
+        (df["source"] == source) & (df["indicator"] == indicator)
     ].copy()
     if benchmark.empty:
         return None
@@ -136,7 +138,7 @@ def plot_project_benchmarks(
             continue
 
         model_val = select_model_value(df, indicator)
-        bench = benchmark_range(df, indicator)
+        bench = benchmark_range(df, indicator, source="TYNDP 2024")
         if model_val is None or bench is None:
             continue
         plot_items.append(indicator)
@@ -213,15 +215,17 @@ def plot_project_benchmarks(
                         legend_labels.append(label)
             ax.set_xticks([])
         else:
-            model_val = select_model_value(df, indicator)
-            min_val, mean_val, max_val = benchmark_range(df, indicator)
-            lower = abs(mean_val - min_val)
-            upper = abs(max_val - mean_val)
+            try:
+                model_min_val, model_mean_val, model_max_val = benchmark_range(df, indicator, source="Open-TYNDP")
+            except:
+                model_min_val, model_mean_val, model_max_val = (0, 0, 0)
+            min_val, mean_val, max_val = benchmark_range(df, indicator, source="TYNDP 2024")
 
             ax.errorbar(
-                [0],
+                [-0.1],
                 [mean_val],
-                yerr=[[lower], [upper]],
+                yerr=[[abs(mean_val - min_val)], 
+                      [abs(max_val - mean_val)]],
                 fmt="o",
                 color="gray",
                 ecolor="lightgray",
@@ -233,17 +237,23 @@ def plot_project_benchmarks(
                     Line2D([0], [0], marker="o", color="gray", linestyle="None")
                 )
                 legend_labels.append(label)
-            ax.scatter(
-                [0],
-                [model_val],
+            ax.errorbar(
+                [0.1],
+                [model_mean_val],
+                yerr=[[abs(model_mean_val - model_min_val)], 
+                      [abs(model_max_val - model_mean_val)]],
+                fmt="o",
                 color="tab:blue",
-                zorder=3,
+                ecolor="lightblue",
+                capsize=3,
             )
-            if "Open-TYNDP" not in legend_labels:
+            ax.set_xlim(xmin=-0.3, xmax=0.3)
+            label = "Open-TYNDP (mean ± min/max)"
+            if label not in legend_labels:
                 legend_handles.append(
                     Line2D([0], [0], marker="o", color="tab:blue", linestyle="None")
                 )
-                legend_labels.append("Open-TYNDP")
+                legend_labels.append(label)
             ax.set_xticks([])
 
         ylim = ax.get_ylim()
@@ -290,7 +300,7 @@ def plot_project_benchmarks(
             b2a_handles,
             b2a_labels,
             loc="lower center",
-            bbox_to_anchor=(0.5, -0.02),
+            bbox_to_anchor=(0.4, -0.02),
             ncol=3,
             frameon=False,
         )
