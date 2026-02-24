@@ -284,7 +284,7 @@ if __name__ == "__main__":
     )
 
     # Add bus legend
-    legend_bus_size = settings["bus_size"]
+    legend_bus_size = settings["bus_sizes"]
     carrier_unit = settings["unit"]
     if legend_bus_size is not None:
         add_legend_semicircles(
