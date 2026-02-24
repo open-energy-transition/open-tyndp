@@ -42,6 +42,9 @@ from scripts._helpers import (
     set_scenario_config,
 )
 
+# for compatibility with future pandas downcasting behaviour
+pd.set_option("future.no_silent_downcasting", True)
+
 logger = logging.getLogger(__name__)
 
 CONVENTIONALS = [
@@ -69,6 +72,13 @@ PEMMDB_SHEET_MAPPING = {
     "Heavy oil": "Thermal",
     "Oil shale": "Thermal",
     "Hydrogen": "Thermal",
+}
+
+OTHER_RES_MAPPING = {
+    "Geothermal": "Geothermal, Marine, Waste and Not Defined",
+    "Marine": "Geothermal, Marine, Waste and Not Defined",
+    "Waste": "Geothermal, Marine, Waste and Not Defined",
+    "Not Defined / Splitting not known": "Geothermal, Marine, Waste and Not Defined",
 }
 
 
@@ -373,23 +383,29 @@ def _process_res_capacities(
 
 def _process_other_res_capacities(
     node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
     Extract and clean `Other RES` capacities.
     """
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
     # Get raw data and extract capacity information
     df = (
-        node_tech_data.iloc[[6], [1]]
-        .set_axis(["p_nom"], axis=1)
-        .reset_index(drop=True)
+        node_tech_data.iloc[[7], 4:]
+        .rename(columns=tech_names)
+        .melt(
+            var_name="pemmdb_type",
+            value_name="p_nom",
+        )
+        .groupby("pemmdb_type")
+        .sum()
         .assign(
             bus=node,
             country=node[:2],
             pemmdb_carrier=pemmdb_tech,
             efficiency=1.0,  # no efficiencies given but capacity in MWel
-            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
             unit="MW",
         )
+        .reset_index()
         .dropna()
     )
 
@@ -637,42 +653,59 @@ def _process_other_res_profiles(
     pyear: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
     Extract and clean `Other RES` profiles.
     """
     # Extract data
-    df = node_tech_data.iloc[6:, :3]
+    df = node_tech_data.iloc[6:, :]
 
-    capacity = np.float64(df.iloc[0, 1])
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
+    # Extract capacity information for normalization
+    capacity = (
+        df.iloc[[1], 4:]
+        .rename(columns=tech_names)
+        .melt(var_name="pemmdb_type", value_name="p_nom")
+        .groupby("pemmdb_type")["p_nom"]
+        .sum()
+    )
 
-    if np.isnan(capacity) or capacity == 0:
+    if capacity.sum() == 0:
         logger.debug(
             f"No 'Other RES' capacity found for {node} in {pyear}, hence no must-run profile available."
         )
         return None
 
+    # Extract and normalize profiles
     profiles = (
-        df.iloc[3:, 2]
-        .to_frame()
-        .set_axis(["p_min_t"], axis="columns")
+        df.iloc[3:, 4:]
+        .rename(columns=tech_names)
+        .T.groupby(level=0)
+        .sum()
+        .T.div(capacity.replace(0, np.nan), axis=1)
+        .fillna(0.0)
         .assign(
-            p_min_pu=lambda x: np.where(
-                capacity > 0, pd.to_numeric(x["p_min_t"]) / capacity, 0.0
-            ),
-            p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
             time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
-            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
         )
         .loc[lambda x: x["time"].isin(sns)]
+    )
+
+    # Turn into long format and return
+    return (
+        profiles.melt(
+            id_vars=["time", "bus", "pemmdb_carrier"],
+            value_name="p_min_pu",
+            var_name="pemmdb_type",
+        )
+        .assign(
+            p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
+        )
         .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
             ["p_min_pu", "p_max_pu"]
         ]
     )
-
-    return profiles
 
 
 def _process_other_nonres_profiles(
