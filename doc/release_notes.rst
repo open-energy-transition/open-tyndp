@@ -17,6 +17,8 @@ Upcoming Open-TYNDP Release
 
 * Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
 
+* Add option to model carrier-specific load sinks with associated costs (https://github.com/open-energy-transition/open-tyndp/pull/505).
+
 * Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
 **Changes**
