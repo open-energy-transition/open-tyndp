@@ -11,6 +11,7 @@ Modifications applied:
   value, and set initial state of charge from perfect foresight for those
   that were cyclic in the full-year optimisation
 - Remove global constraints not needed for cost-benefit analysis
+- Disable volume limits (e_sum_min/e_sum_max)
 """
 
 import logging
@@ -115,7 +116,11 @@ def resample_msv_to_target(
 
 def disable_volume_limits(n: pypsa.Network):
     """
-    Disable minimum energy production limits (e_sum_min) for generators and links.
+    Disable annual volume limits (e_sum_min/e_sum_max) for generators and links.
+
+    Components that had finite e_sum_min are tagged with has_volume_limit=True
+    so that the rolling horizon solver can set per-window energy budgets from
+    the perfect foresight dispatch stored in generators_t.p / links_t.p0.
 
     Parameters
     ----------
@@ -125,11 +130,10 @@ def disable_volume_limits(n: pypsa.Network):
     for c in n.components[{"Generator", "Link"}]:
         has_e_sum_min = isfinite(c.static.get("e_sum_min", []))
         if has_e_sum_min.any():
+            c.static["has_volume_limit"] = 0
+            c.static.loc[has_e_sum_min, "has_volume_limit"] = 1
             c.static.loc[has_e_sum_min, "e_sum_min"] = -inf
             c.static.loc[has_e_sum_min, "e_sum_max"] = inf
-            c.dynamic.p_set.loc[:, c.static[has_e_sum_min].index] = c.dynamic.p.loc[
-                :, c.static[has_e_sum_min].index
-            ]
 
 
 def apply_msv_to_network(

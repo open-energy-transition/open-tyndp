@@ -152,6 +152,24 @@ def optimize_with_rolling_horizon(
                     n.storage_units_t.state_of_charge.loc[snapshots[start - 1]]
                 )
 
+        # Set per-window energy budgets for volume-limited components
+        # (biomass, biogas) based on PF dispatch stored in generators_t.p
+        for c_name in ["Generator", "Link"]:
+            c = n.c[c_name]
+            if "has_volume_limit" not in c.static.columns:
+                continue
+            vol_idx = c.static.index[c.static["has_volume_limit"] == 1]
+            if vol_idx.empty:
+                continue
+            p_col = "p" if c_name == "Generator" else "p0"
+            pf_p = c.dynamic[p_col]
+            for comp in vol_idx:
+                if comp not in pf_p.columns:
+                    continue
+                window_energy = pf_p.loc[sns, comp].sum()
+                c.static.loc[comp, "e_sum_min"] = window_energy
+                c.static.loc[comp, "e_sum_max"] = window_energy
+
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
         if status != "ok":
             logger.warning(
