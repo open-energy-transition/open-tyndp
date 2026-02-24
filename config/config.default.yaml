@@ -656,7 +656,7 @@ solar_thermal:
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#existing_capacities
 existing_capacities:
   grouping_years_power:
-  - 1920
+  - 1900
   - 1950
   - 1955
   - 1960
