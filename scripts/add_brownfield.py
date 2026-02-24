@@ -170,20 +170,22 @@ def add_brownfield(
     if offshore_hubs_tyndp:
         filter = {"Link": "Offshore", "Generator": "offwind"}
         eff_map = {"Link": "efficiency", "Generator": "efficiency_dc_to_h2"}
-        for c in n.iterate_components(["Link", "Generator"]):
-            off_fixed_i = c.df[
-                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year != year)
+        for c in n.components[["Link", "Generator"]]:
+            off_fixed_i = c.static[
+                (c.static.index.str.contains(filter[c.name]))
+                & (c.static.build_year != year)
             ].index
-            off_i = c.df[
-                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year == year)
+            off_i = c.static[
+                (c.static.index.str.contains(filter[c.name]))
+                & (c.static.build_year == year)
             ].index
 
-            off_capacity = c.df.loc[off_i, "p_nom"]
-            off_potential = c.df.loc[off_i, "p_nom_max"]
+            off_capacity = c.static.loc[off_i, "p_nom"]
+            off_potential = c.static.loc[off_i, "p_nom_max"]
 
             # Determine existing capacities in MW_e and MW_h2
             already_existing = (
-                c.df.loc[off_fixed_i]
+                c.static.loc[off_fixed_i]
                 .assign(
                     p_nom_opt_e=lambda df: np.where(
                         df.carrier.str.contains("h2"),
@@ -234,8 +236,8 @@ def add_brownfield(
                 lower=0
             )
             remaining_potential = (off_potential - already_existing_l).clip(lower=0)
-            c.df.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
-            c.df.loc[off_i, "p_nom_max"] = remaining_potential
+            c.static.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
+            c.static.loc[off_i, "p_nom_max"] = remaining_potential
 
     # deal with gas network
     if h2_retrofit:
