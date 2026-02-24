@@ -334,6 +334,7 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
+    # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
     resolution_sector: 6H
 
 adjustments:
