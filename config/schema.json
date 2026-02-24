@@ -452,11 +452,11 @@
       }
     },
     "CbaConfig": {
-      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
         "hurdle_costs": {
           "default": 0.01,
-          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
           "type": "number"
         },
         "co2_societal_cost": {
@@ -508,14 +508,14 @@
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
+              "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
             "soc_boundary_carriers": {
-              "description": "Storage Unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
               "items": {
                 "type": "string"
               },
@@ -6295,14 +6295,14 @@
       "description": "Configuration for `cba.storage` settings.",
       "properties": {
         "cyclic_carriers": {
-          "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
+          "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "soc_boundary_carriers": {
-          "description": "Carriers whose state of charge (SOC) is fixed at rolling horizon window boundaries using values from the perfect foresight (full-year) optimisation.",
+          "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
           "items": {
             "type": "string"
           },
@@ -14597,11 +14597,11 @@
       }
     },
     "cba": {
-      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
         "hurdle_costs": {
           "default": 0.01,
-          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
           "type": "number"
         },
         "co2_societal_cost": {
@@ -14653,14 +14653,14 @@
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
+              "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
               "items": {
                 "type": "string"
               },
               "type": "array"
             },
             "soc_boundary_carriers": {
-              "description": "Carriers whose state of charge is fixed at rolling horizon window boundaries from perfect foresight. Applies to StorageUnit components only.",
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
               "items": {
                 "type": "string"
               },
