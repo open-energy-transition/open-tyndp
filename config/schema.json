@@ -466,18 +466,18 @@
             },
             "type": "object"
           },
-          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios.",
           "type": "object"
         },
         "planning_horizons": {
-          "description": "List of planning horizons for which to run CBA.",
+          "description": "List of planning horizons for which to run cost-benefit analysis.",
           "items": {
             "type": "integer"
           },
           "type": "array"
         },
         "methods": {
-          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
           "items": {
             "enum": [
               "toot",
@@ -488,7 +488,7 @@
           "type": "array"
         },
         "projects": {
-          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
             "type": "string"
           },
@@ -496,7 +496,7 @@
         },
         "area": {
           "default": "tyndp",
-          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "description": "Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
           "enum": [
             "tyndp",
             "entso-e",
@@ -509,20 +509,6 @@
           "properties": {
             "cyclic_carriers": {
               "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "seasonal_carriers": {
-              "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "accumulator_carriers": {
-              "description": "Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
               "items": {
                 "type": "string"
               },
@@ -550,41 +536,16 @@
                 }
               ],
               "default": false,
-              "description": "Temporal resolution for MSV extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling MSV to target network resolution.",
+              "description": "Method for resampling marginal storage value to target network resolution.",
               "enum": [
                 "ffill",
                 "interpolate"
               ],
               "type": "string"
-            },
-            "solving": {
-              "description": "MSV extraction solving settings.",
-              "properties": {
-                "options": {
-                  "additionalProperties": true,
-                  "description": "Load shedding disabled by default to avoid distorting duals.",
-                  "type": "object"
-                },
-                "solver": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "description": "Solver for MSV extraction.",
-                  "type": "object"
-                },
-                "solver_options": {
-                  "additionalProperties": {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  "description": "Solver-specific options.",
-                  "type": "object"
-                }
-              }
             }
           }
         },
@@ -593,14 +554,14 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "CBA-specific solving options.",
+              "description": "Solving options for rolling horizon dispatch.",
               "type": "object"
             },
             "solver": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "CBA solver configuration.",
+              "description": "Solver configuration.",
               "type": "object"
             },
             "solver_options": {
@@ -608,7 +569,7 @@
                 "additionalProperties": true,
                 "type": "object"
               },
-              "description": "CBA solver options.",
+              "description": "Solver-specific options.",
               "type": "object"
             }
           }
@@ -6292,57 +6253,32 @@
             }
           ],
           "default": false,
-          "description": "Temporal resolution for MSV extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+          "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
         },
         "resample_method": {
           "default": "ffill",
-          "description": "Method for resampling MSV to target network resolution.",
+          "description": "Method for resampling marginal storage value to target network resolution.",
           "enum": [
             "ffill",
             "interpolate"
           ],
           "type": "string"
-        },
-        "solving": {
-          "description": "MSV extraction solving settings.",
-          "properties": {
-            "options": {
-              "additionalProperties": true,
-              "description": "Load shedding disabled by default to avoid distorting duals.",
-              "type": "object"
-            },
-            "solver": {
-              "additionalProperties": {
-                "type": "string"
-              },
-              "description": "Solver for MSV extraction.",
-              "type": "object"
-            },
-            "solver_options": {
-              "additionalProperties": {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              "description": "Solver-specific options.",
-              "type": "object"
-            }
-          }
         }
       }
     },
-    "_CbaMsvSolvingConfig": {
-      "description": "MSV extraction solving settings.",
+    "_CbaSolvingConfig": {
+      "description": "Configuration for `cba.solving` settings.",
       "properties": {
         "options": {
           "additionalProperties": true,
-          "description": "Load shedding disabled by default to avoid distorting duals.",
+          "description": "Solving options for rolling horizon dispatch.",
           "type": "object"
         },
         "solver": {
           "additionalProperties": {
             "type": "string"
           },
-          "description": "Solver for MSV extraction.",
+          "description": "Solver configuration.",
           "type": "object"
         },
         "solver_options": {
@@ -6355,50 +6291,11 @@
         }
       }
     },
-    "_CbaSolvingConfig": {
-      "description": "Configuration for `cba.solving` settings.",
-      "properties": {
-        "options": {
-          "additionalProperties": true,
-          "description": "CBA-specific solving options.",
-          "type": "object"
-        },
-        "solver": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "description": "CBA solver configuration.",
-          "type": "object"
-        },
-        "solver_options": {
-          "additionalProperties": {
-            "additionalProperties": true,
-            "type": "object"
-          },
-          "description": "CBA solver options.",
-          "type": "object"
-        }
-      }
-    },
     "_CbaStorageConfig": {
       "description": "Configuration for `cba.storage` settings.",
       "properties": {
         "cyclic_carriers": {
           "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in prepare_rolling_horizon.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "seasonal_carriers": {
-          "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "accumulator_carriers": {
-          "description": "Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
           "items": {
             "type": "string"
           },
@@ -14714,18 +14611,18 @@
             },
             "type": "object"
           },
-          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios.",
           "type": "object"
         },
         "planning_horizons": {
-          "description": "List of planning horizons for which to run CBA.",
+          "description": "List of planning horizons for which to run cost-benefit analysis.",
           "items": {
             "type": "integer"
           },
           "type": "array"
         },
         "methods": {
-          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
           "items": {
             "enum": [
               "toot",
@@ -14736,7 +14633,7 @@
           "type": "array"
         },
         "projects": {
-          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
             "type": "string"
           },
@@ -14744,7 +14641,7 @@
         },
         "area": {
           "default": "tyndp",
-          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "description": "Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
           "enum": [
             "tyndp",
             "entso-e",
@@ -14762,22 +14659,8 @@
               },
               "type": "array"
             },
-            "seasonal_carriers": {
-              "description": "Seasonal carriers: MSV + initial state from PF. Cyclicity disabled.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
-            "accumulator_carriers": {
-              "description": "Accumulator carriers: MSV only, start empty. Cyclicity disabled.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
             "soc_boundary_carriers": {
-              "description": "Carriers whose state_of_charge is fixed at RH window boundaries from PF. Applies to StorageUnit components only.",
+              "description": "Carriers whose state of charge is fixed at rolling horizon window boundaries from perfect foresight. Applies to StorageUnit components only.",
               "items": {
                 "type": "string"
               },
@@ -14798,41 +14681,16 @@
                 }
               ],
               "default": false,
-              "description": "Temporal resolution for MSV extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling MSV to target network resolution.",
+              "description": "Method for resampling marginal storage value to target network resolution.",
               "enum": [
                 "ffill",
                 "interpolate"
               ],
               "type": "string"
-            },
-            "solving": {
-              "description": "MSV extraction solving settings.",
-              "properties": {
-                "options": {
-                  "additionalProperties": true,
-                  "description": "Load shedding disabled by default to avoid distorting duals.",
-                  "type": "object"
-                },
-                "solver": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "description": "Solver for MSV extraction.",
-                  "type": "object"
-                },
-                "solver_options": {
-                  "additionalProperties": {
-                    "additionalProperties": true,
-                    "type": "object"
-                  },
-                  "description": "Solver-specific options.",
-                  "type": "object"
-                }
-              }
             }
           }
         },
@@ -14841,14 +14699,14 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "CBA-specific solving options.",
+              "description": "Solving options for rolling horizon dispatch.",
               "type": "object"
             },
             "solver": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "CBA solver configuration.",
+              "description": "Solver configuration.",
               "type": "object"
             },
             "solver_options": {
@@ -14856,7 +14714,7 @@
                 "additionalProperties": true,
                 "type": "object"
               },
-              "description": "CBA solver options.",
+              "description": "Solver-specific options.",
               "type": "object"
             }
           }

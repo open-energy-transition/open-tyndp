@@ -188,14 +188,12 @@ def input_msv_snapshot_weightings(w):
     return []
 
 
-# Extract MSV via perfect foresight solve (full year with cyclicity enabled)
+# Extract marginal storage values via perfect foresight solve (full year with cyclicity enabled)
 rule solve_cba_msv_extraction:
     params:
         solving=config_provider("solving"),
-        msv_solving=config_provider("cba", "msv_extraction", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
-        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
-        accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
         network=rules.prepare_reference.output.network,
         snapshot_weightings=input_msv_snapshot_weightings,
@@ -210,12 +208,10 @@ rule solve_cba_msv_extraction:
         "../scripts/cba/solve_cba_msv_extraction.py"
 
 
-# Prepare network for rolling horizon: disable seasonal cyclicity, apply MSV
+# Prepare network for rolling horizon: disable seasonal cyclicity, apply marginal storage value
 rule prepare_rolling_horizon:
     params:
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
-        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
-        accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
         msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
     input:
@@ -232,8 +228,6 @@ rule prepare_project:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
-        seasonal_carriers=config_provider("cba", "storage", "seasonal_carriers"),
-        accumulator_carriers=config_provider("cba", "storage", "accumulator_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
     input:
         network=rules.prepare_rolling_horizon.output.network,

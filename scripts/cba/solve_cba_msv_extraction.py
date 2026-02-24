@@ -2,10 +2,10 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Extract Marginal Storage Values (MSV) via perfect foresight optimization.
+Extract marginal storage values via perfect foresight optimization.
 
 Solves the reference network with perfect foresight (full year) to extract
-shadow prices from store energy balance constraints. These MSV values capture
+shadow prices from store energy balance constraints. These values capture
 the future value of stored energy and guide seasonal storage dispatch in
 rolling horizon optimization.
 
@@ -16,13 +16,12 @@ rolling horizon optimization.
 
 **Outputs**
 
-- ``resources/cba/networks/msv_{planning_horizons}.nc``: Network with MSV in stores_t.mu_energy_balance
+- ``resources/cba/networks/msv_{planning_horizons}.nc``: Network with marginal storage values in stores_t.mu_energy_balance
 """
 
 import logging
 
 import pypsa
-from snakemake.utils import update_config
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.solve_network import prepare_network
@@ -54,15 +53,13 @@ if __name__ == "__main__":
     if msv_resolution:
         n = set_temporal_aggregation(n, msv_resolution, snapshot_weightings)
 
-    # Merge base solving with MSV-specific overrides
+    # Use top-level solving config (same options as rolling horizon)
     solving = snakemake.params.get("solving", {})
-    msv_solving = snakemake.params.get("msv_solving", {})
-    update_config(solving, msv_solving)
 
     solver_name = solving.get("solver", {}).get("name", "highs")
     solver_options_key = solving.get("solver", {}).get("options", "highs-default")
 
-    # Prepare network (e.g., load_shedding setup)
+    # Prepare network (e.g., load shedding setup)
     solve_opts = solving.get("options", {})
     # Normalize load_shedding: allow bool or dict
     if isinstance(solve_opts.get("load_shedding"), bool):
@@ -86,37 +83,10 @@ if __name__ == "__main__":
     )
 
     if status != "ok":
-        logger.error(f"MSV extraction solve failed: {termination_condition}")
-        raise RuntimeError(f"MSV extraction solve failed: {termination_condition}")
+        logger.error(f"Extraction solve failed: {termination_condition}")
+        raise RuntimeError(f"Extraction solve failed: {termination_condition}")
 
-    logger.info(f"MSV extraction solve completed: {termination_condition}")
+    logger.info(f"Extraction solve completed: {termination_condition}")
 
-    # Log MSV statistics for configured carriers (Store and StorageUnit)
-    seasonal_carriers = snakemake.params.get("seasonal_carriers", [])
-    accumulator_carriers = snakemake.params.get("accumulator_carriers", [])
-    all_msv_carriers = seasonal_carriers + accumulator_carriers
-
-    for component, dual_attr in [
-        ("stores", "mu_energy_balance"),
-        ("storage_units", "mu_energy_balance"),
-    ]:
-        dual_df = getattr(getattr(n, f"{component}_t"), dual_attr, None)
-        if dual_df is None or dual_df.empty:
-            continue
-        static = getattr(n, component)
-        for carrier in all_msv_carriers:
-            idx = static[static.carrier == carrier].index
-            idx = idx[idx.isin(dual_df.columns)]
-            if idx.empty:
-                continue
-            msv = dual_df[idx]
-            label = "Store" if component == "stores" else "StorageUnit"
-            logger.info(
-                f"MSV for '{carrier}' ({label}): "
-                f"min={msv.min().min():.2f}, max={msv.max().max():.2f}, "
-                f"mean={msv.mean().mean():.2f} EUR/MWh"
-            )
-
-    # Save network with MSV
+    # Save network with marginal storage values
     n.export_to_netcdf(snakemake.output.network)
-    logger.info(f"Saved MSV network to {snakemake.output.network}")
