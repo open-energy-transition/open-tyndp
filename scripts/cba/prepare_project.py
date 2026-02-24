@@ -138,6 +138,12 @@ if __name__ == "__main__":
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
     planning_horizon = int(snakemake.wildcards.planning_horizons)
+    if planning_horizon not in [2030, 2040]:
+        logger.warning(
+            "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
+            snakemake.wildcards.planning_horizons,
+        )
+        planning_horizon = 2040
 
     method = load_method(methods, project_id, planning_horizon)
     hurdle_costs = snakemake.params.hurdle_costs
