@@ -705,7 +705,7 @@ def _process_other_res_profiles(
             var_name="pemmdb_type",
         )
         .assign(
-            p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
+            p_max_pu=lambda df: df.p_min_pu,  # also set p_max_pu to the same value as Other RES dispatch is fixed
         )
         .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
             ["p_min_pu", "p_max_pu"]
