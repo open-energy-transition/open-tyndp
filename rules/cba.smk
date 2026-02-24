@@ -70,12 +70,14 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
         run:
             copy2(input["file"], output["file"])
 
+
 def _effective_horizon(h, warn_fn=None, msg=None):
     if h not in [2030, 2040]:
         if warn_fn:
             warn_fn(msg or "Using 2040 for unsupported planning horizon %s.", h)
         return 2040
     return h
+
 
 def presolved_sb_network_path(w, horizon=None):
     sb_version = config_provider(
