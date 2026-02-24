@@ -13,6 +13,7 @@ import pandas as pd
 from scripts._helpers import (
     SCENARIO_DICT,
     configure_logging,
+    safe_pyear,
     set_scenario_config,
 )
 
@@ -96,6 +97,10 @@ if __name__ == "__main__":
     smr_fn = snakemake.input.smr
     scenario = snakemake.params.tyndp_scenario
     h2_zones_tyndp = snakemake.params.h2_zones_tyndp
+
+    # Fallback for NT scenario
+    if scenario == "NT":
+        pyear = safe_pyear(pyear, [2030, 2040])
 
     # Load and prep SMR data
     smr = load_smr_data(
