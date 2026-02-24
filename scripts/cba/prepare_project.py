@@ -15,7 +15,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import annuity, get_link_attrs
+from scripts.cba._helpers import get_link_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ def apply_pint(
     n: pypsa.Network,
     transmission_project: pd.DataFrame,
     hurdle_costs: float,
-    annuity_factor: float,
+    costs: pd.DataFrame,
 ) -> None:
     for _, project in transmission_project.iterrows():
         bus0 = project["bus0"]
@@ -92,7 +92,7 @@ def apply_pint(
             (link_id, bus0, bus1, capacity),
             (reverse_link_id, bus1, bus0, capacity_reverse),
         ]:
-            attrs = get_link_attrs(project, cap, annuity_factor)
+            attrs = get_link_attrs(project, costs)
             n.add(
                 "Link",
                 lid,
@@ -132,10 +132,6 @@ if __name__ == "__main__":
     hurdle_costs = snakemake.params.hurdle_costs
 
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
-    annuity_factor = annuity(
-        costs.at["HVDC inverter pair", "lifetime"],
-        costs.at["HVDC inverter pair", "discount rate"],
-    )
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
@@ -147,7 +143,7 @@ if __name__ == "__main__":
     if method == "TOOT":
         apply_toot(n, transmission_project)
     elif method == "PINT":
-        apply_pint(n, transmission_project, hurdle_costs, annuity_factor)
+        apply_pint(n, transmission_project, hurdle_costs, costs)
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")
 

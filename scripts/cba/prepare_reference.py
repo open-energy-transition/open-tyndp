@@ -17,7 +17,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import annuity, get_link_attrs
+from scripts.cba._helpers import get_link_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -107,10 +107,6 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
-    annuity_factor = annuity(
-        costs.at["HVDC inverter pair", "lifetime"],
-        costs.at["HVDC inverter pair", "discount rate"],
-    )
 
     # Load project definitions
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
@@ -147,10 +143,10 @@ if __name__ == "__main__":
             d1 = row["Correction - Summary Direction 1"]
             d2 = row["Correction - Summary Direction 2"]
 
-            a1 = get_link_attrs(project, d1, annuity_factor) if project is not None else {}
+            a1 = get_link_attrs(project, costs) if project is not None else {}
             update_or_add_link(n, bus0, bus1, d1, hurdle_costs, a1)
 
-            a2 = get_link_attrs(project, d2, annuity_factor) if project is not None else {}
+            a2 = get_link_attrs(project, costs) if project is not None else {}
             update_or_add_link(n, bus1, bus0, d2, hurdle_costs, a2)
     else:
         logger.info(
