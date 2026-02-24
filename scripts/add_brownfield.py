@@ -478,7 +478,7 @@ def remove_tyndp_fixed_p(
         remove_carriers = (
             tyndp_hydro
             + tyndp_conventional_thermals
-            + ["H2 Electrolysis", "H2 pipeline"]
+            + ["H2 Electrolysis", "H2 pipeline", "SMR", "SMR CC"]
             if c.name == "Link"
             else tyndp_hydro
         )
