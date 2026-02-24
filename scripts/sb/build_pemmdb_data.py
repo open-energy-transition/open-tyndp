@@ -81,6 +81,8 @@ OTHER_RES_MAPPING = {
     "Not Defined / Splitting not known": "Geothermal, Marine, Waste and Not Defined",
 }
 
+OTHER_RES_GROUPS = ["Small Biomass", "Geothermal, Marine, Waste and Not Defined"]
+
 
 def read_pemmdb_data(
     node: str,
@@ -677,12 +679,15 @@ def _process_other_res_profiles(
         return None
 
     # Extract and normalize profiles
+    renamed = df.iloc[3:, 4:].rename(columns=tech_names)
     profiles = (
-        df.iloc[3:, 4:]
-        .rename(columns=tech_names)
-        .T.groupby(level=0)
-        .sum()
-        .T.div(capacity.replace(0, np.nan), axis=1)
+        pd.DataFrame(
+            {
+                g: renamed.loc[:, renamed.columns == g].sum(axis=1)
+                for g in OTHER_RES_GROUPS
+            }
+        )
+        .div(capacity.replace(0, np.nan), axis=1)
         .fillna(0.0)
         .assign(
             time=sns_year_h,
