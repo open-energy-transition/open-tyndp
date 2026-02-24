@@ -133,10 +133,14 @@ if __name__ == "__main__":
             bus0, bus1 = border.split("-", 1)
 
             match = transmission_projects[
-                ((transmission_projects["bus0"] == bus0)
-                 & (transmission_projects["bus1"] == bus1))
-                | ((transmission_projects["bus0"] == bus1)
-                   & (transmission_projects["bus1"] == bus0))
+                (
+                    (transmission_projects["bus0"] == bus0)
+                    & (transmission_projects["bus1"] == bus1)
+                )
+                | (
+                    (transmission_projects["bus0"] == bus1)
+                    & (transmission_projects["bus1"] == bus0)
+                )
             ]
             project = match.iloc[0] if not match.empty else None
 
