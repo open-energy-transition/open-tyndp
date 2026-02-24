@@ -68,7 +68,6 @@ def disable_store_cyclicity(
     if to_disable.any():
         n.stores.loc[to_disable, "e_cyclic"] = False
 
-
     # Disable cyclicity for storage units (except cyclic_carriers)
     has_cyclic_soc = n.storage_units["cyclic_state_of_charge"]
     is_cyclic_carrier_su = n.storage_units["carrier"].isin(cyclic_carriers)
@@ -176,9 +175,7 @@ def apply_msv_to_network(
 
     for c in ["Store", "StorageUnit"]:
         # Filter to non-cyclic carriers
-        s_i = n_msv.c[c].static[
-            n_msv.c[c].static.carrier.isin(all_msv_carriers)
-        ].index
+        s_i = n_msv.c[c].static[n_msv.c[c].static.carrier.isin(all_msv_carriers)].index
         if s_i.empty:
             continue
         # Get shadow prices
@@ -188,6 +185,7 @@ def apply_msv_to_network(
             msv = resample_msv_to_target(msv, n.snapshots, method=resample_method)
         # Set shadow prices as marginal cost
         n.c[c].dynamic["marginal_cost"].loc[:, s_i] = msv
+
 
 def set_initial_state_from_pf(
     n: pypsa.Network,
@@ -237,6 +235,7 @@ def set_initial_state_from_pf(
                 pf_soc_final.loc[candidates_su]
             )
 
+
 def fix_reservoir_soc_at_boundaries(
     n: pypsa.Network,
     n_msv: pypsa.Network,
@@ -250,7 +249,7 @@ def fix_reservoir_soc_at_boundaries(
     Sets state_of_charge_set at the first and last snapshot of each window,
     leaving all other snapshots unconstrained. This guides the seasonal
     trajectory while giving the optimizer freedom for hourly dispatch.
-    
+
     Parameters
     ----------
     n : pypsa.Network

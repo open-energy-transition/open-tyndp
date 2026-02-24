@@ -4,8 +4,6 @@
 
 import re
 
-import pandas as pd
-
 
 def filter_projects_by_specs(
     project_list: list[str], spec_list: list[str] | str | None
@@ -86,4 +84,3 @@ def filter_projects_by_specs(
         return [p for p in project_list if p in projects]
     else:
         return [p for p in project_list if p not in projects]
-
