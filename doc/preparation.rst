@@ -260,3 +260,8 @@ Rule ``clean_tyndp_electricity_demand``
 ===========================
 
 .. automodule:: clean_tyndp_electricity_demand
+
+Rule ``clean_tyndp_smr``
+===========================
+
+.. automodule:: clean_tyndp_smr

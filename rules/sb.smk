@@ -514,6 +514,26 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             scripts("sb/build_tyndp_h2_imports.py")
 
+    rule clean_tyndp_smr:
+        params:
+            tyndp_scenario=config_provider("tyndp_scenario"),
+            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
+        input:
+            smr=rules.retrieve_tyndp.output.smr,
+        output:
+            smr_prepped=resources("smr_data_prepped_{planning_horizons}.csv"),
+        log:
+            logs("clean_tyndp_smr_{planning_horizons}.log"),
+        benchmark:
+            benchmarks("clean_tyndp_smr_{planning_horizons}")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/sb/clean_tyndp_smr.py"
+
 
 if config["sector"]["offshore_hubs_tyndp"]["enable"]:
 
@@ -674,6 +694,12 @@ if config["benchmarking"]["enable"]:
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+            benchmarks_ct=RESULTS
+            + "validation/resources/benchmarks_tyndp_output_ct_{scenario}{planning_horizons}.csv",
+            crossborder=RESULTS
+            + "validation/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
+            prices=RESULTS
+            + "validation/resources/benchmarks_tyndp_output_prices_{scenario}{planning_horizons}.csv",
         log:
             logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
