@@ -370,6 +370,12 @@ adjustments:
     absolute: false
 
 solving:
+  options:
+    load_shedding:
+      enable: true
+      apply_to_all_carriers: false
+      carriers:
+        H2: 3000
   solver:
     name: highs
     options: highs-default
@@ -416,6 +422,9 @@ cba:
   planning_horizons:
   - 2030
   - 2040
+  cba_scenario_input:
+    use_presolved: false
+    sb_version: latest
   methods:
   - toot
   - pint
@@ -423,11 +432,10 @@ cba:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
 
-  # Storage settings for dispatch
+  # Storage settings for CBA dispatch
   storage:
-    # Carriers that remain cyclic (short-term storage)
-    # All other store/storage unit carriers automatically receive
-    # marginal storage value and have cyclicity disabled
+    # Carriers that should remain cyclic (short-term storage)
+    # These will maintain e_cyclic=True in simplify_sb_network
     cyclic_carriers:
     - battery
     - home battery
@@ -450,7 +458,7 @@ cba:
       horizon: 168
       overlap: 1
       load_shedding:
-        enable: true  # enabled for rolling horizon dispatch
+        enable: true
         apply_to_all_carriers: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 

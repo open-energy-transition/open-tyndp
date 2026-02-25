@@ -1420,7 +1420,7 @@ def check_cyear(cyear: int, scenario: str) -> int:
     """Check if the climatic year is valid for the given scenario."""
 
     valid_years = {
-        "NT": np.arange(1983, 2018).tolist(),
+        "NT": [1995, 2008, 2009],
         "DE": [1995, 2008, 2009],
         "GA": [1995, 2008, 2009],
     }

@@ -1226,6 +1226,11 @@ solving:
       default_price: 100000
       apply_to_all_carriers: true
       carriers: {}
+    load_sinks:
+      enable: false
+      default_price: 100000
+      apply_to_all_carriers: false
+      carriers: {}
     curtailment_mode: false
     noisy_costs: true
     skip_iterations: true
@@ -1535,6 +1540,9 @@ data:
   cba_guidelines_reference_projects:
     source: archive
     version: latest
+  open_tyndp_prelim:
+    source: archive
+    version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:
@@ -1551,6 +1559,9 @@ cba:
   hurdle_costs: 0.01
   co2_societal_cost: {}
   planning_horizons: []
+  cba_scenario_input:
+    use_presolved: false
+    sb_version: latest
   methods:
   - toot
   projects: []
