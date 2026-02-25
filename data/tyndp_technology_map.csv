@@ -26,7 +26,7 @@ Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,hydro-phs-pure,hydro-phs-pure-re
 Hydro,Pure Pump Storage - Turbine,PS_Closed,,,hydro-phs-pure,hydro-phs-pure-turbine,hydro-phs-pure-turbine,,
 Hydro,Pure Pump Storage - Pump,PS_Closed,,,hydro-phs-pure,hydro-phs-pure-pump,hydro-phs-pure-pump,,
 Other RES,"Small Biomass",,,,other-res,other-res-biomass,other-res-biomass,,
-Other RES,"Geothermal, Marine, Waste and Not Defined",,,,other-res,other-res,other-res,,
+Other RES,"Geothermal, Marine, Waste and Not Defined",,,,other-res,other-res-mix,other-res-mix,,
 Gas,Conventional old 1,,,,gas,gas-conv-old1,gas-conv,OCGT,
 Gas,Conventional old 2,,,,gas,gas-conv-old2,gas-conv,OCGT,
 Gas,CCGT old 1,,,,gas,gas-ccgt-old1,gas-ccgt,CCGT,

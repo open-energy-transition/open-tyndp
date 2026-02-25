@@ -1600,3 +1600,32 @@ def find_free_port(start_port=8050, max_attempts=50):
     raise RuntimeError(
         f"Could not find free port in range {start_port}-{start_port + max_attempts}"
     )
+
+
+def remove_zero_capacity_non_extendable(
+    n, carriers, component_types={"Generator", "Link"}
+):
+    """
+    Remove non-expandable assets with no capacity for the given carriers and component types.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    carriers : list[str]
+        Carriers to filter for.
+    component_types : set[str]
+        Component types to iterate over, e.g. {"Generator", "Link"}.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place.
+    """
+    for c in n.components[component_types]:
+        tech_i = c.static.loc[
+            (c.static["carrier"].isin(carriers))
+            & (c.static["p_nom_extendable"] == False)
+            & (c.static["p_nom"] == 0)
+        ].index
+        n.remove(c.name, tech_i)
