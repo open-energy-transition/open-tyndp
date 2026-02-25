@@ -32,6 +32,8 @@ class _CbaSolvingConfig(ConfigModel):
             "horizon": 168,
             "overlap": 0,
             "load_shedding": {"enable": True},
+            "remove_noisy_costs": False,
+            "noisy_costs_threshold": 0.02,
             "io_api": "direct",
         },
         description="CBA-specific solving options.",
