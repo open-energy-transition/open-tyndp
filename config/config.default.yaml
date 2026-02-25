@@ -1540,6 +1540,9 @@ data:
   cba_guidelines_reference_projects:
     source: archive
     version: latest
+  open_tyndp_prelim:
+    source: archive
+    version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:
@@ -1556,6 +1559,9 @@ cba:
   hurdle_costs: 0.01
   co2_societal_cost: {}
   planning_horizons: []
+  cba_scenario_input:
+    use_presolved: false
+    sb_version: latest
   methods:
   - toot
   projects: []

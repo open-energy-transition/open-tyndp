@@ -476,6 +476,21 @@
           },
           "type": "array"
         },
+        "cba_scenario_input": {
+          "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+          "properties": {
+            "use_presolved": {
+              "default": false,
+              "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+              "type": "boolean"
+            },
+            "sb_version": {
+              "default": "latest",
+              "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+              "type": "string"
+            }
+          }
+        },
         "methods": {
           "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
           "items": {
@@ -2103,6 +2118,26 @@
           }
         },
         "cba_guidelines_reference_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "open_tyndp_prelim": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -6236,6 +6271,21 @@
           "default": false,
           "description": "Add option for using gas-fired Combined Heat and Power (CHP) for decentral areas.",
           "type": "boolean"
+        }
+      }
+    },
+    "_CbaSbToCbaConfig": {
+      "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+      "properties": {
+        "use_presolved": {
+          "default": false,
+          "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+          "type": "boolean"
+        },
+        "sb_version": {
+          "default": "latest",
+          "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+          "type": "string"
         }
       }
     },
@@ -14614,6 +14664,26 @@
               "type": "string"
             }
           }
+        },
+        "open_tyndp_prelim": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -14682,6 +14752,21 @@
             "type": "integer"
           },
           "type": "array"
+        },
+        "cba_scenario_input": {
+          "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+          "properties": {
+            "use_presolved": {
+              "default": false,
+              "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+              "type": "boolean"
+            },
+            "sb_version": {
+              "default": "latest",
+              "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+              "type": "string"
+            }
+          }
         },
         "methods": {
           "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",

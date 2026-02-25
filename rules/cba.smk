@@ -3,12 +3,19 @@
 # SPDX-License-Identifier: MIT
 #
 
+import logging
 import os
+import shutil
+from pathlib import Path
+from zipfile import ZipFile
+
 import pandas as pd
 
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
 from shutil import unpack_archive, copy2
+
+logger = logging.getLogger(__name__)
 
 
 wildcard_constraints:
@@ -64,6 +71,47 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
             copy2(input["file"], output["file"])
 
 
+def presolved_sb_network_path(w, horizon=None):
+    sb_version = config_provider(
+        "cba", "cba_scenario_input", "sb_version", default="latest"
+    )(w)
+    target_horizon = horizon if horizon is not None else w.planning_horizons
+    return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
+
+
+if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
+    if (SB_SOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
+        "source"
+    ] in ["archive"]:
+
+        rule retrieve_presolved_sb_networks:
+            input:
+                zip_file=storage(SB_SOLVED_NETWORKS_DATASET["url"]),
+            output:
+                network=RESULTS
+                + f"networks/presolved-{config['cba']['cba_scenario_input']['sb_version']}/base_s_all___{{planning_horizons}}.nc",
+            log:
+                logs("retrieve_presolved_sb_networks_{planning_horizons}.log"),
+            run:
+                target_suffix = (
+                    f"networks/base_s_all___{wildcards.planning_horizons}.nc"
+                )
+                with ZipFile(input["zip_file"], "r") as zf:
+                    matches = [
+                        m for m in zf.namelist() if m.endswith(target_suffix)
+                    ]
+                    if not matches:
+                        raise ValueError(
+                            f"Could not find '{target_suffix}' in {input['zip_file']}."
+                        )
+                    member = matches[0]
+                    out_path = Path(output["network"])
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, out_path.open("wb") as dst:
+                        shutil.copyfileobj(src, dst)
+
+
+
 # read in transmission and storage projects from excel sheets
 #
 def input_clustered_network(w):
@@ -101,10 +149,46 @@ rule clean_tyndp_indicators:
 
 def input_sb_network(w):
     scenario = config_provider("scenario")(w)
+    (clusters,) = scenario["clusters"]
+    (opts,) = scenario["opts"]
+    (sector_opts,) = scenario["sector_opts"]
+
+    if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(w):
+        scenario_name = config_provider("tyndp_scenario")(w)
+        if scenario_name != "NT":
+            raise ValueError(
+                "Presolved SB networks are only currently available for the NT scenario."
+            )
+        sb_version = config_provider(
+            "cba", "cba_scenario_input", "sb_version", default="latest"
+        )(w)
+        # If sb_version is not "latest", raise error (for now) until we add functionality to handle gathering different Zenodo versions
+        if sb_version != "latest":
+            raise ValueError(
+                "Only cba.cba_scenario_input.sb_version='latest' is supported for presolved SB runs at the moment."
+            )
+        # Check that options match the presolved network naming convention
+        if clusters != "all" or opts != "" or sector_opts != "":
+            raise ValueError(
+                "Presolved SB runs require scenario.clusters=['all'], "
+                "scenario.opts=[''], and scenario.sector_opts=[''] to match "
+                "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
+            )
+        horizon = int(w.planning_horizons)
+        # If CBA planning horizon not in [2030, 2040] (such as horizon == 2035), use the 2040 SB network
+        if horizon not in [2030, 2040]:
+            logger.warning(
+                "Presolved SB networks are only available for 2030 and 2040. "
+                "Falling back to 2040 for CBA planning horizon %s.",
+                w.planning_horizons,
+            )
+            horizon = 2040
+        return presolved_sb_network_path(w, horizon)
+
     expanded_wildcards = {
-        "clusters": scenario["clusters"],
-        "opts": scenario["opts"],
-        "sector_opts": scenario["sector_opts"],
+        "clusters": clusters,
+        "opts": opts,
+        "sector_opts": sector_opts,
     }
     match config_provider("foresight")(w):
         case "perfect":
