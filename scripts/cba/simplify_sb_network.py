@@ -60,6 +60,39 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
     return n
 
 
+def remove_noisy_marginal_costs(
+    n: pypsa.Network,
+    threshold: float = 0.02,
+    components: list[str] | None = None,
+):
+    """
+    Remove small noisy marginal costs for selected components (Storage, StorageUnit).
+
+    This removes the random noise injected in solve_network.prepare_network
+    (approx 0.01 +/- 0.001) by zeroing marginal_cost values below the threshold.
+    """
+    if components is None:
+        components = ["Store", "StorageUnit"]
+    for comp_name in components:
+        comp = n.components.get(comp_name)
+        if comp is None:
+            continue
+        if "marginal_cost" not in comp.df:
+            continue
+        mc = comp.df["marginal_cost"]
+        cleaned = mc.where(mc.abs() >= threshold, 0.0)
+        changed = (cleaned != mc).sum()
+        if changed:
+            logger.info(
+                "Removed noisy marginal_costs for %s: %d entries set to 0 (threshold=%s)",
+                comp_name,
+                changed,
+                threshold,
+            )
+        comp.df["marginal_cost"] = cleaned
+    return n
+
+
 def disable_volume_limits(n: pypsa.Network):
     """
     Disable volume limits (e_sum_min) for generators and links.
@@ -180,6 +213,14 @@ if __name__ == "__main__":
 
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
     n = extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+
+    # Remove noisy marginal costs introduced during SB solving (CBA only)
+    if snakemake.params.get("remove_noisy_costs", False):
+        n = remove_noisy_marginal_costs(
+            n,
+            threshold=snakemake.params.get("noisy_costs_threshold", 0.02),
+            components=["Store", "StorageUnit"],
+        )
 
     disable_volume_limits(n)
 
