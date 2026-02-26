@@ -238,8 +238,9 @@ rule fix_reference_sb_to_cba:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
         guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
         transmission_projects=rules.clean_projects.output.transmission_projects,
+        buses=rules.build_tyndp_network.output.substations_geojson,
     output:
-        corrections_csv=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
+        corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
     log:
         logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
     benchmark:
@@ -256,7 +257,7 @@ rule prepare_reference:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        corrections=rules.fix_reference_sb_to_cba.output.corrections_csv,
+        corrections=rules.fix_reference_sb_to_cba.output.corrections,
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:

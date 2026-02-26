@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 """
-Build a table with values to use to correct the CBA reference grid.
+Build a ``Link`` dataframe of capacity corrections to align SB transmission projects with the CBA reference grid. A
+positive ``p_nom`` indicates capacity to add (potentially as a new link), while a negative ``p_nom`` indicates
+capacity to reduce on an existing link.
 
 This only works for 2040, as we are assuming the 2030 reference grid does not need corrections.
 """
@@ -11,9 +13,15 @@ This only works for 2040, as we are assuming the 2030 reference grid does not ne
 import sys
 from pathlib import Path
 
+import geopandas as gpd
 import pandas as pd
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import (
+    configure_logging,
+    extract_grid_data_tyndp,
+    set_scenario_config,
+)
+from scripts.build_tyndp_network import add_links_missing_attributes
 from scripts.sb.build_tyndp_transmission_projects import read_invest_file
 
 
@@ -45,16 +53,24 @@ def read_guidelines(path: Path) -> pd.DataFrame:
     return df[~df.index.str.contains("internal|Offshore|OBZ")]
 
 
-def build_table(sb_invest: pd.DataFrame, cba_guidelines: pd.DataFrame) -> pd.DataFrame:
-    sb = sb_invest.rename(lambda x: "SB - " + x, axis=1)
-    cba = cba_guidelines.rename(lambda x: "CBA Projects - " + x, axis=1)
-    merged = pd.concat([sb, cba], axis=1)
-    correction = cba_guidelines.subtract(sb_invest, fill_value=0).rename(
-        lambda x: "Correction - " + x, axis=1
+def build_links(projects_fix: pd.DataFrame, buses_fn: str) -> pd.DataFrame:
+    links_fix = extract_grid_data_tyndp(
+        projects_fix.reset_index(),
+        expand_from_index=True,
+        idx_connector="-",
+        idx_suffix="-DC",
+        idx_separator="",
     )
-    df = pd.concat([merged, correction], axis=1)
-    df = df[df.filter(like="Correction", axis=1).sum(axis=1) != 0]
-    return df
+    buses = gpd.read_file(buses_fn).set_index("bus_id")
+    links_fix = add_links_missing_attributes(links_fix, buses)
+
+    links_fix["carrier"] = "DC"
+    links_fix["length"] /= 1e3
+    links_fix[["underground", "under_construction"]] = (
+        links_fix[["underground", "under_construction"]] == "t"
+    )
+
+    return links_fix
 
 
 if __name__ == "__main__":
@@ -71,9 +87,10 @@ if __name__ == "__main__":
     build_years = snakemake.params.build_years
 
     if not build_years:
-        pd.DataFrame().to_csv(snakemake.output.corrections_csv, index=True)
+        pd.DataFrame().to_csv(snakemake.output.corrections, index=True)
         sys.exit(0)
 
+    # Read references
     df_invest = (
         read_invest_file(invest_path, years=build_years)
         .assign(Border=lambda df: df.bus0 + "-" + df.bus1)
@@ -81,18 +98,19 @@ if __name__ == "__main__":
         .set_index("Border")
     )
     df_gl_projects = read_guidelines(guidelines_path)
-    output = build_table(df_invest, df_gl_projects)
+
+    # Build fixes
+    projects_fix = df_gl_projects.subtract(df_invest, fill_value=0)
+    projects_fix = projects_fix[projects_fix.sum(axis=1) != 0]
 
     # Add EU-GB border specific treatment (see Implementation Guidelines for TYNDP 2024, Appendix B.2, p119)
-    current = 6850  # MW
-    desired = 8725  # MW
-    output.loc["FR00-GB00"] = [
-        current,
-        current,
-        desired,
-        desired,
+    current = 6850  # MW (2030)
+    desired = 8725  # MW (2035)
+    projects_fix.loc["FR00-GB00"] = [
         desired - current,
         desired - current,
     ]
 
-    output.to_csv(snakemake.output.corrections_csv, index=True)
+    # Transform fixes to links definitions
+    links_fix = build_links(projects_fix, snakemake.input.buses)
+    links_fix.to_csv(snakemake.output.corrections, quotechar="'")

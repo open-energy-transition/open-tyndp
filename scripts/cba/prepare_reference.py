@@ -99,26 +99,18 @@ if __name__ == "__main__":
     hurdle_costs = snakemake.params.hurdle_costs
 
     if planning_horizons in [2035, 2040]:
-        corrections = pd.read_csv(snakemake.input.corrections, index_col=0)
-        corrections = corrections[
-            ["Correction - Summary Direction 1", "Correction - Summary Direction 2"]
-        ].copy()
+        corrections = pd.read_csv(
+            snakemake.input.corrections, quotechar="'", index_col=0
+        )
         for border, row in corrections.iterrows():
             if not isinstance(border, str) or "-" not in border:
                 continue
-            bus0, bus1 = border.split("-", 1)
+            bus0, bus1 = row["bus0"], row["bus1"]
             update_or_add_link(
                 n,
                 bus0,
                 bus1,
                 row["Correction - Summary Direction 1"],
-                hurdle_costs,
-            )
-            update_or_add_link(
-                n,
-                bus1,
-                bus0,
-                row["Correction - Summary Direction 2"],
                 hurdle_costs,
             )
     else:
