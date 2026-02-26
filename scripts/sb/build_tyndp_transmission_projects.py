@@ -69,7 +69,6 @@ def read_invest_file(
             }
         )
         .replace({"UK": "GB"}, regex=True)
-        .query("bus0 in @buses.index & bus1 in @buses.index")
         .groupby(["bus0", "bus1"])
         .sum()[["Summary Direction 1", "Summary Direction 2"]]
         .reset_index()
@@ -108,7 +107,9 @@ def get_invest_projects(
     gpd.GeoDataFrame
         Processed links with geometry.
     """
-    projects = read_invest_file(fn_invest, carrier, years, category)
+    projects = read_invest_file(fn_invest, carrier, years, category).query(
+        "bus0 in @buses.index & bus1 in @buses.index"
+    )
 
     links = extract_grid_data_tyndp(
         links=projects,
@@ -128,7 +129,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_tyndp_transmission_projects")
+        snakemake = mock_snakemake(
+            "build_tyndp_transmission_projects", planning_horizons="2040"
+        )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 

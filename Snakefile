@@ -74,17 +74,19 @@ OSM_DATASET = dataset_version("osm")
 include: "rules/collect.smk"
 include: "rules/retrieve.smk"
 include: "rules/build_electricity.smk"
-include: "rules/build_sector.smk"
-include: "rules/solve_electricity.smk"
-include: "rules/postprocess.smk"
-include: "rules/development.smk"
-include: "rules/report.smk"
 
 
 if config["tyndp_scenario"]:
 
     include: "rules/cba.smk"
     include: "rules/sb.smk"
+
+
+include: "rules/build_sector.smk"
+include: "rules/solve_electricity.smk"
+include: "rules/postprocess.smk"
+include: "rules/development.smk"
+include: "rules/report.smk"
 
 
 if config["foresight"] == "overnight":
