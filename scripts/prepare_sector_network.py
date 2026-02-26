@@ -77,12 +77,14 @@ def attach_tyndp_transmission_projects(
     fn_projects_fix : str (optional)
         Path to CSV file containing transmission project fixes (default: None).
     """
+    logging.info("Adding transmission projects to the electrical network")
     projects = _load_links_from_raw(fn_projects)
     projects["dc"] = True
     # TODO underwater fraction and capital costs not defined for new links
 
     # Patch the project list (optional)
     if fn_projects_fix:
+        logging.info("Patching electrical transmission projects with fixes")
         projects_fix = pd.read_csv(
             snakemake.input.tyndp_projects_fix, quotechar="'", index_col=0
         ).assign(dc=True)
