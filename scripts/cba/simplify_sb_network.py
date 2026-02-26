@@ -1,40 +1,41 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
-
 """
-Simplify SB (Scenario Building) network for CBA analysis.
+Simplify scenario building network for CBA analysis.
 
-Extracts a planning horizon from the optimized network and applies
-simplifications needed for CBA reference network.
+Creates the base CBA network with:
+- Fixed optimal capacities from scenario building
+- Hurdle costs on DC links
+- Extended primary fuel source capacities
+
+**Inputs**
+
+- Solved network from scenario building workflow
+
+**Outputs**
+
+- ``resources/cba/networks/simple_{planning_horizons}.nc``: Simplified network for CBA
 """
 
 import logging
 
 import pandas as pd
 import pypsa
-from numpy import inf, isfinite
+from numpy import inf
 
 from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
 
-def summarize_counts(s: pd.Series):
-    ret = ""
-    for key, count in s.value_counts().items():
-        ret += f"- {key} ({count})\n"
-    return ret
-
-
 def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: list):
     """
-    Remove capacity constraints on primary fuel source generators for CBA rolling horizon.
+    Set infinite capacity for primary fuel source generators.
 
-    When using capacities fixed from Scenario Building in rolling horizon optimization,
-    peak fuel production can be artificially limited. Since primary fuel sources incur no
-    capital costs, unlimited capacity ensures sufficient fuel supply without changing the
-    objective function.
+    Rolling horizon with fixed capacities can artificially limit peak fuel production.
+    Primary fuel sources have no capital costs, so unlimited capacity ensures
+    sufficient supply without affecting the objective function.
 
     Parameters
     ----------
@@ -47,8 +48,8 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
 
     Returns
     -------
-    pypsa.Network
-        Modified network with infinite capacity for primary fuel sources
+    None
+        Network is modified in place.
     """
     # split for 'oil-light', 'oil-heavy', 'oil-shale' -> 'oil'
     primary_fuel_carriers = pd.Series(
@@ -198,19 +199,37 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("simplify_sb_network")
+        snakemake = mock_snakemake(
+            "simplify_sb_network",
+            planning_horizons="2030",
+            run="test-sector-tyndp",
+            configfiles=["config/config.tyndp.yaml"],
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Load the solved base network
-    # The wildcard has been expanded to {clusters}_{opts}_{sector_opts}_{planning_horizons}
+    # Load the solved network from scenario building
     n = pypsa.Network(snakemake.input.network)
+
+    # Extend primary fuel sources capacity
+    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
+    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
 
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
+    # Fix optimal capacities from scenario building
     n.optimize.fix_optimal_capacities()
 
+    # Add hurdle costs to DC links
+    # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
+    hurdle_costs = snakemake.params.hurdle_costs
+    n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
+    logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
+    # TODO: for DE/GA add merging of the two H2 zones
+    # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
+
+    # Save base network
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
     n = extend_primary_fuel_sources(n, tyndp_conventional_carriers)
 
@@ -236,3 +255,4 @@ if __name__ == "__main__":
 
     # Save simplified network
     n.export_to_netcdf(snakemake.output.network)
+    logger.info(f"Saved CBA base network to {snakemake.output.network}")
