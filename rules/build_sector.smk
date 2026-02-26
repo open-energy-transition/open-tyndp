@@ -1820,6 +1820,10 @@ rule prepare_sector_network:
             include_tyndp_projects,
             resources("tyndp/new_links_{planning_horizons}.csv"),
         ),
+        tyndp_projects_fix=branch(
+            config_provider("tyndp_investment_candidates", "patch_sb_with_cba"),
+            rules.fix_reference_sb_to_cba.output.corrections,
+        ),
         tyndp_trajectories=branch(
             include_tyndp_trajectories,
             resources("tyndp_trajectories.csv"),
