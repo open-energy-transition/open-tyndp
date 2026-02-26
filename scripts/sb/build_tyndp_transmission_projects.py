@@ -43,7 +43,42 @@ from scripts.build_tyndp_network import (
 logger = logging.getLogger(__name__)
 
 
-def read_invest_projects(
+def read_invest_file(
+    fn_invest: str,
+    carrier: str = "Electricity",
+    years: list[int] = [2030, 2035],
+    category: str = "Real",
+) -> pd.DataFrame:
+    if carrier not in ["Electricity", "Hydrogen"]:
+        raise ValueError(
+            f"Carrier must be 'Electricity' or 'Hydrogen', got '{carrier}'."
+        )
+    border_condition = (
+        f"BORDER.str.contains('{category}') & " if carrier == "Electricity" else ""
+    )
+
+    projects = (
+        pd.read_excel(fn_invest, sheet_name=carrier)
+        .query(f"{border_condition}YEAR in @years")
+        .rename(
+            columns={
+                "DIRECT CAPACITY INCREASE (MW)": "Summary Direction 1",
+                "INDIRECT CAPACITY INCREASE (MW)": "Summary Direction 2",
+                "FROM NODE": "bus0",
+                "TO NODE": "bus1",
+            }
+        )
+        .replace({"UK": "GB"}, regex=True)
+        .query("bus0 in @buses.index & bus1 in @buses.index")
+        .groupby(["bus0", "bus1"])
+        .sum()[["Summary Direction 1", "Summary Direction 2"]]
+        .reset_index()
+    )
+
+    return projects
+
+
+def get_invest_projects(
     fn_invest: str,
     buses: gpd.GeoDataFrame,
     carrier: str = "Electricity",
@@ -73,31 +108,7 @@ def read_invest_projects(
     gpd.GeoDataFrame
         Processed links with geometry.
     """
-    if carrier not in ["Electricity", "Hydrogen"]:
-        raise ValueError(
-            f"Carrier must be 'Electricity' or 'Hydrogen', got '{carrier}'."
-        )
-    border_condition = (
-        f"BORDER.str.contains('{category}') & " if carrier == "Electricity" else ""
-    )
-
-    projects = (
-        pd.read_excel(fn_invest, sheet_name=carrier)
-        .query(f"{border_condition}YEAR in @years")
-        .rename(
-            columns={
-                "DIRECT CAPACITY INCREASE (MW)": "Summary Direction 1",
-                "INDIRECT CAPACITY INCREASE (MW)": "Summary Direction 2",
-                "FROM NODE": "bus0",
-                "TO NODE": "bus1",
-            }
-        )
-        .replace({"UK": "GB"}, regex=True)
-        .query("bus0 in @buses.index & bus1 in @buses.index")
-        .groupby(["bus0", "bus1"])
-        .sum()[["Summary Direction 1", "Summary Direction 2"]]
-        .reset_index()
-    )
+    projects = read_invest_file(fn_invest, carrier, years, category)
 
     links = extract_grid_data_tyndp(
         links=projects,
@@ -125,7 +136,7 @@ if __name__ == "__main__":
     build_years = snakemake.params.build_years
 
     buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
-    new_links = read_invest_projects(
+    new_links = get_invest_projects(
         snakemake.input.invest_grid, buses, years=build_years
     )
 
