@@ -82,4 +82,17 @@ if __name__ == "__main__":
     )
     df_gl_projects = read_guidelines(guidelines_path)
     output = build_table(df_invest, df_gl_projects)
+
+    # Add EU-GB border specific treatment (see Implementation Guidelines for TYNDP 2024, Appendix B.2, p119)
+    current = 6850  # MW
+    desired = 8725  # MW
+    output.loc["FR00-GB00"] = [
+        current,
+        current,
+        desired,
+        desired,
+        desired - current,
+        desired - current,
+    ]
+
     output.to_csv(snakemake.output.corrections_csv, index=True)
