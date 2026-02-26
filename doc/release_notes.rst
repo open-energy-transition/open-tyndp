@@ -21,6 +21,8 @@ Upcoming Open-TYNDP Release
 
 * Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
+* Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
+
 **Changes**
 
 **Bugfixes and Compatibility**
