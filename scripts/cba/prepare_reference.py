@@ -20,6 +20,53 @@ from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
+
+def update_or_add_link(n, bus0, bus1, delta, hurdle_costs):
+    if pd.isna(delta) or delta == 0:
+        return
+
+    link_name = f"{bus0}-{bus1}-DC"
+    if link_name in n.links.index:
+        current = n.links.at[link_name, "p_nom"]
+        new_p_nom = max(0.0, current + delta)
+        n.links.at[link_name, "p_nom"] = new_p_nom
+        if "p_nom_max" in n.links.columns:
+            n.links.at[link_name, "p_nom_max"] = max(
+                n.links.at[link_name, "p_nom_max"], new_p_nom
+            )
+        if "p_nom_min" in n.links.columns:
+            n.links.at[link_name, "p_nom_min"] = min(
+                n.links.at[link_name, "p_nom_min"], new_p_nom
+            )
+        logger.info(
+            f"Updated link {link_name}: p_nom {current:.2f} -> {new_p_nom:.2f} (delta {delta:.2f})"
+        )
+        return
+
+    if delta < 0:
+        logger.warning(
+            f"Skipping negative correction {delta:.2f} for missing link {link_name}"
+        )
+        return
+
+    if bus0 not in n.buses.index or bus1 not in n.buses.index:
+        logger.warning(f"Skipping link {link_name}: missing buses ({bus0}, {bus1})")
+        return
+
+    n.add(
+        "Link",
+        link_name,
+        bus0=bus0,
+        bus1=bus1,
+        carrier="DC",
+        p_nom=delta,
+        p_nom_max=delta,
+        marginal_cost=hurdle_costs,
+        capital_cost=0.0,
+    )
+    logger.info(f"Added missing link {link_name} with p_nom {delta:.2f}")
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -33,62 +80,6 @@ if __name__ == "__main__":
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
-
-    def update_or_add_link(n, bus0, bus1, delta, hurdle_costs):
-        if pd.isna(delta) or delta == 0:
-            return
-
-        link_name = f"{bus0}-{bus1}-DC"
-        if link_name in n.links.index:
-            current = n.links.at[link_name, "p_nom"]
-            new_p_nom = max(0.0, current + delta)
-            n.links.at[link_name, "p_nom"] = new_p_nom
-            if "p_nom_max" in n.links.columns:
-                n.links.at[link_name, "p_nom_max"] = max(
-                    n.links.at[link_name, "p_nom_max"], new_p_nom
-                )
-            if "p_nom_min" in n.links.columns:
-                n.links.at[link_name, "p_nom_min"] = min(
-                    n.links.at[link_name, "p_nom_min"], new_p_nom
-                )
-            logger.info(
-                "Updated link %s: p_nom %.2f -> %.2f (delta %.2f)",
-                link_name,
-                current,
-                new_p_nom,
-                delta,
-            )
-            return
-
-        if delta < 0:
-            logger.warning(
-                "Skipping negative correction %.2f for missing link %s",
-                delta,
-                link_name,
-            )
-            return
-
-        if bus0 not in n.buses.index or bus1 not in n.buses.index:
-            logger.warning(
-                "Skipping link %s: missing buses (%s, %s)",
-                link_name,
-                bus0,
-                bus1,
-            )
-            return
-
-        n.add(
-            "Link",
-            link_name,
-            bus0=bus0,
-            bus1=bus1,
-            carrier="DC",
-            p_nom=delta,
-            p_nom_max=delta,
-            marginal_cost=hurdle_costs,
-            capital_cost=0.0,
-        )
-        logger.info("Added missing link %s with p_nom %.2f", link_name, delta)
 
     # Load simplified network
     n = pypsa.Network(snakemake.input.network)
@@ -132,8 +123,7 @@ if __name__ == "__main__":
             )
     else:
         logger.info(
-            "Skipping reference corrections for planning horizon %s",
-            planning_horizons,
+            f"Skipping reference corrections for planning horizon {planning_horizons}"
         )
 
     # Save reference network with all projects
