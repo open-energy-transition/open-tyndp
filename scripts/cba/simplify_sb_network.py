@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     # Extend primary fuel sources capacity
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
-    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+    n = extend_primary_fuel_sources(n, tyndp_conventional_carriers)
 
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
