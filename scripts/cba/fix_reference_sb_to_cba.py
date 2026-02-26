@@ -52,7 +52,9 @@ def build_table(sb_invest: pd.DataFrame, cba_guidelines: pd.DataFrame) -> pd.Dat
     correction = cba_guidelines.subtract(sb_invest, fill_value=0).rename(
         lambda x: "Correction - " + x, axis=1
     )
-    return pd.concat([merged, correction], axis=1)
+    df = pd.concat([merged, correction], axis=1)
+    df = df[df.filter(like="Correction", axis=1).sum(axis=1) != 0]
+    return df
 
 
 if __name__ == "__main__":
