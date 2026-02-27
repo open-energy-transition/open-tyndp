@@ -98,7 +98,11 @@ if __name__ == "__main__":
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
     hurdle_costs = snakemake.params.hurdle_costs
 
-    if planning_horizons in [2035, 2040]:
+    if planning_horizons in [2035, 2040] and snakemake.params.patch_sb_with_cba:
+        logger.info(
+            f"Reference corrections were already applied for planning horizon {planning_horizons}, skipping"
+        )
+    elif planning_horizons in [2035, 2040]:
         logging.info("Patching electrical transmission projects with fixes")
         corrections = pd.read_csv(
             snakemake.input.corrections, quotechar="'", index_col=0
@@ -114,10 +118,6 @@ if __name__ == "__main__":
                 row["p_nom"],
                 hurdle_costs,
             )
-    elif planning_horizons in [2035, 2040] and snakemake.params.patch_sb_with_cba:
-        logger.info(
-            f"Reference corrections were already applied for planning horizon {planning_horizons}, skipping"
-        )
     else:
         logger.info(
             f"Skipping reference corrections for planning horizon {planning_horizons}"
