@@ -103,7 +103,7 @@ if __name__ == "__main__":
             f"Reference corrections were already applied for planning horizon {planning_horizons}, skipping"
         )
     elif planning_horizons in [2035, 2040]:
-        logging.info("Patching electrical transmission projects with fixes")
+        logger.info("Patching electrical transmission projects with fixes")
         corrections = pd.read_csv(
             snakemake.input.corrections, quotechar="'", index_col=0
         )
