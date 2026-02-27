@@ -282,6 +282,7 @@ def input_msv_snapshot_weightings(w):
 rule solve_cba_msv_extraction:
     params:
         solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
@@ -296,7 +297,6 @@ rule solve_cba_msv_extraction:
     threads: 1
     script:
         "../scripts/cba/solve_cba_msv_extraction.py"
-
 
 # Prepare network for rolling horizon: disable seasonal cyclicity, apply marginal storage value
 rule prepare_rolling_horizon:
