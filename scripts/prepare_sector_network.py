@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 
 
 def attach_tyndp_transmission_projects(
-    n: pypsa.Network, fn_projects: str, fn_projects_fix: str = None
+    n: pypsa.Network, fn_projects: str, fn_projects_fix: str | None = None
 ):
     """
     Add TYNDP transmission projects to the network.
@@ -74,7 +74,7 @@ def attach_tyndp_transmission_projects(
         Network to attach projects to.
     fn_projects : str
         Path to CSV file containing transmission project data.
-    fn_projects_fix : str (optional)
+    fn_projects_fix : str|None (optional)
         Path to CSV file containing transmission project fixes (default: None).
     """
     logger.info("Adding transmission projects to the electrical network")

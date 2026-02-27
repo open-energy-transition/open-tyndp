@@ -3,9 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 """
-Build a ``Link`` dataframe of capacity corrections to align SB transmission projects with the CBA reference grid. A
-positive ``p_nom`` indicates capacity to add (potentially as a new link), while a negative ``p_nom`` indicates
-capacity to reduce on an existing link.
+Build a ``Link`` dataframe of capacity corrections to align SB transmission projects with the CBA reference grid. A positive ``p_nom`` indicates capacity to add (potentially as a new link), while a negative ``p_nom`` indicates capacity to reduce on an existing link.
 
 This only works for 2040, as we are assuming the 2030 reference grid does not need corrections.
 """
