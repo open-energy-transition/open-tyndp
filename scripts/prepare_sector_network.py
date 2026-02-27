@@ -85,9 +85,9 @@ def attach_tyndp_transmission_projects(
     # Patch the project list (optional)
     if fn_projects_fix:
         logging.info("Patching electrical transmission projects with fixes")
-        projects_fix = pd.read_csv(
-            snakemake.input.tyndp_projects_fix, quotechar="'", index_col=0
-        ).assign(dc=True)
+        projects_fix = pd.read_csv(fn_projects_fix, quotechar="'", index_col=0).assign(
+            dc=True
+        )
         new_projects = projects_fix.loc[
             list(set(projects_fix.index) - set(projects.index))
         ]

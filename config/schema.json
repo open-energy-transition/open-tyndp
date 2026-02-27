@@ -6045,7 +6045,7 @@
       "properties": {
         "patch_sb_with_cba": {
           "default": false,
-          "description": "Whether to apply capacity corrections to SB transmission projects to align them with the CBA reference grid guidelines. Corrections are computed by `scripts/cba/fix_reference_sb_to_cba.py` and are only relevant for the 2040 horizon.",
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
           "type": "boolean"
         },
         "elec_projects": {
@@ -11036,7 +11036,7 @@
       "properties": {
         "patch_sb_with_cba": {
           "default": false,
-          "description": "Whether to apply capacity corrections to SB transmission projects to align them with the CBA reference grid guidelines. Corrections are computed by `scripts/cba/fix_reference_sb_to_cba.py` and are only relevant for the 2040 horizon.",
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
           "type": "boolean"
         },
         "elec_projects": {
