@@ -94,6 +94,7 @@ def attach_tyndp_transmission_projects(
         projects.loc[:, "p_nom"] += projects_fix.p_nom.reindex(
             projects.index, fill_value=0
         )
+        projects = projects.clip(lower=0)
         projects = projects[projects.p_nom != 0]
 
         if not new_projects.empty:
