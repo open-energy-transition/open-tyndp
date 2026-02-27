@@ -108,8 +108,6 @@ if __name__ == "__main__":
             snakemake.input.corrections, quotechar="'", index_col=0
         )
         for border, row in corrections.iterrows():
-            if not isinstance(border, str) or "-" not in border:
-                continue
             bus0, bus1 = row["bus0"], row["bus1"]
             update_or_add_link(
                 n,
