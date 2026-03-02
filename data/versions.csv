@@ -104,6 +104,8 @@ nitrogen_statistics,2022,primary,latest supported,2025-12-02,,https://d9-wret.s3
 nitrogen_statistics,2022,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/nitrogen_statistics/2022/nitro-ert.xlsx
 nuts3_population,13-03-2025,primary,latest supported,2025-12-02,,https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nama_10r_3popgdp?format=TSV&compressed=true
 nuts3_population,13-03-2025,archive,latest supported,2026-01-13,earlier part of zenodo bundle,https://data.pypsa.org/workflows/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
+open_tyndp_prelim,0.5,primary,not-supported,2026-02-16,Open-TYNDP preliminary outcomes,https://zenodo.org/records/18608106
+open_tyndp_prelim,0.5,archive,latest supported,2026-02-16,Open-TYNDP preliminary outcomes (results-0.5.zip),https://zenodo.org/records/18608106/files/results-0.5.zip
 opsd_electricity_demand,unknown,build,latest supported,2026-02-02,multiple versions concatenated,https://data.open-power-system-data.org/time_series/
 opsd_electricity_demand,2026-02-02,archive,latest supported,2026-02-03,,https://data.pypsa.org/workflows/eur/opsd_electricity_demand/2026-02-02/electricity_demand_opsd_raw.csv
 osm,unknown,build,latest supported,2025-12-02,Latest dataset built using OSM data. No single URL available to access the data. See the related scripts and documentation for details.,

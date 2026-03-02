@@ -452,11 +452,11 @@
       }
     },
     "CbaConfig": {
-      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
         "hurdle_costs": {
           "default": 0.01,
-          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
           "type": "number"
         },
         "co2_societal_cost": {
@@ -466,18 +466,33 @@
             },
             "type": "object"
           },
-          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios.",
           "type": "object"
         },
         "planning_horizons": {
-          "description": "List of planning horizons for which to run CBA.",
+          "description": "List of planning horizons for which to run cost-benefit analysis.",
           "items": {
             "type": "integer"
           },
           "type": "array"
         },
+        "cba_scenario_input": {
+          "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+          "properties": {
+            "use_presolved": {
+              "default": false,
+              "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+              "type": "boolean"
+            },
+            "sb_version": {
+              "default": "latest",
+              "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+              "type": "string"
+            }
+          }
+        },
         "methods": {
-          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
           "items": {
             "enum": [
               "toot",
@@ -488,7 +503,7 @@
           "type": "array"
         },
         "projects": {
-          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
             "type": "string"
           },
@@ -496,7 +511,7 @@
         },
         "area": {
           "default": "tyndp",
-          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "description": "Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
           "enum": [
             "tyndp",
             "entso-e",
@@ -508,11 +523,44 @@
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
               "items": {
                 "type": "string"
               },
               "type": "array"
+            },
+            "soc_boundary_carriers": {
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "msv_extraction": {
+          "description": "Configuration for `cba.msv_extraction` settings.",
+          "properties": {
+            "resolution": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": false,
+              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+            },
+            "resample_method": {
+              "default": "ffill",
+              "description": "Method for resampling marginal storage value to target network resolution.",
+              "enum": [
+                "ffill",
+                "interpolate"
+              ],
+              "type": "string"
             }
           }
         },
@@ -521,14 +569,14 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "CBA-specific solving options.",
+              "description": "Solving options for rolling horizon dispatch.",
               "type": "object"
             },
             "solver": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "CBA solver configuration.",
+              "description": "Solver configuration.",
               "type": "object"
             },
             "solver_options": {
@@ -536,7 +584,7 @@
                 "additionalProperties": true,
                 "type": "object"
               },
-              "description": "CBA solver options.",
+              "description": "Solver-specific options.",
               "type": "object"
             }
           }
@@ -2174,6 +2222,26 @@
           }
         },
         "cba_guidelines_reference_projects": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "open_tyndp_prelim": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -6301,19 +6369,60 @@
         }
       }
     },
+    "_CbaMsvExtractionConfig": {
+      "description": "Configuration for `cba.msv_extraction` settings.",
+      "properties": {
+        "resolution": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": false,
+          "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+        },
+        "resample_method": {
+          "default": "ffill",
+          "description": "Method for resampling marginal storage value to target network resolution.",
+          "enum": [
+            "ffill",
+            "interpolate"
+          ],
+          "type": "string"
+        }
+      }
+    },
+    "_CbaSbToCbaConfig": {
+      "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+      "properties": {
+        "use_presolved": {
+          "default": false,
+          "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+          "type": "boolean"
+        },
+        "sb_version": {
+          "default": "latest",
+          "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+          "type": "string"
+        }
+      }
+    },
     "_CbaSolvingConfig": {
       "description": "Configuration for `cba.solving` settings.",
       "properties": {
         "options": {
           "additionalProperties": true,
-          "description": "CBA-specific solving options.",
+          "description": "Solving options for rolling horizon dispatch.",
           "type": "object"
         },
         "solver": {
           "additionalProperties": {
             "type": "string"
           },
-          "description": "CBA solver configuration.",
+          "description": "Solver configuration.",
           "type": "object"
         },
         "solver_options": {
@@ -6321,7 +6430,7 @@
             "additionalProperties": true,
             "type": "object"
           },
-          "description": "CBA solver options.",
+          "description": "Solver-specific options.",
           "type": "object"
         }
       }
@@ -6330,7 +6439,14 @@
       "description": "Configuration for `cba.storage` settings.",
       "properties": {
         "cyclic_carriers": {
-          "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+          "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "soc_boundary_carriers": {
+          "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
           "items": {
             "type": "string"
           },
@@ -14752,6 +14868,26 @@
               "type": "string"
             }
           }
+        },
+        "open_tyndp_prelim": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -14797,11 +14933,11 @@
       }
     },
     "cba": {
-      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
         "hurdle_costs": {
           "default": 0.01,
-          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
           "type": "number"
         },
         "co2_societal_cost": {
@@ -14811,18 +14947,33 @@
             },
             "type": "object"
           },
-          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios.",
           "type": "object"
         },
         "planning_horizons": {
-          "description": "List of planning horizons for which to run CBA.",
+          "description": "List of planning horizons for which to run cost-benefit analysis.",
           "items": {
             "type": "integer"
           },
           "type": "array"
         },
+        "cba_scenario_input": {
+          "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+          "properties": {
+            "use_presolved": {
+              "default": false,
+              "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+              "type": "boolean"
+            },
+            "sb_version": {
+              "default": "latest",
+              "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+              "type": "string"
+            }
+          }
+        },
         "methods": {
-          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
           "items": {
             "enum": [
               "toot",
@@ -14833,7 +14984,7 @@
           "type": "array"
         },
         "projects": {
-          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
             "type": "string"
           },
@@ -14841,7 +14992,7 @@
         },
         "area": {
           "default": "tyndp",
-          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "description": "Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
           "enum": [
             "tyndp",
             "entso-e",
@@ -14853,11 +15004,44 @@
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
               "items": {
                 "type": "string"
               },
               "type": "array"
+            },
+            "soc_boundary_carriers": {
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "msv_extraction": {
+          "description": "Configuration for `cba.msv_extraction` settings.",
+          "properties": {
+            "resolution": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": false,
+              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+            },
+            "resample_method": {
+              "default": "ffill",
+              "description": "Method for resampling marginal storage value to target network resolution.",
+              "enum": [
+                "ffill",
+                "interpolate"
+              ],
+              "type": "string"
             }
           }
         },
@@ -14866,14 +15050,14 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "CBA-specific solving options.",
+              "description": "Solving options for rolling horizon dispatch.",
               "type": "object"
             },
             "solver": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "CBA solver configuration.",
+              "description": "Solver configuration.",
               "type": "object"
             },
             "solver_options": {
@@ -14881,7 +15065,7 @@
                 "additionalProperties": true,
                 "type": "object"
               },
-              "description": "CBA solver options.",
+              "description": "Solver-specific options.",
               "type": "object"
             }
           }

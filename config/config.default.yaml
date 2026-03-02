@@ -1552,6 +1552,9 @@ data:
   cba_guidelines_reference_projects:
     source: archive
     version: latest
+  open_tyndp_prelim:
+    source: archive
+    version: latest
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#overpass_api
 overpass_api:
@@ -1568,6 +1571,9 @@ cba:
   hurdle_costs: 0.01
   co2_societal_cost: {}
   planning_horizons: []
+  cba_scenario_input:
+    use_presolved: false
+    sb_version: latest
   methods:
   - toot
   projects: []
@@ -1576,10 +1582,15 @@ cba:
     cyclic_carriers:
     - battery
     - home battery
+    soc_boundary_carriers:
+    - "hydro-reservoir"
+  msv_extraction:
+    resolution: false
+    resample_method: ffill
   solving:
     options:
       horizon: 168
-      overlap: 0
+      overlap: 1
       load_shedding:
         enable: true
       io_api: direct
