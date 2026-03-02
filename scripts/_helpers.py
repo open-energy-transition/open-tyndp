@@ -1623,9 +1623,9 @@ def remove_zero_capacity_non_extendable(
         Modifies the network object in-place.
     """
     for c in n.components[component_types]:
-        tech_i = c.static.loc[
+        idx = c.static.loc[
             (c.static["carrier"].isin(carriers))
             & (~c.static["p_nom_extendable"])
             & (c.static["p_nom"] == 0)
         ].index
-        n.remove(c.name, tech_i)
+        n.remove(c.name, idx)
