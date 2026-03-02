@@ -404,7 +404,7 @@ def _process_other_res_capacities(
             bus=node,
             country=node[:2],
             pemmdb_carrier=pemmdb_tech,
-            efficiency=1.0,  # no efficiencies given but capacity in MWel
+            efficiency=1.0,  # assign dummy efficiency as no efficiencies given but capacity in MWel
             unit="MW",
         )
         .reset_index()
