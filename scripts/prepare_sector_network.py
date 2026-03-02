@@ -2295,9 +2295,30 @@ def _add_smr_capacities(
         ).fillna(0.0)
 
 
-def _add_profiles(carrier, asset_i, component_t, profiles):
+def _add_other_res_profiles(
+    carrier: str,
+    asset_i: pd.Index,
+    component_t: dict[str, pd.DataFrame],
+    profiles: pd.DataFrame,
+) -> None:
     """
-    Add p_min_pu and p_max_pu profiles to existing network for a given carrier and component.
+    Add p_min_pu and p_max_pu profiles to existing network for a given Other RES carrier and component.
+
+    Parameters
+    ----------
+    carrier : str
+        Carrier name for which to add the Other RES profile.
+    asset_i : pd.Index
+        Index names of associated network components for the given carrier.
+    component_t : dict[str, pd.DataFrame]
+        omponent dictionary containing time-dependent attributes for the given component.
+    profiles : pd.DataFrame
+        Dataframe containing the profiles to add to the network.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the Other RES profiles.
     """
 
     profiles = profiles.query(f"index_carrier == '{carrier}'")
@@ -2376,14 +2397,14 @@ def _add_other_res_capacities(
 
     # Add fixed per-unit generation profiles
     # Other RES Biomass
-    _add_profiles(
+    _add_other_res_profiles(
         carrier="other-res-biomass",
         asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
         component_t=n.links_t,
         profiles=pemmdb_profiles,
     )
     # Other RES Mix
-    _add_profiles(
+    _add_other_res_profiles(
         carrier="other-res-mix",
         asset_i=n.generators.query("carrier == 'other-res-mix' and p_nom > 0").index,
         component_t=n.generators_t,
