@@ -1625,7 +1625,7 @@ def remove_zero_capacity_non_extendable(
     for c in n.components[component_types]:
         tech_i = c.static.loc[
             (c.static["carrier"].isin(carriers))
-            & ( ~c.static["p_nom_extendable"])
+            & (~c.static["p_nom_extendable"])
             & (c.static["p_nom"] == 0)
         ].index
         n.remove(c.name, tech_i)

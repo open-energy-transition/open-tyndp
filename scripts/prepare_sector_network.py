@@ -1581,7 +1581,7 @@ def add_other_res_tyndp(
     logger.info("Add Other RES from TYNDP.")
 
     nodes = pop_layout.index
-    
+
     # Add Other RES Biomass as Links
     n.add(
         "Link",
