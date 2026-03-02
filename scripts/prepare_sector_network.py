@@ -2328,7 +2328,7 @@ def _add_profiles(carrier, asset_i, component_t, profiles):
 
 
 def _add_other_res_capacities(
-    n: pypsa.Network, or_capacities: pd.DataFrame, or_profiles: pd.DataFrame
+    n: pypsa.Network, pemmdb_capacities: pd.DataFrame, pemmdb_profiles: pd.DataFrame
 ) -> None:
     """
     Add existing Other RES capacities and fixed profiles to Other RES Biomass and Mix components.
@@ -2337,10 +2337,10 @@ def _add_other_res_capacities(
     ----------
     n : pypsa.Network
         The PyPSA network container object.
-    or_capacities : pd.DataFrame
-        Existing PEMMDB capacities for `other-res-biomass` and `other-res-mix`.
-    or_profiles : pd.DataFrame
-        Fixed per unit PEMMDB generation profiles for `other-res-biomass` and `other-res-mix`.
+    pemmdb_capacities : pd.DataFrame
+        Existing PEMMDB capacities which includes `other-res-biomass` and `other-res-mix`.
+    pemmdb_profiles : pd.DataFrame
+        Fixed per unit PEMMDB generation profiles which includes `other-res-biomass` and `other-res-mix`.
 
     Returns
     -------
@@ -2355,8 +2355,8 @@ def _add_other_res_capacities(
 
     # Add capacities
     # Other RES Biomass
-    or_biomass_caps = or_capacities[
-        or_capacities.index_carrier == "other-res-biomass"
+    or_biomass_caps = pemmdb_capacities[
+        pemmdb_capacities.index_carrier == "other-res-biomass"
     ].p_nom
     # Existing capacities are given in MWel, hence we need to convert to MWth
     n.links.loc[or_biomass_i, ["p_nom", "p_nom_min"]] = (
@@ -2367,7 +2367,9 @@ def _add_other_res_capacities(
     )
 
     # Other RES Mix
-    or_mix_caps = or_capacities[or_capacities.index_carrier == "other-res-mix"].p_nom
+    or_mix_caps = pemmdb_capacities[
+        pemmdb_capacities.index_carrier == "other-res-mix"
+    ].p_nom
     n.generators.loc[or_mix_i, ["p_nom", "p_nom_min"]] = (
         n.generators.loc[or_mix_i, "bus"].map(or_mix_caps).fillna(0.0)
     )
@@ -2378,14 +2380,14 @@ def _add_other_res_capacities(
         carrier="other-res-biomass",
         asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
         component_t=n.links_t,
-        profiles=or_profiles,
+        profiles=pemmdb_profiles,
     )
     # Other RES Mix
     _add_profiles(
         carrier="other-res-mix",
         asset_i=n.generators.query("carrier == 'other-res-mix' and p_nom > 0").index,
         component_t=n.generators_t,
-        profiles=or_profiles,
+        profiles=pemmdb_profiles,
     )
 
     # Remove non-expendable assets with no capacity
@@ -2527,14 +2529,10 @@ def add_existing_tyndp_capacities(
             )
 
         if "other-res" in tyndp_renewable_carriers:
-            or_capacities = pemmdb_capacities.query(
-                "carrier.str.startswith('other-res')"
-            )
-            or_profiles = pemmdb_profiles.query("carrier.str.startswith('other-res')")
             _add_other_res_capacities(
                 n=n,
-                or_capacities=or_capacities,
-                or_profiles=or_profiles,
+                pemmdb_capacities=pemmdb_capacities,
+                pemmdb_profiles=pemmdb_profiles,
             )
 
     if h2_topology_tyndp:
