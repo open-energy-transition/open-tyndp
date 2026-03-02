@@ -389,8 +389,8 @@ def _process_other_res_capacities(
     """
     Extract and clean `Other RES` capacities.
     """
-    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
     # Get raw data and extract capacity information
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
     df = (
         node_tech_data.iloc[[7], 4:]
         .rename(columns=tech_names)
@@ -660,10 +660,10 @@ def _process_other_res_profiles(
     Extract and clean `Other RES` profiles.
     """
     # Extract data
-    df = node_tech_data.iloc[6:, :]
+    df = node_tech_data.iloc[6:]
 
-    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
     # Extract capacity information for normalization
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
     capacity = (
         df.iloc[[1], 4:]
         .rename(columns=tech_names)

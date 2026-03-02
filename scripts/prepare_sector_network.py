@@ -1566,7 +1566,7 @@ def add_other_res_tyndp(
     Parameters
     ----------
     n : pypsa.Network
-        Network object to add technologies.
+        The PyPSA network container object.
     costs : pd.DataFrame
         DataFrame containing cost and technical parameters for different technologies
     pop_layout : SimpleNamespace.
@@ -1581,6 +1581,7 @@ def add_other_res_tyndp(
     logger.info("Add Other RES from TYNDP.")
 
     nodes = pop_layout.index
+    
     # Add Other RES Biomass as Links
     n.add(
         "Link",
