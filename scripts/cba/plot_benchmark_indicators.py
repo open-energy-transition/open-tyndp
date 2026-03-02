@@ -247,7 +247,7 @@ def plot_project_benchmarks(
                 ecolor="lightblue",
                 capsize=3,
             )
-            ax.set_xlim(xmin=-0.3, xmax=0.3)
+            ax.set_xlim(xmin=-0.5, xmax=0.5)
             label = "Open-TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(

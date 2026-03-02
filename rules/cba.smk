@@ -325,19 +325,6 @@ rule plot_weather_benchmark:
         "../scripts/cba/plot_benchmark_indicators.py"
 
 
-# rule average_indicators_test:
-#     input:
-#         indicators=[
-#             "results/tyndp/cba-NT-cy1995/cba/project_t4_2030.csv",
-#             "results/tyndp/cba-NT-cy2008/cba/project_t4_2030.csv",
-#             "results/tyndp/cba-NT-cy2009/cba/project_t4_2030.csv",
-#         ],
-#     output:
-#         indicators="results/tyndp/cba/ensemble_indicators_t4_2030.csv",
-#     script:
-#         "../scripts/cba/average_indicators.py"
-
-
 rule average_indicators:
     input:
         indicators=lambda w: expand(
@@ -359,34 +346,46 @@ def cba_scenarios(w):
         if scenario_config(name).get("cba", {}).get("scenarios") is not None
     ]
 
+def cba_projects(w):
+    """
+    List all indicators csv
+    """
+    # run = config_provider("run", "name")(w),
+    run = w.get("run", config_provider("run", "name")(w))
+    if "cy" not in run:
+        run = run[0] + '-cy2009'
+
+    projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
+    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+    project_specs = config_provider("cba", "projects")(w)
+    cba_project = filter_projects_by_specs(cba_projects, project_specs)
+
+    return expand(
+        cba_project
+    )
 
 rule cba:
     input:
         lambda w: expand(
             rules.average_indicators.output.indicators,
             planning_horizons=config["cba"]["planning_horizons"],
-            # TODO: replace this with a function to collect the available projects
-            cba_project=["t4", "t16", "t28", "t33", "t35"],
+            cba_project=cba_projects(w),
             run=cba_scenarios(w),
-            # run=config_provider("run", "name")(w),
+            allow_missing=True,
         ),
         lambda w: expand(
             rules.plot_weather_benchmark.output.plot_file,
             planning_horizons=config["cba"]["planning_horizons"],
-            # TODO: replace this with a function to collect the available projects
-            cba_project=["t4", "t16", "t28", "t33", "t35"],
+            cba_project=cba_projects(w),
             run=cba_scenarios(w),
-            # run=config_provider("run", "name")(w),
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            # run=config_provider("run", "name")(w),
             run=cba_scenarios(w),
         ),
         lambda w: expand(
             rules.plot_all_cba_benchmark.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            # run=config_provider("run", "name")(w),
             run=cba_scenarios(w),
         ),
