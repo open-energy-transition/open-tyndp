@@ -1557,6 +1557,7 @@ def add_other_res_tyndp(
     n: pypsa.Network,
     costs: pd.DataFrame,
     pop_layout: pd.DataFrame,
+    spatial: SimpleNamespace,
 ) -> None:
     """
     Add Other RES technologies to the network. This includes two groups of plants:
@@ -1570,6 +1571,9 @@ def add_other_res_tyndp(
     costs : pd.DataFrame
         DataFrame containing cost and technical parameters for different technologies
     pop_layout : SimpleNamespace.
+        Namespace containing spatial information for different carriers,
+        including nodes and locations.
+    spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
         including nodes and locations.
 
@@ -9052,6 +9056,7 @@ if __name__ == "__main__":
             n=n,
             costs=costs,
             pop_layout=pop_layout,
+            spatial=spatial,
         )
 
     add_h2_gas_infrastructure(
