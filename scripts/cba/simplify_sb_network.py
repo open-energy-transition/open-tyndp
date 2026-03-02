@@ -76,22 +76,33 @@ def remove_noisy_marginal_costs(
     if components is None:
         components = ["Store", "StorageUnit"]
     for comp_name in components:
-        comp = n.components.get(comp_name)
-        if comp is None:
+        try:
+            comp = n.components[comp_name]
+        except Exception:
+            logger.info("Component %s not found in network.", comp_name)
             continue
-        if "marginal_cost" not in comp.df:
+        table = comp.static
+        if "marginal_cost" not in table.columns:
+            logger.info(
+                "No marginal_cost column for %s (columns=%s)",
+                comp_name,
+                list(table.columns),
+            )
             continue
-        mc = comp.df["marginal_cost"]
+        mc = table["marginal_cost"]
         cleaned = mc.where(mc.abs() >= threshold, 0.0)
         changed = (cleaned != mc).sum()
-        if changed:
-            logger.info(
-                "Removed noisy marginal_costs for %s: %d entries set to 0 (threshold=%s)",
-                comp_name,
-                changed,
-                threshold,
-            )
-        comp.df["marginal_cost"] = cleaned
+        logger.info(
+            "Noisy cost cleanup for %s: threshold=%s, total=%d, zeroed=%d, "
+            "min=%.6g, max=%.6g",
+            comp_name,
+            threshold,
+            len(mc),
+            int(changed),
+            float(mc.min()) if len(mc) else float("nan"),
+            float(mc.max()) if len(mc) else float("nan"),
+        )
+        table["marginal_cost"] = cleaned
     return n
 
 
@@ -129,11 +140,19 @@ if __name__ == "__main__":
     # TODO: for DE/GA add merging of the two H2 zones
     # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
 
+    remove_noisy_costs = snakemake.params.get("remove_noisy_costs", False)
+    noisy_threshold = snakemake.params.get("noisy_costs_threshold", 0.02)
+    logger.info(
+        "remove_noisy_costs=%s noisy_costs_threshold=%s",
+        remove_noisy_costs,
+        noisy_threshold,
+    )
+
     # Remove noisy marginal costs for Store and StorageUnit components
-    if snakemake.params.get("remove_noisy_costs", False):
+    if remove_noisy_costs:
         remove_noisy_marginal_costs(
             n,
-            threshold=snakemake.params.get("noisy_costs_threshold", 0.02),
+            threshold=noisy_threshold,
             components=["Store", "StorageUnit"],
         )
 
