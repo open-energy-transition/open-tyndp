@@ -687,7 +687,7 @@ def _process_other_res_profiles(
                 for g in OTHER_RES_GROUPS
             }
         )
-        .div(capacity.replace(0, np.nan), axis=1)
+        .astype(float)
         .fillna(0.0)
         .assign(
             time=sns_year_h,
@@ -698,19 +698,11 @@ def _process_other_res_profiles(
     )
 
     # Turn into long format and return
-    return (
-        profiles.melt(
-            id_vars=["time", "bus", "pemmdb_carrier"],
-            value_name="p_min_pu",
-            var_name="pemmdb_type",
-        )
-        .assign(
-            p_max_pu=lambda df: df.p_min_pu,  # also set p_max_pu to the same value as Other RES dispatch is fixed
-        )
-        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
-            ["p_min_pu", "p_max_pu"]
-        ]
-    )
+    return profiles.melt(
+        id_vars=["time", "bus", "pemmdb_carrier"],
+        value_name="p_set",
+        var_name="pemmdb_type",
+    ).set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[["p_set"]]
 
 
 def _process_other_nonres_profiles(
@@ -976,6 +968,9 @@ def _validate_profiles(df):
     Returns None if all profiles are filtered out.
     """
     if df is None:
+        return df
+
+    if "p_set" in df.columns:
         return df
 
     # Skip profiles that contain only default PyPSA values (p_min_pu=0, p_max_pu=1)
@@ -1348,6 +1343,7 @@ if __name__ == "__main__":
         {
             "p_min_pu": (["sample"], pemmdb_profiles_df["p_min_pu"]),
             "p_max_pu": (["sample"], pemmdb_profiles_df["p_max_pu"]),
+            "p_set": (["sample"], pemmdb_profiles_df["p_set"]),
         },
         coords={
             level: (["sample"], pemmdb_profiles_df.index.get_level_values(level))

@@ -2302,11 +2302,12 @@ def _add_smr_capacities(
 def _add_other_res_profiles(
     carrier: str,
     asset_i: pd.Index,
+    component_df: pd.DataFrame,
     component_t: dict[str, pd.DataFrame],
     profiles: pd.DataFrame,
 ) -> None:
     """
-    Add p_min_pu and p_max_pu profiles to existing network for a given Other RES carrier and component.
+    Add p_set profiles to existing network for a given Other RES carrier and component.
 
     Parameters
     ----------
@@ -2314,8 +2315,10 @@ def _add_other_res_profiles(
         Carrier name for which to add the Other RES profile.
     asset_i : pd.Index
         Index names of associated network components for the given carrier.
+    component_df : pd.DataFrame
+        Static component Dataframe.
     component_t : dict[str, pd.DataFrame]
-        omponent dictionary containing time-dependent attributes for the given component.
+        Component dictionary containing time-dependent attributes for the given component.
     profiles : pd.DataFrame
         Dataframe containing the profiles to add to the network.
 
@@ -2327,29 +2330,23 @@ def _add_other_res_profiles(
 
     profiles = profiles.query(f"index_carrier == '{carrier}'")
 
-    p_min_pu = (
-        profiles.pivot_table(values="p_min_pu", index="time", columns="bus")
+    if carrier == "other-res-biomass":
+        # adjust other-res-biomass profiles for MW_th as they are implemented as links
+        profiles = profiles.assign(
+            p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency[0])
+        )
+
+    p_set = (
+        profiles.pivot_table(values="p_set", index="time", columns="bus")
         .rename(columns=lambda x: f"{x} {carrier}")
         .reindex(asset_i, axis=1, fill_value=0.0)
     )
-    p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
+    p_set = p_set.loc[:, (p_set != 0.0).any()]
 
-    p_max_pu = (
-        profiles.pivot_table(values="p_max_pu", index="time", columns="bus")
-        .rename(columns=lambda x: f"{x} {carrier}")
-        .reindex(asset_i, axis=1, fill_value=1.0)
-    )
-    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
-
-    if not p_min_pu.empty:
-        index_name = component_t.p_min_pu.index.name
-        component_t.p_min_pu = pd.concat([component_t.p_min_pu, p_min_pu], axis=1)
-        component_t.p_min_pu.index.name = index_name
-
-    if not p_max_pu.empty:
-        index_name = component_t.p_max_pu.index.name
-        component_t.p_max_pu = pd.concat([component_t.p_max_pu, p_max_pu], axis=1)
-        component_t.p_max_pu.index.name = index_name
+    if not p_set.empty:
+        index_name = component_t.p_set.index.name
+        component_t.p_set = pd.concat([component_t.p_set, p_set], axis=1)
+        component_t.p_set.index.name = index_name
 
 
 def _add_other_res_capacities(
@@ -2404,6 +2401,7 @@ def _add_other_res_capacities(
     _add_other_res_profiles(
         carrier="other-res-biomass",
         asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
+        component_df=n.links,
         component_t=n.links_t,
         profiles=pemmdb_profiles,
     )
@@ -2411,6 +2409,7 @@ def _add_other_res_capacities(
     _add_other_res_profiles(
         carrier="other-res-mix",
         asset_i=n.generators.query("carrier == 'other-res-mix' and p_nom > 0").index,
+        component_df=n.generators,
         component_t=n.generators_t,
         profiles=pemmdb_profiles,
     )
