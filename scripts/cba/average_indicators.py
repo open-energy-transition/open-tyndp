@@ -7,7 +7,7 @@ Collect indicators from individual indicators files and create weighted average
 indicator.
 
 This script reads all collected project indicators from the different weather years
-and calculates a new combined indiactor which is stores in a new CSV file.
+and calculates a new combined indicator which is stores in a new CSV file.
 """
 
 import csv
