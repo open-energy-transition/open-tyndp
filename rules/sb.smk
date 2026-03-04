@@ -830,7 +830,7 @@ if config["benchmarking"]["enable"]:
             mm_data=lambda w: expand(
                 RESULTS
                 + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-                scenario="NT",
+                scenario=config_provider("tyndp_scenario"),
                 planning_horizons=[
                     year
                     for year in config_provider("scenario", "planning_horizons")(w)

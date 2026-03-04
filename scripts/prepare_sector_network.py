@@ -3301,7 +3301,9 @@ def add_h2_demand_tyndp(n, h2_demand_file):
     """
     logger.info("Add exogenous hydrogen demand to network")
 
-    demand = pd.read_csv(h2_demand_file, index_col=0, parse_dates=True)
+    demand = pd.read_csv(h2_demand_file, index_col=0, parse_dates=True).drop(
+        columns=["year", "source", "scenario"], errors="ignore"
+    )
 
     # check for missing buses
     h2_buses = n.buses[n.buses.carrier == "H2"].index
