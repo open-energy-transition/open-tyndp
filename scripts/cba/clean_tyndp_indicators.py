@@ -290,7 +290,9 @@ def process_benchmark_excel(
             continue
         bench["scenario"] = scenario
         bench["planning_horizon"] = planning_horizon
-        bench["type"] = project_type
+        bench["project_type"] = project_type
+        prefix = "s" if project_type == "storage" else "t"
+        bench["project_code"] = bench["project_id"].map(lambda pid: f"{prefix}{pid}")
         frames.append(bench)
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 

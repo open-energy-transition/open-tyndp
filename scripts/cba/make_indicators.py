@@ -565,6 +565,8 @@ def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
 def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
     meta = {
         "project_id": indicators.get("project_id"),
+        "project_code": indicators.get("project_code"),
+        "project_type": indicators.get("project_type"),
         "method": indicators.get("cba_method"),
         "is_beneficial": indicators.get("is_beneficial"),
         "interpretation": indicators.get("interpretation"),
@@ -624,7 +626,7 @@ def load_benchmark_rows(
     benchmark = benchmark.loc[
         (benchmark["project_id"] == project_id)
         & (benchmark["planning_horizon"] == planning_horizon)
-        & (benchmark["type"] == project_type)
+        & (benchmark["project_type"] == project_type)
         & (benchmark["scenario"] == scenario)
     ].copy()
 
@@ -655,6 +657,8 @@ def load_benchmark_rows(
     return benchmark[
         [
             "project_id",
+            "project_code",
+            "project_type",
             "method",
             "is_beneficial",
             "interpretation",
@@ -752,7 +756,10 @@ if __name__ == "__main__":
     units.update(b4_units)
 
     # Add project metadata
-    indicators["project_id"] = project_id  # assuming format 't123'
+    project_type = "storage" if cba_project.startswith("s") else "transmission"
+    indicators["project_id"] = project_id  # numeric id
+    indicators["project_code"] = cba_project
+    indicators["project_type"] = project_type
     indicators["cba_method"] = method.upper()
     logger.info(
         f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Meuro"
@@ -764,7 +771,6 @@ if __name__ == "__main__":
     scenario = snakemake.config.get("tyndp_scenario") or snakemake.config.get(
         "run", {}
     ).get("name")
-    project_type = "storage" if cba_project.startswith("s") else "transmission"
     benchmark_rows = load_benchmark_rows(
         snakemake.input.benchmark,
         indicators["project_id"],

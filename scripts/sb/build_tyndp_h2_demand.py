@@ -53,7 +53,8 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-from _helpers import (
+
+from scripts._helpers import (
     check_cyear,
     configure_logging,
     get_snapshots,
@@ -237,10 +238,9 @@ def align_demand_to_snapshots(demand, snapshots):
     return demand.reindex(snapshots)
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
-        from _helpers import mock_snakemake
+        from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_demand",

@@ -70,4 +70,6 @@ dependencies:
 - pandera >=0.28.1
 - natsort >=8.4.0
 - snakemake-logger-plugin-pypsa >=0.1.0
+- grpcio <1.78
+- pydeflate >=2.3.4
 - snakemake-executor-plugin-slurm >=1.9.2

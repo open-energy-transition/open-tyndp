@@ -19,7 +19,7 @@ class ExistingCapacitiesConfig(ConfigModel):
 
     grouping_years_power: list[int] = Field(
         default_factory=lambda: [
-            1920,
+            1900,
             1950,
             1955,
             1960,
@@ -36,6 +36,7 @@ class ExistingCapacitiesConfig(ConfigModel):
             2015,
             2020,
             2025,
+            2030,
         ],
         description="Intervals to group existing capacities for power.",
     )
@@ -64,4 +65,8 @@ class ExistingCapacitiesConfig(ConfigModel):
     conventional_carriers: list[str] = Field(
         default_factory=lambda: ["lignite", "coal", "oil", "uranium"],
         description="List of conventional power plants to include in the sectoral network.",
+    )
+    uniform_renewable_profiles: bool = Field(
+        False,
+        description="Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
     )

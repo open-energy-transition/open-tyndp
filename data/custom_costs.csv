@@ -42,8 +42,6 @@ all,2035,electrolysis,efficiency,0.7,per unit,"TYNDP 2024 Scenarios Methodology 
 all,2040,electrolysis,efficiency,0.71,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,2045,electrolysis,efficiency,0.725,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,2050,electrolysis,efficiency,0.74,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
-all,all,SMR,efficiency,0.77,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
-all,all,SMR CC,efficiency,0.77,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,SMR CC,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 DE,2030,biogas CC,capture_rate,0.5,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
 DE,2035,biogas CC,capture_rate,0.6,per unit,"TYNDP 2024 Scenarios Methodology Report, p56",
@@ -68,3 +66,10 @@ GA,2050,BtL,capture rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, 
 all,all,gas-ccgt-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,coal-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,lignite-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,SMR CC,efficiency,0.695,per unit,"TYNDP 2024 Hydrogen/SMR Figures.xlsx HEAT RATE [GJ_CH4/MWh_H2]","efficiency [MWh_H2/MWH_CH4] = 3.6/HEAT RATE [GJ_CH4/MWh_H2]. Values assumed to be LHV in line with https://www.iea.org/data-and-statistics/charts/global-average-levelised-cost-of-hydrogen-production-by-energy-source-and-technology-2019-and-2050"
+all,all,SMR,efficiency,0.759,per unit,"TYNDP 2024 Hydrogen/SMR Figures.xlsx HEAT RATE [GJ_CH4/MWh_H2]","efficiency [MWh_H2/MWH_CH4] = 3.6/HEAT RATE [GJ_CH4/MWh_H2]. Values assumed to be LHV in line with https://www.iea.org/data-and-statistics/charts/global-average-levelised-cost-of-hydrogen-production-by-energy-source-and-technology-2019-and-2050"
+NT,2030,SMR CC,VOM,4.47,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."
+NT,2040,SMR CC,VOM,21.6,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."
+DE,all,SMR CC,VOM,4.47,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."
+GA,all,SMR CC,VOM,4.47,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."
+all,all,SMR,VOM,3.38,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."

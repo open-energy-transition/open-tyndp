@@ -51,14 +51,10 @@ def select_value_by_subindex(
 
 
 def benchmark_range(
-    df: pd.DataFrame,
-    indicator: str,
-    source: str="TYNDP 2024"
+    df: pd.DataFrame, indicator: str, source: str = "TYNDP 2024"
 ) -> tuple[float, float, float] | None:
     """Return (min, mean, max) range for a benchmark indicator."""
-    benchmark = df[
-        (df["source"] == source) & (df["indicator"] == indicator)
-    ].copy()
+    benchmark = df[(df["source"] == source) & (df["indicator"] == indicator)].copy()
     if benchmark.empty:
         return None
 
@@ -93,11 +89,11 @@ def benchmark_range(
     return min_val, mean_val, max_val
 
 
-def format_project_label(project_id: int, planning_horizon: str | None) -> str:
-    """Format plot title label from project id and planning horizon."""
+def format_project_label(project_code: str, planning_horizon: str | None) -> str:
+    """Format plot title label from project code and planning horizon."""
     if planning_horizon:
-        return f"t{project_id}_{planning_horizon}"
-    return f"t{project_id}"
+        return f"{project_code}_{planning_horizon}"
+    return project_code
 
 
 def format_area_subtitle(area: str | None) -> str | None:
@@ -216,16 +212,19 @@ def plot_project_benchmarks(
             ax.set_xticks([])
         else:
             try:
-                model_min_val, model_mean_val, model_max_val = benchmark_range(df, indicator, source="Open-TYNDP")
+                model_min_val, model_mean_val, model_max_val = benchmark_range(
+                    df, indicator, source="Open-TYNDP"
+                )
             except:
                 model_min_val, model_mean_val, model_max_val = (0, 0, 0)
-            min_val, mean_val, max_val = benchmark_range(df, indicator, source="TYNDP 2024")
+            min_val, mean_val, max_val = benchmark_range(
+                df, indicator, source="TYNDP 2024"
+            )
 
             ax.errorbar(
                 [-0.1],
                 [mean_val],
-                yerr=[[abs(mean_val - min_val)], 
-                      [abs(max_val - mean_val)]],
+                yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
                 fmt="o",
                 color="gray",
                 ecolor="lightgray",
@@ -240,8 +239,10 @@ def plot_project_benchmarks(
             ax.errorbar(
                 [0.1],
                 [model_mean_val],
-                yerr=[[abs(model_mean_val - model_min_val)], 
-                      [abs(model_max_val - model_mean_val)]],
+                yerr=[
+                    [abs(model_mean_val - model_min_val)],
+                    [abs(model_max_val - model_mean_val)],
+                ],
                 fmt="o",
                 color="tab:blue",
                 ecolor="lightblue",
@@ -349,7 +350,11 @@ def create_plots(indicators_file, output_path, planning_horizon=None, area=None)
             logger.info("No model projects found in indicators file")
             return
         project_id = int(project_ids[0])
-        project_label = format_project_label(project_id, planning_horizon)
+        project_code_series = df.loc[
+            df["project_id"] == project_id, "project_code"
+        ].dropna()
+        project_code = str(project_code_series.iloc[0])
+        project_label = format_project_label(project_code, planning_horizon)
         project_df = df[df["project_id"] == project_id].copy()
         plot_project_benchmarks(
             project_df, output_path, project_label, format_area_subtitle(area)
@@ -358,10 +363,13 @@ def create_plots(indicators_file, output_path, planning_horizon=None, area=None)
         for project_id in project_ids:
             project_df = df[df["project_id"] == project_id].copy()
             project_id = int(project_id)
+            project_code_series = df.loc[
+                df["project_id"] == project_id, "project_code"
+            ].dropna()
+            project_code = str(project_code_series.iloc[0])
             suffix = f"_{planning_horizon}" if planning_horizon else ""
-            # TODO the project_id does not contain a "t" as it is used if the filename is defined in cba.smk
-            output_file = output_dir / f"project_{project_id}{suffix}.png"
-            project_label = format_project_label(project_id, planning_horizon)
+            output_file = output_dir / f"project_{project_code}{suffix}.png"
+            project_label = format_project_label(project_code, planning_horizon)
             plot_project_benchmarks(
                 project_df, output_file, project_label, format_area_subtitle(area)
             )
