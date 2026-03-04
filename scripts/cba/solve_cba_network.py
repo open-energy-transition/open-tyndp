@@ -28,8 +28,7 @@ import numpy as np
 import pandas as pd
 import pypsa
 from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
-
-# from snakemake.utils import update_config
+from snakemake.utils import update_config
 from tqdm.auto import tqdm
 
 from scripts._benchmark import memory_logger
@@ -325,7 +324,7 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     solving = snakemake.params.solving
-    # update_config(solving, snakemake.params.cba_solving)
+    update_config(solving, snakemake.params.cba_solving)
 
     np.random.seed(solving["options"].get("seed", 123))
 
