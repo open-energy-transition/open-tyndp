@@ -446,7 +446,8 @@ rule plot_cba_benchmark:
     input:
         indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
     output:
-        plot_file=RESULTS + "cba/validation_{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
+        plot_file=RESULTS
+        + "cba/validation_{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -462,9 +463,11 @@ rule plot_all_cba_benchmark:
 
 rule plot_weather_benchmark:
     input:
-        indicators=RESULTS + "cba/ensemble_{planning_horizons}/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
+        indicators=RESULTS
+        + "cba/ensemble_{planning_horizons}/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     output:
-        plot_file=RESULTS + "cba/ensemble_{planning_horizons}/ensemble_{cba_project}_{planning_horizons}.png",
+        plot_file=RESULTS
+        + "cba/ensemble_{planning_horizons}/ensemble_{cba_project}_{planning_horizons}.png",
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
@@ -477,7 +480,8 @@ rule average_indicators:
             allow_missing=True,
         ),
     output:
-        indicators=RESULTS + "cba/ensemble_{planning_horizons}/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
+        indicators=RESULTS
+        + "cba/ensemble_{planning_horizons}/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     script:
         "../scripts/cba/average_indicators.py"
 
@@ -490,6 +494,7 @@ def cba_scenarios(w):
         if scenario_config(name).get("cba", {}).get("scenarios") is not None
     ]
 
+
 def cba_projects(w):
     """
     List all indicators csv
@@ -497,16 +502,15 @@ def cba_projects(w):
     # run = config_provider("run", "name")(w),
     run = w.get("run", config_provider("run", "name")(w))
     if "cy" not in run:
-        run = run[0] + '-cy2009'
+        run = run[0] + "-cy2009"
 
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
     project_specs = config_provider("cba", "projects")(w)
     cba_project = filter_projects_by_specs(cba_projects, project_specs)
 
-    return expand(
-        cba_project
-    )
+    return expand(cba_project)
+
 
 rule cba:
     input:
