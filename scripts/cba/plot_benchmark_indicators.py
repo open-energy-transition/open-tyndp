@@ -211,12 +211,12 @@ def plot_project_benchmarks(
                         legend_labels.append(label)
             ax.set_xticks([])
         else:
-            try:
-                model_min_val, model_mean_val, model_max_val = benchmark_range(
-                    df, indicator, source="Open-TYNDP"
-                )
-            except:
+            model_range = benchmark_range(df, indicator, source="Open-TYNDP")
+            if model_range is None:
                 model_min_val, model_mean_val, model_max_val = (0, 0, 0)
+            else:
+                model_min_val, model_mean_val, model_max_val = model_range
+
             min_val, mean_val, max_val = benchmark_range(
                 df, indicator, source="TYNDP 2024"
             )
