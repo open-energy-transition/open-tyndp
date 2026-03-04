@@ -488,9 +488,12 @@ rule average_indicators:
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
 def cba_scenarios(w):
+    names = config["run"]["name"]
+    if isinstance(names, str):
+        names = [names]
     return [
         name
-        for name in config["run"]["name"]
+        for name in names
         if scenario_config(name).get("cba", {}).get("scenarios") is not None
     ]
 
@@ -501,8 +504,10 @@ def cba_projects(w):
     """
     # run = config_provider("run", "name")(w),
     run = w.get("run", config_provider("run", "name")(w))
-    if "cy" not in run:
-        run = run[0] + "-cy2009"
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if "cy" not in run and run:
+        run = f"{run}-cy2009"
 
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
@@ -510,8 +515,6 @@ def cba_projects(w):
     cba_project = filter_projects_by_specs(cba_projects, project_specs)
 
     return expand(cba_project)
-
-
 rule cba:
     input:
         lambda w: expand(
