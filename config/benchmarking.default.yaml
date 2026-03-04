@@ -4,7 +4,8 @@
 
 benchmarking:
   enable: false
-  remove_last_day: true
+  remove_last_day: false
+
 
   tables:
     final_energy_demand:
