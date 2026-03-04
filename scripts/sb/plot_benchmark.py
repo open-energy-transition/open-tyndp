@@ -236,7 +236,7 @@ def plot_benchmark(
     # Parameters
     opt = options["tables"][table]
     table_type = opt["table_type"]
-    source_unit = opt["unit"]
+    source_unit = opt["report"]["unit"]
     cyear = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit
@@ -244,7 +244,7 @@ def plot_benchmark(
     benchmarks = (
         benchmarks_raw.query("table==@table")
         .dropna(how="all", axis=1)
-        .assign(unit=opt["unit"])
+        .assign(unit=opt["report"]["unit"])
     )
 
     if benchmarks.empty:

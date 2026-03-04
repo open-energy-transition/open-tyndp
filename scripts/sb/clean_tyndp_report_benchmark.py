@@ -163,14 +163,14 @@ def load_benchmark(
         return pd.DataFrame()
 
     # Parameters
-    sheet_name = _safe_sheet(opt["sheet_name"], scenario)
+    sheet_name = _safe_sheet(opt["report"]["sheet_name"], scenario)
     if sheet_name == "":
         logger.warning(f"No sheet name found for {table} in {scenario}")
         return pd.DataFrame()
     df = benchmarks_raw[sheet_name]
-    nrows = opt.get("nrows", None)
-    ncolumns = opt.get("ncolumns", None)
-    names = opt["names"]
+    nrows = opt["report"].get("nrows", None)
+    ncolumns = opt["report"].get("ncolumns", None)
+    names = opt["report"]["names"]
 
     # Fix temporal labeling - source data uses 00:00 as end-of-period (previous day's last hour);
     # convert to beginning-of-period (current day's first hour)
@@ -184,11 +184,11 @@ def load_benchmark(
             midnight_mask
         ] + pd.Timedelta(days=1)
 
-    index_col = opt["index_col"]
+    index_col = opt["report"]["index_col"]
     if isinstance(index_col, int):
         index_col = [index_col]
 
-    header = opt["header"]
+    header = opt["report"]["header"]
     if isinstance(header, int):
         header = [header]
 
@@ -207,7 +207,7 @@ def load_benchmark(
     df_long.columns = [i[0] if isinstance(i, tuple) else i for i in df_long.columns]
 
     # Apply unit conversion
-    df_long["unit"] = opt["unit"]
+    df_long["unit"] = opt["report"]["unit"]
     df_converted = convert_units(df_long)
 
     # Add table identifier
@@ -320,9 +320,9 @@ if __name__ == "__main__":
     # Read benchmarks
     logger.info("Reading raw benchmark data")
     sheet_names = [
-        _safe_sheet(j["sheet_name"], scenario)
+        _safe_sheet(j["report"]["sheet_name"], scenario)
         for i, j in options["tables"].items()
-        if _safe_sheet(j["sheet_name"], scenario)
+        if _safe_sheet(j["report"]["sheet_name"], scenario)
     ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
