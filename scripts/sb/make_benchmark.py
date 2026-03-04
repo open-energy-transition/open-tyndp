@@ -25,6 +25,12 @@ from scripts._helpers import configure_logging, get_version, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
+SOURCES_MAP = {
+    "market_out": "TYNDP 2024 Market Outputs",
+    "report": "TYNDP 2024 Scenarios",
+    "vp": "TYNDP 2024 Vis Pltfm",
+}
+
 
 def load_data(
     benchmarks_fn: str,
@@ -356,6 +362,7 @@ def compute_indicators(
     table: str,
     snapshots: dict[str, str],
     options,
+    rfc_source: str = "TYNDP 2024 Scenarios",
     carrier_col: str = "carrier",
     precision: int = 2,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -388,6 +395,8 @@ def compute_indicators(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
+    rfc_source : str, default "TYNDP 2024 Scenarios"
+        Column name for reference values.
     carrier_col : str, default "carrier"
         Column name for carrier/technology grouping.
     precision: int, default 2
@@ -413,18 +422,22 @@ def compute_indicators(
     df_na = df_agg[mask]
 
     # Compute overall indicators of the table
-    indicators = compute_all_indicators(df, table, df_na=df_na).round(precision)
+    indicators = (
+        compute_all_indicators(df, table, rfc_col=rfc_source, df_na=df_na)
+        .round(precision)
+        .assign(reference=rfc_source)
+    )
 
     # Compute per-carrier indicators
     df_carrier = [
-        compute_all_indicators(df_c, table, carrier=carrier)
+        compute_all_indicators(df_c, table, carrier=carrier, rfc_col=rfc_source)
         for carrier, df_c in df.groupby(level=carrier_col)
     ]
     missing_carriers = set(df_na.index.get_level_values("carrier"))
     df_carrier.extend(
         [pd.DataFrame(index=[(table, carrier) for carrier in missing_carriers])]
     )
-    df_carrier = pd.concat(df_carrier).round(precision)
+    df_carrier = pd.concat(df_carrier).round(precision).assign(reference=rfc_source)
 
     return df_carrier, indicators
 
@@ -460,10 +473,16 @@ def compare_sources(
     pd.Series
        Series containing single-value accuracy metrics.
     """
+    # Parameters
+    opt = options["tables"][table]
+    rfc_source = SOURCES_MAP.get(opt["rfc_source"], opt["rfc_source"])
+    sources = ["Open-TYNDP", rfc_source]  # noqa: F841
 
     # Clean data
-    logger.info(f"Making benchmark for {table} using TYNDP 2024 and Open-TYNDP")
-    benchmarks = benchmarks_raw.query("table==@table").dropna(how="all", axis=1)
+    logger.info(f"Making benchmark for {table} using {rfc_source} and Open-TYNDP")
+    benchmarks = benchmarks_raw.query("table==@table and source in @sources").dropna(
+        how="all", axis=1
+    )
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
     ]
@@ -497,13 +516,16 @@ def compare_sources(
         return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
 
     # Compare sources
-    df, indicators = compute_indicators(df, table, snapshots, options)
+    df, indicators = compute_indicators(
+        df, table, snapshots, options, rfc_source=rfc_source
+    )
 
     return df, indicators
 
 
 def compute_overall_accuracy(
-    benchmarks_raw: pd.DataFrame, options: dict
+    benchmarks_raw: pd.DataFrame,
+    options: dict,
 ) -> pd.DataFrame:
     """
     Compute overall accuracy indicators for a specified benchmark table.
@@ -524,18 +546,27 @@ def compute_overall_accuracy(
     tables_series = [  # noqa: F841
         t for t, v in options["tables"].items() if v["table_type"] == "time_series"
     ]
+    sources_map = {
+        t: SOURCES_MAP[opt["rfc_source"]] for t, opt in options["tables"].items()
+    }
     df_global = (
         benchmarks_raw.query("table not in @tables_series")
         .dropna(how="all", axis=1)
         .pivot_table(
-            index=["scenario", "year", "carrier"], values="value", columns="source"
+            index=["scenario", "year", "carrier", "table"],
+            values="value",
+            columns="source",
         )
+        .reset_index(level=3)
+        .assign(
+            reference=lambda df: df.apply(lambda r: r[sources_map[r.table]], axis=1)
+        )[["Open-TYNDP", "reference"]]
     )
     mask = df_global.isna().any(axis=1)
     df = df_global[~mask]
     df_na = df_global[mask]
     indicator_total = compute_all_indicators(
-        df, "Total (excl. time series)", df_na=df_na
+        df, "Total (excl. time series)", df_na=df_na, rfc_col="reference"
     ).round(2)
 
     return indicator_total
@@ -560,10 +591,13 @@ if __name__ == "__main__":
     scenario = "TYNDP " + snakemake.params["scenario"]
     snapshots = snakemake.params.snapshots
     benchmarks_fn = snakemake.input.benchmarks
+    mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
 
     # Load data
-    benchmarks_raw = load_data(benchmarks_fn, results_fn, scenario)
+    benchmarks_raw = load_data(
+        benchmarks_fn, results_fn, scenario, mm_data_fn=mm_data_fn
+    )
 
     # Compute benchmarks
     logger.info("Computing benchmarks")
