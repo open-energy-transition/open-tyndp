@@ -491,11 +491,17 @@ def cba_scenarios(w):
     names = config["run"]["name"]
     if isinstance(names, str):
         names = [names]
-    return [
-        name
-        for name in names
-        if scenario_config(name).get("cba", {}).get("scenarios") is not None
-    ]
+    scenarios = []
+    # fall back to the raw run.name if it isn’t found in the scenarios file
+    for name in names:
+        try:
+            scn = scenario_config(name)
+        except KeyError:
+            scenarios.append(name)
+            continue
+        if scn.get("cba", {}).get("scenarios") is not None:
+            scenarios.append(name)
+    return scenarios
 
 
 def cba_projects(w):
@@ -515,6 +521,8 @@ def cba_projects(w):
     cba_project = filter_projects_by_specs(cba_projects, project_specs)
 
     return expand(cba_project)
+
+
 rule cba:
     input:
         lambda w: expand(
