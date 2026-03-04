@@ -15,6 +15,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.cba._helpers import get_link_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,10 @@ def apply_toot(n: pypsa.Network, transmission_project: pd.DataFrame) -> None:
 
 
 def apply_pint(
-    n: pypsa.Network, transmission_project: pd.DataFrame, hurdle_costs: float
+    n: pypsa.Network,
+    transmission_project: pd.DataFrame,
+    hurdle_costs: float,
+    costs: pd.DataFrame,
 ) -> None:
     for _, project in transmission_project.iterrows():
         bus0 = project["bus0"]
@@ -79,41 +83,26 @@ def apply_pint(
         capacity = project["p_nom 0->1"]
         capacity_reverse = project["p_nom 1->0"]
 
-        link_exists = link_id in n.links.index
-        reverse_link_exists = reverse_link_id in n.links.index
-
-        if link_exists and reverse_link_exists:
+        if link_id in n.links.index and reverse_link_id in n.links.index:
             n.links.loc[link_id, "p_nom"] += capacity
             n.links.loc[reverse_link_id, "p_nom"] += capacity_reverse
             continue
 
-        length = project.get("length", 0)
-        if pd.isna(length):
-            length = 0
-
-        n.add(
-            "Link",
-            link_id,
-            bus0=bus0,
-            bus1=bus1,
-            carrier="DC",
-            p_nom=capacity,
-            marginal_cost=hurdle_costs,
-            length=length,
-            underwater_fraction=0,
-        )
-
-        n.add(
-            "Link",
-            reverse_link_id,
-            bus0=bus1,
-            bus1=bus0,
-            carrier="DC",
-            p_nom=capacity_reverse,
-            marginal_cost=hurdle_costs,
-            length=length,
-            underwater_fraction=0,
-        )
+        for lid, b0, b1, cap in [
+            (link_id, bus0, bus1, capacity),
+            (reverse_link_id, bus1, bus0, capacity_reverse),
+        ]:
+            attrs = get_link_attrs(project, costs)
+            n.add(
+                "Link",
+                lid,
+                bus0=b0,
+                bus1=b1,
+                carrier="DC",
+                p_nom=cap,
+                marginal_cost=hurdle_costs,
+                **attrs,
+            )
 
 
 if __name__ == "__main__":
@@ -142,6 +131,8 @@ if __name__ == "__main__":
     method = load_method(methods, project_id, planning_horizon)
     hurdle_costs = snakemake.params.hurdle_costs
 
+    costs = pd.read_csv(snakemake.input.costs, index_col=0)
+
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
     ]
@@ -152,7 +143,7 @@ if __name__ == "__main__":
     if method == "TOOT":
         apply_toot(n, transmission_project)
     elif method == "PINT":
-        apply_pint(n, transmission_project, hurdle_costs)
+        apply_pint(n, transmission_project, hurdle_costs, costs)
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")
 
