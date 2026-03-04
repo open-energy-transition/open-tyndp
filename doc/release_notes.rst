@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Populate link attributes for new links in CBA (https://github.com/open-energy-transition/open-tyndp/pull/522).
+
 **Bugfixes and Compatibility**
 
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
