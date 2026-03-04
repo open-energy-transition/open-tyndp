@@ -685,6 +685,8 @@ if config["benchmarking"]["enable"]:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
+            snapshots=config_provider("snapshots"),
+            drop_leap_day=config_provider("enable", "drop_leap_day"),
         input:
             # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=lambda w: getattr(
@@ -700,6 +702,8 @@ if config["benchmarking"]["enable"]:
             + "validation/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
             prices=RESULTS
             + "validation/resources/benchmarks_tyndp_output_prices_{scenario}{planning_horizons}.csv",
+            h2_demand=RESULTS
+            + "validation/resources/benchmarks_tyndp_output_h2_demand_{scenario}{planning_horizons}.csv",
         log:
             logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:

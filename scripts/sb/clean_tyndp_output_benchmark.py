@@ -22,6 +22,7 @@ import pandas as pd
 from scripts._helpers import (
     configure_logging,
     convert_units,
+    get_snapshots,
     set_scenario_config,
 )
 
@@ -269,6 +270,22 @@ def load_MM_sheet(
     return final, df_ct
 
 
+def load_h2_demand(sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex):
+    df = (
+        pd.read_excel(
+            filepath,
+            sheet_name=sheet_name,
+            skiprows=12,
+            index_col=1,
+        )
+        .filter(like="H2_LOAD")
+        .rename(lambda s: s.split("_")[0].replace("UK", "GB") + " H2", axis=1)
+    )
+    df.index = snapshots[: len(df)]
+
+    return df
+
+
 def set_load_sign(
     MM_data: pd.DataFrame,
     key_word: str = "load",
@@ -441,14 +458,24 @@ if __name__ == "__main__":
             )
     prices = pd.concat(prices_ct)
 
+    # load h2 demand time series
+    snapshots = get_snapshots(
+        snakemake.params.snapshots, snakemake.params.drop_leap_day
+    )
+    h2_demand = load_h2_demand(
+        sheet_name="Hourly H2 Data", filepath=tyndp_output_file, snapshots=snapshots
+    )
+
     # assign meta data
     assign_meta_data(MM_data, planning_horizon, scenario)
     assign_meta_data(MM_data_ct, planning_horizon, scenario)
     assign_meta_data(prices, planning_horizon, scenario)
     assign_meta_data(crossborder_agg, planning_horizon, scenario)
+    assign_meta_data(h2_demand, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     crossborder_agg.to_csv(snakemake.output.crossborder)
     prices.to_csv(snakemake.output.prices)
+    h2_demand.to_csv(snakemake.output.h2_demand)
