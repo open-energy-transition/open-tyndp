@@ -162,7 +162,8 @@ GA:
     options:
       horizon: 168
       overlap: 0
-      load_shedding: true
+      load_shedding:
+        enable: true
 
     solver:
       name: highs
