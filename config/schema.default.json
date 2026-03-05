@@ -520,7 +520,7 @@
           "type": "string"
         },
         "remove_noisy_costs": {
-          "default": false,
+          "default": true,
           "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
           "type": "boolean"
         },
@@ -15006,7 +15006,7 @@
           "type": "string"
         },
         "remove_noisy_costs": {
-          "default": false,
+          "default": true,
           "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
           "type": "boolean"
         },

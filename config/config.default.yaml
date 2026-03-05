@@ -1578,7 +1578,7 @@ cba:
   - toot
   projects: []
   area: tyndp
-  remove_noisy_costs: false
+  remove_noisy_costs: true
   storage:
     cyclic_carriers:
     - battery
