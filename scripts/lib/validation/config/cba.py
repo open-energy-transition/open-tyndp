@@ -50,7 +50,6 @@ class _CbaSolvingConfig(ConfigModel):
             "overlap": 1,
             "load_shedding": {"enable": True},
             "remove_noisy_costs": False,
-            "noisy_costs_threshold": 0.02,
             "io_api": "direct",
         },
         description="Solving options for rolling horizon dispatch.",

@@ -1582,7 +1582,6 @@ cba:
       load_shedding:
         enable: true
       remove_noisy_costs: false
-      noisy_costs_threshold: 0.02
       io_api: direct
     solver:
       name: highs

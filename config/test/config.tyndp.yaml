@@ -461,7 +461,6 @@ cba:
         enable: true
         apply_to_all_carriers: true
       remove_noisy_costs: true
-      noisy_costs_threshold: 0.02
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
