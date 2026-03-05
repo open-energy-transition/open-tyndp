@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     # Extend primary fuel sources capacity
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
-    n = extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
 
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
@@ -140,6 +140,6 @@ if __name__ == "__main__":
     # TODO: for DE/GA add merging of the two H2 zones
     # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
 
-    # Save simplified network
+    # Save base network
     n.export_to_netcdf(snakemake.output.network)
     logger.info(f"Saved CBA base network to {snakemake.output.network}")
