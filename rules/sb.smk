@@ -796,16 +796,22 @@ if config["benchmarking"]["enable"]:
                 allow_missing=True,
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
-            mm_data=lambda w: expand(
-                RESULTS
-                + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-                scenario=config_provider("tyndp_scenario"),
-                planning_horizons=[
-                    year
-                    for year in config_provider("scenario", "planning_horizons")(w)
-                    if str(year) in ["2030", "2040"]  # Only years with MM output data
-                ],
-                allow_missing=True,
+            mm_data=lambda w: (
+                expand(
+                    RESULTS
+                    + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                    scenario=config_provider("tyndp_scenario"),
+                    planning_horizons=[
+                        year
+                        for year in config_provider("scenario", "planning_horizons")(w)
+                        if str(year)
+                        in ["2030", "2040"]  # Only years with MM output data
+                    ],
+                    allow_missing=True,
+                )
+                if config_provider("tyndp_scenario")(w)
+                == "NT"  # Only NT has MM output files for now
+                else []
             ),
         output:
             benchmarks=directory(
@@ -838,16 +844,22 @@ if config["benchmarking"]["enable"]:
                 planning_horizons=config_provider("scenario", "planning_horizons"),
                 allow_missing=True,
             ),
-            mm_data=lambda w: expand(
-                RESULTS
-                + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-                scenario=config_provider("tyndp_scenario"),
-                planning_horizons=[
-                    year
-                    for year in config_provider("scenario", "planning_horizons")(w)
-                    if str(year) in ["2030", "2040"]  # Only years with MM output data
-                ],
-                allow_missing=True,
+            mm_data=lambda w: (
+                expand(
+                    RESULTS
+                    + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                    scenario=config_provider("tyndp_scenario"),
+                    planning_horizons=[
+                        year
+                        for year in config_provider("scenario", "planning_horizons")(w)
+                        if str(year)
+                        in ["2030", "2040"]  # Only years with MM output data
+                    ],
+                    allow_missing=True,
+                )
+                if config_provider("tyndp_scenario")(w)
+                == "NT"  # Only NT has MM output files for now
+                else []
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
             vp_data=RESULTS + "validation/resources/vp_data_tyndp.csv",
