@@ -78,8 +78,12 @@ def _group_capacities(
     Group conventional capacities by bus and open_tyndp_type.
     """
     # Split into conventional and other
-    caps_conv = caps.query("carrier in @conventional_carriers")
-    caps_other = caps.query("carrier not in @conventional_carriers")
+    caps_conv = caps.query(
+        "carrier in @conventional_carriers and not index_carrier.str.startswith('other-non-res')"
+    )
+    caps_other = caps.query(
+        "carrier not in @conventional_carriers or index_carrier.str.startswith('other-non-res')"
+    )
 
     # Group conventional capacities together
     caps_conv_grouped = _group_conv(caps_conv, groupby=["bus", "open_tyndp_type"])
@@ -98,8 +102,12 @@ def _group_profiles(
     Group conventional profiles by time, bus, and open_tyndp_type.
     """
     # Split into conventional and other
-    profiles_conv = profiles.query("carrier in @conventional_carriers")
-    profiles_other = profiles.query("carrier not in @conventional_carriers")
+    profiles_conv = profiles.query(
+        "carrier in @conventional_carriers and not index_carrier.str.startswith('other-non-res')"
+    )
+    profiles_other = profiles.query(
+        "carrier not in @conventional_carriers or index_carrier.str.startswith('other-non-res')"
+    )
 
     # Calculate absolute values for p_min_t and p_max_t
     profiles_conv_abs = profiles_conv.merge(
@@ -173,7 +181,7 @@ def group_tyndp_conventionals(
 
     # Store original conventional capacities before grouping
     caps_conv_original = pemmdb_capacities.query(
-        "carrier in @tyndp_conventional_carriers"
+        "carrier in @tyndp_conventional_carriers and not index_carrier.str.startswith('other-non-res')"
     )
 
     # Group capacities

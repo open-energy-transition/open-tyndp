@@ -278,11 +278,14 @@ def _process_other_nonres_capacities(
     df = (
         df.set_axis(column_names)
         .T.assign(
-            pemmdb_carrier="Other Non-RES",
+            pemmdb_carrier=lambda df: "Other Non-RES"
+            + " "
+            + df.pemmdb_type.str.split("/").str[1],
             bus=node,
             country=node[:2],
             unit="MW",
-            pemmdb_type=lambda x: _extract_price_band_type(x),
+            price_band_type=lambda x: _extract_price_band_type(x),
+            pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -295,6 +298,13 @@ def _process_other_nonres_capacities(
         .reset_index(drop=True)
     )
 
+    # Manually correct missing pemmdb type information
+    df.loc[:, "pemmdb_type"] = np.where(
+        df.pemmdb_type == "-",
+        df.pemmdb_carrier.str.removeprefix("Other Non-RES ").str.lower(),
+        df.pemmdb_type,
+    )
+
     if df.empty:
         logger.debug(
             f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
@@ -303,7 +313,7 @@ def _process_other_nonres_capacities(
 
     # Check for duplicate price bands and keep first entry only
     df = _drop_duplicate_price_bands(
-        df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
+        df, "price_band_type", pemmdb_tech, node, cyear, as_index=False
     ).reset_index(drop=True)
 
     return df
@@ -750,22 +760,36 @@ def _process_other_nonres_profiles(
     df = df.loc[:, mask]
 
     # Extract plant type
-    type = _extract_price_band_type(df.T)
+    price_band_type = _extract_price_band_type(df.T)
+    pemmdb_carrier = (
+        "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1].values
+    )
+    pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower().values
+
+    # Manually correct missing pemmdb type information
+    pemmdb_type = np.where(
+        pemmdb_type == "-",
+        [c.removeprefix("Other Non-RES ").lower() for c in pemmdb_carrier],
+        pemmdb_type,
+    )
 
     df_long = (
         df.iloc[10:]
         .reset_index(drop=True)
         .div(cap.loc[mask], axis=1)
-        .set_axis(type, axis="columns")
+        .set_axis([price_band_type, pemmdb_carrier, pemmdb_type], axis="columns")
+        .rename_axis(
+            ["price_band_type", "pemmdb_carrier", "pemmdb_type"], axis="columns"
+        )
         .assign(
             time=sns_year_h,
             bus=node,
-            pemmdb_carrier=pemmdb_tech,
         )
         .loc[lambda x: x["time"].isin(sns)]
-        .set_index(["time", "bus", "pemmdb_carrier"])
-        .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
-        .set_index("pemmdb_type", append=True)
+        .set_index(["time", "bus"])
+        .stack(level=[0, 1, 2])
+        .rename("p_max_pu")
+        .to_frame()
         .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
     )
 
@@ -927,9 +951,13 @@ def process_pemmdb_capacities(
         if capacities is None:
             return None
 
-        # Separate energy and power capacities and select needed columns
+        # Separate energy and power capacities, assign empty values for missing attributes and select needed columns
         capacities = (
             capacities.assign(
+                price=lambda x: x["price"] if "price" in x.columns else None,
+                co2_factor=lambda x: x["co2_factor"]
+                if "co2_factor" in x.columns
+                else None,
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
             )[
@@ -940,6 +968,8 @@ def process_pemmdb_capacities(
                     "p_nom",
                     "e_nom",
                     "efficiency",
+                    "price",
+                    "co2_factor",
                     "country",
                     "unit",
                 ]
@@ -1338,7 +1368,9 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
-    pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0)
+    pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0).set_index(
+        "price_band_type", append=True
+    )
     ds = xr.Dataset(
         {
             "p_min_pu": (["sample"], pemmdb_profiles_df["p_min_pu"]),
