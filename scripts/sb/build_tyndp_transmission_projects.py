@@ -49,6 +49,27 @@ def read_invest_file(
     years: list[int] = [2030, 2035],
     category: str = "Real",
 ) -> pd.DataFrame:
+    """
+    Read raw investment data for Electricity and Hydrogen.
+
+    For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
+
+    Parameters
+    ----------
+    fn_invest : str
+        Path to the investment dataset file.
+    carrier : str, optional
+        Energy carrier to extract: 'Electricity' or 'Hydrogen'. Default is 'Electricity'.
+    years : list[int], optional
+        Commissioning years to filter projects. Default is [2030, 2035].
+    category : str, optional
+        Project category filter for Electricity. Default is 'Real'.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of investment projects.
+    """
     if carrier not in ["Electricity", "Hydrogen"]:
         raise ValueError(
             f"Carrier must be 'Electricity' or 'Hydrogen', got '{carrier}'."
@@ -85,7 +106,7 @@ def get_invest_projects(
     category: str = "Real",
 ) -> gpd.GeoDataFrame:
     """
-    Read grid investment dataset for Electricity or Hydrogen.
+    Read and process grid investment dataset for Electricity or Hydrogen. Extract grid data in PyPSA compatible format.
 
     For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
 

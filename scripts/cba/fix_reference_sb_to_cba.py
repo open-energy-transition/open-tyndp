@@ -102,6 +102,7 @@ if __name__ == "__main__":
     projects_fix = projects_fix[projects_fix.sum(axis=1) != 0]
 
     # Add EU-GB border specific treatment (see Implementation Guidelines for TYNDP 2024, Appendix B.2, p119)
+    # Assume symmetric capacities
     current = 6850  # MW (2030)
     desired = 8725  # MW (2035)
     projects_fix.loc["FR00-GB00"] = [
