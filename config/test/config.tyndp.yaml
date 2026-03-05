@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schema.json
+# yaml-language-server: $schema=../schema.default.json
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
@@ -335,6 +335,7 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
+    # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
     resolution_sector: 6H
 
 adjustments:
@@ -440,12 +441,24 @@ cba:
     cyclic_carriers:
     - battery
     - home battery
+    # Carriers whose state of charge is fixed at window boundaries
+    # from perfect foresight (applies to StorageUnit components only)
+    soc_boundary_carriers:
+    - hydro-reservoir
 
-  # Merged into top-level solving options
+  # Marginal storage value extraction settings
+  msv_extraction:
+    # Temporal resolution for extraction solve
+    # Options: false (use native resolution), "24H", "48H", etc.
+    resolution: false
+    # Resampling method: ffill (forward fill), interpolate (linear)
+    resample_method: ffill
+
+  # Rolling horizon solving settings
   solving:
     options:
       horizon: 168
-      overlap: 0
+      overlap: 1
       load_shedding:
         enable: true
         apply_to_all_carriers: true

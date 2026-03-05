@@ -3,12 +3,13 @@
 # SPDX-License-Identifier: MIT
 
 """
-Prepare reference network by ensuring all CBA projects are included.
+Prepare CBA reference network with all TOOT projects included.
 
-Modify the input network from the SB to get the CBA reference network.
+Takes the simplified network and ensures all projects that will be evaluated
+with TOOT methodology are present. This creates a common baseline for both
+MSV extraction and TOOT/PINT evaluation.
 
-This script adds the missing projects to create
-the complete reference network with all projects included.
+TODO: Implement project addition logic - currently passes through unchanged.
 """
 
 import logging
@@ -74,8 +75,8 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_reference",
             planning_horizons="2030",
-            run="test-sector-tyndp",
-            configfiles=["config/test/config.tyndp.yaml"],
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
         )
 
     configure_logging(snakemake)
@@ -86,6 +87,7 @@ if __name__ == "__main__":
 
     # Load project definitions
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
+    storage_projects = pd.read_csv(snakemake.input.storage_projects)
 
     # Get planning horizons from config
     planning_horizons = int(snakemake.wildcards.planning_horizons)
