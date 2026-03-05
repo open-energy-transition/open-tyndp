@@ -362,7 +362,7 @@ def compute_indicators(
     table: str,
     snapshots: dict[str, str],
     options,
-    rfc_source: str = "TYNDP 2024 Scenarios",
+    rfc_col: str = "TYNDP 2024 Scenarios",
     carrier_col: str = "carrier",
     precision: int = 2,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -374,7 +374,7 @@ def compute_indicators(
     Hourly time series from the rfc_col will be aggregated to match the temporal resolution of model_col.
 
     Computes six key accuracy indicators:
-    - Missing: Count of carrier dropped due to missing values
+    - Missing: Count of carriers dropped due to missing values
     - sMPE: Symmetric Mean Percentage Error (directional)
     - sMAPE: Symmetric Mean Absolute Percentage Error (magnitude)
     - sMdAPE: Symmetric Median Absolute Percentage Error (skewness)
@@ -395,8 +395,8 @@ def compute_indicators(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
-    rfc_source : str, default "TYNDP 2024 Scenarios"
-        Column name for reference values.
+    rfc_col : str, default "TYNDP 2024 Scenarios"
+        Name of the reference data source.
     carrier_col : str, default "carrier"
         Column name for carrier/technology grouping.
     precision: int, default 2
@@ -423,21 +423,21 @@ def compute_indicators(
 
     # Compute overall indicators of the table
     indicators = (
-        compute_all_indicators(df, table, rfc_col=rfc_source, df_na=df_na)
+        compute_all_indicators(df, table, rfc_col=rfc_col, df_na=df_na)
         .round(precision)
-        .assign(reference=rfc_source)
+        .assign(reference=rfc_col)
     )
 
     # Compute per-carrier indicators
     df_carrier = [
-        compute_all_indicators(df_c, table, carrier=carrier, rfc_col=rfc_source)
+        compute_all_indicators(df_c, table, carrier=carrier, rfc_col=rfc_col)
         for carrier, df_c in df.groupby(level=carrier_col)
     ]
     missing_carriers = set(df_na.index.get_level_values("carrier"))
     df_carrier.extend(
         [pd.DataFrame(index=[(table, carrier) for carrier in missing_carriers])]
     )
-    df_carrier = pd.concat(df_carrier).round(precision).assign(reference=rfc_source)
+    df_carrier = pd.concat(df_carrier).round(precision).assign(reference=rfc_col)
 
     return df_carrier, indicators
 
@@ -517,7 +517,7 @@ def compare_sources(
 
     # Compare sources
     df, indicators = compute_indicators(
-        df, table, snapshots, options, rfc_source=rfc_source
+        df, table, snapshots, options, rfc_col=rfc_source
     )
 
     return df, indicators

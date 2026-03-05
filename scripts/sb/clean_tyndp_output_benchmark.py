@@ -270,7 +270,26 @@ def load_MM_sheet(
     return final, df_ct
 
 
-def load_h2_demand(sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex):
+def load_h2_demand(
+    sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex
+) -> pd.DataFrame:
+    """
+    Load hourly H2 demand time series from a TYNDP Market Outputs Excel file.
+
+    Parameters
+    ----------
+    sheet_name : str
+        Name of the Excel sheet containing hourly H2 data.
+    filepath : str or Path
+        Path to the TYNDP Market Outputs Excel file.
+    snapshots : pd.DatetimeIndex
+        Model snapshot index.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of hourly H2 demand.
+    """
     df = (
         pd.read_excel(
             filepath,
