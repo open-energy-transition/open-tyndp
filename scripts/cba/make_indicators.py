@@ -725,9 +725,7 @@ if __name__ == "__main__":
     indicators = {}
     units = {}
 
-    noisy_costs_option = snakemake.config["cba"]["solving"]["options"].get(
-        "remove_noisy_costs", False
-    )
+    noisy_costs_option = snakemake.config["cba"].get("remove_noisy_costs", False)
     b1_indicators, b1_units = calculate_b1_indicator(
         n_reference,
         n_project,

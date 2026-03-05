@@ -49,7 +49,6 @@ class _CbaSolvingConfig(ConfigModel):
             "horizon": 168,
             "overlap": 1,
             "load_shedding": {"enable": True},
-            "remove_noisy_costs": True,
             "io_api": "direct",
         },
         description="Solving options for rolling horizon dispatch.",
@@ -107,6 +106,10 @@ class CbaConfig(BaseModel):
     area: Literal["tyndp", "entso-e", "eu27"] = Field(
         default="tyndp",
         description="Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
+    )
+    remove_noisy_costs: bool = Field(
+        default=False,
+        description="If true, use original pre-noise capital and marginal costs for CBA indicators.",
     )
     storage: _CbaStorageConfig = Field(
         default_factory=_CbaStorageConfig,

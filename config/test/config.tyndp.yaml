@@ -432,6 +432,8 @@ cba:
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
+  # Use pre-noise costs for indicators while keeping noisy costs in the solve
+  remove_noisy_costs: true
 
   # Storage settings for CBA dispatch
   storage:
@@ -461,7 +463,6 @@ cba:
       load_shedding:
         enable: true
         apply_to_all_carriers: true
-      remove_noisy_costs: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:

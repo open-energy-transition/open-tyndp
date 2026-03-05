@@ -371,8 +371,8 @@ solving:
       carriers:
         H2: 3000
   solver:  # Use commercial solver for high resolution results in SB
-    name: highs
-    options: highs-default
+    name: gurobi
+    options: gurobi-default
 
 plotting:
   energy_threshold: 1.
@@ -424,6 +424,7 @@ cba:
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
+  remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
   # Storage settings for dispatch
   storage:
@@ -454,7 +455,6 @@ cba:
       load_shedding:
         enable: true
         apply_to_all_carriers: true
-      remove_noisy_costs: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:

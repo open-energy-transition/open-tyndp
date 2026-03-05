@@ -1578,6 +1578,7 @@ cba:
   - toot
   projects: []
   area: tyndp
+  remove_noisy_costs: false
   storage:
     cyclic_carriers:
     - battery
@@ -1593,7 +1594,6 @@ cba:
       overlap: 1
       load_shedding:
         enable: true
-      remove_noisy_costs: true
       io_api: direct
     solver:
       name: highs
