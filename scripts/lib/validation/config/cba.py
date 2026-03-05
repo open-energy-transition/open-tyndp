@@ -49,7 +49,7 @@ class _CbaSolvingConfig(ConfigModel):
             "horizon": 168,
             "overlap": 1,
             "load_shedding": {"enable": True},
-            "remove_noisy_costs": False,
+            "remove_noisy_costs": True,
             "io_api": "direct",
         },
         description="Solving options for rolling horizon dispatch.",
