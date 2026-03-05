@@ -75,7 +75,7 @@ def attach_tyndp_transmission_projects(
     fn_projects : str
         Path to CSV file containing transmission project data.
     fn_projects_fix : str|None (optional)
-        Path to CSV file containing transmission project fixes (default: None).
+        Path to CSV file containing transmission project corrections (default: None).
     """
     logger.info("Adding transmission projects to the electrical network")
     projects = _load_links_from_raw(fn_projects)
@@ -84,7 +84,7 @@ def attach_tyndp_transmission_projects(
 
     # Patch the project list (optional)
     if fn_projects_fix:
-        logger.info("Patching electrical transmission projects with fixes")
+        logger.info("Patching electrical transmission projects with corrections.")
         projects_fix = pd.read_csv(fn_projects_fix, quotechar="'", index_col=0).assign(
             dc=True
         )
