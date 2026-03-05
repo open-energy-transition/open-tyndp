@@ -140,22 +140,6 @@ if __name__ == "__main__":
     # TODO: for DE/GA add merging of the two H2 zones
     # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
 
-    remove_noisy_costs = snakemake.params.get("remove_noisy_costs", False)
-    noisy_threshold = snakemake.params.get("noisy_costs_threshold", 0.02)
-    logger.info(
-        "remove_noisy_costs=%s noisy_costs_threshold=%s",
-        remove_noisy_costs,
-        noisy_threshold,
-    )
-
-    # Remove noisy marginal costs for Store and StorageUnit components
-    if remove_noisy_costs:
-        remove_noisy_marginal_costs(
-            n,
-            threshold=noisy_threshold,
-            components=["Store", "StorageUnit"],
-        )
-
     # Save simplified network
     n.export_to_netcdf(snakemake.output.network)
     logger.info(f"Saved CBA base network to {snakemake.output.network}")
