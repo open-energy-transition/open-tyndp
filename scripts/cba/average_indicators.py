@@ -80,46 +80,46 @@ def average_indicators_csv(input_files, output_file):
 
         for input_file in input_files:
             # check if input_file shows reference to required weather year
-            cyear_match = False
             cyear = None
             cyear_weight = 1
             for cy in cyear_weightings:
                 cyear_str = "cy" + str(cy)
                 if cyear_str in input_file:
-                    cyear_match = True
                     cyear = cy
                     cyear_weight = cyear_weightings[cy]
+                    break
 
-            if cyear_match:
-                logger.info(f"Process file {input_file} ...")
-                with open(input_file, newline="") as infile:
-                    reader = csv.reader(infile)
-
-                    # Read and verify header
-                    file_header = next(reader, None)
-                    # add additional field to the new header structure
-                    file_header.insert(0, "cyear")
-                    file_header.insert(0, "cyear_weight")
-                    if file_header != header:
-                        logger.warning(
-                            f"Header mismatch in {input_file}. "
-                            f"Expected: {header}, Got: {file_header}"
-                        )
-
-                    # Write all data rows
-                    for row in reader:
-                        if "Open-TYNDP" in row:
-                            row.insert(0, str(cyear))
-                            row.insert(0, cyear_weight)
-                        else:
-                            row.insert(0, "")  # cyear
-                            row.insert(0, 1)  # cyear_weight
-                        writer.writerow(row)
-                        row_count += 1
-            else:
+            if cyear is None:
                 logger.info(
-                    f"Problem in catching cyear and cyear_weight: cy={cy}, cyear={cyear}, cyear_weight={cyear_weight}"
+                    "No cyear tag found in %s, defaulting to weight=1",
+                    input_file,
                 )
+
+            logger.info(f"Process file {input_file} ...")
+            with open(input_file, newline="") as infile:
+                reader = csv.reader(infile)
+
+                # Read and verify header
+                file_header = next(reader, None)
+                # add additional field to the new header structure
+                file_header.insert(0, "cyear")
+                file_header.insert(0, "cyear_weight")
+                if file_header != header:
+                    logger.warning(
+                        f"Header mismatch in {input_file}. "
+                        f"Expected: {header}, Got: {file_header}"
+                    )
+
+                # Write all data rows
+                for row in reader:
+                    if "Open-TYNDP" in row:
+                        row.insert(0, "" if cyear is None else str(cyear))
+                        row.insert(0, cyear_weight)
+                    else:
+                        row.insert(0, "")  # cyear
+                        row.insert(0, 1)  # cyear_weight
+                    writer.writerow(row)
+                    row_count += 1
 
     logger.info(f"Collected {row_count} rows from {len(input_files)} files")
 
