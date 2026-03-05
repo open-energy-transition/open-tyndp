@@ -94,8 +94,6 @@ benchmarking:
           column:
           - scenario
           - year
-      market_out:
-        test:
       mapping:
         H2 turbine: power generation
         h2-ccgt: power generation
