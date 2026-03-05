@@ -300,7 +300,10 @@ def load_h2_demand(
         .filter(like="H2_LOAD")
         .rename(lambda s: s.split("_")[0].replace("UK", "GB") + " H2", axis=1)
     )
-    df.index = snapshots[: len(df)]
+    df.index = pd.to_datetime(df.index, format="%d%b%H:%M").map(
+        lambda t: t.replace(year=snapshots[0].year)
+    )
+    df = df.loc[snapshots]
 
     return df
 
