@@ -62,50 +62,6 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
     return n
 
 
-def remove_noisy_marginal_costs(
-    n: pypsa.Network,
-    threshold: float = 0.02,
-    components: list[str] | None = None,
-):
-    """
-    Remove small noisy marginal costs for selected components (Storage, StorageUnit).
-
-    This removes the random noise injected in solve_network.prepare_network
-    (approx 0.01 +/- 0.001) by zeroing marginal_cost values below the threshold.
-    """
-    if components is None:
-        components = ["Store", "StorageUnit"]
-    for comp_name in components:
-        try:
-            comp = n.components[comp_name]
-        except Exception:
-            logger.info("Component %s not found in network.", comp_name)
-            continue
-        table = comp.static
-        if "marginal_cost" not in table.columns:
-            logger.info(
-                "No marginal_cost column for %s (columns=%s)",
-                comp_name,
-                list(table.columns),
-            )
-            continue
-        mc = table["marginal_cost"]
-        cleaned = mc.where(mc.abs() >= threshold, 0.0)
-        changed = (cleaned != mc).sum()
-        logger.info(
-            "Noisy cost cleanup for %s: threshold=%s, total=%d, zeroed=%d, "
-            "min=%.6g, max=%.6g",
-            comp_name,
-            threshold,
-            len(mc),
-            int(changed),
-            float(mc.min()) if len(mc) else float("nan"),
-            float(mc.max()) if len(mc) else float("nan"),
-        )
-        table["marginal_cost"] = cleaned
-    return n
-
-
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
