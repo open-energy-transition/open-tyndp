@@ -799,6 +799,12 @@
           "description": "Consider the monthly fluctuating fuel prices for each conventional generator. Refer to the CSV file 'data/validation/monthly_fuel_price.csv'.",
           "type": "boolean"
         },
+        "fuel_price_rolling_window": {
+          "default": 6,
+          "description": "Monthly rolling mean window for fossil fuel prices smoothing.",
+          "minimum": 1,
+          "type": "integer"
+        },
         "nuclear": {
           "additionalProperties": {
             "anyOf": [
@@ -935,10 +941,15 @@
               "default": 0.0,
               "description": "Exogenous price of carbon-dioxide. In electricity-only runs it is added to the marginal costs of fossil-fuelled generators according to their carbon intensity, while for sector networks it applies to emissions ending up in CO2 atmosphere."
             },
-            "co2_monthly_prices": {
+            "dynamic": {
               "default": false,
-              "description": "Add monthly cost for a carbon-dioxide price based on historical values built by the rule `build_monthly_prices`.",
+              "description": "Add time-varying cost for a carbon-dioxide price based on historical values built by the rule `build_co2_prices`.",
               "type": "boolean"
+            },
+            "rolling_window": {
+              "default": 90,
+              "description": "Rolling window (in days) for smoothing the historical CO2 prices when `dynamic` is set to True.",
+              "type": "integer"
             }
           }
         }
@@ -1070,6 +1081,26 @@
             }
           }
         },
+        "worldbank_commodity_prices": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "gem_europe_gas_tracker": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -1091,6 +1122,26 @@
           }
         },
         "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "instrat_co2_prices": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -1331,6 +1382,26 @@
           }
         },
         "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "swiss_energy_balances": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -2364,7 +2435,7 @@
               "type": "boolean"
             }
           ],
-          "default": "(DateOut >= 2024 or DateOut != DateOut) and not (Country == 'Germany' and Fueltype == 'Nuclear')",
+          "default": "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)",
           "description": "Filter query for the default powerplant database."
         },
         "custom_powerplants": {
@@ -2594,14 +2665,18 @@
               "description": "Activate routine to estimate renewable capacities in rule `add_electricity`. This option should not be used in combination with pathway planning `foresight: myopic` or `foresight: perfect` as renewable capacities are added differently in `add_existing_baseyear`.",
               "type": "boolean"
             },
-            "from_gem": {
+            "from_powerplantmatching": {
               "default": true,
-              "description": "Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.",
-              "markdownDescription": "Add renewable capacities from [Global Energy Monitor's Global Solar Power Tracker ](https://globalenergymonitor.org/projects/global-solar-power-tracker/) and [Global Energy Monitor's Global Wind Power Tracker ](https://globalenergymonitor.org/projects/global-wind-power-tracker/).",
+              "description": "Add renewable capacities from powerplantmatching dataset.",
+              "type": "boolean"
+            },
+            "from_irenastat": {
+              "default": false,
+              "description": "Supplement powerplantmatching dataset with heuristics based on country-level renewable capacities from IRENA (IRENASTAT).",
               "type": "boolean"
             },
             "year": {
-              "default": 2020,
+              "default": 2024,
               "description": "Renewable capacities are based on existing capacities reported by IRENA (IRENASTAT) for the specified year.",
               "type": "integer"
             },
@@ -2675,7 +2750,7 @@
       "description": "Configuration for `energy` settings.",
       "properties": {
         "energy_totals_year": {
-          "default": 2019,
+          "default": 2023,
           "description": "The year for the sector energy use. The year must be available in the Eurostat report.",
           "type": "integer"
         },
@@ -2914,14 +2989,14 @@
         },
         "MWh_elec_per_tMeOH": {
           "default": 0.167,
-          "description": "The energy amount of electricity needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_CH4_per_tMeOH": {
           "default": 10.25,
-          "description": "The energy amount of methane needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_MeOH_per_tMeOH": {
@@ -4762,24 +4837,6 @@
           "description": "The efficiency of oil-powered machinery in the conversion of oil to meet agricultural needs.",
           "type": "number"
         },
-        "MWh_MeOH_per_MWh_H2": {
-          "default": 0.8787,
-          "description": "The energy amount of the produced methanol per energy amount of hydrogen. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of hydrogen. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_tCO2": {
-          "default": 4.0321,
-          "description": "The energy amount of the produced methanol per ton of CO2. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 66.",
-          "markdownDescription": "The energy amount of the produced methanol per ton of CO2. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 66.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_MWh_e": {
-          "default": 3.6907,
-          "description": "The energy amount of the produced methanol per energy amount of electricity. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of electricity. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
-          "type": "number"
-        },
         "shipping_hydrogen_liquefaction": {
           "default": false,
           "description": "Whether to include liquefaction costs for hydrogen demand in shipping.",
@@ -5805,6 +5862,11 @@
             "keep_files": {
               "default": false,
               "description": "Whether to keep LPs and MPS files after solving.",
+              "type": "boolean"
+            },
+            "store_model": {
+              "default": false,
+              "description": "Store the linopy model to a NetCDF file after solving. Not supported with rolling_horizon. Not scenario-aware.",
               "type": "boolean"
             },
             "model_kwargs": {
@@ -6912,10 +6974,15 @@
           "default": 0.0,
           "description": "Exogenous price of carbon-dioxide. In electricity-only runs it is added to the marginal costs of fossil-fuelled generators according to their carbon intensity, while for sector networks it applies to emissions ending up in CO2 atmosphere."
         },
-        "co2_monthly_prices": {
+        "dynamic": {
           "default": false,
-          "description": "Add monthly cost for a carbon-dioxide price based on historical values built by the rule `build_monthly_prices`.",
+          "description": "Add time-varying cost for a carbon-dioxide price based on historical values built by the rule `build_co2_prices`.",
           "type": "boolean"
+        },
+        "rolling_window": {
+          "default": 90,
+          "description": "Rolling window (in days) for smoothing the historical CO2 prices when `dynamic` is set to True.",
+          "type": "integer"
         }
       }
     },
@@ -6963,14 +7030,18 @@
           "description": "Activate routine to estimate renewable capacities in rule `add_electricity`. This option should not be used in combination with pathway planning `foresight: myopic` or `foresight: perfect` as renewable capacities are added differently in `add_existing_baseyear`.",
           "type": "boolean"
         },
-        "from_gem": {
+        "from_powerplantmatching": {
           "default": true,
-          "description": "Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.",
-          "markdownDescription": "Add renewable capacities from [Global Energy Monitor's Global Solar Power Tracker ](https://globalenergymonitor.org/projects/global-solar-power-tracker/) and [Global Energy Monitor's Global Wind Power Tracker ](https://globalenergymonitor.org/projects/global-wind-power-tracker/).",
+          "description": "Add renewable capacities from powerplantmatching dataset.",
+          "type": "boolean"
+        },
+        "from_irenastat": {
+          "default": false,
+          "description": "Supplement powerplantmatching dataset with heuristics based on country-level renewable capacities from IRENA (IRENASTAT).",
           "type": "boolean"
         },
         "year": {
-          "default": 2020,
+          "default": 2024,
           "description": "Renewable capacities are based on existing capacities reported by IRENA (IRENASTAT) for the specified year.",
           "type": "integer"
         },
@@ -8656,6 +8727,11 @@
           "description": "Whether to keep LPs and MPS files after solving.",
           "type": "boolean"
         },
+        "store_model": {
+          "default": false,
+          "description": "Store the linopy model to a NetCDF file after solving. Not supported with rolling_horizon. Not scenario-aware.",
+          "type": "boolean"
+        },
         "model_kwargs": {
           "description": "Configuration for `solving.options.model_kwargs` settings.",
           "properties": {
@@ -9314,7 +9390,7 @@
               "type": "boolean"
             }
           ],
-          "default": "(DateOut >= 2024 or DateOut != DateOut) and not (Country == 'Germany' and Fueltype == 'Nuclear')",
+          "default": "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)",
           "description": "Filter query for the default powerplant database."
         },
         "custom_powerplants": {
@@ -9544,14 +9620,18 @@
               "description": "Activate routine to estimate renewable capacities in rule `add_electricity`. This option should not be used in combination with pathway planning `foresight: myopic` or `foresight: perfect` as renewable capacities are added differently in `add_existing_baseyear`.",
               "type": "boolean"
             },
-            "from_gem": {
+            "from_powerplantmatching": {
               "default": true,
-              "description": "Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.",
-              "markdownDescription": "Add renewable capacities from [Global Energy Monitor's Global Solar Power Tracker ](https://globalenergymonitor.org/projects/global-solar-power-tracker/) and [Global Energy Monitor's Global Wind Power Tracker ](https://globalenergymonitor.org/projects/global-wind-power-tracker/).",
+              "description": "Add renewable capacities from powerplantmatching dataset.",
+              "type": "boolean"
+            },
+            "from_irenastat": {
+              "default": false,
+              "description": "Supplement powerplantmatching dataset with heuristics based on country-level renewable capacities from IRENA (IRENASTAT).",
               "type": "boolean"
             },
             "year": {
-              "default": 2020,
+              "default": 2024,
               "description": "Renewable capacities are based on existing capacities reported by IRENA (IRENASTAT) for the specified year.",
               "type": "integer"
             },
@@ -10867,6 +10947,12 @@
           "description": "Consider the monthly fluctuating fuel prices for each conventional generator. Refer to the CSV file 'data/validation/monthly_fuel_price.csv'.",
           "type": "boolean"
         },
+        "fuel_price_rolling_window": {
+          "default": 6,
+          "description": "Monthly rolling mean window for fossil fuel prices smoothing.",
+          "minimum": 1,
+          "type": "integer"
+        },
         "nuclear": {
           "additionalProperties": {
             "anyOf": [
@@ -11260,7 +11346,7 @@
       "description": "Configuration for `energy` settings.",
       "properties": {
         "energy_totals_year": {
-          "default": 2019,
+          "default": 2023,
           "description": "The year for the sector energy use. The year must be available in the Eurostat report.",
           "type": "integer"
         },
@@ -11740,24 +11826,6 @@
         "agriculture_machinery_electric_efficiency": {
           "default": 0.3,
           "description": "The efficiency of oil-powered machinery in the conversion of oil to meet agricultural needs.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_MWh_H2": {
-          "default": 0.8787,
-          "description": "The energy amount of the produced methanol per energy amount of hydrogen. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of hydrogen. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_tCO2": {
-          "default": 4.0321,
-          "description": "The energy amount of the produced methanol per ton of CO2. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 66.",
-          "markdownDescription": "The energy amount of the produced methanol per ton of CO2. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 66.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_MWh_e": {
-          "default": 3.6907,
-          "description": "The energy amount of the produced methanol per energy amount of electricity. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of electricity. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
           "type": "number"
         },
         "shipping_hydrogen_liquefaction": {
@@ -12678,14 +12746,14 @@
         },
         "MWh_elec_per_tMeOH": {
           "default": 0.167,
-          "description": "The energy amount of electricity needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_CH4_per_tMeOH": {
           "default": 10.25,
-          "description": "The energy amount of methane needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_MeOH_per_tMeOH": {
@@ -12827,10 +12895,15 @@
               "default": 0.0,
               "description": "Exogenous price of carbon-dioxide. In electricity-only runs it is added to the marginal costs of fossil-fuelled generators according to their carbon intensity, while for sector networks it applies to emissions ending up in CO2 atmosphere."
             },
-            "co2_monthly_prices": {
+            "dynamic": {
               "default": false,
-              "description": "Add monthly cost for a carbon-dioxide price based on historical values built by the rule `build_monthly_prices`.",
+              "description": "Add time-varying cost for a carbon-dioxide price based on historical values built by the rule `build_co2_prices`.",
               "type": "boolean"
+            },
+            "rolling_window": {
+              "default": 90,
+              "description": "Rolling window (in days) for smoothing the historical CO2 prices when `dynamic` is set to True.",
+              "type": "integer"
             }
           }
         }
@@ -13373,6 +13446,11 @@
               "description": "Whether to keep LPs and MPS files after solving.",
               "type": "boolean"
             },
+            "store_model": {
+              "default": false,
+              "description": "Store the linopy model to a NetCDF file after solving. Not supported with rolling_horizon. Not scenario-aware.",
+              "type": "boolean"
+            },
             "model_kwargs": {
               "description": "Configuration for `solving.options.model_kwargs` settings.",
               "properties": {
@@ -13641,6 +13719,26 @@
             }
           }
         },
+        "worldbank_commodity_prices": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "gem_europe_gas_tracker": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -13662,6 +13760,26 @@
           }
         },
         "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "instrat_co2_prices": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -13902,6 +14020,26 @@
           }
         },
         "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "swiss_energy_balances": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {

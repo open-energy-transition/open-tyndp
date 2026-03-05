@@ -221,9 +221,9 @@ def sanitize_carriers(n, config):
     Raises a warning if any carrier's "tech_colors" are not defined in the config dictionary.
     """
 
-    for c in n.iterate_components():
-        if "carrier" in c.df:
-            add_missing_carriers(n, c.df.carrier)
+    for c in n.components:
+        if "carrier" in c.static:
+            add_missing_carriers(n, c.static.carrier)
 
     carrier_i = n.carriers.index
     nice_names = (
@@ -613,6 +613,7 @@ def attach_conventional_generators(
     ppl: pd.DataFrame,
     conventional_carriers: list,
     extendable_carriers: dict,
+    renewable_carriers: set,
     conventional_params: dict,
     conventional_inputs: dict,
     unit_commitment: pd.DataFrame = None,
@@ -633,6 +634,8 @@ def attach_conventional_generators(
         List of conventional energy carriers.
     extendable_carriers : dict
         Dictionary of extendable energy carriers.
+    renewable_carriers : set
+        Set of carriers added separately in attach_wind_and_solar().
     conventional_params : dict
         Dictionary of conventional generator parameters.
     conventional_inputs : dict
@@ -642,7 +645,10 @@ def attach_conventional_generators(
     fuel_price : pd.DataFrame, optional
         DataFrame containing fuel price data, by default None.
     """
-    carriers = list(set(conventional_carriers) | set(extendable_carriers["Generator"]))
+    carriers = list(
+        set(conventional_carriers)
+        | set(extendable_carriers["Generator"]) - set(renewable_carriers)
+    )
 
     ppl = ppl.query("carrier in @carriers")
 
@@ -654,7 +660,7 @@ def attach_conventional_generators(
     if unit_commitment is not None:
         committable_attrs = ppl.carrier.isin(unit_commitment).to_frame("committable")
         for attr in unit_commitment.index:
-            default = n.component_attrs["Generator"].loc[attr, "default"]
+            default = n.components["Generator"].defaults.loc[attr, "default"]
             committable_attrs[attr] = ppl.carrier.map(unit_commitment.loc[attr]).fillna(
                 default
             )
@@ -882,7 +888,7 @@ def attach_hydro(
         )
 
 
-def attach_GEM_renewables(
+def attach_renewable_powerplants(
     n: pypsa.Network, tech_map: dict[str, list[str]], smk_inputs: list[str]
 ) -> None:
     """
@@ -896,9 +902,11 @@ def attach_GEM_renewables(
     - None
     """
     tech_string = ", ".join(tech_map.values())
-    logger.info(f"Using GEM renewable capacities for carriers {tech_string}.")
+    logger.info(
+        f"Using powerplantmatching renewable capacities for carriers {tech_string}."
+    )
 
-    df = pm.data.GEM().powerplant.convert_country_to_alpha2()
+    df = pd.read_csv(smk_inputs["powerplants"], index_col=0).drop("bus", axis=1)
     technology_b = ~df.Technology.isin(["Onshore", "Offshore"])
     df["Fueltype"] = df.Fueltype.where(technology_b, df.Technology).replace(
         {"Solar": "PV"}
@@ -1009,7 +1017,7 @@ def attach_storageunits(
     n: pypsa.Network,
     costs: pd.DataFrame,
     buses_i: list,
-    extendable_carriers: dict,
+    extendable_carriers: list,
     max_hours: dict,
 ):
     """
@@ -1023,7 +1031,7 @@ def attach_storageunits(
         DataFrame containing the cost data.
     buses_i : list
         List of high voltage electricity buses.
-    extendable_carriers : dict
+    extendable_carriers : list
         List of extendable storage units carrier names.
     max_hours : dict
         Dictionary of maximum hours for storage units.
@@ -1074,7 +1082,7 @@ def attach_stores(
     n: pypsa.Network,
     costs: pd.DataFrame,
     buses_i: list,
-    extendable_carriers: dict,
+    extendable_carriers: list,
 ):
     """
     Attach stores to the network.
@@ -1087,7 +1095,7 @@ def attach_stores(
         DataFrame containing the cost data.
     buses_i : list
         List of high voltage electricity buses.
-    extendable_carriers : dict
+    extendable_carriers : list
         List of extendable storage carrier names.
     """
     available_carriers = get_available_storage_carriers(extendable_carriers)
@@ -1169,7 +1177,7 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("add_electricity", clusters=100)
+        snakemake = mock_snakemake("add_electricity", clusters=60)
     configure_logging(snakemake)  # pylint: disable=E0606
     set_scenario_config(snakemake)
 
@@ -1234,7 +1242,7 @@ if __name__ == "__main__":
 
     if params.conventional["dynamic_fuel_price"]:
         fuel_price = pd.read_csv(
-            snakemake.input.fuel_price, index_col=0, header=0, parse_dates=True
+            snakemake.input.fuel_price, index_col=0, parse_dates=True
         )
         fuel_price = fuel_price.reindex(n.snapshots).ffill()
     else:
@@ -1246,8 +1254,9 @@ if __name__ == "__main__":
         ppl,
         conventional_carriers,
         extendable_carriers,
-        params.conventional,
-        conventional_inputs,
+        renewable_carriers,
+        conventional_params=params.conventional,
+        conventional_inputs=conventional_inputs,
         unit_commitment=unit_commitment,
         fuel_price=fuel_price,
     )
@@ -1292,12 +1301,13 @@ if __name__ == "__main__":
             expansion_limit = estimate_renewable_caps["expansion_limit"]
             year = estimate_renewable_caps["year"]
 
-            if estimate_renewable_caps["from_gem"]:
-                attach_GEM_renewables(n, tech_map, snakemake.input)
+            if estimate_renewable_caps["from_powerplantmatching"]:
+                attach_renewable_powerplants(n, tech_map, snakemake.input)
 
-            estimate_renewable_capacities(
-                n, year, tech_map, expansion_limit, params.countries
-            )
+            if estimate_renewable_caps["from_irenastat"]:
+                estimate_renewable_capacities(
+                    n, year, tech_map, expansion_limit, params.countries
+                )
 
     update_p_nom_max(n)
 
