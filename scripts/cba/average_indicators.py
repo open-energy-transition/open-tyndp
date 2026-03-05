@@ -156,6 +156,7 @@ def average_indicators_csv(input_files, output_file):
             df.loc[len(df)] = dict(
                 {
                     "cyear_weight": 1.0,
+                    "cyear": "weighted-average",
                     "project_id": project_id,
                     "method": method,
                     "source": "Open-TYNDP",
