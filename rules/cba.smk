@@ -213,12 +213,6 @@ rule simplify_sb_network:
             "electricity", "tyndp_conventional_carriers"
         ),
         hurdle_costs=config_provider("cba", "hurdle_costs"),
-        remove_noisy_costs=config_provider(
-            "cba", "solving", "options", "remove_noisy_costs", default=False
-        ),
-        noisy_costs_threshold=config_provider(
-            "cba", "solving", "options", "noisy_costs_threshold", default=0.02
-        ),
     input:
         network=input_sb_network,
     output:
