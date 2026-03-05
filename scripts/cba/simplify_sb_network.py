@@ -8,7 +8,6 @@ Creates the base CBA network with:
 - Fixed optimal capacities from scenario building
 - Hurdle costs on DC links
 - Extended primary fuel source capacities
-- Noisy marginal costs removed for StorageUnit and Store components (optional)
 
 **Inputs**
 
@@ -59,7 +58,6 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
     mask = n.generators.carrier.str.contains("|".join(primary_fuel_carriers))
     gen_i = n.generators[mask].index
     n.generators.loc[gen_i, "p_nom"] = inf
-    return n
 
 
 if __name__ == "__main__":
