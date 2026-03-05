@@ -27,6 +27,8 @@ Upcoming Open-TYNDP Release
 
 * Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
 
+* Add an option to use the H2 demand from the Market Model output data (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. Benchmarking against Market Model output data is also now possible.
+
 **Bugfixes and Compatibility**
 
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
