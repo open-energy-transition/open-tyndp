@@ -554,13 +554,13 @@ def prepare_network(
 
     if solve_opts.get("noisy_costs"):
         # Preserve original costs before adding noise
-        for t in n.iterate_components():
-            if "marginal_cost" in t.df and "marginal_cost_original" not in t.df:
-                t.df["marginal_cost_original"] = t.df["marginal_cost"]
+        for t in n.components:
+            if "marginal_cost" in t.static and "marginal_cost_original" not in t.static:
+                t.static["marginal_cost_original"] = t.static["marginal_cost"]
 
-        for t in n.iterate_components(["Line", "Link"]):
-            if "capital_cost" in t.df and "capital_cost_original" not in t.df:
-                t.df["capital_cost_original"] = t.df["capital_cost"]
+        for t in [n.components["Line"], n.components["Link"]]:
+            if "capital_cost" in t.static and "capital_cost_original" not in t.static:
+                t.static["capital_cost_original"] = t.static["capital_cost"]
 
         for t in n.components:
             # if 'capital_cost' in t.static:
