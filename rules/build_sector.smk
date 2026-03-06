@@ -1874,7 +1874,7 @@ rule prepare_sector_network:
             else (
                 resources("h2_demand_tyndp_{planning_horizons}.csv")
                 if config_provider("tyndp_scenario")(w)
-                else None
+                else []
             )
         ),
         tyndp_nuclear_profiles=branch(
