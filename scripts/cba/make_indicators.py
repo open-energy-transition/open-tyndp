@@ -627,6 +627,13 @@ def load_benchmark_rows(
     scenario: str | None,
     project_type: str | None,
 ) -> pd.DataFrame:
+    benchmark_horizon = planning_horizon
+    if benchmark_horizon not in [2030, 2040]:
+        logger.warning(
+            "Benchmark data only available for 2030/2040. Using 2040 benchmarks for planning horizon %s.",
+            planning_horizon,
+        )
+        benchmark_horizon = 2040
     path = Path(benchmark_path)
     if not path.exists():
         logger.warning("Benchmark file %s not found, skipping", path)
@@ -637,11 +644,11 @@ def load_benchmark_rows(
         return pd.DataFrame()
 
     if scenario and not str(scenario)[:4].isdigit():
-        scenario = f"{planning_horizon}{scenario}"
+        scenario = f"{benchmark_horizon}{scenario}"
 
     benchmark = benchmark.loc[
         (benchmark["project_id"] == project_id)
-        & (benchmark["planning_horizon"] == planning_horizon)
+        & (benchmark["planning_horizon"] == benchmark_horizon)
         & (benchmark["project_type"] == project_type)
         & (benchmark["scenario"] == scenario)
     ].copy()
@@ -736,7 +743,14 @@ if __name__ == "__main__":
     units.update(b1_units)
 
     co2_societal_costs_map = snakemake.config["cba"]["co2_societal_cost"]
-    co2_societal_costs = get(co2_societal_costs_map, planning_horizon)
+    co2_cost_horizon = planning_horizon
+    if co2_cost_horizon not in [2030, 2040]:
+        logger.warning(
+            "CO2 societal costs only available for 2030/2040. Using 2040 for planning horizon %s.",
+            planning_horizon,
+        )
+        co2_cost_horizon = 2040
+    co2_societal_costs = get(co2_societal_costs_map, co2_cost_horizon)
 
     co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
     b2_indicators, b2_units = calculate_b2_indicator(
