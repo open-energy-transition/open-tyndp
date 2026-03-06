@@ -253,8 +253,8 @@ rule fix_reference_sb_to_cba:
 rule prepare_reference:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
-        patch_sb_with_cba=config_provider(
-            "tyndp_investment_candidates", "patch_sb_with_cba"
+        patch_sb_with_annexe=config_provider(
+            "tyndp_investment_candidates", "patch_sb_with_annexe"
         ),
     input:
         network=rules.simplify_sb_network.output.network,

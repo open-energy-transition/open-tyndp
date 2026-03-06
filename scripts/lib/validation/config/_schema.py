@@ -71,7 +71,7 @@ class RemoteConfig(ConfigModel):
 class TyndpInvestmentCandidatesConfig(ConfigModel):
     """Configuration for top level `tyndp_investment_candidates` settings."""
 
-    patch_sb_with_cba: bool = Field(
+    patch_sb_with_annexe: bool = Field(
         False,
         description="Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
     )

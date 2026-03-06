@@ -1857,7 +1857,7 @@ rule prepare_sector_network:
             resources("tyndp/new_links_{planning_horizons}.csv"),
         ),
         tyndp_projects_fix=branch(
-            config_provider("tyndp_investment_candidates", "patch_sb_with_cba"),
+            config_provider("tyndp_investment_candidates", "patch_sb_with_annexe"),
             resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
         ),
         tyndp_trajectories=branch(

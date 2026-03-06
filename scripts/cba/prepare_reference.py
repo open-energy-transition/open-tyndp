@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
     hurdle_costs = snakemake.params.hurdle_costs
 
-    if planning_horizons in [2035, 2040] and snakemake.params.patch_sb_with_cba:
+    if planning_horizons in [2035, 2040] and snakemake.params.patch_sb_with_annexe:
         logger.info(
             f"Reference corrections were already applied for planning horizon {planning_horizons}, skipping"
         )
