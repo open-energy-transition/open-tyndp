@@ -22,17 +22,23 @@ from scripts._helpers import (
     get_version,
     set_scenario_config,
 )
-from scripts.sb.make_benchmark import load_data, match_temporal_resolution
+from scripts.sb.make_benchmark import SOURCES_MAP, load_data, match_temporal_resolution
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")
 
 
-def add_version(ax: plt.Axes, fig: plt.Figure):
+def add_metadata(
+    ax: plt.Axes, fig: plt.Figure, model_col: str = "", rfc_source: str = ""
+):
+    # Version
     version = get_version()
     fig.canvas.draw()
     bbox_fig = fig.get_tightbbox(fig.canvas.get_renderer())
     fig_width_inches, fig_height_inches = fig.get_size_inches()
+    x0_fig = (
+        bbox_fig.x0 / fig_width_inches
+    )  # Convert bbox coordinates from inches to figure coordinates
     x1_fig = (
         bbox_fig.x1 / fig_width_inches
     )  # Convert bbox coordinates from inches to figure coordinates
@@ -49,6 +55,19 @@ def add_version(ax: plt.Axes, fig: plt.Figure):
         alpha=0.7,
     )
 
+    # Reference source
+    if model_col != "" and rfc_source != "":
+        ax.text(
+            x0_fig,
+            y0_fig - 0.05,
+            f"Model outputs ({model_col}) benchmarked against {rfc_source}.",
+            transform=fig.transFigure,
+            ha="left",
+            va="bottom",
+            fontsize=8,
+            alpha=0.7,
+        )
+
 
 def _plot_scenario_comparison(
     df: pd.DataFrame,
@@ -58,7 +77,8 @@ def _plot_scenario_comparison(
     scenario: str,
     cyear: int,
     model_col: str,
-    rfc_col: list[str],
+    rfc_cols: list[str],
+    rfc_source: str,
     source_unit: str,
     bench_colors: dict,
 ):
@@ -67,7 +87,7 @@ def _plot_scenario_comparison(
     table_title = table.replace("_", " ").title()
     if table == "power_generation":
         table_title += " (pre-curtailment)"
-    idx = [model_col] + [c for c in rfc_col if c in df.columns]
+    idx = [model_col] + [c for c in rfc_cols if c in df.columns]
 
     tyndp_str = "TYNDP 2024 Scenarios"
     if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
@@ -90,12 +110,15 @@ def _plot_scenario_comparison(
     )
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
-    ax.legend(facecolor="white", frameon=True, edgecolor="black")
+    legend = ax.legend(facecolor="white", frameon=True, edgecolor="black")
+    for txt in legend.get_texts():
+        if txt.get_text() in [model_col, rfc_source]:
+            txt.set_fontweight("bold")
 
     for c in ax.containers:
         ax.bar_label(c, fmt="%.0f", padding=3, fontsize=8)
 
-    add_version(ax, fig)
+    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(output_dir, f"benchmark_{table}_eu27_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -182,7 +205,7 @@ def _plot_time_series(
         bbox=props,
     )
 
-    add_version(ax, fig)
+    add_metadata(ax, fig)
 
     output_filename = Path(output_dir, f"benchmark_{table}_eu27_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -200,7 +223,7 @@ def plot_benchmark(
     tech_colors: dict,
     bench_colors: dict,
     model_col: str = "Open-TYNDP",
-    rfc_col: list[str] = [
+    rfc_cols: list[str] = [
         "TYNDP 2024 Scenarios",
         "TYNDP 2024 Vis Pltfm",
         "TYNDP 2024 Market Outputs",
@@ -229,22 +252,23 @@ def plot_benchmark(
         Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_col : list[str], default ["TYNDP 2024 Scenarios", "TYNDP 2024 Vis Pltfm"]
+    rfc_cols : list[str], default ["TYNDP 2024 Scenarios", "TYNDP 2024 Vis Pltfm"]
         Column names for reference values.
     """
 
     # Parameters
     opt = options["tables"][table]
     table_type = opt["table_type"]
-    source_unit = opt["unit"]
+    source_unit = opt["report"]["unit"]
+    rfc_source = SOURCES_MAP[opt["rfc_source"]]
     cyear = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit
-    logger.info(f"Making benchmark for {table} using {rfc_col} and {model_col}")
+    logger.info(f"Making benchmark for {table} using {rfc_cols} and {model_col}")
     benchmarks = (
         benchmarks_raw.query("table==@table")
         .dropna(how="all", axis=1)
-        .assign(unit=opt["unit"])
+        .assign(unit=opt["report"]["unit"])
     )
 
     if benchmarks.empty:
@@ -279,12 +303,13 @@ def plot_benchmark(
                 scenario,
                 cyear,
                 model_col,
-                rfc_col,
+                rfc_cols,
+                rfc_source,
                 source_unit,
                 bench_colors,
             )
         elif table_type == "time_series":
-            rfc_col_str = [c for c in rfc_col if c in bench_year.columns][0]
+            rfc_col_str = [c for c in rfc_cols if c in bench_year.columns][0]
             bench_agg = match_temporal_resolution(
                 bench_year, snapshots, model_col, rfc_col_str
             ).reset_index()
@@ -377,7 +402,7 @@ def plot_overview(
         loc="upper left",
     )
 
-    add_version(ax, fig)
+    add_metadata(ax, fig)
 
     fig.savefig(fn, bbox_inches="tight")
 

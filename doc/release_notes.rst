@@ -29,6 +29,8 @@ Upcoming Open-TYNDP Release
 
 * Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
 
+* Add an option to use the H2 demand from the Market Model output data (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. Benchmarking against Market Model output data is also now possible.
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).

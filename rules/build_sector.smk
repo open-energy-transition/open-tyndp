@@ -1865,9 +1865,17 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("gas_demand_tyndp_{planning_horizons}.csv"),
         ),
-        h2_demand=branch(
-            config_provider("tyndp_scenario"),
-            resources("h2_demand_tyndp_{planning_horizons}.csv"),
+        h2_demand=lambda w: (
+            RESULTS
+            + f"validation/resources/benchmarks_tyndp_output_h2_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
+            if config_provider("tyndp_scenario")(w)
+            and config_provider("sector", "h2_demand_patch_with_mm")(w)
+            and w.planning_horizons in (2030, 2040)  # Only years with MM output data
+            else (
+                resources("h2_demand_tyndp_{planning_horizons}.csv")
+                if config_provider("tyndp_scenario")(w)
+                else []
+            )
         ),
         tyndp_nuclear_profiles=branch(
             config_provider("tyndp_scenario")
