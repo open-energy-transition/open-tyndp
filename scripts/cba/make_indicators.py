@@ -71,7 +71,19 @@ CARRIER_TO_EMISSION_FACTORS = {
 }
 
 
-def calculate_total_system_cost(n):
+def _apply_original_costs(n, remove_noisy_costs: bool) -> None:
+    if not remove_noisy_costs:
+        return
+    for t in n.iterate_components():
+        if "marginal_cost_original" in t.df:
+            t.df["marginal_cost"] = t.df["marginal_cost_original"]
+
+    for t in n.iterate_components(["Line", "Link"]):
+        if "capital_cost_original" in t.df:
+            t.df["capital_cost"] = t.df["capital_cost_original"]
+
+
+def calculate_total_system_cost(n, remove_noisy_costs: bool = False):
     """
     Calculate total annualized system cost using PyPSA built-in statistics.
 
@@ -88,6 +100,8 @@ def calculate_total_system_cost(n):
     """
     if not n.is_solved:
         raise ValueError("Network must be solved before calculating costs")
+
+    _apply_original_costs(n, remove_noisy_costs)
 
     # Use PyPSA's built-in statistics methods
     capex = n.statistics.capex().sum()
@@ -248,7 +262,9 @@ def get_co2_ets_price(config, planning_horizon) -> float:
     return float(price)
 
 
-def calculate_b1_indicator(n_reference, n_project, method="pint"):
+def calculate_b1_indicator(
+    n_reference, n_project, method="pint", remove_noisy_costs: bool = False
+):
     """
     Calculate B1 indicator: change in total system cost.
 
@@ -265,8 +281,8 @@ def calculate_b1_indicator(n_reference, n_project, method="pint"):
         dict: Dictionary with B1 and component costs
     """
     # Calculate costs for both scenarios
-    cost_reference = calculate_total_system_cost(n_reference)
-    cost_project = calculate_total_system_cost(n_project)
+    cost_reference = calculate_total_system_cost(n_reference, remove_noisy_costs)
+    cost_project = calculate_total_system_cost(n_project, remove_noisy_costs)
 
     if method == "pint":
         # PINT: positive B1 means beneficial (project reduces costs)
@@ -709,8 +725,12 @@ if __name__ == "__main__":
     indicators = {}
     units = {}
 
+    noisy_costs_option = snakemake.config["cba"].get("remove_noisy_costs", False)
     b1_indicators, b1_units = calculate_b1_indicator(
-        n_reference, n_project, method=method
+        n_reference,
+        n_project,
+        method=method,
+        remove_noisy_costs=noisy_costs_option,
     )
     indicators.update(b1_indicators)
     units.update(b1_units)

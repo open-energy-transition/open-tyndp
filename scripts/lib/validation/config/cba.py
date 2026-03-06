@@ -107,6 +107,10 @@ class CbaConfig(BaseModel):
         default="tyndp",
         description="Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
     )
+    remove_noisy_costs: bool = Field(
+        default=True,
+        description="If true, use original pre-noise capital and marginal costs for CBA indicators.",
+    )
     storage: _CbaStorageConfig = Field(
         default_factory=_CbaStorageConfig,
         description="Storage configuration for the cost-benefit analysis workflow.",
