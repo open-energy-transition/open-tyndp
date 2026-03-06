@@ -433,6 +433,7 @@ cba:
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
+  remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
   # Storage settings for CBA dispatch
   storage:

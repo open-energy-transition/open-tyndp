@@ -519,6 +519,11 @@
           ],
           "type": "string"
         },
+        "remove_noisy_costs": {
+          "default": true,
+          "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
+          "type": "boolean"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -15009,6 +15014,11 @@
             "eu27"
           ],
           "type": "string"
+        },
+        "remove_noisy_costs": {
+          "default": true,
+          "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
+          "type": "boolean"
         },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",

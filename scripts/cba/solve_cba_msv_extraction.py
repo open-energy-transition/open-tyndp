@@ -22,8 +22,13 @@ rolling horizon optimization.
 import logging
 
 import pypsa
+from snakemake.utils import update_config
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import (
+    configure_logging,
+    set_scenario_config,
+    update_config_from_wildcards,
+)
 from scripts.solve_network import prepare_network
 from scripts.temporal_aggregation import set_temporal_aggregation
 
@@ -43,6 +48,7 @@ if __name__ == "__main__":
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
+    update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     # Load base network
     n = pypsa.Network(snakemake.input.network)
@@ -53,8 +59,9 @@ if __name__ == "__main__":
     if msv_resolution:
         n = set_temporal_aggregation(n, msv_resolution, snapshot_weightings)
 
-    # Use top-level solving config (same options as rolling horizon)
+    # Merge CBA-specific solving overrides into the global solving config
     solving = snakemake.params.get("solving", {})
+    update_config(solving, snakemake.params.get("cba_solving", {}))
 
     solver_name = solving.get("solver", {}).get("name", "highs")
     solver_options_key = solving.get("solver", {}).get("options", "highs-default")
@@ -84,6 +91,9 @@ if __name__ == "__main__":
 
     if status != "ok":
         logger.error(f"Extraction solve failed: {termination_condition}")
+        # # if the solver is gurobi, print infeasibilities using n.model.print_infeasibilities()
+        # if solving.get("solver", {}).get("name", "") == "gurobi":
+        #     n.model.print_infeasibilities()
         raise RuntimeError(f"Extraction solve failed: {termination_condition}")
 
     logger.info(f"Extraction solve completed: {termination_condition}")
