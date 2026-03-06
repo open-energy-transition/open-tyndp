@@ -127,8 +127,10 @@ def add_land_use_constraint_perfect(n: pypsa.Network) -> None:
     # adjust name to fit syntax of nominal constraint per bus
     df = p_nom_max.reset_index()
     df["name"] = df.apply(
-        lambda row: f"nom_max_{row['carrier']}"
-        + (f"_{row['build_year']}" if row["build_year"] is not None else ""),
+        lambda row: (
+            f"nom_max_{row['carrier']}"
+            + (f"_{row['build_year']}" if row["build_year"] is not None else "")
+        ),
         axis=1,
     )
 
@@ -551,6 +553,15 @@ def prepare_network(
         )
 
     if solve_opts.get("noisy_costs"):
+        # Preserve original costs before adding noise
+        for t in n.components:
+            if "marginal_cost" in t.static and "marginal_cost_original" not in t.static:
+                t.static["marginal_cost_original"] = t.static["marginal_cost"]
+
+        for t in [n.components["Line"], n.components["Link"]]:
+            if "capital_cost" in t.static and "capital_cost_original" not in t.static:
+                t.static["capital_cost_original"] = t.static["capital_cost"]
+
         for t in n.components:
             # if 'capital_cost' in t.static:
             #    t.static['capital_cost'] += 1e1 + 2.*(np.random.random(len(t.static)) - 0.5)

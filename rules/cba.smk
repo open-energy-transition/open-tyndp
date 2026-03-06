@@ -71,6 +71,14 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
             copy2(input["file"], output["file"])
 
 
+def _effective_horizon(h, warn_fn=None, msg=None):
+    if h not in [2030, 2040]:
+        if warn_fn:
+            warn_fn(msg or "Using 2040 for unsupported planning horizon %s.", h)
+        return 2040
+    return h
+
+
 def presolved_sb_network_path(w, horizon=None):
     sb_version = config_provider(
         "cba", "cba_scenario_input", "sb_version", default="latest"
@@ -174,15 +182,14 @@ def input_sb_network(w):
                 "scenario.opts=[''], and scenario.sector_opts=[''] to match "
                 "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
             )
-        horizon = int(w.planning_horizons)
-        # If CBA planning horizon not in [2030, 2040] (such as horizon == 2035), use the 2040 SB network
-        if horizon not in [2030, 2040]:
-            logger.warning(
+        horizon = _effective_horizon(
+            int(w.planning_horizons),
+            warn_fn=logger.warning,
+            msg=(
                 "Presolved SB networks are only available for 2030 and 2040. "
-                "Falling back to 2040 for CBA planning horizon %s.",
-                w.planning_horizons,
-            )
-            horizon = 2040
+                "Falling back to 2040 for CBA planning horizon %s."
+            ),
+        )
         return presolved_sb_network_path(w, horizon)
 
     expanded_wildcards = {
@@ -194,7 +201,18 @@ def input_sb_network(w):
         case "perfect":
             expanded_wildcards["planning_horizons"] = "all"
         case "myopic":
-            pass
+            expanded_wildcards["planning_horizons"] = _effective_horizon(
+                int(w.planning_horizons),
+                warn_fn=logger.warning,
+                msg=(
+                    "CBA planning horizon %s is not supported for SB inputs. "
+                    "Using 2040 inputs instead."
+                ),
+            )
+            # converts the same value to a string so fill_wildcards() can safely call .replace().
+            expanded_wildcards["planning_horizons"] = str(
+                expanded_wildcards["planning_horizons"]
+            )
         case _:
             raise ValueError('config["foresight"] must be one of "perfect" or "myopic"')
 
@@ -276,6 +294,7 @@ def input_msv_snapshot_weightings(w):
 rule solve_cba_msv_extraction:
     params:
         solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
@@ -399,10 +418,16 @@ def input_indicators(w):
     """
     run = w.get("run", config_provider("run", "name")(w))
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
+    horizon = _effective_horizon(
+        int(w.planning_horizons),
+        warn_fn=logger.warning,
+        msg=(
+            "CBA methods are only available for 2030 or 2040. "
+            "Using 2040 for planning horizon %s."
+        ),
+    )
     if "planning_horizon" in projects.columns:
-        projects = projects.loc[
-            projects["planning_horizon"] == int(w.planning_horizons)
-        ]
+        projects = projects.loc[projects["planning_horizon"] == horizon]
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
 
     project_specs = config_provider("cba", "projects")(w)
