@@ -490,8 +490,7 @@ rule summarize_indicators:
     input:
         transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
-        plot_file=RESULTS
-        + "cba/ensemble_plots/ensemble_indicators_{cba_project}.png",
+        plot_file=RESULTS + "cba/ensemble_plots/ensemble_indicators_{cba_project}.png",
     script:
         "../scripts/cba/summarize_indicators.py"
 

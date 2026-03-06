@@ -121,7 +121,7 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
                     else:
                         row.insert(0, "")  # cyear
                         row.insert(0, 1)  # cyear_weight
-                        row.insert(0, planning_horizon) # planning_horizon
+                        row.insert(0, planning_horizon)  # planning_horizon
                     writer.writerow(row)
                     row_count += 1
 
@@ -190,11 +190,7 @@ if __name__ == "__main__":
 
     # Collect all indicators into a single CSV
     average_indicators_csv(
-        snakemake.input.indicators,
-        snakemake.output.indicators,
-        planning_horizon)
-
-    logger.info(
-        "Created average indicator file %s",
-        snakemake.output.indicators
+        snakemake.input.indicators, snakemake.output.indicators, planning_horizon
     )
+
+    logger.info("Created average indicator file %s", snakemake.output.indicators)
