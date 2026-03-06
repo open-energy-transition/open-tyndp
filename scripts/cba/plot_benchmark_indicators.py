@@ -225,7 +225,7 @@ def plot_project_benchmarks(
                 [-0.1],
                 [mean_val],
                 yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
-                fmt="o",
+                fmt="x",
                 color="gray",
                 ecolor="lightgray",
                 capsize=3,
@@ -233,7 +233,7 @@ def plot_project_benchmarks(
             label = "2024 TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(
-                    Line2D([0], [0], marker="o", color="gray", linestyle="None")
+                    Line2D([0], [0], marker="x", color="gray", linestyle="None")
                 )
                 legend_labels.append(label)
             ax.errorbar(

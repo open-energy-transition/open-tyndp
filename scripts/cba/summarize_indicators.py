@@ -21,17 +21,17 @@ logger = logging.getLogger(__name__)
 
 INDICATOR_UNITS = {
     "B1_total_system_cost_change": "Meuro/year",
-    "B2a_co2_variation": "t/year",
-    "B2a_societal_cost_variation": "Meuro/year",
-    "B3a_res_capacity_change": "MW",
-    "B3_res_generation_change": "MWh/year",
-    "B3_annual_avoided_curtailment": "MWh/year",
-    "B4a_nox": "kg/year",
-    "B4b_nh3": "kg/year",
-    "B4c_sox": "kg/year",
-    "B4d_pm25": "kg/year",
-    "B4e_pm10": "kg/year",
-    "B4f_nmvoc": "kg/year",
+#    "B2a_co2_variation": "t/year",
+#    "B2a_societal_cost_variation": "Meuro/year",
+#    "B3a_res_capacity_change": "MW",
+#    "B3_res_generation_change": "MWh/year",
+#    "B3_annual_avoided_curtailment": "MWh/year",
+#    "B4a_nox": "kg/year",
+#    "B4b_nh3": "kg/year",
+#    "B4c_sox": "kg/year",
+#    "B4d_pm25": "kg/year",
+#    "B4e_pm10": "kg/year",
+#    "B4f_nmvoc": "kg/year",
 }
 
 # TODO read from CSV file
@@ -42,7 +42,7 @@ cyear_weightings = {
 }
 
 
-def average_indicators_csv(input_files, output_file, planning_horizon):
+def summarize_indicators(input_files, output_file):
     """
     Concatenate multiple CSV files into one using the csv module.
 
@@ -71,7 +71,6 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
         # add additional field to the new header structure
         header.insert(0, "cyear")
         header.insert(0, "cyear_weight")
-        header.insert(0, "planning_horizon")
 
     # Write output file
     row_count = 0
@@ -105,7 +104,6 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
                 # add additional field to the new header structure
                 file_header.insert(0, "cyear")
                 file_header.insert(0, "cyear_weight")
-                file_header.insert(0, "planning_horizon")
                 if file_header != header:
                     logger.warning(
                         f"Header mismatch in {input_file}. "
@@ -117,11 +115,9 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
                     if "Open-TYNDP" in row:
                         row.insert(0, "" if cyear is None else str(cyear))
                         row.insert(0, cyear_weight)
-                        row.insert(0, planning_horizon)
                     else:
                         row.insert(0, "")  # cyear
                         row.insert(0, 1)  # cyear_weight
-                        row.insert(0, planning_horizon) # planning_horizon
                     writer.writerow(row)
                     row_count += 1
 
@@ -159,7 +155,6 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
 
             df.loc[len(df)] = dict(
                 {
-                    "planning_horizon": planning_horizon,
                     "cyear_weight": 1.0,
                     "cyear": "weighted-average",
                     "project_id": project_id,
@@ -186,15 +181,17 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    planning_horizon = snakemake.wildcards.get("planning_horizons")
+    print (snakemake.input.transmission_projects)
+    print (snakemake.output.plot_file)
 
     # Collect all indicators into a single CSV
-    average_indicators_csv(
-        snakemake.input.indicators,
-        snakemake.output.indicators,
-        planning_horizon)
+    # summarize_indicators(snakemake.input.transmission_projects, snakemake.output.plot_file)
+
+    # Creates an empty file
+    with open(snakemake.output.plot_file, 'w') as fp:
+        pass
 
     logger.info(
-        "Created average indicator file %s",
-        snakemake.output.indicators
+        "Created summary plots for project %s",
+        snakemake.wildcards.cba_project
     )

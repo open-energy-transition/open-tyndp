@@ -486,6 +486,16 @@ rule average_indicators:
         "../scripts/cba/average_indicators.py"
 
 
+rule summarize_indicators:
+    input:
+        transmission_projects=rules.clean_projects.output.transmission_projects,
+    output:
+        plot_file=RESULTS
+        + "cba/ensemble_plots/ensemble_indicators_{cba_project}.png",
+    script:
+        "../scripts/cba/summarize_indicators.py"
+
+
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
 def cba_scenarios(w):
     names = config["run"]["name"]
@@ -535,6 +545,11 @@ rule cba:
         lambda w: expand(
             rules.plot_weather_benchmark.output.plot_file,
             planning_horizons=config["cba"]["planning_horizons"],
+            cba_project=cba_projects(w),
+            run=cba_scenarios(w),
+        ),
+        lambda w: expand(
+            rules.summarize_indicators.output.plot_file,
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
         ),
