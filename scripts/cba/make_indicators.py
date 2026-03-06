@@ -38,20 +38,20 @@ from scripts.prepare_sector_network import get
 logger = logging.getLogger(__name__)
 
 INDICATOR_UNITS = {
-    "B1_total_system_cost_change": "EUR/year",
-    "cost_reference": "EUR/year",
-    "capex_reference": "EUR/year",
-    "opex_reference": "EUR/year",
-    "cost_project": "EUR/year",
-    "capex_project": "EUR/year",
-    "opex_project": "EUR/year",
-    "capex_change": "EUR/year",
-    "opex_change": "EUR/year",
-    "co2_variation": "t/year",
+    "B1_total_system_cost_change": "Meuro/year",
+    "cost_reference": "Meuro/year",
+    "capex_reference": "Meuro/year",
+    "opex_reference": "Meuro/year",
+    "cost_project": "Meuro/year",
+    "capex_project": "Meuro/year",
+    "opex_project": "Meuro/year",
+    "capex_change": "Meuro/year",
+    "opex_change": "Meuro/year",
+    "B2a_co2_variation": "t/year",
     "co2_ets_price": "EUR/t",
     "co2_societal_cost": "EUR/t",
-    "B2a_societal_cost_variation": "EUR/year",
-    "B3_res_capacity_change": "MW",
+    "B2a_societal_cost_variation": "Meuro/year",
+    "B3a_res_capacity_change": "MW",
     "B3_res_generation_change": "MWh/year",
     "B3_annual_avoided_curtailment": "MWh/year",
     "B4a_nox": "kg/year",
@@ -104,8 +104,8 @@ def calculate_total_system_cost(n, remove_noisy_costs: bool = False):
     _apply_original_costs(n, remove_noisy_costs)
 
     # Use PyPSA's built-in statistics methods
-    capex = n.statistics.capex().sum()
-    opex = n.statistics.opex(aggregate_time="sum").sum()
+    capex = n.statistics.capex().sum() / 1e6
+    opex = n.statistics.opex(aggregate_time="sum").sum() / 1e6
     total = capex + opex
     return {
         "total": total,
@@ -310,7 +310,7 @@ def calculate_b1_indicator(
             interpretation = "The project increases costs as removing it decreases costs compared to the reference scenario with all projects."
 
     results = {
-        "B1_total_system_cost_change": b1 / 1e6,  # convert to Meuro/year
+        "B1_total_system_cost_change": b1,
         "is_beneficial": is_beneficial,
         "interpretation": interpretation,
         "cost_reference": cost_reference["total"],
@@ -322,12 +322,12 @@ def calculate_b1_indicator(
     }
     units = {
         "B1_total_system_cost_change": "Meuro/year",
-        "cost_reference": "EUR/year",
-        "capex_reference": "EUR/year",
-        "opex_reference": "EUR/year",
-        "cost_project": "EUR/year",
-        "capex_project": "EUR/year",
-        "opex_project": "EUR/year",
+        "cost_reference": "Meuro/year",
+        "capex_reference": "Meuro/year",
+        "opex_reference": "Meuro/year",
+        "cost_project": "Meuro/year",
+        "capex_project": "Meuro/year",
+        "opex_project": "Meuro/year",
     }
 
     if method == "pint":
@@ -337,8 +337,8 @@ def calculate_b1_indicator(
         results["capex_change"] = cost_project["capex"] - cost_reference["capex"]
         results["opex_change"] = cost_project["opex"] - cost_reference["opex"]
 
-    units["capex_change"] = "EUR/year"
-    units["opex_change"] = "EUR/year"
+    units["capex_change"] = "Meuro/year"
+    units["opex_change"] = "Meuro/year"
 
     return results, units
 
@@ -796,7 +796,7 @@ if __name__ == "__main__":
     indicators["project_type"] = project_type
     indicators["cba_method"] = method.upper()
     logger.info(
-        f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Euros"
+        f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Meuro"
     )
 
     # Convert to DataFrame and save
