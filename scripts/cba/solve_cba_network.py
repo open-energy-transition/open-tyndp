@@ -300,10 +300,12 @@ def solve_network(
         raise RuntimeError("Solving status 'warning'. Discarding solution.")
 
     if "infeasible" in condition:
-        labels = n.model.compute_infeasibilities()
-        logger.info(f"Labels:\n{labels}")
-        n.model.print_infeasibilities()
-        raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
+        solver_name = solving["solver"]["name"]
+        if solver_name in ["gurobi", "xpress"]:
+            labels = n.model.compute_infeasibilities()
+            logger.info(f"Labels:\n{labels}")
+            n.model.print_infeasibilities()
+            raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
 if __name__ == "__main__":

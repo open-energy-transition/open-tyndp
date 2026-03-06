@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
+* Collect results of multi weather year CBA's and calculate weighted average KPI's and plot them (https://github.com/open-energy-transition/open-tyndp/pull/525).
+
 **Changes**
 
 * Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
