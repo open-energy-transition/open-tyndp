@@ -240,13 +240,28 @@ rule simplify_sb_network:
 
 
 # build reference corrections between SB investments and CBA guidelines
+
+
+def get_elec_project_build_years(w):
+    return config_provider("tyndp_investment_candidates", "elec_projects")(w).get(
+        int(w.planning_horizons)
+    )
+
+
 rule fix_reference_sb_to_cba:
+    params:
+        build_years=get_elec_project_build_years,
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
         guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
         transmission_projects=rules.clean_projects.output.transmission_projects,
+        buses=rules.build_tyndp_network.output.substations_geojson,
     output:
-        corrections_csv=resources("cba/reference_sb_to_cba.csv"),
+        corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
+    log:
+        logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("cba/fix_reference_sb_to_cba_{planning_horizons}")
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 
@@ -256,11 +271,14 @@ rule fix_reference_sb_to_cba:
 rule prepare_reference:
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
+        patch_sb_with_annexe=config_provider(
+            "tyndp_investment_candidates", "patch_sb_with_annexe"
+        ),
     input:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        corrections=rules.fix_reference_sb_to_cba.output.corrections_csv,
+        corrections=rules.fix_reference_sb_to_cba.output.corrections,
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
@@ -497,4 +515,14 @@ rule cba:
             rules.plot_all_cba_benchmark.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=config_provider("run", "name")(w),
+        ),
+
+
+# collect rules
+rule prepare_references:
+    input:
+        lambda w: expand(
+            resources("cba/networks/reference_{planning_horizons}.nc"),
+            **config["scenario"],
+            run=config["run"]["name"],
         ),

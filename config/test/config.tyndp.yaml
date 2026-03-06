@@ -162,6 +162,7 @@ transmission_projects:
   enable: false
 
 tyndp_investment_candidates:
+  patch_sb_with_annexe: true
   elec_projects:
     2040:
     - 2030
@@ -425,7 +426,7 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest
+    sb_version: latest # currently only latest is supported
   methods:
   - toot
   - pint

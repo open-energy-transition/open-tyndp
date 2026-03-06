@@ -26,7 +26,7 @@ DE:
       - OCGT
       - CCGT
   tyndp_investment_candidates:
-    elec_projects: []
+    elec_projects: {}
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
@@ -101,7 +101,7 @@ GA:
       - OCGT
       - CCGT
   tyndp_investment_candidates:
-    elec_projects: []
+    elec_projects: {}
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
