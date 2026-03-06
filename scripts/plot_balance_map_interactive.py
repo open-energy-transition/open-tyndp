@@ -169,7 +169,7 @@ if __name__ == "__main__":
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
 
     if carrier == "H2" and snakemake.params.h2_topology_tyndp:
-        dissolve_h2_regions_tyndp(regions, snakemake.input.buses_h2)
+        regions = dissolve_h2_regions_tyndp(regions, snakemake.input.buses_h2)
 
     # Fill missing carrier colors
     missing_color = "#808080"
