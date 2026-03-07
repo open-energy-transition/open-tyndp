@@ -42,6 +42,9 @@ from scripts._helpers import (
     set_scenario_config,
 )
 
+# for compatibility with future pandas downcasting behaviour
+pd.set_option("future.no_silent_downcasting", True)
+
 logger = logging.getLogger(__name__)
 
 CONVENTIONALS = [
@@ -70,6 +73,15 @@ PEMMDB_SHEET_MAPPING = {
     "Oil shale": "Thermal",
     "Hydrogen": "Thermal",
 }
+
+OTHER_RES_MAPPING = {
+    "Geothermal": "Geothermal, Marine, Waste and Not Defined",
+    "Marine": "Geothermal, Marine, Waste and Not Defined",
+    "Waste": "Geothermal, Marine, Waste and Not Defined",
+    "Not Defined / Splitting not known": "Geothermal, Marine, Waste and Not Defined",
+}
+
+OTHER_RES_GROUPS = ["Small Biomass", "Geothermal, Marine, Waste and Not Defined"]
 
 
 def read_pemmdb_data(
@@ -373,23 +385,29 @@ def _process_res_capacities(
 
 def _process_other_res_capacities(
     node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
     Extract and clean `Other RES` capacities.
     """
     # Get raw data and extract capacity information
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
     df = (
-        node_tech_data.iloc[[6], [1]]
-        .set_axis(["p_nom"], axis=1)
-        .reset_index(drop=True)
+        node_tech_data.iloc[[7], 4:]
+        .rename(columns=tech_names)
+        .melt(
+            var_name="pemmdb_type",
+            value_name="p_nom",
+        )
+        .groupby("pemmdb_type")
+        .sum()
         .assign(
             bus=node,
             country=node[:2],
             pemmdb_carrier=pemmdb_tech,
-            efficiency=1.0,  # no efficiencies given but capacity in MWel
-            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
+            efficiency=1.0,  # assign dummy efficiency as no efficiencies given but capacity in MWel
             unit="MW",
         )
+        .reset_index()
         .dropna()
     )
 
@@ -637,42 +655,54 @@ def _process_other_res_profiles(
     pyear: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
     Extract and clean `Other RES` profiles.
     """
     # Extract data
-    df = node_tech_data.iloc[6:, :3]
+    df = node_tech_data.iloc[6:]
 
-    capacity = np.float64(df.iloc[0, 1])
+    # Extract capacity information for normalization
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
+    capacity = (
+        df.iloc[[1], 4:]
+        .rename(columns=tech_names)
+        .melt(var_name="pemmdb_type", value_name="p_nom")
+        .groupby("pemmdb_type")["p_nom"]
+        .sum()
+    )
 
-    if np.isnan(capacity) or capacity == 0:
+    if capacity.sum() == 0:
         logger.debug(
             f"No 'Other RES' capacity found for {node} in {pyear}, hence no must-run profile available."
         )
         return None
 
+    # Extract and normalize profiles
+    renamed = df.iloc[3:, 4:].rename(columns=tech_names)
     profiles = (
-        df.iloc[3:, 2]
-        .to_frame()
-        .set_axis(["p_min_t"], axis="columns")
+        pd.DataFrame(
+            {
+                g: renamed.loc[:, renamed.columns == g].sum(axis=1)
+                for g in OTHER_RES_GROUPS
+            }
+        )
+        .astype(float)
+        .fillna(0.0)
         .assign(
-            p_min_pu=lambda x: np.where(
-                capacity > 0, pd.to_numeric(x["p_min_t"]) / capacity, 0.0
-            ),
-            p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
             time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
-            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
         )
         .loc[lambda x: x["time"].isin(sns)]
-        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
-            ["p_min_pu", "p_max_pu"]
-        ]
     )
 
-    return profiles
+    # Turn into long format and return
+    return profiles.melt(
+        id_vars=["time", "bus", "pemmdb_carrier"],
+        value_name="p_set",
+        var_name="pemmdb_type",
+    ).set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[["p_set"]]
 
 
 def _process_other_nonres_profiles(
@@ -938,6 +968,9 @@ def _validate_profiles(df):
     Returns None if all profiles are filtered out.
     """
     if df is None:
+        return df
+
+    if "p_set" in df.columns:
         return df
 
     # Skip profiles that contain only default PyPSA values (p_min_pu=0, p_max_pu=1)
@@ -1310,6 +1343,7 @@ if __name__ == "__main__":
         {
             "p_min_pu": (["sample"], pemmdb_profiles_df["p_min_pu"]),
             "p_max_pu": (["sample"], pemmdb_profiles_df["p_max_pu"]),
+            "p_set": (["sample"], pemmdb_profiles_df["p_set"]),
         },
         coords={
             level: (["sample"], pemmdb_profiles_df.index.get_level_values(level))
