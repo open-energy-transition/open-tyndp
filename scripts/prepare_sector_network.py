@@ -1459,6 +1459,107 @@ def cycling_shift(df, steps=1):
     return df
 
 
+def _add_other_non_res(
+    n: pypsa.Network,
+    generator: str,
+    carrier: str,
+    carrier_nodes: list,
+    spatial: SimpleNamespace,
+    costs: pd.DataFrame,
+    pemmdb_caps: pd.DataFrame,
+    co2_price: float,
+) -> None:
+    """
+    Add TYNDP Other Non-RES price bands to the network.
+
+    Creates links between carrier buses and demand nodes for Other Non-RES generators of different price bands,
+    including their efficiency, costs, and CO2 emissions.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    generator : str
+        Name of the Other Non-RES generator
+    carrier : str
+        Name of the Other Non-RES fuel carrier
+    carrier_nodes : list
+        Nodes of the fuel carrier
+    spatial : SimpleNamespace
+        Namespace containing spatial information for different carriers,
+        including nodes and locations
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies
+    pemmdb_caps : pd.DataFrame
+        Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands
+    co2_price: float
+        Emission price for the given year
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding TYNDP Other Non-RES price bands
+    """
+    query = "" if "ccs" in generator else "not"
+
+    price_bands = pemmdb_caps.query(
+        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
+    ).reset_index()
+    nodes = price_bands.bus.values
+    offer_price = price_bands.price
+    fuel_price = costs.at[carrier, "fuel"]
+    adjusted_price = (
+        offer_price * price_bands.efficiency  # EUR/MWhel * efficiency = EUR/MWhth
+        - fuel_price  # EUR/MWhth
+        - price_bands.co2_factor * co2_price  # tCO2/MWhth * EUR/tCO2 = EUR/MWhth
+    ).values
+
+    if "ccs" in generator:
+        co2_capture = price_bands.co2_factor.values * (
+            1 / (1 - costs.at[generator, "capture_rate"]) - 1
+        )
+
+        n.add(
+            "Link",
+            price_bands["bus"].astype(str)
+            + " "
+            + price_bands["index_carrier"].astype(str)
+            + " "
+            + price_bands["price"].round(2).astype(str),
+            bus0=carrier_nodes,
+            bus1=nodes,
+            bus2="co2 atmosphere",
+            bus3=spatial.co2.df.loc[nodes, "nodes"].values,
+            carrier=generator,
+            p_nom_extendable=False,
+            marginal_cost=adjusted_price,
+            efficiency=price_bands.efficiency.values,
+            efficiency2=price_bands.co2_factor.values,
+            efficiency3=co2_capture,
+            lifetime=costs.at[generator, "lifetime"],
+        )
+
+    # Else add as regular conventional power plants
+    else:
+        n.add(
+            "Link",
+            price_bands["bus"].astype(str)
+            + " "
+            + price_bands["index_carrier"].astype(str)
+            + " "
+            + price_bands["price"].round(2).astype(str),
+            bus0=carrier_nodes,
+            bus1=nodes,
+            bus2="co2 atmosphere",
+            carrier=generator,
+            p_nom_extendable=False,
+            marginal_cost=adjusted_price,
+            efficiency=price_bands.efficiency.values,
+            efficiency2=price_bands.co2_factor.values,
+            lifetime=costs.at[generator, "lifetime"],
+        )
+
+
 def add_thermal_generation_tyndp(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -1467,6 +1568,8 @@ def add_thermal_generation_tyndp(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
+    pemmdb_caps: pd.DataFrame,
+    co2_price: float,
 ) -> None:
     """
     Add TYNDP conventional thermal electricity generation technologies to the network.
@@ -1491,6 +1594,10 @@ def add_thermal_generation_tyndp(
         Configuration dictionary containing settings for the model
     cf_industry : dict
         Dictionary of industrial conversion factors, needed for carrier buses
+    pemmdb_caps: pd.DataFrame
+        Dataframe containing PEMMDB capacities including Other Non-RES price band information
+    co2_price: float
+        Emission price for the given year
 
     Returns
     -------
@@ -1515,6 +1622,19 @@ def add_thermal_generation_tyndp(
             options=options,
             cf_industry=cf_industry,
         )
+
+        if "other-non-res" in generator:
+            _add_other_non_res(
+                n=n,
+                generator=generator,
+                carrier=carrier,
+                carrier_nodes=carrier_nodes,
+                spatial=spatial,
+                costs=costs,
+                pemmdb_caps=pemmdb_caps,
+                co2_price=co2_price,
+            )
+            continue
 
         # Add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
         # TODO: Update with TYNDP specific assumptions
@@ -1620,6 +1740,8 @@ def add_generation(
     ext_carriers: dict[str, list[str]],
     existing_capacities: pd.Series | None = None,
     existing_efficiencies: pd.Series | None = None,
+    pemmdb_capacities: pd.DataFrame | None = None,
+    co2_price: float | None = None,
 ) -> None:
     """
     Add conventional electricity generation to the network.
@@ -1653,6 +1775,10 @@ def add_generation(
         Existing generation capacities by generator type
     existing_efficiencies : pd.Series | None
         Existing generation efficiencies by generator type
+    pemmdb_capacities: pd.DataFrame | None
+        Dataframe containing PEMMDB capacities including Other Non-RES price band information
+    co2_price: float | None
+        Emission price for the given year
 
     Returns
     -------
@@ -1750,6 +1876,8 @@ def add_generation(
         spatial=spatial,
         options=options,
         cf_industry=cf_industry,
+        pemmdb_caps=pemmdb_capacities,
+        co2_price=co2_price,
     )
 
 
@@ -9014,6 +9142,8 @@ if __name__ == "__main__":
         ext_carriers=snakemake.params.electricity.get("extendable_carriers", dict()),
         existing_capacities=existing_capacities,
         existing_efficiencies=existing_efficiencies,
+        pemmdb_capacities=pemmdb_capacities,
+        co2_price=co2_price,
     )
 
     if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
