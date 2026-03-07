@@ -305,6 +305,20 @@ def _process_other_nonres_capacities(
         df.pemmdb_type,
     )
 
+    # Manually fix missing efficiency and CO2 factor information for AT, HU, ITN1, ITS1
+    # with values of equivalent plant types of other countries
+    if node == "AT00":
+        # CCGT old 1
+        df.loc[:, ["efficiency", "co2_factor"]] = [0.4, 0.513]
+
+    if node in ["ITN1", "ITS1"]:
+        # conventional old 2
+        df.loc[:, ["efficiency", "co2_factor"]] = [0.41, 0.500488]
+
+    if node == "HU00":
+        # conventional old 1
+        df.loc[:, ["efficiency", "co2_factor"]] = [0.36, 0.57]
+
     if df.empty:
         logger.debug(
             f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
