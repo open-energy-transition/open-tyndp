@@ -1957,7 +1957,6 @@ def _add_other_non_res_capacities(
     # Profiles
     ##########
     # Filter for profiles
-    # TODO: Solve rounding error with price name!!
     profiles = pemmdb_profiles.query("open_tyndp_type == @tech").assign(
         link_index=lambda df: df["bus"].astype(str)
         + " "
