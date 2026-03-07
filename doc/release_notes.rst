@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
 
+* Add Other Non-RES price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
+
 **Changes**
 
 **Bugfixes and Compatibility**
