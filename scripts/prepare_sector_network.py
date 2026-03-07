@@ -1881,6 +1881,101 @@ def add_generation(
     )
 
 
+def _add_pu_profiles(
+    comp_t: dict[str, pd.DataFrame], p_min_pu: pd.DataFrame, p_max_pu: pd.DataFrame
+) -> None:
+    """
+    Safely add new per unit profiles while safeguarding against profiles with only default values.
+    """
+    # Drop columns that are all zeros (default-value)
+    p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
+    # Drop columns that are all ones (default-value)
+    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
+
+    _add_new_profiles_to_existing(
+        component_t=comp_t, attr="p_min_pu", new_profiles=p_min_pu
+    )
+    _add_new_profiles_to_existing(
+        component_t=comp_t, attr="p_max_pu", new_profiles=p_max_pu
+    )
+
+
+def _add_other_non_res_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    pemmdb_profiles: pd.DataFrame,
+    tech: str,
+) -> None:
+    """
+    Add PEMMDB capacities and profiles to Other Non-RES price band components.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    pemmdb_profiles : pd.DataFrame
+        All PEMMDB must-run and availability profiles.
+    tech : str
+        Other Non-RES price band to be added to the network.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding Other Non-RES capacities and profiles.
+    """
+
+    tech_i = n.links.query("carrier == @tech").index
+    if tech_i.empty:
+        return
+
+    # Capacities
+    ############
+    # Filter for capacities and add to the network
+    caps = (
+        pemmdb_capacities.query("open_tyndp_type == @tech")
+        .reset_index()
+        .assign(
+            price_band=lambda df: df["bus"].astype(str)
+            + " "
+            + df["index_carrier"].astype(str)
+            + " "
+            + df["price"].round(2).astype(str)
+        )
+        .set_index("price_band")
+    )["p_nom"]
+    # Existing capacities are given in MWel, hence we need to convert to MWth
+    n.links.loc[tech_i, "p_nom"] = (
+        n.links.loc[tech_i]
+        .index.to_series()
+        .map(caps)
+        .fillna(0.0)
+        .div(n.links.loc[tech_i, "efficiency"])
+    )
+
+    # Profiles
+    ##########
+    # Filter for profiles
+    # TODO: Solve rounding error with price name!!
+    profiles = pemmdb_profiles.query("open_tyndp_type == @tech").assign(
+        link_index=lambda df: df["bus"].astype(str)
+        + " "
+        + df["index_carrier"].astype(str)
+        + " "
+        + df["price"].round(2).astype(str)
+    )
+    p_min_pu = profiles.pivot_table(
+        values="p_min_pu", index="time", columns="link_index"
+    ).reindex(tech_i, axis=1, fill_value=0.0)
+
+    p_max_pu = profiles.pivot_table(
+        values="p_max_pu", index="time", columns="link_index"
+    ).reindex(tech_i, axis=1, fill_value=1.0)
+
+    _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
+
+
 def _add_conventional_thermal_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -1906,12 +2001,21 @@ def _add_conventional_thermal_capacities(
         Trajectories for exogenous nuclear pathways.
     nuclear_profiles : pd.DataFrame
         DataFrame containing the availability profiles of nuclear power plants.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding conventional thermal capacities and profiles.
     """
     logger.info(
         "Adding PEMMDB capacities and profiles to conventional thermal generation assets."
     )
 
     for tech in tyndp_conventional_thermals:
+        if "other-non-res" in tech:
+            _add_other_non_res_capacities(n, pemmdb_capacities, pemmdb_profiles, tech)
+            continue
+
         # Capacities
         ############
         # Get indices for this technology
@@ -1988,8 +2092,6 @@ def _add_conventional_thermal_capacities(
                 p_min_pu[common_cols] = np.minimum(
                     p_min_pu[common_cols], nuclear_profiles[common_cols]
                 )
-        # Drop columns that are all zeros (default-value)
-        p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
 
         p_max_pu = (
             profiles.pivot_table(values="p_max_pu", index="time", columns="bus")
@@ -2004,18 +2106,8 @@ def _add_conventional_thermal_capacities(
                 p_max_pu[common_cols] = np.minimum(
                     p_max_pu[common_cols], nuclear_profiles[common_cols]
                 )
-        # Drop columns that are all ones (default-value)
-        p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
 
-        if not p_min_pu.empty:
-            index_name = n.links_t.p_min_pu.index.name
-            n.links_t.p_min_pu = pd.concat([n.links_t.p_min_pu, p_min_pu], axis=1)
-            n.links_t.p_min_pu.index.name = index_name
-
-        if not p_max_pu.empty:
-            index_name = n.links_t.p_max_pu.index.name
-            n.links_t.p_max_pu = pd.concat([n.links_t.p_max_pu, p_max_pu], axis=1)
-            n.links_t.p_max_pu.index.name = index_name
+        _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
     # Remove non-expandable assets with no capacity
     remove_zero_capacity_non_extendable(
