@@ -66,6 +66,9 @@ GA,2050,BtL,capture rate,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, 
 all,all,gas-ccgt-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,coal-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,lignite-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,other-non-res-gas-ccgt-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,other-non-res-coal-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,other-non-res-lignite-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,SMR CC,efficiency,0.695,per unit,"TYNDP 2024 Hydrogen/SMR Figures.xlsx HEAT RATE [GJ_CH4/MWh_H2]","efficiency [MWh_H2/MWH_CH4] = 3.6/HEAT RATE [GJ_CH4/MWh_H2]. Values assumed to be LHV in line with https://www.iea.org/data-and-statistics/charts/global-average-levelised-cost-of-hydrogen-production-by-energy-source-and-technology-2019-and-2050"
 all,all,SMR,efficiency,0.759,per unit,"TYNDP 2024 Hydrogen/SMR Figures.xlsx HEAT RATE [GJ_CH4/MWh_H2]","efficiency [MWh_H2/MWH_CH4] = 3.6/HEAT RATE [GJ_CH4/MWh_H2]. Values assumed to be LHV in line with https://www.iea.org/data-and-statistics/charts/global-average-levelised-cost-of-hydrogen-production-by-energy-source-and-technology-2019-and-2050"
 NT,2030,SMR CC,VOM,4.47,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."

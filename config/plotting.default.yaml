@@ -482,6 +482,10 @@ plotting:
     exogenous gas demand: '#b77045'
     gas pipeline: '#ebbca0'
     gas pipeline new: '#a87c62'
+    other-non-res-gas-conv: '#cb7a36'
+    other-non-res-gas-ccgt: '#db6a25'
+    other-non-res-gas-ccgt-ccs: '#d4722e'
+    other-non-res-gas-ocgt: '#e0986c'
     # oil
     oil: '#c9c9c9'
     oil-shale: '#d2d2d2'
@@ -500,6 +504,9 @@ plotting:
     agriculture machinery electric: '#444578'
     shipping oil: "#808080"
     land transport oil: '#afafaf'
+    other-non-res-oil-light: '#a9a9a9'
+    other-non-res-oil-heavy: '#a5a5a5'
+    other-non-res-oil-shale: '#9d9d9d'
     # nuclear
     Nuclear: '#ff8c00'
     Nuclear marginal: '#ff8c00'
@@ -517,6 +524,10 @@ plotting:
     lignite: '#826837'
     Lignite marginal: '#826837'
     lignite-ccs: '#725837'
+    other-non-res-coal: '#545454'
+    other-non-res-coal-ccs: '#222222'
+    other-non-res-lignite: '#826837'
+    other-non-res-lignite-ccs: '#725837'
     # biomass
     biogas: '#e3d37d'
     biomass: '#baa741'
@@ -545,7 +556,8 @@ plotting:
     BioSNG: '#123456'
     BioSNG CC: '#45233b'
     solid biomass to hydrogen: '#654321'
-    other res: '#91ba41'
+    other-res-biomass: '#9d9042'
+    other-res-mix: '#91ba41'
     # power transmission
     lines: '#6c9459'
     transmission lines: '#6c9459'
