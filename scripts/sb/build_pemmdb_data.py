@@ -169,8 +169,8 @@ def _drop_duplicate_price_bands(
     df : pd.DataFrame
         Dataframe without duplicate prices bands.
     """
-    if ("pemmdb_type" in df.columns and df.pemmdb_type.duplicated().any()) or (
-        df.index.duplicated().any()
+    if (groupby in df.columns and df[groupby].duplicated().any()) or (
+        groupby not in df.columns and df.index.duplicated().any()
     ):
         # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
         # but different capacities. Using first entry.
@@ -761,6 +761,7 @@ def _process_other_nonres_profiles(
 
     # Extract plant type
     price_band_type = _extract_price_band_type(df.T)
+    price = df.T.price.values
     pemmdb_carrier = (
         "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1].values
     )
@@ -777,9 +778,10 @@ def _process_other_nonres_profiles(
         df.iloc[10:]
         .reset_index(drop=True)
         .div(cap.loc[mask], axis=1)
-        .set_axis([price_band_type, pemmdb_carrier, pemmdb_type], axis="columns")
+        .set_axis([price_band_type, pemmdb_carrier, pemmdb_type, price], axis="columns")
         .rename_axis(
-            ["price_band_type", "pemmdb_carrier", "pemmdb_type"], axis="columns"
+            ["price_band_type", "pemmdb_carrier", "pemmdb_type", "price"],
+            axis="columns",
         )
         .assign(
             time=sns_year_h,
@@ -787,7 +789,7 @@ def _process_other_nonres_profiles(
         )
         .loc[lambda x: x["time"].isin(sns)]
         .set_index(["time", "bus"])
-        .stack(level=[0, 1, 2])
+        .stack(level=[0, 1, 2, 3], future_stack=True)
         .rename("p_max_pu")
         .to_frame()
         .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
@@ -1369,7 +1371,7 @@ if __name__ == "__main__":
 
     # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
     pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0).set_index(
-        "price_band_type", append=True
+        ["price_band_type", "price"], append=True
     )
     ds = xr.Dataset(
         {
