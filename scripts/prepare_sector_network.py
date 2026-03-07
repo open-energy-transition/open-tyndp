@@ -26,6 +26,7 @@ from pypsa.geo import haversine_pts
 from scipy.stats import beta
 
 from scripts._helpers import (
+    _add_new_profiles_to_existing,
     configure_logging,
     get,
     get_tyndp_conventional_thermals,
@@ -1992,33 +1993,6 @@ def _extract_inflows(
         return
 
 
-def _add_new_profiles(
-    component_t: dict,
-    attr: str,
-    new_profiles: pd.DataFrame,
-) -> None:
-    """
-    Safely add new time series data to a PyPSA network component.
-
-    Parameters
-    ----------
-    component_t : dict
-        The time-varying PyPSA component (e.g., n.generators_t).
-    attr : str
-        The attribute name (e.g., 'p_max_pu', 'inflow').
-    new_profiles : pd.DataFrame
-        New data to concatenate.
-    """
-    if new_profiles.empty:
-        return
-
-    existing = component_t[attr]
-    index_name = existing.index.name
-
-    component_t[attr] = pd.concat([existing, new_profiles], axis=1)
-    component_t[attr].index.name = index_name
-
-
 def _add_ror_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -2064,7 +2038,7 @@ def _add_ror_capacities(
     ]
 
     # Add new profiles to the network
-    _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
+    _add_new_profiles_to_existing(n.generators_t, "p_max_pu", p_max_pu)
 
 
 def _add_reservoir_capacities(
@@ -2117,7 +2091,7 @@ def _add_reservoir_capacities(
     inflows = inflows.loc[:, n.storage_units.loc[tech_i, "p_nom"] > 0]
 
     # Add new profiles to the network
-    _add_new_profiles(n.storage_units_t, "inflow", inflows)
+    _add_new_profiles_to_existing(n.storage_units_t, "inflow", inflows)
 
 
 def _add_phs_inflows(
@@ -2155,7 +2129,7 @@ def _add_phs_inflows(
     p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any() & (inflow_gen_caps > 0)]
 
     # Add new profiles to the network
-    _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
+    _add_new_profiles_to_existing(n.generators_t, "p_max_pu", p_max_pu)
 
 
 def _add_phs_capacities(
@@ -2343,10 +2317,9 @@ def _add_other_res_profiles(
     )
     p_set = p_set.loc[:, (p_set != 0.0).any()]
 
-    if not p_set.empty:
-        index_name = component_t.p_set.index.name
-        component_t.p_set = pd.concat([component_t.p_set, p_set], axis=1)
-        component_t.p_set.index.name = index_name
+    _add_new_profiles_to_existing(
+        component_t=component_t, attr="p_set", new_profiles=p_set
+    )
 
 
 def _add_other_res_capacities(

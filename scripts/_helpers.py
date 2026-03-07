@@ -1629,3 +1629,30 @@ def remove_zero_capacity_non_extendable(
             & (c.static["p_nom"] == 0)
         ].index
         n.remove(c.name, idx)
+
+
+def _add_new_profiles_to_existing(
+    component_t: dict,
+    attr: str,
+    new_profiles: pd.DataFrame,
+) -> None:
+    """
+    Safely add new time series data to a PyPSA network component.
+
+    Parameters
+    ----------
+    component_t : dict
+        The time-varying PyPSA component (e.g., n.generators_t).
+    attr : str
+        The attribute name (e.g., 'p_max_pu', 'inflow').
+    new_profiles : pd.DataFrame
+        New data to concatenate.
+    """
+    if new_profiles.empty:
+        return
+
+    existing = component_t[attr]
+    index_name = existing.index.name
+
+    component_t[attr] = pd.concat([existing, new_profiles], axis=1)
+    component_t[attr].index.name = index_name
