@@ -488,7 +488,13 @@ rule average_indicators:
 
 rule summarize_indicators:
     input:
-        transmission_projects=rules.clean_projects.output.transmission_projects,
+        indicators=lambda w: expand(
+            rules.average_indicators.output.indicators,
+            transmission_projects=rules.clean_projects.output.transmission_projects,
+            planning_horizons=config["cba"]["planning_horizons"],
+            run=config_provider("cba", "scenarios")(w),
+            allow_missing=True,
+        ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_indicators_{cba_project}.png",
     script:
@@ -551,6 +557,7 @@ rule cba:
             rules.summarize_indicators.output.plot_file,
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
+            allow_missing=True,
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
