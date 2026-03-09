@@ -36,13 +36,6 @@ INDICATOR_UNITS = {
     #    "B4f_nmvoc": "kg/year",
 }
 
-# TODO read from CSV file
-cyear_weightings = {
-    1995: 0.233,
-    2008: 0.367,
-    2009: 0.400,
-}
-
 
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     """Pick a representative model value for a given indicator."""
@@ -89,7 +82,9 @@ def benchmark_range(
         return None
 
     if indicator == "B2a_societal_cost_variation":
-        benchmark = benchmark[benchmark["subindex"].isin(["low", "central", "high"])]
+        benchmark = benchmark[
+            benchmark["subindex"].isin(["low", "central", "high"])
+        ]
     else:
         benchmark = benchmark[
             benchmark["subindex"].isin(["min", "mean", "max", "explicit"])
@@ -131,169 +126,78 @@ def format_area_subtitle(area: str | None) -> str | None:
     return mapping.get(str(area).lower())
 
 
-def plot_project_benchmarks(
-    df: pd.DataFrame,
-    output_path: Path,
-    project_label: str | None = None,
-    area_subtitle: str | None = None,
-) -> None:
-    """Plot one subplot per indicator with its own y-axis and legend."""
-    indicators = sorted(df["indicator"].dropna().unique())
-    if not indicators:
-        logger.info("No benchmark indicators available to plot")
-        return
-
-    planning_horizons = sorted(df["planning_horizon"].dropna().unique())
-    if not planning_horizons:
-        logger.info("No benchmark planning horizon available to plot")
-        return
-
-    plot_items = []
-    # loop through necessary indicators
-    for indicator in INDICATOR_UNITS:
-        model_val = select_model_value(df, indicator)
-        bench = benchmark_range(df, indicator, "TYNDP 2024", planning_horizons[0])
-        if model_val is None or bench is None:
-            continue
-        plot_items.append(indicator)
-
-    if not plot_items:
-        logger.info("No complete benchmark data to plot")
-        return
-
-    fig, axes = plt.subplots(
-        nrows=1,
-        ncols=len(plot_items) * len(planning_horizons),
-        figsize=(max(1.7 * len(plot_items), 6), 4.2),
-        squeeze=False,
-        sharey=True,
-    )
-
-    legend_handles = []
-    legend_labels = []
-    for ax, planning_horizon in zip(axes[0], planning_horizons):
-        ax.axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
-        ax.set_title(planning_horizon, fontstyle="italic")
-        model_range = benchmark_range(df, indicator, "Open-TYNDP", planning_horizon)
-        if model_range is None:
-            model_min_val, model_mean_val, model_max_val = (0, 0, 0)
-        else:
-            model_min_val, model_mean_val, model_max_val = model_range
-        min_val, mean_val, max_val = benchmark_range(
-            df, indicator, "TYNDP 2024", planning_horizon
-        )
-        ax.errorbar(
-            [-0.1],
-            [mean_val],
-            yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
-            fmt="x",
-            color="gray",
-            ecolor="lightgray",
-            capsize=3,
-        )
-        label = "2024 TYNDP (mean ± min/max)"
-        if label not in legend_labels:
-            legend_handles.append(
-                Line2D([0], [0], marker="x", color="gray", linestyle="None")
-            )
-            legend_labels.append(label)
-        ax.errorbar(
-            [0.1],
-            [model_mean_val],
-            yerr=[
-                [abs(model_mean_val - model_min_val)],
-                [abs(model_max_val - model_mean_val)],
-            ],
-            fmt="o",
-            color="tab:blue",
-            ecolor="lightblue",
-            capsize=3,
-        )
-        ax.set_xlim(xmin=-0.5, xmax=0.5)
-        label = "Open-TYNDP (mean ± min/max)"
-        if label not in legend_labels:
-            legend_handles.append(
-                Line2D([0], [0], marker="o", color="tab:blue", linestyle="None")
-            )
-            legend_labels.append(label)
-        ax.set_xticks([])
-        ylim = ax.get_ylim()
-        values = [v for v in ylim if v != 0]
-        if values:
-            abs_max = max(abs(v) for v in values)
-            abs_min = min(abs(v) for v in values)
-            if abs_min > 0 and abs_max / abs_min >= 1e3:
-                ax.set_yscale("symlog", linthresh=max(abs_min, 1.0))
-
-        units = df.loc[
-            (df["indicator"] == indicator) & (df["source"] == "Open-TYNDP"), "units"
-        ].dropna()
-        if planning_horizons.index(planning_horizon) == 0:
-            unit_label = units.iloc[0] if not units.empty else ""
-            title = f"{indicator} ({unit_label})" if unit_label else indicator
-            ax.set_ylabel(title)
-
-    if project_label:
-        fig.suptitle(f"CBA indicator benchmark ({project_label})", y=0.98)
-    if area_subtitle:
-        fig.text(0.5, 0.92, area_subtitle, ha="center", va="center")
-    # Interleaved to account for matplotlib's column-major legend layout.
-    other_items = [(h, l) for h, l in zip(legend_handles, legend_labels)]
-
-    if other_items:
-        other_handles = [h for h, _ in other_items]
-        other_labels = [l for _, l in other_items]
-        fig.legend(
-            other_handles,
-            other_labels,
-            loc="lower center",
-            bbox_to_anchor=(0.42, -0.02),
-            ncol=1,
-            frameon=False,
-        )
-    fig.tight_layout(rect=[0, 0.12, 1, 0.90])
-    fig.savefig(output_path, dpi=400)
-    plt.close(fig)
-
-
 def create_plots(df, output_file, area):
-    """Create benchmark plots from a per-project or collected indicators file."""
+    """Create benchmark plot from all collected indicator files."""
     # planning_horizon=None, area=None
 
     if df.empty:
         logger.warning("No indicators data to plot")
         return
 
-    planning_horizon = df.planning_horizon.unique()[0]
     output_path = Path(output_file).parent
+    indicators = df.indicator.unique()
+    subindexes = df.subindex.unique()
+    planning_horizons = df.planning_horizon.unique()
     project_ids = df.loc[df["source"] == "Open-TYNDP", "project_id"].dropna().unique()
-    if output_path.suffix:
-        if len(project_ids) == 0:
-            logger.info("No model projects found in indicators file")
-            return
-        project_id = int(project_ids[0])
-        project_code_series = df.loc[
-            df["project_id"] == project_id, "project_code"
-        ].dropna()
-        project_code = str(project_code_series.iloc[0])
-        project_label = project_code
-        project_df = df[df["project_id"] == project_id].copy()
-        plot_project_benchmarks(
-            project_df, output_path, project_label, format_area_subtitle(area)
-        )
-    else:
-        for project_id in project_ids:
-            project_df = df[df["project_id"] == project_id].copy()
-            project_id = int(project_id)
-            project_code_series = df.loc[
-                df["project_id"] == project_id, "project_code"
-            ].dropna()
-            project_code = str(project_code_series.iloc[0])
-            suffix = f"_{planning_horizon}" if planning_horizon else ""
-            project_label = project_code
-            plot_project_benchmarks(
-                project_df, output_file, project_label, format_area_subtitle(area)
-            )
+    cyears = df.loc[df["source"] == "Open-TYNDP", "cyear"].dropna().unique()
+
+    if len(planning_horizons) == 0:
+        logger.info("No planning horizons found in dataset")
+        return
+    if len(project_ids) == 0:
+        logger.info("No model projects found in dataset")
+        return
+    if len(indicators) == 0:
+        logger.info("No benchmark indicators available in dataset")
+        return
+    if len(subindexes) == 0:
+        logger.info("No benchmark subindexes available in dataset")
+        return
+
+    plot_items = []
+    axis_items = []
+    for planning_horizon in planning_horizons:
+        for cyear in cyears:
+            for project_id in project_ids:
+                # Collect data to plot
+                project_label = f'{planning_horizon}_{cyear}_{project_id}'
+                project_df = df[df["project_id"] == project_id].copy()
+                indicators = sorted(project_df["indicator"].dropna().unique())
+
+                # Loop through necessary indicators
+                for indicator in INDICATOR_UNITS:
+                    model_val = select_model_value(project_df, indicator)
+                    bench = benchmark_range(project_df, indicator, "TYNDP 2024", planning_horizon)
+                    if model_val is None or bench is None:
+                        continue
+                    plot_items.append(bench[1] - model_val)
+                    axis_items.append(project_label)
+
+    if not plot_items:
+        logger.info("No benchmark data to plot")
+        return
+
+    plt.figure(figsize=(10, 4.2))
+    plt.bar(axis_items, plot_items)
+    plt.xticks(rotation=90)
+    plt.savefig(output_file, dpi=400)
+    plt.close()
+
+    """
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=1,
+        figsize=(max(1.7 * len(plot_items), 10), 4.2),
+        squeeze=False,
+        sharey=False,
+    )
+    axes[0].bar(axis_items, plot_items)
+    axes[0].set_ylabel('B1 delta (mEuro/year)')
+    axes[0].set_title('B1 Cost Delta per run')
+    fig.tight_layout(rect=[0, 0.12, 1, 0.90])
+    fig.savefig(output_path, dpi=400)
+    plt.close(fig)
+    """
 
     logger.info("Benchmark plots saved to %s", output_file)
 
@@ -359,7 +263,7 @@ if __name__ == "__main__":
 
     # Read input files
     logger.info(f"Read {len(snakemake.input)} indicator files")
-
+    
     # Create a list of files
     input_files = str(snakemake.input).split(" ")
     output_file = str(snakemake.output)

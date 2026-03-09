@@ -464,15 +464,15 @@ rule plot_all_cba_benchmark:
 rule plot_weather_benchmark:
     input:
         indicators=RESULTS
-        + "cba/ensemble_{planning_horizons}/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
+        + "cba/ensemble_indicators/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     output:
         plot_file=RESULTS
-        + "cba/ensemble_{planning_horizons}/ensemble_{cba_project}_{planning_horizons}.png",
+        + "cba/ensemble_plots/ensemble_{cba_project}_{planning_horizons}.png",
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
 
 
-rule average_indicators:
+rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
             rules.make_indicators.output.indicators,
@@ -481,24 +481,60 @@ rule average_indicators:
         ),
     output:
         indicators=RESULTS
-        + "cba/ensemble_{planning_horizons}/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
+        + "cba/ensemble_indicators/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     script:
         "../scripts/cba/average_indicators.py"
 
 
-rule summarize_indicators:
+rule summarize_indicators_per_project:
     input:
         indicators=lambda w: expand(
-            rules.average_indicators.output.indicators,
+            rules.average_indicators_per_project_and_planning_horizon.output.indicators,
             transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
             run=config_provider("cba", "scenarios")(w),
             allow_missing=True,
         ),
     output:
-        plot_file=RESULTS + "cba/ensemble_plots/ensemble_indicators_{cba_project}.png",
+        plot_file=RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_all_horizons.png",
     script:
         "../scripts/cba/summarize_indicators.py"
+
+
+rule summarize_all_indicators_2:
+    input:
+        indicators=[
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t4_2030.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t4_2040.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t16_2030.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t16_2040.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t28_2030.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t28_2040.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t33_2030.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t33_2040.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t35_2030.csv',
+            'results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t35_2040.csv',
+        ],
+    output:
+        plot_file=RESULTS + "cba/ensemble_summary_plot/ensemble_all2.png",
+    script:
+        "../scripts/cba/summarize_all.py"
+
+
+rule summarize_all_indicators:
+    input:
+        indicators=lambda w: expand(
+            rules.plot_weather_benchmark.input.indicators,
+            transmission_projects=rules.clean_projects.output.transmission_projects,
+            planning_horizons=config["cba"]["planning_horizons"],
+            cba_project=cba_projects(w),
+            # run=config_provider("cba", "scenarios")(w),
+            allow_missing=True,
+        ),
+    output:
+        plot_file=RESULTS + "cba/ensemble_summary_plot/ensemble_all.png",
+    script:
+        "../scripts/cba/summarize_all.py"
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
@@ -541,7 +577,7 @@ def cba_projects(w):
 rule cba:
     input:
         lambda w: expand(
-            rules.average_indicators.output.indicators,
+            rules.average_indicators_per_project_and_planning_horizon.output.indicators,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
@@ -554,11 +590,12 @@ rule cba:
             run=cba_scenarios(w),
         ),
         lambda w: expand(
-            rules.summarize_indicators.output.plot_file,
+            rules.summarize_indicators_per_project.output.plot_file,
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
             allow_missing=True,
         ),
+        RESULTS + "cba/ensemble_summary_plot/ensemble_all.png",
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
