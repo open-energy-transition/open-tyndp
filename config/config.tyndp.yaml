@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -376,8 +376,8 @@ solving:
       carriers:
         H2: 3000
   solver:  # Use commercial solver for high resolution results in SB
-    name: highs
-    options: highs-default
+    name: gurobi
+    options: gurobi-default
 
 plotting:
   energy_threshold: 1.
@@ -421,13 +421,13 @@ cba:
   - 2030
   - 2040
   cba_scenario_input:
-    use_presolved: false
+    use_presolved: true
     sb_version: latest # currently only latest is supported
   methods:
   - toot
   - pint
   projects:
-  - t1-t35
+  - t120-t150
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
@@ -461,11 +461,8 @@ cba:
         enable: true
         apply_to_all_carriers: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
+      noisy_costs: false
 
     solver:
-      name: highs
-      options: highs-simplex
-
-    solver_options:
-      highs-simplex:
-        parallel: "off" # does not speed up solution
+      name: gurobi
+      options: gurobi-default
