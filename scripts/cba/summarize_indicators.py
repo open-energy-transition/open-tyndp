@@ -46,8 +46,7 @@ cyear_weightings = {
 
 def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     """Pick a representative model value for a given indicator."""
-    model = df[(df["source"] == "Open-TYNDP") &
-               (df["indicator"] == indicator)]
+    model = df[(df["source"] == "Open-TYNDP") & (df["indicator"] == indicator)]
     if model.empty:
         return None
 
@@ -75,12 +74,17 @@ def select_value_by_subindex(
 
 
 def benchmark_range(
-    df: pd.DataFrame, indicator: str, source: str = "TYNDP 2024", planning_horizon: int = 0
+    df: pd.DataFrame,
+    indicator: str,
+    source: str = "TYNDP 2024",
+    planning_horizon: int = 0,
 ) -> tuple[float, float, float] | None:
     """Return (min, mean, max) range for a benchmark indicator."""
-    benchmark = df[(df["source"] == source)
-                   & (df["indicator"] == indicator)
-                   & (df["planning_horizon"] == planning_horizon) ].copy()
+    benchmark = df[
+        (df["source"] == source)
+        & (df["indicator"] == indicator)
+        & (df["planning_horizon"] == planning_horizon)
+    ].copy()
     if benchmark.empty:
         return None
 
@@ -159,7 +163,7 @@ def plot_project_benchmarks(
 
     fig, axes = plt.subplots(
         nrows=1,
-        ncols=len(plot_items)*len(planning_horizons),
+        ncols=len(plot_items) * len(planning_horizons),
         figsize=(max(1.7 * len(plot_items), 6), 4.2),
         squeeze=False,
         sharey=True,
@@ -169,20 +173,19 @@ def plot_project_benchmarks(
     legend_labels = []
     for ax, planning_horizon in zip(axes[0], planning_horizons):
         ax.axhline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
-        ax.set_title(planning_horizon, fontstyle='italic')
-        model_range = benchmark_range(
-            df, indicator, "Open-TYNDP", planning_horizon)
+        ax.set_title(planning_horizon, fontstyle="italic")
+        model_range = benchmark_range(df, indicator, "Open-TYNDP", planning_horizon)
         if model_range is None:
             model_min_val, model_mean_val, model_max_val = (0, 0, 0)
         else:
             model_min_val, model_mean_val, model_max_val = model_range
         min_val, mean_val, max_val = benchmark_range(
-            df, indicator, "TYNDP 2024", planning_horizon)
+            df, indicator, "TYNDP 2024", planning_horizon
+        )
         ax.errorbar(
             [-0.1],
             [mean_val],
-            yerr=[[
-                abs(mean_val - min_val)], [abs(max_val - mean_val)]],
+            yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
             fmt="x",
             color="gray",
             ecolor="lightgray",
@@ -197,8 +200,10 @@ def plot_project_benchmarks(
         ax.errorbar(
             [0.1],
             [model_mean_val],
-            yerr=[[
-                abs(model_mean_val - model_min_val)], [abs(model_max_val - model_mean_val)]],
+            yerr=[
+                [abs(model_mean_val - model_min_val)],
+                [abs(model_max_val - model_mean_val)],
+            ],
             fmt="o",
             color="tab:blue",
             ecolor="lightblue",
@@ -233,9 +238,7 @@ def plot_project_benchmarks(
     if area_subtitle:
         fig.text(0.5, 0.92, area_subtitle, ha="center", va="center")
     # Interleaved to account for matplotlib's column-major legend layout.
-    other_items = [
-        (h, l) for h, l in zip(legend_handles, legend_labels)
-    ]
+    other_items = [(h, l) for h, l in zip(legend_handles, legend_labels)]
 
     if other_items:
         other_handles = [h for h, _ in other_items]
@@ -317,7 +320,7 @@ def summarize_indicators(input_files, output_file):
 
     # Read input files
     logger.info(f"Read {len(input_files)} indicator files")
-    df = pd.concat(map(pd.read_csv, ['mydata.csv', 'mydata1.csv']), ignore_index=True)
+    df = pd.concat(map(pd.read_csv, ["mydata.csv", "mydata1.csv"]), ignore_index=True)
 
     project_ids = df.project_id.unique()[0]
     alternative_subindex = {"min": "low", "mean": "central", "max": "high"}
