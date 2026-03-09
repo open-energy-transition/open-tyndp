@@ -144,6 +144,8 @@ benchmarking:
         hydro-ror: hydro and pumped storage
         hydro-pondage: hydro and pumped storage
         hydro-reservoir: hydro and pumped storage
+        other-res-biomass: small scale res
+        other-res-mix: small scale res
 
     power_generation:
       table_type: scenario_comparison
@@ -190,6 +192,8 @@ benchmarking:
         hydro-ror: hydro (exc. pump storage)
         hydro-pondage: hydro (exc. pump storage)
         hydro-reservoir: hydro (exc. pump storage)
+        other-res-biomass: other res
+        other-res-mix: other res
 
     methane_supply:
       table_type: scenario_comparison
@@ -248,6 +252,7 @@ benchmarking:
         biomass to liquid: for biofuels
         biomass to liquid CC: for biofuels
         biogas: for biomethane
+        other-res-biomass: for electricity
       biomass_to_methane_efficiency:
         # Values from TYNDP 2024 Supply Tool
         2030: 0.68
@@ -318,3 +323,11 @@ benchmarking:
         urban central solid biomass CHP: other res
         PHS: hydro
         ror: hydro
+        hydro: hydro
+        hydro-phs-turbine: hydro
+        hydro-phs-pure-turbine: hydro
+        hydro-ror: hydro
+        hydro-pondage: hydro
+        hydro-reservoir: hydro
+        other-res-biomass: other res
+        other-res-mix: other res
