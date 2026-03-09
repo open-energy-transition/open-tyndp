@@ -15,7 +15,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.lines import Line2D
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -82,9 +81,7 @@ def benchmark_range(
         return None
 
     if indicator == "B2a_societal_cost_variation":
-        benchmark = benchmark[
-            benchmark["subindex"].isin(["low", "central", "high"])
-        ]
+        benchmark = benchmark[benchmark["subindex"].isin(["low", "central", "high"])]
     else:
         benchmark = benchmark[
             benchmark["subindex"].isin(["min", "mean", "max", "explicit"])
@@ -160,14 +157,16 @@ def create_plots(df, output_file, area):
         for cyear in cyears:
             for project_id in project_ids:
                 # Collect data to plot
-                project_label = f'{planning_horizon}_{cyear}_{project_id}'
+                project_label = f"{planning_horizon}_{cyear}_{project_id}"
                 project_df = df[df["project_id"] == project_id].copy()
                 indicators = sorted(project_df["indicator"].dropna().unique())
 
                 # Loop through necessary indicators
                 for indicator in INDICATOR_UNITS:
                     model_val = select_model_value(project_df, indicator)
-                    bench = benchmark_range(project_df, indicator, "TYNDP 2024", planning_horizon)
+                    bench = benchmark_range(
+                        project_df, indicator, "TYNDP 2024", planning_horizon
+                    )
                     if model_val is None or bench is None:
                         continue
                     plot_items.append(bench[1] - model_val)
@@ -263,7 +262,7 @@ if __name__ == "__main__":
 
     # Read input files
     logger.info(f"Read {len(snakemake.input)} indicator files")
-    
+
     # Create a list of files
     input_files = str(snakemake.input).split(" ")
     output_file = str(snakemake.output)
