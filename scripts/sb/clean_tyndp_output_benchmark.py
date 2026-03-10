@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
+    align_demand_to_snapshots,
     configure_logging,
     convert_units,
     get_snapshots,
@@ -300,10 +301,8 @@ def load_h2_demand(
         .filter(like="H2_LOAD")
         .rename(lambda s: s.split("_")[0].replace("UK", "GB") + " H2", axis=1)
     )
-    df.index = pd.to_datetime(df.index, format="%d%b%H:%M").map(
-        lambda t: t.replace(year=snapshots[0].year)
-    )
-    df = df.loc[snapshots]
+
+    df = align_demand_to_snapshots(df, snapshots, format="%d%b%H:%M")
 
     return df
 

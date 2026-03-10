@@ -1600,3 +1600,16 @@ def find_free_port(start_port=8050, max_attempts=50):
     raise RuntimeError(
         f"Could not find free port in range {start_port}-{start_port + max_attempts}"
     )
+
+
+def align_demand_to_snapshots(demand, snapshots, format=None):
+    """
+    Convert demand index to DatetimeIndex, adjust year to match snapshots,
+    and reindex to snapshots.
+    """
+
+    demand.index = pd.to_datetime(demand.index, format=format)
+    target_year = snapshots[0].year
+    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
+
+    return demand.reindex(snapshots)
