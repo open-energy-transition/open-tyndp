@@ -26,8 +26,8 @@ from scripts._helpers import configure_logging, get_version, set_scenario_config
 logger = logging.getLogger(__name__)
 
 SOURCES_MAP = {
-    "market_out": "TYNDP 2024 Market Outputs",
-    "report": "TYNDP 2024 Scenarios",
+    "market_out": "TYNDP 2024 Market Model Outputs",
+    "report": "TYNDP 2024 Scenarios Report",
     "vp": "TYNDP 2024 Vis Pltfm",
 }
 
@@ -362,7 +362,7 @@ def compute_indicators(
     table: str,
     snapshots: dict[str, str],
     options,
-    rfc_col: str = "TYNDP 2024 Scenarios",
+    rfc_col: str = "TYNDP 2024 Scenarios Report",
     carrier_col: str = "carrier",
     precision: int = 2,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -395,7 +395,7 @@ def compute_indicators(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
-    rfc_col : str, default "TYNDP 2024 Scenarios"
+    rfc_col : str, default "TYNDP 2024 Scenarios Report"
         Name of the reference data source.
     carrier_col : str, default "carrier"
         Column name for carrier/technology grouping.

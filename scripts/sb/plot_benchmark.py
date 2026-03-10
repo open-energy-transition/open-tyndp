@@ -89,7 +89,7 @@ def _plot_scenario_comparison(
         table_title += " (pre-curtailment)"
     idx = [model_col] + [c for c in rfc_cols if c in df.columns]
 
-    tyndp_str = "TYNDP 2024 Scenarios"
+    tyndp_str = "TYNDP 2024 Scenarios Report"
     if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
         tyndp_str_ext = "TYNDP 2024 Scenarios"
         idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]

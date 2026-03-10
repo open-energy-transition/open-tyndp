@@ -29,7 +29,7 @@ Upcoming Open-TYNDP Release
 
 * Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
 
-* Add an option to use the H2 demand from the Market Model output data (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. Benchmarking against Market Model output data is also now possible.
+* Add an option to use the H2 demand from the Market Model output data (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. It is now also possible to compare against Market Model output data in the benchmarking framework.
 
 **Bugfixes and Compatibility**
 

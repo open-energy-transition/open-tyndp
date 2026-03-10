@@ -31,7 +31,7 @@ The following metrics from the `TYNDP 2024 Scenarios report <https://2024.entsos
   * Benchmark energy imports, EU27 (TWh), (Fig 40, p51 and Fig 60, p68)
   * Hourly generation profile of power generation, Fig 30, p35
 
-The data is published in the `Scenarios package <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>`_. In addition to the TYNDP 2024 Scenarios Report data, data from the `Visualisation Platform <https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>`_ and the `Market Outputs <https://2024.entsos-tyndp-scenarios.eu/download/>`_ are also processed and included in the relevant figures.
+The data is published in the `Scenarios package <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>`_. In addition to the TYNDP 2024 Scenarios Report data, data from the `Visualisation Platform <https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>`_ and the `Market Model Outputs <https://2024.entsos-tyndp-scenarios.eu/download/>`_ are also processed and included in the relevant figures.
 
 The benchmarking is based on the methodology proposed by `Wen et al. (2022) <https://www.sciencedirect.com/science/article/pii/S0306261922011667>`_. This methodology provides a multi-criteria approach to ensure:
 
