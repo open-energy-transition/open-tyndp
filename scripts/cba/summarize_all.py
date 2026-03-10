@@ -179,77 +179,16 @@ def create_plots(df, output_file, area):
         return
 
     plt.figure(figsize=(6.0, 0.3*len(plot_items_percent)))
-    plt.title('CBA differencial cost indicator benchmark') # , fontsize=14)
+    plt.title('CBA differencial cost indicator benchmark\n', y=0.98)
     plt.barh(axis_items, plot_items_percent)
-    plt.xlabel('Mean cost differencial (%)') # , fontsize=10)
+    plt.xlabel('Mean difference B1_total_system_cost_change (%)')
     plt.xticks(rotation=90, fontsize=6)
     plt.yticks(fontsize=6)
-    plt.tight_layout(rect=[0, 0.12, 1, 0.90])
+    plt.tight_layout(rect=[0, 0.05, 1, 0.95])
     plt.savefig(output_file, dpi=400)
     plt.close()
 
-    """
-    fig, axes = plt.subplots(
-        nrows=1,
-        ncols=1,
-        figsize=(max(1.7 * len(plot_items), 10), 4.2),
-        squeeze=False,
-        sharey=False,
-    )
-    axes[0].bar(axis_items, plot_items)
-    axes[0].set_ylabel('B1 delta (mEuro/year)')
-    axes[0].set_title('B1 Cost Delta per run')
-    fig.savefig(output_path, dpi=400)
-    plt.close(fig)
-    """
-
     logger.info("Benchmark plots saved to %s", output_file)
-
-
-def summarize_indicators(input_files, output_file):
-    """
-    Concatenate multiple CSV files into one using the csv module.
-
-    Args:
-        input_files: List of paths to input CSV files
-        output_file: Path to output CSV file
-
-    The function:
-    1. Reads the header from the first file
-    2. Writes all rows from all files to the output
-    3. Ensures all files have the same header structure
-    """
-    if not input_files:
-        logger.warning("No input files provided")
-        # Create empty output file with no header
-        with open(output_file, "w", newline="") as f:
-            pass
-        return
-
-    # Read input files
-    logger.info(f"Read {len(input_files)} indicator files")
-    df = pd.concat(map(pd.read_csv, ["mydata.csv", "mydata1.csv"]), ignore_index=True)
-
-    project_ids = df.project_id.unique()[0]
-    alternative_subindex = {"min": "low", "mean": "central", "max": "high"}
-
-    # loop through all coolected indicators
-    for INDICATOR_UNIT in INDICATOR_UNITS:
-        units = df[(df.indicator == INDICATOR_UNIT)].units.unique()[0]
-        indicator_values = {
-            "min": (
-                df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value
-            ).min(),
-            "mean": (
-                df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value
-                * df[
-                    (df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")
-                ].cyear_weight
-            ).sum(),
-            "max": (
-                df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value
-            ).max(),
-        }
 
 
 if __name__ == "__main__":
