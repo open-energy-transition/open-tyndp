@@ -43,15 +43,14 @@ from scripts.build_tyndp_network import (
 logger = logging.getLogger(__name__)
 
 
-def read_invest_projects(
+def read_invest_file(
     fn_invest: str,
-    buses: gpd.GeoDataFrame,
     carrier: str = "Electricity",
     years: list[int] = [2030, 2035],
     category: str = "Real",
-) -> gpd.GeoDataFrame:
+) -> pd.DataFrame:
     """
-    Read grid investment dataset for Electricity or Hydrogen.
+    Read raw investment data for Electricity and Hydrogen.
 
     For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
 
@@ -59,8 +58,6 @@ def read_invest_projects(
     ----------
     fn_invest : str
         Path to the investment dataset file.
-    buses : gpd.GeoDataFrame
-        GeoDataFrame of TYNDP buses with geometry.
     carrier : str, optional
         Energy carrier to extract: 'Electricity' or 'Hydrogen'. Default is 'Electricity'.
     years : list[int], optional
@@ -70,8 +67,8 @@ def read_invest_projects(
 
     Returns
     -------
-    gpd.GeoDataFrame
-        Processed links with geometry.
+    pd.DataFrame
+        DataFrame of investment projects.
     """
     if carrier not in ["Electricity", "Hydrogen"]:
         raise ValueError(
@@ -93,10 +90,46 @@ def read_invest_projects(
             }
         )
         .replace({"UK": "GB"}, regex=True)
-        .query("bus0 in @buses.index & bus1 in @buses.index")
         .groupby(["bus0", "bus1"])
         .sum()[["Summary Direction 1", "Summary Direction 2"]]
         .reset_index()
+    )
+
+    return projects
+
+
+def get_invest_projects(
+    fn_invest: str,
+    buses: gpd.GeoDataFrame,
+    carrier: str = "Electricity",
+    years: list[int] = [2030, 2035],
+    category: str = "Real",
+) -> gpd.GeoDataFrame:
+    """
+    Read and process grid investment dataset for Electricity or Hydrogen. Extract grid data in PyPSA compatible format.
+
+    For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
+
+    Parameters
+    ----------
+    fn_invest : str
+        Path to the investment dataset file.
+    buses : gpd.GeoDataFrame
+        GeoDataFrame of TYNDP buses with geometry.
+    carrier : str, optional
+        Energy carrier to extract: 'Electricity' or 'Hydrogen'. Default is 'Electricity'.
+    years : list[int], optional
+        Commissioning years to filter projects. Default is [2030, 2035].
+    category : str, optional
+        Project category filter for Electricity. Default is 'Real'.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Processed links with geometry.
+    """
+    projects = read_invest_file(fn_invest, carrier, years, category).query(
+        "bus0 in @buses.index & bus1 in @buses.index"
     )
 
     links = extract_grid_data_tyndp(
@@ -117,7 +150,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_tyndp_transmission_projects")
+        snakemake = mock_snakemake(
+            "build_tyndp_transmission_projects", planning_horizons="2040"
+        )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
@@ -125,7 +160,7 @@ if __name__ == "__main__":
     build_years = snakemake.params.build_years
 
     buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
-    new_links = read_invest_projects(
+    new_links = get_invest_projects(
         snakemake.input.invest_grid, buses, years=build_years
     )
 
