@@ -15,6 +15,8 @@ Upcoming Open-TYNDP Release
 
 * Add option to model carrier-specific load shedding with associated shedding costs (https://github.com/open-energy-transition/open-tyndp/pull/494).
 
+* Implements rolling horizon optimisation with marginal storage values (water values) for seasonal storage components, maintaining operation of long-term stores close to perfect foresight optimization (https://github.com/open-energy-transition/open-tyndp/pull/441).
+
 * Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
 
 * Add option to model carrier-specific load sinks with associated costs (https://github.com/open-energy-transition/open-tyndp/pull/505).
@@ -25,7 +27,15 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
+
+* Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
+
+* Add an option to apply the CBA fixes of the electrical reference network to the SB network as well (enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/527).
+
 **Bugfixes and Compatibility**
+
+* Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
 
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
 
@@ -37,6 +47,54 @@ Upcoming Open-TYNDP Release
 
 Upcoming PyPSA-Eur Release
 ================
+
+* Add configuration schema updater that allows changes to be made in soft-forks without touching base PyPSA-Eur files (#2014).
+
+* Adjust ``powerplants_filter`` to include power plants operational in 2025.
+
+* Rewrite mapping of power plant sites to model regions / buses. Previously, power plants were mapped to the nearest bus in the same country.
+  Now, power plants are mapped using a spatial join to the onshore and offshore regions.
+  This change is necessary as the administrative clustering does not conform to the previous nearest-bus mapping.
+
+* Removed some outdated hotfixes in `build_powerplants.py`.
+
+* Estimate renewable capacities using plant-level data from Powerplantmatching, instead of only Global Energy Monitor (GEM) data. The setting ``from_gem`` is renamed to ``from_powerplantmatching``.
+
+* New setting ``from_irenastat`` to use IRENASTAT data to supplement potential plant-level data from Powerplantmatching for renewable capacity estimation. This step can now be skipped if sufficient plant-level data is available from Powerplantmatching.
+
+* Update default year for renewable capacity estimation to 2024 (latest available).
+
+* Include waste-to-energy plants in electricity-only networks.
+
+* Add 2030 to power plant grouping years by default.
+
+* Do not apply ``powerplantmatching`` phase-out heuristic in :mod:`build_powerplants`.
+
+* Bugfix: Ensure renewable carriers are not added as conventional power plants (if included in ``powerplants.csv``)
+
+* Bugfix: Improved handling of grouping years in :mod:`add_existing_baseyear`.
+
+* Added ``solving.options.store_model`` config option to store the linopy model as NetCDF file after solving. Not supported with rolling horizon. Configuration setting can not be set per scenario, only globally.
+* Update Swiss energy balances from the Swiss Federal Office of Energy (SFOE) to the latest version (October 2025).
+  The data is no longer stored in the repository, but directly retrieved from the SFOE website and processed in the ``build_swiss_energy_balances`` rule.
+
+* Added prebuilt OSM network v0.7 (https://zenodo.org/records/18619025) using updated workflow.
+
+* Fix unit commitment compatibility with PyPSA ≥ 1.0 component API to allow usage of unit commitment (https://github.com/PyPSA/pypsa-eur/pull/2049).
+
+* Update energy balances from JRC-IDEES-2021 to `JRC-IDEES-2023
+  <https://publications.jrc.ec.europa.eu/repository/handle/JRC138195>`__. The
+  default reference year was changed from 2019 to 2023.
+* Removed config options `sector:MWh_MeOH_per_tCO2`, `MWh_MeOH_per_MWh_H2`, and `MWh_MeOH_per_MWh_elec` in favour of corresponding data points from technology-data.
+* Download and process Eurostat energy balances from API. This replaces the discontinued ZIP bulk download.
+
+* The function `rescale_idees_from_eurostat` was removed.
+
+* New rule `build_eurostat_balances` to build energy balances from Eurostat data. Outsourced from `build_energy_totals`
+* Updated CO2 emission allowance prices data source to Instrat API for real-time pricing data.
+* Improved OSM network building process (https://github.com/PyPSA/pypsa-eur/pull/2030): Introducing support for temporal attributes (start_date, construction tags) and pure DC buses (switching stations). The interactive network map has been completely rebuilt using PyDeck/deck.gl with GPU acceleration and includes custom JS controls, offering fuzzy search, clickable OSM references, URL-based view sharing (#theme/zoom/lat/lon), and substantially improved performance. Additionally, a generalised plot from https://www.nature.com/articles/s41597-025-04550-7 enables systematic comparison of network topology changes over time. Cleaned naming scheme (https://github.com/PyPSA/pypsa-eur/pull/2052).
+
+* Add powerplantmatching v0.8.0 to data versions.
 
 * Add script path getter helper method to allow for rule inheritance in nested snakefiles.
 
