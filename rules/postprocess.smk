@@ -160,10 +160,16 @@ if config["foresight"] != "perfect":
             settings=lambda w: config_provider(
                 "plotting", "balance_map_interactive", w.carrier
             ),
+            h2_topology_tyndp=config_provider("sector", "h2_topology_tyndp"),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
             regions=resources("regions_onshore_base_s_{clusters}.geojson"),
+            buses_h2=branch(
+                config_provider("sector", "h2_topology_tyndp"),
+                resources("tyndp/build/geojson/buses_h2.geojson"),
+                [],
+            ),
         output:
             RESULTS
             + "maps/interactive/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-balance_map_{carrier}.html",

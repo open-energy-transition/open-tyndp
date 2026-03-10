@@ -47,6 +47,8 @@ Upcoming Open-TYNDP Release
 
 * Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
 
+* Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
+
 **Documentation**
 
 **Developers Note**
