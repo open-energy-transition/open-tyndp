@@ -798,7 +798,7 @@ if config["benchmarking"]["enable"]:
             )
         threads: 4
         resources:
-            mem_mb=8000,
+            mem_mb=16000,
         script:
             scripts("sb/build_statistics.py")
 

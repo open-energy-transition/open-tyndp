@@ -6,6 +6,17 @@
 NT:
   tyndp_scenario: NT
 
+NT-cy2009-20260311:
+  tyndp_scenario: NT
+  clustering:
+    temporal:
+      resolution_sector: 1H
+  solving:
+    runtime: 12h
+    solver:
+      name: gurobi
+      options: "gurobi-default"
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
