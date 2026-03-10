@@ -91,7 +91,7 @@ def _plot_scenario_comparison(
 
     tyndp_str = "TYNDP 2024 Scenarios Report"
     if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
-        tyndp_str_ext = "TYNDP 2024 Scenarios"
+        tyndp_str_ext = "TYNDP 2024 Scenarios Report"
         idx = [tyndp_str_ext if i == tyndp_str else i for i in idx]
         df = df.rename(columns={tyndp_str: tyndp_str_ext})
 
@@ -224,9 +224,9 @@ def plot_benchmark(
     bench_colors: dict,
     model_col: str = "Open-TYNDP",
     rfc_cols: list[str] = [
-        "TYNDP 2024 Scenarios",
+        "TYNDP 2024 Scenarios Report",
         "TYNDP 2024 Vis Pltfm",
-        "TYNDP 2024 Market Outputs",
+        "TYNDP 2024 Market Model Outputs",
     ],
 ):
     """
@@ -252,7 +252,7 @@ def plot_benchmark(
         Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_cols : list[str], default ["TYNDP 2024 Scenarios", "TYNDP 2024 Vis Pltfm"]
+    rfc_cols : list[str], default ["TYNDP 2024 Scenarios Report", "TYNDP 2024 Vis Pltfm"]
         Column names for reference values.
     """
 

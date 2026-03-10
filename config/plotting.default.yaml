@@ -807,6 +807,6 @@ plotting:
   benchmarking:
     colors:
       Open-TYNDP: '#1f77b4'
-      TYNDP 2024 Scenarios: '#ff7f0e'
+      TYNDP 2024 Scenarios Report: '#ff7f0e'
       TYNDP 2024 Vis Pltfm: '#aeff39'
-      TYNDP 2024 Market Outputs: '#17becf'
+      TYNDP 2024 Market Model Outputs: '#17becf'

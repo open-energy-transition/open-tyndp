@@ -50,7 +50,7 @@ if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["ar
 
     rule retrieve_tyndp_nuclear_profiles:
         input:
-            # TODO Derive this from Market Outputs directly
+            # TODO Derive this from Market Model Outputs directly
             zip_file=storage(NUC_PROFILES["url"]),
         output:
             dir=directory(NUC_PROFILES["folder"]),

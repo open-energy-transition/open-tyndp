@@ -275,14 +275,14 @@ def load_h2_demand(
     sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex
 ) -> pd.DataFrame:
     """
-    Load hourly H2 demand time series from a TYNDP Market Outputs Excel file.
+    Load hourly H2 demand time series from a TYNDP Market Model Outputs Excel file.
 
     Parameters
     ----------
     sheet_name : str
         Name of the Excel sheet containing hourly H2 data.
     filepath : str or Path
-        Path to the TYNDP Market Outputs Excel file.
+        Path to the TYNDP Market Model Outputs Excel file.
     snapshots : pd.DatetimeIndex
         Model snapshot index.
 
@@ -403,7 +403,7 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
 def assign_meta_data(df, planning_horizon, scenario):
     df["scenario"] = f"TYNDP {scenario}"
     df["year"] = planning_horizon
-    df["source"] = "TYNDP 2024 Market Outputs"
+    df["source"] = "TYNDP 2024 Market Model Outputs"
 
 
 if __name__ == "__main__":

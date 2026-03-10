@@ -110,7 +110,7 @@ def match_temporal_resolution(
     df: pd.DataFrame,
     snapshots: dict[str, str],
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024 Scenarios",
+    rfc_col: str = "TYNDP 2024 Scenarios Report",
 ) -> pd.DataFrame:
     """
     Match temporal resolution against reference data. Hourly time series from the rfc_col will be
@@ -124,7 +124,7 @@ def match_temporal_resolution(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     model_col : str, default "Open-TYNDP"
         Column name for model values with potentially lower temporal resolution.
-    rfc_col : str, default "TYNDP 2024 Scenarios"
+    rfc_col : str, default "TYNDP 2024 Scenarios Report"
         Column name for reference values with hourly temporal resolution.
 
     Returns
@@ -293,7 +293,7 @@ def compute_all_indicators(
     df: pd.DataFrame,
     table: str,
     model_col: str = "Open-TYNDP",
-    rfc_col: str = "TYNDP 2024 Scenarios",
+    rfc_col: str = "TYNDP 2024 Scenarios Report",
     eps: float = 1e-6,
     carrier: str = None,
     df_na: pd.DataFrame = None,
@@ -309,7 +309,7 @@ def compute_all_indicators(
         Benchmark metric to compute.
     model_col : str, default "Open-TYNDP"
         Column name for model/projected values (ŷᵢ).
-    rfc_col : str, default "TYNDP 2024 Scenarios"
+    rfc_col : str, default "TYNDP 2024 Scenarios Report"
         Column name for reference/actual values (yᵢ).
     eps: float, default 1e-6
         Small value used when the denominator is zero.
