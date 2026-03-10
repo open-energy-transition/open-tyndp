@@ -178,10 +178,10 @@ def create_plots(df, output_file, area):
         logger.info("No benchmark data to plot")
         return
 
-    plt.figure(figsize=(6.0, 0.3*len(plot_items_percent)))
-    plt.title('CBA differencial cost indicator benchmark\n', y=0.98)
+    plt.figure(figsize=(6.0, 0.3 * len(plot_items_percent)))
+    plt.title("CBA differencial cost indicator benchmark\n", y=0.98)
     plt.barh(axis_items, plot_items_percent)
-    plt.xlabel('Mean difference B1_total_system_cost_change (%)')
+    plt.xlabel("Mean difference B1_total_system_cost_change (%)")
     plt.xticks(rotation=90, fontsize=6)
     plt.yticks(fontsize=6)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
