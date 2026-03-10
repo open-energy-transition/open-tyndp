@@ -1656,3 +1656,16 @@ def _add_new_profiles_to_existing(
 
     component_t[attr] = pd.concat([existing, new_profiles], axis=1)
     component_t[attr].index.name = index_name
+
+
+def align_demand_to_snapshots(demand, snapshots, format=None):
+    """
+    Convert demand index to DatetimeIndex, adjust year to match snapshots,
+    and reindex to snapshots.
+    """
+
+    demand.index = pd.to_datetime(demand.index, format=format)
+    target_year = snapshots[0].year
+    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
+
+    return demand.reindex(snapshots)
