@@ -51,7 +51,7 @@ electricity:
   - oil-light
   - oil-heavy
   - oil-shale
-  group_tyndp_conventionals: true
+  group_tyndp_conventionals: false
   renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
