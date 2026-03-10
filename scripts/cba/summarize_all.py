@@ -151,13 +151,14 @@ def create_plots(df, output_file, area):
         logger.info("No benchmark subindexes available in dataset")
         return
 
-    plot_items = []
+    plot_items_mEuro = []
+    plot_items_percent = []
     axis_items = []
     for planning_horizon in planning_horizons:
         for cyear in cyears:
             for project_id in project_ids:
                 # Collect data to plot
-                project_label = f"{planning_horizon}_{cyear}_{project_id}"
+                project_label = f"{planning_horizon}, {cyear}, t{project_id}"
                 project_df = df[df["project_id"] == project_id].copy()
                 indicators = sorted(project_df["indicator"].dropna().unique())
 
@@ -169,16 +170,21 @@ def create_plots(df, output_file, area):
                     )
                     if model_val is None or bench is None:
                         continue
-                    plot_items.append(bench[1] - model_val)
+                    plot_items_mEuro.append(bench[1] - model_val)
+                    plot_items_percent.append(bench[1] / model_val)
                     axis_items.append(project_label)
 
-    if not plot_items:
+    if not plot_items_percent:
         logger.info("No benchmark data to plot")
         return
 
-    plt.figure(figsize=(10, 4.2))
-    plt.bar(axis_items, plot_items)
-    plt.xticks(rotation=90)
+    plt.figure(figsize=(6.0, 0.3*len(plot_items_percent)))
+    plt.title('CBA differencial cost indicator benchmark') # , fontsize=14)
+    plt.barh(axis_items, plot_items_percent)
+    plt.xlabel('Mean cost differencial (%)') # , fontsize=10)
+    plt.xticks(rotation=90, fontsize=6)
+    plt.yticks(fontsize=6)
+    plt.tight_layout(rect=[0, 0.12, 1, 0.90])
     plt.savefig(output_file, dpi=400)
     plt.close()
 
@@ -193,7 +199,6 @@ def create_plots(df, output_file, area):
     axes[0].bar(axis_items, plot_items)
     axes[0].set_ylabel('B1 delta (mEuro/year)')
     axes[0].set_title('B1 Cost Delta per run')
-    fig.tight_layout(rect=[0, 0.12, 1, 0.90])
     fig.savefig(output_path, dpi=400)
     plt.close(fig)
     """
