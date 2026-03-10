@@ -283,9 +283,16 @@ def get_elec_project_build_years(w):
     ]
 
 
+def get_h2_project_build_years(w):
+    return config_provider("tyndp_investment_candidates", "h2_projects")(w)[
+        int(w.planning_horizons)
+    ]
+
+
 rule build_tyndp_transmission_projects:
     params:
-        build_years=get_elec_project_build_years,
+        build_years_elec=get_elec_project_build_years,
+        build_years_h2=get_h2_project_build_years,
     input:
         buses_elec=rules.build_tyndp_network.output.substations_geojson,
         buses_h2=rules.build_tyndp_network.output.substations_h2_geojson,

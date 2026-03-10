@@ -164,18 +164,19 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    build_years = snakemake.params.build_years
+    build_years_elec = snakemake.params.build_years_elec
+    build_years_h2 = snakemake.params.build_years_h2
 
     buses = gpd.read_file(snakemake.input.buses_elec).set_index("bus_id")
     buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
     new_links_elec = get_invest_projects(
-        snakemake.input.invest_grid, buses, years=build_years
+        snakemake.input.invest_grid, buses, years=build_years_elec
     )
     new_links_h2 = get_invest_projects(
         snakemake.input.invest_grid,
         buses_h2,
         carrier="Hydrogen",
-        years=build_years,
+        years=build_years_h2,
     )
 
     new_links_elec.to_csv(snakemake.output.new_links_elec, quotechar="'")
