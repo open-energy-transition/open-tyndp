@@ -498,9 +498,9 @@ Allows to define additional transmission projects that will be added to the base
 ``tyndp_investment_candidates``
 ===============================
 
-Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration only applies to the TYNDP base network and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
+Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration applies to the TYNDP base networks and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
 
-.. jsonschema:: ../config/schema.json#/$defs/TyndpInvestmentCandidatesConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/TyndpInvestmentCandidatesConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
