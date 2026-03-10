@@ -4,7 +4,7 @@
 
 
 from scripts._helpers import safe_pyear, find_free_port
-from shutil import unpack_archive, rmtree, copy2
+from shutil import unpack_archive, copy2
 
 
 # Retrieve
