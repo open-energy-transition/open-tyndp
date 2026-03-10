@@ -7,7 +7,9 @@
 Build TYNDP transmission projects from the Grid Investment Dataset.
 
 This script processes the TYNDP 2024 Grid Investment Dataset to extract
-transmission projects for inclusion in the reference grid.
+transmission projects for inclusion in both the electrical and hydrogen
+reference grid.
+
 Projects are filtered by commissioning year and category, then formatted
 as network links with geometry attributes derived from bus locations.
 
@@ -81,6 +83,9 @@ def read_invest_projects(
         f"BORDER.str.contains('{category}') & " if carrier == "Electricity" else ""
     )
 
+    if carrier == "Hydrogen":
+        buses.index = buses.index.str.removesuffix(" H2")
+
     projects = (
         pd.read_excel(fn_invest, sheet_name=carrier)
         .query(f"{border_condition}YEAR in @years")
@@ -103,12 +108,14 @@ def read_invest_projects(
         links=projects,
         replace_dict=MAP_GRID_TYNDP,
         expand_from_index=False,
-        idx_connector="-",
-        idx_suffix="-DC",
-        idx_separator="",
+        idx_prefix="" if carrier == "Electricity" else "H2 pipeline",
+        idx_connector="-" if carrier == "Electricity" else "->",
+        idx_suffix="-DC" if carrier == "Electricity" else "",
+        idx_separator="" if carrier == "Electricity" else " ",
     )
 
-    links = add_links_missing_attributes(links, buses)
+    if carrier == "Electricity":
+        links = add_links_missing_attributes(links, buses)
 
     return links
 
@@ -117,16 +124,26 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_tyndp_transmission_projects")
+        snakemake = mock_snakemake(
+            "build_tyndp_transmission_projects", planning_horizons=2040, run="NT"
+        )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
     # Parameters
     build_years = snakemake.params.build_years
 
-    buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
-    new_links = read_invest_projects(
+    buses = gpd.read_file(snakemake.input.buses_elec).set_index("bus_id")
+    buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
+    new_links_elec = read_invest_projects(
         snakemake.input.invest_grid, buses, years=build_years
     )
+    new_links_h2 = read_invest_projects(
+        snakemake.input.invest_grid,
+        buses_h2,
+        carrier="Hydrogen",
+        years=build_years,
+    )
 
-    new_links.to_csv(snakemake.output[0], quotechar="'")
+    new_links_elec.to_csv(snakemake.output.new_links_elec, quotechar="'")
+    new_links_h2.to_csv(snakemake.output.new_links_h2, quotechar="'")

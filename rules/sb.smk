@@ -287,10 +287,12 @@ rule build_tyndp_transmission_projects:
     params:
         build_years=get_elec_project_build_years,
     input:
-        buses=rules.build_tyndp_network.output.substations_geojson,
+        buses_elec=rules.build_tyndp_network.output.substations_geojson,
+        buses_h2=rules.build_tyndp_network.output.substations_h2_geojson,
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
     output:
-        resources("tyndp/new_links_{planning_horizons}.csv"),
+        new_links_elec=resources("tyndp/new_links_{planning_horizons}.csv"),
+        new_links_h2=resources("tyndp/new_links_h2_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_transmission_projects_{planning_horizons}.log"),
     benchmark:
