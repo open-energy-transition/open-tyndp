@@ -80,9 +80,6 @@ def read_invest_file(
         f"BORDER.str.contains('{category}') & " if carrier == "Electricity" else ""
     )
 
-    if carrier == "Hydrogen":
-        buses.index = buses.index.str.removesuffix(" H2")
-
     projects = (
         pd.read_excel(fn_invest, sheet_name=carrier)
         .query(f"{border_condition}YEAR in @years")
@@ -133,6 +130,9 @@ def get_invest_projects(
     gpd.GeoDataFrame
         Processed links with geometry.
     """
+    if carrier == "Hydrogen":
+        buses.index = buses.index.str.removesuffix(" H2")
+
     projects = read_invest_file(fn_invest, carrier, years, category).query(
         "bus0 in @buses.index & bus1 in @buses.index"
     )
