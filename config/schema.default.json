@@ -6148,6 +6148,11 @@
     "TyndpInvestmentCandidatesConfig": {
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
+        "patch_sb_with_annexe": {
+          "default": false,
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "type": "boolean"
+        },
         "elec_projects": {
           "additionalProperties": {
             "items": {
@@ -11191,6 +11196,11 @@
     "tyndp_investment_candidates": {
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
+        "patch_sb_with_annexe": {
+          "default": false,
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "type": "boolean"
+        },
         "elec_projects": {
           "additionalProperties": {
             "items": {
