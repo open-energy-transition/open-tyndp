@@ -547,7 +547,8 @@ def compute_overall_accuracy(
         t for t, v in options["tables"].items() if v["table_type"] == "time_series"
     ]
     sources_map = {
-        t: SOURCES_MAP[opt["rfc_source"]] for t, opt in options["tables"].items()
+        t: SOURCES_MAP.get(opt["rfc_source"], opt["rfc_source"])
+        for t, opt in options["tables"].items()
     }
     df_global = (
         benchmarks_raw.query("table not in @tables_series")
