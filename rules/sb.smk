@@ -456,12 +456,22 @@ rule build_tyndp_h2_demand:
 
 if config["sector"]["h2_topology_tyndp"]:
 
+    def include_tyndp_h2_projects(w):
+        horizons = config_provider("tyndp_investment_candidates", "h2_projects")(w)
+        if not horizons:
+            return False
+        return int(w.planning_horizons) in horizons
+
     rule build_tyndp_h2_network:
         params:
             snapshots=config_provider("snapshots"),
             scenario=config_provider("tyndp_scenario"),
         input:
             h2_reference_grid=rules.retrieve_tyndp.output.h2_reference_grid,
+            h2_projects=branch(
+                include_tyndp_h2_projects,
+                resources("tyndp/new_links_h2_{planning_horizons}.csv"),
+            ),
         output:
             h2_grid_prepped=resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
             interzonal_prepped=resources("h2_interzonal_tyndp_{planning_horizons}.csv"),
