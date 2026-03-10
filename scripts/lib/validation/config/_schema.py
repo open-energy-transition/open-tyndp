@@ -79,6 +79,10 @@ class TyndpInvestmentCandidatesConfig(ConfigModel):
         default_factory=dict,
         description="Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
     )
+    h2_projects: dict[int, list[int]] = Field(
+        default_factory=dict,
+        description="Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+    )
 
 
 class ConfigSchema(BaseModel):

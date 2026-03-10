@@ -167,6 +167,10 @@ tyndp_investment_candidates:
     2040:
     - 2030
     - 2035
+  h2_projects:
+    2040:
+    - 2030
+    - 2035
 
 load:
   source: tyndp # opsd, tyndp
@@ -436,10 +440,11 @@ cba:
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
-  # Storage settings for CBA dispatch
+  # Storage settings for dispatch
   storage:
-    # Carriers that should remain cyclic (short-term storage)
-    # These will maintain e_cyclic=True in simplify_sb_network
+    # Carriers that remain cyclic (short-term storage)
+    # All other store/storage unit carriers automatically receive
+    # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
     - home battery
