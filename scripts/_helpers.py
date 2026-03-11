@@ -1602,7 +1602,9 @@ def find_free_port(start_port=8050, max_attempts=50):
     )
 
 
-def align_demand_to_snapshots(demand, snapshots, format=None):
+def align_demand_to_snapshots(
+    demand: pd.DataFrame, snapshots: pd.DatetimeIndex, format: str = None
+) -> pd.DataFrame:
     """
     Convert demand index to DatetimeIndex, adjust year to match snapshots,
     and reindex to snapshots.

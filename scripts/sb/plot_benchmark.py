@@ -60,7 +60,7 @@ def add_metadata(
         ax.text(
             x0_fig,
             y0_fig - 0.05,
-            f"Model outputs ({model_col}) benchmarked against {rfc_source}.",
+            f"Model outputs ({model_col}) benchmarked against {rfc_source}. Other sources shown for comparison.",
             transform=fig.transFigure,
             ha="left",
             va="bottom",
@@ -252,7 +252,7 @@ def plot_benchmark(
         Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_cols : list[str], default ["TYNDP 2024 Scenarios Report", "TYNDP 2024 Vis Pltfm"]
+    rfc_cols : list[str], default ["TYNDP 2024 Scenarios Report", "TYNDP 2024 Vis Pltfm", "TYNDP 2024 Market Model Outputs"]
         Column names for reference values.
     """
 
@@ -260,7 +260,7 @@ def plot_benchmark(
     opt = options["tables"][table]
     table_type = opt["table_type"]
     source_unit = opt["report"]["unit"]
-    rfc_source = SOURCES_MAP[opt["rfc_source"]]
+    rfc_source = SOURCES_MAP.get(opt["rfc_source"], opt["rfc_source"])
     cyear = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit
