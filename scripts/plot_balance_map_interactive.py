@@ -108,8 +108,8 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
         split_lat = (ibfi_lat + fi_lat) / 2
         fi_geom = regions.loc["FI H2", "geometry"]
 
-        south = fi_geom.intersection(box(-180, -90, 180, split_lat))
-        north = fi_geom.intersection(box(-180, split_lat, 180, 90))
+        south = fi_geom.intersection(box(minx=-180, miny=-90, maxx=180, maxy=split_lat))
+        north = fi_geom.intersection(box(minx=-180, miny=split_lat, maxx=180, maxy=90))
 
         fi_splitted = gpd.GeoDataFrame(
             {
