@@ -88,11 +88,11 @@ def apply_pint(
             n.links.loc[reverse_link_id, "p_nom"] += capacity_reverse
             continue
 
+        attrs = get_link_attrs(project, costs)
         for lid, b0, b1, cap in [
             (link_id, bus0, bus1, capacity),
             (reverse_link_id, bus1, bus0, capacity_reverse),
         ]:
-            attrs = get_link_attrs(project, costs)
             n.add(
                 "Link",
                 lid,
