@@ -74,7 +74,7 @@ def update_or_add_link(n, bus0, bus1, delta, hurdle_costs, attrs):
         p_nom=delta,
         p_nom_max=delta,
         marginal_cost=hurdle_costs,
-        capital_cost=0.0,
+        **attrs,
     )
     logger.info(f"Added missing link {link_name} with p_nom {delta:.2f}")
 
