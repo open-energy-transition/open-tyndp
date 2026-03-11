@@ -100,7 +100,7 @@ def load_h2_grid(fn_grid: str, fn_projects: str) -> pd.DataFrame:
     fn_grid : str
         Path to Excel file containing H2 reference grid data.
     fn_projects : str
-        Path to Excel file containing H2 projects data.
+        Path to CSV file containing H2 projects data.
 
     Returns
     -------

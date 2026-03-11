@@ -18,13 +18,16 @@ Inputs
 - ``data/tyndp_2024_bundle/Investment Datasets/GRID.xlsx``: Grid investment dataset
   containing electricity and hydrogen transmission projects with capacities and
   commissioning years.
-- ``resources/tyndp/substations.geojson``: Bus with geometry.
+- ``resources/tyndp/build/geojson/buses.geojson``: Electrical buses with geometry.
+- ``resources/tyndp/build/geojson/buses_h2.geojson``: Hydrogen buses with geometry.
 
 Outputs
 -------
-- ``resources/tyndp/new_links.csv``: Processed transmission projects with bus
+- ``resources/tyndp/new_links_{planning_horizons}.csv``: Processed electricity transmission projects with bus
   connections, capacities (p_nom), lengths, and geometry attributes ready for
   network integration.
+- ``resources/tyndp/new_links_h2_{planning_horizons}.csv``: Processed hydrogen transmission projects with bus
+  connections and capacities (p_nom) attributes ready for network integration.
 """
 
 import logging
