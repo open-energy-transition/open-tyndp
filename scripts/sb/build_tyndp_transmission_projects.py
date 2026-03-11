@@ -130,9 +130,6 @@ def get_invest_projects(
     gpd.GeoDataFrame
         Processed links with geometry.
     """
-    if carrier == "Hydrogen":
-        buses.index = buses.index.str.removesuffix(" H2")
-
     projects = read_invest_file(fn_invest, carrier, years, category).query(
         "bus0 in @buses.index & bus1 in @buses.index"
     )
@@ -169,6 +166,7 @@ if __name__ == "__main__":
 
     buses = gpd.read_file(snakemake.input.buses_elec).set_index("bus_id")
     buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
+    buses_h2.index = buses_h2.index.str.removesuffix(" H2")
     new_links_elec = get_invest_projects(
         snakemake.input.invest_grid, buses, years=build_years_elec
     )
