@@ -10,7 +10,8 @@ benchmarking:
   tables:
     final_energy_demand:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
       report:
         sheet_name: 5-
         unit: TWh
@@ -38,7 +39,9 @@ benchmarking:
 
     elec_demand:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
+      - vp
       report:
         sheet_name: 23-
         unit: TWh
@@ -55,7 +58,8 @@ benchmarking:
 
     methane_demand:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
       report:
         sheet_name: 8-
         unit: TWh
@@ -81,7 +85,9 @@ benchmarking:
 
     hydrogen_demand:
       table_type: scenario_comparison
-      rfc_source: market_out
+      rfc_sources:
+      - market_out
+      - report
       report:
         sheet_name: 10-
         unit: TWh
@@ -105,7 +111,10 @@ benchmarking:
 
     power_capacity:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
+      - vp
+      - market_out
       report:
         sheet_name: 25-
         unit: GW
@@ -158,7 +167,9 @@ benchmarking:
 
     power_generation:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
+      - market_out
       report:
         sheet_name: 26-
         unit: TWh
@@ -206,7 +217,8 @@ benchmarking:
 
     methane_supply:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
       report:
         sheet_name: 32-
         unit: TWh
@@ -227,7 +239,9 @@ benchmarking:
 
     hydrogen_supply:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
+      - market_out
       report:
         sheet_name: 33-
         unit: TWh
@@ -250,7 +264,8 @@ benchmarking:
 
     biomass_supply:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
       report:
         sheet_name: 22-
         unit: TWh
@@ -277,7 +292,8 @@ benchmarking:
 
     energy_imports:
       table_type: scenario_comparison
-      rfc_source: report
+      rfc_sources:
+      - report
       report:
         sheet_name: 60-
         unit: TWh
@@ -299,7 +315,8 @@ benchmarking:
 
     generation_profiles:
       table_type: time_series
-      rfc_source: report
+      rfc_sources:
+      - report
       report:
         sheet_name:
           DE: 30a

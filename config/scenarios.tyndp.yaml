@@ -83,7 +83,8 @@ DE:
   benchmarking:
     tables:
       hydrogen_demand:
-        rfc_source: report
+        rfc_sources:
+        - report
 
 # GA Scenario - Extends NT baseline with specific overrides below
 GA:
@@ -162,4 +163,5 @@ GA:
   benchmarking:
     tables:
       hydrogen_demand:
-        rfc_source: report
+        rfc_sources:
+        - report

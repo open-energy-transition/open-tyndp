@@ -29,7 +29,11 @@ plt.style.use("bmh")
 
 
 def add_metadata(
-    ax: plt.Axes, fig: plt.Figure, model_col: str = "", rfc_source: str = ""
+    ax: plt.Axes,
+    fig: plt.Figure,
+    model_col: str = "",
+    rfc_source: str = "",
+    rfc_cols: list[str] = [],
 ):
     # Version
     version = get_version()
@@ -57,10 +61,13 @@ def add_metadata(
 
     # Reference source
     if model_col != "" and rfc_source != "":
+        additional_sources = (
+            "" if len(rfc_cols) <= 1 else " Other sources shown for comparison."
+        )
         ax.text(
             x0_fig,
             y0_fig - 0.05,
-            f"Model outputs ({model_col}) benchmarked against {rfc_source}. Other sources shown for comparison.",
+            f"Model outputs ({model_col}) benchmarked against {rfc_source}.{additional_sources}",
             transform=fig.transFigure,
             ha="left",
             va="bottom",
@@ -87,7 +94,9 @@ def _plot_scenario_comparison(
     table_title = table.replace("_", " ").title()
     if table == "power_generation":
         table_title += " (pre-curtailment)"
-    idx = [model_col] + [c for c in rfc_cols if c in df.columns]
+    idx = [model_col, rfc_source] + [
+        c for c in rfc_cols if c in df.columns and c != rfc_source
+    ]
 
     tyndp_str = "TYNDP 2024 Scenarios Report"
     if "TYNDP 2024 Vis Pltfm" in idx and tyndp_str in idx:
@@ -118,7 +127,7 @@ def _plot_scenario_comparison(
     for c in ax.containers:
         ax.bar_label(c, fmt="%.0f", padding=3, fontsize=8)
 
-    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols)
 
     output_filename = Path(output_dir, f"benchmark_{table}_eu27_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -223,11 +232,6 @@ def plot_benchmark(
     tech_colors: dict,
     bench_colors: dict,
     model_col: str = "Open-TYNDP",
-    rfc_cols: list[str] = [
-        "TYNDP 2024 Scenarios Report",
-        "TYNDP 2024 Vis Pltfm",
-        "TYNDP 2024 Market Model Outputs",
-    ],
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -252,15 +256,14 @@ def plot_benchmark(
         Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    rfc_cols : list[str], default ["TYNDP 2024 Scenarios Report", "TYNDP 2024 Vis Pltfm", "TYNDP 2024 Market Model Outputs"]
-        Column names for reference values.
     """
 
     # Parameters
     opt = options["tables"][table]
     table_type = opt["table_type"]
     source_unit = opt["report"]["unit"]
-    rfc_source = SOURCES_MAP.get(opt["rfc_source"], opt["rfc_source"])
+    rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
+    rfc_source = rfc_cols[0]
     cyear = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit

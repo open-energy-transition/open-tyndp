@@ -475,7 +475,8 @@ def compare_sources(
     """
     # Parameters
     opt = options["tables"][table]
-    rfc_source = SOURCES_MAP.get(opt["rfc_source"], opt["rfc_source"])
+    rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
+    rfc_source = rfc_cols[0]
     sources = ["Open-TYNDP", rfc_source]  # noqa: F841
 
     # Clean data
@@ -547,7 +548,7 @@ def compute_overall_accuracy(
         t for t, v in options["tables"].items() if v["table_type"] == "time_series"
     ]
     sources_map = {
-        t: SOURCES_MAP.get(opt["rfc_source"], opt["rfc_source"])
+        t: SOURCES_MAP.get(opt["rfc_sources"][0], opt["rfc_sources"][0])
         for t, opt in options["tables"].items()
     }
     df_global = (
