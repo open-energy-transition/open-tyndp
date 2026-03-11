@@ -140,3 +140,34 @@ all,all,oil-shale,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,"mean of sub-types oil
 all,all,oil-shale-old,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
 all,all,oil-shale-new,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
 all,all,h2-ccgt,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
+all,all,gas-conv,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-conv-old1,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-conv-old2,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ccgt,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ccgt-old1,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ccgt-old2,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ccgt-present1,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ccgt-present2,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ccgt-new,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ccgt-ccs,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ocgt,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ocgt-old,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,gas-ocgt-new,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,coal,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,coal-old1,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,coal-old2,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,coal-new,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,coal-ccs,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,lignite,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,lignite-old1,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,lignite-old2,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,lignite-new,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,lignite-ccs,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",Solids encompass both hard coal and lignite
+all,all,oil-light,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,oil-heavy,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,oil-heavy-old1,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,oil-heavy-old2,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,oil-shale,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,oil-shale-old,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,oil-shale-new,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,h2-ccgt,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
