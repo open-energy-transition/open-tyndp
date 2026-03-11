@@ -162,6 +162,7 @@ transmission_projects:
   enable: false
 
 tyndp_investment_candidates:
+  patch_sb_with_annexe: true
   elec_projects:
     2040:
     - 2030
@@ -425,13 +426,14 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest
+    sb_version: latest # currently only latest is supported
   methods:
   - toot
   - pint
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
+  remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
   # Storage settings for CBA dispatch
   storage:

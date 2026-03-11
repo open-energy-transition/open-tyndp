@@ -550,6 +550,7 @@ transmission_projects:
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
 tyndp_investment_candidates:
+  patch_sb_with_annexe: false
   elec_projects: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
@@ -1578,6 +1579,7 @@ cba:
   - toot
   projects: []
   area: tyndp
+  remove_noisy_costs: true
   storage:
     cyclic_carriers:
     - battery
