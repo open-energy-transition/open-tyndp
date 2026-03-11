@@ -149,11 +149,9 @@ if __name__ == "__main__":
             d1 = row["Correction - Summary Direction 1"]
             d2 = row["Correction - Summary Direction 2"]
 
-            a1 = get_link_attrs(project, costs) if project is not None else {}
-            update_or_add_link(n, bus0, bus1, d1, hurdle_costs, a1)
-
-            a2 = get_link_attrs(project, costs) if project is not None else {}
-            update_or_add_link(n, bus1, bus0, d2, hurdle_costs, a2)
+            attrs = get_link_attrs(project, costs) if project is not None else {}
+            update_or_add_link(n, bus0, bus1, d1, hurdle_costs, attrs)
+            update_or_add_link(n, bus1, bus0, d2, hurdle_costs, attrs)
     else:
         logger.info(
             "Skipping reference corrections for planning horizon %s",
