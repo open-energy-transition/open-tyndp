@@ -501,26 +501,6 @@ rule summarize_indicators_per_project:
         "../scripts/cba/summarize_indicators.py"
 
 
-rule summarize_all_indicators_2:
-    input:
-        indicators=[
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t4_2030.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t4_2040.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t16_2030.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t16_2040.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t28_2030.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t28_2040.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t33_2030.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t33_2040.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t35_2030.csv",
-            "results/test-sector-tyndp/cba/ensemble_indicators/ensemble_indicators_t35_2040.csv",
-        ],
-    output:
-        plot_file=RESULTS + "cba/ensemble_summary_plot/ensemble_all2.png",
-    script:
-        "../scripts/cba/summarize_all.py"
-
-
 rule summarize_all_indicators:
     input:
         indicators=lambda w: expand(
