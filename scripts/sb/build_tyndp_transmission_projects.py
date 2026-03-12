@@ -7,7 +7,9 @@
 Build TYNDP transmission projects from the Grid Investment Dataset.
 
 This script processes the TYNDP 2024 Grid Investment Dataset to extract
-transmission projects for inclusion in the reference grid.
+transmission projects for inclusion in both the electrical and hydrogen
+reference grid.
+
 Projects are filtered by commissioning year and category, then formatted
 as network links with geometry attributes derived from bus locations.
 
@@ -16,13 +18,16 @@ Inputs
 - ``data/tyndp_2024_bundle/Investment Datasets/GRID.xlsx``: Grid investment dataset
   containing electricity and hydrogen transmission projects with capacities and
   commissioning years.
-- ``resources/tyndp/substations.geojson``: Bus with geometry.
+- ``resources/tyndp/build/geojson/buses.geojson``: Electrical buses with geometry.
+- ``resources/tyndp/build/geojson/buses_h2.geojson``: Hydrogen buses with geometry.
 
 Outputs
 -------
-- ``resources/tyndp/new_links.csv``: Processed transmission projects with bus
+- ``resources/tyndp/new_links_{planning_horizons}.csv``: Processed electricity transmission projects with bus
   connections, capacities (p_nom), lengths, and geometry attributes ready for
   network integration.
+- ``resources/tyndp/new_links_h2_{planning_horizons}.csv``: Processed hydrogen transmission projects with bus
+  connections and capacities (p_nom) attributes ready for network integration.
 """
 
 import logging
@@ -136,12 +141,14 @@ def get_invest_projects(
         links=projects,
         replace_dict=MAP_GRID_TYNDP,
         expand_from_index=False,
-        idx_connector="-",
-        idx_suffix="-DC",
-        idx_separator="",
+        idx_prefix="" if carrier == "Electricity" else "H2 pipeline",
+        idx_connector="-" if carrier == "Electricity" else "->",
+        idx_suffix="-DC" if carrier == "Electricity" else "",
+        idx_separator="" if carrier == "Electricity" else " ",
     )
 
-    links = add_links_missing_attributes(links, buses)
+    if carrier == "Electricity":
+        links = add_links_missing_attributes(links, buses)
 
     return links
 
@@ -157,11 +164,21 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    build_years = snakemake.params.build_years
+    build_years_elec = snakemake.params.build_years_elec
+    build_years_h2 = snakemake.params.build_years_h2
 
-    buses = gpd.read_file(snakemake.input.buses).set_index("bus_id")
-    new_links = get_invest_projects(
-        snakemake.input.invest_grid, buses, years=build_years
+    buses = gpd.read_file(snakemake.input.buses_elec).set_index("bus_id")
+    buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
+    buses_h2.index = buses_h2.index.str.removesuffix(" H2")
+    new_links_elec = get_invest_projects(
+        snakemake.input.invest_grid, buses, years=build_years_elec
+    )
+    new_links_h2 = get_invest_projects(
+        snakemake.input.invest_grid,
+        buses_h2,
+        carrier="Hydrogen",
+        years=build_years_h2,
     )
 
-    new_links.to_csv(snakemake.output[0], quotechar="'")
+    new_links_elec.to_csv(snakemake.output.new_links_elec, quotechar="'")
+    new_links_h2.to_csv(snakemake.output.new_links_h2, quotechar="'")

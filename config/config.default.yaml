@@ -552,6 +552,7 @@ transmission_projects:
 tyndp_investment_candidates:
   patch_sb_with_annexe: false
   elec_projects: {}
+  h2_projects: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
 transformers:

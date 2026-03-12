@@ -89,15 +89,18 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     return interzonal
 
 
-def load_h2_grid(fn):
+def load_h2_grid(fn_grid: str, fn_projects: str) -> pd.DataFrame:
     """
     Load and clean H2 reference grid and format data.
+    Add the H2 projects to the reference grid.
     Returns the cleaned reference grid as dataframe.
 
     Parameters
     ----------
-    fn : str
+    fn_grid : str
         Path to Excel file containing H2 reference grid data.
+    fn_projects : str
+        Path to CSV file containing H2 projects data.
 
     Returns
     -------
@@ -105,12 +108,21 @@ def load_h2_grid(fn):
         The function returns the cleaned TYNDP H2 reference grid.
     """
 
-    h2_grid_raw = pd.read_excel(fn)
+    h2_grid_raw = pd.read_excel(fn_grid)
     h2_grid = extract_grid_data_tyndp(
         h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
     )
     # convert from GW to PyPSA base unit MW as raw H2 reference grid data is given in GW
     h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
+
+    # add projects to the grid
+    if fn_projects:
+        h2_projects = pd.read_csv(fn_projects, index_col=0)
+        h2_grid = (
+            pd.concat([h2_grid, h2_projects])
+            .groupby(level=0)
+            .agg({"bus0": "first", "bus1": "first", "p_nom": sum})
+        )
 
     return h2_grid
 
@@ -133,7 +145,10 @@ if __name__ == "__main__":
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
-    h2_grid = load_h2_grid(fn=snakemake.input.h2_reference_grid)
+    h2_grid = load_h2_grid(
+        fn_grid=snakemake.input.h2_reference_grid,
+        fn_projects=snakemake.input.h2_projects,
+    )
     interzonal = load_h2_interzonal_connections(
         fn=snakemake.input.h2_reference_grid, scenario=scenario, pyear=pyear
     )
