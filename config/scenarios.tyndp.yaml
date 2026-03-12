@@ -156,26 +156,8 @@ GA:
   costs:
     custom_cost_scn: GA
 
-.cba-common: &cba-common
-  # Merged into top-level solving options
-  solving:
-    options:
-      horizon: 168
-      overlap: 0
-      load_shedding:
-        enable: true
-
-    solver:
-      name: highs
-      options: highs-simplex
-
-    solver_options:
-      highs-simplex:
-        parallel: "off" # does not speed up solution
-
 
 cba-NT-cy1995:
-  <<: *cba-common
   snapshots:
     start: "1995-01-01"
     end: "1996-01-01"
@@ -188,7 +170,6 @@ cba-NT-cy1995:
 
 
 cba-NT-cy2008:
-  <<: *cba-common
   snapshots:
     start: "2008-01-01"
     end: "2009-01-01"
@@ -201,7 +182,6 @@ cba-NT-cy2008:
 
 
 cba-NT-cy2009:
-  <<: *cba-common
   snapshots:
     start: "2009-01-01"
     end: "2010-01-01"
@@ -214,7 +194,6 @@ cba-NT-cy2009:
 
 
 cba-DE-cy1995:
-  <<: *cba-common
   cba:
     sb_scenario: DE
 
@@ -227,7 +206,6 @@ cba-DE-cy1995:
 
 
 cba-DE-cy2008:
-  <<: *cba-common
   cba:
     sb_scenario: DE
 
@@ -240,7 +218,6 @@ cba-DE-cy2008:
 
 
 cba-DE-cy2009:
-  <<: *cba-common
   cba:
     sb_scenario: DE
 
@@ -253,7 +230,6 @@ cba-DE-cy2009:
 
 
 cba-GA-cy1995:
-  <<: *cba-common
   cba:
     sb_scenario: GA
 
@@ -266,7 +242,6 @@ cba-GA-cy1995:
 
 
 cba-GA-cy2008:
-  <<: *cba-common
   cba:
     sb_scenario: GA
 
@@ -279,7 +254,6 @@ cba-GA-cy2008:
 
 
 cba-GA-cy2009:
-  <<: *cba-common
   cba:
     sb_scenario: GA
 
