@@ -225,7 +225,7 @@ def load_MM_sheet(
     Returns
     -------
     pd.DataFrame
-        DataFrame with multi-index rows [output_type, technology] and country columns.
+        Market Model data in long format (incl. EU27).
     """
     sheet_name, output_type = LOOKUP_TABLES[table_name]
 
@@ -253,22 +253,31 @@ def load_MM_sheet(
     df.rename(
         columns=lambda x: x.replace("UK", "GB").replace("IB", "")[:2], inplace=True
     )
-    df_ct = df.T.groupby(df.columns).sum().T
+    df_ct = (
+        df.T.groupby(df.columns)
+        .sum()
+        .T.reset_index()
+        .melt(id_vars=["carrier"], var_name="bus")
+    )
 
-    # Only consider EU27 and sum
-    df = df.T.groupby(df.columns).sum().reindex(eu27).sum()
+    # Add EU27
+    op = "sum" if "price" not in table_name else "mean"
+    df_eu27 = (
+        df_ct.loc[lambda x: x["bus"].isin(eu27)]
+        .groupby(by=["carrier"])
+        .value.agg(op)
+        .reset_index()
+        .assign(bus="EU27")
+    )
+    df = pd.concat([df_ct, df_eu27])
 
-    # Adjust unit
-    df = df.rename("value").reset_index()
+    # Add metadata
     df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
-    final = convert_units(df)
-    df_ct["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
+    df["table"] = table_name
     if "price" not in table_name:
-        for col in df_ct.columns[df_ct.columns != "unit"]:
-            df_ct = convert_units(df_ct, value_col=col)
+        df = convert_units(df)
 
-    final["table"] = table_name
-    return final, df_ct
+    return df
 
 
 def load_h2_demand(
@@ -447,14 +456,12 @@ if __name__ == "__main__":
     logger.info(f"Processing tables: {', '.join(tables_to_process)}")
 
     benchmarks = {}
-    df_ct = {}
     for table in tables_to_process:
-        benchmarks[table], df_ct[table] = load_MM_sheet(
+        benchmarks[table] = load_MM_sheet(
             table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
         )
 
     MM_data = pd.concat(benchmarks).reset_index(drop=True)
-    MM_data_ct = pd.concat(df_ct)
 
     # set negative sign for loads
     MM_data = set_load_sign(MM_data)
@@ -471,13 +478,13 @@ if __name__ == "__main__":
     crossborder_agg = pd.concat(crossborder, axis=1)
 
     # load prices
-    prices_ct = {}
+    prices = {}
     for table in LOOKUP_TABLES.keys():
         if "price" in table:
-            _, prices_ct[table] = load_MM_sheet(
+            prices[table] = load_MM_sheet(
                 table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
             )
-    prices = pd.concat(prices_ct)
+    prices = pd.concat(prices, ignore_index=True)
 
     # load h2 demand time series
     snapshots = get_snapshots(
@@ -489,14 +496,12 @@ if __name__ == "__main__":
 
     # assign meta data
     assign_meta_data(MM_data, planning_horizon, scenario)
-    assign_meta_data(MM_data_ct, planning_horizon, scenario)
     assign_meta_data(prices, planning_horizon, scenario)
     assign_meta_data(crossborder_agg, planning_horizon, scenario)
     assign_meta_data(h2_demand, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
-    MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     crossborder_agg.to_csv(snakemake.output.crossborder)
-    prices.to_csv(snakemake.output.prices)
+    prices.to_csv(snakemake.output.prices, index=False)
     h2_demand.to_csv(snakemake.output.h2_demand)

@@ -715,8 +715,6 @@ if config["benchmarking"]["enable"]:
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-            benchmarks_ct=RESULTS
-            + "validation/resources/benchmarks_tyndp_output_ct_{scenario}{planning_horizons}.csv",
             crossborder=RESULTS
             + "validation/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
             prices=RESULTS
