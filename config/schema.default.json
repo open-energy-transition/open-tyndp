@@ -452,11 +452,11 @@
       }
     },
     "CbaConfig": {
-      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
         "hurdle_costs": {
           "default": 0.01,
-          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
           "type": "number"
         },
         "co2_societal_cost": {
@@ -466,18 +466,33 @@
             },
             "type": "object"
           },
-          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios.",
           "type": "object"
         },
         "planning_horizons": {
-          "description": "List of planning horizons for which to run CBA.",
+          "description": "List of planning horizons for which to run cost-benefit analysis.",
           "items": {
             "type": "integer"
           },
           "type": "array"
         },
+        "cba_scenario_input": {
+          "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+          "properties": {
+            "use_presolved": {
+              "default": false,
+              "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+              "type": "boolean"
+            },
+            "sb_version": {
+              "default": "latest",
+              "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+              "type": "string"
+            }
+          }
+        },
         "methods": {
-          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
           "items": {
             "enum": [
               "toot",
@@ -488,7 +503,7 @@
           "type": "array"
         },
         "projects": {
-          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
             "type": "string"
           },
@@ -496,7 +511,7 @@
         },
         "area": {
           "default": "tyndp",
-          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "description": "Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
           "enum": [
             "tyndp",
             "entso-e",
@@ -504,15 +519,53 @@
           ],
           "type": "string"
         },
+        "remove_noisy_costs": {
+          "default": true,
+          "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
+          "type": "boolean"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
               "items": {
                 "type": "string"
               },
               "type": "array"
+            },
+            "soc_boundary_carriers": {
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "msv_extraction": {
+          "description": "Configuration for `cba.msv_extraction` settings.",
+          "properties": {
+            "resolution": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": false,
+              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+            },
+            "resample_method": {
+              "default": "ffill",
+              "description": "Method for resampling marginal storage value to target network resolution.",
+              "enum": [
+                "ffill",
+                "interpolate"
+              ],
+              "type": "string"
             }
           }
         },
@@ -521,14 +574,14 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "CBA-specific solving options.",
+              "description": "Solving options for rolling horizon dispatch.",
               "type": "object"
             },
             "solver": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "CBA solver configuration.",
+              "description": "Solver configuration.",
               "type": "object"
             },
             "solver_options": {
@@ -536,7 +589,7 @@
                 "additionalProperties": true,
                 "type": "object"
               },
-              "description": "CBA solver options.",
+              "description": "Solver-specific options.",
               "type": "object"
             }
           }
@@ -751,6 +804,12 @@
           "description": "Consider the monthly fluctuating fuel prices for each conventional generator. Refer to the CSV file 'data/validation/monthly_fuel_price.csv'.",
           "type": "boolean"
         },
+        "fuel_price_rolling_window": {
+          "default": 6,
+          "description": "Monthly rolling mean window for fossil fuel prices smoothing.",
+          "minimum": 1,
+          "type": "integer"
+        },
         "nuclear": {
           "additionalProperties": {
             "anyOf": [
@@ -887,10 +946,15 @@
               "default": 0.0,
               "description": "Exogenous price of carbon-dioxide. In electricity-only runs it is added to the marginal costs of fossil-fuelled generators according to their carbon intensity, while for sector networks it applies to emissions ending up in CO2 atmosphere."
             },
-            "co2_monthly_prices": {
+            "dynamic": {
               "default": false,
-              "description": "Add monthly cost for a carbon-dioxide price based on historical values built by the rule `build_monthly_prices`.",
+              "description": "Add time-varying cost for a carbon-dioxide price based on historical values built by the rule `build_co2_prices`.",
               "type": "boolean"
+            },
+            "rolling_window": {
+              "default": 90,
+              "description": "Rolling window (in days) for smoothing the historical CO2 prices when `dynamic` is set to True.",
+              "type": "integer"
             }
           }
         }
@@ -1022,6 +1086,26 @@
             }
           }
         },
+        "worldbank_commodity_prices": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "gem_europe_gas_tracker": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -1043,6 +1127,26 @@
           }
         },
         "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "instrat_co2_prices": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -1283,6 +1387,26 @@
           }
         },
         "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "swiss_energy_balances": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -2121,6 +2245,26 @@
               "type": "string"
             }
           }
+        },
+        "open_tyndp_prelim": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -2296,7 +2440,7 @@
               "type": "boolean"
             }
           ],
-          "default": "(DateOut >= 2024 or DateOut != DateOut) and not (Country == 'Germany' and Fueltype == 'Nuclear')",
+          "default": "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)",
           "description": "Filter query for the default powerplant database."
         },
         "custom_powerplants": {
@@ -2526,14 +2670,18 @@
               "description": "Activate routine to estimate renewable capacities in rule `add_electricity`. This option should not be used in combination with pathway planning `foresight: myopic` or `foresight: perfect` as renewable capacities are added differently in `add_existing_baseyear`.",
               "type": "boolean"
             },
-            "from_gem": {
+            "from_powerplantmatching": {
               "default": true,
-              "description": "Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.",
-              "markdownDescription": "Add renewable capacities from [Global Energy Monitor's Global Solar Power Tracker ](https://globalenergymonitor.org/projects/global-solar-power-tracker/) and [Global Energy Monitor's Global Wind Power Tracker ](https://globalenergymonitor.org/projects/global-wind-power-tracker/).",
+              "description": "Add renewable capacities from powerplantmatching dataset.",
+              "type": "boolean"
+            },
+            "from_irenastat": {
+              "default": false,
+              "description": "Supplement powerplantmatching dataset with heuristics based on country-level renewable capacities from IRENA (IRENASTAT).",
               "type": "boolean"
             },
             "year": {
-              "default": 2020,
+              "default": 2024,
               "description": "Renewable capacities are based on existing capacities reported by IRENA (IRENASTAT) for the specified year.",
               "type": "integer"
             },
@@ -2607,7 +2755,7 @@
       "description": "Configuration for `energy` settings.",
       "properties": {
         "energy_totals_year": {
-          "default": 2019,
+          "default": 2023,
           "description": "The year for the sector energy use. The year must be available in the Eurostat report.",
           "type": "integer"
         },
@@ -2846,14 +2994,14 @@
         },
         "MWh_elec_per_tMeOH": {
           "default": 0.167,
-          "description": "The energy amount of electricity needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_CH4_per_tMeOH": {
           "default": 10.25,
-          "description": "The energy amount of methane needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_MeOH_per_tMeOH": {
@@ -4694,24 +4842,6 @@
           "description": "The efficiency of oil-powered machinery in the conversion of oil to meet agricultural needs.",
           "type": "number"
         },
-        "MWh_MeOH_per_MWh_H2": {
-          "default": 0.8787,
-          "description": "The energy amount of the produced methanol per energy amount of hydrogen. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of hydrogen. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_tCO2": {
-          "default": 4.0321,
-          "description": "The energy amount of the produced methanol per ton of CO2. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 66.",
-          "markdownDescription": "The energy amount of the produced methanol per ton of CO2. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 66.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_MWh_e": {
-          "default": 3.6907,
-          "description": "The energy amount of the produced methanol per energy amount of electricity. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of electricity. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
-          "type": "number"
-        },
         "shipping_hydrogen_liquefaction": {
           "default": false,
           "description": "Whether to include liquefaction costs for hydrogen demand in shipping.",
@@ -5734,6 +5864,11 @@
               "description": "Whether to keep LPs and MPS files after solving.",
               "type": "boolean"
             },
+            "store_model": {
+              "default": false,
+              "description": "Store the linopy model to a NetCDF file after solving. Not supported with rolling_horizon. Not scenario-aware.",
+              "type": "boolean"
+            },
             "model_kwargs": {
               "description": "Configuration for `solving.options.model_kwargs` settings.",
               "properties": {
@@ -6008,6 +6143,11 @@
     "TyndpInvestmentCandidatesConfig": {
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
+        "patch_sb_with_annexe": {
+          "default": false,
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "type": "boolean"
+        },
         "elec_projects": {
           "additionalProperties": {
             "items": {
@@ -6016,6 +6156,16 @@
             "type": "array"
           },
           "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
+        },
+        "h2_projects": {
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
           "type": "object"
         }
       }
@@ -6239,19 +6389,60 @@
         }
       }
     },
+    "_CbaMsvExtractionConfig": {
+      "description": "Configuration for `cba.msv_extraction` settings.",
+      "properties": {
+        "resolution": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": false,
+          "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+        },
+        "resample_method": {
+          "default": "ffill",
+          "description": "Method for resampling marginal storage value to target network resolution.",
+          "enum": [
+            "ffill",
+            "interpolate"
+          ],
+          "type": "string"
+        }
+      }
+    },
+    "_CbaSbToCbaConfig": {
+      "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+      "properties": {
+        "use_presolved": {
+          "default": false,
+          "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+          "type": "boolean"
+        },
+        "sb_version": {
+          "default": "latest",
+          "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+          "type": "string"
+        }
+      }
+    },
     "_CbaSolvingConfig": {
       "description": "Configuration for `cba.solving` settings.",
       "properties": {
         "options": {
           "additionalProperties": true,
-          "description": "CBA-specific solving options.",
+          "description": "Solving options for rolling horizon dispatch.",
           "type": "object"
         },
         "solver": {
           "additionalProperties": {
             "type": "string"
           },
-          "description": "CBA solver configuration.",
+          "description": "Solver configuration.",
           "type": "object"
         },
         "solver_options": {
@@ -6259,7 +6450,7 @@
             "additionalProperties": true,
             "type": "object"
           },
-          "description": "CBA solver options.",
+          "description": "Solver-specific options.",
           "type": "object"
         }
       }
@@ -6268,7 +6459,14 @@
       "description": "Configuration for `cba.storage` settings.",
       "properties": {
         "cyclic_carriers": {
-          "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+          "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "soc_boundary_carriers": {
+          "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
           "items": {
             "type": "string"
           },
@@ -6791,10 +6989,15 @@
           "default": 0.0,
           "description": "Exogenous price of carbon-dioxide. In electricity-only runs it is added to the marginal costs of fossil-fuelled generators according to their carbon intensity, while for sector networks it applies to emissions ending up in CO2 atmosphere."
         },
-        "co2_monthly_prices": {
+        "dynamic": {
           "default": false,
-          "description": "Add monthly cost for a carbon-dioxide price based on historical values built by the rule `build_monthly_prices`.",
+          "description": "Add time-varying cost for a carbon-dioxide price based on historical values built by the rule `build_co2_prices`.",
           "type": "boolean"
+        },
+        "rolling_window": {
+          "default": 90,
+          "description": "Rolling window (in days) for smoothing the historical CO2 prices when `dynamic` is set to True.",
+          "type": "integer"
         }
       }
     },
@@ -6842,14 +7045,18 @@
           "description": "Activate routine to estimate renewable capacities in rule `add_electricity`. This option should not be used in combination with pathway planning `foresight: myopic` or `foresight: perfect` as renewable capacities are added differently in `add_existing_baseyear`.",
           "type": "boolean"
         },
-        "from_gem": {
+        "from_powerplantmatching": {
           "default": true,
-          "description": "Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.",
-          "markdownDescription": "Add renewable capacities from [Global Energy Monitor's Global Solar Power Tracker ](https://globalenergymonitor.org/projects/global-solar-power-tracker/) and [Global Energy Monitor's Global Wind Power Tracker ](https://globalenergymonitor.org/projects/global-wind-power-tracker/).",
+          "description": "Add renewable capacities from powerplantmatching dataset.",
+          "type": "boolean"
+        },
+        "from_irenastat": {
+          "default": false,
+          "description": "Supplement powerplantmatching dataset with heuristics based on country-level renewable capacities from IRENA (IRENASTAT).",
           "type": "boolean"
         },
         "year": {
-          "default": 2020,
+          "default": 2024,
           "description": "Renewable capacities are based on existing capacities reported by IRENA (IRENASTAT) for the specified year.",
           "type": "integer"
         },
@@ -8535,6 +8742,11 @@
           "description": "Whether to keep LPs and MPS files after solving.",
           "type": "boolean"
         },
+        "store_model": {
+          "default": false,
+          "description": "Store the linopy model to a NetCDF file after solving. Not supported with rolling_horizon. Not scenario-aware.",
+          "type": "boolean"
+        },
         "model_kwargs": {
           "description": "Configuration for `solving.options.model_kwargs` settings.",
           "properties": {
@@ -9193,7 +9405,7 @@
               "type": "boolean"
             }
           ],
-          "default": "(DateOut >= 2024 or DateOut != DateOut) and not (Country == 'Germany' and Fueltype == 'Nuclear')",
+          "default": "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)",
           "description": "Filter query for the default powerplant database."
         },
         "custom_powerplants": {
@@ -9423,14 +9635,18 @@
               "description": "Activate routine to estimate renewable capacities in rule `add_electricity`. This option should not be used in combination with pathway planning `foresight: myopic` or `foresight: perfect` as renewable capacities are added differently in `add_existing_baseyear`.",
               "type": "boolean"
             },
-            "from_gem": {
+            "from_powerplantmatching": {
               "default": true,
-              "description": "Add renewable capacities from `Global Energy Monitor's Global Solar Power Tracker <https://globalenergymonitor.org/projects/global-solar-power-tracker/>`_ and `Global Energy Monitor's Global Wind Power Tracker <https://globalenergymonitor.org/projects/global-wind-power-tracker/>`_.",
-              "markdownDescription": "Add renewable capacities from [Global Energy Monitor's Global Solar Power Tracker ](https://globalenergymonitor.org/projects/global-solar-power-tracker/) and [Global Energy Monitor's Global Wind Power Tracker ](https://globalenergymonitor.org/projects/global-wind-power-tracker/).",
+              "description": "Add renewable capacities from powerplantmatching dataset.",
+              "type": "boolean"
+            },
+            "from_irenastat": {
+              "default": false,
+              "description": "Supplement powerplantmatching dataset with heuristics based on country-level renewable capacities from IRENA (IRENASTAT).",
               "type": "boolean"
             },
             "year": {
-              "default": 2020,
+              "default": 2024,
               "description": "Renewable capacities are based on existing capacities reported by IRENA (IRENASTAT) for the specified year.",
               "type": "integer"
             },
@@ -10746,6 +10962,12 @@
           "description": "Consider the monthly fluctuating fuel prices for each conventional generator. Refer to the CSV file 'data/validation/monthly_fuel_price.csv'.",
           "type": "boolean"
         },
+        "fuel_price_rolling_window": {
+          "default": 6,
+          "description": "Monthly rolling mean window for fossil fuel prices smoothing.",
+          "minimum": 1,
+          "type": "integer"
+        },
         "nuclear": {
           "additionalProperties": {
             "anyOf": [
@@ -10979,6 +11201,11 @@
     "tyndp_investment_candidates": {
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
+        "patch_sb_with_annexe": {
+          "default": false,
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "type": "boolean"
+        },
         "elec_projects": {
           "additionalProperties": {
             "items": {
@@ -10987,6 +11214,16 @@
             "type": "array"
           },
           "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
+        },
+        "h2_projects": {
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
           "type": "object"
         }
       }
@@ -11139,7 +11376,7 @@
       "description": "Configuration for `energy` settings.",
       "properties": {
         "energy_totals_year": {
-          "default": 2019,
+          "default": 2023,
           "description": "The year for the sector energy use. The year must be available in the Eurostat report.",
           "type": "integer"
         },
@@ -11619,24 +11856,6 @@
         "agriculture_machinery_electric_efficiency": {
           "default": 0.3,
           "description": "The efficiency of oil-powered machinery in the conversion of oil to meet agricultural needs.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_MWh_H2": {
-          "default": 0.8787,
-          "description": "The energy amount of the produced methanol per energy amount of hydrogen. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of hydrogen. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_tCO2": {
-          "default": 4.0321,
-          "description": "The energy amount of the produced methanol per ton of CO2. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 66.",
-          "markdownDescription": "The energy amount of the produced methanol per ton of CO2. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 66.",
-          "type": "number"
-        },
-        "MWh_MeOH_per_MWh_e": {
-          "default": 3.6907,
-          "description": "The energy amount of the produced methanol per energy amount of electricity. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, page 64.",
-          "markdownDescription": "The energy amount of the produced methanol per energy amount of electricity. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), page 64.",
           "type": "number"
         },
         "shipping_hydrogen_liquefaction": {
@@ -12552,14 +12771,14 @@
         },
         "MWh_elec_per_tMeOH": {
           "default": 0.167,
-          "description": "The energy amount of electricity needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of electricity needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_CH4_per_tMeOH": {
           "default": 10.25,
-          "description": "The energy amount of methane needed to produce a ton of methanol. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
-          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
+          "description": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From `DECHEMA (2017) <https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf>`_, Table 14, page 65.",
+          "markdownDescription": "The energy amount of methane needed to produce a ton of methanol from fossil gas. From [DECHEMA (2017) ](https://dechema.de/dechema_media/Downloads/Positionspapiere/Technology_study_Low_carbon_energy_and_feedstock_for_the_European_chemical_industry-p-20002750.pdf), Table 14, page 65.",
           "type": "number"
         },
         "MWh_MeOH_per_tMeOH": {
@@ -12701,10 +12920,15 @@
               "default": 0.0,
               "description": "Exogenous price of carbon-dioxide. In electricity-only runs it is added to the marginal costs of fossil-fuelled generators according to their carbon intensity, while for sector networks it applies to emissions ending up in CO2 atmosphere."
             },
-            "co2_monthly_prices": {
+            "dynamic": {
               "default": false,
-              "description": "Add monthly cost for a carbon-dioxide price based on historical values built by the rule `build_monthly_prices`.",
+              "description": "Add time-varying cost for a carbon-dioxide price based on historical values built by the rule `build_co2_prices`.",
               "type": "boolean"
+            },
+            "rolling_window": {
+              "default": 90,
+              "description": "Rolling window (in days) for smoothing the historical CO2 prices when `dynamic` is set to True.",
+              "type": "integer"
             }
           }
         }
@@ -13247,6 +13471,11 @@
               "description": "Whether to keep LPs and MPS files after solving.",
               "type": "boolean"
             },
+            "store_model": {
+              "default": false,
+              "description": "Store the linopy model to a NetCDF file after solving. Not supported with rolling_horizon. Not scenario-aware.",
+              "type": "boolean"
+            },
             "model_kwargs": {
               "description": "Configuration for `solving.options.model_kwargs` settings.",
               "properties": {
@@ -13515,6 +13744,26 @@
             }
           }
         },
+        "worldbank_commodity_prices": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "gem_europe_gas_tracker": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -13536,6 +13785,26 @@
           }
         },
         "gem_gcct": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "instrat_co2_prices": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -13776,6 +14045,26 @@
           }
         },
         "seawater_temperature": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "swiss_energy_balances": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -14614,6 +14903,26 @@
               "type": "string"
             }
           }
+        },
+        "open_tyndp_prelim": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -14659,11 +14968,11 @@
       }
     },
     "cba": {
-      "description": "Configuration for top level `cba` (Cost-Benefit Analysis) settings.",
+      "description": "Configuration for top level `cba` (cost-benefit analysis) settings.",
       "properties": {
         "hurdle_costs": {
           "default": 0.01,
-          "description": "Marginal cost for transmission lines in Cost-Benefit Analysis networks (EUR/MWh). Used to represent congestion costs and market inefficiencies.",
+          "description": "Marginal cost for transmission lines in cost-benefit analysis networks (EUR/MWh).",
           "type": "number"
         },
         "co2_societal_cost": {
@@ -14673,18 +14982,33 @@
             },
             "type": "object"
           },
-          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios. Used in the CBA workflow to assess the societal cost of CO2 emissions (B2 indicator).",
+          "description": "Dictionary mapping planning horizons to societal costs of CO2 emissions (EUR/t) for 'low', 'central', and 'high' scenarios.",
           "type": "object"
         },
         "planning_horizons": {
-          "description": "List of planning horizons for which to run CBA.",
+          "description": "List of planning horizons for which to run cost-benefit analysis.",
           "items": {
             "type": "integer"
           },
           "type": "array"
         },
+        "cba_scenario_input": {
+          "description": "Configuration for using pre-solved SB networks in the CBA workflow.",
+          "properties": {
+            "use_presolved": {
+              "default": false,
+              "description": "If true, use a pre-solved SB network from an external archive instead of running the SB workflow.",
+              "type": "boolean"
+            },
+            "sb_version": {
+              "default": "latest",
+              "description": "Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+              "type": "string"
+            }
+          }
+        },
         "methods": {
-          "description": "CBA methodologies to apply. Options include 'toot' (Take One Out at a Time) and 'pint' (Put In at a Time).",
+          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
           "items": {
             "enum": [
               "toot",
@@ -14695,7 +15019,7 @@
           "type": "array"
         },
         "projects": {
-          "description": "List of TYNDP project identifiers to evaluate in the CBA workflow. Format follows TYNDP project naming conventions (e.g., 't1-t35').",
+          "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
             "type": "string"
           },
@@ -14703,7 +15027,7 @@
         },
         "area": {
           "default": "tyndp",
-          "description": "Geographical area for CBA. Options include 'tyndp', 'entso-e', and 'eu27'.",
+          "description": "Geographical area for cost-benefit analysis. Options include 'tyndp', 'entso-e', and 'eu27'.",
           "enum": [
             "tyndp",
             "entso-e",
@@ -14711,15 +15035,53 @@
           ],
           "type": "string"
         },
+        "remove_noisy_costs": {
+          "default": true,
+          "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
+          "type": "boolean"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
             "cyclic_carriers": {
-              "description": "Carriers that should remain cyclic (short-term storage). These will maintain e_cyclic=True in simplify_sb_network.",
+              "description": "Carriers that should remain cyclic (short-term storage). All other store and storage unit carriers automatically receive marginal storage value and have cyclicity disabled.",
               "items": {
                 "type": "string"
               },
               "type": "array"
+            },
+            "soc_boundary_carriers": {
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          }
+        },
+        "msv_extraction": {
+          "description": "Configuration for `cba.msv_extraction` settings.",
+          "properties": {
+            "resolution": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "default": false,
+              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+            },
+            "resample_method": {
+              "default": "ffill",
+              "description": "Method for resampling marginal storage value to target network resolution.",
+              "enum": [
+                "ffill",
+                "interpolate"
+              ],
+              "type": "string"
             }
           }
         },
@@ -14728,14 +15090,14 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "CBA-specific solving options.",
+              "description": "Solving options for rolling horizon dispatch.",
               "type": "object"
             },
             "solver": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "CBA solver configuration.",
+              "description": "Solver configuration.",
               "type": "object"
             },
             "solver_options": {
@@ -14743,7 +15105,7 @@
                 "additionalProperties": true,
                 "type": "object"
               },
-              "description": "CBA solver options.",
+              "description": "Solver-specific options.",
               "type": "object"
             }
           }

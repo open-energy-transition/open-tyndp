@@ -54,7 +54,7 @@ using the ``--configfile`` option:
 ``version``
 ===========
 
-.. jsonschema:: ../config/schema.json#/properties/version
+.. jsonschema:: ../config/schema.default.json#/properties/version
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -70,7 +70,7 @@ using the ``--configfile`` option:
 ``tutorial``
 ============
 
-.. jsonschema:: ../config/schema.json#/properties/tutorial
+.. jsonschema:: ../config/schema.default.json#/properties/tutorial
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -86,7 +86,7 @@ using the ``--configfile`` option:
 ``logging``
 ===========
 
-.. jsonschema:: ../config/schema.json#/$defs/LoggingConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/LoggingConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -104,7 +104,7 @@ using the ``--configfile`` option:
 
 "Remote" indicates the address of a server used for data exchange, often for clusters and data pushing/pulling.
 
-.. jsonschema:: ../config/schema.json#/$defs/RemoteConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/RemoteConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -128,7 +128,7 @@ The ``run`` section is used for running and storing scenarios with different con
 It determines the path at which resources, networks and results are stored.
 Therefore the user can run different configurations within the same directory.
 
-.. jsonschema:: ../config/schema.json#/$defs/RunConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/RunConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -144,7 +144,7 @@ Therefore the user can run different configurations within the same directory.
 ``foresight``
 =============
 
-.. jsonschema:: ../config/schema.json#/$defs/ForesightConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/ForesightConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -206,7 +206,7 @@ An exemplary dependency graph (starting from the simplification rules) then look
 
 .. image:: img/scenarios.png
 
-.. jsonschema:: ../config/schema.json#/$defs/ScenarioConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/ScenarioConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -222,7 +222,7 @@ An exemplary dependency graph (starting from the simplification rules) then look
 ``countries``
 =============
 
-.. jsonschema:: ../config/schema.json#/$defs/CountriesConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/CountriesConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -240,7 +240,7 @@ An exemplary dependency graph (starting from the simplification rules) then look
 
 Specifies the temporal range to build an energy system model for as arguments to `pandas.date_range <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html>`__
 
-.. jsonschema:: ../config/schema.json#/$defs/SnapshotsConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/SnapshotsConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -258,7 +258,7 @@ Specifies the temporal range to build an energy system model for as arguments to
 
 Switches for some rules and optional features.
 
-.. jsonschema:: ../config/schema.json#/$defs/EnableConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/EnableConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -274,7 +274,7 @@ Switches for some rules and optional features.
 ``co2_budget``
 ==============
 
-.. jsonschema:: ../config/schema.json#/$defs/Co2BudgetConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/Co2BudgetConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -294,7 +294,7 @@ Switches for some rules and optional features.
 ``electricity``
 ===============
 
-.. jsonschema:: ../config/schema.json#/$defs/ElectricityConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/ElectricityConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -312,7 +312,7 @@ Switches for some rules and optional features.
 
 Define and specify the ``atlite.Cutout`` used for calculating renewable potentials and time-series. All options except for ``features`` are directly used as `cutout parameters <https://atlite.readthedocs.io/en/latest/ref_api.html#cutout>`__.
 
-.. jsonschema:: ../config/schema.json#/$defs/AtliteConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/AtliteConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -331,7 +331,7 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``onwind``
 ----------
 
-.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/onwind
+.. jsonschema:: ../config/schema.default.json#/$defs/RenewableConfig/properties/onwind
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -354,7 +354,7 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``offwind-x``
 --------------
 
-.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/offwind-ac
+.. jsonschema:: ../config/schema.default.json#/$defs/RenewableConfig/properties/offwind-ac
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -365,11 +365,11 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
    :start-at: "offwind-ac":
    :end-before: solar:
 
-.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/offwind-dc
+.. jsonschema:: ../config/schema.default.json#/$defs/RenewableConfig/properties/offwind-dc
    :lift_description:
    :hide_key: /**/additionalProperties
 
-.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/offwind-float
+.. jsonschema:: ../config/schema.default.json#/$defs/RenewableConfig/properties/offwind-float
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -386,7 +386,7 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``solar``
 ---------------
 
-.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/solar
+.. jsonschema:: ../config/schema.default.json#/$defs/RenewableConfig/properties/solar
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -409,7 +409,7 @@ Define and specify the ``atlite.Cutout`` used for calculating renewable potentia
 ``hydro``
 ---------------
 
-.. jsonschema:: ../config/schema.json#/$defs/RenewableConfig/properties/hydro
+.. jsonschema:: ../config/schema.default.json#/$defs/RenewableConfig/properties/hydro
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -432,7 +432,7 @@ with country specific values. Then, the values are read in and applied to all
 generators of the given carrier in the given country. Note that the value(s)
 overwrite the existing values.
 
-.. jsonschema:: ../config/schema.json#/$defs/ConventionalConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/ConventionalConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -448,7 +448,7 @@ overwrite the existing values.
 ``lines``
 =========
 
-.. jsonschema:: ../config/schema.json#/$defs/LinesConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/LinesConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -464,7 +464,7 @@ overwrite the existing values.
 ``links``
 =============
 
-.. jsonschema:: ../config/schema.json#/$defs/LinksConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/LinksConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -482,7 +482,7 @@ overwrite the existing values.
 
 Allows to define additional transmission projects that will be added to the base network, e.g., from the TYNDP 2020 dataset. The projects are read in from the CSV files in the subfolder of ``data/transmission_projects/``. New transmission projects can be added in a new subfolder of transmission projects while extending the list of ``transmission_projects`` in the ``config.yaml``. The CSV files in the project folder should have the same columns as the CSV files in the template folder ``data/transmission_projects/template``.
 
-.. jsonschema:: ../config/schema.json#/$defs/TransmissionProjectsConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/TransmissionProjectsConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -498,9 +498,9 @@ Allows to define additional transmission projects that will be added to the base
 ``tyndp_investment_candidates``
 ===============================
 
-Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration only applies to the TYNDP base network and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
+Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration applies to the TYNDP base networks and should not be used with ``transmission_projects`` enabled (see :ref:`transmission_projects_cf`).
 
-.. jsonschema:: ../config/schema.json#/$defs/TyndpInvestmentCandidatesConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/TyndpInvestmentCandidatesConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -516,7 +516,7 @@ Defines which investment candidates to include in the network. Currently support
 ``transformers``
 ================
 
-.. jsonschema:: ../config/schema.json#/$defs/TransformersConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/TransformersConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -532,7 +532,7 @@ Defines which investment candidates to include in the network. Currently support
 ``load``
 =============
 
-.. jsonschema:: ../config/schema.json#/$defs/LoadConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/LoadConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -551,7 +551,7 @@ Defines which investment candidates to include in the network. Currently support
 .. note::
    Only used for sector-coupling studies.
 
-.. jsonschema:: ../config/schema.json#/$defs/EnergyConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/EnergyConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -570,7 +570,7 @@ Defines which investment candidates to include in the network. Currently support
 .. note::
    Only used for sector-coupling studies.
 
-.. jsonschema:: ../config/schema.json#/$defs/BiomassConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/BiomassConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -609,7 +609,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. note::
    Only used for sector-coupling studies.
 
-.. jsonschema:: ../config/schema.json#/$defs/SolarThermalConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/SolarThermalConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -628,7 +628,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. note::
    Only used for sector-coupling studies. The value for grouping years are only used in myopic or perfect foresight scenarios.
 
-.. jsonschema:: ../config/schema.json#/$defs/ExistingCapacitiesConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/ExistingCapacitiesConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -649,7 +649,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 
 .. dropdown:: Details
 
-   .. jsonschema:: ../config/schema.json#/$defs/SectorConfig
+   .. jsonschema:: ../config/schema.default.json#/$defs/SectorConfig
       :lift_description:
       :hide_key: /**/additionalProperties
 
@@ -668,7 +668,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 .. note::
    Only used for sector-coupling studies.
 
-.. jsonschema:: ../config/schema.json#/$defs/IndustryConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/IndustryConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -684,7 +684,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 ``costs``
 =============
 
-.. jsonschema:: ../config/schema.json#/$defs/CostsConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/CostsConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -701,7 +701,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 ``clustering``
 ==============
 
-.. jsonschema:: ../config/schema.json#/$defs/ClusteringConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/ClusteringConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -720,7 +720,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 ``adjustments``
 ===============
 
-.. jsonschema:: ../config/schema.json#/$defs/AdjustmentsConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/AdjustmentsConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -736,7 +736,7 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 ``solving``
 ===========
 
-.. jsonschema:: ../config/schema.json#/$defs/SolvingConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/SolvingConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -764,7 +764,7 @@ See the `data/versions.csv` file for all available datasets and their sources/ve
 
 .. dropdown:: Details
 
-   .. jsonschema:: ../config/schema.json#/$defs/DataConfig
+   .. jsonschema:: ../config/schema.default.json#/$defs/DataConfig
       :lift_description:
       :hide_key: /**/additionalProperties
 
@@ -785,7 +785,7 @@ See the `data/versions.csv` file for all available datasets and their sources/ve
 ``overpass_api``
 ================
 
-.. jsonschema:: ../config/schema.json#/$defs/OverpassApiConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/OverpassApiConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
@@ -801,7 +801,7 @@ See the `data/versions.csv` file for all available datasets and their sources/ve
 ``secrets``
 ===========
 
-.. jsonschema:: ../config/schema.json#/$defs/SecretsConfig
+.. jsonschema:: ../config/schema.default.json#/$defs/SecretsConfig
    :lift_description:
    :hide_key: /**/additionalProperties
 
