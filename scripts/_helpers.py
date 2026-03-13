@@ -1602,6 +1602,62 @@ def find_free_port(start_port=8050, max_attempts=50):
     )
 
 
+def remove_zero_capacity_non_extendable(
+    n, carriers, component_types={"Generator", "Link"}
+):
+    """
+    Remove non-expandable assets with no capacity for the given carriers and component types.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    carriers : list[str]
+        Carriers to filter for.
+    component_types : set[str]
+        Component types to iterate over, e.g. {"Generator", "Link"}.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place.
+    """
+    for c in n.components[component_types]:
+        idx = c.static.loc[
+            (c.static["carrier"].isin(carriers))
+            & (~c.static["p_nom_extendable"])
+            & (c.static["p_nom"] == 0)
+        ].index
+        n.remove(c.name, idx)
+
+
+def _add_new_profiles_to_existing(
+    component_t: dict,
+    attr: str,
+    new_profiles: pd.DataFrame,
+) -> None:
+    """
+    Safely add new time series data to a PyPSA network component.
+
+    Parameters
+    ----------
+    component_t : dict
+        The time-varying PyPSA component (e.g., n.generators_t).
+    attr : str
+        The attribute name (e.g., 'p_max_pu', 'inflow').
+    new_profiles : pd.DataFrame
+        New data to concatenate.
+    """
+    if new_profiles.empty:
+        return
+
+    existing = component_t[attr]
+    index_name = existing.index.name
+
+    component_t[attr] = pd.concat([existing, new_profiles], axis=1)
+    component_t[attr].index.name = index_name
+
+
 def align_demand_to_snapshots(
     demand: pd.DataFrame, snapshots: pd.DatetimeIndex, format: str = None
 ) -> pd.DataFrame:

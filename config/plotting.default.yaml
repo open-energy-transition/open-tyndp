@@ -545,7 +545,8 @@ plotting:
     BioSNG: '#123456'
     BioSNG CC: '#45233b'
     solid biomass to hydrogen: '#654321'
-    other res: '#91ba41'
+    other-res-biomass: '#9d9042'
+    other-res-mix: '#91ba41'
     # power transmission
     lines: '#6c9459'
     transmission lines: '#6c9459'

@@ -78,6 +78,8 @@ MAP_GRID_TYNDP = {
     "UK": "GB",
 }
 
+IBFI_COORD = (63.0, 25.0)
+
 
 def format_bz_names(s: str):
     s = s.replace("FR-C", "FR15").replace("UK-N", "UKNI").replace("UK", "GB")
@@ -282,7 +284,7 @@ def build_buses(
             .loc["ITN1"]
         )
     if "FI" in countries:
-        ibfi_lat, ibfi_long = 63.0, 25.0
+        ibfi_lat, ibfi_long = IBFI_COORD
         buses_h2.loc["IBFI H2"] = (
             buses_h2.loc[["FI H2"]]
             .assign(
