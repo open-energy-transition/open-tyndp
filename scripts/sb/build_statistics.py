@@ -438,10 +438,10 @@ def compute_benchmark(
         .assign(
             table=table,
             unit=lambda x: "MWh"
-            if opt["unit"] in ENERGY_UNITS
+            if opt["report"]["unit"] in ENERGY_UNITS
             else "MW"
-            if opt["unit"] in POWER_UNITS
-            else opt["unit"],
+            if opt["report"]["unit"] in POWER_UNITS
+            else opt["report"]["unit"],
         )
     )
 

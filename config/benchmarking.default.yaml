@@ -4,21 +4,25 @@
 
 benchmarking:
   enable: false
-  remove_last_day: true
+  remove_last_day: false
+
 
   tables:
     final_energy_demand:
       table_type: scenario_comparison
-      sheet_name: 5-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 5-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         AC: electricity
         AC_OH: electricity
@@ -35,32 +39,39 @@ benchmarking:
 
     elec_demand:
       table_type: scenario_comparison
-      sheet_name: 23-
-      unit: TWh
-      index_col: [2, 3]
-      header: 4
-      names:
-        index:
-        - scenario
-        - year
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      - vp
+      report:
+        sheet_name: 23-
+        unit: TWh
+        index_col: [2, 3]
+        header: 4
+        names:
+          index:
+          - scenario
+          - year
+          column:
+          - carrier
       mapping:
         electricity: final demand (inc. t&d losses, excl. pump storage )
 
     methane_demand:
       table_type: scenario_comparison
-      sheet_name: 8-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      nrows: 15
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 8-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        nrows: 15
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         CCGT: power generation
         OCGT: power generation
@@ -74,17 +85,21 @@ benchmarking:
 
     hydrogen_demand:
       table_type: scenario_comparison
-      sheet_name: 10-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      nrows: 15
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - market_out
+      - report
+      report:
+        sheet_name: 10-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        nrows: 15
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         H2 turbine: power generation
         h2-ccgt: power generation
@@ -96,18 +111,23 @@ benchmarking:
 
     power_capacity:
       table_type: scenario_comparison
-      sheet_name: 25-
-      unit: GW
-      index_col: [2, 3]
-      header: 4
-      nrows: 10
-      ncolumns: 17
-      names:
-        index:
-        - scenario
-        - year
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      - vp
+      - market_out
+      report:
+        sheet_name: 25-
+        unit: GW
+        index_col: [2, 3]
+        header: 4
+        nrows: 10
+        ncolumns: 17
+        names:
+          index:
+          - scenario
+          - year
+          column:
+          - carrier
       mapping:
         offwind-dc-fl-r: wind offshore
         offwind-dc-fl-oh: wind offshore
@@ -149,18 +169,22 @@ benchmarking:
 
     power_generation:
       table_type: scenario_comparison
-      sheet_name: 26-
-      unit: TWh
-      index_col: [2, 3]
-      header: 4
-      nrows: 10
-      ncolumns: 16
-      names:
-        index:
-        - scenario
-        - year
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      - market_out
+      report:
+        sheet_name: 26-
+        unit: TWh
+        index_col: [2, 3]
+        header: 4
+        nrows: 10
+        ncolumns: 16
+        names:
+          index:
+          - scenario
+          - year
+          column:
+          - carrier
       mapping:
         offwind-dc-fl-r: wind offshore
         offwind-dc-fl-oh: wind offshore
@@ -197,18 +221,21 @@ benchmarking:
 
     methane_supply:
       table_type: scenario_comparison
-      sheet_name: 32-
-      unit: TWh
-      index_col: 2
-      header: [6, 7]
-      nrows: 13
-      ncolumns: 9
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 32-
+        unit: TWh
+        index_col: 2
+        header: [6, 7]
+        nrows: 13
+        ncolumns: 9
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         Sabatier: synthetic methane (domestic)
         biogas to gas: biomethane (domestic)
@@ -216,18 +243,22 @@ benchmarking:
 
     hydrogen_supply:
       table_type: scenario_comparison
-      sheet_name: 33-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      nrows: 13
-      ncolumns: 9
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      - market_out
+      report:
+        sheet_name: 33-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        nrows: 13
+        ncolumns: 9
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         H2 Electrolysis: p2g
         H2 import LH2: ammonia imports
@@ -237,16 +268,19 @@ benchmarking:
 
     biomass_supply:
       table_type: scenario_comparison
-      sheet_name: 22-
-      unit: TWh
-      index_col: 2
-      header: [3, 4]
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 22-
+        unit: TWh
+        index_col: 2
+        header: [3, 4]
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         biomass final energy demand: final demand
         biomass to liquid: for biofuels
@@ -263,16 +297,19 @@ benchmarking:
 
     energy_imports:
       table_type: scenario_comparison
-      sheet_name: 60-
-      unit: TWh
-      index_col: 2
-      header: [3, 4]
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 60-
+        unit: TWh
+        index_col: 2
+        header: [3, 4]
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         H2 import LH2: hydrogen
         H2 import Pipeline: hydrogen
@@ -283,17 +320,20 @@ benchmarking:
 
     generation_profiles:
       table_type: time_series
-      sheet_name:
-        DE: 30a
-        GA: 30b
-      unit: GW
-      index_col: 1
-      header: 4
-      names:
-        index:
-        - snapshot
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      report:
+        sheet_name:
+          DE: 30a
+          GA: 30b
+        unit: GW
+        index_col: 1
+        header: 4
+        names:
+          index:
+          - snapshot
+          column:
+          - carrier
       mapping:
         offwind-dc-fl-r: offshore wind
         offwind-dc-fl-oh: offshore wind
