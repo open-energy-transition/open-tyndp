@@ -25,6 +25,8 @@ Upcoming Open-TYNDP Release
 
 * Add Other Non-RES price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
 
+* Add PEMMDB common data assumptions for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
+
 **Changes**
 
 **Bugfixes and Compatibility**
