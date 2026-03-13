@@ -206,17 +206,18 @@ def compute_benchmark(
         )
     elif table == "power_capacity":
         grouper = ["carrier"]
+        exclusions = ["electricity distribution grid", "DC", "DC_OH"]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
+            .loc[lambda x: ~x.index.get_level_values("carrier").isin(exclusions)]
+            .loc[lambda x: x.index.get_level_values("bus").str.split(" ").str[0]]
             .loc[lambda x: x > 0]
-            .drop(index=["electricity distribution grid"], errors="ignore")
+            .groupby(["bus"] + grouper)
+            .sum()
         )
 
         # Add H2 offwind capacities in MW_e
@@ -226,9 +227,6 @@ def compute_benchmark(
             .assign(p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2)
             .groupby(by=["bus"] + grouper)
             .p_nom_opt.sum()
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
         )
 
         df = pd.concat([df, df_offwind_h2])
@@ -420,9 +418,21 @@ def compute_benchmark(
         )
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
-    grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]
+
+    if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
+        df_eu27 = (
+            df.loc[lambda x: x["bus"].isin(eu27_idx)]
+            .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
+            .sum()
+            .reset_index()
+            .assign(bus="EU27")
+        )
+        df = pd.concat([df, df_eu27])
+    else:
+        df = df.assign(bus="EU27")
+
     df = (
-        df.groupby(by=grouper)
+        df.groupby(by=[c for c in ["bus", "carrier", "snapshot"] if c in df.columns])
         .sum()
         .reset_index()
         .assign(
