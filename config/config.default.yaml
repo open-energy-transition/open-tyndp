@@ -1581,6 +1581,7 @@ cba:
   projects: []
   area: tyndp
   remove_noisy_costs: true
+  negative_toot_capacity: zero
   storage:
     cyclic_carriers:
     - battery

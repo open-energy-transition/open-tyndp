@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -430,6 +430,7 @@ cba:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
+  negative_toot_capacity: zero
 
   # Storage settings for dispatch
   storage:
