@@ -306,6 +306,14 @@ def update_costs_tyndp(
     if group_tyndp_conventionals:
         carrier_col = "open_tyndp_type"
         ccs_configs["gas-ccgt-ccs"]["base_tech"] = "gas-ccgt"
+        # Rename to grouped carriers and group by taking the mean of the cost inputs
+        rename_mapping = (
+            pd.read_csv(carrier_mapping_fn)
+            .set_index("open_tyndp_index")
+            .open_tyndp_type.dropna()
+            .to_dict()
+        )
+        costs = costs.rename(rename_mapping).groupby(level=0).mean()
 
     tyndp_techs = (
         pd.read_csv(carrier_mapping_fn)
