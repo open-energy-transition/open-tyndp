@@ -36,11 +36,11 @@ co2_budget:
 electricity:
   base_network: tyndp
 
-  extendable_carriers:
-    Generator: [OCGT]
-    StorageUnit: [battery]
-    Store: [H2]
-    Link: [H2 pipeline]
+#  extendable_carriers:
+#    Generator: [OCGT]
+#    StorageUnit: [battery]
+#    Store: [H2]
+#    Link: [H2 pipeline]
 
   conventional_carriers: [OCGT]
   tyndp_conventional_carriers:
@@ -379,6 +379,7 @@ solving:
   options:
     load_shedding:
       enable: true
+      default_price: 100000
       apply_to_all_carriers: false
       carriers:
         H2: 3000
