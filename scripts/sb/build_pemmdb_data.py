@@ -306,17 +306,17 @@ def _process_other_nonres_capacities(
     )
 
     # Manually fix missing efficiency and CO2 factor information for AT, HU, ITN1, ITS1
-    # with values of equivalent plant types of other countries
+    # with values of equivalent plant types of other countries (same for all countries)
     if node == "AT00":
-        # CCGT old 1
+        # gas CCGT old 1
         df.loc[:, ["efficiency", "co2_factor"]] = [0.4, 0.513]
 
     if node in ["ITN1", "ITS1"]:
-        # conventional old 2
+        # gas conventional old 2
         df.loc[:, ["efficiency", "co2_factor"]] = [0.41, 0.500488]
 
     if node == "HU00":
-        # conventional old 1
+        # gas conventional old 1
         df.loc[:, ["efficiency", "co2_factor"]] = [0.36, 0.57]
 
     if df.empty:
