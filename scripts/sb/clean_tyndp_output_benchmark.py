@@ -249,11 +249,9 @@ def load_MM_sheet(
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type]
 
-    # Rename column names to country
-    df.rename(
-        columns=lambda x: x.replace("UK", "GB").replace("IB", "")[:2], inplace=True
-    )
-    df_ct = (
+    # Rename column names
+    df.rename(columns=lambda x: x.replace("UK", "GB").replace("IB", ""), inplace=True)
+    df_nodal = (
         df.T.groupby(df.columns)
         .sum()
         .T.reset_index()
@@ -263,13 +261,13 @@ def load_MM_sheet(
     # Add EU27
     op = "sum" if "price" not in table_name else "mean"
     df_eu27 = (
-        df_ct.loc[lambda x: x["bus"].isin(eu27)]
+        df_nodal.loc[lambda x: x["bus"].isin(eu27)]
         .groupby(by=["carrier"])
         .value.agg(op)
         .reset_index()
         .assign(bus="EU27")
     )
-    df = pd.concat([df_ct, df_eu27])
+    df = pd.concat([df_nodal, df_eu27])
 
     # Add metadata
     df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
