@@ -1483,7 +1483,7 @@ def cycling_shift(df, steps=1):
     return df
 
 
-def _add_other_non_res(
+def _add_other_non_res_tyndp(
     n: pypsa.Network,
     generator: str,
     carrier: str,
@@ -1649,7 +1649,7 @@ def add_thermal_generation_tyndp(
         )
 
         if "other-non-res" in generator:
-            _add_other_non_res(
+            _add_other_non_res_tyndp(
                 n=n,
                 generator=generator,
                 carrier=carrier,
