@@ -381,21 +381,14 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
     )
 
     # aggregate hydro capacities
-    hydro = (
-        MM_data.query(
-            "table=='power_capacity' and (carrier == 'hydro (exc. pump storage)' or carrier == 'hydro and pumped storage')"
-        )
-        .sum(numeric_only=True)
-        .value
+    mask = (MM_data.table == "power_capacity") & (
+        MM_data.carrier == "hydro (exc. pump storage)"
     )
-    MM_data.loc[
-        MM_data.query(
-            "table=='power_capacity' and carrier=='hydro and pumped storage'"
-        ).index,
-        "value",
-    ] = hydro
-    MM_data = MM_data.query(
-        "not(table=='power_capacity' and carrier=='hydro (exc. pump storage)')"
+    MM_data.loc[mask, "carrier"] = "hydro and pumped storage"
+    MM_data = (
+        MM_data.groupby([c for c in MM_data.columns if c != "value"])
+        .sum()
+        .reset_index()
     )
 
     # rename other res to small scale res
