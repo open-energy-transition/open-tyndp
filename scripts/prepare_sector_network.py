@@ -1973,11 +1973,7 @@ def _add_other_non_res_capacities(
     )["p_nom"]
     # Existing capacities are given in MWel, hence we need to convert to MWth
     n.links.loc[tech_i, "p_nom"] = (
-        n.links.loc[tech_i]
-        .index.to_series()
-        .map(caps)
-        .fillna(0.0)
-        .div(n.links.loc[tech_i, "efficiency"])
+        caps.reindex(tech_i).fillna(0.0).div(n.links.loc[tech_i, "efficiency"])
     )
 
     # Profiles
