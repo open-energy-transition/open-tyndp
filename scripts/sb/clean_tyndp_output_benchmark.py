@@ -470,6 +470,9 @@ if __name__ == "__main__":
     MM_data = clean_MM_data_for_benchmarking(MM_data)
 
     # load crossborder data
+    logger.info(
+        f"Processing tables of cross-border flows for: {', '.join(CROSS_BORDER_DICT.keys())}"
+    )
     crossborder = {}
     for key in CROSS_BORDER_DICT.keys():
         crossborder[key] = load_crossborder_sheet(
@@ -478,15 +481,17 @@ if __name__ == "__main__":
     crossborder_agg = pd.concat(crossborder, axis=1)
 
     # load prices
+    prices_tables = [t for t in LOOKUP_TABLES.keys() if "price" in t]
+    logger.info(f"Processing prices tables: {', '.join(prices_tables)}")
     prices = {}
-    for table in LOOKUP_TABLES.keys():
-        if "price" in table:
-            prices[table] = load_MM_sheet(
-                table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
-            )
+    for table in prices_tables:
+        prices[table] = load_MM_sheet(
+            table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+        )
     prices = pd.concat(prices, ignore_index=True)
 
     # load h2 demand time series
+    logger.info("Processing hourly H2 demand tables")
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
