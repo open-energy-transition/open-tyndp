@@ -1517,7 +1517,7 @@ def _add_other_non_res_tyndp(
     pemmdb_capacities : pd.DataFrame
         Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands
     co2_price: float
-        Emission price for the given year
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1622,7 +1622,7 @@ def add_thermal_generation_tyndp(
     pemmdb_capacities: pd.DataFrame
         Dataframe containing PEMMDB capacities including Other Non-RES price band information
     co2_price: float
-        Emission price for the given year
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1803,7 +1803,7 @@ def add_generation(
     pemmdb_capacities: pd.DataFrame | None
         Dataframe containing PEMMDB capacities including Other Non-RES price band information
     co2_price: float | None
-        Emission price for the given year
+        Emission price for the given planning year
 
     Returns
     -------
