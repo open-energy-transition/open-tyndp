@@ -1648,6 +1648,7 @@ def add_thermal_generation_tyndp(
             cf_industry=cf_industry,
         )
 
+        # Add TYNDP Other Non-RES price bands to the network
         if "other-non-res" in generator:
             _add_other_non_res_tyndp(
                 n=n,
@@ -1659,11 +1660,10 @@ def add_thermal_generation_tyndp(
                 pemmdb_capacities=pemmdb_capacities,
                 co2_price=co2_price,
             )
-            continue
 
-        # Add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
+        # Otherwise, add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
         # TODO: Update with TYNDP specific assumptions
-        if "ccs" in generator:
+        elif "ccs" in generator:
             n.add(
                 "Link",
                 nodes + " " + generator,
