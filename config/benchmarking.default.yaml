@@ -112,9 +112,9 @@ benchmarking:
     power_capacity:
       table_type: scenario_comparison
       rfc_sources:
+      - market_out
       - report
       - vp
-      - market_out
       report:
         sheet_name: 25-
         unit: GW
