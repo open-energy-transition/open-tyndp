@@ -1545,10 +1545,11 @@ def _add_other_non_res(
         n.add(
             "Link",
             price_bands["bus"].astype(str)
-            + " "
+            + "-"
             + price_bands["index_carrier"].astype(str)
-            + " "
-            + price_bands["price"].round(2).astype(str),
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
             bus0=carrier_nodes,
             bus1=nodes,
             bus2="co2 atmosphere",
@@ -1567,10 +1568,11 @@ def _add_other_non_res(
         n.add(
             "Link",
             price_bands["bus"].astype(str)
-            + " "
+            + "-"
             + price_bands["index_carrier"].astype(str)
-            + " "
-            + price_bands["price"].round(2).astype(str),
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
             bus0=carrier_nodes,
             bus1=nodes,
             bus2="co2 atmosphere",
@@ -1961,10 +1963,11 @@ def _add_other_non_res_capacities(
         .reset_index()
         .assign(
             price_band=lambda df: df["bus"].astype(str)
-            + " "
+            + "-"
             + df["index_carrier"].astype(str)
-            + " "
+            + "-"
             + df["price"].round(2).astype(str)
+            + "eur"
         )
         .set_index("price_band")
     )["p_nom"]
@@ -1982,10 +1985,11 @@ def _add_other_non_res_capacities(
     # Filter for profiles
     profiles = pemmdb_profiles.query("open_tyndp_type == @tech").assign(
         link_index=lambda df: df["bus"].astype(str)
-        + " "
+        + "-"
         + df["index_carrier"].astype(str)
-        + " "
+        + "-"
         + df["price"].round(2).astype(str)
+        + "eur"
     )
     p_min_pu = profiles.pivot_table(
         values="p_min_pu", index="time", columns="link_index"

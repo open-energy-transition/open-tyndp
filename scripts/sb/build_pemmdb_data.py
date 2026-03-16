@@ -191,7 +191,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
             + "-"
             + df.purpose.astype(str)
             + "-"
-            + df.price.astype(str)
+            + df.price.round(2).astype(str)
             + "eur"
         )
     elif "hours" in df.columns:
