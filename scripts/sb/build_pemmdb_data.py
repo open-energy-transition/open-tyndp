@@ -782,10 +782,9 @@ def _process_other_nonres_profiles(
     pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower().values
 
     # Manually correct missing pemmdb type information
-    pemmdb_type = np.where(
+    pemmdb_type = pemmdb_type.mask(
         pemmdb_type == "-",
         [c.removeprefix("Other Non-RES ").lower() for c in pemmdb_carrier],
-        pemmdb_type,
     )
 
     df_long = (
@@ -970,10 +969,8 @@ def process_pemmdb_capacities(
         # Separate energy and power capacities, assign empty values for missing attributes and select needed columns
         capacities = (
             capacities.assign(
-                price=lambda x: x["price"] if "price" in x.columns else None,
-                co2_factor=lambda x: x["co2_factor"]
-                if "co2_factor" in x.columns
-                else None,
+                price=lambda x: x.get("price"),
+                co2_factor=lambda x: x.get("co2_factor"),
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
             )[

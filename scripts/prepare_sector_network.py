@@ -1539,9 +1539,8 @@ def _add_other_non_res(
     ).values
 
     if "ccs" in generator:
-        co2_capture = price_bands.co2_factor.values * (
-            1 / (1 - costs.at[generator, "capture_rate"]) - 1
-        )
+        capture_rate = costs.at[generator, "capture_rate"]
+        co2_capture = capture_rate * price_bands.co2_factor.values / (1 - capture_rate)
 
         n.add(
             "Link",
