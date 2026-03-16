@@ -282,11 +282,13 @@ def _compute_growth_error(
     return model_growth - rfc_growth
 
 
-def _compute_missing(df_na: pd.DataFrame) -> int:
+def _compute_missing(df_na: pd.DataFrame, cols: str | list[str] = "carrier") -> int:
     """
-    Calculate missing carriers count.
+    Calculate missing count, by default, using carriers.
     """
-    return len(df_na.index.get_level_values("carrier").unique())
+    if isinstance(cols, str):
+        cols = [cols]
+    return df_na.index.to_frame(index=False)[cols].drop_duplicates().shape[0]
 
 
 def compute_all_indicators(
@@ -296,7 +298,8 @@ def compute_all_indicators(
     rfc_col: str = "TYNDP 2024 Scenarios Report",
     eps: float = 1e-6,
     carrier: str = None,
-    df_na: pd.DataFrame = None,
+    df_na: pd.DataFrame = pd.DataFrame(),
+    cols_na: list[str] = ["carrier"],
 ) -> pd.DataFrame:
     """
     Compute all accuracy indicators for a given dataset.
@@ -315,8 +318,10 @@ def compute_all_indicators(
         Small value used when the denominator is zero.
     carrier: str, default None
         Name of the carrier for indicator calculation. If None, calculates overall table indicator.
-    df_na : pd.DataFrame, default None
+    df_na : pd.DataFrame, default pd.DataFrame()
         DataFrame with missing values for missing carrier calculation.
+    cols_na : list[str], default ["carrier"]
+        Columns to consider when counting for missing items.
 
     Returns
     -------
@@ -346,15 +351,20 @@ def compute_all_indicators(
             df.groupby(by=idx).sum(), table, model_col, rfc_col, eps
         )
 
-    if df_na is not None:
-        indicators["Missing"] = _compute_missing(df_na)
+    if not df_na.empty:
+        indicators["Missing"] = _compute_missing(df_na, cols=cols_na)
 
     if carrier:
         indicators = {(table, carrier): indicators}
+        indicators = pd.DataFrame.from_dict(indicators, orient="index")
+        indicators.rename_axis(["table", "carrier"], inplace=True)
+
     else:
         indicators = {table: indicators}
+        indicators = pd.DataFrame.from_dict(indicators, orient="index")
+        indicators.rename_axis("table", inplace=True)
 
-    return pd.DataFrame.from_dict(indicators, orient="index")
+    return indicators
 
 
 def compute_indicators(
@@ -429,15 +439,31 @@ def compute_indicators(
     )
 
     # Compute per-carrier indicators
-    df_carrier = [
-        compute_all_indicators(df_c, table, carrier=carrier, rfc_col=rfc_col)
-        for carrier, df_c in df.groupby(level=carrier_col)
-    ]
-    missing_carriers = set(df_na.index.get_level_values("carrier"))
-    df_carrier.extend(
+    df_carrier = pd.concat(
+        [
+            compute_all_indicators(
+                df_c,
+                table,
+                carrier=carrier,
+                rfc_col=rfc_col,
+                df_na=df_na.query("carrier==@carrier"),
+                cols_na=["carrier", "bus"],
+            )
+            for carrier, df_c in df.groupby(level=carrier_col)
+        ]
+    )
+    matching_carriers = set(df_carrier.index.get_level_values(carrier_col))
+    missing_carriers = (
+        set(df_na.index.get_level_values(carrier_col)) - matching_carriers
+    )
+    df_carrier_na = pd.concat(
         [pd.DataFrame(index=[(table, carrier) for carrier in missing_carriers])]
     )
-    df_carrier = pd.concat(df_carrier).round(precision).assign(reference=rfc_col)
+    df_carrier = (
+        pd.concat([df_carrier, df_carrier_na])
+        .round(precision)
+        .assign(reference=rfc_col)
+    )
 
     return df_carrier, indicators
 
@@ -496,7 +522,7 @@ def compare_sources(
 
     df = benchmarks.pivot_table(
         index=available_columns, values="value", columns="source", dropna=False
-    )
+    ).dropna(how="all", axis=0)  # TODO Map Offshore data
 
     # Check if at least two sources are available to compare
     if len(df.columns) != 2:
