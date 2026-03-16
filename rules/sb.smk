@@ -706,6 +706,7 @@ if config["benchmarking"]["enable"]:
             scenario=config_provider("tyndp_scenario"),
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
+            countries=config_provider("countries"),
         input:
             # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=lambda w: getattr(

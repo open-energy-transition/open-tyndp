@@ -199,6 +199,7 @@ def load_crossborder_sheet(
 def load_MM_sheet(
     table_name: str,
     filepath: str | Path,
+    countries: list[str],
     eu27: list,
     skiprows: int = 5,
 ) -> pd.DataFrame:
@@ -217,6 +218,8 @@ def load_MM_sheet(
         Path to the TYNDP market model xlsx file.
     table_name : str
         Name of the table from LOOKUP_TABLES (e.g., "power_capacity").
+    countries : str
+        List of modelled countries
     eu27 : list
         List of EU27 country codes.
     skiprows : int, default 5
@@ -249,7 +252,7 @@ def load_MM_sheet(
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type]
 
-    # Rename column names
+    # Rename and filter column names (buses)
     df.rename(columns=lambda x: x.replace("UK", "GB").replace("IB", ""), inplace=True)
     df_nodal = (
         df.T.groupby(df.columns)
@@ -257,6 +260,7 @@ def load_MM_sheet(
         .T.reset_index()
         .melt(id_vars=["carrier"], var_name="bus")
     )
+    df_nodal = df_nodal[df_nodal.bus.str[:2].isin(countries)]
 
     # Add EU27
     op = "sum" if "price" not in table_name else "mean"
@@ -431,6 +435,7 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     scenario = snakemake.params["scenario"]
     planning_horizon = int(snakemake.wildcards.planning_horizons)
+    countries = snakemake.params["countries"]
 
     # currently only implemented for NT
     if scenario != "NT":
@@ -456,7 +461,11 @@ if __name__ == "__main__":
     benchmarks = {}
     for table in tables_to_process:
         benchmarks[table] = load_MM_sheet(
-            table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+            table_name=table,
+            filepath=tyndp_output_file,
+            countries=countries,
+            eu27=eu27,
+            skiprows=5,
         )
 
     MM_data = pd.concat(benchmarks).reset_index(drop=True)
@@ -484,7 +493,11 @@ if __name__ == "__main__":
     prices = {}
     for table in prices_tables:
         prices[table] = load_MM_sheet(
-            table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+            table_name=table,
+            filepath=tyndp_output_file,
+            countries=countries,
+            eu27=eu27,
+            skiprows=5,
         )
     prices = pd.concat(prices, ignore_index=True)
 
