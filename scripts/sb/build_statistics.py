@@ -213,11 +213,12 @@ def compute_benchmark(
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .loc[lambda x: ~x.index.get_level_values("carrier").isin(exclusions)]
-            .loc[lambda x: x.index.get_level_values("bus").str.split(" ").str[0]]
             .loc[lambda x: x > 0]
+            .reset_index()
+            .loc[lambda df: ~df.carrier.isin(exclusions)]
+            .assign(bus=lambda df: df.bus.str.split(" ").str[0])
             .groupby(["bus"] + grouper)
-            .sum()
+            .sum()[0]
         )
 
         # Add H2 offwind capacities in MW_e
