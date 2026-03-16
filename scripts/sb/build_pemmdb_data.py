@@ -191,7 +191,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
             + "-"
             + df.purpose.astype(str)
             + "-"
-            + df.price.round(2).astype(str)
+            + pd.to_numeric(df.price, errors="coerce").round(2).astype(str)
             + "eur"
         )
     elif "hours" in df.columns:
@@ -774,12 +774,12 @@ def _process_other_nonres_profiles(
     df = df.loc[:, mask]
 
     # Extract plant type
-    price_band_type = _extract_price_band_type(df.T)
-    price = df.T.price.values
+    price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
+    price = df.T.price
     pemmdb_carrier = (
-        "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1].values
-    )
-    pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower().values
+        "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
+    ).rename("pemmdb_carrier")
+    pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower()
 
     # Manually correct missing pemmdb type information
     pemmdb_type = pemmdb_type.mask(
@@ -792,10 +792,6 @@ def _process_other_nonres_profiles(
         .reset_index(drop=True)
         .div(cap.loc[mask], axis=1)
         .set_axis([price_band_type, pemmdb_carrier, pemmdb_type, price], axis="columns")
-        .rename_axis(
-            ["price_band_type", "pemmdb_carrier", "pemmdb_type", "price"],
-            axis="columns",
-        )
         .assign(
             time=sns_year_h,
             bus=node,
