@@ -265,7 +265,7 @@ def load_MM_sheet(
     # Add EU27
     op = "sum" if "price" not in table_name else "mean"
     df_eu27 = (
-        df_nodal.loc[lambda x: x["bus"].isin(eu27)]
+        df_nodal.loc[lambda x: x["bus"].str[:2].isin(eu27)]
         .groupby(by=["carrier"])
         .value.agg(op)
         .reset_index()
