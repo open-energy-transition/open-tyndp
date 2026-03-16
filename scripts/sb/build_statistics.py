@@ -225,7 +225,10 @@ def compute_benchmark(
         off_car = [c for c in tyndp_renewable_carriers if c.startswith("offwind-h2")]  # noqa: F841
         df_offwind_h2 = (
             n.generators.query("carrier.isin(@off_car)")
-            .assign(p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2)
+            .assign(
+                p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
+                bus=lambda df: df.bus.str.split(" ").str[0],
+            )
             .groupby(by=["bus"] + grouper)
             .p_nom_opt.sum()
         )
