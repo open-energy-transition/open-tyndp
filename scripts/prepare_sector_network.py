@@ -1490,7 +1490,7 @@ def _add_other_non_res(
     carrier_nodes: list,
     spatial: SimpleNamespace,
     costs: pd.DataFrame,
-    pemmdb_caps: pd.DataFrame,
+    pemmdb_capacities: pd.DataFrame,
     co2_price: float,
 ) -> None:
     """
@@ -1514,7 +1514,7 @@ def _add_other_non_res(
         including nodes and locations
     costs : pd.DataFrame
         DataFrame containing cost and technical parameters for different technologies
-    pemmdb_caps : pd.DataFrame
+    pemmdb_capacities : pd.DataFrame
         Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands
     co2_price: float
         Emission price for the given year
@@ -1526,7 +1526,7 @@ def _add_other_non_res(
     """
     query = "" if "ccs" in generator else "not"
 
-    price_bands = pemmdb_caps.query(
+    price_bands = pemmdb_capacities.query(
         f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
     ).reset_index()
     nodes = price_bands.bus.values
@@ -1593,7 +1593,7 @@ def add_thermal_generation_tyndp(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
-    pemmdb_caps: pd.DataFrame,
+    pemmdb_capacities: pd.DataFrame,
     co2_price: float,
 ) -> None:
     """
@@ -1619,7 +1619,7 @@ def add_thermal_generation_tyndp(
         Configuration dictionary containing settings for the model
     cf_industry : dict
         Dictionary of industrial conversion factors, needed for carrier buses
-    pemmdb_caps: pd.DataFrame
+    pemmdb_capacities: pd.DataFrame
         Dataframe containing PEMMDB capacities including Other Non-RES price band information
     co2_price: float
         Emission price for the given year
@@ -1656,7 +1656,7 @@ def add_thermal_generation_tyndp(
                 carrier_nodes=carrier_nodes,
                 spatial=spatial,
                 costs=costs,
-                pemmdb_caps=pemmdb_caps,
+                pemmdb_capacities=pemmdb_capacities,
                 co2_price=co2_price,
             )
             continue
@@ -1901,7 +1901,7 @@ def add_generation(
         spatial=spatial,
         options=options,
         cf_industry=cf_industry,
-        pemmdb_caps=pemmdb_capacities,
+        pemmdb_capacities=pemmdb_capacities,
         co2_price=co2_price,
     )
 
