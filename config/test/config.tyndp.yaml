@@ -379,7 +379,6 @@ solving:
   options:
     load_shedding:
       enable: true
-      default_price: 100000
       apply_to_all_carriers: false
       carriers:
         H2: 3000
