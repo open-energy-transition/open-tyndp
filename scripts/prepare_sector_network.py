@@ -1483,14 +1483,14 @@ def cycling_shift(df, steps=1):
     return df
 
 
-def _add_other_non_res(
+def _add_other_non_res_tyndp(
     n: pypsa.Network,
     generator: str,
     carrier: str,
     carrier_nodes: list,
     spatial: SimpleNamespace,
     costs: pd.DataFrame,
-    pemmdb_caps: pd.DataFrame,
+    pemmdb_capacities: pd.DataFrame,
     co2_price: float,
 ) -> None:
     """
@@ -1514,10 +1514,10 @@ def _add_other_non_res(
         including nodes and locations
     costs : pd.DataFrame
         DataFrame containing cost and technical parameters for different technologies
-    pemmdb_caps : pd.DataFrame
+    pemmdb_capacities : pd.DataFrame
         Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands
     co2_price: float
-        Emission price for the given year
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1526,7 +1526,7 @@ def _add_other_non_res(
     """
     query = "" if "ccs" in generator else "not"
 
-    price_bands = pemmdb_caps.query(
+    price_bands = pemmdb_capacities.query(
         f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
     ).reset_index()
     nodes = price_bands.bus.values
@@ -1539,17 +1539,17 @@ def _add_other_non_res(
     ).values
 
     if "ccs" in generator:
-        co2_capture = price_bands.co2_factor.values * (
-            1 / (1 - costs.at[generator, "capture_rate"]) - 1
-        )
+        capture_rate = costs.at[generator, "capture_rate"]
+        co2_capture = capture_rate * price_bands.co2_factor.values / (1 - capture_rate)
 
         n.add(
             "Link",
             price_bands["bus"].astype(str)
-            + " "
+            + "-"
             + price_bands["index_carrier"].astype(str)
-            + " "
-            + price_bands["price"].round(2).astype(str),
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
             bus0=carrier_nodes,
             bus1=nodes,
             bus2="co2 atmosphere",
@@ -1568,10 +1568,11 @@ def _add_other_non_res(
         n.add(
             "Link",
             price_bands["bus"].astype(str)
-            + " "
+            + "-"
             + price_bands["index_carrier"].astype(str)
-            + " "
-            + price_bands["price"].round(2).astype(str),
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
             bus0=carrier_nodes,
             bus1=nodes,
             bus2="co2 atmosphere",
@@ -1592,7 +1593,7 @@ def add_thermal_generation_tyndp(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
-    pemmdb_caps: pd.DataFrame,
+    pemmdb_capacities: pd.DataFrame,
     co2_price: float,
 ) -> None:
     """
@@ -1618,10 +1619,10 @@ def add_thermal_generation_tyndp(
         Configuration dictionary containing settings for the model
     cf_industry : dict
         Dictionary of industrial conversion factors, needed for carrier buses
-    pemmdb_caps: pd.DataFrame
+    pemmdb_capacities: pd.DataFrame
         Dataframe containing PEMMDB capacities including Other Non-RES price band information
     co2_price: float
-        Emission price for the given year
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1647,22 +1648,22 @@ def add_thermal_generation_tyndp(
             cf_industry=cf_industry,
         )
 
+        # Add TYNDP Other Non-RES price bands to the network
         if "other-non-res" in generator:
-            _add_other_non_res(
+            _add_other_non_res_tyndp(
                 n=n,
                 generator=generator,
                 carrier=carrier,
                 carrier_nodes=carrier_nodes,
                 spatial=spatial,
                 costs=costs,
-                pemmdb_caps=pemmdb_caps,
+                pemmdb_capacities=pemmdb_capacities,
                 co2_price=co2_price,
             )
-            continue
 
-        # Add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
+        # Otherwise, add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
         # TODO: Update with TYNDP specific assumptions
-        if "ccs" in generator:
+        elif "ccs" in generator:
             n.add(
                 "Link",
                 nodes + " " + generator,
@@ -1703,6 +1704,7 @@ def add_other_res_tyndp(
     costs: pd.DataFrame,
     pop_layout: pd.DataFrame,
     spatial: SimpleNamespace,
+    options: dict,
 ) -> None:
     """
     Add Other RES technologies to the network. This includes two groups of plants:
@@ -1721,6 +1723,8 @@ def add_other_res_tyndp(
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
         including nodes and locations.
+    options : dict
+        Configuration dictionary containing settings for the model.
 
     Returns
     -------
@@ -1731,16 +1735,27 @@ def add_other_res_tyndp(
 
     nodes = pop_layout.index
 
-    # Add Other RES Biomass as Links
-    n.add(
-        "Link",
-        nodes + " other-res-biomass",
-        bus0=spatial.biomass.df.loc[nodes, "nodes"].values,
-        bus1=nodes,
-        carrier="other-res-biomass",
-        p_nom_extendable=False,
-        efficiency=costs.at["central solid biomass CHP", "efficiency"],
-    )
+    # Add biomass components to the model incl. biomass bus
+    # TODO: refactor with add_carrier_buses both here and in add_biomass
+    if options["biomass"]:
+        n.add(
+            "Bus",
+            spatial.biomass.nodes,
+            location=spatial.biomass.locations,
+            carrier="solid biomass",
+            unit="MWh_LHV",
+        )
+
+        # Add Other RES Biomass as Links
+        n.add(
+            "Link",
+            nodes + " other-res-biomass",
+            bus0=spatial.biomass.df.loc[nodes, "nodes"].values,
+            bus1=nodes,
+            carrier="other-res-biomass",
+            p_nom_extendable=False,
+            efficiency=costs.at["central solid biomass CHP", "efficiency"],
+        )
 
     # Add Other RES Mix as Generators
     n.add(
@@ -1802,7 +1817,7 @@ def add_generation(
     pemmdb_capacities: pd.DataFrame | None
         Dataframe containing PEMMDB capacities including Other Non-RES price band information
     co2_price: float | None
-        Emission price for the given year
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1900,7 +1915,7 @@ def add_generation(
         spatial=spatial,
         options=options,
         cf_industry=cf_industry,
-        pemmdb_caps=pemmdb_capacities,
+        pemmdb_capacities=pemmdb_capacities,
         co2_price=co2_price,
     )
 
@@ -1966,20 +1981,17 @@ def _add_other_non_res_capacities(
         .reset_index()
         .assign(
             price_band=lambda df: df["bus"].astype(str)
-            + " "
+            + "-"
             + df["index_carrier"].astype(str)
-            + " "
+            + "-"
             + df["price"].round(2).astype(str)
+            + "eur"
         )
         .set_index("price_band")
     )["p_nom"]
     # Existing capacities are given in MWel, hence we need to convert to MWth
     n.links.loc[tech_i, "p_nom"] = (
-        n.links.loc[tech_i]
-        .index.to_series()
-        .map(caps)
-        .fillna(0.0)
-        .div(n.links.loc[tech_i, "efficiency"])
+        caps.reindex(tech_i).fillna(0.0).div(n.links.loc[tech_i, "efficiency"])
     )
 
     # Profiles
@@ -1987,10 +1999,11 @@ def _add_other_non_res_capacities(
     # Filter for profiles
     profiles = pemmdb_profiles.query(f"{id_col} == @tech").assign(
         link_index=lambda df: df["bus"].astype(str)
-        + " "
+        + "-"
         + df["index_carrier"].astype(str)
-        + " "
+        + "-"
         + df["price"].round(2).astype(str)
+        + "eur"
     )
     p_min_pu = profiles.pivot_table(
         values="p_min_pu", index="time", columns="link_index"
@@ -2559,7 +2572,7 @@ def _add_other_res_profiles(
     if carrier == "other-res-biomass":
         # adjust other-res-biomass profiles for MW_th as they are implemented as links
         profiles = profiles.assign(
-            p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency[0])
+            p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency.iloc[0])
         )
 
     p_set = (
@@ -9289,6 +9302,7 @@ if __name__ == "__main__":
             costs=costs,
             pop_layout=pop_layout,
             spatial=spatial,
+            options=options,
         )
 
     add_h2_gas_infrastructure(

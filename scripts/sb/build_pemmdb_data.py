@@ -191,7 +191,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
             + "-"
             + df.purpose.astype(str)
             + "-"
-            + df.price.astype(str)
+            + pd.to_numeric(df.price, errors="coerce").round(2).astype(str)
             + "eur"
         )
     elif "hours" in df.columns:
@@ -306,17 +306,17 @@ def _process_other_nonres_capacities(
     )
 
     # Manually fix missing efficiency and CO2 factor information for AT, HU, ITN1, ITS1
-    # with values of equivalent plant types of other countries
+    # with values of equivalent plant types of other countries (same for all countries)
     if node == "AT00":
-        # CCGT old 1
+        # gas CCGT old 1
         df.loc[:, ["efficiency", "co2_factor"]] = [0.4, 0.513]
 
     if node in ["ITN1", "ITS1"]:
-        # conventional old 2
+        # gas conventional old 2
         df.loc[:, ["efficiency", "co2_factor"]] = [0.41, 0.500488]
 
     if node == "HU00":
-        # conventional old 1
+        # gas conventional old 1
         df.loc[:, ["efficiency", "co2_factor"]] = [0.36, 0.57]
 
     if df.empty:
@@ -774,18 +774,17 @@ def _process_other_nonres_profiles(
     df = df.loc[:, mask]
 
     # Extract plant type
-    price_band_type = _extract_price_band_type(df.T)
-    price = df.T.price.values
+    price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
+    price = df.T.price
     pemmdb_carrier = (
-        "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1].values
-    )
-    pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower().values
+        "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
+    ).rename("pemmdb_carrier")
+    pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower()
 
     # Manually correct missing pemmdb type information
-    pemmdb_type = np.where(
+    pemmdb_type = pemmdb_type.mask(
         pemmdb_type == "-",
         [c.removeprefix("Other Non-RES ").lower() for c in pemmdb_carrier],
-        pemmdb_type,
     )
 
     df_long = (
@@ -793,10 +792,6 @@ def _process_other_nonres_profiles(
         .reset_index(drop=True)
         .div(cap.loc[mask], axis=1)
         .set_axis([price_band_type, pemmdb_carrier, pemmdb_type, price], axis="columns")
-        .rename_axis(
-            ["price_band_type", "pemmdb_carrier", "pemmdb_type", "price"],
-            axis="columns",
-        )
         .assign(
             time=sns_year_h,
             bus=node,
@@ -970,10 +965,8 @@ def process_pemmdb_capacities(
         # Separate energy and power capacities, assign empty values for missing attributes and select needed columns
         capacities = (
             capacities.assign(
-                price=lambda x: x["price"] if "price" in x.columns else None,
-                co2_factor=lambda x: x["co2_factor"]
-                if "co2_factor" in x.columns
-                else None,
+                price=lambda x: x.get("price"),
+                co2_factor=lambda x: x.get("co2_factor"),
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
             )[

@@ -25,7 +25,7 @@ Upcoming Open-TYNDP Release
 
 * Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
 
-* Add Other Non-RES price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
+* Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
 
 * Add PEMMDB common data assumptions for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
 
@@ -46,6 +46,8 @@ Upcoming Open-TYNDP Release
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
 
 * Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
+
+* Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
 
 **Documentation**
 
