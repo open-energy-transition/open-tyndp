@@ -53,7 +53,7 @@ rule solve_sector_network:
     benchmark:
         (
             RESULTS
-            + "benchmarks/solve_sector_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            + "benchmarks/performances/solve_sector_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
         scripts("solve_network.py")

@@ -261,7 +261,7 @@ rule fix_reference_sb_to_cba:
     log:
         logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
     benchmark:
-        benchmarks("cba/fix_reference_sb_to_cba_{planning_horizons}")
+        benchmarks("performances/cba/fix_reference_sb_to_cba_{planning_horizons}")
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 

@@ -66,13 +66,13 @@ Workflow
 #. (new) `make_benchmarks` to collect `make_benchmark` outputs
 #. (new) `plot_benchmark`: Generate visualisation outputs for model validation.
 #. (new) `plot_benchmarks` to collect `plot_benchmarks` outputs
-#. The full set of files produced for the benchmarking are stored in the `results/validation/` folder. This includes:
+#. The full set of files produced for the benchmarking are stored in the `results/benchmarks/tyndp-2024/` folder. This includes:
 
-   * `results/validation/resources/` for processed inputs information from both Open-TYNDP and TYNDP 2024.
-   * `results/validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitative information for each table
-   * `results/validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` for figures of each table
-   * `results/validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv` as summary table
-   * `results/validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf` as summary figure
+   * `results/benchmarks/tyndp-2024/resources/` for processed inputs information from both Open-TYNDP and TYNDP 2024.
+   * `results/benchmarks/tyndp-2024/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitative information for each table
+   * `results/benchmarks/tyndp-2024/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` for figures of each table
+   * `results/benchmarks/tyndp-2024/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv` as summary table
+   * `results/benchmarks/tyndp-2024/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf` as summary figure
    * the structure of these outputs can be validated in the artifacts of the GitHub CI (e.g. artifacts section `here <https://github.com/open-energy-transition/open-tyndp/actions/runs/17715799690?pr=73>`_)
 
 .. image:: img/tyndp/benchmarking_workflow.png
