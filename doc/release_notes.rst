@@ -37,7 +37,7 @@ Upcoming Open-TYNDP Release
 
 * Add an option to use the H2 demand from the Market Model Outputs (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. It is now also possible to compare against Market Model Outputs in the benchmarking framework.
 
-* Refactore the ``validation`` folder within ``benchmarks/tyndp-2024`` to ensure consistency in naming conventions (https://github.com/open-energy-transition/open-tyndp/pull/550).
+* Refactor the ``validation`` folder within ``benchmarks/tyndp-2024`` to ensure consistency in naming conventions (https://github.com/open-energy-transition/open-tyndp/pull/550).
 
 **Bugfixes and Compatibility**
 
