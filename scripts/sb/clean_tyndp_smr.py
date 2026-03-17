@@ -33,7 +33,7 @@ def load_smr_data(
     pyear : int
         Planning horizon to read SMR data for.
     h2_zones_tyndp : bool
-        Whether TYNDP H2 nodes are split into two zones (Z1, Z1)
+        Whether TYNDP H2 nodes are split into two zones (Z1, Z2)
     scenario : str
         TYNDP scenario to filter for.
 
