@@ -7,7 +7,7 @@
 Benchmarking
 ##########################################
 
-The Open-TYNDP introduces a benchmarking framework for continuous and systematic validation of Open TYNDP model outputs against TYNDP 2024 scenarios. This framework provides flexible and scalable validation across multiple metrics and benchmarking methods.
+The Open-TYNDP introduces a benchmarking framework for continuous and systematic comparison of Open TYNDP model outputs against TYNDP 2024 scenarios. This framework provides flexible and scalable benchmarking across multiple metrics and methods.
 
 Introduction
 ------------
@@ -64,7 +64,7 @@ Workflow
 #. (new) `build_statistics`: Compute the benchmark statistics from the optimised network. Run for every planning horizon. The output data structure is a long-format table.
 #. (new) `make_benchmark`: Compute accuracy indicators for comparing model results against reference data from TYNDP 2024 Scenarios Report data.
 #. (new) `make_benchmarks` to collect `make_benchmark` outputs
-#. (new) `plot_benchmark`: Generate visualisation outputs for model validation.
+#. (new) `plot_benchmark`: Generate visualisation outputs for model benchmarking.
 #. (new) `plot_benchmarks` to collect `plot_benchmarks` outputs
 #. The full set of files produced for the benchmarking are stored in the `results/benchmarks/tyndp-2024/` folder. This includes:
 
