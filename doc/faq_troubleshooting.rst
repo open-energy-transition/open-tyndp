@@ -39,11 +39,12 @@ Technical Questions
 
 .. admonition:: Which operating systems are supported?
 
-   The Open-TYNDP workflow is continuously tested for Linux, MacOS and Windows WSL.
+   The Open-TYNDP workflow is continuously tested for Linux and MacOS.
 
 .. admonition:: I'm having trouble installing Open-TYNDP or getting started. Where should I start?
 
    The most common installation issues involve Python environment setup and solver configuration. We recommend using ``pixi`` for environment management. For solver setup, HiGHS is included by default for testing, but commercial solvers are supported as well. See :doc:`installation` for detailed platform-specific instructions, solver configuration guidance and alternative environment manager if you prefer using ``conda``.
+
 
 .. admonition:: What computational resources do I need to run Open-TYNDP models?
 
@@ -52,6 +53,7 @@ Technical Questions
 .. admonition:: What solver do I need to solve Open-TYNDP models?
 
     It depends on the model you want to run. We recommend using HiGHS for exploring and testing the models at low temporal resolution, typically `52SEG`. HiGHS can also be used for CBA assessments. However, with higher temporal resolution, the SB models are larger and require a commercial solver.
+
 
 .. admonition:: What should I do if the Open-TYNDP workflow is not running through?
 
@@ -73,8 +75,6 @@ Technical Questions
 
    8. **Check for specific error messages**: Look at the terminal output for specific error messages that indicate which rule is failing and why.
 
-   9. **Re-create your environment**: In some rare cases the environment gets corrupted and needs to be re-created. The simplest way is exiting the current pixi environment, deleting the .pixi directory and entering the pixi shell again via e.g., ``pixi shell -e open-tyndp``. An example of such an error is e.g.., that out of nothing snakemake returns a runtime error without having changed the installed packages at all.
-
    If none of these steps resolve your problem, please feel free to open an issue on our `GitHub repository <https://github.com/open-energy-transition/open-tyndp>`__ or contact us directly (see :doc:`support`).
 
 .. admonition:: My workflow is failing or producing unexpected results. How do I troubleshoot?
@@ -90,12 +90,6 @@ Technical Questions
    This error occurs when running Open-TYNDP code with an older PyPSA version (e.g., 0.35.2) from a recycled conda environment. The Open-TYNDP master branch is compatible with PyPSA v1, which uses different dimension naming than older versions (`Issue #337 <https://github.com/open-energy-transition/open-tyndp/issues/337>`_).
 
    **Fix:** Always recreate your conda/pixi environment when cloning or updating the repository. Update to Open-TYNDP v0.4.1 or later for backward compatibility (`PR #339 <https://github.com/open-energy-transition/open-tyndp/pull/339>`_). We recommend using the most recent locked environment for each release.
-
-.. admonition:: Using Windows WSL: Why is snakemake so slow?
-
-   Running Open-TYNDP within Windows comes with the risk of mixing activities on Linux-controlled and Windows-controlled filesystems.
-
-   **Fix:** To ensure the best performance all data related to Open-TYNDP needs to be stored within the Linux-controlled filesystem (.e.g, "/home/userA/open-tyndp").
 
 Model Data and Assumptions
 ===========================
