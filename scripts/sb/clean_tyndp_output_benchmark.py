@@ -78,8 +78,8 @@ MM_CARRIER_MAPPING = {
     "Others non-renewable": "other non-res",
     "Battery Storage discharge (gen.)": "battery discharge",
     "Battery Storage charge (load)": "battery charge (load)",
-    "Hydrogen CCGT": "hydrogen",
-    "Hydrogen Fuel Cell": "hydrogen",
+    "Hydrogen CCGT": "hydrogen-ccgt",
+    "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
     "Demand Side Response Explicit": "demand shedding",
     "Demand Side Response Implicit": "demand shedding",
     # Hydrogen_demand
@@ -282,7 +282,7 @@ def load_MM_sheet(
     return df
 
 
-def load_h2_demand(
+def load_h2_demand_ts(
     sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex
 ) -> pd.DataFrame:
     """
@@ -401,6 +401,31 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         "carrier",
     ] = "chp and small thermal"
 
+    # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand
+    h2_power = MM_data.query(
+        "table=='power_generation' and carrier.isin(['hydrogen-ccgt', 'hydrogen-fuel-cell'])"
+    ).copy()
+    eff_fuel_cell, eff_ccgt = 0.5, 0.59  # TODO Remove hard coded values
+    h2_power.loc[:, "table"] = "hydrogen_demand"
+    mask_eu27 = ~(h2_power["bus"] == "EU27")
+    h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + "_H2"
+    h2_power.loc[h2_power.carrier == "hydrogen-ccgt", "value"] = h2_power.loc[
+        h2_power.carrier == "hydrogen-ccgt", "value"
+    ].div(eff_ccgt)
+    h2_power.loc[h2_power.carrier == "hydrogen-fuel-cell", "value"] = h2_power.loc[
+        h2_power.carrier == "hydrogen-fuel-cell", "value"
+    ].div(eff_fuel_cell)
+    h2_power.loc[:, "carrier"] = "power generation"
+
+    MM_data = (
+        pd.concat([MM_data, h2_power])
+        .replace("hydrogen-ccgt", "hydrogen")
+        .replace("hydrogen-fuel-cell", "hydrogen")
+        .groupby([c for c in MM_data.columns if c != "value"])
+        .sum()
+        .reset_index()
+    )
+
     return MM_data
 
 
@@ -499,7 +524,7 @@ if __name__ == "__main__":
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
-    h2_demand = load_h2_demand(
+    h2_demand_ts = load_h2_demand_ts(
         sheet_name="Hourly H2 Data", filepath=tyndp_output_file, snapshots=snapshots
     )
 
@@ -507,10 +532,10 @@ if __name__ == "__main__":
     assign_meta_data(MM_data, planning_horizon, scenario)
     assign_meta_data(prices, planning_horizon, scenario)
     assign_meta_data(crossborder_agg, planning_horizon, scenario)
-    assign_meta_data(h2_demand, planning_horizon, scenario)
+    assign_meta_data(h2_demand_ts, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     crossborder_agg.to_csv(snakemake.output.crossborder)
     prices.to_csv(snakemake.output.prices, index=False)
-    h2_demand.to_csv(snakemake.output.h2_demand)
+    h2_demand_ts.to_csv(snakemake.output.h2_demand)
