@@ -333,7 +333,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
+    resolution_sector: 1H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
@@ -375,6 +375,7 @@ solving:
       apply_to_all_carriers: false
       carriers:
         H2: 3000
+    noisy_costs: false
   solver:  # Use commercial solver for high resolution results in SB
     name: gurobi
     options: gurobi-default
@@ -418,16 +419,14 @@ cba:
       central: 628
       high: 662
   planning_horizons:
-  - 2030
   - 2040
   cba_scenario_input:
-    use_presolved: true
+    use_presolved: false
     sb_version: latest # currently only latest is supported
   methods:
   - toot
   - pint
-  projects:
-  - t120-t150
+  projects: [t16]
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
