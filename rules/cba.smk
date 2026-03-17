@@ -124,7 +124,7 @@ def input_clustered_network(w):
 checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
-        network=input_clustered_network,
+        buses=rules.retrieve_tyndp.output.nodes,
         guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
