@@ -22,7 +22,6 @@ scenario:
   - all
   planning_horizons:
   - 2030
-  - 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
@@ -333,7 +332,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
+    resolution_sector: 3H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
@@ -376,8 +375,8 @@ solving:
       carriers:
         H2: 3000
   solver:  # Use commercial solver for high resolution results in SB
-    name: highs
-    options: highs-default
+    name: gurobi
+    options: gurobi-default
 
 plotting:
   energy_threshold: 1.
@@ -419,15 +418,13 @@ cba:
       high: 662
   planning_horizons:
   - 2030
-  - 2040
   cba_scenario_input:
     use_presolved: false
     sb_version: latest # currently only latest is supported
   methods:
   - toot
   - pint
-  projects:
-  - t1-t35
+  projects: [t16]
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
@@ -463,9 +460,5 @@ cba:
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
-      name: highs
-      options: highs-simplex
-
-    solver_options:
-      highs-simplex:
-        parallel: "off" # does not speed up solution
+      name: gurobi
+      options: gurobi-default
