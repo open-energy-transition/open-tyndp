@@ -1704,6 +1704,7 @@ def add_other_res_tyndp(
     costs: pd.DataFrame,
     pop_layout: pd.DataFrame,
     spatial: SimpleNamespace,
+    options: dict,
 ) -> None:
     """
     Add Other RES technologies to the network. This includes two groups of plants:
@@ -1722,6 +1723,8 @@ def add_other_res_tyndp(
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
         including nodes and locations.
+    options : dict
+        Configuration dictionary containing settings for the model.
 
     Returns
     -------
@@ -1732,16 +1735,27 @@ def add_other_res_tyndp(
 
     nodes = pop_layout.index
 
-    # Add Other RES Biomass as Links
-    n.add(
-        "Link",
-        nodes + " other-res-biomass",
-        bus0=spatial.biomass.df.loc[nodes, "nodes"].values,
-        bus1=nodes,
-        carrier="other-res-biomass",
-        p_nom_extendable=False,
-        efficiency=costs.at["central solid biomass CHP", "efficiency"],
-    )
+    # Add biomass components to the model incl. biomass bus
+    # TODO: refactor with add_carrier_buses both here and in add_biomass
+    if options["biomass"]:
+        n.add(
+            "Bus",
+            spatial.biomass.nodes,
+            location=spatial.biomass.locations,
+            carrier="solid biomass",
+            unit="MWh_LHV",
+        )
+
+        # Add Other RES Biomass as Links
+        n.add(
+            "Link",
+            nodes + " other-res-biomass",
+            bus0=spatial.biomass.df.loc[nodes, "nodes"].values,
+            bus1=nodes,
+            carrier="other-res-biomass",
+            p_nom_extendable=False,
+            efficiency=costs.at["central solid biomass CHP", "efficiency"],
+        )
 
     # Add Other RES Mix as Generators
     n.add(
@@ -2549,7 +2563,7 @@ def _add_other_res_profiles(
     if carrier == "other-res-biomass":
         # adjust other-res-biomass profiles for MW_th as they are implemented as links
         profiles = profiles.assign(
-            p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency[0])
+            p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency.iloc[0])
         )
 
     p_set = (
@@ -9275,6 +9289,7 @@ if __name__ == "__main__":
             costs=costs,
             pop_layout=pop_layout,
             spatial=spatial,
+            options=options,
         )
 
     add_h2_gas_infrastructure(
