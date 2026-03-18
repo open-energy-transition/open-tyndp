@@ -556,6 +556,7 @@ if config["sector"]["h2_topology_tyndp"]:
     rule clean_tyndp_h2_storages:
         params:
             tyndp_scenario=config_provider("tyndp_scenario"),
+            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
         input:
             h2_storages=rules.retrieve_tyndp.output.h2_storages,
         output:

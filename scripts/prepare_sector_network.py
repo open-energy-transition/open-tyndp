@@ -2529,6 +2529,81 @@ def _add_smr_capacities(
         ).fillna(0.0)
 
 
+def _add_h2_storage_capacities(
+    n: pypsa.Network,
+    h2_storage_capacities: pd.DataFrame,
+) -> None:
+    """
+    Add existing H2 storage energy and charge/discharge capacities as well as optional expansion constraints.
+
+    Parameters
+    ----------
+    n : pypsa.Network#
+        The PyPSA network container object.
+    h2_storage_capacities : pd.DataFrame
+        Existing H2 storage energy and charge/discharge capacities and expansion constraints.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the H2 storage capacities.
+    """
+    logger.info("Adding H2 storage capacities.")
+
+    # H2 Store components
+    h2_stores_i = n.stores.query(
+        "carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')"
+    ).index
+    h2_stores_extendable_i = n.stores.query(
+        "(carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')) and e_nom_extendable == True"
+    ).index
+    # H2 charge/discharge Link components
+    h2_chargers_i = n.links.query(
+        "carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')"
+    ).index
+    h2_chargers_extendable_i = n.links.query(
+        "(carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')) and p_nom_extendable == True"
+    ).index
+
+    # Add capacities for H2 Stores and charge/discharge Links
+    store_caps = h2_storage_capacities.set_index("bus").e_nom
+    link_caps = pd.concat(
+        [
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " charge"
+            ).p_nom_charge,
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " discharge"
+            ).p_nom_discharge,
+        ]
+    )
+    n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_caps.reindex(
+        n.stores.loc[h2_stores_i, :].index
+    ).fillna(0.0)
+    n.links.loc[h2_chargers_i, ["p_nom", "p_nom_min"]] = link_caps.reindex(
+        n.links.loc[h2_chargers_i, :].index
+    ).fillna(0.0)
+
+    # Add expansion constraints to extendable assets
+    store_caps_max = h2_storage_capacities.set_index("bus").e_nom_max
+    link_caps_max = pd.concat(
+        [
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " charge"
+            ).p_nom_max_charge,
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " discharge"
+            ).p_nom_max_discharge,
+        ]
+    )
+    n.stores.loc[h2_stores_extendable_i, ["e_nom_max"]] = store_caps_max.reindex(
+        n.stores.loc[h2_stores_extendable_i, :].index
+    ).fillna(0.0)
+    n.links.loc[h2_chargers_extendable_i, ["p_nom_max"]] = link_caps_max.reindex(
+        n.links.loc[h2_chargers_extendable_i, :].index
+    ).fillna(0.0)
+
+
 def _add_other_res_profiles(
     carrier: str,
     asset_i: pd.Index,
@@ -2655,6 +2730,7 @@ def add_existing_tyndp_capacities(
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
     smr_capacities: pd.DataFrame,
+    h2_storage_capacities: pd.DataFrame,
     trajectories: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
@@ -2690,6 +2766,8 @@ def add_existing_tyndp_capacities(
         DataFrame containing all PEMMDB must-run and availability profiles.
     smr_capacities : pd.DataFrame
         DataFrame containing existing SMR capacities.
+    h2_storage_capacities : pd.DataFrame
+        DataFrame containing existing H2 storage capacities.
     trajectories : pd.DataFrame
         DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
@@ -2789,10 +2867,14 @@ def add_existing_tyndp_capacities(
             )
 
     if h2_topology_tyndp:
-        logger.info("Adding SMR and SMR CC capacities.")
+        logger.info("Adding SMR, SMR CC and H2 storage capacities.")
         _add_smr_capacities(
             n=n,
             smr_capacities=smr_capacities,
+        )
+        _add_h2_storage_capacities(
+            n=n,
+            h2_storage_capacities=h2_storage_capacities,
         )
 
 
@@ -9359,6 +9441,7 @@ if __name__ == "__main__":
 
     if options["h2_topology_tyndp"]:
         smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
+        h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
 
     if enable_pemmdb_caps or options["h2_topology_tyndp"]:
         add_existing_tyndp_capacities(
@@ -9366,6 +9449,7 @@ if __name__ == "__main__":
             pemmdb_capacities=pemmdb_capacities,
             pemmdb_profiles=pemmdb_profiles,
             smr_capacities=smr_capacities,
+            h2_storage_capacities=h2_storage_capacities,
             trajectories=tyndp_trajectories,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
