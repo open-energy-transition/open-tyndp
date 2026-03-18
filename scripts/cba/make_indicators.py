@@ -827,7 +827,7 @@ if __name__ == "__main__":
 
     df = apply_indicator_units(df)
     if "cy" in scenario:
-        df["cyear"] = int(scenario[scenario.find('cy')+2:])
+        df["cyear"] = int(scenario[scenario.find("cy") + 2 :])
     else:
         df["cyear"] = 2009
     df.to_csv(snakemake.output.indicators, index=False)

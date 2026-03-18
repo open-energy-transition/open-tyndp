@@ -36,10 +36,7 @@ INDICATOR_UNITS = {
 }
 
 
-def select_model_value(
-    df: pd.DataFrame, 
-    indicator: str
-) -> float | None:
+def select_model_value(df: pd.DataFrame, indicator: str) -> float | None:
     """Pick a representative model value for a given indicator."""
     model = df[(df["source"] == "Open-TYNDP") & (df["indicator"] == indicator)]
     if model.empty:
@@ -54,11 +51,7 @@ def select_model_value(
 
 
 def select_value_by_subindex(
-    df: pd.DataFrame,
-    indicator: str, 
-    source: str,
-    subindex: str, 
-    planning_horizon: int
+    df: pd.DataFrame, indicator: str, source: str, subindex: str, planning_horizon: int
 ) -> float | None:
     """Return the mean value for a given indicator/subindex/source."""
     subset = df[
@@ -118,9 +111,7 @@ def benchmark_range(
     return min_val, mean_val, max_val
 
 
-def format_area_subtitle(
-    area: str | None
-) -> str | None:
+def format_area_subtitle(area: str | None) -> str | None:
     """Map cba.area to a plot subtitle."""
     if not area:
         return None
@@ -133,13 +124,13 @@ def format_area_subtitle(
 
 
 def create_plots(
-    df: pd.DataFrame, 
+    df: pd.DataFrame,
     output_file: str,
-    planning_horizons = None,
+    planning_horizons=None,
     area: str = None,
 ):
     """Create benchmark plot from all collected indicator files."""
-    # 
+    #
 
     if df.empty:
         logger.warning("No indicators data to plot")
