@@ -126,7 +126,12 @@ def _plot_scenario_comparison(
             txt.set_fontweight("bold")
 
     for c in ax.containers:
-        ax.bar_label(c, fmt="%.0f", padding=3, fontsize=8)
+        ax.bar_label(
+            c,
+            fmt=lambda x: f"{x:.1f}" if 0 < abs(x) < 1 else f"{x:.0f}",
+            padding=3,
+            fontsize=8,
+        )
 
     add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols)
 
