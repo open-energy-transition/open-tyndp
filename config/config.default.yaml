@@ -1305,6 +1305,15 @@ solving:
       AggFill: 0
       PreDual: 0
       GURO_PAR_BARDENSETHRESH: 200
+    "gurobi-simplex":
+      threads: 32
+      method: 0
+      crossover: 0
+      BarConvTol: 1.0e-05
+      Seed: 123
+      AggFill: 0
+      PreDual: 0
+      GURO_PAR_BARDENSETHRESH: 200
     "gurobi-numeric-focus":
       NumericFocus: 3
       method: 2
