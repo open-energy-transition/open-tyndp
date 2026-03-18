@@ -83,6 +83,14 @@ def load_h2_storage_data(
         )
     )
 
+    # Manually fix 2030 expansion limits for NL
+    # TODO: Remove if fixed
+    err_entry_i = storages.query(
+        "bus.str.contains('NL') and year == 2030 and h2_zone == 'H2 Z2'"
+    ).index
+    # scale up by missing decimal
+    storages.loc[err_entry_i, ["p_nom_max_charge", "p_nom_max_discharge"]] *= 10
+
     storages = storages.loc[
         ((storages.scenario == scenario) | (storages.scenario == "all"))
         & (storages.year == pyear)
