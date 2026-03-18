@@ -26,11 +26,13 @@ from pypsa.geo import haversine_pts
 from scipy.stats import beta
 
 from scripts._helpers import (
+    _add_new_profiles_to_existing,
     configure_logging,
     get,
     get_tyndp_conventional_thermals,
     load_costs,
     make_index,
+    remove_zero_capacity_non_extendable,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -59,7 +61,9 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def attach_tyndp_transmission_projects(n: pypsa.Network, fn_projects: str):
+def attach_tyndp_transmission_projects(
+    n: pypsa.Network, fn_projects: str, fn_projects_fix: str | None = None
+):
     """
     Add TYNDP transmission projects to the network.
 
@@ -71,10 +75,31 @@ def attach_tyndp_transmission_projects(n: pypsa.Network, fn_projects: str):
         Network to attach projects to.
     fn_projects : str
         Path to CSV file containing transmission project data.
+    fn_projects_fix : str|None (optional)
+        Path to CSV file containing transmission project corrections (default: None).
     """
+    logger.info("Adding transmission projects to the electrical network")
     projects = _load_links_from_raw(fn_projects)
     projects["dc"] = True
     # TODO underwater fraction and capital costs not defined for new links
+
+    # Patch the project list (optional)
+    if fn_projects_fix:
+        logger.info("Patching electrical transmission projects with corrections.")
+        projects_fix = pd.read_csv(fn_projects_fix, quotechar="'", index_col=0).assign(
+            dc=True
+        )
+        new_projects = projects_fix.loc[
+            list(set(projects_fix.index) - set(projects.index))
+        ]
+        projects.loc[:, "p_nom"] = (
+            projects.loc[:, "p_nom"]
+            + projects_fix.p_nom.reindex(projects.index, fill_value=0)
+        ).clip(lower=0)
+        projects = projects[projects.p_nom != 0]
+
+        if not new_projects.empty:
+            projects = pd.concat([projects, new_projects])
 
     links = n.links[n.links.carrier == "DC"].index
     new_links = projects.loc[list(set(projects.index) - set(links))]
@@ -1458,6 +1483,108 @@ def cycling_shift(df, steps=1):
     return df
 
 
+def _add_other_non_res_tyndp(
+    n: pypsa.Network,
+    generator: str,
+    carrier: str,
+    carrier_nodes: list,
+    spatial: SimpleNamespace,
+    costs: pd.DataFrame,
+    pemmdb_capacities: pd.DataFrame,
+    co2_price: float,
+) -> None:
+    """
+    Add TYNDP Other Non-RES price bands to the network.
+
+    Creates links between carrier buses and demand nodes for Other Non-RES generators of different price bands,
+    including their efficiency, costs, and CO2 emissions.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    generator : str
+        Name of the Other Non-RES generator
+    carrier : str
+        Name of the Other Non-RES fuel carrier
+    carrier_nodes : list
+        Nodes of the fuel carrier
+    spatial : SimpleNamespace
+        Namespace containing spatial information for different carriers,
+        including nodes and locations
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies
+    pemmdb_capacities : pd.DataFrame
+        Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands
+    co2_price: float
+        Emission price for the given planning year
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding TYNDP Other Non-RES price bands
+    """
+    query = "" if "ccs" in generator else "not"
+
+    price_bands = pemmdb_capacities.query(
+        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
+    ).reset_index()
+    nodes = price_bands.bus.values
+    offer_price = price_bands.price
+    fuel_price = costs.at[carrier, "fuel"]
+    adjusted_price = (
+        offer_price * price_bands.efficiency  # EUR/MWhel * efficiency = EUR/MWhth
+        - fuel_price  # EUR/MWhth
+        - price_bands.co2_factor * co2_price  # tCO2/MWhth * EUR/tCO2 = EUR/MWhth
+    ).values
+
+    if "ccs" in generator:
+        capture_rate = costs.at[generator, "capture_rate"]
+        co2_capture = capture_rate * price_bands.co2_factor.values / (1 - capture_rate)
+
+        n.add(
+            "Link",
+            price_bands["bus"].astype(str)
+            + "-"
+            + price_bands["index_carrier"].astype(str)
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
+            bus0=carrier_nodes,
+            bus1=nodes,
+            bus2="co2 atmosphere",
+            bus3=spatial.co2.df.loc[nodes, "nodes"].values,
+            carrier=generator,
+            p_nom_extendable=False,
+            marginal_cost=adjusted_price,
+            efficiency=price_bands.efficiency.values,
+            efficiency2=price_bands.co2_factor.values,
+            efficiency3=co2_capture,
+            lifetime=costs.at[generator, "lifetime"],
+        )
+
+    # Else add as regular conventional power plants
+    else:
+        n.add(
+            "Link",
+            price_bands["bus"].astype(str)
+            + "-"
+            + price_bands["index_carrier"].astype(str)
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
+            bus0=carrier_nodes,
+            bus1=nodes,
+            bus2="co2 atmosphere",
+            carrier=generator,
+            p_nom_extendable=False,
+            marginal_cost=adjusted_price,
+            efficiency=price_bands.efficiency.values,
+            efficiency2=price_bands.co2_factor.values,
+            lifetime=costs.at[generator, "lifetime"],
+        )
+
+
 def add_thermal_generation_tyndp(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -1466,6 +1593,8 @@ def add_thermal_generation_tyndp(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
+    pemmdb_capacities: pd.DataFrame,
+    co2_price: float,
 ) -> None:
     """
     Add TYNDP conventional thermal electricity generation technologies to the network.
@@ -1490,6 +1619,10 @@ def add_thermal_generation_tyndp(
         Configuration dictionary containing settings for the model
     cf_industry : dict
         Dictionary of industrial conversion factors, needed for carrier buses
+    pemmdb_capacities: pd.DataFrame
+        Dataframe containing PEMMDB capacities including Other Non-RES price band information
+    co2_price: float
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1515,9 +1648,22 @@ def add_thermal_generation_tyndp(
             cf_industry=cf_industry,
         )
 
-        # Add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
+        # Add TYNDP Other Non-RES price bands to the network
+        if "other-non-res" in generator:
+            _add_other_non_res_tyndp(
+                n=n,
+                generator=generator,
+                carrier=carrier,
+                carrier_nodes=carrier_nodes,
+                spatial=spatial,
+                costs=costs,
+                pemmdb_capacities=pemmdb_capacities,
+                co2_price=co2_price,
+            )
+
+        # Otherwise, add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
         # TODO: Update with TYNDP specific assumptions
-        if "ccs" in generator:
+        elif "ccs" in generator:
             n.add(
                 "Link",
                 nodes + " " + generator,
@@ -1553,6 +1699,74 @@ def add_thermal_generation_tyndp(
             )
 
 
+def add_other_res_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    pop_layout: pd.DataFrame,
+    spatial: SimpleNamespace,
+    options: dict,
+) -> None:
+    """
+    Add Other RES technologies to the network. This includes two groups of plants:
+    * Small Biomass
+    * Geothermal, Marine, Waste, Not defined
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies
+    pop_layout : SimpleNamespace.
+        Namespace containing spatial information for different carriers,
+        including nodes and locations.
+    spatial : SimpleNamespace
+        Namespace containing spatial information for different carriers,
+        including nodes and locations.
+    options : dict
+        Configuration dictionary containing settings for the model.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding TYNDP Other RES components.
+    """
+    logger.info("Add Other RES from TYNDP.")
+
+    nodes = pop_layout.index
+
+    # Add biomass components to the model incl. biomass bus
+    # TODO: refactor with add_carrier_buses both here and in add_biomass
+    if options["biomass"]:
+        n.add(
+            "Bus",
+            spatial.biomass.nodes,
+            location=spatial.biomass.locations,
+            carrier="solid biomass",
+            unit="MWh_LHV",
+        )
+
+        # Add Other RES Biomass as Links
+        n.add(
+            "Link",
+            nodes + " other-res-biomass",
+            bus0=spatial.biomass.df.loc[nodes, "nodes"].values,
+            bus1=nodes,
+            carrier="other-res-biomass",
+            p_nom_extendable=False,
+            efficiency=costs.at["central solid biomass CHP", "efficiency"],
+        )
+
+    # Add Other RES Mix as Generators
+    n.add(
+        "Generator",
+        nodes + " other-res-mix",
+        bus=nodes,
+        carrier="other-res-mix",
+        p_nom_extendable=False,
+    )
+
+
 def add_generation(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -1565,6 +1779,8 @@ def add_generation(
     ext_carriers: dict[str, list[str]],
     existing_capacities: pd.Series | None = None,
     existing_efficiencies: pd.Series | None = None,
+    pemmdb_capacities: pd.DataFrame | None = None,
+    co2_price: float | None = None,
 ) -> None:
     """
     Add conventional electricity generation to the network.
@@ -1598,6 +1814,10 @@ def add_generation(
         Existing generation capacities by generator type
     existing_efficiencies : pd.Series | None
         Existing generation efficiencies by generator type
+    pemmdb_capacities: pd.DataFrame | None
+        Dataframe containing PEMMDB capacities including Other Non-RES price band information
+    co2_price: float | None
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1695,7 +1915,101 @@ def add_generation(
         spatial=spatial,
         options=options,
         cf_industry=cf_industry,
+        pemmdb_capacities=pemmdb_capacities,
+        co2_price=co2_price,
     )
+
+
+def _add_pu_profiles(
+    comp_t: dict[str, pd.DataFrame], p_min_pu: pd.DataFrame, p_max_pu: pd.DataFrame
+) -> None:
+    """
+    Safely add new per unit profiles while safeguarding against profiles with only default values.
+    """
+    # Drop columns that are all zeros (default-value)
+    p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
+    # Drop columns that are all ones (default-value)
+    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
+
+    _add_new_profiles_to_existing(
+        component_t=comp_t, attr="p_min_pu", new_profiles=p_min_pu
+    )
+    _add_new_profiles_to_existing(
+        component_t=comp_t, attr="p_max_pu", new_profiles=p_max_pu
+    )
+
+
+def _add_other_non_res_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    pemmdb_profiles: pd.DataFrame,
+    tech: str,
+) -> None:
+    """
+    Add PEMMDB capacities and profiles to Other Non-RES price band components.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    pemmdb_profiles : pd.DataFrame
+        All PEMMDB must-run and availability profiles.
+    tech : str
+        Other Non-RES price band to be added to the network.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding Other Non-RES capacities and profiles.
+    """
+
+    tech_i = n.links.query("carrier == @tech").index
+    if tech_i.empty:
+        return
+
+    # Capacities
+    ############
+    # Filter for capacities and add to the network
+    caps = (
+        pemmdb_capacities.query("open_tyndp_type == @tech")
+        .reset_index()
+        .assign(
+            price_band=lambda df: df["bus"].astype(str)
+            + "-"
+            + df["index_carrier"].astype(str)
+            + "-"
+            + df["price"].round(2).astype(str)
+            + "eur"
+        )
+        .set_index("price_band")
+    )["p_nom"]
+    # Existing capacities are given in MWel, hence we need to convert to MWth
+    n.links.loc[tech_i, "p_nom"] = (
+        caps.reindex(tech_i).fillna(0.0).div(n.links.loc[tech_i, "efficiency"])
+    )
+
+    # Profiles
+    ##########
+    # Filter for profiles
+    profiles = pemmdb_profiles.query("open_tyndp_type == @tech").assign(
+        link_index=lambda df: df["bus"].astype(str)
+        + "-"
+        + df["index_carrier"].astype(str)
+        + "-"
+        + df["price"].round(2).astype(str)
+        + "eur"
+    )
+    p_min_pu = profiles.pivot_table(
+        values="p_min_pu", index="time", columns="link_index"
+    ).reindex(tech_i, axis=1, fill_value=0.0)
+
+    p_max_pu = profiles.pivot_table(
+        values="p_max_pu", index="time", columns="link_index"
+    ).reindex(tech_i, axis=1, fill_value=1.0)
+
+    _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
 
 def _add_conventional_thermal_capacities(
@@ -1723,12 +2037,21 @@ def _add_conventional_thermal_capacities(
         Trajectories for exogenous nuclear pathways.
     nuclear_profiles : pd.DataFrame
         DataFrame containing the availability profiles of nuclear power plants.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding conventional thermal capacities and profiles.
     """
     logger.info(
         "Adding PEMMDB capacities and profiles to conventional thermal generation assets."
     )
 
     for tech in tyndp_conventional_thermals:
+        if "other-non-res" in tech:
+            _add_other_non_res_capacities(n, pemmdb_capacities, pemmdb_profiles, tech)
+            continue
+
         # Capacities
         ############
         # Get indices for this technology
@@ -1805,8 +2128,6 @@ def _add_conventional_thermal_capacities(
                 p_min_pu[common_cols] = np.minimum(
                     p_min_pu[common_cols], nuclear_profiles[common_cols]
                 )
-        # Drop columns that are all zeros (default-value)
-        p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
 
         p_max_pu = (
             profiles.pivot_table(values="p_max_pu", index="time", columns="bus")
@@ -1821,25 +2142,13 @@ def _add_conventional_thermal_capacities(
                 p_max_pu[common_cols] = np.minimum(
                     p_max_pu[common_cols], nuclear_profiles[common_cols]
                 )
-        # Drop columns that are all ones (default-value)
-        p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
 
-        if not p_min_pu.empty:
-            index_name = n.links_t.p_min_pu.index.name
-            n.links_t.p_min_pu = pd.concat([n.links_t.p_min_pu, p_min_pu], axis=1)
-            n.links_t.p_min_pu.index.name = index_name
+        _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
-        if not p_max_pu.empty:
-            index_name = n.links_t.p_max_pu.index.name
-            n.links_t.p_max_pu = pd.concat([n.links_t.p_max_pu, p_max_pu], axis=1)
-            n.links_t.p_max_pu.index.name = index_name
-
-        # Remove non-expandable assets with no capacity
-        # TODO: Generalise for more components
-        links_rm = (
-            n.links.loc[tech_i].query("p_nom_extendable == False and p_nom == 0").index
-        )
-        n.remove("Link", links_rm)
+    # Remove non-expandable assets with no capacity
+    remove_zero_capacity_non_extendable(
+        n, carriers=tyndp_conventional_thermals, component_types={"Link"}
+    )
 
 
 def _add_electrolyzer_capacities(
@@ -1940,33 +2249,6 @@ def _extract_inflows(
         return
 
 
-def _add_new_profiles(
-    component_t: dict,
-    attr: str,
-    new_profiles: pd.DataFrame,
-) -> None:
-    """
-    Safely add new time series data to a PyPSA network component.
-
-    Parameters
-    ----------
-    component_t : dict
-        The time-varying PyPSA component (e.g., n.generators_t).
-    attr : str
-        The attribute name (e.g., 'p_max_pu', 'inflow').
-    new_profiles : pd.DataFrame
-        New data to concatenate.
-    """
-    if new_profiles.empty:
-        return
-
-    existing = component_t[attr]
-    index_name = existing.index.name
-
-    component_t[attr] = pd.concat([existing, new_profiles], axis=1)
-    component_t[attr].index.name = index_name
-
-
 def _add_ror_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -2012,7 +2294,7 @@ def _add_ror_capacities(
     ]
 
     # Add new profiles to the network
-    _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
+    _add_new_profiles_to_existing(n.generators_t, "p_max_pu", p_max_pu)
 
 
 def _add_reservoir_capacities(
@@ -2065,7 +2347,7 @@ def _add_reservoir_capacities(
     inflows = inflows.loc[:, n.storage_units.loc[tech_i, "p_nom"] > 0]
 
     # Add new profiles to the network
-    _add_new_profiles(n.storage_units_t, "inflow", inflows)
+    _add_new_profiles_to_existing(n.storage_units_t, "inflow", inflows)
 
 
 def _add_phs_inflows(
@@ -2103,7 +2385,7 @@ def _add_phs_inflows(
     p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any() & (inflow_gen_caps > 0)]
 
     # Add new profiles to the network
-    _add_new_profiles(n.generators_t, "p_max_pu", p_max_pu)
+    _add_new_profiles_to_existing(n.generators_t, "p_max_pu", p_max_pu)
 
 
 def _add_phs_capacities(
@@ -2247,6 +2529,127 @@ def _add_smr_capacities(
         ).fillna(0.0)
 
 
+def _add_other_res_profiles(
+    carrier: str,
+    asset_i: pd.Index,
+    component_df: pd.DataFrame,
+    component_t: dict[str, pd.DataFrame],
+    profiles: pd.DataFrame,
+) -> None:
+    """
+    Add p_set profiles to existing network for a given Other RES carrier and component.
+
+    Parameters
+    ----------
+    carrier : str
+        Carrier name for which to add the Other RES profile.
+    asset_i : pd.Index
+        Index names of associated network components for the given carrier.
+    component_df : pd.DataFrame
+        Static component Dataframe.
+    component_t : dict[str, pd.DataFrame]
+        Component dictionary containing time-dependent attributes for the given component.
+    profiles : pd.DataFrame
+        Dataframe containing the profiles to add to the network.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the Other RES profiles.
+    """
+
+    profiles = profiles.query(f"index_carrier == '{carrier}'")
+
+    if carrier == "other-res-biomass":
+        # adjust other-res-biomass profiles for MW_th as they are implemented as links
+        profiles = profiles.assign(
+            p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency.iloc[0])
+        )
+
+    p_set = (
+        profiles.pivot_table(values="p_set", index="time", columns="bus")
+        .rename(columns=lambda x: f"{x} {carrier}")
+        .reindex(asset_i, axis=1, fill_value=0.0)
+    )
+    p_set = p_set.loc[:, (p_set != 0.0).any()]
+
+    _add_new_profiles_to_existing(
+        component_t=component_t, attr="p_set", new_profiles=p_set
+    )
+
+
+def _add_other_res_capacities(
+    n: pypsa.Network, pemmdb_capacities: pd.DataFrame, pemmdb_profiles: pd.DataFrame
+) -> None:
+    """
+    Add existing Other RES capacities and fixed profiles to Other RES Biomass and Mix components.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        Existing PEMMDB capacities which includes `other-res-biomass` and `other-res-mix`.
+    pemmdb_profiles : pd.DataFrame
+        Fixed per unit PEMMDB generation profiles which includes `other-res-biomass` and `other-res-mix`.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the Other RES Biomass and Mix capacities.
+    """
+    logger.info("Adding Other RES capacities and fixed generation profiles.")
+
+    # Other RES components
+    or_biomass_i = n.links.query("carrier == 'other-res-biomass'").index
+    or_mix_i = n.generators.query("carrier == 'other-res-mix'").index
+
+    # Add capacities
+    # Other RES Biomass
+    or_biomass_caps = pemmdb_capacities[
+        pemmdb_capacities.index_carrier == "other-res-biomass"
+    ].p_nom
+    # Existing capacities are given in MWel, hence we need to convert to MWth
+    n.links.loc[or_biomass_i, ["p_nom", "p_nom_min"]] = (
+        n.links.loc[or_biomass_i, "bus1"]
+        .map(or_biomass_caps)
+        .fillna(0.0)
+        .div(n.links.loc[or_biomass_i, "efficiency"])
+    )
+
+    # Other RES Mix
+    or_mix_caps = pemmdb_capacities[
+        pemmdb_capacities.index_carrier == "other-res-mix"
+    ].p_nom
+    n.generators.loc[or_mix_i, ["p_nom", "p_nom_min"]] = (
+        n.generators.loc[or_mix_i, "bus"].map(or_mix_caps).fillna(0.0)
+    )
+
+    # Add fixed per-unit generation profiles
+    # Other RES Biomass
+    _add_other_res_profiles(
+        carrier="other-res-biomass",
+        asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
+        component_df=n.links,
+        component_t=n.links_t,
+        profiles=pemmdb_profiles,
+    )
+    # Other RES Mix
+    _add_other_res_profiles(
+        carrier="other-res-mix",
+        asset_i=n.generators.query("carrier == 'other-res-mix' and p_nom > 0").index,
+        component_df=n.generators,
+        component_t=n.generators_t,
+        profiles=pemmdb_profiles,
+    )
+
+    # Remove non-expendable assets with no capacity
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=["other-res-biomass", "other-res-mix"],
+    )
+
+
 def add_existing_tyndp_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -2376,6 +2779,13 @@ def add_existing_tyndp_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
                 trajectories=trajectories_electrolyser,
+            )
+
+        if "other-res" in tyndp_renewable_carriers:
+            _add_other_res_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                pemmdb_profiles=pemmdb_profiles,
             )
 
     if h2_topology_tyndp:
@@ -8686,7 +9096,9 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     if fn_projects := snakemake.input.tyndp_projects:
-        attach_tyndp_transmission_projects(n, fn_projects)
+        attach_tyndp_transmission_projects(
+            n, fn_projects, fn_projects_fix=snakemake.input.tyndp_projects_fix
+        )
 
     if snakemake.params.load_source == "tyndp":
         logger.info(
@@ -8860,6 +9272,8 @@ if __name__ == "__main__":
         ext_carriers=snakemake.params.electricity.get("extendable_carriers", dict()),
         existing_capacities=existing_capacities,
         existing_efficiencies=existing_efficiencies,
+        pemmdb_capacities=pemmdb_capacities,
+        co2_price=co2_price,
     )
 
     if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
@@ -8867,6 +9281,15 @@ if __name__ == "__main__":
             n=n,
             costs=costs,
             tyndp_hydro=tyndp_hydro,
+        )
+
+    if "other-res" in tyndp_renewable_carriers:
+        add_other_res_tyndp(
+            n=n,
+            costs=costs,
+            pop_layout=pop_layout,
+            spatial=spatial,
+            options=options,
         )
 
     add_h2_gas_infrastructure(

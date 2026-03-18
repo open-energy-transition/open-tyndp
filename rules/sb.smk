@@ -4,7 +4,7 @@
 
 
 from scripts._helpers import safe_pyear, find_free_port
-from shutil import unpack_archive, rmtree, copy2
+from shutil import unpack_archive, copy2
 
 
 # Retrieve
@@ -283,14 +283,23 @@ def get_elec_project_build_years(w):
     ]
 
 
+def get_h2_project_build_years(w):
+    return config_provider("tyndp_investment_candidates", "h2_projects")(w)[
+        int(w.planning_horizons)
+    ]
+
+
 rule build_tyndp_transmission_projects:
     params:
-        build_years=get_elec_project_build_years,
+        build_years_elec=get_elec_project_build_years,
+        build_years_h2=get_h2_project_build_years,
     input:
-        buses=rules.build_tyndp_network.output.substations_geojson,
+        buses_elec=rules.build_tyndp_network.output.substations_geojson,
+        buses_h2=rules.build_tyndp_network.output.substations_h2_geojson,
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
     output:
-        resources("tyndp/new_links_{planning_horizons}.csv"),
+        new_links_elec=resources("tyndp/new_links_{planning_horizons}.csv"),
+        new_links_h2=resources("tyndp/new_links_h2_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_transmission_projects_{planning_horizons}.log"),
     benchmark:
@@ -454,12 +463,22 @@ rule build_tyndp_h2_demand:
 
 if config["sector"]["h2_topology_tyndp"]:
 
+    def include_tyndp_h2_projects(w):
+        horizons = config_provider("tyndp_investment_candidates", "h2_projects")(w)
+        if not horizons:
+            return False
+        return int(w.planning_horizons) in horizons
+
     rule build_tyndp_h2_network:
         params:
             snapshots=config_provider("snapshots"),
             scenario=config_provider("tyndp_scenario"),
         input:
             h2_reference_grid=rules.retrieve_tyndp.output.h2_reference_grid,
+            h2_projects=branch(
+                include_tyndp_h2_projects,
+                resources("tyndp/new_links_h2_{planning_horizons}.csv"),
+            ),
         output:
             h2_grid_prepped=resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
             interzonal_prepped=resources("h2_interzonal_tyndp_{planning_horizons}.csv"),

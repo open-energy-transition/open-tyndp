@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../schema.json
+# yaml-language-server: $schema=../schema.default.json
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: CC0-1.0
@@ -155,7 +155,12 @@ transmission_projects:
   enable: false
 
 tyndp_investment_candidates:
+  patch_sb_with_annexe: true
   elec_projects:
+    2040:
+    - 2030
+    - 2035
+  h2_projects:
     2040:
     - 2030
     - 2035
@@ -424,6 +429,7 @@ cba:
   projects:
   - t1-t40 # all
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
+  remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
 
   # Storage settings for dispatch
   storage:

@@ -519,6 +519,11 @@
           ],
           "type": "string"
         },
+        "remove_noisy_costs": {
+          "default": true,
+          "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
+          "type": "boolean"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -6138,6 +6143,11 @@
     "TyndpInvestmentCandidatesConfig": {
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
+        "patch_sb_with_annexe": {
+          "default": false,
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "type": "boolean"
+        },
         "elec_projects": {
           "additionalProperties": {
             "items": {
@@ -6146,6 +6156,16 @@
             "type": "array"
           },
           "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
+        },
+        "h2_projects": {
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
           "type": "object"
         }
       }
@@ -11181,6 +11201,11 @@
     "tyndp_investment_candidates": {
       "description": "Configuration for top level `tyndp_investment_candidates` settings.",
       "properties": {
+        "patch_sb_with_annexe": {
+          "default": false,
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "type": "boolean"
+        },
         "elec_projects": {
           "additionalProperties": {
             "items": {
@@ -11189,6 +11214,16 @@
             "type": "array"
           },
           "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "type": "object"
+        },
+        "h2_projects": {
+          "additionalProperties": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
           "type": "object"
         }
       }
@@ -14999,6 +15034,11 @@
             "eu27"
           ],
           "type": "string"
+        },
+        "remove_noisy_costs": {
+          "default": true,
+          "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
+          "type": "boolean"
         },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",

@@ -42,6 +42,9 @@ from scripts._helpers import (
     set_scenario_config,
 )
 
+# for compatibility with future pandas downcasting behaviour
+pd.set_option("future.no_silent_downcasting", True)
+
 logger = logging.getLogger(__name__)
 
 CONVENTIONALS = [
@@ -70,6 +73,15 @@ PEMMDB_SHEET_MAPPING = {
     "Oil shale": "Thermal",
     "Hydrogen": "Thermal",
 }
+
+OTHER_RES_MAPPING = {
+    "Geothermal": "Geothermal, Marine, Waste and Not Defined",
+    "Marine": "Geothermal, Marine, Waste and Not Defined",
+    "Waste": "Geothermal, Marine, Waste and Not Defined",
+    "Not Defined / Splitting not known": "Geothermal, Marine, Waste and Not Defined",
+}
+
+OTHER_RES_GROUPS = ["Small Biomass", "Geothermal, Marine, Waste and Not Defined"]
 
 
 def read_pemmdb_data(
@@ -157,8 +169,8 @@ def _drop_duplicate_price_bands(
     df : pd.DataFrame
         Dataframe without duplicate prices bands.
     """
-    if ("pemmdb_type" in df.columns and df.pemmdb_type.duplicated().any()) or (
-        df.index.duplicated().any()
+    if (groupby in df.columns and df[groupby].duplicated().any()) or (
+        groupby not in df.columns and df.index.duplicated().any()
     ):
         # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
         # but different capacities. Using first entry.
@@ -179,7 +191,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
             + "-"
             + df.purpose.astype(str)
             + "-"
-            + df.price.astype(str)
+            + pd.to_numeric(df.price, errors="coerce").round(2).astype(str)
             + "eur"
         )
     elif "hours" in df.columns:
@@ -266,11 +278,14 @@ def _process_other_nonres_capacities(
     df = (
         df.set_axis(column_names)
         .T.assign(
-            pemmdb_carrier="Other Non-RES",
+            pemmdb_carrier=lambda df: "Other Non-RES"
+            + " "
+            + df.pemmdb_type.str.split("/").str[1],
             bus=node,
             country=node[:2],
             unit="MW",
-            pemmdb_type=lambda x: _extract_price_band_type(x),
+            price_band_type=lambda x: _extract_price_band_type(x),
+            pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -283,6 +298,27 @@ def _process_other_nonres_capacities(
         .reset_index(drop=True)
     )
 
+    # Manually correct missing pemmdb type information
+    df.loc[:, "pemmdb_type"] = np.where(
+        df.pemmdb_type == "-",
+        df.pemmdb_carrier.str.removeprefix("Other Non-RES ").str.lower(),
+        df.pemmdb_type,
+    )
+
+    # Manually fix missing efficiency and CO2 factor information for AT, HU, ITN1, ITS1
+    # with values of equivalent plant types of other countries (same for all countries)
+    if node == "AT00":
+        # gas CCGT old 1
+        df.loc[:, ["efficiency", "co2_factor"]] = [0.4, 0.513]
+
+    if node in ["ITN1", "ITS1"]:
+        # gas conventional old 2
+        df.loc[:, ["efficiency", "co2_factor"]] = [0.41, 0.500488]
+
+    if node == "HU00":
+        # gas conventional old 1
+        df.loc[:, ["efficiency", "co2_factor"]] = [0.36, 0.57]
+
     if df.empty:
         logger.debug(
             f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
@@ -291,7 +327,7 @@ def _process_other_nonres_capacities(
 
     # Check for duplicate price bands and keep first entry only
     df = _drop_duplicate_price_bands(
-        df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
+        df, "price_band_type", pemmdb_tech, node, cyear, as_index=False
     ).reset_index(drop=True)
 
     return df
@@ -373,23 +409,29 @@ def _process_res_capacities(
 
 def _process_other_res_capacities(
     node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
     Extract and clean `Other RES` capacities.
     """
     # Get raw data and extract capacity information
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
     df = (
-        node_tech_data.iloc[[6], [1]]
-        .set_axis(["p_nom"], axis=1)
-        .reset_index(drop=True)
+        node_tech_data.iloc[[7], 4:]
+        .rename(columns=tech_names)
+        .melt(
+            var_name="pemmdb_type",
+            value_name="p_nom",
+        )
+        .groupby("pemmdb_type")
+        .sum()
         .assign(
             bus=node,
             country=node[:2],
             pemmdb_carrier=pemmdb_tech,
-            efficiency=1.0,  # no efficiencies given but capacity in MWel
-            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
+            efficiency=1.0,  # assign dummy efficiency as no efficiencies given but capacity in MWel
             unit="MW",
         )
+        .reset_index()
         .dropna()
     )
 
@@ -637,42 +679,54 @@ def _process_other_res_profiles(
     pyear: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
     Extract and clean `Other RES` profiles.
     """
     # Extract data
-    df = node_tech_data.iloc[6:, :3]
+    df = node_tech_data.iloc[6:]
 
-    capacity = np.float64(df.iloc[0, 1])
+    # Extract capacity information for normalization
+    tech_names = node_tech_data.iloc[6, 4:].replace(OTHER_RES_MAPPING)
+    capacity = (
+        df.iloc[[1], 4:]
+        .rename(columns=tech_names)
+        .melt(var_name="pemmdb_type", value_name="p_nom")
+        .groupby("pemmdb_type")["p_nom"]
+        .sum()
+    )
 
-    if np.isnan(capacity) or capacity == 0:
+    if capacity.sum() == 0:
         logger.debug(
             f"No 'Other RES' capacity found for {node} in {pyear}, hence no must-run profile available."
         )
         return None
 
+    # Extract and normalize profiles
+    renamed = df.iloc[3:, 4:].rename(columns=tech_names)
     profiles = (
-        df.iloc[3:, 2]
-        .to_frame()
-        .set_axis(["p_min_t"], axis="columns")
+        pd.DataFrame(
+            {
+                g: renamed.loc[:, renamed.columns == g].sum(axis=1)
+                for g in OTHER_RES_GROUPS
+            }
+        )
+        .astype(float)
+        .fillna(0.0)
         .assign(
-            p_min_pu=lambda x: np.where(
-                capacity > 0, pd.to_numeric(x["p_min_t"]) / capacity, 0.0
-            ),
-            p_max_pu=1.0,  # also set p_max_pu with default value of 1.0
             time=sns_year_h,
             bus=node,
             pemmdb_carrier=pemmdb_tech,
-            pemmdb_type="Small Biomass, Geothermal, Marine, Waste and Not Defined",
         )
         .loc[lambda x: x["time"].isin(sns)]
-        .set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[
-            ["p_min_pu", "p_max_pu"]
-        ]
     )
 
-    return profiles
+    # Turn into long format and return
+    return profiles.melt(
+        id_vars=["time", "bus", "pemmdb_carrier"],
+        value_name="p_set",
+        var_name="pemmdb_type",
+    ).set_index(["time", "bus", "pemmdb_carrier", "pemmdb_type"])[["p_set"]]
 
 
 def _process_other_nonres_profiles(
@@ -720,22 +774,33 @@ def _process_other_nonres_profiles(
     df = df.loc[:, mask]
 
     # Extract plant type
-    type = _extract_price_band_type(df.T)
+    price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
+    price = df.T.price
+    pemmdb_carrier = (
+        "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
+    ).rename("pemmdb_carrier")
+    pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower()
+
+    # Manually correct missing pemmdb type information
+    pemmdb_type = pemmdb_type.mask(
+        pemmdb_type == "-",
+        [c.removeprefix("Other Non-RES ").lower() for c in pemmdb_carrier],
+    )
 
     df_long = (
         df.iloc[10:]
         .reset_index(drop=True)
         .div(cap.loc[mask], axis=1)
-        .set_axis(type, axis="columns")
+        .set_axis([price_band_type, pemmdb_carrier, pemmdb_type, price], axis="columns")
         .assign(
             time=sns_year_h,
             bus=node,
-            pemmdb_carrier=pemmdb_tech,
         )
         .loc[lambda x: x["time"].isin(sns)]
-        .set_index(["time", "bus", "pemmdb_carrier"])
-        .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
-        .set_index("pemmdb_type", append=True)
+        .set_index(["time", "bus"])
+        .stack(level=[0, 1, 2, 3], future_stack=True)
+        .rename("p_max_pu")
+        .to_frame()
         .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
     )
 
@@ -897,9 +962,11 @@ def process_pemmdb_capacities(
         if capacities is None:
             return None
 
-        # Separate energy and power capacities and select needed columns
+        # Separate energy and power capacities, assign empty values for missing attributes and select needed columns
         capacities = (
             capacities.assign(
+                price=lambda x: x.get("price"),
+                co2_factor=lambda x: x.get("co2_factor"),
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
             )[
@@ -910,6 +977,8 @@ def process_pemmdb_capacities(
                     "p_nom",
                     "e_nom",
                     "efficiency",
+                    "price",
+                    "co2_factor",
                     "country",
                     "unit",
                 ]
@@ -938,6 +1007,9 @@ def _validate_profiles(df):
     Returns None if all profiles are filtered out.
     """
     if df is None:
+        return df
+
+    if "p_set" in df.columns:
         return df
 
     # Skip profiles that contain only default PyPSA values (p_min_pu=0, p_max_pu=1)
@@ -1305,11 +1377,14 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
-    pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0)
+    pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0).set_index(
+        ["price_band_type", "price"], append=True
+    )
     ds = xr.Dataset(
         {
             "p_min_pu": (["sample"], pemmdb_profiles_df["p_min_pu"]),
             "p_max_pu": (["sample"], pemmdb_profiles_df["p_max_pu"]),
+            "p_set": (["sample"], pemmdb_profiles_df["p_set"]),
         },
         coords={
             level: (["sample"], pemmdb_profiles_df.index.get_level_values(level))

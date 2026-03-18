@@ -71,9 +71,17 @@ class RemoteConfig(ConfigModel):
 class TyndpInvestmentCandidatesConfig(ConfigModel):
     """Configuration for top level `tyndp_investment_candidates` settings."""
 
+    patch_sb_with_annexe: bool = Field(
+        False,
+        description="Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+    )
     elec_projects: dict[int, list[int]] = Field(
         default_factory=dict,
         description="Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+    )
+    h2_projects: dict[int, list[int]] = Field(
+        default_factory=dict,
+        description="Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
     )
 
 

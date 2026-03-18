@@ -25,15 +25,29 @@ Upcoming Open-TYNDP Release
 
 * Collect results of multi weather year CBA's and calculate weighted average KPI's and plot them (https://github.com/open-energy-transition/open-tyndp/pull/525, https://github.com/open-energy-transition/open-tyndp/pull/529).
 
+* Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
+
+* Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
+
 **Changes**
 
 * Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
 
+* Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
+
+* Add an option to apply the CBA fixes of the electrical reference network to the SB network as well (enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/527).
+
+* Add the 2035 hydrogen reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/537).
+
 **Bugfixes and Compatibility**
+
+* Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
 
 * Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
 
 * Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
+
+* Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
 
 **Documentation**
 
