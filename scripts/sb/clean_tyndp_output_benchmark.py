@@ -76,7 +76,7 @@ MM_CARRIER_MAPPING = {
     "Pump Storage - Closed Loop (pump)": "hydro and pumped storage (load)",
     "Others renewable": "other res",
     "Others non-renewable": "other non-res",
-    "Battery Storage discharge (gen.)": "battery discharge",
+    "Battery Storage discharge (gen.)": "battery",
     "Battery Storage charge (load)": "battery charge (load)",
     "Hydrogen CCGT": "hydrogen-ccgt",
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
