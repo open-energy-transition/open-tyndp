@@ -3481,9 +3481,90 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, options):
     )
 
 
+def _add_h2_stores_and_links_tyndp(
+    n: pypsa.Network,
+    storage_tech: str,
+    buses: pd.Index,
+    costs: pd.DataFrame,
+    extendable: bool,
+) -> None:
+    """
+    Adds storage Bus, Store and Charge/Discharge Link components for a given TYNDP H2 storage technology.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    storage_tech: str
+        Storage technology to add. Can be either 'cavern-storage' or 'tank-storage'
+    buses : pd.Index
+        nodes of H2 buses to add the storages to
+    costs : pd.DataFrame
+        Technology cost assumptions
+    extendable : bool
+        Whether the added storage components shall be extendable in the optimization or not.
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding components.
+    """
+    bus_names = buses + f" {storage_tech}"
+
+    n.add(
+        "Bus",
+        bus_names,
+        location=buses,
+        carrier="H2",
+        x=n.buses.loc[list(buses)].x.values,
+        y=n.buses.loc[list(buses)].y.values,
+    )
+
+    n.add(
+        "Store",
+        bus_names,
+        bus=bus_names,
+        e_nom_extendable=extendable,
+        e_cyclic=True,
+        carrier=f"H2 {storage_tech}",
+        capital_cost=costs.at[storage_tech, "capital_cost"],
+        lifetime=costs.at[storage_tech, "lifetime"],
+    )
+
+    n.add(
+        "Link",
+        bus_names,
+        suffix=" charge",
+        bus0=buses,
+        bus1=bus_names,
+        carrier=f"H2 {storage_tech}",
+        efficiency=costs.at[f"{storage_tech}-charge", "efficiency"],
+        marginal_cost=costs.at[storage_tech, "marginal_cost"],
+        p_nom_extendable=extendable,
+        lifetime=costs.at[storage_tech, "lifetime"],
+    )
+
+    n.add(
+        "Link",
+        bus_names,
+        suffix=" discharge",
+        bus0=bus_names,
+        bus1=buses,
+        carrier=f"H2 {storage_tech}",
+        efficiency=costs.at[f"{storage_tech}-discharge", "efficiency"],
+        marginal_cost=costs.at[storage_tech, "marginal_cost"],
+        p_nom_extendable=extendable,
+        lifetime=costs.at[storage_tech, "lifetime"],
+    )
+
+
 def add_h2_storage_tyndp(
-    n, cavern_types, h2_cavern_file, buses_h2_z1, costs, options={}
-):
+    n: pypsa.Network,
+    buses_h2_z1: pd.Index,
+    buses_h2_z2: pd.Index,
+    costs: pd.DataFrame,
+    options: dict = {},
+) -> None:
     """
     Adds TYNDP Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions.
 
@@ -3491,17 +3572,15 @@ def add_h2_storage_tyndp(
     ----------
     n : pypsa.Network
         The PyPSA network container object
-    cavern_types : list
-        List of underground storage types to consider
-    h2_caverns_file : str
-        Path to CSV containing hydrogen cavern storage potentials
-    buses_h2_z1 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z1 buses
+    buses_h2_z1 : pd.Index
+        Nnodes of H2 Z1 buses
+    buses_h2_z2 : pd.Index
+        Nodes of H2 Z2 buses
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
-       Dictionary of configuration options. Defaults to empty dict if not provided.
-       - hydrogen_underground_storage : bool
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+       - h2_zones_tyndp : bool
 
     Returns
     -------
@@ -3509,65 +3588,26 @@ def add_h2_storage_tyndp(
         The function modifies the network object in-place by adding components.
     """
 
-    h2_caverns = pd.read_csv(h2_cavern_file, index_col=0)
-
-    # add underground hydrogen cavern storage to all H2 Z2 nodes
-    if (
-        not h2_caverns.empty
-        and options["hydrogen_underground_storage"]
-        and set(cavern_types).intersection(h2_caverns.columns)
-    ):
-        h2_caverns = h2_caverns[cavern_types].sum(axis=1)
-
-        # only use sites with at least 2 TWh potential
-        h2_caverns = h2_caverns[h2_caverns > 2]
-
-        # convert TWh to MWh
-        h2_caverns = h2_caverns * 1e6
-
-        # clip at 1000 TWh for one location
-        h2_caverns.clip(upper=1e9, inplace=True)
-
-        # group on country level
-        h2_caverns = (
-            h2_caverns.to_frame()
-            .assign(country=h2_caverns.index.map(n.buses.country).values)
-            .groupby("country")
-            .sum()
-            .loc[:, 0]
-        )
-
-        logger.info("Adding TYNDP H2 underground storage")
-
-        suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
-
-        n.add(
-            "Store",
-            h2_caverns.index + f" {suffix} Cavern Store",
-            bus=h2_caverns.index + f" {suffix}",
-            e_nom_extendable=True,
-            e_nom_max=h2_caverns.values,
-            e_cyclic=True,
-            carrier="H2 Store",
-            capital_cost=costs.at["hydrogen storage underground", "capital_cost"],
-            lifetime=costs.at["hydrogen storage underground", "lifetime"],
-        )
+    # Add underground hydrogen cavern storage to all H2 Z2 nodes
+    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
+    logger.info(f"Adding TYNDP H2 underground storage to {suffix} nodes.")
+    _add_h2_stores_and_links_tyndp(
+        n=n,
+        storage_tech="cavern-storage",
+        buses=buses_h2_z2,
+        costs=costs,
+        extendable=options["h2_zones_tyndp"],
+    )
 
     # add overground hydrogen tank storage to all H2 Z1 nodes
     if not buses_h2_z1.empty:
-        tech = "hydrogen storage tank type 1 including compressor"
-
-        logger.info("Adding TYNDP H2 tank storage for H2 Z1")
-
-        n.add(
-            "Store",
-            buses_h2_z1 + " Tank Store",
-            bus=buses_h2_z1,
-            e_nom_extendable=True,
-            e_cyclic=True,
-            carrier="H2 Store",
-            capital_cost=costs.at[tech, "capital_cost"],
-            lifetime=costs.at[tech, "lifetime"],
+        logger.info("Adding TYNDP H2 tank storage to H2 Z1 nodes.")
+        _add_h2_stores_and_links_tyndp(
+            n=n,
+            storage_tech="tank-storage",
+            buses=buses_h2_z1,
+            costs=costs,
+            extendable=False,
         )
 
 
@@ -3575,10 +3615,8 @@ def add_h2_topology_tyndp(
     n,
     pop_layout,
     spatial,
-    h2_cavern_file,
     h2_pipes_file,
     interzonal_file,
-    cavern_types,
     costs,
     options,
     h2_demand_file,
@@ -3603,14 +3641,10 @@ def add_h2_topology_tyndp(
         Population layout with index of locations/nodes
     spatial : object
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`
-    h2_cavern_file : str
-        Path to CSV file containing hydrogen cavern storage potentials
     h2_pipes_file : str
         Path to CSV file containing prepped H2 reference grid data
     interzonal_file : str
         Path to CSV file containing prepped H2 interzonal connection data
-    cavern_types : list
-        List of underground storage types to consider
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
@@ -3688,9 +3722,8 @@ def add_h2_topology_tyndp(
     # add H2 storage (Z1: H2 tanks; Z2/NT H2 nodes: Salt caverns)
     add_h2_storage_tyndp(
         n=n,
-        cavern_types=cavern_types,
-        h2_cavern_file=h2_cavern_file,
         buses_h2_z1=buses_h2_z1,
+        buses_h2_z2=buses_h2_z2,
         costs=costs,
         options=options,
     )
@@ -4280,10 +4313,8 @@ def add_h2_gas_infrastructure(
             n=n,
             pop_layout=pop_layout,
             spatial=spatial,
-            h2_cavern_file=h2_cavern_file,
             h2_pipes_file=h2_pipes_file,
             interzonal_file=interzonal_file,
-            cavern_types=cavern_types,
             costs=costs,
             options=options,
             h2_demand_file=h2_demand_file,
