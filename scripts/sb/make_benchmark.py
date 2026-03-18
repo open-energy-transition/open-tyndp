@@ -594,8 +594,14 @@ def compute_overall_accuracy(
         t: SOURCES_MAP.get(opt["rfc_sources"][0], opt["rfc_sources"][0])
         for t, opt in options["tables"].items()
     }
+
+    df_global = benchmarks_raw.loc[
+        (benchmarks_raw.source == "Open-TYNDP")
+        | (benchmarks_raw.source == benchmarks_raw.table.map(sources_map))
+    ]
+
     df_global = (
-        benchmarks_raw.query("table not in @tables_series")
+        df_global.query("table not in @tables_series")
         .dropna(how="all", axis=1)
         .pivot_table(
             index=["scenario", "year", "carrier", "table", "bus"],
@@ -603,7 +609,7 @@ def compute_overall_accuracy(
             columns="source",
         )
         .query(
-            "@SOURCES_MAP['market_out']!=0"
+            f"`{SOURCES_MAP['market_out']}` != 0"
         )  # Exclude zero-valued rows when using Market Model outputs, as zeros may denote absent data rather than true zero values
         .reset_index(level=3)
         .assign(
