@@ -5,6 +5,9 @@
 benchmarking:
   enable: false
   remove_last_day: false
+  spatial:
+    by_bus: true
+    by_country: true
 
 
   tables:

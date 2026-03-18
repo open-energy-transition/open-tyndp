@@ -240,6 +240,7 @@ def plot_benchmark(
     tech_colors: dict,
     bench_colors: dict,
     model_col: str = "Open-TYNDP",
+    bus_col_name: str = "bus",
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -266,6 +267,8 @@ def plot_benchmark(
         Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
+    bus_col_name : str, default "bus"
+        Bus column name.
     """
 
     # Parameters
@@ -277,16 +280,25 @@ def plot_benchmark(
     cyear = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit
-    logger.info(f"Making benchmark for {table} using {rfc_cols} and {model_col}")
+    logger.debug(
+        f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
+    )
     benchmarks = (
-        benchmarks_raw.query("table==@table and bus==@bus")
+        benchmarks_raw.query(f"table==@table and {bus_col_name}==@bus")
         .dropna(how="all", axis=1)
+        .assign(spatial=lambda df: df[bus_col_name])
+        .drop(columns=["bus", "country"], errors="ignore")
+    )
+    benchmarks = (
+        benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
+        .sum()
+        .reset_index()
         .assign(unit=opt["report"]["unit"])
     )
 
     if benchmarks.empty:
         logger.warning(
-            f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets"
+            f"No data available for table '{table}' and bus {bus} in Open-TYNDP or TYNDP 2024 datasets"
         )
         return
 
@@ -301,7 +313,9 @@ def plot_benchmark(
 
     # Check if at least two sources are available to compare
     if len(bench_wide.columns) < 2:
-        logger.info(f"Skipping table {table}, need at least two sources to compare.")
+        logger.info(
+            f"Skipping table {table} at {bus}, need at least two sources to compare."
+        )
         return
 
     for year in bench_wide.index.get_level_values("year").unique():
@@ -340,6 +354,50 @@ def plot_benchmark(
                 source_unit,
                 tech_colors,
             )
+
+
+def orchestrate_benchmark(
+    bus_col_name: str,
+    benchmarks_raw: pd.DataFrame,
+    output_dir: str,
+    scenario: str,
+    snapshots: dict[str, str],
+    options: dict,
+    tech_colors: dict,
+    bench_colors: dict,
+):
+    logger.info(f"Producing benchmark figures by {bus_col_name}")
+
+    output_dir_bus_col = Path(output_dir, f"by_{bus_col_name}")
+    output_dir_bus_col.mkdir(parents=True, exist_ok=True)
+
+    table_bus_col_pairs = [
+        (table, bus_col)
+        for table in options["tables"]
+        for bus_col in benchmarks_raw.query("table == @table")[bus_col_name].unique()
+    ]
+
+    tqdm_kwargs = {
+        "ascii": False,
+        "unit": " figure",
+        "total": len(table_bus_col_pairs),
+        "desc": "Producing benchmark figures",
+    }
+
+    func = partial(
+        plot_benchmark,
+        benchmarks_raw=benchmarks_raw,
+        output_dir=output_dir_bus_col,
+        scenario=scenario,
+        snapshots=snapshots,
+        options=options,
+        tech_colors=tech_colors,
+        bench_colors=bench_colors,
+        bus_col_name=bus_col_name,
+    )
+
+    with mp.Pool(processes=snakemake.threads) as pool:
+        list(tqdm(pool.starmap(func, table_bus_col_pairs), **tqdm_kwargs))
 
 
 def plot_overview(
@@ -449,7 +507,6 @@ if __name__ == "__main__":
     mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
     kpis_in = snakemake.input.kpis
     kpis_out = snakemake.output.kpis
 
@@ -458,35 +515,35 @@ if __name__ == "__main__":
         benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn, mm_data_fn
     )
 
-    # Produce benchmark figures
-    logger.info("Producing benchmark figures")
-
-    table_bus_pairs = [
-        (table, bus)
-        for table in options["tables"]
-        for bus in benchmarks_raw.query("table == @table")["bus"].unique()
-    ]
-
-    tqdm_kwargs = {
-        "ascii": False,
-        "unit": " figure",
-        "total": len(table_bus_pairs),
-        "desc": "Producing benchmark figures",
-    }
-
-    func = partial(
-        plot_benchmark,
-        benchmarks_raw=benchmarks_raw,
-        output_dir=output_dir,
-        scenario=scenario,
-        snapshots=snapshots,
-        options=options,
-        tech_colors=tech_colors,
-        bench_colors=bench_colors,
+    benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].where(
+        benchmarks_raw["bus"] == "EU27", benchmarks_raw["bus"].str[:2]
     )
 
-    with mp.Pool(processes=snakemake.threads) as pool:
-        results = list(tqdm(pool.starmap(func, table_bus_pairs), **tqdm_kwargs))
+    # Produce benchmark figures by bus
+    if options["spatial"]["by_bus"]:
+        orchestrate_benchmark(
+            bus_col_name="bus",
+            benchmarks_raw=benchmarks_raw,
+            output_dir=output_dir,
+            scenario=scenario,
+            snapshots=snapshots,
+            options=options,
+            tech_colors=tech_colors,
+            bench_colors=bench_colors,
+        )
+
+    # Produce benchmark figures by bus
+    if options["spatial"]["by_country"]:
+        orchestrate_benchmark(
+            bus_col_name="country",
+            benchmarks_raw=benchmarks_raw,
+            output_dir=output_dir,
+            scenario=scenario,
+            snapshots=snapshots,
+            options=options,
+            tech_colors=tech_colors,
+            bench_colors=bench_colors,
+        )
 
     # Plot overview
     indicators = pd.read_csv(kpis_in, index_col=0)
