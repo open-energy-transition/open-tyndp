@@ -288,7 +288,7 @@ def _compute_missing(df_na: pd.DataFrame, cols: str | list[str] = "carrier") -> 
     """
     if isinstance(cols, str):
         cols = [cols]
-    return df_na.index.to_frame(index=False)[cols].drop_duplicates().shape[0]
+    return int(df_na.index.to_frame(index=False)[cols].drop_duplicates().shape[0])
 
 
 def compute_all_indicators(
@@ -351,8 +351,12 @@ def compute_all_indicators(
             df.groupby(by=idx).sum(), table, model_col, rfc_col, eps
         )
 
-    if not df_na.empty:
-        indicators["Missing"] = _compute_missing(df_na, cols=cols_na)
+    # Exclude zero-valued rows when using Market Model outputs,
+    # as zeros may denote absent data rather than true zero values
+    if rfc_col == SOURCES_MAP["market_out"]:
+        df_na = df_na[(df_na[rfc_col] != 0) & (df_na[model_col] != 0)]
+    missing_name = "Missing buses" if "bus" in cols_na else "Missing carriers"
+    indicators[missing_name] = _compute_missing(df_na, cols=cols_na)
 
     if carrier:
         indicators = {(table, carrier): indicators}
@@ -432,11 +436,9 @@ def compute_indicators(
     df_na = df_agg[mask]
 
     # Compute overall indicators of the table
-    indicators = (
-        compute_all_indicators(df, table, rfc_col=rfc_col, df_na=df_na)
-        .round(precision)
-        .assign(reference=rfc_col)
-    )
+    indicators = compute_all_indicators(
+        df, table, rfc_col=rfc_col, df_na=df_na.query("bus=='EU27'")
+    ).round(precision)
 
     # Compute per-carrier indicators
     df_carrier = pd.concat(
@@ -457,13 +459,24 @@ def compute_indicators(
         set(df_na.index.get_level_values(carrier_col)) - matching_carriers
     )
     df_carrier_na = pd.concat(
-        [pd.DataFrame(index=[(table, carrier) for carrier in missing_carriers])]
+        [
+            pd.DataFrame(
+                [0] * len(missing_carriers),
+                columns=["Missing buses"],
+                index=[(table, carrier) for carrier in missing_carriers],
+            )
+        ]
     )
     df_carrier = (
         pd.concat([df_carrier, df_carrier_na])
         .round(precision)
         .assign(reference=rfc_col)
     )
+
+    # Add reference and missing buses to overall indicators
+    if "Missing buses" in df_carrier:
+        indicators.loc[:, "Missing buses"] = df_carrier["Missing buses"].max()
+    indicators.loc[:, "reference"] = rfc_col
 
     return df_carrier, indicators
 
@@ -518,7 +531,9 @@ def compare_sources(
         logger.warning(
             f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets"
         )
-        return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
+        return pd.DataFrame(), pd.DataFrame(
+            [["NA", "NA"]], index=[table], columns=["Missing carriers", "Missing buses"]
+        )
 
     df = benchmarks.pivot_table(
         index=available_columns, values="value", columns="source", dropna=False
@@ -540,7 +555,9 @@ def compare_sources(
             logger.info(
                 f"Skipping table {table} for scenario {scenario} and climate year {cyear}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
             )
-        return pd.DataFrame(), pd.Series("NA", index=[table], name="Missing")
+        return pd.DataFrame(), pd.DataFrame(
+            [["NA", "NA"]], index=[table], columns=["Missing carriers", "Missing buses"]
+        )
 
     # Compare sources
     df, indicators = compute_indicators(
@@ -581,14 +598,18 @@ def compute_overall_accuracy(
         benchmarks_raw.query("table not in @tables_series")
         .dropna(how="all", axis=1)
         .pivot_table(
-            index=["scenario", "year", "carrier", "table"],
+            index=["scenario", "year", "carrier", "table", "bus"],
             values="value",
             columns="source",
         )
+        .query(
+            "@SOURCES_MAP['market_out']!=0"
+        )  # Exclude zero-valued rows when using Market Model outputs, as zeros may denote absent data rather than true zero values
         .reset_index(level=3)
         .assign(
             reference=lambda df: df.apply(lambda r: r[sources_map[r.table]], axis=1)
-        )[["Open-TYNDP", "reference"]]
+        )
+        .set_index("table", append=True)[["Open-TYNDP", "reference"]]
     )
     mask = df_global.isna().any(axis=1)
     df = df_global[~mask]
