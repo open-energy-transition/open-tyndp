@@ -122,6 +122,7 @@ def get_elec_demand(
             carrier="final demand (inc. t&d losses, excl. pump storage )",
             scenario=f"TYNDP {scenario}",
             table="elec_demand",
+            bus="EU27",
         )
     )
 
@@ -187,6 +188,7 @@ def get_power_capacities(
         .groupby(["year", "carrier", "scenario", "table"])
         .sum()
         .reset_index()
+        .assign(bus="EU27")
     )
 
     return data
