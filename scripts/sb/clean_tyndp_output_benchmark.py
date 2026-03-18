@@ -380,6 +380,9 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         "not(table=='power_generation' and carrier=='hydro and pumped storage')"
     )
 
+    # remove batteries from generation
+    MM_data = MM_data.query("not(table=='power_generation' and carrier=='battery')")
+
     # aggregate hydro capacities
     mask = (MM_data.table == "power_capacity") & (
         MM_data.carrier == "hydro (exc. pump storage)"

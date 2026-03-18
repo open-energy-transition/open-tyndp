@@ -291,7 +291,7 @@ def load_benchmark(
     # Remove carriers not explicitly modeled
     elif table == "final_energy_demand":
         df_converted = df_converted[
-            ~df_converted.carrier.isin(["total", "heat", "solids"])
+            ~df_converted.carrier.isin(["total", "heat", "solids", "others"])
         ]
     # Remove aggregated values
     else:

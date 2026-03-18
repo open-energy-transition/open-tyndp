@@ -170,8 +170,8 @@ benchmarking:
     power_generation:
       table_type: scenario_comparison
       rfc_sources:
-      - report
       - market_out
+      - report
       report:
         sheet_name: 26-
         unit: TWh
@@ -244,8 +244,8 @@ benchmarking:
     hydrogen_supply:
       table_type: scenario_comparison
       rfc_sources:
-      - report
       - market_out
+      - report
       report:
         sheet_name: 33-
         unit: TWh
