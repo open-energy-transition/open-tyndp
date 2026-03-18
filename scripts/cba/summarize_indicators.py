@@ -319,7 +319,7 @@ def summarize_indicators(input_files, output_file):
         return
 
     # Read input files
-    logger.info(f"Read {len(input_files)} indicator files")
+    logger.info(f"Read {len(input_files)} indicator files: {input_files}")
     df = pd.concat(map(pd.read_csv, ["mydata.csv", "mydata1.csv"]), ignore_index=True)
 
     project_ids = df.project_id.unique()[0]

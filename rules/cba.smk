@@ -588,6 +588,11 @@ rule collect_cba_scenario:
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
         ),
+        lambda w: expand(
+            rules.plot_all_cba_benchmark.output.plot_dir,
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=cba_scenarios(w),
+        ),
     output:
         touch(RESULTS + "cba/all_scenarios"),
 
@@ -607,15 +612,5 @@ rule cba:
         ),
         lambda w: expand(
             rules.summarize_all_indicators.output.plot_file,
-            run=cba_collection_scenarios(w),
-        ),
-        lambda w: expand(
-            rules.plot_indicators.output.plot_dir,
-            planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=cba_collection_scenarios(w),
-        ),
-        lambda w: expand(
-            rules.plot_all_cba_benchmark.output.plot_dir,
-            planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_collection_scenarios(w),
         ),

@@ -71,7 +71,7 @@ CARRIER_TO_EMISSION_FACTORS = {
 }
 
 
-def calculate_total_system_cost(n):
+def calculate_total_system_cost(n: pypsa.Network):
     """
     Calculate total annualized system cost using PyPSA built-in statistics.
 
@@ -564,6 +564,7 @@ def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
 
 def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
     meta = {
+        "planning_horizon": indicators.get("planning_horizon"),
         "project_id": indicators.get("project_id"),
         "project_code": indicators.get("project_code"),
         "project_type": indicators.get("project_type"),
@@ -640,6 +641,7 @@ def load_benchmark_rows(
         )
         return pd.DataFrame()
 
+    benchmark["planning_horizon"] = planning_horizon
     if "indicator_mapped" in benchmark.columns:
         benchmark["indicator"] = benchmark["indicator_mapped"].fillna(
             benchmark["indicator"]
@@ -656,6 +658,7 @@ def load_benchmark_rows(
 
     return benchmark[
         [
+            "planning_horizon",
             "project_id",
             "project_code",
             "project_type",
@@ -757,12 +760,13 @@ if __name__ == "__main__":
 
     # Add project metadata
     project_type = "storage" if cba_project.startswith("s") else "transmission"
+    indicators["planning_horizon"] = planning_horizon
     indicators["project_id"] = project_id  # numeric id
     indicators["project_code"] = cba_project
     indicators["project_type"] = project_type
     indicators["cba_method"] = method.upper()
     logger.info(
-        f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']} Meuro"
+        f"Project {indicators['project_id']} is {'beneficial' if indicators['is_beneficial'] else 'not beneficial'} for {indicators['cba_method']}. B1 indicator: {indicators['B1_total_system_cost_change']:.2f} Meuro/year"
     )
 
     # Convert to DataFrame and save
@@ -788,4 +792,8 @@ if __name__ == "__main__":
         df = df_model
 
     df = apply_indicator_units(df)
+    if "cy" in scenario:
+        df["cyear"] = int(scenario[scenario.find('cy')+2:])
+    else:
+        df["cyear"] = 2009
     df.to_csv(snakemake.output.indicators, index=False)
