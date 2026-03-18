@@ -6,6 +6,54 @@
 NT:
   tyndp_scenario: NT
 
+sb-barrier-cba-barrier:
+  tyndp_scenario: NT
+  solving:
+    solver:
+      name: gurobi
+      options: gurobi-default
+  cba:
+    solving:
+      solver:
+        name: gurobi
+        options: gurobi-default
+
+sb-simplex-cba-barrier:
+  tyndp_scenario: NT
+  solving:
+    solver:
+      name: gurobi
+      options: gurobi-simplex
+  cba:
+    solving:
+      solver:
+        name: gurobi
+        options: gurobi-default
+
+sb-barrier-cba-simplex:
+  tyndp_scenario: NT
+  solving:
+    solver:
+      name: gurobi
+      options: gurobi-default
+  cba:
+    solving:
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+sb-simplex-cba-simplex:
+  tyndp_scenario: NT
+  solving:
+    solver:
+      name: gurobi
+      options: gurobi-simplex
+  cba:
+    solving:
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
