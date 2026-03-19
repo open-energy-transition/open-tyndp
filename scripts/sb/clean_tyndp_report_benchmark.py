@@ -132,6 +132,78 @@ def _add_identifier(s: str) -> str:
         return s
 
 
+def clean_data_for_benchmarking(table: str, df: pd.DataFrame) -> pd.DataFrame:
+    # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
+    if table == "elec_demand":
+        df = df[df.carrier == "final demand (inc. t&d losses, excl. pump storage )"]
+    # Aggregate methane demand to match input data resolution
+    elif table == "methane_demand":
+        group = ["smr", "power generation"]
+        df_other = (
+            df[(~df.carrier.isin(group)) & (df.carrier != "total")]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="exogenous demand")
+        )
+        df_group = df[df.carrier.isin(group)]
+        df = pd.concat([df_group, df_other], ignore_index=True)
+    # Aggregate hydrogen demand to match input data resolution
+    elif table == "hydrogen_demand":
+        group = ["power generation"]
+        df_other = (
+            df[(~df.carrier.isin(group)) & (~df.carrier.isin(["total", "e-fuels"]))]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="exogenous demand")
+        )
+        df_group = df[df.carrier.isin(group)]
+        df = pd.concat([df_group, df_other], ignore_index=True)
+    # Aggregate hydrogen import sources together to match input data resolution
+    elif table == "hydrogen_supply":
+        to_group = ["low carbon imports", "renewable imports"]
+        df_other = (
+            df[df.carrier.isin(to_group)]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="imports (renewable & low carbon)")
+        )
+        df_group = df[~df.carrier.isin(to_group)]
+        df = pd.concat([df_group, df_other], ignore_index=True)
+
+        to_group = ["smr (grey)", "smr with ccs (blue)"]
+        df_other = (
+            df[df.carrier.isin(to_group)]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="smr (grey) and smr with ccs (blue)")
+        )
+        df_group = df[~df.carrier.isin(to_group)]
+        df = pd.concat([df_group, df_other], ignore_index=True)
+    # Remove carriers not explicitly modeled
+    elif table == "final_energy_demand":
+        df = df[~df.carrier.isin(["total", "heat", "solids", "others"])]
+    elif table == "power_capacity":
+        to_group = ["coal + other fossil", "biofuels"]
+        df_other = (
+            df[df.carrier.isin(to_group)]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="coal + other fossil (incl. biofuels)")
+        )
+        df_group = df[~df.carrier.isin(to_group)]
+        df = pd.concat([df_group, df_other], ignore_index=True)
+    # Remove aggregated values
+    else:
+        df = df[~df.carrier.isin(["sum", "aggregated", "total generation", "total"])]
+
+    return df
+
+
 def load_benchmark(
     benchmarks_raw: dict[str, pd.DataFrame], table: str, scenario: str, options: dict
 ) -> pd.DataFrame:
@@ -230,89 +302,9 @@ def load_benchmark(
     df_converted["year"] = df_converted["year"].astype(int)
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
 
-    # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
-    if table == "elec_demand":
-        df_converted = df_converted[
-            df_converted.carrier
-            == "final demand (inc. t&d losses, excl. pump storage )"
-        ]
-    # Aggregate methane demand to match input data resolution
-    elif table == "methane_demand":
-        group = ["smr", "power generation"]
-        df_other = (
-            df_converted[
-                (~df_converted.carrier.isin(group)) & (df_converted.carrier != "total")
-            ]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="exogenous demand")
-        )
-        df_group = df_converted[df_converted.carrier.isin(group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
-    # Aggregate hydrogen demand to match input data resolution
-    elif table == "hydrogen_demand":
-        group = ["power generation"]
-        df_other = (
-            df_converted[
-                (~df_converted.carrier.isin(group))
-                & (~df_converted.carrier.isin(["total", "e-fuels"]))
-            ]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="exogenous demand")
-        )
-        df_group = df_converted[df_converted.carrier.isin(group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
-    # Aggregate hydrogen import sources together to match input data resolution
-    elif table == "hydrogen_supply":
-        to_group = ["low carbon imports", "renewable imports"]
-        df_other = (
-            df_converted[df_converted.carrier.isin(to_group)]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="imports (renewable & low carbon)")
-        )
-        df_group = df_converted[~df_converted.carrier.isin(to_group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
+    df_clean = clean_data_for_benchmarking(table, df_converted)
 
-        to_group = ["smr (grey)", "smr with ccs (blue)"]
-        df_other = (
-            df_converted[df_converted.carrier.isin(to_group)]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="smr (grey) and smr with ccs (blue)")
-        )
-        df_group = df_converted[~df_converted.carrier.isin(to_group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
-    # Remove carriers not explicitly modeled
-    elif table == "final_energy_demand":
-        df_converted = df_converted[
-            ~df_converted.carrier.isin(["total", "heat", "solids", "others"])
-        ]
-    elif table == "power_capacity":
-        to_group = ["coal + other fossil", "biofuels"]
-        df_other = (
-            df_converted[df_converted.carrier.isin(to_group)]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="coal + other fossil (incl. biofuels)")
-        )
-        df_group = df_converted[~df_converted.carrier.isin(to_group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
-    # Remove aggregated values
-    else:
-        df_converted = df_converted[
-            ~df_converted.carrier.isin(
-                ["sum", "aggregated", "total generation", "total"]
-            )
-        ]
-
-    return df_converted
+    return df_clean
 
 
 if __name__ == "__main__":
