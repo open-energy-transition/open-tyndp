@@ -115,7 +115,7 @@ def get_elec_demand(
     df = convert_units(df, unit_col="Unit_Name")
 
     data = (
-        df.groupby("year")
+        df.groupby(["year", "unit"])
         .value.sum()
         .reset_index()
         .assign(
@@ -173,7 +173,7 @@ def get_power_capacities(
         df = convert_units(df, unit_col="Unit_Name")
 
         df = (
-            df.groupby(["year", "carrier"])
+            df.groupby(["year", "carrier", "unit"])
             .value.sum()
             .reset_index()
             .assign(
@@ -185,7 +185,7 @@ def get_power_capacities(
 
     data = (
         pd.concat(data)
-        .groupby(["year", "carrier", "scenario", "table"])
+        .groupby(["year", "carrier", "scenario", "table", "unit"])
         .sum()
         .reset_index()
         .assign(bus="EU27")

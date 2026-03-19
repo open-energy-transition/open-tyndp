@@ -192,18 +192,13 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_demand":
         grouper = ["carrier"]
-        df = (
-            n.statistics.withdrawal(
-                comps=demand_comps,
-                bus_carrier="H2",
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(index="H2 pipeline", errors="ignore")
-        )
+        exclusions = ["H2 pipeline"]
+        df = n.statistics.withdrawal(
+            comps=demand_comps,
+            bus_carrier="H2",
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
         exclusions = ["electricity distribution grid", "DC", "DC_OH"]
@@ -236,6 +231,21 @@ def compute_benchmark(
         df = pd.concat([df, df_offwind_h2])
     elif table == "power_generation":
         grouper = ["carrier"]
+        exclusions = [
+            "DC",
+            "DC_OH",
+            "electricity distribution grid",
+            "battery discharger",
+            "battery charger",
+            "home battery discharger",
+            "home battery charger",
+            "PHS",
+            "hydro-phs-turbine",
+            "hydro-phs-pump",
+            "hydro-phs-pure-turbine",
+            "hydro-phs-pure-pump",
+            "H2 Electrolysis",
+        ]
         df = (
             n.statistics.supply(
                 comps=supply_comps + ["StorageUnit"],
@@ -246,48 +256,31 @@ def compute_benchmark(
             )
             .mul(sws, axis=1)
             .sum(axis=1)
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(
-                index=[
-                    "DC",
-                    "DC_OH",
-                    "electricity distribution grid",
-                    "battery discharger",
-                    "battery charger",
-                    "home battery discharger",
-                    "home battery charger",
-                    "PHS",
-                    "hydro-phs-turbine",
-                    "hydro-phs-pump",
-                    "hydro-phs-pure-turbine",
-                    "hydro-phs-pure-pump",
-                    "H2 Electrolysis",
-                ],
-                errors="ignore",
-            )
+            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
         )
 
         # TYNDP 2024 report available generation for renewables (pre-curtailment)
         # and add H2 offwind capacities in MWh_e
         # TODO Review once solar thermals are integrated
         res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
-        res_idx = (
-            n.generators[n.generators.carrier.isin(res_carriers)]
-            .query("bus in @eu27_idx")
-            .index
-        )
+        res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
         eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
 
         res_gen = (
             (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
             .div(eff_dc_to_b0)
-            .groupby(n.generators.carrier)
+            .groupby([n.generators.bus, n.generators.carrier])
             .sum()
         )
-        df = df.reindex(df.index.union(res_carriers).rename("carrier"))
+        df = df.reindex(df.index.union(res_gen.index))
         df.loc[res_gen.index] = res_gen.values
+
+        df = (
+            df.reset_index()
+            .assign(bus=lambda df: df.bus.str.split(" ").str[0])
+            .groupby(["bus"] + grouper)
+            .sum()[0]
+        )
 
     elif table == "methane_supply":
         grouper = ["carrier"]
@@ -313,18 +306,13 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
-        df = (
-            n.statistics.supply(
-                comps=supply_comps,
-                bus_carrier="H2",
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(index=["H2 pipeline", "H2 pipeline OH"], errors="ignore")
-        )
+        exclusions = ["H2 pipeline", "H2 pipeline OH"]
+        df = n.statistics.supply(
+            comps=supply_comps,
+            bus_carrier="H2",
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "biomass_supply":
         grouper = ["carrier"]
         df_fed_btl = n.statistics.withdrawal(
