@@ -104,8 +104,15 @@ def load_data(
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
 
     # Add Country column
-    benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].where(
-        benchmarks_raw["bus"] == "EU27", benchmarks_raw["bus"].str[:2]
+    country_map = {
+        "IBIT": "IT",
+        "IBIT H2": "IT",
+        "IBFI": "FI",
+        "IBFI H2": "FI",
+        "EU27": "EU27",
+    }
+    benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
+        lambda x: country_map.get(x, x[:2])
     )
 
     return benchmarks_raw
