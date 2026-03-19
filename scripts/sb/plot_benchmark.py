@@ -135,7 +135,9 @@ def _plot_scenario_comparison(
 
     add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_{bus}_cy{cyear}_{year}.png")
+    output_filename = Path(
+        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.png"
+    )
     fig.savefig(output_filename, bbox_inches="tight")
 
     plt.close(fig)
@@ -223,7 +225,9 @@ def _plot_time_series(
 
     add_metadata(ax, fig)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_{bus}_cy{cyear}_{year}.png")
+    output_filename = Path(
+        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.png"
+    )
     fig.savefig(output_filename, bbox_inches="tight")
 
     plt.close(fig)
