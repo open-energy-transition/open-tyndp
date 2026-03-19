@@ -9346,6 +9346,7 @@ if __name__ == "__main__":
     tyndp_trajectories = None
     tyndp_nuclear_profiles = None
     smr_capacities = None
+    h2_storage_capacities = None
 
     # Read in PEMMDB data, trajectories and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
