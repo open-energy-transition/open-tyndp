@@ -128,7 +128,7 @@ def _plot_scenario_comparison(
     for c in ax.containers:
         ax.bar_label(
             c,
-            fmt=lambda x: f"{x:.1f}" if 0 < abs(x) < 1 else f"{x:.0f}",
+            fmt=lambda x: f"{x:.1f}" if 0 < abs(x) < 10 else f"{x:.0f}",
             padding=3,
             fontsize=8,
         )
@@ -331,7 +331,7 @@ def plot_benchmark(
                 scenario,
                 cyear,
                 model_col,
-                rfc_cols,
+                [c for c in rfc_cols if c in bench_year.columns],
                 rfc_source,
                 source_unit,
                 bench_colors,
@@ -407,6 +407,7 @@ def plot_overview(
     scenario: str,
     snapshots: dict[str, str],
     metric: str = "sMAPE",
+    bus_col_name: str = "bus",
 ):
     """
     Plot benchmark overview figure.
@@ -423,6 +424,8 @@ def plot_overview(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     metric : str, default "sMAPE"
         Metric to plot.
+    bus_col_name : str, default "bus"
+        Bus column name.
     """
     fig, ax = plt.subplots(figsize=(12, 8))
     cyear = get_snapshots(snapshots)[0].year
@@ -441,7 +444,7 @@ def plot_overview(
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Comparison of Open-TYNDP and TYNDP 2024 outputs, CY {cyear} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP 2024 outputs by {bus_col_name}, CY {cyear} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
         ylim=[0, max(df_clean[metric].max() + 0.1, 1)],
     )
@@ -543,7 +546,9 @@ if __name__ == "__main__":
                 threads=threads,
             )
             indicators = pd.read_csv(kpis_in, index_col=0)
-            plot_overview(indicators, kpis_out, scenario, snapshots)
+            plot_overview(
+                indicators, kpis_out, scenario, snapshots, bus_col_name=bus_col_name
+            )
         else:
             Path(kpis_out).touch()
 
