@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: ["sb-barrier-cba-barrier", "sb-simplex-cba-barrier", "sb-barrier-cba-simplex", "sb-simplex-cba-simplex"]
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -21,7 +21,6 @@ scenario:
   clusters:
   - all
   planning_horizons:
-  - 2030
   - 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
@@ -333,7 +332,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 3H  # Use 1H for high resolution results in SB (requires commercial solver)
+    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
@@ -418,7 +417,6 @@ cba:
       central: 628
       high: 662
   planning_horizons:
-  - 2030
   - 2040
   cba_scenario_input:
     use_presolved: false
