@@ -293,6 +293,17 @@ def load_benchmark(
         df_converted = df_converted[
             ~df_converted.carrier.isin(["total", "heat", "solids", "others"])
         ]
+    elif table == "power_capacity":
+        to_group = ["coal + other fossil", "biofuels"]
+        df_other = (
+            df_converted[df_converted.carrier.isin(to_group)]
+            .groupby(["scenario", "year", "unit", "table"])
+            .sum()
+            .reset_index()
+            .assign(carrier="coal + other fossil (incl. biofuels)")
+        )
+        df_group = df_converted[~df_converted.carrier.isin(to_group)]
+        df_converted = pd.concat([df_group, df_other], ignore_index=True)
     # Remove aggregated values
     else:
         df_converted = df_converted[

@@ -145,13 +145,13 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-light: oil
-        oil-shale: oil
+        coal: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
         gas-ccgt: methane
         gas-ccgt-ccs: methane
         gas-ocgt: methane
@@ -202,13 +202,13 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-light: oil
-        oil-shale: oil
+        coal: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
         gas-ccgt: methane
         gas-ccgt-ccs: methane
         gas-ocgt: methane
