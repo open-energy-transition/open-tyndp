@@ -82,6 +82,10 @@ benchmarking:
         gas-ccgt-ccs: power generation
         gas-ocgt: power generation
         gas-conv: power generation
+        other-non-res-gas-conv: power generation
+        other-non-res-gas-ccgt: power generation
+        other-non-res-gas-ccgt-ccs: power generation
+        other-non-res-gas-ocgt: power generation
         SMR: smr
         SMR CC: smr
         exogenous gas demand: exogenous demand
@@ -169,6 +173,17 @@ benchmarking:
         hydro-reservoir: hydro and pumped storage
         other-res-biomass: small scale res
         other-res-mix: small scale res
+        other-non-res-gas-conv: chp and small thermal
+        other-non-res-gas-ccgt: chp and small thermal
+        other-non-res-gas-ccgt-ccs: chp and small thermal
+        other-non-res-gas-ocgt: chp and small thermal
+        other-non-res-coal: chp and small thermal
+        other-non-res-coal-ccs: chp and small thermal
+        other-non-res-lignite: chp and small thermal
+        other-non-res-lignite-ccs: chp and small thermal
+        other-non-res-oil-light: chp and small thermal
+        other-non-res-oil-heavy: chp and small thermal
+        other-non-res-oil-shale: chp and small thermal
 
     power_generation:
       table_type: scenario_comparison
@@ -221,6 +236,17 @@ benchmarking:
         hydro-reservoir: hydro (exc. pump storage)
         other-res-biomass: other res
         other-res-mix: other res
+        other-non-res-gas-conv: other non-res
+        other-non-res-gas-ccgt: other non-res
+        other-non-res-gas-ccgt-ccs: other non-res
+        other-non-res-gas-ocgt: other non-res
+        other-non-res-coal: other non-res
+        other-non-res-coal-ccs: other non-res
+        other-non-res-lignite: other non-res
+        other-non-res-lignite-ccs: other non-res
+        other-non-res-oil-light: other non-res
+        other-non-res-oil-heavy: other non-res
+        other-non-res-oil-shale: other non-res
 
     methane_supply:
       table_type: scenario_comparison
@@ -374,3 +400,14 @@ benchmarking:
         hydro-reservoir: hydro
         other-res-biomass: other res
         other-res-mix: other res
+        other-non-res-gas-conv: other non-res
+        other-non-res-gas-ccgt: other non-res
+        other-non-res-gas-ccgt-ccs: other non-res
+        other-non-res-gas-ocgt: other non-res
+        other-non-res-coal: other non-res
+        other-non-res-coal-ccs: other non-res
+        other-non-res-lignite: other non-res
+        other-non-res-lignite-ccs: other non-res
+        other-non-res-oil-light: other non-res
+        other-non-res-oil-heavy: other non-res
+        other-non-res-oil-shale: other non-res

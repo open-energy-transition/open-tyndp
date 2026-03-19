@@ -409,7 +409,6 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         "table=='power_generation' and carrier.isin(['hydrogen-ccgt', 'hydrogen-fuel-cell'])"
     ).copy()
     eff_fuel_cell, eff_ccgt = 0.5, 0.59  # TODO Remove hard coded values
-    h2_power.loc[:, "table"] = "hydrogen_demand"
     mask_eu27 = ~(h2_power["bus"] == "EU27")
     h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + "_H2"
     h2_power.loc[h2_power.carrier == "hydrogen-ccgt", "value"] = h2_power.loc[
@@ -418,12 +417,12 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
     h2_power.loc[h2_power.carrier == "hydrogen-fuel-cell", "value"] = h2_power.loc[
         h2_power.carrier == "hydrogen-fuel-cell", "value"
     ].div(eff_fuel_cell)
+    h2_power.loc[:, "table"] = "hydrogen_demand"
     h2_power.loc[:, "carrier"] = "power generation"
 
     MM_data = (
         pd.concat([MM_data, h2_power])
-        .replace("hydrogen-ccgt", "hydrogen")
-        .replace("hydrogen-fuel-cell", "hydrogen")
+        .replace({"hydrogen-ccgt": "hydrogen", "hydrogen-fuel-cell": "hydrogen"})
         .groupby([c for c in MM_data.columns if c != "value"])
         .sum()
         .reset_index()
