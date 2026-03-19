@@ -55,6 +55,7 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import (
+    align_demand_to_snapshots,
     check_cyear,
     configure_logging,
     get_snapshots,
@@ -223,19 +224,6 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
         scenario=scenario,
         cyear=cyear,
     )
-
-
-def align_demand_to_snapshots(demand, snapshots):
-    """
-    Convert demand index to DatetimeIndex, adjust year to match snapshots,
-    and reindex to snapshots.
-    """
-
-    demand.index = pd.to_datetime(demand.index)
-    target_year = snapshots[0].year
-    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
-
-    return demand.reindex(snapshots)
 
 
 if __name__ == "__main__":
