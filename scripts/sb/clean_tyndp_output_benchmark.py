@@ -253,7 +253,10 @@ def load_MM_sheet(
     df = df.loc[output_type]
 
     # Rename and filter column names (buses)
-    df.rename(columns=lambda x: x.replace("UK", "GB").replace("IB", ""), inplace=True)
+    df.rename(
+        columns=lambda x: x.replace("UK", "GB").replace("IB", "").replace("_H2", " H2"),
+        inplace=True,
+    )
     df_nodal = (
         df.T.groupby(df.columns)
         .sum()
@@ -410,7 +413,7 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
     ).copy()
     eff_fuel_cell, eff_ccgt = 0.5, 0.59  # TODO Remove hard coded values
     mask_eu27 = ~(h2_power["bus"] == "EU27")
-    h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + "_H2"
+    h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + " H2"
     h2_power.loc[h2_power.carrier == "hydrogen-ccgt", "value"] = h2_power.loc[
         h2_power.carrier == "hydrogen-ccgt", "value"
     ].div(eff_ccgt)
