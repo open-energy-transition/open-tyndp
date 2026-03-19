@@ -3597,7 +3597,7 @@ def _add_h2_stores_and_links_tyndp(
         "Bus",
         bus_names,
         location=buses,
-        carrier="H2",
+        carrier=f"H2 {storage_tech}",
         x=n.buses.loc[list(buses)].x.values,
         y=n.buses.loc[list(buses)].y.values,
     )
