@@ -9,6 +9,9 @@ run:
   disable_progressbar: true
   shared_resources:
     policy: false
+  scenarios:
+    enable: true
+    file: config/scenarios.tyndp.yaml
 
 # TODO set foresight
 foresight: myopic
