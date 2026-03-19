@@ -365,6 +365,7 @@ def orchestrate_benchmark(
     options: dict,
     tech_colors: dict,
     bench_colors: dict,
+    threads: int,
 ):
     logger.info(f"Producing benchmark figures by {bus_col_name}")
 
@@ -396,7 +397,7 @@ def orchestrate_benchmark(
         bus_col_name=bus_col_name,
     )
 
-    with mp.Pool(processes=snakemake.threads) as pool:
+    with mp.Pool(processes=threads) as pool:
         list(tqdm(pool.starmap(func, table_bus_col_pairs), **tqdm_kwargs))
 
 
@@ -507,46 +508,43 @@ if __name__ == "__main__":
     mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
-    kpis_in = snakemake.input.kpis
-    kpis_out = snakemake.output.kpis
+    threads = snakemake.threads
 
     # Load data
     benchmarks_raw = load_data(
         benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn, mm_data_fn
     )
 
-    benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].where(
-        benchmarks_raw["bus"] == "EU27", benchmarks_raw["bus"].str[:2]
-    )
-
-    # Produce benchmark figures by bus
-    if options["spatial"]["by_bus"]:
-        orchestrate_benchmark(
-            bus_col_name="bus",
-            benchmarks_raw=benchmarks_raw,
-            output_dir=output_dir,
-            scenario=scenario,
-            snapshots=snapshots,
-            options=options,
-            tech_colors=tech_colors,
-            bench_colors=bench_colors,
-        )
-
-    # Produce benchmark figures by bus
-    if options["spatial"]["by_country"]:
-        orchestrate_benchmark(
-            bus_col_name="country",
-            benchmarks_raw=benchmarks_raw,
-            output_dir=output_dir,
-            scenario=scenario,
-            snapshots=snapshots,
-            options=options,
-            tech_colors=tech_colors,
-            bench_colors=bench_colors,
-        )
-
-    # Plot overview
-    indicators = pd.read_csv(kpis_in, index_col=0)
-    plot_overview(indicators, kpis_out, scenario, snapshots)
+    # Produce benchmark figures
+    for bus_col_name, kpis_in, kpis_out, enabled in [
+        (
+            "bus",
+            snakemake.input.kpis_by_bus,
+            snakemake.output.kpis_by_bus,
+            options["spatial"]["by_bus"],
+        ),
+        (
+            "country",
+            snakemake.input.kpis_by_country,
+            snakemake.output.kpis_by_ct,
+            options["spatial"]["by_country"],
+        ),
+    ]:
+        if enabled:
+            orchestrate_benchmark(
+                bus_col_name=bus_col_name,
+                benchmarks_raw=benchmarks_raw,
+                output_dir=output_dir,
+                scenario=scenario,
+                snapshots=snapshots,
+                options=options,
+                tech_colors=tech_colors,
+                bench_colors=bench_colors,
+                threads=threads,
+            )
+            indicators = pd.read_csv(kpis_in, index_col=0)
+            plot_overview(indicators, kpis_out, scenario, snapshots)
+        else:
+            Path(kpis_out).touch()
 
     logger.info("Benchmark plotting completed successfully")

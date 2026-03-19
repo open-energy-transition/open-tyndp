@@ -14,8 +14,8 @@ models using multiple accuracy indicators.
 
 import logging
 import multiprocessing as mp
-import os
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -102,6 +102,11 @@ def load_data(
             )
 
     benchmarks_raw = benchmarks_raw.query("year in @available_years")
+
+    # Add Country column
+    benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].where(
+        benchmarks_raw["bus"] == "EU27", benchmarks_raw["bus"].str[:2]
+    )
 
     return benchmarks_raw
 
@@ -300,6 +305,7 @@ def compute_all_indicators(
     carrier: str = None,
     df_na: pd.DataFrame = pd.DataFrame(),
     cols_na: list[str] = ["carrier"],
+    missing_name: str = "Missing buses",
 ) -> pd.DataFrame:
     """
     Compute all accuracy indicators for a given dataset.
@@ -322,6 +328,8 @@ def compute_all_indicators(
         DataFrame with missing values for missing carrier calculation.
     cols_na : list[str], default ["carrier"]
         Columns to consider when counting for missing items.
+    missing_name : str, default "Missing buses"
+        Column name to use to report missing buses.
 
     Returns
     -------
@@ -355,7 +363,7 @@ def compute_all_indicators(
     # as zeros may denote absent data rather than true zero values
     if rfc_col == SOURCES_MAP["market_out"]:
         df_na = df_na[(df_na[rfc_col] != 0) & (df_na[model_col] != 0)]
-    missing_name = "Missing buses" if "bus" in cols_na else "Missing carriers"
+    missing_name = missing_name if "spatial" in cols_na else "Missing carriers"
     indicators[missing_name] = _compute_missing(df_na, cols=cols_na)
 
     if carrier:
@@ -379,6 +387,7 @@ def compute_indicators(
     rfc_col: str = "TYNDP 2024 Scenarios Report",
     carrier_col: str = "carrier",
     precision: int = 2,
+    bus_col_name: str = "bus",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Calculate accuracy indicators following Wen et al. (2022) methodology to assess model performance
@@ -415,6 +424,8 @@ def compute_indicators(
         Column name for carrier/technology grouping.
     precision: int, default 2
         Number of decimal places to round to.
+    bus_col_name : str, default "bus"
+        Bus column name.
 
     Returns
     -------
@@ -424,6 +435,7 @@ def compute_indicators(
        Series containing overall accuracy indicators.
     """
     opt = options["tables"][table]
+    missing_name = "Missing countries" if bus_col_name != "bus" else "Missing buses"
 
     # Aggregate time-varying data to the given snapshots
     if opt["table_type"] == "time_series":
@@ -437,7 +449,7 @@ def compute_indicators(
 
     # Compute overall indicators of the table
     indicators = compute_all_indicators(
-        df, table, rfc_col=rfc_col, df_na=df_na.query("bus=='EU27'")
+        df, table, rfc_col=rfc_col, df_na=df_na.query("spatial=='EU27'")
     ).round(precision)
 
     # Compute per-carrier indicators
@@ -449,7 +461,7 @@ def compute_indicators(
                 carrier=carrier,
                 rfc_col=rfc_col,
                 df_na=df_na.query("carrier==@carrier"),
-                cols_na=["carrier", "bus"],
+                cols_na=["carrier", "spatial"],
             )
             for carrier, df_c in df.groupby(level=carrier_col)
         ]
@@ -462,7 +474,7 @@ def compute_indicators(
         [
             pd.DataFrame(
                 [0] * len(missing_carriers),
-                columns=["Missing buses"],
+                columns=[missing_name],
                 index=[(table, carrier) for carrier in missing_carriers],
             )
         ]
@@ -474,8 +486,8 @@ def compute_indicators(
     )
 
     # Add reference and missing buses to overall indicators
-    if "Missing buses" in df_carrier:
-        indicators.loc[:, "Missing buses"] = df_carrier["Missing buses"].max()
+    if missing_name in df_carrier:
+        indicators.loc[:, missing_name] = df_carrier[missing_name].max()
     indicators.loc[:, "reference"] = rfc_col
 
     return df_carrier, indicators
@@ -487,15 +499,20 @@ def compare_sources(
     scenario: str,
     snapshots: dict[str, str],
     options: dict,
+    model_col: str = "Open-TYNDP",
+    bus_col_name: str = "bus",
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Compare data sources for a specified table using accuracy indicators. The function expects
     paired columns representing workflow results estimates and TYNDP 2024 baseline values.
+    Results are written to CSV in output_dir.
 
     Parameters
     ----------
     table : str
         Benchmark metric to compute.
+    bus : str
+        Bus of the current figure.
     benchmarks_raw : pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
     scenario : str
@@ -504,6 +521,10 @@ def compare_sources(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     options : dict
         Full benchmarking configuration.
+    model_col : str, default "Open-TYNDP"
+        Column name for model values.
+    bus_col_name : str, default "bus"
+        Bus column name.
 
     Returns
     -------
@@ -516,23 +537,37 @@ def compare_sources(
     opt = options["tables"][table]
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
-    sources = ["Open-TYNDP", rfc_source]  # noqa: F841
+    sources = [model_col, rfc_source]  # noqa: F841
 
     # Clean data
-    logger.info(f"Making benchmark for {table} using {rfc_source} and Open-TYNDP")
-    benchmarks = benchmarks_raw.query("table==@table and source in @sources").dropna(
-        how="all", axis=1
+    logger.debug(
+        f"Making benchmark for {table} using {bus_col_name} using {rfc_source} and {model_col}"
+    )
+    benchmarks = (
+        benchmarks_raw.query("table==@table and source in @sources")
+        .dropna(how="all", axis=1)
+        .assign(spatial=lambda df: df[bus_col_name])
+        .drop(columns=["bus", "country"], errors="ignore")
+    )
+    benchmarks = (
+        benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
+        .sum()
+        .reset_index()
     )
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
     ]
 
+    missing_bus_name = "Missing countries" if bus_col_name != "bus" else "Missing buses"
+
     if benchmarks.empty:
         logger.warning(
-            f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets"
+            f"No data available for table '{table}' in {model_col} or TYNDP 2024 datasets"
         )
         return pd.DataFrame(), pd.DataFrame(
-            [["NA", "NA"]], index=[table], columns=["Missing carriers", "Missing buses"]
+            [["NA", "NA"]],
+            index=[table],
+            columns=["Missing carriers", missing_bus_name],
         )
 
     df = benchmarks.pivot_table(
@@ -556,12 +591,14 @@ def compare_sources(
                 f"Skipping table {table} for scenario {scenario} and climate year {cyear}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
             )
         return pd.DataFrame(), pd.DataFrame(
-            [["NA", "NA"]], index=[table], columns=["Missing carriers", "Missing buses"]
+            [["NA", "NA"]],
+            index=[table],
+            columns=["Missing carriers", missing_bus_name],
         )
 
     # Compare sources
     df, indicators = compute_indicators(
-        df, table, snapshots, options, rfc_col=rfc_source
+        df, table, snapshots, options, rfc_col=rfc_source, bus_col_name=bus_col_name
     )
 
     return df, indicators
@@ -570,6 +607,8 @@ def compare_sources(
 def compute_overall_accuracy(
     benchmarks_raw: pd.DataFrame,
     options: dict,
+    bus_col_name: str = "bus",
+    model_col: str = "Open-TYNDP",
 ) -> pd.DataFrame:
     """
     Compute overall accuracy indicators for a specified benchmark table.
@@ -580,6 +619,8 @@ def compute_overall_accuracy(
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
     options : dict
         Full benchmarking configuration.
+    bus_col_name : str, default "bus"
+        Bus column name.
 
     Returns
     -------
@@ -596,7 +637,7 @@ def compute_overall_accuracy(
     }
 
     df_global = benchmarks_raw.loc[
-        (benchmarks_raw.source == "Open-TYNDP")
+        (benchmarks_raw.source == model_col)
         | (benchmarks_raw.source == benchmarks_raw.table.map(sources_map))
     ]
 
@@ -604,7 +645,7 @@ def compute_overall_accuracy(
         df_global.query("table not in @tables_series")
         .dropna(how="all", axis=1)
         .pivot_table(
-            index=["scenario", "year", "carrier", "table", "bus"],
+            index=["scenario", "year", "carrier", "table", bus_col_name],
             values="value",
             columns="source",
         )
@@ -615,7 +656,7 @@ def compute_overall_accuracy(
         .assign(
             reference=lambda df: df.apply(lambda r: r[sources_map[r.table]], axis=1)
         )
-        .set_index("table", append=True)[["Open-TYNDP", "reference"]]
+        .set_index("table", append=True)[[model_col, "reference"]]
     )
     mask = df_global.isna().any(axis=1)
     df = df_global[~mask]
@@ -625,6 +666,68 @@ def compute_overall_accuracy(
     ).round(2)
 
     return indicator_total
+
+
+def orchestrate_benchmark(
+    bus_col_name: str,
+    benchmarks_raw: pd.DataFrame,
+    scenario: str,
+    snapshots: dict[str, str],
+    options: dict,
+    output_dir: str,
+    output_kpis: str,
+    version: str,
+    clusters: str,
+    opts: str,
+    sector_opts: str,
+    threads: int,
+):
+    logger.info(f"Computing benchmarks by {bus_col_name}")
+
+    output_dir_bus_col = Path(output_dir, f"by_{bus_col_name}")
+    output_dir_bus_col.mkdir(parents=True, exist_ok=True)
+
+    tqdm_kwargs = {
+        "ascii": False,
+        "unit": " benchmark",
+        "total": len(options["tables"]),
+        "desc": "Computing benchmark",
+    }
+
+    func = partial(
+        compare_sources,
+        benchmarks_raw=benchmarks_raw,
+        scenario=scenario,
+        snapshots=snapshots,
+        options=options,
+        bus_col_name=bus_col_name,
+    )
+
+    with mp.Pool(processes=threads) as pool:
+        results = list(tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs))
+        benchmarks, indicators = zip(*results)
+
+    # Combine and write all benchmark data
+    for benchmark in benchmarks:
+        if not benchmark.empty:
+            table = benchmark.index.get_level_values(0)[0]
+            benchmark_i = benchmark.loc[table].assign(version=version)
+            benchmark_i.to_csv(
+                Path(
+                    output_dir_bus_col,
+                    f"{table}_cy{snapshots['start'][:4]}_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+                )
+            )
+
+    # Compute global indicator
+    indicators_total = compute_overall_accuracy(
+        benchmarks_raw, options, bus_col_name=bus_col_name
+    )
+
+    indicators = pd.concat(
+        [pd.concat(indicators).sort_index(), indicators_total]
+    ).assign(version=version)
+    indicators.to_csv(output_kpis)
 
 
 if __name__ == "__main__":
@@ -648,52 +751,39 @@ if __name__ == "__main__":
     benchmarks_fn = snakemake.input.benchmarks
     mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
+    output_dir = snakemake.output.benchmarks
+    clusters = snakemake.wildcards.clusters
+    opts = snakemake.wildcards.opts
+    sector_opts = snakemake.wildcards.sector_opts
+    threads = snakemake.threads
 
     # Load data
     benchmarks_raw = load_data(
         benchmarks_fn, results_fn, scenario, mm_data_fn=mm_data_fn
     )
 
-    # Compute benchmarks
-    logger.info("Computing benchmarks")
-
-    tqdm_kwargs = {
-        "ascii": False,
-        "unit": " benchmark",
-        "total": len(options["tables"]),
-        "desc": "Computing benchmark",
-    }
-
-    func = partial(
-        compare_sources,
-        benchmarks_raw=benchmarks_raw,
-        scenario=scenario,
-        snapshots=snapshots,
-        options=options,
-    )
-
-    with mp.Pool(processes=snakemake.threads) as pool:
-        results = list(tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs))
-        benchmarks, indicators = zip(*results)
-
     # Get version
     version = get_version()
 
-    # Combine and write all benchmark data
-    os.makedirs(snakemake.output.benchmarks, exist_ok=True)
-    for benchmark in benchmarks:
-        if not benchmark.empty:
-            table = benchmark.index.get_level_values(0)[0]
-            benchmark_i = benchmark.loc[table].assign(version=version)
-            benchmark_i.to_csv(
-                snakemake.output.benchmarks
-                + f"/{table}_eu27_cy{snapshots['start'][:4]}_s_{snakemake.wildcards.clusters}_{snakemake.wildcards.opts}_{snakemake.wildcards.sector_opts}_all_years.csv"
+    # Compute benchmarks
+    for bus_col_name, output_kpis, enabled in [
+        ("bus", snakemake.output.kpis_by_bus, options["spatial"]["by_bus"]),
+        ("country", snakemake.output.kpis_by_country, options["spatial"]["by_country"]),
+    ]:
+        if enabled:
+            orchestrate_benchmark(
+                bus_col_name=bus_col_name,
+                benchmarks_raw=benchmarks_raw,
+                scenario=scenario,
+                snapshots=snapshots,
+                options=options,
+                output_dir=output_dir,
+                output_kpis=output_kpis,
+                version=version,
+                clusters=clusters,
+                opts=opts,
+                sector_opts=sector_opts,
+                threads=threads,
             )
-
-    # Compute global indicator
-    indicators_total = compute_overall_accuracy(benchmarks_raw, options)
-
-    indicators = pd.concat(
-        [pd.concat(indicators).sort_index(), indicators_total]
-    ).assign(version=version)
-    indicators.to_csv(snakemake.output.kpis)
+        else:
+            pd.DataFrame().to_csv(output_kpis)

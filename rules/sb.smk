@@ -836,8 +836,10 @@ if config["benchmarking"]["enable"]:
                 RESULTS
                 + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/"
             ),
-            kpis=RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+            kpis_by_bus=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv",
+            kpis_by_country=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv",
         threads: 4
         resources:
             mem_mb=8000,
@@ -881,15 +883,19 @@ if config["benchmarking"]["enable"]:
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
             vp_data=RESULTS + "validation/resources/vp_data_tyndp.csv",
-            kpis=RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+            kpis_by_bus=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv",
+            kpis_by_country=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv",
         output:
             dir=directory(
                 RESULTS
                 + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/"
             ),
-            kpis=RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+            kpis_by_bus=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf",
+            kpis_by_ct=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf",
         threads: 4
         resources:
             mem_mb=8000,
@@ -949,9 +955,13 @@ rule prepare_benchmarks:
 
 rule make_benchmarks:
     input:
-        expand(
-            RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+        kpis_by_bus=expand(
+            rules.make_benchmark.output.kpis_by_bus,
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        kpis_by_country=expand(
+            rules.make_benchmark.output.kpis_by_country,
             **config["scenario"],
             run=config["run"]["name"],
         ),
@@ -959,9 +969,13 @@ rule make_benchmarks:
 
 rule plot_benchmarks:
     input:
-        expand(
-            RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+        kpis_by_bus=expand(
+            rules.plot_benchmark.output.kpis_by_bus,
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        kpis_by_ct=expand(
+            rules.plot_benchmark.output.kpis_by_ct,
             **config["scenario"],
             run=config["run"]["name"],
         ),
