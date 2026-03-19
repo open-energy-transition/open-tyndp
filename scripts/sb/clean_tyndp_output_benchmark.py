@@ -20,8 +20,10 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
+    align_demand_to_snapshots,
     configure_logging,
     convert_units,
+    get_snapshots,
     set_scenario_config,
 )
 
@@ -76,8 +78,8 @@ MM_CARRIER_MAPPING = {
     "Others non-renewable": "other non-res",
     "Battery Storage discharge (gen.)": "battery discharge",
     "Battery Storage charge (load)": "battery charge (load)",
-    "Hydrogen CCGT": "hydrogen",
-    "Hydrogen Fuel Cell": "hydrogen",
+    "Hydrogen CCGT": "hydrogen-ccgt",
+    "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
     "Demand Side Response Explicit": "demand shedding",
     "Demand Side Response Implicit": "demand shedding",
     # Hydrogen_demand
@@ -269,6 +271,42 @@ def load_MM_sheet(
     return final, df_ct
 
 
+def load_h2_demand_ts(
+    sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex
+) -> pd.DataFrame:
+    """
+    Load hourly H2 demand time series from a TYNDP Market Model Outputs Excel file.
+
+    Parameters
+    ----------
+    sheet_name : str
+        Name of the Excel sheet containing hourly H2 data.
+    filepath : str or Path
+        Path to the TYNDP Market Model Outputs Excel file.
+    snapshots : pd.DatetimeIndex
+        Model snapshot index.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of hourly H2 demand.
+    """
+    df = (
+        pd.read_excel(
+            filepath,
+            sheet_name=sheet_name,
+            skiprows=12,
+            index_col=1,
+        )
+        .filter(like="H2_LOAD")
+        .rename(lambda s: s.split("_")[0].replace("UK", "GB") + " H2", axis=1)
+    )
+
+    df = align_demand_to_snapshots(df, snapshots, format="%d%b%H:%M")
+
+    return df
+
+
 def set_load_sign(
     MM_data: pd.DataFrame,
     key_word: str = "load",
@@ -359,13 +397,35 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         "carrier",
     ] = "chp and small thermal"
 
+    # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand
+    h2_power = MM_data.query(
+        "table=='power_generation' and carrier.isin(['hydrogen-ccgt', 'hydrogen-fuel-cell'])"
+    ).copy()
+    eff_fuel_cell, eff_ccgt = 0.5, 0.59  # TODO Remove hard coded values
+    h2_power.loc[h2_power.carrier == "hydrogen-ccgt", "value"] = h2_power.loc[
+        h2_power.carrier == "hydrogen-ccgt", "value"
+    ].div(eff_ccgt)
+    h2_power.loc[h2_power.carrier == "hydrogen-fuel-cell", "value"] = h2_power.loc[
+        h2_power.carrier == "hydrogen-fuel-cell", "value"
+    ].div(eff_fuel_cell)
+    h2_power.loc[:, "table"] = "hydrogen_demand"
+    h2_power.loc[:, "carrier"] = "power generation"
+
+    MM_data = (
+        pd.concat([MM_data, h2_power])
+        .replace({"hydrogen-ccgt": "hydrogen", "hydrogen-fuel-cell": "hydrogen"})
+        .groupby([c for c in MM_data.columns if c != "value"])
+        .sum()
+        .reset_index()
+    )
+
     return MM_data
 
 
 def assign_meta_data(df, planning_horizon, scenario):
     df["scenario"] = f"TYNDP {scenario}"
     df["year"] = planning_horizon
-    df["source"] = "TYNDP 2024 Market Outputs"
+    df["source"] = "TYNDP 2024 Market Model Outputs"
 
 
 if __name__ == "__main__":
@@ -441,14 +501,24 @@ if __name__ == "__main__":
             )
     prices = pd.concat(prices_ct)
 
+    # load h2 demand time series
+    snapshots = get_snapshots(
+        snakemake.params.snapshots, snakemake.params.drop_leap_day
+    )
+    h2_demand_ts = load_h2_demand_ts(
+        sheet_name="Hourly H2 Data", filepath=tyndp_output_file, snapshots=snapshots
+    )
+
     # assign meta data
     assign_meta_data(MM_data, planning_horizon, scenario)
     assign_meta_data(MM_data_ct, planning_horizon, scenario)
     assign_meta_data(prices, planning_horizon, scenario)
     assign_meta_data(crossborder_agg, planning_horizon, scenario)
+    assign_meta_data(h2_demand_ts, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     crossborder_agg.to_csv(snakemake.output.crossborder)
     prices.to_csv(snakemake.output.prices)
+    h2_demand_ts.to_csv(snakemake.output.h2_demand)
