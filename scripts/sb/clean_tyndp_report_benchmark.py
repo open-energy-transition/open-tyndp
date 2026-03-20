@@ -188,7 +188,7 @@ def clean_data_for_benchmarking(table: str, df: pd.DataFrame) -> pd.DataFrame:
         df = df[~df.carrier.isin(["total", "heat", "solids", "others"])]
 
     # Group coal and biofuels together
-    elif table == "power_capacity":
+    elif table == "power_capacity" or table == "power_generation":
         df = _group_labels(
             df,
             ["coal + other fossil", "biofuels"],
@@ -206,6 +206,9 @@ def clean_data_for_benchmarking(table: str, df: pd.DataFrame) -> pd.DataFrame:
             ["oil"],
             "oil (incl. biofuels)",
         )
+
+        if table == "power_generation":
+            df = df[df.carrier != "total generation"]
 
     # Remove aggregated values
     else:
