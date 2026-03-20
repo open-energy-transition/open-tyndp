@@ -551,20 +551,9 @@ def compare_sources(
     logger.debug(
         f"Making benchmark for {table} using {bus_col_name} using {rfc_source} and {model_col}"
     )
-    benchmarks = (
-        benchmarks_raw.query("table==@table and source in @sources")
-        .dropna(how="all", axis=1)
-        .assign(spatial=lambda df: df[bus_col_name])
-        .drop(columns=["bus", "country"], errors="ignore")
+    benchmarks = benchmarks_raw.query("table==@table and source in @sources").dropna(
+        how="all", axis=1
     )
-    benchmarks = (
-        benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
-        .sum()
-        .reset_index()
-    )
-    available_columns = [
-        c for c in benchmarks.columns if c not in ["value", "source", "unit"]
-    ]
 
     missing_bus_name = "Missing countries" if bus_col_name != "bus" else "Missing buses"
 
@@ -577,6 +566,18 @@ def compare_sources(
             index=[table],
             columns=["Missing carriers", missing_bus_name],
         )
+
+    benchmarks = benchmarks.assign(spatial=lambda df: df[bus_col_name]).drop(
+        columns=["bus", "country"], errors="ignore"
+    )
+    benchmarks = (
+        benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
+        .sum()
+        .reset_index()
+    )
+    available_columns = [
+        c for c in benchmarks.columns if c not in ["value", "source", "unit"]
+    ]
 
     df = benchmarks.pivot_table(
         index=available_columns, values="value", columns="source", dropna=False
