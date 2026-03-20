@@ -125,7 +125,7 @@ all,all,oil-heavy-old1,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
 all,all,oil-heavy-old2,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
 all,all,oil-shale-old,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
 all,all,oil-shale-new,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
-all,all,h2-ccgt,VOM,3.3,EUR/MWh_e,ERAA 2025 Common Data,
+all,all,h2-ccgt,VOM,1.6,EUR/MWh_e,ERAA 2025 Common Data,
 all,all,gas-conv-old1,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,gas-conv-old2,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,gas-ccgt-old1,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
@@ -149,7 +149,7 @@ all,all,oil-heavy-old1,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Met
 all,all,oil-heavy-old2,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,oil-shale-old,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,oil-shale-new,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
-all,all,h2-ccgt,CO2 intensity,0.267,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
+all,all,h2-ccgt,CO2 intensity,0,tC02/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,2030,cavern-storage,investment,2000,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
 all,2035,cavern-storage,investment,1750,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
 all,2040,cavern-storage,investment,1500,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
