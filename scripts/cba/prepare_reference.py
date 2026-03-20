@@ -18,13 +18,24 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.cba._helpers import get_link_attrs
 
 logger = logging.getLogger(__name__)
 
+BUS_NAME_MAP = {"UK00": "GB00", "UKNI": "GBNI"}
 
-def update_or_add_link(n, bus0, bus1, delta, hurdle_costs):
+
+def normalize_bus_name(bus):
+    """Correct instances of UK00/UKNI to GB00/GBNI."""
+    return BUS_NAME_MAP.get(bus, bus)
+
+
+def update_or_add_link(n, bus0, bus1, delta, hurdle_costs, attrs):
     if pd.isna(delta) or delta == 0:
         return
+
+    bus0 = normalize_bus_name(bus0)
+    bus1 = normalize_bus_name(bus1)
 
     link_name = f"{bus0}-{bus1}-DC"
     if link_name in n.links.index:
@@ -63,7 +74,7 @@ def update_or_add_link(n, bus0, bus1, delta, hurdle_costs):
         p_nom=delta,
         p_nom_max=delta,
         marginal_cost=hurdle_costs,
-        capital_cost=0.0,
+        **attrs,
     )
     logger.info(f"Added missing link {link_name} with p_nom {delta:.2f}")
 
@@ -84,6 +95,8 @@ if __name__ == "__main__":
 
     # Load simplified network
     n = pypsa.Network(snakemake.input.network)
+
+    costs = pd.read_csv(snakemake.input.costs, index_col=0)
 
     # Load project definitions
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
@@ -110,14 +123,28 @@ if __name__ == "__main__":
             snakemake.input.corrections, quotechar="'", index_col=0
         )
         for border, row in corrections.iterrows():
-            bus0, bus1 = row["bus0"], row["bus1"]
-            update_or_add_link(
-                n,
-                bus0,
-                bus1,
-                row["p_nom"],
-                hurdle_costs,
-            )
+            if not isinstance(border, str) or "-" not in border:
+                continue
+            bus0, bus1 = border.split("-", 1)
+
+            match = transmission_projects[
+                (
+                    (transmission_projects["bus0"] == bus0)
+                    & (transmission_projects["bus1"] == bus1)
+                )
+                | (
+                    (transmission_projects["bus0"] == bus1)
+                    & (transmission_projects["bus1"] == bus0)
+                )
+            ]
+            project = match.iloc[0] if not match.empty else None
+
+            d1 = row["Correction - Summary Direction 1"]
+            d2 = row["Correction - Summary Direction 2"]
+
+            attrs = get_link_attrs(project, costs) if project is not None else {}
+            update_or_add_link(n, bus0, bus1, d1, hurdle_costs, attrs)
+            update_or_add_link(n, bus1, bus0, d2, hurdle_costs, attrs)
     else:
         logger.info(
             f"Skipping reference corrections for planning horizon {planning_horizons}"
