@@ -69,9 +69,7 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
         reader = csv.reader(f)
         header = next(reader)
         # add additional field to the new header structure
-        header.insert(0, "cyear")
         header.insert(0, "cyear_weight")
-        header.insert(0, "planning_horizon")
 
     # Write output file
     row_count = 0
@@ -103,9 +101,7 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
                 # Read and verify header
                 file_header = next(reader, None)
                 # add additional field to the new header structure
-                file_header.insert(0, "cyear")
                 file_header.insert(0, "cyear_weight")
-                file_header.insert(0, "planning_horizon")
                 if file_header != header:
                     logger.warning(
                         f"Header mismatch in {input_file}. "
@@ -115,13 +111,9 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
                 # Write all data rows
                 for row in reader:
                     if "Open-TYNDP" in row:
-                        row.insert(0, "" if cyear is None else str(cyear))
                         row.insert(0, cyear_weight)
-                        row.insert(0, planning_horizon)
                     else:
-                        row.insert(0, "")  # cyear
                         row.insert(0, 1)  # cyear_weight
-                        row.insert(0, planning_horizon)  # planning_horizon
                     writer.writerow(row)
                     row_count += 1
 

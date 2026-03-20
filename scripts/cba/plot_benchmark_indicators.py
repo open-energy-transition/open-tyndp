@@ -15,6 +15,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 from matplotlib.lines import Line2D
 
 from scripts._helpers import configure_logging, set_scenario_config
@@ -55,6 +56,7 @@ def benchmark_range(
 ) -> tuple[float, float, float] | None:
     """Return (min, mean, max) range for a benchmark indicator."""
     benchmark = df[(df["source"] == source) & (df["indicator"] == indicator)].copy()
+    benchmark.subindex = benchmark.subindex.fillna('explicit')
     if benchmark.empty:
         return None
 

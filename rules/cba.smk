@@ -247,8 +247,6 @@ rule simplify_sb_network:
 
 
 # build reference corrections between SB investments and CBA guidelines
-
-
 def get_elec_project_build_years(w):
     return config_provider("tyndp_investment_candidates", "elec_projects")(w).get(
         int(w.planning_horizons)
@@ -488,6 +486,7 @@ rule plot_indicators:
         transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
+        done_indicator=RESULTS + "cba/plots_{planning_horizons}/plots_{planning_horizons}_done.log",
     script:
         scripts("cba/plot_indicators.py")
 
@@ -513,7 +512,8 @@ rule plot_all_cba_benchmark:
 
 rule plot_weather_benchmark:
     input:
-        indicators=rules.collect_indicators.output.indicators,
+        # indicators=rules.collect_indicators.output.indicators,
+        indicators=rules.make_indicators.output.indicators,
     output:
         plot_file=RESULTS
         + "cba/ensemble_plots/ensemble_{cba_project}_{planning_horizons}.png",
@@ -556,11 +556,11 @@ rule summarize_all_indicators:
             transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
-            # run=config_provider("cba", "scenarios")(w),
-            allow_missing=True,
+            run=config_provider("cba", "scenarios")(w),
+            # allow_missing=True,
         ),
     output:
-        plot_file=RESULTS + "cba/ensemble_summary_plot/ensemble_all.png",
+        plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
     script:
         "../scripts/cba/summarize_all.py"
 
@@ -627,17 +627,23 @@ rule collect_cba_scenario:
             run=cba_scenarios(w),
         ),
         lambda w: expand(
-            rules.plot_indicators.output.plot_dir,
+            rules.plot_indicators.output.done_indicator,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
         ),
         lambda w: expand(
-            rules.plot_all_cba_benchmark.output.plot_dir,
+            rules.plot_cba_benchmark.output.plot_file,
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            cba_project=cba_projects(w),
+            run=cba_scenarios(w),
+        ),
+        lambda w: expand(
+            rules.plot_all_cba_benchmark.output.done_indicator, # plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
         ),
     output:
-        touch(RESULTS + "cba/all_scenarios"),
+        touch(RESULTS + "cba/all_scenarios.log"),
 
 
 rule cba:
@@ -655,8 +661,11 @@ rule cba:
         ),
         lambda w: expand(
             rules.summarize_all_indicators.output.plot_file,
+            planning_horizons=config["cba"]["planning_horizons"],
+            cba_project=cba_projects(w),
             run=cba_collection_scenarios(w),
         ),
+        # RESULTS + "cba/all_scenarios.log",
 
 
 # collect rules

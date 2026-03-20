@@ -2,8 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 
+
 # NT Scenario - Defined in config/config.tyndp.yaml
 NT:
+  tyndp_scenario: NT
+
+# test case
+test-tyndp:
   tyndp_scenario: NT
 
 # DE Scenario - Extends NT baseline with specific overrides below
@@ -176,7 +181,7 @@ GA:
 #        parallel: "off" # does not speed up solution
 
 
-cba-NT-cy1995:
+NT-cy1995:
 #  <<: *cba-common
   snapshots:
     start: "1995-01-01"
@@ -189,7 +194,7 @@ cba-NT-cy1995:
     sb_scenario: NT
 
 
-cba-NT-cy2008:
+NT-cy2008:
 #  <<: *cba-common
   snapshots:
     start: "2008-01-01"
@@ -202,7 +207,7 @@ cba-NT-cy2008:
     sb_scenario: NT
 
 
-cba-NT-cy2009:
+NT-cy2009:
 #  <<: *cba-common
   snapshots:
     start: "2009-01-01"
@@ -215,7 +220,7 @@ cba-NT-cy2009:
     sb_scenario: NT
 
 
-cba-DE-cy1995:
+DE-cy1995:
 #  <<: *cba-common
   cba:
     sb_scenario: DE
@@ -228,7 +233,7 @@ cba-DE-cy1995:
     default_cutout: europe-1995-sarah3-era5
 
 
-cba-DE-cy2008:
+DE-cy2008:
 #  <<: *cba-common
   cba:
     sb_scenario: DE
@@ -241,7 +246,7 @@ cba-DE-cy2008:
     default_cutout: europe-2008-sarah3-era5
 
 
-cba-DE-cy2009:
+DE-cy2009:
 #  <<: *cba-common
   cba:
     sb_scenario: DE
@@ -254,7 +259,7 @@ cba-DE-cy2009:
     default_cutout: europe-2009-sarah3-era5
 
 
-cba-GA-cy1995:
+GA-cy1995:
 #  <<: *cba-common
   cba:
     sb_scenario: GA
@@ -267,7 +272,7 @@ cba-GA-cy1995:
     default_cutout: europe-1995-sarah3-era5
 
 
-cba-GA-cy2008:
+GA-cy2008:
 #  <<: *cba-common
   cba:
     sb_scenario: GA
@@ -280,7 +285,7 @@ cba-GA-cy2008:
     default_cutout: europe-2008-sarah3-era5
 
 
-cba-GA-cy2009:
+GA-cy2009:
 #  <<: *cba-common
   cba:
     sb_scenario: GA
@@ -293,21 +298,16 @@ cba-GA-cy2009:
     default_cutout: europe-2009-sarah3-era5
 
 
-cba-NT:
+NT-cyears:
   cba:
-    scenarios: [cba-NT-cy2009, cba-NT-cy2008, cba-NT-cy1995]
+    scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
 
 
-cba-DE:
+DE-cyears:
   cba:
-    scenarios: [cba-DE-cy2009, cba-DE-cy2008, cba-DE-cy1995]
+    scenarios: [DE-cy2009, DE-cy2008, DE-cy1995]
 
 
-cba-GA:
+GA-cyears:
   cba:
-    scenarios: [cba-GA-cy2009, cba-GA-cy2008, cba-GA-cy1995]
-
-
-cba-all:
-  cba:
-    scenarios: [cba-NT-cy2009, cba-NT-cy2008, cba-NT-cy1995, cba-DE-cy2009, cba-DE-cy2008, cba-DE-cy1995, cba-GA-cy2009, cba-GA-cy2008, cba-GA-cy1995]
+    scenarios: [GA-cy2009, GA-cy2008, GA-cy1995]
