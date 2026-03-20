@@ -76,13 +76,31 @@ benchmarking:
         CCGT: power generation
         OCGT: power generation
         gas-ccgt: power generation
+        gas-ccgt-old1: power generation
+        gas-ccgt-old2: power generation
+        gas-ccgt-new: power generation
+        gas-ccgt-present1: power generation
+        gas-ccgt-present2: power generation
         gas-ccgt-ccs: power generation
         gas-ocgt: power generation
+        gas-ocgt-old: power generation
+        gas-ocgt-new: power generation
         gas-conv: power generation
+        gas-conv-old1: power generation
+        gas-conv-old2: power generation
         other-non-res-gas-conv: power generation
+        other-non-res-gas-conv-old1: power generation
+        other-non-res-gas-conv-old2: power generation
         other-non-res-gas-ccgt: power generation
+        other-non-res-gas-ccgt-old1: power generation
+        other-non-res-gas-ccgt-old2: power generation
+        other-non-res-gas-ccgt-new: power generation
+        other-non-res-gas-ccgt-present1: power generation
+        other-non-res-gas-ccgt-present2: power generation
         other-non-res-gas-ccgt-ccs: power generation
         other-non-res-gas-ocgt: power generation
+        other-non-res-gas-ocgt-old: power generation
+        other-non-res-gas-ocgt-new: power generation
         SMR: smr
         SMR CC: smr
         exogenous gas demand: exogenous demand
@@ -147,16 +165,35 @@ benchmarking:
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
         coal: coal + other fossil
+        coal-old1: coal + other fossil
+        coal-old2: coal + other fossil
+        coal-new: coal + other fossil
         coal+ccs: coal + other fossil
         lignite: coal + other fossil
+        lignite-old1: coal + other fossil
+        lignite-old2: coal + other fossil
+        lignite-new: coal + other fossil
         lignite+ccs: coal + other fossil
         oil-heavy: oil
+        oil-heavy-old1: oil
+        oil-heavy-old2: oil
         oil-light: oil
         oil-shale: oil
+        oil-shale-old: oil
+        oil-shale-new: oil
         gas-ccgt: methane
+        gas-ccgt-old1: methane
+        gas-ccgt-old2: methane
+        gas-ccgt-new: methane
+        gas-ccgt-present1: methane
+        gas-ccgt-present2: methane
         gas-ccgt-ccs: methane
         gas-ocgt: methane
+        gas-ocgt-old: methane
+        gas-ocgt-new: methane
         gas-conv: methane
+        gas-conv-old1: methane
+        gas-conv-old2: methane
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: chp and small thermal
@@ -171,16 +208,35 @@ benchmarking:
         other-res-biomass: small scale res
         other-res-mix: small scale res
         other-non-res-gas-conv: chp and small thermal
+        other-non-res-gas-conv-old1: chp and small thermal
+        other-non-res-gas-conv-old2: chp and small thermal
         other-non-res-gas-ccgt: chp and small thermal
+        other-non-res-gas-ccgt-old1: chp and small thermal
+        other-non-res-gas-ccgt-old2: chp and small thermal
+        other-non-res-gas-ccgt-new: chp and small thermal
+        other-non-res-gas-ccgt-present1: chp and small thermal
+        other-non-res-gas-ccgt-present2: chp and small thermal
         other-non-res-gas-ccgt-ccs: chp and small thermal
         other-non-res-gas-ocgt: chp and small thermal
+        other-non-res-gas-ocgt-old: chp and small thermal
+        other-non-res-gas-ocgt-new: chp and small thermal
         other-non-res-coal: chp and small thermal
+        other-non-res-coal-old1: chp and small thermal
+        other-non-res-coal-old2: chp and small thermal
+        other-non-res-coal-new: chp and small thermal
         other-non-res-coal-ccs: chp and small thermal
         other-non-res-lignite: chp and small thermal
+        other-non-res-lignite-old1: chp and small thermal
+        other-non-res-lignite-old2: chp and small thermal
+        other-non-res-lignite-new: chp and small thermal
         other-non-res-lignite-ccs: chp and small thermal
         other-non-res-oil-light: chp and small thermal
         other-non-res-oil-heavy: chp and small thermal
+        other-non-res-oil-heavy-old1: chp and small thermal
+        other-non-res-oil-heavy-old2: chp and small thermal
         other-non-res-oil-shale: chp and small thermal
+        other-non-res-oil-shale-old: chp and small thermal
+        other-non-res-oil-shale-new: chp and small thermal
 
     power_generation:
       table_type: scenario_comparison
@@ -215,16 +271,35 @@ benchmarking:
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
         coal: coal + other fossil
+        coal-old1: coal + other fossil
+        coal-old2: coal + other fossil
+        coal-new: coal + other fossil
         coal+ccs: coal + other fossil
         lignite: coal + other fossil
+        lignite-old1: coal + other fossil
+        lignite-old2: coal + other fossil
+        lignite-new: coal + other fossil
         lignite+ccs: coal + other fossil
         oil-heavy: oil
+        oil-heavy-old1: oil
+        oil-heavy-old2: oil
         oil-light: oil
         oil-shale: oil
+        oil-shale-old: oil
+        oil-shale-new: oil
         gas-ccgt: methane
+        gas-ccgt-old1: methane
+        gas-ccgt-old2: methane
+        gas-ccgt-new: methane
+        gas-ccgt-present1: methane
+        gas-ccgt-present2: methane
         gas-ccgt-ccs: methane
         gas-ocgt: methane
+        gas-ocgt-old: methane
+        gas-ocgt-new: methane
         gas-conv: methane
+        gas-conv-old1: methane
+        gas-conv-old2: methane
         urban central solid biomass CHP: other non-res
         ror: hydro (exc. pump storage)
         hydro: hydro (exc. pump storage)
@@ -234,16 +309,35 @@ benchmarking:
         other-res-biomass: other res
         other-res-mix: other res
         other-non-res-gas-conv: other non-res
+        other-non-res-gas-conv-old1: other non-res
+        other-non-res-gas-conv-old2: other non-res
         other-non-res-gas-ccgt: other non-res
+        other-non-res-gas-ccgt-old1: other non-res
+        other-non-res-gas-ccgt-old2: other non-res
+        other-non-res-gas-ccgt-new: other non-res
+        other-non-res-gas-ccgt-present1: other non-res
+        other-non-res-gas-ccgt-present2: other non-res
         other-non-res-gas-ccgt-ccs: other non-res
         other-non-res-gas-ocgt: other non-res
+        other-non-res-gas-ocgt-old: other non-res
+        other-non-res-gas-ocgt-new: other non-res
         other-non-res-coal: other non-res
+        other-non-res-coal-old1: other non-res
+        other-non-res-coal-old2: other non-res
+        other-non-res-coal-new: other non-res
         other-non-res-coal-ccs: other non-res
         other-non-res-lignite: other non-res
+        other-non-res-lignite-old1: other non-res
+        other-non-res-lignite-old2: other non-res
+        other-non-res-lignite-new: other non-res
         other-non-res-lignite-ccs: other non-res
         other-non-res-oil-light: other non-res
         other-non-res-oil-heavy: other non-res
+        other-non-res-oil-heavy-old1: other non-res
+        other-non-res-oil-heavy-old2: other non-res
         other-non-res-oil-shale: other non-res
+        other-non-res-oil-shale-old: other non-res
+        other-non-res-oil-shale-new: other non-res
 
     methane_supply:
       table_type: scenario_comparison
@@ -373,17 +467,36 @@ benchmarking:
         h2-ccgt: methane&hydrogen
         h2-fuel-cell: methane&hydrogen
         gas-ccgt: methane&hydrogen
+        gas-ccgt-old1: methane&hydrogen
+        gas-ccgt-old2: methane&hydrogen
+        gas-ccgt-new: methane&hydrogen
+        gas-ccgt-present1: methane&hydrogen
+        gas-ccgt-present2: methane&hydrogen
         gas-ccgt-ccs: methane&hydrogen
         gas-ocgt: methane&hydrogen
+        gas-ocgt-old: methane&hydrogen
+        gas-ocgt-new: methane&hydrogen
         gas-conv: methane&hydrogen
+        gas-conv-old1: methane&hydrogen
+        gas-conv-old2: methane&hydrogen
         coal: coal&lignite&oil
+        coal-old1: coal&lignite&oil
+        coal-old2: coal&lignite&oil
+        coal-new: coal&lignite&oil
         coal+ccs: coal&lignite&oil
         lignite: coal&lignite&oil
+        lignite-old1: coal&lignite&oil
+        lignite-old2: coal&lignite&oil
+        lignite-new: coal&lignite&oil
         lignite+ccs: coal&lignite&oil
         oil: coal&lignite&oil
         oil-heavy: coal&lignite&oil
+        oil-heavy-old1: coal&lignite&oil
+        oil-heavy-old2: coal&lignite&oil
         oil-light: coal&lignite&oil
         oil-shale: coal&lignite&oil
+        oil-shale-old: coal&lignite&oil
+        oil-shale-new: coal&lignite&oil
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: other res
@@ -398,13 +511,32 @@ benchmarking:
         other-res-biomass: other res
         other-res-mix: other res
         other-non-res-gas-conv: other non-res
+        other-non-res-gas-conv-old1: other non-res
+        other-non-res-gas-conv-old2: other non-res
         other-non-res-gas-ccgt: other non-res
+        other-non-res-gas-ccgt-old1: other non-res
+        other-non-res-gas-ccgt-old2: other non-res
+        other-non-res-gas-ccgt-new: other non-res
+        other-non-res-gas-ccgt-present1: other non-res
+        other-non-res-gas-ccgt-present2: other non-res
         other-non-res-gas-ccgt-ccs: other non-res
         other-non-res-gas-ocgt: other non-res
+        other-non-res-gas-ocgt-old: other non-res
+        other-non-res-gas-ocgt-new: other non-res
         other-non-res-coal: other non-res
+        other-non-res-coal-old1: other non-res
+        other-non-res-coal-old2: other non-res
+        other-non-res-coal-new: other non-res
         other-non-res-coal-ccs: other non-res
         other-non-res-lignite: other non-res
+        other-non-res-lignite-old1: other non-res
+        other-non-res-lignite-old2: other non-res
+        other-non-res-lignite-new: other non-res
         other-non-res-lignite-ccs: other non-res
         other-non-res-oil-light: other non-res
         other-non-res-oil-heavy: other non-res
+        other-non-res-oil-heavy-old1: other non-res
+        other-non-res-oil-heavy-old2: other non-res
         other-non-res-oil-shale: other non-res
+        other-non-res-oil-shale-old: other non-res
+        other-non-res-oil-shale-new: other non-res

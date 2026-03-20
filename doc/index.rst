@@ -108,6 +108,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Automatically launched PyPSA-Explorer to investigate run results (see PR `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__).
 - Added SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enabled H2 load shedding with cost of 3000 EUR/MWh_H2 (see PR `#490 <https://github.com/open-energy-transition/open-tyndp/pull/490>`__)
 - Added H2 cavern and tank storages with existing energy and charge/discharge capacities (see PR `#552 <https://github.com/open-energy-transition/open-tyndp/pull/552>`__).
+- Added PEMMDB common data assumptions for power plant type specific efficiencies and VOM (see PR `#541 <https://github.com/open-energy-transition/open-tyndp/pull/541>`__).
 
 
 .. list-table::
@@ -235,7 +236,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ⌛
    * - **TYNDP technologies and carriers**
      - TYNDP generation technologies (incl. SRES and DRES)
-     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__, `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__, `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__, `#447 <https://github.com/open-energy-transition/open-tyndp/pull/447>`__, `#490 <https://github.com/open-energy-transition/open-tyndp/pull/490>`__, `#521 <https://github.com/open-energy-transition/open-tyndp/pull/521>`__, `#535 <https://github.com/open-energy-transition/open-tyndp/pull/535>`__, `#552 <https://github.com/open-energy-transition/open-tyndp/pull/552>`__
+     - `#115 <https://github.com/open-energy-transition/open-tyndp/pull/115>`__, `#139 <https://github.com/open-energy-transition/open-tyndp/pull/139>`__, `#195 <https://github.com/open-energy-transition/open-tyndp/pull/195>`__, `#248 <https://github.com/open-energy-transition/open-tyndp/pull/248>`__, `#338 <https://github.com/open-energy-transition/open-tyndp/pull/338>`__, `#447 <https://github.com/open-energy-transition/open-tyndp/pull/447>`__, `#490 <https://github.com/open-energy-transition/open-tyndp/pull/490>`__, `#521 <https://github.com/open-energy-transition/open-tyndp/pull/521>`__, `#535 <https://github.com/open-energy-transition/open-tyndp/pull/535>`__, `#552 <https://github.com/open-energy-transition/open-tyndp/pull/552>`__, `#541 <https://github.com/open-energy-transition/open-tyndp/pull/541>`__
      - 🔨
    * -
      - Prosumer modelling

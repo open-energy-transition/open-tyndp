@@ -1944,6 +1944,7 @@ def _add_other_non_res_capacities(
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
     tech: str,
+    group_conventionals: bool,
 ) -> None:
     """
     Add PEMMDB capacities and profiles to Other Non-RES price band components.
@@ -1958,6 +1959,8 @@ def _add_other_non_res_capacities(
         All PEMMDB must-run and availability profiles.
     tech : str
         Other Non-RES price band to be added to the network.
+    group_conventionals : bool
+        Whether TYNDP conventional carriers are aggregated into higher level groups
 
     Returns
     -------
@@ -1972,8 +1975,9 @@ def _add_other_non_res_capacities(
     # Capacities
     ############
     # Filter for capacities and add to the network
+    id_col = "open_tyndp_type" if group_conventionals else "index_carrier"
     caps = (
-        pemmdb_capacities.query("open_tyndp_type == @tech")
+        pemmdb_capacities.query(f"{id_col} == @tech")
         .reset_index()
         .assign(
             price_band=lambda df: df["bus"].astype(str)
@@ -1993,7 +1997,7 @@ def _add_other_non_res_capacities(
     # Profiles
     ##########
     # Filter for profiles
-    profiles = pemmdb_profiles.query("open_tyndp_type == @tech").assign(
+    profiles = pemmdb_profiles.query(f"{id_col} == @tech").assign(
         link_index=lambda df: df["bus"].astype(str)
         + "-"
         + df["index_carrier"].astype(str)
@@ -2019,6 +2023,7 @@ def _add_conventional_thermal_capacities(
     tyndp_conventional_thermals: list[str],
     nuclear_trajectories: pd.DataFrame,
     nuclear_profiles: pd.DataFrame,
+    group_conventionals: bool,
 ) -> None:
     """
     Add PEMMDB capacities and profiles to conventional thermal generation assets in the network.
@@ -2037,6 +2042,8 @@ def _add_conventional_thermal_capacities(
         Trajectories for exogenous nuclear pathways.
     nuclear_profiles : pd.DataFrame
         DataFrame containing the availability profiles of nuclear power plants.
+    group_conventionals : bool
+        Whether TYNDP conventional carriers are aggregated into higher level groups
 
     Returns
     -------
@@ -2049,7 +2056,9 @@ def _add_conventional_thermal_capacities(
 
     for tech in tyndp_conventional_thermals:
         if "other-non-res" in tech:
-            _add_other_non_res_capacities(n, pemmdb_capacities, pemmdb_profiles, tech)
+            _add_other_non_res_capacities(
+                n, pemmdb_capacities, pemmdb_profiles, tech, group_conventionals
+            )
             continue
 
         # Capacities
@@ -2742,6 +2751,7 @@ def add_existing_tyndp_capacities(
     extendable_carriers: list | set,
     investment_year: int,
     enable_pemmdb_caps: bool,
+    group_conventionals: bool,
 ) -> None:
     """
     Add existing TYNDP capacities, must-runs and availabilities to the network.
@@ -2790,6 +2800,8 @@ def add_existing_tyndp_capacities(
         Year for which to get trajectories.
     enable_pemmdb_caps : bool
         Whether to include PEMMDB capacities.
+    group_conventionals : bool
+        Whether TYNDP conventional carriers are aggregated into higher level groups.
 
     Returns
     -------
@@ -2846,6 +2858,7 @@ def add_existing_tyndp_capacities(
                 tyndp_conventional_thermals=tyndp_conventional_thermals,
                 nuclear_trajectories=trajectories_nuclear,
                 nuclear_profiles=nuclear_profiles,
+                group_conventionals=group_conventionals,
             )
 
         if h2_topology_tyndp:
@@ -9464,6 +9477,9 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
+            group_conventionals=snakemake.params.electricity[
+                "group_tyndp_conventionals"
+            ],
         )
 
     if options["offshore_hubs_tyndp"]["enable"]:
