@@ -80,6 +80,7 @@ def _plot_scenario_comparison(
     df: pd.DataFrame,
     table: str,
     year: int,
+    bus: str,
     output_dir: str,
     scenario: str,
     cyear: int,
@@ -115,7 +116,7 @@ def _plot_scenario_comparison(
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
-        title=f"{table_title} - EU27 - Scenario {scenario} - CY {cyear} - Year {year}",
+        title=f"{table_title} - {bus} - Scenario {scenario} - CY {cyear} - Year {year}",
     )
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
@@ -125,11 +126,18 @@ def _plot_scenario_comparison(
             txt.set_fontweight("bold")
 
     for c in ax.containers:
-        ax.bar_label(c, fmt="%.0f", padding=3, fontsize=8)
+        ax.bar_label(
+            c,
+            fmt=lambda x: f"{x:.1f}" if 0 < abs(x) < 10 else f"{x:.0f}",
+            padding=3,
+            fontsize=8,
+        )
 
     add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_eu27_cy{cyear}_{year}.pdf")
+    output_filename = Path(
+        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
+    )
     fig.savefig(output_filename, bbox_inches="tight")
 
     plt.close(fig)
@@ -139,6 +147,7 @@ def _plot_time_series(
     df: pd.DataFrame,
     table: str,
     year: int,
+    bus: str,
     output_dir: str,
     scenario: str,
     cyear: int,
@@ -216,7 +225,9 @@ def _plot_time_series(
 
     add_metadata(ax, fig)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_eu27_cy{cyear}_{year}.pdf")
+    output_filename = Path(
+        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
+    )
     fig.savefig(output_filename, bbox_inches="tight")
 
     plt.close(fig)
@@ -224,6 +235,7 @@ def _plot_time_series(
 
 def plot_benchmark(
     table: str,
+    bus: str,
     benchmarks_raw: pd.DataFrame,
     output_dir: str,
     scenario: str,
@@ -232,6 +244,7 @@ def plot_benchmark(
     tech_colors: dict,
     bench_colors: dict,
     model_col: str = "Open-TYNDP",
+    bus_col_name: str = "bus",
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -240,6 +253,8 @@ def plot_benchmark(
     ----------
     table : str
         Benchmark table to plot.
+    bus : str
+        Bus of the current figure.
     benchmarks_raw: pd.DataFrame
         Combined DataFrame containing both model and reference data.
     output_dir: str
@@ -256,6 +271,8 @@ def plot_benchmark(
         Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
+    bus_col_name : str, default "bus"
+        Bus column name.
     """
 
     # Parameters
@@ -267,16 +284,25 @@ def plot_benchmark(
     cyear = get_snapshots(snapshots)[0].year
 
     # Filter data and Convert back to source unit
-    logger.info(f"Making benchmark for {table} using {rfc_cols} and {model_col}")
+    logger.debug(
+        f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
+    )
     benchmarks = (
-        benchmarks_raw.query("table==@table")
+        benchmarks_raw.query(f"table==@table and {bus_col_name}==@bus")
         .dropna(how="all", axis=1)
+        .assign(spatial=lambda df: df[bus_col_name])
+        .drop(columns=["bus", "country"], errors="ignore")
+    )
+    benchmarks = (
+        benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
+        .sum()
+        .reset_index()
         .assign(unit=opt["report"]["unit"])
     )
 
     if benchmarks.empty:
         logger.warning(
-            f"No data available for table '{table}' in Open-TYNDP or TYNDP 2024 datasets"
+            f"No data available for table '{table}' and bus {bus} in Open-TYNDP or TYNDP 2024 datasets"
         )
         return
 
@@ -291,7 +317,9 @@ def plot_benchmark(
 
     # Check if at least two sources are available to compare
     if len(bench_wide.columns) < 2:
-        logger.info(f"Skipping table {table}, need at least two sources to compare.")
+        logger.info(
+            f"Skipping table {table} at {bus}, need at least two sources to compare."
+        )
         return
 
     for year in bench_wide.index.get_level_values("year").unique():
@@ -302,11 +330,12 @@ def plot_benchmark(
                 bench_year.reset_index(),
                 table,
                 year,
+                bus,
                 output_dir,
                 scenario,
                 cyear,
                 model_col,
-                rfc_cols,
+                [c for c in rfc_cols if c in bench_year.columns],
                 rfc_source,
                 source_unit,
                 bench_colors,
@@ -320,6 +349,7 @@ def plot_benchmark(
                 bench_agg,
                 table,
                 year,
+                bus,
                 output_dir,
                 scenario,
                 cyear,
@@ -330,12 +360,58 @@ def plot_benchmark(
             )
 
 
+def orchestrate_benchmark(
+    bus_col_name: str,
+    benchmarks_raw: pd.DataFrame,
+    output_dir: str,
+    scenario: str,
+    snapshots: dict[str, str],
+    options: dict,
+    tech_colors: dict,
+    bench_colors: dict,
+    threads: int,
+):
+    logger.info(f"Producing benchmark figures by {bus_col_name}")
+
+    output_dir_bus_col = Path(output_dir, f"by_{bus_col_name}")
+    output_dir_bus_col.mkdir(parents=True, exist_ok=True)
+
+    table_bus_col_pairs = [
+        (table, bus_col)
+        for table in options["tables"]
+        for bus_col in benchmarks_raw.query("table == @table")[bus_col_name].unique()
+    ]
+
+    tqdm_kwargs = {
+        "ascii": False,
+        "unit": " figure",
+        "total": len(table_bus_col_pairs),
+        "desc": "Producing benchmark figures",
+    }
+
+    func = partial(
+        plot_benchmark,
+        benchmarks_raw=benchmarks_raw,
+        output_dir=output_dir_bus_col,
+        scenario=scenario,
+        snapshots=snapshots,
+        options=options,
+        tech_colors=tech_colors,
+        bench_colors=bench_colors,
+        bus_col_name=bus_col_name,
+    )
+
+    with mp.Pool(processes=threads) as pool:
+        list(tqdm(pool.starmap(func, table_bus_col_pairs), **tqdm_kwargs))
+
+
 def plot_overview(
     indicators: pd.DataFrame,
     fn: str,
     scenario: str,
     snapshots: dict[str, str],
     metric: str = "sMAPE",
+    bus_col_name: str = "bus",
 ):
     """
     Plot benchmark overview figure.
@@ -352,12 +428,14 @@ def plot_overview(
         Dictionary defining the temporal range with 'start' and 'end' keys.
     metric : str, default "sMAPE"
         Metric to plot.
+    bus_col_name : str, default "bus"
+        Bus column name.
     """
     fig, ax = plt.subplots(figsize=(12, 8))
     cyear = get_snapshots(snapshots)[0].year
 
     # Keep relevant indicators and rows
-    df_clean = indicators[[metric, "Missing"]].dropna()
+    df_clean = indicators[[metric, "Missing carriers"]].dropna()
     df_clean.index = df_clean.index.str.replace("_", " ").str.title()
 
     # Wrap long x-axis labels
@@ -370,7 +448,7 @@ def plot_overview(
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Comparison of Open-TYNDP and TYNDP 2024 results for EU27, CY {cyear} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP 2024 outputs by {bus_col_name}, CY {cyear} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
         ylim=[0, max(df_clean[metric].max() + 0.1, 1)],
     )
@@ -378,7 +456,7 @@ def plot_overview(
     # Add missing carriers information
     df_clean.plot(
         ax=ax,
-        y="Missing",
+        y="Missing carriers",
         secondary_y=True,
         mark_right=True,
         legend=True,
@@ -437,9 +515,7 @@ if __name__ == "__main__":
     mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
     output_dir = Path(snakemake.output.dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    kpis_in = snakemake.input.kpis
-    kpis_out = snakemake.output.kpis
+    threads = snakemake.threads
 
     # Load data
     benchmarks_raw = load_data(
@@ -447,31 +523,37 @@ if __name__ == "__main__":
     )
 
     # Produce benchmark figures
-    logger.info("Producing benchmark figures")
-
-    tqdm_kwargs = {
-        "ascii": False,
-        "unit": " figure",
-        "total": len(options["tables"]),
-        "desc": "Producing benchmark figures",
-    }
-
-    func = partial(
-        plot_benchmark,
-        benchmarks_raw=benchmarks_raw,
-        output_dir=output_dir,
-        scenario=scenario,
-        snapshots=snapshots,
-        options=options,
-        tech_colors=tech_colors,
-        bench_colors=bench_colors,
-    )
-
-    with mp.Pool(processes=snakemake.threads) as pool:
-        results = list(tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs))
-
-    # Plot overview
-    indicators = pd.read_csv(kpis_in, index_col=0)
-    plot_overview(indicators, kpis_out, scenario, snapshots)
+    for bus_col_name, kpis_in, kpis_out, enabled in [
+        (
+            "bus",
+            snakemake.input.kpis_by_bus,
+            snakemake.output.kpis_by_bus,
+            options["spatial"]["by_bus"],
+        ),
+        (
+            "country",
+            snakemake.input.kpis_by_country,
+            snakemake.output.kpis_by_country,
+            options["spatial"]["by_country"],
+        ),
+    ]:
+        if enabled:
+            orchestrate_benchmark(
+                bus_col_name=bus_col_name,
+                benchmarks_raw=benchmarks_raw,
+                output_dir=output_dir,
+                scenario=scenario,
+                snapshots=snapshots,
+                options=options,
+                tech_colors=tech_colors,
+                bench_colors=bench_colors,
+                threads=threads,
+            )
+            indicators = pd.read_csv(kpis_in, index_col=0)
+            plot_overview(
+                indicators, kpis_out, scenario, snapshots, bus_col_name=bus_col_name
+            )
+        else:
+            Path(kpis_out).touch()
 
     logger.info("Benchmark plotting completed successfully")
