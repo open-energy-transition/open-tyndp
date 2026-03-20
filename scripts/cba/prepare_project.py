@@ -32,7 +32,11 @@ def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -
     return str(row["method"].iloc[0]).strip().upper()
 
 
-def apply_toot(n: pypsa.Network, transmission_project: pd.DataFrame) -> None:
+def apply_toot(
+    n: pypsa.Network,
+    transmission_project: pd.DataFrame,
+    negative_toot_option: str,
+) -> None:
     for _, project in transmission_project.iterrows():
         bus0 = project["bus0"]
         bus1 = project["bus1"]
@@ -49,11 +53,32 @@ def apply_toot(n: pypsa.Network, transmission_project: pd.DataFrame) -> None:
 
         if result_capacity < 0 or result_capacity_reverse < 0:
             logger.warning(
-                "Project removal would result in negative capacity on %s or %s.",
+                "Applying TOOT for project %s (%s) would create negative capacity: "
+                "%s %.0f -> %.0f MW after removing %.0f MW, "
+                "%s %.0f -> %.0f MW after removing %.0f MW (policy=%s).",
+                project["project_id"],
+                project["project_name"],
                 link_id,
+                n.links.loc[link_id, "p_nom"],
+                result_capacity,
+                capacity,
                 reverse_link_id,
+                n.links.loc[reverse_link_id, "p_nom"],
+                result_capacity_reverse,
+                capacity_reverse,
+                negative_toot_option,
             )
-            raise ValueError("Cannot remove more capacity than exists in the network.")
+            if negative_toot_option == "break":
+                raise ValueError(
+                    "Cannot remove more capacity than exists in the network."
+                )
+            if negative_toot_option == "zero":
+                result_capacity = max(result_capacity, 0)
+                result_capacity_reverse = max(result_capacity_reverse, 0)
+            else:
+                raise ValueError(
+                    f"Unknown cba.negative_toot_option policy: {negative_toot_option}"
+                )
 
         if result_capacity == 0:
             n.remove("Link", link_id)
@@ -136,6 +161,9 @@ if __name__ == "__main__":
 
     method = load_method(methods, project_id, planning_horizon)
     hurdle_costs = snakemake.params.hurdle_costs
+    negative_toot_capacity = snakemake.config["cba"].get(
+        "negative_toot_capacity", "zero"
+    )
 
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
 
@@ -147,7 +175,7 @@ if __name__ == "__main__":
     )
 
     if method == "TOOT":
-        apply_toot(n, transmission_project)
+        apply_toot(n, transmission_project, negative_toot_capacity)
     elif method == "PINT":
         apply_pint(n, transmission_project, hurdle_costs, costs)
     else:

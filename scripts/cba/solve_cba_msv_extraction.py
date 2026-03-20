@@ -91,9 +91,9 @@ if __name__ == "__main__":
 
     if status != "ok":
         logger.error(f"Extraction solve failed: {termination_condition}")
-        # # if the solver is gurobi, print infeasibilities using n.model.print_infeasibilities()
-        # if solving.get("solver", {}).get("name", "") == "gurobi":
-        #     n.model.print_infeasibilities()
+        # if the solver is gurobi, print infeasibilities using n.model.print_infeasibilities()
+        if solving.get("solver", {}).get("name", "") == "gurobi":
+            n.model.print_infeasibilities()
         raise RuntimeError(f"Extraction solve failed: {termination_condition}")
 
     logger.info(f"Extraction solve completed: {termination_condition}")
