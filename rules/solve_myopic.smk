@@ -50,7 +50,7 @@ rule add_existing_baseyear:
         ),
     benchmark:
         benchmarks(
-            "add_existing_baseyear/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            "performances/add_existing_baseyear/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
         scripts("add_existing_baseyear.py")
@@ -125,7 +125,7 @@ rule add_brownfield:
         ),
     benchmark:
         benchmarks(
-            "add_brownfield/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            "performances/add_brownfield/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
         scripts("add_brownfield.py")
@@ -183,7 +183,7 @@ rule solve_sector_network_myopic:
     benchmark:
         (
             RESULTS
-            + "benchmarks/solve_sector_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            + "benchmarks/performances/solve_sector_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
         scripts("solve_network.py")

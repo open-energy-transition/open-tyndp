@@ -43,6 +43,8 @@ Upcoming Open-TYNDP Release
 
 * Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
 
+* Refactor the ``validation`` folder within ``benchmarks/tyndp-2024`` to ensure consistency in naming conventions (https://github.com/open-energy-transition/open-tyndp/pull/550).
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
