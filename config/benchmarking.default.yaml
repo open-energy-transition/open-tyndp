@@ -5,6 +5,9 @@
 benchmarking:
   enable: false
   remove_last_day: false
+  spatial:
+    by_bus: true
+    by_country: true
 
 
   tables:
@@ -116,9 +119,9 @@ benchmarking:
     power_capacity:
       table_type: scenario_comparison
       rfc_sources:
+      - market_out
       - report
       - vp
-      - market_out
       report:
         sheet_name: 25-
         unit: GW
@@ -146,17 +149,17 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-light: oil
-        oil-shale: oil
-        gas-ccgt: methane
-        gas-ccgt-ccs: methane
-        gas-ocgt: methane
-        gas-conv: methane
+        coal: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
+        gas-ccgt: methane (incl. biofuels)
+        gas-ccgt-ccs: methane (incl. biofuels)
+        gas-ocgt: methane (incl. biofuels)
+        gas-conv: methane (incl. biofuels)
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: chp and small thermal
@@ -185,8 +188,8 @@ benchmarking:
     power_generation:
       table_type: scenario_comparison
       rfc_sources:
-      - report
       - market_out
+      - report
       report:
         sheet_name: 26-
         unit: TWh
@@ -214,17 +217,17 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-light: oil
-        oil-shale: oil
-        gas-ccgt: methane
-        gas-ccgt-ccs: methane
-        gas-ocgt: methane
-        gas-conv: methane
+        coal: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
+        gas-ccgt: methane (incl. biofuels)
+        gas-ccgt-ccs: methane (incl. biofuels)
+        gas-ocgt: methane (incl. biofuels)
+        gas-conv: methane (incl. biofuels)
         urban central solid biomass CHP: other non-res
         ror: hydro (exc. pump storage)
         hydro: hydro (exc. pump storage)
@@ -270,8 +273,8 @@ benchmarking:
     hydrogen_supply:
       table_type: scenario_comparison
       rfc_sources:
-      - report
       - market_out
+      - report
       report:
         sheet_name: 33-
         unit: TWh

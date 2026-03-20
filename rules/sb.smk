@@ -706,6 +706,7 @@ if config["benchmarking"]["enable"]:
             scenario=config_provider("tyndp_scenario"),
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
+            countries=config_provider("countries"),
         input:
             # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=lambda w: getattr(
@@ -715,8 +716,6 @@ if config["benchmarking"]["enable"]:
         output:
             benchmarks=RESULTS
             + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-            benchmarks_ct=RESULTS
-            + "validation/resources/benchmarks_tyndp_output_ct_{scenario}{planning_horizons}.csv",
             crossborder=RESULTS
             + "validation/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
             prices=RESULTS
@@ -837,8 +836,10 @@ if config["benchmarking"]["enable"]:
                 RESULTS
                 + "validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/"
             ),
-            kpis=RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+            kpis_by_bus=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv",
+            kpis_by_country=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv",
         threads: 4
         resources:
             mem_mb=8000,
@@ -882,15 +883,19 @@ if config["benchmarking"]["enable"]:
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
             vp_data=RESULTS + "validation/resources/vp_data_tyndp.csv",
-            kpis=RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+            kpis_by_bus=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv",
+            kpis_by_country=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv",
         output:
             dir=directory(
                 RESULTS
                 + "validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/"
             ),
-            kpis=RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+            kpis_by_bus=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf",
+            kpis_by_country=RESULTS
+            + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf",
         threads: 4
         resources:
             mem_mb=8000,
@@ -950,9 +955,13 @@ rule prepare_benchmarks:
 
 rule make_benchmarks:
     input:
-        expand(
-            RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.csv",
+        kpis_by_bus=expand(
+            rules.make_benchmark.output.kpis_by_bus,
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        kpis_by_country=expand(
+            rules.make_benchmark.output.kpis_by_country,
             **config["scenario"],
             run=config["run"]["name"],
         ),
@@ -960,9 +969,13 @@ rule make_benchmarks:
 
 rule plot_benchmarks:
     input:
-        expand(
-            RESULTS
-            + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+        kpis_by_bus=expand(
+            rules.plot_benchmark.output.kpis_by_bus,
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+        kpis_by_country=expand(
+            rules.plot_benchmark.output.kpis_by_country,
             **config["scenario"],
             run=config["run"]["name"],
         ),
