@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT-cy2009-20260320"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -371,6 +371,7 @@ adjustments:
 
 solving:
   options:
+    assign_all_duals: true
     load_shedding:
       enable: true
       apply_to_all_carriers: false
