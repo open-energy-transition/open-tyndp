@@ -195,6 +195,18 @@ def clean_data_for_benchmarking(table: str, df: pd.DataFrame) -> pd.DataFrame:
             "coal + other fossil (incl. biofuels)",
         )
 
+        df = _group_labels(
+            df,
+            ["methane"],
+            "methane (incl. biofuels)",
+        )
+
+        df = _group_labels(
+            df,
+            ["oil"],
+            "oil (incl. biofuels)",
+        )
+
     # Remove aggregated values
     else:
         df = df[~df.carrier.isin(["sum", "aggregated", "total generation", "total"])]
