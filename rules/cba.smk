@@ -486,7 +486,6 @@ rule plot_indicators:
         transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
-        done_indicator=RESULTS + "cba/plots_{planning_horizons}/plots_{planning_horizons}_done.log",
     script:
         scripts("cba/plot_indicators.py")
 
@@ -618,16 +617,17 @@ def cba_projects(w):
     return expand(cba_project)
 
 
+# collect files to be stored in the scenario directory, e.g., NT-cy1995
 rule collect_cba_scenario:
     input:
         lambda w: expand(
             rules.plot_weather_benchmark.output.plot_file,
-            planning_horizons=config["cba"]["planning_horizons"],
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
         ),
         lambda w: expand(
-            rules.plot_indicators.output.done_indicator,
+            rules.plot_all_cba_benchmark.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
         ),
@@ -637,15 +637,11 @@ rule collect_cba_scenario:
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
         ),
-        lambda w: expand(
-            rules.plot_all_cba_benchmark.output.done_indicator, # plot_dir,
-            planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=cba_scenarios(w),
-        ),
     output:
-        touch(RESULTS + "cba/all_scenarios.log"),
+        log=touch("results/all_scenarios.log"),
 
 
+# collect files to be stored in the scenario collection directory, e.g., NT-cyears
 rule cba:
     input:
         lambda w: expand(
@@ -665,7 +661,27 @@ rule cba:
             cba_project=cba_projects(w),
             run=cba_collection_scenarios(w),
         ),
-        # RESULTS + "cba/all_scenarios.log",
+        "results/all_scenarios.log",
+        #
+        # add this into the cba rule !?
+        # collect files to be stored in the scenario directory, e.g., NT-cy1995
+        #
+        # rules.plot_cba_benchmark.output.plot_file # for all cba projects,
+        # RESULTS + "/cba/validation_{planning_horizon}/project_{cba_project}_{planning_horizon}.png",
+        #
+        "results/tyndp/NT-cy1995/cba/validation_2030/project_t4_2030.png",
+        "results/tyndp/NT-cy1995/cba/validation_2040/project_t4_2040.png",
+        "results/tyndp/NT-cy2008/cba/validation_2030/project_t4_2030.png",
+        "results/tyndp/NT-cy2008/cba/validation_2040/project_t4_2040.png",
+        "results/tyndp/NT-cy2009/cba/validation_2030/project_t4_2030.png",
+        "results/tyndp/NT-cy2009/cba/validation_2040/project_t4_2040.png",
+        #
+        "results/tyndp/NT-cy1995/cba/validation_2030/project_t16_2030.png",
+        "results/tyndp/NT-cy1995/cba/validation_2040/project_t16_2040.png",
+        "results/tyndp/NT-cy2008/cba/validation_2030/project_t16_2030.png",
+        "results/tyndp/NT-cy2008/cba/validation_2040/project_t16_2040.png",
+        "results/tyndp/NT-cy2009/cba/validation_2030/project_t16_2030.png",
+        "results/tyndp/NT-cy2009/cba/validation_2040/project_t16_2040.png",
 
 
 # collect rules

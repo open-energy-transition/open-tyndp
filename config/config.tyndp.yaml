@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: ["NT-cyears"] # , "GA-cy", "DE-cy"]
+  name: ["NT-cyears"] # , "GA-cyears", "DE-cyears"]
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -27,7 +27,6 @@ scenario:
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
 snapshots:
-  # TODO define multiple climatic years, being either 1995 2008 or 2009
   start: "2009-01-01"
   end: "2010-01-01"
 
@@ -84,7 +83,7 @@ electricity:
       - 2009
     fill_gaps_method: zero
     # Complete PECD data is only available for the years 2030, 2040
-    # TODO: adjust once udpated 2050 PECD data is available
+    # TODO: adjust once updated 2050 PECD data is available
     available_years:
     - 2030
     - 2040

@@ -4,7 +4,7 @@
 
 
 # Test Case, NT-based Scenario - Defined in config/config.tyndp.yaml
-test-tyndp-cy1995:
+test-sector-tyndp-cy1995:
   snapshots:
     start: "2013-03-01"
     end: "2013-03-08"
@@ -13,7 +13,7 @@ test-tyndp-cy1995:
     sb_scenario: NT
 
 
-test-tyndp-cy2008:
+test-sector-tyndp-cy2008:
   snapshots:
     start: "2013-03-01"
     end: "2013-03-08"
@@ -22,7 +22,7 @@ test-tyndp-cy2008:
     sb_scenario: NT
 
 
-test-tydnp-cy2009:
+test-sector-tydnp-cy2009:
   snapshots:
     start: "2013-03-01"
     end: "2013-03-08"
@@ -31,6 +31,6 @@ test-tydnp-cy2009:
     sb_scenario: NT
 
 
-test-tyndp-cyears:
+test-sector-tyndp-cyears:
   cba:
-    scenarios: [test-tydnp-cy2009, test-tydnp-cy2008, test-tydnp-cy1995]
+    scenarios: [test-sector-tydnp-cy2009, test-sector-tydnp-cy2008, test-sector-tydnp-cy1995]

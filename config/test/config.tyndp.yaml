@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  name: ["test-tyndp-cyears"]
+  name: ["test-sector-tyndp-cyears"]
   disable_progressbar: true
   shared_resources:
     policy: false
