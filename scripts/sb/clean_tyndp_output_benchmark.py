@@ -218,7 +218,7 @@ def load_MM_sheet(
         Path to the TYNDP market model xlsx file.
     table_name : str
         Name of the table from LOOKUP_TABLES (e.g., "power_capacity").
-    countries : str
+    countries : list[str]
         List of modelled countries
     eu27 : list
         List of EU27 country codes.

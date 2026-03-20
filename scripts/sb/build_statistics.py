@@ -213,7 +213,8 @@ def compute_benchmark(
             .loc[lambda df: ~df.carrier.isin(exclusions)]
             .assign(bus=lambda df: df.bus.str.split(" ").str[0])
             .groupby(["bus"] + grouper)
-            .sum()[0]
+            .sum()
+            .iloc[:, 0]
         )
 
         # Add H2 offwind capacities in MW_e
@@ -279,7 +280,8 @@ def compute_benchmark(
             df.reset_index()
             .assign(bus=lambda df: df.bus.str.split(" ").str[0])
             .groupby(["bus"] + grouper)
-            .sum()[0]
+            .sum()
+            .iloc[:, 0]
         )
 
     elif table == "methane_supply":

@@ -154,7 +154,7 @@ def input_all_tyndp(w):
         )
         files.extend(
             expand(
-                rules.plot_benchmark.output.kpis_by_ct,
+                rules.plot_benchmark.output.kpis_by_country,
                 run=config["run"]["name"],
                 **config["scenario"],
             )

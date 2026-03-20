@@ -456,7 +456,11 @@ def compute_indicators(
 
     # Compute overall indicators of the table
     indicators = compute_all_indicators(
-        df, table, rfc_col=rfc_col, df_na=df_na.query("spatial=='EU27'")
+        df,
+        table,
+        rfc_col=rfc_col,
+        df_na=df_na.query("spatial=='EU27'"),
+        missing_name=missing_name,
     ).round(precision)
 
     # Compute per-carrier indicators
@@ -469,6 +473,7 @@ def compute_indicators(
                 rfc_col=rfc_col,
                 df_na=df_na.query("carrier==@carrier"),
                 cols_na=["carrier", "spatial"],
+                missing_name=missing_name,
             )
             for carrier, df_c in df.groupby(level=carrier_col)
         ]
@@ -477,14 +482,10 @@ def compute_indicators(
     missing_carriers = (
         set(df_na.index.get_level_values(carrier_col)) - matching_carriers
     )
-    df_carrier_na = pd.concat(
-        [
-            pd.DataFrame(
-                [0] * len(missing_carriers),
-                columns=[missing_name],
-                index=[(table, carrier) for carrier in missing_carriers],
-            )
-        ]
+    df_carrier_na = pd.DataFrame(
+        [0] * len(missing_carriers),
+        columns=[missing_name],
+        index=[(table, carrier) for carrier in missing_carriers],
     )
     df_carrier = (
         pd.concat([df_carrier, df_carrier_na])

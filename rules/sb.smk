@@ -894,7 +894,7 @@ if config["benchmarking"]["enable"]:
             ),
             kpis_by_bus=RESULTS
             + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf",
-            kpis_by_ct=RESULTS
+            kpis_by_country=RESULTS
             + "validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf",
         threads: 4
         resources:
@@ -974,8 +974,8 @@ rule plot_benchmarks:
             **config["scenario"],
             run=config["run"]["name"],
         ),
-        kpis_by_ct=expand(
-            rules.plot_benchmark.output.kpis_by_ct,
+        kpis_by_country=expand(
+            rules.plot_benchmark.output.kpis_by_country,
             **config["scenario"],
             run=config["run"]["name"],
         ),
