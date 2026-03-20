@@ -706,6 +706,8 @@ plotting:
     hydrogen storage: '#bf13a0'
     H2 Store: '#bf13a0'
     H2 storage: '#bf13a0'
+    H2 cavern-storage: '#bf13a0'
+    H2 tank-storage: '#bf13d2'
     land transport fuel cell: '#6b3161'
     H2 pipeline: '#f081dc'
     H2 pipeline OH: '#f081dc'

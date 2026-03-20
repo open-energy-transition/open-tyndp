@@ -1897,6 +1897,11 @@ rule prepare_sector_network:
             resources("smr_data_prepped_{planning_horizons}.csv"),
             [],
         ),
+        tyndp_h2_storages=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("h2_storages_prepped_{planning_horizons}.csv"),
+            [],
+        ),
     output:
         resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_h.nc"
