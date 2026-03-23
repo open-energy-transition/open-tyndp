@@ -284,6 +284,7 @@ sector:
   ammonia: false
   h2_topology_tyndp: true
   h2_zones_tyndp: false
+  h2_demand_patch_with_mm: true
   gas_network: false
   gas_demand_exogenously: true
   biomass_spatial: false
@@ -438,6 +439,7 @@ cba:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
+  negative_toot_capacity: zero
 
   # Storage settings for dispatch
   storage:

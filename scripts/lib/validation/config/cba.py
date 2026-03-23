@@ -111,6 +111,10 @@ class CbaConfig(BaseModel):
         default=True,
         description="If true, use original pre-noise capital and marginal costs for CBA indicators.",
     )
+    negative_toot_capacity: Literal["zero", "break"] = Field(
+        default="zero",
+        description="How to handle TOOT project removal when removing project capacity would make an existing interconnector capacity negative. 'zero' clamps the resulting capacity to zero and continues; 'break' raises an error.",
+    )
     storage: _CbaStorageConfig = Field(
         default_factory=_CbaStorageConfig,
         description="Storage configuration for the cost-benefit analysis workflow.",
