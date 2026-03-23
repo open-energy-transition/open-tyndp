@@ -3416,11 +3416,13 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
             bus1=nodes.index,
             p_nom_extendable=False,
             carrier="h2-ccgt",
-            efficiency=costs.at["CCGT", "efficiency"],
+            efficiency=costs.at["h2-ccgt", "efficiency"],
             capital_cost=costs.at["CCGT", "capital_cost"]
-            * costs.at["CCGT", "efficiency"],  # NB: fixed cost is per MWel
-            marginal_cost=costs.at["CCGT", "VOM"],
-            lifetime=costs.at["CCGT", "lifetime"],
+            * costs.at[
+                "h2-ccgt", "efficiency"
+            ],  # NB: using default assumptions for capex, fixed cost is per MWel
+            marginal_cost=costs.at["h2-ccgt", "VOM"],
+            lifetime=costs.at["h2-ccgt", "lifetime"],
         )
 
 
