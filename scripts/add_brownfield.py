@@ -492,7 +492,8 @@ def remove_tyndp_fixed_p(
             + ["H2 Electrolysis", "H2 pipeline", "SMR", "SMR CC"]
             + ["other-res-biomass"]
             if c.name == "Link"
-            else tyndp_hydro + ["other-res-mix"]
+            else tyndp_hydro
+            + ["other-res-mix", "onwind", "solar-pv-rooftop", "solar-pv-utility"]
         )
         attr = "e" if c.name == "Store" else "p"
 
