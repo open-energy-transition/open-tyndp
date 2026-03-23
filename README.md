@@ -55,7 +55,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added automated Windows installer with Azure Artifact Signing for easy setup on Windows systems (see PR [#333](https://github.com/open-energy-transition/open-tyndp/pull/333), [#471](https://github.com/open-energy-transition/open-tyndp/pull/471)).
 - Automatically launched PyPSA-Explorer to investigate run results (see PR [#443](https://github.com/open-energy-transition/open-tyndp/pull/443)).
 - Added SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enabled H2 load shedding with cost of 3000 EUR/MWh_H2 (see PR [#490](https://github.com/open-energy-transition/open-tyndp/pull/490))
-- Added PEMMDB common data assumptions for power plant type specific efficiencies and VOM (see PR [#541](https://github.com/open-energy-transition/open-tyndp/pull/541)).
+- Added PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (see PR [#541](https://github.com/open-energy-transition/open-tyndp/pull/541)).
 
 
 
