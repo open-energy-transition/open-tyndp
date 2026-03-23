@@ -1002,6 +1002,7 @@ sector:
   H2_network: true
   h2_topology_tyndp: false
   h2_zones_tyndp: false
+  h2_demand_patch_with_mm: false
   gas_network: true
   gas_demand_exogenously: false
   H2_retrofit: false
@@ -1581,6 +1582,7 @@ cba:
   projects: []
   area: tyndp
   remove_noisy_costs: true
+  negative_toot_capacity: zero
   storage:
     cyclic_carriers:
     - battery
