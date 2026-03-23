@@ -2603,6 +2603,21 @@ def _add_h2_storage_capacities(
         n.links.loc[h2_chargers_extendable_i, :].index
     ).fillna(0.0)
 
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=["H2 cavern-storage", "H2 tank-storage"],
+        component_types={"Store", "Link"},
+    )
+    # Drop Storage buses that do not have a store connected to it anymore
+    remaining_stores = n.stores[
+        n.stores.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
+    ].bus.unique()
+    idx = n.buses.loc[
+        n.buses.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
+        & ~n.buses.index.isin(remaining_stores)
+    ].index
+    n.remove("Bus", idx)
+
 
 def _add_other_res_profiles(
     carrier: str,
