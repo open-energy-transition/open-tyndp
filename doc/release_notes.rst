@@ -31,7 +31,7 @@ Upcoming Open-TYNDP Release
 
 * Add H2 cavern and tank storages with existing energy and charge/discharge capacities (https://github.com/open-energy-transition/open-tyndp/pull/552). Optionally, for the DE/GA scenarios, expansion limits are added for these capacities for the expendable cavern storages.
 
-* Add PEMMDB common data assumptions for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
+* Add PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
 
 **Changes**
 
