@@ -59,6 +59,8 @@ Upcoming Open-TYNDP Release
 
 * Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
 
+* Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
+
 **Documentation**
 
 **Developers Note**
