@@ -27,11 +27,21 @@ all,2035,coal,fuel,6.12,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32
 all,2040,coal,fuel,5.76,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
 all,2045,coal,fuel,5.76,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
 all,2050,coal,fuel,5.76,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
-all,2030,gas,fuel,22.68,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
-all,2035,gas,fuel,21.6,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
-all,2040,gas,fuel,20.52,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
-all,2045,gas,fuel,19.26,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
-all,2050,gas,fuel,18,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+DE,2030,gas,fuel,22.68,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+DE,2035,gas,fuel,21.6,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+DE,2040,gas,fuel,20.52,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+DE,2045,gas,fuel,19.26,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+DE,2050,gas,fuel,18,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+GA,2030,gas,fuel,22.68,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+GA,2035,gas,fuel,21.6,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+GA,2040,gas,fuel,20.52,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+GA,2045,gas,fuel,19.26,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+GA,2050,gas,fuel,18,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32",
+NT,2030,gas,fuel,27,EUR/MWh_th,"20230622 TYNDP Commodity prices Final, Gas (blend of biomethane, synthetic gas and NG) NT+","Converted from EUR/GJ to EUR/MWh"
+NT,2035,gas,fuel,30.7,EUR/MWh_th,"2023 06 22 TYNDP Commodity prices Final, Gas (blend of biomethane, synthetic gas and NG) NT+","Interpolated value"
+NT,2040,gas,fuel,34.4,EUR/MWh_th,"2023 06 22 TYNDP Commodity prices Final, Gas (blend of biomethane, synthetic gas and NG) NT+","Converted from EUR/GJ to EUR/MWh"
+NT,2045,gas,fuel,38.1,EUR/MWh_th,"2023 06 22 TYNDP Commodity prices Final, Gas (blend of biomethane, synthetic gas and NG) NT+","Extrapolated past 2040"
+NT,2050,gas,fuel,41.8,EUR/MWh_th,"2023 06 22 TYNDP Commodity prices Final, Gas (blend of biomethane, synthetic gas and NG) NT+","Extrapolated past 2040"
 all,2030,oil,fuel,33.12,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
 all,2035,oil,fuel,32.58,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
 all,2040,oil,fuel,32.04,EUR/MWh_th,"TYNDP 2024 Scenarios Methodology Report, p32","to be improved, assume crude oil"
