@@ -164,36 +164,36 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal-old1: coal + other fossil
-        coal-old2: coal + other fossil
-        coal-new: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite-old1: coal + other fossil
-        lignite-old2: coal + other fossil
-        lignite-new: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-heavy-old1: oil
-        oil-heavy-old2: oil
-        oil-light: oil
-        oil-shale: oil
-        oil-shale-old: oil
-        oil-shale-new: oil
-        gas-ccgt: methane
-        gas-ccgt-old1: methane
-        gas-ccgt-old2: methane
-        gas-ccgt-new: methane
-        gas-ccgt-present1: methane
-        gas-ccgt-present2: methane
-        gas-ccgt-ccs: methane
-        gas-ocgt: methane
-        gas-ocgt-old: methane
-        gas-ocgt-new: methane
-        gas-conv: methane
-        gas-conv-old1: methane
-        gas-conv-old2: methane
+        coal: coal + other fossil (incl. biofuels)
+        coal-old1: coal + other fossil (incl. biofuels)
+        coal-old2: coal + other fossil (incl. biofuels)
+        coal-new: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite-old1: coal + other fossil (incl. biofuels)
+        lignite-old2: coal + other fossil (incl. biofuels)
+        lignite-new: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-heavy-old1: oil (incl. biofuels)
+        oil-heavy-old2: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
+        oil-shale-old: oil (incl. biofuels)
+        oil-shale-new: oil (incl. biofuels)
+        gas-ccgt: methane (incl. biofuels)
+        gas-ccgt-old1: methane (incl. biofuels)
+        gas-ccgt-old2: methane (incl. biofuels)
+        gas-ccgt-new: methane (incl. biofuels)
+        gas-ccgt-present1: methane (incl. biofuels)
+        gas-ccgt-present2: methane (incl. biofuels)
+        gas-ccgt-ccs: methane (incl. biofuels)
+        gas-ocgt: methane (incl. biofuels)
+        gas-ocgt-old: methane (incl. biofuels)
+        gas-ocgt-new: methane (incl. biofuels)
+        gas-conv: methane (incl. biofuels)
+        gas-conv-old1: methane (incl. biofuels)
+        gas-conv-old2: methane (incl. biofuels)
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: chp and small thermal
@@ -270,36 +270,36 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal-old1: coal + other fossil
-        coal-old2: coal + other fossil
-        coal-new: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite-old1: coal + other fossil
-        lignite-old2: coal + other fossil
-        lignite-new: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-heavy-old1: oil
-        oil-heavy-old2: oil
-        oil-light: oil
-        oil-shale: oil
-        oil-shale-old: oil
-        oil-shale-new: oil
-        gas-ccgt: methane
-        gas-ccgt-old1: methane
-        gas-ccgt-old2: methane
-        gas-ccgt-new: methane
-        gas-ccgt-present1: methane
-        gas-ccgt-present2: methane
-        gas-ccgt-ccs: methane
-        gas-ocgt: methane
-        gas-ocgt-old: methane
-        gas-ocgt-new: methane
-        gas-conv: methane
-        gas-conv-old1: methane
-        gas-conv-old2: methane
+        coal: coal + other fossil (incl. biofuels)
+        coal-old1: coal + other fossil (incl. biofuels)
+        coal-old2: coal + other fossil (incl. biofuels)
+        coal-new: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite-old1: coal + other fossil (incl. biofuels)
+        lignite-old2: coal + other fossil (incl. biofuels)
+        lignite-new: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-heavy-old1: oil (incl. biofuels)
+        oil-heavy-old2: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
+        oil-shale-old: oil (incl. biofuels)
+        oil-shale-new: oil (incl. biofuels)
+        gas-ccgt: methane (incl. biofuels)
+        gas-ccgt-old1: methane (incl. biofuels)
+        gas-ccgt-old2: methane (incl. biofuels)
+        gas-ccgt-new: methane (incl. biofuels)
+        gas-ccgt-present1: methane (incl. biofuels)
+        gas-ccgt-present2: methane (incl. biofuels)
+        gas-ccgt-ccs: methane (incl. biofuels)
+        gas-ocgt: methane (incl. biofuels)
+        gas-ocgt-old: methane (incl. biofuels)
+        gas-ocgt-new: methane (incl. biofuels)
+        gas-conv: methane (incl. biofuels)
+        gas-conv-old1: methane (incl. biofuels)
+        gas-conv-old2: methane (incl. biofuels)
         urban central solid biomass CHP: other non-res
         ror: hydro (exc. pump storage)
         hydro: hydro (exc. pump storage)
