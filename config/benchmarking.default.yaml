@@ -184,6 +184,7 @@ benchmarking:
         other-non-res-oil-light: chp and small thermal
         other-non-res-oil-heavy: chp and small thermal
         other-non-res-oil-shale: chp and small thermal
+        load: demand shedding
 
     power_generation:
       table_type: scenario_comparison
@@ -247,6 +248,7 @@ benchmarking:
         other-non-res-oil-light: other non-res
         other-non-res-oil-heavy: other non-res
         other-non-res-oil-shale: other non-res
+        load: demand shedding
 
     methane_supply:
       table_type: scenario_comparison
@@ -294,6 +296,7 @@ benchmarking:
         H2 import Pipeline: imports (renewable & low carbon)
         SMR: smr (grey) and smr with ccs (blue)
         SMR CC: smr (grey) and smr with ccs (blue)
+        load: demand shedding
 
     biomass_supply:
       table_type: scenario_comparison
