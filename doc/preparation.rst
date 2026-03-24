@@ -265,3 +265,8 @@ Rule ``clean_tyndp_smr``
 ===========================
 
 .. automodule:: clean_tyndp_smr
+
+Rule ``clean_tyndp_h2_storages``
+===========================
+
+.. automodule:: clean_tyndp_h2_storages

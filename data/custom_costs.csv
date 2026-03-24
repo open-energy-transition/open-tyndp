@@ -76,3 +76,23 @@ NT,2040,SMR CC,VOM,21.6,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CH
 DE,all,SMR CC,VOM,4.47,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."
 GA,all,SMR CC,VOM,4.47,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."
 all,all,SMR,VOM,3.38,EUR/MWh_H2,"TYNDP 2024 Hydrogen/SMR Figures.xlsx VO&M CHARGE [€/MWh]","Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency."
+all,2030,cavern-storage,investment,2000,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
+all,2035,cavern-storage,investment,1750,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
+all,2040,cavern-storage,investment,1500,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
+all,2045,cavern-storage,investment,1350,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
+all,2050,cavern-storage,investment,1200,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]","Specific investment in €2015/MWh"
+all,all,cavern-storage,FOM,0.000002,%/year,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, FO&M (€/MW/Year)","Fixed O&M (€2015/MW/year), cost are converted to %/year of investment cost and are consistent over all planning years."
+all,2030,cavern-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
+all,2035,cavern-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
+all,2040,cavern-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
+all,2045,cavern-storage,VOM,0.0000135,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
+all,2050,cavern-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
+all,all,cavern-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
+all,all,cavern-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
+all,2030,tank-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
+all,2035,tank-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
+all,2040,tank-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
+all,2045,tank-storage,VOM,0.0000135,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
+all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
+all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
+all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
