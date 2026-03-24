@@ -2551,29 +2551,30 @@ def _add_h2_storage_capacities(
     logger.info("Adding H2 storage capacities.")
 
     # H2 Store components
-    h2_stores_i = n.stores.query(
-        "carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')"
-    ).index
-    h2_stores_extendable_i = n.stores.query(
-        "(carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')) and e_nom_extendable == True"
-    ).index
+    h2_stores = n.stores.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
+    h2_stores_i = n.stores[h2_stores].index
+    h2_stores_extendable_i = n.stores[h2_stores & n.stores.e_nom_extendable].index
     # H2 charge/discharge Link components
-    h2_chargers_i = n.links.query(
-        "carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')"
-    ).index
-    h2_chargers_extendable_i = n.links.query(
-        "(carrier.str.contains('cavern-storage') or carrier.str.contains('tank-storage')) and p_nom_extendable == True"
-    ).index
+    h2_chargers = n.links.carrier.isin(
+        [
+            "H2 cavern-storage charger",
+            "H2 cavern-storage discharger",
+            "H2 tank-storage charger",
+            "H2 tank-storage discharger",
+        ]
+    )
+    h2_chargers_i = n.links[h2_chargers].index
+    h2_chargers_extendable_i = n.links[h2_chargers & n.links.p_nom_extendable].index
 
     # Add capacities for H2 Stores and charge/discharge Links
     store_caps = h2_storage_capacities.set_index("bus").e_nom
     link_caps = pd.concat(
         [
             h2_storage_capacities.set_index(
-                h2_storage_capacities.bus + " charge"
+                h2_storage_capacities.bus + " charger"
             ).p_nom_charge,
             h2_storage_capacities.set_index(
-                h2_storage_capacities.bus + " discharge"
+                h2_storage_capacities.bus + " discharger"
             ).p_nom_discharge,
         ]
     )
@@ -2589,10 +2590,10 @@ def _add_h2_storage_capacities(
     link_caps_max = pd.concat(
         [
             h2_storage_capacities.set_index(
-                h2_storage_capacities.bus + " charge"
+                h2_storage_capacities.bus + " charger"
             ).p_nom_max_charge,
             h2_storage_capacities.set_index(
-                h2_storage_capacities.bus + " discharge"
+                h2_storage_capacities.bus + " discharger"
             ).p_nom_max_discharge,
         ]
     )
@@ -2605,7 +2606,14 @@ def _add_h2_storage_capacities(
 
     remove_zero_capacity_non_extendable(
         n,
-        carriers=["H2 cavern-storage", "H2 tank-storage"],
+        carriers=[
+            "H2 cavern-storage",
+            "H2 tank-storage",
+            "H2 cavern-storage charger",
+            "H2 tank-storage charger",
+            "H2 cavern-storage discharger",
+            "H2 tank-storage discharger",
+        ],
         component_types={"Store", "Link"},
     )
     # Drop Storage buses that do not have a store connected to it anymore
@@ -3631,11 +3639,11 @@ def _add_h2_stores_and_links_tyndp(
     n.add(
         "Link",
         bus_names,
-        suffix=" charge",
+        suffix=" charger",
         bus0=buses,
         bus1=bus_names,
-        carrier=f"H2 {storage_tech}",
-        efficiency=costs.at[f"{storage_tech}-charge", "efficiency"],
+        carrier=f"H2 {storage_tech} charger",
+        efficiency=costs.at[f"{storage_tech}-charger", "efficiency"],
         marginal_cost=costs.at[storage_tech, "marginal_cost"],
         p_nom_extendable=extendable,
         lifetime=costs.at[storage_tech, "lifetime"],
@@ -3644,11 +3652,11 @@ def _add_h2_stores_and_links_tyndp(
     n.add(
         "Link",
         bus_names,
-        suffix=" discharge",
+        suffix=" discharger",
         bus0=bus_names,
         bus1=buses,
-        carrier=f"H2 {storage_tech}",
-        efficiency=costs.at[f"{storage_tech}-discharge", "efficiency"],
+        carrier=f"H2 {storage_tech} discharger",
+        efficiency=costs.at[f"{storage_tech}-discharger", "efficiency"],
         marginal_cost=costs.at[storage_tech, "marginal_cost"],
         p_nom_extendable=extendable,
         lifetime=costs.at[storage_tech, "lifetime"],
