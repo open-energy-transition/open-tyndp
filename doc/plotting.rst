@@ -36,6 +36,16 @@ Rule ``plot_base_network``
 
 .. automodule:: plot_base_network
 
+Rule ``plot_base_offshore_network``
+=================================================
+
+.. automodule:: plot_base_offshore_network
+
+Rule ``plot_offshore_network``
+=================================================
+
+.. automodule:: plot_base_offshore_network
+
 Rule ``plot_power_network_clustered``
 =================================================
 
@@ -109,3 +119,39 @@ Rule ``plot_interactive_bus_balance``
 ======================================
 
 .. automodule:: plot_interactive_bus_balance
+
+Rule ``clean_tyndp_benchmark``
+======================================
+
+.. automodule:: clean_tyndp_benchmark
+
+Rule ``clean_tyndp_vp_data``
+======================================
+
+.. automodule:: clean_tyndp_vp_data
+
+Rule ``build_statistics``
+======================================
+
+.. automodule:: build_statistics
+
+Rule ``make_benchmark``
+======================================
+
+.. automodule:: make_benchmark
+
+Rule ``plot_benchmark``
+======================================
+
+.. automodule:: plot_benchmark
+
+Rule ``launch_explorer``
+======================================
+
+.. automodule:: launch_explorer
+
+Rule ``close_explorers``
+======================================
+
+Closes all open local instances of launched PyPSA-Explorers and frees up used ports again.
+

@@ -26,27 +26,30 @@ from pypsa.geo import haversine_pts
 from scipy.stats import beta
 
 from scripts._helpers import (
+    _add_new_profiles_to_existing,
     configure_logging,
     get,
     get_tyndp_conventional_thermals,
     load_costs,
     make_index,
+    remove_zero_capacity_non_extendable,
     set_scenario_config,
     update_config_from_wildcards,
 )
 from scripts.add_electricity import (
     attach_load,
+    attach_storageunits,
+    attach_stores,
     attach_wind_and_solar,
     calculate_annuity,
     flatten,
-    load_and_aggregate_powerplants,
     sanitize_carriers,
     sanitize_locations,
 )
+from scripts.base_network import _load_links_from_raw
 from scripts.build_energy_totals import (
     build_co2_totals,
     build_eea_co2,
-    build_eurostat,
     build_eurostat_co2,
 )
 from scripts.build_transport_demand import transport_degree_factor
@@ -58,7 +61,57 @@ spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
+def attach_tyndp_transmission_projects(
+    n: pypsa.Network, fn_projects: str, fn_projects_fix: str | None = None
+):
+    """
+    Add TYNDP transmission projects to the network.
+
+    Updates existing DC link capacities and adds new links from the project list.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to attach projects to.
+    fn_projects : str
+        Path to CSV file containing transmission project data.
+    fn_projects_fix : str|None (optional)
+        Path to CSV file containing transmission project corrections (default: None).
+    """
+    logger.info("Adding transmission projects to the electrical network")
+    projects = _load_links_from_raw(fn_projects)
+    projects["dc"] = True
+    # TODO underwater fraction and capital costs not defined for new links
+
+    # Patch the project list (optional)
+    if fn_projects_fix:
+        logger.info("Patching electrical transmission projects with corrections.")
+        projects_fix = pd.read_csv(fn_projects_fix, quotechar="'", index_col=0).assign(
+            dc=True
+        )
+        new_projects = projects_fix.loc[
+            list(set(projects_fix.index) - set(projects.index))
+        ]
+        projects.loc[:, "p_nom"] = (
+            projects.loc[:, "p_nom"]
+            + projects_fix.p_nom.reindex(projects.index, fill_value=0)
+        ).clip(lower=0)
+        projects = projects[projects.p_nom != 0]
+
+        if not new_projects.empty:
+            projects = pd.concat([projects, new_projects])
+
+    links = n.links[n.links.carrier == "DC"].index
+    new_links = projects.loc[list(set(projects.index) - set(links))]
+    n.links.loc[links, "p_nom"] += projects.reindex(links, fill_value=0).p_nom
+
+    if not new_links.empty:
+        n.add("Link", new_links.index, **new_links)
+
+
+def define_spatial(
+    nodes, options, offshore_buses_fn=None, buses_h2_file=None, tyndp_scenario=None
+):
     """
     Namespace for spatial.
 
@@ -207,17 +260,37 @@ def define_spatial(nodes, options, offshore_buses_fn=None, buses_h2_file=None):
     if options["h2_topology_tyndp"] and buses_h2_file:
         spatial.h2_tyndp = SimpleNamespace()
         buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
-        spatial.h2_tyndp.nodes = pd.Index(
-            (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
-        )
-        spatial.h2_tyndp.locations = pd.Index(np.tile(buses_h2.index + " Z2", 2))
-        spatial.h2_tyndp.country = pd.Index(np.tile(buses_h2.country, 2))
-        spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x, 2))
-        spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y, 2))
-        spatial.h2_tyndp.df = pd.DataFrame(
-            vars(spatial.h2_tyndp),
-            index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
-        )
+
+        if options["h2_zones_tyndp"]:
+            spatial.h2_tyndp.nodes = pd.Index(
+                (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
+            )
+            spatial.h2_tyndp.locations = pd.Index(np.tile(buses_h2.index + " Z2", 2))
+            spatial.h2_tyndp.country = pd.Index(np.tile(buses_h2.country, 2))
+            spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x, 2))
+            spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y, 2))
+            spatial.h2_tyndp.df = pd.DataFrame(
+                vars(spatial.h2_tyndp),
+                index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
+            )
+            spatial.buses_h2_z1 = spatial.h2_tyndp.nodes[
+                ~spatial.h2_tyndp.nodes.str.contains("IB")
+                & spatial.h2_tyndp.nodes.str.contains("Z1")
+            ]
+            spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[
+                ~spatial.h2_tyndp.nodes.str.contains("IB")
+                & spatial.h2_tyndp.nodes.str.contains("Z2")
+            ]
+        else:
+            spatial.h2_tyndp.nodes = buses_h2.index
+            spatial.h2_tyndp.locations = buses_h2.index
+            spatial.h2_tyndp.country = buses_h2.country
+            spatial.h2_tyndp.x = buses_h2.x
+            spatial.h2_tyndp.y = buses_h2.y
+            spatial.buses_h2_z1 = pd.Index([])
+            spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[
+                ~spatial.h2_tyndp.nodes.str.contains("IB")
+            ]
 
     # methanol
 
@@ -323,7 +396,7 @@ def co2_emissions_year(
     """
     eea_co2 = build_eea_co2(input_co2, year, emissions_scope)
 
-    eurostat = build_eurostat(input_eurostat, countries)
+    eurostat = pd.read_csv(input_eurostat)
 
     # this only affects the estimation of CO2 emissions for BA, RS, AL, ME, MK, XK
     eurostat_co2 = build_eurostat_co2(eurostat, year)
@@ -488,7 +561,7 @@ def create_network_topology(
     return topo
 
 
-def create_h2_topology_tyndp(n, fn_h2_network):
+def create_h2_topology_tyndp(n, fn_h2_network, options):
     """
     Create a TYNDP H2 network topology from the TYNDP H2 reference grid.
 
@@ -498,16 +571,20 @@ def create_h2_topology_tyndp(n, fn_h2_network):
         Network to create H2 topology for
     fn_h2_network : str
         Pointing to the input TYNDP H2 reference grid csv file
+    options : dict
+        Dictionary of configuration options. Key options include:
+        - h2_zones_tyndp : bool
 
     Returns
     -------
     pd.DataFrame with columns bus0, bus1, length, underwater_fraction
     """
 
+    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
     # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
     h2_pipes = h2_pipes.assign(
-        bus0=h2_pipes.bus0 + " H2 Z2", bus1=h2_pipes.bus1 + " H2 Z2"
+        bus0=h2_pipes.bus0 + f" {suffix}", bus1=h2_pipes.bus1 + f" {suffix}"
     )
     h2_pipes["length"] = h2_pipes.apply(haversine, axis=1, args=(n,))
 
@@ -545,13 +622,18 @@ def update_wind_solar_costs(
 
     # NB: solar costs are also manipulated for rooftop
     # when distribution grid is inserted
-    n.generators.loc[n.generators.carrier == "solar", "capital_cost"] = costs.at[
-        "solar-utility", "capital_cost"
-    ]
+    carrier_cost_dict = {
+        "solar": "solar-utility",
+        "solar-hsat": "solar-hsat",
+        "onwind": "onwind",
+    }
 
-    n.generators.loc[n.generators.carrier == "onwind", "capital_cost"] = costs.at[
-        "onwind", "capital_cost"
-    ]
+    for carrier, cost_key in carrier_cost_dict.items():
+        if carrier not in n.generators.carrier.values:
+            continue
+        n.generators.loc[n.generators.carrier == carrier, "capital_cost"] = costs.at[
+            cost_key, "capital_cost"
+        ]
 
     # for offshore wind, need to calculated connection costs
     for key, fn in profiles.items():
@@ -754,13 +836,15 @@ def remove_elec_base_techs(n: pypsa.Network, carriers_to_keep: dict) -> None:
         Dictionary specifying which carriers to keep for each component type
         e.g. {'Generator': ['hydro'], 'StorageUnit': ['PHS']}
     """
-    for c in n.iterate_components(carriers_to_keep):
+    for c in n.components[list(carriers_to_keep.keys())]:
+        if c.static.empty:
+            continue
         to_keep = carriers_to_keep[c.name]
-        to_remove = pd.Index(c.df.carrier.unique()).symmetric_difference(to_keep)
+        to_remove = pd.Index(c.static.carrier.unique()).symmetric_difference(to_keep)
         if to_remove.empty:
             continue
         logger.info(f"Removing {c.list_name} with carrier {list(to_remove)}")
-        names = c.df.index[c.df.carrier.isin(to_remove)]
+        names = c.static.index[c.static.carrier.isin(to_remove)]
         n.remove(c.name, names)
         n.carriers.drop(to_remove, inplace=True, errors="ignore")
 
@@ -1101,9 +1185,9 @@ def add_biomass_to_methanol(n, costs):
         + costs.at["biomass-to-methanol", "CO2 stored"],
         p_nom_extendable=True,
         capital_cost=costs.at["biomass-to-methanol", "capital_cost"]
-        / costs.at["biomass-to-methanol", "efficiency"],
+        * costs.at["biomass-to-methanol", "efficiency"],
         marginal_cost=costs.loc["biomass-to-methanol", "VOM"]
-        / costs.at["biomass-to-methanol", "efficiency"],
+        * costs.at["biomass-to-methanol", "efficiency"],
     )
 
 
@@ -1126,11 +1210,11 @@ def add_biomass_to_methanol_cc(n, costs):
         * costs.at["biomass-to-methanol", "capture rate"],
         p_nom_extendable=True,
         capital_cost=costs.at["biomass-to-methanol", "capital_cost"]
-        / costs.at["biomass-to-methanol", "efficiency"]
+        * costs.at["biomass-to-methanol", "efficiency"]
         + costs.at["biomass CHP capture", "capital_cost"]
         * costs.at["biomass-to-methanol", "CO2 stored"],
         marginal_cost=costs.loc["biomass-to-methanol", "VOM"]
-        / costs.at["biomass-to-methanol", "efficiency"],
+        * costs.at["biomass-to-methanol", "efficiency"],
     )
 
 
@@ -1399,6 +1483,108 @@ def cycling_shift(df, steps=1):
     return df
 
 
+def _add_other_non_res_tyndp(
+    n: pypsa.Network,
+    generator: str,
+    carrier: str,
+    carrier_nodes: list,
+    spatial: SimpleNamespace,
+    costs: pd.DataFrame,
+    pemmdb_capacities: pd.DataFrame,
+    co2_price: float,
+) -> None:
+    """
+    Add TYNDP Other Non-RES price bands to the network.
+
+    Creates links between carrier buses and demand nodes for Other Non-RES generators of different price bands,
+    including their efficiency, costs, and CO2 emissions.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    generator : str
+        Name of the Other Non-RES generator
+    carrier : str
+        Name of the Other Non-RES fuel carrier
+    carrier_nodes : list
+        Nodes of the fuel carrier
+    spatial : SimpleNamespace
+        Namespace containing spatial information for different carriers,
+        including nodes and locations
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies
+    pemmdb_capacities : pd.DataFrame
+        Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands
+    co2_price: float
+        Emission price for the given planning year
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding TYNDP Other Non-RES price bands
+    """
+    query = "" if "ccs" in generator else "not"
+
+    price_bands = pemmdb_capacities.query(
+        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
+    ).reset_index()
+    nodes = price_bands.bus.values
+    offer_price = price_bands.price
+    fuel_price = costs.at[carrier, "fuel"]
+    adjusted_price = (
+        offer_price * price_bands.efficiency  # EUR/MWhel * efficiency = EUR/MWhth
+        - fuel_price  # EUR/MWhth
+        - price_bands.co2_factor * co2_price  # tCO2/MWhth * EUR/tCO2 = EUR/MWhth
+    ).values
+
+    if "ccs" in generator:
+        capture_rate = costs.at[generator, "capture_rate"]
+        co2_capture = capture_rate * price_bands.co2_factor.values / (1 - capture_rate)
+
+        n.add(
+            "Link",
+            price_bands["bus"].astype(str)
+            + "-"
+            + price_bands["index_carrier"].astype(str)
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
+            bus0=carrier_nodes,
+            bus1=nodes,
+            bus2="co2 atmosphere",
+            bus3=spatial.co2.df.loc[nodes, "nodes"].values,
+            carrier=generator,
+            p_nom_extendable=False,
+            marginal_cost=adjusted_price,
+            efficiency=price_bands.efficiency.values,
+            efficiency2=price_bands.co2_factor.values,
+            efficiency3=co2_capture,
+            lifetime=costs.at[generator, "lifetime"],
+        )
+
+    # Else add as regular conventional power plants
+    else:
+        n.add(
+            "Link",
+            price_bands["bus"].astype(str)
+            + "-"
+            + price_bands["index_carrier"].astype(str)
+            + "-"
+            + price_bands["price"].round(2).astype(str)
+            + "eur",
+            bus0=carrier_nodes,
+            bus1=nodes,
+            bus2="co2 atmosphere",
+            carrier=generator,
+            p_nom_extendable=False,
+            marginal_cost=adjusted_price,
+            efficiency=price_bands.efficiency.values,
+            efficiency2=price_bands.co2_factor.values,
+            lifetime=costs.at[generator, "lifetime"],
+        )
+
+
 def add_thermal_generation_tyndp(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -1407,6 +1593,8 @@ def add_thermal_generation_tyndp(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
+    pemmdb_capacities: pd.DataFrame,
+    co2_price: float,
 ) -> None:
     """
     Add TYNDP conventional thermal electricity generation technologies to the network.
@@ -1431,6 +1619,10 @@ def add_thermal_generation_tyndp(
         Configuration dictionary containing settings for the model
     cf_industry : dict
         Dictionary of industrial conversion factors, needed for carrier buses
+    pemmdb_capacities: pd.DataFrame
+        Dataframe containing PEMMDB capacities including Other Non-RES price band information
+    co2_price: float
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1456,9 +1648,22 @@ def add_thermal_generation_tyndp(
             cf_industry=cf_industry,
         )
 
-        # Add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
+        # Add TYNDP Other Non-RES price bands to the network
+        if "other-non-res" in generator:
+            _add_other_non_res_tyndp(
+                n=n,
+                generator=generator,
+                carrier=carrier,
+                carrier_nodes=carrier_nodes,
+                spatial=spatial,
+                costs=costs,
+                pemmdb_capacities=pemmdb_capacities,
+                co2_price=co2_price,
+            )
+
+        # Otherwise, add CCS conventional power plants using default PyPSA-Eur assumptions for capture rates and capital cost
         # TODO: Update with TYNDP specific assumptions
-        if "ccs" in generator:
+        elif "ccs" in generator:
             n.add(
                 "Link",
                 nodes + " " + generator,
@@ -1494,6 +1699,74 @@ def add_thermal_generation_tyndp(
             )
 
 
+def add_other_res_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    pop_layout: pd.DataFrame,
+    spatial: SimpleNamespace,
+    options: dict,
+) -> None:
+    """
+    Add Other RES technologies to the network. This includes two groups of plants:
+    * Small Biomass
+    * Geothermal, Marine, Waste, Not defined
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies
+    pop_layout : SimpleNamespace.
+        Namespace containing spatial information for different carriers,
+        including nodes and locations.
+    spatial : SimpleNamespace
+        Namespace containing spatial information for different carriers,
+        including nodes and locations.
+    options : dict
+        Configuration dictionary containing settings for the model.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding TYNDP Other RES components.
+    """
+    logger.info("Add Other RES from TYNDP.")
+
+    nodes = pop_layout.index
+
+    # Add biomass components to the model incl. biomass bus
+    # TODO: refactor with add_carrier_buses both here and in add_biomass
+    if options["biomass"]:
+        n.add(
+            "Bus",
+            spatial.biomass.nodes,
+            location=spatial.biomass.locations,
+            carrier="solid biomass",
+            unit="MWh_LHV",
+        )
+
+        # Add Other RES Biomass as Links
+        n.add(
+            "Link",
+            nodes + " other-res-biomass",
+            bus0=spatial.biomass.df.loc[nodes, "nodes"].values,
+            bus1=nodes,
+            carrier="other-res-biomass",
+            p_nom_extendable=False,
+            efficiency=costs.at["central solid biomass CHP", "efficiency"],
+        )
+
+    # Add Other RES Mix as Generators
+    n.add(
+        "Generator",
+        nodes + " other-res-mix",
+        bus=nodes,
+        carrier="other-res-mix",
+        p_nom_extendable=False,
+    )
+
+
 def add_generation(
     n: pypsa.Network,
     costs: pd.DataFrame,
@@ -1503,9 +1776,11 @@ def add_generation(
     spatial: SimpleNamespace,
     options: dict,
     cf_industry: dict,
-    ext_carriers,
-    existing_capacities=None,
-    existing_efficiencies=None,
+    ext_carriers: dict[str, list[str]],
+    existing_capacities: pd.Series | None = None,
+    existing_efficiencies: pd.Series | None = None,
+    pemmdb_capacities: pd.DataFrame | None = None,
+    co2_price: float | None = None,
 ) -> None:
     """
     Add conventional electricity generation to the network.
@@ -1533,6 +1808,16 @@ def add_generation(
         Configuration dictionary containing settings for the model
     cf_industry : dict
         Dictionary of industrial conversion factors, needed for carrier buses
+    ext_carriers : dict[str, list[str]]
+        Dictionary mapping component types to lists of extendable carriers
+    existing_capacities : pd.Series | None
+        Existing generation capacities by generator type
+    existing_efficiencies : pd.Series | None
+        Existing generation efficiencies by generator type
+    pemmdb_capacities: pd.DataFrame | None
+        Dataframe containing PEMMDB capacities including Other Non-RES price band information
+    co2_price: float | None
+        Emission price for the given planning year
 
     Returns
     -------
@@ -1621,6 +1906,7 @@ def add_generation(
         )
 
     # Add TYNDP conventional power plants
+    # TODO: review how to use AC buses as nodes with pop_layout index used for spatial
     add_thermal_generation_tyndp(
         n=n,
         costs=costs,
@@ -1629,7 +1915,101 @@ def add_generation(
         spatial=spatial,
         options=options,
         cf_industry=cf_industry,
+        pemmdb_capacities=pemmdb_capacities,
+        co2_price=co2_price,
     )
+
+
+def _add_pu_profiles(
+    comp_t: dict[str, pd.DataFrame], p_min_pu: pd.DataFrame, p_max_pu: pd.DataFrame
+) -> None:
+    """
+    Safely add new per unit profiles while safeguarding against profiles with only default values.
+    """
+    # Drop columns that are all zeros (default-value)
+    p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
+    # Drop columns that are all ones (default-value)
+    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
+
+    _add_new_profiles_to_existing(
+        component_t=comp_t, attr="p_min_pu", new_profiles=p_min_pu
+    )
+    _add_new_profiles_to_existing(
+        component_t=comp_t, attr="p_max_pu", new_profiles=p_max_pu
+    )
+
+
+def _add_other_non_res_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    pemmdb_profiles: pd.DataFrame,
+    tech: str,
+) -> None:
+    """
+    Add PEMMDB capacities and profiles to Other Non-RES price band components.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    pemmdb_profiles : pd.DataFrame
+        All PEMMDB must-run and availability profiles.
+    tech : str
+        Other Non-RES price band to be added to the network.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding Other Non-RES capacities and profiles.
+    """
+
+    tech_i = n.links.query("carrier == @tech").index
+    if tech_i.empty:
+        return
+
+    # Capacities
+    ############
+    # Filter for capacities and add to the network
+    caps = (
+        pemmdb_capacities.query("open_tyndp_type == @tech")
+        .reset_index()
+        .assign(
+            price_band=lambda df: df["bus"].astype(str)
+            + "-"
+            + df["index_carrier"].astype(str)
+            + "-"
+            + df["price"].round(2).astype(str)
+            + "eur"
+        )
+        .set_index("price_band")
+    )["p_nom"]
+    # Existing capacities are given in MWel, hence we need to convert to MWth
+    n.links.loc[tech_i, "p_nom"] = (
+        caps.reindex(tech_i).fillna(0.0).div(n.links.loc[tech_i, "efficiency"])
+    )
+
+    # Profiles
+    ##########
+    # Filter for profiles
+    profiles = pemmdb_profiles.query("open_tyndp_type == @tech").assign(
+        link_index=lambda df: df["bus"].astype(str)
+        + "-"
+        + df["index_carrier"].astype(str)
+        + "-"
+        + df["price"].round(2).astype(str)
+        + "eur"
+    )
+    p_min_pu = profiles.pivot_table(
+        values="p_min_pu", index="time", columns="link_index"
+    ).reindex(tech_i, axis=1, fill_value=0.0)
+
+    p_max_pu = profiles.pivot_table(
+        values="p_max_pu", index="time", columns="link_index"
+    ).reindex(tech_i, axis=1, fill_value=1.0)
+
+    _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
 
 def _add_conventional_thermal_capacities(
@@ -1638,6 +2018,7 @@ def _add_conventional_thermal_capacities(
     pemmdb_profiles: pd.DataFrame,
     tyndp_conventional_thermals: list[str],
     nuclear_trajectories: pd.DataFrame,
+    nuclear_profiles: pd.DataFrame,
 ) -> None:
     """
     Add PEMMDB capacities and profiles to conventional thermal generation assets in the network.
@@ -1654,12 +2035,23 @@ def _add_conventional_thermal_capacities(
         List of TYNDP conventional thermal technologies that were added to the network.
     nuclear_trajectories : pd.DataFrame
         Trajectories for exogenous nuclear pathways.
+    nuclear_profiles : pd.DataFrame
+        DataFrame containing the availability profiles of nuclear power plants.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding conventional thermal capacities and profiles.
     """
     logger.info(
         "Adding PEMMDB capacities and profiles to conventional thermal generation assets."
     )
 
     for tech in tyndp_conventional_thermals:
+        if "other-non-res" in tech:
+            _add_other_non_res_capacities(n, pemmdb_capacities, pemmdb_profiles, tech)
+            continue
+
         # Capacities
         ############
         # Get indices for this technology
@@ -1714,6 +2106,13 @@ def _add_conventional_thermal_capacities(
 
         # Profiles
         ##########
+
+        # (nuclear only) Define availability profiles,
+        # accounting for maintenance schedules and forced outages
+        if tech == "nuclear":
+            nuclear_profiles.columns = nuclear_profiles.columns + " nuclear"
+            nuclear_profiles = nuclear_profiles.reindex(n.snapshots)
+
         # Filter for profiles
         profiles = pemmdb_profiles.query("index_carrier == @tech")
         p_min_pu = (
@@ -1721,32 +2120,632 @@ def _add_conventional_thermal_capacities(
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=0.0)
         )
-        # Drop columns that are all zeros (default-value)
-        p_min_pu = p_min_pu.loc[:, (p_min_pu != 0.0).any()]
+        # For nuclear, take the minimum of p_min_pu and nuclear_profiles to account for outages
+        # TODO Improve assumption for DE / GA
+        if tech == "nuclear":
+            common_cols = p_min_pu.columns.intersection(nuclear_profiles.columns)
+            if not common_cols.empty:
+                p_min_pu[common_cols] = np.minimum(
+                    p_min_pu[common_cols], nuclear_profiles[common_cols]
+                )
 
         p_max_pu = (
             profiles.pivot_table(values="p_max_pu", index="time", columns="bus")
             .rename(columns=lambda x: x + " " + tech)
             .reindex(tech_i, axis=1, fill_value=1.0)
         )
-        # Drop columns that are all ones (default-value)
-        p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any()]
+        # For nuclear, take the minimum of p_max_pu and nuclear_profiles to account for outages
+        # TODO Improve assumption for DE / GA
+        if tech == "nuclear":
+            common_cols = p_max_pu.columns.intersection(nuclear_profiles.columns)
+            if not common_cols.empty:
+                p_max_pu[common_cols] = np.minimum(
+                    p_max_pu[common_cols], nuclear_profiles[common_cols]
+                )
 
-        if not p_min_pu.empty:
-            index_name = n.links_t.p_min_pu.index.name
-            n.links_t.p_min_pu = pd.concat([n.links_t.p_min_pu, p_min_pu], axis=1)
-            n.links_t.p_min_pu.index.name = index_name
+        _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
-        if not p_max_pu.empty:
-            index_name = n.links_t.p_max_pu.index.name
-            n.links_t.p_max_pu = pd.concat([n.links_t.p_max_pu, p_max_pu], axis=1)
-            n.links_t.p_max_pu.index.name = index_name
+    # Remove non-expandable assets with no capacity
+    remove_zero_capacity_non_extendable(
+        n, carriers=tyndp_conventional_thermals, component_types={"Link"}
+    )
 
-        # Remove non-expandable assets with no capacity
-        links_rm = (
-            n.links.loc[tech_i].query("p_nom_extendable == False and p_nom == 0").index
+
+def _add_electrolyzer_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    trajectories: pd.DataFrame,
+) -> None:
+    """
+    Add existing onshore electrolyzer capacities from PEMMDB and TYNDP trajectories.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    trajectories: pd.DataFrame
+        TYNDP trajectories for onshore electrolyzers.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the electrolyzer capacities.
+    """
+    logger.info("Adding PEMMDB capacities to onshore electrolyzers.")
+
+    # Get indices for this technology
+    electrolyser_i = n.links.query(
+        "carrier == 'H2 Electrolysis' and not index.str.contains('DRES')"
+    ).index
+    if electrolyser_i.empty:
+        return
+
+    # Filter for capacities and add to the network
+    # TODO: Add split between zones for DE/GA
+    caps = pemmdb_capacities.query("carrier == 'electrolyser'")["p_nom"]
+    n.links.loc[electrolyser_i, ["p_nom", "p_nom_min"]] = (
+        n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
+    )
+
+    # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
+    if trajectories.empty:
+        n.links.loc[electrolyser_i, "p_nom_extendable"] = False
+        return
+
+    # Otherwise, for DE/GA, set trajectories
+    # p_nom_min as the maximum of PEMMDB capacity and p_nom_min value
+    # TODO: Adjust added trajectories for DE/GA to account for zonal split
+    n.links.loc[electrolyser_i, "p_nom_min"] = np.maximum(
+        n.links.loc[electrolyser_i, "p_nom"],
+        n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_min"]).fillna(0.0),
+    )
+    # p_nom_max as the maximum of PEMMDB capacity and p_nom_max value
+    # TODO: Adjust added trajectories for DE/GA to account for zonal split
+    n.links.loc[electrolyser_i, "p_nom_max"] = np.maximum(
+        n.links.loc[electrolyser_i, "p_nom"],
+        n.links.loc[electrolyser_i, "bus0"].map(trajectories["p_nom_max"]).fillna(0.0),
+    )
+
+
+def _extract_inflows(
+    inflows_t: xr.Dataset,
+    hydro_tech: str,
+    hydro_tech_i: pd.Index,
+    name_sfx: str = "",
+):
+    """
+    Extract inflows for a given hydro technology and planning horizon.
+
+    Parameters
+    ----------
+    inflows_t : xr.Dataset
+        Dataset with inflows time series for different hydro technologies.
+    hydro_tech : str
+        Name of the hydro technology added to the network.
+    hydro_tech_i : pd.Index
+        Index of network components associated with the hydro technology.
+    name_sfx : str, optional
+        String suffix added to the column name of the returned inflow Dataframe
+
+    Returns
+    -------
+    pd.DataFrame
+        Hydro inflow profiles for all network nodes of the passed hydro technology.
+
+    """
+    try:
+        return (
+            inflows_t.sel(hydro_tech=hydro_tech, drop=True)
+            .to_dataframe()
+            .pivot_table(values="profile", index="time", columns="bus")
+            .rename(columns=lambda x: f"{x} {hydro_tech}{name_sfx}")
+            .reindex(hydro_tech_i, axis=1, fill_value=0.0)
         )
-        n.remove("Link", links_rm)
+
+    except (KeyError, ValueError) as e:
+        logger.warning(f"Error extracting inflows for {hydro_tech}: {e}")
+        return
+
+
+def _add_ror_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    inflows_t: xr.Dataset,
+) -> None:
+    """
+    Add generator capacities and inflows to Run-of-river hydropower units (hydro-ror).
+    """
+    tech = "hydro-ror"
+    logger.debug(f"Adding {tech} PEMMDB capacities and inflows.")
+
+    caps = pemmdb_capacities.query("carrier == @tech")["p_nom"]
+    tech_i = n.generators.query("carrier == @tech").index
+
+    if tech_i.empty:
+        logger.warning(f"No components found for {tech}.")
+        return
+
+    # Set capacities
+    n.generators.loc[tech_i, "p_nom"] = (
+        n.generators.loc[tech_i, "bus"].map(caps).fillna(0.0)
+    )
+
+    # Process inflows
+    inflows = _extract_inflows(
+        inflows_t=inflows_t,
+        hydro_tech=tech,
+        hydro_tech_i=tech_i,
+    )
+    if inflows is None:
+        return
+
+    # Divide by capacity for p_max_pu inflow profile
+    p_max_pu = (
+        inflows.div(n.generators.loc[tech_i, "p_nom"], axis=1)
+        .fillna(0.0)  # when capacity 0
+        .clip(upper=1.0)  # clip at 1.0 assuming spillage
+    )
+
+    # Drop profiles that are all ones (default-value) or where capacity = 0
+    p_max_pu = p_max_pu.loc[
+        :, (p_max_pu != 1.0).any() & (n.generators.loc[tech_i, "p_nom"] > 0)
+    ]
+
+    # Add new profiles to the network
+    _add_new_profiles_to_existing(n.generators_t, "p_max_pu", p_max_pu)
+
+
+def _add_reservoir_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    inflows_t: xr.Dataset,
+    tech: str,
+) -> None:
+    """
+    Add storage unit capacities and inflows to reservoir hydropower units (hydro-pondage or hydro-reservoir).
+
+    Parameters
+    ----------
+    tech : str
+        Technology name (e.g., 'hydro-pondage', 'hydro-reservoir').
+    """
+    logger.debug(f"Adding {tech} PEMMDB capacities and inflows")
+
+    # Extract capacities
+    p_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MW'")["p_nom"]
+    e_nom = pemmdb_capacities.query("carrier == @tech and unit == 'MWh'")["e_nom"]
+
+    tech_i = n.storage_units.query("carrier == @tech").index
+
+    if tech_i.empty:
+        logger.warning(f"No storage units found for carrier {tech}")
+        return
+
+    # Set capacities
+    n.storage_units.loc[tech_i, "p_nom"] = (
+        n.storage_units.loc[tech_i, "bus"].map(p_nom).fillna(0.0)
+    )
+
+    # Calculate and set max_hours
+    max_hours = (e_nom / p_nom).fillna(0.0)
+    n.storage_units.loc[tech_i, "max_hours"] = (
+        n.storage_units.loc[tech_i, "bus"].map(max_hours).fillna(0.0)
+    )
+
+    # Process inflows
+    inflows = _extract_inflows(
+        inflows_t=inflows_t,
+        hydro_tech=tech,
+        hydro_tech_i=tech_i,
+    )
+    if inflows is None:
+        return
+
+    # Drop profiles with zero capacities
+    inflows = inflows.loc[:, n.storage_units.loc[tech_i, "p_nom"] > 0]
+
+    # Add new profiles to the network
+    _add_new_profiles_to_existing(n.storage_units_t, "inflow", inflows)
+
+
+def _add_phs_inflows(
+    n: pypsa.Network,
+    inflows_t: xr.Dataset,
+    tech: str,
+) -> None:
+    """
+    Add inflows for pumped hydro storage via additional generator.
+    """
+    tech_inflow = f"{tech}-inflows"
+    gen_i = n.generators.query("carrier == @tech_inflow").index
+
+    if gen_i.empty:
+        logger.warning(f"No inflow generators found for carrier {tech_inflow}")
+        return
+
+    inflows = _extract_inflows(
+        inflows_t=inflows_t,
+        hydro_tech=tech,
+        hydro_tech_i=gen_i,
+        name_sfx="-inflows",
+    )
+    if inflows is None:
+        return
+
+    # Set generator capacities based on max inflows
+    inflow_gen_caps = inflows.max(axis=0)
+    n.generators.loc[gen_i, "p_nom"] = inflow_gen_caps
+
+    # Calculate p_max_pu
+    p_max_pu = inflows.div(inflow_gen_caps, axis=1).fillna(0.0)
+
+    # Filter out constant profiles and zero capacities
+    p_max_pu = p_max_pu.loc[:, (p_max_pu != 1.0).any() & (inflow_gen_caps > 0)]
+
+    # Add new profiles to the network
+    _add_new_profiles_to_existing(n.generators_t, "p_max_pu", p_max_pu)
+
+
+def _add_phs_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    inflows_t: xr.Dataset,
+    tech: str,
+) -> None:
+    """
+    Add capacities and inflows to open or closed pumped hydro storages (hydro-phs or hydro-phs-pure).
+
+    Parameters
+    ----------
+    tech : str
+        Technology name ('hydro-phs' or 'hydro-phs-pure').
+    """
+    # check if technology has inflows
+    has_inflows = "pure" not in tech
+
+    logger.debug(
+        f"Adding {tech} PEMMDB capacities" + (" and inflows" if has_inflows else "")
+    )
+
+    # Extract capacities
+    p_nom_turbine = pemmdb_capacities.loc[
+        (pemmdb_capacities["open_tyndp_type"] == f"{tech}-turbine")
+        & (pemmdb_capacities["unit"] == "MW")
+    ]["p_nom"]
+    p_nom_pump = pemmdb_capacities.loc[
+        (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
+        & (pemmdb_capacities["unit"] == "MW")
+    ]["p_nom"].mul(-1)  # input pump capacities are given in negative direction
+    e_nom = pemmdb_capacities.loc[
+        (pemmdb_capacities["carrier"] == tech) & (pemmdb_capacities["unit"] == "MWh")
+    ].rename(index=lambda x: f"{x} {tech}")["e_nom"]
+
+    # Set store capacities
+    store_i = n.stores.query("carrier == @tech").index
+
+    if not store_i.empty:
+        n.stores.loc[store_i, "e_nom"] = (
+            n.stores.loc[store_i, "bus"].map(e_nom).fillna(0.0)
+        )
+
+    # Set turbine and pump capacities
+    turbine_i = n.links.loc[n.links.carrier == f"{tech}-turbine"].index
+    pump_i = n.links.loc[n.links.carrier == f"{tech}-pump"].index
+
+    if not turbine_i.empty:
+        n.links.loc[turbine_i, "p_nom"] = (
+            n.links.loc[turbine_i, "bus1"]
+            .map(p_nom_turbine)
+            .fillna(0.0)
+            .div(
+                n.links.loc[turbine_i, "efficiency"]
+            )  # existing capacities are given in P_el
+        )
+
+    if not pump_i.empty:
+        n.links.loc[pump_i, "p_nom"] = (
+            n.links.loc[pump_i, "bus0"].map(p_nom_pump).fillna(0.0)
+        )
+
+    # Add inflows if applicable
+    if has_inflows:
+        _add_phs_inflows(n, inflows_t, tech)
+
+
+def _add_hydro_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    hydro_inflows_fn: str,
+    planning_horizon: int,
+) -> None:
+    """
+    Add existing hydro capacities and inflows from PEMMDB.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    hydro_inflows_fn : str
+        Path to file with hydro inflow profiles.
+    planning_horizon : int
+        Planning horizon for which hydro inflows should be added.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the hydro capacities and inflows.
+    """
+    logger.info("Adding PEMMDB capacities and inflows to hydro technologies.")
+
+    # Load hydro inflows
+    inflows_t = xr.open_dataset(hydro_inflows_fn).sel(year=planning_horizon, drop=True)
+
+    _add_ror_capacities(n, pemmdb_capacities, inflows_t)
+    _add_reservoir_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-pondage")
+    _add_reservoir_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-reservoir")
+    _add_phs_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-phs")
+    _add_phs_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-phs-pure")
+
+
+def _add_smr_capacities(
+    n: pypsa.Network,
+    smr_capacities: pd.DataFrame,
+) -> None:
+    """
+    Add existing SMR and SMR CC capacities and potential must-runs.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    smr_capacities : pd.DataFrame
+        Existing SMR and SMR CC capacities.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the SMR and SMR CC capacities.
+    """
+    logger.info("Adding SMR and SMR CC capacities.")
+
+    # SMR components
+    smr_i = n.links.query("carrier.str.contains('SMR')").index
+
+    # Add capacities for SMR and SMR CC
+    smr_caps = smr_capacities.p_nom
+    n.links.loc[smr_i, ["p_nom", "p_nom_min"]] = smr_caps.reindex(
+        n.links.loc[smr_i, :].index
+    ).fillna(0.0)
+
+    # Add must-runs if given for any units
+    if (smr_capacities.p_min_pu > 0).any():
+        smr_p_min_pu = smr_capacities.p_min_pu
+        n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(
+            n.links.loc[smr_i, :].index
+        ).fillna(0.0)
+
+
+def _add_h2_storage_capacities(
+    n: pypsa.Network,
+    h2_storage_capacities: pd.DataFrame,
+) -> None:
+    """
+    Add existing H2 storage energy and charge/discharge capacities as well as optional expansion constraints.
+
+    Parameters
+    ----------
+    n : pypsa.Network#
+        The PyPSA network container object.
+    h2_storage_capacities : pd.DataFrame
+        Existing H2 storage energy and charge/discharge capacities and expansion constraints.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the H2 storage capacities.
+    """
+    logger.info("Adding H2 storage capacities.")
+
+    # H2 Store components
+    h2_stores = n.stores.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
+    h2_stores_i = n.stores[h2_stores].index
+    h2_stores_extendable_i = n.stores[h2_stores & n.stores.e_nom_extendable].index
+    # H2 charge/discharge Link components
+    h2_chargers = n.links.carrier.isin(
+        [
+            "H2 cavern-storage charger",
+            "H2 cavern-storage discharger",
+            "H2 tank-storage charger",
+            "H2 tank-storage discharger",
+        ]
+    )
+    h2_chargers_i = n.links[h2_chargers].index
+    h2_chargers_extendable_i = n.links[h2_chargers & n.links.p_nom_extendable].index
+
+    # Add capacities for H2 Stores and charge/discharge Links
+    store_caps = h2_storage_capacities.set_index("bus").e_nom
+    link_caps = pd.concat(
+        [
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " charger"
+            ).p_nom_charge,
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " discharger"
+            ).p_nom_discharge,
+        ]
+    )
+    n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_caps.reindex(
+        n.stores.loc[h2_stores_i, :].index
+    ).fillna(0.0)
+    n.links.loc[h2_chargers_i, ["p_nom", "p_nom_min"]] = link_caps.reindex(
+        n.links.loc[h2_chargers_i, :].index
+    ).fillna(0.0)
+
+    # Add expansion constraints to extendable assets
+    store_caps_max = h2_storage_capacities.set_index("bus").e_nom_max
+    link_caps_max = pd.concat(
+        [
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " charger"
+            ).p_nom_max_charge,
+            h2_storage_capacities.set_index(
+                h2_storage_capacities.bus + " discharger"
+            ).p_nom_max_discharge,
+        ]
+    )
+    n.stores.loc[h2_stores_extendable_i, ["e_nom_max"]] = store_caps_max.reindex(
+        n.stores.loc[h2_stores_extendable_i, :].index
+    ).fillna(0.0)
+    n.links.loc[h2_chargers_extendable_i, ["p_nom_max"]] = link_caps_max.reindex(
+        n.links.loc[h2_chargers_extendable_i, :].index
+    ).fillna(0.0)
+
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=[
+            "H2 cavern-storage",
+            "H2 tank-storage",
+            "H2 cavern-storage charger",
+            "H2 tank-storage charger",
+            "H2 cavern-storage discharger",
+            "H2 tank-storage discharger",
+        ],
+        component_types={"Store", "Link"},
+    )
+    # Drop Storage buses that do not have a store connected to it anymore
+    remaining_stores = n.stores[
+        n.stores.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
+    ].bus.unique()
+    idx = n.buses.loc[
+        n.buses.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
+        & ~n.buses.index.isin(remaining_stores)
+    ].index
+    n.remove("Bus", idx)
+
+
+def _add_other_res_profiles(
+    carrier: str,
+    asset_i: pd.Index,
+    component_df: pd.DataFrame,
+    component_t: dict[str, pd.DataFrame],
+    profiles: pd.DataFrame,
+) -> None:
+    """
+    Add p_set profiles to existing network for a given Other RES carrier and component.
+
+    Parameters
+    ----------
+    carrier : str
+        Carrier name for which to add the Other RES profile.
+    asset_i : pd.Index
+        Index names of associated network components for the given carrier.
+    component_df : pd.DataFrame
+        Static component Dataframe.
+    component_t : dict[str, pd.DataFrame]
+        Component dictionary containing time-dependent attributes for the given component.
+    profiles : pd.DataFrame
+        Dataframe containing the profiles to add to the network.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the Other RES profiles.
+    """
+
+    profiles = profiles.query(f"index_carrier == '{carrier}'")
+
+    if carrier == "other-res-biomass":
+        # adjust other-res-biomass profiles for MW_th as they are implemented as links
+        profiles = profiles.assign(
+            p_set=lambda df: df.p_set.div(component_df.loc[asset_i].efficiency.iloc[0])
+        )
+
+    p_set = (
+        profiles.pivot_table(values="p_set", index="time", columns="bus")
+        .rename(columns=lambda x: f"{x} {carrier}")
+        .reindex(asset_i, axis=1, fill_value=0.0)
+    )
+    p_set = p_set.loc[:, (p_set != 0.0).any()]
+
+    _add_new_profiles_to_existing(
+        component_t=component_t, attr="p_set", new_profiles=p_set
+    )
+
+
+def _add_other_res_capacities(
+    n: pypsa.Network, pemmdb_capacities: pd.DataFrame, pemmdb_profiles: pd.DataFrame
+) -> None:
+    """
+    Add existing Other RES capacities and fixed profiles to Other RES Biomass and Mix components.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        Existing PEMMDB capacities which includes `other-res-biomass` and `other-res-mix`.
+    pemmdb_profiles : pd.DataFrame
+        Fixed per unit PEMMDB generation profiles which includes `other-res-biomass` and `other-res-mix`.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding the Other RES Biomass and Mix capacities.
+    """
+    logger.info("Adding Other RES capacities and fixed generation profiles.")
+
+    # Other RES components
+    or_biomass_i = n.links.query("carrier == 'other-res-biomass'").index
+    or_mix_i = n.generators.query("carrier == 'other-res-mix'").index
+
+    # Add capacities
+    # Other RES Biomass
+    or_biomass_caps = pemmdb_capacities[
+        pemmdb_capacities.index_carrier == "other-res-biomass"
+    ].p_nom
+    # Existing capacities are given in MWel, hence we need to convert to MWth
+    n.links.loc[or_biomass_i, ["p_nom", "p_nom_min"]] = (
+        n.links.loc[or_biomass_i, "bus1"]
+        .map(or_biomass_caps)
+        .fillna(0.0)
+        .div(n.links.loc[or_biomass_i, "efficiency"])
+    )
+
+    # Other RES Mix
+    or_mix_caps = pemmdb_capacities[
+        pemmdb_capacities.index_carrier == "other-res-mix"
+    ].p_nom
+    n.generators.loc[or_mix_i, ["p_nom", "p_nom_min"]] = (
+        n.generators.loc[or_mix_i, "bus"].map(or_mix_caps).fillna(0.0)
+    )
+
+    # Add fixed per-unit generation profiles
+    # Other RES Biomass
+    _add_other_res_profiles(
+        carrier="other-res-biomass",
+        asset_i=n.links.query("carrier == 'other-res-biomass' and p_nom > 0").index,
+        component_df=n.links,
+        component_t=n.links_t,
+        profiles=pemmdb_profiles,
+    )
+    # Other RES Mix
+    _add_other_res_profiles(
+        carrier="other-res-mix",
+        asset_i=n.generators.query("carrier == 'other-res-mix' and p_nom > 0").index,
+        component_df=n.generators,
+        component_t=n.generators_t,
+        profiles=pemmdb_profiles,
+    )
+
+    # Remove non-expendable assets with no capacity
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=["other-res-biomass", "other-res-mix"],
+    )
 
 
 def _add_store_capacities(
@@ -1809,30 +2808,37 @@ def _add_store_capacities(
         )
 
 
-def add_existing_pemmdb_capacities(
+def add_existing_tyndp_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     pemmdb_profiles: pd.DataFrame,
+    smr_capacities: pd.DataFrame,
+    h2_storage_capacities: pd.DataFrame,
     trajectories: pd.DataFrame,
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
+    h2_topology_tyndp: bool,
     tyndp_stores: list[str],
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
+    nuclear_profiles: pd.DataFrame,
+    hydro_inflows_fn: str,
     extendable_carriers: list | set,
     investment_year: int,
+    enable_pemmdb_caps: bool,
 ) -> None:
     """
-    Add PEMMDB existing capacities, must-runs and availabilities to the network.
+    Add existing TYNDP capacities, must-runs and availabilities to the network.
     For onshore wind and solar technologies, the generator components will additionally be attached to the model.
 
-    The following PEMMDB technologies are included:
+    The following TYNDP technologies are included:
       - conventional thermal generation (incl. H2 fuel-cells and turbines)
       - onshore wind and solar
       - hydro
       - electrolysers
       - other RES and other Non-RES
       - battery storages
+      - SMR and SMR CC
 
     Parameters
     ----------
@@ -1842,215 +2848,128 @@ def add_existing_pemmdb_capacities(
         DataFrame containing all PEMMDB capacities.
     pemmdb_profiles : pd.DataFrame
         DataFrame containing all PEMMDB must-run and availability profiles.
+    smr_capacities : pd.DataFrame
+        DataFrame containing existing SMR capacities.
+    h2_storage_capacities : pd.DataFrame
+        DataFrame containing existing H2 storage capacities.
     trajectories : pd.DataFrame
         DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies that were added to the network.
+    h2_topology_tyndp : bool
+        Whether TYNDP H2 topology is modeled, so that existing capacities are added for associated components.
     tyndp_stores : list[str]
         List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
         Dictionary containing the paths to the PECD renewable profiles.
+    nuclear_profiles : pd.DataFrame
+        DataFrame containing the availability profiles of nuclear power plants.
+    hydro_inflows_fn : str,
+        Path to file with hydro inflow profiles.
     extendable_carriers : list[str] | set
         List of extendable renewable energy carriers.
     investment_year : int
         Year for which to get trajectories.
+    enable_pemmdb_caps : bool
+        Whether to include PEMMDB capacities.
 
     Returns
     -------
     None
         Modifies the network object in-place by adding information to the generation components.
     """
-    logger.info("Adding PEMMDB capacities, must-runs and availabilities to components.")
 
-    # Attach onwind and solar technologies and add existing capacities
-    tyndp_solar_onwind = [
-        c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
-    ]
-
-    if tyndp_solar_onwind:
-        ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
-        trajectories_solar_onwind = trajectories.query(
-            "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+    if enable_pemmdb_caps:
+        logger.info(
+            "Adding PEMMDB capacities, must-runs and availabilities to components."
         )
 
-        attach_wind_and_solar(
+        # Attach onwind and solar technologies and add existing capacities
+        tyndp_solar_onwind = [
+            c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
+        ]
+
+        if tyndp_solar_onwind:
+            ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
+            trajectories_solar_onwind = trajectories.query(
+                "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+            )
+
+            attach_wind_and_solar(
+                n=n,
+                costs=costs,
+                ppl=ppl,
+                profile_filenames=profiles_pecd,
+                carriers=tyndp_solar_onwind,
+                extendable_carriers=extendable_carriers,
+                trajectories=trajectories_solar_onwind,
+                planning_horizon=investment_year,
+            )
+
+        # Add existing hydro capacities and inflows
+        if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
+            _add_hydro_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                hydro_inflows_fn=hydro_inflows_fn,
+                planning_horizon=investment_year,
+            )
+
+        # Add existing conventional thermal capacities to already attached conventional technologies
+        if tyndp_conventional_thermals:
+            trajectories_nuclear = trajectories.query(
+                "pyear == @investment_year and index_carrier == 'nuclear'"
+            ).set_index("bus")
+
+            _add_conventional_thermal_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                pemmdb_profiles=pemmdb_profiles,
+                tyndp_conventional_thermals=tyndp_conventional_thermals,
+                nuclear_trajectories=trajectories_nuclear,
+                nuclear_profiles=nuclear_profiles,
+            )
+
+        # Add existing battery and other storage capacities to already attached storage technologies
+        if tyndp_stores:
+            _add_store_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                tyndp_stores=tyndp_stores,
+            )
+
+        if h2_topology_tyndp:
+            trajectories_electrolyser = trajectories.query(
+                "pyear == @investment_year and carrier == 'electrolyser'"
+            ).set_index("bus")
+
+            _add_electrolyzer_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                trajectories=trajectories_electrolyser,
+            )
+
+        if "other-res" in tyndp_renewable_carriers:
+            _add_other_res_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                pemmdb_profiles=pemmdb_profiles,
+            )
+
+    if h2_topology_tyndp:
+        logger.info("Adding SMR, SMR CC and H2 storage capacities.")
+        _add_smr_capacities(
             n=n,
-            costs=costs,
-            ppl=ppl,
-            profile_filenames=profiles_pecd,
-            carriers=tyndp_solar_onwind,
-            extendable_carriers=extendable_carriers,
-            trajectories=trajectories_solar_onwind,
+            smr_capacities=smr_capacities,
         )
-
-    # Add existing conventional thermal capacities to already attached conventional technologies
-    if tyndp_conventional_thermals:
-        nuclear_trajectories = trajectories.query(
-            "pyear == @investment_year and index_carrier == 'nuclear'"
-        ).set_index("bus")
-
-        _add_conventional_thermal_capacities(
+        _add_h2_storage_capacities(
             n=n,
-            pemmdb_capacities=pemmdb_capacities,
-            pemmdb_profiles=pemmdb_profiles,
-            tyndp_conventional_thermals=tyndp_conventional_thermals,
-            nuclear_trajectories=nuclear_trajectories,
+            h2_storage_capacities=h2_storage_capacities,
         )
-
-    # Add existing battery and other storage capacities to already attached storage technologies
-    if tyndp_stores:
-        _add_store_capacities(
-            n=n,
-            pemmdb_capacities=pemmdb_capacities,
-            tyndp_stores=tyndp_stores,
-        )
-
-
-def _extract_pemmdb_hydro_duration(
-    pemmdb_capacities: pd.DataFrame, tech: str | list[str], year: int
-) -> pd.DataFrame:
-    """
-    Takes a PEMMDB capacities Dataframe and calculates country-wise storage durations for the given hydro technologies.
-
-    Parameters
-    ----------
-    pemmdb_capacities : pd.DataFrame
-        DataFrame containing all PEMMDB capacities.
-    tech : str | list[str]
-        Hydro technology to calculate storage duration for.
-    year : int
-        Planning year for which the values are given.
-
-    Returns
-    -------
-    pd.DataFrame
-        Calculated storage duration max_hours.
-    """
-    if not isinstance(tech, list):
-        tech = [tech]
-
-    caps = (
-        pemmdb_capacities.loc[pemmdb_capacities.carrier.isin(tech)]
-        .query("index_carrier.str.contains('turbine') and unit == 'MW' and p_nom > 0")
-        .groupby("country")
-        .sum()[["p_nom"]]
-        .div(1e3)  # GW
-        .rename(columns={"p_nom": year})
-    )
-    store = (
-        pemmdb_capacities.loc[pemmdb_capacities.carrier.isin(tech)]
-        .query(
-            "index_carrier.str.contains('reservoir') and unit == 'MWh' and e_nom > 0"
-        )
-        .groupby("country")
-        .sum()[["e_nom"]]
-        .div(1e3)  # GWh
-        .rename(columns={"e_nom": year})
-    )
-
-    max_hours = store / caps
-
-    return max_hours
-
-
-def _add_tyndp_scaling_factor(n, pemmdb_capacities, ppl, year):
-    """
-    Add a scaling factor to existing PyPSA hydro capacities and inflows to approximately match TYNDP input capacities.
-    Replace existing storage durations for PHS and hydro with calculated values from PEMMDB input.
-    """
-
-    # Compute scaling factors
-    #########################
-
-    # PyPSA hydro capacities
-    pypsa_hydro_total = (
-        ppl.query('carrier == "ror" or carrier == "PHS" or carrier == "hydro"')
-        .groupby(["country"])
-        .sum()
-        .p_nom.div(1e3)  # GW
-    )
-
-    # TYNDP hydro capacities
-    tyndp_hydro_total = (
-        pemmdb_capacities.query(
-            "carrier.str.contains('hydro') and index_carrier.str.contains('turbine') and unit == 'MW' and p_nom > 0"
-        )
-        .groupby("country")
-        .sum()[["p_nom"]]
-        .div(1e3)  # GW
-        .rename(columns={"p_nom": year})
-    )
-
-    # Calculate country-wise scaling factors
-    sf_hydro_total = pd.concat([tyndp_hydro_total, pypsa_hydro_total], axis=1).assign(
-        sf=lambda df: df[year] / df.p_nom,
-    )[["sf"]]
-
-    # Calculate country-wise max_hours for PHS and reservoirs/pondages
-    phs_max_hours = _extract_pemmdb_hydro_duration(
-        pemmdb_capacities, ["hydro-phs", "hydro-phs-pure"], year
-    )
-    reservoir_max_hours = _extract_pemmdb_hydro_duration(
-        pemmdb_capacities, ["hydro-reservoir", "hydro-pondage"], year
-    )
-
-    # Multiply capacities by scaling factor
-    #######################################
-
-    # ror
-    #####
-    ror_i = n.generators.query("carrier.str.contains('ror')").index
-
-    # Scale capacities
-    caps_scaled = n.generators.loc[ror_i, "p_nom"] * (
-        n.generators.loc[ror_i, "bus"].str[:2].map(sf_hydro_total.sf)
-    )
-    n.generators.loc[ror_i, "p_nom"] = caps_scaled
-
-    # PHS
-    #####
-    phs_i = n.storage_units.query("carrier.str.contains('PHS')").index
-
-    # Scale capacities
-    caps_scaled = n.storage_units.loc[phs_i, "p_nom"] * (
-        n.storage_units.loc[phs_i, "bus"].str[:2].map(sf_hydro_total.sf)
-    )
-    n.storage_units.loc[phs_i, "p_nom"] = caps_scaled
-
-    # Replace max_hours where available
-    tyndp_max_hours = (
-        n.storage_units.loc[phs_i, "bus"].str[:2].map(phs_max_hours[year]).dropna()
-    )
-    n.storage_units.loc[tyndp_max_hours.index, "max_hours"] = tyndp_max_hours
-
-    # hydro
-    #######
-    hydro_i = n.storage_units.query("carrier.str.contains('hydro')").index
-
-    # Scale capacities
-    caps_scaled = n.storage_units.loc[hydro_i, "p_nom"] * (
-        n.storage_units.loc[hydro_i, "bus"].str[:2].map(sf_hydro_total.sf)
-    )
-    n.storage_units.loc[hydro_i, "p_nom"] = caps_scaled
-
-    # Replace max_hours where available
-    tyndp_max_hours = (
-        n.storage_units.loc[hydro_i, "bus"]
-        .str[:2]
-        .map(reservoir_max_hours[year])
-        .dropna()
-    )
-    n.storage_units.loc[tyndp_max_hours.index, "max_hours"] = tyndp_max_hours
-
-    # Scale inflows
-    inflow_scaled = n.storage_units_t.inflow.loc[:, hydro_i] * (
-        n.storage_units.loc[hydro_i, "bus"].str[:2].map(sf_hydro_total.sf)
-    )
-    n.storage_units_t.inflow.loc[:, hydro_i] = inflow_scaled
 
 
 def add_ammonia(
@@ -2269,6 +3188,10 @@ def insert_electricity_distribution_grid(
     mchp = n.links.index[n.links.carrier.str.contains("micro gas")]
     n.links.loc[mchp, "bus1"] += " low voltage"
 
+    # attach TYNDP rooftop solar to low voltage bus
+    rtsolar = n.generators.index[n.generators.carrier == "solar-pv-rooftop"]
+    n.generators.loc[rtsolar, "bus"] += " low voltage"
+
     # set existing solar to cost of utility cost rather the 50-50 rooftop-utility
     solar = n.generators.index[n.generators.carrier == "solar"]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
@@ -2409,9 +3332,9 @@ def add_electricity_grid_connection(n, costs):
     ]
 
 
-def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
+def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
     """
-    Add TYNDP electrolysers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
+    Add TYNDP electrolyzers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
 
     Parameters
     ----------
@@ -2419,8 +3342,8 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         The PyPSA network container object
     nodes : pd.Index
         Pandas Index of electricity node locations/nodes
-    buses_h2_z1 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z1 buses
+    buses_h2 : pd.Index
+        Pandas Index of hydrogen nodes to which H2 production technologies will connect
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
@@ -2438,16 +3361,14 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         The function modifies the network object in-place by adding components.
     """
 
-    logger.info("Adding Z1 and Z2 dummy electrolysers.")
+    suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
+
+    # Add electrolysis to Z1 or in NT case general H2 nodes
     n.add(
         "Link",
-        (nodes.index + " H2 Z1 Electrolysis").append(
-            nodes.index + " H2 Z2 Electrolysis"
-        ),
-        bus0=np.tile(nodes.index, 2),
-        bus1=np.append(
-            nodes.country.values + " H2 Z1", (nodes.country.values + " H2 Z2")
-        ),
+        nodes.index + f" {suffix} Electrolysis",
+        bus0=nodes.index,
+        bus1=(nodes.country + f" {suffix}").values,
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -2455,39 +3376,57 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         lifetime=costs.at["electrolysis", "lifetime"],
     )
 
+    # Add electrolysis to Z2
+    if options["h2_zones_tyndp"]:
+        n.add(
+            "Link",
+            nodes.index + " H2 Z2 Electrolysis",
+            bus0=nodes.index,
+            bus1=(nodes.country + " H2 Z2").values,
+            p_nom_extendable=True,
+            carrier="H2 Electrolysis",
+            efficiency=costs.at["electrolysis", "efficiency"],
+            capital_cost=costs.at["electrolysis", "capital_cost"],
+            lifetime=costs.at["electrolysis", "lifetime"],
+        )
+
     if options["SMR_cc"]:
-        logger.info("Adding Z1 dummy SMR CC.")
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
-            buses_h2_z1 + " SMR CC",
+            buses_h2 + " SMR CC",
             bus0=spatial.gas.nodes,
-            bus1=buses_h2_z1,
+            bus1=buses_h2,
             bus2="co2 atmosphere",
             bus3=spatial.co2.nodes,
-            p_nom_extendable=True,
+            p_nom_extendable=False,
             carrier="SMR CC",
             efficiency=costs.at["SMR CC", "efficiency"],
-            efficiency2=costs.at["gas", "CO2 intensity"] * (1 - options["cc_fraction"]),
-            efficiency3=costs.at["gas", "CO2 intensity"] * options["cc_fraction"],
+            efficiency2=costs.at["gas", "CO2 intensity"]
+            * (1 - costs.at["SMR CC", "capture_rate"]),
+            efficiency3=costs.at["gas", "CO2 intensity"]
+            * costs.at["SMR CC", "capture_rate"],
             capital_cost=costs.at["SMR CC", "capital_cost"],
+            marginal_cost=costs.at["SMR CC", "VOM"]
+            * costs.at["SMR CC", "efficiency"],  # NB: SMR CC VOM is per MWh_H2
             lifetime=costs.at["SMR CC", "lifetime"],
         )
 
     if options["SMR"]:
-        logger.info("Adding Z1 dummy SMR.")
         # TODO: this does currently only work for no gas spatial
         n.add(
             "Link",
-            buses_h2_z1 + " SMR",
+            buses_h2 + " SMR",
             bus0=spatial.gas.nodes,
-            bus1=buses_h2_z1,
+            bus1=buses_h2,
             bus2="co2 atmosphere",
-            p_nom_extendable=True,
+            p_nom_extendable=False,
             carrier="SMR",
             efficiency=costs.at["SMR", "efficiency"],
             efficiency2=costs.at["gas", "CO2 intensity"],
             capital_cost=costs.at["SMR", "capital_cost"],
+            marginal_cost=costs.at["SMR", "VOM"]
+            * costs.at["SMR", "efficiency"],  # NB: SMR VOM is per MWh_H2
             lifetime=costs.at["SMR", "lifetime"],
         )
 
@@ -2496,16 +3435,15 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
         v if isinstance(v, bool) else any(v.values())
         for v in options["methanol"].values()
     ):
-        logger.info("Adding Z1 dummy ATR.")
         add_carrier_buses(
             n=n, carrier="methanol", costs=costs, spatial=spatial, options=options
         )
         # TODO: this does currently only work for no methanol spatial
         n.add(
             "Link",
-            buses_h2_z1 + " ATR",
+            buses_h2 + " ATR",
             bus0=spatial.methanol.nodes,
-            bus1=buses_h2_z1,
+            bus1=buses_h2,
             bus2="co2 atmosphere",
             p_nom_extendable=True,
             carrier="ATR",
@@ -2520,7 +3458,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2_z1, costs, options={}):
 
 def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     """
-    Adds TYNDP Z2 DRES electricity buses and electrolysers.
+    Adds TYNDP Z2 DRES electricity buses and electrolyzers.
 
     Parameters
     ----------
@@ -2539,7 +3477,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
         The function modifies the network object in-place by adding components.
     """
 
-    logger.info("Adding Z2 dummy DRES electricity buses and electrolysers.")
+    logger.info("Adding Z2 dummy DRES electricity buses and electrolyzers.")
     n.add(
         "Bus",
         buses_h2_z2 + " DRES",
@@ -2564,7 +3502,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     )
 
 
-def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=None):
+def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
     """
     Adds TYNDP H2 reconversion with options for Fuel cells, H2 turbines and methanation.
 
@@ -2576,8 +3514,8 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`
     nodes : pd.Index
         Pandas Index of electricity node locations/nodes
-    buses_h2_z2 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z2 buses
+    buses_h2 : pd.Index
+        Pandas Index of hydrogen nodes to which H2 reconversion technologies will connect
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
@@ -2594,14 +3532,15 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         The function modifies the network object in-place by adding components.
     """
 
+    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
+
     if options["methanation"]:
-        logger.info("Adding Z2 dummy methanation.")
         # TODO: this does currently only work for no gas spatial and no co2 spatial
         n.add(
             "Link",
-            buses_h2_z2,
+            buses_h2,
             suffix=" Sabatier",
-            bus0=buses_h2_z2,
+            bus0=buses_h2,
             bus1=spatial.gas.nodes,
             bus2=spatial.co2.nodes,
             p_nom_extendable=True,
@@ -2616,12 +3555,10 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         )
 
     if options["hydrogen_fuel_cell"]:
-        logger.info("Adding Z2 hydrogen fuel cell for re-electrification.")
-        # TODO: Improve with TYNDP specific technology and cost assumptions
         n.add(
             "Link",
-            nodes.index + " H2 Z2 h2-fuel-cell",
-            bus0=nodes.country.values + " H2 Z2",
+            nodes.index + f" {suffix} h2-fuel-cell",
+            bus0=(nodes.country + f" {suffix}").values,
             bus1=nodes.index,
             p_nom_extendable=False,
             carrier="h2-fuel-cell",
@@ -2633,13 +3570,12 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
 
     if options["hydrogen_turbine"]:
         logger.info(
-            "Adding Z2 hydrogen turbine for re-electrification. Assuming CCGT technology costs."
+            "Adding hydrogen turbine for re-electrification. Assuming CCGT technology costs."
         )
-        # TODO: Improve with TYNDP specific technology and cost assumptions
         n.add(
             "Link",
-            nodes.index + " H2 Z2 h2-ccgt",
-            bus0=nodes.country.values + " H2 Z2",
+            nodes.index + f" {suffix} h2-ccgt",
+            bus0=(nodes.country + f" {suffix}").values,
             bus1=nodes.index,
             p_nom_extendable=False,
             carrier="h2-ccgt",
@@ -2651,7 +3587,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2_z2, costs, options=Non
         )
 
 
-def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
+def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, options):
     """
     Adds TYNDP hydrogen pipelines and interzonal (Z1 <-> Z2) connections.
 
@@ -2667,6 +3603,9 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         Path to CSV file containing prepped H2 interzonal connection data
     costs : pd.DataFrame
         Technology cost assumptions
+    options : dict
+        Dictionary of configuration options. Key options include:
+        - h2_zones_tyndp : bool
 
     Returns
     -------
@@ -2674,7 +3613,9 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
         The function modifies the network object in-place by adding components.
     """
 
-    h2_pipes = create_h2_topology_tyndp(n=n, fn_h2_network=h2_pipes_file)
+    h2_pipes = create_h2_topology_tyndp(
+        n=n, fn_h2_network=h2_pipes_file, options=options
+    )
     interzonal = pd.read_csv(interzonal_file, index_col=0)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
@@ -2716,9 +3657,90 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs):
     )
 
 
+def _add_h2_stores_and_links_tyndp(
+    n: pypsa.Network,
+    storage_tech: str,
+    buses: pd.Index,
+    costs: pd.DataFrame,
+    extendable: bool,
+) -> None:
+    """
+    Adds storage Bus, Store and Charge/Discharge Link components for a given TYNDP H2 storage technology.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    storage_tech: str
+        Storage technology to add. Can be either 'cavern-storage' or 'tank-storage'
+    buses : pd.Index
+        nodes of H2 buses to add the storages to
+    costs : pd.DataFrame
+        Technology cost assumptions
+    extendable : bool
+        Whether the added storage components shall be extendable in the optimization or not.
+
+    Returns
+    -------
+    None
+        The function modifies the network object in-place by adding components.
+    """
+    bus_names = buses + f" {storage_tech}"
+
+    n.add(
+        "Bus",
+        bus_names,
+        location=buses,
+        carrier=f"H2 {storage_tech}",
+        x=n.buses.loc[list(buses)].x.values,
+        y=n.buses.loc[list(buses)].y.values,
+    )
+
+    n.add(
+        "Store",
+        bus_names,
+        bus=bus_names,
+        e_nom_extendable=extendable,
+        e_cyclic=True,
+        carrier=f"H2 {storage_tech}",
+        capital_cost=costs.at[storage_tech, "capital_cost"],
+        lifetime=costs.at[storage_tech, "lifetime"],
+    )
+
+    n.add(
+        "Link",
+        bus_names,
+        suffix=" charger",
+        bus0=buses,
+        bus1=bus_names,
+        carrier=f"H2 {storage_tech} charger",
+        efficiency=costs.at[f"{storage_tech}-charger", "efficiency"],
+        marginal_cost=costs.at[storage_tech, "marginal_cost"],
+        p_nom_extendable=extendable,
+        lifetime=costs.at[storage_tech, "lifetime"],
+    )
+
+    n.add(
+        "Link",
+        bus_names,
+        suffix=" discharger",
+        bus0=bus_names,
+        bus1=buses,
+        carrier=f"H2 {storage_tech} discharger",
+        efficiency=costs.at[f"{storage_tech}-discharger", "efficiency"],
+        marginal_cost=costs.at[storage_tech, "marginal_cost"],
+        p_nom_extendable=extendable,
+        lifetime=costs.at[storage_tech, "lifetime"],
+    )
+
+
 def add_h2_storage_tyndp(
-    n, cavern_types, h2_cavern_file, buses_h2_z1, costs, options={}
-):
+    n: pypsa.Network,
+    buses_h2_z1: pd.Index,
+    buses_h2_z2: pd.Index,
+    costs: pd.DataFrame,
+    options: dict = {},
+) -> None:
     """
     Adds TYNDP Z1 H2 tank storages and Z2 H2 cavern storages with default assumptions.
 
@@ -2726,17 +3748,15 @@ def add_h2_storage_tyndp(
     ----------
     n : pypsa.Network
         The PyPSA network container object
-    cavern_types : list
-        List of underground storage types to consider
-    h2_caverns_file : str
-        Path to CSV containing hydrogen cavern storage potentials
-    buses_h2_z1 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z1 buses
+    buses_h2_z1 : pd.Index
+        Nnodes of H2 Z1 buses
+    buses_h2_z2 : pd.Index
+        Nodes of H2 Z2 buses
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
-       Dictionary of configuration options. Defaults to empty dict if not provided.
-       - hydrogen_underground_storage : bool
+        Dictionary of configuration options. Defaults to empty dict if not provided.
+       - h2_zones_tyndp : bool
 
     Returns
     -------
@@ -2744,75 +3764,38 @@ def add_h2_storage_tyndp(
         The function modifies the network object in-place by adding components.
     """
 
-    h2_caverns = pd.read_csv(h2_cavern_file, index_col=0)
-
-    # add underground hydrogen cavern storage to all H2 Z2 nodes
-    if (
-        not h2_caverns.empty
-        and options["hydrogen_underground_storage"]
-        and set(cavern_types).intersection(h2_caverns.columns)
-    ):
-        h2_caverns = h2_caverns[cavern_types].sum(axis=1)
-
-        # only use sites with at least 2 TWh potential
-        h2_caverns = h2_caverns[h2_caverns > 2]
-
-        # convert TWh to MWh
-        h2_caverns = h2_caverns * 1e6
-
-        # clip at 1000 TWh for one location
-        h2_caverns.clip(upper=1e9, inplace=True)
-
-        # group on country level
-        h2_caverns = (
-            h2_caverns.to_frame()
-            .assign(country=h2_caverns.index.map(n.buses.country).values)
-            .groupby("country")
-            .sum()
-            .loc[:, 0]
-        )
-
-        logger.info("Adding dummy TYNDP H2 underground storage for H2 Z2")
-
-        n.add(
-            "Store",
-            h2_caverns.index + " H2 Z2 Cavern Store",
-            bus=h2_caverns.index + " H2 Z2",
-            e_nom_extendable=True,
-            e_nom_max=h2_caverns.values,
-            e_cyclic=True,
-            carrier="H2 Store",
-            capital_cost=costs.at["hydrogen storage underground", "capital_cost"],
-            lifetime=costs.at["hydrogen storage underground", "lifetime"],
-        )
+    # Add underground hydrogen cavern storage to all H2 Z2 nodes
+    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
+    logger.info(f"Adding TYNDP H2 underground storage to {suffix} nodes.")
+    _add_h2_stores_and_links_tyndp(
+        n=n,
+        storage_tech="cavern-storage",
+        buses=buses_h2_z2,
+        costs=costs,
+        extendable=options["h2_zones_tyndp"],
+    )
 
     # add overground hydrogen tank storage to all H2 Z1 nodes
-    tech = "hydrogen storage tank type 1 including compressor"
-
-    logger.info("Adding dummy TYNDP H2 tank storage for H2 Z1")
-
-    n.add(
-        "Store",
-        buses_h2_z1 + " Tank Store",
-        bus=buses_h2_z1,
-        e_nom_extendable=True,
-        e_cyclic=True,
-        carrier="H2 Store",
-        capital_cost=costs.at[tech, "capital_cost"],
-        lifetime=costs.at[tech, "lifetime"],
-    )
+    if not buses_h2_z1.empty:
+        logger.info("Adding TYNDP H2 tank storage to H2 Z1 nodes.")
+        _add_h2_stores_and_links_tyndp(
+            n=n,
+            storage_tech="tank-storage",
+            buses=buses_h2_z1,
+            costs=costs,
+            extendable=False,
+        )
 
 
 def add_h2_topology_tyndp(
     n,
     pop_layout,
     spatial,
-    h2_cavern_file,
     h2_pipes_file,
     interzonal_file,
-    cavern_types,
     costs,
     options,
+    h2_demand_file,
 ):
     """
     Add TYNDP H2 topology to the network.
@@ -2834,18 +3817,16 @@ def add_h2_topology_tyndp(
         Population layout with index of locations/nodes
     spatial : object
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`
-    h2_cavern_file : str
-        Path to CSV file containing hydrogen cavern storage potentials
     h2_pipes_file : str
         Path to CSV file containing prepped H2 reference grid data
     interzonal_file : str
         Path to CSV file containing prepped H2 interzonal connection data
-    cavern_types : list
-        List of underground storage types to consider
     costs : pd.DataFrame
         Technology cost assumptions
     options : dict, optional
        Dictionary of configuration options. Defaults to empty dict if not provided.
+    h2_demand_file : str
+        Path to CSV file containing exogenous hydrogen demand time series
 
 
     Returns
@@ -2861,21 +3842,13 @@ def add_h2_topology_tyndp(
     # add H2 as carrier
     n.add("Carrier", "H2")
 
-    # filter for electricity nodes and H2 Z1 and Z2 buses
+    # filter for electricity nodes and H2 buses
     nodes = n.buses.loc[pop_layout.index, :].query(
         "country in @spatial.h2_tyndp.country"
     )
-    buses_h2_z2 = spatial.h2_tyndp.nodes[
-        ~spatial.h2_tyndp.nodes.str.contains("IB")
-        & spatial.h2_tyndp.nodes.str.contains("Z2")
-    ]
-    buses_h2_z1 = spatial.h2_tyndp.nodes[
-        ~spatial.h2_tyndp.nodes.str.contains("IB")
-        & spatial.h2_tyndp.nodes.str.contains("Z1")
-    ]
 
-    # add H2 Z1 and Z2 buses
-    logger.info("Adding Z1 and Z2 H2 nodes.")
+    # add H2 Buses
+    logger.info("Adding TYNDP H2 nodes.")
 
     n.add(
         "Bus",
@@ -2888,20 +3861,26 @@ def add_h2_topology_tyndp(
         unit="MWh_LHV",
     )
 
+    # define H2 topology
+    buses_h2_z1 = spatial.buses_h2_z1
+    buses_h2_z2 = spatial.buses_h2_z2
+
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
+    buses_h2 = buses_h2_z1 if options["h2_zones_tyndp"] else buses_h2_z2
     add_h2_production_tyndp(
-        n=n, nodes=nodes, buses_h2_z1=buses_h2_z1, costs=costs, options=options
+        n=n, nodes=nodes, buses_h2=buses_h2, costs=costs, options=options
     )
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
-    add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
+    if options["h2_zones_tyndp"]:
+        add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
     add_h2_reconversion_tyndp(
         n=n,
         spatial=spatial,
         nodes=nodes,
-        buses_h2_z2=buses_h2_z2,
+        buses_h2=buses_h2_z2,
         costs=costs,
         options=options,
     )
@@ -2913,16 +3892,56 @@ def add_h2_topology_tyndp(
         h2_pipes_file=h2_pipes_file,
         interzonal_file=interzonal_file,
         costs=costs,
+        options=options,
     )
 
-    # add H2 storage (Z1: H2 tanks; Z2: Salt caverns)
+    # add H2 storage (Z1: H2 tanks; Z2/NT H2 nodes: Salt caverns)
     add_h2_storage_tyndp(
         n=n,
-        cavern_types=cavern_types,
-        h2_cavern_file=h2_cavern_file,
         buses_h2_z1=buses_h2_z1,
+        buses_h2_z2=buses_h2_z2,
         costs=costs,
         options=options,
+    )
+
+    # add exogenous hydrogen demand
+    add_h2_demand_tyndp(n=n, h2_demand_file=h2_demand_file)
+
+
+def add_h2_demand_tyndp(n, h2_demand_file):
+    """
+    Add exogenous TYNDP hydrogen demand to the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object
+    h2_demand_file : str
+        Path to CSV file containing exogenous hydrogen demand time series
+    """
+    logger.info("Add exogenous hydrogen demand to network")
+
+    demand = pd.read_csv(h2_demand_file, index_col=0, parse_dates=True).drop(
+        columns=["year", "source", "scenario"], errors="ignore"
+    )
+
+    # check for missing buses
+    h2_buses = n.buses[n.buses.carrier == "H2"].index
+    if not demand.columns.difference(h2_buses).empty:
+        missing = demand.columns.difference(h2_buses)
+        logger.warning(
+            f"The following H2 demand buses are not in the network and are dropped {missing}"
+        )
+        demand.drop(missing, inplace=True, axis=1)
+
+    # add exogenous demand
+    n.add(
+        "Load",
+        demand.columns,
+        suffix=" exogenous demand",
+        bus=demand.columns,
+        carrier="H2 exogenous demand",
+        p_set=demand,
     )
 
 
@@ -3192,6 +4211,15 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes):
 
     logger.info(
         "Adding natural gas infrastructure, incl. LNG terminals, production, storage and entry-points."
+    )
+
+    add_carrier_buses(
+        n=n,
+        carrier="gas",
+        costs=costs,
+        spatial=spatial,
+        options=options,
+        cf_industry=None,
     )
 
     if options["H2_retrofit"]:
@@ -3502,7 +4530,7 @@ def add_battery_stores(n, nodes, costs, tyndp=False):
         )
 
 
-def add_gas_and_h2_infrastructure(
+def add_h2_gas_infrastructure(
     n,
     costs,
     pop_layout,
@@ -3514,9 +4542,10 @@ def add_gas_and_h2_infrastructure(
     gas_input_nodes,
     spatial,
     options,
+    h2_demand_file,
 ):
     """
-    Add storage and grid infrastructure to the network for gas and hydrogen.
+    Add hydrogen and gas infrastructure to the network.
 
     Parameters
     ----------
@@ -3553,6 +4582,8 @@ def add_gas_and_h2_infrastructure(
         - SMR : bool
         - cc_fraction : float
         - methanation : bool
+    h2_demand_file : str
+        Path to CSV file containing exogenous hydrogen demand data
 
     Returns
     -------
@@ -3565,30 +4596,30 @@ def add_gas_and_h2_infrastructure(
     This function adds multiple types of storage and grid infrastructure, some of which needs to be enabled in options:
     - Hydrogen infrastructure (electrolysis, SMR (optional), fuel cells (optional), storage, pipelines (optional))
     - Gas network infrastructure (optional)
+    - Carbon capture and conversion facilities (if enabled in options)
     """
 
     # Set defaults
     options = options or {}
-
-    nodes = pop_layout.index
 
     if options["h2_topology_tyndp"]:
         add_h2_topology_tyndp(
             n=n,
             pop_layout=pop_layout,
             spatial=spatial,
-            h2_cavern_file=h2_cavern_file,
             h2_pipes_file=h2_pipes_file,
             interzonal_file=interzonal_file,
-            cavern_types=cavern_types,
             costs=costs,
             options=options,
+            h2_demand_file=h2_demand_file,
         )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
         logger.info(
             "Adding base H2 components and techs: carrier, production, reconversion (optional), storage."
         )
+
+        nodes = pop_layout.index
 
         # add H2 carrier and buses
         n.add("Carrier", "H2")
@@ -3800,7 +4831,7 @@ def add_offshore_electrolysers_tyndp(
         offshore_electrolysers.index,
         bus0=offshore_electrolysers.bus0,
         bus1=offshore_electrolysers.bus1,
-        p_nom_extendable=True,
+        p_nom_extendable=offshore_electrolysers.p_nom_extendable,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
         capital_cost=offshore_electrolysers.capital_cost,
@@ -4106,6 +5137,7 @@ def add_EVs(
     electric_share: pd.Series,
     number_cars: pd.Series,
     temperature: pd.DataFrame,
+    investment_year: int,
     spatial: SimpleNamespace,
     options: dict,
 ) -> None:
@@ -4132,6 +5164,8 @@ def add_EVs(
         Number of cars per node
     temperature : pd.DataFrame
         Ambient temperature per node and timestamp
+    investment_year : int
+        Year for which to get the transport shares
     spatial : SimpleNamespace
         Spatial configuration containing at least:
         - nodes: list or Index of node names
@@ -4145,8 +5179,8 @@ def add_EVs(
         - bev_charge_rate: float
         - bev_charge_efficiency: float
         - bev_dsm: bool
-        - bev_energy: float
-        - bev_dsm_availability: float
+        - bev_energy: float or dict
+        - bev_dsm_availability: float or dict
         - v2g: bool
 
     Returns
@@ -4226,8 +5260,8 @@ def add_EVs(
     if options["bev_dsm"]:
         e_nom = (
             number_cars
-            * options["bev_energy"]
-            * options["bev_dsm_availability"]
+            * get(options["bev_energy"], investment_year)
+            * get(options["bev_dsm_availability"], investment_year)
             * electric_share
         )
 
@@ -4251,7 +5285,7 @@ def add_EVs(
                 suffix=" V2G",
                 bus1=spatial.nodes,
                 bus0=spatial.nodes + " EV battery",
-                p_nom=p_nom * options["bev_dsm_availability"],
+                p_nom=p_nom * get(options["bev_dsm_availability"], investment_year),
                 carrier="V2G",
                 p_max_pu=avail_profile.loc[n.snapshots, spatial.nodes],
                 lifetime=1,
@@ -4545,6 +5579,7 @@ def add_land_transport(
             shares["electric"],
             number_cars,
             temperature,
+            investment_year,
             spatial,
             options,
         )
@@ -4660,6 +5695,7 @@ def add_heat(
     retro_cost_file: str,
     floor_area_file: str,
     heat_source_profile_files: dict[str, str],
+    heat_dsm_profile_file: str,
     params: dict,
     pop_weighted_energy_totals: pd.DataFrame,
     heating_efficiencies: pd.DataFrame,
@@ -4695,6 +5731,8 @@ def add_heat(
         Path to CSV file containing floor area data
     heat_source_profile_files : dict[str, str]
         Dictionary mapping heat source names to their data file paths
+    heat_dsm_profile_file : str
+        Path to CSV file containing demand-side management profiles for heat
     params : dict
         Dictionary containing parameters including:
         - heat_pump_sources
@@ -4836,6 +5874,62 @@ def add_heat(
             carrier=f"{heat_system} heat",
             p_set=heat_load.loc[n.snapshots],
         )
+
+        if options["residential_heat"]["dsm"]["enable"] and heat_system in [
+            HeatSystem.RESIDENTIAL_RURAL,
+            HeatSystem.RESIDENTIAL_URBAN_DECENTRAL,
+            HeatSystem.URBAN_CENTRAL,
+        ]:
+            factor = heat_system.heat_demand_weighting(
+                urban_fraction=urban_fraction[nodes], dist_fraction=dist_fraction[nodes]
+            )
+
+            heat_dsm_profile = pd.read_csv(
+                heat_dsm_profile_file,
+                header=1,
+                index_col=0,
+                parse_dates=True,
+            )[nodes].reindex(n.snapshots)
+
+            e_nom = (
+                heat_demand[["residential space"]]
+                .T.groupby(level=1)
+                .sum()
+                .T[nodes]
+                .multiply(factor)
+            )
+
+            heat_dsm_restriction_value = options["residential_heat"]["dsm"][
+                "restriction_value"
+            ].get(investment_year)
+            heat_dsm_profile = heat_dsm_profile * heat_dsm_restriction_value
+            e_nom = e_nom.max()
+
+            # Allow to overshoot or undercool the target temperatures / heat demand in dsm
+            e_min_pu, e_max_pu = 0, 0
+            if "overheat" in options["residential_heat"]["dsm"]["direction"]:
+                e_max_pu = heat_dsm_profile
+            if "undercool" in options["residential_heat"]["dsm"]["direction"]:
+                e_min_pu = (-1) * heat_dsm_profile
+
+            # Thermal (standing) losses of buildings assumed to be the same as decentralized water tanks
+            n.add(
+                "Store",
+                nodes,
+                suffix=f" {heat_system} heat dsm",
+                bus=nodes + f" {heat_system} heat",
+                carrier=f"{heat_system} heat dsm",
+                standing_loss=costs.at[
+                    "decentral water tank storage", "standing_losses"
+                ]
+                / 100,  # convert %/hour into unit/hour
+                e_cyclic=True,
+                e_nom=e_nom,
+                e_max_pu=e_max_pu,
+                e_min_pu=e_min_pu,
+            )
+
+            logger.info(f"Adding DSM in {heat_system} heating.")
 
         if options["tes"]:
             n.add("Carrier", f"{heat_system} water tanks")
@@ -5074,7 +6168,7 @@ def add_heat(
                 .to_pandas()
                 .reindex(index=n.snapshots)
                 if options["time_dep_hp_cop"]
-                else costs.at[costs_name_heat_pump, "efficiency"]
+                else costs.loc[[costs_name_heat_pump], ["efficiency"]]
             )
 
             if heat_source in params.limited_heat_sources:
@@ -5144,12 +6238,14 @@ def add_heat(
                     bus1=nodes,
                     bus2=nodes + f" {heat_carrier}",
                     carrier=f"{heat_system} {heat_source} heat pump",
-                    efficiency=(1 / cop_heat_pump.clip(lower=0.001)),
-                    efficiency2=1 - (1 / cop_heat_pump.clip(lower=0.001)),
+                    efficiency=(1 / cop_heat_pump.clip(lower=0.001)).squeeze(),
+                    efficiency2=(1 - (1 / cop_heat_pump.clip(lower=0.001))).squeeze(),
                     capital_cost=costs.at[costs_name_heat_pump, "capital_cost"]
                     * overdim_factor,
                     p_nom_extendable=True,
-                    p_min_pu=-cop_heat_pump / cop_heat_pump.clip(lower=0.001),
+                    p_min_pu=(
+                        -cop_heat_pump / cop_heat_pump.clip(lower=0.001)
+                    ).squeeze(),
                     p_max_pu=0,
                     lifetime=costs.at[costs_name_heat_pump, "lifetime"],
                 )
@@ -5205,12 +6301,14 @@ def add_heat(
                     bus1=nodes,
                     bus2=nodes + f" {heat_system} water pits",
                     carrier=f"{heat_system} {heat_source} heat pump",
-                    efficiency=(1 / (cop_heat_pump - 1).clip(lower=0.001)),
-                    efficiency2=1 - 1 / cop_heat_pump.clip(lower=0.001),
+                    efficiency=(1 / (cop_heat_pump - 1).clip(lower=0.001)).squeeze(),
+                    efficiency2=(1 - 1 / cop_heat_pump.clip(lower=0.001)).squeeze(),
                     capital_cost=costs.at[costs_name_heat_pump, "capital_cost"]
                     * overdim_factor,
                     p_nom_extendable=True,
-                    p_min_pu=-cop_heat_pump / cop_heat_pump.clip(lower=0.001),
+                    p_min_pu=(
+                        -cop_heat_pump / cop_heat_pump.clip(lower=0.001)
+                    ).squeeze(),
                     p_max_pu=0,
                     lifetime=costs.at[costs_name_heat_pump, "lifetime"],
                 )
@@ -5223,10 +6321,12 @@ def add_heat(
                     bus0=nodes + f" {heat_system} heat",
                     bus1=nodes,
                     carrier=f"{heat_system} {heat_source} heat pump",
-                    efficiency=1 / cop_heat_pump.clip(lower=0.001),
+                    efficiency=(1 / cop_heat_pump.clip(lower=0.001)).squeeze(),
                     capital_cost=costs.at[costs_name_heat_pump, "capital_cost"]
                     * overdim_factor,
-                    p_min_pu=-cop_heat_pump / cop_heat_pump.clip(lower=0.001),
+                    p_min_pu=(
+                        -cop_heat_pump / cop_heat_pump.clip(lower=0.001)
+                    ).squeeze(),
                     p_max_pu=0,
                     p_nom_extendable=True,
                     lifetime=costs.at[costs_name_heat_pump, "lifetime"],
@@ -5579,6 +6679,8 @@ def add_biomass(
     cf_industry,
     pop_layout,
     biomass_potentials_file,
+    nhours,
+    investment_year,
     biomass_transport_costs_file=None,
     nyears=1,
 ):
@@ -5614,6 +6716,10 @@ def add_biomass(
     biomass_transport_costs_file : str, optional
         Path to CSV file containing biomass transport costs data.
         Required if biomass_transport or biomass_spatial options are True.
+    nhours : int
+        Number of hours in the simulation period
+    investment_year : int
+        Year for which investment costs should be considered
     nyears : float
         Number of years for which to scale the biomass potentials.
 
@@ -5729,6 +6835,12 @@ def add_biomass(
         unit="MWh_LHV",
     )
 
+    e_sum_min_biogas = (
+        biogas_potentials_spatial * nyears if options["force_biogas_potential"] else 0
+    )
+    if options["force_biogas_potential"]:
+        logger.info("Force biogas potential to be used.")
+
     n.add(
         "Generator",
         spatial.gas.biogas,
@@ -5736,9 +6848,17 @@ def add_biomass(
         carrier="biogas",
         p_nom=biogas_potentials_spatial,
         marginal_cost=costs.at["biogas", "fuel"],
-        e_sum_min=0,
+        e_sum_min=e_sum_min_biogas,
         e_sum_max=biogas_potentials_spatial,
     )
+
+    e_sum_min_biomass = (
+        solid_biomass_potentials_spatial * nyears
+        if options["force_biomass_potential"]
+        else 0
+    )
+    if options["force_biomass_potential"]:
+        logger.info("Force biomass potential to be used.")
 
     n.add(
         "Generator",
@@ -5747,9 +6867,27 @@ def add_biomass(
         carrier="solid biomass",
         p_nom=solid_biomass_potentials_spatial,
         marginal_cost=costs.at["solid biomass", "fuel"],
-        e_sum_min=0,
+        e_sum_min=e_sum_min_biomass,
         e_sum_max=solid_biomass_potentials_spatial,
     )
+
+    if options["biomass_final_demand"] and not options["biomass_spatial"]:
+        logger.info("Adding final energy demand for biomass.")
+        # convert from TWh to MWh
+        p_set = (
+            get(options["biomass_final_demand"], investment_year)
+            * nyears
+            / nhours
+            * 1e6
+        )
+        n.add(
+            "Load",
+            spatial.biomass.nodes,
+            suffix=" final energy demand",
+            bus=spatial.biomass.nodes,
+            carrier="biomass final energy demand",
+            p_set=p_set,
+        )
 
     if options["solid_biomass_import"].get("enable", False):
         biomass_import_price = options["solid_biomass_import"]["price"]
@@ -6151,6 +7289,14 @@ def add_biomass(
 
     # Solid biomass to liquid fuel with carbon capture
     if options["biomass_to_liquid_cc"]:
+        add_carrier_buses(
+            n,
+            carrier="oil",
+            costs=costs,
+            spatial=spatial,
+            options=options,
+            cf_industry=cf_industry,
+        )
         # Assuming that acid gas removal (incl. CO2) from syngas i performed with Rectisol
         # process (Methanol) and that electricity demand for this is included in the base process
         n.add(
@@ -6307,6 +7453,7 @@ def add_industry(
     spatial: SimpleNamespace,
     cf_industry: dict,
     investment_year: int,
+    tyndp_scenario: str,
 ):
     """
     Add industry and their corresponding carrier buses to the network.
@@ -6339,6 +7486,8 @@ def add_industry(
         Industry-specific configuration parameters
     investment_year : int
         Year for which investment costs should be considered
+    tyndp_scenario : str
+        TYNDP scenario name for scenario-specific adjustments
     HeatSystem : Enum
         Enumeration defining different heat system types
 
@@ -6358,6 +7507,17 @@ def add_industry(
     - Process emission handling
     """
     logger.info("Add industrial demand")
+
+    # Ensure the gas carrier bus exists before adding any gas-for-industry links.
+    add_carrier_buses(
+        n=n,
+        carrier="gas",
+        costs=costs,
+        spatial=spatial,
+        options=options,
+        cf_industry=None,
+    )
+
     # add oil buses for shipping, aviation and naptha for industry
     add_carrier_buses(
         n,
@@ -6382,6 +7542,12 @@ def add_industry(
 
     # 1e6 to convert TWh to MWh
     industrial_demand = pd.read_csv(industrial_demand_file, index_col=0) * 1e6 * nyears
+
+    if not options["biomass"]:
+        raise ValueError(
+            "Industry demand includes solid biomass, but `sector.biomass` is disabled. "
+            "Enable `sector: {biomass: true}` in config."
+        )
 
     n.add(
         "Bus",
@@ -6498,30 +7664,11 @@ def add_industry(
     )
 
     if options["h2_topology_tyndp"]:
-        # TODO Link properly Industry to H2 topology
-        nodes_ind_h2 = spatial.h2_tyndp.nodes[spatial.h2_tyndp.nodes.str.contains("Z2")]
-        nodes_ind_h2 = nodes_ind_h2[~(nodes_ind_h2.isin(["IBFI H2 Z2", "IBIT H2 Z2"]))]
-        nodes_ind = n.buses.loc[nodes_ind_h2].country.values + "00"
-        nodes_ind[nodes_ind == "IT00"] = "ITCN"
-        nodes_ind[nodes_ind == "DK00"] = "DKE1"
-        nodes_ind[nodes_ind == "LU00"] = "LUG1"
-        nodes_ind[nodes_ind == "NO00"] = "NOS0"
-        nodes_ind[nodes_ind == "SE00"] = "SE01"
+        suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
+        nodes_ind_h2 = pd.Index(pop_layout.ct + f" {suffix}")
+
     else:
-        nodes_ind = nodes
         nodes_ind_h2 = nodes + " H2"
-    industrial_demand_zones = industrial_demand.reindex(nodes_ind, fill_value=0)
-    n.add(
-        "Load",
-        nodes_ind,  # TODO Improve assumptions
-        suffix=" H2 Z2 for industry"
-        if options["h2_topology_tyndp"]
-        else " H2 for industry",  # TODO Improve assumptions
-        bus=nodes_ind_h2,  # TODO Improve assumptions
-        carrier="H2 for industry",
-        p_set=industrial_demand_zones["hydrogen"]
-        / nhours,  # TODO Improve assumptions for zones
-    )
 
     # methanol for industry
 
@@ -6557,29 +7704,30 @@ def add_industry(
         bus2="co2 atmosphere",
         carrier="industry methanol",
         p_nom_extendable=True,
-        efficiency2=1 / options["MWh_MeOH_per_tCO2"],
-        # CO2 intensity methanol based on stoichiometric calculation with 22.7 GJ/t methanol (32 g/mol), CO2 (44 g/mol), 277.78 MWh/TJ = 0.218 t/MWh
+        efficiency2=costs.at["methanolisation", "carbondioxide-input"],
     )
 
     # TODO Link properly Industry to H2 topology
     n.add(
         "Link",
-        nodes_ind + " methanolisation",  # TODO Improve this assumption
+        nodes + " methanolisation",  # TODO Improve this assumption
         bus0=nodes_ind_h2,  # TODO Improve this assumption
         bus1=spatial.methanol.nodes,
-        bus2=nodes_ind,  # TODO Improve this assumption
+        bus2=nodes,
         bus3=spatial.co2.nodes,
         carrier="methanolisation",
         p_nom_extendable=True,
         p_min_pu=options["min_part_load_methanolisation"],
         capital_cost=costs.at["methanolisation", "capital_cost"]
-        * options["MWh_MeOH_per_MWh_H2"],  # EUR/MW_H2/a
-        marginal_cost=options["MWh_MeOH_per_MWh_H2"]
-        * costs.at["methanolisation", "VOM"],
+        / costs.at["methanolisation", "hydrogen-input"],  # EUR/MW_H2/a
+        marginal_cost=costs.at["methanolisation", "VOM"]
+        / costs.at["methanolisation", "hydrogen-input"],
         lifetime=costs.at["methanolisation", "lifetime"],
-        efficiency=options["MWh_MeOH_per_MWh_H2"],
-        efficiency2=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_MWh_e"],
-        efficiency3=-options["MWh_MeOH_per_MWh_H2"] / options["MWh_MeOH_per_tCO2"],
+        efficiency=1 / costs.at["methanolisation", "hydrogen-input"],
+        efficiency2=-costs.at["methanolisation", "electricity-input"]
+        / costs.at["methanolisation", "hydrogen-input"],
+        efficiency3=-costs.at["methanolisation", "carbondioxide-input"]
+        / costs.at["methanolisation", "hydrogen-input"],
     )
 
     if options["oil_boilers"]:
@@ -6605,10 +7753,12 @@ def add_industry(
                 )
 
     # TODO Link properly Industry to H2 topology
+    buses_h2 = spatial.buses_h2_z2 if options["h2_topology_tyndp"] else nodes_ind_h2
+    ft_name = buses_h2.str.replace(" H2 Z2", "").str.replace(" H2", "")
     n.add(
         "Link",
-        nodes_ind + " Fischer-Tropsch",  # TODO Improve assumptions
-        bus0=nodes_ind_h2,  # TODO Improve assumptions
+        ft_name + " Fischer-Tropsch",  # TODO Improve assumptions
+        bus0=buses_h2,  # TODO Improve assumptions
         bus1=spatial.oil.nodes,
         bus2=spatial.co2.nodes,
         carrier="Fischer-Tropsch",
@@ -7167,10 +8317,7 @@ def add_shipping(
             bus2="co2 atmosphere",
             carrier="shipping methanol",
             p_nom_extendable=True,
-            efficiency2=1
-            / options[
-                "MWh_MeOH_per_tCO2"
-            ],  # CO2 intensity methanol based on stoichiometric calculation with 22.7 GJ/t methanol (32 g/mol), CO2 (44 g/mol), 277.78 MWh/TJ = 0.218 t/MWh
+            efficiency2=costs.at["methanolisation", "carbondioxide-input"],
         )
 
     if shipping_oil_share:
@@ -7573,8 +8720,10 @@ def cluster_heat_buses(n):
     logger.info("Cluster residential and service heat buses.")
     components = ["Bus", "Carrier", "Generator", "Link", "Load", "Store"]
 
-    for c in n.iterate_components(components):
-        df = c.df
+    for c in n.components[components]:
+        if c.static.empty:
+            continue
+        df = c.static
         cols = df.columns[df.columns.str.contains("bus") | (df.columns == "carrier")]
 
         # rename columns and index
@@ -7591,7 +8740,7 @@ def cluster_heat_buses(n):
         agg = define_clustering(df.columns, aggregate_dict)
         df = df.groupby(level=0).agg(agg, numeric_only=False)
         # time-varying data
-        pnl = c.pnl
+        pnl = c.dynamic
         agg = define_clustering(pd.Index(pnl.keys()), aggregate_dict)
         for k in pnl.keys():
 
@@ -7601,63 +8750,11 @@ def cluster_heat_buses(n):
             pnl[k] = pnl[k].T.groupby(renamer).agg(agg[k], numeric_only=False).T
 
         # remove unclustered assets of service/residential
-        to_drop = c.df.index.difference(df.index)
+        to_drop = c.static.index.difference(df.index)
         n.remove(c.name, to_drop)
         # add clustered assets
-        to_add = df.index.difference(c.df.index)
+        to_add = df.index.difference(c.static.index)
         n.add(c.name, df.loc[to_add].index, **df.loc[to_add])
-
-
-def set_temporal_aggregation(n, resolution, snapshot_weightings):
-    """
-    Aggregate time-varying data to the given snapshots.
-    """
-    if not resolution:
-        logger.info("No temporal aggregation. Using native resolution.")
-        return n
-    elif "sn" in resolution.lower():
-        # Representative snapshots are dealt with directly
-        sn = int(resolution[:-2])
-        logger.info("Use every %s snapshot as representative", sn)
-        n.set_snapshots(n.snapshots[::sn])
-        n.snapshot_weightings *= sn
-        return n
-    else:
-        # Otherwise, use the provided snapshots
-        snapshot_weightings = pd.read_csv(
-            snapshot_weightings, index_col=0, parse_dates=True
-        )
-
-        # Define a series used for aggregation, mapping each hour in
-        # n.snapshots to the closest previous timestep in
-        # snapshot_weightings.index
-        aggregation_map = (
-            pd.Series(
-                snapshot_weightings.index.get_indexer(n.snapshots), index=n.snapshots
-            )
-            .replace(-1, np.nan)
-            .ffill()
-            .astype(int)
-            .map(lambda i: snapshot_weightings.index[i])
-        )
-
-        m = n.copy(snapshots=[])
-        m.set_snapshots(snapshot_weightings.index)
-        m.snapshot_weightings = snapshot_weightings
-
-        # Aggregation all time-varying data.
-        for c in n.iterate_components():
-            pnl = getattr(m, c.list_name + "_t")
-            for k, df in c.pnl.items():
-                if not df.empty:
-                    if c.list_name == "stores" and k == "e_max_pu":
-                        pnl[k] = df.groupby(aggregation_map).min()
-                    elif c.list_name == "stores" and k == "e_min_pu":
-                        pnl[k] = df.groupby(aggregation_map).max()
-                    else:
-                        pnl[k] = df.groupby(aggregation_map).mean()
-
-        return m
 
 
 def lossy_bidirectional_links(n, carrier, efficiencies={}):
@@ -7987,6 +9084,7 @@ def add_import_options(
     options: dict,
     gas_input_nodes: pd.DataFrame,
     h2_imports_tyndp_fn: str,
+    tyndp_scenario: str,
 ):
     """
     Add green energy import options.
@@ -8001,6 +9099,8 @@ def add_import_options(
         Locations of gas input nodes split by LNG and pipeline.
     h2_imports_tyndp_fn: str,
         Path to file containing H2 import potentials, maximum capacity, offer quantity and marginal cost from TYNDP input data
+    tyndp_scenario : str
+        TYNDP scenario name to be used for H2 imports.
     """
 
     import_config = options["imports"]
@@ -8119,11 +9219,12 @@ def add_import_options(
                 marginal_cost=import_potentials_h2.marginal_cost.values,
                 e_sum_max=import_potentials_h2.e_sum_max.values,
             )
+            suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
             n.add(
                 "Link",
                 import_potentials_h2.index,
                 bus0=import_potentials_h2.Corridor.values + " H2 import",
-                bus1=import_potentials_h2.bus1.values + " H2 Z2",
+                bus1=import_potentials_h2.bus1.values + f" {suffix}",
                 p_nom_extendable=False,
                 p_nom=import_potentials_h2.p_nom.values,
                 bidirectional=False,
@@ -8144,6 +9245,156 @@ def add_import_options(
             )
 
 
+def _add_phs(n, carrier, nodes, costs, inflows=False):
+    """
+    Add TYNDP PHS with or without inflows to the network.
+    """
+
+    # Add a Bus for connecting Store and Links
+    n.add("Bus", nodes + f" {carrier}", carrier=carrier, location=nodes)
+
+    # Add a dispatch Link for the turbine
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv (incl. marginal cost)
+    n.add(
+        "Link",
+        nodes + f" {carrier}-turbine",
+        bus0=nodes + f" {carrier}",
+        bus1=nodes,
+        carrier=f"{carrier}-turbine",
+        capital_cost=costs.at[
+            "PHS", "capital_cost"
+        ],  # Capital costs are tracked via the Turbine component
+        efficiency=np.sqrt(costs.at["PHS", "efficiency"]),
+    )
+
+    # Add a store Link for the pump
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
+    n.add(
+        "Link",
+        nodes + f" {carrier}-pump",
+        bus0=nodes,
+        bus1=nodes + f" {carrier}",
+        carrier=f"{carrier}-pump",
+        efficiency=np.sqrt(costs.at["PHS", "efficiency"]),
+    )
+
+    # Add a Store to track depletion of reservoir
+    n.add(
+        "Store",
+        nodes + f" {carrier}",
+        carrier=carrier,
+        bus=nodes + f" {carrier}",
+        e_cyclic=True,  # TODO: Validate cyclicity assumption
+    )
+
+    # Add inflow generator
+    if inflows:
+        n.add("Carrier", f"{carrier}-inflows", co2_emissions=0)
+        n.add(
+            "Generator",
+            nodes + f" {carrier}-inflows",
+            bus=nodes + f" {carrier}",
+            carrier=f"{carrier}-inflows",
+        )
+
+
+def add_hydro_tyndp(
+    n: pypsa.Network,
+    costs: pd.DataFrame,
+    tyndp_hydro: list,
+) -> None:
+    """
+    Add TYNDP hydro technology components to the network.
+
+    Adds up to five different TYNDP hydro technologies if specified via the configuration:
+
+    - Run of River (hydro-ror):
+            Generator. Inflows can be added with p_max_pu.
+    - Pondage (hydro-pondage):
+            StorageUnit with fixed max_hours as ratio between Pondage reservoir capacity
+            and turbine capacity. Inflows can be added via inflow attribute of StorageUnit.
+    - Reservoir (hydro-reservoir):
+            StorageUnit with fixed max_hours as ratio between Reservoir reservoir capacity
+            and turbine capacity. Inflows can be added via inflow attribute of StorageUnit.
+    - Pump Storage (hydro-phs):
+            Store with Reservoir capacity (extra bus), Link with turbine capacity, Link with
+            pump capacity and additional generator for inflows. Inflows can be added to the generator with p_max_pu.
+    - Pure Pump Storage (no inflows) (hydro-phs-pure):
+            Store with Reservoir capacity (extra bus), Link with turbine capacity and
+            Link with pump capacity.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    costs : pd.DataFrame
+        DataFrame containing cost and technical parameters for different technologies.
+    tyndp_hydro : list
+        List of TYNDP hydro technologies to attach to the network.
+
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding hydro components.
+    """
+    logger.info(f"Adding TYNDP hydro technologies: {', '.join(tyndp_hydro)}.")
+
+    nodes = n.buses.query("carrier == 'AC'").index
+
+    # Attach hydro-ror as generator, capacities and inflows will be added later
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
+    if "hydro-ror" in tyndp_hydro:
+        n.add(
+            "Generator",
+            nodes + " hydro-ror",
+            carrier="hydro-ror",
+            bus=nodes,
+            efficiency=costs.at["ror", "efficiency"],
+            capital_cost=costs.at["ror", "capital_cost"],
+        )
+
+    # Attach hydro-pondage as StorageUnit, capacities and inflows will be added later
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
+    if "hydro-pondage" in tyndp_hydro:
+        n.add(
+            "StorageUnit",
+            nodes + " hydro-pondage",
+            carrier="hydro-pondage",
+            bus=nodes,
+            capital_cost=costs.at["hydro", "capital_cost"],
+            marginal_cost=costs.at["hydro", "marginal_cost"],
+            p_min_pu=0.0,  # only dispatch, no pumping
+            efficiency_dispatch=costs.at["hydro", "efficiency"],
+            efficiency_store=0.0,  # only dispatch, no pumping
+            cyclic_state_of_charge=True,  # TODO: Validate cyclicity assumption
+        )
+
+    # Attach hydro-reservoir as StorageUnit, capacities and inflows will be added later
+    # TODO: update when tyndp hydro technology assumptions are included in costs_processed.csv
+    if "hydro-reservoir" in tyndp_hydro:
+        n.add(
+            "StorageUnit",
+            nodes + " hydro-reservoir",
+            carrier="hydro-reservoir",
+            bus=nodes,
+            capital_cost=costs.at["hydro", "capital_cost"],
+            marginal_cost=costs.at["hydro", "marginal_cost"],
+            p_min_pu=0.0,  # only dispatch, no pumping
+            efficiency_dispatch=costs.at["hydro", "efficiency"],
+            efficiency_store=0.0,  # only dispatch, no pumping
+            cyclic_state_of_charge=True,  # TODO: Validate cyclicity assumption
+        )
+
+    # Attach hydro-phs as Store, Links and additional generator for inflows
+    if "hydro-phs" in tyndp_hydro:
+        _add_phs(n, "hydro-phs", nodes, costs, inflows=True)
+
+    # Attach hydro-phs-pure as Store and Links
+    if "hydro-phs-pure" in tyndp_hydro:
+        _add_phs(n, "hydro-phs-pure", nodes, costs, inflows=False)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -8162,10 +9413,17 @@ if __name__ == "__main__":
 
     options = snakemake.params.sector
     cf_industry = snakemake.params.industry
+    ext_carriers = snakemake.params.electricity.get("extendable_carriers", dict())
+    tyndp_scenario = snakemake.params.tyndp_scenario
 
     investment_year = int(snakemake.wildcards.planning_horizons)
 
     n = pypsa.Network(snakemake.input.network)
+
+    if fn_projects := snakemake.input.tyndp_projects:
+        attach_tyndp_transmission_projects(
+            n, fn_projects, fn_projects_fix=snakemake.input.tyndp_projects_fix
+        )
 
     if snakemake.params.load_source == "tyndp":
         logger.info(
@@ -8183,6 +9441,7 @@ if __name__ == "__main__":
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
     nhours = n.snapshot_weightings.generators.sum()
     nyears = nhours / 8760
+    max_hours = snakemake.params.electricity["max_hours"]
 
     costs = load_costs(snakemake.input.costs)
 
@@ -8247,6 +9506,7 @@ if __name__ == "__main__":
         options,
         offshore_buses_fn=buses_oh_file,
         buses_h2_file=buses_h2_file,
+        tyndp_scenario=tyndp_scenario,
     )
 
     if snakemake.params.foresight in ["overnight", "myopic", "perfect"]:
@@ -8296,8 +9556,11 @@ if __name__ == "__main__":
     pemmdb_capacities = None
     pemmdb_profiles = None
     tyndp_trajectories = None
+    tyndp_nuclear_profiles = None
+    smr_capacities = None
+    h2_storage_capacities = None
 
-    # Read in PEMMDB data and trajectories
+    # Read in PEMMDB data, trajectories and availability profiles
     enable_pemmdb_caps = snakemake.params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
         pemmdb_capacities = pd.read_csv(snakemake.input.pemmdb_capacities).set_index(
@@ -8308,6 +9571,14 @@ if __name__ == "__main__":
         ).to_dataframe()
     if tyndp_trajectories_fn := snakemake.input.tyndp_trajectories:
         tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
+    if tyndp_nuclear_profiles_fn := snakemake.input.tyndp_nuclear_profiles:
+        tyndp_nuclear_profiles = pd.read_csv(
+            tyndp_nuclear_profiles_fn, index_col=0, parse_dates=True
+        )
+        # Use 2009 profiles for all climate years
+        tyndp_nuclear_profiles.index = tyndp_nuclear_profiles.index.map(
+            lambda t: t.replace(year=n.snapshots.year[0])
+        )
 
     conventional_generation = {
         generator: carrier
@@ -8327,9 +9598,27 @@ if __name__ == "__main__":
         ext_carriers=snakemake.params.electricity.get("extendable_carriers", dict()),
         existing_capacities=existing_capacities,
         existing_efficiencies=existing_efficiencies,
+        pemmdb_capacities=pemmdb_capacities,
+        co2_price=co2_price,
     )
 
-    add_gas_and_h2_infrastructure(
+    if tyndp_hydro := [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
+        add_hydro_tyndp(
+            n=n,
+            costs=costs,
+            tyndp_hydro=tyndp_hydro,
+        )
+
+    if "other-res" in tyndp_renewable_carriers:
+        add_other_res_tyndp(
+            n=n,
+            costs=costs,
+            pop_layout=pop_layout,
+            spatial=spatial,
+            options=options,
+        )
+
+    add_h2_gas_infrastructure(
         n=n,
         costs=costs,
         pop_layout=pop_layout,
@@ -8341,39 +9630,52 @@ if __name__ == "__main__":
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
+        h2_demand_file=snakemake.input.h2_demand,
     )
 
-    if enable_pemmdb_caps:
-        add_existing_pemmdb_capacities(
+    # Hydrogen already implemented in add_h2_gas_infrastructure
+    extendable_storageunits = list(set(ext_carriers.get("StorageUnit", [])) - {"H2"})
+    extendable_stores = list(set(ext_carriers.get("Store", [])) - {"H2"})
+
+    attach_storageunits(
+        n=n,
+        costs=costs,
+        buses_i=pop_layout.index,
+        extendable_carriers=extendable_storageunits,
+        max_hours=max_hours,
+    )
+
+    attach_stores(
+        n=n,
+        costs=costs,
+        buses_i=pop_layout.index,
+        extendable_carriers=extendable_stores,
+    )
+
+    if options["h2_topology_tyndp"]:
+        smr_capacities = pd.read_csv(snakemake.input.tyndp_smr, index_col=0)
+        h2_storage_capacities = pd.read_csv(snakemake.input.tyndp_h2_storages)
+
+    if enable_pemmdb_caps or options["h2_topology_tyndp"]:
+        add_existing_tyndp_capacities(
             n=n,
             pemmdb_capacities=pemmdb_capacities,
             pemmdb_profiles=pemmdb_profiles,
+            smr_capacities=smr_capacities,
+            h2_storage_capacities=h2_storage_capacities,
             trajectories=tyndp_trajectories,
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
+            h2_topology_tyndp=options["h2_topology_tyndp"],
             tyndp_stores=snakemake.params.tyndp_stores,
             costs=costs,
             profiles_pecd=profiles_pecd,
+            nuclear_profiles=tyndp_nuclear_profiles,
+            hydro_inflows_fn=snakemake.input.profile_pemmdb_hydro,
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
+            enable_pemmdb_caps=enable_pemmdb_caps,
         )
-
-        if snakemake.params.tyndp_scenario == "NT" and snakemake.params.scale_hydro:
-            # TODO: remove once TYNDP hydro techs are included from PEMMDB
-            ppl = load_and_aggregate_powerplants(
-                snakemake.input.powerplants,
-                costs,
-                snakemake.params.consider_efficiency_classes,
-                snakemake.params.aggregation_strategies,
-                snakemake.params.exclude_carriers,
-            )
-
-            _add_tyndp_scaling_factor(
-                n=n,
-                pemmdb_capacities=pemmdb_capacities,
-                ppl=ppl,
-                year=investment_year,
-            )
 
     if options["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_tyndp(
@@ -8449,6 +9751,7 @@ if __name__ == "__main__":
                 for source in snakemake.params.limited_heat_sources
                 if source in snakemake.input.keys()
             },
+            heat_dsm_profile_file=snakemake.input.heat_dsm_profile,
             params=snakemake.params,
             pop_weighted_energy_totals=pop_weighted_energy_totals,
             heating_efficiencies=heating_efficiencies,
@@ -8467,6 +9770,8 @@ if __name__ == "__main__":
             cf_industry=cf_industry,
             pop_layout=pop_layout,
             biomass_potentials_file=snakemake.input.biomass_potentials,
+            nhours=nhours,
+            investment_year=investment_year,
             biomass_transport_costs_file=snakemake.input.biomass_transport_costs,
             nyears=nyears,
         )
@@ -8488,6 +9793,7 @@ if __name__ == "__main__":
             spatial=spatial,
             cf_industry=cf_industry,
             investment_year=investment_year,
+            tyndp_scenario=tyndp_scenario,
         )
 
     if options["shipping"]:
@@ -8552,10 +9858,6 @@ if __name__ == "__main__":
     if options["allam_cycle_gas"]:
         add_allam_gas(n, costs, pop_layout=pop_layout, spatial=spatial)
 
-    n = set_temporal_aggregation(
-        n, snakemake.params.time_resolution, snakemake.input.snapshot_weightings
-    )
-
     co2_budget = snakemake.params.co2_budget
     if isinstance(co2_budget, str) and co2_budget.startswith("cb"):
         fn = "results/" + snakemake.params.RDIR + "/csvs/carbon_budget_distribution.csv"
@@ -8617,6 +9919,7 @@ if __name__ == "__main__":
             options=options,
             gas_input_nodes=gas_input_nodes,
             h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
+            tyndp_scenario=tyndp_scenario,
         )
 
     if options["gas_distribution_grid"]:

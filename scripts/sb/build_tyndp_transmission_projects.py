@@ -1,0 +1,184 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: MIT
+
+
+"""
+Build TYNDP transmission projects from the Grid Investment Dataset.
+
+This script processes the TYNDP 2024 Grid Investment Dataset to extract
+transmission projects for inclusion in both the electrical and hydrogen
+reference grid.
+
+Projects are filtered by commissioning year and category, then formatted
+as network links with geometry attributes derived from bus locations.
+
+Inputs
+------
+- ``data/tyndp_2024_bundle/Investment Datasets/GRID.xlsx``: Grid investment dataset
+  containing electricity and hydrogen transmission projects with capacities and
+  commissioning years.
+- ``resources/tyndp/build/geojson/buses.geojson``: Electrical buses with geometry.
+- ``resources/tyndp/build/geojson/buses_h2.geojson``: Hydrogen buses with geometry.
+
+Outputs
+-------
+- ``resources/tyndp/new_links_{planning_horizons}.csv``: Processed electricity transmission projects with bus
+  connections, capacities (p_nom), lengths, and geometry attributes ready for
+  network integration.
+- ``resources/tyndp/new_links_h2_{planning_horizons}.csv``: Processed hydrogen transmission projects with bus
+  connections and capacities (p_nom) attributes ready for network integration.
+"""
+
+import logging
+
+import geopandas as gpd
+import pandas as pd
+
+from scripts._helpers import (
+    configure_logging,
+    extract_grid_data_tyndp,
+    set_scenario_config,
+)
+from scripts.build_tyndp_network import (
+    MAP_GRID_TYNDP,
+    add_links_missing_attributes,
+)
+
+logger = logging.getLogger(__name__)
+
+
+def read_invest_file(
+    fn_invest: str,
+    carrier: str = "Electricity",
+    years: list[int] = [2030, 2035],
+    category: str = "Real",
+) -> pd.DataFrame:
+    """
+    Read raw investment data for Electricity and Hydrogen.
+
+    For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
+
+    Parameters
+    ----------
+    fn_invest : str
+        Path to the investment dataset file.
+    carrier : str, optional
+        Energy carrier to extract: 'Electricity' or 'Hydrogen'. Default is 'Electricity'.
+    years : list[int], optional
+        Commissioning years to filter projects. Default is [2030, 2035].
+    category : str, optional
+        Project category filter for Electricity. Default is 'Real'.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of investment projects.
+    """
+    if carrier not in ["Electricity", "Hydrogen"]:
+        raise ValueError(
+            f"Carrier must be 'Electricity' or 'Hydrogen', got '{carrier}'."
+        )
+    border_condition = (
+        f"BORDER.str.contains('{category}') & " if carrier == "Electricity" else ""
+    )
+
+    projects = (
+        pd.read_excel(fn_invest, sheet_name=carrier)
+        .query(f"{border_condition}YEAR in @years")
+        .rename(
+            columns={
+                "DIRECT CAPACITY INCREASE (MW)": "Summary Direction 1",
+                "INDIRECT CAPACITY INCREASE (MW)": "Summary Direction 2",
+                "FROM NODE": "bus0",
+                "TO NODE": "bus1",
+            }
+        )
+        .replace({"UK": "GB"}, regex=True)
+        .groupby(["bus0", "bus1"])
+        .sum()[["Summary Direction 1", "Summary Direction 2"]]
+        .reset_index()
+    )
+
+    return projects
+
+
+def get_invest_projects(
+    fn_invest: str,
+    buses: gpd.GeoDataFrame,
+    carrier: str = "Electricity",
+    years: list[int] = [2030, 2035],
+    category: str = "Real",
+) -> gpd.GeoDataFrame:
+    """
+    Read and process grid investment dataset for Electricity or Hydrogen. Extract grid data in PyPSA compatible format.
+
+    For Electricity, only 'Real' projects are considered by default (excluding 'Concept' projects).
+
+    Parameters
+    ----------
+    fn_invest : str
+        Path to the investment dataset file.
+    buses : gpd.GeoDataFrame
+        GeoDataFrame of TYNDP buses with geometry.
+    carrier : str, optional
+        Energy carrier to extract: 'Electricity' or 'Hydrogen'. Default is 'Electricity'.
+    years : list[int], optional
+        Commissioning years to filter projects. Default is [2030, 2035].
+    category : str, optional
+        Project category filter for Electricity. Default is 'Real'.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Processed links with geometry.
+    """
+    projects = read_invest_file(fn_invest, carrier, years, category).query(
+        "bus0 in @buses.index & bus1 in @buses.index"
+    )
+
+    links = extract_grid_data_tyndp(
+        links=projects,
+        replace_dict=MAP_GRID_TYNDP,
+        expand_from_index=False,
+        idx_prefix="" if carrier == "Electricity" else "H2 pipeline",
+        idx_connector="-" if carrier == "Electricity" else "->",
+        idx_suffix="-DC" if carrier == "Electricity" else "",
+        idx_separator="" if carrier == "Electricity" else " ",
+    )
+
+    if carrier == "Electricity":
+        links = add_links_missing_attributes(links, buses)
+
+    return links
+
+
+if __name__ == "__main__":
+    if "snakemake" not in globals():
+        from scripts._helpers import mock_snakemake
+
+        snakemake = mock_snakemake(
+            "build_tyndp_transmission_projects", planning_horizons="2040"
+        )
+    configure_logging(snakemake)
+    set_scenario_config(snakemake)
+
+    # Parameters
+    build_years_elec = snakemake.params.build_years_elec
+    build_years_h2 = snakemake.params.build_years_h2
+
+    buses = gpd.read_file(snakemake.input.buses_elec).set_index("bus_id")
+    buses_h2 = gpd.read_file(snakemake.input.buses_h2).set_index("bus_id")
+    buses_h2.index = buses_h2.index.str.removesuffix(" H2")
+    new_links_elec = get_invest_projects(
+        snakemake.input.invest_grid, buses, years=build_years_elec
+    )
+    new_links_h2 = get_invest_projects(
+        snakemake.input.invest_grid,
+        buses_h2,
+        carrier="Hydrogen",
+        years=build_years_h2,
+    )
+
+    new_links_elec.to_csv(snakemake.output.new_links_elec, quotechar="'")
+    new_links_h2.to_csv(snakemake.output.new_links_h2, quotechar="'")

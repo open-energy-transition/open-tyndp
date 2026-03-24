@@ -332,7 +332,7 @@ def test_load_links_from_raw(
     links_path = pathlib.Path(tmpdir, "links_exercise.csv")
     links_dataframe.to_csv(links_path, index=False)
     df_links_output = (
-        _load_links_from_raw(df_buses, links_path)
+        _load_links_from_raw(links_path, df_buses)
         .reset_index()
         .loc[
             :,

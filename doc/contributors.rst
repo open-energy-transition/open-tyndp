@@ -16,6 +16,9 @@ towards the development of Open-TYNDP:
 * 2024-2025 Jonas Hörsch (OET)
 * 2024-2025 Martha Frysztacki (OET)
 * 2024-2025 Max Parzen (OET)
+* 2025 Lisa Zeyen (OET)
+* 2025 Carlos Gaete (OET)
+* 2025 Will Usher (OET)
 
 For licensing purposes, this team is referred to as *Contributors to Open-TYNDP* (see :doc:`licenses`).
 

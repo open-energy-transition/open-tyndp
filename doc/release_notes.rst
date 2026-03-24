@@ -11,41 +11,184 @@ Release Notes
 Upcoming Open-TYNDP Release
 ================
 
-
 **Features**
 
-* Add CO2 emission prices configurable per planning horizon for sector-coupled models (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
+* Add option to model carrier-specific load shedding with associated shedding costs (https://github.com/open-energy-transition/open-tyndp/pull/494).
 
-* Introduce a workflow branch for performing Cost-Benefit Analysis (CBA) using both TOOT
-  (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP
-  transmission and storage projects
-  (https://github.com/open-energy-transition/open-tyndp/pull/149) on top of the SB
-  results. The workflow structure has rules for retrieving CBA project data, processing
-  transmission and storage projects from Excel exports, creating reference networks,
-  building individual project networks, solving network optimizations, and computing CBA
-  indicators.
+* Implements rolling horizon optimisation with marginal storage values (water values) for seasonal storage components, maintaining operation of long-term stores close to perfect foresight optimization (https://github.com/open-energy-transition/open-tyndp/pull/441).
 
-* Added the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169)
+* Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
 
-* Added TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
+* Add option to model carrier-specific load sinks with associated costs (https://github.com/open-energy-transition/open-tyndp/pull/505).
 
-* Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220). Introduces ``sector:gas_demand_exogenously`` configuration to decide whether to attach this demand to the network. Introduces  ``benchmarking:remove_last_day`` to optionally remove the last day of the year, ensuring the benchmarked values have exactly 52 weeks. Removes ``sector:use_industry_load`` configuration as industry is now integrated in the exogenous demand.
+* Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
-* Add the TYNDP CCS assumptions as sequestration potentials (https://github.com/open-energy-transition/open-tyndp/pull/244)
+* Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
+
+* Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
+
+* Add H2 cavern and tank storages with existing energy and charge/discharge capacities (https://github.com/open-energy-transition/open-tyndp/pull/552). Optionally, for the DE/GA scenarios, expansion limits are added for these capacities for the expendable cavern storages.
+
+**Changes**
+
+* Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
+
+* Populate link attributes for new links in CBA (https://github.com/open-energy-transition/open-tyndp/pull/522).
+
+* Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
+
+* Add an option to apply the CBA fixes of the electrical reference network to the SB network as well (enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/527).
+
+* Add the 2035 hydrogen reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/537).
+
+* Add an option to use the H2 demand from the Market Model Outputs (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. It is now also possible to compare against Market Model Outputs in the benchmarking framework.
+
+* Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
 
 **Bugfixes and Compatibility**
 
-* Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205)
+* Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
 
-* Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214)
+* Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
 
-* Adjust the benchmarking configurations to report an approximation of imports for fossil fuels (https://github.com/open-energy-transition/open-tyndp/pull/237) and ensure that the final energy demand for biofuels is reflected correctly (https://github.com/open-energy-transition/open-tyndp/pull/239)
+* Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
 
-* Add an intermediate scaling factor for hydro plants to match PEMMDB capacities (https://github.com/open-energy-transition/open-tyndp/pull/238, https://github.com/open-energy-transition/open-tyndp/pull/240)
+* Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
 
+* Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
+
+**Documentation**
+
+**Developers Note**
 
 Upcoming PyPSA-Eur Release
 ================
+
+* Add configuration schema updater that allows changes to be made in soft-forks without touching base PyPSA-Eur files (#2014).
+
+* Adjust ``powerplants_filter`` to include power plants operational in 2025.
+
+* Rewrite mapping of power plant sites to model regions / buses. Previously, power plants were mapped to the nearest bus in the same country.
+  Now, power plants are mapped using a spatial join to the onshore and offshore regions.
+  This change is necessary as the administrative clustering does not conform to the previous nearest-bus mapping.
+
+* Removed some outdated hotfixes in `build_powerplants.py`.
+
+* Estimate renewable capacities using plant-level data from Powerplantmatching, instead of only Global Energy Monitor (GEM) data. The setting ``from_gem`` is renamed to ``from_powerplantmatching``.
+
+* New setting ``from_irenastat`` to use IRENASTAT data to supplement potential plant-level data from Powerplantmatching for renewable capacity estimation. This step can now be skipped if sufficient plant-level data is available from Powerplantmatching.
+
+* Update default year for renewable capacity estimation to 2024 (latest available).
+
+* Include waste-to-energy plants in electricity-only networks.
+
+* Add 2030 to power plant grouping years by default.
+
+* Do not apply ``powerplantmatching`` phase-out heuristic in :mod:`build_powerplants`.
+
+* Bugfix: Ensure renewable carriers are not added as conventional power plants (if included in ``powerplants.csv``)
+
+* Bugfix: Improved handling of grouping years in :mod:`add_existing_baseyear`.
+
+* Added ``solving.options.store_model`` config option to store the linopy model as NetCDF file after solving. Not supported with rolling horizon. Configuration setting can not be set per scenario, only globally.
+* Update Swiss energy balances from the Swiss Federal Office of Energy (SFOE) to the latest version (October 2025).
+  The data is no longer stored in the repository, but directly retrieved from the SFOE website and processed in the ``build_swiss_energy_balances`` rule.
+
+* Added prebuilt OSM network v0.7 (https://zenodo.org/records/18619025) using updated workflow.
+
+* Fix unit commitment compatibility with PyPSA ≥ 1.0 component API to allow usage of unit commitment (https://github.com/PyPSA/pypsa-eur/pull/2049).
+
+* Update energy balances from JRC-IDEES-2021 to `JRC-IDEES-2023
+  <https://publications.jrc.ec.europa.eu/repository/handle/JRC138195>`__. The
+  default reference year was changed from 2019 to 2023.
+* Removed config options `sector:MWh_MeOH_per_tCO2`, `MWh_MeOH_per_MWh_H2`, and `MWh_MeOH_per_MWh_elec` in favour of corresponding data points from technology-data.
+* Download and process Eurostat energy balances from API. This replaces the discontinued ZIP bulk download.
+
+* The function `rescale_idees_from_eurostat` was removed.
+
+* New rule `build_eurostat_balances` to build energy balances from Eurostat data. Outsourced from `build_energy_totals`
+* Updated CO2 emission allowance prices data source to Instrat API for real-time pricing data.
+* Improved OSM network building process (https://github.com/PyPSA/pypsa-eur/pull/2030): Introducing support for temporal attributes (start_date, construction tags) and pure DC buses (switching stations). The interactive network map has been completely rebuilt using PyDeck/deck.gl with GPU acceleration and includes custom JS controls, offering fuzzy search, clickable OSM references, URL-based view sharing (#theme/zoom/lat/lon), and substantially improved performance. Additionally, a generalised plot from https://www.nature.com/articles/s41597-025-04550-7 enables systematic comparison of network topology changes over time. Cleaned naming scheme (https://github.com/PyPSA/pypsa-eur/pull/2052).
+
+* Add powerplantmatching v0.8.0 to data versions.
+
+* Add script path getter helper method to allow for rule inheritance in nested snakefiles.
+
+* Include new storage technologies such as li-ion, vanadium, lfp, lair, pair and iron-air. These technologies can now be configured as either store-link combinations or standalone storage units.
+  Implemented in both `add_electricity.py` and `prepare_sector_network.py` (https://github.com/PyPSA/pypsa-eur/pull/1961).
+
+* Updated data sources for country-level electricity demand time series. In addition to the OPSD data (``retrieve_electricity_demand_opsd``, demand time series
+  are now downloaded via the ENTSO-E Transparency Platform API (``retrieve_electricity_demand_entsoe`` environment variable ``ENTSOE_API_KEY`` required)
+  and from the NESO data portal for Great Britain and Northern Ireland (``retrieve_electricity_demand_neso``).
+  Manual corrections and gap filling methods have been applied and checked for data until the end of 2025.
+  (https://github.com/PyPSA/pypsa-eur/pull/1828).
+
+* Applied scaling of kW and GW to MW for custom_costs as well (https://github.com/PyPSA/pypsa-eur/pull/2023).
+
+* Fix wildcards error in `clean_osm_data` rule message introduced in github.com/PyPSA/pypsa-eur/pull/1846 by replacing `wildcards.country` with expanded `config["countries"]` list (https://github.com/PyPSA/pypsa-eur/pull/2022).
+
+* Fix `None` default config parameter from creating zero availability for offshore wind (#2019).
+
+* Remove snakemake's slurm plugin from windows installations (https://github.com/PyPSA/pypsa-eur/pull/2009).
+
+* Added Xpress solver configuration options (``xpress-default`` and ``xpress-gpu``) with barrier method settings optimized for large-scale linear programming problems.
+
+* Added missing bidding zone data sources to data layer (https://github.com/PyPSA/pypsa-eur/pull/1991).
+
+* Fix virtual bus naming when building the transmission network from raw OSM data to use persistent names (https://github.com/PyPSA/pypsa-eur/pull/1956).
+
+* Fix column selection when preparing OSM pre-built releases (https://github.com/PyPSA/pypsa-eur/pull/1956).
+
+* Fix: capital-cost of solar-hsat did not get adjusted to current planning_horizon in myopic optimization
+
+* Removed the ``secrets`` configuration section and disallow setting Gurobi license credentials (WLSACCESSID, WLSSECRET, LICENSEID) in config files to prevent accidental exposure of sensitive credentials. Use environment variables or license files instead (https://github.com/PyPSA/pypsa-eur/pull/1989).
+
+* Fix ConsistencyError for Links without buses when `gas_network: true`, but no `conventional_generation` (https://github.com/PyPSA/pypsa-eur/pull/1971)
+
+* Fix ConsistencyError for Links without buses when `industry: true`, but no `conventional_generation` or `biomass` (https://github.com/PyPSA/pypsa-eur/pull/1971)
+
+* Fix `mock_snakemake` due to breaking `snakemake` upstream API changes, i.e., requiring passing a `LoggerManager` instance (https://github.com/PyPSA/pypsa-eur/pull/1984).
+
+* Added technology-data v0.13.4 (https://github.com/PyPSA/technology-data/releases/tag/v0.13.4) to data versions (https://github.com/PyPSA/pypsa-eur/pull/1985).
+
+* Important: PyPSA-Eur now uses a validation schema for configuration files. The schema
+  also contains the default values for all known configuration options, which means
+  `config/config.default.yaml` still exists and can be used, but will be automatically
+  exported from the schema. Changes to the default config, therefore now require the
+  schema to be updated. Find a detailed explanation in the contributors documentation
+  (https://github.com/PyPSA/pypsa-eur/pull/1912).
+
+* Fix bugs when using PyPSA-Eur as a Snakemake module by making sure that all file paths are defined relative to a rule's input or an output (https://github.com/PyPSA/pypsa-eur/pull/1967).
+
+* Fix compatibility of rules `build_gas_input_locations` and `build_gas_network` with pyogrio >=0.12.0 (https://github.com/PyPSA/pypsa-eur/pull/1955).
+
+* Added interactive (html) balance maps `results/maps/interactive/` (https://github.com/PyPSA/pypsa-eur/pull/1935) based on https://docs.pypsa.org/latest/user-guide/plotting/explore/. Settings for interactive maps can be found in `plotting.default.yaml` under `plotting["balance_map_interactive"]`.
+
+* Relocated and modified static (pdf) balance maps to `results/maps/static/` (https://github.com/PyPSA/pypsa-eur/pull/1935) for better organization.
+
+* With https://github.com/PyPSA/pypsa-eur/pull/1935, note that bus carriers for balance maps containing spaces need to be specified with underscores `_` in the configuration file, e.g., `co2_stored` instead of `co2 stored`. This is to ensure compatibility with queue managers like slurm.
+
+* Fix building osm network using overpass API (https://github.com/PyPSA/pypsa-eur/pull/1940).
+
+* Added configuration option to set overpass API URL, maximum retries, timeout and user agent information (https://github.com/PyPSA/pypsa-eur/pull/1940 and https://pypsa-eur.readthedocs.io/en/latest/configuration.html#overpass_api). For a list of public overpass APIs see `here <https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances>`_.
+
+* Refactored `solve_network.py` and `solve_operations_network.py` to separate optimization problem preparation from solving, enabling inspection of optimization problems before solve execution.
+
+* Added example configurations for rolling horizon and iterative optimization modes in `config/examples/`.
+
+* Added existing biomass decentral/rural residential and services heating capacity.
+
+* Fix parsing in Swiss passenger cars data (https://github.com/PyPSA/pypsa-eur/pull/1934 and https://github.com/PyPSA/pypsa-eur/pull/1936).
+
+* Fix: ValueError with `cop_heat_pump` in `prepare_sector_network.py` if `tim_dep_hp_cop` is `false`.
+
+* Fixed OSM raw data cleaning to include `section` line relation role.
+
+* Fixed missing raw OSM HVDC links defined using the ``power=circuit`` tag (NOTE: ``type=route``+``route=power`` is `deprecated <https://wiki.openstreetmap.org/wiki/Tag%3Aroute%3Dpower>`_).
+
+* Fixed bugs with load shedding due to incorrect use of `sign` argument in `n.add` and `np.isscalar` (https://github.com/PyPSA/pypsa-eur/pull/1908).
+
+* chore: disable PTES dynamic capacity by default
 
 * Add CO2 emission prices configurable per planning horizon for sector-coupled models.
   The CO2 price is added as a marginal cost on the `co2 atmosphere` Store.
@@ -112,22 +255,269 @@ Upcoming PyPSA-Eur Release
 * Fix `retrieve_eurostat_data` and `retrieve_eurostat_household_data` on Windows by avoiding a double access to a temporary file.
   (https://github.com/PyPSA/pypsa-eur/pull/1825)
 
+* Update GEM steel plant tracker and use initial release of GEM cement plant tracker.
+
 * Added integration with the OETC platform
 
 * Remove pinned environment files mention in the pre-commit-config-yaml (https://github.com/PyPSA/pypsa-eur/pull/1837)
+
+* Add user-readable messages to each rule (https://github.com/PyPSA/pypsa-eur/pull/1846)
 
 * Increase minimum required `pypsa` version to 0.33.2 (https://github.com/PyPSA/pypsa-eur/pull/1849)
 
 * Running perfect foresight is now marked as unstable and may not work as expected.
 
+* Add residential heat demand-side management (DSM) based on `smartEn study <https://smarten.eu/wp-content/uploads/2022/10/SmartEN-DSF-benefits-2030-Report_DIGITAL-1.pdf>`_ methodology. See new settings under `sector: residential_heat`.
+
 * Remove the hotfix in `progress_retrieve` and check that the directory exists (https://github.com/PyPSA/pypsa-eur/pull/1840).
 
 * Added minimum unit dispatch setting option for electrolysis
+
+* Feature: All input data to the model is now version controlled. The data versions are listed in `data/versions.csv` and can be configured in the configfile. (https://github.com/PyPSA/pypsa-eur/pull/1675)
+
+* Deprecate `shared_cutouts`: This configuration entry is no longer supported. Cutouts are always shared.
+  To use scenario specific cutouts with different time or spatial resolution, make sure to name those cutouts differently in the `atlite:` configuration entry.
+
+* Move cutouts into `data/cutouts/` directory for consistency. Note: This will trigger all cutouts to be re-downloaded or rebuild. If you need to retain downloaded cutouts, move them manually into `data/cutouts/`.
+
+* Deprecate the ability to determine ``cutout`` bounds based on ``regions_onshore`` and ``regions_offshore``.
+  Instead ``cutouts`` need to have their bounds explicitly defined in the configuration file.
+
+* Moved configuration for ``cutout`` preparation into a nested dictionary ``prepare_kwargs``.
+  This allows to pass any keyword argument supported by ``atlite.Cutout.prepare()`` like ``tmpdir``.
+
+* Deprecate the configuration options ``enable: retrieve``, ``enable: retrieve_databundle``, and ``enable: retrieve_cost_data``.
+  Instead, the rules are always included in the workflow. If no internet connection is available, the rules will fail.
 
 * Misc: Empty folders that are automatically generated by ``snakemake`` have been added to the repository, e.g. ``resources/`` and ``results/``.
   The ``purge`` rule now removes their contents but keeps the folders (https://github.com/PyPSA/pypsa-eur/pull/1764).
 
 * Misc: Automatically update the DAGs shown in the documentation (https://github.com/PyPSA/pypsa-eur/pull/1880).
+
+* Fix the WDPA links to function on Windows (https://github.com/PyPSA/pypsa-eur/pull/2008).
+
+* Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
+
+
+Open-TYNDP v0.5.1 (18th February 2026)
+========================================
+
+**Features**
+
+* Sign Windows installers using Azure Artifact Signing (https://github.com/open-energy-transition/open-tyndp/pull/471).
+
+**Changes**
+
+* Refactor the temporal aggregation of a sector-coupled model as a separate rule (https://github.com/open-energy-transition/open-tyndp/pull/469). It renames previous `temporal_aggregation` as `build_snapshot_weightings` and introduces a new rule `temporal_aggregation` after `prepare_sector_network` that effectively applies the aggregation.
+
+* Harmonize renewable profiles across all assets regardless of build year (https://github.com/open-energy-transition/open-tyndp/pull/473). When `existing_capacities:uniform_renewable_profiles` is enabled, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.
+
+**Bugfixes and Compatibility**
+
+* Fix Windows uninstaller launched from installer to report failure on success (https://github.com/open-energy-transition/open-tyndp/pull/472).
+
+* Fix for myopic pathway optimization using the TYNDP H2 reference grid to account for cumulative capacities between planning horizons and add back CH-IT H2 pipeline connections (https://github.com/open-energy-transition/open-tyndp/pull/475).
+
+* Fix for GB connections in 2035 reference grid based on the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/489).
+
+* Allow specifying the build_year of investment candidates to be added as new links to the 2040 reference grid via the config file and add both 2030 and 2035 projects to 2040 reference grid (https://github.com/open-energy-transition/open-tyndp/pull/496).
+
+* Use conda-forge dependency for PyPSA-Explorer package instead of pypi (https://github.com/open-energy-transition/open-tyndp/pull/491).
+
+**Documentation**
+
+* Update benchmarking indicators and figures to v0.5 (https://github.com/open-energy-transition/open-tyndp/pull/465).
+
+* Update the Citation for improved reference of original work and add Zenodo archive (https://github.com/open-energy-transition/open-tyndp/pull/459).
+
+**Developers Note**
+
+* Verify checksums of data packages downloaded through GCP (https://github.com/open-energy-transition/open-tyndp/pull/486).
+
+* Pin grpcio<1.78 to silence warnings that are cluttering the log (https://github.com/open-energy-transition/open-tyndp/pull/498).
+
+
+Open-TYNDP v0.5 (10th February 2026)
+========================================
+
+**Features**
+
+* Add the PINT project network preparation for Cost-Benefit Analysis (CBA) and adjust workflow to single reference grid (https://github.com/open-energy-transition/open-tyndp/pull/353).
+
+* Add TYNDP hydro technologies and associated PEMMDB capacities and inflows (https://github.com/open-energy-transition/open-tyndp/pull/338). The following technologies are introduced: `hydro-ror`, `hydro-reservoir`, `hydro-pondage`, `hydro-phs` and `hydro-phs-pure`.
+
+* Scaled EV electricity demand and adjusted EV parameters to match TYNDP 2024 assumptions (EV charging efficiency, EV charging rate, capacity available for DSM, car efficiency) (https://github.com/open-energy-transition/open-tyndp/pull/409).
+
+* Add the 2035 reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/340).
+
+* Introduce calculation of B2 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/348).
+
+* Introduce calculation of B3 indicators in the Cost-Benefit Analysis (CBA) based on renewable energy integration (https://github.com/open-energy-transition/open-tyndp/pull/350).
+
+* Introduce calculation of B4 indicator in the Cost-Benefit Analysis (CBA) based on changes in non-CO2 emissions (https://github.com/open-energy-transition/open-tyndp/pull/398).
+
+* Set short-term storage to cyclic in CBA dispatch (https://github.com/open-energy-transition/open-tyndp/pull/385).
+
+* Add availability profiles for nuclear power plants (https://github.com/open-energy-transition/open-tyndp/pull/447). The profiles are derived from the Market Outputs files for the NT scenario. Generation time series are normalized to per-unit values and resampled weekly, retaining the maximum availability factor per week to account for maintenance schedules and forced outages.
+
+* Add PyPSA-Explorer to workflow (https://github.com/open-energy-transition/open-tyndp/pull/443). The explorer will launch automatically in a new browser tab.
+
+* Add automated plotting for CBA indicators (https://github.com/open-energy-transition/open-tyndp/pull/352).
+
+* Add benchmarking of CBA indicators against TYNDP 2024 reported values (https://github.com/open-energy-transition/open-tyndp/pull/405).
+
+* Add Market Model outputs to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/458). Additional minor fixes: SMR and SMR with CCS are now reported as a single group, and e-fuels are excluded from hydrogen demand since they are already accounted for in the exogenous demand.
+
+**Changes**
+
+* Improve general assumptions for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/430). This includes refining assumptions relating to efficiencies, fuel costs and extendable technologies.
+
+* Extend PyPSA-Eur validation schema for configuration files to Open-TYNDP specific configurations (see https://github.com/PyPSA/pypsa-eur/pull/1912) (https://github.com/open-energy-transition/open-tyndp/pull/419). Find a detailed explanation in the contributors documentation.
+
+* Assign CBA method assignment of projects before creation of project network, using data from CBA Implementation Guide (https://github.com/open-energy-transition/open-tyndp/pull/426).
+
+* Fix project capacities in CBA reference network (https://github.com/open-energy-transition/open-tyndp/pull/450).
+
+* Add preprocessing of Market Model benchmark data (https://github.com/open-energy-transition/open-tyndp/pull/372). All relevant Market Model output data is mapped to the naming convention used in the benchmarking plots.
+
+* Enable ``io_api`` direct mode for CBA rolling horizon to improve performance (https://github.com/open-energy-transition/open-tyndp/pull/402).
+
+**Bugfixes and Compatibility**
+
+* Add virtual TYNDP nodes for IT and LU to `clusted_pop_layout` to enable consistent use of its index when selecting modelled electricity nodes (https://github.com/open-energy-transition/open-tyndp/pull/360).
+
+* Enable unlimited capacity for primary fuel generators in CBA rolling horizon (https://github.com/open-energy-transition/open-tyndp/pull/408).
+
+* Fix processing of H2 demand profiles and PEMMDB profiles for compatibility with the climate year being a leap year like 2008 (https://github.com/open-energy-transition/open-tyndp/pull/414).
+
+* Fix to allow for bidirectional electricity and hydrogen interconnections between offshore hubs (https://github.com/open-energy-transition/open-tyndp/pull/445). To shore connections remain unidirectional as defined in the inputs.
+
+* Improve power generation benchmarking for renewables (https://github.com/open-energy-transition/open-tyndp/pull/457). Reported values now include curtailment.
+
+**Documentation**
+
+* Add documentation describing the CBA workflow and CBA indicators (https://github.com/open-energy-transition/open-tyndp/pull/392).
+
+* Explain the Open TYNDP implementation of the scenario approach (https://github.com/open-energy-transition/open-tyndp/pull/449).
+
+* Add FAQ entry for PyPSA v1 compatibility issue (https://github.com/open-energy-transition/open-tyndp/pull/381).
+
+**Developers Note**
+
+* Add scenario column to the `custom_costs.csv` file to allow for shared adjustments across scenarios (https://github.com/open-energy-transition/open-tyndp/pull/361).
+
+* Align the data structure of the TYNDP archives with that of upstream (https://github.com/open-energy-transition/open-tyndp/pull/451). These changes ensure that all the data is retrieved in an identical structure to the primary source, and as individual compressed archives.
+
+* Reformat CBA indicators output CSV to long format and to include units (https://github.com/open-energy-transition/open-tyndp/pull/401).
+
+
+Open-TYNDP v0.4.2 (23rd January 2026)
+========================================
+
+
+**Features**
+
+* Add automated Windows installer for easy setup on Windows systems (https://github.com/open-energy-transition/open-tyndp/pull/333). The installer bundles pixi, the repository, and sets up the conda environment automatically. Installer executables are automatically built and attached to GitHub releases. See ``utils/windows-installer/`` for details.
+
+* Integrate Open-TYNDP specific data into the data versioning system introduced upstream (see https://github.com/PyPSA/pypsa-eur/pull/1675) (https://github.com/open-energy-transition/open-tyndp/pull/363). Consequently, the rule `retrieve_additional_tyndp_data` is deprecated.
+
+**Bugfixes and Compatibility**
+
+* Fix Windows compatibility issues and make other minor improvements (https://github.com/open-energy-transition/open-tyndp/pull/357).
+
+* Correct handling of electrolyzer capacities between optimization years (https://github.com/open-energy-transition/open-tyndp/pull/370).
+
+**Documentation**
+
+* Add innovation roadmap comparison, mapping existing or new developments in PyPSA-Eur and Open TYNDP to desired features for TYNDP 2026 (https://github.com/open-energy-transition/open-tyndp/pull/341)
+
+
+Open-TYNDP v0.4.1 (23rd December 2025)
+========================================
+
+
+**Bugfixes and Compatibility**
+
+* Retrieve countries_centroids.geojson using brotli encoding (https://github.com/open-energy-transition/open-tyndp/pull/334).
+
+* Ensure backward compatibility for custom offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/339).
+
+
+Open-TYNDP v0.4 (16th December 2025)
+========================================
+
+
+**Features**
+
+* Introduce a workflow structure for performing Cost-Benefit Analysis (CBA) using both TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies for TYNDP transmission and storage projects on top of the SB results (https://github.com/open-energy-transition/open-tyndp/pull/149). The workflow structure has rules for retrieving CBA project data, processing transmission and storage projects from Excel exports, creating reference networks, building individual project networks, solving network optimizations, and computing CBA indicators.
+
+* Add the TOOT reference network preparation for CBA (https://github.com/open-energy-transition/open-tyndp/pull/199).
+
+* Add the TOOT project network preparation for CBA (https://github.com/open-energy-transition/open-tyndp/pull/211).
+
+* Add weekly rolling horizon optimization for CBA networks (https://github.com/open-energy-transition/open-tyndp/pull/217). Implements ``solve_cba_network`` rule for optimizing dispatch of TOOT and PINT reference and project networks.
+
+* Introduce calculation of B1 indicator in the Cost-Benefit Analysis (CBA) based on changes in total system costs (https://github.com/open-energy-transition/open-tyndp/pull/186).
+
+* Add TYNDP conventional thermal generation using PEMMDB capacities, must-runs and availabilities (https://github.com/open-energy-transition/open-tyndp/pull/195).
+
+* Add TYNDP electrolyzer capacities for the National Trends scenario using PEMMDB data (https://github.com/open-energy-transition/open-tyndp/pull/248).
+
+* Add the TYNDP hydrogen demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/169, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/230).
+
+* Add the TYNDP gas demand as an exogenously set demand (process data https://github.com/open-energy-transition/open-tyndp/pull/208, attach demand to the network https://github.com/open-energy-transition/open-tyndp/pull/220). Introduces ``sector:gas_demand_exogenously`` configuration to decide whether to attach this demand to the network. Introduces ``benchmarking:remove_last_day`` to optionally remove the last day of the year, ensuring the benchmarked values have exactly 52 weeks. Removes ``sector:use_industry_load`` configuration as industry is now integrated in the exogenous demand.
+
+* Add CO2 emission prices configurable per planning horizon for sector-coupled models (https://github.com/open-energy-transition/open-tyndp/pull/198). The CO2 price is added as a marginal cost on the ``co2 atmosphere`` Store.
+
+* Improve the overall benchmarking framework by correcting bus mappings for methane supply, biomass supply, and BtL for FED; grouping H2 pipeline imports together (low carbon and renewables); using a new H2 demand figure (Fig. 10 instead of 54) with correct grouping of exogenous demands; reducing EU-wide statistics to EU27 where possible; and improving biomass supply benchmarking with a new figure (Fig. 22 instead of 59) (https://github.com/open-energy-transition/open-tyndp/pull/281).
+
+**Breaking Changes**
+
+* Move all SB scripts to `scripts/sb/` and rules to `rules/sb.smk`, and renamed CBA rules file from `rules/cba/main.smk` to `rules/cba.smk` for consistency (https://github.com/open-energy-transition/open-tyndp/pull/278).
+
+* Rename `clean_tyndp_demand` to `clean_tyndp_electricity_demand` for clarity (https://github.com/open-energy-transition/open-tyndp/pull/272).
+
+**Changes**
+
+* Improve electricity demand processing and benchmarking to achieve an exact match between the benchmarked and reference values (https://github.com/open-energy-transition/open-tyndp/pull/192).
+
+* Adjust solid biomass and biogas potentials to match TYNDP assumptions across all planning horizons, removed unsustainable biomass and biogas shares from potential, and added configuration options to force biomass and biogas potentials (https://github.com/open-energy-transition/open-tyndp/pull/236).
+
+* Adjust the benchmarking configurations to report an approximation of imports for fossil fuels (https://github.com/open-energy-transition/open-tyndp/pull/237) and ensure that the final energy demand for biofuels is reflected correctly (https://github.com/open-energy-transition/open-tyndp/pull/239).
+
+* Add an intermediate scaling factor for hydro plants to match PEMMDB capacities (https://github.com/open-energy-transition/open-tyndp/pull/238, https://github.com/open-energy-transition/open-tyndp/pull/240).
+
+* Adjust the oil land transport demand in order to adjust the liquids demand (https://github.com/open-energy-transition/open-tyndp/pull/250).
+
+* Add the TYNDP CCS assumptions as sequestration potentials (https://github.com/open-energy-transition/open-tyndp/pull/244).
+
+**Bugfixes and Compatibility**
+
+* Fix benchmarking workflow to account for not spatially resolved methane demand and more missing data (https://github.com/open-energy-transition/open-tyndp/pull/205).
+
+* Fix `make tyndp` with the introduction of collect rules for `rulegraph` and `filegraph` (https://github.com/open-energy-transition/open-tyndp/pull/214).
+
+* Correctly attach planning year dependent renewable profiles from PECD to solar and onwind generators (https://github.com/open-energy-transition/open-tyndp/pull/265).
+
+* Correctly attach solar-pv-rooftop generators to low-voltage buses when modelling an electricity distribution grid representation (https://github.com/open-energy-transition/open-tyndp/pull/273).
+
+* Address infeasibilities for DE and GA by adjusting the trajectory of DE00 for the larger existing capacity and by fixing a broadcasting bug in the offshore constraints (https://github.com/open-energy-transition/open-tyndp/pull/283).
+
+* Make sector and TYNDP dependent inputs optional in `prepare_sector_network` to avoid triggering unnecessary prerequisite rules and disable `solar_thermal` (https://github.com/open-energy-transition/open-tyndp/pull/293).
+
+* Remove `wget` commands from `retrieve` rules to improve Windows compatibility (https://github.com/open-energy-transition/open-tyndp/pull/304).
+
+* Change the projection for maps to LambertAzimuthalEqualArea and PlateCaree to align with TYNDP 2024 reports (https://github.com/open-energy-transition/open-tyndp/pull/282).
+
+**Documentation**
+
+* Add a FAQ to the documentation (https://github.com/open-energy-transition/open-tyndp/pull/276).
+
+* Add more FAQ questions, set the default solver to HiGHS and fix the default temporal resolution to 52SEG (https://github.com/open-energy-transition/open-tyndp/pull/303).
+
+**Developers Note**
+
+* Ensure compatibility with PyPSA v1 (https://github.com/open-energy-transition/open-tyndp/pull/219).
 
 
 Open-TYNDP v0.3 (24th October 2025)
@@ -299,7 +689,7 @@ Open-TYNDP v0.2 (23rd July 2025)
 
 * Add the TYNDP electricity demand as an exogenously set demand (https://github.com/open-energy-transition/open-tyndp/pull/14). This requires the default PyPSA-Eur modelling to be explicitly disabled. The TYNDP electricity demand depends on the planning year, necessitating a different approach to the default PyPSA-Eur one. Wildcards are introduced and load is attached in `prepare_sector_network`.
 
-* Add a dedicated `Open-TYDNP documentation <https://open-tyndp.readthedocs.io/en/latest/>`__ website (https://github.com/open-energy-transition/open-tyndp/pull/80).
+* Add a dedicated `Open-TYNDP documentation <https://open-tyndp.readthedocs.io/en/latest/>`__ website (https://github.com/open-energy-transition/open-tyndp/pull/80).
 
 **Changes**
 
@@ -905,7 +1295,6 @@ PyPSA-Eur v2025.01.0 (24th January 2025)
   (https://github.com/PyPSA/pypsa-eur/pull/1474)
 
 * Updating all base shapes (country_shapes, europe_shape, nuts3_shapes, ...). The workflow has been modified to use higher resolution and more harmonised shapes (NUTS3 2021 01M data and OSM administration level 1 for non-NUTS3 countries, such as BA, MD, UA, and XK). Data sources for population and GDP p.c. have been updated to JRC ARDECO https://urban.jrc.ec.europa.eu/ardeco/ -- 2019 values are used. `build_gdp_pop_non_nuts3` (originally created to build regional GDP p.c. and population data for MD and UA) is now integrated into `build_shapes` and extended to build regional values for all non-NUTS3 countries using cutouts of the updated datasets `GDP_per_capita_PPP_1990_2015_v2.nc` and `ppp_2019_1km_Aggregated.tif`,
-
 
 PyPSA-Eur 0.13.0 (13th September 2024)
 ======================================

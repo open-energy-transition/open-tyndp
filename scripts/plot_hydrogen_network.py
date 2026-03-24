@@ -79,13 +79,13 @@ def plot_h2_map(n, regions, map_fn):
         (n.links.carrier.isin(carriers)) & ~(n.links.index.str.contains("DRES"))
     ].index
 
-    bus_sizes = (
+    bus_size = (
         n.links.loc[elec, "p_nom_opt"].groupby([n.links["bus0"], n.links.carrier]).sum()
         / bus_size_factor
     )
 
     # make a fake MultiIndex so that area is correct for legend
-    bus_sizes.rename(index=lambda x: x.replace(" H2", ""), level=0, inplace=True)
+    bus_size.rename(index=lambda x: x.replace(" H2", ""), level=0, inplace=True)
     # drop all links which are not H2 pipelines
     n.links.drop(
         n.links.index[~n.links.carrier.str.contains("H2 pipeline")], inplace=True
@@ -134,7 +134,7 @@ def plot_h2_map(n, regions, map_fn):
     else:
         h2_total = h2_new.p_nom_opt
 
-    link_widths_total = h2_total / linewidth_factor
+    link_width_total = h2_total / linewidth_factor
 
     n.links.rename(index=lambda x: x.split("-2")[0], inplace=True)
     # group links by summing up p_nom values and taking the first value of the rest of the columns
@@ -143,14 +143,14 @@ def plot_h2_map(n, regions, map_fn):
         {"p_nom_opt": "sum", "p_nom": "sum", **other_cols}
     )
 
-    link_widths_total = link_widths_total.reindex(n.links.index).fillna(0.0)
-    link_widths_total[n.links.p_nom_opt < line_lower_threshold] = 0.0
+    link_width_total = link_width_total.reindex(n.links.index).fillna(0.0)
+    link_width_total[n.links.p_nom_opt < line_lower_threshold] = 0.0
 
     retro = n.links.p_nom_opt.where(
         n.links.carrier == "H2 pipeline retrofitted", other=0.0
     )
-    link_widths_retro = retro / linewidth_factor
-    link_widths_retro[n.links.p_nom_opt < line_lower_threshold] = 0.0
+    link_width_retro = retro / linewidth_factor
+    link_width_retro[n.links.p_nom_opt < line_lower_threshold] = 0.0
 
     n.links.bus0 = n.links.bus0.str.replace(" H2", "")
     n.links.bus1 = n.links.bus1.str.replace(" H2", "")
@@ -162,14 +162,14 @@ def plot_h2_map(n, regions, map_fn):
     color_h2_pipe = "#b3f3f4"
     color_retrofit = "#499a9c"
 
-    bus_colors = {"H2 Electrolysis": "#ff29d9", "H2 Fuel Cell": "#805394"}
+    bus_color = {"H2 Electrolysis": "#ff29d9", "H2 Fuel Cell": "#805394"}
 
     n.plot(
         geomap=True,
-        bus_sizes=bus_sizes,
-        bus_colors=bus_colors,
-        link_colors=color_h2_pipe,
-        link_widths=link_widths_total,
+        bus_size=bus_size,
+        bus_color=bus_color,
+        link_color=color_h2_pipe,
+        link_width=link_width_total,
         branch_components=["Link"],
         ax=ax,
         **map_opts,
@@ -177,9 +177,9 @@ def plot_h2_map(n, regions, map_fn):
 
     n.plot(
         geomap=True,
-        bus_sizes=0,
-        link_colors=color_retrofit,
-        link_widths=link_widths_retro,
+        bus_size=0,
+        link_color=color_retrofit,
+        link_width=link_width_retro,
         branch_components=["Link"],
         ax=ax,
         **map_opts,
@@ -242,7 +242,7 @@ def plot_h2_map(n, regions, map_fn):
         legend_kw=legend_kw,
     )
 
-    colors = [bus_colors[c] for c in carriers] + [color_h2_pipe, color_retrofit]
+    colors = [bus_color[c] for c in carriers] + [color_h2_pipe, color_retrofit]
     labels = carriers + ["H2 pipeline (total)", "H2 pipeline (repurposed)"]
 
     legend_kw = dict(
@@ -275,6 +275,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
+    options = snakemake.params.sector
 
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
 
@@ -287,14 +288,15 @@ if __name__ == "__main__":
     map_fn = snakemake.output.map
 
     if snakemake.params.tyndp_h2_topology:
-        from scripts.plot_base_hydrogen_network import plot_h2_map_base
+        from scripts.sb.plot_base_hydrogen_network import plot_h2_map_base
 
         if n.buses.country.isin(["MA", "DZ"]).any():
             map_opts["boundaries"] = list(np.add(map_opts["boundaries"], [0, 0, -6, 0]))
 
-        regions.index = regions.index + " H2 Z2"
+        suffix = "H2" if not options["h2_zones_tyndp"] else "H2 Z2"
+        regions.index = regions.index + f" {suffix}"
         plot_h2_map_base(
-            n, map_opts, map_fn, expanded=True, regions_for_storage=regions
+            n, map_opts, proj, map_fn, expanded=True, regions_for_storage=regions
         )
     else:
         plot_h2_map(n, regions, map_fn)

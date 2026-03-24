@@ -118,6 +118,11 @@ Rule ``build_tes_capacity_profiles``
 
 .. automodule:: build_tes_capacity_profiles
 
+Rule ``build_eurostat_balances``
+==============================================================================
+
+.. automodule:: build_eurostat_balances
+
 Rule ``build_energy_totals``
 ==============================================================================
 
@@ -243,6 +248,11 @@ Rule ``build_temperature_profiles``
 
 .. automodule:: build_temperature_profiles
 
+Rule ``build_mobility_profiles``
+==============================================================================
+
+.. automodule:: build_mobility_profiles
+
 Rule ``build_transport_demand``
 ==============================================================================
 
@@ -253,20 +263,30 @@ Rule ``cluster_gas_network``
 
 .. automodule:: cluster_gas_network
 
-Rule ``time_aggregation``
+Rule ``build_snapshot_weightings``
 ==============================================================================
 
-.. automodule:: time_aggregation
+.. automodule:: build_snapshot_weightings
 
 Rule ``build_tyndp_h2_network``
 ==============================================================================
 
 .. automodule:: build_tyndp_h2_network
 
-Rule ``prepare_sector_network``
+Rule ``clean_tyndp_h2_imports``
 ==============================================================================
 
-.. automodule:: prepare_sector_network
+.. automodule:: clean_tyndp_h2_imports
+
+Rule ``build_tyndp_h2_imports``
+==============================================================================
+
+.. automodule:: build_tyndp_h2_imports
+
+Rule ``build_tyndp_offshore_hubs``
+==============================================================================
+
+.. automodule:: build_tyndp_offshore_hubs
 
 Rule ``build_tyndp_h2_demand``
 ==============================================================================
@@ -282,3 +302,13 @@ Rule ``build_tyndp_gas_demand``
 ==============================================================================
 
 .. automodule:: build_tyndp_gas_demand
+
+Rule ``prepare_sector_network``
+==============================================================================
+
+.. automodule:: prepare_sector_network
+
+Rule ``temporal_aggregation``
+==============================================================================
+
+.. automodule:: temporal_aggregation

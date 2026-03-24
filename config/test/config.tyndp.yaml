@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../schema.default.json
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
@@ -8,12 +9,13 @@ run:
   disable_progressbar: true
   shared_resources:
     policy: false
-  shared_cutouts: true
 
 # TODO set foresight
 foresight: myopic
 
 tyndp_scenario: NT
+
+launch_explorer: false
 
 scenario:
   clusters:
@@ -78,10 +80,7 @@ electricity:
 
   pecd_renewable_profiles:
     enable: true
-    version: 3.1
     pre_built:
-      retrieve: true
-      pecd_prebuilt_version: 0.1
       cyears:
       - 1995
       - 2008
@@ -152,16 +151,26 @@ renewable:
     max_depth: false
     min_depth: false
 
+conventional:
+  tyndp_availability_profiles: true
+
 links:
   p_max_pu: 1.0
   p_min_pu: 0
 
 transmission_projects:
-  enable: true
-  include:
-    tyndp2020: false
-    nep: false
-    manual: false
+  enable: false
+
+tyndp_investment_candidates:
+  patch_sb_with_annexe: true
+  elec_projects:
+    2040:
+    - 2030
+    - 2035
+  h2_projects:
+    2040:
+    - 2030
+    - 2035
 
 load:
   source: tyndp # opsd, tyndp
@@ -186,6 +195,27 @@ pypsa_eur:
   - hydro
   Store: []
 
+biomass:
+  share_unsustainable_use_retained:
+    2020: 0
+    2025: 0
+    2030: 0
+    2035: 0
+    2040: 0
+    2045: 0
+    2050: 0
+  share_sustainable_potential_available:
+    2020: 1
+    2025: 1
+    2030: 1
+    2035: 1
+    2040: 1
+    2045: 1
+    2050: 1
+
+existing_capacities:
+  uniform_renewable_profiles: true
+
 sector:
   transport: true
   heating: false
@@ -197,58 +227,54 @@ sector:
   fossil_fuels: true
 
   land_transport_fuel_cell_share:  # Not modelled
-    2020: 0
-    2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
   land_transport_electric_share:  # included in exogenous demand
-    2020: 0
-    2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
-  land_transport_ice_share:  # TODO Improve default assumptions
-    2020: 1
-    2025: 0.95
-    2030: 0.8
-    2035: 0.55
-    2040: 0.3
-    2045: 0.15
-    2050: 0
-  shipping_hydrogen_share:
-    2020: 0
-    2025: 0
+  land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
+    2030: 0.96
+    2035: 0.82  # interpolation
+    2040: 0.68
+    2045: 0.42  # interpolation
+    2050: 0.16
+  shipping_hydrogen_share:  # included in exogenous demand  # TODO Validate assumption
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
   shipping_methanol_share:  # included in exogenous demand  # TODO Validate assumption
-    2020: 0
-    2025: 0
     2030: 0
     2035: 0
     2040: 0
     2045: 0
     2050: 0
   shipping_oil_share:
-    2020: 1
-    2025: 1
     2030: 0.85
     2035: 0.65
     2040: 0.45
     2045: 0.2
     2050: 0
+  bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
   oil_boilers: false
   biomass_boiler: false
+  solar_thermal: false
+  methanation: false
   ATR: false
   regional_co2_sequestration_potential:
     enable: false
+  co2_sequestration_potential:
+    # Values from TYNDP 2024 Supply Tool
+    2030: 47
+    2035: 167
+    2040: 344
   co2_spatial: false
   co2_network: false
   methanol:
@@ -257,10 +283,19 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  h2_zones_tyndp: false
+  h2_demand_patch_with_mm: true
   gas_network: false
   gas_demand_exogenously: true
+  biomass_spatial: false
   biomass_to_liquid: true
   biomass_to_liquid_cc: true
+  force_biomass_potential: true
+  force_biogas_potential: true
+  biomass_final_demand: # in TWh
+    2030: 902
+    2035: 815   # linear interpolation
+    2040: 728
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -276,6 +311,7 @@ sector:
       H2 pipeline OH: 30
 
 costs:
+  custom_cost_scn: NT
   overwrites:
     lifetime:
       electrolysis: 25
@@ -304,15 +340,58 @@ clustering:
   simplify_network:
     remove_stubs: false
   temporal:
+    # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
     resolution_sector: 6H
 
+adjustments:
+  electricity: false
+  sector:
+    factor:
+      Generator:
+        biogas:
+          p_nom:
+            2030: 1.26  # EU27 biogas potential: PyPSA-Eur 301 TWh vs TYNDP 379 TWh
+            2035: 1.89  # interpolated
+            2040: 2.51  # EU27 biogas potential: PyPSA-Eur 306 TWh vs TYNDP 767 TWh
+          e_sum_max:
+            2030: 1.26
+            2035: 1.89
+            2040: 2.51
+          e_sum_min:
+            2030: 1.26
+            2035: 1.89
+            2040: 2.51
+        solid biomass:
+          p_nom:
+            2030: 1.47 # EU27 biomass potential: PyPSA-Eur 974 TWh vs TYNDP 1431 TWh
+            2035: 1.40 # interpolated
+            2040: 1.33 # EU27 biomass potential: PyPSA-Eur 950 TWh vs TYNDP 1261 TWh
+          e_sum_max:
+            2030: 1.47
+            2035: 1.40
+            2040: 1.33
+          e_sum_min:
+            2030: 1.47
+            2035: 1.40
+            2040: 1.33
+    absolute: false
+
 solving:
+  options:
+    load_shedding:
+      enable: true
+      apply_to_all_carriers: false
+      carriers:
+        H2: 3000
   solver:
     name: highs
     options: highs-default
   mem: 4000
 
 plotting:
+  energy_threshold: 1.
+  projection:
+    name: "LambertAzimuthalEqualArea"
   balance_map:
     imports_as_flows: true
     bus_carriers:
@@ -320,11 +399,83 @@ plotting:
     - H2
     - gas
     - oil
-    - co2 stored
+    - co2_stored
     H2:
       bus_factor: 0.005
       branch_factor: 0.04
       flow_factor: 25
+  balance_map_interactive:
+    bus_carriers:
+    - AC
+    - H2
+    - gas
+    - oil
+    - co2_stored
 
 benchmarking:
   enable: true
+
+cba:
+  hurdle_costs: 0.01 # Transmission line marginal cost
+  co2_societal_cost: # euros/t; 2024 CBA Implementation Guidelines, p. 68
+    2030:
+      low: 126
+      central: 238
+      high: 315
+    2040:
+      low: 339
+      central: 628
+      high: 662
+  planning_horizons:
+  - 2030
+  - 2040
+  cba_scenario_input:
+    use_presolved: false
+    sb_version: latest # currently only latest is supported
+  methods:
+  - toot
+  - pint
+  projects:
+  - t1-t35
+  area: tyndp # options: tyndp (TODO: entso-e, eu27)
+  remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
+  negative_toot_capacity: zero
+
+  # Storage settings for dispatch
+  storage:
+    # Carriers that remain cyclic (short-term storage)
+    # All other store/storage unit carriers automatically receive
+    # marginal storage value and have cyclicity disabled
+    cyclic_carriers:
+    - battery
+    - home battery
+    # Carriers whose state of charge is fixed at window boundaries
+    # from perfect foresight (applies to StorageUnit components only)
+    soc_boundary_carriers:
+    - hydro-reservoir
+
+  # Marginal storage value extraction settings
+  msv_extraction:
+    # Temporal resolution for extraction solve
+    # Options: false (use native resolution), "24H", "48H", etc.
+    resolution: false
+    # Resampling method: ffill (forward fill), interpolate (linear)
+    resample_method: ffill
+
+  # Rolling horizon solving settings
+  solving:
+    options:
+      horizon: 168
+      overlap: 1
+      load_shedding:
+        enable: true
+        apply_to_all_carriers: true
+      io_api: direct  # 20% faster than default lp mode for rolling horizon
+
+    solver:
+      name: highs
+      options: highs-simplex
+
+    solver_options:
+      highs-simplex:
+        parallel: "off" # does not speed up solution

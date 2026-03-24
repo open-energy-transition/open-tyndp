@@ -22,13 +22,14 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 - ``resources/cba/transmission_projects.csv``: Cleaned CSV with columns:
   - ``project_id``: Integer project identifier
   - ``project_name``: Project name
-  - ``in_reference2030``: Boolean indicating if project is in 2030 reference grid
-  - ``in_reference2035``: Boolean indicating if project is in 2035 reference grid
   - ``border``: Border string in format "BUS0-BUS1"
   - ``p_nom 0->1``: Transfer capacity increase from bus0 to bus1 (MW)
   - ``p_nom 1->0``: Transfer capacity increase from bus1 to bus0 (MW)
   - ``bus0``: Source bus code (4 alphanumeric characters)
   - ``bus1``: Destination bus code (4 alphanumeric characters)
+  - ``length_km``: Total route length in km (from Trans.Investments)
+  - ``capex_meur``: Total estimated CAPEX in MEUR (from Trans.Investments)
+  - ``underwater_fraction``: Fraction of route that is offshore cable
 
 - ``resources/cba/storage_projects.csv``: Empty CSV with columns project_id and project_name (stub implementation)
 
@@ -47,12 +48,55 @@ logger = logging.getLogger(__name__)
 TRANSMISSION_PROJECTS_COLUMN_MAP = {
     "Project ID": "project_id",
     "Project Name": "project_name",
-    "Is the project in the 2030 reference grid?": "in_reference2030",
-    "Is the project in the 2035 reference grid?": "in_reference2035",
+    "Is the project cross-border?": "is_crossborder",
     "Border": "border",
     "Transfer capacity increase A-B (MW)": "p_nom 0->1",
     "Transfer capacity increase B-A (MW)": "p_nom 1->0",
 }
+
+OFFSHORE_ELEMENT_TYPES = {
+    "OffshoreDCTransmissionCable",
+    "OffshoreACTransmissionCable",
+}
+
+
+def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
+    """
+    Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
+
+    Aggregates investment-level data to the project level by summing route
+    lengths and CAPEX, and computing the underwater fraction from offshore
+    cable lengths.
+    """
+    inv = pd.read_excel(
+        excel_path,
+        sheet_name="Trans.Investments",
+        skiprows=1,
+        usecols=[
+            "This investment belongs to project number…",
+            "Total route length (km)",
+            "Estimated CAPEX (MEUR)",
+            "Type of Element",
+        ],
+    ).rename(
+        columns={
+            "This investment belongs to project number…": "project_id",
+            "Total route length (km)": "length_km",
+            "Estimated CAPEX (MEUR)": "capex_meur",
+            "Type of Element": "element_type",
+        }
+    )
+
+    is_offshore = inv["element_type"].isin(OFFSHORE_ELEMENT_TYPES)
+
+    agg = inv.groupby("project_id").agg(
+        length_km=("length_km", "sum"),
+        capex_meur=("capex_meur", "sum"),
+    )
+    offshore_km = inv.loc[is_offshore].groupby("project_id")["length_km"].sum()
+    agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
+
+    return agg
 
 
 def extract_transmission_projects(
@@ -112,6 +156,19 @@ def extract_transmission_projects(
 
     projects = projects.loc[~(empty_capacity | unclear_border)]
 
+    # Several projects have capacities with "Up to ..."
+    up_to_projects = set()
+    for col in ["p_nom 0->1", "p_nom 1->0"]:
+        up_to = projects[col].str.startswith("Up to ")
+        if up_to.any():
+            projects.loc[up_to, col] = projects.loc[up_to, col].str[len("Up to ") :]
+            up_to_projects.update(projects.loc[up_to, "project_name"])
+    if up_to_projects:
+        logger.info(
+            f"Removed 'Up to ' capacity prefix from {len(up_to_projects)} projects:\n"
+            + ", ".join(up_to_projects)
+        )
+
     return projects
 
 
@@ -130,6 +187,70 @@ def extract_storage_projects(
     return pd.DataFrame(columns=["project_id", "project_name"])
 
 
+def normalize_yes_no(value: str) -> str:
+    return str(value).strip().lower()
+
+
+def compute_method(flag: str) -> str:
+    return "TOOT" if flag == "yes" else "PINT"
+
+
+def build_method_assignments(
+    guidelines: pd.DataFrame, projects: pd.DataFrame
+) -> pd.DataFrame:
+    guidelines = guidelines.rename(
+        columns={
+            "ID": "project_id",
+            "Project_name": "project_name",
+            "In_ref_grid_2030": "in_ref_2030",
+            "In_ref_grid_2040": "in_ref_2040",
+        }
+    )
+
+    for col in ["in_ref_2030", "in_ref_2040"]:
+        if col in guidelines.columns:
+            guidelines[col] = guidelines[col].map(normalize_yes_no)
+
+    base = guidelines[["project_id", "project_name", "in_ref_2030", "in_ref_2040"]]
+    base = base.dropna(subset=["project_id"])
+
+    agg = base.groupby("project_id", as_index=False).agg(
+        project_name=("project_name", "first"),
+        in_ref_2030=("in_ref_2030", lambda s: "yes" if (s == "yes").any() else "no"),
+        in_ref_2040=("in_ref_2040", lambda s: "yes" if (s == "yes").any() else "no"),
+    )
+
+    all_project_ids = projects["project_id"].unique()
+    assigned = []
+    for horizon, col in [(2030, "in_ref_2030"), (2040, "in_ref_2040")]:
+        rows = agg[["project_id", "in_ref_2030", "in_ref_2040"]].copy()
+        rows["planning_horizon"] = horizon
+        rows["method"] = rows[col].map(compute_method)
+        rows = rows.rename(
+            columns={
+                "in_ref_2030": "in_ref_grid_2030",
+                "in_ref_2040": "in_ref_grid_2040",
+            }
+        )
+
+        missing_ids = set(all_project_ids) - set(rows["project_id"])
+        if missing_ids:
+            missing_rows = pd.DataFrame(
+                {
+                    "project_id": list(missing_ids),
+                    "in_ref_grid_2030": "no",
+                    "in_ref_grid_2040": "no",
+                    "planning_horizon": horizon,
+                    "method": "PINT",
+                }
+            )
+            rows = pd.concat([rows, missing_rows], ignore_index=True)
+        assigned.append(rows)
+
+    assigned = pd.concat(assigned, ignore_index=True)
+    return projects.merge(assigned, on="project_id", how="left")
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -144,10 +265,15 @@ if __name__ == "__main__":
     network = pypsa.Network(snakemake.input.network)
     existing_buses = network.buses.index[network.buses.carrier == "AC"].unique()
 
-    transmission_projects = extract_transmission_projects(
-        Path(snakemake.input.dir) / "20250312_export_transmission.xlsx",
-        existing_buses,
+    excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+
+    transmission_projects = extract_transmission_projects(excel_path, existing_buses)
+
+    investment_attrs = extract_investment_attributes(excel_path)
+    transmission_projects = transmission_projects.merge(
+        investment_attrs, on="project_id", how="left"
     )
+
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
     storage_projects = extract_storage_projects(
@@ -155,3 +281,7 @@ if __name__ == "__main__":
         existing_buses,
     )
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
+
+    guidelines = pd.read_csv(snakemake.input.guidelines)
+    methods = build_method_assignments(guidelines, transmission_projects)
+    methods.to_csv(snakemake.output.methods, index=False)

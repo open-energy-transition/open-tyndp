@@ -36,6 +36,7 @@ def add_brownfield(
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
     offshore_hubs_tyndp=False,
+    h2_topology_tyndp=False,
     carriers_tyndp=list[str],
 ):
     """
@@ -57,6 +58,8 @@ def add_brownfield(
         Threshold for removing assets with low capacity
     offshore_hubs_tyndp : bool
         Whether to enable offshore hubs
+    h2_topology_tyndp : bool
+        Whether to enable TYNDP Hydrogen topology
     carriers_tyndp : list[str]
         List of TYNDP carriers included in the model.
     """
@@ -65,51 +68,61 @@ def add_brownfield(
     # electric transmission grid set optimised capacities of previous as minimum
     n.lines.s_nom_min = n_p.lines.s_nom_opt
     dc_i = n.links[n.links.carrier == "DC"].index
-    n.links.loc[dc_i, "p_nom_min"] = n_p.links.loc[dc_i, "p_nom_opt"]
+    dc_i_p = dc_i.intersection(n_p.links.index)
+    n.links.loc[dc_i_p, "p_nom_min"] = n_p.links.loc[dc_i_p, "p_nom_opt"]
 
-    for c in n_p.iterate_components(["Link", "Generator", "Store"]):
+    for c in n_p.components[["Link", "Generator", "Store"]]:
+        if c.static.empty:
+            continue
         attr = "e" if c.name == "Store" else "p"
 
         # first, remove generators, links and stores that track
         # CO2 or global EU values since these are already in n
-        n_p.remove(c.name, c.df.index[c.df.lifetime == np.inf])
+        n_p.remove(c.name, c.static.index[c.static.lifetime == np.inf])
 
         # remove assets whose build_year + lifetime <= year
-        n_p.remove(c.name, c.df.index[c.df.build_year + c.df.lifetime <= year])
+        n_p.remove(
+            c.name, c.static.index[c.static.build_year + c.static.lifetime <= year]
+        )
 
         # remove assets if their optimized nominal capacity is lower than a threshold
         # since CHP heat Link is proportional to CHP electric Link, make sure threshold is compatible
-        chp_heat = c.df.index[
-            (c.df[f"{attr}_nom_extendable"] & c.df.index.str.contains("urban central"))
-            & c.df.index.str.contains("CHP")
-            & c.df.index.str.contains("heat")
+        chp_heat = c.static.index[
+            (
+                c.static[f"{attr}_nom_extendable"]
+                & c.static.index.str.contains("urban central")
+            )
+            & c.static.index.str.contains("CHP")
+            & c.static.index.str.contains("heat")
         ]
 
         if not chp_heat.empty:
             threshold_chp_heat = (
                 capacity_threshold
-                * c.df.efficiency[chp_heat.str.replace("heat", "electric")].values
-                * c.df.p_nom_ratio[chp_heat.str.replace("heat", "electric")].values
-                / c.df.efficiency[chp_heat].values
+                * c.static.efficiency[chp_heat.str.replace("heat", "electric")].values
+                * c.static.p_nom_ratio[chp_heat.str.replace("heat", "electric")].values
+                / c.static.efficiency[chp_heat].values
             )
             n_p.remove(
                 c.name,
-                chp_heat[c.df.loc[chp_heat, f"{attr}_nom_opt"] < threshold_chp_heat],
+                chp_heat[
+                    c.static.loc[chp_heat, f"{attr}_nom_opt"] < threshold_chp_heat
+                ],
             )
 
         n_p.remove(
             c.name,
-            c.df.index[
-                (c.df[f"{attr}_nom_extendable"] & ~c.df.index.isin(chp_heat))
-                & (c.df[f"{attr}_nom_opt"] < capacity_threshold)
+            c.static.index[
+                (c.static[f"{attr}_nom_extendable"] & ~c.static.index.isin(chp_heat))
+                & (c.static[f"{attr}_nom_opt"] < capacity_threshold)
             ],
         )
 
         # copy over assets but fix their capacity
-        c.df[f"{attr}_nom"] = c.df[f"{attr}_nom_opt"]
-        c.df[f"{attr}_nom_extendable"] = False
+        c.static[f"{attr}_nom"] = c.static[f"{attr}_nom_opt"]
+        c.static[f"{attr}_nom_extendable"] = False
 
-        n.add(c.name, c.df.index, **c.df)
+        n.add(c.name, c.static.index, **c.static)
 
         # copy time-dependent
         selection = n.component_attrs[c.name].type.str.contains(
@@ -117,7 +130,7 @@ def add_brownfield(
         ) & n.component_attrs[c.name].status.str.contains("Input")
         for tattr in n.component_attrs[c.name].index[selection]:
             # TODO: Needs to be rewritten to
-            n._import_series_from_df(c.pnl[tattr], c.name, tattr)
+            n._import_series_from_df(c.dynamic[tattr], c.name, tattr)
 
     # adjust TYNDP onwind and solar technologies expansion by subtracting existing capacity from previous years
     # from current year total capacity and potential
@@ -160,20 +173,22 @@ def add_brownfield(
     if offshore_hubs_tyndp:
         filter = {"Link": "Offshore", "Generator": "offwind"}
         eff_map = {"Link": "efficiency", "Generator": "efficiency_dc_to_h2"}
-        for c in n.iterate_components(["Link", "Generator"]):
-            off_fixed_i = c.df[
-                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year != year)
+        for c in n.components[["Link", "Generator"]]:
+            off_fixed_i = c.static[
+                (c.static.index.str.contains(filter[c.name]))
+                & (c.static.build_year != year)
             ].index
-            off_i = c.df[
-                (c.df.index.str.contains(filter[c.name])) & (c.df.build_year == year)
+            off_i = c.static[
+                (c.static.index.str.contains(filter[c.name]))
+                & (c.static.build_year == year)
             ].index
 
-            off_capacity = c.df.loc[off_i, "p_nom"]
-            off_potential = c.df.loc[off_i, "p_nom_max"]
+            off_capacity = c.static.loc[off_i, "p_nom"]
+            off_potential = c.static.loc[off_i, "p_nom_max"]
 
             # Determine existing capacities in MW_e and MW_h2
             already_existing = (
-                c.df.loc[off_fixed_i]
+                c.static.loc[off_fixed_i]
                 .assign(
                     p_nom_opt_e=lambda df: np.where(
                         df.carrier.str.contains("h2"),
@@ -224,8 +239,44 @@ def add_brownfield(
                 lower=0
             )
             remaining_potential = (off_potential - already_existing_l).clip(lower=0)
-            c.df.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
-            c.df.loc[off_i, "p_nom_max"] = remaining_potential
+            c.static.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
+            c.static.loc[off_i, "p_nom_max"] = remaining_potential
+
+    # Adjust Open-TYNDP H2 cavern storage expansion by subtracting existing capacity from previous years
+    if h2_topology_tyndp:
+        carrier = "H2 cavern-storage"
+        for c in n.components[["Store", "Link"]]:
+            if c.static.empty:
+                continue
+            attr = "e" if c.name == "Store" else "p"
+            fixed_i = c.static[
+                (c.static.carrier == carrier) & (c.static.build_year != year)
+            ].index
+            expand_i = c.static[
+                (c.static.carrier == carrier) & (c.static.build_year == year)
+            ].index
+            capacity = c.static.loc[expand_i, f"{attr}_nom"]
+            potential = c.static.loc[expand_i, f"{attr}_nom_max"]
+            already_existing = (
+                c.static.loc[fixed_i, f"{attr}_nom_opt"]
+                .rename(lambda x: x.split("-2")[0] + f"-{year}")
+                .groupby(level=0)
+                .sum()
+                .reindex(index=capacity.index, fill_value=0)
+            )
+            remaining_capacity = (capacity - already_existing).clip(lower=0)
+            remaining_potential = potential - already_existing
+            existing_large = remaining_potential[remaining_potential < 0].index
+            if len(existing_large):
+                logger.warning(
+                    f"Existing capacities larger than TYNDP 2024 expansion potential for "
+                    f"{list(existing_large)}, adjusting technical potential to existing capacities"
+                )
+                remaining_potential = remaining_potential.clip(0)
+            c.static.loc[expand_i, [f"{attr}_nom_min", f"{attr}_nom"]] = (
+                remaining_capacity
+            )
+            c.static.loc[expand_i, f"{attr}_nom_max"] = remaining_potential
 
     # deal with gas network
     if h2_retrofit:
@@ -444,13 +495,14 @@ def update_dynamic_ptes_capacity(
     ].values
 
 
-def remove_tyndp_conventionals_p(
+def remove_tyndp_fixed_p(
     n_p: pypsa.Network,
     tyndp_conventional_thermals: list[str],
+    tyndp_hydro: list[str],
 ):
     """
-    Remove TYNDP conventional capacities from previous planning horizon network
-    as existing conventional capacities are given as cumulative input.
+    Remove TYNDP fixed capacities from previous planning horizon network
+    as existing fixed capacities are given as cumulative input.
 
     Parameters
     ----------
@@ -458,6 +510,8 @@ def remove_tyndp_conventionals_p(
         The network with the updated parameters from the previous planning horizon.
     tyndp_conventional_thermals : list[str]
         List of TYNDP conventional thermal technologies to remove capacities for.
+    tyndp_hydro : list[str]
+        List of TYNDP hydro technologies to remove capacities for.
 
     Returns
     -------
@@ -465,13 +519,74 @@ def remove_tyndp_conventionals_p(
         This function updates the network in place and does not return a value.
     """
     logger.info(
-        "Remove cumulative TYNDP conventional capacities from previous planning horizon "
-        "and replace with cumulative capacities from new planning horizon."
+        "Remove cumulative TYNDP fixed capacities from previous planning horizon "
+        "and replace with cumulative fixed capacities from new planning horizon."
     )
 
-    for tech in tyndp_conventional_thermals:
-        tech_i = n_p.links.query("carrier == @tech").index
-        n_p.remove("Link", tech_i)
+    # Remove conventional thermal techs
+    for c in n_p.components[{"Generator", "StorageUnit", "Store", "Link"}]:
+        remove_carriers = (
+            tyndp_hydro
+            + tyndp_conventional_thermals
+            + [
+                "H2 Electrolysis",
+                "H2 pipeline",
+                "SMR",
+                "SMR CC",
+                "H2 tank-storage",
+                "H2 cavern-storage",
+            ]
+            + ["other-res-biomass"]
+            if c.name == "Link"
+            else tyndp_hydro
+            + [
+                "other-res-mix",
+                "H2 tank-storage",
+                "H2 cavern-storage",
+                "onwind",
+                "solar-pv-rooftop",
+                "solar-pv-utility",
+            ]
+        )
+        attr = "e" if c.name == "Store" else "p"
+
+        # Filter for carriers to be removed and for assets that are fixed assets (i.e. not extendable)
+        tech_i = c.static.loc[
+            (c.static["carrier"].isin(remove_carriers))
+            & (c.static[f"{attr}_nom_extendable"] == False)
+        ].index
+        n_p.remove(c.name, tech_i)
+
+
+def harmonize_renewable_profiles(
+    n: pypsa.Network,
+    year: int,
+    carriers: list[str],
+) -> None:
+    """
+    Overwrite brownfield generators' p_max_pu with the current planning
+    horizon's profiles so all vintages share the same capacity factors.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network containing both current-year and brownfield generators.
+    year : int
+        The current planning horizon year.
+    carriers : set[str]
+        Set of renewable carrier names to harmonize profiles for.
+
+    Returns
+    -------
+    None
+        Modifies ``n.generators_t.p_max_pu`` in place.
+    """
+    for carrier in carriers:
+        gens = n.generators[n.generators.carrier == carrier]
+        brownfield_gens = gens[gens.build_year != year].index
+        n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
+            brownfield_gens.str[:-4] + str(year)
+        ].values
 
 
 if __name__ == "__main__":
@@ -511,7 +626,7 @@ if __name__ == "__main__":
     tyndp_carrier_mapping = pd.read_csv(snakemake.input.carrier_mapping).set_index(
         "open_tyndp_index"
     )
-    # Get list of conventional thermal technologies
+    # Get lists of conventional thermal and hydro technologies
     _, tyndp_conventional_thermals = get_tyndp_conventional_thermals(
         mapping=tyndp_carrier_mapping,
         tyndp_conventional_carriers=snakemake.params.tyndp_conventional_carriers,
@@ -519,11 +634,16 @@ if __name__ == "__main__":
         include_h2_fuel_cell=snakemake.params.hydrogen_fuel_cell,
         include_h2_turbine=snakemake.params.hydrogen_turbine,
     )
+    tyndp_hydro = [
+        c for c in snakemake.params.tyndp_renewable_carriers if c.startswith("hydro")
+    ] + ["hydro-phs-turbine", "hydro-phs-pump", "hydro-phs-inflows"]
 
-    # Drop fixed TYNDP conventional capacities from previous year as TYNDP capacities are given as cumulative input
-    remove_tyndp_conventionals_p(
+    # Drop fixed TYNDP conventional and hydro capacities from previous year
+    # as TYNDP capacities are given as cumulative input
+    remove_tyndp_fixed_p(
         n_p=n_p,
         tyndp_conventional_thermals=tyndp_conventional_thermals,
+        tyndp_hydro=tyndp_hydro,
     )
 
     add_brownfield(
@@ -534,8 +654,16 @@ if __name__ == "__main__":
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
         offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
+        h2_topology_tyndp=snakemake.params.h2_topology_tyndp,
         carriers_tyndp=snakemake.params.carriers_tyndp,
     )
+
+    if snakemake.params.uniform_renewable_profiles:
+        all_carriers = set(snakemake.params.carriers) | set(
+            snakemake.params.tyndp_renewable_carriers
+        )
+        carriers = [c for c in all_carriers if any(kw in c for kw in ["solar", "wind"])]
+        harmonize_renewable_profiles(n, year, carriers)
 
     disable_grid_expansion_if_limit_hit(n)
 

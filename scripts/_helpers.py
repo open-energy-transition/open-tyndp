@@ -5,10 +5,10 @@
 
 import contextlib
 import copy
-import hashlib
 import logging
 import os
 import re
+import socket
 import time
 from bisect import bisect_right
 from collections.abc import Callable
@@ -27,14 +27,6 @@ import requests
 import xarray as xr
 import yaml
 from snakemake.utils import update_config
-from tenacity import (
-    retry as tenacity_retry,
-)
-from tenacity import (
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -177,6 +169,27 @@ def path_provider(dir, rdir, shared_resources, exclude_from_shared):
     )
 
 
+def script_path_provider(project_dir: Path) -> Callable[[str], Path]:
+    """
+    Returns a function that provides the full path to a script given its name.
+
+    Parameters
+    ----------
+    project_dir : Path
+        The root directory of the project (where the script directory is located).
+
+    Returns
+    -------
+    Callable[[str], Path]
+        A function that takes a script name as input and returns the full path to the script.
+    """
+
+    def _get_script_path(script: str) -> Path:
+        return Path("file://") / project_dir / "scripts" / script
+
+    return _get_script_path
+
+
 def get_shadow(run):
     """
     Returns 'shallow' or None depending on the user setting.
@@ -221,6 +234,10 @@ def fill_wildcards(s: str, **wildcards: str) -> str:
     Fill given (subset of) wildcards into a path with wildcards
     """
     for k, v in wildcards.items():
+        if isinstance(v, (list, tuple)):
+            assert len(v) == 1, f"Need a single entry for {k}, but found: {v}"
+            v = v[0]
+
         s = s.replace("{" + k + "}", v)
     return s
 
@@ -408,21 +425,21 @@ def aggregate_costs(n, flatten=False, opts=None, existing_only=False):
 
     costs = {}
     for c, (p_nom, p_attr) in zip(
-        n.iterate_components(components.keys(), skip_empty=False), components.values()
+        n.components[list(components.keys())], components.values()
     ):
-        if c.df.empty:
+        if c.static.empty:
             continue
         if not existing_only:
             p_nom += "_opt"
         costs[(c.list_name, "capital")] = (
-            (c.df[p_nom] * c.df.capital_cost).groupby(c.df.carrier).sum()
+            (c.static[p_nom] * c.static.capital_cost).groupby(c.static.carrier).sum()
         )
         if p_attr is not None:
-            p = c.pnl[p_attr].sum()
+            p = c.dynamic[p_attr].sum()
             if c.name == "StorageUnit":
                 p = p.loc[p > 0]
             costs[(c.list_name, "marginal")] = (
-                (p * c.df.marginal_cost).groupby(c.df.carrier).sum()
+                (p * c.static.marginal_cost).groupby(c.static.carrier).sum()
             )
     costs = pd.concat(costs)
 
@@ -439,13 +456,6 @@ def aggregate_costs(n, flatten=False, opts=None, existing_only=False):
     return costs
 
 
-@tenacity_retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    retry=retry_if_exception_type(
-        (requests.HTTPError, requests.ConnectionError, requests.Timeout)
-    ),
-)
 def progress_retrieve(url, file, disable=False):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 
@@ -547,13 +557,17 @@ def mock_snakemake(
     import os
 
     import snakemake as sm
+    from packaging import version
     from pypsa.definitions.structures import Dict
+    from snakemake import __version__ as sm_version
     from snakemake.api import Workflow
     from snakemake.common import SNAKEFILE_CHOICES
+    from snakemake.logging import LoggerManager
     from snakemake.script import Snakemake
     from snakemake.settings.types import (
         ConfigSettings,
         DAGSettings,
+        OutputSettings,
         ResourceSettings,
         StorageSettings,
         WorkflowSettings,
@@ -594,15 +608,25 @@ def mock_snakemake(
         workflow_settings = WorkflowSettings()
         storage_settings = StorageSettings()
         dag_settings = DAGSettings(rerun_triggers=[])
-        workflow = Workflow(
-            config_settings,
-            resource_settings,
-            workflow_settings,
-            storage_settings,
-            dag_settings,
+
+        workflow_kwargs = dict(
+            config_settings=config_settings,
+            resource_settings=resource_settings,
+            workflow_settings=workflow_settings,
+            storage_settings=storage_settings,
+            dag_settings=dag_settings,
             storage_provider_settings=dict(),
             overwrite_workdir=workdir,
         )
+
+        # Snakemake version-dependent logger handling
+        if version.parse(sm_version) >= version.parse("9.14.6"):
+            output_settings = OutputSettings()
+            workflow_kwargs["logger_manager"] = LoggerManager(
+                logger=logger, settings=output_settings
+            )
+
+        workflow = Workflow(**workflow_kwargs)
         workflow.include(snakefile)
 
         if configfiles:
@@ -717,7 +741,7 @@ def update_config_from_wildcards(config, w, inplace=True):
                 config["electricity"]["gaslimit"] = gasl_value * 1e6
 
         if "Ept" in opts:
-            config["costs"]["emission_prices"]["co2_monthly_prices"] = True
+            config["costs"]["emission_prices"]["dynamic"] = True
 
         ep_enable, ep_value = find_opt(opts, "Ep")
         if ep_enable:
@@ -872,78 +896,6 @@ def update_config_from_wildcards(config, w, inplace=True):
 
     if not inplace:
         return config
-
-
-@tenacity_retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    retry=retry_if_exception_type(
-        (requests.HTTPError, requests.ConnectionError, requests.Timeout)
-    ),
-)
-def get_checksum_from_zenodo(file_url):
-    parts = file_url.split("/")
-    record_id = parts[parts.index("records") + 1]
-    filename = parts[-1]
-
-    response = requests.get(f"https://zenodo.org/api/records/{record_id}", timeout=30)
-    # Raise HTTPError for transient errors
-    # 429: Too Many Requests (rate limiting)
-    # 500, 502, 503, 504: Server errors
-    if response.status_code in (429, 500, 502, 503, 504):
-        response.raise_for_status()
-    response.raise_for_status()
-    data = response.json()
-
-    for file in data["files"]:
-        if file["key"] == filename:
-            return file["checksum"]
-    return None
-
-
-def validate_checksum(file_path, zenodo_url=None, checksum=None):
-    """
-    Validate file checksum against provided or Zenodo-retrieved checksum.
-    Calculates the hash of a file using 64KB chunks. Compares it against a
-    given checksum or one from a Zenodo URL.
-
-    Parameters
-    ----------
-    file_path : str
-        Path to the file for checksum validation.
-    zenodo_url : str, optional
-        URL of the file on Zenodo to fetch the checksum.
-    checksum : str, optional
-        Checksum (format 'hash_type:checksum_value') for validation.
-
-    Raises
-    ------
-    AssertionError
-        If the checksum does not match, or if neither `checksum` nor `zenodo_url` is provided.
-
-
-    Examples
-    --------
-    >>> validate_checksum("/path/to/file", checksum="md5:abc123...")
-    >>> validate_checksum(
-    ...     "/path/to/file",
-    ...     zenodo_url="https://zenodo.org/records/12345/files/example.txt",
-    ... )
-
-    If the checksum is invalid, an AssertionError will be raised.
-    """
-    assert checksum or zenodo_url, "Either checksum or zenodo_url must be provided"
-    if zenodo_url:
-        checksum = get_checksum_from_zenodo(zenodo_url)
-    hash_type, checksum = checksum.split(":")
-    hasher = hashlib.new(hash_type)
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):  # 64kb chunks
-            hasher.update(chunk)
-    calculated_checksum = hasher.hexdigest()
-    assert calculated_checksum == checksum, (
-        "Checksum is invalid. This may be due to an incomplete download. Delete the file and re-execute the rule."
-    )
 
 
 def get_snapshots(
@@ -1151,14 +1103,22 @@ def load_costs(cost_file: str) -> pd.DataFrame:
     return pd.read_csv(cost_file, index_col=0)
 
 
-def make_index(c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix=""):
+def make_index(
+    c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix="", separator=" "
+):
     idx = [prefix, c[cname0], connector, c[cname1], suffix]
     idx = [i for i in idx if i]
-    return " ".join(idx)
+    return separator.join(idx)
 
 
 def extract_grid_data_tyndp(
-    links, carrier="Transmission line", replace_dict: dict = {}
+    links,
+    replace_dict: dict = {},
+    expand_from_index: bool = True,
+    idx_prefix: str = "",
+    idx_connector: str = "",
+    idx_suffix: str = "",
+    idx_separator: str = " ",
 ):
     """
     Extract TYNDP reference grid data from the raw input table.
@@ -1167,10 +1127,18 @@ def extract_grid_data_tyndp(
     ----------
     links : pd.DataFrame
         DataFrame with raw links to extract grid information from
-    carrier : str
-        Name of the line carrier of the corresponding TYNDP reference grid ('H2 pipeline' or 'Transmission line')
     replace_dict : dict
         Dictionary with region names to replace
+    expand_from_index : bool
+        Whether to expand the bus0 and bus1 from index or directly use the columns
+    idx_prefix : str, optional
+        Prefix to prepend to generated indices.
+    idx_connector : str, optional
+        Separator string between bus0 and bus1 in generated indices (e.g., "->", "-").
+    idx_suffix : str, optional
+        Suffix to append to generated indices.
+    idx_separator : str, optional
+        String used to join index components (prefix, bus0, connector, bus1, suffix).
 
     Returns
     -------
@@ -1178,17 +1146,27 @@ def extract_grid_data_tyndp(
         DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1
     """
 
-    links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
-    links = pd.concat(
-        [
-            links,
-            links.Border.str.split("-", expand=True).set_axis(["bus0", "bus1"], axis=1),
-        ],
-        axis=1,
-    )
+    if expand_from_index:
+        links.loc[:, "Border"] = links["Border"].replace(replace_dict, regex=True)
+        links = pd.concat(
+            [
+                links,
+                links.Border.str.split("-", expand=True).set_axis(
+                    ["bus0", "bus1"], axis=1
+                ),
+            ],
+            axis=1,
+        )
+    elif "bus0" in links.columns and "bus1" in links.columns:
+        links.loc[:, ["bus0", "bus1"]] = links[["bus0", "bus1"]].replace(
+            replace_dict, regex=True
+        )
+    else:
+        raise KeyError(
+            f"Columns 'bus0' and 'bus1' must be present in the input DataFrame. Available columns: {list(links.columns)}"
+        )
 
     # Create forward and reverse direction dataframes
-    # TODO: combine to bidirectional links
     forward_links = links[["bus0", "bus1", "Summary Direction 1"]].rename(
         columns={"Summary Direction 1": "p_nom"}
     )
@@ -1200,14 +1178,21 @@ def extract_grid_data_tyndp(
     # Combine into unidirectional links and return
     links = pd.concat([forward_links, reverse_links])
 
-    links.index = links.apply(make_index, axis=1, prefix=carrier)
+    links.index = links.apply(
+        make_index,
+        axis=1,
+        prefix=idx_prefix,
+        connector=idx_connector,
+        suffix=idx_suffix,
+        separator=idx_separator,
+    )
 
     return links
 
 
 def safe_pyear(
     year: int | str,
-    available_years: list = [2030, 2040, 2050],
+    available_years: list[int] = [2030, 2040, 2050],
     source: str = "TYNDP",
     verbose: bool = True,
 ) -> int:
@@ -1219,7 +1204,7 @@ def safe_pyear(
     ----------
     year : int
         Planning horizon year which will be checked and possibly adjusted to previous available year.
-    available_years : list, optional
+    available_years : list[int], optional
         List of available years. Defaults to [2030, 2040, 2050].
     source : str, optional
         Source of the data for which availability will be checked. For logging purpose only. Defaults to "TYNDP".
@@ -1435,7 +1420,7 @@ def check_cyear(cyear: int, scenario: str) -> int:
     """Check if the climatic year is valid for the given scenario."""
 
     valid_years = {
-        "NT": np.arange(1983, 2018).tolist(),
+        "NT": [1995, 2008, 2009],
         "DE": [1995, 2008, 2009],
         "GA": [1995, 2008, 2009],
     }
@@ -1599,3 +1584,91 @@ def interpolate_demand(
     result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
 
     return result
+
+
+def find_free_port(start_port=8050, max_attempts=50):
+    """
+    Find the first available port starting from start_port.
+    """
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("127.0.0.1", port))
+                return port
+        except OSError:
+            continue
+    raise RuntimeError(
+        f"Could not find free port in range {start_port}-{start_port + max_attempts}"
+    )
+
+
+def remove_zero_capacity_non_extendable(
+    n, carriers, component_types={"Generator", "Link"}
+):
+    """
+    Remove non-expandable assets with no capacity for the given carriers and component types.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    carriers : list[str]
+        Carriers to filter for.
+    component_types : set[str]
+        Component types to iterate over, e.g. {"Generator", "Link"}.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place.
+    """
+    for c in n.components[component_types]:
+        attr = "e" if c.name == "Store" else "p"
+        idx = c.static.loc[
+            (c.static["carrier"].isin(carriers))
+            & (~c.static[f"{attr}_nom_extendable"])
+            & (c.static[f"{attr}_nom"] == 0)
+        ].index
+        n.remove(c.name, idx)
+
+
+def _add_new_profiles_to_existing(
+    component_t: dict,
+    attr: str,
+    new_profiles: pd.DataFrame,
+) -> None:
+    """
+    Safely add new time series data to a PyPSA network component.
+
+    Parameters
+    ----------
+    component_t : dict
+        The time-varying PyPSA component (e.g., n.generators_t).
+    attr : str
+        The attribute name (e.g., 'p_max_pu', 'inflow').
+    new_profiles : pd.DataFrame
+        New data to concatenate.
+    """
+    if new_profiles.empty:
+        return
+
+    existing = component_t[attr]
+    index_name = existing.index.name
+
+    component_t[attr] = pd.concat([existing, new_profiles], axis=1)
+    component_t[attr].index.name = index_name
+
+
+def align_demand_to_snapshots(
+    demand: pd.DataFrame, snapshots: pd.DatetimeIndex, format: str = None
+) -> pd.DataFrame:
+    """
+    Convert demand index to DatetimeIndex, adjust year to match snapshots,
+    and reindex to snapshots.
+    """
+
+    demand.index = pd.to_datetime(demand.index, format=format)
+    target_year = snapshots[0].year
+    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
+
+    return demand.reindex(snapshots)
