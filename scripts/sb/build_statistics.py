@@ -273,12 +273,10 @@ def compute_benchmark(
             .groupby([n.generators.bus, n.generators.carrier])
             .sum()
         )
-        df = df.reindex(df.index.union(res_gen.index))
-        df.loc[res_gen.index] = res_gen.values
+        df = res_gen.combine_first(df)
 
         df = (
-            df.reset_index()
-            .assign(bus=lambda df: df.bus.str.split(" ").str[0])
+            df.rename(index=lambda x: x.split(" ")[0], level=0)
             .groupby(["bus"] + grouper)
             .sum()
             .iloc[:, 0]

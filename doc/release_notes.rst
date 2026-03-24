@@ -27,7 +27,7 @@ Upcoming Open-TYNDP Release
 
 * Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
 
-* Generalize the benchmarking framework to support bus-level and country-level benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/543). The configuration ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country`` control the feature.
+* Extended benchmarking to support spatial resolution at bus and country level ([PR #543](https://github.com/open-energy-transition/open-tyndp/pull/543)), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
 
 **Changes**
 
