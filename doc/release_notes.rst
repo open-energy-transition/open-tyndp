@@ -27,6 +27,8 @@ Upcoming Open-TYNDP Release
 
 * Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
 
+* Add H2 cavern and tank storages with existing energy and charge/discharge capacities (https://github.com/open-energy-transition/open-tyndp/pull/552). Optionally, for the DE/GA scenarios, expansion limits are added for these capacities for the expendable cavern storages.
+
 * Add PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
 
 **Changes**
@@ -54,6 +56,8 @@ Upcoming Open-TYNDP Release
 * Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
 
 * Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
+
+* Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
 
 **Documentation**
 
