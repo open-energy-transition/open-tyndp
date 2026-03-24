@@ -556,7 +556,6 @@ rule summarize_all_indicators:
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
             run=config_provider("cba", "scenarios")(w),
-            # allow_missing=True,
         ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
@@ -627,6 +626,11 @@ rule collect_cba_scenario:
             run=cba_scenarios(w),
         ),
         lambda w: expand(
+            rules.plot_indicators.output.plot_dir,
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=cba_scenarios(w),
+        ),
+        lambda w: expand(
             rules.plot_all_cba_benchmark.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
@@ -661,12 +665,15 @@ rule cba:
             cba_project=cba_projects(w),
             run=cba_collection_scenarios(w),
         ),
-        "results/all_scenarios.log",
+        #
+        # link rule.collect_cba_scenario
+        # TODO - remove comment from line below
+        # "results/all_scenarios.log",
         #
         # add this into the cba rule !?
         # collect files to be stored in the scenario directory, e.g., NT-cy1995
         #
-        # rules.plot_cba_benchmark.output.plot_file # for all cba projects,
+        # rules.plot_cba_benchmark.output.plot_file, # for all cba projects
         # RESULTS + "/cba/validation_{planning_horizon}/project_{cba_project}_{planning_horizon}.png",
         #
         "results/tyndp/NT-cy1995/cba/validation_2030/project_t4_2030.png",
@@ -682,6 +689,30 @@ rule cba:
         "results/tyndp/NT-cy2008/cba/validation_2040/project_t16_2040.png",
         "results/tyndp/NT-cy2009/cba/validation_2030/project_t16_2030.png",
         "results/tyndp/NT-cy2009/cba/validation_2040/project_t16_2040.png",
+        #
+        # rules.plot_all_cba_benchmark.output.plot_dir, # for all cba projects
+        # directory(RESULTS + "cba/validation_{planning_horizons}"),
+        #
+        # "results/tyndp/NT-cy1995/cba/validation_2030/",
+        # "results/tyndp/NT-cy2008/cba/validation_2030/",
+        # "results/tyndp/NT-cy2009/cba/validation_2030/",
+        #
+        # rules.plot_weather_benchmark.output.plot_file, # for all cba projects
+        # RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_{planning_horizons}.png",
+        #
+        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t4_2030.png",
+        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t4_2040.png",
+        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t4_2030.png",
+        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t4_2040.png",
+        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t4_2030.png",
+        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t4_2040.png",
+        #
+        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t16_2030.png",
+        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t16_2040.png",
+        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t16_2030.png",
+        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t16_2040.png",
+        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t16_2030.png",
+        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t16_2040.png",
 
 
 # collect rules
