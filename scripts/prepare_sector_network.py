@@ -4672,6 +4672,7 @@ def add_offshore_grid_tyndp(
     pyear: int,
     offshore_grid_fn: str,
     costs: pd.DataFrame,
+    options: dict,
     nyears: float = 1,
 ):
     """
@@ -4689,6 +4690,9 @@ def add_offshore_grid_tyndp(
         Path to the file containing offshore grid configuration data.
     costs : pd.DataFrame
         Technology costs assumptions.
+    options : dict
+        Configuration options containing at least:
+        - offshore_hubs.connect_isolated : bool
     nyears : float, default 1
         Number of years for which to scale the investment costs.
 
@@ -4761,6 +4765,36 @@ def add_offshore_grid_tyndp(
         lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
     )
 
+    # Copperplate isolated wind farms to the grid
+    if options["offshore_hubs_tyndp"]["connect_isolated"]:
+        links_oh = n.links.query("carrier.isin(['DC_OH', 'H2 pipeline OH'])")
+        buses_oh = n.buses.query("carrier in ['AC_OH', 'H2_OH']").index
+
+        query_str = "p_nom_extendable or p_nom > 0"
+        links_oh_cap = links_oh.query(query_str)
+        links_oh_no = links_oh.query(f"~({query_str})")
+
+        buses_cap = set(pd.concat([links_oh_cap.bus0, links_oh_cap.bus1])).intersection(
+            buses_oh
+        )
+        buses_no = set(pd.concat([links_oh_no.bus0, links_oh_no.bus1])).intersection(
+            buses_oh
+        )
+        buses_unconnected = set(buses_no) - set(buses_cap)  # noqa: F841
+        buses_mainland = n.buses.query("carrier=='AC'").index  # noqa: F841
+        buses_target = n.generators.query(  # noqa: F841
+            "carrier.str.contains('offwind') "
+            "and bus in @buses_unconnected "
+            "and p_nom > 0"
+        ).bus
+
+        idx_patch = links_oh_no.query(
+            "(bus0 in @buses_target and bus1 in @buses_mainland) "
+            "or (bus1 in @buses_target and bus0 in @buses_mainland)"
+        ).index
+
+        n.links.loc[idx_patch, "p_nom"] = np.inf
+
 
 def add_offshore_hubs_tyndp(
     n: pypsa.Network,
@@ -4771,6 +4805,7 @@ def add_offshore_hubs_tyndp(
     profiles_pecd: pd.Series,
     costs: pd.DataFrame,
     spatial: SimpleNamespace,
+    options: dict,
     nyears: float = 1,
 ):
     """
@@ -4797,7 +4832,10 @@ def add_offshore_hubs_tyndp(
         Technology costs assumptions.
     spatial : object, optional
         Object containing spatial information about nodes and their locations.
-    nyears : float
+    options : dict
+        Configuration options containing at least:
+        - offshore_hubs.connect_isolated : bool
+    nyears : float (default : 1)
         Number of years for which to scale the investment costs.
 
     Returns
@@ -4847,7 +4885,7 @@ def add_offshore_hubs_tyndp(
     add_offshore_electrolysers_tyndp(n, pyear, offshore_electrolysers_fn, costs, nyears)
 
     # Add offshore DC and H2 grid connections
-    add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, nyears)
+    add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, options, nyears)
 
 
 def attach_gas_load(
@@ -9517,6 +9555,7 @@ if __name__ == "__main__":
             profiles_pecd=profiles_pecd,
             costs=costs,
             spatial=spatial,
+            options=options,
             nyears=nyears,
         )
 

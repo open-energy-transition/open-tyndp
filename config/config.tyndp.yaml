@@ -299,6 +299,7 @@ sector:
     - H2
   offshore_hubs_tyndp:
     enable: true
+    connect_isolated: true
     max_capacity:
       DC_OH: 10
       H2 pipeline OH: 30
