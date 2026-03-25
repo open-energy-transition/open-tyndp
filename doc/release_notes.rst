@@ -47,6 +47,9 @@ Upcoming Open-TYNDP Release
 
 * Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
 
+
+* Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
