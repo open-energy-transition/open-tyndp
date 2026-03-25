@@ -2581,9 +2581,12 @@ def _add_h2_storage_capacities(
     n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_caps.reindex(
         n.stores.loc[h2_stores_i, :].index
     ).fillna(0.0)
-    n.links.loc[h2_chargers_i, ["p_nom", "p_nom_min"]] = link_caps.reindex(
-        n.links.loc[h2_chargers_i, :].index
-    ).fillna(0.0)
+    link_caps = link_caps.reindex(h2_chargers_i).fillna(0.0)
+    dischargers_i = h2_chargers_i[h2_chargers_i.str.contains("discharger")]
+    link_caps[dischargers_i] = link_caps[dischargers_i].div(
+        n.links.loc[dischargers_i, "efficiency"]
+    )
+    n.links.loc[h2_chargers_i, ["p_nom", "p_nom_min"]] = link_caps
 
     # Add expansion constraints to extendable assets
     store_caps_max = h2_storage_capacities.set_index("bus").e_nom_max
@@ -2600,9 +2603,14 @@ def _add_h2_storage_capacities(
     n.stores.loc[h2_stores_extendable_i, ["e_nom_max"]] = store_caps_max.reindex(
         n.stores.loc[h2_stores_extendable_i, :].index
     ).fillna(0.0)
-    n.links.loc[h2_chargers_extendable_i, ["p_nom_max"]] = link_caps_max.reindex(
-        n.links.loc[h2_chargers_extendable_i, :].index
-    ).fillna(0.0)
+    link_caps_max = link_caps_max.reindex(h2_chargers_extendable_i).fillna(0.0)
+    ext_dischargers_i = h2_chargers_extendable_i[
+        h2_chargers_extendable_i.str.contains("discharger")
+    ]
+    link_caps_max[ext_dischargers_i] = link_caps_max[ext_dischargers_i].div(
+        n.links.loc[ext_dischargers_i, "efficiency"]
+    )
+    n.links.loc[h2_chargers_extendable_i, ["p_nom_max"]] = link_caps_max
 
     remove_zero_capacity_non_extendable(
         n,
