@@ -309,6 +309,14 @@ def update_costs_tyndp(
     if group_tyndp_conventionals:
         carrier_col = "open_tyndp_type"
         ccs_configs["gas-ccgt-ccs"]["base_tech"] = "gas-ccgt"
+        # Rename to grouped carriers and group by taking the mean of the cost inputs
+        rename_mapping = (
+            pd.read_csv(carrier_mapping_fn)
+            .set_index("open_tyndp_index")
+            .open_tyndp_type.dropna()
+            .to_dict()
+        )
+        costs = costs.rename(rename_mapping).groupby(level=0).mean()
 
     tyndp_techs = (
         pd.read_csv(carrier_mapping_fn)
@@ -318,7 +326,21 @@ def update_costs_tyndp(
     )
 
     for tyndp_tech, pypsa_tech in tyndp_techs.items():
-        costs.loc[tyndp_tech] = costs.loc[pypsa_tech]
+        # Fill missing values and entries with default PyPSA tech
+        pypsa_tech_values = costs.loc[pypsa_tech]
+        if tyndp_tech in costs.index:
+            # Use PyPSA default capital_cost if capital_cost are 0
+            if costs.at[tyndp_tech, "capital_cost"] == 0:
+                costs.loc[tyndp_tech, "capital_cost"] = pypsa_tech_values[
+                    "capital_cost"
+                ]
+            # Otherwise, only update missing values
+            costs.loc[tyndp_tech] = costs.loc[tyndp_tech].combine_first(
+                pypsa_tech_values
+            )
+        else:
+            # Entry doesn't exist yet, copy PyPSA tech values entirely
+            costs.loc[tyndp_tech] = pypsa_tech_values
 
         # Update capital and marginal cost as fixed cost and VOM are given per MWel
         costs.loc[tyndp_tech, "capital_cost"] = (
@@ -328,29 +350,33 @@ def update_costs_tyndp(
             costs.at[tyndp_tech, "efficiency"] * costs.at[tyndp_tech, "VOM"]
         )
 
-    # Add CCS techs with capture technology assumptions
+    # Fill missing CCS tech assumptions
     for ccs_tech, ccs_map in ccs_configs.items():
-        # Add CCS assumptions as intermediate copy since there is no direct mapping atm
-        capture_rate = costs.at[ccs_tech, "capture_rate"]
-        costs.loc[ccs_tech] = costs.loc[ccs_map["base_tech"]]
-        costs.at[ccs_tech, "capture_rate"] = capture_rate
+        # Fill missing values and entries with default PyPSA tech
+        base_tech_values = costs.loc[ccs_map["base_tech"]]
+        if ccs_tech in costs.index:
+            # Use PyPSA default capital_cost if capital_cost are 0
+            if costs.at[ccs_tech, "capital_cost"] == 0:
+                costs.loc[ccs_tech, "capital_cost"] = base_tech_values["capital_cost"]
+            # Otherwise, only update missing values
+            costs.loc[ccs_tech] = costs.loc[ccs_tech].combine_first(base_tech_values)
+        else:
+            # Entry doesn't exist yet, copy PyPSA tech values entirely
+            costs.loc[ccs_tech] = base_tech_values
+            costs.at[ccs_tech, "capture_rate"] = costs.at[
+                ccs_map["capture_tech"], "capture_rate"
+            ]
 
         # Update capital cost with cost component for capture
         costs.loc[ccs_tech, "capital_cost"] = (
-            costs.at[ccs_map["base_tech"], "capital_cost"]
+            costs.at[ccs_tech, "capital_cost"]
             + costs.at[ccs_map["capture_tech"], "capital_cost"]
             * costs.at[ccs_map["fuel"], "CO2 intensity"]
         )
 
-        # Remaining CO2 intensity after capture
-        costs.loc[ccs_tech, "CO2 intensity"] = costs.at[
-            ccs_map["fuel"], "CO2 intensity"
-        ] * (1 - costs.at[ccs_tech, "capture_rate"])
-
-        # Amount of CO2 captured
-        costs.loc[ccs_tech, "CO2 capture"] = (
-            costs.at[ccs_map["fuel"], "CO2 intensity"]
-            * costs.at[ccs_tech, "capture_rate"]
+        # Calculate amount of CO2 captured from CO2 intensity and capture rate
+        costs.loc[ccs_tech, "CO2 capture"] = costs.at[ccs_tech, "CO2 intensity"] * (
+            1 / (1 - costs.at[ccs_tech, "capture_rate"]) - 1
         )
 
     return costs

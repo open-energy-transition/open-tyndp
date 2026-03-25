@@ -51,7 +51,7 @@ electricity:
   - oil-light
   - oil-heavy
   - oil-shale
-  group_tyndp_conventionals: true
+  group_tyndp_conventionals: false
   renewable_carriers: []
   tyndp_renewable_carriers:
   - other-res
@@ -439,6 +439,7 @@ cba:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
+  negative_toot_capacity: zero
 
   # Storage settings for dispatch
   storage:

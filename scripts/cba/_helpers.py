@@ -4,6 +4,39 @@
 
 import re
 
+import pandas as pd
+
+
+def get_link_attrs(project: pd.Series, costs: pd.DataFrame) -> dict:
+    """
+    Return length, underwater_fraction, and capital_cost for a new DC link.
+
+    The capital_cost is computed using the same per-km formula as
+    ``add_electricity.py`` to ensure consistency with existing network
+    links:
+
+    ``capital_cost = length * ((1 - uf) * overhead + uf * submarine) + inverter``
+
+    Parameters
+    ----------
+    project : pd.Series
+        Row from transmission_projects with columns length_km and
+        underwater_fraction.
+    costs : pd.DataFrame
+        Technology costs table (indexed by technology name) with a
+        ``capital_cost`` column containing annualized EUR/MW or EUR/MW/km
+        values.
+    """
+    length = float(project.get("length_km", 0))
+    uf = float(project.get("underwater_fraction", 0))
+    length = 0.0 if pd.isna(length) else length
+    uf = 0.0 if pd.isna(uf) else uf
+    overhead = costs.at["HVDC overhead", "capital_cost"]
+    submarine = costs.at["HVDC submarine", "capital_cost"]
+    inverter = costs.at["HVDC inverter pair", "capital_cost"]
+    capital_cost = length * ((1.0 - uf) * overhead + uf * submarine) + inverter
+    return dict(length=length, underwater_fraction=uf, capital_cost=capital_cost)
+
 
 def filter_projects_by_specs(
     project_list: list[str], spec_list: list[str] | str | None
