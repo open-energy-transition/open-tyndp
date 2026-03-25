@@ -121,7 +121,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         log:
             "logs/prepare_pecd_release.log",
         benchmark:
-            "benchmarks/performances/prepare_pecd_release"
+            benchmarks("performances/prepare_pecd_release")
         threads: 4
         resources:
             mem_mb=1000,
