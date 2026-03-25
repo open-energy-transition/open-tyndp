@@ -3085,6 +3085,7 @@ def insert_electricity_distribution_grid(
     options: dict,
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
+    ext_stores: list[str],
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -3109,6 +3110,8 @@ def insert_electricity_distribution_grid(
         Population data per node with at least:
         - 'total' column containing population in thousands
         Index should match network nodes
+    ext_stores : list[str]
+        List of extendable Stores
 
     Returns
     -------
@@ -3121,7 +3124,8 @@ def insert_electricity_distribution_grid(
     - Low voltage buses for each node
     - Distribution grid links connecting high to low voltage
     - Rooftop solar potential based on population density
-    - Home battery storage systems with separate charger/discharger links
+    - Home battery storage systems with separate charger/discharger links if `home battery` is included
+      in electricity:extendable_carriers:Store
 
     The function also adjusts the connection points of loads like:
     - Regular electricity demand
@@ -3216,51 +3220,52 @@ def insert_electricity_distribution_grid(
             lifetime=costs.at["solar-rooftop", "lifetime"],
         )
 
-    n.add("Carrier", "home battery")
+    if "home battery" in ext_stores:
+        n.add("Carrier", "home battery")
 
-    n.add(
-        "Bus",
-        nodes + " home battery",
-        location=nodes,
-        carrier="home battery",
-        unit="MWh_el",
-    )
+        n.add(
+            "Bus",
+            nodes + " home battery",
+            location=nodes,
+            carrier="home battery",
+            unit="MWh_el",
+        )
 
-    n.add(
-        "Store",
-        nodes + " home battery",
-        bus=nodes + " home battery",
-        location=nodes,
-        e_cyclic=True,
-        e_nom_extendable=True,
-        carrier="home battery",
-        capital_cost=costs.at["home battery storage", "capital_cost"],
-        lifetime=costs.at["battery storage", "lifetime"],
-    )
+        n.add(
+            "Store",
+            nodes + " home battery",
+            bus=nodes + " home battery",
+            location=nodes,
+            e_cyclic=True,
+            e_nom_extendable=True,
+            carrier="home battery",
+            capital_cost=costs.at["home battery storage", "capital_cost"],
+            lifetime=costs.at["battery storage", "lifetime"],
+        )
 
-    n.add(
-        "Link",
-        nodes + " home battery charger",
-        bus0=nodes + " low voltage",
-        bus1=nodes + " home battery",
-        carrier="home battery charger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        capital_cost=costs.at["home battery inverter", "capital_cost"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
+        n.add(
+            "Link",
+            nodes + " home battery charger",
+            bus0=nodes + " low voltage",
+            bus1=nodes + " home battery",
+            carrier="home battery charger",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            capital_cost=costs.at["home battery inverter", "capital_cost"],
+            p_nom_extendable=True,
+            lifetime=costs.at["battery inverter", "lifetime"],
+        )
 
-    n.add(
-        "Link",
-        nodes + " home battery discharger",
-        bus0=nodes + " home battery",
-        bus1=nodes + " low voltage",
-        carrier="home battery discharger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        marginal_cost=costs.at["home battery storage", "marginal_cost"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
+        n.add(
+            "Link",
+            nodes + " home battery discharger",
+            bus0=nodes + " home battery",
+            bus1=nodes + " low voltage",
+            carrier="home battery discharger",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            marginal_cost=costs.at["home battery storage", "marginal_cost"],
+            p_nom_extendable=True,
+            lifetime=costs.at["battery inverter", "lifetime"],
+        )
 
 
 def insert_gas_distribution_costs(
@@ -9770,11 +9775,12 @@ if __name__ == "__main__":
 
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(
-            n,
-            costs,
-            options,
-            pop_layout,
-            snakemake.input.solar_rooftop_potentials,
+            n=n,
+            costs=costs,
+            options=options,
+            pop_layout=pop_layout,
+            solar_rooftop_potentials_fn=snakemake.input.solar_rooftop_potentials,
+            ext_stores=extendable_stores,
         )
 
     if options["enhanced_geothermal"].get("enable", False):
