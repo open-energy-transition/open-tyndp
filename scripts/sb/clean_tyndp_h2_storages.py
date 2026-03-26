@@ -89,7 +89,16 @@ def load_h2_storage_data(
         "bus.str.contains('NL') and year == 2030 and h2_zone == 'H2 Z2'"
     ).index
     # scale up by missing decimal
-    storages.loc[err_entry_i, ["p_nom_max_charge", "p_nom_max_discharge"]] *= 10
+    if (
+        storages.at[err_entry_i.item(), "p_nom_max_charge"]
+        < storages.at[err_entry_i.item(), "p_nom_charge"]
+    ):
+        storages.loc[err_entry_i, ["p_nom_max_charge"]] *= 10
+    if (
+        storages.at[err_entry_i.item(), "p_nom_max_discharge"]
+        < storages.at[err_entry_i.item(), "p_nom_discharge"]
+    ):
+        storages.loc[err_entry_i, ["p_nom_max_discharge"]] *= 10
 
     storages = storages.loc[
         ((storages.scenario == scenario) | (storages.scenario == "all"))

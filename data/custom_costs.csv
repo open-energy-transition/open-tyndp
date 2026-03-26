@@ -171,12 +171,14 @@ all,2035,cavern-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.x
 all,2040,cavern-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
 all,2045,cavern-storage,VOM,0.0000135,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
 all,2050,cavern-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh)"
-all,all,cavern-storage-charge,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
-all,all,cavern-storage-discharge,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
+all,all,cavern-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
+all,all,cavern-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,2030,tank-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
 all,2035,tank-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
 all,2040,tank-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
 all,2045,tank-storage,VOM,0.0000135,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
 all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
-all,all,tank-storage-charge,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
-all,all,tank-storage-discharge,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
+all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
+all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
+all,all,battery-store,marginal_cost,0,EUR/MWh,Default value to prevent mathematical degeneracy in optimisation,
+all,all,battery-store bicharger,efficiency,0.92,per unit,"PEMMDB v2.4, Battery sheet, Average efficiency",
