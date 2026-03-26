@@ -12,6 +12,7 @@ from functools import partial
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -26,6 +27,8 @@ from scripts.sb.make_benchmark import SOURCES_MAP, load_data, match_temporal_res
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")
+
+FIGURE_WIDTH_DEFAULT = 12
 
 
 def add_metadata(
@@ -90,8 +93,6 @@ def _plot_scenario_comparison(
     source_unit: str,
     bench_colors: dict,
 ):
-    fig, ax = plt.subplots(figsize=(12, 8))
-
     table_title = table.replace("_", " ").title()
     if table == "power_generation":
         table_title += " (pre-curtailment)"
@@ -108,6 +109,9 @@ def _plot_scenario_comparison(
     # Wrap long x-axis labels
     df = df.set_index("carrier")
     df.index = [textwrap.fill(label, width=30) for label in df.index]
+
+    fig_width = FIGURE_WIDTH_DEFAULT + max((df.shape[0] - FIGURE_WIDTH_DEFAULT) * 3, 0)
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, 8))
 
     bar_colors = [bench_colors.get(col, "grey") for col in idx]
     df[idx].plot.bar(
@@ -126,12 +130,17 @@ def _plot_scenario_comparison(
             txt.set_fontweight("bold")
 
     for c in ax.containers:
+        max_val = df[idx].replace(np.inf, np.nan).fillna(0).max().max()
+        rotation = 90 if max_val > 100 and fig_width > FIGURE_WIDTH_DEFAULT else 0
         ax.bar_label(
             c,
-            fmt=lambda x: f"{x:.1f}" if 0 < abs(x) < 10 else f"{x:.0f}",
+            fmt=lambda x: f"{x:.1f}",
             padding=3,
             fontsize=8,
+            rotation=rotation,
         )
+    if rotation != 0:
+        ax.set_ylim(top=ax.get_ylim()[1] * 1.05)
 
     add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols)
 
@@ -156,7 +165,7 @@ def _plot_time_series(
     source_unit: str,
     tech_colors: dict,
 ):
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, 8))
 
     # Remove rows where either value is NaN
     df_clean = df.dropna(subset=[model_col, rfc_col])

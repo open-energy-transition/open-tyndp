@@ -192,7 +192,7 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_demand":
         grouper = ["carrier"]
-        exclusions = ["H2 pipeline"]
+        exclusions = ["H2 pipeline", "H2 cavern-storage charger"]
         df = n.statistics.withdrawal(
             comps=demand_comps,
             bus_carrier="H2",
@@ -273,15 +273,12 @@ def compute_benchmark(
             .groupby([n.generators.bus, n.generators.carrier])
             .sum()
         )
-        df = df.reindex(df.index.union(res_gen.index))
-        df.loc[res_gen.index] = res_gen.values
+        df = res_gen.combine_first(df)
 
         df = (
-            df.reset_index()
-            .assign(bus=lambda df: df.bus.str.split(" ").str[0])
+            df.rename(index=lambda x: x.split(" ")[0], level=0)
             .groupby(["bus"] + grouper)
             .sum()
-            .iloc[:, 0]
         )
 
     elif table == "methane_supply":
@@ -308,7 +305,7 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
-        exclusions = ["H2 pipeline", "H2 pipeline OH"]
+        exclusions = ["H2 pipeline", "H2 pipeline OH", "H2 cavern-storage discharger"]
         df = n.statistics.supply(
             comps=supply_comps,
             bus_carrier="H2",

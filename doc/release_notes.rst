@@ -27,13 +27,13 @@ Upcoming Open-TYNDP Release
 
 * Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
 
-* Generalize the benchmarking framework to support bus-level and country-level benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/543). The configuration ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country`` control the feature.
-
 * Add H2 cavern and tank storages with existing energy and charge/discharge capacities (https://github.com/open-energy-transition/open-tyndp/pull/552). Optionally, for the DE/GA scenarios, expansion limits are added for these capacities for the expendable cavern storages.
 
 * Add PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
 
 * Add Battery Store capacities from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/253/).
+
+* Extended benchmarking to support spatial resolution at bus and country level ([PR #543](https://github.com/open-energy-transition/open-tyndp/pull/543)), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
 
 **Changes**
 

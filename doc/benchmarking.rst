@@ -7,7 +7,7 @@
 Benchmarking
 ##########################################
 
-Open-TYNDP provides a benchmarking framework for continuous and systematic validation of Open-TYNDP model outputs against TYNDP 2024 scenarios. This framework provides flexible and scalable validation across multiple metrics and benchmarking methods.
+Open-TYNDP includes a structured benchmarking framework for systematic comparison of Open-TYNDP model outputs against TYNDP 2024 scenarios, covering multiple metrics and methods across different levels of aggregation.
 
 Introduction
 ------------
