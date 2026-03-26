@@ -4,6 +4,9 @@
 
 
 # Test Case, NT-based Scenario - Defined in config/config.tyndp.yaml
+NT:
+  tyndp_scenario: NT
+
 test-sector-tyndp-cy1995:
   snapshots:
     start: "2013-03-01"
