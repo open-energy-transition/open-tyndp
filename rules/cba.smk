@@ -665,6 +665,7 @@ rule cba:
             cba_project=cba_projects(w),
             run=cba_collection_scenarios(w),
         ),
+        # collect files to be stored in the scenario directory, e.g., NT-cy1995
         lambda w: expand(
             rules.collect_cba_scenario.output[0],
             run=cba_collection_scenarios(w),
