@@ -401,12 +401,12 @@ def create_plots(indicators_path, projects_path, output_dir, params):
             filename_suffix=suffix,
         )
         plot_b1_capex_vs_opex(
-            method_df, 
-            output_dir, 
-            method_label, 
-            colors, 
-            output_formats, 
-            filename_suffix=suffix
+            method_df,
+            output_dir,
+            method_label,
+            colors,
+            output_formats,
+            filename_suffix=suffix,
         )
 
     # Future indicators (add when implemented in make_indicators.py):

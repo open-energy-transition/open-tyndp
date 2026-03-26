@@ -76,12 +76,16 @@ def _apply_original_costs(n, remove_noisy_costs: bool) -> None:
         return
     for t in n.components:
         if "marginal_cost_original" in n.c[t.name].static:
-            n.c[t.name].static["marginal_cost"] = n.c[t.name].static["marginal_cost_original"]
+            n.c[t.name].static["marginal_cost"] = n.c[t.name].static[
+                "marginal_cost_original"
+            ]
 
     for t in n.components:
         if t.name in ["Line", "Link"]:
             if "capital_cost_original" in n.c[t.name].static:
-                n.c[t.name].static["capital_cost"] = n.c[t.name].static["capital_cost_original"]
+                n.c[t.name].static["capital_cost"] = n.c[t.name].static[
+                    "capital_cost_original"
+                ]
 
 
 def calculate_total_system_cost(n, remove_noisy_costs: bool = False):
