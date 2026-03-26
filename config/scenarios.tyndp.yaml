@@ -86,6 +86,13 @@ DE:
       hydrogen_demand:
         rfc_sources:
         - report
+      biomass_supply:
+        biogas_no_biomethane:
+          2030: 0  # TWh
+          2035: 0
+          2040: 0
+          2045: 0
+          2050: 0
 
 # GA Scenario - Extends NT baseline with specific overrides below
 GA:
@@ -167,3 +174,10 @@ GA:
       hydrogen_demand:
         rfc_sources:
         - report
+      biomass_supply:
+        biogas_no_biomethane:
+          2030: 0  # TWh
+          2035: 0
+          2040: 0
+          2045: 0
+          2050: 0
