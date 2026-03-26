@@ -4768,20 +4768,22 @@ def add_offshore_grid_tyndp(
     # Copperplate isolated wind farms to the grid
     if options["offshore_hubs_tyndp"]["connect_isolated"]:
         links_oh = n.links.query("carrier.isin(['DC_OH', 'H2 pipeline OH'])")
-        buses_oh = n.buses.query("carrier in ['AC_OH', 'H2_OH']").index
+        buses_oh_idx = n.buses.query("carrier in ['AC_OH', 'H2_OH']").index
 
         query_str = "p_nom_extendable or p_nom > 0"
         links_oh_cap = links_oh.query(query_str)
         links_oh_no = links_oh.query(f"~({query_str})")
 
         buses_cap = set(pd.concat([links_oh_cap.bus0, links_oh_cap.bus1])).intersection(
-            buses_oh
+            buses_oh_idx
         )
         buses_no = set(pd.concat([links_oh_no.bus0, links_oh_no.bus1])).intersection(
-            buses_oh
+            buses_oh_idx
         )
         buses_unconnected = set(buses_no) - set(buses_cap)  # noqa: F841
-        buses_mainland = n.buses.query("carrier=='AC'").index  # noqa: F841
+        buses_mainland = n.buses.query(  # noqa: F841
+            "carrier in ['AC', 'H2', 'H2 Z1', 'H2 Z2']"
+        ).index
         buses_target = n.generators.query(  # noqa: F841
             "carrier.str.contains('offwind') "
             "and bus in @buses_unconnected "
