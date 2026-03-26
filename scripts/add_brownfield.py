@@ -174,16 +174,6 @@ def add_brownfield(
         filter = {"Link": "Offshore", "Generator": "offwind"}
         eff_map = {"Link": "efficiency", "Generator": "efficiency_dc_to_h2"}
         for c in n.components[["Link", "Generator"]]:
-            if c.name == "Link":
-                n.remove(
-                    "Link",
-                    c.static[
-                        (c.static.index.str.contains(filter[c.name]))
-                        & (c.static.build_year != year)
-                        & (c.static.p_nom == np.inf)
-                    ].index,
-                )
-
             off_fixed_i = c.static[
                 (c.static.index.str.contains(filter[c.name]))
                 & (c.static.build_year != year)

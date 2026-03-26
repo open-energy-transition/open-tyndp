@@ -4791,11 +4791,11 @@ def add_offshore_grid_tyndp(
         ).bus
 
         idx_patch = links_oh_no.query(
-            "(bus0 in @buses_target and bus1 in @buses_mainland) "
-            "or (bus1 in @buses_target and bus0 in @buses_mainland)"
+            "bus0 in @buses_target and bus1 in @buses_mainland "
         ).index
 
         n.links.loc[idx_patch, "p_nom"] = np.inf
+        n.links.loc[idx_patch, "lifetime"] = np.inf
 
 
 def add_offshore_hubs_tyndp(
