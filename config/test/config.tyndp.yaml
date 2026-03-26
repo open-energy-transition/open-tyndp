@@ -5,7 +5,8 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  name: "test-tyndp-cyears"
+  prefix: "test-tyndp"
+  name: "test-NT-cyears"
   disable_progressbar: true
   scenarios:
     enable: true
