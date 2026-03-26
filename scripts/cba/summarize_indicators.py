@@ -264,7 +264,6 @@ def create_plots(df, output_file, area):
         logger.warning("No indicators data to plot")
         return
 
-    planning_horizon = df.planning_horizon.unique()[0]
     output_path = Path(output_file).parent
     project_ids = df.loc[df["source"] == "Open-TYNDP", "project_id"].dropna().unique()
     if output_path.suffix:
@@ -289,7 +288,6 @@ def create_plots(df, output_file, area):
                 df["project_id"] == project_id, "project_code"
             ].dropna()
             project_code = str(project_code_series.iloc[0])
-            suffix = f"_{planning_horizon}" if planning_horizon else ""
             project_label = project_code
             plot_project_benchmarks(
                 project_df, output_file, project_label, format_area_subtitle(area)
@@ -314,7 +312,7 @@ def summarize_indicators(input_files, output_file):
     if not input_files:
         logger.warning("No input files provided")
         # Create empty output file with no header
-        with open(output_file, "w", newline="") as f:
+        with open(output_file, "w", newline=""):
             pass
         return
 
@@ -322,13 +320,9 @@ def summarize_indicators(input_files, output_file):
     logger.info(f"Read {len(input_files)} indicator files: {input_files}")
     df = pd.concat(map(pd.read_csv, ["mydata.csv", "mydata1.csv"]), ignore_index=True)
 
-    project_ids = df.project_id.unique()[0]
-    alternative_subindex = {"min": "low", "mean": "central", "max": "high"}
-
     # loop through all coolected indicators
     for INDICATOR_UNIT in INDICATOR_UNITS:
-        units = df[(df.indicator == INDICATOR_UNIT)].units.unique()[0]
-        indicator_values = {
+        {
             "min": (
                 df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value
             ).min(),

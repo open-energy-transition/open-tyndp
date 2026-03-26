@@ -11,7 +11,6 @@ and calculates a new combined indicator which is stores in a new CSV file.
 """
 
 import logging
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -136,7 +135,6 @@ def create_plots(
         logger.warning("No indicators data to plot")
         return
 
-    output_path = Path(output_file).parent
     indicators = df.indicator.unique()
     subindexes = df.subindex.unique()
     planning_horizons = df.planning_horizon.unique()
