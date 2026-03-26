@@ -86,6 +86,11 @@ DE:
       2050: 150
   costs:
     custom_cost_scn: DE
+  benchmarking:
+    tables:
+      hydrogen_demand:
+        rfc_sources:
+        - report
 
 # GA Scenario - Extends NT baseline with specific overrides below
 GA:
@@ -162,6 +167,11 @@ GA:
       2050: 400
   costs:
     custom_cost_scn: GA
+  benchmarking:
+    tables:
+      hydrogen_demand:
+        rfc_sources:
+        - report
 
 #.cba-common: &cba-common
 #  # Merged into top-level solving options

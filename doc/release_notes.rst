@@ -29,15 +29,25 @@ Upcoming Open-TYNDP Release
 
 * Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
 
+* Add H2 cavern and tank storages with existing energy and charge/discharge capacities (https://github.com/open-energy-transition/open-tyndp/pull/552). Optionally, for the DE/GA scenarios, expansion limits are added for these capacities for the expendable cavern storages.
+
+* Add PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
+
 **Changes**
 
 * Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
+
+* Populate link attributes for new links in CBA (https://github.com/open-energy-transition/open-tyndp/pull/522).
 
 * Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
 
 * Add an option to apply the CBA fixes of the electrical reference network to the SB network as well (enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/527).
 
 * Add the 2035 hydrogen reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/537).
+
+* Add an option to use the H2 demand from the Market Model Outputs (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. It is now also possible to compare against Market Model Outputs in the benchmarking framework.
+
+* Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
 
 **Bugfixes and Compatibility**
 
@@ -48,6 +58,8 @@ Upcoming Open-TYNDP Release
 * Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
 
 * Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
+
+* Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
 
 **Documentation**
 

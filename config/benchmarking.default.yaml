@@ -4,21 +4,25 @@
 
 benchmarking:
   enable: false
-  remove_last_day: true
+  remove_last_day: false
+
 
   tables:
     final_energy_demand:
       table_type: scenario_comparison
-      sheet_name: 5-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 5-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         AC: electricity
         AC_OH: electricity
@@ -35,60 +39,89 @@ benchmarking:
 
     elec_demand:
       table_type: scenario_comparison
-      sheet_name: 23-
-      unit: TWh
-      index_col: [2, 3]
-      header: 4
-      names:
-        index:
-        - scenario
-        - year
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      - vp
+      report:
+        sheet_name: 23-
+        unit: TWh
+        index_col: [2, 3]
+        header: 4
+        names:
+          index:
+          - scenario
+          - year
+          column:
+          - carrier
       mapping:
         electricity: final demand (inc. t&d losses, excl. pump storage )
 
     methane_demand:
       table_type: scenario_comparison
-      sheet_name: 8-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      nrows: 15
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 8-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        nrows: 15
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         CCGT: power generation
         OCGT: power generation
         gas-ccgt: power generation
+        gas-ccgt-old1: power generation
+        gas-ccgt-old2: power generation
+        gas-ccgt-new: power generation
+        gas-ccgt-present1: power generation
+        gas-ccgt-present2: power generation
         gas-ccgt-ccs: power generation
         gas-ocgt: power generation
+        gas-ocgt-old: power generation
+        gas-ocgt-new: power generation
         gas-conv: power generation
+        gas-conv-old1: power generation
+        gas-conv-old2: power generation
         other-non-res-gas-conv: power generation
+        other-non-res-gas-conv-old1: power generation
+        other-non-res-gas-conv-old2: power generation
         other-non-res-gas-ccgt: power generation
+        other-non-res-gas-ccgt-old1: power generation
+        other-non-res-gas-ccgt-old2: power generation
+        other-non-res-gas-ccgt-new: power generation
+        other-non-res-gas-ccgt-present1: power generation
+        other-non-res-gas-ccgt-present2: power generation
         other-non-res-gas-ccgt-ccs: power generation
         other-non-res-gas-ocgt: power generation
+        other-non-res-gas-ocgt-old: power generation
+        other-non-res-gas-ocgt-new: power generation
         SMR: smr
         SMR CC: smr
         exogenous gas demand: exogenous demand
 
     hydrogen_demand:
       table_type: scenario_comparison
-      sheet_name: 10-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      nrows: 15
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - market_out
+      - report
+      report:
+        sheet_name: 10-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        nrows: 15
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         H2 turbine: power generation
         h2-ccgt: power generation
@@ -100,18 +133,23 @@ benchmarking:
 
     power_capacity:
       table_type: scenario_comparison
-      sheet_name: 25-
-      unit: GW
-      index_col: [2, 3]
-      header: 4
-      nrows: 10
-      ncolumns: 17
-      names:
-        index:
-        - scenario
-        - year
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      - vp
+      - market_out
+      report:
+        sheet_name: 25-
+        unit: GW
+        index_col: [2, 3]
+        header: 4
+        nrows: 10
+        ncolumns: 17
+        names:
+          index:
+          - scenario
+          - year
+          column:
+          - carrier
       mapping:
         offwind-dc-fl-r: wind offshore
         offwind-dc-fl-oh: wind offshore
@@ -126,17 +164,36 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-light: oil
-        oil-shale: oil
-        gas-ccgt: methane
-        gas-ccgt-ccs: methane
-        gas-ocgt: methane
-        gas-conv: methane
+        coal: coal + other fossil (incl. biofuels)
+        coal-old1: coal + other fossil (incl. biofuels)
+        coal-old2: coal + other fossil (incl. biofuels)
+        coal-new: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite-old1: coal + other fossil (incl. biofuels)
+        lignite-old2: coal + other fossil (incl. biofuels)
+        lignite-new: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-heavy-old1: oil (incl. biofuels)
+        oil-heavy-old2: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
+        oil-shale-old: oil (incl. biofuels)
+        oil-shale-new: oil (incl. biofuels)
+        gas-ccgt: methane (incl. biofuels)
+        gas-ccgt-old1: methane (incl. biofuels)
+        gas-ccgt-old2: methane (incl. biofuels)
+        gas-ccgt-new: methane (incl. biofuels)
+        gas-ccgt-present1: methane (incl. biofuels)
+        gas-ccgt-present2: methane (incl. biofuels)
+        gas-ccgt-ccs: methane (incl. biofuels)
+        gas-ocgt: methane (incl. biofuels)
+        gas-ocgt-old: methane (incl. biofuels)
+        gas-ocgt-new: methane (incl. biofuels)
+        gas-conv: methane (incl. biofuels)
+        gas-conv-old1: methane (incl. biofuels)
+        gas-conv-old2: methane (incl. biofuels)
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: chp and small thermal
@@ -151,31 +208,54 @@ benchmarking:
         other-res-biomass: small scale res
         other-res-mix: small scale res
         other-non-res-gas-conv: chp and small thermal
+        other-non-res-gas-conv-old1: chp and small thermal
+        other-non-res-gas-conv-old2: chp and small thermal
         other-non-res-gas-ccgt: chp and small thermal
+        other-non-res-gas-ccgt-old1: chp and small thermal
+        other-non-res-gas-ccgt-old2: chp and small thermal
+        other-non-res-gas-ccgt-new: chp and small thermal
+        other-non-res-gas-ccgt-present1: chp and small thermal
+        other-non-res-gas-ccgt-present2: chp and small thermal
         other-non-res-gas-ccgt-ccs: chp and small thermal
         other-non-res-gas-ocgt: chp and small thermal
+        other-non-res-gas-ocgt-old: chp and small thermal
+        other-non-res-gas-ocgt-new: chp and small thermal
         other-non-res-coal: chp and small thermal
+        other-non-res-coal-old1: chp and small thermal
+        other-non-res-coal-old2: chp and small thermal
+        other-non-res-coal-new: chp and small thermal
         other-non-res-coal-ccs: chp and small thermal
         other-non-res-lignite: chp and small thermal
+        other-non-res-lignite-old1: chp and small thermal
+        other-non-res-lignite-old2: chp and small thermal
+        other-non-res-lignite-new: chp and small thermal
         other-non-res-lignite-ccs: chp and small thermal
         other-non-res-oil-light: chp and small thermal
         other-non-res-oil-heavy: chp and small thermal
+        other-non-res-oil-heavy-old1: chp and small thermal
+        other-non-res-oil-heavy-old2: chp and small thermal
         other-non-res-oil-shale: chp and small thermal
+        other-non-res-oil-shale-old: chp and small thermal
+        other-non-res-oil-shale-new: chp and small thermal
 
     power_generation:
       table_type: scenario_comparison
-      sheet_name: 26-
-      unit: TWh
-      index_col: [2, 3]
-      header: 4
-      nrows: 10
-      ncolumns: 16
-      names:
-        index:
-        - scenario
-        - year
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      - market_out
+      report:
+        sheet_name: 26-
+        unit: TWh
+        index_col: [2, 3]
+        header: 4
+        nrows: 10
+        ncolumns: 16
+        names:
+          index:
+          - scenario
+          - year
+          column:
+          - carrier
       mapping:
         offwind-dc-fl-r: wind offshore
         offwind-dc-fl-oh: wind offshore
@@ -190,17 +270,36 @@ benchmarking:
         solar-pv-utility: solar
         h2-ccgt: hydrogen
         h2-fuel-cell: hydrogen
-        coal: coal + other fossil
-        coal+ccs: coal + other fossil
-        lignite: coal + other fossil
-        lignite+ccs: coal + other fossil
-        oil-heavy: oil
-        oil-light: oil
-        oil-shale: oil
-        gas-ccgt: methane
-        gas-ccgt-ccs: methane
-        gas-ocgt: methane
-        gas-conv: methane
+        coal: coal + other fossil (incl. biofuels)
+        coal-old1: coal + other fossil (incl. biofuels)
+        coal-old2: coal + other fossil (incl. biofuels)
+        coal-new: coal + other fossil (incl. biofuels)
+        coal+ccs: coal + other fossil (incl. biofuels)
+        lignite: coal + other fossil (incl. biofuels)
+        lignite-old1: coal + other fossil (incl. biofuels)
+        lignite-old2: coal + other fossil (incl. biofuels)
+        lignite-new: coal + other fossil (incl. biofuels)
+        lignite+ccs: coal + other fossil (incl. biofuels)
+        oil-heavy: oil (incl. biofuels)
+        oil-heavy-old1: oil (incl. biofuels)
+        oil-heavy-old2: oil (incl. biofuels)
+        oil-light: oil (incl. biofuels)
+        oil-shale: oil (incl. biofuels)
+        oil-shale-old: oil (incl. biofuels)
+        oil-shale-new: oil (incl. biofuels)
+        gas-ccgt: methane (incl. biofuels)
+        gas-ccgt-old1: methane (incl. biofuels)
+        gas-ccgt-old2: methane (incl. biofuels)
+        gas-ccgt-new: methane (incl. biofuels)
+        gas-ccgt-present1: methane (incl. biofuels)
+        gas-ccgt-present2: methane (incl. biofuels)
+        gas-ccgt-ccs: methane (incl. biofuels)
+        gas-ocgt: methane (incl. biofuels)
+        gas-ocgt-old: methane (incl. biofuels)
+        gas-ocgt-new: methane (incl. biofuels)
+        gas-conv: methane (incl. biofuels)
+        gas-conv-old1: methane (incl. biofuels)
+        gas-conv-old2: methane (incl. biofuels)
         urban central solid biomass CHP: other non-res
         ror: hydro (exc. pump storage)
         hydro: hydro (exc. pump storage)
@@ -210,31 +309,53 @@ benchmarking:
         other-res-biomass: other res
         other-res-mix: other res
         other-non-res-gas-conv: other non-res
+        other-non-res-gas-conv-old1: other non-res
+        other-non-res-gas-conv-old2: other non-res
         other-non-res-gas-ccgt: other non-res
+        other-non-res-gas-ccgt-old1: other non-res
+        other-non-res-gas-ccgt-old2: other non-res
+        other-non-res-gas-ccgt-new: other non-res
+        other-non-res-gas-ccgt-present1: other non-res
+        other-non-res-gas-ccgt-present2: other non-res
         other-non-res-gas-ccgt-ccs: other non-res
         other-non-res-gas-ocgt: other non-res
+        other-non-res-gas-ocgt-old: other non-res
+        other-non-res-gas-ocgt-new: other non-res
         other-non-res-coal: other non-res
+        other-non-res-coal-old1: other non-res
+        other-non-res-coal-old2: other non-res
+        other-non-res-coal-new: other non-res
         other-non-res-coal-ccs: other non-res
         other-non-res-lignite: other non-res
+        other-non-res-lignite-old1: other non-res
+        other-non-res-lignite-old2: other non-res
+        other-non-res-lignite-new: other non-res
         other-non-res-lignite-ccs: other non-res
         other-non-res-oil-light: other non-res
         other-non-res-oil-heavy: other non-res
+        other-non-res-oil-heavy-old1: other non-res
+        other-non-res-oil-heavy-old2: other non-res
         other-non-res-oil-shale: other non-res
+        other-non-res-oil-shale-old: other non-res
+        other-non-res-oil-shale-new: other non-res
 
     methane_supply:
       table_type: scenario_comparison
-      sheet_name: 32-
-      unit: TWh
-      index_col: 2
-      header: [6, 7]
-      nrows: 13
-      ncolumns: 9
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 32-
+        unit: TWh
+        index_col: 2
+        header: [6, 7]
+        nrows: 13
+        ncolumns: 9
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         Sabatier: synthetic methane (domestic)
         biogas to gas: biomethane (domestic)
@@ -242,18 +363,22 @@ benchmarking:
 
     hydrogen_supply:
       table_type: scenario_comparison
-      sheet_name: 33-
-      unit: TWh
-      index_col: 2
-      header: [4, 5]
-      nrows: 13
-      ncolumns: 9
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      - market_out
+      report:
+        sheet_name: 33-
+        unit: TWh
+        index_col: 2
+        header: [4, 5]
+        nrows: 13
+        ncolumns: 9
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         H2 Electrolysis: p2g
         H2 import LH2: ammonia imports
@@ -263,16 +388,19 @@ benchmarking:
 
     biomass_supply:
       table_type: scenario_comparison
-      sheet_name: 22-
-      unit: TWh
-      index_col: 2
-      header: [3, 4]
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 22-
+        unit: TWh
+        index_col: 2
+        header: [3, 4]
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         biomass final energy demand: final demand
         biomass to liquid: for biofuels
@@ -289,16 +417,19 @@ benchmarking:
 
     energy_imports:
       table_type: scenario_comparison
-      sheet_name: 60-
-      unit: TWh
-      index_col: 2
-      header: [3, 4]
-      names:
-        index:
-        - carrier
-        column:
-        - scenario
-        - year
+      rfc_sources:
+      - report
+      report:
+        sheet_name: 60-
+        unit: TWh
+        index_col: 2
+        header: [3, 4]
+        names:
+          index:
+          - carrier
+          column:
+          - scenario
+          - year
       mapping:
         H2 import LH2: hydrogen
         H2 import Pipeline: hydrogen
@@ -309,17 +440,20 @@ benchmarking:
 
     generation_profiles:
       table_type: time_series
-      sheet_name:
-        DE: 30a
-        GA: 30b
-      unit: GW
-      index_col: 1
-      header: 4
-      names:
-        index:
-        - snapshot
-        column:
-        - carrier
+      rfc_sources:
+      - report
+      report:
+        sheet_name:
+          DE: 30a
+          GA: 30b
+        unit: GW
+        index_col: 1
+        header: 4
+        names:
+          index:
+          - snapshot
+          column:
+          - carrier
       mapping:
         offwind-dc-fl-r: offshore wind
         offwind-dc-fl-oh: offshore wind
@@ -333,17 +467,36 @@ benchmarking:
         h2-ccgt: methane&hydrogen
         h2-fuel-cell: methane&hydrogen
         gas-ccgt: methane&hydrogen
+        gas-ccgt-old1: methane&hydrogen
+        gas-ccgt-old2: methane&hydrogen
+        gas-ccgt-new: methane&hydrogen
+        gas-ccgt-present1: methane&hydrogen
+        gas-ccgt-present2: methane&hydrogen
         gas-ccgt-ccs: methane&hydrogen
         gas-ocgt: methane&hydrogen
+        gas-ocgt-old: methane&hydrogen
+        gas-ocgt-new: methane&hydrogen
         gas-conv: methane&hydrogen
+        gas-conv-old1: methane&hydrogen
+        gas-conv-old2: methane&hydrogen
         coal: coal&lignite&oil
+        coal-old1: coal&lignite&oil
+        coal-old2: coal&lignite&oil
+        coal-new: coal&lignite&oil
         coal+ccs: coal&lignite&oil
         lignite: coal&lignite&oil
+        lignite-old1: coal&lignite&oil
+        lignite-old2: coal&lignite&oil
+        lignite-new: coal&lignite&oil
         lignite+ccs: coal&lignite&oil
         oil: coal&lignite&oil
         oil-heavy: coal&lignite&oil
+        oil-heavy-old1: coal&lignite&oil
+        oil-heavy-old2: coal&lignite&oil
         oil-light: coal&lignite&oil
         oil-shale: coal&lignite&oil
+        oil-shale-old: coal&lignite&oil
+        oil-shale-new: coal&lignite&oil
         battery discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: other res
@@ -358,13 +511,32 @@ benchmarking:
         other-res-biomass: other res
         other-res-mix: other res
         other-non-res-gas-conv: other non-res
+        other-non-res-gas-conv-old1: other non-res
+        other-non-res-gas-conv-old2: other non-res
         other-non-res-gas-ccgt: other non-res
+        other-non-res-gas-ccgt-old1: other non-res
+        other-non-res-gas-ccgt-old2: other non-res
+        other-non-res-gas-ccgt-new: other non-res
+        other-non-res-gas-ccgt-present1: other non-res
+        other-non-res-gas-ccgt-present2: other non-res
         other-non-res-gas-ccgt-ccs: other non-res
         other-non-res-gas-ocgt: other non-res
+        other-non-res-gas-ocgt-old: other non-res
+        other-non-res-gas-ocgt-new: other non-res
         other-non-res-coal: other non-res
+        other-non-res-coal-old1: other non-res
+        other-non-res-coal-old2: other non-res
+        other-non-res-coal-new: other non-res
         other-non-res-coal-ccs: other non-res
         other-non-res-lignite: other non-res
+        other-non-res-lignite-old1: other non-res
+        other-non-res-lignite-old2: other non-res
+        other-non-res-lignite-new: other non-res
         other-non-res-lignite-ccs: other non-res
         other-non-res-oil-light: other non-res
         other-non-res-oil-heavy: other non-res
+        other-non-res-oil-heavy-old1: other non-res
+        other-non-res-oil-heavy-old2: other non-res
         other-non-res-oil-shale: other non-res
+        other-non-res-oil-shale-old: other non-res
+        other-non-res-oil-shale-new: other non-res

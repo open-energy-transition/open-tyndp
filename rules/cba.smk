@@ -284,6 +284,7 @@ rule prepare_reference:
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
         corrections=rules.fix_reference_sb_to_cba.output.corrections,
+        costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
@@ -361,6 +362,7 @@ rule prepare_project:
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
         methods=rules.clean_projects.output.methods,
+        costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
         network=resources("cba/networks/project_{cba_project}_{planning_horizons}.nc"),
     script:

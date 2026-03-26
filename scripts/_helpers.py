@@ -1623,10 +1623,11 @@ def remove_zero_capacity_non_extendable(
         Modifies the network object in-place.
     """
     for c in n.components[component_types]:
+        attr = "e" if c.name == "Store" else "p"
         idx = c.static.loc[
             (c.static["carrier"].isin(carriers))
-            & (~c.static["p_nom_extendable"])
-            & (c.static["p_nom"] == 0)
+            & (~c.static[f"{attr}_nom_extendable"])
+            & (c.static[f"{attr}_nom"] == 0)
         ].index
         n.remove(c.name, idx)
 
@@ -1656,3 +1657,18 @@ def _add_new_profiles_to_existing(
 
     component_t[attr] = pd.concat([existing, new_profiles], axis=1)
     component_t[attr].index.name = index_name
+
+
+def align_demand_to_snapshots(
+    demand: pd.DataFrame, snapshots: pd.DatetimeIndex, format: str = None
+) -> pd.DataFrame:
+    """
+    Convert demand index to DatetimeIndex, adjust year to match snapshots,
+    and reindex to snapshots.
+    """
+
+    demand.index = pd.to_datetime(demand.index, format=format)
+    target_year = snapshots[0].year
+    demand.index = demand.index.map(lambda x: x.replace(year=target_year))
+
+    return demand.reindex(snapshots)

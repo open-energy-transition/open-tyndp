@@ -50,7 +50,7 @@ if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["ar
 
     rule retrieve_tyndp_nuclear_profiles:
         input:
-            # TODO Derive this from Market Outputs directly
+            # TODO Derive this from Market Model Outputs directly
             zip_file=storage(NUC_PROFILES["url"]),
         output:
             dir=directory(NUC_PROFILES["folder"]),
@@ -553,6 +553,26 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             "../scripts/sb/clean_tyndp_smr.py"
 
+    rule clean_tyndp_h2_storages:
+        params:
+            tyndp_scenario=config_provider("tyndp_scenario"),
+            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
+        input:
+            h2_storages=rules.retrieve_tyndp.output.h2_storages,
+        output:
+            h2_storages_prepped=resources("h2_storages_prepped_{planning_horizons}.csv"),
+        log:
+            logs("clean_tyndp_h2_storages_{planning_horizons}.log"),
+        benchmark:
+            benchmarks("clean_tyndp_h2_storages_{planning_horizons}")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/sb/clean_tyndp_h2_storages.py"
+
 
 if config["sector"]["offshore_hubs_tyndp"]["enable"]:
 
@@ -704,6 +724,8 @@ if config["benchmarking"]["enable"]:
         params:
             benchmarking=config_provider("benchmarking"),
             scenario=config_provider("tyndp_scenario"),
+            snapshots=config_provider("snapshots"),
+            drop_leap_day=config_provider("enable", "drop_leap_day"),
         input:
             # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=lambda w: getattr(
@@ -719,6 +741,8 @@ if config["benchmarking"]["enable"]:
             + "validation/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
             prices=RESULTS
             + "validation/resources/benchmarks_tyndp_output_prices_{scenario}{planning_horizons}.csv",
+            h2_demand=RESULTS
+            + "validation/resources/benchmarks_tyndp_output_h2_demand_{scenario}{planning_horizons}.csv",
         log:
             logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:
@@ -811,6 +835,23 @@ if config["benchmarking"]["enable"]:
                 allow_missing=True,
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
+            mm_data=lambda w: (
+                expand(
+                    RESULTS
+                    + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                    scenario=config_provider("tyndp_scenario"),
+                    planning_horizons=[
+                        year
+                        for year in config_provider("scenario", "planning_horizons")(w)
+                        if str(year)
+                        in ["2030", "2040"]  # Only years with MM output data
+                    ],
+                    allow_missing=True,
+                )
+                if config_provider("tyndp_scenario")(w)
+                == "NT"  # Only NT has MM output files for now
+                else []
+            ),
         output:
             benchmarks=directory(
                 RESULTS
@@ -842,16 +883,22 @@ if config["benchmarking"]["enable"]:
                 planning_horizons=config_provider("scenario", "planning_horizons"),
                 allow_missing=True,
             ),
-            mm_data=lambda w: expand(
-                RESULTS
-                + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
-                scenario="NT",
-                planning_horizons=[
-                    year
-                    for year in config_provider("scenario", "planning_horizons")(w)
-                    if str(year) in ["2030", "2040"]  # Only years with MM output data
-                ],
-                allow_missing=True,
+            mm_data=lambda w: (
+                expand(
+                    RESULTS
+                    + "validation/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
+                    scenario=config_provider("tyndp_scenario"),
+                    planning_horizons=[
+                        year
+                        for year in config_provider("scenario", "planning_horizons")(w)
+                        if str(year)
+                        in ["2030", "2040"]  # Only years with MM output data
+                    ],
+                    allow_missing=True,
+                )
+                if config_provider("tyndp_scenario")(w)
+                == "NT"  # Only NT has MM output files for now
+                else []
             ),
             benchmarks=RESULTS + "validation/resources/benchmarks_tyndp.csv",
             vp_data=RESULTS + "validation/resources/vp_data_tyndp.csv",
