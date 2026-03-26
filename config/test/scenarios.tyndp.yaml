@@ -22,7 +22,7 @@ test-sector-tyndp-cy2008:
     sb_scenario: NT
 
 
-test-sector-tydnp-cy2009:
+test-sector-tyndp-cy2009:
   snapshots:
     start: "2013-03-01"
     end: "2013-03-08"
@@ -33,4 +33,4 @@ test-sector-tydnp-cy2009:
 
 test-sector-tyndp-cyears:
   cba:
-    scenarios: [test-sector-tydnp-cy2009, test-sector-tydnp-cy2008, test-sector-tydnp-cy1995]
+    scenarios: [test-sector-tyndp-cy2009, test-sector-tyndp-cy2008, test-sector-tyndp-cy1995]
