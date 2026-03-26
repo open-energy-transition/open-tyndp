@@ -502,13 +502,13 @@ rule plot_cba_benchmark:
         scripts("cba/plot_benchmark_indicators.py")
 
 
-rule plot_all_cba_benchmark:
-    input:
-        indicators=rules.collect_indicators.output.indicators,
-    output:
-        plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
-    script:
-        scripts("cba/plot_benchmark_indicators.py")
+# rule plot_all_cba_benchmark:
+#     input:
+#         indicators=rules.collect_indicators.output.indicators,
+#     output:
+#         plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
+#     script:
+#         scripts("cba/plot_benchmark_indicators.py")
 
 
 rule plot_weather_benchmark:
@@ -632,11 +632,11 @@ rule collect_cba_scenario:
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
         ),
-        lambda w: expand(
-            rules.plot_all_cba_benchmark.output.plot_dir,
-            planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=cba_scenarios(w),
-        ),
+        # lambda w: expand(
+        #     rules.plot_all_cba_benchmark.output.plot_dir,
+        #     planning_horizons=config_provider("cba", "planning_horizons")(w),
+        #     run=cba_scenarios(w),
+        # ),
         lambda w: expand(
             rules.plot_cba_benchmark.output.plot_file,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
