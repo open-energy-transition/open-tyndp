@@ -2816,7 +2816,7 @@ def _add_store_capacities(
             # Set capacities
             p_nom = caps.p_nom.reindex(links_i).fillna(0.0)
             if tech == "battery-store discharger":
-                p_nom = p_nom.div(n.links.loc[links_i, "efficiency"])
+                p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
             n.links.loc[links_i, "p_nom"] = p_nom
 
             # Set p_nom_extendable False for NT scenario
