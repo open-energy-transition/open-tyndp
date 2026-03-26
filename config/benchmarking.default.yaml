@@ -194,7 +194,7 @@ benchmarking:
         gas-conv: methane (incl. biofuels)
         gas-conv-old1: methane (incl. biofuels)
         gas-conv-old2: methane (incl. biofuels)
-        battery discharger: battery
+        battery-store discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: chp and small thermal
         PHS: hydro and pumped storage
@@ -497,7 +497,7 @@ benchmarking:
         oil-shale: coal&lignite&oil
         oil-shale-old: coal&lignite&oil
         oil-shale-new: coal&lignite&oil
-        battery discharger: battery
+        battery-store discharger: battery
         home battery discharger: battery
         urban central solid biomass CHP: other res
         PHS: hydro
