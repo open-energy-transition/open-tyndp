@@ -7105,7 +7105,7 @@ def add_biomass(
             bus1=spatial.oil.nodes,
             bus2="co2 atmosphere",
             carrier="biomass to liquid",
-            lifetime=costs.at["BtL", "lifetime"],
+            lifetime=np.inf,
             efficiency=costs.at["BtL", "efficiency"],
             efficiency2=-costs.at["solid biomass", "CO2 intensity"]
             + costs.at["BtL", "CO2 stored"],
@@ -7136,7 +7136,7 @@ def add_biomass(
             bus2="co2 atmosphere",
             bus3=spatial.co2.nodes,
             carrier="biomass to liquid CC",
-            lifetime=costs.at["BtL", "lifetime"],
+            lifetime=np.inf,
             efficiency=costs.at["BtL", "efficiency"],
             efficiency2=-costs.at["solid biomass", "CO2 intensity"]
             + costs.at["BtL", "CO2 stored"] * (1 - costs.at["BtL", "capture rate"]),
