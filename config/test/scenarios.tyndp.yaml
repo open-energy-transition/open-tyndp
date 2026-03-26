@@ -5,7 +5,7 @@
 
 # Test Case, NT-based Scenario - Defined in config/config.tyndp.yaml
 test-NT:
-  tyndp_scenario: test-NT
+  tyndp_scenario: NT
 
 test-NT-cy1995:
   snapshots:
