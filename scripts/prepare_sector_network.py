@@ -9281,7 +9281,6 @@ def add_hydro_tyndp(
             nodes + " hydro-ror",
             carrier="hydro-ror",
             bus=nodes,
-            efficiency=costs.at["ror", "efficiency"],
             capital_cost=costs.at["ror", "capital_cost"],
         )
 
@@ -9294,9 +9293,7 @@ def add_hydro_tyndp(
             carrier="hydro-pondage",
             bus=nodes,
             capital_cost=costs.at["hydro", "capital_cost"],
-            marginal_cost=costs.at["hydro", "marginal_cost"],
             p_min_pu=0.0,  # only dispatch, no pumping
-            efficiency_dispatch=costs.at["hydro", "efficiency"],
             efficiency_store=0.0,  # only dispatch, no pumping
             cyclic_state_of_charge=True,  # TODO: Validate cyclicity assumption
         )
@@ -9310,9 +9307,7 @@ def add_hydro_tyndp(
             carrier="hydro-reservoir",
             bus=nodes,
             capital_cost=costs.at["hydro", "capital_cost"],
-            marginal_cost=costs.at["hydro", "marginal_cost"],
             p_min_pu=0.0,  # only dispatch, no pumping
-            efficiency_dispatch=costs.at["hydro", "efficiency"],
             efficiency_store=0.0,  # only dispatch, no pumping
             cyclic_state_of_charge=True,  # TODO: Validate cyclicity assumption
         )
