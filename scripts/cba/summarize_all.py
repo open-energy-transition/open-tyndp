@@ -182,7 +182,7 @@ def create_plots(
         return
 
     plt.figure(figsize=(6.0, 0.3 * len(plot_items_percent)))
-    plt.title("CBA differencial cost indicator benchmark\n", y=0.98)
+    plt.title("CBA differential cost indicator benchmark\n", y=0.98)
     plt.barh(axis_items, plot_items_percent)
     plt.xlabel("Mean difference B1_total_system_cost_change (%)")
     plt.xticks(rotation=90, fontsize=6)
