@@ -414,7 +414,7 @@ benchmarking:
         2040: 0.68
         2045: 0.68  # Interpolated
         2050: 0.68
-      biogas_no_biomethane:
+      biogas_not_upgraded:
         # Values from TYNDP 2024 Supply Tool
         2030: 33  # TWh
         2035: 45

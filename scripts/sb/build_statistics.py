@@ -329,7 +329,7 @@ def compute_benchmark(
         )
 
         # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
-        biogas_no_methane = opt["biogas_no_biomethane"][planning_horizons] * 1e6
+        biogas_no_methane = opt["biogas_not_upgraded"][planning_horizons] * 1e6
         df_fed_btl.loc["biomass final energy demand"] -= biogas_no_methane
         df_fed_btl.loc["for biomethane"] = biogas_no_methane
 

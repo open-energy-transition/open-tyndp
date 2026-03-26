@@ -87,7 +87,7 @@ DE:
         rfc_sources:
         - report
       biomass_supply:
-        biogas_no_biomethane:
+        biogas_not_upgraded:
           2030: 0  # TWh
           2035: 0
           2040: 0
@@ -175,7 +175,7 @@ GA:
         rfc_sources:
         - report
       biomass_supply:
-        biogas_no_biomethane:
+        biogas_not_upgraded:
           2030: 0  # TWh
           2035: 0
           2040: 0
