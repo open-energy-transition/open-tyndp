@@ -642,7 +642,7 @@ rule collect_cba_scenario:
             run=cba_scenarios(w),
         ),
     output:
-        log=touch("results/all_scenarios.log"),
+        touch(RESULTS + "cba/all_scenarios.txt"),
 
 
 # collect files to be stored in the scenario collection directory, e.g., NT-cyears
@@ -665,54 +665,10 @@ rule cba:
             cba_project=cba_projects(w),
             run=cba_collection_scenarios(w),
         ),
-        #
-        # link rule.collect_cba_scenario
-        # TODO - remove comment from line below
-        # "results/all_scenarios.log",
-        #
-        # add this into the cba rule !?
-        # collect files to be stored in the scenario directory, e.g., NT-cy1995
-        #
-        # rules.plot_cba_benchmark.output.plot_file, # for all cba projects
-        # RESULTS + "/cba/validation_{planning_horizon}/project_{cba_project}_{planning_horizon}.png",
-        #
-        "results/tyndp/NT-cy1995/cba/validation_2030/project_t4_2030.png",
-        "results/tyndp/NT-cy1995/cba/validation_2040/project_t4_2040.png",
-        "results/tyndp/NT-cy2008/cba/validation_2030/project_t4_2030.png",
-        "results/tyndp/NT-cy2008/cba/validation_2040/project_t4_2040.png",
-        "results/tyndp/NT-cy2009/cba/validation_2030/project_t4_2030.png",
-        "results/tyndp/NT-cy2009/cba/validation_2040/project_t4_2040.png",
-        #
-        "results/tyndp/NT-cy1995/cba/validation_2030/project_t16_2030.png",
-        "results/tyndp/NT-cy1995/cba/validation_2040/project_t16_2040.png",
-        "results/tyndp/NT-cy2008/cba/validation_2030/project_t16_2030.png",
-        "results/tyndp/NT-cy2008/cba/validation_2040/project_t16_2040.png",
-        "results/tyndp/NT-cy2009/cba/validation_2030/project_t16_2030.png",
-        "results/tyndp/NT-cy2009/cba/validation_2040/project_t16_2040.png",
-        #
-        # rules.plot_all_cba_benchmark.output.plot_dir, # for all cba projects
-        # directory(RESULTS + "cba/validation_{planning_horizons}"),
-        #
-        # "results/tyndp/NT-cy1995/cba/validation_2030/",
-        # "results/tyndp/NT-cy2008/cba/validation_2030/",
-        # "results/tyndp/NT-cy2009/cba/validation_2030/",
-        #
-        # rules.plot_weather_benchmark.output.plot_file, # for all cba projects
-        # RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_{planning_horizons}.png",
-        #
-        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t4_2030.png",
-        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t4_2040.png",
-        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t4_2030.png",
-        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t4_2040.png",
-        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t4_2030.png",
-        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t4_2040.png",
-        #
-        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t16_2030.png",
-        "results/tyndp/NT-cy1995/cba/ensemble_plots/ensemble_t16_2040.png",
-        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t16_2030.png",
-        "results/tyndp/NT-cy2008/cba/ensemble_plots/ensemble_t16_2040.png",
-        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t16_2030.png",
-        "results/tyndp/NT-cy2009/cba/ensemble_plots/ensemble_t16_2040.png",
+        lambda w: expand(
+            rules.collect_cba_scenario.output[0],
+            run=cba_collection_scenarios(w),
+        ),
 
 
 # collect rules
