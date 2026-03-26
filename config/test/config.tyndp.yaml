@@ -5,10 +5,8 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  name: ["test-sector-tyndp-cyears"]
+  name: "test-tyndp-cyears"
   disable_progressbar: true
-  shared_resources:
-    policy: false
   scenarios:
     enable: true
     file: config/test/scenarios.tyndp.yaml
