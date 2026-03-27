@@ -7,10 +7,6 @@
 NT:
   tyndp_scenario: NT
 
-# test case
-test-tyndp:
-  tyndp_scenario: NT
-
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
