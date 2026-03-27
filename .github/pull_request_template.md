@@ -29,3 +29,4 @@ Closes # (if applicable).
 - [ ] A release note `doc/release_notes.rst` is added.
 - [ ] Major features are documented with up-to-date information in `README` and `doc/index.rst`.
 - [ ] Module docstrings added to new Python scripts.
+- [ ] Pre-commit was run locally (`pre-commit install`) to validate all schemas and ensure code conventions are consistent.

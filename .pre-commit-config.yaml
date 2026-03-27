@@ -5,6 +5,7 @@ exclude: "^LICENSES|^config/schema\\.json$|^config/config\\.default\\.yaml$"
 
 ci:
   autoupdate_schedule: quarterly
+  skip: [check-jsonschema]
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
