@@ -553,6 +553,26 @@ if config["sector"]["h2_topology_tyndp"]:
         script:
             "../scripts/sb/clean_tyndp_smr.py"
 
+    rule clean_tyndp_h2_storages:
+        params:
+            tyndp_scenario=config_provider("tyndp_scenario"),
+            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
+        input:
+            h2_storages=rules.retrieve_tyndp.output.h2_storages,
+        output:
+            h2_storages_prepped=resources("h2_storages_prepped_{planning_horizons}.csv"),
+        log:
+            logs("clean_tyndp_h2_storages_{planning_horizons}.log"),
+        benchmark:
+            benchmarks("clean_tyndp_h2_storages_{planning_horizons}")
+        threads: 1
+        resources:
+            mem_mb=4000,
+        conda:
+            "../envs/environment.yaml"
+        script:
+            "../scripts/sb/clean_tyndp_h2_storages.py"
+
 
 if config["sector"]["offshore_hubs_tyndp"]["enable"]:
 
