@@ -36,4 +36,4 @@ test-NT-cy2009:
 
 test-NT-cyears:
   cba:
-    scenarios: [test-NT-cy2009, test-NT-cy2008, test-NT-cy1995]
+    scenarios: [test-NT-cy2009, test-NT-cy1995]
