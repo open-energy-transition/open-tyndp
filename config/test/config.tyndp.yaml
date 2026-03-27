@@ -5,12 +5,10 @@
 # SPDX-License-Identifier: CC0-1.0
 
 run:
-  prefix: "test-tyndp"
-  name: "test-NT-cyears"
+  name: "test-sector-tyndp"
   disable_progressbar: true
-  scenarios:
-    enable: true
-    file: config/test/scenarios.tyndp.yaml
+  shared_resources:
+    policy: false
 
 # TODO set foresight
 foresight: myopic
