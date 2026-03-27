@@ -169,23 +169,6 @@ GA:
         rfc_sources:
         - report
 
-#.cba-common: &cba-common
-#  # Merged into top-level solving options
-#  solving:
-#    options:
-#      horizon: 168
-#      overlap: 1
-#      load_shedding:
-#        enable: true
-#
-#    solver:
-#      name: highs
-#      options: highs-simplex
-#
-#    solver_options:
-#      highs-simplex:
-#        parallel: "off" # does not speed up solution
-
 
 NT-cy1995:
 #  <<: *cba-common
