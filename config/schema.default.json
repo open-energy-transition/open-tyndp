@@ -2663,7 +2663,8 @@
                   "Other_Non-RES",
                   "Hydrogen",
                   "Electrolyser",
-                  "Battery"
+                  "Battery",
+                  "DSR"
                 ],
                 "type": "string"
               },
@@ -8044,7 +8045,8 @@
               "Other_Non-RES",
               "Hydrogen",
               "Electrolyser",
-              "Battery"
+              "Battery",
+              "DSR"
             ],
             "type": "string"
           },
@@ -9633,7 +9635,8 @@
                   "Other_Non-RES",
                   "Hydrogen",
                   "Electrolyser",
-                  "Battery"
+                  "Battery",
+                  "DSR"
                 ],
                 "type": "string"
               },
