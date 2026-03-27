@@ -23,6 +23,7 @@ Closes # (if applicable).
 - [ ] Changes in configuration options are added in `config/config.default.yaml`.
 - [ ] Changes in configuration options are documented in `doc/configtables/*.csv`.
 - [ ] Changes in configuration options are added in `config/test/*.yaml`.
+- [ ] The multiple weather/climate years test is passing locally (using `pixi run -e open-tyndp tyndp-cyears-test`).
 - [ ] Open-TYNDP SPDX license header added to all touched files.
 - [ ] For new data sources or versions, [these instructions](https://open-tyndp.readthedocs.io/en/latest/data_sources.html) have been followed.
 - [ ] New rules are documented in the appropriate `doc/*.rst` files.
