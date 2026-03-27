@@ -4796,6 +4796,7 @@ def add_offshore_grid_tyndp(
 
         n.links.loc[idx_patch, "p_nom"] = np.inf
         n.links.loc[idx_patch, "lifetime"] = np.inf
+        n.links.loc[idx_patch, "build_year"] = pyear
 
 
 def add_offshore_hubs_tyndp(
