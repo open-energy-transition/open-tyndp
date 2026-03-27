@@ -4569,6 +4569,12 @@ def add_offshore_generators_tyndp(
         + offshore_generators["opex"]
     ) * nyears
 
+    # Only consider the lifetime if some of the assets are extendable
+    if offshore_generators.p_nom_extendable.all():
+        lifetime = costs.at["offwind", "lifetime"]
+    else:
+        lifetime = np.inf
+
     # Load PECD profiles
     p_max_pu = []
 
@@ -4605,7 +4611,11 @@ def add_offshore_generators_tyndp(
         efficiency_dc_to_b0=offshore_generators.efficiency,
         efficiency_dc_to_h2=costs.at["electrolysis", "efficiency"],
         p_max_pu=p_max_pu,
-        lifetime=costs.at["offwind", "lifetime"],
+        lifetime=lifetime,
+    )
+
+    remove_zero_capacity_non_extendable(
+        n, carriers=offshore_generators.carrier.unique(), component_types={"Generator"}
     )
 
 
@@ -4654,6 +4664,12 @@ def add_offshore_electrolysers_tyndp(
         + offshore_electrolysers["opex"]
     ) * nyears
 
+    # Only consider the lifetime if some of the assets are extendable
+    if offshore_electrolysers.p_nom_extendable.all():
+        lifetime = costs.at["electrolysis", "lifetime"]
+    else:
+        lifetime = np.inf
+
     n.add(
         "Link",
         offshore_electrolysers.index,
@@ -4663,7 +4679,11 @@ def add_offshore_electrolysers_tyndp(
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
         capital_cost=offshore_electrolysers.capital_cost,
-        lifetime=costs.at["electrolysis", "lifetime"],
+        lifetime=lifetime,
+    )
+
+    remove_zero_capacity_non_extendable(
+        n, carriers=["H2 Electrolysis"], component_types={"Link"}
     )
 
 
@@ -4723,6 +4743,12 @@ def add_offshore_grid_tyndp(
         + offshore_grid_dc["opex"]
     ) * nyears
 
+    # Only consider the lifetime if some of the assets are extendable
+    if offshore_grid_dc.p_nom_extendable.all():
+        lifetime = costs.at["HVDC submarine", "lifetime"]
+    else:
+        lifetime = np.inf
+
     n.add(
         "Link",
         offshore_grid_dc.index,
@@ -4736,7 +4762,7 @@ def add_offshore_grid_tyndp(
         p_max_pu=offshore_grid_dc.p_max_pu,
         capital_cost=offshore_grid_dc.capital_cost,
         carrier=offshore_grid_dc.carrier,
-        lifetime=costs.at["HVDC submarine", "lifetime"],
+        lifetime=lifetime,
     )
 
     # Add H2 pipeline connections
@@ -4748,6 +4774,12 @@ def add_offshore_grid_tyndp(
         annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
         + offshore_grid_h2["opex"]
     ) * nyears
+
+    # Only consider the lifetime if some of the assets are extendable
+    if offshore_grid_h2.p_nom_extendable.all():
+        lifetime = costs.at["H2 (g) submarine pipeline", "lifetime"]
+    else:
+        lifetime = np.inf
 
     n.add(
         "Link",
@@ -4762,7 +4794,7 @@ def add_offshore_grid_tyndp(
         p_max_pu=offshore_grid_h2.p_max_pu,
         capital_cost=offshore_grid_h2.capital_cost,
         carrier=offshore_grid_h2.carrier,
-        lifetime=costs.at["H2 (g) submarine pipeline", "lifetime"],
+        lifetime=lifetime,
     )
 
     # Copperplate isolated wind farms to the grid
@@ -4795,8 +4827,11 @@ def add_offshore_grid_tyndp(
         ).index
 
         n.links.loc[idx_patch, "p_nom"] = np.inf
-        n.links.loc[idx_patch, "lifetime"] = np.inf
-        n.links.loc[idx_patch, "build_year"] = pyear
+        n.links.loc[idx_patch, "capital_cost"] = 0
+
+    remove_zero_capacity_non_extendable(
+        n, carriers=offshore_grid.carrier.unique(), component_types={"Link"}
+    )
 
 
 def add_offshore_hubs_tyndp(
