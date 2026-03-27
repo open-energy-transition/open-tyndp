@@ -590,13 +590,14 @@ def cba_scenarios(w):
     """
     Return cba: scenarios of a cba collection scenario
     """
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
     try:
-        scn = scenario_config(w.run)
+        scn = scenario_config(run)
     except KeyError:
-        raise RuntimeError(
-            f"run needs to be a scenario in scenarios.yaml with cba: scenarios, but is: {w.run}"
-        )
-    return scn.get("cba", {}).get("scenarios", [])
+        return [run] if run else []
+    return scn.get("cba", {}).get("scenarios", [run] if run else [])
 
 
 def cba_projects(w):
