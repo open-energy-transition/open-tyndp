@@ -49,6 +49,8 @@ Upcoming Open-TYNDP Release
 
 * Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
 
+* Refactor the ``validation`` folder within ``benchmarks/tyndp-2024`` to ensure consistency in naming conventions (https://github.com/open-energy-transition/open-tyndp/pull/550).
+
 * Improve hydro modelling assumptions used for Run-of-River (ROR), pondage and reservoir (https://github.com/open-energy-transition/open-tyndp/pull/567).
 
 **Bugfixes and Compatibility**

@@ -65,17 +65,17 @@ The benchmarking workflow is controlled by ``config/benchmarking.default.yaml``.
 #. `build_statistics`: Compute the benchmark statistics from the optimised network. Run for every planning horizon. The output data structure is a long-format table.
 #. `make_benchmark`: Compute accuracy indicators for comparing model results against reference data from the TYNDP 2024 Scenarios Report, the Visualisation Platform and the Market Model Outputs.
 #. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
-#. `plot_benchmark`: Generate visualisation outputs for model validation.
+#. `plot_benchmark`: Generate visualisation outputs for model benchmarking.
 #. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
-#. The full set of files produced for the benchmarking are stored in the `results/validation/` folder. This includes:
+#. The full set of files produced for the benchmarking are stored in the `results/benchmarks/tyndp-2024/` folder. This includes:
 
-   * `results/validation/resources/` for processed inputs information from both Open-TYNDP and TYNDP 2024.
-   * `results/validation/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitative information for each table
-   * `results/validation/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` for figures of each table
-   * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` as summary table at bus level
-   * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv` as summary table at country level
-   * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf` as summary figure at bus level
-   * `results/validation/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf` as summary figure at country level
+   * `results/benchmarks/tyndp-2024/resources/` for processed inputs information from both Open-TYNDP and TYNDP 2024.
+   * `results/benchmarks/tyndp-2024/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitative information for each table
+   * `results/benchmarks/tyndp-2024/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` for figures of each table
+   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` as summary table at bus level
+   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv` as summary table at country level
+   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf` as summary figure at bus level
+   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf` as summary figure at country level
    * the structure of these outputs can be validated in the artifacts of the GitHub CI (e.g. artifacts section `here <https://github.com/open-energy-transition/open-tyndp/actions/runs/17715799690?pr=73>`_)
 
 .. image:: img/tyndp/benchmarking_workflow.png

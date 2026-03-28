@@ -50,7 +50,7 @@ rule add_existing_baseyear:
         ),
     benchmark:
         benchmarks(
-            "add_existing_baseyear/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            "performances/add_existing_baseyear/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
         scripts("add_existing_baseyear.py")
@@ -88,7 +88,9 @@ rule prepare_perfect_foresight:
     log:
         logs("prepare_perfect_foresight_{clusters}_{opts}_{sector_opts}.log"),
     benchmark:
-        benchmarks("prepare_perfect_foresight_{clusters}_{opts}_{sector_opts}")
+        benchmarks(
+            "performances/prepare_perfect_foresight_{clusters}_{opts}_{sector_opts}"
+        )
     script:
         scripts("prepare_perfect_foresight.py")
 
@@ -144,7 +146,7 @@ rule solve_sector_network_perfect:
     benchmark:
         (
             RESULTS
-            + "benchmarks/solve_sector_network/base_s_{clusters}_{opts}_{sector_opts}_brownfield_all_years}"
+            + "benchmarks/performances/solve_sector_network/base_s_{clusters}_{opts}_{sector_opts}_brownfield_all_years}"
         )
     script:
         scripts("solve_network.py")
@@ -186,6 +188,6 @@ rule make_summary_perfect:
     log:
         logs("make_summary_perfect.log"),
     benchmark:
-        benchmarks("make_summary_perfect")
+        benchmarks("performances/make_summary_perfect")
     script:
         scripts("make_summary_perfect.py")
