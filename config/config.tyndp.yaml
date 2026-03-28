@@ -287,9 +287,9 @@ sector:
   force_biomass_potential: true
   force_biogas_potential: true
   biomass_final_demand: # in TWh
-    2030: 902
-    2035: 815   # linear interpolation
-    2040: 728
+    2030: 936
+    2035: 861   # linear interpolation
+    2040: 785
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -358,17 +358,17 @@ adjustments:
             2040: 2.51
         solid biomass:
           p_nom:
-            2030: 1.47 # EU27 biomass potential: PyPSA-Eur 974 TWh vs TYNDP 1431 TWh
-            2035: 1.40 # interpolated
-            2040: 1.33 # EU27 biomass potential: PyPSA-Eur 950 TWh vs TYNDP 1261 TWh
+            2030: 2.01 # EU27 biomass potential: PyPSA-Eur 974 TWh vs TYNDP 1959 TWh = 1463 Supply Tool + 496 Other-RES
+            2035: 1.89 # interpolated
+            2040: 1.76 # EU27 biomass potential: PyPSA-Eur 950 TWh vs TYNDP 1673 TWh = 1316 Supply Tool + 357 Other-RES
           e_sum_max:
-            2030: 1.47
-            2035: 1.40
-            2040: 1.33
+            2030: 2.01
+            2035: 1.89
+            2040: 1.76
           e_sum_min:
-            2030: 1.47
-            2035: 1.40
-            2040: 1.33
+            2030: 2.01
+            2035: 1.89
+            2040: 1.76
     absolute: false
 
 solving:

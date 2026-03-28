@@ -128,8 +128,9 @@ def compute_benchmark(
 
         # Add Biomass to Liquid
         df_btl = (
-            n.statistics.withdrawal(
+            n.statistics.supply(
                 comps="Link",
+                bus_carrier="oil",
                 carrier=["biomass to liquid", "biomass to liquid CC"],
                 groupby="carrier",
                 aggregate_across_components=True,
@@ -320,6 +321,11 @@ def compute_benchmark(
             groupby=grouper,
             aggregate_across_components=True,
         )
+
+        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
+        biogas_not_upgraded = opt["biogas_not_upgraded"][planning_horizons] * 1e6
+        df_fed_btl.loc["biomass final energy demand"] -= biogas_not_upgraded
+        df_fed_btl.loc["for biomethane"] = biogas_not_upgraded
 
         eff = float(opt["biomass_to_methane_efficiency"][planning_horizons])
 
