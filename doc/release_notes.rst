@@ -31,6 +31,8 @@ Upcoming Open-TYNDP Release
 
 * Add PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
 
+* Extended benchmarking to support spatial resolution at bus and country level ([PR #543](https://github.com/open-energy-transition/open-tyndp/pull/543)), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
+
 **Changes**
 
 * Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
@@ -46,6 +48,8 @@ Upcoming Open-TYNDP Release
 * Add an option to use the H2 demand from the Market Model Outputs (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. It is now also possible to compare against Market Model Outputs in the benchmarking framework.
 
 * Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
+
+* Improve hydro modelling assumptions used for Run-of-River (ROR), pondage and reservoir (https://github.com/open-energy-transition/open-tyndp/pull/567).
 
 * Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
 
