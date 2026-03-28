@@ -409,10 +409,10 @@ benchmarking:
           - year
       mapping:
         biomass final energy demand: final demand
-        other-res-biomass: final demand
         biomass to liquid: for biofuels
         biomass to liquid CC: for biofuels
         biogas: for biomethane
+        other-res-biomass: other res
       biomass_to_methane_efficiency:
         # Values from TYNDP 2024 Supply Tool
         2030: 0.68
