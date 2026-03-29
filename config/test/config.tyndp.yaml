@@ -39,7 +39,7 @@ electricity:
   extendable_carriers:
     Generator: [OCGT]
     StorageUnit: []
-    Store: [battery-store]
+    Store: [battery-store]  # For TYNDP NT scenario batteries are not extendable
     Link: [H2 pipeline]
 
   conventional_carriers: [OCGT]
@@ -72,7 +72,7 @@ electricity:
   - offwind-h2-fb-oh
   - offwind-h2-fl-oh
   tyndp_stores:
-  - battery
+  - battery-store
   - h2_cavern
   - h2_tank
   estimate_renewable_capacities:

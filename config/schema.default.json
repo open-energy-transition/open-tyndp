@@ -2537,7 +2537,7 @@
           "description": "List of TYNDP storage units (battery and/or hydrogen).",
           "items": {
             "enum": [
-              "battery",
+              "battery-store",
               "h2_cavern",
               "h2_tank"
             ],
@@ -9507,7 +9507,7 @@
           "description": "List of TYNDP storage units (battery and/or hydrogen).",
           "items": {
             "enum": [
-              "battery",
+              "battery-store",
               "h2_cavern",
               "h2_tank"
             ],

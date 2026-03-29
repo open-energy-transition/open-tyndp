@@ -2765,7 +2765,7 @@ def _add_other_res_capacities(
     )
 
 
-def _add_store_capacities(
+def _add_battery_store_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
     tyndp_stores: list[str],
@@ -2784,62 +2784,60 @@ def _add_store_capacities(
         List of TYNDP storage technologies that were added to the network.
     tyndp_scenario : str
         TYNDP scenario to model.
-    """
-    
+
     Returns
     -------
     None
-        Modifies the network object in-place by adding conventional thermal capacities and profiles.
+        Modifies the network object in-place by adding battery capacities.
+    """
 
     logger.info("Adding PEMMDB capacities to battery storage assets.")
 
-    if "battery" in tyndp_stores:
+    # Add Store capacities
+    tech = "battery-store"
+    stores_i = n.stores.query("carrier == @tech").index
+    caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
+    caps = caps.set_index(caps.index + " " + caps["index_carrier"])
+    n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
+    if tyndp_scenario == "NT":
+        n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
 
-        # Add Store capacities
-        tech = "battery-store"
-        stores_i = n.stores.query("carrier == @tech").index
+    # Add links capacities
+    for tech in ["battery-store charger", "battery-store discharger"]:
+        links_i = n.links.query("carrier == @tech").index
         caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
         caps = caps.set_index(caps.index + " " + caps["index_carrier"])
-        n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
-        if tyndp_scenario == "NT":
-            n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
 
-        # Add links capacities
-        for tech in ["battery-store charger", "battery-store discharger"]:
-            links_i = n.links.query("carrier == @tech").index
-            caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-            caps = caps.set_index(caps.index + " " + caps["index_carrier"])
-
-            # Adjust efficiencies with PEMMDB values
-            n.links.loc[links_i, "efficiency"] = (
-                caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
-            )
-
-            # Set capacities
-            p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
-            if tech == "battery-store discharger":
-                p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
-            n.links.loc[links_i, "p_nom"] = p_nom
-
-            # Set p_nom_extendable False for NT scenario
-            if tyndp_scenario == "NT":
-                n.links.loc[links_i, "p_nom_extendable"] = False
-
-        remove_zero_capacity_non_extendable(
-            n,
-            carriers=[
-                "battery-store",
-                "battery-store charger",
-                "battery-store discharger",
-            ],
-            component_types={"Store", "Link"},
+        # Adjust efficiencies with PEMMDB values
+        n.links.loc[links_i, "efficiency"] = (
+            caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
         )
-        # Drop Storage buses that do not have a store connected to it anymore
-        remaining_stores = n.stores[n.stores.carrier == "battery-store"].bus.unique()
-        idx = n.buses.loc[
-            (n.buses.carrier == "battery-store") & ~n.buses.index.isin(remaining_stores)
-        ].index
-        n.remove("Bus", idx)
+
+        # Set capacities
+        p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
+        if tech == "battery-store discharger":
+            p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
+        n.links.loc[links_i, "p_nom"] = p_nom
+
+        # Set p_nom_extendable False for NT scenario
+        if tyndp_scenario == "NT":
+            n.links.loc[links_i, "p_nom_extendable"] = False
+
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=[
+            "battery-store",
+            "battery-store charger",
+            "battery-store discharger",
+        ],
+        component_types={"Store", "Link"},
+    )
+    # Drop Storage buses that do not have a store connected to it anymore
+    remaining_stores = n.stores[n.stores.carrier == "battery-store"].bus.unique()
+    idx = n.buses.loc[
+        (n.buses.carrier == "battery-store") & ~n.buses.index.isin(remaining_stores)
+    ].index
+    n.remove("Bus", idx)
 
 
 def add_existing_tyndp_capacities(
@@ -2976,8 +2974,8 @@ def add_existing_tyndp_capacities(
             )
 
         # Add existing battery and other storage capacities to already attached storage technologies
-        if tyndp_stores:
-            _add_store_capacities(
+        if "battery-store" in tyndp_stores:
+            _add_battery_store_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
                 tyndp_stores=tyndp_stores,
