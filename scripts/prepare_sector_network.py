@@ -2926,7 +2926,7 @@ def add_existing_tyndp_capacities(
             "Adding PEMMDB capacities, must-runs and availabilities to components."
         )
 
-        # Attach onwind and solar technologies and add existing capacities
+        # Attach onwind and solar technologies and add existing capacities from PEMMDB
         tyndp_solar_onwind = [
             c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
         ]
@@ -2948,7 +2948,7 @@ def add_existing_tyndp_capacities(
                 planning_horizon=investment_year,
             )
 
-        # Add existing hydro capacities and inflows
+        # Add existing hydro capacities and inflows from PEMMDB
         if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
             _add_hydro_capacities(
                 n=n,
@@ -2957,7 +2957,7 @@ def add_existing_tyndp_capacities(
                 planning_horizon=investment_year,
             )
 
-        # Add existing conventional thermal capacities to already attached conventional technologies
+        # Add existing conventional thermal capacities from PEMMDB to already attached conventional technologies
         if tyndp_conventional_thermals:
             trajectories_nuclear = trajectories.query(
                 "pyear == @investment_year and index_carrier == 'nuclear'"
@@ -2973,7 +2973,7 @@ def add_existing_tyndp_capacities(
                 group_conventionals=group_conventionals,
             )
 
-        # Add existing battery and other storage capacities to already attached storage technologies
+        # Add existing battery capacities from PEMMDB to already attached storage components
         if "battery-store" in tyndp_stores:
             _add_battery_store_capacities(
                 n=n,
@@ -2982,6 +2982,7 @@ def add_existing_tyndp_capacities(
                 tyndp_scenario=tyndp_scenario,
             )
 
+        # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
         if h2_topology_tyndp:
             trajectories_electrolyser = trajectories.query(
                 "pyear == @investment_year and carrier == 'electrolyser'"
@@ -2993,6 +2994,7 @@ def add_existing_tyndp_capacities(
                 trajectories=trajectories_electrolyser,
             )
 
+        # Add existing Other RES capacities from PEMMDB to already attached Other RES components
         if "other-res" in tyndp_renewable_carriers:
             _add_other_res_capacities(
                 n=n,
@@ -3000,6 +3002,7 @@ def add_existing_tyndp_capacities(
                 pemmdb_profiles=pemmdb_profiles,
             )
 
+    # Add existing SMR and H2 storage capacities from SB inputs to already attached components
     if h2_topology_tyndp:
         logger.info("Adding SMR, SMR CC and H2 storage capacities.")
         _add_smr_capacities(
