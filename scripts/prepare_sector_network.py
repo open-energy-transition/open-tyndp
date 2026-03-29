@@ -2590,7 +2590,7 @@ def _add_h2_storage_capacities(
     n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_caps.reindex(
         n.stores.loc[h2_stores_i, :].index
     ).fillna(0.0)
-    link_caps = link_caps.reindex(h2_chargers_i).fillna(0.0)
+    link_caps = link_caps.reindex(h2_chargers_i, fill_value=0.0)
     dischargers_i = h2_chargers_i[h2_chargers_i.str.contains("discharger")]
     link_caps[dischargers_i] = link_caps[dischargers_i].div(
         n.links.loc[dischargers_i, "efficiency"]
@@ -2612,7 +2612,7 @@ def _add_h2_storage_capacities(
     n.stores.loc[h2_stores_extendable_i, ["e_nom_max"]] = store_caps_max.reindex(
         n.stores.loc[h2_stores_extendable_i, :].index
     ).fillna(0.0)
-    link_caps_max = link_caps_max.reindex(h2_chargers_extendable_i).fillna(0.0)
+    link_caps_max = link_caps_max.reindex(h2_chargers_extendable_i, fill_value=0.0)
     ext_dischargers_i = h2_chargers_extendable_i[
         h2_chargers_extendable_i.str.contains("discharger")
     ]
@@ -2785,36 +2785,38 @@ def _add_store_capacities(
     tyndp_scenario : str
         TYNDP scenario to model.
     """
+    
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding conventional thermal capacities and profiles.
 
     logger.info("Adding PEMMDB capacities to battery storage assets.")
 
     if "battery" in tyndp_stores:
-        logger.info("Adding PEMMDB capacities to battery storage assets.")
 
+        # Add Store capacities
         tech = "battery-store"
         stores_i = n.stores.query("carrier == @tech").index
         caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-        caps["n_index"] = caps.index + " " + caps["index_carrier"]
-        caps = caps.set_index("n_index")
-        n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i).fillna(0.0)
+        caps = caps.set_index(caps.index + " " + caps["index_carrier"])
+        n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
         if tyndp_scenario == "NT":
             n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
 
+        # Add links capacities
         for tech in ["battery-store charger", "battery-store discharger"]:
             links_i = n.links.query("carrier == @tech").index
-            caps = (
-                pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-                .assign(n_index=lambda df: df.index + " " + df["index_carrier"])
-                .set_index("n_index")
-            )
+            caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
+            caps = caps.set_index(caps.index + " " + caps["index_carrier"])
 
             # Adjust efficiencies with PEMMDB values
             n.links.loc[links_i, "efficiency"] = (
-                caps.efficiency.reindex(links_i).fillna(0.0) ** 0.5
+                caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
             )
 
             # Set capacities
-            p_nom = caps.p_nom.reindex(links_i).fillna(0.0)
+            p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
             if tech == "battery-store discharger":
                 p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
             n.links.loc[links_i, "p_nom"] = p_nom
