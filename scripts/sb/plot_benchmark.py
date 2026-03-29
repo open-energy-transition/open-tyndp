@@ -603,7 +603,6 @@ if __name__ == "__main__":
     vp_data_fn = snakemake.input.vp_data
     mm_data_fn = snakemake.input.mm_data
     results_fn = snakemake.input.results
-    prices_fn = snakemake.input.prices
     output_dir = Path(snakemake.output.dir)
     threads = snakemake.threads
 
@@ -614,7 +613,6 @@ if __name__ == "__main__":
         "TYNDP " + scenario,
         vp_data_fn,
         mm_data_fn,
-        prices_fn,
     )
 
     # Produce benchmark figures

@@ -38,7 +38,6 @@ def load_data(
     scenario: str,
     vp_data_fn: str = "",
     mm_data_fn: str = "",
-    prices_fn: str = "",
 ) -> pd.DataFrame:
     """
     Load Open-TYNDP and TYNDP 2024 results.
@@ -55,8 +54,6 @@ def load_data(
         Path to the Visualisation data file.
     mm_data_fn : str (optional)
         Path to the Market Model Output data file.
-    prices_fn : str (optional)
-        Path to the price data of the Market Model Output data file.
 
     Returns
     -------
@@ -102,19 +99,6 @@ def load_data(
         else:
             logger.info(
                 "Skipping comparison with Market Model Output data, as only available in TYNDP 2024 for NT 2030 and NT 2040."
-            )
-
-    if prices_fn:
-        prices = []
-        for fn in prices_fn:
-            prices.append(pd.read_csv(fn))
-        prices = pd.concat(prices)
-        if not prices.empty:
-            available_years = set(prices.year).intersection(available_years)
-            benchmarks_raw = pd.concat([benchmarks_raw, prices])
-        else:
-            logger.info(
-                "Skipping comparison with Prices from Market Model Output data, as only available in TYNDP 2024 for NT 2030 and NT 2040."
             )
 
     benchmarks_raw = benchmarks_raw.query("year in @available_years")

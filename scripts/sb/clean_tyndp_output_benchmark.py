@@ -521,20 +521,6 @@ if __name__ == "__main__":
         )
     crossborder_agg = pd.concat(crossborder, axis=1)
 
-    # load prices
-    prices_tables = [t for t in LOOKUP_TABLES.keys() if "price" in t]
-    logger.info(f"Processing prices tables: {', '.join(prices_tables)}")
-    prices = {}
-    for table in prices_tables:
-        prices[table] = load_MM_sheet(
-            table_name=table,
-            filepath=tyndp_output_file,
-            countries=countries,
-            eu27=eu27,
-            skiprows=5,
-        )
-    prices = pd.concat(prices, ignore_index=True)
-
     # load h2 demand time series
     logger.info("Processing hourly H2 demand tables")
     snapshots = get_snapshots(
@@ -546,12 +532,10 @@ if __name__ == "__main__":
 
     # assign meta data
     assign_meta_data(MM_data, planning_horizon, scenario)
-    assign_meta_data(prices, planning_horizon, scenario)
     assign_meta_data(crossborder_agg, planning_horizon, scenario)
     assign_meta_data(h2_demand_ts, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     crossborder_agg.to_csv(snakemake.output.crossborder)
-    prices.to_csv(snakemake.output.prices, index=False)
     h2_demand_ts.to_csv(snakemake.output.h2_demand)
