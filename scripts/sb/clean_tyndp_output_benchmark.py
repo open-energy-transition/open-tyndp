@@ -259,7 +259,7 @@ def load_MM_sheet(
 
     # Rename and filter column names (buses)
     df.rename(
-        columns=lambda x: x.replace("UK", "GB").replace("IB", "").replace("_H2", " H2"),
+        columns=lambda x: x.replace("UK", "GB").replace("_H2", " H2"),
         inplace=True,
     )
     op = "sum" if "price" not in table_name else "mean"
@@ -269,7 +269,7 @@ def load_MM_sheet(
         .T.reset_index()
         .melt(id_vars=["carrier"], var_name="bus")
     )
-    df_nodal = df_nodal[df_nodal.bus.str[:2].isin(countries)]
+    df_nodal = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(countries)]
 
     # Add EU27
     df_eu27 = (
