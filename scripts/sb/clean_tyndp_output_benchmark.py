@@ -442,6 +442,13 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
 
+    # Norway (NO) has no H2 demand, so its reported H2 price is set to 0 EUR/MWh_H2
+    # to avoid misleading benchmark errors
+    MM_data.loc[
+        MM_data.table.str.contains("hydrogen_price") & MM_data.bus.str.contains("NO"),
+        "value",
+    ] = 0
+
     return MM_data
 
 
