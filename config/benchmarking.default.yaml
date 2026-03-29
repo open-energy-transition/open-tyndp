@@ -546,3 +546,31 @@ benchmarking:
         other-non-res-oil-shale: other non-res
         other-non-res-oil-shale-old: other non-res
         other-non-res-oil-shale-new: other non-res
+
+    electricity_price:
+      table_type: prices
+      rfc_sources:
+      - market_out
+      report:
+        unit: EUR/MWh_e
+
+    electricity_price_excl_shed:
+      table_type: prices
+      rfc_sources:
+      - market_out
+      report:
+        unit: EUR/MWh_e
+
+    hydrogen_price:
+      table_type: prices
+      rfc_sources:
+      - market_out
+      report:
+        unit: EUR/MWh_H2
+
+    hydrogen_price_excl_shed:
+      table_type: prices
+      rfc_sources:
+      - market_out
+      report:
+        unit: EUR/MWh_H2

@@ -803,6 +803,9 @@ if config["benchmarking"]["enable"]:
             tyndp_renewable_carriers=config_provider(
                 "electricity", "tyndp_renewable_carriers"
             ),
+            load_shedding=config_provider(
+                "solving", "options", "load_shedding", "carriers"
+            ),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
@@ -911,6 +914,23 @@ if config["benchmarking"]["enable"]:
             + "benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv",
             kpis_by_country=RESULTS
             + "benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv",
+            prices=lambda w: (
+                expand(
+                    RESULTS
+                    + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_prices_{scenario}{planning_horizons}.csv",
+                    scenario=config_provider("tyndp_scenario"),
+                    planning_horizons=[
+                        year
+                        for year in config_provider("scenario", "planning_horizons")(w)
+                        if str(year)
+                        in ["2030", "2040"]  # Only years with MM output data
+                    ],
+                    allow_missing=True,
+                )
+                if config_provider("tyndp_scenario")(w)
+                == "NT"  # Only NT has MM output files for now
+                else []
+            ),
         output:
             dir=directory(
                 RESULTS

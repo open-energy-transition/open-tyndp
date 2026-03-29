@@ -89,6 +89,11 @@ MM_CARRIER_MAPPING = {
     # Hydrogen supply from H2 sheet
     "Electrolyser (gen.)": "p2g",
     "Steam methane reformer": "smr (grey) and smr with ccs (blue)",
+    # Prices
+    "Marginal Cost Yearly Average [€]": "AC",
+    "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]": "AC",
+    "Marginal Cost Yearly Average [€/MWhH2]": "H2",
+    "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]": "H2",
     # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
     # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
     # NOT available in TYNDP market model (will not appear in output):
@@ -109,13 +114,13 @@ LOOKUP_TABLES: dict[str, list[str]] = {
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
     # prices
-    "prices_electricity": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
-    "prices_electricity_excl_shed": [
+    "electricity_price": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
+    "electricity_price_excl_shed": [
         "Yearly Outputs",
         "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
     ],
-    "prices_H2": ["Yearly H2 Outputs", "Marginal Cost Yearly Average [€/MWhH2]"],
-    "prices_H2_excl_shed": [
+    "hydrogen_price": ["Yearly H2 Outputs", "Marginal Cost Yearly Average [€/MWhH2]"],
+    "hydrogen_price_excl_shed": [
         "Yearly H2 Outputs",
         "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]",
     ],
@@ -257,16 +262,16 @@ def load_MM_sheet(
         columns=lambda x: x.replace("UK", "GB").replace("IB", "").replace("_H2", " H2"),
         inplace=True,
     )
+    op = "sum" if "price" not in table_name else "mean"
     df_nodal = (
         df.T.groupby(df.columns)
-        .sum()
+        .agg(op)
         .T.reset_index()
         .melt(id_vars=["carrier"], var_name="bus")
     )
     df_nodal = df_nodal[df_nodal.bus.str[:2].isin(countries)]
 
     # Add EU27
-    op = "sum" if "price" not in table_name else "mean"
     df_eu27 = (
         df_nodal.loc[lambda x: x["bus"].str[:2].isin(eu27)]
         .groupby(by=["carrier"])
@@ -277,7 +282,13 @@ def load_MM_sheet(
     df = pd.concat([df_nodal, df_eu27])
 
     # Add metadata
-    df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
+    df["unit"] = (
+        re.search(r"\[(.*)]", output_type)
+        .group(1)
+        .rstrip("H2")
+        .replace("€/MWh", "EUR/MWh")
+        .replace("€", "EUR/MWh")
+    )
     df["table"] = table_name
     if "price" not in table_name:
         df = convert_units(df)

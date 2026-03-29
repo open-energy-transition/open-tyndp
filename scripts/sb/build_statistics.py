@@ -10,6 +10,7 @@ import multiprocessing as mp
 from functools import partial
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 import pypsa
 from tqdm import tqdm
@@ -17,6 +18,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
+    PRICE_UNITS,
     configure_logging,
     set_scenario_config,
 )
@@ -59,6 +61,7 @@ def compute_benchmark(
     eu27: list[str],
     tyndp_renewable_carriers: list[str],
     planning_horizons: int,
+    load_shedding: dict[str, int],
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -77,6 +80,8 @@ def compute_benchmark(
         List of renewable carriers in TYNDP 2024.
     planning_horizons : int
         The current planning horizon year.
+    load_shedding : dict[str, int]
+        Value of lost load per carrier.
 
     Returns
     -------
@@ -399,6 +404,31 @@ def compute_benchmark(
         else:
             logger.warning(f"Unknown climate year for table: {table}")
             df = pd.DataFrame(columns=["carrier"])
+    elif table in ["electricity_price", "hydrogen_price"]:
+        carrier = "AC" if "electricity" in table else "H2"
+        df = (
+            n.statistics.prices(
+                bus_carrier=carrier,
+            )
+            .to_frame("value")
+            .rename_axis("bus")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
+    elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
+        carrier = "AC" if "electricity" in table else "H2"
+        df = (
+            n.statistics.prices(
+                bus_carrier=carrier,
+                groupby_time=False,
+            )
+            .pipe(lambda x: x.where(x < load_shedding.get(carrier, np.inf)))
+            .mean(axis=1)
+            .to_frame("value")
+            .rename_axis("bus")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
         df = pd.DataFrame(columns=["carrier"])
@@ -415,11 +445,12 @@ def compute_benchmark(
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
 
+    op = "sum" if "price" not in table else "mean"
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
         df_eu27 = (
             df.loc[lambda x: x["bus"].isin(eu27_idx)]
             .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
-            .sum()
+            .value.agg(op)
             .reset_index()
             .assign(bus="EU27")
         )
@@ -429,7 +460,7 @@ def compute_benchmark(
 
     df = (
         df.groupby(by=[c for c in ["bus", "carrier", "snapshot"] if c in df.columns])
-        .sum()
+        .agg(op)
         .reset_index()
         .assign(
             table=table,
@@ -437,6 +468,8 @@ def compute_benchmark(
             if opt["report"]["unit"] in ENERGY_UNITS
             else "MW"
             if opt["report"]["unit"] in POWER_UNITS
+            else "EUR/MWh"
+            if opt["report"]["unit"] in PRICE_UNITS
             else opt["report"]["unit"],
         )
     )
@@ -462,6 +495,7 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
+    load_shedding = snakemake.params["load_shedding"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
@@ -485,6 +519,7 @@ if __name__ == "__main__":
         eu27=eu27,
         tyndp_renewable_carriers=tyndp_renewable_carriers,
         planning_horizons=planning_horizons,
+        load_shedding=load_shedding,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
