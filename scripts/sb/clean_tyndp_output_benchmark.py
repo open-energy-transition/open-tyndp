@@ -363,7 +363,9 @@ def set_load_sign(
     return MM_data
 
 
-def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
+def clean_MM_data_for_benchmarking(
+    MM_data: pd.DataFrame, offshore_hubs: bool = False
+) -> pd.DataFrame:
     """
     Clean market model data for benchmarking analysis.
 
@@ -378,6 +380,8 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
     MM_data : pd.DataFrame
         Market model data with columns 'carrier', 'table', and 'value'.
         Expected to contain power capacity and generation data.
+    offshore_hubs : bool, default False
+        Whether offshore hubs are modeled.
 
     Returns
     -------
@@ -448,6 +452,26 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         "value",
     ] = 0
 
+    # When offshore hubs are modeled, exclude price data for conventional offshore nodes
+    if offshore_hubs:
+        offshore_node_conv = [  # noqa: F841
+            "BEOF",
+            "DEKF",
+            "DKBH",
+            "DKKF",
+            "DKNS",
+            "EEOF",
+            "LTOF",
+            "NL60",
+            "NL6H",
+            "NLAO",
+            "NLBH",
+            "NLLL",
+        ]
+        MM_data = MM_data.query(
+            "~(bus.isin(@offshore_node_conv) and table.str.contains('price'))"
+        )
+
     return MM_data
 
 
@@ -514,7 +538,9 @@ if __name__ == "__main__":
     MM_data = set_load_sign(MM_data)
 
     # clean data for benchmarking
-    MM_data = clean_MM_data_for_benchmarking(MM_data)
+    MM_data = clean_MM_data_for_benchmarking(
+        MM_data, offshore_hubs=snakemake.params.offshore_hubs
+    )
 
     # load crossborder data
     logger.info(
