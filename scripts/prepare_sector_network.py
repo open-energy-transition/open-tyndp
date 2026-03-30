@@ -32,6 +32,7 @@ from scripts._helpers import (
     get_tyndp_conventional_thermals,
     load_costs,
     make_index,
+    remove_disconnected_storage_buses,
     remove_zero_capacity_non_extendable,
     set_scenario_config,
     update_config_from_wildcards,
@@ -2626,14 +2627,7 @@ def _add_h2_storage_capacities(
         component_types={"Store", "Link"},
     )
     # Drop Storage buses that do not have a store connected to it anymore
-    remaining_stores = n.stores[
-        n.stores.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
-    ].bus.unique()
-    idx = n.buses.loc[
-        n.buses.carrier.isin(["H2 cavern-storage", "H2 tank-storage"])
-        & ~n.buses.index.isin(remaining_stores)
-    ].index
-    n.remove("Bus", idx)
+    remove_disconnected_storage_buses(n, ["H2 cavern-storage", "H2 tank-storage"])
 
 
 def _add_other_res_profiles(
