@@ -272,7 +272,7 @@ def _plot_prices(
 
     ax.grid(axis="y", linestyle="--")
 
-    errors = abs(df[model_col] - df[rfc_source]) / (df[model_col] + 1e-6) * 100
+    errors = abs(df[model_col] - df[rfc_source]) / (df[rfc_source] + 1e-6) * 100
     ax2 = ax.twinx()
     ax2.grid(False)
     ax2.plot(
@@ -289,7 +289,7 @@ def _plot_prices(
     means = df.mean()
     handles, labels = ax.get_legend_handles_labels()
     handles2, labels2 = ax2.get_legend_handles_labels()
-    labels = [f"{label} (Avg. {means[label]:.1f} EUR/MWh)" for label in labels]
+    labels = [f"{label} (Avg. {means[label]:.1f} {source_unit})" for label in labels]
     ax.legend(
         handles + handles2,
         labels + labels2,
