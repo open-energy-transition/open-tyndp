@@ -67,6 +67,8 @@ Upcoming Open-TYNDP Release
 
 * Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
 
+* Fix NaNs that are introduced in B1 indicator calculation when using `cba.remove_noisy_costs` (https://github.com/open-energy-transition/open-tyndp/pull/578).
+
 **Documentation**
 
 **Developers Note**
