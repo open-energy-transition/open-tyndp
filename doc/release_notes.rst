@@ -69,6 +69,8 @@ Upcoming Open-TYNDP Release
 
 * Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
 
+* Remove oudated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
+
 **Documentation**
 
 **Developers Note**
