@@ -5,6 +5,9 @@
 benchmarking:
   enable: false
   remove_last_day: false
+  spatial:
+    by_bus: true
+    by_country: true
 
 
   tables:
@@ -134,9 +137,9 @@ benchmarking:
     power_capacity:
       table_type: scenario_comparison
       rfc_sources:
+      - market_out
       - report
       - vp
-      - market_out
       report:
         sheet_name: 25-
         unit: GW
@@ -237,12 +240,14 @@ benchmarking:
         other-non-res-oil-shale: chp and small thermal
         other-non-res-oil-shale-old: chp and small thermal
         other-non-res-oil-shale-new: chp and small thermal
+        load: demand shedding
+        OCGT: slack generator
 
     power_generation:
       table_type: scenario_comparison
       rfc_sources:
-      - report
       - market_out
+      - report
       report:
         sheet_name: 26-
         unit: TWh
@@ -338,6 +343,8 @@ benchmarking:
         other-non-res-oil-shale: other non-res
         other-non-res-oil-shale-old: other non-res
         other-non-res-oil-shale-new: other non-res
+        load: demand shedding
+        OCGT: slack generator
 
     methane_supply:
       table_type: scenario_comparison
@@ -364,8 +371,8 @@ benchmarking:
     hydrogen_supply:
       table_type: scenario_comparison
       rfc_sources:
-      - report
       - market_out
+      - report
       report:
         sheet_name: 33-
         unit: TWh
@@ -385,6 +392,7 @@ benchmarking:
         H2 import Pipeline: imports (renewable & low carbon)
         SMR: smr (grey) and smr with ccs (blue)
         SMR CC: smr (grey) and smr with ccs (blue)
+        load: demand shedding
 
     biomass_supply:
       table_type: scenario_comparison

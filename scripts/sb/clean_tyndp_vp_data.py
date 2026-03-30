@@ -36,25 +36,25 @@ CARRIER_MAP = {
     "DRES Wind Off": "wind offshore",
     "DRES Wind On": "wind onshore",
     "DSR": "demand shedding",
-    "Gas": "methane",
-    "Gas CCGT": "methane",
-    "Gas CCGT CCS": "methane",
-    "Gas conventional": "methane",
-    "Gas OCGT": "methane",
-    "Hard coal": "coal + other fossil",
-    "Hard coal biofuel": "coal + other fossil",
-    "Heavy oil": "oil",
+    "Gas": "methane (incl. biofuels)",
+    "Gas CCGT": "methane (incl. biofuels)",
+    "Gas CCGT CCS": "methane (incl. biofuels)",
+    "Gas conventional": "methane (incl. biofuels)",
+    "Gas OCGT": "methane (incl. biofuels)",
+    "Hard coal": "coal + other fossil (incl. biofuels)",
+    "Hard coal biofuel": "coal + other fossil (incl. biofuels)",
+    "Heavy oil": "oil (incl. biofuels)",
     "Hydrogen CCGT": "hydrogen",
     "Hydrogen FC": "hydrogen",
     "Large scale batteries": "battery",
-    "Light oil": "oil",
-    "Lignite biofuel": "biofuels",
-    "Lignite": "coal + other fossil",
+    "Light oil": "oil (incl. biofuels)",
+    "Lignite biofuel": "coal + other fossil (incl. biofuels)",
+    "Lignite": "coal + other fossil (incl. biofuels)",
     "Nuclear": "nuclear",
-    "Oil shale biofuel": "biofuels",
-    "Oil shale": "oil",
+    "Oil shale biofuel": "oil (incl. biofuels)",
+    "Oil shale": "oil (incl. biofuels)",
     "Other RES": "small scale res",
-    "Others non-RES": "coal + other fossil",
+    "Others non-RES": "coal + other fossil (incl. biofuels)",
     "Pondage": "hydro and pumped storage",
     "PS Closed": "hydro and pumped storage",
     "PS Open": "hydro and pumped storage",
@@ -115,13 +115,14 @@ def get_elec_demand(
     df = convert_units(df, unit_col="Unit_Name")
 
     data = (
-        df.groupby("year")
+        df.groupby(["year", "unit"])
         .value.sum()
         .reset_index()
         .assign(
             carrier="final demand (inc. t&d losses, excl. pump storage )",
             scenario=f"TYNDP {scenario}",
             table="elec_demand",
+            bus="EU27",
         )
     )
 
@@ -172,7 +173,7 @@ def get_power_capacities(
         df = convert_units(df, unit_col="Unit_Name")
 
         df = (
-            df.groupby(["year", "carrier"])
+            df.groupby(["year", "carrier", "unit"])
             .value.sum()
             .reset_index()
             .assign(
@@ -184,9 +185,10 @@ def get_power_capacities(
 
     data = (
         pd.concat(data)
-        .groupby(["year", "carrier", "scenario", "table"])
+        .groupby(["year", "carrier", "scenario", "table", "unit"])
         .sum()
         .reset_index()
+        .assign(bus="EU27")
     )
 
     return data

@@ -32,7 +32,7 @@ rule build_electricity_demand:
     log:
         logs("build_electricity_demand.log"),
     benchmark:
-        benchmarks("build_electricity_demand")
+        benchmarks("performances/build_electricity_demand")
     resources:
         mem_mb=5000,
     script:
@@ -58,7 +58,7 @@ rule build_powerplants:
     log:
         logs("build_powerplants_s_{clusters}.log"),
     benchmark:
-        benchmarks("build_powerplants_s_{clusters}")
+        benchmarks("performances/build_powerplants_s_{clusters}")
     threads: 1
     resources:
         mem_mb=7000,
@@ -110,7 +110,7 @@ rule base_network:
     log:
         logs("base_network.log"),
     benchmark:
-        benchmarks("base_network")
+        benchmarks("performances/base_network")
     threads: 4
     resources:
         mem_mb=2000,
@@ -190,7 +190,7 @@ rule build_shapes:
     log:
         logs("build_shapes.log"),
     benchmark:
-        benchmarks("build_shapes")
+        benchmarks("performances/build_shapes")
     threads: 1
     resources:
         mem_mb=1500,
@@ -210,7 +210,7 @@ if CUTOUT_DATASET["source"] in ["build"]:
         log:
             "logs/build_cutout/{cutout}.log",
         benchmark:
-            "benchmarks/build_cutout/{cutout}"
+            "benchmarks/performances/build_cutout/{cutout}"
         threads: config["atlite"].get("nprocesses", 4)
         resources:
             mem_mb=config["atlite"].get("nprocesses", 4) * 1000,
@@ -231,7 +231,7 @@ rule build_ship_raster:
     resources:
         mem_mb=5000,
     benchmark:
-        benchmarks("build_ship_raster")
+        benchmarks("performances/build_ship_raster")
     script:
         scripts("build_ship_raster.py")
 
@@ -280,7 +280,9 @@ rule determine_availability_matrix_MD_UA:
     log:
         logs("determine_availability_matrix_MD_UA_{clusters}_{technology}.log"),
     benchmark:
-        benchmarks("determine_availability_matrix_MD_UA_{clusters}_{technology}")
+        benchmarks(
+            "performances/determine_availability_matrix_MD_UA_{clusters}_{technology}"
+        )
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
@@ -348,7 +350,7 @@ rule determine_availability_matrix:
     log:
         logs("determine_availability_matrix_{clusters}_{technology}.log"),
     benchmark:
-        benchmarks("determine_availability_matrix_{clusters}_{technology}")
+        benchmarks("performances/determine_availability_matrix_{clusters}_{technology}")
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
@@ -381,7 +383,7 @@ rule build_renewable_profiles:
     log:
         logs("build_renewable_profile_{clusters}_{technology}.log"),
     benchmark:
-        benchmarks("build_renewable_profile_{clusters}_{technology}")
+        benchmarks("performances/build_renewable_profile_{clusters}_{technology}")
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 5000,
@@ -403,7 +405,7 @@ rule build_co2_prices:
     log:
         logs("build_co2_prices.log"),
     benchmark:
-        benchmarks("build_co2_prices")
+        benchmarks("performances/build_co2_prices")
     threads: 1
     resources:
         mem_mb=5000,
@@ -423,7 +425,7 @@ rule build_fossil_fuel_prices:
     log:
         logs("build_monthly_prices.log"),
     benchmark:
-        benchmarks("build_monthly_prices")
+        benchmarks("performances/build_monthly_prices")
     threads: 1
     resources:
         mem_mb=5000,
@@ -446,7 +448,7 @@ if COUNTRY_RUNOFF_DATASET["source"] == "build":
         log:
             logs("build_country_runoff.log"),
         benchmark:
-            benchmarks("build_country_runoff")
+            benchmarks("performances/build_country_runoff")
         script:
             scripts("build_country_runoff.py")
 
@@ -472,7 +474,7 @@ rule build_hydro_profile:
     log:
         logs("build_hydro_profile.log"),
     benchmark:
-        benchmarks("build_hydro_profile")
+        benchmarks("performances/build_hydro_profile")
     resources:
         mem_mb=5000,
     script:
@@ -495,7 +497,7 @@ rule build_line_rating:
     log:
         logs("build_line_rating.log"),
     benchmark:
-        benchmarks("build_line_rating")
+        benchmarks("performances/build_line_rating")
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=config["atlite"].get("nprocesses", 4) * 1000,
@@ -530,7 +532,7 @@ rule build_transmission_projects:
     log:
         logs("build_transmission_projects.log"),
     benchmark:
-        benchmarks("build_transmission_projects")
+        benchmarks("performances/build_transmission_projects")
     resources:
         mem_mb=4000,
     threads: 1
@@ -568,7 +570,7 @@ rule add_transmission_projects_and_dlr:
     log:
         logs("add_transmission_projects_and_dlr.log"),
     benchmark:
-        benchmarks("add_transmission_projects_and_dlr")
+        benchmarks("performances/add_transmission_projects_and_dlr")
     threads: 1
     resources:
         mem_mb=4000,
@@ -608,7 +610,7 @@ rule build_electricity_demand_base:
     log:
         logs("build_electricity_demand_base_s.log"),
     benchmark:
-        benchmarks("build_electricity_demand_base_s")
+        benchmarks("performances/build_electricity_demand_base_s")
     resources:
         mem_mb=5000,
     script:
@@ -630,7 +632,7 @@ rule build_hac_features:
     log:
         logs("build_hac_features.log"),
     benchmark:
-        benchmarks("build_hac_features")
+        benchmarks("performances/build_hac_features")
     threads: config["atlite"].get("nprocesses", 4)
     resources:
         mem_mb=10000,
@@ -656,7 +658,7 @@ rule process_cost_data:
     log:
         logs("build_cost_data_{planning_horizons}.log"),
     benchmark:
-        benchmarks("build_cost_data_{planning_horizons}")
+        benchmarks("performances/build_cost_data_{planning_horizons}")
     threads: 1
     resources:
         mem_mb=4000,
@@ -691,7 +693,7 @@ rule simplify_network:
     log:
         logs("simplify_network.log"),
     benchmark:
-        benchmarks("simplify_network_b")
+        benchmarks("performances/simplify_network_b")
     threads: 1
     resources:
         mem_mb=12000,
@@ -773,7 +775,7 @@ rule cluster_network:
     log:
         logs("cluster_network_base_s_{clusters}.log"),
     benchmark:
-        benchmarks("cluster_network_base_s_{clusters}")
+        benchmarks("performances/cluster_network_base_s_{clusters}")
     threads: 1
     resources:
         mem_mb=10000,
@@ -840,7 +842,7 @@ rule add_electricity:
     log:
         logs("add_electricity_{clusters}.log"),
     benchmark:
-        benchmarks("add_electricity_{clusters}")
+        benchmarks("performances/add_electricity_{clusters}")
     threads: 1
     resources:
         mem_mb=10000,
@@ -880,7 +882,7 @@ rule prepare_network:
     log:
         logs("prepare_network_base_s_{clusters}_elec_{opts}.log"),
     benchmark:
-        benchmarks("prepare_network_base_s_{clusters}_elec_{opts}")
+        benchmarks("performances/prepare_network_base_s_{clusters}_elec_{opts}")
     threads: 1
     resources:
         mem_mb=4000,
@@ -927,7 +929,7 @@ rule clean_osm_data:
     log:
         logs("clean_osm_data.log"),
     benchmark:
-        benchmarks("clean_osm_data")
+        benchmarks("performances/clean_osm_data")
     threads: 1
     resources:
         mem_mb=4000,
@@ -969,7 +971,7 @@ rule build_osm_network:
     log:
         logs("build_osm_network.log"),
     benchmark:
-        benchmarks("build_osm_network")
+        benchmarks("performances/build_osm_network")
     threads: 1
     resources:
         mem_mb=4000,
@@ -1002,7 +1004,7 @@ rule build_tyndp_network:
     log:
         logs("build_tyndp_network.log"),
     benchmark:
-        benchmarks("build_tyndp_network")
+        benchmarks("performances/build_tyndp_network")
     threads: 1
     resources:
         mem_mb=4000,

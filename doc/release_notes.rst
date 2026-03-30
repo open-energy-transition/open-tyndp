@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
+* Collect results of multi weather year CBA's and calculate weighted average KPI's and plot them (https://github.com/open-energy-transition/open-tyndp/pull/529).
+
 * Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
 
 * Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
@@ -30,6 +32,8 @@ Upcoming Open-TYNDP Release
 * Add H2 cavern and tank storages with existing energy and charge/discharge capacities (https://github.com/open-energy-transition/open-tyndp/pull/552). Optionally, for the DE/GA scenarios, expansion limits are added for these capacities for the expendable cavern storages.
 
 * Add PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
+
+* Extended benchmarking to support spatial resolution at bus and country level ([PR #543](https://github.com/open-energy-transition/open-tyndp/pull/543)), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
 
 **Changes**
 
@@ -47,6 +51,11 @@ Upcoming Open-TYNDP Release
 
 * Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
 
+* Refactor the ``validation`` folder within ``benchmarks/tyndp-2024`` to ensure consistency in naming conventions (https://github.com/open-energy-transition/open-tyndp/pull/550).
+
+* Improve hydro modelling assumptions used for Run-of-River (ROR), pondage and reservoir (https://github.com/open-energy-transition/open-tyndp/pull/567).
+
+* Rename OCGT as slack generator for benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/573).
 
 * Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
 
