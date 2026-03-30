@@ -57,6 +57,8 @@ Upcoming Open-TYNDP Release
 
 * Rename OCGT as slack generator for benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/573).
 
+* Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
