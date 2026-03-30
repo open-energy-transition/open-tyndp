@@ -57,6 +57,8 @@ Upcoming Open-TYNDP Release
 
 * Rename OCGT as slack generator for benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/573).
 
+* Remove non-extendable TYNDP assets with zero capacity from network to lower network size (https://github.com/open-energy-transition/open-tyndp/pull/583).
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
