@@ -67,6 +67,8 @@ Upcoming Open-TYNDP Release
 
 **Documentation**
 
+* Add dedicated documentation page for the CBA rolling horizon dispatch pipeline, covering all preparation stages (network simplification, reference network, MSV extraction, rolling horizon preparation, project preparation, solve, indicators), configuration reference, and key design assumptions (https://github.com/open-energy-transition/open-tyndp/pull/572).
+
 **Developers Note**
 
 Upcoming PyPSA-Eur Release
