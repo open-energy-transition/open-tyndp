@@ -273,7 +273,7 @@ def load_MM_sheet(
 
     # Add EU27
     df_eu27 = (
-        df_nodal.loc[lambda x: x["bus"].str[:2].isin(eu27)]
+        df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
         .groupby(by=["carrier"])
         .value.agg(op)
         .reset_index()
