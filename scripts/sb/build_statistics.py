@@ -439,8 +439,8 @@ def compute_benchmark(
         weights = weights.reindex(prices.columns, axis=1, fill_value=1)
 
         wp = weights * prices
-        a = sns_weights @ wp
-        b = sns_weights @ weights
+        a = wp.mul(sns_weights, axis=0).sum(skipna=True)
+        b = weights.where(prices.notna()).mul(sns_weights, axis=0).sum(skipna=True)
         df = (
             (a / b)
             .to_frame("value")
