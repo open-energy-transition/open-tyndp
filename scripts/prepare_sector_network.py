@@ -4682,6 +4682,9 @@ def add_offshore_electrolysers_tyndp(
         lifetime=lifetime,
     )
 
+    # Remove zero-capacity and non-extendable electrolysers
+    # Please keep in mind that the carrier is shared with onshore electrolysers
+    # Onshore electrolyser capacities must be defined before this point
     remove_zero_capacity_non_extendable(
         n, carriers=["H2 Electrolysis"], component_types={"Link"}
     )
