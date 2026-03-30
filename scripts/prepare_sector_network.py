@@ -2202,6 +2202,13 @@ def _add_electrolyzer_capacities(
     # For NT, no trajectories will be added to the model and electrolyser capacities will be fixed
     if trajectories.empty:
         n.links.loc[electrolyser_i, "p_nom_extendable"] = False
+        remove_zero_capacity_non_extendable(
+            n,
+            carriers=[
+                "H2 Electrolysis",
+            ],
+            component_types={"Link"},
+        )
         return
 
     # Otherwise, for DE/GA, set trajectories
@@ -2500,6 +2507,26 @@ def _add_hydro_capacities(
     _add_phs_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-phs")
     _add_phs_capacities(n, pemmdb_capacities, inflows_t, tech="hydro-phs-pure")
 
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=[
+            "hydro-ror",
+            "hydro-pondage",
+            "hydro-reservoir",
+            "hydro-phs",
+            "hydro-phs-pure",
+            "hydro-phs-pump",
+            "hydro-phs-pure-pump",
+            "hydro-phs-turbine",
+            "hydro-phs-pure-turbine",
+            "hydro-phs-inflows",
+        ],
+        component_types={"Generator", "StorageUnit", "Store", "Link"},
+    )
+
+    # Drop Storage buses that do not have a store connected to it anymore
+    remove_disconnected_storage_buses(n, ["hydro-phs", "hydro-phs-pure"])
+
 
 def _add_smr_capacities(
     n: pypsa.Network,
@@ -2537,6 +2564,12 @@ def _add_smr_capacities(
         n.links.loc[smr_i, "p_min_pu"] = smr_p_min_pu.reindex(
             n.links.loc[smr_i, :].index
         ).fillna(0.0)
+
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=["SMR", "SMR CC"],
+        component_types={"Link"},
+    )
 
 
 def _add_h2_storage_capacities(
