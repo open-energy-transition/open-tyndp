@@ -268,8 +268,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - 🔨
    * -
      - Climate years (weighted average)
-     -
-     - 🔨
+     - `#529 <https://github.com/open-energy-transition/open-tyndp/pull/529>`__
+     - ✅
    * -
      - **CBA Benchmarking**
      - `#405 <https://github.com/open-energy-transition/open-tyndp/pull/405>`__
