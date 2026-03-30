@@ -254,6 +254,7 @@ def _plot_prices(
     rfc_source: str,
     source_unit: str,
     bench_colors: dict,
+    eps: float = 1e-6,
 ):
     fig, ax = plt.subplots(
         figsize=(FIGURE_WIDTH_DEFAULT * 1.7, FIGURE_HEIGHT_DEFAULT * 0.7)
@@ -272,7 +273,12 @@ def _plot_prices(
 
     ax.grid(axis="y", linestyle="--")
 
-    errors = abs(df[model_col] - df[rfc_source]) / (df[rfc_source] + 1e-6) * 100
+    errors = (
+        (df[model_col] - df[rfc_source]).abs()
+        / ((df[model_col].abs() + df[rfc_source].abs()) / 2 + eps)
+        * 100
+    )
+
     ax2 = ax.twinx()
     ax2.grid(False)
     ax2.plot(
@@ -281,7 +287,7 @@ def _plot_prices(
         color="red",
         marker="o",
         linestyle="",
-        label=f"Absolute relative error [%] (Avg. {errors.mean():.1f}% / Median {errors.median():.1f}%)",
+        label=f"sMAPE [%] (Overall sMAPE {errors.mean():.1f}% / sMdAPE {errors.median():.1f}%)",
     )
     ax2.set_ylim(0, max(ax2.get_ylim()[1], 100))
     ax2.set_ylabel("%")
