@@ -768,7 +768,10 @@ if __name__ == "__main__":
 
     # Load data
     benchmarks_raw = load_data(
-        benchmarks_fn, results_fn, scenario, mm_data_fn=mm_data_fn
+        benchmarks_fn=benchmarks_fn,
+        results_fn=results_fn,
+        scenario=scenario,
+        mm_data_fn=mm_data_fn,
     )
 
     # Get version

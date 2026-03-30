@@ -409,18 +409,18 @@ def plot_benchmark(
 
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
-                bench_year.reset_index(),
-                table,
-                year,
-                bus,
-                output_dir,
-                scenario,
-                cyear,
-                model_col,
-                [c for c in rfc_cols if c in bench_year.columns],
-                rfc_source,
-                source_unit,
-                bench_colors,
+                df=bench_year.reset_index(),
+                table=table,
+                year=year,
+                bus=bus,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_cols=[c for c in rfc_cols if c in bench_year.columns],
+                rfc_source=rfc_source,
+                source_unit=source_unit,
+                bench_colors=bench_colors,
             )
         elif table_type == "time_series":
             rfc_col_str = [c for c in rfc_cols if c in bench_year.columns][0]
@@ -428,30 +428,30 @@ def plot_benchmark(
                 bench_year, snapshots, model_col, rfc_col_str
             ).reset_index()
             _plot_time_series(
-                bench_agg,
-                table,
-                year,
-                bus,
-                output_dir,
-                scenario,
-                cyear,
-                model_col,
-                rfc_col_str,
-                source_unit,
-                tech_colors,
+                df=bench_agg,
+                table=table,
+                year=year,
+                bus=bus,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_col=rfc_col_str,
+                source_unit=source_unit,
+                tech_colors=tech_colors,
             )
         elif table_type == "prices":
             _plot_prices(
-                bench_year,
-                table,
-                year,
-                output_dir,
-                scenario,
-                cyear,
-                model_col,
-                rfc_source,
-                source_unit,
-                bench_colors,
+                df=bench_year,
+                table=table,
+                year=year,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_source=rfc_source,
+                source_unit=source_unit,
+                bench_colors=bench_colors,
             )
 
 
@@ -618,11 +618,11 @@ if __name__ == "__main__":
 
     # Load data
     benchmarks_raw = load_data(
-        benchmarks_fn,
-        results_fn,
-        "TYNDP " + scenario,
-        vp_data_fn,
-        mm_data_fn,
+        benchmarks_fn=benchmarks_fn,
+        results_fn=results_fn,
+        scenario="TYNDP " + scenario,
+        vp_data_fn=vp_data_fn,
+        mm_data_fn=mm_data_fn,
     )
 
     # Produce benchmark figures
