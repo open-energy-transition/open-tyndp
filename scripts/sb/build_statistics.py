@@ -417,13 +417,32 @@ def compute_benchmark(
         )
     elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
         carrier = "AC" if "electricity" in table else "H2"
-        df = (
-            n.statistics.prices(
+
+        sns_weights = n.snapshot_weightings.objective
+
+        mask = n.buses.carrier == carrier
+        prices = n.buses_t.marginal_price.loc[:, mask].pipe(
+            lambda x: x.where(x < load_shedding.get(carrier, np.inf))
+        )
+
+        weights = (
+            n.statistics.withdrawal(
+                groupby="bus",
                 bus_carrier=carrier,
+                nice_names=False,
                 groupby_time=False,
             )
-            .pipe(lambda x: x.where(x < load_shedding.get(carrier, np.inf)))
-            .mean(axis=1)
+            .groupby("bus")
+            .sum()
+            .T
+        )
+        weights = weights.reindex(prices.columns, axis=1, fill_value=1)
+
+        wp = weights * prices
+        a = sns_weights @ wp
+        b = sns_weights @ weights
+        df = (
+            (a / b)
             .to_frame("value")
             .rename_axis("bus")
             .assign(carrier=carrier)
