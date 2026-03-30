@@ -308,7 +308,7 @@ def _plot_prices(
 
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
-    
+
     plt.close(fig)
 
 
