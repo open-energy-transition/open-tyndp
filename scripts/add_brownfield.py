@@ -537,8 +537,8 @@ def remove_tyndp_fixed_p(
                 "H2 tank-storage discharger",
                 "H2 cavern-storage charger",
                 "H2 cavern-storage discharger",
-                "battery-store charger",
-                "battery-store discharger",
+                "battery charger",
+                "battery discharger",
                 "other-res-biomass",
             ]
             if c.name == "Link"
@@ -550,7 +550,7 @@ def remove_tyndp_fixed_p(
                 "onwind",
                 "solar-pv-rooftop",
                 "solar-pv-utility",
-                "battery-store",
+                "battery",
             ]
         )
         attr = "e" if c.name == "Store" else "p"

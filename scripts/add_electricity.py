@@ -81,11 +81,6 @@ STORE_LOOKUP = {
         "bicharger": "battery inverter",
         "roundtrip_correction": 0.5,
     },
-    "battery-store": {
-        "store": "battery-store",
-        "bicharger": "battery-store bicharger",
-        "roundtrip_correction": 0.5,
-    },
     "home battery": {
         "store": "home battery storage",
         "bicharger": "home battery inverter",
@@ -1088,6 +1083,7 @@ def attach_stores(
     costs: pd.DataFrame,
     buses_i: list,
     extendable_carriers: list,
+    tyndp_stores: list = [],
 ):
     """
     Attach stores to the network.
@@ -1102,12 +1098,23 @@ def attach_stores(
         List of high voltage electricity buses.
     extendable_carriers : list
         List of extendable storage carrier names.
+    tyndp_stores : list, optional
+        List of TYNDP store carriers. When `battery` is included, the battery
+        lookup is overridden to use exogenous TYNDP component names.
     """
+    store_lookup = STORE_LOOKUP.copy()
+    if "battery" in tyndp_stores:
+        store_lookup["battery"] = {
+            "store": "battery",
+            "bicharger": "battery bicharger",
+            "roundtrip_correction": 0.5,
+        }
+
     available_carriers = get_available_storage_carriers(extendable_carriers)
     n.add("Carrier", available_carriers)
 
     for carrier in available_carriers:
-        lookup = STORE_LOOKUP[carrier]
+        lookup = store_lookup[carrier]
         lookup_store = lookup["store"]
         if "bicharger" in lookup:
             lookup_charge = lookup_discharge = lookup["bicharger"]

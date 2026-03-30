@@ -37,7 +37,7 @@ electricity:
 
   extendable_carriers:
     Generator: [OCGT]
-    Store: [battery-store]  # For TYNDP NT scenario batteries are not extendable
+    Store: [battery]  # For TYNDP NT scenario batteries are not extendable
 
   conventional_carriers: [OCGT]
   tyndp_conventional_carriers:
@@ -69,7 +69,7 @@ electricity:
   - offwind-h2-fb-oh
   - offwind-h2-fl-oh
   tyndp_stores:
-  - battery-store
+  - battery
   - h2_cavern
   - h2_tank
   estimate_renewable_capacities:
@@ -439,7 +439,7 @@ cba:
     # All other store/storage unit carriers automatically receive
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
-    - battery-store
+    - battery
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:

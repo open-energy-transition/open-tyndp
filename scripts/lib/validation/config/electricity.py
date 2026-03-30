@@ -426,7 +426,7 @@ class ElectricityConfig(BaseModel):
         default_factory=list,
         description="List of TYNDP renewable generators to include in the model. Technologies covered by specified TYNDP renewable carriers need to be removed from `estimate_renewable_carriers` technology list.",
     )
-    tyndp_stores: list[Literal["battery-store", "h2_cavern", "h2_tank"]] = Field(
+    tyndp_stores: list[Literal["battery", "h2_cavern", "h2_tank"]] = Field(
         default_factory=list,
         description="List of TYNDP storage units (battery and/or hydrogen).",
     )

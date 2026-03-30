@@ -2772,7 +2772,7 @@ def _add_battery_store_capacities(
     tyndp_scenario: str,
 ) -> None:
     """
-    Add PEMMDB capacities for stor(ag)e technologies to existing assets in the network.
+    Add PEMMDB capacities for battery storages to existing assets in the network.
 
     Parameters
     ----------
@@ -2794,7 +2794,7 @@ def _add_battery_store_capacities(
     logger.info("Adding PEMMDB capacities to battery storage assets.")
 
     # Add Store capacities
-    tech = "battery-store"
+    tech = "battery"
     stores_i = n.stores.query("carrier == @tech").index
     caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
     caps = caps.set_index(caps.index + " " + caps["index_carrier"])
@@ -2803,7 +2803,7 @@ def _add_battery_store_capacities(
         n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
 
     # Add links capacities
-    for tech in ["battery-store charger", "battery-store discharger"]:
+    for tech in ["battery charger", "battery discharger"]:
         links_i = n.links.query("carrier == @tech").index
         caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
         caps = caps.set_index(caps.index + " " + caps["index_carrier"])
@@ -2815,7 +2815,7 @@ def _add_battery_store_capacities(
 
         # Set capacities
         p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
-        if tech == "battery-store discharger":
+        if tech == "battery discharger":
             p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
         n.links.loc[links_i, "p_nom"] = p_nom
 
@@ -2826,16 +2826,16 @@ def _add_battery_store_capacities(
     remove_zero_capacity_non_extendable(
         n,
         carriers=[
-            "battery-store",
-            "battery-store charger",
-            "battery-store discharger",
+            "battery",
+            "battery charger",
+            "battery discharger",
         ],
         component_types={"Store", "Link"},
     )
     # Drop Storage buses that do not have a store connected to it anymore
-    remaining_stores = n.stores[n.stores.carrier == "battery-store"].bus.unique()
+    remaining_stores = n.stores[n.stores.carrier == "battery"].bus.unique()
     idx = n.buses.loc[
-        (n.buses.carrier == "battery-store") & ~n.buses.index.isin(remaining_stores)
+        (n.buses.carrier == "battery") & ~n.buses.index.isin(remaining_stores)
     ].index
     n.remove("Bus", idx)
 
@@ -2974,7 +2974,7 @@ def add_existing_tyndp_capacities(
             )
 
         # Add existing battery capacities from PEMMDB to already attached storage components
-        if "battery-store" in tyndp_stores:
+        if "battery" in tyndp_stores:
             _add_battery_store_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
@@ -9579,6 +9579,7 @@ if __name__ == "__main__":
         costs=costs,
         buses_i=pop_layout.index,
         extendable_carriers=extendable_stores,
+        tyndp_stores=snakemake.params.tyndp_stores,
     )
 
     if options["h2_topology_tyndp"]:
