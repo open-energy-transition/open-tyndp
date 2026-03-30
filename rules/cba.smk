@@ -458,7 +458,8 @@ def input_indicators(w):
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
 
     # Collection scenarios look for results within regular scenarios
-    runs = config_provider("cba", "scenarios", default="{run}")
+    # Regular scenarios (e.g., "NT") look within their own run.
+    runs = cba_source_runs(w)
     # NOTE: project_specs filtering happens on the collection scenario (and does not descend)
     project_specs = config_provider("cba", "projects")(w)
 
@@ -526,7 +527,7 @@ rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
             rules.make_indicators.output.indicators,
-            run=config_provider("cba", "scenarios")(w),
+            run=cba_source_runs(w),
             allow_missing=True,
         ),
     output:
@@ -557,7 +558,7 @@ rule summarize_all_indicators:
             transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
-            run=config_provider("cba", "scenarios")(w),
+            run=cba_source_runs(w),
         ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
@@ -581,9 +582,24 @@ def cba_collection_scenarios(w):
         except KeyError:
             scenarios.append(name)
             continue
-        if scn.get("cba", {}).get("scenarios") is not None:
-            scenarios.append(name)
+        scenarios.append(name)
     return scenarios
+
+
+def cba_source_runs(w):
+    """
+    Return the runs that provide CBA project indicator CSVs.
+
+    Collection scenarios read from their nested cba.scenarios; 
+    regular runs (e.g., "NT") read from their own run name.
+    """
+    runs = config_provider("cba", "scenarios", default=None)(w)
+    if runs:
+        return runs
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        return run
+    return [run] if run else []
 
 
 def cba_scenarios(w):
@@ -600,17 +616,28 @@ def cba_scenarios(w):
     return scn.get("cba", {}).get("scenarios", [run] if run else [])
 
 
+def cba_projects_run(w):
+    """
+    Return the run from which project methods should be read.
+    """
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if not run:
+        return run
+    try:
+        scn = scenario_config(run)
+    except KeyError:
+        return run
+    nested = scn.get("cba", {}).get("scenarios", [])
+    return nested[0] if nested else run
+
+
 def cba_projects(w):
     """
     List all indicators csv
     """
-    # run = config_provider("run", "name")(w),
-    run = w.get("run", config_provider("run", "name")(w))
-    if isinstance(run, list):
-        run = run[0] if run else ""
-    if "cy" not in run and run:
-        run = f"{run}-cy2009"
-
+    run = cba_projects_run(w)
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
     project_specs = config_provider("cba", "projects")(w)
