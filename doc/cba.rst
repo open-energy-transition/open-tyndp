@@ -48,13 +48,17 @@ Solve CBA Network
 The CBA solve optimizes the dispatch of generators, storage, and transmission in both the reference and project networks.
 
 The CBA network is solved using a rolling horizon, which is configured in the
-``cba.solving.options.horizon`` and ``cba.solving.options.overlap`` sections of the configuration file. 
-The rolling horizon approach splits the entire time horizon into smaller time windows (or "horizons"), 
+``cba.solving.options.horizon`` and ``cba.solving.options.overlap`` sections of the configuration file.
+The rolling horizon approach splits the entire time horizon into smaller time windows (or "horizons"),
 which may overlap (if configured). Each horizon is solved sequentially.
 
-Within the CBA solve, the storage state of charge (SOC) is carried over between rolling horizons: 
-``stores.e_initial`` and ``storage_units.state_of_charge_initial`` at each rolling horizon are updated using 
-the previous rolling horizon. 
+For a full description of the rolling horizon pipeline — including Marginal Storage Value (MSV)
+extraction, seasonal storage handling, hydro reservoir assumptions, and design decisions — see
+:doc:`cba-rolling-horizon`.
+
+Within the CBA solve, the storage state of charge (SOC) is carried over between rolling horizons:
+``stores.e_initial`` and ``storage_units.state_of_charge_initial`` at each rolling horizon are updated using
+the previous rolling horizon.
 
 The solved CBA networks are saved in:
 
