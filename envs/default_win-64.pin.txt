@@ -39,7 +39,7 @@ https://conda.anaconda.org/conda-forge/noarch/python-dateutil-2.9.0.post0-pyhe01
 https://conda.anaconda.org/conda-forge/win-64/pandas-2.3.3-py312hc128f0a_2.conda#57d80e87a8b3161bcf26472deceaa556
 https://conda.anaconda.org/conda-forge/noarch/networkx-3.6.1-pyhcf101f3_0.conda#a2c1eeadae7a309daed9d62c96012a2b
 https://conda.anaconda.org/conda-forge/win-64/highspy-1.13.1-np2py312ha76dc74_0.conda#22cdf3a1e768112bf41981f65f961395
-https://conda.anaconda.org/conda-forge/noarch/tsam-3.2.1-pyhc364b38_0.conda#1e9f24fb22f7840bd643874c162b05d3
+https://conda.anaconda.org/conda-forge/noarch/tsam-3.3.0-pyhc364b38_0.conda#9f6d1f37ac16f478a243f9efe681d608
 https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda#053b84beec00b71ea8ff7a4f84b55207
 https://conda.anaconda.org/conda-forge/noarch/pycparser-2.22-pyh29332c3_1.conda#12c566707c80111f9799308d9e265aef
 https://conda.anaconda.org/conda-forge/win-64/cffi-2.0.0-py312he06e257_1.conda#46f7dccfee37a52a97c0ed6f33fcf0a3
