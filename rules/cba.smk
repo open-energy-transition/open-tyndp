@@ -566,23 +566,28 @@ rule summarize_all_indicators:
         "../scripts/cba/summarize_all.py"
 
 
-# pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
-def cba_collection_scenarios(w):
+def cba_target_runs(w):
     """
-    Return cba collection scenarios, ie. the meta scenarios with cba: scenarios config
+    Return runs requested through run.name for the cba pseudo-rule.
     """
     names = config["run"]["name"]
     if isinstance(names, str):
-        names = [names]
+        return [names]
+    return names
+
+
+def cba_collection_scenarios(w):
+    """
+    Return actual cba collection scenarios, i.e. runs with cba.scenarios.
+    """
     scenarios = []
-    # fall back to the raw run.name if it isn’t found in the scenarios file
-    for name in names:
+    for name in cba_target_runs(w):
         try:
             scn = scenario_config(name)
         except KeyError:
-            scenarios.append(name)
             continue
-        scenarios.append(name)
+        if scn.get("cba", {}).get("scenarios"):
+            scenarios.append(name)
     return scenarios
 
 
@@ -646,26 +651,43 @@ def cba_projects(w):
     return expand(cba_project)
 
 
-# collect files to be stored in the scenario directory, e.g., NT-cy1995
-rule collect_cba_scenario:
-    input:
-        lambda w: expand(
-            rules.plot_weather_benchmark.output.plot_file,
-            planning_horizons=config_provider("cba", "planning_horizons")(w),
-            cba_project=cba_projects(w),
-            run=cba_scenarios(w),
-        ),
-        lambda w: expand(
+def collect_cba_scenario_inputs(w):
+    inputs = []
+    inputs.extend(
+        expand(
             rules.plot_indicators.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
-        ),
-        lambda w: expand(
+        )
+    )
+    inputs.extend(
+        expand(
             rules.plot_cba_benchmark.output.plot_file,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
-        ),
+        )
+    )
+
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if run in cba_collection_scenarios(w):
+        inputs.extend(
+            expand(
+                rules.plot_weather_benchmark.output.plot_file,
+                planning_horizons=config_provider("cba", "planning_horizons")(w),
+                cba_project=cba_projects(w),
+                run=cba_scenarios(w),
+            )
+        )
+    return inputs
+
+
+# collect files to be stored in the scenario directory, e.g., NT-cy1995
+rule collect_cba_scenario:
+    input:
+        collect_cba_scenario_inputs,
     output:
         touch(RESULTS + "cba/all_scenarios.txt"),
 
@@ -698,7 +720,7 @@ rule cba:
         # collect files to be stored in the scenario directory, e.g., NT-cy1995
         lambda w: expand(
             rules.collect_cba_scenario.output[0],
-            run=cba_collection_scenarios(w),
+            run=cba_target_runs(w),
         ),
 
 
