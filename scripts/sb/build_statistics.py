@@ -108,7 +108,7 @@ def compute_benchmark(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -123,7 +123,7 @@ def compute_benchmark(
                 comps="Load",
                 groupby=grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -138,7 +138,7 @@ def compute_benchmark(
                 carrier=["biomass to liquid", "biomass to liquid CC"],
                 groupby="carrier",
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -154,7 +154,7 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -258,7 +258,7 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -379,7 +379,7 @@ def compute_benchmark(
                     bus_carrier=elec_bus_carrier,
                     groupby=["bus"] + grouper,
                     aggregate_across_components=True,
-                    aggregate_time=False,
+                    groupby_time=False,
                 )
                 .reindex(eu27_idx, level="bus")
                 .groupby(by=grouper)
