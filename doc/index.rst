@@ -84,7 +84,7 @@ Development status
 ==================
 
 .. warning::
-    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general :doc:`limitations` are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the PyPSA-Eur repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ also remains work in progress.
+    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general :doc:`limitations` are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its benchmarking is ongoing. The github repository `issues <https://github.com/open-energy-transition/open-tyndp/issues>`__ collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that `upstream issues <https://github.com/PyPSA/PyPSA-Eur/issues>`__ need to be addressed in the PyPSA-Eur repository. This `documentation <https://open-tyndp.readthedocs.io/>`__ also remains work in progress.
 
 Already implemented features
 -------------------------------
@@ -268,8 +268,8 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - 🔨
    * -
      - Climate years (weighted average)
-     -
-     - 🔨
+     - `#529 <https://github.com/open-energy-transition/open-tyndp/pull/529>`__
+     - ✅
    * -
      - **CBA Benchmarking**
      - `#405 <https://github.com/open-energy-transition/open-tyndp/pull/405>`__

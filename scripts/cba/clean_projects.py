@@ -39,7 +39,6 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -251,6 +250,34 @@ def build_method_assignments(
     return projects.merge(assigned, on="project_id", how="left")
 
 
+def read_tyndp_electricity_buses(buses_fn: str):
+    """
+    Read node list for electricity from tyndp data input.
+
+    Parameters
+    ----------
+        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
+
+    Returns
+    -------
+        - buses: Index of electricity buses as used in open tyndp
+
+    See Also
+    --------
+        build_tyndp_network.py : build_buses
+    """
+    buses = pd.Index(
+        pd.read_excel(buses_fn)
+        .replace("UK", "GB", regex=True)
+        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
+    )
+
+    # Manually add Italian virtual nodes
+    buses = buses.union(["ITCO", "ITVI"])
+
+    return buses
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -262,8 +289,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    network = pypsa.Network(snakemake.input.network)
-    existing_buses = network.buses.index[network.buses.carrier == "AC"].unique()
+    existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
 
     excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
 

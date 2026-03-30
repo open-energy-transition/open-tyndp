@@ -29,7 +29,7 @@ rule base_network_incumbent:
     log:
         logs("base_network_incumbent.log"),
     benchmark:
-        benchmarks("base_network_incumbent")
+        benchmarks("performances/base_network_incumbent")
     threads: 4
     resources:
         mem_mb=2000,
@@ -57,7 +57,7 @@ rule make_network_comparison:
     log:
         logs("make_network_comparison.log"),
     benchmark:
-        benchmarks("make_network_comparison")
+        benchmarks("performances/make_network_comparison")
     threads: 1
     resources:
         mem_mb=2000,
@@ -87,7 +87,7 @@ rule prepare_osm_network_release:
     log:
         logs("prepare_osm_network_release.log"),
     benchmark:
-        benchmarks("prepare_osm_network_release")
+        benchmarks("performances/prepare_osm_network_release")
     threads: 1
     resources:
         mem_mb=1000,
@@ -110,7 +110,7 @@ rule map_incumbent:
     log:
         logs("prepare_osm_network_release.log"),
     benchmark:
-        benchmarks("prepare_osm_network_release")
+        benchmarks("performances/prepare_osm_network_release")
     threads: 1
     resources:
         mem_mb=1000,

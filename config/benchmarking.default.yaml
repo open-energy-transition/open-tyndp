@@ -241,6 +241,7 @@ benchmarking:
         other-non-res-oil-shale-old: chp and small thermal
         other-non-res-oil-shale-new: chp and small thermal
         load: demand shedding
+        OCGT: slack generator
 
     power_generation:
       table_type: scenario_comparison
@@ -343,6 +344,7 @@ benchmarking:
         other-non-res-oil-shale-old: other non-res
         other-non-res-oil-shale-new: other non-res
         load: demand shedding
+        OCGT: slack generator
 
     methane_supply:
       table_type: scenario_comparison
