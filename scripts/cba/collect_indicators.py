@@ -30,6 +30,11 @@ def collect_indicators_csv(input_files, output_file):
     2. Writes all rows from all files to the output
     3. Ensures all files have the same header structure
     """
+    if isinstance(input_files, str):
+        input_files = [input_files]
+    else:
+        input_files = list(input_files)
+
     if not input_files:
         logger.warning("No input files provided")
         # Create empty output file with no header

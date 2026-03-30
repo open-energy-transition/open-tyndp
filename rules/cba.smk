@@ -466,8 +466,8 @@ def input_indicators(w):
     return expand(
         rules.make_indicators.output.indicators,
         cba_project=filter_projects_by_specs(cba_projects, project_specs),
+        planning_horizons=[w.planning_horizons],
         run=runs,
-        allow_missing=True,
     )
 
 
@@ -527,8 +527,9 @@ rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
             rules.make_indicators.output.indicators,
+            cba_project=[w.cba_project],
+            planning_horizons=[w.planning_horizons],
             run=cba_source_runs(w),
-            allow_missing=True,
         ),
     output:
         indicators=RESULTS
@@ -543,7 +544,8 @@ rule summarize_indicators_per_project:
             rules.average_indicators_per_project_and_planning_horizon.output.indicators,
             transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
-            allow_missing=True,
+            cba_project=[w.cba_project],
+            run=[w.run],
         ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_all_horizons.png",
