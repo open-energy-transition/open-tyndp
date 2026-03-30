@@ -71,6 +71,8 @@ Upcoming Open-TYNDP Release
 
 * Fix NaNs that are introduced in B1 indicator calculation when using `cba.remove_noisy_costs` (https://github.com/open-energy-transition/open-tyndp/pull/578).
 
+* Remove oudated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
+
 **Documentation**
 
 **Developers Note**
