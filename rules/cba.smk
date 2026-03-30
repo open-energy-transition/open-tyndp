@@ -590,7 +590,7 @@ def cba_source_runs(w):
     """
     Return the runs that provide CBA project indicator CSVs.
 
-    Collection scenarios read from their nested cba.scenarios; 
+    Collection scenarios read from their nested cba.scenarios;
     regular runs (e.g., "NT") read from their own run name.
     """
     runs = config_provider("cba", "scenarios", default=None)(w)
