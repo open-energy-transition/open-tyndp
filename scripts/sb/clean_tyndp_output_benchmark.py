@@ -282,13 +282,12 @@ def load_MM_sheet(
     df = pd.concat([df_nodal, df_eu27])
 
     # Add metadata
-    df["unit"] = (
-        re.search(r"\[(.*)]", output_type)
-        .group(1)
-        .rstrip("H2")
-        .replace("€/MWh", "EUR/MWh")
-        .replace("€", "EUR/MWh")
+    df["unit"] = re.sub(
+        r"€(/MWh)?",
+        "EUR/MWh",
+        re.search(r"\[(.*)]", output_type).group(1).rstrip("H2"),
     )
+
     df["table"] = table_name
     if "price" not in table_name:
         df = convert_units(df)

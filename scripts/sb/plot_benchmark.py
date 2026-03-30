@@ -258,7 +258,9 @@ def _plot_prices(
     fig, ax = plt.subplots(
         figsize=(FIGURE_WIDTH_DEFAULT * 1.7, FIGURE_HEIGHT_DEFAULT * 0.7)
     )
-    table_title = table.replace("_", " ").title()
+    table_title = (
+        table.replace("_", " ").replace("excl shed", "excl. load shedding").title()
+    )
     bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
     df.index = df.index.get_level_values("spatial")
     df[[model_col, rfc_source]].plot.bar(
