@@ -133,8 +133,8 @@ have cyclicity disabled. Their dispatch is instead guided by the MSV applied in 
 **(c) Remove annual global constraints**
 
 The ``co2_sequestration_limit`` and ``unsustainable biomass limit`` global constraints
-are removed. These are annual constraints that cannot be enforced in individual weekly
-windows and are not relevant to the dispatch-only CBA.
+are removed. These constraints are instead enforced by CO2 price and dispatch 
+of the biomass and biogas generators.
 
 **(d) Disable annual volume limits**
 
