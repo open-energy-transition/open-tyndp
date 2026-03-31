@@ -16,6 +16,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-zenodo-metadata:
+    name: Validate Zenodo metadata
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Cache Zenodo JSON schema
+      id: cache-schema
+      uses: actions/cache@v5
+      with:
+        path: /tmp/zenodo_schema.json
+        key: zenodo-schema-${{ hashFiles('.pre-commit-config.yaml') }}
+
+    - name: Download Zenodo JSON schema
+      if: steps.cache-schema.outputs.cache-hit != 'true'
+      run: |
+        curl -fsSL \
+          "https://raw.githubusercontent.com/zenodo/zenodo/refs/heads/master/zenodo/modules/deposit/jsonschemas/deposits/records/legacyrecord.json" \
+          -o /tmp/zenodo_schema.json
+
+    - name: Validate .zenodo.json
+      run: pixi exec check-jsonschema --schemafile /tmp/zenodo_schema.json .zenodo.json
+
   unit-tests:
     name: Unit
     runs-on: ubuntu-latest
