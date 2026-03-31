@@ -2765,10 +2765,9 @@ def _add_other_res_capacities(
     )
 
 
-def _add_battery_store_capacities(
+def _add_battery_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
-    tyndp_stores: list[str],
     tyndp_scenario: str,
 ) -> None:
     """
@@ -2780,8 +2779,6 @@ def _add_battery_store_capacities(
         The PyPSA network container object.
     pemmdb_capacities : pd.DataFrame
         All PEMMDB capacities.
-    tyndp_stores : list[str]
-        List of TYNDP storage technologies that were added to the network.
     tyndp_scenario : str
         TYNDP scenario to model.
 
@@ -2975,10 +2972,9 @@ def add_existing_tyndp_capacities(
 
         # Add existing battery capacities from PEMMDB to already attached storage components
         if "battery" in tyndp_stores:
-            _add_battery_store_capacities(
+            _add_battery_capacities(
                 n=n,
                 pemmdb_capacities=pemmdb_capacities,
-                tyndp_stores=tyndp_stores,
                 tyndp_scenario=tyndp_scenario,
             )
 
