@@ -61,7 +61,7 @@ Upcoming Open-TYNDP Release
 
 * Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
 
-* Remove non-extendable TYNDP assets with zero capacity from network to lower network size (https://github.com/open-energy-transition/open-tyndp/pull/583).
+* Remove non-extendable TYNDP assets with zero capacity from network to reduce network size (https://github.com/open-energy-transition/open-tyndp/pull/583).
 
 **Bugfixes and Compatibility**
 
