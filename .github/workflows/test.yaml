@@ -37,7 +37,7 @@ jobs:
           -o /tmp/zenodo_schema.json
 
     - name: Validate .zenodo.json
-      run: pixi exec check-jsonschema --schemafile /tmp/zenodo_schema.json .zenodo.json
+      run: pipx run check-jsonschema --schemafile /tmp/zenodo_schema.json .zenodo.json
 
   unit-tests:
     name: Unit
