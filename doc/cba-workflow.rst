@@ -8,10 +8,15 @@
 Cost-Benefit Analysis (CBA) Workflow
 ####################################
 
-This section describes the methodology and workflow used for the Cost-Benefit Analysis (CBA) in the Open-TYNDP. 
-We run the simulation in weekly windows (a rolling horizon). Because the model processes the year in one-week increments, it uses Marginal Storage Values (MSV), 
-derived from a full-year optimization, to guide the use of long-term resources. 
-This ensures that seasonal assets like hydro reservoirs, biomass, and hydrogen storage are used efficiently across the entire year, rather than being exhausted too quickly.
+This section describes the methodology and workflow used for the
+Cost-Benefit Analysis (CBA) in Open-TYNDP.
+
+The CBA dispatch is solved in weekly rolling-horizon windows. Because the model
+processes the year one week at a time, it uses Marginal Storage Values (MSV),
+derived from a full-year optimization, to guide the use of long-term resources.
+This ensures that seasonal assets such as hydro reservoirs, biomass, and
+hydrogen storage are used efficiently across the full year rather than being
+depleted too early.
 
 Overview
 ========
@@ -61,8 +66,13 @@ a dispatch-ready CBA network:
   optimizes dispatch only; no new investment is allowed.
 - **Hurdle costs** of 0.01 €/MWh are applied to all DC links (per TYNDP 2024 CBA
   Implementation Guidelines, p. 20).
-- **Primary fuel generator capacities** (coal, gas, oil, nuclear, etc.) 
-In the Open-TYNDP, primary fuels are modeled using PyPSA Generator components that represent the fuel supply rather than physical power plants. While the Scenario Building phase determines a peak hourly fuel consumption capacity, these capacities are set to infinity during the CBA workflow. This ensures that the simulation is not artificially restricted by fuel supply limits during peak hours, allowing for a more flexible dispatch
+- **Primary fuel generator capacities** (coal, gas, oil, nuclear, etc.) are set
+  to infinity. In Open-TYNDP, these primary fuels are modeled using PyPSA
+  ``Generator`` components that represent fuel supply rather than physical power
+  plants. While the Scenario Building phase determines a peak hourly fuel
+  consumption capacity, these capacities are uncapped during the CBA workflow.
+  This prevents the dispatch from being artificially restricted by fuel-supply
+  limits during peak hours.
 
 Output: ``resources/cba/networks/simple_{h}.nc``
 
@@ -90,9 +100,16 @@ Output: ``resources/cba/networks/reference_{h}.nc``
 Stage 2a — Snapshot Weightings (``build_msv_snapshot_weightings``) *(optional)*
 ---------------------------------------------------------------------------------
 
-To reduce solving time for the perfect foresight optimization, the workflow allows for temporal aggregation during the MSV extraction process.
+To reduce the solving time of the perfect foresight optimization, the workflow
+supports temporal aggregation during the MSV extraction process.
 
-When ``cba.msv_extraction.resolution`` is set to a coarser hourly resolution (e.g., ``24H``), the native snapshot weightings are resampled to decrease the computational burden of the Stage 2b solve. This rule generates the resampled weightings CSV from the reference network's snapshot index and feeds it directly into the optimization. If no temporal aggregation is configured (``resolution: false``), this step is skipped entirely and Stage 2b uses the network's native resolution.
+When ``cba.msv_extraction.resolution`` is set to a coarser hourly resolution
+(e.g. ``24H``), the native snapshot weightings are resampled to reduce the
+computational burden of the Stage 2b solve. This rule generates the resampled
+weightings CSV from the reference network's snapshot index and feeds it directly
+into the optimization. If no temporal aggregation is configured
+(``resolution: false``), this step is skipped entirely and Stage 2b uses the
+network's native resolution.
 
 Output: ``resources/cba/msv_snapshot_weightings_{h}.csv``
 
@@ -200,11 +217,13 @@ Stage 5a — Project Preparation (``prepare_project``)
 For each evaluated project, the rolling horizon network ``rl_{h}.nc`` is modified
 per the assigned method:
 
-- **Take Out One at the Time (TOOT)**: removes the project's link capacity from the reference network. Behaviour
-  when removal would produce negative capacity is controlled by
+- **TOOT (Take Out One at a Time)** removes the project's link capacity from the
+  reference network. Behaviour when removal would produce negative capacity is
+  controlled by
   ``cba.negative_toot_capacity`` (``"zero"`` clamps to zero; ``"break"`` raises an error).
-- **Put IN one at the Time (PINT)**: adds the project's link capacity. New links are created with
-  ``capital_cost`` computed from length, underwater fraction, and technology costs.
+- **PINT (Put IN at a Time)** adds the project's link capacity. New links are
+  created with ``capital_cost`` computed from length, underwater fraction, and
+  technology costs.
 
 Output: ``resources/cba/networks/project_{cba_project}_{h}.nc``
 
@@ -239,9 +258,10 @@ Outputs:
 Configuration Reference
 =======================
 
-The rolling horizon dispatch is controlled by the ``cba`` section of the configuration
-file. For information on the configuration options for the rolling horizon as well as other settings, 
-including project selection and scenario setup, see :doc:`cba`.
+The rolling horizon dispatch is controlled by the ``cba`` section of the
+configuration file. For information on the rolling-horizon options as well as
+the broader CBA settings, including project selection and scenario setup, see
+:doc:`cba`.
 
 
 Key Assumptions and Design Decisions
