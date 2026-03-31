@@ -27,6 +27,7 @@ References:
 """
 
 import logging
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -812,9 +813,10 @@ if __name__ == "__main__":
     # Convert to DataFrame and save
     df_model = build_long_indicators(indicators, units)
 
-    scenario = snakemake.config.get("tyndp_scenario") or snakemake.config.get(
-        "run", {}
-    ).get("name")
+    run_name = snakemake.wildcards.get("run") or snakemake.config.get("run", {}).get(
+        "name"
+    )
+    scenario = run_name or snakemake.config.get("tyndp_scenario")
     benchmark_rows = load_benchmark_rows(
         snakemake.input.benchmark,
         indicators["project_id"],
@@ -832,8 +834,9 @@ if __name__ == "__main__":
         df = df_model
 
     df = apply_indicator_units(df)
-    if "cy" in scenario:
-        df["cyear"] = int(scenario[scenario.find("cy") + 2 :])
+    match = re.search(r"cy(\d{4})", str(scenario))
+    if match:
+        df["cyear"] = int(match.group(1))
     else:
         df["cyear"] = 2009
     df.to_csv(snakemake.output.indicators, index=False)

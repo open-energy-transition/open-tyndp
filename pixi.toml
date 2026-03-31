@@ -186,7 +186,8 @@ tyndp-cba-test = """bash -c '
     ' --
 """
 tyndp-cyears-test = """bash -c '
-    snakemake -call --configfile config/test/config.cyears.yaml "$@"
+    snakemake -call --configfile config/test/config.cyears.yaml "$@" && \
+    snakemake -call cba --configfile config/test/config.cyears.yaml "$@"
     ' --
 """
 tyndp-cba = """

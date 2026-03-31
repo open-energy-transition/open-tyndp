@@ -458,15 +458,16 @@ def input_indicators(w):
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
 
     # Collection scenarios look for results within regular scenarios
-    runs = config_provider("cba", "scenarios", default="{run}")
+    # Regular scenarios (e.g., "NT") look within their own run.
+    runs = cba_source_runs(w)
     # NOTE: project_specs filtering happens on the collection scenario (and does not descend)
     project_specs = config_provider("cba", "projects")(w)
 
     return expand(
         rules.make_indicators.output.indicators,
         cba_project=filter_projects_by_specs(cba_projects, project_specs),
+        planning_horizons=[w.planning_horizons],
         run=runs,
-        allow_missing=True,
     )
 
 
@@ -526,8 +527,9 @@ rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
             rules.make_indicators.output.indicators,
-            run=config_provider("cba", "scenarios")(w),
-            allow_missing=True,
+            cba_project=[w.cba_project],
+            planning_horizons=[w.planning_horizons],
+            run=cba_source_runs(w),
         ),
     output:
         indicators=RESULTS
@@ -542,7 +544,8 @@ rule summarize_indicators_per_project:
             rules.average_indicators_per_project_and_planning_horizon.output.indicators,
             transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
-            allow_missing=True,
+            cba_project=[w.cba_project],
+            run=[w.run],
         ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_all_horizons.png",
@@ -557,7 +560,7 @@ rule summarize_all_indicators:
             transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
-            run=config_provider("cba", "scenarios")(w),
+            run=cba_source_runs(w),
         ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
@@ -565,25 +568,45 @@ rule summarize_all_indicators:
         "../scripts/cba/summarize_all.py"
 
 
-# pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
-def cba_collection_scenarios(w):
+def cba_target_runs(w):
     """
-    Return cba collection scenarios, ie. the meta scenarios with cba: scenarios config
+    Return runs requested through run.name for the cba pseudo-rule.
     """
     names = config["run"]["name"]
     if isinstance(names, str):
-        names = [names]
+        return [names]
+    return names
+
+
+def cba_collection_scenarios(w):
+    """
+    Return actual cba collection scenarios, i.e. runs with cba.scenarios.
+    """
     scenarios = []
-    # fall back to the raw run.name if it isn’t found in the scenarios file
-    for name in names:
+    for name in cba_target_runs(w):
         try:
             scn = scenario_config(name)
         except KeyError:
-            scenarios.append(name)
             continue
-        if scn.get("cba", {}).get("scenarios") is not None:
+        if scn.get("cba", {}).get("scenarios"):
             scenarios.append(name)
     return scenarios
+
+
+def cba_source_runs(w):
+    """
+    Return the runs that provide CBA project indicator CSVs.
+
+    Collection scenarios read from their nested cba.scenarios;
+    regular runs (e.g., "NT") read from their own run name.
+    """
+    runs = config_provider("cba", "scenarios", default=None)(w)
+    if runs:
+        return runs
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        return run
+    return [run] if run else []
 
 
 def cba_scenarios(w):
@@ -600,17 +623,28 @@ def cba_scenarios(w):
     return scn.get("cba", {}).get("scenarios", [run] if run else [])
 
 
+def cba_projects_run(w):
+    """
+    Return the run from which project methods should be read.
+    """
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if not run:
+        return run
+    try:
+        scn = scenario_config(run)
+    except KeyError:
+        return run
+    nested = scn.get("cba", {}).get("scenarios", [])
+    return nested[0] if nested else run
+
+
 def cba_projects(w):
     """
     List all indicators csv
     """
-    # run = config_provider("run", "name")(w),
-    run = w.get("run", config_provider("run", "name")(w))
-    if isinstance(run, list):
-        run = run[0] if run else ""
-    if "cy" not in run and run:
-        run = f"{run}-cy2009"
-
+    run = cba_projects_run(w)
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
     project_specs = config_provider("cba", "projects")(w)
@@ -619,26 +653,43 @@ def cba_projects(w):
     return expand(cba_project)
 
 
-# collect files to be stored in the scenario directory, e.g., NT-cy1995
-rule collect_cba_scenario:
-    input:
-        lambda w: expand(
-            rules.plot_weather_benchmark.output.plot_file,
-            planning_horizons=config_provider("cba", "planning_horizons")(w),
-            cba_project=cba_projects(w),
-            run=cba_scenarios(w),
-        ),
-        lambda w: expand(
+def collect_cba_scenario_inputs(w):
+    inputs = []
+    inputs.extend(
+        expand(
             rules.plot_indicators.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
-        ),
-        lambda w: expand(
+        )
+    )
+    inputs.extend(
+        expand(
             rules.plot_cba_benchmark.output.plot_file,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
-        ),
+        )
+    )
+
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if run in cba_collection_scenarios(w):
+        inputs.extend(
+            expand(
+                rules.plot_weather_benchmark.output.plot_file,
+                planning_horizons=config_provider("cba", "planning_horizons")(w),
+                cba_project=cba_projects(w),
+                run=cba_scenarios(w),
+            )
+        )
+    return inputs
+
+
+# collect files to be stored in the scenario directory, e.g., NT-cy1995
+rule collect_cba_scenario:
+    input:
+        collect_cba_scenario_inputs,
     output:
         touch(RESULTS + "cba/all_scenarios.txt"),
 
@@ -671,7 +722,7 @@ rule cba:
         # collect files to be stored in the scenario directory, e.g., NT-cy1995
         lambda w: expand(
             rules.collect_cba_scenario.output[0],
-            run=cba_collection_scenarios(w),
+            run=cba_target_runs(w),
         ),
 
 
