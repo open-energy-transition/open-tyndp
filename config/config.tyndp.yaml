@@ -37,7 +37,7 @@ electricity:
 
   extendable_carriers:
     Generator: [OCGT]
-    Store: [battery]  # For TYNDP NT scenario batteries are not extendable
+    Store: []
 
   conventional_carriers: [OCGT]
   tyndp_conventional_carriers:

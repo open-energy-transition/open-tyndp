@@ -994,11 +994,11 @@ def estimate_renewable_capacities(
             )
 
 
-def get_available_storage_carriers(carriers):
+def get_available_storage_carriers(carriers, store_lookup):
     """
     Filter and register available storage carriers from a given list.
     """
-    implemented = set(STORE_LOOKUP.keys())
+    implemented = set(store_lookup.keys())
     input_carriers = set(carriers)
 
     not_implemented = input_carriers - implemented
@@ -1036,7 +1036,9 @@ def attach_storageunits(
     max_hours : dict
         Dictionary of maximum hours for storage units.
     """
-    available_carriers = get_available_storage_carriers(extendable_carriers)
+    available_carriers = get_available_storage_carriers(
+        extendable_carriers, STORE_LOOKUP
+    )
     n.add("Carrier", available_carriers)
 
     for carrier in available_carriers:
@@ -1109,8 +1111,13 @@ def attach_stores(
             "bicharger": "battery bicharger",
             "roundtrip_correction": 0.5,
         }
+        extendable_carriers = extendable_carriers + (
+            ["battery"] if "battery" not in extendable_carriers else []
+        )
 
-    available_carriers = get_available_storage_carriers(extendable_carriers)
+    available_carriers = get_available_storage_carriers(
+        extendable_carriers, store_lookup
+    )
     n.add("Carrier", available_carriers)
 
     for carrier in available_carriers:

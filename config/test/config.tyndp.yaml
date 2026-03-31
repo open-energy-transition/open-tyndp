@@ -39,7 +39,7 @@ electricity:
   extendable_carriers:
     Generator: [OCGT]
     StorageUnit: []
-    Store: [battery]  # For TYNDP NT scenario batteries are not extendable
+    Store: []
     Link: [H2 pipeline]
 
   conventional_carriers: [OCGT]
