@@ -440,10 +440,16 @@ def compute_benchmark(
             df = pd.DataFrame(columns=["carrier"])
     elif table in ["electricity_price", "hydrogen_price"]:
         carrier = "AC" if "electricity" in table else "H2"
+
+        # Collect nodes with energy balance; nodes without balance will have the load shedding price
+        idx_w_balance = n.statistics.energy_balance(
+            bus_carrier=carrier, groupby="bus", aggregate_across_components=True
+        ).index
+
+        mask = (n.buses.carrier == carrier) & (n.buses.index.isin(idx_w_balance))
         df = (
-            n.statistics.prices(
-                bus_carrier=carrier,
-            )
+            n.buses_t.marginal_price.loc[:, mask]
+            .mean()
             .to_frame("value")
             .rename_axis("bus")
             .assign(carrier=carrier)
@@ -452,21 +458,11 @@ def compute_benchmark(
     elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
         carrier = "AC" if "electricity" in table else "H2"
 
-        sns_weights = n.snapshot_weightings.objective
-
         mask = n.buses.carrier == carrier
-        prices = n.buses_t.marginal_price.loc[:, mask].pipe(
-            lambda x: x.where(x < load_shedding.get(carrier, np.inf))
-        )
-
-        weights = get_load_weights(n, carrier, elec_bus_carrier)
-        weights = weights.reindex(prices.columns, axis=1, fill_value=1)
-
-        wp = weights * prices
-        a = wp.mul(sns_weights, axis=0).sum(skipna=True)
-        b = weights.where(prices.notna()).mul(sns_weights, axis=0).sum(skipna=True)
         df = (
-            (a / b)
+            n.buses_t.marginal_price.loc[:, mask]
+            .pipe(lambda x: x.where(x < load_shedding.get(carrier, np.inf)))
+            .mean()
             .to_frame("value")
             .rename_axis("bus")
             .assign(carrier=carrier)

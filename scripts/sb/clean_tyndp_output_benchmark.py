@@ -486,7 +486,7 @@ def clean_MM_data_for_benchmarking(
             "LTOF",
             "NL60",
             "NL6H",
-            "NLAO",
+            "NLA0",
             "NLBH",
             "NLLL",
         ]
