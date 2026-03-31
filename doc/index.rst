@@ -518,6 +518,7 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    benchmarking
    innovation_roadmap
    cba
+   cba-workflow
    cba-indicators
 
 .. toctree::
