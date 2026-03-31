@@ -224,7 +224,7 @@ primary solver fails on a specific window.
     (Stage 5a). It has no direct connection to the rolling horizon preparation network
     ``rl_{h}.nc`` or any earlier stage.
 
-Output: ``results/tyndp/{run}/cba/networks/project_{cba_project}_{h}.nc``
+Output: ``results/{run}/cba/networks/project_{cba_project}_{h}.nc``
 
 Stage 6 — Indicators (``make_indicators`` → ``collect_indicators``)
 --------------------------------------------------------------------
@@ -236,8 +236,8 @@ collected across all projects into a summary CSV.
 
 Outputs:
 
-- ``results/tyndp/{run}/cba/project_{cba_project}_{h}.csv`` (per project)
-- ``results/tyndp/{run}/cba/indicators_{h}.csv`` (all projects)
+- ``results/{run}/cba/project_{cba_project}_{h}.csv`` (per project)
+- ``results/{run}/cba/indicators_{h}.csv`` (all projects)
 
 Configuration Reference
 =======================

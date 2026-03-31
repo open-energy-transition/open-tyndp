@@ -32,9 +32,9 @@ The calculations of the CBA indicators are implemented in the
 
 The calculated CBA indicators for each project are saved in:
 
-- ``results/cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv`` for individual
+- ``results/{run}/cba/project_{cba_project}_{planning_horizons}.csv`` for individual
   project indicators
-- ``results/cba/{cba_method}/indicators_{planning_horizons}.csv`` for the collected
+- ``results/{run}/cba/indicators_{planning_horizons}.csv`` for the collected
   indicators across all projects in a run
 
 
