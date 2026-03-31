@@ -116,7 +116,7 @@ for which planning horizons, and which methodology (TOOT, PINT) is applied:
   One can use this setting to select a single project (e.g., ``t1``), 
   subset of projects (e.g., ``t1-t35``, which would evaluate all projects with IDs from t1 to t35), 
   or all projects (leave empty for all) for evaluation.
-- ``cba.area``: controls which geographic area is used. 
+- ``cba.area``: controls which geographic area is used for the calculation of the indicators 
   The default is ``tyndp``.
 
 Scenario Building input into CBA
