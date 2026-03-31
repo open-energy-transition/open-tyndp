@@ -292,10 +292,10 @@ sector:
   biomass_to_liquid_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
-  biomass_final_demand: # in TWh
-    2030: 936
-    2035: 861   # linear interpolation
-    2040: 785
+  biomass_final_demand: # in TWh and for 8760h
+    2030: 939
+    2035: 863   # linear interpolation
+    2040: 787
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -349,10 +349,10 @@ adjustments:
     factor:
       Generator:
         biogas:
-          p_nom:
-            2030: 1.26  # EU27 biogas potential: PyPSA-Eur 301 TWh vs TYNDP 379 TWh
+          p_nom: # EU27 biogas potential for 8760h
+            2030: 1.26  # PyPSA-Eur 301 TWh vs TYNDP 380 TWh
             2035: 1.89  # interpolated
-            2040: 2.51  # EU27 biogas potential: PyPSA-Eur 306 TWh vs TYNDP 767 TWh
+            2040: 2.51  # PyPSA-Eur 306 TWh vs TYNDP 771 TWh
           e_sum_max:
             2030: 1.26
             2035: 1.89
@@ -362,18 +362,18 @@ adjustments:
             2035: 1.89
             2040: 2.51
         solid biomass:
-          p_nom:
-            2030: 2.01 # EU27 biomass potential: PyPSA-Eur 974 TWh vs TYNDP 1959 TWh = 1463 Supply Tool + 496 Other-RES
-            2035: 1.89 # interpolated
-            2040: 1.76 # EU27 biomass potential: PyPSA-Eur 950 TWh vs TYNDP 1673 TWh = 1316 Supply Tool + 357 Other-RES
+          p_nom: # EU27 biomass potential for 8760h
+            2030: 2.02 # PyPSA-Eur 974 TWh vs TYNDP 1964 TWh (1959 TWh = 1463 Supply Tool + 496 Other-RES)
+            2035: 1.90 # interpolated
+            2040: 1.77 # PyPSA-Eur 950 TWh vs TYNDP 1678 TWh (1673 TWh = 1316 Supply Tool + 357 Other-RES)
           e_sum_max:
-            2030: 2.01
-            2035: 1.89
-            2040: 1.76
+            2030: 2.02
+            2035: 1.90
+            2040: 1.77
           e_sum_min:
-            2030: 2.01
-            2035: 1.89
-            2040: 1.76
+            2030: 2.02
+            2035: 1.90
+            2040: 1.77
     absolute: false
 
 solving:
