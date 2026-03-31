@@ -77,6 +77,8 @@ Upcoming Open-TYNDP Release
 
 **Documentation**
 
+* Add description of CBA config settings and how to run single vs collection (climate years) scenarios (https://github.com/open-energy-transition/open-tyndp/pull/584).
+
 **Developers Note**
 
 Upcoming PyPSA-Eur Release
