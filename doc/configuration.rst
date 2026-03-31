@@ -845,7 +845,9 @@ See the `data/versions.csv` file for all available datasets and their sources/ve
 ``cba``
 =======
 
-Cost-Benefit Analysis (CBA) configuration for evaluating TYNDP transmission and storage projects using TOOT (Take One Out at a Time) and PINT (Put In at a Time) methodologies.
+Cost-Benefit Analysis (CBA) configuration for evaluating TYNDP transmission and
+storage projects using TOOT (Take One Out at a Time) and PINT (Put In at a Time)
+methodologies.
 
 .. jsonschema:: ../config/schema.json#/$defs/CbaConfig
    :lift_description:
