@@ -241,6 +241,7 @@ benchmarking:
         other-non-res-oil-shale-old: chp and small thermal
         other-non-res-oil-shale-new: chp and small thermal
         load: demand shedding
+        OCGT: slack generator
 
     power_generation:
       table_type: scenario_comparison
@@ -343,6 +344,7 @@ benchmarking:
         other-non-res-oil-shale-old: other non-res
         other-non-res-oil-shale-new: other non-res
         load: demand shedding
+        OCGT: slack generator
 
     methane_supply:
       table_type: scenario_comparison
@@ -412,7 +414,7 @@ benchmarking:
         biomass to liquid: for biofuels
         biomass to liquid CC: for biofuels
         biogas: for biomethane
-        other-res-biomass: for electricity
+        other-res-biomass: other res
       biomass_to_methane_efficiency:
         # Values from TYNDP 2024 Supply Tool
         2030: 0.68
@@ -420,6 +422,11 @@ benchmarking:
         2040: 0.68
         2045: 0.68  # Interpolated
         2050: 0.68
+      biogas_not_upgraded:
+        # Values from TYNDP 2024 Supply Tool, EU27, 8760h
+        2030: 33  # TWh
+        2035: 45
+        2040: 56
 
     energy_imports:
       table_type: scenario_comparison

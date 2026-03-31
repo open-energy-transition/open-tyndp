@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
+* Collect results of multi weather year CBA's and calculate weighted average KPI's and plot them (https://github.com/open-energy-transition/open-tyndp/pull/529).
+
 * Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
 
 * Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
@@ -53,6 +55,12 @@ Upcoming Open-TYNDP Release
 
 * Improve hydro modelling assumptions used for Run-of-River (ROR), pondage and reservoir (https://github.com/open-energy-transition/open-tyndp/pull/567).
 
+* Rename OCGT as slack generator for benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/573).
+
+* Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
+
+* Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
@@ -64,6 +72,10 @@ Upcoming Open-TYNDP Release
 * Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
 
 * Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
+
+* Fix NaNs that are introduced in B1 indicator calculation when using `cba.remove_noisy_costs` (https://github.com/open-energy-transition/open-tyndp/pull/578).
+
+* Remove oudated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
 
 **Documentation**
 
