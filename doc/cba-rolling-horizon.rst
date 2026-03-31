@@ -4,9 +4,9 @@
 
 .. _cba-rolling-horizon:
 
-##############################################
-CBA Workflow
-##############################################
+####################################
+Cost-Benefit Analysis (CBA) Workflow
+####################################
 
 This section describes the methodology and workflow used for the Cost-Benefit Analysis (CBA) in the Open-TYNDP. We run the simulation in weekly windows (a rolling horizon). Because the model processes the year in one-week increments, it uses Marginal Storage Values (MSV), derived from a full-year optimization, to guide the use of long-term resources. This ensures that seasonal assets like hydro reservoirs, biomass, and hydrogen storage are used efficiently across the entire year, rather than being exhausted too quickly.
 
