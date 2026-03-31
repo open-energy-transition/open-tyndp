@@ -124,7 +124,8 @@ There are also CBA settings for assumptions used in the calculation of the CBA i
   during the network solves to some components in the network for the calculation 
   of the CBA B1 indicator. This is only a post-processing step. The default is ``true``.
 - ``cba.negative_toot_capacity``: defines how TOOT project removal is handled if the
-  removed capacity would make the remaining interconnector capacity negative.
+  removed capacity would make the remaining project capacity negative. This is only for fringe cases where the reference grid capacity 
+  leads to negative project capacity after removal. For almost all projects this is not needed. 
 
 Rolling horizon dispatch
 ------------------------
