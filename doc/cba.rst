@@ -173,7 +173,7 @@ There are also CBA settings for assumptions used in the calculation of the CBA i
 Rolling horizon dispatch
 ------------------------
 
-The rolling horizon dispatch itself is controlled by the remaining ``cba`` settings:
+The settings for the rolling horizon dispatch can be defined in the following sections of the configuration file.:
 
 .. code-block:: yaml
 
@@ -195,12 +195,18 @@ The rolling horizon dispatch itself is controlled by the remaining ``cba`` setti
           name: highs
           options: highs-simplex
 
-- ``cba.storage.cyclic_carriers``: lists storage carriers that remain cyclic within
-  each rolling horizon window.
-- ``cba.storage.soc_boundary_carriers``: lists storage unit carriers whose state of
-  charge is pinned at rolling horizon boundaries from the perfect foresight solution.
-- ``cba.msv_extraction``: controls how Marginal Storage Values (MSV) are extracted and
-  resampled before the rolling horizon solve.
+- ``cba.storage.cyclic_carriers``: lists which storage carriers remain cyclic within
+  each rolling horizon window. All other store and storage unit carriers automatically 
+  receive marginal storage value and have cyclicity disabled.
+- ``cba.storage.soc_boundary_carriers``: lists storage unit carriers for which the state of charge 
+  is pinned at the boundaries between rolling horizon windows, using values pre-computed from the 
+  perfect foresight (full-year) optimisation.
+- ``cba.msv_extraction.resolution``: controls temporal resolution for the MSV extraction solve. 
+  If `false`, it uses the same temporal resolution as defined in ``clustering.resolution_sector``. 
+  Otherwise, one could also provide a string like '24H', '48H' for a different temporal resolution.
+- ``cba.msv_extraction.resample_method``: method for resampling marginal storage value to target network resolution. 
+  The default is 'ffill' (forward fill), which holds the MSV constant within each cluster. 
+  Another option is 'interpolate', which linearly interpolates the MSV between cluster centers.
 - ``cba.solving.options.horizon`` and ``cba.solving.options.overlap``: define the
   rolling horizon window length and overlap.
 - ``cba.solving.solver`` and ``cba.solving.solver_options``: configure the solver and solver settings 
@@ -228,9 +234,11 @@ This is the pattern used in ``config/scenarios.tyndp.yaml``:
       cba:
         scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
 
-The individual climate-year scenarios usually contain the weather-year-specific
-``snapshots`` and ``atlite.default_cutout`` settings, and may also define
-``cba.sb_scenario``:
+The individual climate-year scenarios should contain the weather-year-specific
+``snapshots`` and ``atlite.default_cutout`` settings. 
+It should also define a ``cba.sb_scenario`` setting to specify which SB scenario is used as the input for the CBA workflow.
+Note that any ``cba.sb_scenario`` defined here should also be defined in the scenario file with the same name (e.g., ``NT`` in this example) 
+and should contain the SB settings for the scenario, such as the planning horizon, cluster settings, etc.
 
 .. code-block:: yaml
 
