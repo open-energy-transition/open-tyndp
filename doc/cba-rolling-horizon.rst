@@ -5,13 +5,10 @@
 .. _cba-rolling-horizon:
 
 ##############################################
-CBA Rolling Horizon Dispatch
+CBA Workflow
 ##############################################
 
-This page documents the rolling horizon dispatch approach used in the CBA workflow,
-including the preparation steps, the Marginal Storage Value (MSV) extraction, and the
-assumptions that govern how seasonal storage, hydro reservoirs, and volume-limited
-components are handled.
+This section describes the methodology and workflow used for the Cost-Benefit Analysis (CBA) in the Open-TYNDP. We run the simulation in weekly windows (a rolling horizon). Because the model processes the year in one-week increments, it uses Marginal Storage Values (MSV), derived from a full-year optimization, to guide the use of long-term resources. This ensures that seasonal assets like hydro reservoirs, biomass, and hydrogen storage are used efficiently across the entire year, rather than being exhausted too quickly.
 
 Overview
 ========
@@ -23,8 +20,7 @@ Both networks are solved using a **rolling horizon** approach: the full year is 
 into sequential weekly windows (168 hourly snapshots each, with an overlap of 1 snapshot),
 which are solved one after another.
 
-Rolling horizon is necessary because solving the full year in a single optimisation is
-computationally prohibitive at the required spatial and temporal resolution. However, a
+ However, a
 naive rolling horizon introduces **myopia** for seasonal storage components (H2 stores,
 gas stores, large hydro reservoirs): the optimizer cannot see beyond the current week and
 therefore makes suboptimal dispatch decisions. The MSV preparation step described below
@@ -55,10 +51,8 @@ a dispatch-ready CBA network:
   optimizes dispatch only; no new investment is allowed.
 - **Hurdle costs** of 0.01 €/MWh are applied to all DC links (per TYNDP 2024 CBA
   Implementation Guidelines, p. 20).
-- **Primary fuel generator capacities** (coal, gas, oil, nuclear, etc.) are set to
-  infinity. With fixed capacities and a weekly horizon, the original finite capacity
-  could create artificial peak-supply shortfalls. Since these generators have no capital
-  costs, uncapping them does not distort the objective.
+- **Primary fuel generator capacities** (coal, gas, oil, nuclear, etc.) 
+In the Open-TYNDP, primary fuels are modeled using PyPSA Generator components that represent the fuel supply rather than physical power plants. While the Scenario Building phase determines a peak hourly fuel consumption capacity, these capacities are set to infinity during the CBA workflow. This ensures that the simulation is not artificially restricted by fuel supply limits during peak hours, allowing for a more flexible dispatch
 
 Output: ``resources/cba/networks/simple_{h}.nc``
 
@@ -86,13 +80,9 @@ Output: ``resources/cba/networks/reference_{h}.nc``
 Stage 2a — Snapshot Weightings (``build_msv_snapshot_weightings``) *(optional)*
 ---------------------------------------------------------------------------------
 
-When ``cba.msv_extraction.resolution`` is set to a coarser hourly resolution (e.g.
-``"24H"``), the native snapshot weightings must be resampled before the perfect
-foresight solve. This rule generates the resampled weightings CSV from the reference
-network's snapshot index and feeds it **directly into** Stage 2b.
+To reduce solving time for the perfect foresight optimization, the workflow allows for temporal aggregation during the MSV extraction process.
 
-If no temporal aggregation is configured (``resolution: false``), this step is skipped
-entirely and Stage 2b uses the network's native resolution.
+When ``cba.msv_extraction.resolution`` is set to a coarser hourly resolution (e.g., ``24H``), the native snapshot weightings are resampled to decrease the computational burden of the Stage 2b solve. This rule generates the resampled weightings CSV from the reference network's snapshot index and feeds it directly into the optimization. If no temporal aggregation is configured (``resolution: false``), this step is skipped entirely and Stage 2b uses the network's native resolution.
 
 Output: ``resources/cba/msv_snapshot_weightings_{h}.csv``
 
@@ -128,7 +118,7 @@ network and applies five transformations **in order**:
 
 For all stores and storage units that are not in ``cyclic_carriers`` (i.e. seasonal
 components) and were originally cyclic, ``e_initial`` / ``state_of_charge_initial``
-is set to the PF solution's last-snapshot value. This must happen *before* disabling
+is set to the perfect foresight solution's last-snapshot value. This must happen *before* disabling
 cyclicity so the original cyclic flags are still readable.
 
 **(b) Disable cyclicity for seasonal storage**
@@ -200,10 +190,10 @@ Stage 5a — Project Preparation (``prepare_project``)
 For each evaluated project, the rolling horizon network ``rl_{h}.nc`` is modified
 per the assigned method:
 
-- **TOOT**: removes the project's link capacity from the reference network. Behaviour
+- **Take Out One at the Time (TOOT)**: removes the project's link capacity from the reference network. Behaviour
   when removal would produce negative capacity is controlled by
   ``cba.negative_toot_capacity`` (``"zero"`` clamps to zero; ``"break"`` raises an error).
-- **PINT**: adds the project's link capacity. New links are created with
+- **Put IN one at the Time (PINT)**: adds the project's link capacity. New links are created with
   ``capital_cost`` computed from length, underwater fraction, and technology costs.
 
 Output: ``resources/cba/networks/project_{cba_project}_{h}.nc``
@@ -267,18 +257,6 @@ file. The relevant parameters are:
 Key Assumptions and Design Decisions
 =====================================
 
-**Why** ``cyclic_carriers`` **instead of** ``seasonal_carriers`` **?**
-
-The config uses a single ``cyclic_carriers`` allowlist. Everything *not* on the list
-is implicitly seasonal and receives MSV. This is simpler and less error-prone than
-maintaining two separate lists.
-
-**Why** ``mu_energy_balance`` **and not bus marginal prices?**
-
-The bus marginal price is an equilibrium market price. The ``mu_energy_balance`` dual
-is the shadow price of the storage energy balance constraint specifically — it is the
-precise LP signal that, when applied as a marginal cost, replicates the storage
-valuation from the perfect foresight problem.
 
 **Why pin hydro SOC at window boundaries?**
 
