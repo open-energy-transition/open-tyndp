@@ -533,10 +533,14 @@ def remove_tyndp_fixed_p(
                 "H2 pipeline",
                 "SMR",
                 "SMR CC",
-                "H2 tank-storage",
-                "H2 cavern-storage",
+                "H2 tank-storage charger",
+                "H2 tank-storage discharger",
+                "H2 cavern-storage charger",
+                "H2 cavern-storage discharger",
+                "battery charger",
+                "battery discharger",
+                "other-res-biomass",
             ]
-            + ["other-res-biomass"]
             if c.name == "Link"
             else tyndp_hydro
             + [
@@ -546,6 +550,7 @@ def remove_tyndp_fixed_p(
                 "onwind",
                 "solar-pv-rooftop",
                 "solar-pv-utility",
+                "battery",
             ]
         )
         attr = "e" if c.name == "Store" else "p"

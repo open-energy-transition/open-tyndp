@@ -193,7 +193,11 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_demand":
         grouper = ["carrier"]
-        exclusions = ["H2 pipeline", "H2 cavern-storage charger"]
+        exclusions = [
+            "H2 pipeline",
+            "H2 cavern-storage charger",
+            "H2 tank-storage charger",
+        ]
         df = n.statistics.withdrawal(
             comps=demand_comps,
             bus_carrier="H2",
@@ -306,7 +310,12 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
-        exclusions = ["H2 pipeline", "H2 pipeline OH", "H2 cavern-storage discharger"]
+        exclusions = [
+            "H2 pipeline",
+            "H2 pipeline OH",
+            "H2 cavern-storage discharger",
+            "H2 tank-storage discharger",
+        ]
         df = n.statistics.supply(
             comps=supply_comps,
             bus_carrier="H2",
@@ -356,6 +365,8 @@ def compute_benchmark(
                     "H2 Electrolysis",
                     "H2 pipeline",
                     "H2 pipeline OH",
+                    "H2 cavern-storage discharger",
+                    "H2 tank-storage discharger",
                     "SMR",
                     "SMR CC",
                 ],

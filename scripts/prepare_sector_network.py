@@ -2590,9 +2590,12 @@ def _add_h2_storage_capacities(
     n.stores.loc[h2_stores_i, ["e_nom", "e_nom_min"]] = store_caps.reindex(
         n.stores.loc[h2_stores_i, :].index
     ).fillna(0.0)
-    n.links.loc[h2_chargers_i, ["p_nom", "p_nom_min"]] = link_caps.reindex(
-        n.links.loc[h2_chargers_i, :].index
-    ).fillna(0.0)
+    link_caps = link_caps.reindex(h2_chargers_i, fill_value=0.0)
+    dischargers_i = h2_chargers_i[h2_chargers_i.str.contains("discharger")]
+    link_caps[dischargers_i] = link_caps[dischargers_i].div(
+        n.links.loc[dischargers_i, "efficiency"]
+    )
+    n.links.loc[h2_chargers_i, ["p_nom", "p_nom_min"]] = link_caps
 
     # Add expansion constraints to extendable assets
     store_caps_max = h2_storage_capacities.set_index("bus").e_nom_max
@@ -2609,9 +2612,14 @@ def _add_h2_storage_capacities(
     n.stores.loc[h2_stores_extendable_i, ["e_nom_max"]] = store_caps_max.reindex(
         n.stores.loc[h2_stores_extendable_i, :].index
     ).fillna(0.0)
-    n.links.loc[h2_chargers_extendable_i, ["p_nom_max"]] = link_caps_max.reindex(
-        n.links.loc[h2_chargers_extendable_i, :].index
-    ).fillna(0.0)
+    link_caps_max = link_caps_max.reindex(h2_chargers_extendable_i, fill_value=0.0)
+    ext_dischargers_i = h2_chargers_extendable_i[
+        h2_chargers_extendable_i.str.contains("discharger")
+    ]
+    link_caps_max[ext_dischargers_i] = link_caps_max[ext_dischargers_i].div(
+        n.links.loc[ext_dischargers_i, "efficiency"]
+    )
+    n.links.loc[h2_chargers_extendable_i, ["p_nom_max"]] = link_caps_max
 
     remove_zero_capacity_non_extendable(
         n,
@@ -2757,6 +2765,78 @@ def _add_other_res_capacities(
     )
 
 
+def _add_battery_capacities(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    tyndp_scenario: str,
+) -> None:
+    """
+    Add PEMMDB capacities for battery storages to existing assets in the network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The PyPSA network container object.
+    pemmdb_capacities : pd.DataFrame
+        All PEMMDB capacities.
+    tyndp_scenario : str
+        TYNDP scenario to model.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by adding battery capacities.
+    """
+
+    logger.info("Adding PEMMDB capacities to battery storage assets.")
+
+    # Add Store capacities
+    tech = "battery"
+    stores_i = n.stores.query("carrier == @tech").index
+    caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
+    caps = caps.set_index(caps.index + " " + caps["index_carrier"])
+    n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
+    if tyndp_scenario == "NT":
+        n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+
+    # Add links capacities
+    for tech in ["battery charger", "battery discharger"]:
+        links_i = n.links.query("carrier == @tech").index
+        caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
+        caps = caps.set_index(caps.index + " " + caps["index_carrier"])
+
+        # Adjust efficiencies with PEMMDB values
+        n.links.loc[links_i, "efficiency"] = (
+            caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
+        )
+
+        # Set capacities
+        p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
+        if tech == "battery discharger":
+            p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
+        n.links.loc[links_i, "p_nom"] = p_nom
+
+        # Set p_nom_extendable False for NT scenario
+        if tyndp_scenario == "NT":
+            n.links.loc[links_i, "p_nom_extendable"] = False
+
+    remove_zero_capacity_non_extendable(
+        n,
+        carriers=[
+            "battery",
+            "battery charger",
+            "battery discharger",
+        ],
+        component_types={"Store", "Link"},
+    )
+    # Drop Storage buses that do not have a store connected to it anymore
+    remaining_stores = n.stores[n.stores.carrier == "battery"].bus.unique()
+    idx = n.buses.loc[
+        (n.buses.carrier == "battery") & ~n.buses.index.isin(remaining_stores)
+    ].index
+    n.remove("Bus", idx)
+
+
 def add_existing_tyndp_capacities(
     n: pypsa.Network,
     pemmdb_capacities: pd.DataFrame,
@@ -2767,6 +2847,7 @@ def add_existing_tyndp_capacities(
     tyndp_renewable_carriers: list[str],
     tyndp_conventional_thermals: list[str],
     h2_topology_tyndp: bool,
+    tyndp_stores: list[str],
     costs: pd.DataFrame,
     profiles_pecd: dict[str, str],
     nuclear_profiles: pd.DataFrame,
@@ -2774,6 +2855,7 @@ def add_existing_tyndp_capacities(
     extendable_carriers: list | set,
     investment_year: int,
     enable_pemmdb_caps: bool,
+    tyndp_scenario: str,
     group_conventionals: bool,
 ) -> None:
     """
@@ -2809,6 +2891,8 @@ def add_existing_tyndp_capacities(
         List of TYNDP conventional thermal technologies that were added to the network.
     h2_topology_tyndp : bool
         Whether TYNDP H2 topology is modeled, so that existing capacities are added for associated components.
+    tyndp_stores : list[str]
+        List of TYNDP storage technologies that were added to the network.
     costs : pd.DataFrame
         DataFrame containing the cost data.
     profiles_pecd : dict[str, str]
@@ -2823,6 +2907,8 @@ def add_existing_tyndp_capacities(
         Year for which to get trajectories.
     enable_pemmdb_caps : bool
         Whether to include PEMMDB capacities.
+    tyndp_scenario : str
+        TYNDP scenario to model.
     group_conventionals : bool
         Whether TYNDP conventional carriers are aggregated into higher level groups.
 
@@ -2837,7 +2923,7 @@ def add_existing_tyndp_capacities(
             "Adding PEMMDB capacities, must-runs and availabilities to components."
         )
 
-        # Attach onwind and solar technologies and add existing capacities
+        # Attach onwind and solar technologies and add existing capacities from PEMMDB
         tyndp_solar_onwind = [
             c for c in tyndp_renewable_carriers if "solar" in c or "onwind" in c
         ]
@@ -2859,7 +2945,7 @@ def add_existing_tyndp_capacities(
                 planning_horizon=investment_year,
             )
 
-        # Add existing hydro capacities and inflows
+        # Add existing hydro capacities and inflows from PEMMDB
         if [c for c in tyndp_renewable_carriers if c.startswith("hydro")]:
             _add_hydro_capacities(
                 n=n,
@@ -2868,7 +2954,7 @@ def add_existing_tyndp_capacities(
                 planning_horizon=investment_year,
             )
 
-        # Add existing conventional thermal capacities to already attached conventional technologies
+        # Add existing conventional thermal capacities from PEMMDB to already attached conventional technologies
         if tyndp_conventional_thermals:
             trajectories_nuclear = trajectories.query(
                 "pyear == @investment_year and index_carrier == 'nuclear'"
@@ -2884,6 +2970,15 @@ def add_existing_tyndp_capacities(
                 group_conventionals=group_conventionals,
             )
 
+        # Add existing battery capacities from PEMMDB to already attached storage components
+        if "battery" in tyndp_stores:
+            _add_battery_capacities(
+                n=n,
+                pemmdb_capacities=pemmdb_capacities,
+                tyndp_scenario=tyndp_scenario,
+            )
+
+        # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
         if h2_topology_tyndp:
             trajectories_electrolyser = trajectories.query(
                 "pyear == @investment_year and carrier == 'electrolyser'"
@@ -2895,6 +2990,7 @@ def add_existing_tyndp_capacities(
                 trajectories=trajectories_electrolyser,
             )
 
+        # Add existing Other RES capacities from PEMMDB to already attached Other RES components
         if "other-res" in tyndp_renewable_carriers:
             _add_other_res_capacities(
                 n=n,
@@ -2902,6 +2998,7 @@ def add_existing_tyndp_capacities(
                 pemmdb_profiles=pemmdb_profiles,
             )
 
+    # Add existing SMR and H2 storage capacities from SB inputs to already attached components
     if h2_topology_tyndp:
         logger.info("Adding SMR, SMR CC and H2 storage capacities.")
         _add_smr_capacities(
@@ -3027,6 +3124,7 @@ def insert_electricity_distribution_grid(
     options: dict,
     pop_layout: pd.DataFrame,
     solar_rooftop_potentials_fn: str,
+    ext_stores: list[str],
 ) -> None:
     """
     Insert electricity distribution grid components into the network.
@@ -3051,6 +3149,8 @@ def insert_electricity_distribution_grid(
         Population data per node with at least:
         - 'total' column containing population in thousands
         Index should match network nodes
+    ext_stores : list[str]
+        List of extendable Stores
 
     Returns
     -------
@@ -3063,7 +3163,8 @@ def insert_electricity_distribution_grid(
     - Low voltage buses for each node
     - Distribution grid links connecting high to low voltage
     - Rooftop solar potential based on population density
-    - Home battery storage systems with separate charger/discharger links
+    - Home battery storage systems with separate charger/discharger links if `home battery` is included
+      in electricity:extendable_carriers:Store
 
     The function also adjusts the connection points of loads like:
     - Regular electricity demand
@@ -3158,51 +3259,52 @@ def insert_electricity_distribution_grid(
             lifetime=costs.at["solar-rooftop", "lifetime"],
         )
 
-    n.add("Carrier", "home battery")
+    if "home battery" in ext_stores:
+        n.add("Carrier", "home battery")
 
-    n.add(
-        "Bus",
-        nodes + " home battery",
-        location=nodes,
-        carrier="home battery",
-        unit="MWh_el",
-    )
+        n.add(
+            "Bus",
+            nodes + " home battery",
+            location=nodes,
+            carrier="home battery",
+            unit="MWh_el",
+        )
 
-    n.add(
-        "Store",
-        nodes + " home battery",
-        bus=nodes + " home battery",
-        location=nodes,
-        e_cyclic=True,
-        e_nom_extendable=True,
-        carrier="home battery",
-        capital_cost=costs.at["home battery storage", "capital_cost"],
-        lifetime=costs.at["battery storage", "lifetime"],
-    )
+        n.add(
+            "Store",
+            nodes + " home battery",
+            bus=nodes + " home battery",
+            location=nodes,
+            e_cyclic=True,
+            e_nom_extendable=True,
+            carrier="home battery",
+            capital_cost=costs.at["home battery storage", "capital_cost"],
+            lifetime=costs.at["battery storage", "lifetime"],
+        )
 
-    n.add(
-        "Link",
-        nodes + " home battery charger",
-        bus0=nodes + " low voltage",
-        bus1=nodes + " home battery",
-        carrier="home battery charger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        capital_cost=costs.at["home battery inverter", "capital_cost"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
+        n.add(
+            "Link",
+            nodes + " home battery charger",
+            bus0=nodes + " low voltage",
+            bus1=nodes + " home battery",
+            carrier="home battery charger",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            capital_cost=costs.at["home battery inverter", "capital_cost"],
+            p_nom_extendable=True,
+            lifetime=costs.at["battery inverter", "lifetime"],
+        )
 
-    n.add(
-        "Link",
-        nodes + " home battery discharger",
-        bus0=nodes + " home battery",
-        bus1=nodes + " low voltage",
-        carrier="home battery discharger",
-        efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
-        marginal_cost=costs.at["home battery storage", "marginal_cost"],
-        p_nom_extendable=True,
-        lifetime=costs.at["battery inverter", "lifetime"],
-    )
+        n.add(
+            "Link",
+            nodes + " home battery discharger",
+            bus0=nodes + " home battery",
+            bus1=nodes + " low voltage",
+            carrier="home battery discharger",
+            efficiency=costs.at["battery inverter", "efficiency"] ** 0.5,
+            marginal_cost=costs.at["home battery storage", "marginal_cost"],
+            p_nom_extendable=True,
+            lifetime=costs.at["battery inverter", "lifetime"],
+        )
 
 
 def insert_gas_distribution_costs(
@@ -6780,7 +6882,7 @@ def add_biomass(
 
     if options["biomass_final_demand"] and not options["biomass_spatial"]:
         logger.info("Adding final energy demand for biomass.")
-        # convert from TWh to MWh
+        # convert from TWh to MW
         p_set = (
             get(options["biomass_final_demand"], investment_year)
             * nyears
@@ -9552,6 +9654,7 @@ if __name__ == "__main__":
         costs=costs,
         buses_i=pop_layout.index,
         extendable_carriers=extendable_stores,
+        tyndp_stores=snakemake.params.tyndp_stores,
     )
 
     if options["h2_topology_tyndp"]:
@@ -9569,6 +9672,7 @@ if __name__ == "__main__":
             tyndp_renewable_carriers=tyndp_renewable_carriers,
             tyndp_conventional_thermals=tyndp_conventional_thermals,
             h2_topology_tyndp=options["h2_topology_tyndp"],
+            tyndp_stores=snakemake.params.tyndp_stores,
             costs=costs,
             profiles_pecd=profiles_pecd,
             nuclear_profiles=tyndp_nuclear_profiles,
@@ -9576,6 +9680,7 @@ if __name__ == "__main__":
             extendable_carriers=snakemake.params.electricity["extendable_carriers"],
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
+            tyndp_scenario=tyndp_scenario,
             group_conventionals=snakemake.params.electricity[
                 "group_tyndp_conventionals"
             ],
@@ -9791,11 +9896,12 @@ if __name__ == "__main__":
 
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(
-            n,
-            costs,
-            options,
-            pop_layout,
-            snakemake.input.solar_rooftop_potentials,
+            n=n,
+            costs=costs,
+            options=options,
+            pop_layout=pop_layout,
+            solar_rooftop_potentials_fn=snakemake.input.solar_rooftop_potentials,
+            ext_stores=extendable_stores,
         )
 
     if options["enhanced_geothermal"].get("enable", False):

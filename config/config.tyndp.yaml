@@ -37,6 +37,7 @@ electricity:
 
   extendable_carriers:
     Generator: [OCGT]
+    Store: []
 
   conventional_carriers: [OCGT]
   tyndp_conventional_carriers:
@@ -432,7 +433,6 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
-    - home battery
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
