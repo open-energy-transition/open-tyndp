@@ -67,7 +67,145 @@ and ``{cba_project}`` is the project ID of the project being evaluated.
 Calculate CBA Indicators
 ========================
 
-After solving both the reference and project networks, several key indicators are calculated to assess benefits of each project and to determine whether the project provides a positive net benefit to the energy system.
-The indicators calculated in the CBA are described in additional detail in the ``doc/cba-indicators.rst`` document.
-The calculations of the CBA indicators are implemented in the ``scripts/cba/make_indicators.py`` script. 
-The calculated CBA indicators for each project are saved in the CSV file: ``results/cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv``.
+After solving both the reference and project networks, several key indicators are
+calculated to assess benefits of each project and to determine whether the project
+provides a positive net benefit to the energy system. The indicators calculated in the
+CBA are described in additional detail in the ``doc/cba-indicators.rst`` document.
+The calculations of the CBA indicators are implemented in the
+``scripts/cba/make_indicators.py`` script.
+
+The calculated CBA indicators for each project are saved in:
+
+- ``results/cba/{cba_method}/project_{cba_project}_{planning_horizons}.csv`` for individual
+  project indicators
+- ``results/cba/{cba_method}/indicators_{planning_horizons}.csv`` for the collected
+  indicators across all projects in a run
+
+
+Configuration
+=============
+
+The CBA workflow is configured in the top-level ``cba`` section of the configuration
+file. This documentation section describes how the settings affect the workflow.
+
+Project selection and scope
+---------------------------
+
+The following settings define which CBA projects (transmission, storage) are evaluated, 
+for which planning horizons, and which methodology (TOOT, PINT) is applied:
+
+.. code-block:: yaml
+
+    cba:
+      planning_horizons:
+      - 2030
+      - 2040
+      methods:
+      - toot
+      - pint
+      projects:
+      - t1-t35
+      area: tyndp
+
+- ``cba.planning_horizons``: selects the planning horizons for the CBA workflow.
+  These are typically a subset of the main scenario planning horizons.
+- ``cba.methods``: selects whether TOOT or PINT are applied in the workflow. 
+  Note that this does not mean ALL projects are evaluated with TOOT and/or PINT. 
+  Rather, this setting activates TOOT or PINT as a method in the workflow in general.
+- ``cba.projects``: defines which project identifiers are included in the assessment. 
+  One can use this setting to select a single project (e.g., ``t1``), 
+  subset of projects (e.g., ``t1-t35``, which would evaluate all projects with IDs from t1 to t35), 
+  or all projects (leave empty for all) for evaluation.
+- ``cba.area``: controls which geographic area is used. 
+  The default is ``tyndp``.
+
+Scenario Building input into CBA
+--------------------------------
+
+The CBA workflow can either reuse SB networks created in the same workflow run or
+pull pre-solved SB networks (thereby not requiring the entire SB workflow to be run) from an external archive:
+
+.. code-block:: yaml
+
+    cba:
+      cba_scenario_input:
+        use_presolved: false
+        sb_version: latest
+
+- ``cba.cba_scenario_input.use_presolved``: If ``false``, the CBA depends on SB
+  outputs created by the workflow. If ``true``, the workflow retrieves pre-solved 
+  SB networks instead.
+- ``cba.cba_scenario_input.sb_version``: selects which pre-solved SB archive version
+  is used. Default is ``latest``, which retrieves the latest available version.
+
+Indicator assumptions
+---------------------
+
+There are also CBA settings for assumptions used in the calculation of the CBA indicators.
+
+.. code-block:: yaml
+
+    cba:
+      hurdle_costs: 0.01
+      co2_societal_cost:
+        2030:
+          low: 126
+          central: 238
+          high: 315
+        2040:
+          low: 339
+          central: 628
+          high: 662
+      remove_noisy_costs: true
+      negative_toot_capacity: zero
+
+- ``cba.hurdle_costs``: applies a small marginal cost to transmission links in the CBA
+  networks. The default value is 0.01 EUR/MWh.
+- ``cba.co2_societal_cost``: provides the CO2 societal cost assumptions in 2030 and 2040,
+  for the low, central, and high scenarios. These values are used in the calculation of the CO2 societal cost indicator.
+  The default values are from the CBA Implementation Guide.
+- ``cba.remove_noisy_costs``: If ``true``, removes noisy costs that were added 
+  during the network solves to some components in the network for the calculation 
+  of the CBA B1 indicator. This is only a post-processing step. The default is ``true``.
+- ``cba.negative_toot_capacity``: defines how TOOT project removal is handled if the
+  removed capacity would make the remaining interconnector capacity negative.
+
+Rolling horizon dispatch
+------------------------
+
+The rolling horizon dispatch itself is controlled by the remaining ``cba`` settings:
+
+.. code-block:: yaml
+
+    cba:
+      storage:
+        cyclic_carriers:
+        - battery
+        - home battery
+        soc_boundary_carriers:
+        - hydro-reservoir
+      msv_extraction:
+        resolution: false
+        resample_method: ffill
+      solving:
+        options:
+          horizon: 168
+          overlap: 1
+        solver:
+          name: highs
+          options: highs-simplex
+
+- ``cba.storage.cyclic_carriers``: lists storage carriers that remain cyclic within
+  each rolling horizon window.
+- ``cba.storage.soc_boundary_carriers``: lists storage unit carriers whose state of
+  charge is pinned at rolling horizon boundaries from the perfect foresight solution.
+- ``cba.msv_extraction``: controls how Marginal Storage Values (MSV) are extracted and
+  resampled before the rolling horizon solve.
+- ``cba.solving.options.horizon`` and ``cba.solving.options.overlap``: define the
+  rolling horizon window length and overlap.
+- ``cba.solving.solver`` and ``cba.solving.solver_options``: configure the solver and solver settings 
+  used for the CBA solves.
+
+For the detailed information about the design of the rolling horizon methodology itself, including MSV extraction,
+seasonal storage handling, and window-boundary SOC treatment, see
+:doc:`cba-rolling-horizon`.
