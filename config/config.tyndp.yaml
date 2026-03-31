@@ -348,9 +348,9 @@ adjustments:
             2040: 2.51
         solid biomass:
           p_nom: # EU27 biomass potential for 8760h
-            2030: 2.02 # PyPSA-Eur 974 TWh vs TYNDP 1964 TWh (1959 TWh = 1463 Supply Tool + 496 Other-RES)
+            2030: 2.02 # PyPSA-Eur 974 TWh vs TYNDP 1964 TWh (8736h value: 1959 TWh = 1463 Supply Tool + 496 Other-RES)
             2035: 1.90 # interpolated
-            2040: 1.77 # PyPSA-Eur 950 TWh vs TYNDP 1678 TWh (1673 TWh = 1316 Supply Tool + 357 Other-RES)
+            2040: 1.77 # PyPSA-Eur 950 TWh vs TYNDP 1678 TWh (8736h value: 1673 TWh = 1316 Supply Tool + 357 Other-RES)
           e_sum_max:
             2030: 2.02
             2035: 1.90
