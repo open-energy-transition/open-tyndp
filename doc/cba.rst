@@ -56,18 +56,12 @@ for which planning horizons, and which methodology (TOOT, PINT) is applied:
       planning_horizons:
       - 2030
       - 2040
-      methods:
-      - toot
-      - pint
       projects:
       - t1-t35
       area: tyndp
 
 - ``cba.planning_horizons``: selects the planning horizons for the CBA workflow.
   These are typically a subset of the main scenario planning horizons.
-- ``cba.methods``: selects whether TOOT or PINT are applied in the workflow. 
-  Note that this does not mean ALL projects are evaluated with TOOT and/or PINT. 
-  Rather, this setting activates TOOT or PINT as a method in the workflow in general.
 - ``cba.projects``: defines which project identifiers are included in the assessment. 
   One can use this setting to select a single project (e.g., ``t1``), 
   subset of projects (e.g., ``t1-t35``, which would evaluate all projects with IDs from t1 to t35), 
