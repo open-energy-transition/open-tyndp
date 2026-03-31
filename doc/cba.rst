@@ -17,7 +17,7 @@ A diagram of the workflow between SB and CBA is shown below:
 
 .. image:: img/tyndp/SB-CBA-workflow-subsequent-h.png
 
-The CBA workflow is described in detail in the ``doc/cba-rolling-horizon.rst`` document. In summary, the CBA workflow consists of the following steps:
+The CBA workflow is described in detail in the ``doc/cba-rolling-horizon.rst`` document.
 
 
 Calculate CBA Indicators
