@@ -14,7 +14,8 @@
     {
       "name": "Gilon, Thomas",
       "orcid": "0009-0009-8300-0922",
-      "affiliation": "Open Energy Transition"
+      "affiliation": "Open Energy Transition",
+      "wrong-attribute": "123"
     },
     {
       "name": "Rüdt, Daniel",
