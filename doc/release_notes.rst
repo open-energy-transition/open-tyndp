@@ -35,6 +35,8 @@ Upcoming Open-TYNDP Release
 
 * Extended benchmarking to support spatial resolution at bus and country level ([PR #543](https://github.com/open-energy-transition/open-tyndp/pull/543)), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
 
+* Add Battery Store capacities from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/253/).
+
 **Changes**
 
 * Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
@@ -59,6 +61,8 @@ Upcoming Open-TYNDP Release
 
 * Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
 
+* Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
+
 * Add electricity and hydrogen price benchmarking tables to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/574).
 
 **Bugfixes and Compatibility**
@@ -78,6 +82,10 @@ Upcoming Open-TYNDP Release
 * Remove oudated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
 
 **Documentation**
+
+* Add dedicated documentation page for the CBA rolling horizon dispatch pipeline, covering all preparation stages (network simplification, reference network, MSV extraction, rolling horizon preparation, project preparation, solve, indicators), configuration reference, and key design assumptions (https://github.com/open-energy-transition/open-tyndp/pull/572).
+
+* Add description of CBA config settings and how to run single vs collection (climate years) scenarios (https://github.com/open-energy-transition/open-tyndp/pull/584).
 
 **Developers Note**
 
@@ -318,6 +326,7 @@ Upcoming PyPSA-Eur Release
 
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
 
+* The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
 
 Open-TYNDP v0.5.1 (18th February 2026)
 ========================================

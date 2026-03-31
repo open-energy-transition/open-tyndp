@@ -167,8 +167,9 @@ def compute_benchmark(
 
         # Add Biomass to Liquid
         df_btl = (
-            n.statistics.withdrawal(
+            n.statistics.supply(
                 comps="Link",
+                bus_carrier="oil",
                 carrier=["biomass to liquid", "biomass to liquid CC"],
                 groupby="carrier",
                 aggregate_across_components=True,
@@ -231,7 +232,11 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_demand":
         grouper = ["carrier"]
-        exclusions = ["H2 pipeline", "H2 cavern-storage charger"]
+        exclusions = [
+            "H2 pipeline",
+            "H2 cavern-storage charger",
+            "H2 tank-storage charger",
+        ]
         df = n.statistics.withdrawal(
             comps=demand_comps,
             bus_carrier="H2",
@@ -344,7 +349,12 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
-        exclusions = ["H2 pipeline", "H2 pipeline OH", "H2 cavern-storage discharger"]
+        exclusions = [
+            "H2 pipeline",
+            "H2 pipeline OH",
+            "H2 cavern-storage discharger",
+            "H2 tank-storage discharger",
+        ]
         df = n.statistics.supply(
             comps=supply_comps,
             bus_carrier="H2",
@@ -359,6 +369,11 @@ def compute_benchmark(
             groupby=grouper,
             aggregate_across_components=True,
         )
+
+        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
+        biogas_not_upgraded = opt["biogas_not_upgraded"][planning_horizons] * 1e6
+        df_fed_btl.loc["biomass final energy demand"] -= biogas_not_upgraded
+        df_fed_btl.loc["for biomethane"] = biogas_not_upgraded
 
         eff = float(opt["biomass_to_methane_efficiency"][planning_horizons])
 
@@ -389,6 +404,8 @@ def compute_benchmark(
                     "H2 Electrolysis",
                     "H2 pipeline",
                     "H2 pipeline OH",
+                    "H2 cavern-storage discharger",
+                    "H2 tank-storage discharger",
                     "SMR",
                     "SMR CC",
                 ],
