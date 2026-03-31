@@ -108,7 +108,7 @@ MM_CARRIER_MAPPING = {
 LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
     "power_generation": ["Yearly Outputs", "Annual generation [GWh]"],
-    "native_demand": [
+    "electricity_demand": [
         "Yearly Outputs",
         "Native Demand (excl. Pump load & Battery charge) [GWh]",
     ],
@@ -281,7 +281,7 @@ def load_MM_sheet(
     if "price" in table_name:
         weights = (
             load_MM_sheet(
-                table_name="native_demand",
+                table_name=f"{table_name.split('_')[0]}_demand",
                 filepath=tyndp_output_file,
                 countries=countries,
                 eu27=eu27,
