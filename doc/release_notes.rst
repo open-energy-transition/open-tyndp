@@ -59,6 +59,8 @@ Upcoming Open-TYNDP Release
 
 * Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
 
+* Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
+
 * Remove non-extendable TYNDP assets with zero capacity from network to lower network size (https://github.com/open-energy-transition/open-tyndp/pull/583).
 
 **Bugfixes and Compatibility**
@@ -318,6 +320,7 @@ Upcoming PyPSA-Eur Release
 
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
 
+* The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
 
 Open-TYNDP v0.5.1 (18th February 2026)
 ========================================
