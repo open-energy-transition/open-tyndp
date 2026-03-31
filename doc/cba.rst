@@ -209,3 +209,77 @@ The rolling horizon dispatch itself is controlled by the remaining ``cba`` setti
 For the detailed information about the design of the rolling horizon methodology itself, including MSV extraction,
 seasonal storage handling, and window-boundary SOC treatment, see
 :doc:`cba-rolling-horizon`.
+
+Running single vs multiple climate years
+========================================
+
+In the current release, we have implemented the ability to run multiple climate (or weather) years in the CBA workflow. 
+This allows for a more robust assessment of project benefits across climate years, which is consistent with the CBA implementation.
+
+On the current implementation, the CBA entry point ``snakemake -call cba`` expects a
+**collection scenario** that defines a list of child (climate years) scenarios. 
+In practice, the run selected in ``run.name`` must itself define a list under ``cba.scenarios`` in the scenario file.
+
+This is the pattern used in ``config/scenarios.tyndp.yaml``:
+
+.. code-block:: yaml
+
+    NT-cyears:
+      cba:
+        scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
+
+The individual climate-year scenarios usually contain the weather-year-specific
+``snapshots`` and ``atlite.default_cutout`` settings, and may also define
+``cba.sb_scenario``:
+
+.. code-block:: yaml
+
+    NT-cy2009:
+      snapshots:
+        start: "2009-01-01"
+        end: "2010-01-01"
+
+      atlite:
+        default_cutout: europe-2009-sarah3-era5
+
+      cba:
+        sb_scenario: NT
+
+Running multiple climate years
+------------------------------
+
+For climate-year collections, the repository already contains ready-to-use scenarios
+such as ``NT-cyears``, ``DE-cyears`` and ``GA-cyears``.
+
+For example, to run the `NT`` climate-year CBA scenarios, 
+modify the `run.name` in ``config/config.tyndp.yaml`` to ``NT-cyears`` and then run:
+
+.. code-block:: console
+
+    $ snakemake -call cba --configfile config/config.tyndp.yaml
+
+This uses the ``NT-cyears`` entry from ``config/scenarios.tyndp.yaml``, which expands
+to the child scenarios ``NT-cy2009``, ``NT-cy2008`` and ``NT-cy1995``.
+
+Running a single climate year on this branch
+--------------------------------------------
+
+Running a plain scenario such as ``NT-cy2009`` directly with
+``snakemake -call cba`` is not sufficient. The CBA pseudo-rule collects only runs that
+themselves define ``cba.scenarios``. Therefore, the current workaround for a
+single-climate-year CBA is to create a **one-entry collection scenario** and run that
+wrapper scenario instead.
+
+For example, add the following entry to your scenario file:
+
+.. code-block:: yaml
+
+    NT-cy2009-only:
+      cba:
+        scenarios: [NT-cy2009]
+
+Then, change the ``run.name`` in ``config/config.tyndp.yaml`` to ``NT-cy2009-only`` and run:
+
+.. code-block:: console
+
+    $ snakemake -call cba --configfile config/config.tyndp.yaml
