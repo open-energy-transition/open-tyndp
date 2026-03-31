@@ -80,6 +80,8 @@ DE:
       2040: 120
       2045: 135
       2050: 150
+    offshore_hubs_tyndp:
+      connect_isolated: false
   costs:
     custom_cost_scn: DE
   benchmarking:
@@ -87,6 +89,13 @@ DE:
       hydrogen_demand:
         rfc_sources:
         - report
+      biomass_supply:
+        biogas_not_upgraded:
+          2030: 0  # TWh
+          2035: 0
+          2040: 0
+          2045: 0
+          2050: 0
 
 # GA Scenario - Extends NT baseline with specific overrides below
 GA:
@@ -161,6 +170,8 @@ GA:
       2040: 344
       2045: 398
       2050: 400
+    offshore_hubs_tyndp:
+      connect_isolated: false
   costs:
     custom_cost_scn: GA
   benchmarking:
@@ -168,6 +179,13 @@ GA:
       hydrogen_demand:
         rfc_sources:
         - report
+      biomass_supply:
+        biogas_not_upgraded:
+          2030: 0  # TWh
+          2035: 0
+          2040: 0
+          2045: 0
+          2050: 0
 
 
 NT-cy1995:

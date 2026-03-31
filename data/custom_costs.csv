@@ -181,3 +181,8 @@ all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx
 all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
 all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,all,battery bicharger,efficiency,0.92,per unit,"PEMMDB v2.4, Battery sheet, Average efficiency",
+all,2030,BtL,efficiency,0.60,per unit,"TYNDP 2024 Supply Tool, Conversion factors","NCV"
+all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2024 Supply Tool, Conversion factors","NCV"
+all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2024 Supply Tool, Conversion factors","NCV"
+all,2045,BtL,efficiency,0.68,per unit,"TYNDP 2024 Supply Tool, Conversion factors","NCV"
+all,2050,BtL,efficiency,0.70,per unit,"TYNDP 2024 Supply Tool, Conversion factors","NCV"

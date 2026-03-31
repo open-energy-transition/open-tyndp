@@ -74,18 +74,19 @@ CARRIER_TO_EMISSION_FACTORS = {
 def _apply_original_costs(n, remove_noisy_costs: bool) -> None:
     if not remove_noisy_costs:
         return
-    for t in n.components:
-        if "marginal_cost_original" in n.c[t.name].static:
-            n.c[t.name].static["marginal_cost"] = n.c[t.name].static[
-                "marginal_cost_original"
-            ]
+    for t in n.iterate_components():
+        if "marginal_cost_original" in t.static:
+            mask = t.static["marginal_cost_original"].notna()
+            t.static.loc[mask, "marginal_cost"] = t.static.loc[
+                mask, "marginal_cost_original"
+            ].astype(t.static["marginal_cost"].dtype)
 
-    for t in n.components:
-        if t.name in ["Line", "Link"]:
-            if "capital_cost_original" in n.c[t.name].static:
-                n.c[t.name].static["capital_cost"] = n.c[t.name].static[
-                    "capital_cost_original"
-                ]
+    for t in n.iterate_components(["Line", "Link"]):
+        if "capital_cost_original" in t.static:
+            mask = t.static["capital_cost_original"].notna()
+            t.static.loc[mask, "capital_cost"] = t.static.loc[
+                mask, "capital_cost_original"
+            ].astype(t.static["capital_cost"].dtype)
 
 
 def calculate_total_system_cost(n, remove_noisy_costs: bool = False):
