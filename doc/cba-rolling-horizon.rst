@@ -8,7 +8,10 @@
 Cost-Benefit Analysis (CBA) Workflow
 ####################################
 
-This section describes the methodology and workflow used for the Cost-Benefit Analysis (CBA) in the Open-TYNDP. We run the simulation in weekly windows (a rolling horizon). Because the model processes the year in one-week increments, it uses Marginal Storage Values (MSV), derived from a full-year optimization, to guide the use of long-term resources. This ensures that seasonal assets like hydro reservoirs, biomass, and hydrogen storage are used efficiently across the entire year, rather than being exhausted too quickly.
+This section describes the methodology and workflow used for the Cost-Benefit Analysis (CBA) in the Open-TYNDP. 
+We run the simulation in weekly windows (a rolling horizon). Because the model processes the year in one-week increments, it uses Marginal Storage Values (MSV), 
+derived from a full-year optimization, to guide the use of long-term resources. 
+This ensures that seasonal assets like hydro reservoirs, biomass, and hydrogen storage are used efficiently across the entire year, rather than being exhausted too quickly.
 
 Overview
 ========
@@ -20,8 +23,7 @@ Both networks are solved using a **rolling horizon** approach: the full year is 
 into sequential weekly windows (168 hourly snapshots each, with an overlap of 1 snapshot),
 which are solved one after another.
 
- However, a
-naive rolling horizon introduces **myopia** for seasonal storage components (H2 stores,
+However, a naive rolling horizon introduces **myopia** for seasonal storage components (H2 stores,
 gas stores, large hydro reservoirs): the optimizer cannot see beyond the current week and
 therefore makes suboptimal dispatch decisions. The MSV preparation step described below
 resolves this.
@@ -37,6 +39,14 @@ The full pipeline is illustrated below:
     The diagram above shows the complete sequence of Snakemake rules and intermediate
     files. Dashed borders indicate optional steps; the ``×N`` annotation on
     ``solve_cba_network`` indicates it runs once per evaluated project.
+
+TOOT and PINT
+=============
+
+Within the CBA, there are two methods to evaluate the cost-benefit impact of a project: 
+
+- **TOOT (Take Out One at a Time)**: evaluates the impact of removing a project from the reference network
+- **PINT (Put IN at a Time)**: evaluates the impact of adding a project to the reference network
 
 Pipeline Stages
 ===============
