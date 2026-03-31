@@ -130,7 +130,7 @@ are short-term storage components that cycle within each weekly window independe
 All other stores and storage units (H2 Store, gas, co2 sequestered, hydro, PHS, etc.)
 have cyclicity disabled. Their dispatch is instead guided by the MSV applied in (e).
 
-**(c) Remove global constraints**
+**(c) Remove annual global constraints**
 
 The ``co2_sequestration_limit`` and ``unsustainable biomass limit`` global constraints
 are removed. These are annual constraints that cannot be enforced in individual weekly
