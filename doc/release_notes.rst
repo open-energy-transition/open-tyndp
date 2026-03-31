@@ -59,6 +59,8 @@ Upcoming Open-TYNDP Release
 
 * Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
 
+* Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
