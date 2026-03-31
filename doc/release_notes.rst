@@ -57,6 +57,8 @@ Upcoming Open-TYNDP Release
 
 * Rename OCGT as slack generator for benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/573).
 
+* Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
+
 * Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
 
 **Bugfixes and Compatibility**
@@ -70,6 +72,10 @@ Upcoming Open-TYNDP Release
 * Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
 
 * Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
+
+* Fix NaNs that are introduced in B1 indicator calculation when using `cba.remove_noisy_costs` (https://github.com/open-energy-transition/open-tyndp/pull/578).
+
+* Remove oudated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
 
 **Documentation**
 

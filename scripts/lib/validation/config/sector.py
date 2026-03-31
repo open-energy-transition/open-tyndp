@@ -371,6 +371,9 @@ class _OffshoreHubsTyndpConfig(BaseModel):
         False,
         description="Add option to include TYNDP offshore hubs.",
     )
+    connect_isolated: bool = Field(
+        False, description="Copperplate isolated wind farms to the grid."
+    )
     max_capacity: dict[str, float] = Field(
         default_factory=lambda: {"DC_OH": 10, "H2 pipeline OH": 30},
         description="Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
