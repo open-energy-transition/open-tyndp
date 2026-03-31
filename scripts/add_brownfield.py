@@ -583,7 +583,7 @@ def harmonize_renewable_profiles(
     """
     for carrier in carriers:
         gens = n.generators[n.generators.carrier == carrier]
-        brownfield_gens = gens[gens.build_year != year].index
+        brownfield_gens = gens[(gens.build_year != year) & (gens.build_year != 0)].index
         n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
             brownfield_gens.str[:-4] + str(year)
         ].values
