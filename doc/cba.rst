@@ -212,12 +212,18 @@ Running multiple climate years
 For climate-year collections, the repository already contains ready-to-use scenarios
 such as ``NT-cyears``, ``DE-cyears`` and ``GA-cyears``.
 
-For example, to run the ``NT`` climate-year CBA scenarios, modify ``run.name`` in
-``config/config.tyndp.yaml`` to ``NT-cyears`` and then run:
+For example, to run the ``NT`` climate-year CBA scenarios, you can either modify
+``run.name`` in ``config/config.tyndp.yaml`` to ``NT-cyears`` and then run:
 
 .. code-block:: console
 
     $ snakemake -call cba --configfile config/config.tyndp.yaml
+
+or keep the config file unchanged and override the run name on the command line:
+
+.. code-block:: console
+
+    $ snakemake -call cba --configfile config/config.tyndp.yaml --config run='{"name":"NT-cyears"}'
 
 This uses the ``NT-cyears`` entry from ``config/scenarios.tyndp.yaml``, which expands
 to the child scenarios ``NT-cy2009``, ``NT-cy2008`` and ``NT-cy1995``. 
@@ -240,8 +246,15 @@ For example, add the following entry to your scenario file:
       cba:
         scenarios: [NT-cy2009]
 
-Then, change the ``run.name`` in ``config/config.tyndp.yaml`` to ``NT-cy2009-only`` and run:
+Then, either change ``run.name`` in ``config/config.tyndp.yaml`` to
+``NT-cy2009-only`` and run:
 
 .. code-block:: console
 
     $ snakemake -call cba --configfile config/config.tyndp.yaml
+
+or keep the config file unchanged and override the run name on the command line:
+
+.. code-block:: console
+
+    $ snakemake -call cba --configfile config/config.tyndp.yaml --config run='{"name":"NT-cy2009-only"}'
