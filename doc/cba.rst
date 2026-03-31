@@ -217,7 +217,8 @@ modify the `run.name` in ``config/config.tyndp.yaml`` to ``NT-cyears`` and then 
     $ snakemake -call cba --configfile config/config.tyndp.yaml
 
 This uses the ``NT-cyears`` entry from ``config/scenarios.tyndp.yaml``, which expands
-to the child scenarios ``NT-cy2009``, ``NT-cy2008`` and ``NT-cy1995``.
+to the child scenarios ``NT-cy2009``, ``NT-cy2008`` and ``NT-cy1995``. 
+In this case, 2009, 2008, and 1995 are used as they are the three weather years used in 2024 TYNDP CBA Implementation.
 
 Running a single climate year on this branch
 --------------------------------------------
