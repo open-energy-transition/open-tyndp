@@ -160,10 +160,10 @@ have cyclicity disabled. Their dispatch is instead guided by the MSV applied in 
 **(c) Remove annual global constraints**
 
 The ``co2_sequestration_limit`` and ``unsustainable biomass limit`` global constraints
-are removed, because these are annual constraints that cannot be enforced consistently 
-within independent rolling-horizon windows. The intended behavior of these constraints
-are captured elsewhere in the rolling-horizon setup (for example, through MSV-based treatment 
-of long-term storage and through biomass generator must-run conditions).
+are removed, because these are annual constraints that cannot be enforced consistently
+within independent rolling-horizon windows. Their intended behaviour is approximated
+elsewhere in the rolling-horizon setup through different mechanisms (for example
+MSV-based treatment of long-term storage and biomass generator must-run conditions).
 
 **(d) Disable annual volume limits**
 
