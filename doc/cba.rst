@@ -17,7 +17,7 @@ A diagram of the workflow between SB and CBA is shown below:
 
 .. image:: img/tyndp/SB-CBA-workflow-subsequent-h.png
 
-The CBA workflow is described in detail in the ``doc/cba-rolling-horizon.rst`` document.
+The detailed rolling-horizon pipeline is documented in :doc:`cba-workflow`.
 
 
 Calculate CBA Indicators
@@ -163,9 +163,9 @@ The settings for the rolling horizon dispatch can be defined in the following se
 - ``cba.solving.solver`` and ``cba.solving.solver_options``: configure the solver and solver settings 
   used for the CBA solves.
 
-For the detailed information about the design of the rolling horizon methodology itself, including MSV extraction,
-seasonal storage handling, and window-boundary SOC treatment, see
-:doc:`cba-rolling-horizon`.
+For the detailed information about the design of the rolling horizon methodology
+itself, including MSV extraction, seasonal storage handling, and window-boundary
+SOC treatment, see :doc:`cba-workflow`.
 
 Running single vs multiple climate years
 ========================================

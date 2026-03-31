@@ -2,7 +2,7 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
-.. _cba-rolling-horizon:
+.. _cba-workflow:
 
 ####################################
 Cost-Benefit Analysis (CBA) Workflow
@@ -192,7 +192,7 @@ This is the baseline against which all project networks are compared.
 At each window boundary, ``e_initial`` and ``state_of_charge_initial`` are updated
 from the previous window's solution to carry storage state forward through the year.
 
-Output: ``results/tyndp/{run}/cba/networks/reference_{h}.nc``
+Output: ``results/{run}/cba/networks/reference_{h}.nc``
 
 Stage 5a — Project Preparation (``prepare_project``)
 -----------------------------------------------------
@@ -243,26 +243,9 @@ Configuration Reference
 =======================
 
 The rolling horizon dispatch is controlled by the ``cba`` section of the configuration
-file. The relevant parameters are:
+file. For information on the configuration options for the rolling horizon as well as other settings, 
+including project selection and scenario setup, see :doc:`cba`.
 
-.. code-block:: yaml
-
-    cba:
-      storage:
-        cyclic_carriers:        # carriers that remain cyclic within each window
-          - battery
-          - home battery
-        soc_boundary_carriers:  # carriers whose SOC is pinned at window boundaries
-          - hydro-reservoir     #   from perfect foresight (StorageUnit only)
-
-      msv_extraction:
-        resolution: false       # false = native resolution; "24H", "48H" = coarser
-        resample_method: ffill  # method to upsample MSV: ffill or interpolate
-
-      solving:
-        options:
-          horizon: 168          # snapshots per window (168 = one week at 1H)
-          overlap: 1            # overlapping snapshots between consecutive windows
 
 Key Assumptions and Design Decisions
 =====================================
