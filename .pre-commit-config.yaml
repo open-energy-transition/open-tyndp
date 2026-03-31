@@ -5,6 +5,7 @@ exclude: "^LICENSES|^config/schema\\.json$|^config/config\\.default\\.yaml$"
 
 ci:
   autoupdate_schedule: quarterly
+  # skip jsonschema check on ci due to unavailability of remote schema file for ci runner
   skip: [check-jsonschema]
 
 repos:
