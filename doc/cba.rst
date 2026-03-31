@@ -48,7 +48,7 @@ Project selection and scope
 ---------------------------
 
 The following settings define which CBA projects (transmission, storage) are evaluated, 
-for which planning horizons, and which methodology (TOOT, PINT) is applied:
+for which planning horizons, and which geographic area is used for the calculation of the indicators:
 
 .. code-block:: yaml
 
