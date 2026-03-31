@@ -10,7 +10,7 @@ CBA Workflow
 ============
 
 At the high-level, the Scenario Building (SB) builds and solves the base network(s) for each scenario/planning horizon, optimizing investments and dispatch.
-The CBA does not re‑optimize capacities -- it reuses the SB’s solved network as a starting point, makes modifications (such as fixing capacities), 
+The CBA does not re-optimize capacities -- it reuses the SB's solved network as a starting point, makes modifications (such as fixing capacities),
 and then runs dispatch-only optimizations on the prepared networks.
 
 A diagram of the workflow between SB and CBA is shown below:
@@ -66,14 +66,15 @@ for which planning horizons, and which geographic area is used for the calculati
   One can use this setting to select a single project (e.g., ``t1``), 
   subset of projects (e.g., ``t1-t35``, which would evaluate all projects with IDs from t1 to t35), 
   or all projects (leave empty for all) for evaluation.
-- ``cba.area``: controls which geographic area is used for the calculation of the indicators 
+- ``cba.area``: controls which geographic area is used for the calculation of the indicators.
   The default is ``tyndp``.
 
 Scenario Building input into CBA
 --------------------------------
 
 The CBA workflow can either reuse SB networks created in the same workflow run or
-pull pre-solved SB networks (thereby not requiring the entire SB workflow to be run) from an external archive:
+pull pre-solved SB networks from an external archive, thereby not requiring the
+entire SB workflow to be run:
 
 .. code-block:: yaml
 
@@ -124,7 +125,8 @@ There are also CBA settings for assumptions used in the calculation of the CBA i
 Rolling horizon dispatch
 ------------------------
 
-The settings for the rolling horizon dispatch can be defined in the following sections of the configuration file.:
+The settings for the rolling horizon dispatch are defined in the following sections
+of the configuration file:
 
 .. code-block:: yaml
 
@@ -153,11 +155,11 @@ The settings for the rolling horizon dispatch can be defined in the following se
   is pinned at the boundaries between rolling horizon windows, using values pre-computed from the 
   perfect foresight (full-year) optimisation.
 - ``cba.msv_extraction.resolution``: controls temporal resolution for the MSV extraction solve. 
-  If `false`, it uses the same temporal resolution as defined in ``clustering.resolution_sector``. 
-  Otherwise, one could also provide a string like '24H', '48H' for a different temporal resolution.
+  If ``false``, it uses the same temporal resolution as defined in ``clustering.resolution_sector``. 
+  Otherwise, one can provide a string like ``24H`` or ``48H`` for a different temporal resolution.
 - ``cba.msv_extraction.resample_method``: method for resampling marginal storage value to target network resolution. 
-  The default is 'ffill' (forward fill), which holds the MSV constant within each cluster. 
-  Another option is 'interpolate', which linearly interpolates the MSV between cluster centers.
+  The default is ``ffill`` (forward fill), which holds the MSV constant within each cluster. 
+  Another option is ``interpolate``, which linearly interpolates the MSV between cluster centers.
 - ``cba.solving.options.horizon`` and ``cba.solving.options.overlap``: define the
   rolling horizon window length and overlap.
 - ``cba.solving.solver`` and ``cba.solving.solver_options``: configure the solver and solver settings 
@@ -170,7 +172,8 @@ SOC treatment, see :doc:`cba-workflow`.
 Running single vs multiple climate years
 ========================================
 
-This allows for a more robust assessment of project benefits across climate years, which is consistent with the CBA implementation.
+Climate-year collections allow project benefits to be assessed across multiple
+weather years, which is consistent with the 2024 TYNDP CBA implementation.
 
 On the current implementation, the CBA entry point ``snakemake -call cba`` expects a
 **collection scenario** that defines a list of child (climate years) scenarios. 
@@ -186,7 +189,7 @@ This is the pattern used in ``config/scenarios.tyndp.yaml``:
 
 The individual climate-year scenarios should contain the weather-year-specific
 ``snapshots`` and ``atlite.default_cutout`` settings. 
-It should also define a ``cba.sb_scenario`` setting to specify which SB scenario is used as the input for the CBA workflow.
+They should also define a ``cba.sb_scenario`` setting to specify which SB scenario is used as the input for the CBA workflow.
 Note that any ``cba.sb_scenario`` defined here should also be defined in the scenario file with the same name (e.g., ``NT`` in this example) 
 and should contain the SB settings for the scenario, such as the planning horizon, cluster settings, etc.
 
@@ -209,8 +212,8 @@ Running multiple climate years
 For climate-year collections, the repository already contains ready-to-use scenarios
 such as ``NT-cyears``, ``DE-cyears`` and ``GA-cyears``.
 
-For example, to run the `NT`` climate-year CBA scenarios, 
-modify the `run.name` in ``config/config.tyndp.yaml`` to ``NT-cyears`` and then run:
+For example, to run the ``NT`` climate-year CBA scenarios, modify ``run.name`` in
+``config/config.tyndp.yaml`` to ``NT-cyears`` and then run:
 
 .. code-block:: console
 
