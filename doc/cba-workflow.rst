@@ -2,7 +2,7 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
-.. _cba-rolling-horizon:
+.. _cba-workflow:
 
 ####################################
 Cost-Benefit Analysis (CBA) Workflow
