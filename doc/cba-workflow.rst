@@ -216,9 +216,6 @@ This rule runs once **per evaluated project**. Additionally, at each window the
 per-window energy budget for volume-limited components (biomass, biogas) is set from
 the perfect foresight dispatch stored in ``generators_t.p`` / ``links_t.p0``.
 
-A fallback solver can be configured via ``cba.solving.fallback_solver`` in case the
-primary solver fails on a specific window.
-
 .. note::
     ``solve_cba_network`` depends **exclusively** on the output of ``prepare_project``
     (Stage 5a). It has no direct connection to the rolling horizon preparation network
