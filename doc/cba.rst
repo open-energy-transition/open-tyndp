@@ -170,7 +170,6 @@ seasonal storage handling, and window-boundary SOC treatment, see
 Running single vs multiple climate years
 ========================================
 
-In the current release, we have implemented the ability to run multiple climate (or weather) years in the CBA workflow. 
 This allows for a more robust assessment of project benefits across climate years, which is consistent with the CBA implementation.
 
 On the current implementation, the CBA entry point ``snakemake -call cba`` expects a
