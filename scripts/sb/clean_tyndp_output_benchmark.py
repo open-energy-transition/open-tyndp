@@ -108,6 +108,10 @@ MM_CARRIER_MAPPING = {
 LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
     "power_generation": ["Yearly Outputs", "Annual generation [GWh]"],
+    "native_demand": [
+        "Yearly Outputs",
+        "Native Demand (excl. Pump load & Battery charge) [GWh]",
+    ],
     "hydrogen_demand": [
         "Yearly H2 Outputs",
         "Native Demand (excl. H2 storage charge) [GWhH2]",
@@ -271,11 +275,29 @@ def load_MM_sheet(
     )
     df_nodal = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(countries)]
 
-    # Add EU27
+    # Add EU27 (load-weighted average for prices)
+    df_eu27 = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
+
+    if "price" in table_name:
+        weights = (
+            load_MM_sheet(
+                table_name="native_demand",
+                filepath=tyndp_output_file,
+                countries=countries,
+                eu27=eu27,
+                skiprows=5,
+            )
+            .set_index("bus")
+            .value
+        )
+    else:
+        weights = pd.Series(1.0, index=df_eu27.bus.unique())
+
     df_eu27 = (
-        df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
+        df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
         .groupby(by=["carrier"])
-        .value.agg(op)
+        .value.sum()
+        .div(weights.sum())
         .reset_index()
         .assign(bus="EU27")
     )

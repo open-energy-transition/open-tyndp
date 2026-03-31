@@ -54,6 +54,40 @@ def remove_last_day(sws: pd.Series, nhours: int = 24):
     return sws
 
 
+def get_load_weights(
+    n: pypsa.Network,
+    carrier: str,
+    elec_bus_carrier: list[str] = ["AC", "AC_OH", "low voltage"],
+    groupby_time: bool = False,
+):
+    if carrier == "AC":
+        carrier_names = ["electricity", "H2 Electrolysis"]
+    else:  # carrier == "H2"
+        carrier_names = ["H2 exogenous demand", "h2-ccgt", "h2-fuel-cell"]
+
+    weights = (
+        n.statistics.withdrawal(
+            groupby=["carrier", "bus"],
+            bus_carrier=elec_bus_carrier if carrier == "AC" else carrier,
+            nice_names=False,
+            groupby_time=False,
+            aggregate_across_components=True,
+        )
+        .reset_index(level="bus")
+        .assign(bus=lambda x: x.bus.str.removesuffix(" low voltage"))
+        .loc[carrier_names]
+        .groupby("bus")
+        .sum()
+        .T
+    )
+
+    if groupby_time:
+        sns_weights = n.snapshot_weightings.objective
+        weights = sns_weights @ weights
+
+    return weights
+
+
 def compute_benchmark(
     n: pypsa.Network,
     table: str,
@@ -425,17 +459,7 @@ def compute_benchmark(
             lambda x: x.where(x < load_shedding.get(carrier, np.inf))
         )
 
-        weights = (
-            n.statistics.withdrawal(
-                groupby="bus",
-                bus_carrier=carrier,
-                nice_names=False,
-                groupby_time=False,
-            )
-            .groupby("bus")
-            .sum()
-            .T
-        )
+        weights = get_load_weights(n, carrier, elec_bus_carrier)
         weights = weights.reindex(prices.columns, axis=1, fill_value=1)
 
         wp = weights * prices
@@ -464,12 +488,20 @@ def compute_benchmark(
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
 
-    op = "sum" if "price" not in table else "mean"
+    # Add EU27 (load-weighted average for prices)
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
+        df_eu27 = df.loc[lambda x: x["bus"].isin(eu27_idx)]
+
+        if "price" in table:
+            weights = get_load_weights(n, carrier, elec_bus_carrier, groupby_time=True)
+        else:
+            weights = pd.Series(1.0, index=df_eu27.bus.unique())
+
         df_eu27 = (
-            df.loc[lambda x: x["bus"].isin(eu27_idx)]
+            df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
             .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
-            .value.agg(op)
+            .value.sum()
+            .div(weights.sum())
             .reset_index()
             .assign(bus="EU27")
         )
@@ -477,6 +509,7 @@ def compute_benchmark(
     else:
         df = df.assign(bus="EU27")
 
+    op = "sum" if "price" not in table else "mean"
     df = (
         df.groupby(by=[c for c in ["bus", "carrier", "snapshot"] if c in df.columns])
         .agg(op)
