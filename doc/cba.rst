@@ -17,7 +17,7 @@ A diagram of the workflow between SB and CBA is shown below:
 
 .. image:: img/tyndp/SB-CBA-workflow-subsequent-h.png
 
-The detailed rolling-horizon pipeline is documented in :doc:`cba-workflow`.
+The CBA workflow is described in detail in the ``doc/cba-workflow.rst`` document.
 
 
 Calculate CBA Indicators
