@@ -1633,6 +1633,28 @@ def remove_zero_capacity_non_extendable(
         n.remove(c.name, idx)
 
 
+def remove_disconnected_storage_buses(
+    n: "pypsa.Network",
+    carriers: list[str],
+) -> None:
+    """
+    Remove storage buses whose carrier is in *carriers* but that no longer
+    have a Store connected to them.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network to modify in place.
+    carriers : list[str]
+        Bus carriers to check (e.g. ``["hydro-phs", "hydro-phs-pure"]``).
+    """
+    remaining_stores = n.stores[n.stores.carrier.isin(carriers)].bus.unique()
+    idx = n.buses.loc[
+        n.buses.carrier.isin(carriers) & ~n.buses.index.isin(remaining_stores)
+    ].index
+    n.remove("Bus", idx)
+
+
 def _add_new_profiles_to_existing(
     component_t: dict,
     attr: str,

@@ -641,7 +641,13 @@ if __name__ == "__main__":
     )
     tyndp_hydro = [
         c for c in snakemake.params.tyndp_renewable_carriers if c.startswith("hydro")
-    ] + ["hydro-phs-turbine", "hydro-phs-pump", "hydro-phs-inflows"]
+    ] + [
+        "hydro-phs-turbine",
+        "hydro-phs-pump",
+        "hydro-phs-inflows",
+        "hydro-phs-pure-turbine",
+        "hydro-phs-pure-pump",
+    ]
 
     # Drop fixed TYNDP conventional and hydro capacities from previous year
     # as TYNDP capacities are given as cumulative input
