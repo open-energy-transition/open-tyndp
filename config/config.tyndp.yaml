@@ -130,6 +130,7 @@ electricity:
     - Hydrogen
     - Electrolyser
     - Battery
+    - DSR
 
   transmission_limit: v1.0
 
