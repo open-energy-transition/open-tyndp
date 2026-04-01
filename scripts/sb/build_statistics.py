@@ -54,40 +54,6 @@ def remove_last_day(sws: pd.Series, nhours: int = 24):
     return sws
 
 
-def get_load_weights(
-    n: pypsa.Network,
-    carrier: str,
-    elec_bus_carrier: list[str] = ["AC", "AC_OH", "low voltage"],
-    groupby_time: bool = False,
-):
-    if carrier == "AC":
-        carrier_names = ["electricity", "H2 Electrolysis"]
-    else:  # carrier == "H2"
-        carrier_names = ["H2 exogenous demand", "h2-ccgt", "h2-fuel-cell"]
-
-    weights = (
-        n.statistics.withdrawal(
-            groupby=["carrier", "bus"],
-            bus_carrier=elec_bus_carrier if carrier == "AC" else carrier,
-            nice_names=False,
-            groupby_time=False,
-            aggregate_across_components=True,
-        )
-        .reset_index(level="bus")
-        .assign(bus=lambda x: x.bus.str.removesuffix(" low voltage"))
-        .loc[carrier_names]
-        .groupby("bus")
-        .sum()
-        .T
-    )
-
-    if groupby_time:
-        sns_weights = n.snapshot_weightings.objective
-        weights = sns_weights @ weights
-
-    return weights
-
-
 def compute_benchmark(
     n: pypsa.Network,
     table: str,
@@ -463,23 +429,30 @@ def compute_benchmark(
             bus_carrier=carrier, groupby="bus", aggregate_across_components=True
         ).index
 
-        mask = (n.buses.carrier == carrier) & (n.buses.index.isin(idx_w_balance))
         df = (
-            n.buses_t.marginal_price.loc[:, mask]
-            .mean()
+            n.statistics.prices(
+                bus_carrier=carrier,
+                weighting="time",
+            )
             .to_frame("value")
             .rename_axis("bus")
             .assign(carrier=carrier)
             .set_index("carrier", append=True)
         )
+
+        mask = ~df.index.get_level_values("bus").isin(idx_w_balance)
+        df.loc[mask, :] = np.nan
     elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
         carrier = "AC" if "electricity" in table else "H2"
 
-        mask = n.buses.carrier == carrier
         df = (
-            n.buses_t.marginal_price.loc[:, mask]
+            n.statistics.prices(
+                bus_carrier=carrier,
+                weighting="time",
+                groupby_time=False,
+            )
             .pipe(lambda x: x.where(x < load_shedding.get(carrier, np.inf)))
-            .mean()
+            .mean(axis=1)
             .to_frame("value")
             .rename_axis("bus")
             .assign(carrier=carrier)
@@ -506,7 +479,16 @@ def compute_benchmark(
         df_eu27 = df.loc[lambda x: x["bus"].isin(eu27_idx)]
 
         if "price" in table:
-            weights = get_load_weights(n, carrier, elec_bus_carrier, groupby_time=True)
+            weights = (
+                n.statistics.withdrawal(
+                    groupby="bus",
+                    bus_carrier=carrier,
+                    nice_names=False,
+                )
+                .groupby("bus")
+                .sum()
+                .T
+            )
         else:
             weights = pd.Series(1.0, index=df_eu27.bus.unique())
 
