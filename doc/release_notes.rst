@@ -282,7 +282,7 @@ Open-TYNDP v0.6 (1st April 2026)
 
 * Add the 2035 hydrogen reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/537).
 
-* Collect results of multi weather year CBA's and calculate weighted average KPI's and plot them (https://github.com/open-energy-transition/open-tyndp/pull/529).
+* Collect results of multi weather year CBAs and calculate weighted average KPIs and plot them (https://github.com/open-energy-transition/open-tyndp/pull/529).
 
 * Add an option to use the H2 demand from the Market Model Outputs (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. It is now also possible to compare against Market Model Outputs in the benchmarking framework.
 
@@ -296,7 +296,7 @@ Open-TYNDP v0.6 (1st April 2026)
 
 * Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
 
-* Extend benchmarking to support spatial resolution at bus and country level ([PR #543](https://github.com/open-energy-transition/open-tyndp/pull/543)), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
+* Extend benchmarking to support spatial resolution at bus and country level (https://github.com/open-energy-transition/open-tyndp/pull/543), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
 
 **Changes**
 
@@ -328,13 +328,15 @@ Open-TYNDP v0.6 (1st April 2026)
 
 * Fix NaNs that are introduced in B1 indicator calculation when using `cba.remove_noisy_costs` (https://github.com/open-energy-transition/open-tyndp/pull/578).
 
-* Remove oudated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
+* Remove outdated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
 
 **Documentation**
 
 * Add dedicated documentation page for the CBA rolling horizon dispatch pipeline, covering all preparation stages (network simplification, reference network, MSV extraction, rolling horizon preparation, project preparation, solve, indicators), configuration reference, and key design assumptions (https://github.com/open-energy-transition/open-tyndp/pull/572).
 
 * Add description of CBA config settings and how to run single vs collection (climate years) scenarios (https://github.com/open-energy-transition/open-tyndp/pull/584).
+
+* Add FAQ for Windows usage and corrupt environments (https://github.com/open-energy-transition/open-tyndp/pull/549).
 
 **Developers Note**
 
