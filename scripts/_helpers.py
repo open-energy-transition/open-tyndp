@@ -43,6 +43,7 @@ SCENARIO_DICT = {
 
 ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
 POWER_UNITS = {"GW", "MW", "kW"}
+PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
 
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 

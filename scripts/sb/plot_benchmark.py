@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 plt.style.use("bmh")
 
 FIGURE_WIDTH_DEFAULT = 12
+FIGURE_HEIGHT_DEFAULT = 8
 
 
 def add_metadata(
@@ -111,7 +112,7 @@ def _plot_scenario_comparison(
     df.index = [textwrap.fill(label, width=30) for label in df.index]
 
     fig_width = FIGURE_WIDTH_DEFAULT + max((df.shape[0] - FIGURE_WIDTH_DEFAULT) * 3, 0)
-    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, 8))
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
 
     bar_colors = [bench_colors.get(col, "grey") for col in idx]
     df[idx].plot.bar(
@@ -165,7 +166,7 @@ def _plot_time_series(
     source_unit: str,
     tech_colors: dict,
 ):
-    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, 8))
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
 
     # Remove rows where either value is NaN
     df_clean = df.dropna(subset=[model_col, rfc_col])
@@ -242,6 +243,75 @@ def _plot_time_series(
     plt.close(fig)
 
 
+def _plot_prices(
+    df: pd.DataFrame,
+    table: str,
+    year: int,
+    output_dir: str,
+    scenario: str,
+    cyear: int,
+    model_col: str,
+    rfc_source: str,
+    source_unit: str,
+    bench_colors: dict,
+    eps: float = 1e-6,
+):
+    fig, ax = plt.subplots(
+        figsize=(FIGURE_WIDTH_DEFAULT * 1.7, FIGURE_HEIGHT_DEFAULT * 0.7)
+    )
+    table_title = (
+        table.replace("_", " ").replace("excl shed", "excl. load shedding").title()
+    )
+    bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
+    df.index = df.index.get_level_values("spatial")
+    df[[model_col, rfc_source]].plot.bar(
+        title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
+        ylabel=source_unit,
+        color=bar_colors,
+        ax=ax,
+    )
+
+    ax.grid(axis="y", linestyle="--")
+
+    errors = (
+        (df[model_col] - df[rfc_source]).abs()
+        / ((df[model_col].abs() + df[rfc_source].abs()) / 2 + eps)
+        * 100
+    )
+
+    ax2 = ax.twinx()
+    ax2.grid(False)
+    ax2.plot(
+        ax.get_xticks(),
+        errors.values,
+        color="red",
+        marker="o",
+        linestyle="",
+        label=f"sMAPE [%] (Overall sMAPE {errors.mean():.1f}% / sMdAPE {errors.median():.1f}%)",
+    )
+    ax2.set_ylim(0, max(ax2.get_ylim()[1], 100))
+    ax2.set_ylabel("%")
+
+    means = df.mean()
+    handles, labels = ax.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    labels = [f"{label} (Avg. {means[label]:.1f} {source_unit})" for label in labels]
+    ax.legend(
+        handles + handles2,
+        labels + labels2,
+        loc="upper left",
+        frameon=True,
+        facecolor="white",
+    )
+
+    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+
+    output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
+    fig.savefig(output_filename, bbox_inches="tight")
+
+    plt.close(fig)
+
+
 def plot_benchmark(
     table: str,
     bus: str,
@@ -296,15 +366,17 @@ def plot_benchmark(
     logger.debug(
         f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
     )
+    condition_str = f" and {bus_col_name}==@bus" if "price" not in table else ""
     benchmarks = (
-        benchmarks_raw.query(f"table==@table and {bus_col_name}==@bus")
+        benchmarks_raw.query(f"table==@table{condition_str}")
         .dropna(how="all", axis=1)
         .assign(spatial=lambda df: df[bus_col_name])
         .drop(columns=["bus", "country"], errors="ignore")
     )
+    op = "sum" if "price" not in table else "mean"
     benchmarks = (
         benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
-        .sum()
+        .value.agg(op)
         .reset_index()
         .assign(unit=opt["report"]["unit"])
     )
@@ -315,7 +387,8 @@ def plot_benchmark(
         )
         return
 
-    benchmarks = convert_units(benchmarks, invert=True)
+    if "price" not in table:
+        benchmarks = convert_units(benchmarks, invert=True)
 
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
@@ -336,18 +409,18 @@ def plot_benchmark(
 
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
-                bench_year.reset_index(),
-                table,
-                year,
-                bus,
-                output_dir,
-                scenario,
-                cyear,
-                model_col,
-                [c for c in rfc_cols if c in bench_year.columns],
-                rfc_source,
-                source_unit,
-                bench_colors,
+                df=bench_year.reset_index(),
+                table=table,
+                year=year,
+                bus=bus,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_cols=[c for c in rfc_cols if c in bench_year.columns],
+                rfc_source=rfc_source,
+                source_unit=source_unit,
+                bench_colors=bench_colors,
             )
         elif table_type == "time_series":
             rfc_col_str = [c for c in rfc_cols if c in bench_year.columns][0]
@@ -355,17 +428,30 @@ def plot_benchmark(
                 bench_year, snapshots, model_col, rfc_col_str
             ).reset_index()
             _plot_time_series(
-                bench_agg,
-                table,
-                year,
-                bus,
-                output_dir,
-                scenario,
-                cyear,
-                model_col,
-                rfc_col_str,
-                source_unit,
-                tech_colors,
+                df=bench_agg,
+                table=table,
+                year=year,
+                bus=bus,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_col=rfc_col_str,
+                source_unit=source_unit,
+                tech_colors=tech_colors,
+            )
+        elif table_type == "prices":
+            _plot_prices(
+                df=bench_year,
+                table=table,
+                year=year,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_source=rfc_source,
+                source_unit=source_unit,
+                bench_colors=bench_colors,
             )
 
 
@@ -388,7 +474,11 @@ def orchestrate_benchmark(
     table_bus_col_pairs = [
         (table, bus_col)
         for table in options["tables"]
-        for bus_col in benchmarks_raw.query("table == @table")[bus_col_name].unique()
+        for bus_col in (
+            [""]
+            if "price" in table
+            else benchmarks_raw.query("table == @table")[bus_col_name].unique()
+        )
     ]
 
     tqdm_kwargs = {
@@ -440,7 +530,7 @@ def plot_overview(
     bus_col_name : str, default "bus"
         Bus column name.
     """
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(12, FIGURE_HEIGHT_DEFAULT))
     cyear = get_snapshots(snapshots)[0].year
 
     # Keep relevant indicators and rows
@@ -528,7 +618,11 @@ if __name__ == "__main__":
 
     # Load data
     benchmarks_raw = load_data(
-        benchmarks_fn, results_fn, "TYNDP " + scenario, vp_data_fn, mm_data_fn
+        benchmarks_fn=benchmarks_fn,
+        results_fn=results_fn,
+        scenario="TYNDP " + scenario,
+        vp_data_fn=vp_data_fn,
+        mm_data_fn=mm_data_fn,
     )
 
     # Produce benchmark figures

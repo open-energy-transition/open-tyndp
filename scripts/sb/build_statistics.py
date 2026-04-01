@@ -10,6 +10,7 @@ import multiprocessing as mp
 from functools import partial
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 import pypsa
 from tqdm import tqdm
@@ -17,6 +18,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
+    PRICE_UNITS,
     configure_logging,
     set_scenario_config,
 )
@@ -59,6 +61,7 @@ def compute_benchmark(
     eu27: list[str],
     tyndp_renewable_carriers: list[str],
     planning_horizons: int,
+    load_shedding: dict[str, int],
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -77,6 +80,8 @@ def compute_benchmark(
         List of renewable carriers in TYNDP 2024.
     planning_horizons : int
         The current planning horizon year.
+    load_shedding : dict[str, int]
+        Value of lost load per carrier.
 
     Returns
     -------
@@ -103,7 +108,7 @@ def compute_benchmark(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -118,7 +123,7 @@ def compute_benchmark(
                 comps="Load",
                 groupby=grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -134,7 +139,7 @@ def compute_benchmark(
                 carrier=["biomass to liquid", "biomass to liquid CC"],
                 groupby="carrier",
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -150,7 +155,7 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -258,7 +263,7 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -391,7 +396,7 @@ def compute_benchmark(
                     bus_carrier=elec_bus_carrier,
                     groupby=["bus"] + grouper,
                     aggregate_across_components=True,
-                    aggregate_time=False,
+                    groupby_time=False,
                 )
                 .reindex(eu27_idx, level="bus")
                 .groupby(by=grouper)
@@ -416,6 +421,43 @@ def compute_benchmark(
         else:
             logger.warning(f"Unknown climate year for table: {table}")
             df = pd.DataFrame(columns=["carrier"])
+    elif table in ["electricity_price", "hydrogen_price"]:
+        carrier = "AC" if "electricity" in table else "H2"
+
+        # Collect nodes with energy balance; nodes without balance will have the load shedding price
+        idx_w_balance = n.statistics.energy_balance(
+            bus_carrier=carrier, groupby="bus", aggregate_across_components=True
+        ).index
+
+        df = (
+            n.statistics.prices(
+                bus_carrier=carrier,
+                weighting="time",
+            )
+            .to_frame("value")
+            .rename_axis("bus")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
+
+        mask = ~df.index.get_level_values("bus").isin(idx_w_balance)
+        df.loc[mask, :] = np.nan
+    elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
+        carrier = "AC" if "electricity" in table else "H2"
+
+        df = (
+            n.statistics.prices(
+                bus_carrier=carrier,
+                weighting="time",
+                groupby_time=False,
+            )
+            .pipe(lambda x: x.where(x < load_shedding.get(carrier, np.inf)))
+            .mean(axis=1)
+            .to_frame("value")
+            .rename_axis("bus")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
         df = pd.DataFrame(columns=["carrier"])
@@ -432,11 +474,29 @@ def compute_benchmark(
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
 
+    # Add EU27 (load-weighted average for prices)
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
+        df_eu27 = df.loc[lambda x: x["bus"].isin(eu27_idx)]
+
+        if "price" in table:
+            weights = (
+                n.statistics.withdrawal(
+                    groupby="bus",
+                    bus_carrier=carrier,
+                    nice_names=False,
+                )
+                .groupby("bus")
+                .sum()
+                .T
+            )
+        else:
+            weights = pd.Series(1.0, index=df_eu27.bus.unique())
+
         df_eu27 = (
-            df.loc[lambda x: x["bus"].isin(eu27_idx)]
+            df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
             .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
-            .sum()
+            .value.sum()
+            .div(weights.sum())
             .reset_index()
             .assign(bus="EU27")
         )
@@ -444,9 +504,10 @@ def compute_benchmark(
     else:
         df = df.assign(bus="EU27")
 
+    op = "sum" if "price" not in table else "mean"
     df = (
         df.groupby(by=[c for c in ["bus", "carrier", "snapshot"] if c in df.columns])
-        .sum()
+        .agg(op)
         .reset_index()
         .assign(
             table=table,
@@ -454,6 +515,8 @@ def compute_benchmark(
             if opt["report"]["unit"] in ENERGY_UNITS
             else "MW"
             if opt["report"]["unit"] in POWER_UNITS
+            else "EUR/MWh"
+            if opt["report"]["unit"] in PRICE_UNITS
             else opt["report"]["unit"],
         )
     )
@@ -479,6 +542,7 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
+    load_shedding = snakemake.params["load_shedding"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
@@ -502,6 +566,7 @@ if __name__ == "__main__":
         eu27=eu27,
         tyndp_renewable_carriers=tyndp_renewable_carriers,
         planning_horizons=planning_horizons,
+        load_shedding=load_shedding,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:

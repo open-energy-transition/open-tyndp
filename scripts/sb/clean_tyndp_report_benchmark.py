@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 
 
 def _safe_sheet(sn: str | dict, scenario: str) -> str:
-    if isinstance(sn, dict):
+    if not sn:
+        return False
+    elif isinstance(sn, dict):
         return sn.get(scenario, "")
     return sn
 
@@ -338,7 +340,7 @@ if __name__ == "__main__":
     sheet_names = [
         _safe_sheet(j["report"]["sheet_name"], scenario)
         for i, j in options["tables"].items()
-        if _safe_sheet(j["report"]["sheet_name"], scenario)
+        if _safe_sheet(j.get("report").get("sheet_name"), scenario)
     ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
