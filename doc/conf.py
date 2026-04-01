@@ -113,7 +113,7 @@ author = "PyPSA-Eur and Open-TYNDP Contributors"
 # built documents.
 #
 # The short X.Y version.
-version = "v0.5.1"
+version = "v0.6"
 # The full version, including alpha/beta/rc tags.
 release = version + ""
 
