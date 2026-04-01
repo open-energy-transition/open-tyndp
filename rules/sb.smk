@@ -727,6 +727,7 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
             countries=config_provider("countries"),
+            offshore_hubs=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         input:
             # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=lambda w: getattr(
@@ -738,8 +739,6 @@ if config["benchmarking"]["enable"]:
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
             crossborder=RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
-            prices=RESULTS
-            + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_prices_{scenario}{planning_horizons}.csv",
             h2_demand=RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_h2_demand_{scenario}{planning_horizons}.csv",
         log:
@@ -802,6 +801,9 @@ if config["benchmarking"]["enable"]:
             scenario=config_provider("tyndp_scenario"),
             tyndp_renewable_carriers=config_provider(
                 "electricity", "tyndp_renewable_carriers"
+            ),
+            load_shedding=config_provider(
+                "solving", "options", "load_shedding", "carriers"
             ),
         input:
             network=RESULTS
