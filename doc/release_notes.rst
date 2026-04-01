@@ -268,7 +268,7 @@ Open-TYNDP v0.6 (1st April 2026)
 
 * Implement rolling horizon optimisation with marginal storage values (water values) for seasonal storage components, maintaining operation of long-term stores close to perfect foresight optimization (https://github.com/open-energy-transition/open-tyndp/pull/441).
 
-* Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
+* Add SMR (grey hydrogen) and SMR + Carbon Capture (blue hydrogen) capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
 
 * Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
 
