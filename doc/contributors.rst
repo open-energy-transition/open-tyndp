@@ -19,6 +19,8 @@ towards the development of Open-TYNDP:
 * 2025 Lisa Zeyen (OET)
 * 2025 Carlos Gaete (OET)
 * 2025 Will Usher (OET)
+* 2026 Markus Groissböck (OET) 
+* 2026 Andreas Hernandez Denyer (OET)
 
 For licensing purposes, this team is referred to as *Contributors to Open-TYNDP* (see :doc:`licenses`).
 
