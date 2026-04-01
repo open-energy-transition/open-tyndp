@@ -109,6 +109,8 @@ def load_data(
         "IBIT H2": "IT",
         "IBFI": "FI",
         "IBFI H2": "FI",
+        "BEIOH01": "DK",
+        "BEIOH01 H2": "DK",
         "EU27": "EU27",
     }
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(

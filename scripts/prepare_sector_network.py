@@ -156,8 +156,8 @@ def define_spatial(
         spatial.offshore_hubs.y_h2 = offshore_buses_h2.y
         spatial.offshore_hubs.locations = offshore_buses.location
         spatial.offshore_hubs.locations_h2 = offshore_buses_h2.location
-        spatial.offshore_hubs.country = offshore_buses.location.str[:2]
-        spatial.offshore_hubs.country_h2 = offshore_buses_h2.location.str[:2]
+        spatial.offshore_hubs.country = offshore_buses.country
+        spatial.offshore_hubs.country_h2 = offshore_buses_h2.country
         spatial.offshore_hubs.type = offshore_buses.type
         spatial.offshore_hubs.type_h2 = offshore_buses_h2.type
 
