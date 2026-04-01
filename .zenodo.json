@@ -1,0 +1,82 @@
+{
+  "title": "Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP",
+  "license": "MIT",
+  "notes": "This repository introduces the open model dataset of the Open-TYNDP research and innovation project, which is a collaboration between Open Energy Transition (OET) and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project's aim is to explore and consider the adoption of PyPSA in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on PyPSA-Eur. It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.\nIf you use this package, please cite it in the following way.",
+  "communities": [
+    {
+      "identifier": "oet"
+    }
+  ],
+  "creators": [
+    {
+      "name": "Open Energy Transition"
+    },
+    {
+      "name": "Gilon, Thomas",
+      "orcid": "0009-0009-8300-0922",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Rüdt, Daniel",
+      "orcid": "0000-0003-2182-444X",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Hörsch, Jonas",
+      "orcid": "0000-0001-9438-767X",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Gaete-Morales, Carlos",
+      "orcid": "0000-0003-0770-7335",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Meng, Measrainsey",
+      "orcid": "0000-0003-2783-2029",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Hernandez Denyer, Andreas",
+      "orcid": "0009-0000-8438-7764",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Groissböck, Markus",
+      "orcid": "0000-0001-6025-9477",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Zeyen, Elisabeth",
+      "orcid": "0000-0002-7262-3296",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Usher, Will",
+      "orcid": "0000-0001-9367-1791",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Frysztacki, Martha Maria",
+      "orcid": "0000-0002-0788-1328",
+      "affiliation": "Open Energy Transition"
+    },
+    {
+      "name": "Parzen, Maximilian",
+      "orcid": "0000-0002-4390-0063",
+      "affiliation": "Open Energy Transition"
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.18494362",
+      "relation": "isNewVersionOf",
+      "scheme": "doi"
+    }
+  ],
+  "references": [
+    "Hörsch, J., Hofmann, F., Schlachtberger, D., Brown, T. (2018). PyPSA-Eur: An open optimisation model of the European transmission system. Energy Strategy Reviews, 22, 207–215. https://doi.org/10.1016/j.esr.2018.08.012",
+    "Brown, T. et al. PyPSA-Eur: An open sector-coupled optimisation model of the European energy system (v2025.07.0). https://doi.org/10.5281/zenodo.15864616",
+    "ENTSO-E, entsog (2025). TYNDP 2024 Scenarios Methodology Report. https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/"
+  ]
+}

@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
 
 
 def _safe_sheet(sn: str | dict, scenario: str) -> str:
-    if isinstance(sn, dict):
+    if not sn:
+        return False
+    elif isinstance(sn, dict):
         return sn.get(scenario, "")
     return sn
 
@@ -132,6 +134,91 @@ def _add_identifier(s: str) -> str:
         return s
 
 
+def _group_labels(
+    df: pd.DataFrame,
+    labels: list[str],
+    group_name: str,
+    label_col: str = "carrier",
+    value_col: str = "value",
+    preserve_labels: bool = False,
+) -> pd.DataFrame:
+    if not preserve_labels:
+        df[label_col] = df[label_col].replace(labels, group_name)
+    else:
+        df.loc[~df[label_col].isin(labels), label_col] = group_name
+    df = df.groupby([c for c in df.columns if c != value_col]).sum().reset_index()
+    return df
+
+
+def clean_data_for_benchmarking(table: str, df: pd.DataFrame) -> pd.DataFrame:
+    # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
+    if table == "elec_demand":
+        df = df[df.carrier == "final demand (inc. t&d losses, excl. pump storage )"]
+    # Aggregate methane demand to match input data resolution
+    elif table == "methane_demand":
+        df = _group_labels(
+            df.query("carrier!='total'"),
+            ["smr", "power generation"],
+            "exogenous demand",
+            preserve_labels=True,
+        )
+
+    # Aggregate hydrogen demand to match input data resolution
+    elif table == "hydrogen_demand":
+        df = _group_labels(
+            df.query("~carrier.isin(['total', 'e-fuels'])"),
+            ["power generation"],
+            "exogenous demand",
+            preserve_labels=True,
+        )
+
+    # Aggregate hydrogen import sources together to match input data resolution
+    elif table == "hydrogen_supply":
+        df = _group_labels(
+            df,
+            ["low carbon imports", "renewable imports"],
+            "imports (renewable & low carbon)",
+        )
+        df = _group_labels(
+            df,
+            ["smr (grey)", "smr with ccs (blue)"],
+            "smr (grey) and smr with ccs (blue)",
+        )
+
+    # Remove carriers not explicitly modeled
+    elif table == "final_energy_demand":
+        df = df[~df.carrier.isin(["total", "heat", "solids", "others"])]
+
+    # Group coal and biofuels together
+    elif table == "power_capacity" or table == "power_generation":
+        df = _group_labels(
+            df,
+            ["coal + other fossil", "biofuels"],
+            "coal + other fossil (incl. biofuels)",
+        )
+
+        df = _group_labels(
+            df,
+            ["methane"],
+            "methane (incl. biofuels)",
+        )
+
+        df = _group_labels(
+            df,
+            ["oil"],
+            "oil (incl. biofuels)",
+        )
+
+        if table == "power_generation":
+            df = df[df.carrier != "total generation"]
+
+    # Remove aggregated values
+    else:
+        df = df[~df.carrier.isin(["sum", "aggregated", "total generation", "total"])]
+
+    return df
+
+
 def load_benchmark(
     benchmarks_raw: dict[str, pd.DataFrame], table: str, scenario: str, options: dict
 ) -> pd.DataFrame:
@@ -230,78 +317,9 @@ def load_benchmark(
     df_converted["year"] = df_converted["year"].astype(int)
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
 
-    # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
-    if table == "elec_demand":
-        df_converted = df_converted[
-            df_converted.carrier
-            == "final demand (inc. t&d losses, excl. pump storage )"
-        ]
-    # Aggregate methane demand to match input data resolution
-    elif table == "methane_demand":
-        group = ["smr", "power generation"]
-        df_other = (
-            df_converted[
-                (~df_converted.carrier.isin(group)) & (df_converted.carrier != "total")
-            ]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="exogenous demand")
-        )
-        df_group = df_converted[df_converted.carrier.isin(group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
-    # Aggregate hydrogen demand to match input data resolution
-    elif table == "hydrogen_demand":
-        group = ["power generation"]
-        df_other = (
-            df_converted[
-                (~df_converted.carrier.isin(group))
-                & (~df_converted.carrier.isin(["total", "e-fuels"]))
-            ]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="exogenous demand")
-        )
-        df_group = df_converted[df_converted.carrier.isin(group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
-    # Aggregate hydrogen import sources together to match input data resolution
-    elif table == "hydrogen_supply":
-        to_group = ["low carbon imports", "renewable imports"]
-        df_other = (
-            df_converted[df_converted.carrier.isin(to_group)]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="imports (renewable & low carbon)")
-        )
-        df_group = df_converted[~df_converted.carrier.isin(to_group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
+    df_clean = clean_data_for_benchmarking(table, df_converted)
 
-        to_group = ["smr (grey)", "smr with ccs (blue)"]
-        df_other = (
-            df_converted[df_converted.carrier.isin(to_group)]
-            .groupby(["scenario", "year", "unit", "table"])
-            .sum()
-            .reset_index()
-            .assign(carrier="smr (grey) and smr with ccs (blue)")
-        )
-        df_group = df_converted[~df_converted.carrier.isin(to_group)]
-        df_converted = pd.concat([df_group, df_other], ignore_index=True)
-    # Remove carriers not explicitly modeled
-    elif table == "final_energy_demand":
-        df_converted = df_converted[
-            ~df_converted.carrier.isin(["total", "heat", "solids"])
-        ]
-    # Remove aggregated values
-    else:
-        df_converted = df_converted[
-            ~df_converted.carrier.isin(
-                ["sum", "aggregated", "total generation", "total"]
-            )
-        ]
-
-    return df_converted
+    return df_clean
 
 
 if __name__ == "__main__":
@@ -322,7 +340,7 @@ if __name__ == "__main__":
     sheet_names = [
         _safe_sheet(j["report"]["sheet_name"], scenario)
         for i, j in options["tables"].items()
-        if _safe_sheet(j["report"]["sheet_name"], scenario)
+        if _safe_sheet(j.get("report").get("sheet_name"), scenario)
     ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None
@@ -350,7 +368,7 @@ if __name__ == "__main__":
 
     # Combine all benchmark data
     benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
-        source="TYNDP 2024 Scenarios Report"
+        source="TYNDP 2024 Scenarios Report", bus="EU27"
     )
     if benchmarks_combined.empty:
         logger.warning("No benchmark data was successfully processed")

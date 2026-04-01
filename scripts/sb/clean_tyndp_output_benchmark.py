@@ -34,35 +34,35 @@ logger = logging.getLogger(__name__)
 MM_CARRIER_MAPPING = {
     # Power capacity and generation mappings
     "Nuclear": "nuclear",
-    "Lignite old 1": "coal + other fossil",
-    "Lignite old 2": "coal + other fossil",
-    "Lignite new": "coal + other fossil",
-    "Lignite CCS": "coal + other fossil",
-    "Lignite biofuel": "biofuels",
-    "Hard coal old 1": "coal + other fossil",
-    "Hard coal old 2": "coal + other fossil",
-    "Hard coal new": "coal + other fossil",
-    "Hard coal CCS": "coal + other fossil",
-    "Hard Coal biofuel": "biofuels",
-    "Gas conventional old 1": "methane",
-    "Gas conventional old 2": "methane",
-    "Gas CCGT old 1": "methane",
-    "Gas CCGT old 2": "methane",
-    "Gas CCGT new": "methane",
-    "Gas CCGT CCS": "methane",
-    "Gas CCGT present 1": "methane",
-    "Gas CCGT present 2": "methane",
-    "Gas OCGT old": "methane",
-    "Gas OCGT new": "methane",
-    "Gas biofuel": "biofuels",
-    "Light oil": "oil",
-    "Heavy oil old 1": "oil",
-    "Heavy oil old 2": "oil",
-    "Light oil biofuel": "biofuels",
-    "Heavy oil biofuel": "biofuels",
-    "Oil shale old": "oil",
-    "Oil shale new": "oil",
-    "Oil shale biofuel": "biofuels",
+    "Lignite old 1": "coal + other fossil (incl. biofuels)",
+    "Lignite old 2": "coal + other fossil (incl. biofuels)",
+    "Lignite new": "coal + other fossil (incl. biofuels)",
+    "Lignite CCS": "coal + other fossil (incl. biofuels)",
+    "Lignite biofuel": "coal + other fossil (incl. biofuels)",
+    "Hard coal old 1": "coal + other fossil (incl. biofuels)",
+    "Hard coal old 2": "coal + other fossil (incl. biofuels)",
+    "Hard coal new": "coal + other fossil (incl. biofuels)",
+    "Hard coal CCS": "coal + other fossil (incl. biofuels)",
+    "Hard Coal biofuel": "coal + other fossil (incl. biofuels)",
+    "Gas conventional old 1": "methane (incl. biofuels)",
+    "Gas conventional old 2": "methane (incl. biofuels)",
+    "Gas CCGT old 1": "methane (incl. biofuels)",
+    "Gas CCGT old 2": "methane (incl. biofuels)",
+    "Gas CCGT new": "methane (incl. biofuels)",
+    "Gas CCGT CCS": "methane (incl. biofuels)",
+    "Gas CCGT present 1": "methane (incl. biofuels)",
+    "Gas CCGT present 2": "methane (incl. biofuels)",
+    "Gas OCGT old": "methane (incl. biofuels)",
+    "Gas OCGT new": "methane (incl. biofuels)",
+    "Gas biofuel": "methane (incl. biofuels)",
+    "Light oil": "oil (incl. biofuels)",
+    "Heavy oil old 1": "oil (incl. biofuels)",
+    "Heavy oil old 2": "oil (incl. biofuels)",
+    "Light oil biofuel": "oil (incl. biofuels)",
+    "Heavy oil biofuel": "oil (incl. biofuels)",
+    "Oil shale old": "oil (incl. biofuels)",
+    "Oil shale new": "oil (incl. biofuels)",
+    "Oil shale biofuel": "oil (incl. biofuels)",
     "Wind Onshore": "wind onshore",
     "Wind Offshore": "wind offshore",
     "Solar (Photovoltaic)": "solar",
@@ -76,7 +76,7 @@ MM_CARRIER_MAPPING = {
     "Pump Storage - Closed Loop (pump)": "hydro and pumped storage (load)",
     "Others renewable": "other res",
     "Others non-renewable": "other non-res",
-    "Battery Storage discharge (gen.)": "battery discharge",
+    "Battery Storage discharge (gen.)": "battery",
     "Battery Storage charge (load)": "battery charge (load)",
     "Hydrogen CCGT": "hydrogen-ccgt",
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
@@ -89,6 +89,11 @@ MM_CARRIER_MAPPING = {
     # Hydrogen supply from H2 sheet
     "Electrolyser (gen.)": "p2g",
     "Steam methane reformer": "smr (grey) and smr with ccs (blue)",
+    # Prices
+    "Marginal Cost Yearly Average [€]": "AC",
+    "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]": "AC",
+    "Marginal Cost Yearly Average [€/MWhH2]": "H2",
+    "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]": "H2",
     # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
     # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
     # NOT available in TYNDP market model (will not appear in output):
@@ -103,19 +108,23 @@ MM_CARRIER_MAPPING = {
 LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
     "power_generation": ["Yearly Outputs", "Annual generation [GWh]"],
+    "electricity_demand": [
+        "Yearly Outputs",
+        "Native Demand (excl. Pump load & Battery charge) [GWh]",
+    ],
     "hydrogen_demand": [
         "Yearly H2 Outputs",
         "Native Demand (excl. H2 storage charge) [GWhH2]",
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
     # prices
-    "prices_electricity": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
-    "prices_electricity_excl_shed": [
+    "electricity_price": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
+    "electricity_price_excl_shed": [
         "Yearly Outputs",
         "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
     ],
-    "prices_H2": ["Yearly H2 Outputs", "Marginal Cost Yearly Average [€/MWhH2]"],
-    "prices_H2_excl_shed": [
+    "hydrogen_price": ["Yearly H2 Outputs", "Marginal Cost Yearly Average [€/MWhH2]"],
+    "hydrogen_price_excl_shed": [
         "Yearly H2 Outputs",
         "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]",
     ],
@@ -199,6 +208,7 @@ def load_crossborder_sheet(
 def load_MM_sheet(
     table_name: str,
     filepath: str | Path,
+    countries: list[str],
     eu27: list,
     skiprows: int = 5,
 ) -> pd.DataFrame:
@@ -217,6 +227,8 @@ def load_MM_sheet(
         Path to the TYNDP market model xlsx file.
     table_name : str
         Name of the table from LOOKUP_TABLES (e.g., "power_capacity").
+    countries : list[str]
+        List of modelled countries
     eu27 : list
         List of EU27 country codes.
     skiprows : int, default 5
@@ -225,7 +237,7 @@ def load_MM_sheet(
     Returns
     -------
     pd.DataFrame
-        DataFrame with multi-index rows [output_type, technology] and country columns.
+        Market Model data in long format (incl. EU27).
     """
     sheet_name, output_type = LOOKUP_TABLES[table_name]
 
@@ -249,26 +261,60 @@ def load_MM_sheet(
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type]
 
-    # Rename column names to country
+    # Rename and filter column names (buses)
     df.rename(
-        columns=lambda x: x.replace("UK", "GB").replace("IB", "")[:2], inplace=True
+        columns=lambda x: x.replace("UK", "GB").replace("_H2", " H2"),
+        inplace=True,
     )
-    df_ct = df.T.groupby(df.columns).sum().T
+    op = "sum" if "price" not in table_name else "mean"
+    df_nodal = (
+        df.T.groupby(df.columns)
+        .agg(op)
+        .T.reset_index()
+        .melt(id_vars=["carrier"], var_name="bus")
+    )
+    df_nodal = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(countries)]
 
-    # Only consider EU27 and sum
-    df = df.T.groupby(df.columns).sum().reindex(eu27).sum()
+    # Add EU27 (load-weighted average for prices)
+    df_eu27 = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
 
-    # Adjust unit
-    df = df.rename("value").reset_index()
-    df["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
-    final = convert_units(df)
-    df_ct["unit"] = re.search(r"\[(.*)]", output_type).group(1).rstrip("H2")
+    if "price" in table_name:
+        weights = (
+            load_MM_sheet(
+                table_name=f"{table_name.split('_')[0]}_demand",
+                filepath=tyndp_output_file,
+                countries=countries,
+                eu27=eu27,
+                skiprows=5,
+            )
+            .set_index("bus")
+            .value
+        )
+    else:
+        weights = pd.Series(1.0, index=df_eu27.bus.unique())
+
+    df_eu27 = (
+        df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
+        .groupby(by=["carrier"])
+        .value.sum()
+        .div(weights.sum())
+        .reset_index()
+        .assign(bus="EU27")
+    )
+    df = pd.concat([df_nodal, df_eu27])
+
+    # Add metadata
+    df["unit"] = re.sub(
+        r"€(/MWh)?",
+        "EUR/MWh",
+        re.search(r"\[(.*)]", output_type).group(1).rstrip("H2"),
+    )
+
+    df["table"] = table_name
     if "price" not in table_name:
-        for col in df_ct.columns[df_ct.columns != "unit"]:
-            df_ct = convert_units(df_ct, value_col=col)
+        df = convert_units(df)
 
-    final["table"] = table_name
-    return final, df_ct
+    return df
 
 
 def load_h2_demand_ts(
@@ -339,7 +385,9 @@ def set_load_sign(
     return MM_data
 
 
-def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
+def clean_MM_data_for_benchmarking(
+    MM_data: pd.DataFrame, offshore_hubs: bool = False
+) -> pd.DataFrame:
     """
     Clean market model data for benchmarking analysis.
 
@@ -354,6 +402,8 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
     MM_data : pd.DataFrame
         Market model data with columns 'carrier', 'table', and 'value'.
         Expected to contain power capacity and generation data.
+    offshore_hubs : bool, default False
+        Whether offshore hubs are modeled.
 
     Returns
     -------
@@ -369,22 +419,18 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         "not(table=='power_generation' and carrier=='hydro and pumped storage')"
     )
 
+    # remove batteries from generation
+    MM_data = MM_data.query("not(table=='power_generation' and carrier=='battery')")
+
     # aggregate hydro capacities
-    hydro = (
-        MM_data.query(
-            "table=='power_capacity' and (carrier == 'hydro (exc. pump storage)' or carrier == 'hydro and pumped storage')"
-        )
-        .sum(numeric_only=True)
-        .value
+    mask = (MM_data.table == "power_capacity") & (
+        MM_data.carrier == "hydro (exc. pump storage)"
     )
-    MM_data.loc[
-        MM_data.query(
-            "table=='power_capacity' and carrier=='hydro and pumped storage'"
-        ).index,
-        "value",
-    ] = hydro
-    MM_data = MM_data.query(
-        "not(table=='power_capacity' and carrier=='hydro (exc. pump storage)')"
+    MM_data.loc[mask, "carrier"] = "hydro and pumped storage"
+    MM_data = (
+        MM_data.groupby([c for c in MM_data.columns if c != "value"])
+        .sum()
+        .reset_index()
     )
 
     # rename other res to small scale res
@@ -402,6 +448,8 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         "table=='power_generation' and carrier.isin(['hydrogen-ccgt', 'hydrogen-fuel-cell'])"
     ).copy()
     eff_fuel_cell, eff_ccgt = 0.5, 0.59  # TODO Remove hard coded values
+    mask_eu27 = ~(h2_power["bus"] == "EU27")
+    h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + " H2"
     h2_power.loc[h2_power.carrier == "hydrogen-ccgt", "value"] = h2_power.loc[
         h2_power.carrier == "hydrogen-ccgt", "value"
     ].div(eff_ccgt)
@@ -418,6 +466,33 @@ def clean_MM_data_for_benchmarking(MM_data: pd.DataFrame) -> pd.DataFrame:
         .sum()
         .reset_index()
     )
+
+    # Norway (NO) has no H2 demand, so its reported H2 price is set to 0 EUR/MWh_H2
+    # to avoid misleading benchmark errors
+    MM_data.loc[
+        MM_data.table.str.contains("hydrogen_price") & MM_data.bus.str.contains("NO"),
+        "value",
+    ] = 0
+
+    # When offshore hubs are modeled, exclude price data for conventional offshore nodes
+    if offshore_hubs:
+        offshore_node_conv = [  # noqa: F841
+            "BEOF",
+            "DEKF",
+            "DKBH",
+            "DKKF",
+            "DKNS",
+            "EEOF",
+            "LTOF",
+            "NL60",
+            "NL6H",
+            "NLA0",
+            "NLBH",
+            "NLLL",
+        ]
+        MM_data = MM_data.query(
+            "~(bus.isin(@offshore_node_conv) and table.str.contains('price'))"
+        )
 
     return MM_data
 
@@ -446,6 +521,7 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     scenario = snakemake.params["scenario"]
     planning_horizon = int(snakemake.wildcards.planning_horizons)
+    countries = snakemake.params["countries"]
 
     # currently only implemented for NT
     if scenario != "NT":
@@ -469,22 +545,29 @@ if __name__ == "__main__":
     logger.info(f"Processing tables: {', '.join(tables_to_process)}")
 
     benchmarks = {}
-    df_ct = {}
     for table in tables_to_process:
-        benchmarks[table], df_ct[table] = load_MM_sheet(
-            table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
+        benchmarks[table] = load_MM_sheet(
+            table_name=table,
+            filepath=tyndp_output_file,
+            countries=countries,
+            eu27=eu27,
+            skiprows=5,
         )
 
     MM_data = pd.concat(benchmarks).reset_index(drop=True)
-    MM_data_ct = pd.concat(df_ct)
 
     # set negative sign for loads
     MM_data = set_load_sign(MM_data)
 
     # clean data for benchmarking
-    MM_data = clean_MM_data_for_benchmarking(MM_data)
+    MM_data = clean_MM_data_for_benchmarking(
+        MM_data, offshore_hubs=snakemake.params.offshore_hubs
+    )
 
     # load crossborder data
+    logger.info(
+        f"Processing tables of cross-border flows for: {', '.join(CROSS_BORDER_DICT.keys())}"
+    )
     crossborder = {}
     for key in CROSS_BORDER_DICT.keys():
         crossborder[key] = load_crossborder_sheet(
@@ -492,16 +575,8 @@ if __name__ == "__main__":
         )
     crossborder_agg = pd.concat(crossborder, axis=1)
 
-    # load prices
-    prices_ct = {}
-    for table in LOOKUP_TABLES.keys():
-        if "price" in table:
-            _, prices_ct[table] = load_MM_sheet(
-                table_name=table, filepath=tyndp_output_file, eu27=eu27, skiprows=5
-            )
-    prices = pd.concat(prices_ct)
-
     # load h2 demand time series
+    logger.info("Processing hourly H2 demand tables")
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
@@ -511,14 +586,10 @@ if __name__ == "__main__":
 
     # assign meta data
     assign_meta_data(MM_data, planning_horizon, scenario)
-    assign_meta_data(MM_data_ct, planning_horizon, scenario)
-    assign_meta_data(prices, planning_horizon, scenario)
     assign_meta_data(crossborder_agg, planning_horizon, scenario)
     assign_meta_data(h2_demand_ts, planning_horizon, scenario)
 
     # Save data
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
-    MM_data_ct.to_csv(snakemake.output.benchmarks_ct)
     crossborder_agg.to_csv(snakemake.output.crossborder)
-    prices.to_csv(snakemake.output.prices)
     h2_demand_ts.to_csv(snakemake.output.h2_demand)

@@ -5588,6 +5588,11 @@
               "description": "Add option to include TYNDP offshore hubs.",
               "type": "boolean"
             },
+            "connect_isolated": {
+              "default": false,
+              "description": "Copperplate isolated wind farms to the grid.",
+              "type": "boolean"
+            },
             "max_capacity": {
               "additionalProperties": {
                 "type": "number"
@@ -7577,6 +7582,11 @@
         "enable": {
           "default": false,
           "description": "Add option to include TYNDP offshore hubs.",
+          "type": "boolean"
+        },
+        "connect_isolated": {
+          "default": false,
+          "description": "Copperplate isolated wind farms to the grid.",
           "type": "boolean"
         },
         "max_capacity": {
@@ -12609,6 +12619,11 @@
             "enable": {
               "default": false,
               "description": "Add option to include TYNDP offshore hubs.",
+              "type": "boolean"
+            },
+            "connect_isolated": {
+              "default": false,
+              "description": "Copperplate isolated wind farms to the grid.",
               "type": "boolean"
             },
             "max_capacity": {

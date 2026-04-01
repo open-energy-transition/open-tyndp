@@ -533,10 +533,14 @@ def remove_tyndp_fixed_p(
                 "H2 pipeline",
                 "SMR",
                 "SMR CC",
-                "H2 tank-storage",
-                "H2 cavern-storage",
+                "H2 tank-storage charger",
+                "H2 tank-storage discharger",
+                "H2 cavern-storage charger",
+                "H2 cavern-storage discharger",
+                "battery charger",
+                "battery discharger",
+                "other-res-biomass",
             ]
-            + ["other-res-biomass"]
             if c.name == "Link"
             else tyndp_hydro
             + [
@@ -546,6 +550,7 @@ def remove_tyndp_fixed_p(
                 "onwind",
                 "solar-pv-rooftop",
                 "solar-pv-utility",
+                "battery",
             ]
         )
         attr = "e" if c.name == "Store" else "p"
@@ -583,7 +588,7 @@ def harmonize_renewable_profiles(
     """
     for carrier in carriers:
         gens = n.generators[n.generators.carrier == carrier]
-        brownfield_gens = gens[gens.build_year != year].index
+        brownfield_gens = gens[(gens.build_year != year) & (gens.build_year != 0)].index
         n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
             brownfield_gens.str[:-4] + str(year)
         ].values
@@ -636,7 +641,13 @@ if __name__ == "__main__":
     )
     tyndp_hydro = [
         c for c in snakemake.params.tyndp_renewable_carriers if c.startswith("hydro")
-    ] + ["hydro-phs-turbine", "hydro-phs-pump", "hydro-phs-inflows"]
+    ] + [
+        "hydro-phs-turbine",
+        "hydro-phs-pump",
+        "hydro-phs-inflows",
+        "hydro-phs-pure-turbine",
+        "hydro-phs-pure-pump",
+    ]
 
     # Drop fixed TYNDP conventional and hydro capacities from previous year
     # as TYNDP capacities are given as cumulative input

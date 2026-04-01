@@ -308,6 +308,7 @@ def _process_other_nonres_capacities(
 
     # Manually fix missing efficiency and CO2 factor information for AT, HU, ITN1, ITS1
     # with values of equivalent plant types of other countries (same for all countries)
+    df[["efficiency", "co2_factor"]] = df[["efficiency", "co2_factor"]].astype(float)
     if node == "AT00":
         # gas CCGT old 1
         df.loc[:, ["efficiency", "co2_factor"]] = [0.4, 0.513]

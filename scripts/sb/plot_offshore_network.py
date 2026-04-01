@@ -10,6 +10,7 @@ import re
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import numpy as np
 import pypsa
 from pypsa.plot.maps.static import (
     add_legend_circles,
@@ -86,12 +87,16 @@ def plot_offshore_map(
             .groupby(level=0)
             .sum()
         )
+        # represent copperplate links as 25% larger than the largest link
+        if not links[links != np.inf].empty:
+            max_cap = max(links[links != np.inf].max() * 1.25, 5 * lw_factor)
+        else:
+            max_cap = 5 * lw_factor
+        links = links.replace(np.inf, max_cap)
+
         # set link widths
         links[links < link_lower_threshold] = 0.0
         link_width = links / lw_factor
-        if link_width.notnull().empty:
-            logger.info(f"No offshore capacities for {carrier}, skipping plot.")
-            return
         link_width = link_width.reindex(n.links.index).fillna(0.0)
     elif isinstance(p_nom, float) or isinstance(p_nom, int):
         link_width = p_nom
