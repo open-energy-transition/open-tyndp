@@ -11,11 +11,11 @@ The following people have `contributed
 <https://github.com/open-energy-transition/Open-TYNDP/graphs/contributors>`_ significantly
 towards the development of Open-TYNDP:
 
-* 2024-2025-2026 Thomas Gilon (OET)
-* 2024-2025-2026 Daniel Rüdt (OET)
-* 2024-2025-2026 Jonas Hörsch (OET)
-* 2024-2025-2026 Martha Frysztacki (OET)
-* 2024-2025-2026 Max Parzen (OET)
+* 2024-2026 Thomas Gilon (OET)
+* 2024-2026 Daniel Rüdt (OET)
+* 2024-2026 Jonas Hörsch (OET)
+* 2024-2026 Martha Frysztacki (OET)
+* 2024-2026 Max Parzen (OET)
 * 2025-2026 Lisa Zeyen (OET)
 * 2025-2026 Carlos Gaete (OET)
 * 2025-2026 Will Usher (OET)
