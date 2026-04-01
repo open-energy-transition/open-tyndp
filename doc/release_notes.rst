@@ -314,6 +314,8 @@ Open-TYNDP v0.6 (1st April 2026)
 
 * Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
 
+* Remove non-extendable TYNDP assets with zero capacity from network to reduce network size (https://github.com/open-energy-transition/open-tyndp/pull/583).
+
 **Bugfixes and Compatibility**
 
 * Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
