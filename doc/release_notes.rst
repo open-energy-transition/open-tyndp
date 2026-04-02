@@ -17,11 +17,7 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
-* Fix EU27 benchmark aggregation for non-price tables (https://github.com/open-energy-transition/open-tyndp/pull/600).
-
 **Documentation**
-
-* Update citations to version-agnostic DOIs (https://github.com/open-energy-transition/open-tyndp/pull/602).
 
 **Developers Note**
 
@@ -264,6 +260,18 @@ Upcoming PyPSA-Eur Release
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
 
 * The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
+
+Open-TYNDP v0.6.1 (2nd April 2026)
+========================================
+
+**Bugfixes and Compatibility**
+
+* Fix EU27 benchmark aggregation for non-price tables (https://github.com/open-energy-transition/open-tyndp/pull/600).
+
+**Documentation**
+
+* Update citations to version-agnostic DOIs (https://github.com/open-energy-transition/open-tyndp/pull/602).
+
 
 Open-TYNDP v0.6 (1st April 2026)
 ========================================
