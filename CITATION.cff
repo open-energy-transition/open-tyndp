@@ -56,7 +56,7 @@ identifiers:
     description: 'Zenodo record archiving released versions of Open-TYNDP starting with v0.6. Versions v0.5 and v0.5.1 are archived at 10.5281/zenodo.18494362.'
 repository-code: 'https://github.com/open-energy-transition/open-tyndp'
 license: MIT
-version: v0.6
+version: v0.6.1
 
 # Preferred citation and references
 preferred-citation:
@@ -100,7 +100,7 @@ preferred-citation:
       orcid: https://orcid.org/0000-0002-4390-0063
   doi: 10.5281/zenodo.19372053
   repository-code: 'https://github.com/open-energy-transition/open-tyndp'
-  version: v0.6
+  version: v0.6.1
   license: MIT
 
 # Reference the original work

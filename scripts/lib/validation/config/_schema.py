@@ -99,7 +99,9 @@ class ConfigSchema(BaseModel):
     """internal attribute to track the config filename following the application of config updates"""
 
     # Top-level fields (from TopLevelConfig)
-    version: str = Field("v0.6", description="Version of Open-TYNDP. Descriptive only.")
+    version: str = Field(
+        "v0.6.1", description="Version of Open-TYNDP. Descriptive only."
+    )
     tutorial: bool = Field(
         False,
         description="Switch to retrieve the tutorial data set instead of the full data set.",
