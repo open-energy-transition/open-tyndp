@@ -230,6 +230,7 @@ electricity:
     - Hydrogen
     - Electrolyser
     - Battery
+    - DSR
   estimate_renewable_capacities:
     enable: true
     from_powerplantmatching: true

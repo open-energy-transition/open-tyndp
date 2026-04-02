@@ -279,6 +279,7 @@ class _PemmdbCapacitiesConfig(BaseModel):
             "Hydrogen",
             "Electrolyser",
             "Battery",
+            "DSR",
         ]
     ] = Field(
         default_factory=lambda: [
@@ -297,6 +298,7 @@ class _PemmdbCapacitiesConfig(BaseModel):
             "Hydrogen",
             "Electrolyser",
             "Battery",
+            "DSR",
         ],
         description="The PEMMDB technologies which are available and which data shall be used.",
     )
