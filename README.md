@@ -9,7 +9,7 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Test workflows](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml/badge.svg)](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml)
 [![Documentation](https://readthedocs.org/projects/open-tyndp/badge/?version=latest)](https://open-tyndp.readthedocs.io/en/latest/?badge=latest)
 ![Size](https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp)
-[![Zenodo Open-TYNDP](https://zenodo.org/badge/DOI/10.5281/zenodo.18672148.svg)](https://doi.org/10.5281/zenodo.18672148)
+[![Zenodo Open-TYNDP](https://zenodo.org/badge/DOI/10.5281/zenodo.19372053.svg)](https://doi.org/10.5281/zenodo.19372053)
 [![Zenodo PyPSA-Eur](https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg)](https://doi.org/10.5281/zenodo.3520874)
 [![Zenodo PyPSA-Eur-Sec](https://zenodo.org/badge/DOI/10.5281/zenodo.3938042.svg)](https://doi.org/10.5281/zenodo.3938042)
 [![Zenodo TYNDP data](https://zenodo.org/badge/DOI/10.5281/zenodo.14230568.svg)](https://doi.org/10.5281/zenodo.14230568)
@@ -186,7 +186,9 @@ Sign Up for the [project newsletter](https://openenergytransitionnewsletter.eo.p
 
 If you want to cite a specific Open-TYNDP version, since v0.5, each release is archived on Zenodo with a release-specific DOI:
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18672148.svg)](https://doi.org/10.5281/zenodo.18672148)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19372053.svg)](https://doi.org/10.5281/zenodo.19372053)
+
+Versions v0.5 and v0.5.1 are archived at [10.5281/zenodo.18494362](https://doi.org/10.5281/zenodo.18494362).
 
 If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of [Open-TYNDP](https://github.com/open-energy-transition/open-tyndp).
 
