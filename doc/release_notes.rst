@@ -17,6 +17,8 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
+* Fix EU27 benchmark aggregation for non-price tables (https://github.com/open-energy-transition/open-tyndp/pull/600).
+
 **Documentation**
 
 **Developers Note**
