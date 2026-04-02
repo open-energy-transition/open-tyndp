@@ -52,8 +52,8 @@ authors:
     orcid: https://orcid.org/0000-0002-4390-0063
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.18672148
-    description: 'Zenodo record archiving released versions of Open-TYNDP starting with v0.5.'
+    value: 10.5281/zenodo.19372053
+    description: 'Zenodo record archiving released versions of Open-TYNDP starting with v0.6. Versions v0.5 and v0.5.1 are archived at 10.5281/zenodo.18494362.'
 repository-code: 'https://github.com/open-energy-transition/open-tyndp'
 license: MIT
 version: v0.6
@@ -98,7 +98,7 @@ preferred-citation:
     - family-names: Parzen
       given-names: Maximilian
       orcid: https://orcid.org/0000-0002-4390-0063
-  doi: 10.5281/zenodo.18672148
+  doi: 10.5281/zenodo.19372053
   repository-code: 'https://github.com/open-energy-transition/open-tyndp'
   version: v0.6
   license: MIT

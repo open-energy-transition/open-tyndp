@@ -19,6 +19,8 @@ Upcoming Open-TYNDP Release
 
 **Documentation**
 
+* Update citations to version-agnostic DOIs (https://github.com/open-energy-transition/open-tyndp/pull/602).
+
 **Developers Note**
 
 

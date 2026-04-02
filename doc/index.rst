@@ -23,8 +23,8 @@ Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Cont
 .. image:: https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp
     :alt: GitHub repo size
 
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18672148.svg
-    :target: https://doi.org/10.5281/zenodo.18672148
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.19372053.svg
+    :target: https://doi.org/10.5281/zenodo.19372053
 
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg
     :target: https://doi.org/10.5281/zenodo.3520874
@@ -304,14 +304,16 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 Citing Open-TYNDP
 ==================
 
-If you want to cite a specific Open-TYNDP version, since v0.5, each release is archived on Zenodo with a release-specific DOI:
+If you want to cite a specific Open-TYNDP version, since v0.6, each release is archived on Zenodo with a release-specific DOI:
 
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.18672148.svg
-   :target: https://doi.org/10.5281/zenodo.18672148
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.19372053.svg
+   :target: https://doi.org/10.5281/zenodo.19372053
    :alt: DOI
    :align: left
 
 |
+
+Versions v0.5 and v0.5.1 are archived at `10.5281/zenodo.18494362 <https://doi.org/10.5281/zenodo.18494362>`__.
 
 If you use Open-TYNDP in your research, please cite it as shown on Zenodo or using the "Cite this repository" button in the sidebar of `Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>`__.
 
