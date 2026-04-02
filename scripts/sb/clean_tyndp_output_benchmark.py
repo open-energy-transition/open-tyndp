@@ -498,6 +498,7 @@ def clean_MM_data_for_benchmarking(
 
     return MM_data
 
+
 def clean_h2_imports_for_benchmarking(
     crossborder_h2: pd.DataFrame,
     eu27: list[str],
@@ -505,7 +506,7 @@ def clean_h2_imports_for_benchmarking(
     """
     Extracts H2 imports from external nodes/buses for hydrogen supply benchmarking.
 
-    Filters crossborder H2 exchanges where bus0 starts with "X" 
+    Filters crossborder H2 exchanges where bus0 starts with "X"
     and maps them to benchmark carriers:
     - XAmmonia: "ammonia imports"
     - Other X-nodes (eg. XDZ): "imports (renewable & low carbon)"
@@ -523,17 +524,25 @@ def clean_h2_imports_for_benchmarking(
     pd.DataFrame
         dataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
     """
-    x_cols = [c for c in crossborder_h2.columns if str(crossborder_h2.loc["bus0", c]).startswith("X")]
-    df = pd.DataFrame({
-        "carrier": [
-            "ammonia imports" if y == "XAmmonia" else "imports (renewable & low carbon)"
-            for y in crossborder_h2.loc["bus0", x_cols].values
-        ],
-        "bus": crossborder_h2.loc["bus1", x_cols].values,
-        "unit": "MWh",
-        "table": "hydrogen_supply",
-        "value": crossborder_h2.loc["sum", x_cols].values,
-    })
+    x_cols = [
+        c
+        for c in crossborder_h2.columns
+        if str(crossborder_h2.loc["bus0", c]).startswith("X")
+    ]
+    df = pd.DataFrame(
+        {
+            "carrier": [
+                "ammonia imports"
+                if y == "XAmmonia"
+                else "imports (renewable & low carbon)"
+                for y in crossborder_h2.loc["bus0", x_cols].values
+            ],
+            "bus": crossborder_h2.loc["bus1", x_cols].values,
+            "unit": "MWh",
+            "table": "hydrogen_supply",
+            "value": crossborder_h2.loc["sum", x_cols].values,
+        }
+    )
     df_eu27 = (
         df[df["bus"].str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
         .groupby("carrier")["value"]
