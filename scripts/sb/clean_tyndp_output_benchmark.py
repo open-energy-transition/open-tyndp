@@ -278,7 +278,7 @@ def load_MM_sheet(
     # Add EU27 / Pan-EU load-weighted average for prices
     if "price" in table_name:
         df_eu = df_nodal
-        bus_name = "EU"
+        bus_name = "Pan-EU"
         weights = (
             load_MM_sheet(
                 table_name=f"{table_name.split('_')[0]}_demand",

@@ -478,7 +478,7 @@ def compute_benchmark(
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
         if "price" in table:
             df_eu = df
-            bus_name = "EU"
+            bus_name = "Pan-EU"
             weights = (
                 n.statistics.withdrawal(
                     groupby="bus",
