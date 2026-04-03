@@ -196,7 +196,7 @@ if __name__ == "__main__":
     bus_size = eb.groupby(level=["bus", "carrier"]).sum()
 
     # line and links widths according to optimal capacity
-    flow = n.statistics.transmission(groupby=False, bus_carrier=carrier)
+    flow = n.statistics.transmission(groupby=False, bus_carrier=carrier, at_port=0)
     if not flow.empty:
         flow_reversed_mask = flow.index.get_level_values(1).str.contains("reversed")
         flow_reversed = flow[flow_reversed_mask].rename(
