@@ -275,10 +275,10 @@ def load_MM_sheet(
     )
     df_nodal = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(countries)]
 
-    # Add EU27 (load-weighted average for prices)
-    df_eu27 = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
-
+    # Add EU27 / Pan-EU load-weighted average for prices
     if "price" in table_name:
+        df_eu = df_nodal
+        bus_name = "EU"
         weights = (
             load_MM_sheet(
                 table_name=f"{table_name.split('_')[0]}_demand",
@@ -287,23 +287,26 @@ def load_MM_sheet(
                 eu27=eu27,
                 skiprows=5,
             )
+            .query("bus!='EU27'")
             .set_index("bus")
             .value
         )
         normalizer = weights.sum()
     else:
-        weights = pd.Series(1.0, index=df_eu27.bus.unique())
+        df_eu = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
+        bus_name = "EU27"
+        weights = pd.Series(1.0, index=df_eu.bus.unique())
         normalizer = 1
 
-    df_eu27 = (
-        df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
+    df_eu = (
+        df_eu.assign(value=lambda x: x.bus.map(weights) * x.value)
         .groupby(by=["carrier"])
         .value.sum()
         .div(normalizer)
         .reset_index()
-        .assign(bus="EU27")
+        .assign(bus=bus_name)
     )
-    df = pd.concat([df_nodal, df_eu27])
+    df = pd.concat([df_nodal, df_eu])
 
     # Add metadata
     df["unit"] = re.sub(

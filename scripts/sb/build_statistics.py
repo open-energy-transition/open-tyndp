@@ -476,9 +476,9 @@ def compute_benchmark(
 
     # Add EU27 (load-weighted average for prices)
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
-        df_eu27 = df.loc[lambda x: x["bus"].isin(eu27_idx)]
-
         if "price" in table:
+            df_eu = df
+            bus_name = "EU"
             weights = (
                 n.statistics.withdrawal(
                     groupby="bus",
@@ -491,18 +491,20 @@ def compute_benchmark(
             )
             normalizer = weights.sum()
         else:
-            weights = pd.Series(1.0, index=df_eu27.bus.unique())
+            df_eu = df.loc[lambda x: x["bus"].isin(eu27_idx)]
+            bus_name = "EU27"
+            weights = pd.Series(1.0, index=df_eu.bus.unique())
             normalizer = 1.0
 
-        df_eu27 = (
-            df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
+        df_eu = (
+            df_eu.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
             .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
             .value.sum()
             .div(normalizer)
             .reset_index()
-            .assign(bus="EU27")
+            .assign(bus=bus_name)
         )
-        df = pd.concat([df, df_eu27])
+        df = pd.concat([df, df_eu])
     else:
         df = df.assign(bus="EU27")
 
