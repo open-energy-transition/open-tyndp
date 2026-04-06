@@ -548,6 +548,7 @@ def compare_sources(
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     sources = [model_col, rfc_source]  # noqa: F841
+    bus_col_name = "border" if "crossborder" in table else bus_col_name
 
     # Clean data
     logger.debug(
@@ -557,7 +558,14 @@ def compare_sources(
         how="all", axis=1
     )
 
-    missing_bus_name = "Missing countries" if bus_col_name != "bus" else "Missing buses"
+    if bus_col_name == "bus":
+        missing_bus_name = "Missing buses"
+    elif bus_col_name == "country":
+        missing_bus_name = "Missing countries"
+    elif bus_col_name == "border":
+        missing_bus_name = "Missing borders"
+    else:
+        raise ValueError(f"Unknown bus column name {bus_col_name}.")
 
     if benchmarks.empty:
         logger.warning(
@@ -570,7 +578,7 @@ def compare_sources(
         )
 
     benchmarks = benchmarks.assign(spatial=lambda df: df[bus_col_name]).drop(
-        columns=["bus", "country"], errors="ignore"
+        columns=["bus", "country", "border"], errors="ignore"
     )
     benchmarks = (
         benchmarks.groupby([c for c in benchmarks.columns if c != "value"])

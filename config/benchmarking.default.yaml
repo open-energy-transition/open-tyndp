@@ -580,10 +580,10 @@ benchmarking:
       table_type: flows
       rfc_sources:
       - market_out
-      unit: MW
+      unit: MWh
 
     crossborder_hydrogen:
       table_type: flows
       rfc_sources:
       - market_out
-      unit: MW
+      unit: MWh

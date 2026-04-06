@@ -14,6 +14,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
 from scripts._helpers import (
@@ -312,6 +313,53 @@ def _plot_prices(
     plt.close(fig)
 
 
+def _plot_flows(
+    df: pd.DataFrame,
+    table: str,
+    year: int,
+    output_dir: str,
+    scenario: str,
+    cyear: int,
+    model_col: str,
+    rfc_source: str,
+    source_unit: str,
+    bench_colors: dict,
+):
+    fig, ax = plt.subplots(
+        figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT * int(df.shape[0] / 45))
+    )
+    table_title = (
+        table.replace("_", " ")
+        .replace("crossborder", "cross-border exchanges for")
+        .title()
+    )
+    bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
+    df.index = df.index.get_level_values("spatial")
+    df[[model_col, rfc_source]].plot.barh(
+        title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
+        xlabel=source_unit,
+        color=bar_colors,
+        ax=ax,
+    )
+
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.grid(axis="x", which="major", linestyle="-")
+    ax.grid(axis="x", which="minor", linestyle="--", alpha=0.7)
+    ax.grid(axis="y", linestyle="-", alpha=0.7)
+
+    ax.legend(
+        frameon=True,
+        facecolor="white",
+    )
+
+    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+
+    output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
+    fig.savefig(output_filename, bbox_inches="tight")
+
+    plt.close(fig)
+
+
 def plot_benchmark(
     table: str,
     bus: str,
@@ -361,17 +409,20 @@ def plot_benchmark(
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     cyear = get_snapshots(snapshots)[0].year
+    bus_col_name = "border" if "crossborder" in table else bus_col_name
 
     # Filter data and Convert back to source unit
     logger.debug(
         f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
     )
-    condition_str = f" and {bus_col_name}==@bus" if "price" not in table else ""
+
+    filter_by_bus = "price" not in table and "crossborder" not in table
+    condition_str = f" and {bus_col_name}==@bus" if filter_by_bus else ""
     benchmarks = (
         benchmarks_raw.query(f"table==@table{condition_str}")
         .dropna(how="all", axis=1)
         .assign(spatial=lambda df: df[bus_col_name])
-        .drop(columns=["bus", "country"], errors="ignore")
+        .drop(columns=["bus", "country", "border"], errors="ignore")
     )
     op = "sum" if "price" not in table else "mean"
     benchmarks = (
@@ -388,6 +439,7 @@ def plot_benchmark(
         return
 
     if "price" not in table:
+        benchmarks.loc[benchmarks.table.str.contains("crossborder"), "unit"] = "TWh"
         benchmarks = convert_units(benchmarks, invert=True)
 
     available_columns = [
@@ -453,6 +505,21 @@ def plot_benchmark(
                 source_unit=source_unit,
                 bench_colors=bench_colors,
             )
+        elif table_type == "flows":
+            _plot_flows(
+                df=bench_year,
+                table=table,
+                year=year,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_source=rfc_source,
+                source_unit=source_unit,
+                bench_colors=bench_colors,
+            )
+        else:
+            raise ValueError(f"Unknown table type {table_type}.")
 
 
 def orchestrate_benchmark(
@@ -476,7 +543,7 @@ def orchestrate_benchmark(
         for table in options["tables"]
         for bus_col in (
             [""]
-            if "price" in table
+            if "price" in table or "crossborder" in table
             else benchmarks_raw.query("table == @table")[bus_col_name].unique()
         )
     ]
