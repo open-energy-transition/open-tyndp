@@ -499,6 +499,7 @@ def clean_crossborder_for_benchmarking(df: pd.DataFrame) -> pd.DataFrame:
                 "crossborder_hydrogen",
             ),
             carrier=lambda x: np.where(x.carrier == "electricity", "AC", x.carrier),
+            border=lambda x: x.border.str.replace("XAmmonia", "Ammonia"),
         )
         .reset_index(drop=True)
     )

@@ -24,7 +24,12 @@ from scripts._helpers import (
     get_version,
     set_scenario_config,
 )
-from scripts.sb.make_benchmark import SOURCES_MAP, load_data, match_temporal_resolution
+from scripts.sb.make_benchmark import (
+    SOURCES_MAP,
+    get_bus_col_name,
+    load_data,
+    match_temporal_resolution,
+)
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")
@@ -409,7 +414,7 @@ def plot_benchmark(
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     cyear = get_snapshots(snapshots)[0].year
-    bus_col_name = "border" if "crossborder" in table else bus_col_name
+    bus_col_name = get_bus_col_name(bus_col_name, table)
 
     # Filter data and Convert back to source unit
     logger.debug(
@@ -422,7 +427,7 @@ def plot_benchmark(
         benchmarks_raw.query(f"table==@table{condition_str}")
         .dropna(how="all", axis=1)
         .assign(spatial=lambda df: df[bus_col_name])
-        .drop(columns=["bus", "country", "border"], errors="ignore")
+        .drop(columns=["bus", "country", "border", "corridor"], errors="ignore")
     )
     op = "sum" if "price" not in table else "mean"
     benchmarks = (

@@ -112,9 +112,20 @@ def load_data(
         "BEIOH01": "DK",
         "BEIOH01 H2": "DK",
         "EU27": "EU27",
+        "Ammonia": "Ammonia",
     }
+
+    def _bus_to_country(bus: str) -> str:
+        code = bus.split(" ")[0]
+        return country_map.get(bus, code[:3] if code.startswith("X") else code[:2])
+
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
-        lambda x: country_map.get(x, x[:2] if pd.notna(x) else x)
+        lambda x: _bus_to_country(x) if pd.notna(x) else x
+    )
+    benchmarks_raw.loc[:, "corridor"] = benchmarks_raw["border"].map(
+        lambda x: "->".join(_bus_to_country(b) for b in x.split("->"))
+        if pd.notna(x)
+        else x
     )
 
     return benchmarks_raw
@@ -503,6 +514,16 @@ def compute_indicators(
     return df_carrier, indicators
 
 
+def get_bus_col_name(s: str, table: str):
+    if s == "bus":
+        bus_col_name = "border" if "crossborder" in table else s
+    elif s == "country":
+        bus_col_name = "corridor" if "crossborder" in table else s
+    else:
+        raise ValueError(f"Unknown bus column name {s}.")
+    return bus_col_name
+
+
 def compare_sources(
     table: str,
     benchmarks_raw: pd.DataFrame,
@@ -548,7 +569,7 @@ def compare_sources(
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     sources = [model_col, rfc_source]  # noqa: F841
-    bus_col_name = "border" if "crossborder" in table else bus_col_name
+    bus_col_name = get_bus_col_name(bus_col_name, table)
 
     # Clean data
     logger.debug(
@@ -564,6 +585,8 @@ def compare_sources(
         missing_bus_name = "Missing countries"
     elif bus_col_name == "border":
         missing_bus_name = "Missing borders"
+    elif bus_col_name == "corridor":
+        missing_bus_name = "Missing corridors"
     else:
         raise ValueError(f"Unknown bus column name {bus_col_name}.")
 
@@ -578,7 +601,7 @@ def compare_sources(
         )
 
     benchmarks = benchmarks.assign(spatial=lambda df: df[bus_col_name]).drop(
-        columns=["bus", "country", "border"], errors="ignore"
+        columns=["bus", "country", "border", "corridor"], errors="ignore"
     )
     benchmarks = (
         benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
