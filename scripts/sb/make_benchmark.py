@@ -114,7 +114,7 @@ def load_data(
         "EU27": "EU27",
     }
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
-        lambda x: country_map.get(x, x[:2])
+        lambda x: country_map.get(x, x[:2] if pd.notna(x) else x)
     )
 
     return benchmarks_raw
