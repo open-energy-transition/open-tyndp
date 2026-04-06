@@ -16,6 +16,7 @@ import re
 from pathlib import Path
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
@@ -480,6 +481,30 @@ def clean_MM_data_for_benchmarking(
     return MM_data
 
 
+def clean_crossborder_for_benchmarking(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean crossborder data for benchmarking purposes.
+    """
+    unit_map = df.loc["sum"].xs("unit", level="border")
+    df = (
+        df.loc["sum"]
+        .T.reset_index()
+        .query("border!='unit'")
+        .rename(columns={"sum": "value"})
+        .assign(
+            unit=lambda x: x.carrier.map(unit_map),
+            table=lambda x: np.where(
+                x.carrier == "electricity",
+                "crossborder_electricity",
+                "crossborder_hydrogen",
+            ),
+            carrier=lambda x: np.where(x.carrier == "electricity", "AC", x.carrier),
+        )
+        .reset_index(drop=True)
+    )
+    return df
+
+
 def assign_meta_data(df, planning_horizon, scenario):
     df["scenario"] = f"TYNDP {scenario}"
     df["year"] = planning_horizon
@@ -557,6 +582,9 @@ if __name__ == "__main__":
             CROSS_BORDER_DICT[key], tyndp_output_file
         )
     crossborder_agg = pd.concat(crossborder, axis=1)
+    crossborder_agg.columns.names = ["carrier", *crossborder_agg.columns.names[1:]]
+
+    MM_data = pd.concat([MM_data, clean_crossborder_for_benchmarking(crossborder_agg)])
 
     # load h2 demand time series
     logger.info("Processing hourly H2 demand tables")
