@@ -294,7 +294,7 @@ def load_benchmark(
     df_long.columns = [i[0] if isinstance(i, tuple) else i for i in df_long.columns]
 
     # Apply unit conversion
-    df_long["unit"] = opt["report"]["unit"]
+    df_long["unit"] = opt["unit"]
     df_converted = convert_units(df_long)
 
     # Add table identifier

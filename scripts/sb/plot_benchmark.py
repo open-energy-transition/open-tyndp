@@ -357,7 +357,7 @@ def plot_benchmark(
     # Parameters
     opt = options["tables"][table]
     table_type = opt["table_type"]
-    source_unit = opt["report"]["unit"]
+    source_unit = opt["unit"]
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     cyear = get_snapshots(snapshots)[0].year
@@ -378,7 +378,7 @@ def plot_benchmark(
         benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
         .value.agg(op)
         .reset_index()
-        .assign(unit=opt["report"]["unit"])
+        .assign(unit=opt["unit"])
     )
 
     if benchmarks.empty:
