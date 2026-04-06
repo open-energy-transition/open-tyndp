@@ -1697,14 +1697,42 @@ def align_demand_to_snapshots(
     return demand.reindex(snapshots)
 
 
+def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
+    return df.index.str.extract(
+        rf"^(.*?)(\w+)( H2)*{re.escape(connector)}(\w+)( H2)*(.*)$"
+    ).fillna("")
+
+
 def normalize_direction(
     df: pd.DataFrame | pd.Series,
     cols: list[str] = [],
-    buses_from_index=False,
+    buses_from_index: bool = False,
     connector: str = "->",
+    format_index: bool = False,
 ) -> pd.DataFrame:
     """
     Normalize link direction so bus0 is always alphabetically before bus1.
+
+    Parameters
+    ----------
+    df : pd.DataFrame | pd.Series
+        Input data to normalize.
+    cols : list[str], default=[]
+        Names of flow columns whose sign should be flipped when direction is
+        swapped.
+    buses_from_index : bool, default=False
+        If True, parse index instead of reading
+        "bus0"/"bus1" columns directly.
+    connector : str, default="->"
+        String separator between bus0 and bus1 in the index.
+    format_index : bool, default=False
+        If True, reformat the index after normalization to
+        ``"bus0[_suffix]->bus1[_suffix]"``.
+
+    Returns
+    -------
+    pd.DataFrame | pd.Series
+        Data with normalized link direction.
     """
     is_series = isinstance(df, pd.Series)
     if not is_series and len(cols) == 0:
@@ -1714,9 +1742,9 @@ def normalize_direction(
         cols = ["value"]
 
     if buses_from_index:
-        df.loc[:, ["bus0", "bus1", "suffix"]] = df.index.str.extract(
-            rf"^(\w+){re.escape(connector)}(\w+)(.*)$"
-        ).values
+        df.loc[
+            :, ["prefix", "bus0", "bus0_suffix", "bus1", "bus1_suffix", "suffix"]
+        ] = extract_crossborder_pattern(df, connector).values
 
     mask = (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X")
     assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
@@ -1726,14 +1754,31 @@ def normalize_direction(
         {
             "bus0": np.where(mask, df["bus1"], df["bus0"]),
             "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: df.bus0 + connector + df.bus1 + df.suffix,
+            "border": lambda df: df.prefix
+            + df.bus0
+            + df.bus0_suffix
+            + connector
+            + df.bus1
+            + df.bus1_suffix
+            + df.suffix,
         }
     )
 
-    df = df.assign(**assignments)
+    df = df.assign(**assignments).drop(
+        columns=["prefix", "bus0_suffix", "bus1_suffix", "suffix"], errors="ignore"
+    )
 
     if buses_from_index:
         df = df.set_index("border")
+
+    if format_index:
+        idx_groups = extract_crossborder_pattern(df, connector)
+        mask_h2_pipeline = idx_groups[0] == "H2 pipeline "
+        idx_groups.loc[mask_h2_pipeline, [2, 4]] = " H2"
+        df.index = idx_groups[1] + idx_groups[2] + "->" + idx_groups[3] + idx_groups[4]
+
+    if buses_from_index:
+        df.index.name = "border"
 
     if is_series:
         df = df.value

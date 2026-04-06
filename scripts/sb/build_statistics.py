@@ -7,7 +7,6 @@ This script computes the benchmark statistics from the optimised network.
 
 import logging
 import multiprocessing as mp
-import re
 from functools import partial
 
 import country_converter as coco
@@ -460,14 +459,26 @@ def compute_benchmark(
             .assign(carrier=carrier)
             .set_index("carrier", append=True)
         )
-    elif table == "crossborder_elec":
-        idx_b = n.buses.query("carrier.isin(['AC', 'AC_OH'])").index  # noqa F841
+    elif table in ["crossborder_electricity", "crossborder_hydrogen"]:
+        carrier = "AC" if "elec" in table else "H2"
+        bus_carrier = [carrier, f"{carrier}_OH"]  # noqa F814
+        if carrier == "H2":
+            bus_carrier.extend(["import H2"])
+        connector = " -> " if carrier == "H2" else "-"
+
+        idx_b = n.buses.query("carrier.isin(@bus_carrier)").index  # noqa F841
         idx_l = n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").index
 
         df = sws @ n.links_t.p0[idx_l]
-        df = normalize_direction(df, buses_from_index=True, connector="-")
-        idx_groups = df.index.str.extract(rf"^(\w+){re.escape('-')}(\w+)(.*)$")
-        df.index = idx_groups[0] + "->" + idx_groups[1]
+        df = normalize_direction(
+            df, buses_from_index=True, connector=connector, format_index=True
+        )
+
+        df = (
+            df.to_frame("value")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
         df = pd.DataFrame(columns=["carrier"])
@@ -513,12 +524,14 @@ def compute_benchmark(
             .assign(bus="EU27")
         )
         df = pd.concat([df, df_eu27])
-    else:
+    elif "border" not in df.columns:
         df = df.assign(bus="EU27")
 
     op = "sum" if "price" not in table else "mean"
     df = (
-        df.groupby(by=[c for c in ["bus", "carrier", "snapshot"] if c in df.columns])
+        df.groupby(
+            by=[c for c in ["bus", "carrier", "snapshot", "border"] if c in df.columns]
+        )
         .agg(op)
         .reset_index()
         .assign(

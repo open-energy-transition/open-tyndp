@@ -576,7 +576,13 @@ benchmarking:
       - market_out
       unit: EUR/MWh_H2
 
-    crossborder_elec:
+    crossborder_electricity:
+      table_type: flows
+      rfc_sources:
+      - market_out
+      unit: MW
+
+    crossborder_hydrogen:
       table_type: flows
       rfc_sources:
       - market_out
