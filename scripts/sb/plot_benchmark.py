@@ -331,7 +331,10 @@ def _plot_flows(
     bench_colors: dict,
 ):
     fig, ax = plt.subplots(
-        figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT * int(df.shape[0] / 45))
+        figsize=(
+            FIGURE_WIDTH_DEFAULT,
+            FIGURE_HEIGHT_DEFAULT * np.ceil(df.shape[0] / 45),
+        )
     )
     table_title = (
         table.replace("_", " ")
@@ -340,7 +343,11 @@ def _plot_flows(
     )
     bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
     df.index = df.index.get_level_values("spatial")
-    df[[model_col, rfc_source]].plot.barh(
+
+    # remove flows between identical locations
+    df = df[df.index.str.split("->").map(lambda x: x[0] != x[1])]
+
+    df[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
         title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
         xlabel=source_unit,
         color=bar_colors,
@@ -410,7 +417,7 @@ def plot_benchmark(
     # Parameters
     opt = options["tables"][table]
     table_type = opt["table_type"]
-    source_unit = opt["unit"]
+    source_unit = "TWh" if "crossborder" in table else opt["unit"]
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     cyear = get_snapshots(snapshots)[0].year

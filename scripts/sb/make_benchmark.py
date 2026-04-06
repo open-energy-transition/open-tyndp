@@ -112,7 +112,7 @@ def load_data(
         "BEIOH01": "DK",
         "BEIOH01 H2": "DK",
         "EU27": "EU27",
-        "Ammonia": "Ammonia",
+        "XAmmonia": "XAmmonia",
     }
 
     def _bus_to_country(bus: str) -> str:
