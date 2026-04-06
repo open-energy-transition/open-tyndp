@@ -7,6 +7,7 @@ This script computes the benchmark statistics from the optimised network.
 
 import logging
 import multiprocessing as mp
+import re
 from functools import partial
 
 import country_converter as coco
@@ -20,6 +21,7 @@ from scripts._helpers import (
     POWER_UNITS,
     PRICE_UNITS,
     configure_logging,
+    normalize_direction,
     set_scenario_config,
 )
 
@@ -458,6 +460,14 @@ def compute_benchmark(
             .assign(carrier=carrier)
             .set_index("carrier", append=True)
         )
+    elif table == "crossborder_elec":
+        idx_b = n.buses.query("carrier.isin(['AC', 'AC_OH'])").index  # noqa F841
+        idx_l = n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").index
+
+        df = sws @ n.links_t.p0[idx_l]
+        df = normalize_direction(df, buses_from_index=True, connector="-")
+        idx_groups = df.index.str.extract(rf"^(\w+){re.escape('-')}(\w+)(.*)$")
+        df.index = idx_groups[0] + "->" + idx_groups[1]
     else:
         logger.warning(f"Unknown benchmark table: {table}")
         df = pd.DataFrame(columns=["carrier"])
