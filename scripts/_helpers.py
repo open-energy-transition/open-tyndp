@@ -1695,3 +1695,47 @@ def align_demand_to_snapshots(
     demand.index = demand.index.map(lambda x: x.replace(year=target_year))
 
     return demand.reindex(snapshots)
+
+
+def normalize_direction(
+    df: pd.DataFrame | pd.Series,
+    cols: list[str] = [],
+    buses_from_index=False,
+    connector: str = "->",
+) -> pd.DataFrame:
+    """
+    Normalize link direction so bus0 is always alphabetically before bus1.
+    """
+    is_series = isinstance(df, pd.Series)
+    if not is_series and len(cols) == 0:
+        raise ValueError("No column names `cols` to normalize.")
+    elif is_series:
+        df = df.to_frame("value")
+        cols = ["value"]
+
+    if buses_from_index:
+        df.loc[:, ["bus0", "bus1", "suffix"]] = df.index.str.extract(
+            rf"^(\w+){re.escape(connector)}(\w+)(.*)$"
+        ).values
+
+    mask = (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X")
+    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
+
+    # Add bus0, bus1, and border to assignments
+    assignments.update(
+        {
+            "bus0": np.where(mask, df["bus1"], df["bus0"]),
+            "bus1": np.where(mask, df["bus0"], df["bus1"]),
+            "border": lambda df: df.bus0 + connector + df.bus1 + df.suffix,
+        }
+    )
+
+    df = df.assign(**assignments)
+
+    if buses_from_index:
+        df = df.set_index("border")
+
+    if is_series:
+        df = df.value
+
+    return df

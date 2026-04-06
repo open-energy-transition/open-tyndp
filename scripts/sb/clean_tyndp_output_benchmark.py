@@ -16,7 +16,6 @@ import re
 from pathlib import Path
 
 import country_converter as coco
-import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
@@ -24,6 +23,7 @@ from scripts._helpers import (
     configure_logging,
     convert_units,
     get_snapshots,
+    normalize_direction,
     set_scenario_config,
 )
 
@@ -137,22 +137,6 @@ CROSS_BORDER_DICT: dict[str, str] = {
 }
 
 
-def normalize_direction(df, cols):
-    mask = (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X")
-    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
-
-    # Add bus0, bus1, and border to assignments
-    assignments.update(
-        {
-            "bus0": np.where(mask, df["bus1"], df["bus0"]),
-            "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: df.bus0 + "->" + df.bus1,
-        }
-    )
-
-    return df.assign(**assignments)
-
-
 def load_crossborder_sheet(
     sheet_name: str,
     filepath: str | Path,
@@ -177,13 +161,10 @@ def load_crossborder_sheet(
 
     # normalize direction
     attributes = df.index
-    # add buses
-    df.loc["bus0", :] = df.columns.str.split("->").str[0]
-    df.loc["bus1", :] = df.columns.str.split("->").str[1]
-    df = normalize_direction(df.T.reset_index(drop=True), cols=attributes)
+    df = normalize_direction(df.T, cols=attributes, buses_from_index=True)
 
     # set index
-    df = df.set_index("border").T
+    df = df.T
     df.index.rename("Parameter", inplace=True)
     # rename axis for H2 flows to align with electricity
     df = df.rename(index=lambda x: x.replace("H2", ""))
