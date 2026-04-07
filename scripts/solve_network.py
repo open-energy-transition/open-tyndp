@@ -1475,7 +1475,7 @@ def extra_functionality(
             renewable_carriers_tyndp,
         )
 
-    if config["electricity"].get("include_dsr", False):
+    if config["electricity"].get("constrain_dsr", False):
         constrain_dsr_daily_dispatch(n, snapshots)
 
     if n.params.custom_extra_functionality:

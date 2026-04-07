@@ -84,7 +84,7 @@ def extra_functionality(
     if config["sector"]["imports"]["enable"]:
         add_import_limit_constraint(n, snapshots)
 
-    if config["cba"].get("include_dsr", False):
+    if config["cba"].get("constrain_dsr", False):
         constrain_dsr_daily_dispatch(n, snapshots)
 
     if n.params.custom_extra_functionality:
