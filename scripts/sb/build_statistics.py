@@ -489,14 +489,16 @@ def compute_benchmark(
                 .sum()
                 .T
             )
+            normalizer = weights.sum()
         else:
             weights = pd.Series(1.0, index=df_eu27.bus.unique())
+            normalizer = 1.0
 
         df_eu27 = (
             df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
             .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
             .value.sum()
-            .div(weights.sum())
+            .div(normalizer)
             .reset_index()
             .assign(bus="EU27")
         )
