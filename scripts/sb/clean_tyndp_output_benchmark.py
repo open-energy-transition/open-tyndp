@@ -524,25 +524,20 @@ def clean_h2_imports_for_benchmarking(
     pd.DataFrame
         dataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
     """
-    x_cols = [
-        c
-        for c in crossborder_h2.columns
-        if str(crossborder_h2.loc["bus0", c]).startswith("X")
-    ]
-    df = pd.DataFrame(
-        {
-            "carrier": [
-                "ammonia imports"
-                if y == "XAmmonia"
-                else "imports (renewable & low carbon)"
-                for y in crossborder_h2.loc["bus0", x_cols].values
-            ],
-            "bus": crossborder_h2.loc["bus1", x_cols].values,
-            "unit": "MWh",
-            "table": "hydrogen_supply",
-            "value": crossborder_h2.loc["sum", x_cols].values,
-        }
+    df = (
+        crossborder_h2
+        .loc[["bus0", "bus1", "sum"]]
+        .rename(index={"bus0": "carrier", "bus1": "bus", "sum": "value"})
+        .T
+        .query("carrier.str.startswith('X', na=False)")
+        .assign(
+            carrier=lambda x: np.where(x.carrier == "XAmmonia", "ammonia imports", "imports (renewable & low carbon)"),
+            unit=crossborder_h2.loc["sum", "unit"],
+            table="hydrogen_supply",
+        )
+        .reset_index(drop=True)
     )
+
     df_eu27 = (
         df[df["bus"].str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
         .groupby("carrier")["value"]
