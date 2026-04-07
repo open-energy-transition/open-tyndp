@@ -1475,6 +1475,9 @@ def extra_functionality(
             renewable_carriers_tyndp,
         )
 
+    if config["electricity"].get("include_dsr", False):
+        constrain_dsr_daily_dispatch(n, snapshots)
+
     if n.params.custom_extra_functionality:
         source_path = n.params.custom_extra_functionality
         assert os.path.exists(source_path), f"{source_path} does not exist"

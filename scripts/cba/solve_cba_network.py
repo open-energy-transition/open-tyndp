@@ -42,6 +42,7 @@ from scripts.solve_network import (
     add_import_limit_constraint,
     add_operational_reserve_margin,
     check_objective_value,
+    constrain_dsr_daily_dispatch,
     prepare_network,
 )
 
@@ -82,6 +83,9 @@ def extra_functionality(
 
     if config["sector"]["imports"]["enable"]:
         add_import_limit_constraint(n, snapshots)
+
+    if config["cba"].get("include_dsr", False):
+        constrain_dsr_daily_dispatch(n, snapshots)
 
     if n.params.custom_extra_functionality:
         source_path = n.params.custom_extra_functionality
