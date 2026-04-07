@@ -2063,6 +2063,9 @@ def _add_dsr_components(
         marginal_cost=caps["price"].values,
         capital_cost=0.0,
     )
+    n.components.generators.static.loc[caps.index, "pemmdb_hours"] = (
+        caps["hours"].astype(float).values
+    )
 
     profiles = pemmdb_profiles.query("carrier == 'dsr'")
     if not profiles.empty:
