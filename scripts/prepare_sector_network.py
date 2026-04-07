@@ -2025,29 +2025,10 @@ def _format_dsr_names(df: pd.DataFrame) -> pd.Series:
     """
     Format generator names for PEMMDB DSR price bands.
 
-    The names are formatted as: "bus-index_carrier-hours-priceeur", e.g., "DE-1-dsr-4h-50eur".
-
-    Both price and hours are included in the identifier to avoid collisions
-    for bands that share the same activation price but have different durations.
+    The names are formatted as: "bus-index_carrier", e.g., "DE00-dsr-4h-50eur".
     """
 
-    def _format_hours(value: float) -> str:
-        if pd.isna(value):
-            return "nanh"
-        if float(value).is_integer():
-            return f"{int(value)}h"
-        return f"{float(value):g}h"
-
-    return (
-        df["bus"].astype(str)
-        + "-"
-        + df["index_carrier"].astype(str)
-        + "-"
-        + df["hours"].map(_format_hours)
-        + "-"
-        + df["price"].round(2).astype(str)
-        + "eur"
-    )
+    return df["bus"].astype(str) + "-" + df["index_carrier"].astype(str)
 
 
 def _add_dsr_components(
