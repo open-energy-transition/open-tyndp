@@ -13,6 +13,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Add imports to H2 MM supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
+
 **Changes**
 
 **Bugfixes and Compatibility**
