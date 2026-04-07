@@ -525,13 +525,15 @@ def clean_h2_imports_for_benchmarking(
         dataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
     """
     df = (
-        crossborder_h2
-        .loc[["bus0", "bus1", "sum"]]
+        crossborder_h2.loc[["bus0", "bus1", "sum"]]
         .rename(index={"bus0": "carrier", "bus1": "bus", "sum": "value"})
-        .T
-        .query("carrier.str.startswith('X', na=False)")
+        .T.query("carrier.str.startswith('X', na=False)")
         .assign(
-            carrier=lambda x: np.where(x.carrier == "XAmmonia", "ammonia imports", "imports (renewable & low carbon)"),
+            carrier=lambda x: np.where(
+                x.carrier == "XAmmonia",
+                "ammonia imports",
+                "imports (renewable & low carbon)",
+            ),
             unit=crossborder_h2.loc["sum", "unit"],
             table="hydrogen_supply",
         )
