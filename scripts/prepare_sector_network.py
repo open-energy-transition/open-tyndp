@@ -2050,49 +2050,29 @@ def _add_dsr_components(
     if "dsr" not in n.carriers.index:
         n.add("Carrier", "dsr", nice_name="Demand Side Response")
 
-    caps = caps.assign(generator_index=lambda df: _format_dsr_names(df))
-    dsr_i = caps["generator_index"]
+    caps = caps.assign(name=lambda df: _format_dsr_names(df)).set_index("name")
 
     n.add(
         "Generator",
-        dsr_i,
+        caps.index,
         bus=caps["bus"].astype(str).values,
         carrier="dsr",
-        p_nom=0.0,
+        p_nom=caps["p_nom"].values,
         p_nom_extendable=False,
         p_min_pu=0.0,
         marginal_cost=caps["price"].values,
         capital_cost=0.0,
     )
 
-    # Store original PEMMDB metadata on the static table for debugging and
-    # later operational constraints.
-    static = n.components.generators.static
-    metadata_columns = {
-        "pemmdb_price": "price",
-        "pemmdb_hours": "hours",
-        "pemmdb_index_carrier": "index_carrier",
-        "pemmdb_open_tyndp_type": "open_tyndp_type",
-        "pemmdb_type": "pemmdb_type",
-        "pemmdb_country": "country",
-    }
-    for target_col, source_col in metadata_columns.items():
-        if source_col in caps.columns:
-            static.loc[dsr_i, target_col] = caps[source_col].values
-
-    n.generators.loc[dsr_i, "p_nom"] = caps.set_index("generator_index")[
-        "p_nom"
-    ].reindex(dsr_i, fill_value=0.0)
-
     profiles = pemmdb_profiles.query("carrier == 'dsr'")
     if not profiles.empty:
-        profiles = profiles.assign(generator_index=lambda df: _format_dsr_names(df))
+        profiles = profiles.assign(name=lambda df: _format_dsr_names(df))
         p_min_pu = profiles.pivot_table(
-            values="p_min_pu", index="time", columns="generator_index"
-        ).reindex(dsr_i, axis=1, fill_value=0.0)
+            values="p_min_pu", index="time", columns="name"
+        ).reindex(caps.index, axis=1, fill_value=0.0)
         p_max_pu = profiles.pivot_table(
-            values="p_max_pu", index="time", columns="generator_index"
-        ).reindex(dsr_i, axis=1, fill_value=1.0)
+            values="p_max_pu", index="time", columns="name"
+        ).reindex(caps.index, axis=1, fill_value=1.0)
         _add_pu_profiles(comp_t=n.generators_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
 
     remove_zero_capacity_non_extendable(
