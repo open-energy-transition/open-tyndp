@@ -133,6 +133,7 @@ electricity:
     - DSR
 
   transmission_limit: v1.0
+  constrain_dsr: true
 
 atlite:
   default_cutout: europe-2009-sarah3-era5
@@ -438,6 +439,8 @@ cba:
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
     - hydro-reservoir
+
+  constrain_dsr: true
 
   # Marginal storage value extraction settings
   msv_extraction:

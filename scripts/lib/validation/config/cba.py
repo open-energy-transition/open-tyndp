@@ -119,6 +119,10 @@ class CbaConfig(BaseModel):
         default_factory=_CbaStorageConfig,
         description="Storage configuration for the cost-benefit analysis workflow.",
     )
+    constrain_dsr: bool = Field(
+        True,
+        description="Whether to model dispatch of DSR in the CBA workflow.",
+    )
     msv_extraction: _CbaMsvExtractionConfig = Field(
         default_factory=_CbaMsvExtractionConfig,
         description="Marginal storage value extraction settings for seasonal storage dispatch.",

@@ -245,6 +245,7 @@ electricity:
     enable: false
     by_country: false
   transmission_limit: vopt
+  constrain_dsr: true
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#atlite
 atlite:
@@ -1591,6 +1592,7 @@ cba:
     - home battery
     soc_boundary_carriers:
     - "hydro-reservoir"
+  constrain_dsr: true
   msv_extraction:
     resolution: false
     resample_method: ffill
