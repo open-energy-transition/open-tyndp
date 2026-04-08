@@ -24,6 +24,32 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
+def normalize_starting_grid_h2_nodes(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normalize node IDs from the newer H2 starting grid workbook to the country-level
+    H2 node IDs currently used in the TYNDP H2 topology.
+
+    This is needed because the newer H2 starting grid workbook contains node IDs with trailing zeros (e.g. ``DE00``)
+    and some exceptions (e.g. ``UK00`` instead of ``GB00``) that need to be normalized to match the country-level node IDs
+    used in the TYNDP H2 topology (e.g. ``DE``, ``GB``).
+
+    Examples:
+    - ``AT00`` -> ``AT``
+    - ``IBIT00`` -> ``IBIT``
+    - ``UK00`` -> ``GB``
+    """
+
+    df = df.copy()
+    for col in ["bus0", "bus1"]:
+        df[col] = (
+            df[col]
+            .astype(str)
+            .str.replace(r"00$", "", regex=True)
+            .str.replace(r"^UK$", "GB", regex=True)
+        )
+    return df
+
+
 def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     """
     Load and clean H2 interzonal connections.
@@ -158,6 +184,7 @@ def load_h2_grid_starting_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
     h2_grid = extract_grid_data_tyndp(
         h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
     )
+    h2_grid = normalize_starting_grid_h2_nodes(h2_grid)
     h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
 
     return h2_grid
