@@ -1208,6 +1208,7 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
                 elec_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
                 h2_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
+                h2_starting_grid=f"{TYNDP_DATASET['folder']}/StartingGrid2030.xlsx",
                 nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
                 hydro_inflows_zip=f"{TYNDP_DATASET['folder']}/Hydro-Inflows.zip",
                 hydro_inflows=directory(f"{TYNDP_DATASET['folder']}/Hydro Inflows"),
