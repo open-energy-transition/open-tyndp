@@ -13,6 +13,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Implement demand side response (DSR) components and price bands. This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file (https://github.com/open-energy-transition/open-tyndp/pull/598).
+
 **Changes**
 
 **Bugfixes and Compatibility**
