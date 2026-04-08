@@ -13,6 +13,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Add option to create the H2 reference grid using based on publicly available starting grid data (https://github.com/open-energy-transition/open-tyndp/pull/611).
+
 **Changes**
 
 **Bugfixes and Compatibility**
