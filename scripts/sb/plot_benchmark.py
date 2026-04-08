@@ -370,7 +370,7 @@ def _plot_flows(
     fig.savefig(output_filename, bbox_inches="tight")
 
     plt.close(fig)
-    
+
     # Additional plot for crossborder flows with incorrect net direction
     mask_sign = np.sign(df[model_col].fillna(0)) != np.sign(df[rfc_source].fillna(0))
     df_direction = df[mask_sign].dropna(axis=0)
@@ -393,10 +393,11 @@ def _plot_flows(
         ax.grid(axis="y", linestyle="-", alpha=0.7)
         ax.legend(frameon=True, facecolor="white")
         add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
-        output_filename = Path(output_dir, f"benchmark_{table}_direction_errors_cy{cyear}_{year}.pdf")
+        output_filename = Path(
+            output_dir, f"benchmark_{table}_direction_errors_cy{cyear}_{year}.pdf"
+        )
         fig.savefig(output_filename, bbox_inches="tight")
         plt.close(fig)
-
 
 
 def plot_benchmark(
