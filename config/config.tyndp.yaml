@@ -133,6 +133,7 @@ electricity:
     - DSR
 
   transmission_limit: v1.0
+  
   constrain_dsr: true
 
 atlite:
@@ -440,6 +441,7 @@ cba:
     soc_boundary_carriers:
     - hydro-reservoir
 
+  # Constrain DSR daily dispatch
   constrain_dsr: true
 
   # Marginal storage value extraction settings
