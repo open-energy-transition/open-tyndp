@@ -5322,6 +5322,15 @@
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
         },
+        "h2_reference_grid_tyndp_source": {
+          "default": "old",
+          "description": "Source dataset for the TYNDP hydrogen reference grid. 'old' uses ReferenceGrid_Hydrogen.xlsx and can be patched with h2 investment candidates; 'starting_grid' uses StartingGrid2030.xlsx directly.",
+          "enum": [
+            "old",
+            "starting_grid"
+          ],
+          "type": "string"
+        },
         "h2_zones_tyndp": {
           "default": false,
           "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
@@ -12352,6 +12361,15 @@
           "default": false,
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
+        },
+        "h2_reference_grid_tyndp_source": {
+          "default": "old",
+          "description": "Source dataset for the TYNDP hydrogen reference grid. 'old' uses ReferenceGrid_Hydrogen.xlsx and can be patched with h2 investment candidates; 'starting_grid' uses StartingGrid2030.xlsx directly.",
+          "enum": [
+            "old",
+            "starting_grid"
+          ],
+          "type": "string"
         },
         "h2_zones_tyndp": {
           "default": false,
