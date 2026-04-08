@@ -167,6 +167,7 @@ if __name__ == "__main__":
     carrier = snakemake.wildcards.carrier
     carrier = carrier.replace("_", " ")
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
+    regions.geometry = regions.geometry.simplify(0.02) # reduces file size (0.01 to 0.02 delivers small gains)
 
     if carrier == "H2" and snakemake.params.h2_topology_tyndp:
         regions = dissolve_h2_regions_tyndp(regions, snakemake.input.buses_h2)
