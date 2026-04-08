@@ -89,16 +89,16 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     return interzonal
 
 
-def load_h2_grid(fn_grid: str, fn_projects: str) -> pd.DataFrame:
+def load_h2_grid_old(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
     """
-    Load and clean H2 reference grid and format data.
+    Load and clean old H2 reference grid and format data.
     Add the H2 projects to the reference grid.
     Returns the cleaned reference grid as dataframe.
 
     Parameters
     ----------
     fn_grid : str
-        Path to Excel file containing H2 reference grid data.
+        Path to Excel file containing old H2 reference grid data.
     fn_projects : str
         Path to CSV file containing H2 projects data.
 
@@ -127,6 +127,63 @@ def load_h2_grid(fn_grid: str, fn_projects: str) -> pd.DataFrame:
     return h2_grid
 
 
+def load_h2_grid_starting_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
+    """
+    Load and clean the newer TYNDP H2 starting grid Excel spreadsheet.
+
+    The workbook contains planning-horizon-specific sheets (e.g. ``H_2030``,
+    ``H_2040``) already resolved to electricity-node IDs such as ``DE00``.
+    """
+
+    available_years = [2030, 2040, 2050]
+    if pyear not in available_years:
+        fallback = min(available_years, key=lambda y: abs(y - pyear))
+        logger.warning(
+            "Planning horizon %s is not available in StartingGrid2030.xlsx. "
+            "Falling back to H_%s.",
+            pyear,
+            fallback,
+        )
+        pyear = fallback
+
+    sheet_name = f"H_{pyear}"
+    h2_grid_raw = pd.read_excel(fn_grid, sheet_name=sheet_name)
+    required_cols = {"Border", "Summary Direction 1", "Summary Direction 2"}
+    missing_cols = required_cols.difference(h2_grid_raw.columns)
+    if missing_cols:
+        raise KeyError(
+            f"Sheet '{sheet_name}' in {fn_grid} is missing required columns: {sorted(missing_cols)}"
+        )
+
+    h2_grid = extract_grid_data_tyndp(
+        h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
+    )
+    h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
+
+    return h2_grid
+
+
+def load_h2_grid(
+    source: str,
+    fn_grid_old: str,
+    fn_grid_new: str,
+    fn_projects: str | None,
+    pyear: int,
+) -> pd.DataFrame:
+    """
+    Load the corresponding H2 grid based on the source.
+    """
+
+    if source == "old":
+        return load_h2_grid_old(fn_grid_old, fn_projects)
+    if source == "starting_grid":
+        return load_h2_grid_starting_grid(fn_grid_new, pyear)
+
+    raise ValueError(
+        f"Unknown H2 reference grid source '{source}'. Expected 'old' or 'starting_grid'."
+    )
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -141,16 +198,20 @@ if __name__ == "__main__":
 
     # Parameters
     scenario = snakemake.params.scenario
+    source = snakemake.params.h2_reference_grid_source
     pyear = int(snakemake.wildcards.planning_horizons)
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
     h2_grid = load_h2_grid(
-        fn_grid=snakemake.input.h2_reference_grid,
+        source=source,
+        fn_grid_old=snakemake.input.h2_reference_grid_old,
+        fn_grid_new=snakemake.input.h2_reference_grid_new,
         fn_projects=snakemake.input.h2_projects,
+        pyear=pyear,
     )
     interzonal = load_h2_interzonal_connections(
-        fn=snakemake.input.h2_reference_grid, scenario=scenario, pyear=pyear
+        fn=snakemake.input.h2_reference_grid_old, scenario=scenario, pyear=pyear
     )
 
     # Save prepped H2 grid and interzonal
