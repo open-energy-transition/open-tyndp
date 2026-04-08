@@ -474,7 +474,7 @@ if config["sector"]["h2_topology_tyndp"]:
             snapshots=config_provider("snapshots"),
             scenario=config_provider("tyndp_scenario"),
             h2_reference_grid_source=config_provider(
-                "sector", "h2_reference_grid_tyndp_source"
+                "sector", "h2_reference_grid_source"
             ),
         input:
             h2_reference_grid_old=rules.retrieve_tyndp.output.h2_reference_grid,

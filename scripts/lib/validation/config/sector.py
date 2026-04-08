@@ -855,7 +855,7 @@ class SectorConfig(BaseModel):
         False,
         description="Use TYNDP H2 topology for hydrogen network.",
     )
-    h2_reference_grid_tyndp_source: Literal["old", "starting_grid"] = Field(
+    h2_reference_grid_source: Literal["old", "starting_grid"] = Field(
         "starting_grid",
         description="Source dataset for the TYNDP hydrogen reference grid. 'old' uses ReferenceGrid_Hydrogen.xlsx, with added H2 investment candidates; 'starting_grid' uses StartingGrid2030.xlsx only.",
     )
