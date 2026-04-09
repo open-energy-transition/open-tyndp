@@ -17,6 +17,8 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
+* Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
+
 **Documentation**
 
 **Developers Note**

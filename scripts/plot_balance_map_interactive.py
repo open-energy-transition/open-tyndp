@@ -167,6 +167,9 @@ if __name__ == "__main__":
     carrier = snakemake.wildcards.carrier
     carrier = carrier.replace("_", " ")
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
+    regions.geometry = regions.geometry.simplify(
+        0.02
+    )  # reduces file size (0.01 to 0.02 delivers small gains)
 
     if carrier == "H2" and snakemake.params.h2_topology_tyndp:
         regions = dissolve_h2_regions_tyndp(regions, snakemake.input.buses_h2)
@@ -196,7 +199,7 @@ if __name__ == "__main__":
     bus_size = eb.groupby(level=["bus", "carrier"]).sum()
 
     # line and links widths according to optimal capacity
-    flow = n.statistics.transmission(groupby=False, bus_carrier=carrier)
+    flow = n.statistics.transmission(groupby=False, bus_carrier=carrier, at_port=0)
     if not flow.empty:
         flow_reversed_mask = flow.index.get_level_values(1).str.contains("reversed")
         flow_reversed = flow[flow_reversed_mask].rename(
