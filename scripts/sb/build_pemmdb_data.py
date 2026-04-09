@@ -861,8 +861,9 @@ def _process_dsr_profiles(
     cap = cap.loc[mask]
 
     col_index = pd.MultiIndex.from_arrays(
-        [type, hours.values, price.values, cap.values],
+        [type, hours, price, cap],
         names=["pemmdb_type", "hours", "price", "p_nom"],
+    )
     )
     # identify duplicate price bands that also have the same capacity
     dup_mask = ~col_index.duplicated()
@@ -873,9 +874,9 @@ def _process_dsr_profiles(
         .set_axis(col_index, axis="columns")
         .loc[:, dup_mask]
         .assign(time=sns_year_h, bus=node, pemmdb_carrier=pemmdb_tech)
-        .loc[lambda x: x["time"].isin(sns)]
+        .query("time in @sns") 
         .set_index(["time", "bus", "pemmdb_carrier"])
-        .stack(level=[0, 1, 2, 3], future_stack=True)
+         .stack(level=["pemmdb_type", "hours", "price", "p_nom"],future_stack=True) 
         .rename("p_max")
         .reset_index(level=["hours", "price", "p_nom"])
         .assign(
