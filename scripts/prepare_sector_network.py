@@ -3335,6 +3335,9 @@ def insert_electricity_distribution_grid(
     rtsolar = n.generators.index[n.generators.carrier == "solar-pv-rooftop"]
     n.generators.loc[rtsolar, "bus"] += " low voltage"
 
+    dsr = n.generators.index[n.generators.carrier == "dsr"]
+    n.generators.loc[dsr, "bus"] += " low voltage"
+
     # set existing solar to cost of utility cost rather the 50-50 rooftop-utility
     solar = n.generators.index[n.generators.carrier == "solar"]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
