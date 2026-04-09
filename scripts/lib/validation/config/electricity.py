@@ -458,6 +458,6 @@ class ElectricityConfig(BaseModel):
     )
     constrain_dsr: bool = Field(
         True,
-        description="Whether to model dispatch of DSR in the SB workflow.",
+        description="Toggles specific dispatch constraints for DSR units within the SB workflow.",
     )
     model_config = ConfigDict(populate_by_name=True)

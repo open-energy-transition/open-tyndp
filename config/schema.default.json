@@ -2756,7 +2756,7 @@
         },
         "constrain_dsr": {
           "default": true,
-          "description": "Whether to model dispatch of DSR in the SB workflow.",
+          "description": "Toggles specific dispatch constraints for DSR units within the SB workflow.",
           "type": "boolean"
         }
       }
@@ -9743,7 +9743,7 @@
         },
         "constrain_dsr": {
           "default": true,
-          "description": "Whether to model dispatch of DSR in the SB workflow.",
+          "description": "Toggles specific dispatch constraints for DSR units within the SB workflow.",
           "type": "boolean"
         }
       }
