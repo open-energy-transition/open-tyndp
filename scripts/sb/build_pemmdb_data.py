@@ -873,7 +873,7 @@ def _process_dsr_profiles(
         .set_axis(col_index, axis="columns")
         .loc[:, dup_mask]
         .assign(time=sns_year_h, bus=node, pemmdb_carrier=pemmdb_tech)
-        .query("time in @sns")
+        .loc[lambda x: x["time"].isin(sns)]
         .set_index(["time", "bus", "pemmdb_carrier"])
         .stack(level=["pemmdb_type", "hours", "price", "p_nom"], future_stack=True)
         .rename("p_max")
