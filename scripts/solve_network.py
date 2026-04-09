@@ -1339,10 +1339,7 @@ def constrain_dsr_daily_dispatch(n: pypsa.Network, snapshots: pd.DatetimeIndex) 
         return
 
     dsr_i = static.index[
-        (static.carrier == "dsr")
-        & static.pemmdb_hours.notna()
-        & (static.pemmdb_hours < 24)
-        & (static.p_nom > 0)
+        (static.carrier == "dsr") & (static.pemmdb_hours < 24) & (static.p_nom > 0)
     ]
     if dsr_i.empty:
         return
