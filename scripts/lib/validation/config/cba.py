@@ -121,7 +121,7 @@ class CbaConfig(BaseModel):
     )
     constrain_dsr: bool = Field(
         True,
-        description="Toggles specific dispatch constraints for DSR units within the CBA workflow."
+        description="Toggles specific dispatch constraints for DSR units within the CBA workflow.",
     )
     msv_extraction: _CbaMsvExtractionConfig = Field(
         default_factory=_CbaMsvExtractionConfig,
