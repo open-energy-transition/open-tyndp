@@ -554,7 +554,7 @@
         },
         "constrain_dsr": {
           "default": true,
-          "description": "Whether to model dispatch of DSR in the CBA workflow.",
+          "description": "Toggles specific dispatch constraints for DSR units within the CBA workflow.",
           "type": "boolean"
         },
         "msv_extraction": {
@@ -15122,7 +15122,7 @@
         },
         "constrain_dsr": {
           "default": true,
-          "description": "Whether to model dispatch of DSR in the CBA workflow.",
+          "description": "Toggles specific dispatch constraints for DSR units within the CBA workflow.",
           "type": "boolean"
         },
         "msv_extraction": {
