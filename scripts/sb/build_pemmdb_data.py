@@ -279,9 +279,9 @@ def _process_other_nonres_capacities(
     df = (
         df.set_axis(column_names)
         .T.assign(
-            pemmdb_carrier=lambda df: "Other Non-RES"
-            + " "
-            + df.pemmdb_type.str.split("/").str[1],
+            pemmdb_carrier=lambda df: (
+                "Other Non-RES" + " " + df.pemmdb_type.str.split("/").str[1]
+            ),
             bus=node,
             country=node[:2],
             unit="MW",
@@ -878,10 +878,6 @@ def _process_dsr_profiles(
         .stack(level=["pemmdb_type", "hours", "price", "p_nom"], future_stack=True)
         .rename("p_max")
         .reset_index(level=["hours", "price", "p_nom"])
-        .assign(
-            hours=lambda x: x.hours.astype(float),
-            price=lambda x: x.price.astype(float),
-        )
     )
 
     # Check for duplicate price bands and keep first entry only
