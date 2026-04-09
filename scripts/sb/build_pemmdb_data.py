@@ -864,7 +864,6 @@ def _process_dsr_profiles(
         [type, hours, price, cap],
         names=["pemmdb_type", "hours", "price", "p_nom"],
     )
-    )
     # identify duplicate price bands that also have the same capacity
     dup_mask = ~col_index.duplicated()
 
@@ -874,9 +873,9 @@ def _process_dsr_profiles(
         .set_axis(col_index, axis="columns")
         .loc[:, dup_mask]
         .assign(time=sns_year_h, bus=node, pemmdb_carrier=pemmdb_tech)
-        .query("time in @sns") 
+        .query("time in @sns")
         .set_index(["time", "bus", "pemmdb_carrier"])
-         .stack(level=["pemmdb_type", "hours", "price", "p_nom"],future_stack=True) 
+        .stack(level=["pemmdb_type", "hours", "price", "p_nom"], future_stack=True)
         .rename("p_max")
         .reset_index(level=["hours", "price", "p_nom"])
         .assign(
