@@ -115,16 +115,17 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     return interzonal
 
 
-def load_h2_grid_old(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
+def load_h2_grid_entsoe(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
     """
-    Load and clean old H2 reference grid and format data.
-    Add the H2 projects to the reference grid.
-    Returns the cleaned reference grid as dataframe.
+    Load and clean the ENTSO-E H2 reference grid and format data.
+
+    Adds H2 investment candidate projects to the reference grid and returns the
+    cleaned reference grid as dataframe.
 
     Parameters
     ----------
     fn_grid : str
-        Path to Excel file containing old H2 reference grid data.
+        Path to Excel file containing the ENTSO-E H2 reference grid data.
     fn_projects : str
         Path to CSV file containing H2 projects data.
 
@@ -153,9 +154,9 @@ def load_h2_grid_old(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
     return h2_grid
 
 
-def load_h2_grid_starting_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
+def load_h2_grid_entsos(fn_grid: str, pyear: int) -> pd.DataFrame:
     """
-    Load and clean the newer TYNDP H2 starting grid Excel spreadsheet.
+    Load and clean the ENTSO-E/ENTSOG joint scenarios portal H2 starting grid.
 
     The workbook contains planning-horizon-specific sheets (e.g. ``H_2030``,
     ``H_2040``) already resolved to electricity-node IDs such as ``DE00``.
@@ -192,8 +193,8 @@ def load_h2_grid_starting_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
 
 def load_h2_grid(
     source: str,
-    fn_grid_old: str,
-    fn_grid_new: str,
+    fn_grid_entsoe: str,
+    fn_grid_entsos: str,
     fn_projects: str | None,
     pyear: int,
 ) -> pd.DataFrame:
@@ -201,13 +202,13 @@ def load_h2_grid(
     Load the corresponding H2 grid based on the source.
     """
 
-    if source == "old":
-        return load_h2_grid_old(fn_grid_old, fn_projects)
-    if source == "starting_grid":
-        return load_h2_grid_starting_grid(fn_grid_new, pyear)
+    if source == "entsoe":
+        return load_h2_grid_entsoe(fn_grid_entsoe, fn_projects)
+    if source == "entsos":
+        return load_h2_grid_entsos(fn_grid_entsos, pyear)
 
     raise ValueError(
-        f"Unknown H2 reference grid source '{source}'. Expected 'old' or 'starting_grid'."
+        f"Unknown H2 reference grid source '{source}'. Expected 'entsoe' or 'entsos'."
     )
 
 
@@ -232,13 +233,13 @@ if __name__ == "__main__":
     # Load and prep H2 reference grid and interzonal pipeline capacities
     h2_grid = load_h2_grid(
         source=source,
-        fn_grid_old=snakemake.input.h2_reference_grid_old,
-        fn_grid_new=snakemake.input.h2_reference_grid_new,
+        fn_grid_entsoe=snakemake.input.h2_reference_grid_entsoe,
+        fn_grid_entsos=snakemake.input.h2_reference_grid_entsos,
         fn_projects=snakemake.input.h2_projects,
         pyear=pyear,
     )
     interzonal = load_h2_interzonal_connections(
-        fn=snakemake.input.h2_reference_grid_old, scenario=scenario, pyear=pyear
+        fn=snakemake.input.h2_reference_grid_entsoe, scenario=scenario, pyear=pyear
     )
 
     # Save prepped H2 grid and interzonal
