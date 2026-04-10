@@ -5323,11 +5323,11 @@
           "type": "boolean"
         },
         "h2_reference_grid_source": {
-          "default": "starting_grid",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'old' uses ReferenceGrid_Hydrogen.xlsx, with added H2 investment candidates; 'starting_grid' uses StartingGrid2030.xlsx only.",
+          "default": "entsos",
+          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses ReferenceGrid_Hydrogen.xlsx, with added H2 investment candidates; 'entsos' uses StartingGrid2030.xlsx only.",
           "enum": [
-            "old",
-            "starting_grid"
+            "entsoe",
+            "entsos"
           ],
           "type": "string"
         },
@@ -12363,11 +12363,11 @@
           "type": "boolean"
         },
         "h2_reference_grid_source": {
-          "default": "starting_grid",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'old' uses ReferenceGrid_Hydrogen.xlsx, with added H2 investment candidates; 'starting_grid' uses StartingGrid2030.xlsx only.",
+          "default": "entsos",
+          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses ReferenceGrid_Hydrogen.xlsx, with added H2 investment candidates; 'entsos' uses StartingGrid2030.xlsx only.",
           "enum": [
-            "old",
-            "starting_grid"
+            "entsoe",
+            "entsos"
           ],
           "type": "string"
         },
