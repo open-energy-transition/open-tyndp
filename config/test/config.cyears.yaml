@@ -40,9 +40,11 @@ electricity:
 
   extendable_carriers:
     Generator: []
+    StorageUnit: []
     Store: []
+    Link: [H2 pipeline]
 
-  conventional_carriers: [OCGT]
+  conventional_carriers: []
   tyndp_conventional_carriers:
   - gas
   - coal
@@ -133,6 +135,7 @@ electricity:
     - Hydrogen
     - Electrolyser
     - Battery
+    - DSR
 
   transmission_limit: v1.0
 
@@ -294,10 +297,10 @@ sector:
   biomass_to_liquid_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
-  biomass_final_demand: # in TWh
-    2030: 902
-    2035: 815   # linear interpolation
-    2040: 728
+  biomass_final_demand: # in TWh and for 8760h
+    2030: 939
+    2035: 863   # linear interpolation
+    2040: 787
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -308,20 +311,13 @@ sector:
     - H2
   offshore_hubs_tyndp:
     enable: true
+    connect_isolated: true
     max_capacity:
       DC_OH: 10
       H2 pipeline OH: 30
 
 costs:
   custom_cost_scn: NT
-  overwrites:
-    lifetime:
-      electrolysis: 25
-      HVDC submarine: 25
-      H2 (g) submarine pipeline: 25
-      offwind: 25
-    efficiency:
-      electrolysis: 0.68  # ToDo Account for time-varying efficiencies, currently using fixed 2020 value from TYNDP 2024
   emission_prices:
     enable: true
     co2:
@@ -351,10 +347,10 @@ adjustments:
     factor:
       Generator:
         biogas:
-          p_nom:
-            2030: 1.26  # EU27 biogas potential: PyPSA-Eur 301 TWh vs TYNDP 379 TWh
+          p_nom: # EU27 biogas potential for 8760h
+            2030: 1.26  # PyPSA-Eur 301 TWh vs TYNDP 380 TWh
             2035: 1.89  # interpolated
-            2040: 2.51  # EU27 biogas potential: PyPSA-Eur 306 TWh vs TYNDP 767 TWh
+            2040: 2.51  # PyPSA-Eur 306 TWh vs TYNDP 771 TWh
           e_sum_max:
             2030: 1.26
             2035: 1.89
@@ -364,18 +360,18 @@ adjustments:
             2035: 1.89
             2040: 2.51
         solid biomass:
-          p_nom:
-            2030: 1.47 # EU27 biomass potential: PyPSA-Eur 974 TWh vs TYNDP 1431 TWh
-            2035: 1.40 # interpolated
-            2040: 1.33 # EU27 biomass potential: PyPSA-Eur 950 TWh vs TYNDP 1261 TWh
+          p_nom: # EU27 biomass potential for 8760h
+            2030: 2.02 # PyPSA-Eur 974 TWh vs TYNDP 1964 TWh (8736h value: 1959 TWh = 1463 Supply Tool + 496 Other-RES)
+            2035: 1.90 # interpolated
+            2040: 1.77 # PyPSA-Eur 950 TWh vs TYNDP 1678 TWh (8736h value: 1673 TWh = 1316 Supply Tool + 357 Other-RES)
           e_sum_max:
-            2030: 1.47
-            2035: 1.40
-            2040: 1.33
+            2030: 2.02
+            2035: 1.90
+            2040: 1.77
           e_sum_min:
-            2030: 1.47
-            2035: 1.40
-            2040: 1.33
+            2030: 2.02
+            2035: 1.90
+            2040: 1.77
     absolute: false
 
 solving:
@@ -385,6 +381,7 @@ solving:
       apply_to_all_carriers: false
       carriers:
         H2: 3000
+        AC: 3000
   solver:
     name: highs
     options: highs-default
@@ -443,9 +440,6 @@ cba:
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
 
-  # Constrain DSR daily dispatch
-  constrain_dsr: true
-
   # Storage settings for dispatch
   storage:
     # Carriers that remain cyclic (short-term storage)
@@ -453,11 +447,13 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
-    - home battery
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
     - hydro-reservoir
+
+  # Constrain DSR daily dispatch
+  constrain_dsr: true
 
   # Marginal storage value extraction settings
   msv_extraction:
