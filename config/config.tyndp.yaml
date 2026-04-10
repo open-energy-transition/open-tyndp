@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "NT"
+  name: "all"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -371,8 +371,8 @@ solving:
       carriers:
         H2: 3000
   solver:  # Use commercial solver for high resolution results in SB
-    name: gurobi
-    options: gurobi-default
+    name: highs
+    options: highs-default
 
 plotting:
   energy_threshold: 1.
