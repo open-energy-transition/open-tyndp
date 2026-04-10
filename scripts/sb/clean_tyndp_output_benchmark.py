@@ -107,9 +107,12 @@ MM_CARRIER_MAPPING = {
 
 
 # look up dictionary {name of plot: [sheet_name, output_type]}
-LOOKUP_TABLES: dict[str, list[str| list[str]]] = {
+LOOKUP_TABLES: dict[str, list[str | list[str]]] = {
     "power_capacity": ["Yearly Outputs", ["Installed Capacities [MW]"]],
-    "power_generation": ["Yearly Outputs", ["Annual generation [GWh]", "Dump energy [GWh]"]],
+    "power_generation": [
+        "Yearly Outputs",
+        ["Annual generation [GWh]", "Dump energy [GWh]"],
+    ],
     "electricity_demand": [
         "Yearly Outputs",
         ["Native Demand (excl. Pump load & Battery charge) [GWh]"],
