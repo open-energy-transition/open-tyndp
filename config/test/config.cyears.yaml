@@ -39,10 +39,8 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT]
-    StorageUnit: [battery]
-    Store: [H2]
-    Link: [H2 pipeline]
+    Generator: []
+    Store: []
 
   conventional_carriers: [OCGT]
   tyndp_conventional_carriers:
