@@ -39,12 +39,12 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT]
+    Generator: []
     StorageUnit: []
     Store: []
     Link: [H2 pipeline]
 
-  conventional_carriers: [OCGT]
+  conventional_carriers: []
   tyndp_conventional_carriers:
   - gas
   - coal
@@ -135,6 +135,7 @@ electricity:
     - Hydrogen
     - Electrolyser
     - Battery
+    - DSR
     - DSR
 
   transmission_limit: v1.0
@@ -382,6 +383,7 @@ solving:
       apply_to_all_carriers: false
       carriers:
         H2: 3000
+        AC: 3000
   solver:
     name: highs
     options: highs-default

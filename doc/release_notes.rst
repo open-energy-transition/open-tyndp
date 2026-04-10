@@ -19,6 +19,8 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
+
 **Bugfixes and Compatibility**
 
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).

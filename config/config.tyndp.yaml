@@ -36,10 +36,10 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT]
+    Generator: []
     Store: []
 
-  conventional_carriers: [OCGT]
+  conventional_carriers: []
   tyndp_conventional_carriers:
   - gas
   - coal
@@ -373,6 +373,7 @@ solving:
       apply_to_all_carriers: false
       carriers:
         H2: 3000
+        AC: 3000
   solver:  # Use commercial solver for high resolution results in SB
     name: highs
     options: highs-default
