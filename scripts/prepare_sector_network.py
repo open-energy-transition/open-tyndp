@@ -1981,12 +1981,14 @@ def _add_other_non_res_capacities(
         pemmdb_capacities.query(f"{id_col} == @tech")
         .reset_index()
         .assign(
-            price_band=lambda df: df["bus"].astype(str)
-            + "-"
-            + df["index_carrier"].astype(str)
-            + "-"
-            + df["price"].round(2).astype(str)
-            + "eur"
+            price_band=lambda df: (
+                df["bus"].astype(str)
+                + "-"
+                + df["index_carrier"].astype(str)
+                + "-"
+                + df["price"].round(2).astype(str)
+                + "eur"
+            )
         )
         .set_index("price_band")
     )["p_nom"]
@@ -1999,12 +2001,14 @@ def _add_other_non_res_capacities(
     ##########
     # Filter for profiles
     profiles = pemmdb_profiles.query(f"{id_col} == @tech").assign(
-        link_index=lambda df: df["bus"].astype(str)
-        + "-"
-        + df["index_carrier"].astype(str)
-        + "-"
-        + df["price"].round(2).astype(str)
-        + "eur"
+        link_index=lambda df: (
+            df["bus"].astype(str)
+            + "-"
+            + df["index_carrier"].astype(str)
+            + "-"
+            + df["price"].round(2).astype(str)
+            + "eur"
+        )
     )
     p_min_pu = profiles.pivot_table(
         values="p_min_pu", index="time", columns="link_index"
@@ -2015,6 +2019,68 @@ def _add_other_non_res_capacities(
     ).reindex(tech_i, axis=1, fill_value=1.0)
 
     _add_pu_profiles(comp_t=n.links_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
+
+
+def _format_dsr_names(df: pd.DataFrame) -> pd.Series:
+    """
+    Format generator names for PEMMDB DSR price bands.
+
+    The names are formatted as: "bus-index_carrier", e.g., "DE00-dsr-4h-50eur".
+    """
+
+    return df["bus"].astype(str) + "-" + df["index_carrier"].astype(str)
+
+
+def _add_dsr_components(
+    n: pypsa.Network,
+    pemmdb_capacities: pd.DataFrame,
+    pemmdb_profiles: pd.DataFrame,
+) -> None:
+    """
+    Add PEMMDB DSR price bands as non-extendable generators.
+
+    DSR is represented as dispatchable avoided load on the electricity bus,
+    following a price-band structure analogous to market demand bids.
+    """
+
+    caps = pemmdb_capacities.query("carrier == 'dsr' and unit == 'MW'").reset_index()
+    if caps.empty:
+        return
+
+    if "dsr" not in n.carriers.index:
+        n.add("Carrier", "dsr", nice_name="Demand Side Response")
+
+    caps = caps.assign(name=lambda df: _format_dsr_names(df)).set_index("name")
+
+    n.add(
+        "Generator",
+        caps.index,
+        bus=caps["bus"].astype(str).values,
+        carrier="dsr",
+        p_nom=caps["p_nom"].values,
+        p_nom_extendable=False,
+        p_min_pu=0.0,
+        marginal_cost=caps["price"].values,
+        capital_cost=0.0,
+    )
+    n.components.generators.static.loc[caps.index, "pemmdb_hours"] = (
+        caps["hours"].astype(float).values
+    )
+
+    profiles = pemmdb_profiles.query("carrier == 'dsr'")
+    if not profiles.empty:
+        profiles = profiles.assign(name=lambda df: _format_dsr_names(df))
+        p_min_pu = profiles.pivot_table(
+            values="p_min_pu", index="time", columns="name"
+        ).reindex(caps.index, axis=1, fill_value=0.0)
+        p_max_pu = profiles.pivot_table(
+            values="p_max_pu", index="time", columns="name"
+        ).reindex(caps.index, axis=1, fill_value=1.0)
+        _add_pu_profiles(comp_t=n.generators_t, p_min_pu=p_min_pu, p_max_pu=p_max_pu)
+
+    remove_zero_capacity_non_extendable(
+        n, carriers=["dsr"], component_types={"Generator"}
+    )
 
 
 def _add_conventional_thermal_capacities(
@@ -2893,6 +2959,7 @@ def add_existing_tyndp_capacities(
       - conventional thermal generation (incl. H2 fuel-cells and turbines)
       - onshore wind and solar
       - hydro
+      - demand side response (DSR)
       - electrolysers
       - other RES and other Non-RES
       - battery storages
@@ -2996,6 +3063,12 @@ def add_existing_tyndp_capacities(
                 nuclear_profiles=nuclear_profiles,
                 group_conventionals=group_conventionals,
             )
+
+        _add_dsr_components(
+            n=n,
+            pemmdb_capacities=pemmdb_capacities,
+            pemmdb_profiles=pemmdb_profiles,
+        )
 
         # Add existing battery capacities from PEMMDB to already attached storage components
         if "battery" in tyndp_stores:
@@ -3261,6 +3334,9 @@ def insert_electricity_distribution_grid(
     # attach TYNDP rooftop solar to low voltage bus
     rtsolar = n.generators.index[n.generators.carrier == "solar-pv-rooftop"]
     n.generators.loc[rtsolar, "bus"] += " low voltage"
+
+    dsr = n.generators.index[n.generators.carrier == "dsr"]
+    n.generators.loc[dsr, "bus"] += " low voltage"
 
     # set existing solar to cost of utility cost rather the 50-50 rooftop-utility
     solar = n.generators.index[n.generators.carrier == "solar"]
