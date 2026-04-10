@@ -13,7 +13,7 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Add functionality to use both ENTSOE and ENTSOS H2 reference grid data (https://github.com/open-energy-transition/open-tyndp/pull/611).
+* Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data (https://github.com/open-energy-transition/open-tyndp/pull/611).
 
 **Changes**
 
