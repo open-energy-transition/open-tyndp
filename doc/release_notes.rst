@@ -13,11 +13,15 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Implement demand side response (DSR) components and price bands. This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file (https://github.com/open-energy-transition/open-tyndp/pull/598).
+
 * Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data (https://github.com/open-energy-transition/open-tyndp/pull/611).
 
 **Changes**
 
 **Bugfixes and Compatibility**
+
+* Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
 **Documentation**
 
