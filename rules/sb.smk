@@ -477,8 +477,8 @@ if config["sector"]["h2_topology_tyndp"]:
                 "sector", "h2_reference_grid_source"
             ),
         input:
-            h2_reference_grid_entsoe=rules.retrieve_tyndp.output.h2_reference_grid,
-            h2_reference_grid_entsos=rules.retrieve_tyndp.output.h2_starting_grid,
+            h2_reference_grid_entsoe=rules.retrieve_tyndp.output.h2_reference_grid_entsoe,
+            h2_reference_grid_entsos=rules.retrieve_tyndp.output.h2_reference_grid_entsos,
             h2_projects=branch(
                 include_tyndp_h2_projects,
                 resources("tyndp/new_links_h2_{planning_horizons}.csv"),
