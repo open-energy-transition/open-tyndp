@@ -290,6 +290,24 @@ def compute_benchmark(
             .groupby(["bus"] + grouper)
             .sum()
         )
+        # add curtailment to power generation statistics
+        curtailment_exclusions = ["other-res-mix", "hydro-reservoir", "hydro-pondage", "hydro-ror"]
+        df_curtailment = (
+            n.statistics.curtailment(
+                bus_carrier=elec_bus_carrier,
+                groupby=["bus"]+ grouper,
+                aggregate_across_components=True,
+                groupby_time=False,
+            )
+            .mul(sws, axis=1)
+            .sum(axis=1)
+            .loc[lambda df_curtailment: ~df_curtailment.index.get_level_values("carrier").isin(curtailment_exclusions)]
+            .rename(index=lambda x: x.split(" ")[0], level=0)
+            .rename(index=lambda _: "curtailment", level=1)
+            .groupby(["bus"] + grouper)
+            .sum()
+        )
+        df = pd.concat([df,df_curtailment])
 
     elif table == "methane_supply":
         grouper = ["carrier"]
