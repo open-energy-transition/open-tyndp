@@ -133,8 +133,11 @@ electricity:
     - Hydrogen
     - Electrolyser
     - Battery
+    - DSR
 
   transmission_limit: v1.0
+
+  constrain_dsr: true
 
 atlite:
   default_cutout: europe-2013-03-sarah3-era5
@@ -445,6 +448,9 @@ cba:
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
     - hydro-reservoir
+
+  # Constrain DSR daily dispatch
+  constrain_dsr: true
 
   # Marginal storage value extraction settings
   msv_extraction:

@@ -147,7 +147,7 @@ def _drop_duplicate_price_bands(
 ) -> pd.DataFrame:
     """
     Check the provided dataframe for duplicate PEMMDB entries with the same type, purpose, and price but different
-    capacities. Keep first entry found when duplicates are found.
+    capacities. Aggregates capacities and keeps first entry otherwise.
 
     Parameters
     ----------
@@ -175,9 +175,10 @@ def _drop_duplicate_price_bands(
         # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
         # but different capacities. Using first entry.
         logger.info(
-            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Using first entry."
+            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Aggregating capacities."
         )
-    return df.groupby(groupby, **kwargs).first()
+    agg = {c: "sum" if c in ["p_nom", "p_max"] else "first" for c in df.columns}
+    return df.groupby(groupby, **kwargs).agg(agg)
 
 
 def _extract_price_band_type(df: pd.DataFrame) -> str:
@@ -278,9 +279,9 @@ def _process_other_nonres_capacities(
     df = (
         df.set_axis(column_names)
         .T.assign(
-            pemmdb_carrier=lambda df: "Other Non-RES"
-            + " "
-            + df.pemmdb_type.str.split("/").str[1],
+            pemmdb_carrier=lambda df: (
+                "Other Non-RES" + " " + df.pemmdb_type.str.split("/").str[1]
+            ),
             bus=node,
             country=node[:2],
             unit="MW",
@@ -575,6 +576,7 @@ def _process_dsr_capacities(
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
+            hours=lambda x: pd.to_numeric(x.hours, errors="coerce"),
             pemmdb_type=lambda x: _extract_price_band_type(x),
             efficiency=1.0,  # dummy value for efficiency
         )
@@ -588,7 +590,7 @@ def _process_dsr_capacities(
         )
         return None
 
-    # Check for duplicate price bands and keep first entry only
+    # Check for duplicate price bands and aggregate capacities
     df = _drop_duplicate_price_bands(
         df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
     ).reset_index(drop=True)
@@ -854,28 +856,40 @@ def _process_dsr_profiles(
 
     # Extract price band type information
     type = _extract_price_band_type(df.T)
+    hours = pd.to_numeric(df.loc["hours", mask], errors="coerce").astype(float)
+    price = pd.to_numeric(df.loc["price", mask], errors="coerce").astype(float)
+    cap = cap.loc[mask]
+
+    col_index = pd.MultiIndex.from_arrays(
+        [type, hours, price, cap],
+        names=["pemmdb_type", "hours", "price", "p_nom"],
+    )
+    # identify duplicate price bands that also have the same capacity
+    dup_mask = ~col_index.duplicated()
 
     df_long = (
         df.iloc[7:]
         .reset_index(drop=True)
-        .div(cap.loc[mask], axis=1)
-        .set_axis(type, axis="columns")
-        .assign(
-            time=sns_year_h,
-            bus=node,
-            pemmdb_carrier=pemmdb_tech,
-        )
+        .set_axis(col_index, axis="columns")
+        .loc[:, dup_mask]
+        .assign(time=sns_year_h, bus=node, pemmdb_carrier=pemmdb_tech)
         .loc[lambda x: x["time"].isin(sns)]
         .set_index(["time", "bus", "pemmdb_carrier"])
-        .melt(var_name="pemmdb_type", value_name="p_max_pu", ignore_index=False)
-        .set_index("pemmdb_type", append=True)
-        .assign(p_min_pu=0.0)  # also set p_min_pu with default value of 0.0
+        .stack(level=["pemmdb_type", "hours", "price", "p_nom"], future_stack=True)
+        .rename("p_max")
+        .reset_index(level=["hours", "price", "p_nom"])
     )
 
     # Check for duplicate price bands and keep first entry only
     profiles = _drop_duplicate_price_bands(
         df_long, df_long.index.names, pemmdb_tech, node, cyear, as_index=True
     )
+
+    # Calculate p_max_pu after aggregating duplicate price bands
+    profiles = profiles.assign(
+        p_max_pu=lambda x: x.p_max.div(x.p_nom),
+        p_min_pu=0.0,
+    ).drop(["p_nom", "p_max"], axis=1)
 
     return profiles
 
@@ -967,6 +981,7 @@ def process_pemmdb_capacities(
         capacities = (
             capacities.assign(
                 price=lambda x: x.get("price"),
+                hours=lambda x: x.get("hours"),
                 co2_factor=lambda x: x.get("co2_factor"),
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
@@ -979,6 +994,7 @@ def process_pemmdb_capacities(
                     "e_nom",
                     "efficiency",
                     "price",
+                    "hours",
                     "co2_factor",
                     "country",
                     "unit",
@@ -1113,12 +1129,21 @@ def process_pemmdb_profiles(
             return None
 
         # Map PEMMDB carrier names to TYNDP technologies
-        profiles = map_tyndp_carrier_names(
-            profiles.reset_index(),
-            carrier_mapping_fn,
-            ["pemmdb_carrier", "pemmdb_type"],
-            drop_on_columns=True,
-        ).set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
+        profiles = (
+            map_tyndp_carrier_names(
+                profiles.reset_index(),
+                carrier_mapping_fn,
+                ["pemmdb_carrier", "pemmdb_type"],
+                drop_on_columns=True,
+            )
+            .assign(
+                price=lambda x: x.get("price"),
+                hours=lambda x: x.get("hours"),
+                p_set=lambda x: x.get("p_set"),
+                price_band_type=lambda x: x.get("price_band_type"),
+            )
+            .set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
+        )
 
         return profiles
 
@@ -1379,7 +1404,7 @@ if __name__ == "__main__":
 
     # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
     pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0).set_index(
-        ["price_band_type", "price"], append=True
+        ["price_band_type", "price", "hours"], append=True
     )
     ds = xr.Dataset(
         {
