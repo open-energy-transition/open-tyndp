@@ -100,7 +100,7 @@ class ConfigSchema(BaseModel):
 
     # Top-level fields (from TopLevelConfig)
     version: str = Field(
-        "v0.5.1", description="Version of Open-TYNDP. Descriptive only."
+        "v0.6.1", description="Version of Open-TYNDP. Descriptive only."
     )
     tutorial: bool = Field(
         False,

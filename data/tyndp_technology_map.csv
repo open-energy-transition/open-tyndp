@@ -51,11 +51,34 @@ Heavy oil,old 1,,,,oil-heavy,oil-heavy-old1,oil-heavy,oil,"PyPSA-Eur does not ex
 Heavy oil,old 2,,,,oil-heavy,oil-heavy-old2,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Oil shale,old,,,,oil-shale,oil-shale-old,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Oil shale,new,,,,oil-shale,oil-shale-new,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Gas,conventional old 1,,,,gas,other-non-res-gas-conv-old1,other-non-res-gas-conv,OCGT,
+Other Non-RES Gas,conventional old 2,,,,gas,other-non-res-gas-conv-old2,other-non-res-gas-conv,OCGT,
+Other Non-RES Gas,ccgt old 1,,,,gas,other-non-res-gas-ccgt-old1,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt old 2,,,,gas,other-non-res-gas-ccgt-old2,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt new,,,,gas,other-non-res-gas-ccgt-new,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt ccs,,,,gas,other-non-res-gas-ccgt-ccs,other-non-res-gas-ccgt-ccs,,
+Other Non-RES Gas,ocgt old,,,,gas,other-non-res-gas-ocgt-old,other-non-res-gas-ocgt,OCGT,
+Other Non-RES Gas,ocgt new,,,,gas,other-non-res-gas-ocgt-new,other-non-res-gas-ocgt,OCGT,
+Other Non-RES Gas,ccgt present 1,,,,gas,other-non-res-gas-ccgt-present1,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt present 2,,,,gas,other-non-res-gas-ccgt-present2,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Hard coal,old 1,,,,coal,other-non-res-coal-old1,other-non-res-coal,coal,
+Other Non-RES Hard coal,old 2,,,,coal,other-non-res-coal-old2,other-non-res-coal,coal,
+Other Non-RES Hard coal,new,,,,coal,other-non-res-coal-new,other-non-res-coal,coal,
+Other Non-RES Hard coal,ccs,,,,coal,other-non-res-coal-ccs,other-non-res-coal-ccs,,
+Other Non-RES Lignite,old 1,,,,lignite,other-non-res-lignite-old1,other-non-res-lignite,lignite,
+Other Non-RES Lignite,old 2,,,,lignite,other-non-res-lignite-old2,other-non-res-lignite,lignite,
+Other Non-RES Lignite,new,,,,lignite,other-non-res-lignite-new,other-non-res-lignite,lignite,
+Other Non-RES Lignite,ccs,,,,lignite,other-non-res-lignite-ccs,other-non-res-lignite-ccs,,
+Other Non-RES Light oil,light oil,,,,oil-light,other-non-res-oil-light,other-non-res-oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Heavy oil,old 1,,,,oil-heavy,other-non-res-oil-heavy-old1,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Heavy oil,old 2,,,,oil-heavy,other-non-res-oil-heavy-old2,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Oil shale,old,,,,oil-shale,other-non-res-oil-shale-old,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Oil shale,new,,,,oil-shale,other-non-res-oil-shale-new,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Hydrogen,Fuel Cell,,,,h2-fuel-cell,h2-fuel-cell,h2-fuel-cell,,
 Hydrogen,CCGT,,,,h2-ccgt,h2-ccgt,h2-ccgt,,
 Electrolyser,Onshore grid connected,,,Electrolyzers,electrolyser,electrolyser-onshore-grid,electrolyser-onshore-grid,,
-Battery,Discharge,,,,battery,battery-discharge,battery-discharge,,
-Battery,Charge,,,,battery,battery-charge,battery-charge,,
-Battery,Store,,,,battery,battery-store,battery-store,,
-,,,,Batteries Prosumer,battery,battery-store-prosumer,battery-store-prosumer,,
-,,,,Batteries Utility,battery,battery-store-utility,battery-store-utility,,
+Battery,Discharge,,,,battery,battery discharger,battery discharger,,
+Battery,Charge,,,,battery,battery charger,battery charger,,
+Battery,Store,,,,battery,battery,battery,,
+,,,,Batteries Prosumer,battery,battery-prosumer,battery-prosumer,,
+,,,,Batteries Utility,battery,battery-utility,battery-utility,,

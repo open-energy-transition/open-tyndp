@@ -26,31 +26,37 @@ authors:
   - family-names: Hörsch
     given-names: Jonas
     orcid: https://orcid.org/0000-0001-9438-767X
-  - family-names: Gaete
+  - family-names: Gaete-Morales
     given-names: Carlos
     orcid: https://orcid.org/0000-0003-0770-7335
   - family-names: Meng
     given-names: Measrainsey
     orcid: https://orcid.org/0000-0003-2783-2029
+  - family-names: Hernandez Denyer
+    given-names: Andreas
+    orcid: https://orcid.org/0009-0000-8438-7764
+  - family-names: Groissböck
+    given-names: Markus
+    orcid: https://orcid.org/0000-0001-6025-9477
   - family-names: Zeyen
-    given-names: Lisa
+    given-names: Elisabeth
     orcid: https://orcid.org/0000-0002-7262-3296
   - family-names: Usher
     given-names: Will
     orcid: https://orcid.org/0000-0001-9367-1791
   - family-names: Frysztacki
-    given-names: Martha
+    given-names: Martha Maria
     orcid: https://orcid.org/0000-0002-0788-1328
   - family-names: Parzen
-    given-names: Max
+    given-names: Maximilian
     orcid: https://orcid.org/0000-0002-4390-0063
 identifiers:
   - type: doi
-    value: 10.5281/zenodo.18672148
-    description: 'Zenodo record archiving released versions of Open-TYNDP starting with v0.5.'
+    value: 10.5281/zenodo.19372053
+    description: 'Zenodo record archiving released versions of Open-TYNDP starting with v0.6. Versions v0.5 and v0.5.1 are archived at 10.5281/zenodo.18494362.'
 repository-code: 'https://github.com/open-energy-transition/open-tyndp'
 license: MIT
-version: v0.5.1
+version: v0.6.1
 
 # Preferred citation and references
 preferred-citation:
@@ -68,27 +74,33 @@ preferred-citation:
     - family-names: Hörsch
       given-names: Jonas
       orcid: https://orcid.org/0000-0001-9438-767X
-    - family-names: Gaete
+    - family-names: Gaete-Morales
       given-names: Carlos
       orcid: https://orcid.org/0000-0003-0770-7335
     - family-names: Meng
       given-names: Measrainsey
       orcid: https://orcid.org/0000-0003-2783-2029
+    - family-names: Hernandez Denyer
+      given-names: Andreas
+      orcid: https://orcid.org/0009-0000-8438-7764
+    - family-names: Groissböck
+      given-names: Markus
+      orcid: https://orcid.org/0000-0001-6025-9477
     - family-names: Zeyen
-      given-names: Lisa
+      given-names: Elisabeth
       orcid: https://orcid.org/0000-0002-7262-3296
     - family-names: Usher
       given-names: Will
       orcid: https://orcid.org/0000-0001-9367-1791
     - family-names: Frysztacki
-      given-names: Martha
+      given-names: Martha Maria
       orcid: https://orcid.org/0000-0002-0788-1328
     - family-names: Parzen
-      given-names: Max
+      given-names: Maximilian
       orcid: https://orcid.org/0000-0002-4390-0063
-  doi: 10.5281/zenodo.18672148
+  doi: 10.5281/zenodo.19372053
   repository-code: 'https://github.com/open-energy-transition/open-tyndp'
-  version: v0.5.1
+  version: v0.6.1
   license: MIT
 
 # Reference the original work

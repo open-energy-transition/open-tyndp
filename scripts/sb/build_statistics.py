@@ -10,6 +10,7 @@ import multiprocessing as mp
 from functools import partial
 
 import country_converter as coco
+import numpy as np
 import pandas as pd
 import pypsa
 from tqdm import tqdm
@@ -17,6 +18,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
+    PRICE_UNITS,
     configure_logging,
     set_scenario_config,
 )
@@ -59,6 +61,7 @@ def compute_benchmark(
     eu27: list[str],
     tyndp_renewable_carriers: list[str],
     planning_horizons: int,
+    load_shedding: dict[str, int],
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -77,6 +80,8 @@ def compute_benchmark(
         List of renewable carriers in TYNDP 2024.
     planning_horizons : int
         The current planning horizon year.
+    load_shedding : dict[str, int]
+        Value of lost load per carrier.
 
     Returns
     -------
@@ -103,7 +108,7 @@ def compute_benchmark(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -118,7 +123,7 @@ def compute_benchmark(
                 comps="Load",
                 groupby=grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -128,12 +133,13 @@ def compute_benchmark(
 
         # Add Biomass to Liquid
         df_btl = (
-            n.statistics.withdrawal(
+            n.statistics.supply(
                 comps="Link",
+                bus_carrier="oil",
                 carrier=["biomass to liquid", "biomass to liquid CC"],
                 groupby="carrier",
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -149,7 +155,7 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
@@ -192,95 +198,98 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_demand":
         grouper = ["carrier"]
-        df = (
-            n.statistics.withdrawal(
-                comps=demand_comps,
-                bus_carrier="H2",
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(index="H2 pipeline", errors="ignore")
-        )
+        exclusions = [
+            "H2 pipeline",
+            "H2 cavern-storage charger",
+            "H2 tank-storage charger",
+        ]
+        df = n.statistics.withdrawal(
+            comps=demand_comps,
+            bus_carrier="H2",
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
+        exclusions = ["electricity distribution grid", "DC", "DC_OH"]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
             )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
             .loc[lambda x: x > 0]
-            .drop(index=["electricity distribution grid"], errors="ignore")
+            .reset_index()
+            .loc[lambda df: ~df.carrier.isin(exclusions)]
+            .assign(bus=lambda df: df.bus.str.split(" ").str[0])
+            .groupby(["bus"] + grouper)
+            .sum()
+            .iloc[:, 0]
         )
 
         # Add H2 offwind capacities in MW_e
         off_car = [c for c in tyndp_renewable_carriers if c.startswith("offwind-h2")]  # noqa: F841
         df_offwind_h2 = (
             n.generators.query("carrier.isin(@off_car)")
-            .assign(p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2)
+            .assign(
+                p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
+                bus=lambda df: df.bus.str.split(" ").str[0],
+            )
             .groupby(by=["bus"] + grouper)
             .p_nom_opt.sum()
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
         )
 
         df = pd.concat([df, df_offwind_h2])
     elif table == "power_generation":
         grouper = ["carrier"]
+        exclusions = [
+            "DC",
+            "DC_OH",
+            "electricity distribution grid",
+            "battery discharger",
+            "battery charger",
+            "home battery discharger",
+            "home battery charger",
+            "PHS",
+            "hydro-phs-turbine",
+            "hydro-phs-pump",
+            "hydro-phs-pure-turbine",
+            "hydro-phs-pure-pump",
+            "H2 Electrolysis",
+        ]
         df = (
             n.statistics.supply(
                 comps=supply_comps + ["StorageUnit"],
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                aggregate_time=False,
+                groupby_time=False,
             )
             .mul(sws, axis=1)
             .sum(axis=1)
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(
-                index=[
-                    "DC",
-                    "DC_OH",
-                    "electricity distribution grid",
-                    "battery discharger",
-                    "home battery discharger",
-                    "PHS",
-                    "hydro-phs-turbine",
-                    "hydro-phs-pure-turbine",
-                ],
-                errors="ignore",
-            )
+            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
         )
 
         # TYNDP 2024 report available generation for renewables (pre-curtailment)
         # and add H2 offwind capacities in MWh_e
         # TODO Review once solar thermals are integrated
         res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
-        res_idx = (
-            n.generators[n.generators.carrier.isin(res_carriers)]
-            .query("bus in @eu27_idx")
-            .index
-        )
+        res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
         eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
 
         res_gen = (
             (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
             .div(eff_dc_to_b0)
-            .groupby(n.generators.carrier)
+            .groupby([n.generators.bus, n.generators.carrier])
             .sum()
         )
-        df = df.reindex(df.index.union(res_carriers).rename("carrier"))
-        df.loc[res_gen.index] = res_gen.values
+        df = res_gen.combine_first(df)
+
+        df = (
+            df.rename(index=lambda x: x.split(" ")[0], level=0)
+            .groupby(["bus"] + grouper)
+            .sum()
+        )
 
     elif table == "methane_supply":
         grouper = ["carrier"]
@@ -306,18 +315,18 @@ def compute_benchmark(
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
         grouper = ["carrier"]
-        df = (
-            n.statistics.supply(
-                comps=supply_comps,
-                bus_carrier="H2",
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-            )
-            .reindex(eu27_idx, level="bus")
-            .groupby(by=grouper)
-            .sum()
-            .drop(index=["H2 pipeline", "H2 pipeline OH"], errors="ignore")
-        )
+        exclusions = [
+            "H2 pipeline",
+            "H2 pipeline OH",
+            "H2 cavern-storage discharger",
+            "H2 tank-storage discharger",
+        ]
+        df = n.statistics.supply(
+            comps=supply_comps,
+            bus_carrier="H2",
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "biomass_supply":
         grouper = ["carrier"]
         df_fed_btl = n.statistics.withdrawal(
@@ -326,6 +335,11 @@ def compute_benchmark(
             groupby=grouper,
             aggregate_across_components=True,
         )
+
+        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
+        biogas_not_upgraded = opt["biogas_not_upgraded"][planning_horizons] * 1e6
+        df_fed_btl.loc["biomass final energy demand"] -= biogas_not_upgraded
+        df_fed_btl.loc["for biomethane"] = biogas_not_upgraded
 
         eff = float(opt["biomass_to_methane_efficiency"][planning_horizons])
 
@@ -356,6 +370,8 @@ def compute_benchmark(
                     "H2 Electrolysis",
                     "H2 pipeline",
                     "H2 pipeline OH",
+                    "H2 cavern-storage discharger",
+                    "H2 tank-storage discharger",
                     "SMR",
                     "SMR CC",
                 ],
@@ -380,7 +396,7 @@ def compute_benchmark(
                     bus_carrier=elec_bus_carrier,
                     groupby=["bus"] + grouper,
                     aggregate_across_components=True,
-                    aggregate_time=False,
+                    groupby_time=False,
                 )
                 .reindex(eu27_idx, level="bus")
                 .groupby(by=grouper)
@@ -405,6 +421,43 @@ def compute_benchmark(
         else:
             logger.warning(f"Unknown climate year for table: {table}")
             df = pd.DataFrame(columns=["carrier"])
+    elif table in ["electricity_price", "hydrogen_price"]:
+        carrier = "AC" if "electricity" in table else "H2"
+
+        # Collect nodes with energy balance; nodes without balance will have the load shedding price
+        idx_w_balance = n.statistics.energy_balance(
+            bus_carrier=carrier, groupby="bus", aggregate_across_components=True
+        ).index
+
+        df = (
+            n.statistics.prices(
+                bus_carrier=carrier,
+                weighting="time",
+            )
+            .to_frame("value")
+            .rename_axis("bus")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
+
+        mask = ~df.index.get_level_values("bus").isin(idx_w_balance)
+        df.loc[mask, :] = np.nan
+    elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
+        carrier = "AC" if "electricity" in table else "H2"
+
+        df = (
+            n.statistics.prices(
+                bus_carrier=carrier,
+                weighting="time",
+                groupby_time=False,
+            )
+            .pipe(lambda x: x.where(x < load_shedding.get(carrier, np.inf)))
+            .mean(axis=1)
+            .to_frame("value")
+            .rename_axis("bus")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
         df = pd.DataFrame(columns=["carrier"])
@@ -420,18 +473,53 @@ def compute_benchmark(
         )
         .assign(carrier=lambda x: x["carrier"].map(mapping).fillna(x["carrier"]))
     )
-    grouper = [c for c in ["carrier", "snapshot"] if c in df.columns]
+
+    # Add EU27 (load-weighted average for prices)
+    if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
+        df_eu27 = df.loc[lambda x: x["bus"].isin(eu27_idx)]
+
+        if "price" in table:
+            weights = (
+                n.statistics.withdrawal(
+                    groupby="bus",
+                    bus_carrier=carrier,
+                    nice_names=False,
+                )
+                .groupby("bus")
+                .sum()
+                .T
+            )
+            normalizer = weights.sum()
+        else:
+            weights = pd.Series(1.0, index=df_eu27.bus.unique())
+            normalizer = 1.0
+
+        df_eu27 = (
+            df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
+            .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
+            .value.sum()
+            .div(normalizer)
+            .reset_index()
+            .assign(bus="EU27")
+        )
+        df = pd.concat([df, df_eu27])
+    else:
+        df = df.assign(bus="EU27")
+
+    op = "sum" if "price" not in table else "mean"
     df = (
-        df.groupby(by=grouper)
-        .sum()
+        df.groupby(by=[c for c in ["bus", "carrier", "snapshot"] if c in df.columns])
+        .agg(op)
         .reset_index()
         .assign(
             table=table,
             unit=lambda x: "MWh"
-            if opt["unit"] in ENERGY_UNITS
+            if opt["report"]["unit"] in ENERGY_UNITS
             else "MW"
-            if opt["unit"] in POWER_UNITS
-            else opt["unit"],
+            if opt["report"]["unit"] in POWER_UNITS
+            else "EUR/MWh"
+            if opt["report"]["unit"] in PRICE_UNITS
+            else opt["report"]["unit"],
         )
     )
 
@@ -456,6 +544,7 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
+    load_shedding = snakemake.params["load_shedding"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
@@ -479,6 +568,7 @@ if __name__ == "__main__":
         eu27=eu27,
         tyndp_renewable_carriers=tyndp_renewable_carriers,
         planning_horizons=planning_horizons,
+        load_shedding=load_shedding,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:

@@ -47,6 +47,15 @@ SPDX-License-Identifier = "CC0-1.0"
 
 [[annotations]]
 path = [
+    ".zenodo.json"
+]
+SPDX-FileCopyrightText = [
+    "The Open-TYNDP Authors",
+]
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
     "report/**",
 ]
 SPDX-FileCopyrightText = "Open Energy Transition gGmbH"

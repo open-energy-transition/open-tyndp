@@ -20,7 +20,7 @@ if config["foresight"] != "perfect":
         resources:
             mem_mb=4000,
         benchmark:
-            benchmarks("plot_base_network/base")
+            benchmarks("performances/plot_base_network/base")
         script:
             scripts("plot_base_network.py")
 
@@ -38,7 +38,7 @@ if config["foresight"] != "perfect":
         resources:
             mem_mb=4000,
         benchmark:
-            benchmarks("plot_power_network_clustered/base_s_{clusters}")
+            benchmarks("performances/plot_power_network_clustered/base_s_{clusters}")
         script:
             scripts("plot_power_network_clustered.py")
 
@@ -64,7 +64,7 @@ if config["foresight"] != "perfect":
         benchmark:
             (
                 RESULTS
-                + "benchmarks/plot_power_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+                + "benchmarks/performances/plot_power_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
         script:
             scripts("plot_power_network.py")
@@ -97,7 +97,7 @@ if config["foresight"] != "perfect":
         benchmark:
             (
                 RESULTS
-                + "benchmarks/plot_hydrogen_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+                + "benchmarks/performances/plot_hydrogen_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
         script:
             scripts("plot_hydrogen_network.py")
@@ -123,7 +123,7 @@ if config["foresight"] != "perfect":
         benchmark:
             (
                 RESULTS
-                + "benchmarks/plot_gas_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+                + "benchmarks/performances/plot_gas_network/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
         script:
             scripts("plot_gas_network.py")
@@ -150,7 +150,7 @@ if config["foresight"] != "perfect":
         benchmark:
             (
                 RESULTS
-                + "benchmarks/plot_balance_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
+                + "benchmarks/performances/plot_balance_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
             )
         script:
             scripts("plot_balance_map.py")
@@ -182,7 +182,7 @@ if config["foresight"] != "perfect":
         benchmark:
             (
                 RESULTS
-                + "benchmarks/plot_interactive_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
+                + "benchmarks/performances/plot_interactive_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
             )
         script:
             scripts("plot_balance_map_interactive.py")
@@ -223,7 +223,7 @@ if config["foresight"] != "perfect":
         benchmark:
             (
                 RESULTS
-                + "benchmarks/plot_heat_source_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
+                + "benchmarks/performances/plot_heat_source_map/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
             )
         script:
             scripts("plot_heat_source_map.py")
@@ -301,7 +301,7 @@ rule make_summary:
     benchmark:
         (
             RESULTS
-            + "benchmarks/make_summary_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+            + "benchmarks/performances/make_summary_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
         )
     script:
         scripts("make_summary.py")
@@ -419,7 +419,7 @@ rule make_global_summary:
     log:
         RESULTS + "logs/make_global_summary.log",
     benchmark:
-        RESULTS + "benchmarks/make_global_summary"
+        RESULTS + "benchmarks/performances/make_global_summary"
     script:
         scripts("make_global_summary.py")
 
@@ -439,7 +439,7 @@ rule make_cumulative_costs:
     log:
         RESULTS + "logs/make_cumulative_costs.log",
     benchmark:
-        RESULTS + "benchmarks/make_cumulative_costs"
+        RESULTS + "benchmarks/performances/make_cumulative_costs"
     script:
         scripts("make_cumulative_costs.py")
 
@@ -494,7 +494,7 @@ rule plot_balance_timeseries:
         + "logs/plot_balance_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
     benchmark:
         RESULTS
-        +"benchmarks/plot_balance_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+        +"benchmarks/performances/plot_balance_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
     output:
         directory(
             RESULTS
@@ -523,7 +523,7 @@ rule plot_heatmap_timeseries:
         + "logs/plot_heatmap_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
     benchmark:
         RESULTS
-        +"benchmarks/plot_heatmap_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+        +"benchmarks/performances/plot_heatmap_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
     output:
         directory(
             RESULTS
@@ -582,7 +582,7 @@ rule build_ambient_air_temperature_yearly_average:
     benchmark:
         (
             RESULTS
-            + "benchmarks/build_ambient_air_temperature_yearly_average/base_s_{clusters}"
+            + "benchmarks/performances/build_ambient_air_temperature_yearly_average/base_s_{clusters}"
         )
     script:
         scripts("build_ambient_air_temperature_yearly_average.py")
@@ -596,7 +596,10 @@ rule plot_cop_profiles:
     log:
         RESULTS + "logs/plot_cop_profiles_s_{clusters}_{planning_horizons}.log",
     benchmark:
-        RESULTS + "benchmarks/plot_cop_profiles/s_{clusters}_{planning_horizons}"
+        (
+            RESULTS
+            + "benchmarks/performances/plot_cop_profiles/s_{clusters}_{planning_horizons}"
+        )
     resources:
         mem_mb=10000,
     script:
@@ -625,7 +628,7 @@ rule plot_interactive_bus_balance:
         + "logs/plot_interactive_bus_balance/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
     benchmark:
         RESULTS
-        +"benchmarks/plot_interactive_bus_balance/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+        +"benchmarks/performances/plot_interactive_bus_balance/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
     resources:
         mem_mb=20000,
     script:

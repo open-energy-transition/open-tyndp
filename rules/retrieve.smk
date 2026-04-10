@@ -1228,6 +1228,7 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 hydrogen_zip=f"{TYNDP_DATASET['folder']}/Hydrogen.zip",
                 hydrogen=directory(f"{TYNDP_DATASET['folder']}/Hydrogen"),
                 h2_imports=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+                h2_storages=f"{TYNDP_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
                 smr=f"{TYNDP_DATASET['folder']}/Hydrogen/SMR Figures.xlsx",
                 investment_datasets_zip=f"{TYNDP_DATASET['folder']}/Investment-Datasets.zip",
                 trajectories=f"{TYNDP_DATASET['folder']}/Investment Datasets/TRAJECTORY.xlsx",
@@ -1700,7 +1701,7 @@ if (MOBILITY_PROFILES_DATASET := dataset_version("mobility_profiles"))["source"]
         log:
             "logs/retrieve_mobility_profiles.log",
         benchmark:
-            "benchmarks/retrieve_mobility_profiles"
+            "benchmarks/performances/retrieve_mobility_profiles"
         run:
             copy2(input["kfz"], output["kfz"])
             copy2(input["pkw"], output["pkw"])

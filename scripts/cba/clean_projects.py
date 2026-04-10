@@ -27,6 +27,9 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
   - ``p_nom 1->0``: Transfer capacity increase from bus1 to bus0 (MW)
   - ``bus0``: Source bus code (4 alphanumeric characters)
   - ``bus1``: Destination bus code (4 alphanumeric characters)
+  - ``length_km``: Total route length in km (from Trans.Investments)
+  - ``capex_meur``: Total estimated CAPEX in MEUR (from Trans.Investments)
+  - ``underwater_fraction``: Fraction of route that is offshore cable
 
 - ``resources/cba/storage_projects.csv``: Empty CSV with columns project_id and project_name (stub implementation)
 
@@ -36,7 +39,6 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -50,6 +52,50 @@ TRANSMISSION_PROJECTS_COLUMN_MAP = {
     "Transfer capacity increase A-B (MW)": "p_nom 0->1",
     "Transfer capacity increase B-A (MW)": "p_nom 1->0",
 }
+
+OFFSHORE_ELEMENT_TYPES = {
+    "OffshoreDCTransmissionCable",
+    "OffshoreACTransmissionCable",
+}
+
+
+def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
+    """
+    Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
+
+    Aggregates investment-level data to the project level by summing route
+    lengths and CAPEX, and computing the underwater fraction from offshore
+    cable lengths.
+    """
+    inv = pd.read_excel(
+        excel_path,
+        sheet_name="Trans.Investments",
+        skiprows=1,
+        usecols=[
+            "This investment belongs to project number…",
+            "Total route length (km)",
+            "Estimated CAPEX (MEUR)",
+            "Type of Element",
+        ],
+    ).rename(
+        columns={
+            "This investment belongs to project number…": "project_id",
+            "Total route length (km)": "length_km",
+            "Estimated CAPEX (MEUR)": "capex_meur",
+            "Type of Element": "element_type",
+        }
+    )
+
+    is_offshore = inv["element_type"].isin(OFFSHORE_ELEMENT_TYPES)
+
+    agg = inv.groupby("project_id").agg(
+        length_km=("length_km", "sum"),
+        capex_meur=("capex_meur", "sum"),
+    )
+    offshore_km = inv.loc[is_offshore].groupby("project_id")["length_km"].sum()
+    agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
+
+    return agg
 
 
 def extract_transmission_projects(
@@ -204,6 +250,34 @@ def build_method_assignments(
     return projects.merge(assigned, on="project_id", how="left")
 
 
+def read_tyndp_electricity_buses(buses_fn: str):
+    """
+    Read node list for electricity from tyndp data input.
+
+    Parameters
+    ----------
+        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
+
+    Returns
+    -------
+        - buses: Index of electricity buses as used in open tyndp
+
+    See Also
+    --------
+        build_tyndp_network.py : build_buses
+    """
+    buses = pd.Index(
+        pd.read_excel(buses_fn)
+        .replace("UK", "GB", regex=True)
+        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
+    )
+
+    # Manually add Italian virtual nodes
+    buses = buses.union(["ITCO", "ITVI"])
+
+    return buses
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -215,13 +289,17 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    network = pypsa.Network(snakemake.input.network)
-    existing_buses = network.buses.index[network.buses.carrier == "AC"].unique()
+    existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
 
-    transmission_projects = extract_transmission_projects(
-        Path(snakemake.input.dir) / "20250312_export_transmission.xlsx",
-        existing_buses,
+    excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+
+    transmission_projects = extract_transmission_projects(excel_path, existing_buses)
+
+    investment_attrs = extract_investment_attributes(excel_path)
+    transmission_projects = transmission_projects.merge(
+        investment_attrs, on="project_id", how="left"
     )
+
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
     storage_projects = extract_storage_projects(

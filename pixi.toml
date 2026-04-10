@@ -8,7 +8,7 @@ authors = ["Contributors to Open-TYNDP"]
 channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "v0.5.1"
+version = "v0.6.1"
 
 [target.win-64.activation.env]
 
@@ -45,7 +45,7 @@ update-dags = """
 generate-config = "python -c 'from scripts.lib.validation.config import generate_config_defaults, generate_config_schema; generate_config_defaults(); generate_config_schema()'"
 
 [dependencies]
-atlite = ">=0.3"
+atlite = ">=0.3, <0.5"  # remove <0.5 when fixed upstream
 bokeh = ">=3.8.0"
 cartopy = ">=0.25.0"
 copernicusmarine = ">=2.2.4"
@@ -183,6 +183,10 @@ tyndp-sb-test = """bash -c '
 tyndp-cba-test = """bash -c '
     snakemake -call cba --configfile config/test/config.tyndp.yaml "$@" && \
     snakemake -call cba --configfile config/config.tyndp.yaml -n \
+    ' --
+"""
+tyndp-cyears-test = """bash -c '
+    snakemake -call --configfile config/test/config.cyears.yaml "$@"
     ' --
 """
 tyndp-cba = """

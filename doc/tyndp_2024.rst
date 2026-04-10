@@ -61,7 +61,7 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 - **Link:** https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Line-data.zip
 - **Description:** Contains electricity and hydrogen reference grids and e-market prosumer wheeling charge.
 
-``Market Outputs for NT``
+``Market Model Outputs for NT``
 
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/MMStandardOutputFile_NT{planning_horizons}_Plexos_CY2009_2.5_v40.xlsx.zip
@@ -119,9 +119,9 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 
 ``TYNDP Nuclear profiles``
 
-- **Source:** Derived from TYNDP 2024 Market Outputs
+- **Source:** Derived from TYNDP 2024 Market Model Outputs
 - **Link:** https://storage.googleapis.com/open-tyndp-data-store/nuclear_p_max_pu.zip
-- **Description:** Contains availability profiles for nuclear power plants, derived from normalized generation time series in TYNDP 2024 Market Outputs. Resampled weekly, retaining maximum availability factor per week to account for maintenance schedules and forced outages.
+- **Description:** Contains availability profiles for nuclear power plants, derived from normalized generation time series in TYNDP 2024 Market Model Outputs. Resampled weekly, retaining maximum availability factor per week to account for maintenance schedules and forced outages.
 
 ``cba/a.3_non-co2-emissions.csv``
 

@@ -5,6 +5,8 @@ exclude: "^LICENSES|^config/schema\\.json$|^config/config\\.default\\.yaml$"
 
 ci:
   autoupdate_schedule: quarterly
+  # Fetches a remote schema; covered by validate-zenodo-metadata in test.yaml
+  skip: [check-jsonschema]
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -29,7 +31,7 @@ repos:
   rev: v2.4.1
   hooks:
   - id: codespell
-    args: ['--ignore-regex="(\b[A-Z]+\b)"', '--ignore-words-list=fom,appartment,bage,ore,setis,tabacco,berfore,vor,pris,bund'] # Ignore capital case words, e.g. country codes
+    args: ['--ignore-regex="(\b[A-Z]+\b)"', '--ignore-words-list=fom,appartment,bage,ore,setis,tabacco,berfore,vor,pris,bund,userA'] # Ignore capital case words, e.g. country codes
     types_or: [python, rst, markdown]
     files: ^(scripts|doc)/
 
@@ -66,3 +68,11 @@ repos:
   rev: v8.28.0
   hooks:
   - id: gitleaks
+
+# Check the .zenodo.json file for compliance with the schema
+- repo: https://github.com/python-jsonschema/check-jsonschema
+  rev: 0.37.1
+  hooks:
+  - id: check-jsonschema
+    files: ^.zenodo.json$
+    args: ["--schemafile", "https://raw.githubusercontent.com/zenodo/zenodo/refs/heads/master/zenodo/modules/deposit/jsonschemas/deposits/records/legacyrecord.json"]

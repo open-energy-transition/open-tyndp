@@ -147,8 +147,14 @@ def input_all_tyndp(w):
     if config_provider("benchmarking", "enable")(w):
         files.extend(
             expand(
-                RESULTS
-                + "validation/kpis_eu27_s_{clusters}_{opts}_{sector_opts}_all_years.pdf",
+                rules.plot_benchmark.output.kpis_by_bus,
+                run=config["run"]["name"],
+                **config["scenario"],
+            )
+        )
+        files.extend(
+            expand(
+                rules.plot_benchmark.output.kpis_by_country,
                 run=config["run"]["name"],
                 **config["scenario"],
             )

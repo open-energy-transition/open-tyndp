@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 wildcard_constraints:
     cba_project=r"(s|t)\d+",
+    run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
 
 
 if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in [
@@ -131,12 +132,12 @@ def input_clustered_network(w):
 checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
-        network=input_clustered_network,
+        buses=rules.retrieve_tyndp.output.nodes,
         guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
-        # transmission projects (no storage). In order to confirm, we should check 
-        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv) 
+        # transmission projects (no storage). In order to confirm, we should check
+        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv)
         # contains only transmission or also storage projects.
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
@@ -155,7 +156,7 @@ rule clean_tyndp_indicators:
         scripts("cba/clean_tyndp_indicators.py")
 
 
-def input_sb_network(w):
+def input_sb_network(w, run=None):
     scenario = config_provider("scenario")(w)
     (clusters,) = scenario["clusters"]
     (opts,) = scenario["opts"]
@@ -197,6 +198,9 @@ def input_sb_network(w):
         "opts": opts,
         "sector_opts": sector_opts,
     }
+    if run is not None:
+        expanded_wildcards["run"] = run
+
     match config_provider("foresight")(w):
         case "perfect":
             expanded_wildcards["planning_horizons"] = "all"
@@ -233,6 +237,9 @@ rule simplify_sb_network:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=input_sb_network,
+        sb_network=lambda w: input_sb_network(
+            w, run=config_provider("cba", "sb_scenario")(w)
+        ),
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     script:
@@ -240,8 +247,6 @@ rule simplify_sb_network:
 
 
 # build reference corrections between SB investments and CBA guidelines
-
-
 def get_elec_project_build_years(w):
     return config_provider("tyndp_investment_candidates", "elec_projects")(w).get(
         int(w.planning_horizons)
@@ -261,7 +266,7 @@ rule fix_reference_sb_to_cba:
     log:
         logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
     benchmark:
-        benchmarks("cba/fix_reference_sb_to_cba_{planning_horizons}")
+        benchmarks("performances/cba/fix_reference_sb_to_cba_{planning_horizons}")
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 
@@ -279,6 +284,7 @@ rule prepare_reference:
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
         corrections=rules.fix_reference_sb_to_cba.output.corrections,
+        costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     script:
@@ -356,6 +362,7 @@ rule prepare_project:
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
         methods=rules.clean_projects.output.methods,
+        costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
         network=resources("cba/networks/project_{cba_project}_{planning_horizons}.nc"),
     script:
@@ -433,6 +440,8 @@ rule make_indicators:
 def input_indicators(w):
     """
     List all indicators csv
+
+    Works for collection scenarios and regular scenarios.
     """
     run = w.get("run", config_provider("run", "name")(w))
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
@@ -448,11 +457,15 @@ def input_indicators(w):
         projects = projects.loc[projects["planning_horizon"] == horizon]
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
 
+    # Collection scenarios look for results within regular scenarios
+    runs = config_provider("cba", "scenarios", default="{run}")
+    # NOTE: project_specs filtering happens on the collection scenario (and does not descend)
     project_specs = config_provider("cba", "projects")(w)
 
     return expand(
         rules.make_indicators.output.indicators,
         cba_project=filter_projects_by_specs(cba_projects, project_specs),
+        run=runs,
         allow_missing=True,
     )
 
@@ -489,32 +502,176 @@ rule plot_cba_benchmark:
         scripts("cba/plot_benchmark_indicators.py")
 
 
-rule plot_all_cba_benchmark:
+# rule plot_all_cba_benchmark:
+#     input:
+#         indicators=rules.collect_indicators.output.indicators,
+#     output:
+#         plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
+#     script:
+#         scripts("cba/plot_benchmark_indicators.py")
+
+
+rule plot_weather_benchmark:
     input:
-        indicators=rules.collect_indicators.output.indicators,
+        # indicators=rules.collect_indicators.output.indicators,
+        indicators=rules.make_indicators.output.indicators,
     output:
-        plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
+        plot_file=RESULTS
+        + "cba/ensemble_plots/ensemble_{cba_project}_{planning_horizons}.png",
     script:
-        scripts("cba/plot_benchmark_indicators.py")
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
+rule average_indicators_per_project_and_planning_horizon:
+    input:
+        indicators=lambda w: expand(
+            rules.make_indicators.output.indicators,
+            run=config_provider("cba", "scenarios")(w),
+            allow_missing=True,
+        ),
+    output:
+        indicators=RESULTS
+        + "cba/ensemble_indicators/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
+    script:
+        "../scripts/cba/average_indicators.py"
+
+
+rule summarize_indicators_per_project:
+    input:
+        indicators=lambda w: expand(
+            rules.average_indicators_per_project_and_planning_horizon.output.indicators,
+            transmission_projects=rules.clean_projects.output.transmission_projects,
+            planning_horizons=config["cba"]["planning_horizons"],
+            allow_missing=True,
+        ),
+    output:
+        plot_file=RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_all_horizons.png",
+    script:
+        "../scripts/cba/summarize_indicators.py"
+
+
+rule summarize_all_indicators:
+    input:
+        indicators=lambda w: expand(
+            rules.plot_weather_benchmark.input.indicators,
+            transmission_projects=rules.clean_projects.output.transmission_projects,
+            planning_horizons=config["cba"]["planning_horizons"],
+            cba_project=cba_projects(w),
+            run=config_provider("cba", "scenarios")(w),
+        ),
+    output:
+        plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
+    script:
+        "../scripts/cba/summarize_all.py"
 
 
 # pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
-rule cba:
+def cba_collection_scenarios(w):
+    """
+    Return cba collection scenarios, ie. the meta scenarios with cba: scenarios config
+    """
+    names = config["run"]["name"]
+    if isinstance(names, str):
+        names = [names]
+    scenarios = []
+    # fall back to the raw run.name if it isn’t found in the scenarios file
+    for name in names:
+        try:
+            scn = scenario_config(name)
+        except KeyError:
+            scenarios.append(name)
+            continue
+        if scn.get("cba", {}).get("scenarios") is not None:
+            scenarios.append(name)
+    return scenarios
+
+
+def cba_scenarios(w):
+    """
+    Return cba: scenarios of a cba collection scenario
+    """
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    try:
+        scn = scenario_config(run)
+    except KeyError:
+        return [run] if run else []
+    return scn.get("cba", {}).get("scenarios", [run] if run else [])
+
+
+def cba_projects(w):
+    """
+    List all indicators csv
+    """
+    # run = config_provider("run", "name")(w),
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if "cy" not in run and run:
+        run = f"{run}-cy2009"
+
+    projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
+    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+    project_specs = config_provider("cba", "projects")(w)
+    cba_project = filter_projects_by_specs(cba_projects, project_specs)
+
+    return expand(cba_project)
+
+
+# collect files to be stored in the scenario directory, e.g., NT-cy1995
+rule collect_cba_scenario:
     input:
         lambda w: expand(
-            rules.collect_indicators.output.indicators,
+            rules.plot_weather_benchmark.output.plot_file,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=config_provider("run", "name")(w),
+            cba_project=cba_projects(w),
+            run=cba_scenarios(w),
         ),
         lambda w: expand(
             rules.plot_indicators.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=config_provider("run", "name")(w),
+            run=cba_scenarios(w),
         ),
         lambda w: expand(
-            rules.plot_all_cba_benchmark.output.plot_dir,
+            rules.plot_cba_benchmark.output.plot_file,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
-            run=config_provider("run", "name")(w),
+            cba_project=cba_projects(w),
+            run=cba_scenarios(w),
+        ),
+    output:
+        touch(RESULTS + "cba/all_scenarios.txt"),
+
+
+# collect files to be stored in the scenario collection directory, e.g., NT-cyears
+rule cba:
+    input:
+        lambda w: expand(
+            rules.average_indicators_per_project_and_planning_horizon.output.indicators,
+            planning_horizons=config["cba"]["planning_horizons"],
+            cba_project=cba_projects(w),
+            run=cba_collection_scenarios(w),
+        ),
+        lambda w: expand(
+            rules.summarize_indicators_per_project.output.plot_file,
+            cba_project=cba_projects(w),
+            run=cba_collection_scenarios(w),
+        ),
+        lambda w: expand(
+            rules.summarize_all_indicators.output.plot_file,
+            planning_horizons=config["cba"]["planning_horizons"],
+            cba_project=cba_projects(w),
+            run=cba_collection_scenarios(w),
+        ),
+        # lambda w: expand(
+        #     rules.plot_all_cba_benchmark.output.plot_dir,
+        #     planning_horizons=config["cba"]["planning_horizons"],
+        #     run=cba_collection_scenarios(w),
+        # ),
+        # collect files to be stored in the scenario directory, e.g., NT-cy1995
+        lambda w: expand(
+            rules.collect_cba_scenario.output[0],
+            run=cba_collection_scenarios(w),
         ),
 
 

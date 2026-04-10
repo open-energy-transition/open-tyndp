@@ -13,41 +13,16 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Add option to model carrier-specific load shedding with associated shedding costs (https://github.com/open-energy-transition/open-tyndp/pull/494).
-
-* Implements rolling horizon optimisation with marginal storage values (water values) for seasonal storage components, maintaining operation of long-term stores close to perfect foresight optimization (https://github.com/open-energy-transition/open-tyndp/pull/441).
-
-* Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
-
-* Add option to model carrier-specific load sinks with associated costs (https://github.com/open-energy-transition/open-tyndp/pull/505).
-
-* Add SMR and SMR CC capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
-
-* Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
-
 **Changes**
-
-* Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
-
-* Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
-
-* Add an option to apply the CBA fixes of the electrical reference network to the SB network as well (enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/527).
-
-* Add the 2035 hydrogen reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/537).
 
 **Bugfixes and Compatibility**
 
-* Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
-
-* Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
-
-* Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
-
-* Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
+* Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
 **Documentation**
 
 **Developers Note**
+
 
 Upcoming PyPSA-Eur Release
 ================
@@ -286,6 +261,106 @@ Upcoming PyPSA-Eur Release
 
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
 
+* The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
+
+Open-TYNDP v0.6.1 (2nd April 2026)
+========================================
+
+**Bugfixes and Compatibility**
+
+* Fix EU27 benchmark aggregation for non-price tables (https://github.com/open-energy-transition/open-tyndp/pull/600).
+
+**Documentation**
+
+* Update citations to version-agnostic DOIs (https://github.com/open-energy-transition/open-tyndp/pull/602).
+
+
+Open-TYNDP v0.6 (1st April 2026)
+========================================
+
+**Features**
+
+* Implement rolling horizon optimisation with marginal storage values (water values) for seasonal storage components, maintaining operation of long-term stores close to perfect foresight optimization (https://github.com/open-energy-transition/open-tyndp/pull/441).
+
+* Add SMR (grey hydrogen) and SMR + Carbon Capture (blue hydrogen) capacities and assumptions from TYNDP 2024 hydrogen data and enable H2 load shedding with cost of 3000 EUR/MWh_H2 (https://github.com/open-energy-transition/open-tyndp/pull/490).
+
+* Add Other RES capacities and generation profiles from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/521).
+
+* Add Other Non-RES capacities and price bands from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/535).
+
+* Add H2 cavern and tank storages with existing energy and charge/discharge capacities (https://github.com/open-energy-transition/open-tyndp/pull/552). Optionally, for the DE/GA scenarios, expansion limits are added for these capacities for the expendable cavern storages.
+
+* Add PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (https://github.com/open-energy-transition/open-tyndp/pull/541).
+
+* Add Battery Store capacities from PEMMDB (https://github.com/open-energy-transition/open-tyndp/pull/253/).
+
+* Add the 2035 hydrogen reference grid for NT 2040 using the Grid Investment Dataset (https://github.com/open-energy-transition/open-tyndp/pull/537).
+
+* Collect results of multi weather year CBAs and calculate weighted average KPIs and plot them (https://github.com/open-energy-transition/open-tyndp/pull/529).
+
+* Add an option to use the H2 demand from the Market Model Outputs (``sector:h2_demand_patch_with_mm``, enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/531). This option overwrites the default H2 demand from the Demand Profiles of the TYNDP 2024 Scenarios. It is now also possible to compare against Market Model Outputs in the benchmarking framework.
+
+* Improve hydro modelling assumptions used for Run-of-River (ROR), pondage and reservoir (https://github.com/open-energy-transition/open-tyndp/pull/567).
+
+* Improve biomass and biogas assumptions: subtract Other-RES biomass demand from solid biomass FED, update biomass-to-liquid efficiencies with the Supply Tool values, and align Other-RES and non-upgraded biogas with FED benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/570).
+
+* Add option to model carrier-specific load shedding with associated shedding costs (https://github.com/open-energy-transition/open-tyndp/pull/494).
+
+* Add option to model carrier-specific load sinks with associated costs (https://github.com/open-energy-transition/open-tyndp/pull/505).
+
+* Add preprocessing of Market Model benchmark data (prices, crossborder flows, supply, capacity) on country level (https://github.com/open-energy-transition/open-tyndp/pull/467).
+
+* Extend benchmarking to support spatial resolution at bus and country level (https://github.com/open-energy-transition/open-tyndp/pull/543), configured via ``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country``.
+
+* Add electricity and hydrogen price benchmarking tables to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/574).
+
+**Changes**
+
+* Add option to run CBA using pre-solved SB networks from Zenodo, bypassing the SB workflow which speeds up execution (https://github.com/open-energy-transition/open-tyndp/pull/478). This can be enabled by setting `cba:cba_scenario_input:use_presolved` to `true` in the configuration file. **Note:** Pre-solved networks use default open-tyndp settings. If your config differs from defaults, SB and CBA assumptions may not align.
+
+* Populate link attributes for new links in CBA (https://github.com/open-energy-transition/open-tyndp/pull/522).
+
+* Implement option to remove noisy costs from CBA indicators calculations (https://github.com/open-energy-transition/open-tyndp/pull/523).
+
+* Add an option to apply the CBA fixes of the electrical reference network to the SB network as well (enabled by default) (https://github.com/open-energy-transition/open-tyndp/pull/527).
+
+* Add an option to set negative capacities of links from TOOT removal to zero instead of removing them (https://github.com/open-energy-transition/open-tyndp/pull/542).
+
+* Rename OCGT as slack generator for benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/573).
+
+* Connect isolated offshore wind farms to the grid using a copperplate assumption for NT scenario (https://github.com/open-energy-transition/open-tyndp/pull/568).
+
+* Remove non-extendable TYNDP assets with zero capacity from network to reduce network size (https://github.com/open-energy-transition/open-tyndp/pull/583).
+
+**Bugfixes and Compatibility**
+
+* Add fallback to use 2040 networks/data when planning horizon selected in CBA is not 2030 or 2040 (https://github.com/open-energy-transition/open-tyndp/pull/520).
+
+* Fix GH workflow to attach windows installer to release (https://github.com/open-energy-transition/open-tyndp/pull/501).
+
+* Fix inconsistency in the naming of CBA indicators benchmark plots (https://github.com/open-energy-transition/open-tyndp/pull/509).
+
+* Fix topology issue affecting the hydrogen interactive maps (https://github.com/open-energy-transition/open-tyndp/pull/533).
+
+* Fix for myopic handling of cumulative capacities of renewable assets (https://github.com/open-energy-transition/open-tyndp/pull/564).
+
+* Fix NaNs that are introduced in B1 indicator calculation when using `cba.remove_noisy_costs` (https://github.com/open-energy-transition/open-tyndp/pull/578).
+
+* Remove outdated config overwrites for electrolysis efficiency to use planning year dependent ``custom_cost.csv`` values (https://github.com/open-energy-transition/open-tyndp/pull/582).
+
+* Fix incorrect country assignment for the ``BEIOH01`` offshore hub and add an explicit country mapping (https://github.com/open-energy-transition/open-tyndp/pull/591).
+
+**Documentation**
+
+* Add dedicated documentation page for the CBA rolling horizon dispatch pipeline, covering all preparation stages (network simplification, reference network, MSV extraction, rolling horizon preparation, project preparation, solve, indicators), configuration reference, and key design assumptions (https://github.com/open-energy-transition/open-tyndp/pull/572).
+
+* Add description of CBA config settings and how to run single vs collection (climate years) scenarios (https://github.com/open-energy-transition/open-tyndp/pull/584).
+
+* Add FAQ for Windows usage and corrupt environments (https://github.com/open-energy-transition/open-tyndp/pull/549).
+
+**Developers Note**
+
+* Refactor the ``validation`` folder within ``benchmarks/tyndp-2024`` to ensure consistency in naming conventions (https://github.com/open-energy-transition/open-tyndp/pull/550).
 
 Open-TYNDP v0.5.1 (18th February 2026)
 ========================================

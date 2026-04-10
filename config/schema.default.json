@@ -524,6 +524,15 @@
           "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
           "type": "boolean"
         },
+        "negative_toot_capacity": {
+          "default": "zero",
+          "description": "How to handle TOOT project removal when removing project capacity would make an existing interconnector capacity negative. 'zero' clamps the resulting capacity to zero and continues; 'break' raises an error.",
+          "enum": [
+            "zero",
+            "break"
+          ],
+          "type": "string"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -5318,6 +5327,11 @@
           "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
           "type": "boolean"
         },
+        "h2_demand_patch_with_mm": {
+          "default": false,
+          "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
+          "type": "boolean"
+        },
         "gas_network": {
           "default": true,
           "description": "Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
@@ -5571,6 +5585,11 @@
             "enable": {
               "default": false,
               "description": "Add option to include TYNDP offshore hubs.",
+              "type": "boolean"
+            },
+            "connect_isolated": {
+              "default": false,
+              "description": "Copperplate isolated wind farms to the grid.",
               "type": "boolean"
             },
             "max_capacity": {
@@ -7564,6 +7583,11 @@
           "description": "Add option to include TYNDP offshore hubs.",
           "type": "boolean"
         },
+        "connect_isolated": {
+          "default": false,
+          "description": "Copperplate isolated wind farms to the grid.",
+          "type": "boolean"
+        },
         "max_capacity": {
           "additionalProperties": {
             "type": "number"
@@ -8910,7 +8934,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.5.1",
+      "default": "v0.6.1",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
@@ -12334,6 +12358,11 @@
           "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
           "type": "boolean"
         },
+        "h2_demand_patch_with_mm": {
+          "default": false,
+          "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
+          "type": "boolean"
+        },
         "gas_network": {
           "default": true,
           "description": "Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
@@ -12587,6 +12616,11 @@
             "enable": {
               "default": false,
               "description": "Add option to include TYNDP offshore hubs.",
+              "type": "boolean"
+            },
+            "connect_isolated": {
+              "default": false,
+              "description": "Copperplate isolated wind farms to the grid.",
               "type": "boolean"
             },
             "max_capacity": {
@@ -15039,6 +15073,15 @@
           "default": true,
           "description": "If true, use original pre-noise capital and marginal costs for CBA indicators.",
           "type": "boolean"
+        },
+        "negative_toot_capacity": {
+          "default": "zero",
+          "description": "How to handle TOOT project removal when removing project capacity would make an existing interconnector capacity negative. 'zero' clamps the resulting capacity to zero and continues; 'break' raises an error.",
+          "enum": [
+            "zero",
+            "break"
+          ],
+          "type": "string"
         },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",

@@ -36,6 +36,7 @@ def add_brownfield(
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
     offshore_hubs_tyndp=False,
+    h2_topology_tyndp=False,
     carriers_tyndp=list[str],
 ):
     """
@@ -57,6 +58,8 @@ def add_brownfield(
         Threshold for removing assets with low capacity
     offshore_hubs_tyndp : bool
         Whether to enable offshore hubs
+    h2_topology_tyndp : bool
+        Whether to enable TYNDP Hydrogen topology
     carriers_tyndp : list[str]
         List of TYNDP carriers included in the model.
     """
@@ -238,6 +241,42 @@ def add_brownfield(
             remaining_potential = (off_potential - already_existing_l).clip(lower=0)
             c.static.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
             c.static.loc[off_i, "p_nom_max"] = remaining_potential
+
+    # Adjust Open-TYNDP H2 cavern storage expansion by subtracting existing capacity from previous years
+    if h2_topology_tyndp:
+        carrier = "H2 cavern-storage"
+        for c in n.components[["Store", "Link"]]:
+            if c.static.empty:
+                continue
+            attr = "e" if c.name == "Store" else "p"
+            fixed_i = c.static[
+                (c.static.carrier == carrier) & (c.static.build_year != year)
+            ].index
+            expand_i = c.static[
+                (c.static.carrier == carrier) & (c.static.build_year == year)
+            ].index
+            capacity = c.static.loc[expand_i, f"{attr}_nom"]
+            potential = c.static.loc[expand_i, f"{attr}_nom_max"]
+            already_existing = (
+                c.static.loc[fixed_i, f"{attr}_nom_opt"]
+                .rename(lambda x: x.split("-2")[0] + f"-{year}")
+                .groupby(level=0)
+                .sum()
+                .reindex(index=capacity.index, fill_value=0)
+            )
+            remaining_capacity = (capacity - already_existing).clip(lower=0)
+            remaining_potential = potential - already_existing
+            existing_large = remaining_potential[remaining_potential < 0].index
+            if len(existing_large):
+                logger.warning(
+                    f"Existing capacities larger than TYNDP 2024 expansion potential for "
+                    f"{list(existing_large)}, adjusting technical potential to existing capacities"
+                )
+                remaining_potential = remaining_potential.clip(0)
+            c.static.loc[expand_i, [f"{attr}_nom_min", f"{attr}_nom"]] = (
+                remaining_capacity
+            )
+            c.static.loc[expand_i, f"{attr}_nom_max"] = remaining_potential
 
     # deal with gas network
     if h2_retrofit:
@@ -489,10 +528,30 @@ def remove_tyndp_fixed_p(
         remove_carriers = (
             tyndp_hydro
             + tyndp_conventional_thermals
-            + ["H2 Electrolysis", "H2 pipeline", "SMR", "SMR CC"]
-            + ["other-res-biomass"]
+            + [
+                "H2 Electrolysis",
+                "H2 pipeline",
+                "SMR",
+                "SMR CC",
+                "H2 tank-storage charger",
+                "H2 tank-storage discharger",
+                "H2 cavern-storage charger",
+                "H2 cavern-storage discharger",
+                "battery charger",
+                "battery discharger",
+                "other-res-biomass",
+            ]
             if c.name == "Link"
-            else tyndp_hydro + ["other-res-mix"]
+            else tyndp_hydro
+            + [
+                "other-res-mix",
+                "H2 tank-storage",
+                "H2 cavern-storage",
+                "onwind",
+                "solar-pv-rooftop",
+                "solar-pv-utility",
+                "battery",
+            ]
         )
         attr = "e" if c.name == "Store" else "p"
 
@@ -529,7 +588,7 @@ def harmonize_renewable_profiles(
     """
     for carrier in carriers:
         gens = n.generators[n.generators.carrier == carrier]
-        brownfield_gens = gens[gens.build_year != year].index
+        brownfield_gens = gens[(gens.build_year != year) & (gens.build_year != 0)].index
         n.generators_t.p_max_pu[brownfield_gens] = n.generators_t.p_max_pu[
             brownfield_gens.str[:-4] + str(year)
         ].values
@@ -582,7 +641,13 @@ if __name__ == "__main__":
     )
     tyndp_hydro = [
         c for c in snakemake.params.tyndp_renewable_carriers if c.startswith("hydro")
-    ] + ["hydro-phs-turbine", "hydro-phs-pump", "hydro-phs-inflows"]
+    ] + [
+        "hydro-phs-turbine",
+        "hydro-phs-pump",
+        "hydro-phs-inflows",
+        "hydro-phs-pure-turbine",
+        "hydro-phs-pure-pump",
+    ]
 
     # Drop fixed TYNDP conventional and hydro capacities from previous year
     # as TYNDP capacities are given as cumulative input
@@ -600,6 +665,7 @@ if __name__ == "__main__":
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
         offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
+        h2_topology_tyndp=snakemake.params.h2_topology_tyndp,
         carriers_tyndp=snakemake.params.carriers_tyndp,
     )
 

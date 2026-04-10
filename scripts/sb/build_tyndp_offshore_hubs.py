@@ -41,12 +41,17 @@ def load_offshore_hubs(fn: str):
         "LON": "x",
     }
 
+    country_map = {
+        "BEIOH01": "DK",
+        "BEIOH01 H2": "DK",
+    }
+
     nodes = (
         pd.read_excel(fn, sheet_name="NODE")
         .rename(columns=column_names)
         .assign(
             location=lambda x: x.Bus,
-            country=lambda x: x.location.str[:2],
+            country=lambda x: x.location.map(lambda y: country_map.get(y, y[:2])),
         )
     )
 

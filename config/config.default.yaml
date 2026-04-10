@@ -3,7 +3,7 @@
 # yaml-language-server: $schema=./schema.default.json
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#version
-version: v0.5.1
+version: v0.6.1
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
@@ -1002,6 +1002,7 @@ sector:
   H2_network: true
   h2_topology_tyndp: false
   h2_zones_tyndp: false
+  h2_demand_patch_with_mm: false
   gas_network: true
   gas_demand_exogenously: false
   H2_retrofit: false
@@ -1064,6 +1065,7 @@ sector:
       oil: 125
   offshore_hubs_tyndp:
     enable: false
+    connect_isolated: false
     max_capacity:
       DC_OH: 10
       H2 pipeline OH: 30
@@ -1581,6 +1583,7 @@ cba:
   projects: []
   area: tyndp
   remove_noisy_costs: true
+  negative_toot_capacity: zero
   storage:
     cyclic_carriers:
     - battery
