@@ -856,8 +856,8 @@ class SectorConfig(BaseModel):
         description="Use TYNDP H2 topology for hydrogen network.",
     )
     h2_reference_grid_source: Literal["entsoe", "entsos"] = Field(
-        "entsos",
-        description="Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses ReferenceGrid_Hydrogen.xlsx, with added H2 investment candidates; 'entsos' uses StartingGrid2030.xlsx only.",
+        "entsoe",
+        description="Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
     )
     h2_zones_tyndp: bool = Field(
         False,

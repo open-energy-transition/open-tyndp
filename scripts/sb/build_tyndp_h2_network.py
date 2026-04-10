@@ -115,7 +115,54 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     return interzonal
 
 
-def load_h2_grid_entsoe(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
+def load_h2_grid_entsoe(fn_grid: str, pyear: int) -> pd.DataFrame:
+    """
+    Load and clean the ENTSO-E/ENTSOG joint scenarios portal H2 starting grid.
+
+    Parameters
+    ----------
+    fn_grid : str
+        Path to Excel file containing the ENTSO-E/ENTSOG joint scenarios portal
+        H2 starting grid data.
+    pyear : int
+        Planning horizon used to select the corresponding sheet in the workbook.
+
+    Returns
+    -------
+    pd.DataFrame
+        The function returns the cleaned TYNDP H2 reference grid.
+    """
+
+    available_years = [2030, 2040, 2050]
+    if pyear not in available_years:
+        fallback = min(available_years, key=lambda y: abs(y - pyear))
+        logger.warning(
+            "Planning horizon %s is not available in StartingGrid2030.xlsx. "
+            "Falling back to H_%s.",
+            pyear,
+            fallback,
+        )
+        pyear = fallback
+
+    sheet_name = f"H_{pyear}"
+    h2_grid_raw = pd.read_excel(fn_grid, sheet_name=sheet_name)
+    required_cols = {"Border", "Summary Direction 1", "Summary Direction 2"}
+    missing_cols = required_cols.difference(h2_grid_raw.columns)
+    if missing_cols:
+        raise KeyError(
+            f"Sheet '{sheet_name}' in {fn_grid} is missing required columns: {sorted(missing_cols)}"
+        )
+
+    h2_grid = extract_grid_data_tyndp(
+        h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
+    )
+    h2_grid = normalize_starting_grid_h2_nodes(h2_grid)
+    h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
+
+    return h2_grid
+
+
+def load_h2_grid_entsos(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
     """
     Load and clean the ENTSO-E H2 reference grid and format data.
 
@@ -154,43 +201,6 @@ def load_h2_grid_entsoe(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
     return h2_grid
 
 
-def load_h2_grid_entsos(fn_grid: str, pyear: int) -> pd.DataFrame:
-    """
-    Load and clean the ENTSO-E/ENTSOG joint scenarios portal H2 starting grid.
-
-    The workbook contains planning-horizon-specific sheets (e.g. ``H_2030``,
-    ``H_2040``) already resolved to electricity-node IDs such as ``DE00``.
-    """
-
-    available_years = [2030, 2040, 2050]
-    if pyear not in available_years:
-        fallback = min(available_years, key=lambda y: abs(y - pyear))
-        logger.warning(
-            "Planning horizon %s is not available in StartingGrid2030.xlsx. "
-            "Falling back to H_%s.",
-            pyear,
-            fallback,
-        )
-        pyear = fallback
-
-    sheet_name = f"H_{pyear}"
-    h2_grid_raw = pd.read_excel(fn_grid, sheet_name=sheet_name)
-    required_cols = {"Border", "Summary Direction 1", "Summary Direction 2"}
-    missing_cols = required_cols.difference(h2_grid_raw.columns)
-    if missing_cols:
-        raise KeyError(
-            f"Sheet '{sheet_name}' in {fn_grid} is missing required columns: {sorted(missing_cols)}"
-        )
-
-    h2_grid = extract_grid_data_tyndp(
-        h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
-    )
-    h2_grid = normalize_starting_grid_h2_nodes(h2_grid)
-    h2_grid["p_nom"] = h2_grid.p_nom.mul(1e3)
-
-    return h2_grid
-
-
 def load_h2_grid(
     source: str,
     fn_grid_entsoe: str,
@@ -203,9 +213,9 @@ def load_h2_grid(
     """
 
     if source == "entsoe":
-        return load_h2_grid_entsoe(fn_grid_entsoe, fn_projects)
+        return load_h2_grid_entsoe(fn_grid_entsoe, pyear)
     if source == "entsos":
-        return load_h2_grid_entsos(fn_grid_entsos, pyear)
+        return load_h2_grid_entsos(fn_grid_entsos, fn_projects)
 
     raise ValueError(
         f"Unknown H2 reference grid source '{source}'. Expected 'entsoe' or 'entsos'."
@@ -239,7 +249,7 @@ if __name__ == "__main__":
         pyear=pyear,
     )
     interzonal = load_h2_interzonal_connections(
-        fn=snakemake.input.h2_reference_grid_entsoe, scenario=scenario, pyear=pyear
+        fn=snakemake.input.h2_reference_grid_entsos, scenario=scenario, pyear=pyear
     )
 
     # Save prepped H2 grid and interzonal

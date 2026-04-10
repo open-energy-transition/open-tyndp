@@ -283,7 +283,7 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
-  h2_reference_grid_source: entsos
+  h2_reference_grid_source: entsoe
   h2_zones_tyndp: false
   h2_demand_patch_with_mm: true
   gas_network: false

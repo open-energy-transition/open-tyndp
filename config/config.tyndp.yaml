@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -276,7 +276,7 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
-  h2_reference_grid_source: entsos
+  h2_reference_grid_source: entsoe
   h2_zones_tyndp: false
   h2_demand_patch_with_mm: true
   gas_network: false
@@ -371,8 +371,8 @@ solving:
       carriers:
         H2: 3000
   solver:  # Use commercial solver for high resolution results in SB
-    name: highs
-    options: highs-default
+    name: gurobi
+    options: gurobi-default
 
 plotting:
   energy_threshold: 1.
