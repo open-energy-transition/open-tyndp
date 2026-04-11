@@ -81,10 +81,10 @@ jobs:
         fileType: pecoff
 
     - name: Upload installer artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
-        name: installer
         path: utils/windows-installer/open-tyndp-*.exe
+        archive: false
 
   comment-on-pr:
     name: Comment on PR
@@ -102,7 +102,7 @@ jobs:
         PREFIX="Signed Windows installer"
         RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         if [ "${{ needs.build-and-sign.result }}" = "success" ]; then
-          ARTIFACT_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name == "installer") | .id')
+          ARTIFACT_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name | startswith("open-tyndp-") and endswith(".exe")) | .id')
           BODY="$PREFIX built successfully. [Download artifact]($RUN_URL/artifacts/$ARTIFACT_ID)."
         else
           BODY="$PREFIX build failed. [View logs]($RUN_URL)."
@@ -127,7 +127,7 @@ jobs:
     - name: Download installer artifact
       uses: actions/download-artifact@v4
       with:
-        name: installer
+        pattern: open-tyndp-*.exe
 
     - name: Upload installer to release
       env:
