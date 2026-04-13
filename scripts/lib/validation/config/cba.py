@@ -32,7 +32,7 @@ class _CbaMsvSolvingConfig(ConfigModel):
     """Configuration for `cba.msv_extraction.solving` settings."""
 
     solver: dict[str, str] = Field(
-        default_factory=lambda: {"name": "highs", "options": "highs-default"},
+        default_factory=lambda: {"name": "highs", "options": "highs-simplex"},
         description="Solver configuration for MSV extraction.",
     )
     solver_options: dict[str, dict[str, Any]] = Field(

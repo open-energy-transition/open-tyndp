@@ -1610,7 +1610,7 @@ cba:
     solving:
       solver:
         name: highs
-        options: "highs-default"
+        options: "highs-simplex"
       solver_options: {}
   solving:
     options:
