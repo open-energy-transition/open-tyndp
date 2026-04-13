@@ -1739,7 +1739,9 @@ def normalize_direction(
         cols = ["value"]
     elif isinstance(df, pd.DataFrame):
         if not cols:
-            raise ValueError("No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame.")
+            raise ValueError(
+                "No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame."
+            )
     else:
         raise TypeError("`df` must be a pandas Series or DataFrame.")
 
