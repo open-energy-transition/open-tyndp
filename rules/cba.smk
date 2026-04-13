@@ -674,26 +674,44 @@ def cba_projects(w):
     return expand(cba_project)
 
 
-# collect files to be stored in the scenario directory, e.g., NT-cy1995
-rule collect_cba_scenario:
-    input:
-        lambda w: expand(
-            rules.plot_weather_benchmark.output.plot_file,
-            planning_horizons=config_provider("cba", "planning_horizons")(w),
-            cba_project=cba_projects(w),
-            run=cba_scenarios(w),
-        ),
-        lambda w: expand(
+def collect_cba_scenario_inputs(w):
+    inputs = []
+    inputs.extend(
+        expand(
             rules.plot_indicators.output.plot_dir,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=cba_scenarios(w),
-        ),
-        lambda w: expand(
+        )
+    )
+    inputs.extend(
+        expand(
             rules.plot_cba_benchmark.output.plot_file,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=cba_scenarios(w),
-        ),
+        )
+    )
+
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if run in cba_collection_scenarios(w):
+        inputs.extend(
+            expand(
+                rules.plot_weather_benchmark.output.plot_file,
+                planning_horizons=config_provider("cba", "planning_horizons")(w),
+                cba_project=cba_projects(w),
+                run=cba_scenarios(w),
+            )
+        )
+
+    return inputs
+
+
+# collect files to be stored in the scenario directory, e.g., NT-cy1995
+rule collect_cba_scenario:
+    input:
+        collect_cba_scenario_inputs,
     output:
         touch(RESULTS + "cba/all_scenarios.txt"),
 
@@ -726,7 +744,7 @@ rule cba:
         # collect files to be stored in the scenario directory, e.g., NT-cy1995
         lambda w: expand(
             rules.collect_cba_scenario.output[0],
-            run=cba_collection_scenarios(w),
+            run=cba_target_runs(w),
         ),
 
 
