@@ -580,6 +580,31 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "Configuration for `cba.solving` settings.",
+              "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Solving options for rolling horizon dispatch.",
+                  "type": "object"
+                },
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver configuration.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options.",
+                  "type": "object"
+                }
+              }
             }
           }
         },
@@ -6451,6 +6476,31 @@
             "interpolate"
           ],
           "type": "string"
+        },
+        "solving": {
+          "description": "Configuration for `cba.solving` settings.",
+          "properties": {
+            "options": {
+              "additionalProperties": true,
+              "description": "Solving options for rolling horizon dispatch.",
+              "type": "object"
+            },
+            "solver": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Solver configuration.",
+              "type": "object"
+            },
+            "solver_options": {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "description": "Solver-specific options.",
+              "type": "object"
+            }
+          }
         }
       }
     },
@@ -15166,6 +15216,31 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "Configuration for `cba.solving` settings.",
+              "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Solving options for rolling horizon dispatch.",
+                  "type": "object"
+                },
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver configuration.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options.",
+                  "type": "object"
+                }
+              }
             }
           }
         },
