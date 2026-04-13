@@ -457,7 +457,7 @@ cba:
     solving:
       solver:
         name: highs
-        options: "highs-simplex"
+        options: highs-simplex
 
   # Rolling horizon solving settings
   solving:
