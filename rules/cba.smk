@@ -527,8 +527,9 @@ rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
             rules.make_indicators.output.indicators,
-            run=config_provider("cba", "scenarios")(w),
-            allow_missing=True,
+            cba_project=[w.cba_project],
+            planning_horizons=[w.planning_horizons],
+            run=cba_source_runs(w),
         ),
     output:
         indicators=RESULTS
@@ -541,9 +542,9 @@ rule summarize_indicators_per_project:
     input:
         indicators=lambda w: expand(
             rules.average_indicators_per_project_and_planning_horizon.output.indicators,
-            transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
-            allow_missing=True,
+            cba_project=[w.cba_project],
+            run=[w.run],
         ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_all_horizons.png",
@@ -555,10 +556,9 @@ rule summarize_all_indicators:
     input:
         indicators=lambda w: expand(
             rules.plot_weather_benchmark.input.indicators,
-            transmission_projects=rules.clean_projects.output.transmission_projects,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
-            run=config_provider("cba", "scenarios")(w),
+            run=cba_source_runs(w),
         ),
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
