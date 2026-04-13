@@ -457,16 +457,17 @@ def input_indicators(w):
         projects = projects.loc[projects["planning_horizon"] == horizon]
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
 
-    # Collection scenarios look for results within regular scenarios
-    runs = config_provider("cba", "scenarios", default="{run}")
+    # Collection scenarios look for results within nested source runs,
+    # regular scenarios look within their own run.
+    runs = cba_source_runs(w)
     # NOTE: project_specs filtering happens on the collection scenario (and does not descend)
     project_specs = config_provider("cba", "projects")(w)
 
     return expand(
         rules.make_indicators.output.indicators,
         cba_project=filter_projects_by_specs(cba_projects, project_specs),
+        planning_horizons=[w.planning_horizons],
         run=runs,
-        allow_missing=True,
     )
 
 
