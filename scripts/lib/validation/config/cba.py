@@ -39,6 +39,10 @@ class _CbaMsvExtractionConfig(ConfigModel):
         default="ffill",
         description="Method for resampling marginal storage value to target network resolution.",
     )
+    solving: "_CbaSolvingConfig" = Field(
+        default_factory=lambda: _CbaSolvingConfig(),
+        description="Solver configuration overrides for the MSV extraction solve.",
+    )
 
 
 class _CbaSolvingConfig(ConfigModel):
