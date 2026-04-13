@@ -67,6 +67,7 @@ if __name__ == "__main__":
 
     solver_name = solving.get("solver", {}).get("name", "highs")
     solver_options_key = solving.get("solver", {}).get("options", "highs-default")
+    solver_options = solving.get("solver_options", {}).get(solver_options_key, {})
     solver_log = getattr(snakemake.log, "solver", None)
 
     # Prepare network (e.g., load shedding setup)
@@ -92,17 +93,18 @@ if __name__ == "__main__":
                 file=f,
             )
 
-    # Solve with perfect foresight (full year, single optimization)
-    # assign_all_duals=True ensures we get mu_energy_balance
+    # Solve with perfect foresight (full year, single optimization).
+    # Assign_all_duals=True ensures we get mu_energy_balance.
+    # Use solve_model with log_fn so detailed solver output lands in *_solver.log.
     with memory_logger(
         filename=getattr(snakemake.log, "memory", None), interval=30
     ) as mem:
-        status, termination_condition = n.optimize(
+        n.optimize.create_model()
+        status, termination_condition = n.optimize.solve_model(
             solver_name=solver_name,
-            solver_options=solving.get("solver_options", {}).get(
-                solver_options_key, {}
-            ),
+            solver_options=solver_options,
             assign_all_duals=True,
+            log_fn=solver_log,
         )
 
     if status != "ok":
