@@ -16,11 +16,11 @@ Additionally, some extra constraints specified in :mod:`solve_network` are added
 they apply to the dispatch.
 """
 
+import copy
 import importlib
 import logging
 import os
 import sys
-import copy
 from collections.abc import Sequence
 from functools import partial
 from typing import Any
