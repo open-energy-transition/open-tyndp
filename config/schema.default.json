@@ -582,18 +582,13 @@
               "type": "string"
             },
             "solving": {
-              "description": "Configuration for `cba.solving` settings.",
+              "description": "Configuration for `cba.msv_extraction.solving` settings.",
               "properties": {
-                "options": {
-                  "additionalProperties": true,
-                  "description": "Solving options for rolling horizon dispatch.",
-                  "type": "object"
-                },
                 "solver": {
                   "additionalProperties": {
                     "type": "string"
                   },
-                  "description": "Solver configuration.",
+                  "description": "Solver configuration for MSV extraction.",
                   "type": "object"
                 },
                 "solver_options": {
@@ -601,8 +596,23 @@
                     "additionalProperties": true,
                     "type": "object"
                   },
-                  "description": "Solver-specific options.",
+                  "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
+                },
+                "fallback_solver": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Optional fallback solver for MSV extraction."
                 }
               }
             }
@@ -6478,18 +6488,13 @@
           "type": "string"
         },
         "solving": {
-          "description": "Configuration for `cba.solving` settings.",
+          "description": "Configuration for `cba.msv_extraction.solving` settings.",
           "properties": {
-            "options": {
-              "additionalProperties": true,
-              "description": "Solving options for rolling horizon dispatch.",
-              "type": "object"
-            },
             "solver": {
               "additionalProperties": {
                 "type": "string"
               },
-              "description": "Solver configuration.",
+              "description": "Solver configuration for MSV extraction.",
               "type": "object"
             },
             "solver_options": {
@@ -6497,10 +6502,60 @@
                 "additionalProperties": true,
                 "type": "object"
               },
-              "description": "Solver-specific options.",
+              "description": "Solver-specific options for MSV extraction.",
               "type": "object"
+            },
+            "fallback_solver": {
+              "anyOf": [
+                {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "description": "Optional fallback solver for MSV extraction."
             }
           }
+        }
+      }
+    },
+    "_CbaMsvSolvingConfig": {
+      "description": "Configuration for `cba.msv_extraction.solving` settings.",
+      "properties": {
+        "solver": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Solver configuration for MSV extraction.",
+          "type": "object"
+        },
+        "solver_options": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": "Solver-specific options for MSV extraction.",
+          "type": "object"
+        },
+        "fallback_solver": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional fallback solver for MSV extraction."
         }
       }
     },
@@ -15218,18 +15273,13 @@
               "type": "string"
             },
             "solving": {
-              "description": "Configuration for `cba.solving` settings.",
+              "description": "Configuration for `cba.msv_extraction.solving` settings.",
               "properties": {
-                "options": {
-                  "additionalProperties": true,
-                  "description": "Solving options for rolling horizon dispatch.",
-                  "type": "object"
-                },
                 "solver": {
                   "additionalProperties": {
                     "type": "string"
                   },
-                  "description": "Solver configuration.",
+                  "description": "Solver configuration for MSV extraction.",
                   "type": "object"
                 },
                 "solver_options": {
@@ -15237,8 +15287,23 @@
                     "additionalProperties": true,
                     "type": "object"
                   },
-                  "description": "Solver-specific options.",
+                  "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
+                },
+                "fallback_solver": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "description": "Optional fallback solver for MSV extraction."
                 }
               }
             }

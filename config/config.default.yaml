@@ -1608,16 +1608,11 @@ cba:
     resolution: false
     resample_method: ffill
     solving:
-      options:
-        horizon: 168
-        overlap: 1
-        load_shedding:
-          enable: true
-        io_api: direct
       solver:
         name: highs
-        options: "highs-simplex"
+        options: "highs-default"
       solver_options: {}
+      fallback_solver:
   solving:
     options:
       horizon: 168
