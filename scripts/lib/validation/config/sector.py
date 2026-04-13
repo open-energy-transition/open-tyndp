@@ -9,7 +9,7 @@ Sector configuration.
 See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#sector
 """
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -854,6 +854,10 @@ class SectorConfig(BaseModel):
     h2_topology_tyndp: bool = Field(
         False,
         description="Use TYNDP H2 topology for hydrogen network.",
+    )
+    h2_reference_grid_source: Literal["entsoe", "entsos"] = Field(
+        "entsoe",
+        description="Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
     )
     h2_zones_tyndp: bool = Field(
         False,

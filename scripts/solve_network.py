@@ -1331,6 +1331,64 @@ def add_co2_atmosphere_constraint(n, snapshots):
             n.model.add_constraints(lhs <= rhs, name=f"GlobalConstraint-{name}")
 
 
+def constrain_dsr_daily_dispatch(n: pypsa.Network, snapshots: pd.DatetimeIndex) -> None:
+    """
+    Constrain daily DSR dispatch energy using PEMMDB capacities and hours.
+
+    For each DSR generator with pemmdb_hours < 24, the weighted dispatch over
+    each calendar day is limited by p_nom * pemmdb_hours.
+
+    If pemmdb_hours = 24, no constraint is added.
+    """
+    static = n.c["Generator"].static
+    if "pemmdb_hours" not in static.columns:
+        return
+
+    dsr_i = static.index[
+        (static.carrier == "dsr") & (static.pemmdb_hours < 24) & (static.p_nom > 0)
+    ]
+    if dsr_i.empty:
+        return
+
+    p = n.model["Generator-p"].loc[snapshots, dsr_i]
+    if p.size == 0:
+        return
+
+    # get snapshot weightings for generators
+    weightings = xr.DataArray(
+        n.snapshot_weightings.generators.loc[snapshots],
+        dims=("snapshot",),
+        coords={"snapshot": snapshots},
+    )
+
+    # normalize snapshots to calendar days
+    day = xr.DataArray(
+        snapshots.normalize(),
+        dims=("snapshot",),
+        coords={"snapshot": snapshots},
+        name="day",
+    )
+
+    # calculate weighted daily energy
+    daily_energy = (p * weightings).groupby(day).sum(dim="snapshot")
+
+    # calculate daily energy limit using p_nom and pemmdb_hours
+    rhs = xr.DataArray(
+        static.loc[dsr_i, "p_nom"].to_numpy()
+        * static.loc[dsr_i, "pemmdb_hours"].to_numpy(),
+        dims=("name",),
+        coords={"name": dsr_i},
+    )
+
+    # add constraint: daily_energy <= p_nom * pemmdb_hours
+    n.model.add_constraints(
+        daily_energy,
+        "<=",
+        rhs,
+        name="Generator-dsr_daily_energy_limit",
+    )
+
+
 def extra_functionality(
     n: pypsa.Network,
     snapshots: pd.DatetimeIndex,
@@ -1419,6 +1477,9 @@ def extra_functionality(
             offshore_zone_trajectories_fn,
             renewable_carriers_tyndp,
         )
+
+    if config["electricity"].get("constrain_dsr", False):
+        constrain_dsr_daily_dispatch(n, snapshots)
 
     if n.params.custom_extra_functionality:
         source_path = n.params.custom_extra_functionality

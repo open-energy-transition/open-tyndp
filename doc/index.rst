@@ -189,7 +189,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - Hydrogen reference grid
-     - `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__, `#36 <https://github.com/open-energy-transition/open-tyndp/pull/36>`__, `#475 <https://github.com/open-energy-transition/open-tyndp/pull/475>`__, `#537 <https://github.com/open-energy-transition/open-tyndp/pull/537>`__
+     - `#17 <https://github.com/open-energy-transition/open-tyndp/pull/17>`__, `#36 <https://github.com/open-energy-transition/open-tyndp/pull/36>`__, `#475 <https://github.com/open-energy-transition/open-tyndp/pull/475>`__, `#537 <https://github.com/open-energy-transition/open-tyndp/pull/537>`__, `#611 <https://github.com/open-energy-transition/open-tyndp/pull/611>`__
      - ✅
    * -
      - Offshore grid

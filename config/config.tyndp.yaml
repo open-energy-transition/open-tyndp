@@ -36,10 +36,10 @@ electricity:
   base_network: tyndp
 
   extendable_carriers:
-    Generator: [OCGT]
+    Generator: []
     Store: []
 
-  conventional_carriers: [OCGT]
+  conventional_carriers: []
   tyndp_conventional_carriers:
   - gas
   - coal
@@ -130,8 +130,11 @@ electricity:
     - Hydrogen
     - Electrolyser
     - Battery
+    - DSR
 
   transmission_limit: v1.0
+
+  constrain_dsr: true
 
 atlite:
   default_cutout: europe-2009-sarah3-era5
@@ -276,6 +279,7 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
+  h2_reference_grid_source: entsoe
   h2_zones_tyndp: false
   h2_demand_patch_with_mm: true
   gas_network: false
@@ -369,6 +373,7 @@ solving:
       apply_to_all_carriers: false
       carriers:
         H2: 3000
+        AC: 3000
   solver:  # Use commercial solver for high resolution results in SB
     name: highs
     options: highs-default
@@ -437,6 +442,9 @@ cba:
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
     - hydro-reservoir
+
+  # Constrain DSR daily dispatch
+  constrain_dsr: true
 
   # Marginal storage value extraction settings
   msv_extraction:
