@@ -1734,12 +1734,14 @@ def normalize_direction(
     pd.DataFrame | pd.Series
         Data with normalized link direction.
     """
-    is_series = isinstance(df, pd.Series)
-    if not is_series and len(cols) == 0:
-        raise ValueError("No column names `cols` to normalize.")
-    elif is_series:
+    if isinstance(df, pd.Series):
         df = df.to_frame("value")
         cols = ["value"]
+    elif isinstance(df, pd.DataFrame):
+        if not cols:
+            raise ValueError("No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame.")
+    else:
+        raise TypeError("`df` must be a pandas Series or DataFrame.")
 
     if buses_from_index:
         df.loc[
