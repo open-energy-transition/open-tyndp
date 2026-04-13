@@ -20,6 +20,7 @@ rolling horizon optimization.
 """
 
 import logging
+import copy
 
 import pypsa
 from snakemake.utils import update_config
@@ -60,7 +61,7 @@ if __name__ == "__main__":
         n = set_temporal_aggregation(n, msv_resolution, snapshot_weightings)
 
     # Merge CBA-specific solving overrides into the global solving config
-    solving = snakemake.params.get("solving", {})
+    solving = copy.deepcopy(snakemake.params.get("solving", {}))
     update_config(solving, snakemake.params.get("cba_solving", {}))
 
     solver_name = solving.get("solver", {}).get("name", "highs")

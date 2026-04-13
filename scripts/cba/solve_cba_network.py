@@ -20,6 +20,7 @@ import importlib
 import logging
 import os
 import sys
+import copy
 from collections.abc import Sequence
 from functools import partial
 from typing import Any
@@ -327,7 +328,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
-    solving = snakemake.params.solving
+    solving = copy.deepcopy(snakemake.params.solving)
     update_config(solving, snakemake.params.cba_solving)
 
     np.random.seed(solving["options"].get("seed", 123))
