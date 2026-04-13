@@ -565,25 +565,49 @@ rule summarize_all_indicators:
         "../scripts/cba/summarize_all.py"
 
 
-# pseudo-rule, to run enable running cba with snakemake cba --configfile config/config.tyndp.yaml
-def cba_collection_scenarios(w):
+def cba_target_runs(w):
     """
-    Return cba collection scenarios, ie. the meta scenarios with cba: scenarios config
+    Return runs explicitly requested through config["run"]["name"].
     """
     names = config["run"]["name"]
     if isinstance(names, str):
-        names = [names]
+        return [names]
+    return names
+
+
+def cba_collection_scenarios(w):
+    """
+    Return actual cba collection scenarios, i.e. runs with cba.scenarios.
+    """
     scenarios = []
-    # fall back to the raw run.name if it isn’t found in the scenarios file
-    for name in names:
+    for name in cba_target_runs(w):
         try:
             scn = scenario_config(name)
         except KeyError:
-            scenarios.append(name)
             continue
-        if scn.get("cba", {}).get("scenarios") is not None:
+        if scn.get("cba", {}).get("scenarios"):
             scenarios.append(name)
     return scenarios
+
+
+def cba_source_runs(w):
+    """
+    Return the runs that provide CBA project indicator CSVs.
+
+    Collection scenarios read from their nested cba.scenarios;
+    regular runs read from their own run name.
+    """
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if not run:
+        return []
+    try:
+        scn = scenario_config(run)
+    except KeyError:
+        return [run]
+    runs = scn.get("cba", {}).get("scenarios")
+    return runs if runs else [run]
 
 
 def cba_scenarios(w):
@@ -600,17 +624,47 @@ def cba_scenarios(w):
     return scn.get("cba", {}).get("scenarios", [run] if run else [])
 
 
+def cba_projects_run(w):
+    """
+    Return the run from which project methods should be read.
+    """
+    runs = cba_source_runs(w)
+    return runs[0] if runs else ""
+
+
+def validate_cba_project_methods_consistency(w):
+    """
+    Validate that nested runs of a collection scenario share the same project ids
+    and CBA methods across planning horizons.
+    """
+    runs = cba_source_runs(w)
+    if len(runs) <= 1:
+        return
+
+    reference_run = runs[0]
+    reference = pd.read_csv(
+        checkpoints.clean_projects.get(run=reference_run).output.methods
+    )
+    ref_cols = ["project_id", "planning_horizon", "method"]
+    reference = reference[ref_cols].sort_values(ref_cols).reset_index(drop=True)
+
+    for run in runs[1:]:
+        current = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
+        current = current[ref_cols].sort_values(ref_cols).reset_index(drop=True)
+        if not reference.equals(current):
+            raise ValueError(
+                "CBA project methods differ across nested collection runs. "
+                f"Reference run '{reference_run}' does not match '{run}'."
+            )
+
+
 def cba_projects(w):
     """
     List all indicators csv
     """
-    # run = config_provider("run", "name")(w),
-    run = w.get("run", config_provider("run", "name")(w))
-    if isinstance(run, list):
-        run = run[0] if run else ""
-    if "cy" not in run and run:
-        run = f"{run}-cy2009"
+    validate_cba_project_methods_consistency(w)
 
+    run = cba_projects_run(w)
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
     cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
     project_specs = config_provider("cba", "projects")(w)
