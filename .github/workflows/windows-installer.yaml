@@ -86,10 +86,37 @@ jobs:
         path: utils/windows-installer/open-tyndp-*.exe
         archive: false
 
+  initial-comment-on-pr:
+    name: Initial Comment on PR
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.body == '/build-installer' && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    outputs:
+      comment-id: ${{ steps.post.outputs.comment-id }}
+    steps:
+    - name: Post building comment on PR
+      id: post
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
+        PREFIX="Signed Windows installer"
+        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        BODY="$PREFIX is being built. [View logs]($RUN_URL)."
+        EXISTING=$(gh api "$COMMENTS_URL" --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$PREFIX\"))) | .id" | tail -1)
+        if [ -n "$EXISTING" ]; then
+          gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" -f body="$BODY"
+          echo "comment-id=$EXISTING" >> "$GITHUB_OUTPUT"
+        else
+          ID=$(gh api "$COMMENTS_URL" -f body="$BODY" --jq '.id')
+          echo "comment-id=$ID" >> "$GITHUB_OUTPUT"
+        fi
+
   comment-on-pr:
     name: Comment on PR
-    if: github.event_name == 'issue_comment' && always() && needs.build-and-sign.result != 'skipped'
-    needs: build-and-sign
+    if: always() && needs.initial-comment-on-pr.result != 'skipped' && needs.build-and-sign.result != 'skipped'
+    needs: [build-and-sign, initial-comment-on-pr]
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -98,21 +125,14 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        COMMENTS_URL="repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
-        PREFIX="Signed Windows installer"
         RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         if [ "${{ needs.build-and-sign.result }}" = "success" ]; then
           ARTIFACT_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '.artifacts[] | select(.name | startswith("open-tyndp-") and endswith(".exe")) | .id')
-          BODY="$PREFIX built successfully. [Download artifact]($RUN_URL/artifacts/$ARTIFACT_ID)."
+          BODY="Signed Windows installer built successfully. [Download artifact]($RUN_URL/artifacts/$ARTIFACT_ID)."
         else
-          BODY="$PREFIX build failed. [View logs]($RUN_URL)."
+          BODY="Signed Windows installer build failed. [View logs]($RUN_URL)."
         fi
-        EXISTING=$(gh api "$COMMENTS_URL" --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$PREFIX\"))) | .id" | tail -1)
-        if [ -n "$EXISTING" ]; then
-          gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" -f body="$BODY"
-        else
-          gh api "$COMMENTS_URL" -f body="$BODY"
-        fi
+        gh api --method PATCH "repos/${{ github.repository }}/issues/comments/${{ needs.initial-comment-on-pr.outputs.comment-id }}" -f body="$BODY"
 
   upload-to-release:
     name: Upload to Release
