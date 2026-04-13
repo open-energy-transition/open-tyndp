@@ -327,9 +327,9 @@ rule solve_cba_msv_extraction:
     output:
         network=resources("cba/networks/msv_{planning_horizons}.nc"),
     log:
-        solver=logs("cba/solve_cba_msv_extraction/{planning_horizons}_solver.log"),
-        memory=logs("cba/solve_cba_msv_extraction/{planning_horizons}_memory.log"),
-        python=logs("cba/solve_cba_msv_extraction/{planning_horizons}_python.log"),
+        solver=RESULTS + "cba/logs/msv/{planning_horizons}_solver.log",
+        memory=RESULTS + "cba/logs/msv/{planning_horizons}_memory.log",
+        python=RESULTS + "cba/logs/msv/{planning_horizons}_python.log",
     threads: 1
     script:
         "../scripts/cba/solve_cba_msv_extraction.py"
@@ -382,15 +382,9 @@ rule solve_cba_reference_network:
     output:
         network=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
     log:
-        solver=logs(
-            "cba/solve_cba_reference_network/reference_{planning_horizons}_solver.log"
-        ),
-        memory=logs(
-            "cba/solve_cba_reference_network/reference_{planning_horizons}_memory.log"
-        ),
-        python=logs(
-            "cba/solve_cba_reference_network/reference_{planning_horizons}_python.log"
-        ),
+        solver=RESULTS + "cba/logs/reference/reference_{planning_horizons}_solver.log",
+        memory=RESULTS + "cba/logs/reference/reference_{planning_horizons}_memory.log",
+        python=RESULTS + "cba/logs/reference/reference_{planning_horizons}_python.log",
     threads: 1
     script:
         scripts("cba/solve_cba_network.py")
@@ -409,15 +403,12 @@ rule solve_cba_network:
     output:
         network=RESULTS + "cba/networks/project_{cba_project}_{planning_horizons}.nc",
     log:
-        solver=logs(
-            "cba/solve_cba_network/project_{cba_project}_{planning_horizons}_solver.log"
-        ),
-        memory=logs(
-            "cba/solve_cba_network/project_{cba_project}_{planning_horizons}_memory.log"
-        ),
-        python=logs(
-            "cba/solve_cba_network/project_{cba_project}_{planning_horizons}_python.log"
-        ),
+        solver=RESULTS
+        + "cba/logs/projects/project_{cba_project}_{planning_horizons}_solver.log",
+        memory=RESULTS
+        + "cba/logs/projects/project_{cba_project}_{planning_horizons}_memory.log",
+        python=RESULTS
+        + "cba/logs/projects/project_{cba_project}_{planning_horizons}_python.log",
     threads: 1
     script:
         scripts("cba/solve_cba_network.py")

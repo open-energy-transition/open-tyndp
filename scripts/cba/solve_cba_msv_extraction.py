@@ -19,12 +19,13 @@ rolling horizon optimization.
 - ``resources/cba/networks/msv_{planning_horizons}.nc``: Network with marginal storage values in stores_t.mu_energy_balance
 """
 
-import logging
 import copy
+import logging
 
 import pypsa
 from snakemake.utils import update_config
 
+from scripts._benchmark import memory_logger
 from scripts._helpers import (
     configure_logging,
     set_scenario_config,
@@ -66,6 +67,7 @@ if __name__ == "__main__":
 
     solver_name = solving.get("solver", {}).get("name", "highs")
     solver_options_key = solving.get("solver", {}).get("options", "highs-default")
+    solver_log = getattr(snakemake.log, "solver", None)
 
     # Prepare network (e.g., load shedding setup)
     solve_opts = solving.get("options", {})
@@ -82,22 +84,48 @@ if __name__ == "__main__":
         limit_max_growth=None,
     )
 
+    if solver_log:
+        with open(solver_log, "a") as f:
+            print(
+                f"Starting MSV extraction solve with solver={solver_name} "
+                f"options={solver_options_key}",
+                file=f,
+            )
+
     # Solve with perfect foresight (full year, single optimization)
     # assign_all_duals=True ensures we get mu_energy_balance
-    status, termination_condition = n.optimize(
-        solver_name=solver_name,
-        solver_options=solving.get("solver_options", {}).get(solver_options_key, {}),
-        assign_all_duals=True,
-    )
+    with memory_logger(
+        filename=getattr(snakemake.log, "memory", None), interval=30
+    ) as mem:
+        status, termination_condition = n.optimize(
+            solver_name=solver_name,
+            solver_options=solving.get("solver_options", {}).get(
+                solver_options_key, {}
+            ),
+            assign_all_duals=True,
+        )
 
     if status != "ok":
         logger.error(f"Extraction solve failed: {termination_condition}")
+        if solver_log:
+            with open(solver_log, "a") as f:
+                print(
+                    f"MSV extraction solve failed: {status} / {termination_condition}",
+                    file=f,
+                )
         # if the solver is gurobi, print infeasibilities using n.model.print_infeasibilities()
         if solving.get("solver", {}).get("name", "") == "gurobi":
             n.model.print_infeasibilities()
         raise RuntimeError(f"Extraction solve failed: {termination_condition}")
 
     logger.info(f"Extraction solve completed: {termination_condition}")
+    logger.info(f"Maximum memory usage: {mem.mem_usage}")
+    if solver_log:
+        with open(solver_log, "a") as f:
+            print(
+                f"MSV extraction solve completed: {status} / {termination_condition}",
+                file=f,
+            )
 
     # Save network with marginal storage values
     n.export_to_netcdf(snakemake.output.network)
