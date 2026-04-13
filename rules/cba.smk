@@ -716,26 +716,42 @@ rule collect_cba_scenario:
         touch(RESULTS + "cba/all_scenarios.txt"),
 
 
-# collect files to be stored in the scenario collection directory, e.g., NT-cyears
-rule cba:
-    input:
-        lambda w: expand(
+def cba_ensemble_inputs(w):
+    runs = cba_collection_scenarios(w)
+    if not runs:
+        return []
+
+    inputs = []
+    inputs.extend(
+        expand(
             rules.average_indicators_per_project_and_planning_horizon.output.indicators,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
-            run=cba_collection_scenarios(w),
-        ),
-        lambda w: expand(
+            run=runs,
+        )
+    )
+    inputs.extend(
+        expand(
             rules.summarize_indicators_per_project.output.plot_file,
             cba_project=cba_projects(w),
-            run=cba_collection_scenarios(w),
-        ),
-        lambda w: expand(
+            run=runs,
+        )
+    )
+    inputs.extend(
+        expand(
             rules.summarize_all_indicators.output.plot_file,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
-            run=cba_collection_scenarios(w),
-        ),
+            run=runs,
+        )
+    )
+    return inputs
+
+
+# collect files to be stored in the scenario collection directory, e.g., NT-cyears
+rule cba:
+    input:
+        cba_ensemble_inputs,
         # lambda w: expand(
         #     rules.plot_all_cba_benchmark.output.plot_dir,
         #     planning_horizons=config["cba"]["planning_horizons"],
