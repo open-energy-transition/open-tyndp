@@ -1612,7 +1612,6 @@ cba:
         name: highs
         options: "highs-default"
       solver_options: {}
-      fallback_solver:
   solving:
     options:
       horizon: 168

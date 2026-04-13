@@ -598,21 +598,6 @@
                   },
                   "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
-                },
-                "fallback_solver": {
-                  "anyOf": [
-                    {
-                      "additionalProperties": {
-                        "type": "string"
-                      },
-                      "type": "object"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "default": null,
-                  "description": "Optional fallback solver for MSV extraction."
                 }
               }
             }
@@ -6504,21 +6489,6 @@
               },
               "description": "Solver-specific options for MSV extraction.",
               "type": "object"
-            },
-            "fallback_solver": {
-              "anyOf": [
-                {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "description": "Optional fallback solver for MSV extraction."
             }
           }
         }
@@ -6541,21 +6511,6 @@
           },
           "description": "Solver-specific options for MSV extraction.",
           "type": "object"
-        },
-        "fallback_solver": {
-          "anyOf": [
-            {
-              "additionalProperties": {
-                "type": "string"
-              },
-              "type": "object"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Optional fallback solver for MSV extraction."
         }
       }
     },
@@ -15289,21 +15244,6 @@
                   },
                   "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
-                },
-                "fallback_solver": {
-                  "anyOf": [
-                    {
-                      "additionalProperties": {
-                        "type": "string"
-                      },
-                      "type": "object"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "default": null,
-                  "description": "Optional fallback solver for MSV extraction."
                 }
               }
             }

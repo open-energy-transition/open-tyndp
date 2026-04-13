@@ -39,10 +39,6 @@ class _CbaMsvSolvingConfig(ConfigModel):
         default_factory=dict,
         description="Solver-specific options for MSV extraction.",
     )
-    fallback_solver: dict[str, str] | None = Field(
-        default=None,
-        description="Optional fallback solver for MSV extraction.",
-    )
 
 
 class _CbaMsvExtractionConfig(ConfigModel):
