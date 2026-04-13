@@ -1705,7 +1705,7 @@ def extract_crossborder_pattern(df: pd.DataFrame, connector: str = "-"):
 
 def normalize_direction(
     df: pd.DataFrame | pd.Series,
-    cols: list[str] = [],
+    cols: list[str] | None = None,
     buses_from_index: bool = False,
     connector: str = "->",
     format_index: bool = False,

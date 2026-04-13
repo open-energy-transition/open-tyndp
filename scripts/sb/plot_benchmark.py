@@ -382,7 +382,7 @@ def _plot_flows(
             )
         )
         df_direction[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
-            title=f"{table_title} (focusing on incorrect net direction, clipping at 1 {source_unit}) - Scenario {scenario} - CY {cyear} - Year {year}",
+            title=f"{table_title} (focusing on incorrect net direction, above 1 {source_unit}) - Scenario {scenario} - CY {cyear} - Year {year}",
             xlabel=source_unit,
             color=bar_colors,
             ax=ax,
