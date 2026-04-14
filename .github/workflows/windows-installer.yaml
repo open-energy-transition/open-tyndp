@@ -145,7 +145,7 @@ jobs:
       TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
     - name: Download installer artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         pattern: open-tyndp-*.exe
 
