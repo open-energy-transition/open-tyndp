@@ -25,6 +25,8 @@ Upcoming Open-TYNDP Release
 
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
+* Fix labeling of climate years in CBA indicators output CSVs (https://github.com/open-energy-transition/open-tyndp/pull/620).
+
 **Documentation**
 
 **Developers Note**
