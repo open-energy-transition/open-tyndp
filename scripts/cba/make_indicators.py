@@ -835,10 +835,14 @@ if __name__ == "__main__":
 
     reference_cyears = pd.DatetimeIndex(n_reference.snapshots).year.unique()
     project_cyears = pd.DatetimeIndex(n_project.snapshots).year.unique()
+
+    # check that both both reference and project networks contain exactly one climate year
     if len(reference_cyears) != 1 or len(project_cyears) != 1:
         raise ValueError(
-            "CBA indicators expect a single climate year in reference and project snapshots."
+            "More than one climate year found in reference or project snapshots."
         )
+
+    # check that both reference and project networks use the same climate year
     if reference_cyears[0] != project_cyears[0]:
         raise ValueError(
             f"Reference and project networks use different climate years: "
