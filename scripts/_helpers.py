@@ -1741,7 +1741,7 @@ def normalize_direction(
         df = df.to_frame("value")
         cols = ["value"]
     elif isinstance(df, pd.DataFrame):
-        if not cols:
+        if cols is None or len(cols) == 0:
             raise ValueError(
                 "No column names `cols` to normalize. `cols` must be provided when `df` is a DataFrame."
             )
@@ -1764,13 +1764,15 @@ def normalize_direction(
         {
             "bus0": np.where(mask, df["bus1"], df["bus0"]),
             "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: df.prefix
-            + df.bus0
-            + df.bus0_suffix
-            + connector
-            + df.bus1
-            + df.bus1_suffix
-            + df.suffix,
+            "border": lambda df: (
+                df.prefix
+                + df.bus0
+                + df.bus0_suffix
+                + connector
+                + df.bus1
+                + df.bus1_suffix
+                + df.suffix
+            ),
         }
     )
 
