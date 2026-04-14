@@ -25,6 +25,8 @@ Upcoming Open-TYNDP Release
 
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
+* Fix CBA workflow to run for different kinds of runs (e.g., regular NT, single different climate year, multiple climate years) (https://github.com/open-energy-transition/open-tyndp/pull/625).
+
 **Documentation**
 
 **Developers Note**
