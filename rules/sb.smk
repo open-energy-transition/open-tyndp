@@ -809,6 +809,7 @@ if config["benchmarking"]["enable"]:
             load_shedding=config_provider(
                 "solving", "options", "load_shedding", "carriers"
             ),
+            low_voltage=config_provider("sector", "electricity_distribution_grid"),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",

@@ -62,6 +62,7 @@ def compute_benchmark(
     tyndp_renewable_carriers: list[str],
     planning_horizons: int,
     load_shedding: dict[str, int],
+    low_voltage: bool,
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -82,6 +83,8 @@ def compute_benchmark(
         The current planning horizon year.
     load_shedding : dict[str, int]
         Value of lost load per carrier.
+    low_voltage: bool
+        Whether the electricity distribution grid is modeled with low voltage electricity buses.
 
     Returns
     -------
@@ -90,7 +93,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC", "AC_OH", "low voltage"]
+    elec_bus_carrier = ["AC", "AC_OH"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -545,6 +548,7 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
     load_shedding = snakemake.params["load_shedding"]
+    low_voltage = snakemake.params["low_voltage"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
@@ -569,6 +573,7 @@ if __name__ == "__main__":
         tyndp_renewable_carriers=tyndp_renewable_carriers,
         planning_horizons=planning_horizons,
         load_shedding=load_shedding,
+        low_voltage=low_voltage,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
