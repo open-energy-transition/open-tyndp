@@ -1717,9 +1717,10 @@ def normalize_direction(
     ----------
     df : pd.DataFrame | pd.Series
         Input data to normalize.
-    cols : list[str], default=[]
+    cols : list[str] | None, default=None
         Names of flow columns whose sign should be flipped when direction is
-        swapped.
+        swapped. Required when `df` is a DataFrame and ignored when `df` is a
+        Series.
     buses_from_index : bool, default=False
         If True, parse index instead of reading
         "bus0"/"bus1" columns directly.
@@ -1734,7 +1735,9 @@ def normalize_direction(
     pd.DataFrame | pd.Series
         Data with normalized link direction.
     """
-    if isinstance(df, pd.Series):
+    is_series = isinstance(df, pd.Series)
+
+    if is_series:
         df = df.to_frame("value")
         cols = ["value"]
     elif isinstance(df, pd.DataFrame):
