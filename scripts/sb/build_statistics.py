@@ -312,8 +312,8 @@ def compute_benchmark(
                     "carrier"
                 ).isin(curtailment_exclusions)
             ]
-            .rename(index=lambda x: x.split(" ")[0], level=0)
-            .rename(index=lambda _: "curtailment", level=1)
+            .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
+            .rename(index=lambda _: "curtailment", level="carrier")
             .groupby(["bus"] + grouper)
             .sum()
         )
