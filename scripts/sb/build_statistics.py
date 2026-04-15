@@ -84,7 +84,7 @@ def compute_benchmark(
     load_shedding : dict[str, int]
         Value of lost load per carrier.
     low_voltage: bool
-        Whether the electricity distribution grid is modeled with low voltage electricity buses.
+        If True, include low voltage buses in the electricity bus carrier list.
 
     Returns
     -------
