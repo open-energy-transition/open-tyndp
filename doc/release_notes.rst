@@ -13,17 +13,21 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Implement demand side response (DSR) components and price bands. This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file (https://github.com/open-energy-transition/open-tyndp/pull/598).
+
+* Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
+
 * Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
 
 **Changes**
 
+* Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
+
 **Bugfixes and Compatibility**
 
-* Fix EU27 benchmark aggregation for non-price tables (https://github.com/open-energy-transition/open-tyndp/pull/600).
+* Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
 **Documentation**
-
-* Update citations to version-agnostic DOIs (https://github.com/open-energy-transition/open-tyndp/pull/602).
 
 **Developers Note**
 
@@ -266,6 +270,18 @@ Upcoming PyPSA-Eur Release
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
 
 * The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
+
+Open-TYNDP v0.6.1 (2nd April 2026)
+========================================
+
+**Bugfixes and Compatibility**
+
+* Fix EU27 benchmark aggregation for non-price tables (https://github.com/open-energy-transition/open-tyndp/pull/600).
+
+**Documentation**
+
+* Update citations to version-agnostic DOIs (https://github.com/open-energy-transition/open-tyndp/pull/602).
+
 
 Open-TYNDP v0.6 (1st April 2026)
 ========================================

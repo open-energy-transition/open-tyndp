@@ -1203,11 +1203,16 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                     TYNDP_DATASET["url"]
                     + "/MMStandardOutputFile_NT2040_Plexos_CY2009_2.5_v40.xlsx.zip"
                 ),
+                h2_reference_grid_entsoe=storage(
+                    TYNDP_DATASET["url"] + "/StartingGrid2030.xlsx.zip"
+                ),
             output:
                 line_data_zip=f"{TYNDP_DATASET['folder']}/Line-data.zip",
                 nodes_zip=f"{TYNDP_DATASET['folder']}/Nodes.zip",
                 elec_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Electricity.xlsx",
-                h2_reference_grid=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
+                h2_reference_grid_entsos=f"{TYNDP_DATASET['folder']}/Line data/ReferenceGrid_Hydrogen.xlsx",
+                h2_reference_grid_entsoe_zip=f"{TYNDP_DATASET['folder']}/StartingGrid2030.xlsx.zip",
+                h2_reference_grid_entsoe=f"{TYNDP_DATASET['folder']}/StartingGrid2030.xlsx",
                 nodes=f"{TYNDP_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
                 hydro_inflows_zip=f"{TYNDP_DATASET['folder']}/Hydro-Inflows.zip",
                 hydro_inflows=directory(f"{TYNDP_DATASET['folder']}/Hydro Inflows"),
