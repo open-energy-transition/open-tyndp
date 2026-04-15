@@ -308,7 +308,7 @@ def compute_benchmark(
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[
-                lambda df_curtailment: ~df_curtailment.index.get_level_values(
+                lambda df: ~df.index.get_level_values(
                     "carrier"
                 ).isin(curtailment_exclusions)
             ]
