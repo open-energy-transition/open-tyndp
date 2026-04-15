@@ -38,6 +38,7 @@ def add_metadata(
     model_col: str = "",
     rfc_source: str = "",
     rfc_cols: list[str] = [],
+    note: str = "",
 ):
     # Version
     version = get_version()
@@ -72,6 +73,19 @@ def add_metadata(
             x0_fig,
             y0_fig - 0.05,
             f"Model outputs ({model_col}) benchmarked against {rfc_source}.{additional_sources}",
+            transform=fig.transFigure,
+            ha="left",
+            va="bottom",
+            fontsize=8,
+            alpha=0.7,
+        )
+    
+    # Notes
+    if note:
+        ax.text(
+            x0_fig,
+            y0_fig - 0.03,
+            "\n".join(note),
             transform=fig.transFigure,
             ha="left",
             va="bottom",
@@ -143,7 +157,13 @@ def _plot_scenario_comparison(
     if rotation != 0:
         ax.set_ylim(top=ax.get_ylim()[1] * 1.05)
 
-    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols)
+    # notes
+    if table == "power_generation":
+        note = ["Note: Curtailed energy is included in both \"dumped energy\" and renewables generation values."]
+    else: 
+        note = []
+
+    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols, note=note)
 
     output_filename = Path(
         output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
