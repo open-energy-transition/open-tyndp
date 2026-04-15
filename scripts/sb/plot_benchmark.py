@@ -84,7 +84,7 @@ def add_metadata(
     if note:
         ax.text(
             x0_fig,
-            y0_fig - 0.03,
+            y0_fig - 0.07,
             "\n".join(note),
             transform=fig.transFigure,
             ha="left",
