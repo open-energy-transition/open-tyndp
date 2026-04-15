@@ -79,7 +79,7 @@ def add_metadata(
             fontsize=8,
             alpha=0.7,
         )
-    
+
     # Notes
     if note:
         ax.text(
@@ -159,11 +159,20 @@ def _plot_scenario_comparison(
 
     # notes
     if table == "power_generation":
-        note = ["Note: Curtailed energy is included in both \"dumped energy\" and renewables generation values."]
-    else: 
+        note = [
+            'Note: Curtailed energy is included in both "dumped energy" and renewables generation values.'
+        ]
+    else:
         note = []
 
-    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols, note=note)
+    add_metadata(
+        ax,
+        fig,
+        model_col=model_col,
+        rfc_source=rfc_source,
+        rfc_cols=rfc_cols,
+        note=note,
+    )
 
     output_filename = Path(
         output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
