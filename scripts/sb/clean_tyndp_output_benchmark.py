@@ -83,7 +83,7 @@ MM_CARRIER_MAPPING = {
     "Demand Side Response Explicit": "demand shedding",
     "Demand Side Response Implicit": "demand shedding",
     # Curtailment/"dump energy"
-    "Dump energy [GWh]": "curtailment",
+    "Dump energy [GWh]": "dumped energy",
     # Hydrogen_demand
     "Native Demand (excl. H2 storage charge) [GWhH2]": "exogenous demand",
     # "power generation" - could be calculated from power sheet (H2 Fuel Cell + H2 CCGT) * efficiency
