@@ -290,6 +290,7 @@ def compute_benchmark(
             .groupby(["bus"] + grouper)
             .sum()
         )
+
         # add curtailment to power generation statistics
         curtailment_exclusions = [
             "other-res-mix",
