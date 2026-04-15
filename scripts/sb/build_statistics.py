@@ -297,6 +297,8 @@ def compute_benchmark(
             "hydro-reservoir",
             "hydro-pondage",
             "hydro-ror",
+            "load",
+            "dsr",
         ]
         df_curtailment = (
             n.statistics.curtailment(
@@ -313,7 +315,7 @@ def compute_benchmark(
                 )
             ]
             .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
-            .rename(index=lambda _: "curtailment", level="carrier")
+            .rename(index=lambda _: "dumped energy", level="carrier")
             .groupby(["bus"] + grouper)
             .sum()
         )
