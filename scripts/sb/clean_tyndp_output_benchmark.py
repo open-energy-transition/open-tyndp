@@ -264,7 +264,7 @@ def load_MM_sheet(
 
     # Rename and group
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
-    df = df.loc[output_type].droplevel(0)
+    df = df.loc[output_type].droplevel("output_type")
 
     # Rename and filter column names (buses)
     df.rename(
