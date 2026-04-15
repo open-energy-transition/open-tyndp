@@ -308,9 +308,9 @@ def compute_benchmark(
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[
-                lambda df: ~df.index.get_level_values(
-                    "carrier"
-                ).isin(curtailment_exclusions)
+                lambda df: ~df.index.get_level_values("carrier").isin(
+                    curtailment_exclusions
+                )
             ]
             .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
             .rename(index=lambda _: "curtailment", level="carrier")
