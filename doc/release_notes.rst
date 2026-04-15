@@ -25,6 +25,8 @@ Upcoming Open-TYNDP Release
 
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
+* Adjust ``build_statistics`` to be compatible with not modelling the electricity distribution grid with low voltage buses (https://github.com/open-energy-transition/open-tyndp/pull/634).
+
 **Documentation**
 
 **Developers Note**
