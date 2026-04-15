@@ -25,7 +25,7 @@ Upcoming Open-TYNDP Release
 
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
-* Fix NaN values of `marginal_cost_original` in solved networks (https://github.com/open-energy-transition/open-tyndp/pull/613).
+* Fix NaN values of ``marginal_cost_original`` in solved networks (https://github.com/open-energy-transition/open-tyndp/pull/613).
 
 **Documentation**
 
