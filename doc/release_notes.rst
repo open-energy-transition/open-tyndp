@@ -13,6 +13,8 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
+
 **Changes**
 
 **Bugfixes and Compatibility**
