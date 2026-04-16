@@ -119,14 +119,21 @@ if __name__ == "__main__":
     # Load the solved network from scenario building
     n = pypsa.Network(snakemake.input.network)
 
-    # Extend primary fuel sources capacity
-    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
-    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+    # Fix optimal capacities from scenario building. This freezes the reused
+    # optimized SB capacities for the CBA workflow.
+    n.optimize.fix_optimal_capacities()
 
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
-    # Fix optimal capacities from scenario building
-    n.optimize.fix_optimal_capacities()
+    # Re-apply the intended CBA relaxations after fixing capacities. Doing this
+    # before ``fix_optimal_capacities()`` would be overwritten immediately by the
+    # fixed ``*_nom_opt`` values from the solved SB network.
+    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
+    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+
+    # Reopen only the specific link carriers whose required capacity can change
+    # with the target climate-year demand inputs.
+    extend_climate_dependent_links(n)
 
     # Add hurdle costs to DC links
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
