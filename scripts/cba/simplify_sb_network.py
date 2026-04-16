@@ -29,6 +29,15 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
+CLIMATE_DEPENDENT_LINK_CARRIERS = {
+    "electricity distribution grid",
+    "kerosene for aviation",
+    "land transport oil",
+    "shipping oil",
+    "agriculture machinery oil",
+}
+
+
 def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: list):
     """
     Set infinite capacity for primary fuel source generators.
@@ -58,6 +67,39 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
     mask = n.generators.carrier.str.contains("|".join(primary_fuel_carriers))
     gen_i = n.generators[mask].index
     n.generators.loc[gen_i, "p_nom"] = inf
+
+
+def extend_climate_dependent_links(n: pypsa.Network) -> None:
+    """
+    Reopen climate-dependent delivery links after capacities are fixed.
+
+    The CBA workflow reuses optimized capacities from the solved base SB
+    scenario. Some downstream delivery links, however, are driven directly by
+    climate-year-dependent demand profiles. If they remain hard-fixed at the
+    base-year optimum, the reused network can become infeasible for another
+    weather year.
+
+    The pragmatic compromise is:
+    - keep the reused solved capacity as a lower bound, and
+    - allow only these known climate-dependent link carriers to extend further
+      if the target climate year requires it.
+    """
+    mask = n.links.carrier.isin(CLIMATE_DEPENDENT_LINK_CARRIERS)
+    links_i = n.links.index[mask]
+    if links_i.empty:
+        logger.info("No climate-dependent links found to reopen")
+        return
+
+    # Preserve the reused solved capacity as the minimum retained capacity.
+    n.links.loc[links_i, "p_nom_min"] = n.links.loc[links_i, "p_nom"]
+    n.links.loc[links_i, "p_nom_extendable"] = True
+
+    counts = n.links.loc[links_i, "carrier"].value_counts().sort_index().to_dict()
+    logger.info(
+        "Reopened %s climate-dependent links after fixing capacities: %s",
+        len(links_i),
+        counts,
+    )
 
 
 if __name__ == "__main__":
