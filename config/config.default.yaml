@@ -230,6 +230,7 @@ electricity:
     - Hydrogen
     - Electrolyser
     - Battery
+    - DSR
   estimate_renewable_capacities:
     enable: true
     from_powerplantmatching: true
@@ -244,6 +245,7 @@ electricity:
     enable: false
     by_country: false
   transmission_limit: vopt
+  constrain_dsr: true
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#atlite
 atlite:
@@ -1001,6 +1003,7 @@ sector:
       efficiency_static: 0.97
   H2_network: true
   h2_topology_tyndp: false
+  h2_reference_grid_source: entsoe
   h2_zones_tyndp: false
   h2_demand_patch_with_mm: false
   gas_network: true
@@ -1590,6 +1593,7 @@ cba:
     - home battery
     soc_boundary_carriers:
     - "hydro-reservoir"
+  constrain_dsr: true
   msv_extraction:
     resolution: false
     resample_method: ffill

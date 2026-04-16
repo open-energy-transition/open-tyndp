@@ -473,8 +473,12 @@ if config["sector"]["h2_topology_tyndp"]:
         params:
             snapshots=config_provider("snapshots"),
             scenario=config_provider("tyndp_scenario"),
+            h2_reference_grid_source=config_provider(
+                "sector", "h2_reference_grid_source"
+            ),
         input:
-            h2_reference_grid=rules.retrieve_tyndp.output.h2_reference_grid,
+            h2_reference_grid_entsoe=rules.retrieve_tyndp.output.h2_reference_grid_entsoe,
+            h2_reference_grid_entsos=rules.retrieve_tyndp.output.h2_reference_grid_entsos,
             h2_projects=branch(
                 include_tyndp_h2_projects,
                 resources("tyndp/new_links_h2_{planning_horizons}.csv"),
@@ -805,6 +809,7 @@ if config["benchmarking"]["enable"]:
             load_shedding=config_provider(
                 "solving", "options", "load_shedding", "carriers"
             ),
+            low_voltage=config_provider("sector", "electricity_distribution_grid"),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",

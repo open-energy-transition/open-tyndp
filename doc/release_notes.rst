@@ -13,9 +13,20 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Implement demand side response (DSR) components and price bands. This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file (https://github.com/open-energy-transition/open-tyndp/pull/598).
+
+* Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
+
 **Changes**
 
+* Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
+
 **Bugfixes and Compatibility**
+
+* Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
+* Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
+
+* Adjust ``build_statistics`` to be compatible with not modelling the electricity distribution grid with low voltage buses (https://github.com/open-energy-transition/open-tyndp/pull/634).
 
 **Documentation**
 
