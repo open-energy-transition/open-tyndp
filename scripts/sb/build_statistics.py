@@ -13,6 +13,8 @@ import country_converter as coco
 import numpy as np
 import pandas as pd
 import pypsa
+import re
+
 from tqdm import tqdm
 
 from scripts._helpers import (
@@ -473,6 +475,8 @@ def compute_benchmark(
         idx_l = n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").index
 
         df = sws @ n.links_t.p0[idx_l]
+        if carrier == "H2":
+            df = df.rename(lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB"))
         df = normalize_direction(
             df, buses_from_index=True, connector=connector, format_index=True
         )
