@@ -82,6 +82,8 @@ MM_CARRIER_MAPPING = {
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
     "Demand Side Response Explicit": "demand shedding",
     "Demand Side Response Implicit": "demand shedding",
+    # Curtailment/"dump energy"
+    "Dump energy [GWh]": "dumped energy",
     # Hydrogen_demand
     "Native Demand (excl. H2 storage charge) [GWhH2]": "exogenous demand",
     # "power generation" - could be calculated from power sheet (H2 Fuel Cell + H2 CCGT) * efficiency
@@ -107,7 +109,10 @@ MM_CARRIER_MAPPING = {
 # look up dictionary {name of plot: [sheet_name, output_type]}
 LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
-    "power_generation": ["Yearly Outputs", "Annual generation [GWh]"],
+    "power_generation": [
+        "Yearly Outputs",
+        ["Annual generation [GWh]", "Dump energy [GWh]"],
+    ],
     "electricity_demand": [
         "Yearly Outputs",
         "Native Demand (excl. Pump load & Battery charge) [GWh]",
@@ -240,6 +245,7 @@ def load_MM_sheet(
         Market Model data in long format (incl. EU27).
     """
     sheet_name, output_type = LOOKUP_TABLES[table_name]
+    output_type = [output_type] if isinstance(output_type, str) else output_type
 
     df = pd.read_excel(
         filepath,
@@ -259,7 +265,7 @@ def load_MM_sheet(
 
     # Rename and group
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
-    df = df.loc[output_type]
+    df = df.loc[output_type].droplevel("output_type")
 
     # Rename and filter column names (buses)
     df.rename(
@@ -312,7 +318,7 @@ def load_MM_sheet(
     df["unit"] = re.sub(
         r"€(/MWh)?",
         "EUR/MWh",
-        re.search(r"\[(.*)]", output_type).group(1).rstrip("H2"),
+        re.search(r"\[(.*)]", output_type[0]).group(1).rstrip("H2"),
     )
 
     df["table"] = table_name
