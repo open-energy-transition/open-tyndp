@@ -72,4 +72,5 @@ dependencies:
 - snakemake-logger-plugin-pypsa >=0.1.0
 - grpcio <1.78
 - pydeflate >=2.3.4
+- python-calamine >=0.6.1
 - snakemake-executor-plugin-slurm >=1.9.2
