@@ -368,12 +368,55 @@ def load_and_aggregate_powerplants(
     return pd.concat([aggregated, disaggregated])
 
 
+def _patch_demand_with_mm(load, patch_load_mm, mm_demand_fn) -> pd.DataFrame:
+    """
+    Patch electricity load time series for given list of nodes from Market Model output data.
+
+    Parameters
+    ----------
+    load : pd.DataFrame
+        Dataframe with electricity load time series per node.
+    patch_load_mm : list[str] | bool
+        List of nodes to patch demand for. If true instead, patch will be applied to all nodes.
+    mm_demand_fn : str
+        Path to file with Market Model electricity demand per node.
+
+    Returns
+    -------
+    load : pd.DataFrame
+        Load time-series with applied patches from Market Model output data.
+
+    """
+    # Determine nodes to be patched
+    if patch_load_mm is True:
+        patch_nodes = load.columns.tolist()
+    else:
+        patch_nodes = patch_load_mm
+
+    # Read MM demand data
+    mm_demand = (
+        pd.read_csv(mm_demand_fn, index_col=0, parse_dates=True)
+        .reindex(load.index)
+        .dropna(how="all")
+    )
+
+    if not mm_demand.empty:
+        logger.info(
+            f"Patching electricity demand with MM output values for {patch_nodes}."
+        )
+        load.loc[:, patch_nodes] = mm_demand.loc[:, patch_nodes]
+
+    return load
+
+
 def attach_load(
     n: pypsa.Network,
     load_fn: str,
     busmap_fn: str,
     scaling: float = 1.0,
     overwrite: bool = False,
+    patch_load_mm: bool = False,
+    mm_demand_fn: str = None,
 ) -> None:
     """
     Attach load data to the network.
@@ -390,6 +433,10 @@ def attach_load(
         Scaling factor for the load data, by default 1.0.
     overwrite : bool, optional
         Overwrite the load instead of setting it
+    patch_load_mm : bool, optional
+        Whether to patch demand with MM demand, by default False.
+    mm_demand_fn : str, None
+        Path to file with Market Model electricity demand per node.
     """
     load = (
         xr.open_dataarray(load_fn).to_dataframe().squeeze(axis=1).unstack(level="time")
@@ -400,6 +447,11 @@ def attach_load(
     index_col = "name" if PYPSA_V1 else "Bus"
     busmap = busmap.set_index(index_col).squeeze()
     load = load.groupby(busmap).sum().T
+
+    if patch_load_mm:
+        load = _patch_demand_with_mm(
+            load=load, patch_load_mm=patch_load_mm, mm_demand_fn=mm_demand_fn
+        )
 
     logger.info(f"Load data scaled by factor {scaling}.")
     load *= scaling
