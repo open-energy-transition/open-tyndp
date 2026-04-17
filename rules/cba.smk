@@ -158,11 +158,11 @@ rule clean_tyndp_indicators:
 
 def input_sb_network(w, run=None):
     """Give correct SB input network path for CBA.
-    
-    If config["cba"]["cba_scenario_input"]["use_presolved"] is True, 
-    use the path to the presolved SB network based on the planning horizon. 
 
-    Otherwise, returns the path to the regular SB input network 
+    If config["cba"]["cba_scenario_input"]["use_presolved"] is True,
+    use the path to the presolved SB network based on the planning horizon.
+
+    Otherwise, returns the path to the regular SB input network
     based on the scenario wildcards and foresight."""
     scenario = config_provider("scenario")(w)
     (clusters,) = scenario["clusters"]
@@ -252,13 +252,13 @@ def cba_sb_run(w):
 
 def cba_is_first_horizon(w):
     """Return True if the current horizon is the first CBA horizon.
-    
+
     Within the CBA workflow, for a multi-climate year run, for the first
-    planning horizon, the network output of ``add_existing_baseyear`` is 
-    used as the climate-year source network, while for later horizons, 
-    the network output of ``prepare_sector_network`` is used. 
-    
-    This function checks if the current horizon is the first one to 
+    planning horizon, the network output of ``add_existing_baseyear`` is
+    used as the climate-year source network, while for later horizons,
+    the network output of ``prepare_sector_network`` is used.
+
+    This function checks if the current horizon is the first one to
     determine which source network to use.
     """
     planning_horizons = config_provider("scenario", "planning_horizons")(w)
@@ -297,13 +297,16 @@ def cba_climate_source_network(w):
             run=getattr(w, "run", None),
         )
     return fill_wildcards(
-        resources("networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"),
+        resources(
+            "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
+        ),
         clusters=clusters,
         opts=opts,
         sector_opts=sector_opts,
         planning_horizons=str(w.planning_horizons),
         run=getattr(w, "run", None),
     )
+
 
 # Prepare the correct SB input network for CBA, depending on the horizon and whether presolved networks are used
 rule prepare_cba_sb_input_network:
