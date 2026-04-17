@@ -71,18 +71,18 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
 
 def extend_climate_dependent_links(n: pypsa.Network) -> None:
     """
-    Reopen climate-dependent delivery links after capacities are fixed.
+    Make climate-dependent links extendable.
 
     The CBA workflow reuses optimized capacities from the solved base SB
     scenario. Some downstream delivery links, however, are driven directly by
-    climate-year-dependent demand profiles. If they remain hard-fixed at the
-    base-year optimum, the reused network can become infeasible for another
-    weather year.
+    climate-year-dependent demand profiles (such as electricity distribution grids,
+    land transport oil, etc.). If they remain hard-fixed, the new network can be
+    infeasible to solve for the new climate-year demand inputs.
 
-    The pragmatic compromise is:
+    This function takes a set list of climate-dependent links and:
     - keep the reused solved capacity as a lower bound, and
     - allow only these known climate-dependent link carriers to extend further
-      if the target climate year requires it.
+      if the target climate year requires it (by setting ``p_nom_extendable`` to True).
     """
     mask = n.links.carrier.isin(CLIMATE_DEPENDENT_LINK_CARRIERS)
     links_i = n.links.index[mask]
