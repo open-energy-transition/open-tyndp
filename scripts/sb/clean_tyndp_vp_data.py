@@ -31,11 +31,11 @@ EU27_COUNTRIES = [
 EU27_MAP = pd.Series(cc.EU27as("ISO2").ISO2.to_list(), index=EU27_COUNTRIES)
 
 CARRIER_MAP = {
-    "Demand Side Response Explicit": "demand shedding",
+    "Demand Side Response Explicit": "dsr",
     "DRES Solar PV": "solar",
     "DRES Wind Off": "wind offshore",
     "DRES Wind On": "wind onshore",
-    "DSR": "demand shedding",
+    "DSR": "dsr",
     "Gas": "methane (incl. biofuels)",
     "Gas CCGT": "methane (incl. biofuels)",
     "Gas CCGT CCS": "methane (incl. biofuels)",

@@ -129,7 +129,7 @@ def _plot_scenario_comparison(
     fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
 
     bar_colors = [bench_colors.get(col, "grey") for col in idx]
-    df[idx].plot.bar(
+    df[idx].clip(lower=0).plot.bar(
         ax=ax,
         color=bar_colors,
         width=0.7,
