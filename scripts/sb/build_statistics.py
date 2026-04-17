@@ -62,6 +62,7 @@ def compute_benchmark(
     tyndp_renewable_carriers: list[str],
     planning_horizons: int,
     load_shedding: dict[str, int],
+    low_voltage: bool,
 ) -> pd.DataFrame:
     """
     Compute benchmark metrics from optimized network.
@@ -82,6 +83,8 @@ def compute_benchmark(
         The current planning horizon year.
     load_shedding : dict[str, int]
         Value of lost load per carrier.
+    low_voltage: bool
+        If True, include low voltage buses in the electricity bus carrier list.
 
     Returns
     -------
@@ -90,7 +93,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC", "AC_OH", "low voltage"]
+    elec_bus_carrier = ["AC", "AC_OH"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -291,6 +294,36 @@ def compute_benchmark(
             .sum()
         )
 
+        # add curtailment to power generation statistics
+        curtailment_exclusions = [
+            "other-res-mix",
+            "hydro-reservoir",
+            "hydro-pondage",
+            "hydro-ror",
+            "load",
+            "dsr",
+        ]
+        df_curtailment = (
+            n.statistics.curtailment(
+                bus_carrier=elec_bus_carrier,
+                groupby=["bus"] + grouper,
+                aggregate_across_components=True,
+                groupby_time=False,
+            )
+            .mul(sws, axis=1)
+            .sum(axis=1)
+            .loc[
+                lambda df: ~df.index.get_level_values("carrier").isin(
+                    curtailment_exclusions
+                )
+            ]
+            .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
+            .rename(index=lambda _: "dumped energy", level="carrier")
+            .groupby(["bus"] + grouper)
+            .sum()
+        )
+        df = pd.concat([df, df_curtailment])
+
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (
@@ -476,9 +509,9 @@ def compute_benchmark(
 
     # Add EU27 (load-weighted average for prices)
     if "bus" in [c for c in ["bus", "carrier", "snapshot"] if c in df.columns]:
-        df_eu27 = df.loc[lambda x: x["bus"].isin(eu27_idx)]
-
         if "price" in table:
+            df_eu = df
+            bus_name = "Pan-EU"
             weights = (
                 n.statistics.withdrawal(
                     groupby="bus",
@@ -491,18 +524,20 @@ def compute_benchmark(
             )
             normalizer = weights.sum()
         else:
-            weights = pd.Series(1.0, index=df_eu27.bus.unique())
+            df_eu = df.loc[lambda x: x["bus"].isin(eu27_idx)]
+            bus_name = "EU27"
+            weights = pd.Series(1.0, index=df_eu.bus.unique())
             normalizer = 1.0
 
-        df_eu27 = (
-            df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
+        df_eu = (
+            df_eu.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
             .groupby(by=[c for c in ["carrier", "snapshot"] if c in df.columns])
             .value.sum()
             .div(normalizer)
             .reset_index()
-            .assign(bus="EU27")
+            .assign(bus=bus_name)
         )
-        df = pd.concat([df, df_eu27])
+        df = pd.concat([df, df_eu])
     else:
         df = df.assign(bus="EU27")
 
@@ -545,6 +580,7 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
     load_shedding = snakemake.params["load_shedding"]
+    low_voltage = snakemake.params["low_voltage"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
@@ -569,6 +605,7 @@ if __name__ == "__main__":
         tyndp_renewable_carriers=tyndp_renewable_carriers,
         planning_horizons=planning_horizons,
         load_shedding=load_shedding,
+        low_voltage=low_voltage,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
