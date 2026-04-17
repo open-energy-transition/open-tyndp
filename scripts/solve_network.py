@@ -555,8 +555,14 @@ def prepare_network(
     if solve_opts.get("noisy_costs"):
         # Preserve original costs before adding noise
         for t in n.components:
-            if "marginal_cost" in t.static and "marginal_cost_original" not in t.static:
-                t.static["marginal_cost_original"] = t.static["marginal_cost"]
+            if "marginal_cost" in t.static:
+                if "marginal_cost_original" not in t.static:
+                    t.static["marginal_cost_original"] = t.static["marginal_cost"]
+                else:
+                    mask = t.static["marginal_cost_original"].isna()
+                    t.static.loc[mask, "marginal_cost_original"] = t.static.loc[
+                        mask, "marginal_cost"
+                    ]
 
         for t in [n.components["Line"], n.components["Link"]]:
             if "capital_cost" in t.static and "capital_cost_original" not in t.static:

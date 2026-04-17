@@ -17,13 +17,20 @@ Upcoming Open-TYNDP Release
 
 * Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
 
+* Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
+
 **Changes**
 
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
 
 **Bugfixes and Compatibility**
 
+* Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
+
+* Adjust ``build_statistics`` to be compatible with not modelling the electricity distribution grid with low voltage buses (https://github.com/open-energy-transition/open-tyndp/pull/634).
+
+* Fix NaN values of ``marginal_cost_original`` in solved networks (https://github.com/open-energy-transition/open-tyndp/pull/613).
 
 * Fix CBA workflow to run for different kinds of runs (e.g., regular NT, single different climate year, multiple climate years) (https://github.com/open-energy-transition/open-tyndp/pull/625).
 
