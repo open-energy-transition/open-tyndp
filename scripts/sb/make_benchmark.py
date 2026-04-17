@@ -112,6 +112,7 @@ def load_data(
         "BEIOH01": "DK",
         "BEIOH01 H2": "DK",
         "EU27": "EU27",
+        "Pan-EU": "Pan-EU",
     }
     benchmarks_raw.loc[:, "country"] = benchmarks_raw["bus"].map(
         lambda x: country_map.get(x, x[:2])
