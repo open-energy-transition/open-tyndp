@@ -9,15 +9,13 @@ The CBA workflow reuses:
   optimized capacities and static topology, and
 - a climate-year-specific pre-solve network as the source of snapshots and
   weather-dependent input data.
-
-For the first planning horizon, the climate-year source is the output of
-``add_existing_baseyear``.
-
-For later planning horizons, the climate-year source is the output of
-``prepare_sector_network``. Those later-horizon source networks use the
-pre-brownfield naming convention, so this script aligns new assets with the
-solved myopic naming/build-year convention before copying climate-dependent
-inputs onto the reused solved base network.
+    - For the first planning horizon, the climate-year source is the output of
+    ``add_existing_baseyear``.
+    - For later planning horizons, the climate-year source is the output of
+    ``prepare_sector_network``. Those later-horizon source networks use the
+    pre-brownfield naming convention, so this script also aligns new assets
+    with the solved myopic naming/build-year convention before copying
+    climate-dependent inputs onto the reused solved base network.
 """
 
 import logging
@@ -56,7 +54,7 @@ def add_build_year_to_new_assets(
     """
     Add build-year suffixes to new assets in a pre-solved source network.
 
-    This is an adaptation of ``add_existing_baseyear.add_build_year_to_new_assets.``:
+    This is an adaptation of ``add_existing_baseyear.add_build_year_to_new_assets``:
     - assets with finite lifetime and build_year == 0 get the target year
     - asset names get suffixed with -{baseyear}
     - dynamic series columns get renamed to match
@@ -96,11 +94,11 @@ def overwrite_static_attr(
     base: pypsa.Network, source: pypsa.Network, component: str, attr: str
 ) -> None:
     """
-    Overwrite a static component attribute with explicit intersection checks.
+    Overwrite a static component attribute.
 
     This only overwrites attributes that are intended to be climate-year-dependent.
     The helper logs any non-shared rows so the source/base mismatch stays
-    visible, but it only touches the shared components explicitly.
+    visible, but the function only touches the shared components explicitly.
     """
     base_static = getattr(base, component)
     source_static = getattr(source, component)
@@ -130,7 +128,8 @@ def overwrite_dynamic_attr(
     """
     Overwrite a dynamic component attribute with explicit snapshot/column checks.
 
-    This borrows the alignment idea from PyPSA's internal dynamic-data helpers, but slightly adapted for our use case:
+    This borrows the alignment idea from PyPSA's internal dynamic-data helpers,
+    but it has slightly adapted for our CBA use case:
     - snapshots must match the already-prepared base network snapshots
     - overwrite only shared columns
     - keep base-only columns untouched
@@ -180,8 +179,11 @@ def clear_result_tables(base: pypsa.Network) -> None:
     Clear stale solved dispatch and dual outputs from the reused solved network.
 
     After we replace snapshots and exogenous climate-year-dependent inputs, the
-    old solved time series from the base SB run are no longer meaningful. The
-    static optimized capacities (``*_opt``) remain untouched and are still used
+    old solved time series from the base SB run are no longer useful, so we can
+    clear them to avoid confusion. This includes keys that start with "mu_"
+    and the known result keys listed in ``RESULT_KEYS``.
+
+    The optimized capacities (``*_opt``) remain untouched and are still used
     later by ``fix_optimal_capacities()`` in ``simplify_sb_network``.
     """
     for component_name in [
@@ -221,9 +223,8 @@ if __name__ == "__main__":
     base = pypsa.Network(snakemake.input.solved_network).copy()
     logger.info("Loaded solved SB base network from %s", snakemake.input.solved_network)
 
-    # Load the climate-year-specific pre-solve network. For the first planning
-    # horizon this is the output of add_existing_baseyear. For later horizons it
-    # is the output of prepare_sector_network.
+    # Load the climate-year-specific pre-solve network.
+    # For the first planning horizon this is the output of add_existing_baseyear.
     climate_source = pypsa.Network(snakemake.input.climate_source_network)
     logger.info(
         "Loaded climate-year source network from %s",
