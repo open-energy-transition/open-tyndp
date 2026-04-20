@@ -80,6 +80,20 @@ def _effective_horizon(h, warn_fn=None, msg=None):
     return h
 
 
+def get_run_name(w):
+    """
+    Return a single run name from Snakemake wildcards or config.
+    
+    There are instances when the run name given in the config is a string
+    or a list. This helper is used to ensure we always get a single string 
+    (or empty string if no run is given) to work with in the rules.
+    """
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        return run[0] if run else ""
+    return run or ""
+
+
 def presolved_sb_network_path(w, horizon=None):
     sb_version = config_provider(
         "cba", "cba_scenario_input", "sb_version", default="latest"
@@ -443,7 +457,7 @@ def input_indicators(w):
 
     Works for collection scenarios and regular scenarios.
     """
-    run = w.get("run", config_provider("run", "name")(w))
+    run = get_run_name(w)
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
     horizon = _effective_horizon(
         int(w.planning_horizons),
@@ -598,9 +612,7 @@ def cba_source_runs(w):
     Collection scenarios read from their nested cba.scenarios;
     regular runs read from their own run name.
     """
-    run = w.get("run", config_provider("run", "name")(w))
-    if isinstance(run, list):
-        run = run[0] if run else ""
+    run = get_run_name(w)
     if not run:
         return []
     try:
@@ -615,9 +627,7 @@ def cba_scenarios(w):
     """
     Return cba: scenarios of a cba collection scenario
     """
-    run = w.get("run", config_provider("run", "name")(w))
-    if isinstance(run, list):
-        run = run[0] if run else ""
+    run = get_run_name(w)
     try:
         scn = scenario_config(run)
     except KeyError:
@@ -692,9 +702,7 @@ def collect_cba_scenario_inputs(w):
         )
     )
 
-    run = w.get("run", config_provider("run", "name")(w))
-    if isinstance(run, list):
-        run = run[0] if run else ""
+    run = get_run_name(w)
     if run in cba_collection_scenarios(w):
         inputs.extend(
             expand(
