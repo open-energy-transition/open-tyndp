@@ -294,7 +294,7 @@ def load_benchmark(
     df_long.columns = [i[0] if isinstance(i, tuple) else i for i in df_long.columns]
 
     # Apply unit conversion
-    df_long["unit"] = opt["unit"]
+    df_long["unit"] = opt["report"]["unit"]
     df_converted = convert_units(df_long)
 
     # Add table identifier
@@ -340,7 +340,7 @@ if __name__ == "__main__":
     sheet_names = [
         _safe_sheet(j["report"]["sheet_name"], scenario)
         for i, j in options["tables"].items()
-        if _safe_sheet(j.get("report", {}).get("sheet_name"), scenario)
+        if _safe_sheet(j.get("report").get("sheet_name"), scenario)
     ]
     benchmarks_raw = pd.read_excel(
         snakemake.input.scenarios_figures, sheet_name=sheet_names, header=None

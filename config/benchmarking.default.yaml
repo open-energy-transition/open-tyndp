@@ -15,9 +15,9 @@ benchmarking:
       table_type: scenario_comparison
       rfc_sources:
       - report
-      unit: TWh
       report:
         sheet_name: 5-
+        unit: TWh
         index_col: 2
         header: [4, 5]
         names:
@@ -45,9 +45,9 @@ benchmarking:
       rfc_sources:
       - report
       - vp
-      unit: TWh
       report:
         sheet_name: 23-
+        unit: TWh
         index_col: [2, 3]
         header: 4
         names:
@@ -63,9 +63,9 @@ benchmarking:
       table_type: scenario_comparison
       rfc_sources:
       - report
-      unit: TWh
       report:
         sheet_name: 8-
+        unit: TWh
         index_col: 2
         header: [4, 5]
         nrows: 15
@@ -113,9 +113,9 @@ benchmarking:
       rfc_sources:
       - market_out
       - report
-      unit: TWh
       report:
         sheet_name: 10-
+        unit: TWh
         index_col: 2
         header: [4, 5]
         nrows: 15
@@ -140,9 +140,9 @@ benchmarking:
       - market_out
       - report
       - vp
-      unit: GW
       report:
         sheet_name: 25-
+        unit: GW
         index_col: [2, 3]
         header: 4
         nrows: 10
@@ -247,9 +247,9 @@ benchmarking:
       rfc_sources:
       - market_out
       - report
-      unit: TWh
       report:
         sheet_name: 26-
+        unit: TWh
         index_col: [2, 3]
         header: 4
         nrows: 10
@@ -349,9 +349,9 @@ benchmarking:
       table_type: scenario_comparison
       rfc_sources:
       - report
-      unit: TWh
       report:
         sheet_name: 32-
+        unit: TWh
         index_col: 2
         header: [6, 7]
         nrows: 13
@@ -372,9 +372,9 @@ benchmarking:
       rfc_sources:
       - market_out
       - report
-      unit: TWh
       report:
         sheet_name: 33-
+        unit: TWh
         index_col: 2
         header: [4, 5]
         nrows: 13
@@ -397,9 +397,9 @@ benchmarking:
       table_type: scenario_comparison
       rfc_sources:
       - report
-      unit: TWh
       report:
         sheet_name: 22-
+        unit: TWh
         index_col: 2
         header: [3, 4]
         names:
@@ -431,9 +431,9 @@ benchmarking:
       table_type: scenario_comparison
       rfc_sources:
       - report
-      unit: TWh
       report:
         sheet_name: 60-
+        unit: TWh
         index_col: 2
         header: [3, 4]
         names:
@@ -454,11 +454,11 @@ benchmarking:
       table_type: time_series
       rfc_sources:
       - report
-      unit: GW
       report:
         sheet_name:
           DE: 30a
           GA: 30b
+        unit: GW
         index_col: 1
         header: 4
         names:
@@ -556,34 +556,26 @@ benchmarking:
       table_type: prices
       rfc_sources:
       - market_out
-      unit: EUR/MWh_e
+      report:
+        unit: EUR/MWh_e
 
     electricity_price_excl_shed:
       table_type: prices
       rfc_sources:
       - market_out
-      unit: EUR/MWh_e
+      report:
+        unit: EUR/MWh_e
 
     hydrogen_price:
       table_type: prices
       rfc_sources:
       - market_out
-      unit: EUR/MWh_H2
+      report:
+        unit: EUR/MWh_H2
 
     hydrogen_price_excl_shed:
       table_type: prices
       rfc_sources:
       - market_out
-      unit: EUR/MWh_H2
-
-    crossborder_electricity:
-      table_type: flows
-      rfc_sources:
-      - market_out
-      unit: MWh
-
-    crossborder_hydrogen:
-      table_type: flows
-      rfc_sources:
-      - market_out
-      unit: MWh
+      report:
+        unit: EUR/MWh_H2
