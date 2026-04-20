@@ -32,7 +32,7 @@ Upcoming Open-TYNDP Release
 
 * Fix NaN values of ``marginal_cost_original`` in solved networks (https://github.com/open-energy-transition/open-tyndp/pull/613).
 
-* Fix CBA workflow to run for different kinds of runs (e.g., regular NT, single different climate year, multiple climate years) (https://github.com/open-energy-transition/open-tyndp/pull/625).
+* Fix CBA workflow to correctly handle simple runs, collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
 
 **Documentation**
 
