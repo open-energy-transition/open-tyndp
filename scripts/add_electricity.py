@@ -387,6 +387,10 @@ def _patch_demand_with_mm(load, patch_load_mm, mm_demand_fn) -> pd.DataFrame:
         Load time-series with applied patches from Market Model output data.
 
     """
+    if not mm_demand_fn:
+        # Where no MM file is available, we cannot apply any patch
+        return load
+
     # Determine nodes to be patched
     if patch_load_mm is True:
         patch_nodes = load.columns.tolist()
