@@ -24,6 +24,7 @@ from scripts._helpers import (
     configure_logging,
     convert_units,
     get_snapshots,
+    normalize_direction,
     set_scenario_config,
 )
 
@@ -142,22 +143,6 @@ CROSS_BORDER_DICT: dict[str, str] = {
 }
 
 
-def normalize_direction(df, cols):
-    mask = (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X")
-    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
-
-    # Add bus0, bus1, and border to assignments
-    assignments.update(
-        {
-            "bus0": np.where(mask, df["bus1"], df["bus0"]),
-            "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: df.bus0 + "->" + df.bus1,
-        }
-    )
-
-    return df.assign(**assignments)
-
-
 def load_crossborder_sheet(
     sheet_name: str,
     filepath: str | Path,
@@ -182,13 +167,10 @@ def load_crossborder_sheet(
 
     # normalize direction
     attributes = df.index
-    # add buses
-    df.loc["bus0", :] = df.columns.str.split("->").str[0]
-    df.loc["bus1", :] = df.columns.str.split("->").str[1]
-    df = normalize_direction(df.T.reset_index(drop=True), cols=attributes)
+    df = normalize_direction(df.T, cols=attributes, buses_from_index=True)
 
     # set index
-    df = df.set_index("border").T
+    df = df.T
     df.index.rename("Parameter", inplace=True)
     # rename axis for H2 flows to align with electricity
     df = df.rename(index=lambda x: x.replace("H2", ""))
@@ -508,6 +490,36 @@ def clean_MM_data_for_benchmarking(
     return MM_data
 
 
+def clean_crossborder_for_benchmarking(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean crossborder data for benchmarking purposes.
+    """
+    unit_map = df.loc["sum"].xs("unit", level="border")
+    df = (
+        df.loc["sum"]
+        .T.reset_index()
+        .query("border!='unit'")
+        .rename(columns={"sum": "value"})
+        .assign(
+            unit=lambda x: x.carrier.map(unit_map),
+            table=lambda x: np.where(
+                x.carrier == "electricity",
+                "crossborder_electricity",
+                "crossborder_hydrogen",
+            ),
+            carrier=lambda x: np.where(x.carrier == "electricity", "AC", x.carrier),
+        )
+        .reset_index(drop=True)
+    )
+
+    df = (
+        normalize_direction(df.set_index("border"), ["value"], buses_from_index=True)
+        .reset_index()
+        .drop(columns=["bus0", "bus1"])
+    )
+    return df
+
+
 def assign_meta_data(df, planning_horizon, scenario):
     df["scenario"] = f"TYNDP {scenario}"
     df["year"] = planning_horizon
@@ -585,6 +597,9 @@ if __name__ == "__main__":
             CROSS_BORDER_DICT[key], tyndp_output_file
         )
     crossborder_agg = pd.concat(crossborder, axis=1)
+    crossborder_agg.columns.names = ["carrier", *crossborder_agg.columns.names[1:]]
+
+    MM_data = pd.concat([MM_data, clean_crossborder_for_benchmarking(crossborder_agg)])
 
     # load h2 demand time series
     logger.info("Processing hourly H2 demand tables")
