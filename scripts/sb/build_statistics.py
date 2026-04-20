@@ -214,7 +214,7 @@ def compute_benchmark(
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
-        exclusions = ["electricity distribution grid", "DC", "DC_OH"]
+        exclusions = ["electricity distribution grid", "DC", "DC_OH", "load"]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
