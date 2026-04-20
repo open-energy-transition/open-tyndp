@@ -83,9 +83,9 @@ def _effective_horizon(h, warn_fn=None, msg=None):
 def get_run_name(w):
     """
     Return a single run name from Snakemake wildcards or config.
-    
+
     There are instances when the run name given in the config is a string
-    or a list. This helper is used to ensure we always get a single string 
+    or a list. This helper is used to ensure we always get a single string
     (or empty string if no run is given) to work with in the rules.
     """
     run = w.get("run", config_provider("run", "name")(w))
