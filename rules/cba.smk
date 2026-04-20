@@ -244,7 +244,9 @@ def cba_sb_run(w):
     sb_run = config_provider("cba", "sb_scenario", default=None)(w)
     if sb_run:
         return sb_run
-    current_run = getattr(w, "run", None)
+    current_run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(current_run, list):
+        current_run = current_run[0] if current_run else ""
     if current_run:
         return current_run
     return config_provider("tyndp_scenario")(w)
@@ -285,6 +287,9 @@ def cba_climate_source_network(w):
     (clusters,) = scenario["clusters"]
     (opts,) = scenario["opts"]
     (sector_opts,) = scenario["sector_opts"]
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
     if cba_is_first_horizon(w):
         return fill_wildcards(
             resources(
@@ -294,7 +299,7 @@ def cba_climate_source_network(w):
             opts=opts,
             sector_opts=sector_opts,
             planning_horizons=str(w.planning_horizons),
-            run=getattr(w, "run", None),
+            run=run,
         )
     return fill_wildcards(
         resources(
@@ -304,7 +309,7 @@ def cba_climate_source_network(w):
         opts=opts,
         sector_opts=sector_opts,
         planning_horizons=str(w.planning_horizons),
-        run=getattr(w, "run", None),
+        run=run,
     )
 
 
