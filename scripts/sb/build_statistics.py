@@ -294,6 +294,36 @@ def compute_benchmark(
             .sum()
         )
 
+        # add curtailment to power generation statistics
+        curtailment_exclusions = [
+            "other-res-mix",
+            "hydro-reservoir",
+            "hydro-pondage",
+            "hydro-ror",
+            "load",
+            "dsr",
+        ]
+        df_curtailment = (
+            n.statistics.curtailment(
+                bus_carrier=elec_bus_carrier,
+                groupby=["bus"] + grouper,
+                aggregate_across_components=True,
+                groupby_time=False,
+            )
+            .mul(sws, axis=1)
+            .sum(axis=1)
+            .loc[
+                lambda df: ~df.index.get_level_values("carrier").isin(
+                    curtailment_exclusions
+                )
+            ]
+            .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
+            .rename(index=lambda _: "dumped energy", level="carrier")
+            .groupby(["bus"] + grouper)
+            .sum()
+        )
+        df = pd.concat([df, df_curtailment])
+
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (

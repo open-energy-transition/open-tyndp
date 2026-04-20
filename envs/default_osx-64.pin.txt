@@ -102,9 +102,6 @@ https://conda.anaconda.org/bioconda/noarch/snakemake-interface-report-plugins-1.
 https://conda.anaconda.org/bioconda/noarch/snakemake-interface-logger-plugins-2.0.1-pyh84498cf_0.conda#dd3d76adc511d9ce9820c33a09bf5705
 https://conda.anaconda.org/bioconda/noarch/snakemake-interface-executor-plugins-9.4.0-pyh84498cf_0.conda#0d8bbf1699b16ac225031ae0c73729f8
 https://conda.anaconda.org/conda-forge/noarch/smart_open-7.6.0-pyhcf101f3_0.conda#458a05a84fe73bf082c0cf7d8a716c69
-https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.30.0-py312h8a6388b_0.conda#9adbe03b6d1b86cab37fb37709eb4e38
-https://conda.anaconda.org/conda-forge/noarch/attrs-26.1.0-pyhcf101f3_0.conda#c6b0543676ecb1fb2d7643941fe375f2
-https://conda.anaconda.org/conda-forge/noarch/referencing-0.37.0-pyhcf101f3_0.conda#870293df500ca7e18bedefa5838a22ab
 https://conda.anaconda.org/conda-forge/osx-64/liblapacke-3.11.0-6_h94b3770_openblas.conda#a0bba5bd1275d7080c7971dbdafad6a0
 https://conda.anaconda.org/conda-forge/osx-64/coin-or-utils-2.11.13-h9cdb5db_0.conda#0900410353b21bb49ae02d3b1de2f0c2
 https://conda.anaconda.org/conda-forge/osx-64/coin-or-osi-0.108.12-h9c53fe0_0.conda#932d5387d2555d1d91acf6176a9bb735
@@ -119,6 +116,9 @@ https://conda.anaconda.org/conda-forge/osx-64/psutil-7.2.2-py312hf7082af_0.conda
 https://conda.anaconda.org/conda-forge/noarch/traitlets-5.14.3-pyhd8ed1ab_1.conda#019a7385be9af33791c989871317e1ed
 https://conda.anaconda.org/conda-forge/noarch/python-fastjsonschema-2.21.2-pyhe01879c_0.conda#23029aae904a2ba587daba708208012f
 https://conda.anaconda.org/conda-forge/noarch/jupyter_core-5.9.1-pyhc90fa1f_0.conda#b38fe4e78ee75def7e599843ef4c1ab0
+https://conda.anaconda.org/conda-forge/osx-64/rpds-py-0.30.0-py312h8a6388b_0.conda#9adbe03b6d1b86cab37fb37709eb4e38
+https://conda.anaconda.org/conda-forge/noarch/attrs-26.1.0-pyhcf101f3_0.conda#c6b0543676ecb1fb2d7643941fe375f2
+https://conda.anaconda.org/conda-forge/noarch/referencing-0.37.0-pyhcf101f3_0.conda#870293df500ca7e18bedefa5838a22ab
 https://conda.anaconda.org/conda-forge/noarch/jsonschema-specifications-2025.9.1-pyhcf101f3_0.conda#439cd0f567d697b20a8f45cb70a1005a
 https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.26.0-pyhcf101f3_0.conda#ada41c863af263cc4c5fcbaff7c3e4dc
 https://conda.anaconda.org/conda-forge/noarch/nbformat-5.10.4-pyhd8ed1ab_1.conda#bbe1963f1e47f594070ffe87cdf612ea
@@ -131,12 +131,12 @@ https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.46-pyhd8ed1ab_0.cond
 https://conda.anaconda.org/conda-forge/noarch/connection_pool-0.0.3-pyhd3deb0d_0.tar.bz2#e270fff08907db8691c02a0eda8d38ae
 https://conda.anaconda.org/conda-forge/noarch/conda-inject-1.3.2-pyhd8ed1ab_0.conda#e52c2a160d6bd0649c9fafdf0c813357
 https://conda.anaconda.org/conda-forge/noarch/appdirs-1.4.4-pyhd8ed1ab_1.conda#f4e90937bbfc3a4a92539545a37bb448
-https://conda.anaconda.org/bioconda/noarch/snakemake-minimal-9.19.0-pyhdfd78af_1.conda#92bbae1d9004d6f1f0adbb21e4e090d9
+https://conda.anaconda.org/bioconda/noarch/snakemake-minimal-9.19.0-pyhdfd78af_0.conda#ff434de1e63f54864df031454a35b1ae
 https://conda.anaconda.org/bioconda/noarch/snakemake-logger-plugin-pypsa-0.2.0-pyhdfd78af_0.conda#99b9953692a58a31aa94c0d127e71c32
 https://conda.anaconda.org/bioconda/noarch/snakemake-executor-plugin-slurm-jobstep-0.4.0-pyhdfd78af_0.conda#7d4f2bf739967798eb4d8c02d59cf36c
 https://conda.anaconda.org/bioconda/noarch/snakemake-executor-plugin-slurm-2.6.0-pyhdfd78af_0.conda#5d55b8f56f935a6358aaaf13c8f7bb46
 https://conda.anaconda.org/bioconda/noarch/snakemake-executor-plugin-cluster-generic-1.0.9-pyhdfd78af_0.tar.bz2#9b1db7127119f513696d620eefe7bf67
-https://conda.anaconda.org/conda-forge/osx-64/ruff-0.15.11-h16586dd_0.conda#d2c7c98d69f8e0d9160257fb590ffe4f
+https://conda.anaconda.org/conda-forge/osx-64/ruff-0.15.10-h16586dd_0.conda#42b0cc7848c084ce32eaa4c65534b750
 https://conda.anaconda.org/conda-forge/osx-64/ruamel.yaml.clib-0.2.15-py312hf7082af_1.conda#1febc2f58c009405f5111fba9b97ba69
 https://conda.anaconda.org/conda-forge/noarch/ruamel.yaml-0.19.1-pyhcf101f3_0.conda#06ad944772941d5dae1e0d09848d8e49
 https://conda.anaconda.org/conda-forge/noarch/xarray-2025.6.1-pyhd8ed1ab_1.conda#145c6f2ac90174d9ad1a2a51b9d7c1dd
@@ -160,10 +160,10 @@ https://conda.anaconda.org/conda-forge/osx-64/pcre2-10.47-h13923f0_0.conda#08f97
 https://conda.anaconda.org/conda-forge/osx-64/muparser-2.3.5-hb996559_0.conda#d3aa5571d7b5182dcfbf8beb92c434a1
 https://conda.anaconda.org/conda-forge/osx-64/lz4-c-1.10.0-h240833e_1.conda#d6b9bd7e356abd7e3a633d59b753495a
 https://conda.anaconda.org/conda-forge/osx-64/libiconv-1.18-h57a12c2_2.conda#210a85a1119f97ea7887188d176db135
-https://conda.anaconda.org/conda-forge/osx-64/libxml2-16-2.15.3-h7a90416_0.conda#c74ae93cd7876e3a9c4b5569d5e29e34
-https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.15.3-h953d39d_0.conda#33f30d4878d1f047da82a669c33b307d
+https://conda.anaconda.org/conda-forge/osx-64/libxml2-16-2.15.2-h7a90416_0.conda#0c8bdbfd118f5963ab343846094932a3
+https://conda.anaconda.org/conda-forge/osx-64/libxml2-2.15.2-hd552753_0.conda#eea3155f3b4a3b75af504c871ec23858
 https://conda.anaconda.org/conda-forge/osx-64/zlib-1.3.2-hbb4bfdb_2.conda#6276aa61ffc361cbf130d78cfb88a237
-https://conda.anaconda.org/conda-forge/osx-64/libxml2-devel-2.15.3-h953d39d_0.conda#875a51e12cc99a98d70aa48055f40ba4
+https://conda.anaconda.org/conda-forge/osx-64/libxml2-devel-2.15.2-hd552753_0.conda#38e8f626f33c18f0dc2859c495587c4d
 https://conda.anaconda.org/conda-forge/osx-64/geos-3.14.1-he483b9e_0.conda#d83030a79ce1276edc2332c1730efa17
 https://conda.anaconda.org/conda-forge/osx-64/librttopo-1.1.0-h16cd5d8_20.conda#32837d365266ad66fcf849b7a92fb5fa
 https://conda.anaconda.org/conda-forge/osx-64/minizip-4.0.10-hfb7a1ec_0.conda#412fd08e5bf0e03fdce24dea0560fa26
@@ -193,7 +193,6 @@ https://conda.anaconda.org/conda-forge/osx-64/pyproj-3.7.2-py312h4270620_3.conda
 https://conda.anaconda.org/conda-forge/noarch/rioxarray-0.20.0-pyhd8ed1ab_0.conda#27583d44e139c520d9fdc1fd7aedd58d
 https://conda.anaconda.org/conda-forge/noarch/pyxlsb-1.0.10-pyhd8ed1ab_0.tar.bz2#0c14e44bc93a99cdc11398311c3c0dcf
 https://conda.anaconda.org/conda-forge/noarch/python-dotenv-1.2.2-pyhcf101f3_0.conda#130584ad9f3a513cdd71b1fdc1244e9c
-https://conda.anaconda.org/conda-forge/osx-64/python-calamine-0.6.1-py312h1f62012_0.conda#cebade697eb1b483a997f6b72a4ffe3c
 https://conda.anaconda.org/conda-forge/osx-64/libhwloc-2.12.2-default_h273dbb7_1000.conda#56aaf4b7cc4c24e30cecc185bb08668d
 https://conda.anaconda.org/conda-forge/osx-64/tbb-2022.3.0-h06b67a2_2.conda#e048347a60763f60ada3c5fac23dfb60
 https://conda.anaconda.org/conda-forge/osx-64/gmp-6.3.0-hf036a51_2.conda#427101d13f19c4974552a4e5b072eef1
@@ -240,7 +239,7 @@ https://conda.anaconda.org/conda-forge/osx-64/libaec-1.1.5-he7c3a48_0.conda#975f
 https://conda.anaconda.org/conda-forge/osx-64/hdf5-1.14.6-nompi_h13accda_108.conda#0584e06ff7d8379163467e23b1eadccb
 https://conda.anaconda.org/conda-forge/osx-64/c-blosc2-2.23.1-h548f922_0.conda#ea2963a308e8fe5eba56405e7820db6c
 https://conda.anaconda.org/conda-forge/osx-64/pytables-3.11.1-py312h7063bee_1.conda#d951e503c8fe611a3119d844b5e4fc9e
-https://conda.anaconda.org/conda-forge/noarch/pydeck-0.9.2-pyhd8ed1ab_0.conda#18301be1ab749bc57ae189377836cc47
+https://conda.anaconda.org/conda-forge/noarch/pydeck-0.9.1-pyhd8ed1ab_0.conda#4b13d1d2d5cba37be9fa3c0922bbf995
 https://conda.anaconda.org/conda-forge/noarch/narwhals-2.19.0-pyhcf101f3_0.conda#b94cbc2227cdca1e9a65d7ad4ee636c1
 https://conda.anaconda.org/conda-forge/noarch/plotly-6.6.0-pyhd8ed1ab_0.conda#3e9427ee186846052e81fadde8ebe96a
 https://conda.anaconda.org/conda-forge/osx-64/libzip-1.11.2-h31df5bb_0.conda#3cf12c97a18312c9243a895580bf5be6
@@ -515,9 +514,9 @@ https://conda.anaconda.org/conda-forge/noarch/pystac-1.14.3-pyhd8ed1ab_0.conda#7
 https://conda.anaconda.org/conda-forge/osx-64/h5py-3.16.0-nompi_py312h53b4df1_102.conda#626ce477182eeedea956ea6a2c94ef14
 https://conda.anaconda.org/conda-forge/noarch/h5netcdf-1.8.1-pyhd8ed1ab_0.conda#ca7f9ba8762d3e360e47917a10e23760
 https://conda.anaconda.org/conda-forge/noarch/jmespath-1.1.0-pyhcf101f3_1.conda#cc73a9bd315659dc5307a5270f44786f
-https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.90-pyhd8ed1ab_0.conda#aec6d9a752aa72c3a4d3eb40cfaa2f43
+https://conda.anaconda.org/conda-forge/noarch/botocore-1.42.89-pyhd8ed1ab_0.conda#aaf96823b0166e7a69098f9522dfe57d
 https://conda.anaconda.org/conda-forge/noarch/s3transfer-0.16.0-pyhd8ed1ab_0.conda#061b5affcffeef245d60ec3007d1effd
-https://conda.anaconda.org/conda-forge/noarch/boto3-1.42.90-pyhd8ed1ab_0.conda#709ca31cddc854c0ffb389829a0b71f2
+https://conda.anaconda.org/conda-forge/noarch/boto3-1.42.89-pyhd8ed1ab_0.conda#73c0c4ec5bcbc4b4f395f147a9d9adfd
 https://conda.anaconda.org/conda-forge/noarch/arcosparse-0.4.2-pyhd8ed1ab_0.conda#9a005ba5f540619a1343587b4ee3d95e
 https://conda.anaconda.org/conda-forge/noarch/copernicusmarine-2.3.0-pyhd8ed1ab_0.conda#9e18b048c69d2d72bc69d120a435d731
 https://conda.anaconda.org/conda-forge/noarch/pyshp-3.0.3-pyhd8ed1ab_0.conda#c138c7aaa6a10b5762dcd92247864aff
