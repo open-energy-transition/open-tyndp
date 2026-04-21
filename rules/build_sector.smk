@@ -800,7 +800,7 @@ rule build_eurostat_balances:
         csv=resources("eurostat_energy_balances.csv"),
     threads: 1
     resources:
-        mem_mb=4000,
+        mem_mb=128000,
     log:
         logs("build_eurostat_balances.log"),
     benchmark:
