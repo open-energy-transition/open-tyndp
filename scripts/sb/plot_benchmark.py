@@ -14,6 +14,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
 from scripts._helpers import (
@@ -23,7 +24,12 @@ from scripts._helpers import (
     get_version,
     set_scenario_config,
 )
-from scripts.sb.make_benchmark import SOURCES_MAP, load_data, match_temporal_resolution
+from scripts.sb.make_benchmark import (
+    SOURCES_MAP,
+    get_bus_col_name,
+    load_data,
+    match_temporal_resolution,
+)
 
 logger = logging.getLogger(__name__)
 plt.style.use("bmh")
@@ -38,6 +44,7 @@ def add_metadata(
     model_col: str = "",
     rfc_source: str = "",
     rfc_cols: list[str] = [],
+    note: str = "",
 ):
     # Version
     version = get_version()
@@ -72,6 +79,19 @@ def add_metadata(
             x0_fig,
             y0_fig - 0.05,
             f"Model outputs ({model_col}) benchmarked against {rfc_source}.{additional_sources}",
+            transform=fig.transFigure,
+            ha="left",
+            va="bottom",
+            fontsize=8,
+            alpha=0.7,
+        )
+
+    # Notes
+    if note:
+        ax.text(
+            x0_fig,
+            y0_fig - 0.07,
+            "\n".join(note),
             transform=fig.transFigure,
             ha="left",
             va="bottom",
@@ -143,7 +163,22 @@ def _plot_scenario_comparison(
     if rotation != 0:
         ax.set_ylim(top=ax.get_ylim()[1] * 1.05)
 
-    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source, rfc_cols=rfc_cols)
+    # notes
+    if table == "power_generation":
+        note = [
+            'Note: Curtailed energy is included in both "dumped energy" and renewables generation values.'
+        ]
+    else:
+        note = []
+
+    add_metadata(
+        ax,
+        fig,
+        model_col=model_col,
+        rfc_source=rfc_source,
+        rfc_cols=rfc_cols,
+        note=note,
+    )
 
     output_filename = Path(
         output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
@@ -312,6 +347,88 @@ def _plot_prices(
     plt.close(fig)
 
 
+def _plot_flows(
+    df: pd.DataFrame,
+    table: str,
+    year: int,
+    output_dir: str,
+    scenario: str,
+    cyear: int,
+    model_col: str,
+    rfc_source: str,
+    source_unit: str,
+    bench_colors: dict,
+):
+    fig, ax = plt.subplots(
+        figsize=(
+            FIGURE_WIDTH_DEFAULT,
+            FIGURE_HEIGHT_DEFAULT * np.ceil(df.shape[0] / 45),
+        )
+    )
+    table_title = (
+        table.replace("_", " ")
+        .replace("crossborder", "cross-border exchanges for")
+        .title()
+    )
+    bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
+    df.index = df.index.get_level_values("spatial")
+
+    # remove flows between identical locations
+    df = df[df.index.str.split("->").map(lambda x: x[0] != x[1])]
+
+    df[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
+        title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
+        xlabel=source_unit,
+        color=bar_colors,
+        ax=ax,
+    )
+
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.grid(axis="x", which="major", linestyle="-")
+    ax.grid(axis="x", which="minor", linestyle="--", alpha=0.7)
+    ax.grid(axis="y", linestyle="-", alpha=0.7)
+
+    ax.legend(
+        frameon=True,
+        facecolor="white",
+    )
+
+    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+
+    output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
+    fig.savefig(output_filename, bbox_inches="tight")
+
+    plt.close(fig)
+
+    # Additional plot for crossborder flows with incorrect net direction
+    mask_sign = np.sign(df[model_col].fillna(0)) != np.sign(df[rfc_source].fillna(0))
+    df_direction = df[mask_sign].dropna(axis=0)
+    if not df_direction.empty:
+        fig, ax = plt.subplots(
+            figsize=(
+                FIGURE_WIDTH_DEFAULT,
+                FIGURE_HEIGHT_DEFAULT * np.ceil(df_direction.shape[0] / 45),
+            )
+        )
+        df_direction[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
+            title=f"{table_title} (focusing on incorrect net direction, above 1 {source_unit}) - Scenario {scenario} - CY {cyear} - Year {year}",
+            xlabel=source_unit,
+            color=bar_colors,
+            ax=ax,
+        )
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.grid(axis="x", which="major", linestyle="-")
+        ax.grid(axis="x", which="minor", linestyle="--", alpha=0.7)
+        ax.grid(axis="y", linestyle="-", alpha=0.7)
+        ax.legend(frameon=True, facecolor="white")
+        add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+        output_filename = Path(
+            output_dir, f"benchmark_{table}_direction_errors_cy{cyear}_{year}.pdf"
+        )
+        fig.savefig(output_filename, bbox_inches="tight")
+        plt.close(fig)
+
+
 def plot_benchmark(
     table: str,
     bus: str,
@@ -357,28 +474,31 @@ def plot_benchmark(
     # Parameters
     opt = options["tables"][table]
     table_type = opt["table_type"]
-    source_unit = opt["report"]["unit"]
+    source_unit = "TWh" if "crossborder" in table else opt["unit"]
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     cyear = get_snapshots(snapshots)[0].year
+    bus_col_name = get_bus_col_name(bus_col_name, table)
 
     # Filter data and Convert back to source unit
     logger.debug(
         f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
     )
-    condition_str = f" and {bus_col_name}==@bus" if "price" not in table else ""
+
+    filter_by_bus = "price" not in table and "crossborder" not in table
+    condition_str = f" and {bus_col_name}==@bus" if filter_by_bus else ""
     benchmarks = (
         benchmarks_raw.query(f"table==@table{condition_str}")
         .dropna(how="all", axis=1)
         .assign(spatial=lambda df: df[bus_col_name])
-        .drop(columns=["bus", "country"], errors="ignore")
+        .drop(columns=["bus", "country", "border", "corridor"], errors="ignore")
     )
     op = "sum" if "price" not in table else "mean"
     benchmarks = (
         benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
         .value.agg(op)
         .reset_index()
-        .assign(unit=opt["report"]["unit"])
+        .assign(unit=opt["unit"])
     )
 
     if benchmarks.empty:
@@ -388,6 +508,7 @@ def plot_benchmark(
         return
 
     if "price" not in table:
+        benchmarks.loc[benchmarks.table.str.contains("crossborder"), "unit"] = "TWh"
         benchmarks = convert_units(benchmarks, invert=True)
 
     available_columns = [
@@ -453,6 +574,21 @@ def plot_benchmark(
                 source_unit=source_unit,
                 bench_colors=bench_colors,
             )
+        elif table_type == "flows":
+            _plot_flows(
+                df=bench_year,
+                table=table,
+                year=year,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_source=rfc_source,
+                source_unit=source_unit,
+                bench_colors=bench_colors,
+            )
+        else:
+            raise ValueError(f"Unknown table type {table_type}.")
 
 
 def orchestrate_benchmark(
@@ -476,7 +612,7 @@ def orchestrate_benchmark(
         for table in options["tables"]
         for bus_col in (
             [""]
-            if "price" in table
+            if "price" in table or "crossborder" in table
             else benchmarks_raw.query("table == @table")[bus_col_name].unique()
         )
     ]

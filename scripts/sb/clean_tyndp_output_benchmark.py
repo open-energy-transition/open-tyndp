@@ -24,6 +24,7 @@ from scripts._helpers import (
     configure_logging,
     convert_units,
     get_snapshots,
+    normalize_direction,
     set_scenario_config,
 )
 
@@ -82,6 +83,8 @@ MM_CARRIER_MAPPING = {
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
     "Demand Side Response Explicit": "demand shedding",
     "Demand Side Response Implicit": "demand shedding",
+    # Curtailment/"dump energy"
+    "Dump energy [GWh]": "dumped energy",
     # Hydrogen_demand
     "Native Demand (excl. H2 storage charge) [GWhH2]": "exogenous demand",
     # "power generation" - could be calculated from power sheet (H2 Fuel Cell + H2 CCGT) * efficiency
@@ -107,7 +110,10 @@ MM_CARRIER_MAPPING = {
 # look up dictionary {name of plot: [sheet_name, output_type]}
 LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
-    "power_generation": ["Yearly Outputs", "Annual generation [GWh]"],
+    "power_generation": [
+        "Yearly Outputs",
+        ["Annual generation [GWh]", "Dump energy [GWh]"],
+    ],
     "electricity_demand": [
         "Yearly Outputs",
         "Native Demand (excl. Pump load & Battery charge) [GWh]",
@@ -137,22 +143,6 @@ CROSS_BORDER_DICT: dict[str, str] = {
 }
 
 
-def normalize_direction(df, cols):
-    mask = (df["bus0"] > df["bus1"]) & ~df["bus0"].str.startswith("X")
-    assignments = {col: np.where(mask, -df[col], df[col]) for col in cols}
-
-    # Add bus0, bus1, and border to assignments
-    assignments.update(
-        {
-            "bus0": np.where(mask, df["bus1"], df["bus0"]),
-            "bus1": np.where(mask, df["bus0"], df["bus1"]),
-            "border": lambda df: df.bus0 + "->" + df.bus1,
-        }
-    )
-
-    return df.assign(**assignments)
-
-
 def load_crossborder_sheet(
     sheet_name: str,
     filepath: str | Path,
@@ -177,13 +167,10 @@ def load_crossborder_sheet(
 
     # normalize direction
     attributes = df.index
-    # add buses
-    df.loc["bus0", :] = df.columns.str.split("->").str[0]
-    df.loc["bus1", :] = df.columns.str.split("->").str[1]
-    df = normalize_direction(df.T.reset_index(drop=True), cols=attributes)
+    df = normalize_direction(df.T, cols=attributes, buses_from_index=True)
 
     # set index
-    df = df.set_index("border").T
+    df = df.T
     df.index.rename("Parameter", inplace=True)
     # rename axis for H2 flows to align with electricity
     df = df.rename(index=lambda x: x.replace("H2", ""))
@@ -240,6 +227,7 @@ def load_MM_sheet(
         Market Model data in long format (incl. EU27).
     """
     sheet_name, output_type = LOOKUP_TABLES[table_name]
+    output_type = [output_type] if isinstance(output_type, str) else output_type
 
     df = pd.read_excel(
         filepath,
@@ -259,7 +247,7 @@ def load_MM_sheet(
 
     # Rename and group
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
-    df = df.loc[output_type]
+    df = df.loc[output_type].droplevel("output_type")
 
     # Rename and filter column names (buses)
     df.rename(
@@ -275,10 +263,10 @@ def load_MM_sheet(
     )
     df_nodal = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(countries)]
 
-    # Add EU27 (load-weighted average for prices)
-    df_eu27 = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
-
+    # Add EU27 / Pan-EU load-weighted average for prices
     if "price" in table_name:
+        df_eu = df_nodal
+        bus_name = "Pan-EU"
         weights = (
             load_MM_sheet(
                 table_name=f"{table_name.split('_')[0]}_demand",
@@ -287,29 +275,32 @@ def load_MM_sheet(
                 eu27=eu27,
                 skiprows=5,
             )
+            .query("bus!='EU27'")
             .set_index("bus")
             .value
         )
         normalizer = weights.sum()
     else:
-        weights = pd.Series(1.0, index=df_eu27.bus.unique())
+        df_eu = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
+        bus_name = "EU27"
+        weights = pd.Series(1.0, index=df_eu.bus.unique())
         normalizer = 1
 
-    df_eu27 = (
-        df_eu27.assign(value=lambda x: x.bus.map(weights).fillna(0) * x.value)
+    df_eu = (
+        df_eu.assign(value=lambda x: x.bus.map(weights) * x.value)
         .groupby(by=["carrier"])
         .value.sum()
         .div(normalizer)
         .reset_index()
-        .assign(bus="EU27")
+        .assign(bus=bus_name)
     )
-    df = pd.concat([df_nodal, df_eu27])
+    df = pd.concat([df_nodal, df_eu])
 
     # Add metadata
     df["unit"] = re.sub(
         r"€(/MWh)?",
         "EUR/MWh",
-        re.search(r"\[(.*)]", output_type).group(1).rstrip("H2"),
+        re.search(r"\[(.*)]", output_type[0]).group(1).rstrip("H2"),
     )
 
     df["table"] = table_name
@@ -550,6 +541,36 @@ def clean_h2_imports_for_benchmarking(
     return pd.concat([df, df_eu27], ignore_index=True)
 
 
+def clean_crossborder_for_benchmarking(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean crossborder data for benchmarking purposes.
+    """
+    unit_map = df.loc["sum"].xs("unit", level="border")
+    df = (
+        df.loc["sum"]
+        .T.reset_index()
+        .query("border!='unit'")
+        .rename(columns={"sum": "value"})
+        .assign(
+            unit=lambda x: x.carrier.map(unit_map),
+            table=lambda x: np.where(
+                x.carrier == "electricity",
+                "crossborder_electricity",
+                "crossborder_hydrogen",
+            ),
+            carrier=lambda x: np.where(x.carrier == "electricity", "AC", x.carrier),
+        )
+        .reset_index(drop=True)
+    )
+
+    df = (
+        normalize_direction(df.set_index("border"), ["value"], buses_from_index=True)
+        .reset_index()
+        .drop(columns=["bus0", "bus1"])
+    )
+    return df
+
+
 def assign_meta_data(df, planning_horizon, scenario):
     df["scenario"] = f"TYNDP {scenario}"
     df["year"] = planning_horizon
@@ -627,6 +648,9 @@ if __name__ == "__main__":
             CROSS_BORDER_DICT[key], tyndp_output_file
         )
     crossborder_agg = pd.concat(crossborder, axis=1)
+    crossborder_agg.columns.names = ["carrier", *crossborder_agg.columns.names[1:]]
+
+    MM_data = pd.concat([MM_data, clean_crossborder_for_benchmarking(crossborder_agg)])
 
     # concatenate crossborder H2 imports to MM data for benchmarking
     MM_data = pd.concat(
