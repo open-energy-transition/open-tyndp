@@ -7,6 +7,7 @@ This script computes the benchmark statistics from the optimised network.
 
 import logging
 import multiprocessing as mp
+import re
 from functools import partial
 
 import country_converter as coco
@@ -20,6 +21,7 @@ from scripts._helpers import (
     POWER_UNITS,
     PRICE_UNITS,
     configure_logging,
+    normalize_direction,
     set_scenario_config,
 )
 
@@ -491,6 +493,30 @@ def compute_benchmark(
             .assign(carrier=carrier)
             .set_index("carrier", append=True)
         )
+    elif table in ["crossborder_electricity", "crossborder_hydrogen"]:
+        carrier = "AC" if "elec" in table else "H2"
+        bus_carrier = [carrier, f"{carrier}_OH"]  # noqa F814
+        if carrier == "H2":
+            bus_carrier.extend(["import H2"])
+        connector = " -> " if carrier == "H2" else "-"
+
+        idx_b = n.buses.query("carrier.isin(@bus_carrier)").index  # noqa F841
+        idx_l = n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").index
+
+        df = sws @ n.links_t.p0[idx_l]
+        if carrier == "H2":
+            df = df.rename(
+                lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB")
+            )
+        df = normalize_direction(
+            df, buses_from_index=True, connector=connector, format_index=True
+        )
+
+        df = (
+            df.to_frame("value")
+            .assign(carrier=carrier)
+            .set_index("carrier", append=True)
+        )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
         df = pd.DataFrame(columns=["carrier"])
@@ -538,23 +564,25 @@ def compute_benchmark(
             .assign(bus=bus_name)
         )
         df = pd.concat([df, df_eu])
-    else:
+    elif "border" not in df.columns:
         df = df.assign(bus="EU27")
 
     op = "sum" if "price" not in table else "mean"
     df = (
-        df.groupby(by=[c for c in ["bus", "carrier", "snapshot"] if c in df.columns])
+        df.groupby(
+            by=[c for c in ["bus", "carrier", "snapshot", "border"] if c in df.columns]
+        )
         .agg(op)
         .reset_index()
         .assign(
             table=table,
             unit=lambda x: "MWh"
-            if opt["report"]["unit"] in ENERGY_UNITS
+            if opt["unit"] in ENERGY_UNITS
             else "MW"
-            if opt["report"]["unit"] in POWER_UNITS
+            if opt["unit"] in POWER_UNITS
             else "EUR/MWh"
-            if opt["report"]["unit"] in PRICE_UNITS
-            else opt["report"]["unit"],
+            if opt["unit"] in PRICE_UNITS
+            else opt["unit"],
         )
     )
 
