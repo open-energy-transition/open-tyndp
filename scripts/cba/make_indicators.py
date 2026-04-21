@@ -812,14 +812,14 @@ if __name__ == "__main__":
     # Convert to DataFrame and save
     df_model = build_long_indicators(indicators, units)
 
-    scenario = snakemake.config.get("tyndp_scenario") or snakemake.config.get(
-        "run", {}
-    ).get("name")
+    benchmark_scenario = snakemake.config.get("cba", {}).get(
+        "sb_scenario"
+    ) or snakemake.config.get("tyndp_scenario")
     benchmark_rows = load_benchmark_rows(
         snakemake.input.benchmark,
         indicators["project_id"],
         planning_horizon,
-        scenario,
+        benchmark_scenario,
         project_type,
     )
 
@@ -832,8 +832,22 @@ if __name__ == "__main__":
         df = df_model
 
     df = apply_indicator_units(df)
-    if "cy" in scenario:
-        df["cyear"] = int(scenario[scenario.find("cy") + 2 :])
-    else:
-        df["cyear"] = 2009
+
+    reference_cyears = pd.DatetimeIndex(n_reference.snapshots).year.unique()
+    project_cyears = pd.DatetimeIndex(n_project.snapshots).year.unique()
+
+    # check that both reference and project networks contain exactly one climate year
+    if len(reference_cyears) != 1 or len(project_cyears) != 1:
+        raise ValueError(
+            "More than one climate year found in reference or project snapshots."
+        )
+
+    # check that both reference and project networks use the same climate year
+    if reference_cyears[0] != project_cyears[0]:
+        raise ValueError(
+            f"Reference and project networks use different climate years: "
+            f"{reference_cyears[0]} != {project_cyears[0]}"
+        )
+
+    df["cyear"] = int(reference_cyears[0])
     df.to_csv(snakemake.output.indicators, index=False)
