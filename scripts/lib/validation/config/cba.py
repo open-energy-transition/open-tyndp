@@ -28,6 +28,19 @@ class _CbaStorageConfig(ConfigModel):
     )
 
 
+class _CbaMsvSolvingConfig(ConfigModel):
+    """Configuration for `cba.msv_extraction.solving` settings."""
+
+    solver: dict[str, str] = Field(
+        default_factory=lambda: {"name": "highs", "options": "highs-simplex"},
+        description="Solver configuration for MSV extraction.",
+    )
+    solver_options: dict[str, dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Solver-specific options for MSV extraction.",
+    )
+
+
 class _CbaMsvExtractionConfig(ConfigModel):
     """Configuration for `cba.msv_extraction` settings."""
 
@@ -38,6 +51,10 @@ class _CbaMsvExtractionConfig(ConfigModel):
     resample_method: Literal["ffill", "interpolate"] = Field(
         default="ffill",
         description="Method for resampling marginal storage value to target network resolution.",
+    )
+    solving: _CbaMsvSolvingConfig = Field(
+        default_factory=_CbaMsvSolvingConfig,
+        description="Solver configuration overrides for the MSV extraction solve.",
     )
 
 
