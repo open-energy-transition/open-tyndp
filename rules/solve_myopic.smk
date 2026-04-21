@@ -181,6 +181,7 @@ rule solve_sector_network_myopic:
     resources:
         mem_mb=config_provider("solving", "mem_mb"),
         runtime=config_provider("solving", "runtime", default="6h"),
+        gurobi=1,
     benchmark:
         (
             RESULTS

@@ -443,6 +443,8 @@ rule solve_cba_msv_extraction:
         memory=RESULTS + "logs/cba/msv/{planning_horizons}_memory.log",
         python=RESULTS + "logs/cba/msv/{planning_horizons}_python.log",
     threads: solver_threads
+    resources:
+        gurobi=1,
     script:
         "../scripts/cba/solve_cba_msv_extraction.py"
 
