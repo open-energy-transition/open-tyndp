@@ -32,6 +32,8 @@ Upcoming Open-TYNDP Release
 
 * Fix NaN values of ``marginal_cost_original`` in solved networks (https://github.com/open-energy-transition/open-tyndp/pull/613).
 
+* Fix labeling of climate years in CBA indicators output CSVs (https://github.com/open-energy-transition/open-tyndp/pull/620).
+
 **Documentation**
 
 **Developers Note**
