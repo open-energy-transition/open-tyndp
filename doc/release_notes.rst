@@ -23,7 +23,7 @@ Upcoming Open-TYNDP Release
 
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
 
-* Add separate solver option for CBA MSV extraction (`cba.msv_extraction.solving`), move CBA solve logs to `results/cba/logs/`, and add `gurobi-simplex` as a solver option (https://github.com/open-energy-transition/open-tyndp/pull/627).
+* Add separate solver option for CBA MSV extraction (`cba.msv_extraction.solving`) and move CBA solve logs to `results/cba/logs/` (https://github.com/open-energy-transition/open-tyndp/pull/627).
 
 **Bugfixes and Compatibility**
 
