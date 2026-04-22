@@ -178,7 +178,7 @@ load:
   - 2050
   manual_adjustments: false
   supplement_synthetic: false
-  patch_demand_with_mm: ["GB00"]
+  patch_demand_with_mm: true
 
 pypsa_eur:
   Bus:
