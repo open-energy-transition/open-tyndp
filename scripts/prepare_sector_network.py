@@ -9543,8 +9543,8 @@ if __name__ == "__main__":
             busmap_fn=snakemake.input.busmap,
             scaling=snakemake.params.scaling_factor,
             overwrite=True,
-            patch_load_mm=snakemake.params.patch_load_mm,
-            mm_demand_fn=snakemake.input.elec_demand_mm,
+            patch_load=snakemake.params.patch_load_mm,
+            patch_demand_fn=snakemake.input.elec_demand_mm,
         )
 
     pop_layout = pd.read_csv(snakemake.input.clustered_pop_layout, index_col=0)
