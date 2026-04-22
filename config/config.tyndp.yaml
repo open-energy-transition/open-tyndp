@@ -453,6 +453,11 @@ cba:
     resolution: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
+    # Solve options for MSV extraction
+    solving:
+      solver:
+        name: highs
+        options: highs-simplex
 
   # Rolling horizon solving settings
   solving:
