@@ -4,13 +4,14 @@
 #
 # SPDX-License-Identifier: MIT
 
+import copy
 from itertools import chain
 from pathlib import Path
 import yaml
 from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
 from dotenv import load_dotenv
-from snakemake.utils import min_version
+from snakemake.utils import min_version, update_config
 
 load_dotenv()
 
@@ -40,6 +41,17 @@ validate_config(config)
 
 run = config["run"]
 scenarios = get_scenarios(run)
+
+for scenario_name, scenario_overrides in scenarios.items():
+    merged = copy.deepcopy(config)
+    update_config(merged, scenario_overrides)
+    try:
+        validate_config(merged)
+    except Exception as e:
+        raise ValueError(
+            f"Scenario '{scenario_name}' failed config validation: {e}"
+        ) from e
+
 RDIR = get_rdir(run)
 shadow_config = get_shadow(run)
 

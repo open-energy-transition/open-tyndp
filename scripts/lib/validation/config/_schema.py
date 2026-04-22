@@ -259,3 +259,13 @@ class ConfigSchema(BaseModel):
                 "CORINE_API_TOKEN). You can set these in a .env file in the project root."
             )
         return data
+
+    # TODO: Remove when adding MM output compatibility with DE/GA
+    @model_validator(mode="after")
+    def check_patch_demand_requires_nt_scenario(self):
+        if self.load.patch_demand_with_mm and self.tyndp_scenario != "NT":
+            raise ValueError(
+                "'load:patch_demand_with_mm' can only be enabled for 'tyndp_scenario' National Trends (NT). "
+                f"Current 'tyndp_scenario' is '{self.tyndp_scenario}'."
+            )
+        return self

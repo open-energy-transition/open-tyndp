@@ -368,12 +368,61 @@ def load_and_aggregate_powerplants(
     return pd.concat([aggregated, disaggregated])
 
 
+def _patch_elec_demand(load, patch_load, patch_demand_fn) -> pd.DataFrame:
+    """
+    Patch electricity load time series for given list of nodes from given alternative demand data.
+
+    Parameters
+    ----------
+    load : pd.DataFrame
+        Dataframe with electricity load time series per node.
+    patch_load : list[str] | bool
+        List of nodes to patch demand for. If true instead, patch will be applied to all nodes.
+    patch_demand_fn : str
+        Path to file with alternative electricity demand data per node.
+
+    Returns
+    -------
+    load : pd.DataFrame
+        Load time-series with applied patches from alternative demand data.
+
+    """
+    if not patch_demand_fn:
+        # Where no file is available, we cannot apply any patch
+        return load
+
+    # Determine nodes to be patched
+    if patch_load is True:
+        # either all nodes
+        patch_nodes = load.columns.tolist()
+    else:
+        # or patch_load already specifies a list of specific nodes to be patched
+        patch_nodes = patch_load
+
+    # Read alternative demand data
+    patch_demand = (
+        pd.read_csv(patch_demand_fn, index_col=0, parse_dates=True)
+        .reindex(load.index)
+        .dropna(how="all")
+    )
+
+    if not patch_demand.empty:
+        logger.info(
+            f"Patching electricity demand with alternative demand data from {patch_demand_fn} for {'all nodes' if patch_load is True else patch_nodes}."
+        )
+        load.loc[:, patch_nodes] = patch_demand.loc[:, patch_nodes]
+
+    return load
+
+
 def attach_load(
     n: pypsa.Network,
     load_fn: str,
     busmap_fn: str,
     scaling: float = 1.0,
     overwrite: bool = False,
+    patch_load: bool = False,
+    patch_demand_fn: str = None,
 ) -> None:
     """
     Attach load data to the network.
@@ -390,6 +439,10 @@ def attach_load(
         Scaling factor for the load data, by default 1.0.
     overwrite : bool, optional
         Overwrite the load instead of setting it
+    patch_load : bool, optional
+        Whether to patch demand with alternative demand, by default False.
+    patch_demand_fn : str, None
+        Path to file with alternative electricity demand per node.
     """
     load = (
         xr.open_dataarray(load_fn).to_dataframe().squeeze(axis=1).unstack(level="time")
@@ -400,6 +453,13 @@ def attach_load(
     index_col = "name" if PYPSA_V1 else "Bus"
     busmap = busmap.set_index(index_col).squeeze()
     load = load.groupby(busmap).sum().T
+
+    if patch_load:
+        load = _patch_elec_demand(
+            load=load,
+            patch_load=patch_load,
+            patch_demand_fn=patch_demand_fn,
+        )
 
     logger.info(f"Load data scaled by factor {scaling}.")
     load *= scaling

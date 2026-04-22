@@ -1690,6 +1690,7 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
+        patch_load_mm=config_provider("load", "patch_demand_with_mm"),
         offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         tyndp_scenario=config_provider("tyndp_scenario"),
     input:
@@ -1895,6 +1896,16 @@ rule prepare_sector_network:
                 if config_provider("tyndp_scenario")(w)
                 else []
             )
+        ),
+        elec_demand_mm=lambda w: (
+            RESULTS
+            + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_elec_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
+            if config_provider("tyndp_scenario")(w)
+            == "NT"  # Only scenario with MM output data
+            and config_provider("load", "patch_demand_with_mm")(w)
+            and int(w.planning_horizons)
+            in [2030, 2040]  # Only years with MM output data
+            else []
         ),
         tyndp_nuclear_profiles=branch(
             config_provider("tyndp_scenario")

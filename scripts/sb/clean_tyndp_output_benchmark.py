@@ -310,40 +310,46 @@ def load_MM_sheet(
     return df
 
 
-def load_h2_demand_ts(
-    sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex
+def load_demand_ts(
+    sheet_name: str,
+    filepath: str | Path,
+    snapshots: pd.DatetimeIndex,
+    carrier: str,
 ) -> pd.DataFrame:
     """
-    Load hourly H2 demand time series from a TYNDP Market Model Outputs Excel file.
+    Load hourly demand time series from a TYNDP Market Model Outputs Excel file.
 
     Parameters
     ----------
     sheet_name : str
-        Name of the Excel sheet containing hourly H2 data.
+        Name of the Excel sheet containing hourly data.
     filepath : str or Path
         Path to the TYNDP Market Model Outputs Excel file.
     snapshots : pd.DatetimeIndex
         Model snapshot index.
+    carrier : str
+        Energy carrier to load.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame of hourly H2 demand.
+        DataFrame of hourly demand indexed by snapshot.
     """
+    prefix = f"{carrier}_" if carrier == "H2" else ""
+    suffix = f" {carrier}" if carrier == "H2" else ""
     df = (
         pd.read_excel(
             filepath,
             sheet_name=sheet_name,
             skiprows=12,
             index_col=1,
+            engine="calamine",
         )
-        .filter(like="H2_LOAD")
-        .rename(lambda s: s.split("_")[0].replace("UK", "GB") + " H2", axis=1)
+        .filter(like=f"{prefix}LOAD")
+        .rename(lambda s: s.split("_")[0].replace("UK", "GB") + suffix, axis=1)
     )
 
-    df = align_demand_to_snapshots(df, snapshots, format="%d%b%H:%M")
-
-    return df
+    return align_demand_to_snapshots(df, snapshots, format="%d%b%H:%M")
 
 
 def set_load_sign(
@@ -606,8 +612,17 @@ if __name__ == "__main__":
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
-    h2_demand_ts = load_h2_demand_ts(
-        sheet_name="Hourly H2 Data", filepath=tyndp_output_file, snapshots=snapshots
+    h2_demand_ts = load_demand_ts(
+        sheet_name="Hourly H2 Data",
+        filepath=tyndp_output_file,
+        snapshots=snapshots,
+        carrier="H2",
+    )
+    elec_demand_ts = load_demand_ts(
+        sheet_name="Hourly Market Data",
+        filepath=tyndp_output_file,
+        snapshots=snapshots,
+        carrier="electricity",
     )
 
     # assign meta data
@@ -619,3 +634,4 @@ if __name__ == "__main__":
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     crossborder_agg.to_csv(snakemake.output.crossborder)
     h2_demand_ts.to_csv(snakemake.output.h2_demand)
+    elec_demand_ts.to_csv(snakemake.output.elec_demand)
