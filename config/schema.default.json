@@ -580,6 +580,26 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "Configuration for `cba.msv_extraction.solving` settings.",
+              "properties": {
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver configuration for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options for MSV extraction.",
+                  "type": "object"
+                }
+              }
             }
           }
         },
@@ -6451,6 +6471,46 @@
             "interpolate"
           ],
           "type": "string"
+        },
+        "solving": {
+          "description": "Configuration for `cba.msv_extraction.solving` settings.",
+          "properties": {
+            "solver": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Solver configuration for MSV extraction.",
+              "type": "object"
+            },
+            "solver_options": {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "description": "Solver-specific options for MSV extraction.",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "_CbaMsvSolvingConfig": {
+      "description": "Configuration for `cba.msv_extraction.solving` settings.",
+      "properties": {
+        "solver": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Solver configuration for MSV extraction.",
+          "type": "object"
+        },
+        "solver_options": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": "Solver-specific options for MSV extraction.",
+          "type": "object"
         }
       }
     },
@@ -15166,6 +15226,26 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "Configuration for `cba.msv_extraction.solving` settings.",
+              "properties": {
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver configuration for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options for MSV extraction.",
+                  "type": "object"
+                }
+              }
             }
           }
         },

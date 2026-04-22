@@ -16,6 +16,7 @@ Additionally, some extra constraints specified in :mod:`solve_network` are added
 they apply to the dispatch.
 """
 
+import copy
 import importlib
 import logging
 import os
@@ -327,7 +328,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
-    solving = snakemake.params.solving
+    solving = copy.deepcopy(snakemake.params.solving)
     update_config(solving, snakemake.params.cba_solving)
 
     np.random.seed(solving["options"].get("seed", 123))

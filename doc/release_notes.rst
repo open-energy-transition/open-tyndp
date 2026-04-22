@@ -26,6 +26,8 @@ Upcoming Open-TYNDP Release
 
 * Add imports to H2 MM supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
 
+* Add separate solver option for CBA MSV extraction (`cba.msv_extraction.solving`) and move CBA solve logs to `results/cba/logs/` (https://github.com/open-energy-transition/open-tyndp/pull/627).
+
 **Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
