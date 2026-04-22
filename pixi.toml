@@ -111,7 +111,6 @@ natsort = ">=8.4.0"
 snakemake-logger-plugin-pypsa = ">=0.1.0"
 grpcio = "<1.78"   # remove after resolution of https://github.com/conda-forge/grpc-cpp-feedstock/issues/422 
 pydeflate = ">=2.3.4"
-python-calamine = ">=0.6.1"
 
 [target.unix.dependencies]
 snakemake-executor-plugin-slurm = ">=1.9.2"
@@ -211,6 +210,7 @@ snakemake-minimal = { version = ">=9.14.6", channel = "https://repo.prefix.dev/o
 snakemake-storage-plugin-cached-http = ">=0.3"
 pypsa-explorer = ">=0.1.1"
 pixi-pycharm = ">=0.0.9"
+python-calamine = ">=0.6.1"
 
 [feature.open-tyndp.target.win-64.dependencies]
 git = ">=2.52.0"
