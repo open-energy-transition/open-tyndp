@@ -355,25 +355,17 @@ def load_demand_ts(
     """
     prefix = f"{carrier}_" if carrier == "H2" else ""
     suffix = f" {carrier}" if carrier == "H2" else ""
-    header = pd.read_excel(
-        filepath,
-        sheet_name=sheet_name,
-        skiprows=12,
-        nrows=0,
-        index_col=None,
-        engine="calamine",
+    df = (
+        pd.read_excel(
+            filepath,
+            sheet_name=sheet_name,
+            skiprows=12,
+            index_col=1,
+            engine="calamine",
+        )
+        .filter(like=f"{prefix}LOAD")
+        .rename(lambda s: s.split("_")[0].replace("UK", "GB") + suffix, axis=1)
     )
-    load_cols = [1] + [
-        i for i, c in enumerate(header.columns) if f"{prefix}LOAD" in str(c)
-    ]
-    df = pd.read_excel(
-        filepath,
-        sheet_name=sheet_name,
-        skiprows=12,
-        index_col=0,
-        usecols=load_cols,
-        engine="calamine",
-    ).rename(lambda s: s.split("_")[0].replace("UK", "GB") + suffix, axis=1)
 
     return align_demand_to_snapshots(df, snapshots, format="%d%b%H:%M")
 
