@@ -81,8 +81,10 @@ MM_CARRIER_MAPPING = {
     "Battery Storage charge (load)": "battery charge (load)",
     "Hydrogen CCGT": "hydrogen-ccgt",
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
-    "Demand Side Response Explicit": "demand shedding",
-    "Demand Side Response Implicit": "demand shedding",
+    # DSR and load shedding
+    "Demand Side Response Explicit": "dsr",
+    "Demand Side Response Implicit": "dsr",
+    "Unserved energy [GWh]": "demand shedding",
     # Curtailment/"dump energy"
     "Dump energy [GWh]": "dumped energy",
     # Hydrogen_demand
@@ -112,7 +114,7 @@ LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
     "power_generation": [
         "Yearly Outputs",
-        ["Annual generation [GWh]", "Dump energy [GWh]"],
+        ["Annual generation [GWh]", "Dump energy [GWh]", "Unserved energy [GWh]"],
     ],
     "electricity_demand": [
         "Yearly Outputs",
