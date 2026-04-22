@@ -19,6 +19,8 @@ Upcoming Open-TYNDP Release
 
 * Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
 
+* Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
+
 **Changes**
 
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
@@ -28,6 +30,7 @@ Upcoming Open-TYNDP Release
 **Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
+
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
 
 * Adjust ``build_statistics`` to be compatible with not modelling the electricity distribution grid with low voltage buses (https://github.com/open-energy-transition/open-tyndp/pull/634).

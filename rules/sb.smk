@@ -745,6 +745,8 @@ if config["benchmarking"]["enable"]:
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{scenario}{planning_horizons}.csv",
             h2_demand=RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_h2_demand_{scenario}{planning_horizons}.csv",
+            elec_demand=RESULTS
+            + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_elec_demand_{scenario}{planning_horizons}.csv",
         log:
             logs("clean_tyndp_output_benchmark_{scenario}{planning_horizons}.log"),
         benchmark:

@@ -29,6 +29,8 @@ DE:
   tyndp_investment_candidates:
     elec_projects: {}
     h2_projects: {}
+  load:
+    patch_demand_with_mm: false
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
@@ -119,6 +121,8 @@ GA:
   tyndp_investment_candidates:
     elec_projects: {}
     h2_projects: {}
+  load:
+    patch_demand_with_mm: false
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
