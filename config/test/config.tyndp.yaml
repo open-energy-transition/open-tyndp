@@ -310,6 +310,7 @@ sector:
     - H2
   offshore_hubs_tyndp:
     enable: true
+    patch_crossborder_with_mm: true
     connect_isolated: true
     max_capacity:
       DC_OH: 10

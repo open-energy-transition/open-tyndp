@@ -1593,7 +1593,17 @@ def input_offshore_hubs(w):
         "offshore_generators",
     ]
     if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
-        return {f: resources(f"{f}.csv") for f in offshore_files}
+        inputs = {f: resources(f"{f}.csv") for f in offshore_files}
+        if config_provider(
+            "sector", "offshore_hubs_tyndp", "patch_crossborder_with_mm"
+        )(w):
+            inputs["tyndp_offshore_fix"] = (
+                RESULTS
+                + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
+            )
+        else:
+            inputs["tyndp_offshore_fix"] = None
+        return inputs
     return {}
 
 
