@@ -1921,7 +1921,7 @@ rule prepare_sector_network:
         ),
     threads: 1
     resources:
-        mem_mb=2000,
+        mem_mb=128000,
     log:
         logs(
             "prepare_sector_network_base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
