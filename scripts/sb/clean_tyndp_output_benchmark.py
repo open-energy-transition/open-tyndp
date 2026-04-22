@@ -526,6 +526,7 @@ def clean_h2_imports_for_benchmarking(
                 "imports (renewable & low carbon)",
             ),
             unit=crossborder_h2.loc["sum", "unit"],
+            bus=lambda df: df.bus + " H2",
             table="hydrogen_supply",
         )
         .reset_index(drop=True)

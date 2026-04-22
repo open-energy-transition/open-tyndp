@@ -17,7 +17,6 @@ Upcoming Open-TYNDP Release
 
 * Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
 
-* Add imports to H2 MM supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
 
 * Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
 
@@ -25,9 +24,9 @@ Upcoming Open-TYNDP Release
 
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
 
-**Bugfixes and Compatibility**
+* Add imports to H2 MM supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
 
-* Fix EU27 benchmark aggregation for non-price tables (https://github.com/open-energy-transition/open-tyndp/pull/600).
+**Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
 
