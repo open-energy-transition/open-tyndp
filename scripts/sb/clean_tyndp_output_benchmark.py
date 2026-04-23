@@ -498,6 +498,58 @@ def clean_MM_data_for_benchmarking(
     return MM_data
 
 
+def clean_h2_imports_for_benchmarking(
+    crossborder_h2: pd.DataFrame,
+    eu27: list[str],
+) -> pd.DataFrame:
+    """
+    Extracts H2 imports from external nodes/buses for hydrogen supply benchmarking.
+
+    Filters crossborder H2 exchanges where bus0 starts with "X"
+    and maps them to benchmark carriers:
+    - XAmmonia: "ammonia imports"
+    - Other X-nodes (eg. XDZ): "imports (renewable & low carbon)"
+
+    Parameters
+    ----------
+    crossborder_h2 : pd.DataFrame
+        H2 crossborder data from load_crossborder_sheet(), with row index
+        [avg, bus0, bus1, max, min, sum] and border names as columns.
+    eu27 : list[str]
+        List of EU27 country codes (2-letter ISO).
+
+    Returns
+    -------
+    pd.DataFrame
+        dataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
+    """
+    df = (
+        crossborder_h2.loc[["bus0", "bus1", "sum"]]
+        .rename(index={"bus0": "carrier", "bus1": "bus", "sum": "value"})
+        .T.query("carrier.str.startswith('X', na=False)")
+        .assign(
+            carrier=lambda x: np.where(
+                x.carrier == "XAmmonia",
+                "ammonia imports",
+                "imports (renewable & low carbon)",
+            ),
+            unit=crossborder_h2.loc["sum", "unit"],
+            bus=lambda df: df.bus + " H2",
+            table="hydrogen_supply",
+        )
+        .reset_index(drop=True)
+    )
+
+    df_eu27 = (
+        df[df["bus"].str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
+        .groupby("carrier")["value"]
+        .sum()
+        .reset_index()
+        .assign(bus="EU27", unit="MWh", table="hydrogen_supply")
+    )
+    return pd.concat([df, df_eu27], ignore_index=True)
+
+
 def clean_crossborder_for_benchmarking(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean crossborder data for benchmarking purposes.
@@ -608,6 +660,12 @@ if __name__ == "__main__":
     crossborder_agg.columns.names = ["carrier", *crossborder_agg.columns.names[1:]]
 
     MM_data = pd.concat([MM_data, clean_crossborder_for_benchmarking(crossborder_agg)])
+
+    # concatenate crossborder H2 imports to MM data for benchmarking
+    MM_data = pd.concat(
+        [MM_data, clean_h2_imports_for_benchmarking(crossborder["H2"], eu27)],
+        ignore_index=True,
+    )
 
     # load h2 demand time series
     logger.info("Processing hourly H2 demand tables")
