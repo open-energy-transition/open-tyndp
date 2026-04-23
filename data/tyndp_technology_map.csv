@@ -1,95 +1,101 @@
 pemmdb_carrier,pemmdb_type,pemmdb_hydro_inflows,pecd_carrier,investment_dataset_carrier,tyndp_output_carrier,tyndp_report_carrier,tyndp_vp_carrier,open_tyndp_carrier,open_tyndp_index,open_tyndp_nice_name,open_tyndp_benchmarking,open_tyndp_type,pypsa_eur_carrier,comment
-Solar,Photovoltaic,,LFSolarPVUtility,Solar PV Utility,Solar (Photovoltaic),,,solar-pv-utility,solar-pv-utility,,solar,solar-pv-utility,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
-Solar,Rooftop,,LFSolarPVRooftop,Solar PV Rooftop,,,,solar-pv-rooftop,solar-pv-rooftop,,solar,solar-pv-rooftop,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
-Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,,solar-thermal,solar-thermal,,solar thermal,solar-thermal,,
+Solar,Photovoltaic,,LFSolarPVUtility,Solar PV Utility,Solar (Photovoltaic),,Solar PV Utility,solar-pv-utility,solar-pv-utility,,solar,solar-pv-utility,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+Solar,Rooftop,,LFSolarPVRooftop,Solar PV Rooftop,,,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,,solar,solar-pv-rooftop,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+,,,,,,,Solar PV,,,,solar,,,
+,,,,,,,DRES Solar PV,,,,solar,,,
+Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,Solar Thermal,solar-thermal,solar-thermal,,solar thermal,solar-thermal,,
 Solar,Solar Thermal with Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage,,solar thermal,solar-thermal-w-storage,,
 Solar,Solar Thermal with Storage - Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage-storage,,solar thermal,solar-thermal-w-storage-storage,,
-Wind,Onshore wind,,Wind_Onshore,Wind Onshore,Wind Onshore,,,onwind,onwind,,wind onshore,onwind,,
-Wind,Offshore wind,,Wind_Offshore,,Wind Offshore,,,offwind,offwind,,wind offshore,offwind,,only used w/o offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-ac-fb-r,offwind-ac-fb-r,,wind offshore,offwind-ac-fb-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-ac-fl-r,offwind-ac-fl-r,,wind offshore,offwind-ac-fl-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-dc-fb-r,offwind-dc-fb-r,,wind offshore,offwind-dc-fb-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-dc-fl-r,offwind-dc-fl-r,,wind offshore,offwind-dc-fl-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-dc-fb-oh,offwind-dc-fb-oh,,wind offshore,offwind-dc-fb-oh,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-dc-fl-oh,offwind-dc-fl-oh,,wind offshore,offwind-dc-fl-oh,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-h2-fb-oh,offwind-h2-fb-oh,,wind offshore,offwind-h2-fb-oh,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,,,offwind-h2-fl-oh,offwind-h2-fl-oh,,wind offshore,offwind-h2-fl-oh,,only used with offshore hubs
-Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,,,hydro-ror,hydro-ror-turbine,,hydro (exc. pump storage),hydro-ror-turbine,,
-Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,,hydro (exc. pump storage),hydro-pondage-reservoir,,
-Hydro,Pondage - Turbine,Pondage,,,Pondage,,,hydro-pondage,hydro-pondage-turbine,,hydro (exc. pump storage),hydro-pondage-turbine,,
-Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,,hydro (exc. pump storage),hydro-reservoir-reservoir,,
-Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,,,hydro-reservoir,hydro-reservoir-turbine,,hydro (exc. pump storage),hydro-reservoir-turbine,,
-Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,,,hydro-phs-reservoir,,
-Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),,,hydro-phs,hydro-phs-turbine,,hydro and pumped storage,hydro-phs-turbine,,
-Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),,,hydro-phs,hydro-phs-pump,,hydro and pumped storage (load),hydro-phs-pump,,
-Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure-reservoir,,,hydro-phs-pure-reservoir,,
-Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),,,hydro-phs-pure,hydro-phs-pure-turbine,,hydro and pumped storage,hydro-phs-pure-turbine,,
-Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),,,hydro-phs-pure,hydro-phs-pure-pump,,hydro and pumped storage (load),hydro-phs-pure-pump,,
-Other RES,"Small Biomass",,,,Others renewable,,,other-res,other-res-biomass,,other res,other-res-biomass,,
-Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,,,other-res,other-res-mix,,other res,other-res-mix,,
-Gas,Conventional old 1,,,,Gas conventional old 1,,,gas,gas-conv-old1,,methane (incl. biofuels),gas-conv,OCGT,
-Gas,Conventional old 2,,,,Gas conventional old 2,,,gas,gas-conv-old2,,methane (incl. biofuels),gas-conv,OCGT,
-Gas,CCGT old 1,,,,Gas CCGT old 1,,,gas,gas-ccgt-old1,,methane (incl. biofuels),gas-ccgt,CCGT,
-Gas,CCGT old 2,,,,Gas CCGT old 2,,,gas,gas-ccgt-old2,,methane (incl. biofuels),gas-ccgt,CCGT,
-Gas,CCGT new,,,,Gas CCGT new,,,gas,gas-ccgt-new,,methane (incl. biofuels),gas-ccgt,CCGT,
-Gas,CCGT CCS,,,,Gas CCGT CCS,,,gas,gas-ccgt-ccs,,methane (incl. biofuels),gas-ccgt-ccs,,
-Gas,OCGT old,,,,Gas OCGT old,,,gas,gas-ocgt-old,,methane (incl. biofuels),gas-ocgt,OCGT,
-Gas,OCGT new,,,,Gas OCGT new,,,gas,gas-ocgt-new,,methane (incl. biofuels),gas-ocgt,OCGT,
-Gas,CCGT present 1,,,,Gas CCGT present 1,,,gas,gas-ccgt-present1,,methane (incl. biofuels),gas-ccgt,CCGT,
-Gas,CCGT present 2,,,,Gas CCGT present 2,,,gas,gas-ccgt-present2,,methane (incl. biofuels),gas-ccgt,CCGT,
-Nuclear,Nuclear,,,Nuclear,Nuclear,,,uranium,nuclear,,nuclear,nuclear,nuclear,
-Hard coal,old 1,,,,Hard coal old 1,,,coal,coal-old1,,coal + other fossil (incl. biofuels),coal,coal,
-Hard coal,old 2,,,,Hard coal old 2,,,coal,coal-old2,,coal + other fossil (incl. biofuels),coal,coal,
-Hard coal,new,,,,Hard coal new,,,coal,coal-new,,coal + other fossil (incl. biofuels),coal,coal,
-Hard coal,CCS,,,,Hard coal CCS,,,coal,coal-ccs,,coal + other fossil (incl. biofuels),coal-ccs,,
-Lignite,old 1,,,,Lignite old 1,,,lignite,lignite-old1,,coal + other fossil (incl. biofuels),lignite,lignite,
-Lignite,old 2,,,,Lignite old 2,,,lignite,lignite-old2,,coal + other fossil (incl. biofuels),lignite,lignite,
-Lignite,new,,,,Lignite new,,,lignite,lignite-new,,coal + other fossil (incl. biofuels),lignite,lignite,
-Lignite,CCS,,,,Lignite CCS,,,lignite,lignite-ccs,,coal + other fossil (incl. biofuels),lignite-ccs,,
-Light oil,Light oil,,,,Light oil,,,oil-light,oil-light,,oil (incl. biofuels),oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Heavy oil,old 1,,,,Heavy oil old 1,,,oil-heavy,oil-heavy-old1,,oil (incl. biofuels),oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Heavy oil,old 2,,,,Heavy oil old 2,,,oil-heavy,oil-heavy-old2,,oil (incl. biofuels),oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Oil shale,old,,,,Oil shale old,,,oil-shale,oil-shale-old,,oil (incl. biofuels),oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Oil shale,new,,,,Oil shale new,,,oil-shale,oil-shale-new,,oil (incl. biofuels),oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Gas,conventional old 1,,,,Others non-renewable,,,gas,other-non-res-gas-conv-old1,,other non-res,other-non-res-gas-conv,OCGT,
-Other Non-RES Gas,conventional old 2,,,,Others non-renewable,,,gas,other-non-res-gas-conv-old2,,other non-res,other-non-res-gas-conv,OCGT,
-Other Non-RES Gas,ccgt old 1,,,,Others non-renewable,,,gas,other-non-res-gas-ccgt-old1,,other non-res,other-non-res-gas-ccgt,CCGT,
-Other Non-RES Gas,ccgt old 2,,,,Others non-renewable,,,gas,other-non-res-gas-ccgt-old2,,other non-res,other-non-res-gas-ccgt,CCGT,
-Other Non-RES Gas,ccgt new,,,,Others non-renewable,,,gas,other-non-res-gas-ccgt-new,,other non-res,other-non-res-gas-ccgt,CCGT,
-Other Non-RES Gas,ccgt ccs,,,,Others non-renewable,,,gas,other-non-res-gas-ccgt-ccs,,other non-res,other-non-res-gas-ccgt-ccs,,
-Other Non-RES Gas,ocgt old,,,,Others non-renewable,,,gas,other-non-res-gas-ocgt-old,,other non-res,other-non-res-gas-ocgt,OCGT,
-Other Non-RES Gas,ocgt new,,,,Others non-renewable,,,gas,other-non-res-gas-ocgt-new,,other non-res,other-non-res-gas-ocgt,OCGT,
-Other Non-RES Gas,ccgt present 1,,,,Others non-renewable,,,gas,other-non-res-gas-ccgt-present1,,other non-res,other-non-res-gas-ccgt,CCGT,
-Other Non-RES Gas,ccgt present 2,,,,Others non-renewable,,,gas,other-non-res-gas-ccgt-present2,,other non-res,other-non-res-gas-ccgt,CCGT,
-Other Non-RES Hard coal,old 1,,,,Others non-renewable,,,coal,other-non-res-coal-old1,,other non-res,other-non-res-coal,coal,
-Other Non-RES Hard coal,old 2,,,,Others non-renewable,,,coal,other-non-res-coal-old2,,other non-res,other-non-res-coal,coal,
-Other Non-RES Hard coal,new,,,,Others non-renewable,,,coal,other-non-res-coal-new,,other non-res,other-non-res-coal,coal,
-Other Non-RES Hard coal,ccs,,,,Others non-renewable,,,coal,other-non-res-coal-ccs,,other non-res,other-non-res-coal-ccs,,
-Other Non-RES Lignite,old 1,,,,Others non-renewable,,,lignite,other-non-res-lignite-old1,,other non-res,other-non-res-lignite,lignite,
-Other Non-RES Lignite,old 2,,,,Others non-renewable,,,lignite,other-non-res-lignite-old2,,other non-res,other-non-res-lignite,lignite,
-Other Non-RES Lignite,new,,,,Others non-renewable,,,lignite,other-non-res-lignite-new,,other non-res,other-non-res-lignite,lignite,
-Other Non-RES Lignite,ccs,,,,Others non-renewable,,,lignite,other-non-res-lignite-ccs,,other non-res,other-non-res-lignite-ccs,,
-Other Non-RES Light oil,light oil,,,,Others non-renewable,,,oil-light,other-non-res-oil-light,,other non-res,other-non-res-oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Heavy oil,old 1,,,,Others non-renewable,,,oil-heavy,other-non-res-oil-heavy-old1,,other non-res,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Heavy oil,old 2,,,,Others non-renewable,,,oil-heavy,other-non-res-oil-heavy-old2,,other non-res,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Oil shale,old,,,,Others non-renewable,,,oil-shale,other-non-res-oil-shale-old,,other non-res,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Oil shale,new,,,,Others non-renewable,,,oil-shale,other-non-res-oil-shale-new,,other non-res,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,,,h2-fuel-cell,h2-fuel-cell,,hydrogen-fuel-cell,h2-fuel-cell,,
-Hydrogen,CCGT,,,,Hydrogen CCGT,,,h2-ccgt,h2-ccgt,,hydrogen-ccgt,h2-ccgt,,
+Wind,Onshore wind,,Wind_Onshore,Wind Onshore,Wind Onshore,,Wind Onshore,onwind,onwind,,wind onshore,onwind,,
+,,,,,,,DRES Wind On,,,,wind onshore,,,
+Wind,Offshore wind,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind,offwind,,wind offshore,offwind,,only used w/o offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-ac-fb-r,offwind-ac-fb-r,,wind offshore,offwind-ac-fb-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-ac-fl-r,offwind-ac-fl-r,,wind offshore,offwind-ac-fl-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-dc-fb-r,offwind-dc-fb-r,,wind offshore,offwind-dc-fb-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-dc-fl-r,offwind-dc-fl-r,,wind offshore,offwind-dc-fl-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-dc-fb-oh,offwind-dc-fb-oh,,wind offshore,offwind-dc-fb-oh,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-dc-fl-oh,offwind-dc-fl-oh,,wind offshore,offwind-dc-fl-oh,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-h2-fb-oh,offwind-h2-fb-oh,,wind offshore,offwind-h2-fb-oh,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,,Wind Offshore,offwind-h2-fl-oh,offwind-h2-fl-oh,,wind offshore,offwind-h2-fl-oh,,only used with offshore hubs
+,,,,,,,DRES Wind Off,,,,wind offshore,,,
+Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,,Run-of-River,hydro-ror,hydro-ror-turbine,,hydro (exc. pump storage),hydro-ror-turbine,,
+Hydro,Pondage - Reservoir,Pondage,,,,,Pondage,hydro-pondage,hydro-pondage-reservoir,,,hydro-pondage-reservoir,,
+Hydro,Pondage - Turbine,Pondage,,,Pondage,,Pondage,hydro-pondage,hydro-pondage-turbine,,hydro (exc. pump storage),hydro-pondage-turbine,,
+Hydro,Reservoir - Reservoir,Reservoir,,,,,Reservoir,hydro-reservoir,hydro-reservoir-reservoir,,,hydro-reservoir-reservoir,,
+Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,,Reservoir,hydro-reservoir,hydro-reservoir-turbine,,hydro (exc. pump storage),hydro-reservoir-turbine,,
+Hydro,Pump Storage - Reservoir,PS_Open,,,,,PS Open,hydro-phs,hydro-phs-reservoir,,,hydro-phs-reservoir,,
+Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,,hydro and pumped storage,hydro-phs-turbine,,
+Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),,PS Open,hydro-phs,hydro-phs-pump,,hydro and pumped storage (load),hydro-phs-pump,,
+Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,PS Closed,hydro-phs-pure,hydro-phs-pure-reservoir,,,hydro-phs-pure-reservoir,,
+Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),,Pump Storage - Closed Loop (turbine),hydro-phs-pure,hydro-phs-pure-turbine,,hydro and pumped storage,hydro-phs-pure-turbine,,
+Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),,PS Closed,hydro-phs-pure,hydro-phs-pure-pump,,hydro and pumped storage (load),hydro-phs-pure-pump,,
+Other RES,Small Biomass,,,,Others renewable,,Other RES,other-res,other-res-biomass,,other res,other-res-biomass,,
+Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,,Other RES,other-res,other-res-mix,,other res,other-res-mix,,
+Gas,Conventional old 1,,,,Gas conventional old 1,,Gas conventional,gas,gas-conv-old1,,methane (incl. biofuels),gas-conv,OCGT,
+Gas,Conventional old 2,,,,Gas conventional old 2,,Gas conventional,gas,gas-conv-old2,,methane (incl. biofuels),gas-conv,OCGT,
+Gas,CCGT old 1,,,,Gas CCGT old 1,,Gas CCGT,gas,gas-ccgt-old1,,methane (incl. biofuels),gas-ccgt,CCGT,
+Gas,CCGT old 2,,,,Gas CCGT old 2,,Gas CCGT,gas,gas-ccgt-old2,,methane (incl. biofuels),gas-ccgt,CCGT,
+Gas,CCGT new,,,,Gas CCGT new,,Gas CCGT,gas,gas-ccgt-new,,methane (incl. biofuels),gas-ccgt,CCGT,
+Gas,CCGT CCS,,,,Gas CCGT CCS,,Gas CCGT CCS,gas,gas-ccgt-ccs,,methane (incl. biofuels),gas-ccgt-ccs,,
+Gas,OCGT old,,,,Gas OCGT old,,Gas OCGT,gas,gas-ocgt-old,,methane (incl. biofuels),gas-ocgt,OCGT,
+Gas,OCGT new,,,,Gas OCGT new,,Gas OCGT,gas,gas-ocgt-new,,methane (incl. biofuels),gas-ocgt,OCGT,
+Gas,CCGT present 1,,,,Gas CCGT present 1,,Gas CCGT,gas,gas-ccgt-present1,,methane (incl. biofuels),gas-ccgt,CCGT,
+Gas,CCGT present 2,,,,Gas CCGT present 2,,Gas CCGT,gas,gas-ccgt-present2,,methane (incl. biofuels),gas-ccgt,CCGT,
+,,,,,,,Gas,,,,methane (incl. biofuels),,,
+Nuclear,Nuclear,,,Nuclear,Nuclear,,Nuclear,uranium,nuclear,,nuclear,nuclear,nuclear,
+Hard coal,old 1,,,,Hard coal old 1,,Hard coal,coal,coal-old1,,coal + other fossil (incl. biofuels),coal,coal,
+Hard coal,old 2,,,,Hard coal old 2,,Hard coal,coal,coal-old2,,coal + other fossil (incl. biofuels),coal,coal,
+Hard coal,new,,,,Hard coal new,,Hard coal,coal,coal-new,,coal + other fossil (incl. biofuels),coal,coal,
+Hard coal,CCS,,,,Hard coal CCS,,Hard coal,coal,coal-ccs,,coal + other fossil (incl. biofuels),coal-ccs,,
+Lignite,old 1,,,,Lignite old 1,,Lignite,lignite,lignite-old1,,coal + other fossil (incl. biofuels),lignite,lignite,
+Lignite,old 2,,,,Lignite old 2,,Lignite,lignite,lignite-old2,,coal + other fossil (incl. biofuels),lignite,lignite,
+Lignite,new,,,,Lignite new,,Lignite,lignite,lignite-new,,coal + other fossil (incl. biofuels),lignite,lignite,
+Lignite,CCS,,,,Lignite CCS,,Lignite,lignite,lignite-ccs,,coal + other fossil (incl. biofuels),lignite-ccs,,
+Light oil,Light oil,,,,Light oil,,Light oil,oil-light,oil-light,,oil (incl. biofuels),oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Heavy oil,old 1,,,,Heavy oil old 1,,Heavy oil,oil-heavy,oil-heavy-old1,,oil (incl. biofuels),oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Heavy oil,old 2,,,,Heavy oil old 2,,Heavy oil,oil-heavy,oil-heavy-old2,,oil (incl. biofuels),oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,old,,,,Oil shale old,,Oil shale,oil-shale,oil-shale-old,,oil (incl. biofuels),oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,new,,,,Oil shale new,,Oil shale,oil-shale,oil-shale-new,,oil (incl. biofuels),oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Gas,conventional old 1,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-conv-old1,,other non-res,other-non-res-gas-conv,OCGT,
+Other Non-RES Gas,conventional old 2,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-conv-old2,,other non-res,other-non-res-gas-conv,OCGT,
+Other Non-RES Gas,ccgt old 1,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ccgt-old1,,other non-res,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt old 2,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ccgt-old2,,other non-res,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt new,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ccgt-new,,other non-res,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt ccs,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ccgt-ccs,,other non-res,other-non-res-gas-ccgt-ccs,,
+Other Non-RES Gas,ocgt old,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ocgt-old,,other non-res,other-non-res-gas-ocgt,OCGT,
+Other Non-RES Gas,ocgt new,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ocgt-new,,other non-res,other-non-res-gas-ocgt,OCGT,
+Other Non-RES Gas,ccgt present 1,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ccgt-present1,,other non-res,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Gas,ccgt present 2,,,,Others non-renewable,,Others non-RES,gas,other-non-res-gas-ccgt-present2,,other non-res,other-non-res-gas-ccgt,CCGT,
+Other Non-RES Hard coal,old 1,,,,Others non-renewable,,Others non-RES,coal,other-non-res-coal-old1,,other non-res,other-non-res-coal,coal,
+Other Non-RES Hard coal,old 2,,,,Others non-renewable,,Others non-RES,coal,other-non-res-coal-old2,,other non-res,other-non-res-coal,coal,
+Other Non-RES Hard coal,new,,,,Others non-renewable,,Others non-RES,coal,other-non-res-coal-new,,other non-res,other-non-res-coal,coal,
+Other Non-RES Hard coal,ccs,,,,Others non-renewable,,Others non-RES,coal,other-non-res-coal-ccs,,other non-res,other-non-res-coal-ccs,,
+Other Non-RES Lignite,old 1,,,,Others non-renewable,,Others non-RES,lignite,other-non-res-lignite-old1,,other non-res,other-non-res-lignite,lignite,
+Other Non-RES Lignite,old 2,,,,Others non-renewable,,Others non-RES,lignite,other-non-res-lignite-old2,,other non-res,other-non-res-lignite,lignite,
+Other Non-RES Lignite,new,,,,Others non-renewable,,Others non-RES,lignite,other-non-res-lignite-new,,other non-res,other-non-res-lignite,lignite,
+Other Non-RES Lignite,ccs,,,,Others non-renewable,,Others non-RES,lignite,other-non-res-lignite-ccs,,other non-res,other-non-res-lignite-ccs,,
+Other Non-RES Light oil,light oil,,,,Others non-renewable,,Others non-RES,oil-light,other-non-res-oil-light,,other non-res,other-non-res-oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Heavy oil,old 1,,,,Others non-renewable,,Others non-RES,oil-heavy,other-non-res-oil-heavy-old1,,other non-res,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Heavy oil,old 2,,,,Others non-renewable,,Others non-RES,oil-heavy,other-non-res-oil-heavy-old2,,other non-res,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Oil shale,old,,,,Others non-renewable,,Others non-RES,oil-shale,other-non-res-oil-shale-old,,other non-res,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Oil shale,new,,,,Others non-renewable,,Others non-RES,oil-shale,other-non-res-oil-shale-new,,other non-res,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,,Hydrogen FC,h2-fuel-cell,h2-fuel-cell,,hydrogen-fuel-cell,h2-fuel-cell,,
+Hydrogen,CCGT,,,,Hydrogen CCGT,,Hydrogen CCGT,h2-ccgt,h2-ccgt,,hydrogen-ccgt,h2-ccgt,,
 Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),,,electrolyser,electrolyser-onshore-grid,,p2g,electrolyser-onshore-grid,,
-Battery,Discharge,,,,Battery Storage discharge (gen.),,,battery,battery discharger,,battery,battery discharger,,
+Battery,Discharge,,,,Battery Storage discharge (gen.),,Large scale batteries,battery,battery discharger,,battery,battery discharger,,
 Battery,Charge,,,,Battery Storage charge (load),,,battery,battery charger,,battery charge (load),battery charger,,
 Battery,Store,,,,,,,battery,battery,,,battery,,
 ,,,,Batteries Prosumer,,,,battery,battery-prosumer,,,battery-prosumer,,
 ,,,,Batteries Utility,,,,battery,battery-utility,,,battery-utility,,
-,,,,,Lignite biofuel,,,,,,coal + other fossil (incl. biofuels),,,
-,,,,,Hard Coal biofuel,,,,,,coal + other fossil (incl. biofuels),,,
+,,,,,Lignite biofuel,,Lignite biofuel,,,,coal + other fossil (incl. biofuels),,,
+,,,,,Hard Coal biofuel,,Hard coal biofuel,,,,coal + other fossil (incl. biofuels),,,
 ,,,,,Gas biofuel,,,,,,methane (incl. biofuels),,,
 ,,,,,Light oil biofuel,,,,,,oil (incl. biofuels),,,
 ,,,,,Heavy oil biofuel,,,,,,oil (incl. biofuels),,,
-,,,,,Oil shale biofuel,,,,,,oil (incl. biofuels),,,
-,,,,,Demand Side Response Explicit,,,,,,dsr,,,
+,,,,,Oil shale biofuel,,Oil shale biofuel,,,,oil (incl. biofuels),,,
+,,,,,Demand Side Response Explicit,,Demand Side Response Explicit,,,,dsr,,,
 ,,,,,Demand Side Response Implicit,,,,,,dsr,,,
+,,,,,,,DSR,,,,dsr,,,
 ,,,,,Unserved energy [GWh],,,,,,demand shedding,,,
 ,,,,,Dump energy [GWh],,,,,,dumped energy,,,Curtailment/dump energy
 ,,,,,Native Demand (excl. H2 storage charge) [GWhH2],,,,,,exogenous demand,,,Hydrogen demand
