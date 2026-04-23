@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
 
+* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enable with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
+
 **Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
