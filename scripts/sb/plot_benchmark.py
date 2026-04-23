@@ -402,8 +402,7 @@ def _plot_flows(
 
     # Additional plot for crossborder flows with incorrect net direction
     mask_sign = np.sign(df[model_col].fillna(0)) != np.sign(df[rfc_source].fillna(0))
-    mask_clipping = df[[model_col, rfc_source]].sum(axis=1).abs() > 1
-    df_direction = df[mask_sign & mask_clipping].dropna(axis=0)
+    df_direction = df[mask_sign].dropna(axis=0)
     if not df_direction.empty:
         fig, ax = plt.subplots(
             figsize=(
@@ -412,7 +411,7 @@ def _plot_flows(
             )
         )
         df_direction[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
-            title=f"{table_title} (focusing on incorrect net direction, above 1 {source_unit}) - Scenario {scenario} - CY {cyear} - Year {year}",
+            title=f"{table_title} (focusing on incorrect net direction) - Scenario {scenario} - CY {cyear} - Year {year}",
             xlabel=source_unit,
             color=bar_colors,
             ax=ax,
