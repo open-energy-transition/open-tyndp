@@ -330,7 +330,7 @@ rule solve_cba_msv_extraction:
         solver=RESULTS + "logs/cba/msv/{planning_horizons}_solver.log",
         memory=RESULTS + "logs/cba/msv/{planning_horizons}_memory.log",
         python=RESULTS + "logs/cba/msv/{planning_horizons}_python.log",
-    threads: 1
+    threads: solver_threads
     script:
         "../scripts/cba/solve_cba_msv_extraction.py"
 
