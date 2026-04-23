@@ -402,7 +402,8 @@ def _plot_flows(
 
     # Additional plot for crossborder flows with incorrect net direction
     mask_sign = np.sign(df[model_col].fillna(0)) != np.sign(df[rfc_source].fillna(0))
-    df_direction = df[mask_sign].dropna(axis=0)
+    mask_clipping = df[[model_col, rfc_source]].sum(axis=1).abs() > 1
+    df_direction = df[mask_sign & mask_clipping].dropna(axis=0)
     if not df_direction.empty:
         fig, ax = plt.subplots(
             figsize=(
