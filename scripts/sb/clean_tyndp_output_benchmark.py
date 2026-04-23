@@ -81,8 +81,10 @@ MM_CARRIER_MAPPING = {
     "Battery Storage charge (load)": "battery charge (load)",
     "Hydrogen CCGT": "hydrogen-ccgt",
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
-    "Demand Side Response Explicit": "demand shedding",
-    "Demand Side Response Implicit": "demand shedding",
+    # DSR and load shedding
+    "Demand Side Response Explicit": "dsr",
+    "Demand Side Response Implicit": "dsr",
+    "Unserved energy [GWh]": "demand shedding",
     # Curtailment/"dump energy"
     "Dump energy [GWh]": "dumped energy",
     # Hydrogen_demand
@@ -112,7 +114,7 @@ LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
     "power_generation": [
         "Yearly Outputs",
-        ["Annual generation [GWh]", "Dump energy [GWh]"],
+        ["Annual generation [GWh]", "Dump energy [GWh]", "Unserved energy [GWh]"],
     ],
     "electricity_demand": [
         "Yearly Outputs",
@@ -323,40 +325,46 @@ def load_MM_sheet(
     return df
 
 
-def load_h2_demand_ts(
-    sheet_name: str, filepath: str | Path, snapshots: pd.DatetimeIndex
+def load_demand_ts(
+    sheet_name: str,
+    filepath: str | Path,
+    snapshots: pd.DatetimeIndex,
+    carrier: str,
 ) -> pd.DataFrame:
     """
-    Load hourly H2 demand time series from a TYNDP Market Model Outputs Excel file.
+    Load hourly demand time series from a TYNDP Market Model Outputs Excel file.
 
     Parameters
     ----------
     sheet_name : str
-        Name of the Excel sheet containing hourly H2 data.
+        Name of the Excel sheet containing hourly data.
     filepath : str or Path
         Path to the TYNDP Market Model Outputs Excel file.
     snapshots : pd.DatetimeIndex
         Model snapshot index.
+    carrier : str
+        Energy carrier to load.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame of hourly H2 demand.
+        DataFrame of hourly demand indexed by snapshot.
     """
+    prefix = f"{carrier}_" if carrier == "H2" else ""
+    suffix = f" {carrier}" if carrier == "H2" else ""
     df = (
         pd.read_excel(
             filepath,
             sheet_name=sheet_name,
             skiprows=12,
             index_col=1,
+            engine="calamine",
         )
-        .filter(like="H2_LOAD")
-        .rename(lambda s: s.split("_")[0].replace("UK", "GB") + " H2", axis=1)
+        .filter(like=f"{prefix}LOAD")
+        .rename(lambda s: s.split("_")[0].replace("UK", "GB") + suffix, axis=1)
     )
 
-    df = align_demand_to_snapshots(df, snapshots, format="%d%b%H:%M")
-
-    return df
+    return align_demand_to_snapshots(df, snapshots, format="%d%b%H:%M")
 
 
 def set_load_sign(
@@ -503,6 +511,58 @@ def clean_MM_data_for_benchmarking(
     return MM_data
 
 
+def clean_h2_imports_for_benchmarking(
+    crossborder_h2: pd.DataFrame,
+    eu27: list[str],
+) -> pd.DataFrame:
+    """
+    Extracts H2 imports from external nodes/buses for hydrogen supply benchmarking.
+
+    Filters crossborder H2 exchanges where bus0 starts with "X"
+    and maps them to benchmark carriers:
+    - XAmmonia: "ammonia imports"
+    - Other X-nodes (eg. XDZ): "imports (renewable & low carbon)"
+
+    Parameters
+    ----------
+    crossborder_h2 : pd.DataFrame
+        H2 crossborder data from load_crossborder_sheet(), with row index
+        [avg, bus0, bus1, max, min, sum] and border names as columns.
+    eu27 : list[str]
+        List of EU27 country codes (2-letter ISO).
+
+    Returns
+    -------
+    pd.DataFrame
+        dataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
+    """
+    df = (
+        crossborder_h2.loc[["bus0", "bus1", "sum"]]
+        .rename(index={"bus0": "carrier", "bus1": "bus", "sum": "value"})
+        .T.query("carrier.str.startswith('X', na=False)")
+        .assign(
+            carrier=lambda x: np.where(
+                x.carrier == "XAmmonia",
+                "ammonia imports",
+                "imports (renewable & low carbon)",
+            ),
+            unit=crossborder_h2.loc["sum", "unit"],
+            bus=lambda df: df.bus + " H2",
+            table="hydrogen_supply",
+        )
+        .reset_index(drop=True)
+    )
+
+    df_eu27 = (
+        df[df["bus"].str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
+        .groupby("carrier")["value"]
+        .sum()
+        .reset_index()
+        .assign(bus="EU27", unit="MWh", table="hydrogen_supply")
+    )
+    return pd.concat([df, df_eu27], ignore_index=True)
+
+
 def clean_crossborder_for_benchmarking(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean crossborder data for benchmarking purposes.
@@ -614,13 +674,28 @@ if __name__ == "__main__":
 
     MM_data = pd.concat([MM_data, clean_crossborder_for_benchmarking(crossborder_agg)])
 
+    # concatenate crossborder H2 imports to MM data for benchmarking
+    MM_data = pd.concat(
+        [MM_data, clean_h2_imports_for_benchmarking(crossborder["H2"], eu27)],
+        ignore_index=True,
+    )
+
     # load h2 demand time series
     logger.info("Processing hourly H2 demand tables")
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
-    h2_demand_ts = load_h2_demand_ts(
-        sheet_name="Hourly H2 Data", filepath=tyndp_output_file, snapshots=snapshots
+    h2_demand_ts = load_demand_ts(
+        sheet_name="Hourly H2 Data",
+        filepath=tyndp_output_file,
+        snapshots=snapshots,
+        carrier="H2",
+    )
+    elec_demand_ts = load_demand_ts(
+        sheet_name="Hourly Market Data",
+        filepath=tyndp_output_file,
+        snapshots=snapshots,
+        carrier="electricity",
     )
 
     # assign meta data
@@ -632,3 +707,4 @@ if __name__ == "__main__":
     MM_data.to_csv(snakemake.output.benchmarks, index=False)
     crossborder_agg.to_csv(snakemake.output.crossborder)
     h2_demand_ts.to_csv(snakemake.output.h2_demand)
+    elec_demand_ts.to_csv(snakemake.output.elec_demand)

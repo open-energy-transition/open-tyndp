@@ -580,6 +580,26 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "Configuration for `cba.msv_extraction.solving` settings.",
+              "properties": {
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver configuration for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options for MSV extraction.",
+                  "type": "object"
+                }
+              }
             }
           }
         },
@@ -3272,6 +3292,21 @@
               "type": "number"
             }
           }
+        },
+        "patch_demand_with_mm": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": false,
+          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -4772,14 +4807,34 @@
           "type": "boolean"
         },
         "bev_dsm_availability": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            }
+          ],
           "default": 0.5,
-          "description": "The share for battery electric vehicles (BEV) that are able to do demand side management (DSM).",
-          "type": "number"
+          "description": "The share for battery electric vehicles (BEV) that are able to do demand side management (DSM)."
         },
         "bev_energy": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            }
+          ],
           "default": 0.05,
-          "description": "The average size of battery electric vehicles (BEV) in MWh.",
-          "type": "number"
+          "description": "The average size of battery electric vehicles (BEV) in MWh."
         },
         "bev_charge_efficiency": {
           "default": 0.9,
@@ -6456,6 +6511,46 @@
             "interpolate"
           ],
           "type": "string"
+        },
+        "solving": {
+          "description": "Configuration for `cba.msv_extraction.solving` settings.",
+          "properties": {
+            "solver": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Solver configuration for MSV extraction.",
+              "type": "object"
+            },
+            "solver_options": {
+              "additionalProperties": {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              "description": "Solver-specific options for MSV extraction.",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "_CbaMsvSolvingConfig": {
+      "description": "Configuration for `cba.msv_extraction.solving` settings.",
+      "properties": {
+        "solver": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Solver configuration for MSV extraction.",
+          "type": "object"
+        },
+        "solver_options": {
+          "additionalProperties": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "description": "Solver-specific options for MSV extraction.",
+          "type": "object"
         }
       }
     },
@@ -11390,6 +11485,21 @@
               "type": "number"
             }
           }
+        },
+        "patch_demand_with_mm": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": false,
+          "description": "Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively."
         }
       }
     },
@@ -11829,14 +11939,34 @@
           "type": "boolean"
         },
         "bev_dsm_availability": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            }
+          ],
           "default": 0.5,
-          "description": "The share for battery electric vehicles (BEV) that are able to do demand side management (DSM).",
-          "type": "number"
+          "description": "The share for battery electric vehicles (BEV) that are able to do demand side management (DSM)."
         },
         "bev_energy": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            }
+          ],
           "default": 0.05,
-          "description": "The average size of battery electric vehicles (BEV) in MWh.",
-          "type": "number"
+          "description": "The average size of battery electric vehicles (BEV) in MWh."
         },
         "bev_charge_efficiency": {
           "default": 0.9,
@@ -15181,6 +15311,26 @@
                 "interpolate"
               ],
               "type": "string"
+            },
+            "solving": {
+              "description": "Configuration for `cba.msv_extraction.solving` settings.",
+              "properties": {
+                "solver": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Solver configuration for MSV extraction.",
+                  "type": "object"
+                },
+                "solver_options": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "description": "Solver-specific options for MSV extraction.",
+                  "type": "object"
+                }
+              }
             }
           }
         },

@@ -210,6 +210,7 @@ snakemake-minimal = { version = ">=9.14.6", channel = "https://repo.prefix.dev/o
 snakemake-storage-plugin-cached-http = ">=0.3"
 pypsa-explorer = ">=0.1.1"
 pixi-pycharm = ">=0.0.9"
+python-calamine = ">=0.6.1"
 
 [feature.open-tyndp.target.win-64.dependencies]
 git = ">=2.52.0"

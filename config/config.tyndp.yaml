@@ -178,6 +178,7 @@ load:
   - 2050
   manual_adjustments: false
   supplement_synthetic: false
+  patch_demand_with_mm: true
 
 pypsa_eur:
   Bus:
@@ -454,6 +455,11 @@ cba:
     resolution: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
+    # Solve options for MSV extraction
+    solving:
+      solver:
+        name: highs
+        options: highs-simplex
 
   # Rolling horizon solving settings
   solving:

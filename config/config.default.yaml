@@ -580,6 +580,7 @@ load:
   distribution_key:
     gdp: 0.6
     population: 0.4
+  patch_demand_with_mm: false
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#pypsa_eur
 pypsa_eur:
@@ -1598,6 +1599,11 @@ cba:
   msv_extraction:
     resolution: false
     resample_method: ffill
+    solving:
+      solver:
+        name: highs
+        options: "highs-simplex"
+      solver_options: {}
   solving:
     options:
       horizon: 168
