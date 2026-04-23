@@ -1596,13 +1596,14 @@ def input_offshore_hubs(w):
         inputs = {f: resources(f"{f}.csv") for f in offshore_files}
         if config_provider(
             "sector", "offshore_hubs_tyndp", "patch_crossborder_with_mm"
-        )(w):
+        )(w) and int(w.planning_horizons) in [2030, 2040]:
+            scenario = config_provider("tyndp_scenario")(w)
             inputs["tyndp_offshore_fix"] = (
                 RESULTS
-                + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
+                + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{scenario}{{planning_horizons}}.csv"
             )
         else:
-            inputs["tyndp_offshore_fix"] = None
+            inputs["tyndp_offshore_fix"] = []
         return inputs
     return {}
 
