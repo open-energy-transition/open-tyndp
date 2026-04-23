@@ -364,7 +364,9 @@ rule prepare_project:
         methods=rules.clean_projects.output.methods,
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
-        network=resources("cba/networks/project_{cba_project}_{planning_horizons}.nc"),
+        network=temp(
+            resources("cba/networks/project_{cba_project}_{planning_horizons}.nc")
+        ),
     script:
         scripts("cba/prepare_project.py")
 
