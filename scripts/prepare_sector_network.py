@@ -4908,7 +4908,7 @@ def patch_offshore_grid_tyndp(
     Parameters
     ----------
     n : pypsa.Network
-        The network object to add offshore grid connections to.
+        The network object to patch offshore grid connections in.
     offshore_fix_fn : str
         Path to the file containing offshore grid fixes to apply.
     offshore_grid_dc : pd.DataFrame
@@ -4921,7 +4921,7 @@ def patch_offshore_grid_tyndp(
     None
         Modifies the network object in-place by patching offshore grid links.
     """
-    logger.info("Patching offshore interconnectors capacities with corrections.")
+    logger.info("Patching offshore interconnector capacities with corrections.")
 
     # Read and format the fixes to apply
     fix_raw = (
@@ -4996,7 +4996,6 @@ def patch_offshore_grid_tyndp(
     existing_oh_inv = (
         existing_oh_inv.reset_index()
         .set_index("border_inv")
-        .rename(columns={"border": "border_inv"})
         .assign(p_nom=lambda df: df.p_nom * -1)
         .p_nom
     )
@@ -5064,7 +5063,7 @@ def add_offshore_grid_tyndp(
         - offshore_hubs.connect_isolated : bool
     nyears : float, default 1
         Number of years for which to scale the investment costs.
-    offshore_fix_fn : str (default : None)
+    offshore_fix_fn : str or None, default None
         Path to the file containing offshore grid fixes to apply.
 
     Returns
@@ -5231,7 +5230,7 @@ def add_offshore_hubs_tyndp(
         - offshore_hubs.connect_isolated : bool
     nyears : float (default : 1)
         Number of years for which to scale the investment costs.
-    offshore_fix_fn : str (default : None)
+    offshore_fix_fn : str or None, default None
         Path to the file containing offshore grid fixes to apply.
 
     Returns

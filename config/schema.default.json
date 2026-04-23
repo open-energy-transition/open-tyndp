@@ -5609,7 +5609,7 @@
             },
             "patch_crossborder_with_mm": {
               "default": false,
-              "description": "Add option to patch the Offshore Hubs interconnectors capacities with the Market Model output data.",
+              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
               "type": "boolean"
             },
             "connect_isolated": {
@@ -7610,7 +7610,7 @@
         },
         "patch_crossborder_with_mm": {
           "default": false,
-          "description": "Add option to patch the Offshore Hubs interconnectors capacities with the Market Model output data.",
+          "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
           "type": "boolean"
         },
         "connect_isolated": {
@@ -12666,7 +12666,7 @@
             },
             "patch_crossborder_with_mm": {
               "default": false,
-              "description": "Add option to patch the Offshore Hubs interconnectors capacities with the Market Model output data.",
+              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
               "type": "boolean"
             },
             "connect_isolated": {

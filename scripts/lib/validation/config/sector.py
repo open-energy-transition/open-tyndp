@@ -373,7 +373,7 @@ class _OffshoreHubsTyndpConfig(BaseModel):
     )
     patch_crossborder_with_mm: bool = Field(
         False,
-        description="Add option to patch the Offshore Hubs interconnectors capacities with the Market Model output data.",
+        description="Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
     )
     connect_isolated: bool = Field(
         False, description="Copperplate isolated wind farms to the grid."
