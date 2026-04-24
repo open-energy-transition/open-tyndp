@@ -43,6 +43,8 @@ Upcoming Open-TYNDP Release
 
 * Fix labeling of climate years in CBA indicators output CSVs (https://github.com/open-energy-transition/open-tyndp/pull/620).
 
+* Fix CBA workflow to correctly handle simple runs, collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
+
 **Documentation**
 
 **Developers Note**
