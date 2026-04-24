@@ -790,6 +790,7 @@ if config["benchmarking"]["enable"]:
             elec_demand=rules.retrieve_tyndp_vp_data.output.elec_demand,
             elec_supplymix=rules.retrieve_tyndp_vp_data.output.elec_supply,
             elec_flex=rules.retrieve_tyndp_vp_data.output.elec_flex,
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             RESULTS + "benchmarks/tyndp-2024/resources/vp_data_tyndp.csv",
         log:
@@ -816,6 +817,7 @@ if config["benchmarking"]["enable"]:
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",

@@ -30,7 +30,24 @@ EU27_COUNTRIES = [
 ]
 EU27_MAP = pd.Series(cc.EU27as("ISO2").ISO2.to_list(), index=EU27_COUNTRIES)
 
-CARRIER_MAP = {
+
+# Mapping from TYNDP Visualization Platform (VP) carrier names to benchmark carrier names
+def _load_vp_carrier_mapping(carrier_mapping_fn: str) -> dict:
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    return (
+        tech_map[
+            [
+                "tyndp_vp_carrier",
+                "benchmarking_generation",
+            ]
+        ]
+        .dropna(subset=["tyndp_vp_carrier"])
+        .set_index("tyndp_vp_carrier")["benchmarking_generation"]
+        .to_dict()
+    )
+
+
+CARRIER_MAP_old = {
     "Demand Side Response Explicit": "dsr",
     "DRES Solar PV": "solar",
     "DRES Wind Off": "wind offshore",
@@ -207,6 +224,9 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     unit_conversion = snakemake.params["unit_conversion"]
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
+
+    # load carrier mapping
+    CARRIER_MAP = _load_vp_carrier_mapping(snakemake.input.carrier_mapping)
 
     logger.info("Reading Visualisation Platform data")
 
