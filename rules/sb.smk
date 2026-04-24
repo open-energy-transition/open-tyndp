@@ -738,6 +738,7 @@ if config["benchmarking"]["enable"]:
                 rules.retrieve_tyndp.output,
                 f"market_outputs_{w.scenario}{w.planning_horizons}_CY2009",
             ),
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             benchmarks=RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
