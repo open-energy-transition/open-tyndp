@@ -33,7 +33,7 @@ Upcoming Open-TYNDP Release
 
 * Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enable with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
 
-* Apply known bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
+* Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
 
 **Bugfixes and Compatibility**
 
