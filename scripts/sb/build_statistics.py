@@ -326,6 +326,20 @@ def compute_benchmark(
         )
         df = pd.concat([df, df_curtailment])
 
+    elif table == "demand_shedding_hours":
+        grouper = ["carrier"]
+        df = (
+            n.statistics.supply(
+                comps=supply_comps,
+                bus_carrier=elec_bus_carrier,
+                carrier="load",
+                groupby=["bus"] + grouper,
+                aggregate_across_components=True,
+                groupby_time=False,
+            )
+        )
+        df = (df > 1).mul(sws, axis=1).sum(axis=1)
+
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (

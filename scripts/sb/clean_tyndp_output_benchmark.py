@@ -99,6 +99,8 @@ MM_CARRIER_MAPPING = {
     "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]": "AC",
     "Marginal Cost Yearly Average [€/MWhH2]": "H2",
     "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]": "H2",
+    # Demand/Load shedding hours
+    "Loss of load expectation [hour]  ": "loss of load expectation",
     # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
     # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
     # NOT available in TYNDP market model (will not appear in output):
@@ -125,6 +127,7 @@ LOOKUP_TABLES: dict[str, list[str]] = {
         "Native Demand (excl. H2 storage charge) [GWhH2]",
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
+    "demand_shedding_hours": ["Yearly Outputs", "Loss of load expectation [hour]  "], # includes white space
     # prices
     "electricity_price": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
     "electricity_price_excl_shed": [
@@ -306,7 +309,7 @@ def load_MM_sheet(
     )
 
     df["table"] = table_name
-    if "price" not in table_name:
+    if "price" not in table_name and "hours" not in table_name :
         df = convert_units(df)
 
     return df
@@ -413,7 +416,7 @@ def clean_MM_data_for_benchmarking(
         standardized carrier names.
     """
     # remove load and storages
-    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
+    MM_data = MM_data[~MM_data.carrier.str.contains(r"\(load\)|discharge")]
 
     # remove pumped storages from generation
     MM_data = MM_data.query(
