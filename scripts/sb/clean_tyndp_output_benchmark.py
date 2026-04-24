@@ -127,7 +127,10 @@ LOOKUP_TABLES: dict[str, list[str]] = {
         "Native Demand (excl. H2 storage charge) [GWhH2]",
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
-    "demand_shedding_hours": ["Yearly Outputs", "Loss of load expectation [hour]  "], # includes white space
+    "demand_shedding_hours": [
+        "Yearly Outputs",
+        "Loss of load expectation [hour]  ",
+    ],  # includes white space
     # prices
     "electricity_price": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
     "electricity_price_excl_shed": [
@@ -309,7 +312,7 @@ def load_MM_sheet(
     )
 
     df["table"] = table_name
-    if "price" not in table_name and "hours" not in table_name :
+    if "price" not in table_name and "hours" not in table_name:
         df = convert_units(df)
 
     return df

@@ -428,6 +428,7 @@ def _plot_flows(
         fig.savefig(output_filename, bbox_inches="tight")
         plt.close(fig)
 
+
 def _plot_hours(
     df: pd.DataFrame,
     table: str,
@@ -446,7 +447,9 @@ def _plot_hours(
     table_title = table.replace("_", " ").title()
     bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
     df.index = df.index.get_level_values("spatial")
-    df = df[df[[model_col, rfc_source]].fillna(0).any(axis=1)] # keep buses with one non-zero value
+    df = df[
+        df[[model_col, rfc_source]].fillna(0).any(axis=1)
+    ]  # keep buses with one non-zero value
     df[[model_col, rfc_source]].sort_values(model_col, ascending=False).plot.bar(
         title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
         ylabel=source_unit,
@@ -519,7 +522,9 @@ def plot_benchmark(
         f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
     )
 
-    filter_by_bus = "price" not in table and "crossborder" not in table and "hours" not in table
+    filter_by_bus = (
+        "price" not in table and "crossborder" not in table and "hours" not in table
+    )
     condition_str = f" and {bus_col_name}==@bus" if filter_by_bus else ""
     benchmarks = (
         benchmarks_raw.query(f"table==@table{condition_str}")

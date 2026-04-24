@@ -586,7 +586,7 @@ benchmarking:
       rfc_sources:
       - market_out
       unit: MWh
-    
+
     demand_shedding_hours:
       table_type: hours
       rfc_sources:
@@ -594,5 +594,5 @@ benchmarking:
       unit: hours
       mapping:
         load: loss of load expectation
-      
-  
+
+
