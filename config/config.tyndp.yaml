@@ -454,6 +454,8 @@ cba:
     resample_method: ffill
     # Solve options for MSV extraction
     solving:
+      options:
+        noisy_costs: false
       solver:
         name: gurobi
         options: gurobi-default
@@ -463,6 +465,7 @@ cba:
     options:
       horizon: 168
       overlap: 1
+      noisy_costs: false
       load_shedding:
         enable: true
         apply_to_all_carriers: true
