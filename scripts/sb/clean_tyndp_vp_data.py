@@ -38,11 +38,11 @@ def _load_vp_carrier_mapping(carrier_mapping_fn: str) -> dict:
         tech_map[
             [
                 "tyndp_vp_carrier",
-                "benchmarking_generation",
+                "benchmarking_capacity",
             ]
         ]
         .dropna(subset=["tyndp_vp_carrier"])
-        .set_index("tyndp_vp_carrier")["benchmarking_generation"]
+        .set_index("tyndp_vp_carrier")["benchmarking_capacity"]
         .to_dict()
     )
 
@@ -174,7 +174,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("clean_tyndp_vp_data", run="NT")
+        snakemake = mock_snakemake(
+            "clean_tyndp_vp_data", configfiles="config/test/config.tyndp.yaml"
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)

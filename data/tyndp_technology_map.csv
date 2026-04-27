@@ -25,10 +25,12 @@ Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reser
 Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro (exc. Pump storage),Reservoir,hydro-reservoir,hydro-reservoir-turbine,,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,hydro-reservoir-turbine,,
 Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,,,,,,,,,,,,hydro-phs-reservoir,,
 Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,hydro-phs-turbine,,
-Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),Hydro and pumped storage,PS Open,hydro-phs,hydro-phs-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,hydro-phs-pump,,
+,,,,,,,PS Open,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,
+Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),Hydro and pumped storage,,hydro-phs,hydro-phs-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,hydro-phs-pump,,
 Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure-reservoir,,,,,,,,,,,,hydro-phs-pure-reservoir,,
 Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),Hydro and pumped storage,Pump Storage - Closed Loop (turbine),hydro-phs-pure,hydro-phs-pure-turbine,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,hydro-phs-pure-turbine,,
-Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),Hydro and pumped storage,PS Closed,hydro-phs-pure,hydro-phs-pure-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,hydro-phs-pure-pump,,
+,,,,,,,PS Closed,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,
+Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),Hydro and pumped storage,,hydro-phs-pure,hydro-phs-pure-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,hydro-phs-pure-pump,,
 Other RES,Small Biomass,,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-biomass,,other res,other res,,,,,,,other res,,other-res-biomass,,
 Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-mix,,other res,other res,,,,,,,,,other-res-mix,,
 Gas,Conventional old 1,,,,Gas conventional old 1,Methane,Gas conventional,gas,gas-conv-old1,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-conv,OCGT,Methane demand
@@ -79,8 +81,8 @@ Other Non-RES Heavy oil,old 1,,,,Others non-renewable,CHP and Small Thermal,Othe
 Other Non-RES Heavy oil,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old2,,other non-res,other non-res,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Oil shale,old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-old,,other non-res,other non-res,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Oil shale,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-new,,other non-res,other non-res,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,Hydrogen FC,h2-fuel-cell,h2-fuel-cell,,hydrogen-fuel-cell,hydrogen-fuel-cell,,,,power generation,,,,,h2-fuel-cell,,Hydrogen demand
-Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,Hydrogen CCGT,h2-ccgt,h2-ccgt,,hydrogen-ccgt,hydrogen-ccgt,,,,power generation,,,,,h2-ccgt,,Hydrogen demand
+Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,Hydrogen FC,h2-fuel-cell,h2-fuel-cell,,hydrogen,hydrogen,,,,power generation,,,,,h2-fuel-cell,,Hydrogen demand
+Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,Hydrogen CCGT,h2-ccgt,h2-ccgt,,hydrogen,hydrogen,,,,power generation,,,,,h2-ccgt,,Hydrogen demand
 Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis,,,,,,,,,p2g,,,electrolyser-onshore-grid,,Hydrogen supply
 Battery,Discharge,,,,Battery Storage discharge (gen.),Battery,Large scale batteries,battery,battery discharger,,battery,battery,,,,,,,,,battery discharger,,
 Battery,Charge,,,,Battery Storage charge (load),,,battery,battery charger,,battery charge (load),battery charge (load),,,,,,,,,battery charger,,

@@ -31,10 +31,17 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
+# Efficiencies for H2 power technologies
+H2_POWER_EFF = {
+    "Hydrogen CCGT": 0.59,
+    "Hydrogen Fuel Cell": 0.5,
+}  # TODO Remove hard coded values
+
+
 # Mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names
-def _load_mm_carrier_mapping(carrier_mapping_fn: str) -> dict:
+def _load_mm_carrier_mapping(carrier_mapping_fn: str) -> tuple[dict, dict]:
     tech_map = pd.read_csv(carrier_mapping_fn)
-    return (
+    output_map = (
         tech_map[
             [
                 "tyndp_output_carrier",
@@ -48,8 +55,18 @@ def _load_mm_carrier_mapping(carrier_mapping_fn: str) -> dict:
         .assign(benchmarking=lambda x: x[x.columns].bfill(axis=1).iloc[:, 0])[
             "benchmarking"
         ]
-        .to_dict()
+        .drop(
+            index=list(H2_POWER_EFF), errors="ignore"
+        )  # process H2 power techs separately
     )
+
+    h2_power_rename = (
+        tech_map.set_index("tyndp_output_carrier")["benchmarking_generation"]
+        .dropna()
+        .loc[list(H2_POWER_EFF)]
+    )
+
+    return output_map.to_dict(), h2_power_rename.to_dict()
 
 
 # look up dictionary {name of plot: [sheet_name, output_type]}
@@ -330,7 +347,7 @@ def set_load_sign(
 
 
 def clean_MM_data_for_benchmarking(
-    MM_data: pd.DataFrame, offshore_hubs: bool = False
+    MM_data: pd.DataFrame, h2_power_rename: dict, offshore_hubs: bool = False
 ) -> pd.DataFrame:
     """
     Clean market model data for benchmarking analysis.
@@ -346,6 +363,8 @@ def clean_MM_data_for_benchmarking(
     MM_data : pd.DataFrame
         Market model data with columns 'carrier', 'table', and 'value'.
         Expected to contain power capacity and generation data.
+    h2_power_rename : dict
+        Mapping of H2 power carrier names to their benchmarking name.
     offshore_hubs : bool, default False
         Whether offshore hubs are modeled.
 
@@ -379,23 +398,17 @@ def clean_MM_data_for_benchmarking(
 
     # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand
     h2_power = MM_data.query(
-        "table=='power_generation' and carrier.isin(['hydrogen-ccgt', 'hydrogen-fuel-cell'])"
+        "table=='power_generation' and carrier.isin(@H2_POWER_EFF)"
     ).copy()
-    eff_fuel_cell, eff_ccgt = 0.5, 0.59  # TODO Remove hard coded values
     mask_eu27 = ~(h2_power["bus"] == "EU27")
     h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + " H2"
-    h2_power.loc[h2_power.carrier == "hydrogen-ccgt", "value"] = h2_power.loc[
-        h2_power.carrier == "hydrogen-ccgt", "value"
-    ].div(eff_ccgt)
-    h2_power.loc[h2_power.carrier == "hydrogen-fuel-cell", "value"] = h2_power.loc[
-        h2_power.carrier == "hydrogen-fuel-cell", "value"
-    ].div(eff_fuel_cell)
-    h2_power.loc[:, "table"] = "hydrogen_demand"
-    h2_power.loc[:, "carrier"] = "power generation"
+    h2_power["value"] /= h2_power["carrier"].map(H2_POWER_EFF)
+    h2_power["table"] = "hydrogen_demand"
+    h2_power["carrier"] = "power generation"
 
     MM_data = (
         pd.concat([MM_data, h2_power])
-        .replace({"hydrogen-ccgt": "hydrogen", "hydrogen-fuel-cell": "hydrogen"})
+        .replace(h2_power_rename)
         .groupby([c for c in MM_data.columns if c != "value"])
         .sum()
         .reset_index()
@@ -540,7 +553,9 @@ if __name__ == "__main__":
     countries = snakemake.params["countries"]
 
     # load carrier mapping
-    MM_CARRIER_MAPPING = _load_mm_carrier_mapping(snakemake.input.carrier_mapping)
+    MM_CARRIER_MAPPING, h2_power_rename = _load_mm_carrier_mapping(
+        snakemake.input.carrier_mapping
+    )
 
     # currently only implemented for NT
     if scenario != "NT":
@@ -580,7 +595,9 @@ if __name__ == "__main__":
 
     # clean data for benchmarking
     MM_data = clean_MM_data_for_benchmarking(
-        MM_data, offshore_hubs=snakemake.params.offshore_hubs
+        MM_data,
+        h2_power_rename=h2_power_rename,
+        offshore_hubs=snakemake.params.offshore_hubs,
     )
 
     # load crossborder data
