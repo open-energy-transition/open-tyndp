@@ -18,11 +18,11 @@ Wind,Offshore wind,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,off
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fb-oh,offwind-h2-fb-oh,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-h2-fb-oh,,only used with offshore hubs
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fl-oh,offwind-h2-fl-oh,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-h2-fl-oh,,only used with offshore hubs
 ,,,,,,,DRES Wind Off,,,,wind offshore,wind offshore,,,,,,,,,,,,
-Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro (exc. Pump storage),Run-of-River,hydro-ror,hydro-ror-turbine,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-ror-turbine,,
+Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro (exc. Pump storage),Run-of-River,hydro-ror,hydro-ror,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-ror-turbine,,
 Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,,,,,,,,,,,,,hydro-pondage-reservoir,,
-Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro (exc. Pump storage),Pondage,hydro-pondage,hydro-pondage-turbine,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-pondage-turbine,,
+Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro (exc. Pump storage),Pondage,hydro-pondage,hydro-pondage,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-pondage-turbine,,
 Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,,,,,,,,,,,,,hydro-reservoir-reservoir,,
-Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro (exc. Pump storage),Reservoir,hydro-reservoir,hydro-reservoir-turbine,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-reservoir-turbine,,
+Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro (exc. Pump storage),Reservoir,hydro-reservoir,hydro-reservoir,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-reservoir-turbine,,
 Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,,,,,,,,,,,,,hydro-phs-reservoir,,
 Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,,hydro and pumped storage,hydro and pumped storage,hydro,,,,,,,,,hydro-phs-turbine,,
 ,,,,,,,PS Open,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,,

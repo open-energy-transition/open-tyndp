@@ -29,6 +29,47 @@ logger = logging.getLogger(__name__)
 
 pypsa.options.params.statistics.nice_names = False
 
+BENCHMARKING_COLS = {
+    "power_capacity": "benchmarking_capacity",
+    "power_generation": "benchmarking_generation",
+    "final_energy_demand": "benchmarking_fed",
+    "elec_demand": "benchmarking_elec_demand",
+    "methane_demand": "benchmarking_ch4_demand",
+    "hydrogen_demand": "benchmarking_h2_demand",
+    "methane_supply": "benchmarking_ch4_supply",
+    "hydrogen_supply": "benchmarking_h2_supply",
+    "biomass_supply": "benchmarking_biomass_supply",
+    "energy_imports": "benchmarking_energy_imports",
+    "generation_profiles": "benchmarking_generation_profiles",
+}
+
+
+def _load_benchmarking_mappings(carrier_mapping_fn: str) -> dict[str, dict]:
+    # Read mapping CSV
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    mappings = {}
+    for table, col in BENCHMARKING_COLS.items():
+        if col not in tech_map.columns:
+            logger.warning(
+                "No existing mapping for table in 'tyndp_technology_mapping.csv'."
+            )
+            continue
+        # Read mapping columns where entries exist that map to either open_tyndp_index or open_tyndp_carrier
+        mapping = (
+            tech_map[["open_tyndp_index", "open_tyndp_carrier", col]]
+            .assign(
+                open_tyndp=lambda x: x[["open_tyndp_index", "open_tyndp_carrier"]]
+                .bfill(axis=1)
+                .iloc[:, 0]
+            )
+            .dropna(subset=["open_tyndp", col])
+            .set_index("open_tyndp")[col]
+        ).copy()
+        # Add to mappings dict
+        mappings[table] = mapping.to_dict()
+
+    return mappings
+
 
 def remove_last_day(sws: pd.Series, nhours: int = 24):
     """
@@ -612,6 +653,12 @@ if __name__ == "__main__":
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
+
+    # Mapping from Open-TYNDP carrier names to benchmarking carrier names
+    benchmarking_mappings = _load_benchmarking_mappings(snakemake.input.carrier_mapping)
+    for table, mapping in benchmarking_mappings.items():
+        if table in options["tables"]:
+            options["tables"][table]["mapping"] = mapping
 
     # Read network
     logger.info("Reading network")
