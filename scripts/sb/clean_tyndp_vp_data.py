@@ -47,47 +47,6 @@ def _load_vp_carrier_mapping(carrier_mapping_fn: str) -> dict:
     )
 
 
-CARRIER_MAP_old = {
-    "Demand Side Response Explicit": "dsr",
-    "DRES Solar PV": "solar",
-    "DRES Wind Off": "wind offshore",
-    "DRES Wind On": "wind onshore",
-    "DSR": "dsr",
-    "Gas": "methane (incl. biofuels)",
-    "Gas CCGT": "methane (incl. biofuels)",
-    "Gas CCGT CCS": "methane (incl. biofuels)",
-    "Gas conventional": "methane (incl. biofuels)",
-    "Gas OCGT": "methane (incl. biofuels)",
-    "Hard coal": "coal + other fossil (incl. biofuels)",
-    "Hard coal biofuel": "coal + other fossil (incl. biofuels)",
-    "Heavy oil": "oil (incl. biofuels)",
-    "Hydrogen CCGT": "hydrogen",
-    "Hydrogen FC": "hydrogen",
-    "Large scale batteries": "battery",
-    "Light oil": "oil (incl. biofuels)",
-    "Lignite biofuel": "coal + other fossil (incl. biofuels)",
-    "Lignite": "coal + other fossil (incl. biofuels)",
-    "Nuclear": "nuclear",
-    "Oil shale biofuel": "oil (incl. biofuels)",
-    "Oil shale": "oil (incl. biofuels)",
-    "Other RES": "small scale res",
-    "Others non-RES": "coal + other fossil (incl. biofuels)",
-    "Pondage": "hydro and pumped storage",
-    "PS Closed": "hydro and pumped storage",
-    "PS Open": "hydro and pumped storage",
-    "Pump Storage - Closed Loop (turbine)": "hydro and pumped storage",
-    "Pump Storage - Open Loop (turbine)": "hydro and pumped storage",
-    "Reservoir": "hydro and pumped storage",
-    "Run-of-River": "hydro and pumped storage",
-    "Solar PV": "solar",
-    "Solar PV Rooftop": "solar",
-    "Solar PV Utility": "solar",
-    "Solar Thermal": "solar thermal",
-    "Wind Offshore": "wind offshore",
-    "Wind Onshore": "wind onshore",
-}
-
-
 def get_elec_demand(
     elec_demand_fn: str,
     scenario: str,
