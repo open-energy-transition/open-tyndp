@@ -1,164 +1,164 @@
-pemmdb_carrier,pemmdb_type,pemmdb_hydro_inflows,pecd_carrier,investment_dataset_carrier,tyndp_output_carrier,tyndp_report_carrier,tyndp_vp_carrier,open_tyndp_carrier,open_tyndp_index,open_tyndp_nice_name,benchmarking_capacity,benchmarking_generation,benchmarking_fed,benchmarking_elec_demand,benchmarking_ch4_demand,benchmarking_h2_demand,benchmarking_ch4_supply,benchmarking_h2_supply,benchmarking_biomass_supply,benchmarking_energy_imports,open_tyndp_type,pypsa_eur_carrier,comment
-Solar,Photovoltaic,,LFSolarPVUtility,Solar PV Utility,Solar (Photovoltaic),Solar,Solar PV Utility,solar-pv-utility,solar-pv-utility,,solar,solar,,,,,,,,,solar-pv-utility,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
-Solar,Rooftop,,LFSolarPVRooftop,Solar PV Rooftop,,Solar,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,,solar,solar,,,,,,,,,solar-pv-rooftop,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
-,,,,,,,Solar PV,,,,solar,solar,,,,,,,,,,,
-,,,,,,,DRES Solar PV,,,,solar,solar,,,,,,,,,,,
-Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,Solar Thermal,solar-thermal,solar-thermal,,solar thermal,solar thermal,,,,,,,,,solar-thermal,,
-Solar,Solar Thermal with Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage,,solar thermal,solar thermal,,,,,,,,,solar-thermal-w-storage,,
-Solar,Solar Thermal with Storage - Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage-storage,,solar thermal,solar thermal,,,,,,,,,solar-thermal-w-storage-storage,,
-Wind,Onshore wind,,Wind_Onshore,Wind Onshore,Wind Onshore,Wind Onshore,Wind Onshore,onwind,onwind,,wind onshore,wind onshore,,,,,,,,,onwind,,
-,,,,,,,DRES Wind On,,,,wind onshore,wind onshore,,,,,,,,,,,
-Wind,Offshore wind,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind,offwind,,wind offshore,wind offshore,,,,,,,,,offwind,,only used w/o offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-ac-fb-r,offwind-ac-fb-r,,wind offshore,wind offshore,,,,,,,,,offwind-ac-fb-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-ac-fl-r,offwind-ac-fl-r,,wind offshore,wind offshore,,,,,,,,,offwind-ac-fl-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fb-r,offwind-dc-fb-r,,wind offshore,wind offshore,,,,,,,,,offwind-dc-fb-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fl-r,offwind-dc-fl-r,,wind offshore,wind offshore,,,,,,,,,offwind-dc-fl-r,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fb-oh,offwind-dc-fb-oh,,wind offshore,wind offshore,,,,,,,,,offwind-dc-fb-oh,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fl-oh,offwind-dc-fl-oh,,wind offshore,wind offshore,,,,,,,,,offwind-dc-fl-oh,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fb-oh,offwind-h2-fb-oh,,wind offshore,wind offshore,,,,,,,,,offwind-h2-fb-oh,,only used with offshore hubs
-,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fl-oh,offwind-h2-fl-oh,,wind offshore,wind offshore,,,,,,,,,offwind-h2-fl-oh,,only used with offshore hubs
-,,,,,,,DRES Wind Off,,,,wind offshore,wind offshore,,,,,,,,,,,
-Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro (exc. Pump storage),Run-of-River,hydro-ror,hydro-ror-turbine,,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,hydro-ror-turbine,,
-Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,,,,,,,,,,,,hydro-pondage-reservoir,,
-Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro (exc. Pump storage),Pondage,hydro-pondage,hydro-pondage-turbine,,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,hydro-pondage-turbine,,
-Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,,,,,,,,,,,,hydro-reservoir-reservoir,,
-Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro (exc. Pump storage),Reservoir,hydro-reservoir,hydro-reservoir-turbine,,hydro and pumped storage,hydro (exc. pump storage),,,,,,,,,hydro-reservoir-turbine,,
-Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,,,,,,,,,,,,hydro-phs-reservoir,,
-Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,hydro-phs-turbine,,
-,,,,,,,PS Open,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,
-Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),Hydro and pumped storage,,hydro-phs,hydro-phs-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,hydro-phs-pump,,
-Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure-reservoir,,,,,,,,,,,,hydro-phs-pure-reservoir,,
-Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),Hydro and pumped storage,Pump Storage - Closed Loop (turbine),hydro-phs-pure,hydro-phs-pure-turbine,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,hydro-phs-pure-turbine,,
-,,,,,,,PS Closed,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,
-Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),Hydro and pumped storage,,hydro-phs-pure,hydro-phs-pure-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,hydro-phs-pure-pump,,
-Other RES,Small Biomass,,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-biomass,,other res,other res,,,,,,,other res,,other-res-biomass,,
-Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-mix,,other res,other res,,,,,,,,,other-res-mix,,
-Gas,Conventional old 1,,,,Gas conventional old 1,Methane,Gas conventional,gas,gas-conv-old1,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-conv,OCGT,Methane demand
-Gas,Conventional old 2,,,,Gas conventional old 2,Methane,Gas conventional,gas,gas-conv-old2,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-conv,OCGT,Methane demand
-Gas,CCGT old 1,,,,Gas CCGT old 1,Methane,Gas CCGT,gas,gas-ccgt-old1,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
-Gas,CCGT old 2,,,,Gas CCGT old 2,Methane,Gas CCGT,gas,gas-ccgt-old2,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
-Gas,CCGT new,,,,Gas CCGT new,Methane,Gas CCGT,gas,gas-ccgt-new,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
-Gas,CCGT CCS,,,,Gas CCGT CCS,Methane,Gas CCGT CCS,gas,gas-ccgt-ccs,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ccgt-ccs,,Methane demand
-Gas,OCGT old,,,,Gas OCGT old,Methane,Gas OCGT,gas,gas-ocgt-old,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ocgt,OCGT,Methane demand
-Gas,OCGT new,,,,Gas OCGT new,Methane,Gas OCGT,gas,gas-ocgt-new,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ocgt,OCGT,Methane demand
-Gas,CCGT present 1,,,,Gas CCGT present 1,Methane,Gas CCGT,gas,gas-ccgt-present1,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
-Gas,CCGT present 2,,,,Gas CCGT present 2,Methane,Gas CCGT,gas,gas-ccgt-present2,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
-,,,,,,Methane,Gas,,,,methane (incl. biofuels),methane (incl. biofuels),,,power generation,,,,,,,,
-Nuclear,Nuclear,,,Nuclear,Nuclear,Nuclear,Nuclear,uranium,nuclear,,nuclear,nuclear,,,,,,,,,nuclear,nuclear,
-Hard coal,old 1,,,,Hard coal old 1,Coal + Other fossil,Hard coal,coal,coal-old1,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,coal,coal,
-Hard coal,old 2,,,,Hard coal old 2,Coal + Other fossil,Hard coal,coal,coal-old2,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,coal,coal,
-Hard coal,new,,,,Hard coal new,Coal + Other fossil,Hard coal,coal,coal-new,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,coal,coal,
-Hard coal,CCS,,,,Hard coal CCS,Coal + Other fossil,Hard coal,coal,coal-ccs,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,coal-ccs,,
-Lignite,old 1,,,,Lignite old 1,Coal + Other fossil,Lignite,lignite,lignite-old1,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,lignite,lignite,
-Lignite,old 2,,,,Lignite old 2,Coal + Other fossil,Lignite,lignite,lignite-old2,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,lignite,lignite,
-Lignite,new,,,,Lignite new,Coal + Other fossil,Lignite,lignite,lignite-new,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,lignite,lignite,
-Lignite,CCS,,,,Lignite CCS,Coal + Other fossil,Lignite,lignite,lignite-ccs,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,lignite-ccs,,
-Light oil,Light oil,,,,Light oil,Oil,Light oil,oil-light,oil-light,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Heavy oil,old 1,,,,Heavy oil old 1,Oil,Heavy oil,oil-heavy,oil-heavy-old1,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Heavy oil,old 2,,,,Heavy oil old 2,Oil,Heavy oil,oil-heavy,oil-heavy-old2,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Oil shale,old,,,,Oil shale old,Oil,Oil shale,oil-shale,oil-shale-old,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Oil shale,new,,,,Oil shale new,Oil,Oil shale,oil-shale,oil-shale-new,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Gas,conventional old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-conv-old1,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-conv,OCGT,Methane demand
-Other Non-RES Gas,conventional old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-conv-old2,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-conv,OCGT,Methane demand
-Other Non-RES Gas,ccgt old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-old1,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
-Other Non-RES Gas,ccgt old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-old2,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
-Other Non-RES Gas,ccgt new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-new,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
-Other Non-RES Gas,ccgt ccs,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-ccs,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt-ccs,,Methane demand
-Other Non-RES Gas,ocgt old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ocgt-old,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ocgt,OCGT,Methane demand
-Other Non-RES Gas,ocgt new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ocgt-new,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ocgt,OCGT,Methane demand
-Other Non-RES Gas,ccgt present 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-present1,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
-Other Non-RES Gas,ccgt present 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-present2,,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
-Other Non-RES Hard coal,old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-old1,,other non-res,other non-res,,,,,,,,,other-non-res-coal,coal,
-Other Non-RES Hard coal,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-old2,,other non-res,other non-res,,,,,,,,,other-non-res-coal,coal,
-Other Non-RES Hard coal,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-new,,other non-res,other non-res,,,,,,,,,other-non-res-coal,coal,
-Other Non-RES Hard coal,ccs,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-ccs,,other non-res,other non-res,,,,,,,,,other-non-res-coal-ccs,,
-Other Non-RES Lignite,old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-old1,,other non-res,other non-res,,,,,,,,,other-non-res-lignite,lignite,
-Other Non-RES Lignite,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-old2,,other non-res,other non-res,,,,,,,,,other-non-res-lignite,lignite,
-Other Non-RES Lignite,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-new,,other non-res,other non-res,,,,,,,,,other-non-res-lignite,lignite,
-Other Non-RES Lignite,ccs,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-ccs,,other non-res,other non-res,,,,,,,,,other-non-res-lignite-ccs,,
-Other Non-RES Light oil,light oil,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-light,other-non-res-oil-light,,other non-res,other non-res,,,,,,,,,other-non-res-oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Heavy oil,old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old1,,other non-res,other non-res,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Heavy oil,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old2,,other non-res,other non-res,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Oil shale,old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-old,,other non-res,other non-res,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Oil shale,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-new,,other non-res,other non-res,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,Hydrogen FC,h2-fuel-cell,h2-fuel-cell,,hydrogen,hydrogen,,,,power generation,,,,,h2-fuel-cell,,Hydrogen demand
-Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,Hydrogen CCGT,h2-ccgt,h2-ccgt,,hydrogen,hydrogen,,,,power generation,,,,,h2-ccgt,,Hydrogen demand
-Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis,,,,,,,,,p2g,,,electrolyser-onshore-grid,,Hydrogen supply
-Battery,Discharge,,,,Battery Storage discharge (gen.),Battery,Large scale batteries,battery,battery discharger,,battery,battery,,,,,,,,,battery discharger,,
-Battery,Charge,,,,Battery Storage charge (load),,,battery,battery charger,,battery charge (load),battery charge (load),,,,,,,,,battery charger,,
-Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,battery,,
-,,,,Batteries Prosumer,,,,battery,battery-prosumer,,,,,,,,,,,,battery-prosumer,,
-,,,,Batteries Utility,,,,battery,battery-utility,,,,,,,,,,,,battery-utility,,
-,,,,,Lignite biofuel,Biofuels,Lignite biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,
-,,,,,Hard Coal biofuel,Biofuels,Hard coal biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,
-,,,,,Gas biofuel,,,,,,methane (incl. biofuels),methane (incl. biofuels),,,,,,,,,,,
-,,,,,Light oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,
-,,,,,Heavy oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,
-,,,,,Oil shale biofuel,,Oil shale biofuel,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,
-,,,,,Demand Side Response Explicit,Demand shedding,Demand Side Response Explicit,dsr,,,dsr,dsr,,,,,,,,,,,
-,,,,,Demand Side Response Implicit,Demand shedding,,,,,dsr,dsr,,,,,,,,,,,
-,,,,,,,DSR,dsr,,,dsr,dsr,,,,,,,,,,,
-,,,,,Unserved energy [GWh],,,load,,,demand shedding,demand shedding,,,,,,,,,,,
-,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,Curtailment/dump energy
-,,,,,Native Demand (excl. H2 storage charge) [GWhH2],,,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,Marginal Cost Yearly Average [€],,,,,,AC,AC,,,,,,,,,,,Prices
-,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,AC,AC,,,,,,,,,,,Prices
-,,,,,Marginal Cost Yearly Average [€/MWhH2],,,,,,H2,H2,,,,,,,,,,,Prices
-,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2],,,,,,H2,H2,,,,,,,,,,,Prices
-,,,,,,Electricity,,AC,,,,,electricity,,,,,,,,,,Final energy demand
-,,,,,,Electricity,,AC_OH,,,,,electricity,,,,,,,,,,Final energy demand
-,,,,,,Electricity,,low voltage,,,,,electricity,,,,,,,,,,Final energy demand
-,,,,,,Hydrogen,,H2,,,,,hydrogen,,,,,,,,,,Final energy demand
-,,,,,,Methane,,exogenous gas demand,,,,,methane,,,,,,,,,,Final energy demand
-,,,,,,Biofuels,,biomass to liquid,,,,,biofuels,,,,,,,,,,Final energy demand
-,,,,,,Biofuels,,biomass to liquid CC,,,,,biofuels,,,,,,,,,,Final energy demand
-,,,,,,Solids,,coal,,,,,solids,,,,,,,,,,Final energy demand
-,,,,,,Liquids,,oil,,,,,liquids,,,,,,,,,,Final energy demand
-,,,,,,Liquids,,kerosene for aviation,,,,,liquids,,,,,,,,,,Final energy demand
-,,,,,,Liquids,,shipping oil,,,,,liquids,,,,,,,,,,Final energy demand
-,,,,,,Liquids,,land transport oil,,,,,liquids,,,,,,,,,,Final energy demand
-,,,,,,"Final demand (inc. T&D losses, excl. pump storage )",,electricity,,,,,,"final demand (inc. t&d losses, excl. pump storage )",,,,,,,,,Electricity demand
-,,,,,,H2 Residential&Tertiary,,H2 exogenous demand,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,,H2 Transport,,H2 exogenous demand,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,,H2 Industry,,H2 exogenous demand,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,,H2 Agriculture,,H2 exogenous demand,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,,H2 Power Generation,,,,,,,,,,power generation,,,,,,,Hydrogen demand
-,,,,,,H2 Non-energy use,,H2 exogenous demand,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,,H2 Others,,H2 exogenous demand,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,,H2 e-fuels,,Fischer-Tropsch,,,,,,,,e-fuels,,,,,,,Hydrogen demand
-,,,,,,H2 e-fuels,,Sabatier,,,,,,,,e-fuels,,,,,,,Hydrogen demand
-,,,,,,H2 e-fuels,,methanolisation,,,,,,,,e-fuels,,,,,,,Hydrogen demand
-,,,,,,H2 International maritime bunkers,,H2 exogenous demand,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
-,,,,,,CH4 Residential&Tertiary,,exogenous gas demand,,,,,,,exogenous demand,,,,,,,,Methane demand
-,,,,,,CH4 Transport,,exogenous gas demand,,,,,,,exogenous demand,,,,,,,,Methane demand
-,,,,,,CH4 Industry,,exogenous gas demand,,,,,,,exogenous demand,,,,,,,,Methane demand
-,,,,,,CH4 Agriculture,,exogenous gas demand,,,,,,,exogenous demand,,,,,,,,Methane demand
-,,,,,,CH4 Power Generation,,,,,,,,,power generation,,,,,,,,Methane demand
-,,,,,,CH4 Non-energy use,,exogenous gas demand,,,,,,,exogenous demand,,,,,,,,Methane demand
-,,,,,,CH4 Others,,exogenous gas demand,,,,,,,exogenous demand,,,,,,,,Methane demand
-,,,,,,CH4 International maritime bunkers,,exogenous gas demand,,,,,,,exogenous demand,,,,,,,,Methane demand
-,,,,,,CH4 SMR,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,Methane demand
-,,,,,Steam methane reformer,SMR (Grey),,SMR,,,,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,"Hydrogen supply, Methane demand, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
-,,,,,Steam methane reformer,SMR with CCS (Blue),,SMR CC,,,,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,"Hydrogen supply, Methane demand, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
-,,,,,,Undefined for generation,,,,,,,,,,,,undefined for generation,,,,,Hydrogen supply
-,,,,,,Low carbon imports,,H2 import Pipeline,,,,,,,,,,imports (renewable & low carbon),,,,,Hydrogen supply
-,,,,,,Renewable imports,,H2 import Pipeline,,,,,,,,,,imports (renewable & low carbon),,,,,Hydrogen supply
-,,,,,,Ammonia imports,,H2 import LH2,,,,,,,,,,ammonia imports,,,,,Hydrogen supply
-,,,,,,Biomethane (Domestic),,biogas to gas,,,,,,,,,biomethane (domestic),,,,,,Methane supply
-,,,,,,Biomethane (Import),,,,,,,,,,,biomethane (import),,,,,,Methane supply
-,,,,,,Natural gas (Domestic),,,,,,,,,,,natural gas (domestic),,,,,,Methane supply
-,,,,,,Natural gas (Import),,gas,,,,,,,,,natural gas (import),,,,,,Methane supply
-,,,,,,Synthetic methane (Domestic),,Sabatier,,,,,,,,,synthetic methane (domestic),,,,,,Methane supply
-,,,,,,Synthetic methane (Import),,,,,,,,,,,synthetic methane (import),,,,,,Methane supply
-,,,,,,Final demand,,biomass final energy demand,,,,,,,,,,,final demand,,,,Biomass supply
-,,,,,,For electricity,,,,,,,,,,,,,for electricity,,,,Biomass supply
-,,,,,,For biomethane,,for biomethane,,,,,,,,,,,for biomethane,,,,Biomass supply
-,,,,,,For biofuels,,biomass to liquid,,,,,,,,,,,for biofuels,,,,Biomass supply
-,,,,,,For biofuels,,biomass to liquid CC,,,,,,,,,,,for biofuels,,,,Biomass supply
-,,,,,,Methane,,gas,,,,,,,,,,,,methane,,,Energy imports
-,,,,,,Hydrogen,,H2 import LH2,,,,,,,,,,,,hydrogen,,,Energy imports
-,,,,,,Hydrogen,,H2 import Pipeline,,,,,,,,,,,,hydrogen,,,Energy imports
-,,,,,,Liquids,,oil primary,,,,,,,,,,,,liquids,,,Energy imports
-,,,,,,Solids,,coal,,,,,,,,,,,,solids,,,Energy imports
-,,,,,,Solids,,lignite,,,,,,,,,,,,solids,,,Energy imports
-,,,,,,Biomass,,,,,,,,,,,,,,biomass,,,Energy imports
+pemmdb_carrier,pemmdb_type,pemmdb_hydro_inflows,pecd_carrier,investment_dataset_carrier,tyndp_output_carrier,tyndp_report_carrier,tyndp_vp_carrier,open_tyndp_carrier,open_tyndp_index,open_tyndp_nice_name,benchmarking_capacity,benchmarking_generation,benchmarking_generation_profiles,benchmarking_fed,benchmarking_elec_demand,benchmarking_ch4_demand,benchmarking_h2_demand,benchmarking_ch4_supply,benchmarking_h2_supply,benchmarking_biomass_supply,benchmarking_energy_imports,open_tyndp_type,pypsa_eur_carrier,comment
+Solar,Photovoltaic,,LFSolarPVUtility,Solar PV Utility,Solar (Photovoltaic),Solar,Solar PV Utility,solar-pv-utility,solar-pv-utility,,solar,solar,solar,,,,,,,,,solar-pv-utility,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+Solar,Rooftop,,LFSolarPVRooftop,Solar PV Rooftop,,Solar,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,,solar,solar,solar,,,,,,,,,solar-pv-rooftop,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+,,,,,,,Solar PV,,,,solar,solar,,,,,,,,,,,,
+,,,,,,,DRES Solar PV,,,,solar,solar,,,,,,,,,,,,
+Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,Solar Thermal,solar-thermal,solar-thermal,,solar thermal,solar thermal,,,,,,,,,,solar-thermal,,
+Solar,Solar Thermal with Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage,,solar thermal,solar thermal,,,,,,,,,,solar-thermal-w-storage,,
+Solar,Solar Thermal with Storage - Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage-storage,,solar thermal,solar thermal,,,,,,,,,,solar-thermal-w-storage-storage,,
+Wind,Onshore wind,,Wind_Onshore,Wind Onshore,Wind Onshore,Wind Onshore,Wind Onshore,onwind,onwind,,wind onshore,wind onshore,onshore wind,,,,,,,,,onwind,,
+,,,,,,,DRES Wind On,,,,wind onshore,wind onshore,,,,,,,,,,,,
+Wind,Offshore wind,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind,offwind,,wind offshore,wind offshore,,,,,,,,,,offwind,,only used w/o offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-ac-fb-r,offwind-ac-fb-r,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-ac-fb-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-ac-fl-r,offwind-ac-fl-r,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-ac-fl-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fb-r,offwind-dc-fb-r,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-dc-fb-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fl-r,offwind-dc-fl-r,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-dc-fl-r,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fb-oh,offwind-dc-fb-oh,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-dc-fb-oh,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-dc-fl-oh,offwind-dc-fl-oh,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-dc-fl-oh,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fb-oh,offwind-h2-fb-oh,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-h2-fb-oh,,only used with offshore hubs
+,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fl-oh,offwind-h2-fl-oh,,wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-h2-fl-oh,,only used with offshore hubs
+,,,,,,,DRES Wind Off,,,,wind offshore,wind offshore,,,,,,,,,,,,
+Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro (exc. Pump storage),Run-of-River,hydro-ror,hydro-ror-turbine,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-ror-turbine,,
+Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,,,,,,,,,,,,,hydro-pondage-reservoir,,
+Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro (exc. Pump storage),Pondage,hydro-pondage,hydro-pondage-turbine,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-pondage-turbine,,
+Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,,,,,,,,,,,,,hydro-reservoir-reservoir,,
+Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro (exc. Pump storage),Reservoir,hydro-reservoir,hydro-reservoir-turbine,,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-reservoir-turbine,,
+Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,,,,,,,,,,,,,hydro-phs-reservoir,,
+Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,,hydro and pumped storage,hydro and pumped storage,hydro,,,,,,,,,hydro-phs-turbine,,
+,,,,,,,PS Open,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,,
+Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),Hydro and pumped storage,,hydro-phs,hydro-phs-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,,hydro-phs-pump,,
+Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure-reservoir,,,,,,,,,,,,,hydro-phs-pure-reservoir,,
+Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),Hydro and pumped storage,Pump Storage - Closed Loop (turbine),hydro-phs-pure,hydro-phs-pure-turbine,,hydro and pumped storage,hydro and pumped storage,hydro,,,,,,,,,hydro-phs-pure-turbine,,
+,,,,,,,PS Closed,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,,
+Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),Hydro and pumped storage,,hydro-phs-pure,hydro-phs-pure-pump,,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,,hydro-phs-pure-pump,,
+Other RES,Small Biomass,,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-biomass,,other res,other res,other res,,,,,,,other res,,other-res-biomass,,
+Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-mix,,other res,other res,other res,,,,,,,,,other-res-mix,,
+Gas,Conventional old 1,,,,Gas conventional old 1,Methane,Gas conventional,gas,gas-conv-old1,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-conv,OCGT,Methane demand
+Gas,Conventional old 2,,,,Gas conventional old 2,Methane,Gas conventional,gas,gas-conv-old2,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-conv,OCGT,Methane demand
+Gas,CCGT old 1,,,,Gas CCGT old 1,Methane,Gas CCGT,gas,gas-ccgt-old1,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
+Gas,CCGT old 2,,,,Gas CCGT old 2,Methane,Gas CCGT,gas,gas-ccgt-old2,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
+Gas,CCGT new,,,,Gas CCGT new,Methane,Gas CCGT,gas,gas-ccgt-new,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
+Gas,CCGT CCS,,,,Gas CCGT CCS,Methane,Gas CCGT CCS,gas,gas-ccgt-ccs,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ccgt-ccs,,Methane demand
+Gas,OCGT old,,,,Gas OCGT old,Methane,Gas OCGT,gas,gas-ocgt-old,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ocgt,OCGT,Methane demand
+Gas,OCGT new,,,,Gas OCGT new,Methane,Gas OCGT,gas,gas-ocgt-new,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ocgt,OCGT,Methane demand
+Gas,CCGT present 1,,,,Gas CCGT present 1,Methane,Gas CCGT,gas,gas-ccgt-present1,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
+Gas,CCGT present 2,,,,Gas CCGT present 2,Methane,Gas CCGT,gas,gas-ccgt-present2,,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,gas-ccgt,CCGT,Methane demand
+,,,,,,Methane,Gas,,,,methane (incl. biofuels),methane (incl. biofuels),,,,power generation,,,,,,,,
+Nuclear,Nuclear,,,Nuclear,Nuclear,Nuclear,Nuclear,uranium,nuclear,,nuclear,nuclear,,,,,,,,,,nuclear,nuclear,
+Hard coal,old 1,,,,Hard coal old 1,Coal + Other fossil,Hard coal,coal,coal-old1,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,coal,coal,
+Hard coal,old 2,,,,Hard coal old 2,Coal + Other fossil,Hard coal,coal,coal-old2,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,coal,coal,
+Hard coal,new,,,,Hard coal new,Coal + Other fossil,Hard coal,coal,coal-new,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,coal,coal,
+Hard coal,CCS,,,,Hard coal CCS,Coal + Other fossil,Hard coal,coal,coal-ccs,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,coal-ccs,,
+Lignite,old 1,,,,Lignite old 1,Coal + Other fossil,Lignite,lignite,lignite-old1,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,lignite,lignite,
+Lignite,old 2,,,,Lignite old 2,Coal + Other fossil,Lignite,lignite,lignite-old2,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,lignite,lignite,
+Lignite,new,,,,Lignite new,Coal + Other fossil,Lignite,lignite,lignite-new,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,lignite,lignite,
+Lignite,CCS,,,,Lignite CCS,Coal + Other fossil,Lignite,lignite,lignite-ccs,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),coal&lignite&oil,,,,,,,,,lignite-ccs,,
+Light oil,Light oil,,,,Light oil,Oil,Light oil,oil-light,oil-light,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Heavy oil,old 1,,,,Heavy oil old 1,Oil,Heavy oil,oil-heavy,oil-heavy-old1,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Heavy oil,old 2,,,,Heavy oil old 2,Oil,Heavy oil,oil-heavy,oil-heavy-old2,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,old,,,,Oil shale old,Oil,Oil shale,oil-shale,oil-shale-old,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Oil shale,new,,,,Oil shale new,Oil,Oil shale,oil-shale,oil-shale-new,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Gas,conventional old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-conv-old1,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-conv,OCGT,Methane demand
+Other Non-RES Gas,conventional old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-conv-old2,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-conv,OCGT,Methane demand
+Other Non-RES Gas,ccgt old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-old1,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
+Other Non-RES Gas,ccgt old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-old2,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
+Other Non-RES Gas,ccgt new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-new,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
+Other Non-RES Gas,ccgt ccs,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-ccs,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt-ccs,,Methane demand
+Other Non-RES Gas,ocgt old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ocgt-old,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ocgt,OCGT,Methane demand
+Other Non-RES Gas,ocgt new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ocgt-new,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ocgt,OCGT,Methane demand
+Other Non-RES Gas,ccgt present 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-present1,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
+Other Non-RES Gas,ccgt present 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-present2,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
+Other Non-RES Hard coal,old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-old1,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-coal,coal,
+Other Non-RES Hard coal,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-old2,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-coal,coal,
+Other Non-RES Hard coal,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-new,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-coal,coal,
+Other Non-RES Hard coal,ccs,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,coal,other-non-res-coal-ccs,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-coal-ccs,,
+Other Non-RES Lignite,old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-old1,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-lignite,lignite,
+Other Non-RES Lignite,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-old2,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-lignite,lignite,
+Other Non-RES Lignite,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-new,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-lignite,lignite,
+Other Non-RES Lignite,ccs,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,lignite,other-non-res-lignite-ccs,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-lignite-ccs,,
+Other Non-RES Light oil,light oil,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-light,other-non-res-oil-light,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Heavy oil,old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old1,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Heavy oil,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old2,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Oil shale,old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-old,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Oil shale,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-new,,other non-res,other non-res,other non-res,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,Hydrogen FC,h2-fuel-cell,h2-fuel-cell,,hydrogen,hydrogen,methane&hydrogen,,,,power generation,,,,,h2-fuel-cell,,Hydrogen demand
+Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,Hydrogen CCGT,h2-ccgt,h2-ccgt,,hydrogen,hydrogen,methane&hydrogen,,,,power generation,,,,,h2-ccgt,,Hydrogen demand
+Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis,,,,,,,,,,p2g,,,electrolyser-onshore-grid,,Hydrogen supply
+Battery,Discharge,,,,Battery Storage discharge (gen.),Battery,Large scale batteries,battery,battery discharger,,battery,battery,battery,,,,,,,,,battery discharger,,
+Battery,Charge,,,,Battery Storage charge (load),,,battery,battery charger,,battery charge (load),battery charge (load),,,,,,,,,,battery charger,,
+Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
+,,,,Batteries Prosumer,,,,battery,battery-prosumer,,,,,,,,,,,,,battery-prosumer,,
+,,,,Batteries Utility,,,,battery,battery-utility,,,,,,,,,,,,,battery-utility,,
+,,,,,Lignite biofuel,Biofuels,Lignite biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,
+,,,,,Hard Coal biofuel,Biofuels,Hard coal biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,
+,,,,,Gas biofuel,,,,,,methane (incl. biofuels),methane (incl. biofuels),,,,,,,,,,,,
+,,,,,Light oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
+,,,,,Heavy oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
+,,,,,Oil shale biofuel,,Oil shale biofuel,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
+,,,,,Demand Side Response Explicit,Demand shedding,Demand Side Response Explicit,dsr,,,dsr,dsr,,,,,,,,,,,,
+,,,,,Demand Side Response Implicit,Demand shedding,,,,,dsr,dsr,,,,,,,,,,,,
+,,,,,,,DSR,dsr,,,dsr,dsr,,,,,,,,,,,,
+,,,,,Unserved energy [GWh],,,load,,,demand shedding,demand shedding,,,,,,,,,,,,
+,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,,Curtailment/dump energy
+,,,,,Native Demand (excl. H2 storage charge) [GWhH2],,,,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,Marginal Cost Yearly Average [€],,,,,,AC,AC,,,,,,,,,,,,Prices
+,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,AC,AC,,,,,,,,,,,,Prices
+,,,,,Marginal Cost Yearly Average [€/MWhH2],,,,,,H2,H2,,,,,,,,,,,,Prices
+,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2],,,,,,H2,H2,,,,,,,,,,,,Prices
+,,,,,,Electricity,,AC,,,,,,electricity,,,,,,,,,,Final energy demand
+,,,,,,Electricity,,AC_OH,,,,,,electricity,,,,,,,,,,Final energy demand
+,,,,,,Electricity,,low voltage,,,,,,electricity,,,,,,,,,,Final energy demand
+,,,,,,Hydrogen,,H2,,,,,,hydrogen,,,,,,,,,,Final energy demand
+,,,,,,Methane,,exogenous gas demand,,,,,,methane,,,,,,,,,,Final energy demand
+,,,,,,Biofuels,,biomass to liquid,,,,,,biofuels,,,,,,,,,,Final energy demand
+,,,,,,Biofuels,,biomass to liquid CC,,,,,,biofuels,,,,,,,,,,Final energy demand
+,,,,,,Solids,,coal,,,,,,solids,,,,,,,,,,Final energy demand
+,,,,,,Liquids,,oil,,,,,,liquids,,,,,,,,,,Final energy demand
+,,,,,,Liquids,,kerosene for aviation,,,,,,liquids,,,,,,,,,,Final energy demand
+,,,,,,Liquids,,shipping oil,,,,,,liquids,,,,,,,,,,Final energy demand
+,,,,,,Liquids,,land transport oil,,,,,,liquids,,,,,,,,,,Final energy demand
+,,,,,,"Final demand (inc. T&D losses, excl. pump storage )",,electricity,,,,,,,"final demand (inc. t&d losses, excl. pump storage )",,,,,,,,,Electricity demand
+,,,,,,H2 Residential&Tertiary,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,H2 Transport,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,H2 Industry,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,H2 Agriculture,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,H2 Power Generation,,,,,,,,,,,power generation,,,,,,,Hydrogen demand
+,,,,,,H2 Non-energy use,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,H2 Others,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,H2 e-fuels,,Fischer-Tropsch,,,,,,,,,e-fuels,,,,,,,Hydrogen demand
+,,,,,,H2 e-fuels,,Sabatier,,,,,,,,,e-fuels,,,,,,,Hydrogen demand
+,,,,,,H2 e-fuels,,methanolisation,,,,,,,,,e-fuels,,,,,,,Hydrogen demand
+,,,,,,H2 International maritime bunkers,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,CH4 Residential&Tertiary,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
+,,,,,,CH4 Transport,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
+,,,,,,CH4 Industry,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
+,,,,,,CH4 Agriculture,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
+,,,,,,CH4 Power Generation,,,,,,,,,,power generation,,,,,,,,Methane demand
+,,,,,,CH4 Non-energy use,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
+,,,,,,CH4 Others,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
+,,,,,,CH4 International maritime bunkers,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
+,,,,,,CH4 SMR,,,,,,,,,,smr (grey) and smr with ccs (blue),,,,,,,,Methane demand
+,,,,,Steam methane reformer,SMR (Grey),,SMR,,,,,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,"Hydrogen supply, Methane demand, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
+,,,,,Steam methane reformer,SMR with CCS (Blue),,SMR CC,,,,,,,,smr (grey) and smr with ccs (blue),,,smr (grey) and smr with ccs (blue),,,,,"Hydrogen supply, Methane demand, TYNDP market model doesn't distinguish between grey and blue SMR in the output files"
+,,,,,,Undefined for generation,,,,,,,,,,,,,undefined for generation,,,,,Hydrogen supply
+,,,,,,Low carbon imports,,H2 import Pipeline,,,,,,,,,,,imports (renewable & low carbon),,,,,Hydrogen supply
+,,,,,,Renewable imports,,H2 import Pipeline,,,,,,,,,,,imports (renewable & low carbon),,,,,Hydrogen supply
+,,,,,,Ammonia imports,,H2 import LH2,,,,,,,,,,,ammonia imports,,,,,Hydrogen supply
+,,,,,,Biomethane (Domestic),,biogas to gas,,,,,,,,,,biomethane (domestic),,,,,,Methane supply
+,,,,,,Biomethane (Import),,,,,,,,,,,,biomethane (import),,,,,,Methane supply
+,,,,,,Natural gas (Domestic),,,,,,,,,,,,natural gas (domestic),,,,,,Methane supply
+,,,,,,Natural gas (Import),,gas,,,,,,,,,,natural gas (import),,,,,,Methane supply
+,,,,,,Synthetic methane (Domestic),,Sabatier,,,,,,,,,,synthetic methane (domestic),,,,,,Methane supply
+,,,,,,Synthetic methane (Import),,,,,,,,,,,,synthetic methane (import),,,,,,Methane supply
+,,,,,,Final demand,,biomass final energy demand,,,,,,,,,,,,final demand,,,,Biomass supply
+,,,,,,For electricity,,,,,,,,,,,,,,for electricity,,,,Biomass supply
+,,,,,,For biomethane,,for biomethane,,,,,,,,,,,,for biomethane,,,,Biomass supply
+,,,,,,For biofuels,,biomass to liquid,,,,,,,,,,,,for biofuels,,,,Biomass supply
+,,,,,,For biofuels,,biomass to liquid CC,,,,,,,,,,,,for biofuels,,,,Biomass supply
+,,,,,,Methane,,gas,,,,,,,,,,,,,methane,,,Energy imports
+,,,,,,Hydrogen,,H2 import LH2,,,,,,,,,,,,,hydrogen,,,Energy imports
+,,,,,,Hydrogen,,H2 import Pipeline,,,,,,,,,,,,,hydrogen,,,Energy imports
+,,,,,,Liquids,,oil primary,,,,,,,,,,,,,liquids,,,Energy imports
+,,,,,,Solids,,coal,,,,,,,,,,,,,solids,,,Energy imports
+,,,,,,Solids,,lignite,,,,,,,,,,,,,solids,,,Energy imports
+,,,,,,Biomass,,,,,,,,,,,,,,,biomass,,,Energy imports
