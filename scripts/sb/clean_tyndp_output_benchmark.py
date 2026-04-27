@@ -83,7 +83,7 @@ MM_CARRIER_MAPPING = {
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
     # DSR and load shedding
     "Demand Side Response Explicit": "dsr",
-    "Demand Side Response Implicit": "dsr",
+    # Note: "Demand Side Response Implicit" is not included in the benchmarking for DSR.
     "Unserved energy [GWh]": "demand shedding",
     # Curtailment/"dump energy"
     "Dump energy [GWh]": "dumped energy",
