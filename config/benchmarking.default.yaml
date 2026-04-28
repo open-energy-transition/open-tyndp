@@ -13,6 +13,7 @@ benchmarking:
   tables:
     power_capacity:
       table_type: scenario_comparison
+      mapping_col: benchmarking_capacity
       rfc_sources:
       - market_out
       - report
@@ -33,6 +34,7 @@ benchmarking:
 
     power_generation:
       table_type: scenario_comparison
+      mapping_col: benchmarking_generation
       rfc_sources:
       - market_out
       - report
@@ -52,6 +54,7 @@ benchmarking:
 
     final_energy_demand:
       table_type: scenario_comparison
+      mapping_col: benchmarking_fed
       rfc_sources:
       - report
       unit: TWh
@@ -68,6 +71,7 @@ benchmarking:
 
     elec_demand:
       table_type: scenario_comparison
+      mapping_col: benchmarking_elec_demand
       rfc_sources:
       - report
       - vp
@@ -85,6 +89,7 @@ benchmarking:
 
     methane_demand:
       table_type: scenario_comparison
+      mapping_col: benchmarking_ch4_demand
       rfc_sources:
       - report
       unit: TWh
@@ -102,6 +107,7 @@ benchmarking:
 
     hydrogen_demand:
       table_type: scenario_comparison
+      mapping_col: benchmarking_h2_demand
       rfc_sources:
       - market_out
       - report
@@ -120,6 +126,7 @@ benchmarking:
 
     methane_supply:
       table_type: scenario_comparison
+      mapping_col: benchmarking_ch4_supply
       rfc_sources:
       - report
       unit: TWh
@@ -138,6 +145,7 @@ benchmarking:
 
     hydrogen_supply:
       table_type: scenario_comparison
+      mapping_col: benchmarking_h2_supply
       rfc_sources:
       - market_out
       - report
@@ -157,6 +165,7 @@ benchmarking:
 
     biomass_supply:
       table_type: scenario_comparison
+      mapping_col: benchmarking_biomass_supply
       rfc_sources:
       - report
       unit: TWh
@@ -185,6 +194,7 @@ benchmarking:
 
     energy_imports:
       table_type: scenario_comparison
+      mapping_col: benchmarking_energy_imports
       rfc_sources:
       - report
       unit: TWh
@@ -201,6 +211,7 @@ benchmarking:
 
     generation_profiles:
       table_type: time_series
+      mapping_col: benchmarking_generation_profiles
       rfc_sources:
       - report
       unit: GW

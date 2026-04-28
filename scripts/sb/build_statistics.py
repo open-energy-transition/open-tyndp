@@ -29,33 +29,36 @@ logger = logging.getLogger(__name__)
 
 pypsa.options.params.statistics.nice_names = False
 
-BENCHMARKING_COLS = {
-    "power_capacity": "benchmarking_capacity",
-    "power_generation": "benchmarking_generation",
-    "final_energy_demand": "benchmarking_fed",
-    "elec_demand": "benchmarking_elec_demand",
-    "methane_demand": "benchmarking_ch4_demand",
-    "hydrogen_demand": "benchmarking_h2_demand",
-    "methane_supply": "benchmarking_ch4_supply",
-    "hydrogen_supply": "benchmarking_h2_supply",
-    "biomass_supply": "benchmarking_biomass_supply",
-    "energy_imports": "benchmarking_energy_imports",
-    "generation_profiles": "benchmarking_generation_profiles",
-}
 
+def add_benchmarking_mappings(carrier_mapping_fn: str, tables: dict) -> None:
+    """
+    Load benchmarking mappings from the carrier mapping file and add them into
+    each table's config dict under the key ``mapping``.
 
-def _load_benchmarking_mappings(carrier_mapping_fn: str) -> dict[str, dict]:
-    # Read mapping CSV
+    Parameters
+    ----------
+    carrier_mapping_fn : str
+        Path to csv file with carrier mapping.
+    tables : dict
+        Dictionary of statistics tables. Each entry with a ``mapping_col`` key
+        will have a ``mapping`` key added containing the loaded carrier mapping.
+
+    Returns
+    -------
+    None
+        Modifies the tables dictionary in place by adding the mapping for each table.
+    """
     tech_map = pd.read_csv(carrier_mapping_fn)
-    mappings = {}
-    for table, col in BENCHMARKING_COLS.items():
+    for table, table_opts in tables.items():
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
         if col not in tech_map.columns:
             logger.warning(
-                "No existing mapping for table in 'tyndp_technology_mapping.csv'."
+                f"No existing mapping for table {table} in 'tyndp_technology_mapping.csv'."
             )
             continue
-        # Read mapping columns where entries exist that map to either open_tyndp_index or open_tyndp_carrier
-        mapping = (
+        table_opts["mapping"] = (
             tech_map[["open_tyndp_index", "open_tyndp_carrier", col]]
             .assign(
                 open_tyndp=lambda x: x[["open_tyndp_index", "open_tyndp_carrier"]]
@@ -64,11 +67,8 @@ def _load_benchmarking_mappings(carrier_mapping_fn: str) -> dict[str, dict]:
             )
             .dropna(subset=["open_tyndp", col])
             .set_index("open_tyndp")[col]
-        ).copy()
-        # Add to mappings dict
-        mappings[table] = mapping.to_dict()
-
-    return mappings
+            .to_dict()
+        )
 
 
 def remove_last_day(sws: pd.Series, nhours: int = 24):
@@ -655,10 +655,7 @@ if __name__ == "__main__":
     planning_horizons = int(snakemake.wildcards.planning_horizons)
 
     # Mapping from Open-TYNDP carrier names to benchmarking carrier names
-    benchmarking_mappings = _load_benchmarking_mappings(snakemake.input.carrier_mapping)
-    for table, mapping in benchmarking_mappings.items():
-        if table in options["tables"]:
-            options["tables"][table]["mapping"] = mapping
+    add_benchmarking_mappings(snakemake.input.carrier_mapping, options["tables"])
 
     # Read network
     logger.info("Reading network")
