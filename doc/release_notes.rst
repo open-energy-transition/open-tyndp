@@ -49,6 +49,8 @@ Upcoming Open-TYNDP Release
 
 * Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
 
+* Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
+
 **Documentation**
 
 **Developers Note**
