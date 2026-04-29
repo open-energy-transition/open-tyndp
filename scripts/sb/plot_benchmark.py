@@ -171,7 +171,7 @@ def _plot_scenario_comparison(
     elif table == "power_capacity":
         note = [
             'Note: DSR values from the Scenarios Report include both "implicit" and "explicit" DSR; other source show "explicit" DSR only. \n'
-            'The Scenarios Report includes some solar and onshore wind capacities not connected to the grid.'
+            "The Scenarios Report includes some solar and onshore wind capacities not connected to the grid."
         ]
     else:
         note = []
