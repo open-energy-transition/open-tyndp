@@ -168,8 +168,8 @@ if __name__ == "__main__":
     carrier = carrier.replace("_", " ")
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
     regions.geometry = regions.geometry.simplify(
-        0.02
-    )  # reduces file size (0.01 to 0.02 delivers small gains)
+        0.05
+    )  # reduces file size
 
     if carrier == "H2" and snakemake.params.h2_topology_tyndp:
         regions = dissolve_h2_regions_tyndp(regions, snakemake.input.buses_h2)
@@ -258,7 +258,7 @@ if __name__ == "__main__":
         regions["price"] = price.reindex(regions.index).fillna(0)
         shift = 0
 
-    vmin, vmax = regions.price.min() - shift, regions.price.max() + shift
+    vmin, vmax = regions.price.min() - shift, regions.price.quantile(0.98) + shift
     if settings["vmin"] is not None:
         vmin = settings["vmin"]
     if settings["vmax"] is not None:
@@ -301,13 +301,13 @@ if __name__ == "__main__":
 
     map = n.explore(
         branch_components=branch_components,
-        bus_size=bus_size.div(unit_conversion),
+        bus_size=bus_size.div(unit_conversion).round(3),
         bus_split_circle=True,
-        line_width=line_flow.div(unit_conversion),
-        line_flow=line_flow.div(unit_conversion),
+        line_width=line_flow.div(unit_conversion).round(3),
+        line_flow=line_flow.div(unit_conversion).round(3),
         line_color="rosybrown",
-        link_width=link_flow.div(unit_conversion),
-        link_flow=link_flow.div(unit_conversion),
+        link_width=link_flow.div(unit_conversion).round(3),
+        link_flow=link_flow.div(unit_conversion).round(3),
         link_color=branch_color,
         arrow_size_factor=arrow_size_factor,
         tooltip=tooltip,
@@ -319,4 +319,4 @@ if __name__ == "__main__":
 
     map.layers.insert(0, regions_layer)
 
-    map.to_html(snakemake.output[0], offline=True)
+    map.to_html(snakemake.output[0], offline=False)
