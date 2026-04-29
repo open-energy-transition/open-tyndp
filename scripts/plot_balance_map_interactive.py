@@ -258,7 +258,7 @@ if __name__ == "__main__":
         regions["price"] = price.reindex(regions.index).fillna(0)
         shift = 0
 
-    vmin, vmax = regions.price.min() - shift, regions.price.quantile(0.98) + shift
+    vmin, vmax = regions.price.min() - shift, regions.price.quantile(0.97) + shift
     if settings["vmin"] is not None:
         vmin = settings["vmin"]
     if settings["vmax"] is not None:
