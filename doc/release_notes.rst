@@ -45,6 +45,8 @@ Upcoming Open-TYNDP Release
 
 * Fix CBA workflow to correctly handle simple runs, collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
 
+* Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
+
 **Documentation**
 
 **Developers Note**
