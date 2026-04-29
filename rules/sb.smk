@@ -769,6 +769,7 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
         input:
             scenarios_figures=rules.retrieve_tyndp.output.benchmark,
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             benchmarks=RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
         log:
