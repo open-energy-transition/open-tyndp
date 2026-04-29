@@ -251,7 +251,11 @@ def load_MM_sheet(
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type].droplevel("output_type")
     # Only include mapped carriers
-    df = df[df.index.isin(MM_CARRIER_MAPPING.values())]
+    mapped_carrier_mask = df.index.isin(MM_CARRIER_MAPPING.values())
+    logger.warning(
+        f"No carrier mappings for {df.index[~mapped_carrier_mask]}. They will be excluded from the benchmarking."
+    )
+    df = df[mapped_carrier_mask]
 
     # Rename and filter column names (buses)
     df.rename(
