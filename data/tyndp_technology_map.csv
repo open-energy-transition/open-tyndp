@@ -1,6 +1,6 @@
 pemmdb_carrier,pemmdb_type,pemmdb_hydro_inflows,pecd_carrier,investment_dataset_carrier,tyndp_output_carrier,tyndp_report_carrier,tyndp_vp_carrier,open_tyndp_carrier,open_tyndp_index,open_tyndp_nice_name,benchmarking_capacity,benchmarking_generation,benchmarking_generation_profiles,benchmarking_fed,benchmarking_elec_demand,benchmarking_ch4_demand,benchmarking_h2_demand,benchmarking_ch4_supply,benchmarking_h2_supply,benchmarking_biomass_supply,benchmarking_energy_imports,open_tyndp_type,pypsa_eur_carrier,comment
-Solar,Photovoltaic,,LFSolarPVUtility,Solar PV Utility,Solar (Photovoltaic),Solar,Solar PV Utility,solar-pv-utility,solar-pv-utility,,solar,solar,solar,,,,,,,,,solar-pv-utility,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
-Solar,Rooftop,,LFSolarPVRooftop,Solar PV Rooftop,,Solar,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,,solar,solar,solar,,,,,,,,,solar-pv-rooftop,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+Solar,Photovoltaic,,LFSolarPVUtility,Solar PV Utility,Solar (Photovoltaic),Solar,Solar PV Utility,solar-pv-utility,solar-pv-utility,Solar PV (Utility),solar,solar,solar,,,,,,,,,solar-pv-utility,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
+Solar,Rooftop,,LFSolarPVRooftop,Solar PV Rooftop,,Solar,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,Solar PV (Rooftop),solar,solar,solar,,,,,,,,,solar-pv-rooftop,,For non Italian nodes Utility and Rooftop share the same PECD profile called LFSolarPV
 ,,,,,,,Solar PV,,,,solar,solar,,,,,,,,,,,,
 ,,,,,,,DRES Solar PV,,,,solar,solar,,,,,,,,,,,,
 Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,Solar Thermal,solar-thermal,solar-thermal,,solar thermal,solar thermal,,,,,,,,,,solar-thermal,,
@@ -58,7 +58,7 @@ Heavy oil,old 1,,,,Heavy oil old 1,Oil,Heavy oil,oil-heavy,oil-heavy-old1,,oil (
 Heavy oil,old 2,,,,Heavy oil old 2,Oil,Heavy oil,oil-heavy,oil-heavy-old2,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Oil shale,old,,,,Oil shale old,Oil,Oil shale,oil-shale,oil-shale-old,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Oil shale,new,,,,Oil shale new,Oil,Oil shale,oil-shale,oil-shale-new,,oil (incl. biofuels),oil (incl. biofuels),coal&lignite&oil,,,,,,,,,oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Gas,conventional old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-conv-old1,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-conv,OCGT,Methane demand
+Other Non-RES Gas,conventional old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-conv-old1,Other Non-Renewables,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-conv,OCGT,Methane demand
 Other Non-RES Gas,conventional old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-conv-old2,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-conv,OCGT,Methane demand
 Other Non-RES Gas,ccgt old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-old1,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
 Other Non-RES Gas,ccgt old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,gas,other-non-res-gas-ccgt-old2,,other non-res,other non-res,other non-res,,,power generation,,,,,,other-non-res-gas-ccgt,CCGT,Methane demand
@@ -95,7 +95,7 @@ Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
 ,,,,,Light oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
 ,,,,,Heavy oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
 ,,,,,Oil shale biofuel,,Oil shale biofuel,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
-,,,,,Demand Side Response Explicit,Demand shedding,Demand Side Response Explicit,dsr,,,dsr,dsr,,,,,,,,,,,,
+,,,,,Demand Side Response Explicit,Demand shedding,Demand Side Response Explicit,dsr,,DSR,dsr,dsr,,,,,,,,,,,,
 ,,,,,Demand Side Response Implicit,Demand shedding,,,,,dsr,dsr,,,,,,,,,,,,
 ,,,,,,,DSR,dsr,,,dsr,dsr,,,,,,,,,,,,
 ,,,,,Unserved energy [GWh],,,load,,,demand shedding,demand shedding,,,,,,,,,,,,

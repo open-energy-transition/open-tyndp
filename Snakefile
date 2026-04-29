@@ -7,6 +7,7 @@
 import copy
 from itertools import chain
 from pathlib import Path
+import pandas as pd
 import yaml
 from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
@@ -94,6 +95,20 @@ include: "rules/report.smk"
 
 
 if config["tyndp_scenario"]:
+    tyndp_nice_names = (
+        pd.read_csv("data/tyndp_technology_map.csv")[
+            ["open_tyndp_index", "open_tyndp_carrier", "open_tyndp_nice_name"]
+        ]
+        .dropna(subset=["open_tyndp_nice_name"])
+        .assign(
+            carrier=lambda x: x[["open_tyndp_index", "open_tyndp_carrier"]]
+            .bfill(axis=1)
+            .iloc[:, 0]
+        )
+        .set_index("carrier")["open_tyndp_nice_name"]
+        .to_dict()
+    )
+    config["plotting"]["nice_names"].update(tyndp_nice_names)
 
     include: "rules/cba.smk"
     include: "rules/sb.smk"
