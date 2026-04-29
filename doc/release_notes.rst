@@ -45,6 +45,8 @@ Upcoming Open-TYNDP Release
 
 * Fix CBA workflow to correctly handle simple runs, collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
 
+* Fix mapping of biofuels in the Final Energy Demand table of the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/667).
+
 **Documentation**
 
 **Developers Note**
