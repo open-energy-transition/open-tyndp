@@ -95,8 +95,7 @@ Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
 ,,,,,Light oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
 ,,,,,Heavy oil biofuel,,,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
 ,,,,,Oil shale biofuel,,Oil shale biofuel,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
-,,,,,Demand Side Response Explicit,Demand shedding,Demand Side Response Explicit,dsr,,DSR,dsr,dsr,,,,,,,dsr,,,,,
-,,,,,Demand Side Response Implicit,Demand shedding,,,,,dsr,dsr,,,,,,,,,,,,
+,,,,,Demand Side Response Explicit,Demand shedding,Demand Side Response Explicit,dsr,,DSR,dsr,dsr,,,,,,,dsr,,,,,'Demand Side Response Implicit' is not included in the benchmarking for DSR.
 ,,,,,,,DSR,dsr,,,dsr,dsr,,,,,,,,,,,,
 ,,,,,Unserved energy [GWh],,,load,,,demand shedding,demand shedding,,,,,,,,,,,,
 ,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,,Curtailment/dump energy
