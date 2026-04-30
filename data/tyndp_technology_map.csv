@@ -153,8 +153,7 @@ Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
 ,,,,,,Final demand,,biomass final energy demand,,,,,,,,,,,,final demand,,,,Biomass supply
 ,,,,,,For electricity,,,,,,,,,,,,,,for electricity,,,,Biomass supply
 ,,,,,,For biomethane,,for biomethane,,,,,,,,,,,,for biomethane,,,,Biomass supply
-,,,,,,For biofuels,,biomass to liquid,,,,,,,,,,,,for biofuels,,,,Biomass supply
-,,,,,,For biofuels,,biomass to liquid CC,,,,,,,,,,,,for biofuels,,,,Biomass supply
+,,,,,,For biofuels,,solid biomass,,,,,,,,,,,,for biofuels,,,,Biomass supply
 ,,,,,,Methane,,gas,,,,,,,,,,,,,methane,,,Energy imports
 ,,,,,,Hydrogen,,H2 import LH2,,,,,,,,,,,,,hydrogen,,,Energy imports
 ,,,,,,Hydrogen,,H2 import Pipeline,,,,,,,,,,,,,hydrogen,,,Energy imports

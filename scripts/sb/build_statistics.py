@@ -174,25 +174,18 @@ def compute_benchmark(
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[lambda s: ~s.index.isin(df_countries.index)]
-            .drop(index=["solid biomass"], errors="ignore")
         )
 
-        # Add Biomass to Liquid
-        df_btl = (
-            n.statistics.supply(
-                comps="Link",
-                bus_carrier="oil",
-                carrier=["biomass to liquid", "biomass to liquid CC"],
-                groupby="carrier",
-                aggregate_across_components=True,
-                groupby_time=False,
-            )
-            .mul(sws, axis=1)
-            .sum(axis=1)
-            .rename_axis("bus_carrier")
+        # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
+        biogas_not_upgraded = (
+            options["tables"]["biomass_supply"]["biogas_not_upgraded"][
+                planning_horizons
+            ]
+            * 1e6
         )
+        df_eu.loc["solid biomass"] -= biogas_not_upgraded
 
-        df = pd.concat([df_countries, df_eu, df_btl])
+        df = pd.concat([df_countries, df_eu])
     elif table == "elec_demand":
         grouper = ["carrier"]
         df = (
