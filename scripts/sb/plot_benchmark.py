@@ -585,7 +585,7 @@ def plot_benchmark(
             "flows": _plot_flows,
             "hours": _plot_hours,
         }
-        
+
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
                 df=bench_year.reset_index(),
