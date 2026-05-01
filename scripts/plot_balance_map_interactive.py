@@ -19,6 +19,7 @@ from scripts._helpers import (
     configure_logging,
     set_scenario_config,
     update_config_from_wildcards,
+    get_version,
 )
 from scripts.add_electricity import sanitize_carriers
 from scripts.build_tyndp_network import IBFI_COORD
@@ -125,6 +126,70 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
 
     return regions
 
+def add_reset_button(html_file: str) -> None:
+    """
+    Add a fixed-position 'Reset Zoom' button.
+
+    Parameters:
+    -----------
+    html_file: str 
+        Path to the HTML file
+    """
+    button = (
+        '<button onclick="window.location.reload()" '
+        'style="position:fixed;top:10px;left:10px;z-index:9999;'
+        'padding:4px 10px;background:white;border:1px solid #aaa;'
+        'border-radius:4px;cursor:pointer;font-size:11px;font-weight:bold">'
+        "&#8634; Reset Zoom"
+        "</button>"
+    )
+
+    with open(html_file) as f:
+        html = f.read()
+    with open(html_file, "w") as f:
+        f.write(html.replace("</body>", button + "\n</body>"))
+
+def add_fullscreen_button(html_file: str) -> None:
+    """
+    Add a fixed-position fullscreen toggle button.
+
+    Parameters
+    ----------
+    html_file : str
+        Path to the HTML file 
+    """
+    button = (
+        '<button onclick="document.documentElement.requestFullscreen()" '
+        'style="position:fixed;top:10px;left:115px;z-index:9999;'
+        'padding:2.1px 10px;background:white;border:1px solid #aaa;'
+        'border-radius:4px;cursor:pointer;font-size:10px" '
+        'title="Fullscreen">&#x26F6;</button>'
+    )
+    with open(html_file) as f:
+        html = f.read()
+    with open(html_file, "w") as f:
+        f.write(html.replace("</body>", button + "\n</body>"))
+
+def add_version_label(html_file: str, version: str) -> None:
+    """
+    Add a small version label at the bottom-right.
+
+    Parameters
+    ----------
+    html_file : str
+        Path to the HTML file
+    version : str
+    """
+    label = (
+        '<div style="position:fixed;bottom:8px;right:8px;z-index:9999;'
+        'font-size:10px;color:grey;pointer-events:none">'
+        + version
+        + "</div>"
+    )
+    with open(html_file) as f:
+        html = f.read()
+    with open(html_file, "w") as f:
+        f.write(html.replace("</body>", label + "\n</body>"))
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
@@ -318,3 +383,6 @@ if __name__ == "__main__":
     map.layers.insert(0, regions_layer)
 
     map.to_html(snakemake.output[0], offline=False)
+    add_reset_button(snakemake.output[0])
+    add_fullscreen_button(snakemake.output[0])
+    add_version_label(snakemake.output[0], get_version())
