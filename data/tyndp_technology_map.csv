@@ -19,15 +19,16 @@ Wind,Offshore wind,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,off
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fl-oh,offwind-h2-fl-oh,Offshore Wind (H2 Float. OH),wind offshore,wind offshore,offshore wind,,,,,,,,,offwind-h2-fl-oh,,only used with offshore hubs
 ,,,,,,,DRES Wind Off,,,,wind offshore,wind offshore,,,,,,,,,,,,
 Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro (exc. Pump storage),Run-of-River,hydro-ror,hydro-ror,Run of River,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-ror-turbine,,
-Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,,,,,,,,,,,,,hydro-pondage-reservoir,,
+Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,Hydro Pondage (Reservoir),,,,,,,,,,,,hydro-pondage-reservoir,,
 Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro (exc. Pump storage),Pondage,hydro-pondage,hydro-pondage,Hydro Pondage,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-pondage-turbine,,
-Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,,,,,,,,,,,,,hydro-reservoir-reservoir,,
+Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,Reservoir & Dam (Reservoir),,,,,,,,,,,,hydro-reservoir-reservoir,,
 Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro (exc. Pump storage),Reservoir,hydro-reservoir,hydro-reservoir,Reservoir & Dam,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,hydro-reservoir-turbine,,
-Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,,,,,,,,,,,,,hydro-phs-reservoir,,
+Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,Pumped Hydro (Reservoir),,,,,,,,,,,,hydro-phs-reservoir,,
 Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,Pumped Hydro,hydro and pumped storage,hydro and pumped storage,hydro,,,,,,,,,hydro-phs-turbine,,
 ,,,,,,,PS Open,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,,
 Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),,,hydro-phs,hydro-phs-pump,Pumped Hydro,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,,hydro-phs-pump,,
-Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure-reservoir,,,,,,,,,,,,,hydro-phs-pure-reservoir,,
+,,,,,,,,hydro-phs-inflows,,Pumped Hydro (Inflows),,,,,,,,,,,,,,
+Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure-reservoir,Pumped Hydro (Reservoir),,,,,,,,,,,,hydro-phs-pure-reservoir,,
 Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),Hydro and pumped storage,Pump Storage - Closed Loop (turbine),hydro-phs-pure,hydro-phs-pure-turbine,Pumped Hydro,hydro and pumped storage,hydro and pumped storage,hydro,,,,,,,,,hydro-phs-pure-turbine,,
 ,,,,,,,PS Closed,,,,hydro and pumped storage,hydro and pumped storage,,,,,,,,,,,,
 Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),,,hydro-phs-pure,hydro-phs-pure-pump,Pumped Hydro,hydro and pumped storage (load),hydro and pumped storage (load),,,,,,,,,,hydro-phs-pure-pump,,
@@ -86,7 +87,7 @@ Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,Hydrogen CCGT,h2-ccgt,h2-ccgt,H2 CCGT,hy
 Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis,H2 Electrolysis,,,,,,,,,p2g,,,electrolyser-onshore-grid,,Hydrogen supply
 Battery,Discharge,,,,Battery Storage discharge (gen.),Battery,Large scale batteries,battery,battery discharger,Battery Storage,battery,battery,battery,,,,,,,,,battery discharger,,
 Battery,Charge,,,,Battery Storage charge (load),,,battery,battery charger,Battery Storage,battery charge (load),battery charge (load),,,,,,,,,,battery charger,,
-Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
+Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,battery,,
 ,,,,Batteries Prosumer,,,,battery,battery-prosumer,,,,,,,,,,,,,battery-prosumer,,
 ,,,,Batteries Utility,,,,battery,battery-utility,,,,,,,,,,,,,battery-utility,,
 ,,,,,Lignite biofuel,Biofuels,Lignite biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,
@@ -126,7 +127,7 @@ Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
 ,,,,,,H2 e-fuels,,Fischer-Tropsch,,,,,,,,,e-fuels,,,,,,,Hydrogen demand
 ,,,,,,H2 e-fuels,,Sabatier,,,,,,,,,e-fuels,,,,,,,Hydrogen demand
 ,,,,,,H2 e-fuels,,methanolisation,,,,,,,,,e-fuels,,,,,,,Hydrogen demand
-,,,,,,H2 International maritime bunkers,,H2 exogenous demand,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
+,,,,,,H2 International maritime bunkers,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,Hydrogen demand
 ,,,,,,CH4 Residential&Tertiary,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
 ,,,,,,CH4 Transport,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
 ,,,,,,CH4 Industry,,exogenous gas demand,,,,,,,,exogenous demand,,,,,,,,Methane demand
@@ -154,9 +155,15 @@ Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
 ,,,,,,For biofuels,,biomass to liquid,,,,,,,,,,,,for biofuels,,,,Biomass supply
 ,,,,,,For biofuels,,biomass to liquid CC,,,,,,,,,,,,for biofuels,,,,Biomass supply
 ,,,,,,Methane,,gas,,,,,,,,,,,,,methane,,,Energy imports
-,,,,,,Hydrogen,,H2 import LH2,,,,,,,,,,,,,hydrogen,,,Energy imports
-,,,,,,Hydrogen,,H2 import Pipeline,,,,,,,,,,,,,hydrogen,,,Energy imports
+,,,,,,Hydrogen,,H2 import LH2,,H2 Import LH2,,,,,,,,,,,hydrogen,,,Energy imports
+,,,,,,Hydrogen,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,,,hydrogen,,,Energy imports
 ,,,,,,Liquids,,oil primary,,,,,,,,,,,,,liquids,,,Energy imports
 ,,,,,,Solids,,coal,,Coal,,,,,,,,,,,solids,,,Energy imports
 ,,,,,,Solids,,lignite,,Lignite,,,,,,,,,,,solids,,,Energy imports
 ,,,,,,Biomass,,,,,,,,,,,,,,,biomass,,,Energy imports
+,,,,,,,,electricity distribution grid,,Electricity Distribution Grid,,,,,,,,,,,,,,
+,,,,,,,,DC,,Electricity Transmission,,,,,,,,,,,,,,
+,,,,,,,,DC_OH,,Offshore Hub Transmission,,,,,,,,,,,,,,
+,,,,,,,,H2 cavern-storage charger,,H2 Cavern Storage Bicharger,,,,,,,,,,,,,,
+,,,,,,,,H2 cavern-storage discharger,,H2 Cavern Storage Bicharger,,,,,,,,,,,,,,
+,,,,,,,,H2 cavern-storage,,H2 Cavern Storage,,,,,,,,,,,,,,

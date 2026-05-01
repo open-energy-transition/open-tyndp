@@ -53,6 +53,7 @@ from scripts._helpers import (
     set_scenario_config,
     update_config_from_wildcards,
 )
+from scripts.add_electricity import sanitize_carriers
 
 logger = logging.getLogger(__name__)
 
@@ -551,6 +552,8 @@ def prepare_network(
             carrier="curtailment",
             p_nom=1e6,
         )
+
+    sanitize_carriers(n, snakemake.config)
 
     if solve_opts.get("noisy_costs"):
         # Preserve original costs before adding noise
