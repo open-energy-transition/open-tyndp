@@ -226,7 +226,7 @@ if __name__ == "__main__":
     bidding_zones_entsoe = gpd.read_file(snakemake.input.bidding_zones_entsoepy)
     bidding_zones_entsoe = bidding_zones_entsoe.rename(
         columns={"zoneName": "zone_name"}
-    )
+    ).to_crs(bidding_zones_elecmaps.crs)
 
     if "IT" in countries:
         tolerance_dict = {
