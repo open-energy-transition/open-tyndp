@@ -97,7 +97,7 @@ Battery,Store,,,,,,,battery,battery,,,,,,,,,,,,,battery,,
 ,,,,,Oil shale biofuel,,Oil shale biofuel,,,,oil (incl. biofuels),oil (incl. biofuels),,,,,,,,,,,,
 ,,,,,Demand Side Response Explicit,Demand shedding,Demand Side Response Explicit,dsr,,DSR,dsr,dsr,,,,,,,dsr,,,,,'Demand Side Response Implicit' is not included in the benchmarking for DSR.
 ,,,,,,,DSR,dsr,,DSR,dsr,dsr,,,,,,,,,,,,
-,,,,,Unserved energy [GWh],,,load,,Demand Shedding,demand shedding,demand shedding,,,,,,,,,,,,
+,,,,,Unserved energy [GWh],,,load,,Demand Shedding,demand shedding,demand shedding,,,,,,,demand shedding,,,,,
 ,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,,Curtailment/dump energy
 ,,,,,Native Demand (excl. H2 storage charge) [GWhH2],,,,,,,,,,,,exogenous demand,,,,,,,Hydrogen demand
 ,,,,,Marginal Cost Yearly Average [€],,,,,,AC,AC,,,,,,,,,,,,Prices
