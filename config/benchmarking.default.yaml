@@ -595,4 +595,12 @@ benchmarking:
       mapping:
         load: loss of load expectation
 
+    hydrogen_demand_shedding_hours:
+      table_type: hours
+      rfc_sources:
+      - market_out
+      unit: hours
+      mapping:
+        load: loss of h2 load expectation
+
 

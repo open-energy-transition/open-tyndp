@@ -307,6 +307,7 @@ def _plot_prices(
     )
 
     ax.grid(axis="y", linestyle="--")
+    ax.tick_params(axis="x", labelrotation=45)
 
     errors = (
         (df[model_col] - df[rfc_source]).abs()
@@ -411,7 +412,7 @@ def _plot_flows(
             )
         )
         df_direction[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
-            title=f"{table_title} (focusing on incorrect net direction, above 1 {source_unit}) - Scenario {scenario} - CY {cyear} - Year {year}",
+            title=f"{table_title} (focusing on incorrect net direction - Scenario {scenario} - CY {cyear} - Year {year}",
             xlabel=source_unit,
             color=bar_colors,
             ax=ax,
@@ -450,6 +451,12 @@ def _plot_hours(
     df = df[
         df[[model_col, rfc_source]].fillna(0).any(axis=1)
     ]  # keep buses with one non-zero value
+    if df.empty:
+        logger.info(
+            f"Skipping plot for {table} - Scenario {scenario} - CY {cyear} - Year {year}: no buses with non-zero values."
+        )
+        plt.close(fig)
+        return
     df[[model_col, rfc_source]].sort_values(model_col, ascending=False).plot.bar(
         title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
         ylabel=source_unit,
@@ -645,6 +652,7 @@ def plot_benchmark(
                 rfc_source=rfc_source,
                 source_unit=source_unit,
                 bench_colors=bench_colors,
+            )
         elif plotter := plotters.get(table_type):
             plotter(
                 df=bench_year,

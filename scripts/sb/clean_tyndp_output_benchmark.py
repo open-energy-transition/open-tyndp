@@ -101,6 +101,7 @@ MM_CARRIER_MAPPING = {
     "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]": "H2",
     # Demand/Load shedding hours
     "Loss of load expectation [hour]  ": "loss of load expectation",
+    "Loss of H2 load expectation [hour]  ": "loss of h2 load expectation",
     # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
     # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
     # NOT available in TYNDP market model (will not appear in output):
@@ -130,6 +131,10 @@ LOOKUP_TABLES: dict[str, list[str]] = {
     "demand_shedding_hours": [
         "Yearly Outputs",
         "Loss of load expectation [hour]  ",
+    ],  # includes white space
+    "hydrogen_demand_shedding_hours": [
+        "Yearly H2 Outputs",
+        "Loss of H2 load expectation [hour]  ",
     ],  # includes white space
     # prices
     "electricity_price": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
