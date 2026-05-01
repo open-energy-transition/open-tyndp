@@ -456,13 +456,16 @@ def _plot_hours(
         color=bar_colors,
         ax=ax,
     )
+
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
     ax.grid(axis="y", linestyle="--")
-    ax.legend(frameon=True, facecolor="white", edgecolor="black")
+    ax.legend(frameon=True, facecolor="white")
     add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
+
     plt.close(fig)
 
 
@@ -522,9 +525,7 @@ def plot_benchmark(
         f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
     )
 
-    filter_by_bus = (
-        "price" not in table and "crossborder" not in table and "hours" not in table
-    )
+    filter_by_bus = opt["table_type"] not in {"prices", "flows", "hours"}
     condition_str = f" and {bus_col_name}==@bus" if filter_by_bus else ""
     benchmarks = (
         benchmarks_raw.query(f"table==@table{condition_str}")
@@ -567,6 +568,12 @@ def plot_benchmark(
     for year in bench_wide.index.get_level_values("year").unique():
         bench_year = bench_wide.query("year==@year").copy()
 
+        plotters = {
+            "prices": _plot_prices,
+            "flows": _plot_flows,
+            "hours": _plot_hours,
+        }
+        
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
                 df=bench_year.reset_index(),
@@ -638,6 +645,18 @@ def plot_benchmark(
                 rfc_source=rfc_source,
                 source_unit=source_unit,
                 bench_colors=bench_colors,
+        elif plotter := plotters.get(table_type):
+            plotter(
+                df=bench_year,
+                table=table,
+                year=year,
+                output_dir=output_dir,
+                scenario=scenario,
+                cyear=cyear,
+                model_col=model_col,
+                rfc_source=rfc_source,
+                source_unit=source_unit,
+                bench_colors=bench_colors,
             )
         else:
             raise ValueError(f"Unknown table type {table_type}.")
@@ -664,7 +683,7 @@ def orchestrate_benchmark(
         for table in options["tables"]
         for bus_col in (
             [""]
-            if "price" in table or "crossborder" in table or "hours" in table
+            if options["tables"][table]["table_type"] in {"prices", "flows", "hours"}
             else benchmarks_raw.query("table == @table")[bus_col_name].unique()
         )
     ]
