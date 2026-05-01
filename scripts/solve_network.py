@@ -497,6 +497,7 @@ def prepare_network(
     planning_horizons: str | None,
     co2_sequestration_potential: dict[str, float] | None,
     limit_max_growth: dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
 ) -> None:
     """
     Prepare network with various constraints and modifications.
@@ -515,6 +516,8 @@ def prepare_network(
         The current planning horizon year or None for perfect foresight
     co2_sequestration_potential : Dict[str, float]
         CO2 sequestration potential constraints by year
+    config : dict
+        Dictionary containing all configuration options.
 
     Returns
     -------
@@ -553,7 +556,7 @@ def prepare_network(
             p_nom=1e6,
         )
 
-    sanitize_carriers(n, snakemake.config)
+    sanitize_carriers(n, config)
 
     if solve_opts.get("noisy_costs"):
         # Preserve original costs before adding noise
@@ -1706,6 +1709,7 @@ if __name__ == "__main__":
         planning_horizons=planning_horizons,
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
+        config=snakemake.config,
     )
 
     # Determine solve mode
