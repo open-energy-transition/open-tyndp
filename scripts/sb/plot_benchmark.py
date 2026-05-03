@@ -94,7 +94,7 @@ def add_metadata(
             "\n".join(note),
             transform=fig.transFigure,
             ha="left",
-            va="bottom",
+            va="top",
             fontsize=8,
             alpha=0.7,
         )
@@ -135,7 +135,7 @@ def _plot_scenario_comparison(
     fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
 
     bar_colors = [bench_colors.get(col, "grey") for col in idx]
-    df[idx].plot.bar(
+    df[idx].clip(lower=0).plot.bar(
         ax=ax,
         color=bar_colors,
         width=0.7,
@@ -167,6 +167,11 @@ def _plot_scenario_comparison(
     if table == "power_generation":
         note = [
             'Note: Curtailed energy is included in both "dumped energy" and renewables generation values.'
+        ]
+    elif table == "power_capacity":
+        note = [
+            'Note: DSR values from the Scenarios Report include both "implicit" and "explicit" DSR; other source show "explicit" DSR only. \n'
+            "The Scenarios Report includes some solar and onshore wind capacities not connected to the grid."
         ]
     else:
         note = []

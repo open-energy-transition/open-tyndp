@@ -209,6 +209,12 @@ def clean_data_for_benchmarking(table: str, df: pd.DataFrame) -> pd.DataFrame:
             "oil (incl. biofuels)",
         )
 
+        df = _group_labels(
+            df,
+            ["demand shedding"],
+            "dsr",
+        )
+
         if table == "power_generation":
             df = df[df.carrier != "total generation"]
 

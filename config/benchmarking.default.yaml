@@ -37,8 +37,7 @@ benchmarking:
         shipping oil: liquids
         land transport oil: liquids
         coal: solids
-        biomass to liquid: biofuels
-        biomass to liquid CC: biofuels
+        solid biomass: biofuels
 
     elec_demand:
       table_type: scenario_comparison
@@ -239,7 +238,6 @@ benchmarking:
         other-non-res-oil-shale: chp and small thermal
         other-non-res-oil-shale-old: chp and small thermal
         other-non-res-oil-shale-new: chp and small thermal
-        load: demand shedding
         OCGT: slack generator
 
     power_generation:

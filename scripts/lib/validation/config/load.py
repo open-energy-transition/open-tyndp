@@ -81,3 +81,7 @@ class LoadConfig(BaseModel):
         default_factory=_DistributionKeyConfig,
         description="Distribution key for spatially disaggregating the per-country electricity demand data.",
     )
+    patch_demand_with_mm: bool | list[str] = Field(
+        False,
+        description="Whether to patch the electricity demand with Market Model output data. Set to `true` to apply to all nodes, or provide a list of node names to apply selectively.",
+    )
