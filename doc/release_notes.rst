@@ -25,7 +25,7 @@ Upcoming Open-TYNDP Release
 
 * Add separate solver option for CBA MSV extraction (`cba.msv_extraction.solving`) and move CBA solve logs to `results/cba/logs/` (https://github.com/open-energy-transition/open-tyndp/pull/627).
 
-* Use single climate year's solved network for CBA workflow for multi-climate year runs (https://github.com/open-energy-transition/open-tyndp/pull/646).
+* Use installed capacities from a single Scenario Building run across all CBA climate year runs, consistent with TYNDP 2024 methodology. Time-varying inputs (demand, capacity factors) are adjusted per climate year, while installed capacities remain fixed (https://github.com/open-energy-transition/open-tyndp/pull/646).
 
 **Bugfixes and Compatibility**
 
