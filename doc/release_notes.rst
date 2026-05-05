@@ -31,6 +31,8 @@ Upcoming Open-TYNDP Release
 
 * Change number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
 
+* Apply snapshot weightings within networks instead of within ``n.statistics`` groupings in ``build_statistics`` to improve performance (https://github.com/open-energy-transition/open-tyndp/pull/674).
+
 **Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
