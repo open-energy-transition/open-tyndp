@@ -28,6 +28,7 @@ from snakemake.utils import update_config
 from scripts._benchmark import memory_logger
 from scripts._helpers import (
     configure_logging,
+    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -129,5 +130,11 @@ if __name__ == "__main__":
                 file=f,
             )
 
+    # Assign meta data to network
+    n.meta = dict(
+        snakemake.config,
+        **dict(wildcards=dict(snakemake.wildcards)),
+        version_commit=get_version(),
+    )
     # Save network with marginal storage values
     n.export_to_netcdf(snakemake.output.network)
