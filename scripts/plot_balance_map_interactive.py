@@ -127,7 +127,7 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
     return regions
 
 
-def add_buttons(html_file: str, version:str) -> None:
+def add_buttons(html_file: str, version: str) -> None:
     """
     Add a reset, fullscreen and version label
 
@@ -165,6 +165,7 @@ def add_buttons(html_file: str, version:str) -> None:
     html = html.replace("</body>", map_additions + "\n<body>")
     with open(html_file, "w") as f:
         f.write(html)
+
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
