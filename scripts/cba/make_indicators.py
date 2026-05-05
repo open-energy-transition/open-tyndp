@@ -4,18 +4,19 @@
 """
 Calculate CBA indicators by comparing reference and project scenarios.
 
-This script computes the B1 indicator (Total System Cost difference) and other
-CBA metrics by analyzing the solved networks for reference and project cases.
+This script computes the B1 indicator (operational cost difference)
+and other CBA metrics by analyzing the solved networks for reference and project
+cases.
 
 PINT (Put In at a Time):
     - Reference: Network WITHOUT any projects
     - Project: Network WITH the specific project added
-    - B1 = Cost(reference) - Cost(with project)
+    - B1 = OPEX(reference) - OPEX(with project)
 
 TOOT (Take Out One at a Time):
     - Reference: Network WITH all projects (current plan)
     - Project: Network WITHOUT the specific project (removed)
-    - B1 = Cost(without project) - Cost(reference)
+    - B1 = OPEX(without project) - OPEX(reference)
 
 
 References:
@@ -272,7 +273,7 @@ def calculate_b1_indicator(
     n_reference, n_project, method="pint", remove_noisy_costs: bool = False
 ):
     """
-    Calculate B1 indicator: change in total system cost.
+    Calculate B1 indicator.
 
     The interpretation depends on the method:
     - PINT: positive B1 means beneficial (project reduces costs)
@@ -286,20 +287,21 @@ def calculate_b1_indicator(
     Returns:
         dict: Dictionary with B1 and component costs
     """
-    # Calculate costs for both scenarios
+    # Calculate full cost breakdowns for reporting
     cost_reference = calculate_total_system_cost(n_reference, remove_noisy_costs)
     cost_project = calculate_total_system_cost(n_project, remove_noisy_costs)
 
+    # For B1 calculation, use only OPEX
     if method == "pint":
         # PINT: positive B1 means beneficial (project reduces costs)
         # Reference is without project
         # Project is with project
-        b1 = cost_reference["total"] - cost_project["total"]
+        b1 = cost_reference["opex"] - cost_project["opex"]
     else:  # toot
         # TOOT: positive B1 means beneficial (removing project increases costs)
         # Reference is with all projects
         # Project is without project
-        b1 = cost_project["total"] - cost_reference["total"]
+        b1 = cost_project["opex"] - cost_reference["opex"]
 
     is_beneficial = b1 > 0
 
