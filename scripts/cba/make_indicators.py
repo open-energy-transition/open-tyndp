@@ -812,9 +812,7 @@ if __name__ == "__main__":
     # Convert to DataFrame and save
     df_model = build_long_indicators(indicators, units)
 
-    benchmark_scenario = snakemake.config.get("cba", {}).get(
-        "sb_scenario"
-    ) or snakemake.config.get("tyndp_scenario")
+    benchmark_scenario = snakemake.config.get("tyndp_scenario")
     benchmark_rows = load_benchmark_rows(
         snakemake.input.benchmark,
         indicators["project_id"],

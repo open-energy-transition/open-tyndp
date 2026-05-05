@@ -29,6 +29,15 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
+CLIMATE_DEPENDENT_LINK_CARRIERS = {
+    "electricity distribution grid",
+    "kerosene for aviation",
+    "land transport oil",
+    "shipping oil",
+    "agriculture machinery oil",
+}
+
+
 def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: list):
     """
     Set infinite capacity for primary fuel source generators.
@@ -60,6 +69,39 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
     n.generators.loc[gen_i, "p_nom"] = inf
 
 
+def extend_climate_dependent_links(n: pypsa.Network) -> None:
+    """
+    Make climate-dependent links extendable.
+
+    The CBA workflow reuses optimized capacities from the solved base SB
+    scenario. Some downstream delivery links, however, are driven directly by
+    climate-year-dependent demand profiles (such as electricity distribution grids,
+    land transport oil, etc.). If they remain hard-fixed, the new network can be
+    infeasible to solve for the new climate-year demand inputs.
+
+    This function takes a set list of climate-dependent links and:
+    - keep the reused solved capacity as a lower bound, and
+    - allow only these known climate-dependent link carriers to extend further
+      if the target climate year requires it (by setting ``p_nom_extendable`` to True).
+    """
+    mask = n.links.carrier.isin(CLIMATE_DEPENDENT_LINK_CARRIERS)
+    links_i = n.links.index[mask]
+    if links_i.empty:
+        logger.info("No climate-dependent links found to reopen")
+        return
+
+    # Preserve the reused solved capacity as the minimum retained capacity.
+    n.links.loc[links_i, "p_nom_min"] = n.links.loc[links_i, "p_nom"]
+    n.links.loc[links_i, "p_nom_extendable"] = True
+
+    counts = n.links.loc[links_i, "carrier"].value_counts().sort_index().to_dict()
+    logger.info(
+        "Reopened %s climate-dependent links after fixing capacities: %s",
+        len(links_i),
+        counts,
+    )
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -77,14 +119,21 @@ if __name__ == "__main__":
     # Load the solved network from scenario building
     n = pypsa.Network(snakemake.input.network)
 
-    # Extend primary fuel sources capacity
-    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
-    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+    # Fix optimal capacities from scenario building. This freezes the reused
+    # optimized SB capacities for the CBA workflow.
+    n.optimize.fix_optimal_capacities()
 
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
-    # Fix optimal capacities from scenario building
-    n.optimize.fix_optimal_capacities()
+    # Re-apply the intended CBA relaxations after fixing capacities. Doing this
+    # before ``fix_optimal_capacities()`` would be overwritten immediately by the
+    # fixed ``*_nom_opt`` values from the solved SB network.
+    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
+    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+
+    # Reopen only the specific link carriers whose required capacity can change
+    # with the target climate-year demand inputs.
+    extend_climate_dependent_links(n)
 
     # Add hurdle costs to DC links
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)

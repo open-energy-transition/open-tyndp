@@ -171,6 +171,13 @@ rule clean_tyndp_indicators:
 
 
 def input_sb_network(w, run=None):
+    """Give correct SB input network path for CBA.
+
+    If config["cba"]["cba_scenario_input"]["use_presolved"] is True,
+    use the path to the presolved SB network based on the planning horizon.
+
+    Otherwise, returns the path to the regular SB input network
+    based on the scenario wildcards and foresight."""
     scenario = config_provider("scenario")(w)
     (clusters,) = scenario["clusters"]
     (opts,) = scenario["opts"]
@@ -241,6 +248,100 @@ def input_sb_network(w, run=None):
     )
 
 
+def cba_sb_run(w):
+    """Determine run name to use as the SB input network for CBA.
+
+    Logic is as follows:
+    - If config["cba"]["sb_scenario"] is set, use that run (allows overriding for testing or special cases)
+    - Otherwise, if the current run has a "run" wildcard, use that (allows regular scenarios to use their own run as SB input).
+    """
+    sb_run = config_provider("cba", "sb_scenario", default=None)(w)
+    if sb_run:
+        return sb_run
+    current_run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(current_run, list):
+        current_run = current_run[0] if current_run else ""
+    if current_run:
+        return current_run
+    return config_provider("tyndp_scenario")(w)
+
+
+def cba_is_first_horizon(w):
+    """Return True if the current horizon is the first CBA horizon.
+
+    Within the CBA workflow, for a multi-climate year run, for the first
+    planning horizon, the network output of ``add_existing_baseyear`` is
+    used as the climate-year source network, while for later horizons,
+    the network output of ``prepare_sector_network`` is used.
+
+    This function checks if the current horizon is the first one to
+    determine which source network to use.
+    """
+    planning_horizons = config_provider("scenario", "planning_horizons")(w)
+    if not planning_horizons:
+        raise ValueError("scenario.planning_horizons must contain at least one value.")
+    return int(w.planning_horizons) == int(planning_horizons[0])
+
+
+def cba_climate_source_network(w):
+    """
+    Return the climate-year source network used to overwrite temporal inputs for CBA.
+
+    First horizon:
+    - use the output of ``add_existing_baseyear`` because it already contains the
+      target climate year's pre-solve state without depending on a previous
+      climate-year solve.
+
+    Later horizons:
+    - use the output of ``prepare_sector_network``. A dedicated CBA-side
+      carry-over/mapping step is still needed there, so the preparation script
+      handles that case explicitly.
+    """
+    scenario = config_provider("scenario")(w)
+    (clusters,) = scenario["clusters"]
+    (opts,) = scenario["opts"]
+    (sector_opts,) = scenario["sector_opts"]
+    run = w.get("run", config_provider("run", "name")(w))
+    if isinstance(run, list):
+        run = run[0] if run else ""
+    if cba_is_first_horizon(w):
+        return fill_wildcards(
+            resources(
+                "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
+            ),
+            clusters=clusters,
+            opts=opts,
+            sector_opts=sector_opts,
+            planning_horizons=str(w.planning_horizons),
+            run=run,
+        )
+    return fill_wildcards(
+        resources(
+            "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
+        ),
+        clusters=clusters,
+        opts=opts,
+        sector_opts=sector_opts,
+        planning_horizons=str(w.planning_horizons),
+        run=run,
+    )
+
+
+# Prepare the correct SB input network for CBA, depending on the horizon and whether presolved networks are used
+rule prepare_cba_sb_input_network:
+    input:
+        solved_network=lambda w: input_sb_network(w, run=cba_sb_run(w)),
+        climate_source_network=cba_climate_source_network,
+    params:
+        is_first_horizon=cba_is_first_horizon,
+    output:
+        network=resources("cba/networks/sb_input_{planning_horizons}.nc"),
+    log:
+        logs("cba/prepare_cba_sb_input_network_{planning_horizons}.log"),
+    script:
+        scripts("cba/prepare_cba_sb_input_network.py")
+
+
 # Simplify scenario building network for CBA
 # Fixes capacities, adds hurdle costs, extends primary fuel sources, disables volume limits
 rule simplify_sb_network:
@@ -250,10 +351,7 @@ rule simplify_sb_network:
         ),
         hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
-        network=input_sb_network,
-        sb_network=lambda w: input_sb_network(
-            w, run=config_provider("cba", "sb_scenario")(w)
-        ),
+        network=rules.prepare_cba_sb_input_network.output.network,
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     script:
