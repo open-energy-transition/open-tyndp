@@ -738,6 +738,7 @@ if config["benchmarking"]["enable"]:
                 rules.retrieve_tyndp.output,
                 f"market_outputs_{w.scenario}{w.planning_horizons}_CY2009",
             ),
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             benchmarks=RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
@@ -768,6 +769,7 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
         input:
             scenarios_figures=rules.retrieve_tyndp.output.benchmark,
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             benchmarks=RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
         log:
@@ -789,6 +791,7 @@ if config["benchmarking"]["enable"]:
             elec_demand=rules.retrieve_tyndp_vp_data.output.elec_demand,
             elec_supplymix=rules.retrieve_tyndp_vp_data.output.elec_supply,
             elec_flex=rules.retrieve_tyndp_vp_data.output.elec_flex,
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             RESULTS + "benchmarks/tyndp-2024/resources/vp_data_tyndp.csv",
         log:
@@ -815,6 +818,7 @@ if config["benchmarking"]["enable"]:
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",

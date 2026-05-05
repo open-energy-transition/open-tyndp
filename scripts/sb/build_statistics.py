@@ -30,6 +30,47 @@ logger = logging.getLogger(__name__)
 pypsa.options.params.statistics.nice_names = False
 
 
+def add_benchmarking_mappings(carrier_mapping_fn: str, tables: dict) -> None:
+    """
+    Load benchmarking mappings from the carrier mapping file and add them into
+    each table's config dict under the key ``mapping``.
+
+    Parameters
+    ----------
+    carrier_mapping_fn : str
+        Path to csv file with carrier mapping.
+    tables : dict
+        Dictionary of statistics tables. Each entry with a ``mapping_col`` key
+        will have a ``mapping`` key added containing the loaded carrier mapping.
+
+    Returns
+    -------
+    None
+        Modifies the tables dictionary in place by adding the mapping for each table.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    for table, table_opts in tables.items():
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
+        if col not in tech_map.columns:
+            logger.warning(
+                f"No existing mapping for table {table} in 'tyndp_technology_mapping.csv'."
+            )
+            continue
+        table_opts["mapping"] = (
+            tech_map[["open_tyndp_index", "open_tyndp_carrier", col]]
+            .assign(
+                open_tyndp=lambda x: x[["open_tyndp_index", "open_tyndp_carrier"]]
+                .bfill(axis=1)
+                .iloc[:, 0]
+            )
+            .dropna(subset=["open_tyndp", col])
+            .set_index("open_tyndp")[col]
+            .to_dict()
+        )
+
+
 def remove_last_day(sws: pd.Series, nhours: int = 24):
     """
     Remove the last day from snapshots to ensure exactly 52 weeks of data.
@@ -605,6 +646,9 @@ if __name__ == "__main__":
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
+
+    # Mapping from Open-TYNDP carrier names to benchmarking carrier names
+    add_benchmarking_mappings(snakemake.input.carrier_mapping, options["tables"])
 
     # Read network
     logger.info("Reading network")

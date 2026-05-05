@@ -30,45 +30,21 @@ EU27_COUNTRIES = [
 ]
 EU27_MAP = pd.Series(cc.EU27as("ISO2").ISO2.to_list(), index=EU27_COUNTRIES)
 
-CARRIER_MAP = {
-    "Demand Side Response Explicit": "dsr",
-    "DRES Solar PV": "solar",
-    "DRES Wind Off": "wind offshore",
-    "DRES Wind On": "wind onshore",
-    "DSR": "dsr",
-    "Gas": "methane (incl. biofuels)",
-    "Gas CCGT": "methane (incl. biofuels)",
-    "Gas CCGT CCS": "methane (incl. biofuels)",
-    "Gas conventional": "methane (incl. biofuels)",
-    "Gas OCGT": "methane (incl. biofuels)",
-    "Hard coal": "coal + other fossil (incl. biofuels)",
-    "Hard coal biofuel": "coal + other fossil (incl. biofuels)",
-    "Heavy oil": "oil (incl. biofuels)",
-    "Hydrogen CCGT": "hydrogen",
-    "Hydrogen FC": "hydrogen",
-    "Large scale batteries": "battery",
-    "Light oil": "oil (incl. biofuels)",
-    "Lignite biofuel": "coal + other fossil (incl. biofuels)",
-    "Lignite": "coal + other fossil (incl. biofuels)",
-    "Nuclear": "nuclear",
-    "Oil shale biofuel": "oil (incl. biofuels)",
-    "Oil shale": "oil (incl. biofuels)",
-    "Other RES": "small scale res",
-    "Others non-RES": "coal + other fossil (incl. biofuels)",
-    "Pondage": "hydro and pumped storage",
-    "PS Closed": "hydro and pumped storage",
-    "PS Open": "hydro and pumped storage",
-    "Pump Storage - Closed Loop (turbine)": "hydro and pumped storage",
-    "Pump Storage - Open Loop (turbine)": "hydro and pumped storage",
-    "Reservoir": "hydro and pumped storage",
-    "Run-of-River": "hydro and pumped storage",
-    "Solar PV": "solar",
-    "Solar PV Rooftop": "solar",
-    "Solar PV Utility": "solar",
-    "Solar Thermal": "solar thermal",
-    "Wind Offshore": "wind offshore",
-    "Wind Onshore": "wind onshore",
-}
+
+# Mapping from TYNDP Visualization Platform (VP) carrier names to benchmark carrier names
+def _load_vp_carrier_mapping(carrier_mapping_fn: str) -> dict:
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    return (
+        tech_map[
+            [
+                "tyndp_vp_carrier",
+                "benchmarking_capacity",
+            ]
+        ]
+        .dropna(subset=["tyndp_vp_carrier"])
+        .set_index("tyndp_vp_carrier")["benchmarking_capacity"]
+        .to_dict()
+    )
 
 
 def get_elec_demand(
@@ -198,7 +174,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("clean_tyndp_vp_data", run="NT")
+        snakemake = mock_snakemake(
+            "clean_tyndp_vp_data", configfiles="config/test/config.tyndp.yaml"
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -207,6 +185,9 @@ if __name__ == "__main__":
     scenario = snakemake.params["scenario"]
     unit_conversion = snakemake.params["unit_conversion"]
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
+
+    # load carrier mapping
+    CARRIER_MAP = _load_vp_carrier_mapping(snakemake.input.carrier_mapping)
 
     logger.info("Reading Visualisation Platform data")
 
