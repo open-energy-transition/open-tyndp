@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -332,7 +332,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
+    resolution_sector: 12H  # Use 1H for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false
@@ -376,8 +376,8 @@ solving:
         H2: 3000
         AC: 3000
   solver:  # Use commercial solver for high resolution results in SB
-    name: highs
-    options: highs-default
+    name: gurobi
+    options: gurobi-default
 
 plotting:
   energy_threshold: 1.
@@ -457,8 +457,8 @@ cba:
     # Solve options for MSV extraction
     solving:
       solver:
-        name: highs
-        options: highs-simplex
+        name: gurobi
+        options: gurobi-default
 
   # Rolling horizon solving settings
   solving:
