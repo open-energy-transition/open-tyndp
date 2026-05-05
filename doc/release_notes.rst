@@ -53,6 +53,8 @@ Upcoming Open-TYNDP Release
 
 * Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
 
+* Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
+
 **Documentation**
 
 **Developers Note**

@@ -391,7 +391,7 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
                     features = response.json().get("features", [])
                     if features:
                         gdf = gpd.GeoDataFrame.from_features(
-                            features, crs="OGC:CRS84"
+                            features, crs="EPSG:4326"
                         )
                         gdfs.append(gdf)
                     logger.debug(f"Successfully retrieved area {name}")
