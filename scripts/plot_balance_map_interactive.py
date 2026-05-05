@@ -127,7 +127,7 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
     return regions
 
 
-def add_buttons(html_file: str) -> None:
+def add_buttons(html_file: str, version:str) -> None:
     """
     Add a reset, fullscreen and version label
 
