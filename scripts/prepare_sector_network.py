@@ -4971,7 +4971,7 @@ def patch_offshore_grid_tyndp(
             border_inv=lambda df: df.bus1 + "-" + df.bus0 + "-Offshore DC",
         )
         .set_index("border")
-        .query("p_nom>0")
+        .query("p_nom>0")  # all the fixes are unidirectional
         .drop(columns=["max", "min"])
     )
 
