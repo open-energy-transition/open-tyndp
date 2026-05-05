@@ -17,6 +17,7 @@ from shapely.geometry import box
 
 from scripts._helpers import (
     configure_logging,
+    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -126,6 +127,46 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
     return regions
 
 
+def add_buttons(html_file: str, version: str) -> None:
+    """
+    Add a reset, fullscreen and version label
+
+    Parameters
+    ----------
+    html_file: str
+        Path to the HTML file
+    version : str
+    """
+    reset_button = (
+        '<button onclick="window.location.reload()" '
+        'style="position:fixed;top:10px;left:10px;z-index:9999;'
+        "padding:4px 10px;background:white;border:1px solid #aaa;"
+        'border-radius:4px;cursor:pointer;font-size:11px;font-weight:bold">'
+        "&#8634; Reset Zoom"
+        "</button>"
+    )
+
+    fullscreen_button = (
+        '<button onclick="document.documentElement.requestFullscreen()" '
+        'style="position:fixed;top:10px;left:115px;z-index:9999;'
+        "padding:2.1px 10px;background:white;border:1px solid #aaa;"
+        'border-radius:4px;cursor:pointer;font-size:10px" '
+        'title="Fullscreen">&#x26F6;</button>'
+    )
+
+    version_label = (
+        '<div style="position:fixed;bottom:8px;right:8px;z-index:9999;'
+        'font-size:10px;color:grey;pointer-events:none">' + version + "</div>"
+    )
+
+    with open(html_file) as f:
+        html = f.read()
+    map_additions = "\n".join([reset_button, fullscreen_button, version_label])
+    html = html.replace("</body>", map_additions + "\n<body>")
+    with open(html_file, "w") as f:
+        f.write(html)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -156,6 +197,7 @@ if __name__ == "__main__":
     map_style = settings.get("map_style")
     map_style = VALID_MAP_STYLES.get(map_style, "road")
     tooltip = settings["tooltip"]
+    ndigits = settings.get("ndigits")
 
     # Import
     n = pypsa.Network(snakemake.input.network)
@@ -167,9 +209,7 @@ if __name__ == "__main__":
     carrier = snakemake.wildcards.carrier
     carrier = carrier.replace("_", " ")
     regions = gpd.read_file(snakemake.input.regions).set_index("name")
-    regions.geometry = regions.geometry.simplify(
-        0.02
-    )  # reduces file size (0.01 to 0.02 delivers small gains)
+    regions.geometry = regions.geometry.simplify(0.05)  # reduces file size
 
     if carrier == "H2" and snakemake.params.h2_topology_tyndp:
         regions = dissolve_h2_regions_tyndp(regions, snakemake.input.buses_h2)
@@ -258,7 +298,7 @@ if __name__ == "__main__":
         regions["price"] = price.reindex(regions.index).fillna(0)
         shift = 0
 
-    vmin, vmax = regions.price.min() - shift, regions.price.max() + shift
+    vmin, vmax = regions.price.min() - shift, regions.price.quantile(0.97) + shift
     if settings["vmin"] is not None:
         vmin = settings["vmin"]
     if settings["vmax"] is not None:
@@ -301,13 +341,13 @@ if __name__ == "__main__":
 
     map = n.explore(
         branch_components=branch_components,
-        bus_size=bus_size.div(unit_conversion),
+        bus_size=bus_size.div(unit_conversion).round(ndigits),
         bus_split_circle=True,
-        line_width=line_flow.div(unit_conversion),
-        line_flow=line_flow.div(unit_conversion),
+        line_width=line_flow.div(unit_conversion).round(ndigits),
+        line_flow=line_flow.div(unit_conversion).round(ndigits),
         line_color="rosybrown",
-        link_width=link_flow.div(unit_conversion),
-        link_flow=link_flow.div(unit_conversion),
+        link_width=link_flow.div(unit_conversion).round(ndigits),
+        link_flow=link_flow.div(unit_conversion).round(ndigits),
         link_color=branch_color,
         arrow_size_factor=arrow_size_factor,
         tooltip=tooltip,
@@ -319,4 +359,5 @@ if __name__ == "__main__":
 
     map.layers.insert(0, regions_layer)
 
-    map.to_html(snakemake.output[0], offline=True)
+    map.to_html(snakemake.output[0], offline=False)
+    add_buttons(snakemake.output[0], get_version())

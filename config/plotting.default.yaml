@@ -277,6 +277,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
     co2_stored:
       cmap: Purples
       region_unit: €/t CO2
@@ -290,6 +291,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
     gas:
       cmap: Oranges
       region_unit: €/MWh
@@ -303,6 +305,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
     H2:
       cmap: Blues
       region_unit: €/MWh
@@ -316,6 +319,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
     methanol:
       cmap: Greens
       region_unit: €/MWh
@@ -329,6 +333,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
     oil:
       cmap: Greys
       region_unit: €/MWh
@@ -342,6 +347,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
     solid_biomass:
       cmap: Greens
       region_unit: €/MWh
@@ -355,6 +361,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
     urban_central_heat:
       cmap: Oranges
       region_unit: €/MWh
@@ -368,6 +375,7 @@ plotting:
       arrow_size_factor: 2
       map_style: road
       tooltip: true
+      ndigits: 3
   offshore_maps:
     bus_carriers:
     - DC_OH
