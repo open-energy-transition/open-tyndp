@@ -57,6 +57,7 @@ from scripts.build_transport_demand import transport_degree_factor
 from scripts.definitions.heat_sector import HeatSector
 from scripts.definitions.heat_system import HeatSystem
 from scripts.prepare_network import maybe_adjust_costs_and_potentials
+from scripts.sb.build_statistics import NODE_MAP
 
 spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
@@ -4895,6 +4896,145 @@ def add_offshore_electrolysers_tyndp(
     )
 
 
+def patch_offshore_grid_tyndp(
+    n: pypsa.Network,
+    offshore_fix_fn: str,
+    offshore_grid_dc: pd.DataFrame,
+    lifetime: int,
+):
+    """
+    Patch the offshore grid connections using the provided fix dataset. This fix strictly applies to the electrical network.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        The network object to patch offshore grid connections in.
+    offshore_fix_fn : str
+        Path to the file containing offshore grid fixes to apply.
+    offshore_grid_dc : pd.DataFrame
+        DataFrame containing offshore grid data.
+    lifetime : int
+        Lifetime of the new offshore links.
+
+    Returns
+    -------
+    None
+        Modifies the network object in-place by patching offshore grid links.
+    """
+    logger.info("Patching offshore interconnector capacities with corrections.")
+
+    # Read and format the fixes to apply
+    fix_raw = (
+        pd.read_csv(offshore_fix_fn, header=None, index_col=0)
+        .replace(regex=NODE_MAP)
+        .T.set_index(["carrier", "border"])
+        .loc["electricity", ["max", "min"]]
+        .drop(index="unit")
+        .assign(
+            max=lambda df: df["max"].astype(float),
+            min=lambda df: df["min"].astype(float),
+            p_nom=lambda df: df["max"],
+            bus0=lambda df: df.index.str.split("->").str[0],
+            bus1=lambda df: df.index.str.split("->").str[1],
+        )
+    )
+
+    # Remap buses and aggregate duplicate borders
+    # TODO Remove this once the OH dataset bus names align with the Market Model outputs
+    fix_raw = (
+        fix_raw.reset_index()
+        .replace(regex={"DKKF": "DKE1", "NL60": "NLOH001", "NL6H": "NLOH001"})
+        .groupby("border")
+        .agg(
+            dict.fromkeys(["min", "max", "p_nom"], "sum")
+            | dict.fromkeys(["bus0", "bus1"], "first")
+        )
+    )
+
+    # Keep only borders with at least one offshore hub bus
+    fix_raw = fix_raw.query(
+        "bus0 in @spatial.offshore_hubs.nodes or bus1 in @spatial.offshore_hubs.nodes"
+    )
+
+    # Build reverse-direction fixes by swapping bus0/bus1
+    fix_inv = fix_raw.assign(
+        p_nom=lambda df: df["min"].mul(-1),
+        bus0_=lambda df: df.bus0,
+        bus0=lambda df: df.bus1,
+        bus1=lambda df: df.bus0_,
+    ).drop(columns="bus0_")
+
+    fix = (
+        pd.concat([fix_raw, fix_inv])
+        .assign(
+            border=lambda df: df.bus0 + "-" + df.bus1 + "-Offshore DC",
+            border_inv=lambda df: df.bus1 + "-" + df.bus0 + "-Offshore DC",
+        )
+        .set_index("border")
+        .query("p_nom>0")  # all the fixes are unidirectional
+        .drop(columns=["max", "min"])
+    )
+
+    # Retrieve existing offshore links
+    links_oh = n.links[n.links.carrier.isin(offshore_grid_dc.carrier.unique())].assign(
+        border_inv=lambda df: df.bus1 + "-" + df.bus0 + "-Offshore DC"
+    )
+
+    # Identify new links to add
+    new_links_oh = fix.loc[
+        fix.index.difference(links_oh.index).difference(links_oh.border_inv)
+    ].query("bus0 in @n.buses.index and bus1 in @n.buses.index")
+
+    # Identify capacities to update
+    fix_p_max = fix.loc[fix.index.intersection(links_oh.index), "p_nom"].rename("p_max")
+    fix_p_min = (
+        fix.loc[fix.index.intersection(links_oh.border_inv)]
+        .set_index("border_inv")
+        .p_nom.mul(-1)
+        .rename("p_min")
+    )
+
+    existing_oh_p = pd.concat([fix_p_max, fix_p_min], axis=1)
+    current = links_oh.loc[existing_oh_p.index]
+    existing_oh_pu = (
+        existing_oh_p.assign(
+            p_max=lambda df: df.p_max.where(
+                df.p_max > current.p_nom * current.p_max_pu
+            ),
+            p_min=lambda df: df.p_min.where(
+                df.p_min < current.p_nom * current.p_min_pu
+            ),
+        )
+        .dropna(subset=["p_max", "p_min"], how="all")
+        .assign(
+            p_nom=lambda df: pd.concat(
+                [n.links.loc[df.index, "p_nom"], df[["p_min", "p_max"]].abs()], axis=1
+            ).max(axis=1),
+            p_min_pu=lambda df: df.p_min.div(df.p_nom),
+            p_max_pu=lambda df: df.p_max.div(df.p_nom),
+        )
+    )
+
+    # Update existing links
+    for c in ["p_min_pu", "p_max_pu"]:
+        idx = existing_oh_pu.dropna(subset=c).index
+        n.links.loc[idx, [c, "p_nom"]] = existing_oh_pu.loc[idx, [c, "p_nom"]]
+
+    # Add new links
+    n.add(
+        "Link",
+        new_links_oh.index,
+        bus0=new_links_oh.bus0,
+        bus1=new_links_oh.bus1,
+        p_nom_extendable=False,
+        p_nom=new_links_oh.p_nom,
+        p_min_pu=0,
+        p_max_pu=1,
+        carrier="DC_OH",
+        lifetime=lifetime,
+    )
+
+
 def add_offshore_grid_tyndp(
     n: pypsa.Network,
     pyear: int,
@@ -4902,6 +5042,7 @@ def add_offshore_grid_tyndp(
     costs: pd.DataFrame,
     options: dict,
     nyears: float = 1,
+    offshore_fix_fn: str | None = None,
 ):
     """
     Add offshore grid connections to the network model.
@@ -4923,6 +5064,8 @@ def add_offshore_grid_tyndp(
         - offshore_hubs.connect_isolated : bool
     nyears : float, default 1
         Number of years for which to scale the investment costs.
+    offshore_fix_fn : str or None, default None
+        Path to the file containing offshore grid fixes to apply.
 
     Returns
     -------
@@ -4972,6 +5115,10 @@ def add_offshore_grid_tyndp(
         carrier=offshore_grid_dc.carrier,
         lifetime=lifetime,
     )
+
+    # Optionally patch the grid definition
+    if offshore_fix_fn:
+        patch_offshore_grid_tyndp(n, offshore_fix_fn, offshore_grid_dc, lifetime)
 
     # Add H2 pipeline connections
     offshore_grid_h2 = offshore_grid.query("carrier=='H2 pipeline OH'").copy()
@@ -5053,6 +5200,7 @@ def add_offshore_hubs_tyndp(
     spatial: SimpleNamespace,
     options: dict,
     nyears: float = 1,
+    offshore_fix_fn: str | None = None,
 ):
     """
     Add offshore hubs and grid connections to the network model.
@@ -5083,6 +5231,8 @@ def add_offshore_hubs_tyndp(
         - offshore_hubs.connect_isolated : bool
     nyears : float (default : 1)
         Number of years for which to scale the investment costs.
+    offshore_fix_fn : str or None, default None
+        Path to the file containing offshore grid fixes to apply.
 
     Returns
     -------
@@ -5131,7 +5281,15 @@ def add_offshore_hubs_tyndp(
     add_offshore_electrolysers_tyndp(n, pyear, offshore_electrolysers_fn, costs, nyears)
 
     # Add offshore DC and H2 grid connections
-    add_offshore_grid_tyndp(n, pyear, offshore_grid_fn, costs, options, nyears)
+    add_offshore_grid_tyndp(
+        n,
+        pyear,
+        offshore_grid_fn,
+        costs,
+        options,
+        nyears,
+        offshore_fix_fn=offshore_fix_fn,
+    )
 
 
 def attach_gas_load(
@@ -9803,6 +9961,7 @@ if __name__ == "__main__":
             spatial=spatial,
             options=options,
             nyears=nyears,
+            offshore_fix_fn=snakemake.input.tyndp_offshore_fix,
         )
 
     if options["gas_demand_exogenously"]:

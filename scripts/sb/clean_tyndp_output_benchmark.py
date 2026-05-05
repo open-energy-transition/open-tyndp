@@ -167,15 +167,28 @@ def load_crossborder_sheet(
     df.rename(columns=lambda x: x.replace("UK", "GB"), inplace=True)
     df.rename(columns=lambda x: x.replace("_", " "), inplace=True)  # for H2
 
-    # normalize direction
-    attributes = df.index
-    df = normalize_direction(df.T, cols=attributes, buses_from_index=True)
-
     # set index
-    df = df.T
     df.index.rename("Parameter", inplace=True)
     # rename axis for H2 flows to align with electricity
     df = df.rename(index=lambda x: x.replace("H2", ""))
+
+    # normalize direction
+    attributes = df.index
+    df = normalize_direction(df.T, cols=attributes, buses_from_index=True)
+    mask = df["Min [MW]:"] > df["Max [MW]:"]
+    df = (
+        df.assign(
+            **{
+                "tmp": lambda df: df["Max [MW]:"],
+                "Max [MW]:": lambda df: np.where(
+                    mask, df["Min [MW]:"], df["Max [MW]:"]
+                ),
+                "Min [MW]:": lambda df: np.where(mask, df["tmp"], df["Min [MW]:"]),
+            }
+        )
+        .drop(columns="tmp")
+        .T
+    )
 
     # convert units
     df.loc["Sum [MWh]:"] = df.loc["Sum [GWh]:"].astype(float) * 1e3

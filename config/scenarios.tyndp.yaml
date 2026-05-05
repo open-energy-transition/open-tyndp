@@ -83,6 +83,7 @@ DE:
       2045: 135
       2050: 150
     offshore_hubs_tyndp:
+      patch_crossborder_with_mm: false
       connect_isolated: false
   costs:
     custom_cost_scn: DE
@@ -175,6 +176,7 @@ GA:
       2045: 398
       2050: 400
     offshore_hubs_tyndp:
+      patch_crossborder_with_mm: false
       connect_isolated: false
   costs:
     custom_cost_scn: GA

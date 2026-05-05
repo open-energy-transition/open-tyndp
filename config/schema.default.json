@@ -5662,6 +5662,11 @@
               "description": "Add option to include TYNDP offshore hubs.",
               "type": "boolean"
             },
+            "patch_crossborder_with_mm": {
+              "default": false,
+              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
+              "type": "boolean"
+            },
             "connect_isolated": {
               "default": false,
               "description": "Copperplate isolated wind farms to the grid.",
@@ -7696,6 +7701,11 @@
         "enable": {
           "default": false,
           "description": "Add option to include TYNDP offshore hubs.",
+          "type": "boolean"
+        },
+        "patch_crossborder_with_mm": {
+          "default": false,
+          "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
           "type": "boolean"
         },
         "connect_isolated": {
@@ -12782,6 +12792,11 @@
             "enable": {
               "default": false,
               "description": "Add option to include TYNDP offshore hubs.",
+              "type": "boolean"
+            },
+            "patch_crossborder_with_mm": {
+              "default": false,
+              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
               "type": "boolean"
             },
             "connect_isolated": {
