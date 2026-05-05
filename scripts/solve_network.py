@@ -517,7 +517,7 @@ def prepare_network(
     co2_sequestration_potential : Dict[str, float]
         CO2 sequestration potential constraints by year
     config : dict
-        Dictionary containing all configuration options.
+        Dictionary containing configuration options to sanitize carriers.
 
     Returns
     -------
@@ -556,7 +556,8 @@ def prepare_network(
             p_nom=1e6,
         )
 
-    sanitize_carriers(n, config)
+    if config:
+        sanitize_carriers(n, config)
 
     if solve_opts.get("noisy_costs"):
         # Preserve original costs before adding noise

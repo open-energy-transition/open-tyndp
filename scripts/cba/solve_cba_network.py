@@ -344,6 +344,7 @@ if __name__ == "__main__":
         planning_horizons=planning_horizons,
         co2_sequestration_potential=None,
         limit_max_growth=None,
+        config=snakemake.config,
     )
 
     logging_frequency = solving.get("mem_logging_frequency", 30)

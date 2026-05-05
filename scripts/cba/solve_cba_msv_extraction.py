@@ -83,6 +83,7 @@ if __name__ == "__main__":
         planning_horizons=snakemake.wildcards.get("planning_horizons", None),
         co2_sequestration_potential=None,
         limit_max_growth=None,
+        config=snakemake.config,
     )
 
     if solver_log:
