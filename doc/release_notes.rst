@@ -33,6 +33,8 @@ Upcoming Open-TYNDP Release
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
+* Apply snapshot weightings within networks instead of within ``n.statistics`` groupings in ``build_statistics`` to improve performance (https://github.com/open-energy-transition/open-tyndp/pull/674).
+
 **Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
