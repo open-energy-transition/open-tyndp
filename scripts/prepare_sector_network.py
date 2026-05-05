@@ -5177,9 +5177,23 @@ def add_offshore_grid_tyndp(
             "and p_nom > 0"
         ).bus
 
-        idx_patch = links_oh_no.query(
-            "bus0 in @buses_target and bus1 in @buses_mainland "
-        ).index
+        # identify the minimal list of links to patch
+        # prioritise interconnection within the same country
+        idx_patch = []
+        for b0 in buses_target:
+            b1_candidates = (
+                links_oh_no.query("bus0==@b0 and bus1 in @buses_mainland")
+                .sort_index()
+                .bus1
+            )
+            b0_c = n.buses.loc[b0].country
+            b1_candidates_c = b1_candidates.map(n.buses.loc[b1_candidates].country)
+            if b0_c in b1_candidates_c.values:
+                b1 = b1_candidates[b1_candidates_c == b0_c].iloc[0]  # noqa: F841
+            else:
+                b1 = b1_candidates[0]  # noqa: F841
+            idx_patch.extend(links_oh_no.query("bus0 == @b0 and bus1 == @b1").index)
+        idx_patch = pd.Index(idx_patch).drop_duplicates()
 
         n.links.loc[idx_patch, "p_nom"] = np.inf
         n.links.loc[idx_patch, "capital_cost"] = 0
