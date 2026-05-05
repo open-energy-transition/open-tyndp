@@ -212,21 +212,20 @@ if __name__ == "__main__":
     countries = snakemake.params.countries
 
     rename_columns = {"zoneName": "zone_name", "countryKey": "country"}
-    bidding_zones_elecmaps = gpd.read_file(
-        snakemake.input.bidding_zones_electricitymaps
+    bidding_zones_entsoe = gpd.read_file(snakemake.input.bidding_zones_entsoepy).rename(
+        columns=rename_columns
     )
-    bidding_zones_elecmaps = bidding_zones_elecmaps.rename(columns=rename_columns)
+    bidding_zones_elecmaps = (
+        gpd.read_file(snakemake.input.bidding_zones_electricitymaps)
+        .rename(columns=rename_columns)
+        .to_crs(bidding_zones_entsoe.crs)
+    )
     bidding_zones = bidding_zones_elecmaps[
         bidding_zones_elecmaps.country.isin(countries)
     ].drop(columns="countryName")
 
     if not set(countries).issubset(bidding_zones.country):
         raise ValueError("Missing countries in electricitymaps bidding zones")
-
-    bidding_zones_entsoe = gpd.read_file(snakemake.input.bidding_zones_entsoepy)
-    bidding_zones_entsoe = bidding_zones_entsoe.rename(
-        columns={"zoneName": "zone_name"}
-    )
 
     if "IT" in countries:
         tolerance_dict = {
