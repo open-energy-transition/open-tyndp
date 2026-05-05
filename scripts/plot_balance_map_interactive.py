@@ -127,16 +127,17 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
     return regions
 
 
-def add_reset_button(html_file: str) -> None:
+def add_buttons(html_file: str) -> None:
     """
-    Add a fixed-position 'Reset Zoom' button.
+    Add a reset, fullscreen and version label
 
     Parameters
     ----------
     html_file: str
         Path to the HTML file
+    version : str
     """
-    button = (
+    reset_button = (
         '<button onclick="window.location.reload()" '
         'style="position:fixed;top:10px;left:10px;z-index:9999;'
         "padding:4px 10px;background:white;border:1px solid #aaa;"
@@ -145,53 +146,25 @@ def add_reset_button(html_file: str) -> None:
         "</button>"
     )
 
-    with open(html_file) as f:
-        html = f.read()
-    with open(html_file, "w") as f:
-        f.write(html.replace("</body>", button + "\n</body>"))
-
-
-def add_fullscreen_button(html_file: str) -> None:
-    """
-    Add a fixed-position fullscreen toggle button.
-
-    Parameters
-    ----------
-    html_file : str
-        Path to the HTML file
-    """
-    button = (
+    fullscreen_button = (
         '<button onclick="document.documentElement.requestFullscreen()" '
         'style="position:fixed;top:10px;left:115px;z-index:9999;'
         "padding:2.1px 10px;background:white;border:1px solid #aaa;"
         'border-radius:4px;cursor:pointer;font-size:10px" '
         'title="Fullscreen">&#x26F6;</button>'
     )
-    with open(html_file) as f:
-        html = f.read()
-    with open(html_file, "w") as f:
-        f.write(html.replace("</body>", button + "\n</body>"))
 
-
-def add_version_label(html_file: str, version: str) -> None:
-    """
-    Add a small version label at the bottom-right.
-
-    Parameters
-    ----------
-    html_file : str
-        Path to the HTML file
-    version : str
-    """
-    label = (
+    version_label = (
         '<div style="position:fixed;bottom:8px;right:8px;z-index:9999;'
         'font-size:10px;color:grey;pointer-events:none">' + version + "</div>"
     )
+
     with open(html_file) as f:
         html = f.read()
+    map_additions = "\n".join([reset_button, fullscreen_button, version_label])
+    html = html.replace("</body>", map_additions + "\n<body>")
     with open(html_file, "w") as f:
-        f.write(html.replace("</body>", label + "\n</body>"))
-
+        f.write(html)
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
@@ -223,6 +196,7 @@ if __name__ == "__main__":
     map_style = settings.get("map_style")
     map_style = VALID_MAP_STYLES.get(map_style, "road")
     tooltip = settings["tooltip"]
+    ndigits = settings.get("ndigits")
 
     # Import
     n = pypsa.Network(snakemake.input.network)
@@ -366,13 +340,13 @@ if __name__ == "__main__":
 
     map = n.explore(
         branch_components=branch_components,
-        bus_size=bus_size.div(unit_conversion).round(3),
+        bus_size=bus_size.div(unit_conversion).round(ndigits),
         bus_split_circle=True,
-        line_width=line_flow.div(unit_conversion).round(3),
-        line_flow=line_flow.div(unit_conversion).round(3),
+        line_width=line_flow.div(unit_conversion).round(ndigits),
+        line_flow=line_flow.div(unit_conversion).round(ndigits),
         line_color="rosybrown",
-        link_width=link_flow.div(unit_conversion).round(3),
-        link_flow=link_flow.div(unit_conversion).round(3),
+        link_width=link_flow.div(unit_conversion).round(ndigits),
+        link_flow=link_flow.div(unit_conversion).round(ndigits),
         link_color=branch_color,
         arrow_size_factor=arrow_size_factor,
         tooltip=tooltip,
@@ -385,6 +359,4 @@ if __name__ == "__main__":
     map.layers.insert(0, regions_layer)
 
     map.to_html(snakemake.output[0], offline=False)
-    add_reset_button(snakemake.output[0])
-    add_fullscreen_button(snakemake.output[0])
-    add_version_label(snakemake.output[0], get_version())
+    add_buttons(snakemake.output[0], get_version())
