@@ -599,6 +599,7 @@ if __name__ == "__main__":
         sws = remove_last_day(n.snapshot_weightings.generators)
         n.snapshot_weightings.loc[:, "generators"] = sws
         n.snapshot_weightings.loc[:, "objective"] = sws
+        n.snapshot_weightings.loc[:, "stores"] = sws
 
     logger.info("Building benchmark from network")
     tqdm_kwargs = {
