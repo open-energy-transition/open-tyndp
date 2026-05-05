@@ -83,7 +83,7 @@ MM_CARRIER_MAPPING = {
     "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
     # DSR and load shedding
     "Demand Side Response Explicit": "dsr",
-    "Demand Side Response Implicit": "dsr",
+    # Note: "Demand Side Response Implicit" is not included in the benchmarking for DSR.
     "Unserved energy [GWh]": "demand shedding",
     # Curtailment/"dump energy"
     "Dump energy [GWh]": "dumped energy",
@@ -250,6 +250,12 @@ def load_MM_sheet(
     # Rename and group
     df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type].droplevel("output_type")
+    # Only include mapped carriers
+    mapped_carrier_mask = df.index.isin(MM_CARRIER_MAPPING.values())
+    logger.warning(
+        f"No carrier mappings for {df.index[~mapped_carrier_mask]}. They will be excluded from the benchmarking."
+    )
+    df = df[mapped_carrier_mask]
 
     # Rename and filter column names (buses)
     df.rename(
