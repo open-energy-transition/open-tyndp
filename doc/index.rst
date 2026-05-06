@@ -536,8 +536,6 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 
    introduction
    installation
-   tutorial
-   tutorial_sector
    faq_troubleshooting
 
 .. toctree::
@@ -547,10 +545,10 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
 
    scenarios
    benchmarking
-   innovation_roadmap
    cba
-   cba-workflow
-   cba-indicators
+   innovation_roadmap
+   
+
 
 .. toctree::
    :hidden:
@@ -583,6 +581,8 @@ PyPSA-Eur related pages
    configuration
    foresight
    costs
+   tutorial
+   tutorial_sector
 
 .. toctree::
    :hidden:
