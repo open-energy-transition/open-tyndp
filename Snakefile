@@ -94,7 +94,9 @@ include: "rules/development.smk"
 include: "rules/report.smk"
 
 
+# Specific Open-TYNDP rules and configurations
 if config["tyndp_scenario"]:
+    # Extend nice_names by open-tyndp nice_name mapping in `tyndp_technology_map.csv`
     tyndp_nice_names = (
         pd.read_csv("data/tyndp_technology_map.csv")[
             ["open_tyndp_index", "open_tyndp_carrier", "open_tyndp_nice_name"]
@@ -110,6 +112,7 @@ if config["tyndp_scenario"]:
     )
     config["plotting"]["nice_names"].update(tyndp_nice_names)
 
+    # Include Open-TYNDP specific set of rules for SB and CBA
     include: "rules/cba.smk"
     include: "rules/sb.smk"
 

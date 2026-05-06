@@ -38,8 +38,10 @@ H2_POWER_EFF = {
 }  # TODO Remove hard coded values
 
 
-# Mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names
 def _load_mm_carrier_mapping(carrier_mapping_fn: str) -> tuple[dict, dict]:
+    """
+    Load mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names.
+    """
     tech_map = pd.read_csv(carrier_mapping_fn)
     output_map = (
         tech_map[
@@ -55,14 +57,11 @@ def _load_mm_carrier_mapping(carrier_mapping_fn: str) -> tuple[dict, dict]:
         .assign(benchmarking=lambda x: x[x.columns].bfill(axis=1).iloc[:, 0])[
             "benchmarking"
         ]
-        .drop(
-            index=list(H2_POWER_EFF), errors="ignore"
-        )  # process H2 power techs separately
     )
 
-    h2_power_rename = tech_map.set_index("tyndp_output_carrier")[
-        "benchmarking_generation"
-    ].loc[list(H2_POWER_EFF)]
+    # Process H2 power techs separately
+    h2_power_rename = output_map.loc[list(H2_POWER_EFF)]
+    output_map = output_map.drop(index=list(H2_POWER_EFF), errors="ignore")
 
     return output_map.to_dict(), h2_power_rename.to_dict()
 
@@ -157,6 +156,7 @@ def load_MM_sheet(
     filepath: str | Path,
     countries: list[str],
     eu27: list,
+    mapping: dict[str, str],
     skiprows: int = 5,
 ) -> pd.DataFrame:
     """
@@ -178,6 +178,8 @@ def load_MM_sheet(
         List of modelled countries
     eu27 : list
         List of EU27 country codes.
+    mapping : dict[str, str]
+        Carrier mapping from market model carrier names to benchmarking carrier names.
     skiprows : int, default 5
         Number of metadata rows to skip.
 
@@ -206,15 +208,16 @@ def load_MM_sheet(
     df.index.names = ["output_type", "carrier"]
 
     # Rename and group
-    df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
+    df = df.rename(index=mapping, level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type].droplevel("output_type")
     # Only include mapped carriers
-    mapped_carrier_mask = (df.index.isin(MM_CARRIER_MAPPING.values())) | (
+    mapped_carrier_mask = (df.index.isin(mapping.values())) | (
         df.index.isin(H2_POWER_EFF.keys())
     )
-    logger.warning(
-        f"No carrier mappings for {df.index[~mapped_carrier_mask]}. They will be excluded from the benchmarking."
-    )
+    if unmapped := df.index[~mapped_carrier_mask].tolist():
+        logger.warning(
+            f"No carrier mappings for {unmapped}. They will be excluded from the benchmarking."
+        )
     df = df[mapped_carrier_mask]
 
     # Rename and filter column names (buses)
@@ -241,6 +244,7 @@ def load_MM_sheet(
                 filepath=tyndp_output_file,
                 countries=countries,
                 eu27=eu27,
+                mapping=mapping,
                 skiprows=5,
             )
             .query("bus!='EU27'")
@@ -559,7 +563,7 @@ if __name__ == "__main__":
     countries = snakemake.params["countries"]
 
     # load carrier mapping
-    MM_CARRIER_MAPPING, h2_power_rename = _load_mm_carrier_mapping(
+    mm_carrier_mapping, h2_power_rename = _load_mm_carrier_mapping(
         snakemake.input.carrier_mapping
     )
 
@@ -591,6 +595,7 @@ if __name__ == "__main__":
             filepath=tyndp_output_file,
             countries=countries,
             eu27=eu27,
+            mapping=mm_carrier_mapping,
             skiprows=5,
         )
 

@@ -557,9 +557,6 @@ def prepare_network(
             p_nom=1e6,
         )
 
-    if config:
-        sanitize_carriers(n, config)
-
     if solve_opts.get("noisy_costs"):
         # Preserve original costs before adding noise
         for t in n.components:
@@ -613,6 +610,9 @@ def prepare_network(
             limit_dict=co2_sequestration_potential,
             planning_horizons=planning_horizons,
         )
+
+    if config:
+        sanitize_carriers(n, config)
 
 
 def add_CCL_constraints(

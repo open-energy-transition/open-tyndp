@@ -198,7 +198,7 @@ def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
 
 
 def clean_data_for_benchmarking(
-    table: str, df: pd.DataFrame, mapping: dict | None = None
+    table: str, df: pd.DataFrame, mapping: dict = {}
 ) -> pd.DataFrame:
     """
     Clean report data by removing non-modelled carriers, renaming and grouping
@@ -218,10 +218,6 @@ def clean_data_for_benchmarking(
     pd.DataFrame
         Dataframe with report data cleaned for benchmarking.
     """
-    if mapping is None:
-        mapping = {}
-
-    # Remove carriers not explicitly modeled
     # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
     if table == "elec_demand":
         df = df[df.carrier == "final demand (inc. t&d losses, excl. pump storage )"]
@@ -247,7 +243,7 @@ def clean_data_for_benchmarking(
         df = df[~df.carrier.isin(["sum", "aggregated", "total generation", "total"])]
 
     # Rename carriers via mapping and aggregate carriers with the same mapped name
-    unmapped = df.loc[~df["carrier"].isin(mapping), "carrier"].unique().tolist()
+    unmapped = set(df.carrier).difference(set(mapping))
     if unmapped:
         logger.warning(
             f"Table '{table}': carriers {unmapped} are not listed in mapping. Carrier names are kept unchanged."
@@ -357,7 +353,7 @@ def load_benchmark(
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
 
     df_clean = clean_data_for_benchmarking(
-        table, df_converted, mapping=opt.get("mapping")
+        table, df_converted, mapping=opt.get("mapping", {})
     )
 
     return df_clean
