@@ -516,8 +516,9 @@ def prepare_network(
         The current planning horizon year or None for perfect foresight
     co2_sequestration_potential : Dict[str, float]
         CO2 sequestration potential constraints by year
-    config : dict
-        Dictionary containing configuration options to sanitize carriers.
+    config : dict, default None
+        A dictionary containing configuration information, specifically the
+        "plotting" key with "nice_names" and "tech_colors" keys for carriers.
 
     Returns
     -------

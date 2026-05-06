@@ -32,16 +32,17 @@ pypsa.options.params.statistics.nice_names = False
 
 def add_benchmarking_mappings(carrier_mapping_fn: str, tables: dict) -> None:
     """
-    Load benchmarking mappings from the carrier mapping file and add them into
-    each table's config dict under the key ``mapping``.
+    Load benchmarking mappings from the carrier mapping file and apply them
+    to the ``mapping`` configuration dictionary of each table.
 
     Parameters
     ----------
     carrier_mapping_fn : str
         Path to csv file with carrier mapping.
     tables : dict
-        Dictionary of statistics tables. Each entry with a ``mapping_col`` key
-        will have a ``mapping`` key added containing the loaded carrier mapping.
+        Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
+        defined in the configuration, the loaded carrier mapping will be added to the dictionary
+        with the ``mapping`` key.
 
     Returns
     -------
@@ -55,7 +56,7 @@ def add_benchmarking_mappings(carrier_mapping_fn: str, tables: dict) -> None:
             continue
         if col not in tech_map.columns:
             logger.warning(
-                f"No existing mapping for table {table} in 'tyndp_technology_mapping.csv'."
+                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
             )
             continue
         table_opts["mapping"] = (
@@ -647,7 +648,7 @@ if __name__ == "__main__":
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
 
-    # Mapping from Open-TYNDP carrier names to benchmarking carrier names
+    # Map Open-TYNDP carrier names to benchmarking carrier names
     add_benchmarking_mappings(snakemake.input.carrier_mapping, options["tables"])
 
     # Read network

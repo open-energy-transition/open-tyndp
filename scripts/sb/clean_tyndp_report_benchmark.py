@@ -152,21 +152,22 @@ def _group_labels(
 
 def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
     """
-    Load report carrier mappings from the carrier mapping file and add mappings into
-    each table's config dict under ``mapping``.
+    Load report carrier mappings from the carrier mapping file and apply them 
+    to the ``mapping`` configuration dictionary of each table.
 
     Parameters
     ----------
     carrier_mapping_fn : str
         Path to csv file with carrier mapping.
     tables : dict
-        Dictionary of statistics tables. Each entry with a ``mapping_col`` key
-        will have a ``mapping`` key added containing the loaded carrier mapping.
+        Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
+        defined in the configuration, the loaded carrier mapping will be added to the dictionary
+        with the ``mapping`` key.
 
     Returns
     -------
     None
-        Modifies table dictionary in place by adding mapping.
+        Modifies the tables dictionary in place by adding the mapping for each table.
     """
     tech_map = pd.read_csv(carrier_mapping_fn)
     for table, table_opts in tables.items():
@@ -200,13 +201,13 @@ def clean_data_for_benchmarking(
     table: str, df: pd.DataFrame, mapping: dict | None = None
 ) -> pd.DataFrame:
     """
-    Clean report data by removing non modeled carriers and renaming
-    and grouping together carriers according to specified mapping.
+    Clean report data by removing non-modelled carriers, renaming and grouping 
+    the remaining ones together according to the specified mapping.
 
     Parameters
     ----------
     table : str
-        Benchmarking table
+        Benchmarking table name
     df : pd.DataFrame
         Dataframe containing report values for benchmarking
     mapping : dict
@@ -225,7 +226,7 @@ def clean_data_for_benchmarking(
     if table == "elec_demand":
         df = df[df.carrier == "final demand (inc. t&d losses, excl. pump storage )"]
 
-    # Aggregate methane demand to match input data resolution
+    # Drop total for Methane demand
     elif table == "methane_demand":
         df = df[df.carrier != "total"]
 
@@ -237,7 +238,7 @@ def clean_data_for_benchmarking(
     elif table == "final_energy_demand":
         df = df[~df.carrier.isin(["total", "heat", "solids", "others"])]
 
-    # Drop aggregated values
+    # Drop total for Power generation
     elif table == "power_generation":
         df = df[df.carrier != "total generation"]
 
@@ -251,9 +252,7 @@ def clean_data_for_benchmarking(
         logger.warning(
             f"Table '{table}': carriers {unmapped} are not listed in mapping. Carrier names are kept unchanged."
         )
-    df.loc[:, "carrier"] = (
-        df.loc[:, "carrier"].map(mapping).fillna(df.loc[:, "carrier"])
-    )
+    df.loc[:, "carrier"] = df.loc[:, "carrier"].map(lambda x: mapping.get(x, x))
     df = df.groupby([c for c in df.columns if c != "value"]).sum().reset_index()
 
     return df
@@ -377,7 +376,7 @@ if __name__ == "__main__":
     options = snakemake.params["benchmarking"]
     scenario = snakemake.params["scenario"]
 
-    # Mapping from TYNDP report carrier names to benchmarking carrier names
+    # Map TYNDP report carrier names to benchmarking carrier names
     add_report_carrier_mappings(snakemake.input.carrier_mapping, options["tables"])
 
     # Read benchmarks

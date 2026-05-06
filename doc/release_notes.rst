@@ -21,7 +21,7 @@ Upcoming Open-TYNDP Release
 
 * Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
 
-* Update TYNDP carrier mapping in central csv file and add consistent nice names to carriers (https://github.com/open-energy-transition/open-tyndp/pull/658).
+* Refactor the TYNDP carrier mappings into a central CSV file, adding consistent nice names to all carriers (https://github.com/open-energy-transition/open-tyndp/pull/658).
 
 **Changes**
 
