@@ -60,10 +60,9 @@ def _load_mm_carrier_mapping(carrier_mapping_fn: str) -> tuple[dict, dict]:
         )  # process H2 power techs separately
     )
 
-    h2_power_rename = (
-        tech_map.set_index("tyndp_output_carrier")["benchmarking_generation"]
-        .loc[list(H2_POWER_EFF)]
-    )
+    h2_power_rename = tech_map.set_index("tyndp_output_carrier")[
+        "benchmarking_generation"
+    ].loc[list(H2_POWER_EFF)]
 
     return output_map.to_dict(), h2_power_rename.to_dict()
 

@@ -152,7 +152,7 @@ def _group_labels(
 
 def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
     """
-    Load report carrier mappings from the carrier mapping file and apply them 
+    Load report carrier mappings from the carrier mapping file and apply them
     to the ``mapping`` configuration dictionary of each table.
 
     Parameters
@@ -201,7 +201,7 @@ def clean_data_for_benchmarking(
     table: str, df: pd.DataFrame, mapping: dict | None = None
 ) -> pd.DataFrame:
     """
-    Clean report data by removing non-modelled carriers, renaming and grouping 
+    Clean report data by removing non-modelled carriers, renaming and grouping
     the remaining ones together according to the specified mapping.
 
     Parameters
