@@ -544,8 +544,9 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    :caption: Open TYNDP
 
    scenarios
-   benchmarking
+   sb
    cba
+   benchmarking
    innovation_roadmap
    
 
