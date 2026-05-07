@@ -86,11 +86,49 @@ Running Single vs Multiple Climate Years
 
 Climate-year collections allow project benefits to be assessed across multiple weather years, consistent with the 2024 TYNDP implementation.
 
-The CBA entry point ``snakemake -call cba`` expects a **collection scenario** that defines a list of child (climate years) scenarios under ``cba.scenarios``.
+The CBA entry point ``snakemake -call cba`` can run a **single scenario** that is one single climeate year or a **collection scenario** that defines a list of child (climate years) scenarios under ``cba.scenarios``.
 
 Example Collection (``config/scenarios.tyndp.yaml``):
 
 .. code-block:: yaml
+
+    NT-cy1995:
+    #  <<: *cba-common
+    snapshots:
+        start: "1995-01-01"
+        end: "1996-01-01"
+
+    atlite:
+        default_cutout: europe-1995-sarah3-era5
+
+    cba:
+        sb_scenario: NT
+
+
+    NT-cy2008:
+    #  <<: *cba-common
+    snapshots:
+        start: "2008-01-01"
+        end: "2009-01-01"
+
+    atlite:
+        default_cutout: europe-2008-sarah3-era5
+
+    cba:
+        sb_scenario: NT
+
+
+    NT-cy2009:
+    #  <<: *cba-common
+    snapshots:
+        start: "2009-01-01"
+        end: "2010-01-01"
+
+    atlite:
+        default_cutout: europe-2009-sarah3-era5
+
+    cba:
+        sb_scenario: NT
 
     NT-cyears:
       cba:
@@ -108,10 +146,8 @@ To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.t
 
 Running a Single Climate Year
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Because the CBA rule requires a list of scenarios, a single climate year must be wrapped in a **one-entry collection scenario**:
+Similarly, a single climate year can be run by modifying ``run.name``  in ``config/config.tyndp.yaml`` to the desired scenario (e.g., ``NT-cy2009``) or overriding it via command line:
 
-.. code-block:: yaml
+.. code-block:: console
 
-    NT-cy2009-only:
-      cba:
-        scenarios: [NT-cy2009]
+    $ snakemake -call cba --configfile config/config.tyndp.yaml --config run='{"name":"NT-cy2009"}'
