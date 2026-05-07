@@ -334,15 +334,15 @@ class SolvingConfig(BaseModel):
             "highs-simplex": {
                 "solver": "simplex",
                 "parallel": "on",
-                "primal_feasibility_tolerance": 1e-5,
-                "dual_feasibility_tolerance": 1e-5,
+                "primal_feasibility_tolerance": 1e-4,
+                "dual_feasibility_tolerance": 1e-4,
                 "random_seed": 123,
             },
             "gurobi-default": {
                 "threads": 32,
                 "method": 2,
                 "crossover": 0,
-                "BarConvTol": 1e-5,
+                "BarConvTol": 1e-4,
                 "Seed": 123,
                 "AggFill": 0,
                 "PreDual": 0,

@@ -458,7 +458,7 @@ cba:
         noisy_costs: false
       solver:
         name: gurobi
-        options: gurobi-default
+        options: gurobi-hightol
 
   # Rolling horizon solving settings
   solving:
@@ -473,7 +473,7 @@ cba:
 
     solver:
       name: highs
-      options: highs-simplex
+      options: highs-hightol
 
     solver_options:
       highs-simplex:

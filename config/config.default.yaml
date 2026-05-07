@@ -1301,11 +1301,26 @@ solving:
       primal_feasibility_tolerance: 1.0e-05
       dual_feasibility_tolerance: 1.0e-05
       random_seed: 123
+    "highs-hightol":
+      solver: simplex
+      parallel: 'on'
+      primal_feasibility_tolerance: 1.0e-04
+      dual_feasibility_tolerance: 1.0e-04
+      random_seed: 123
     "gurobi-default":
       threads: 32
       method: 2
       crossover: 0
       BarConvTol: 1.0e-05
+      Seed: 123
+      AggFill: 0
+      PreDual: 0
+      GURO_PAR_BARDENSETHRESH: 200
+    "gurobi-hightol":
+      threads: 32
+      method: 2
+      crossover: 0
+      BarConvTol: 1.0e-04
       Seed: 123
       AggFill: 0
       PreDual: 0
