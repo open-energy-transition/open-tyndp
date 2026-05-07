@@ -279,15 +279,15 @@ Open-TYNDP v0.7 (11th May 2026)
 
 * Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
 
-* Add imports to H2 MM supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
+* Add imports to H2 Market Model (MM) supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
 
 * Add cross-border flows to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/609).
 
-* Add separate solver option for CBA MSV extraction (`cba.msv_extraction.solving`) and move CBA solve logs to `results/cba/logs/` (https://github.com/open-energy-transition/open-tyndp/pull/627).
+* Add separate solver option for CBA MSV extraction (``cba.msv_extraction.solving``) and move CBA solve logs to ``results/cba/logs/`` (https://github.com/open-energy-transition/open-tyndp/pull/627).
 
-* Change number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
+* Change the number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
 
-* Refactor CBA workflow to only temporarily save CBA project networks in ``resources`` (https://github.com/open-energy-transition/open-tyndp/pull/652).
+* Refactor CBA workflow to only temporarily save CBA project networks in ``resources/`` (https://github.com/open-energy-transition/open-tyndp/pull/652).
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
