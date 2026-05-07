@@ -815,6 +815,9 @@ if config["benchmarking"]["enable"]:
                 "solving", "options", "load_shedding", "carriers"
             ),
             low_voltage=config_provider("sector", "electricity_distribution_grid"),
+            group_tyndp_conventionals=config_provider(
+                "electricity", "group_tyndp_conventionals"
+            ),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",

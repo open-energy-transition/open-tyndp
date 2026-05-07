@@ -97,16 +97,14 @@ include: "rules/report.smk"
 # Specific Open-TYNDP rules and configurations
 if config["tyndp_scenario"]:
     # Extend nice_names by open-tyndp nice_name mapping in `tyndp_technology_map.csv`
+    if config["electricity"]["group_tyndp_conventionals"]:
+        id_cols = ["open_tyndp_type", "open_tyndp_index", "open_tyndp_carrier"]
+    else:
+        id_cols = ["open_tyndp_index", "open_tyndp_carrier"]
     tyndp_nice_names = (
-        pd.read_csv("data/tyndp_technology_map.csv")[
-            ["open_tyndp_index", "open_tyndp_carrier", "open_tyndp_nice_name"]
-        ]
-        .dropna(subset=["open_tyndp_nice_name"])
-        .assign(
-            carrier=lambda x: x[["open_tyndp_index", "open_tyndp_carrier"]]
-            .bfill(axis=1)
-            .iloc[:, 0]
-        )
+        pd.read_csv("data/tyndp_technology_map.csv")[id_cols + ["open_tyndp_nice_name"]]
+        .assign(carrier=lambda x: x[id_cols].bfill(axis=1).iloc[:, 0])
+        .dropna(subset=["carrier", "open_tyndp_nice_name"])
         .set_index("carrier")["open_tyndp_nice_name"]
         .to_dict()
     )
