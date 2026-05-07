@@ -3,18 +3,70 @@
 
   SPDX-License-Identifier: CC-BY-4.0
 
-##########################################
+############
 Benchmarking
-##########################################
+############
 
-Open-TYNDP includes a structured benchmarking framework for systematic comparison of Open-TYNDP model outputs against TYNDP 2024 scenarios, covering multiple metrics and methods across different levels of aggregation.
+Open-TYNDP includes a structured benchmarking framework that runs automatically with every
+workflow execution. It provides systematic, reproducible comparisons of Open-TYNDP model
+outcomes against official TYNDP 2024 reference data for both the Scenario Building (SB)
+and Cost-Benefit Analysis (CBA) phases.
 
-Introduction
-------------
+* **Scenario Building** outcomes are compared against the `TYNDP 2024 Market Model Output
+  Files <https://2024.entsos-tyndp-scenarios.eu/download/>`_ and the `TYNDP 2024 Final
+  Scenario Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Report_FInal_Version_250128_web.pdf>`_.
+* **Cost-Benefit Analysis** indicators are benchmarked for all calculated indicators and
+  all projects against the official `TYNDP 2024 CBA results
+  <https://tyndp2024.entsoe.eu/projects-map/transmission>`_.
 
-The following metrics from the `TYNDP 2024 Scenarios Report <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Report_FInal_Version_250128_web.pdf>`_ are considered relevant for benchmarking:
+Benchmarking results are published with every release on `Zenodo
+<https://doi.org/10.5281/zenodo.18608105>`_ (currently only Scenario Building results).
 
-* Exogenous Inputs:
+.. warning::
+    Open-TYNDP is under active development and is not yet feature-complete. The current
+    `development status <https://open-tyndp.readthedocs.io/en/latest/index.html#development-status>`__
+    and the general `Limitations <https://open-tyndp.readthedocs.io/en/latest/limitations.html>`__
+    are important to understand before using the model. The following outputs are presented
+    for illustrative purposes and do not reflect the quality of the results.
+
+Benchmarking Methodology
+========================
+
+The benchmarking is based on the methodology proposed by `Wen et al. (2022)
+<https://www.sciencedirect.com/science/article/pii/S0306261922011667>`_. This methodology
+provides a multi-criteria approach to ensure:
+
+- the **diversity** (each indicator has its own added value),
+- the **effectiveness** (each indicator provides essential and correct information),
+- the **robustness** (against diverse units and orders of magnitude), and
+- the **compatibility** (can be used to compare across countries) of the selected set of
+  indicators.
+
+This methodology defines the following accuracy indicators:
+
+- **Missing**: Count of carriers / sectors dropped due to missing values.
+- **sMPE** (Symmetric Mean Percentage Error): Indicates the direction of the deviation,
+  showing if outputs are overall overestimated or underestimated.
+- **sMAPE** (Symmetric Mean Absolute Percentage Error): Indicates the absolute magnitude
+  of the deviations, avoiding the cancellation of negative and positive errors.
+- **sMdAPE** (Symmetric Median Absolute Percentage Error): Provides skewness information
+  to complement sMAPE.
+- **RMSLE** (Root Mean Square Logarithmic Error): Complements the percentage errors by
+  showing logarithmic deviation values.
+- **Growth error**: Shows the error on the temporal scale. This indicator is not applied
+  to dynamic time series (i.e. hourly generation profiles).
+
+Scenario Building Benchmarking
+===============================
+
+Metrics
+-------
+
+The following metrics from the `TYNDP 2024 Scenarios Report
+<https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Report_FInal_Version_250128_web.pdf>`_
+are considered relevant for SB benchmarking:
+
+* Exogenous inputs:
 
   * Final energy demand by fuel, EU27 (TWh), (Fig 5, p24 and Fig 51, p63)
   * Electricity demand per sector, EU27 (TWh), (Fig 6, p25 and Fig 52, p63)
@@ -31,62 +83,59 @@ The following metrics from the `TYNDP 2024 Scenarios Report <https://2024.entsos
   * Energy imports, EU27 (TWh), (Fig 40, p51 and Fig 60, p68)
   * Hourly generation profile of power generation, (Fig 30, p35)
 
-The data is published in the `Scenarios package <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>`_. In addition to the TYNDP 2024 Scenarios Report data, data from the `Visualisation Platform <https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>`_ and the `Market Model Outputs <https://2024.entsos-tyndp-scenarios.eu/download/>`_ are also processed and included in the relevant figures.
+The data is published in the `Scenarios package
+<https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>`_.
+In addition to the Scenarios Report data, data from the `Visualisation Platform
+<https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>`_ and the `Market Model
+Outputs <https://2024.entsos-tyndp-scenarios.eu/download/>`_ are also processed and
+included in the relevant figures.
 
-The benchmarking is based on the methodology proposed by `Wen et al. (2022) <https://www.sciencedirect.com/science/article/pii/S0306261922011667>`_. This methodology provides a multi-criteria approach to ensure:
-
-- the **diversity** (each indicator has its own added value),
-- the **effectiveness** (each indicator provides essential and correct information),
-- the **robustness** (against diverse units and orders of magnitude), and
-- the **compatibility** (can be used to compare across countries) of the selected set of indicators.
-
-This methodology defines the following indicators:
-
-- **Missing**: Count of carriers / sectors dropped due to missing values
-- **sMPE** (Symmetric Mean Percentage Error): Indicates the direction of the deviation between modeled scenarios and TYNDP 2024 outcomes, showing if the output is overall overestimated or underestimated.
-- **sMAPE** (Symmetric Mean Absolute Percentage Error): Indicates the absolute magnitude of the deviations, avoiding the cancellation of negative and positive errors.
-- **sMdAPE** (Symmetric Median Absolute Percentage Error): Provides skewness information to complement sMAPE.
-- **RMSLE** (Root Mean Square Logarithmic Error): Complements the percentage errors since it shows the logarithmic deviation values.
-- **Growth error**: Shows the error on the temporal scale. This indicator is ignored for dynamic time series (i.e., hourly generation profiles).
-
-Hourly time series from the TYNDP 2024 are aggregated to match the temporal resolution of Open-TYNDP.
-
-Summary tables are computed for both the overall and per-carrier results. It is possible to benchmark spatially resolved data at bus and country level using the following configurations: `benchmarking.spatial.by_bus` and `benchmarking.spatial.by_country`.
+Hourly time series from TYNDP 2024 are aggregated to match the temporal resolution of
+Open-TYNDP. Summary tables are computed for both overall and per-carrier results. Spatially
+resolved benchmarking at bus and country level is available via the
+``benchmarking.spatial.by_bus`` and ``benchmarking.spatial.by_country`` configuration keys.
 
 Workflow
 --------
 
-The benchmarking workflow is controlled by ``config/benchmarking.default.yaml``.
+The SB benchmarking workflow is controlled by ``config/benchmarking.default.yaml``.
 
-#. `retrieve_tyndp`: Retrieve the TYNDP 2024 Scenarios Report Data Figures package for benchmarking purposes.
-#. `clean_tyndp_report_benchmark`: Read and process the raw TYNDP 2024 Scenarios Report data. The output data structure is a long-format table.
-#. `clean_tyndp_vp_data`: Read and process the TYNDP 2024 Visualisation Platform data for benchmarking purposes. The output data structure is a long-format table.
-#. `clean_tyndp_output_benchmark`: Read and process the raw TYNDP 2024 Market Model Outputs data. The output data includes crossborder flows, prices, country and EU27 level values.
-#. `build_statistics`: Compute the benchmark statistics from the optimised network. Run for every planning horizon. The output data structure is a long-format table.
-#. `make_benchmark`: Compute accuracy indicators for comparing model results against reference data from the TYNDP 2024 Scenarios Report, the Visualisation Platform and the Market Model Outputs.
-#. `make_benchmarks`: Collect outputs from all `make_benchmark` runs.
-#. `plot_benchmark`: Generate visualisation outputs for model benchmarking.
-#. `plot_benchmarks`: Collect outputs from all `plot_benchmark` runs.
-#. The full set of files produced for the benchmarking are stored in the `results/benchmarks/tyndp-2024/` folder. This includes:
+#. ``retrieve_tyndp``: Retrieve the TYNDP 2024 Scenarios Report Data Figures package.
+#. ``clean_tyndp_report_benchmark``: Read and process the raw Scenarios Report data into
+   a long-format table.
+#. ``clean_tyndp_vp_data``: Read and process the Visualisation Platform data into a
+   long-format table.
+#. ``clean_tyndp_output_benchmark``: Read and process the Market Model Outputs, including
+   cross-border flows, prices, and country and EU27 level values.
+#. ``build_statistics``: Compute benchmarking statistics from the optimised network for
+   every planning horizon.
+#. ``make_benchmark``: Compute accuracy indicators comparing model outcomes against the
+   Scenarios Report, Visualisation Platform, and Market Model Outputs.
+#. ``make_benchmarks``: Collect outputs from all ``make_benchmark`` runs.
+#. ``plot_benchmark``: Generate visualisation outputs.
+#. ``plot_benchmarks``: Collect outputs from all ``plot_benchmark`` runs.
 
-   * `results/benchmarks/tyndp-2024/resources/` for processed inputs information from both Open-TYNDP and TYNDP 2024.
-   * `results/benchmarks/tyndp-2024/csvs_s_{clusters}_{opts}_{sector_opts}_all_years/` for quantitative information for each table
-   * `results/benchmarks/tyndp-2024/graphics_s_{clusters}_{opts}_{sector_opts}_all_years/` for figures of each table
-   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv` as summary table at bus level
-   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv` as summary table at country level
-   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf` as summary figure at bus level
-   * `results/benchmarks/tyndp-2024/kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf` as summary figure at country level
-   * the structure of these outputs can be validated in the artifacts of the GitHub CI (e.g. artifacts section `here <https://github.com/open-energy-transition/open-tyndp/actions/runs/17715799690?pr=73>`_)
+The full set of output files is stored under ``results/benchmarks/tyndp-2024/``:
+
+* ``resources/`` — processed inputs from both Open-TYNDP and TYNDP 2024.
+* ``csvs_s_{clusters}_{opts}_{sector_opts}_all_years/`` — quantitative tables.
+* ``graphics_s_{clusters}_{opts}_{sector_opts}_all_years/`` — figures.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv`` — summary table at bus level.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv`` — summary table at country level.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf`` — summary figure at bus level.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf`` — summary figure at country level.
+
+The structure of these outputs can be validated in the artifacts of the GitHub CI (e.g.
+artifacts section `here
+<https://github.com/open-energy-transition/open-tyndp/actions/runs/17715799690?pr=73>`_).
 
 .. image:: img/tyndp/benchmarking_workflow.png
 
 Outputs
 -------
 
-.. warning::
-    Open-TYNDP is under active development and is not yet feature-complete. The current `development status <https://open-tyndp.readthedocs.io/en/latest/index.html#development-status>`__ and the general `Limitations <https://open-tyndp.readthedocs.io/en/latest/limitations.html>`__ are important to understand before using the model. The following outputs are presented for illustrative purposes and do not reflect the quality of the results.
-
-Example of indicators extracted from `power_generation_s_all__all_years.csv` by countries for NT scenario with hourly resolution:
+Example of indicators extracted from ``power_generation_s_all__all_years.csv`` by countries
+for the NT scenario with hourly resolution:
 
 ========================================  =====  =====  ======  =====  ============  =================  ===============================  =======
 Carrier                                   sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing countries  reference                        version
@@ -107,19 +156,22 @@ Carrier                                   sMPE   sMAPE  sMdAPE  RMSLE  Growth Er
 **Slack generator**                       —      —      —       —      —             0                  TYNDP 2024 Market Model Outputs  v0.6.1
 ========================================  =====  =====  ======  =====  ============  =================  ===============================  =======
 
-Example of figure created for the final energy demand for NT scenario in 2030 with hourly resolution:
+Example of figure created for the final energy demand for the NT scenario in 2030 with
+hourly resolution:
 
 .. image:: img/tyndp/benchmarking_fed_NT_2030.png
 
-Example of figure including Visualisation Platform data created for the power capacity for NT scenario in 2030 with hourly resolution:
+Example of figure including Visualisation Platform data created for the power capacity for
+the NT scenario in 2030 with hourly resolution:
 
 .. image:: img/tyndp/benchmarking_power_capacity_NT_2030.png
 
-Example of figure created for the generation profiles for DE scenario in 2040 with 45SEG:
+Example of figure created for the generation profiles for the DE scenario in 2040 with 45SEG:
 
 .. image:: img/tyndp/benchmarking_gen_profiles_DE_2040.png
 
-Example of indicators extracted from `kpis_s_all__all_years_by_country.csv` for NT scenario with hourly resolution:
+Example of indicators extracted from ``kpis_s_all__all_years_by_country.csv`` for the NT
+scenario with hourly resolution:
 
 ===========================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
 Metric                       sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing carriers  Missing countries  reference                        version
@@ -142,6 +194,54 @@ power_generation             -0.07  0.27   0       3.82   0.01          3       
 Total (excl. time series)    0.06   0.3    0.02    1.48   0.01          13                —                  —                                v0.6.1
 ===========================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
 
-Example of summary figure created for NT scenario:
+Example of summary figure created for the NT scenario:
 
 .. image:: img/tyndp/benchmarking_overview_NT.png
+
+Cost-Benefit Analysis Benchmarking
+====================================
+
+CBA indicators computed by Open-TYNDP are benchmarked against the official `TYNDP 2024 CBA
+results <https://tyndp2024.entsoe.eu/projects-map/transmission>`_ for all calculated
+indicators and all transmission projects. The comparison covers both individual climate year
+runs and multi-year averages.
+
+Metrics
+-------
+
+The following CBA indicators are benchmarked:
+
+* **B1** — Change in total system costs (socio-economic welfare).
+* **B2** — Change in total system CO₂ emissions.
+* **B3** — Renewable energy integration (change in curtailment and renewable generation).
+* **B4** — Change in non-CO₂ emissions.
+
+Each indicator is evaluated per project and per planning horizon, and compared against the
+corresponding TYNDP 2024 CBA values published on the `TYNDP 2024 projects map
+<https://tyndp2024.entsoe.eu/projects-map/transmission>`_.
+
+Per Climate Year
+----------------
+
+Indicators are first benchmarked for each individual climate year run (e.g. CY2009, CY2008,
+CY1995). This allows deviations to be traced to specific weather conditions and isolates
+the effect of inter-annual climate variability on project benefits. For each climate year,
+all four indicators (B1–B4) are compared against the TYNDP 2024 reference values for every
+transmission project.
+
+Averaged Indicators
+-------------------
+
+Following the TYNDP 2024 methodology, indicators are also compared after averaging across
+the three climate years. This averaged comparison is the primary benchmarking target, as it
+reflects the same aggregation approach used in the official TYNDP 2024 CBA. Deviations in
+the averaged indicators provide the most direct measure of how closely Open-TYNDP reproduces
+the official CBA outcomes at the project level.
+
+Workflow
+--------
+
+The CBA benchmarking workflow runs automatically after the CBA solve steps and produces
+per-indicator, per-project comparison figures and summary tables for both the individual
+climate year and averaged results. Output files follow the same structure as the SB
+benchmarking and are stored under ``results/benchmarks/cba/``.
