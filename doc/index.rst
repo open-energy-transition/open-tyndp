@@ -173,7 +173,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - 🔨
    * - **Automated tests and benchmarks**
      - Automated benchmarking routine
-     - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__, `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__, `#467 <https://github.com/open-energy-transition/open-tyndp/pull/467>`__, `#543 <https://github.com/open-energy-transition/open-tyndp/pull/543>`__, `#574 <https://github.com/open-energy-transition/open-tyndp/pull/574>`__, `#607 <https://github.com/open-energy-transition/open-tyndp/pull/607>`__,  `#615 <https://github.com/open-energy-transition/open-tyndp/pull/615>`__, `#604 <https://github.com/open-energy-transition/open-tyndp/pull/604>`__, `#667 <https://github.com/open-energy-transition/open-tyndp/pull/667>`__, `#669 <https://github.com/open-energy-transition/open-tyndp/pull/669>`__
+     - `#73 <https://github.com/open-energy-transition/open-tyndp/pull/73>`__, `#117 <https://github.com/open-energy-transition/open-tyndp/pull/117>`__, `#281 <https://github.com/open-energy-transition/open-tyndp/pull/281>`__, `#467 <https://github.com/open-energy-transition/open-tyndp/pull/467>`__, `#543 <https://github.com/open-energy-transition/open-tyndp/pull/543>`__, `#574 <https://github.com/open-energy-transition/open-tyndp/pull/574>`__, `#607 <https://github.com/open-energy-transition/open-tyndp/pull/607>`__,  `#615 <https://github.com/open-energy-transition/open-tyndp/pull/615>`__, `#604 <https://github.com/open-energy-transition/open-tyndp/pull/604>`__, `#667 <https://github.com/open-energy-transition/open-tyndp/pull/667>`__, `#663 <https://github.com/open-energy-transition/open-tyndp/pull/663>`__, `#669 <https://github.com/open-energy-transition/open-tyndp/pull/669>`__
      - ✅
    * - **TYNDP modelling features**
      - Perfect foresight optimization
@@ -277,7 +277,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * - **CBA Benefit Indicators**
      - B1: Socioeconomic Welfare (SEW)
-     - `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__, `#523 <https://github.com/open-energy-transition/open-tyndp/pull/523>`__, `#578 <https://github.com/open-energy-transition/open-tyndp/pull/578>`__
+     - `#186 <https://github.com/open-energy-transition/open-tyndp/pull/186>`__, `#523 <https://github.com/open-energy-transition/open-tyndp/pull/523>`__, `#578 <https://github.com/open-energy-transition/open-tyndp/pull/668>`__, `#578 <https://github.com/open-energy-transition/open-tyndp/pull/668>`__
      - ✅
    * -
      - B2: CO₂ Variation with societal costs
