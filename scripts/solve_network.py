@@ -50,6 +50,7 @@ from scripts._helpers import (
     PYPSA_V1,
     configure_logging,
     get,
+    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -1816,7 +1817,12 @@ if __name__ == "__main__":
         n.model.print_infeasibilities()
         raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
-    n.meta = dict(snakemake.config, **dict(wildcards=dict(snakemake.wildcards)))
+    # Assign meta data to network
+    n.meta = dict(
+        snakemake.config,
+        **dict(wildcards=dict(snakemake.wildcards)),
+        version_commit=get_version(),
+    )
     n.export_to_netcdf(snakemake.output.network)
 
     if snakemake.output.get("model"):
