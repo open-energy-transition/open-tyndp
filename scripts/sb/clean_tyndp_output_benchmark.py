@@ -38,32 +38,41 @@ H2_POWER_EFF = {
 }  # TODO Remove hard coded values
 
 
-def _load_mm_carrier_mapping(carrier_mapping_fn: str) -> tuple[dict, dict]:
+def _load_mm_carrier_mapping(
+    carrier_mapping_fn: str, tables: dict
+) -> tuple[dict[str, dict], dict[str, dict]]:
     """
     Load mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names.
     """
     tech_map = pd.read_csv(carrier_mapping_fn)
-    output_map = (
-        tech_map[
-            [
-                "tyndp_output_carrier",
-                "benchmarking_generation",
-                "benchmarking_h2_supply",
-                "benchmarking_h2_demand",
-            ]
-        ]
-        .dropna(subset=["tyndp_output_carrier"])
-        .set_index("tyndp_output_carrier")
-        .assign(benchmarking=lambda x: x[x.columns].bfill(axis=1).iloc[:, 0])[
-            "benchmarking"
-        ]
-    )
+    output_map = {}
+    for table, table_opts in tables.items():
+        if table not in LOOKUP_TABLES:
+            continue
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
+        if col not in tech_map.columns:
+            logger.warning(
+                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
+            )
+            continue
+        output_map[table] = (
+            tech_map[["tyndp_output_carrier", col]]
+            .dropna(subset=["tyndp_output_carrier"])
+            .set_index("tyndp_output_carrier")[col]
+            .dropna()
+            .to_dict()
+        )
 
-    # Process H2 power techs separately
-    h2_power_rename = output_map.loc[list(H2_POWER_EFF)]
-    output_map = output_map.drop(index=list(H2_POWER_EFF), errors="ignore")
+    # Extract H2 power techs separately
+    h2_power_rename = {}
+    for table, table_map in output_map.items():
+        h2_techs = {k: table_map.pop(k) for k in H2_POWER_EFF if k in table_map}
+        if h2_techs:
+            h2_power_rename[table] = h2_techs
 
-    return output_map.to_dict(), h2_power_rename.to_dict()
+    return output_map, h2_power_rename
 
 
 # look up dictionary {name of plot: [sheet_name, output_type]}
@@ -156,7 +165,7 @@ def load_MM_sheet(
     filepath: str | Path,
     countries: list[str],
     eu27: list,
-    mapping: dict[str, str],
+    mapping: dict[str, dict[str, str]],
     skiprows: int = 5,
 ) -> pd.DataFrame:
     """
@@ -178,8 +187,8 @@ def load_MM_sheet(
         List of modelled countries
     eu27 : list
         List of EU27 country codes.
-    mapping : dict[str, str]
-        Carrier mapping from market model carrier names to benchmarking carrier names.
+    mapping : dict[str, dict[str, str]]
+        Carrier mapping from market model carrier names to benchmarking carrier names per table.
     skiprows : int, default 5
         Number of metadata rows to skip.
 
@@ -208,15 +217,15 @@ def load_MM_sheet(
     df.index.names = ["output_type", "carrier"]
 
     # Rename and group
-    df = df.rename(index=mapping, level=1).groupby(level=[0, 1]).sum()
+    df = df.rename(index=mapping[table_name], level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type].droplevel("output_type")
     # Only include mapped carriers
-    mapped_carrier_mask = (df.index.isin(mapping.values())) | (
+    mapped_carrier_mask = (df.index.isin(mapping[table_name].values())) | (
         df.index.isin(H2_POWER_EFF.keys())
     )
     if unmapped := df.index[~mapped_carrier_mask].tolist():
         logger.warning(
-            f"No carrier mappings for {unmapped}. They will be excluded from the benchmarking."
+            f"No carrier mappings for table '{table_name}' for: {unmapped}. They will be excluded from the benchmarking for this table."
         )
     df = df[mapped_carrier_mask]
 
@@ -357,7 +366,9 @@ def set_load_sign(
 
 
 def clean_MM_data_for_benchmarking(
-    MM_data: pd.DataFrame, h2_power_rename: dict, offshore_hubs: bool = False
+    MM_data: pd.DataFrame,
+    h2_power_rename: dict[str, dict[str, str]],
+    offshore_hubs: bool = False,
 ) -> pd.DataFrame:
     """
     Clean market model data for benchmarking analysis.
@@ -373,8 +384,8 @@ def clean_MM_data_for_benchmarking(
     MM_data : pd.DataFrame
         Market model data with columns 'carrier', 'table', and 'value'.
         Expected to contain power capacity and generation data.
-    h2_power_rename : dict
-        Mapping of H2 power carrier names to their benchmarking name.
+    h2_power_rename : dict[str,dict[str,str]]
+        Mapping of H2 power carrier names to their benchmarking name per table.
     offshore_hubs : bool, default False
         Whether offshore hubs are modeled.
 
@@ -387,25 +398,6 @@ def clean_MM_data_for_benchmarking(
     # remove load and storages
     MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
 
-    # remove pumped storages from generation
-    MM_data = MM_data.query(
-        "not(table=='power_generation' and carrier=='hydro and pumped storage')"
-    )
-
-    # remove batteries from generation
-    MM_data = MM_data.query("not(table=='power_generation' and carrier=='battery')")
-
-    # aggregate hydro capacities
-    mask = (MM_data.table == "power_capacity") & (
-        MM_data.carrier == "hydro (exc. pump storage)"
-    )
-    MM_data.loc[mask, "carrier"] = "hydro and pumped storage"
-    MM_data = (
-        MM_data.groupby([c for c in MM_data.columns if c != "value"])
-        .sum()
-        .reset_index()
-    )
-
     # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand
     h2_power = MM_data.query(
         "table=='power_generation' and carrier.isin(@H2_POWER_EFF)"
@@ -414,12 +406,16 @@ def clean_MM_data_for_benchmarking(
     h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + " H2"
     h2_power["value"] /= h2_power["carrier"].map(H2_POWER_EFF)
     h2_power["table"] = "hydrogen_demand"
-    h2_power["carrier"] = "power generation"
 
+    # Merge datasets
+    MM_data = pd.concat([MM_data, h2_power])
+    # Rename hydrogen power carriers for each table separately
+    for tbl, rename_map in h2_power_rename.items():
+        mask = MM_data["table"] == tbl
+        MM_data.loc[mask, "carrier"] = MM_data.loc[mask, "carrier"].replace(rename_map)
+    # Aggregate renamed carriers
     MM_data = (
-        pd.concat([MM_data, h2_power])
-        .replace(h2_power_rename)
-        .groupby([c for c in MM_data.columns if c != "value"])
+        MM_data.groupby([c for c in MM_data.columns if c != "value"])
         .sum()
         .reset_index()
     )
@@ -564,7 +560,7 @@ if __name__ == "__main__":
 
     # load carrier mapping
     mm_carrier_mapping, h2_power_rename = _load_mm_carrier_mapping(
-        snakemake.input.carrier_mapping
+        snakemake.input.carrier_mapping, options["tables"]
     )
 
     # currently only implemented for NT

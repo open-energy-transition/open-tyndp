@@ -229,24 +229,28 @@ benchmarking:
 
     electricity_price:
       table_type: prices
+      mapping_col: benchmarking_prices
       rfc_sources:
       - market_out
       unit: EUR/MWh_e
 
     electricity_price_excl_shed:
       table_type: prices
+      mapping_col: benchmarking_prices
       rfc_sources:
       - market_out
       unit: EUR/MWh_e
 
     hydrogen_price:
       table_type: prices
+      mapping_col: benchmarking_prices
       rfc_sources:
       - market_out
       unit: EUR/MWh_H2
 
     hydrogen_price_excl_shed:
       table_type: prices
+      mapping_col: benchmarking_prices
       rfc_sources:
       - market_out
       unit: EUR/MWh_H2
