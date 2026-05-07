@@ -14,7 +14,7 @@ data sources.
 .. toctree::
    :maxdepth: 1
 
-    ../tyndp_2024
+   ../tyndp_2024
    ../data-base-network
    ../data-cutouts
    ../data-repos
