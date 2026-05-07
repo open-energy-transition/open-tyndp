@@ -18,11 +18,12 @@ Wind,Offshore wind,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,off
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fb-oh,offwind-h2-fb-oh,Offshore Wind (H2 OH),wind offshore,wind offshore,offshore wind,,,,,,,,,,offwind-h2-fb-oh,,only used with offshore hubs
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-h2-fl-oh,offwind-h2-fl-oh,Offshore Wind (H2 Float. OH),wind offshore,wind offshore,offshore wind,,,,,,,,,,offwind-h2-fl-oh,,only used with offshore hubs
 ,,,,,,,DRES Wind Off,,,Offshore Wind (DRES),wind offshore,wind offshore,offshore wind,,,,,,,,,,,,
-Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro (exc. Pump storage),Run-of-River,hydro-ror,hydro-ror,Run of River,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,,hydro-ror-turbine,,
+Hydro,Run of River - Turbine,Run_of_River,,,Run-of-River,Hydro and pumped storage,Run-of-River,hydro-ror,hydro-ror,Run of River,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,,hydro-ror-turbine,,
 Hydro,Pondage - Reservoir,Pondage,,,,,,hydro-pondage,hydro-pondage-reservoir,Hydro Pondage (Reservoir),,,,,,,,,,,,,hydro-pondage-reservoir,,
-Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro (exc. Pump storage),Pondage,hydro-pondage,hydro-pondage,Hydro Pondage,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,,hydro-pondage-turbine,,
+Hydro,Pondage - Turbine,Pondage,,,Pondage,Hydro and pumped storage,Pondage,hydro-pondage,hydro-pondage,Hydro Pondage,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,,hydro-pondage-turbine,,
 Hydro,Reservoir - Reservoir,Reservoir,,,,,,hydro-reservoir,hydro-reservoir-reservoir,Reservoir & Dam (Reservoir),,,,,,,,,,,,,hydro-reservoir-reservoir,,
-Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro (exc. Pump storage),Reservoir,hydro-reservoir,hydro-reservoir,Reservoir & Dam,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,,hydro-reservoir-turbine,,
+Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro and pumped storage,Reservoir,hydro-reservoir,hydro-reservoir,Reservoir & Dam,hydro and pumped storage,hydro (exc. pump storage),hydro,,,,,,,,,,hydro-reservoir-turbine,,
+,,,,,,Hydro (exc. Pump storage),,,,,,hydro (exc. pump storage),,,,,,,,,,,,,
 Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,Pumped Hydro (Reservoir),,,,,,,,,,,,,hydro-phs-reservoir,,
 Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,Pumped Hydro,hydro and pumped storage,,hydro,,,,,,,,,,hydro-phs-turbine,,
 ,,,,,,,PS Open,,,,hydro and pumped storage,,,,,,,,,,,,,,
@@ -34,6 +35,7 @@ Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbin
 Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),,,hydro-phs-pure,hydro-phs-pure-pump,Pumped Hydro,hydro and pumped storage (load),,hydro (load),,,,,,,,,,hydro-phs-pure-pump,,
 Other RES,Small Biomass,,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-biomass,Other Renewables,other res,other res,other res,,,,,,,other res,,,other-res-biomass,,
 Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-mix,Other Renewables,other res,other res,other res,,,,,,,,,,other-res-mix,,
+Other RES,"Geothermal, Marine, Waste and Not Defined",,,,,Other RES,,,,,,other res,,,,,,,,,,,,,The TYNDP 2024 Scenarios Report maps Other RES capacities as 'Small Scale RES' and Other RES generation as 'Other RES'
 Gas,Conventional old 1,,,,Gas conventional old 1,Methane,Gas conventional,gas,gas-conv-old1,Conventional Gas,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-conv,OCGT,Methane demand benchmark
 Gas,Conventional old 2,,,,Gas conventional old 2,Methane,Gas conventional,gas,gas-conv-old2,Conventional Gas,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-conv,OCGT,Methane demand benchmark
 Gas,CCGT old 1,,,,Gas CCGT old 1,Methane,Gas CCGT,gas,gas-ccgt-old1,Gas CCGT,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-ccgt,CCGT,Methane demand benchmark
@@ -82,6 +84,7 @@ Other Non-RES Heavy oil,old 1,,,,Others non-renewable,CHP and Small Thermal,Othe
 Other Non-RES Heavy oil,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old2,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Oil shale,old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-old,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Oil shale,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-new,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+,,,,,,Other non-res,,,,,,other non-res,,,,,,,,,,,,,The TYNDP 2024 Scenarios Report maps Other Non-RES capacities as 'CHP and Small Thermal' and Other Non-RES generation as 'Other non-res'
 Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,Hydrogen FC,h2-fuel-cell,h2-fuel-cell,H2 Fuel Cell,hydrogen,hydrogen,methane&hydrogen,,,,power generation,,,,,,h2-fuel-cell,,Hydrogen demand benchmark
 Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,Hydrogen CCGT,h2-ccgt,h2-ccgt,H2 CCGT,hydrogen,hydrogen,methane&hydrogen,,,,power generation,,,,,,h2-ccgt,,Hydrogen demand benchmark
 Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis,H2 Electrolysis,,,,,,,,,p2g,,,,electrolyser-onshore-grid,,Hydrogen supply benchmark
