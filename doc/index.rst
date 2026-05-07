@@ -559,8 +559,7 @@ The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL 
    release_notes
    licenses
    data_sources
-   validation
-   benchmarking
+   oetc
    limitations
    contributing
    support
@@ -576,14 +575,17 @@ PyPSA-Eur related pages
 .. toctree::
    :hidden:
    :maxdepth: 2
-   :caption: Configuration
+   :caption: Background on PyPSA-Eur
 
    wildcards
    configuration
    foresight
    costs
-   tutorial
-   tutorial_sector
+   validation
+   spatial_resolution
+   supply_demand
+   spatial_resolution
+   supply_demand
 
 .. toctree::
    :hidden:
@@ -594,13 +596,6 @@ PyPSA-Eur related pages
    preparation
    sector
    solving
-   oetc
    plotting
 
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-   :caption: Implementation details for sector-coupled systems
 
-   spatial_resolution
-   supply_demand
