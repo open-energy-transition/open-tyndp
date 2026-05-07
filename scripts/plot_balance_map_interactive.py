@@ -252,11 +252,13 @@ if __name__ == "__main__":
         flow.loc[flow.index.get_level_values(0).str.contains("Line")]
         .copy()
         .droplevel(0)
+        .astype(float)
     )
     link_flow = (
         flow.loc[flow.index.get_level_values(0).str.contains("Link")]
         .copy()
         .droplevel(0)
+        .astype(float)
     )
 
     branch_components = ["Link"]
@@ -321,7 +323,7 @@ if __name__ == "__main__":
         + regions.index
         + "</b><br>"
         + "<b>Weighted price:</b> "
-        + regions["price"].round(2).astype(str)
+        + pd.to_numeric(regions["price"], errors="coerce").round(2).astype(str)
         + " "
         + region_unit
     )
