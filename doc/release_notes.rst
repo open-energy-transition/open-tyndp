@@ -281,9 +281,13 @@ Open-TYNDP v0.7 (11th May 2026)
 
 * Add imports to H2 MM supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
 
+* Add cross-border flows to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/609).
+
 * Add separate solver option for CBA MSV extraction (`cba.msv_extraction.solving`) and move CBA solve logs to `results/cba/logs/` (https://github.com/open-energy-transition/open-tyndp/pull/627).
 
 * Change number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
+
+* Refactor CBA workflow to only temporarily save CBA project networks in ``resources`` (https://github.com/open-energy-transition/open-tyndp/pull/652).
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
@@ -303,11 +307,15 @@ Open-TYNDP v0.7 (11th May 2026)
 
 * Fix mapping of biofuels in the Final Energy Demand table of the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/667).
 
+* Adjust DSR and demand shedding mapping across data sources to benchmark them accurately (https://github.com/open-energy-transition/open-tyndp/pull/645).
+
 * Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
 
 * Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
 
 **Developers Note**
+
+* Upload Windows installer as unzipped artifact (https://github.com/open-energy-transition/open-tyndp/pull/621).
 
 * Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
 
