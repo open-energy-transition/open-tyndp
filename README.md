@@ -9,7 +9,6 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Test workflows](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml/badge.svg)](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml)
 [![Documentation](https://readthedocs.org/projects/open-tyndp/badge/?version=latest)](https://open-tyndp.readthedocs.io/en/latest/?badge=latest)
 [![Website](https://img.shields.io/badge/website-open--tyndp-4a6fa5?logo=internet-explorer)](https://open-tyndp.openenergytransition.org/)
-![Size](https://img.shields.io/github/repo-size/open-energy-transition/open-tyndp)
 [![Zenodo Open-TYNDP](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.19372053-blue)](https://doi.org/10.5281/zenodo.19372053)
 [![Zenodo PyPSA-Eur](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.3520874-blue)](https://doi.org/10.5281/zenodo.3520874)
 [![Zenodo PyPSA-Eur-Sec](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.3938042-blue)](https://doi.org/10.5281/zenodo.3938042)
