@@ -14,10 +14,11 @@ data sources.
 .. toctree::
    :maxdepth: 1
 
+    ../tyndp_2024
    ../data-base-network
    ../data-cutouts
    ../data-repos
-   ../tyndp_2024
+
 
 .. _managing_data_versions:
 
