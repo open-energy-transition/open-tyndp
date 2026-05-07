@@ -9,13 +9,15 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Test workflows](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml/badge.svg)](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml)
 [![Documentation](https://readthedocs.org/projects/open-tyndp/badge/?version=latest)](https://open-tyndp.readthedocs.io/en/latest/?badge=latest)
 [![Website](https://img.shields.io/badge/website-open--tyndp-4a6fa5?logo=internet-explorer)](https://open-tyndp.openenergytransition.org/)
-[![Zenodo Open-TYNDP](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.19372053-blue)](https://doi.org/10.5281/zenodo.19372053)
-[![Zenodo PyPSA-Eur](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.3520874-blue)](https://doi.org/10.5281/zenodo.3520874)
-[![Zenodo PyPSA-Eur-Sec](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.3938042-blue)](https://doi.org/10.5281/zenodo.3938042)
-[![Zenodo TYNDP data](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.14230568-blue)](https://doi.org/10.5281/zenodo.14230568)
 [![Snakemake](https://img.shields.io/badge/snakemake-≥9-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
 [![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
 [![REUSE status](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
+
+**Citations & Data:**
+[![Cite Open-TYNDP](https://img.shields.io/badge/cite-Open--TYNDP-blue)](https://doi.org/10.5281/zenodo.19372053)
+[![Cite PyPSA-Eur](https://img.shields.io/badge/cite-PyPSA--Eur-blue)](https://doi.org/10.5281/zenodo.3520874)
+[![Cite PyPSA-Eur-Sec](https://img.shields.io/badge/cite-PyPSA--Eur--Sec-blue)](https://doi.org/10.5281/zenodo.3938042)
+[![TYNDP input data](https://img.shields.io/badge/data-TYNDP%202024%20inputs-blue)](https://doi.org/10.5281/zenodo.14230568)
 
 # Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
 <img src="https://raw.githubusercontent.com/open-energy-transition/oet-website/main/assets/img/oet-logo-red-n-subtitle.png" alt="Open Energy Transition Logo" width="260" height="100" align="right">
