@@ -219,7 +219,7 @@ def clean_data_for_benchmarking(
         Dataframe with report data cleaned for benchmarking.
     """
     # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
-    if table == "elec_demand":
+    if table == "electricity_demand":
         df = df[df.carrier == "final demand (inc. t&d losses, excl. pump storage )"]
 
     # Drop total for Methane demand

@@ -166,7 +166,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **benchmarking_generation**: Naming convention for the benchmarking framework's ``power_generation`` table.
 * **benchmarking_generation_profiles**: Naming convention for the benchmarking framework's ``generation_profiles`` table.
 * **benchmarking_fed**: Naming convention for the benchmarking framework's ``final_energy_demand`` table.
-* **benchmarking_elec_demand**: Naming convention for the benchmarking framework's ``elec_demand`` table.
+* **benchmarking_elec_demand**: Naming convention for the benchmarking framework's ``electricity_demand`` table.
 * **benchmarking_ch4_demand**: Naming convention for the benchmarking framework's ``methane_demand`` table.
 * **benchmarking_h2_demand**: Naming convention for the benchmarking framework's ``hydrogen_demand`` table.
 * **benchmarking_ch4_supply**: Naming convention for the benchmarking framework's ``methane_supply`` table.

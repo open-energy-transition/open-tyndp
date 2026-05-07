@@ -187,7 +187,7 @@ def compute_benchmark(
         df_eu.loc["solid biomass"] -= biogas_not_upgraded
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "elec_demand":
+    elif table == "electricity_demand":
         grouper = ["carrier"]
         df = (
             n.statistics.withdrawal(

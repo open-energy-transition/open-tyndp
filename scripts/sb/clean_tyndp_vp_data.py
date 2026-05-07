@@ -97,7 +97,7 @@ def get_elec_demand(
         .assign(
             carrier="final demand (inc. t&d losses, excl. pump storage )",
             scenario=f"TYNDP {scenario}",
-            table="elec_demand",
+            table="electricity_demand",
             bus="EU27",
         )
     )

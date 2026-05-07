@@ -69,7 +69,7 @@ benchmarking:
           - scenario
           - year
 
-    elec_demand:
+    electricity_demand:
       table_type: scenario_comparison
       mapping_col: benchmarking_elec_demand
       rfc_sources:
