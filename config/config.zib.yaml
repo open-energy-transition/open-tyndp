@@ -18,6 +18,9 @@ solving:
   solver:
     name: gurobi
     options: gurobi-default
+  partition: big
+  mem_mb: 60000
+  runtime: 12h
 
 cba:
   msv_extraction:
