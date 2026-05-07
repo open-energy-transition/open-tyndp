@@ -79,7 +79,7 @@ Rolling Horizon Settings
 ------------------------
 * ``storage.cyclic_carriers``: Carriers that remain cyclic within each weekly window.
 * ``storage.soc_boundary_carriers``: Carriers pinned at window boundaries.
-* ``msv_extraction.resolution``: Controls temporal resolution for the MSV solve (e.g., ``24H``).
+* ``msv_extraction.resolution``: Controls temporal resolution for the MSV solve (e.g., ``24H``). 
 
 Running Single vs Multiple Climate Years
 ----------------------------------------
