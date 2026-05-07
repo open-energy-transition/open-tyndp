@@ -23,6 +23,8 @@ solving:
   runtime: 12h
 
 cba:
+  projects: []
+
   msv_extraction:
     solving:
       solver:
