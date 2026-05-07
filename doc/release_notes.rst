@@ -21,6 +21,8 @@ Upcoming Open-TYNDP Release
 
 * Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
 
+* Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
+
 **Changes**
 
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
@@ -32,6 +34,8 @@ Upcoming Open-TYNDP Release
 * Change number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
 
 * Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657)
+
+* Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
 **Bugfixes and Compatibility**
 
@@ -52,6 +56,8 @@ Upcoming Open-TYNDP Release
 * Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
 
 * Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
+
+* Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
 
 **Documentation**
 
