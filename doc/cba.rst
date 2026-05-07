@@ -26,7 +26,8 @@ To resolve **myopia**—where the optimizer cannot see beyond the current week a
 
 Network Simplification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The SB network is transformed into a dispatch-ready CBA network. 
+The SB network is transformed into a dispatch-ready CBA network:
+
 * **Fixed Capacities:** Capacities are fixed via ``n.optimize.fix_optimal_capacities()``.
 * **Hurdle Costs:** A cost of 0.01 €/MWh is applied to all DC links.
 * **Fuel Capacities:** Primary fuel generator capacities (coal, gas, oil, nuclear) are set to infinity to prevent dispatch from being artificially restricted by fuel-supply limits during peak hours.
@@ -58,7 +59,7 @@ CBA Indicators
 
 Indicators are computed as the difference in system costs and emissions between the reference and project dispatch solutions.
 
-* **B1: Social Economic Welfare (SEW):** Quantifies the change in total system costs (CAPEX + OPEX).
+* **B1: Social Economic Welfare (SEW):** Quantifies the change in operational system costs (socio-economic welfare).
 * **B2: Social costs of CO2 emissions:** Calculates the impact using societal cost assumptions (low, central, high).
 * **B3: RES integration costs:** Tracks changes in renewable capacity, generation, and avoided curtailment.
 * **B4: Non-direct greenhouse emissions:** Quantifies pollutants (NOx, SO2, PM, etc.) using fuel consumption multipliers.
