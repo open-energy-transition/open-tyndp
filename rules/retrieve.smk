@@ -370,20 +370,35 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
         run:
             import entsoe
             import geopandas as gpd
-            from urllib.error import HTTPError, URLError
+            import logging
+            import requests
+            from requests.exceptions import HTTPError, Timeout, ConnectionError
+
+            logger = logging.getLogger(__name__)
+            logger.setLevel(config["logging"]["level"])
+            logger.addHandler(logging.FileHandler(log[0]))
 
             logger.info("Downloading entsoe-py zones...")
             gdfs: list[gpd.GeoDataFrame] = []
             url = f"{BIDDING_ZONES_ENTSOEPY_DATASET['url']}"
             for area in entsoe.Area:
                 name = area.name
+                logger.debug(f"Retrieving area {name}")
                 try:
                     file_url = f"{url}/{name}.geojson"
-                    gdfs.append(gpd.read_file(file_url))
+                    response = requests.get(file_url, timeout=60)
+                    response.raise_for_status()
+                    features = response.json().get("features", [])
+                    if features:
+                        gdf = gpd.GeoDataFrame.from_features(
+                            features, crs="EPSG:4326"
+                        )
+                        gdfs.append(gdf)
+                    logger.debug(f"Successfully retrieved area {name}")
                 except HTTPError as e:
                     logger.debug(f"Area file not available for {name}: {e}")
                     continue
-                except (URLError, TimeoutError) as e:
+                except (Timeout, ConnectionError, TimeoutError) as e:
                     raise Exception(f"Network error retrieving {name}: {e}")
             shapes = pd.concat(gdfs, ignore_index=True)  # type: ignore
 
