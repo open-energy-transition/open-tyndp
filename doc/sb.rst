@@ -25,7 +25,7 @@ All used input datasets are publicly available from the `TYNDP 2024 scenarios do
 <https://2024.entsos-tyndp-scenarios.eu/download/>`_. The diagram below shows how they
 flow into Open-TYNDP and into the benchmarking process.
 
-.. image:: img/tyndp/data_overview.svg
+.. raw:: img/tyndp/data_overview.svg
     :align: center
     :alt: TYNDP 2024 Scenario Building data overview diagram
 
