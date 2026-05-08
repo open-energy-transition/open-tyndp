@@ -211,10 +211,10 @@ Metrics
 
 The following CBA indicators are benchmarked:
 
-* **B1** — Change in total system costs (socio-economic welfare).
-* **B2** — Change in total system CO₂ emissions.
-* **B3** — Renewable energy integration (change in curtailment and renewable generation).
-* **B4** — Change in non-CO₂ emissions.
+* **B1: Social Economic Welfare (SEW):** Quantifies the change in operational system costs (socio-economic welfare).
+* **B2: Social costs of CO2 emissions:** Calculates the impact using societal cost assumptions (low, central, high).
+* **B3: RES integration costs:** Tracks changes in renewable capacity, generation, and avoided curtailment.
+* **B4: Non-direct greenhouse emissions:** Quantifies pollutants (NOx, SO2, PM, etc.) using fuel consumption multipliers.
 
 Each indicator is evaluated per project and per planning horizon, and compared against the
 corresponding TYNDP 2024 CBA values published on the `TYNDP 2024 projects map
