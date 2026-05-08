@@ -216,9 +216,6 @@ The following CBA indicators are benchmarked:
 * **B3: RES integration costs:** Tracks changes in renewable capacity, generation, and avoided curtailment.
 * **B4: Non-direct greenhouse emissions:** Quantifies pollutants (NOx, SO2, PM, etc.) using fuel consumption multipliers.
 
-Each indicator is evaluated per project and per planning horizon, and compared against the
-corresponding TYNDP 2024 CBA values published on the `TYNDP 2024 projects map
-<https://tyndp2024.entsoe.eu/projects-map/transmission>`_.
 
 Per Climate Year
 ----------------
