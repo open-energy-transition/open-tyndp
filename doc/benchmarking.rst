@@ -117,7 +117,7 @@ The SB benchmarking workflow is controlled by ``config/benchmarking.default.yaml
 
 The full set of benchmarking output files is stored under ``results/benchmarks/tyndp-2024/``:
 
-* ``resources/`` — processed inputs from both Open-TYNDP and TYNDP 2024.
+* ``resources/`` — processed benchmarking inputs from both Open-TYNDP and TYNDP 2024.
 * ``csvs_s_{clusters}_{opts}_{sector_opts}_all_years/`` — quantitative tables.
 * ``graphics_s_{clusters}_{opts}_{sector_opts}_all_years/`` — figures.
 * ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv`` — summary table at bus level.
