@@ -125,9 +125,8 @@ The full set of benchmarking output files is stored under ``results/benchmarks/t
 * ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf`` — summary figure aggregated from bus level KPIs.
 * ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf`` — summary figure aggregated from country level KPIs.
 
-The structure of these outputs can be validated in the artifacts of the GitHub CI (e.g.
-artifacts section `here
-<https://github.com/open-energy-transition/open-tyndp/actions/runs/17715799690?pr=73>`_).
+The structure of these outputs can be validated in the published preliminary benchmarking results on `Zenodo
+<https://doi.org/10.5281/zenodo.18608105>`_
 
 .. image:: img/tyndp/benchmarking_workflow.png
 
