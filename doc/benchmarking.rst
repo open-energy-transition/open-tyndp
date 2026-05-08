@@ -120,10 +120,10 @@ The full set of benchmarking output files is stored under ``results/benchmarks/t
 * ``resources/`` — processed benchmarking inputs from both Open-TYNDP and TYNDP 2024.
 * ``csvs_s_{clusters}_{opts}_{sector_opts}_all_years/`` — quantitative tables.
 * ``graphics_s_{clusters}_{opts}_{sector_opts}_all_years/`` — figures.
-* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv`` — summary table at bus level.
-* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv`` — summary table at country level.
-* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf`` — summary figure at bus level.
-* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf`` — summary figure at country level.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.csv`` — summary table aggregated from bus level KPIs.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.csv`` — summary table aggregated from country level KPIs.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_bus.pdf`` — summary figure aggregated from bus level KPIs.
+* ``kpis_s_{clusters}_{opts}_{sector_opts}_all_years_by_country.pdf`` — summary figure aggregated from country level KPIs.
 
 The structure of these outputs can be validated in the artifacts of the GitHub CI (e.g.
 artifacts section `here
