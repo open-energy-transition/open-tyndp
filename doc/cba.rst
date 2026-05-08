@@ -144,7 +144,7 @@ To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.t
 
 .. code-block:: console
 
-    $ snakemake -call cba --configfile config/config.tyndp.yaml --config run='{"name":"NT-cyears"}'
+    $ pixi run tyndp-cba --config run='{"name":"NT-cyears"}'
 
 Running a Single Climate Year
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
