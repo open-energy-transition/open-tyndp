@@ -59,6 +59,8 @@ Upcoming Open-TYNDP Release
 
 * Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
 
+* Update PEMMDB version reference to correct version v2.5 in the documentation (https://github.com/open-energy-transition/open-tyndp/pull/681).
+
 **Documentation**
 
 **Developers Note**
