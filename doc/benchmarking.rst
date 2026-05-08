@@ -110,7 +110,7 @@ The SB benchmarking workflow is controlled by ``config/benchmarking.default.yaml
 #. ``build_statistics``: Compute benchmarking statistics from the optimised network for
    every planning horizon.
 #. ``make_benchmark``: Compute accuracy indicators comparing model outcomes against the
-   Scenarios Report, Visualisation Platform, and Market Model Outputs.
+   Market Model Outputs, Scenarios Report, and Visualisation Platform.
 #. ``make_benchmarks``: Collect outputs from all ``make_benchmark`` runs.
 #. ``plot_benchmark``: Generate visualisation outputs.
 #. ``plot_benchmarks``: Collect outputs from all ``plot_benchmark`` runs.
