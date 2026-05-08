@@ -115,7 +115,7 @@ The SB benchmarking workflow is controlled by ``config/benchmarking.default.yaml
 #. ``plot_benchmark``: Generate visualisation outputs.
 #. ``plot_benchmarks``: Collect outputs from all ``plot_benchmark`` runs.
 
-The full set of output files is stored under ``results/benchmarks/tyndp-2024/``:
+The full set of benchmarking output files is stored under ``results/benchmarks/tyndp-2024/``:
 
 * ``resources/`` — processed inputs from both Open-TYNDP and TYNDP 2024.
 * ``csvs_s_{clusters}_{opts}_{sector_opts}_all_years/`` — quantitative tables.
