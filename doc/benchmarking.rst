@@ -170,7 +170,7 @@ Example of figure created for the generation profiles for the DE scenario in 204
 
 .. image:: img/tyndp/benchmarking_gen_profiles_DE_2040.png
 
-Example of indicators extracted from ``kpis_s_all__all_years_by_country.csv`` for the NT
+Example of summary indicators extracted from ``kpis_s_all__all_years_by_country.csv`` for the NT
 scenario with hourly resolution:
 
 ===========================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
