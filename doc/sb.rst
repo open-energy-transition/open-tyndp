@@ -116,8 +116,7 @@ include:
 Capacity Optimisation
 ---------------------
 
-The SB optimisation minimises **total annualised system cost** (investment plus variable
-operating cost) subject to:
+The SB optimisation minimises **total annualised system cost** (variable operating cost, plus investment cost where capacity expansion is enabled) subject to:
 
 * Hourly supply-demand balance for each carrier at every bus.
 * Transmission capacity constraints, with optional extendability for candidate lines.
