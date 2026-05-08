@@ -7,7 +7,7 @@ Scenario Building (SB)
 ######################
 
 Scenario Building (SB) is the first phase of the Open-TYNDP workflow. Starting from raw
-ENTSO-E input datasets, it constructs a fully sector-coupled European energy system model
+ENTSO-E input datasets, it constructs a sector-coupled European energy system model
 and solves a least-cost capacity expansion and dispatch optimisation. The solved network
 produced by SB serves as the direct input to the `Cost-Benefit Analysis (CBA) <cba.html>`_.
 
