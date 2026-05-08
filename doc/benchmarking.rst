@@ -230,7 +230,9 @@ Averaged Indicators
 -------------------
 
 Following the TYNDP 2024 methodology, indicators are also compared after averaging across
-the three climate years. This averaged comparison is the primary benchmarking target, as it
+the three climate years. A weighted average is calculated using weights for each climate year provided by the `TYNDP 2024 CBA Implementation Guidelines <https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1n>`_: 0.233 for 1995, 0.367 for 2008 and 0.4 for 2009.
+
+This averaged comparison is the primary benchmarking target, as it
 reflects the same aggregation approach used in the official TYNDP 2024 CBA. Deviations in
 the averaged indicators provide the most direct measure of how closely Open-TYNDP reproduces
 the official CBA outcomes at the project level.
