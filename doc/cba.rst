@@ -152,4 +152,4 @@ Similarly, a single climate year can be run by modifying ``run.name``  in ``conf
 
 .. code-block:: console
 
-    $ snakemake -call cba --configfile config/config.tyndp.yaml --config run='{"name":"NT-cy2009"}'
+    $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
