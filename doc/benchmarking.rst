@@ -243,4 +243,4 @@ Workflow
 The CBA benchmarking workflow runs automatically after the CBA solve steps and produces
 per-indicator, per-project comparison figures and summary tables for both the individual
 climate year and averaged results. Output files follow the same structure as the SB
-benchmarking and are stored under ``results/benchmarks/cba/``.
+benchmarking and are stored under ``results/[run]/cba/``.
