@@ -49,7 +49,7 @@ rules:
 
 `Hydro Inflows <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip>`_
     Hourly inflow profiles for reservoir and run-of-river hydro plants, used to constrain
-    hydro dispatch across planning horizons.
+    hydro dispatch across planning horizons. Profiles are provided per climate year and TYNDP bidding zone.
 
 `Demand Profiles <https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Demand-Profiles.zip>`_
     Hourly electricity and hydrogen demand profiles by country, interpolated to the target
