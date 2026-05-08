@@ -64,7 +64,7 @@ First outcomes for the TYNDP 2024 NT scenario are presented `here <https://open-
 
 This repository is a soft-fork of `OET/PyPSA-Eur <https://github.com/open-energy-transition/pypsa-eur>`__ and contains the entire project `Open-TYNDP` supported by OET, including code and documentation. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
-Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption. To build trust and ensure reproducibility, the project focuses on replicating key figures from the 2024 TYNDP cycle before aligning with the current 2026 TYNDP cycle.
+Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption. To build trust and ensure reproducibility, the project focuses on replicating key figures from the 2024 TYNDP cycle before aligning with current and future TYNDP cycles.
 
 Why Open-TYNDP?
 ==============
