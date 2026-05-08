@@ -61,6 +61,8 @@ Upcoming Open-TYNDP Release
 
 **Documentation**
 
+* Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
+
 **Developers Note**
 
 
