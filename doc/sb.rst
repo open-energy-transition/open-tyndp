@@ -125,6 +125,7 @@ operating cost) subject to:
 * Minimum and maximum generation constraints from PEMMDB, including must-run levels and
   scheduled maintenance outages.
 * Country-level annual hydrogen supply and demand balances.
+* Capacity expansion constraints reflecting given trajectories in the case of the DE and GA scenario
 
 The problem is formulated as a **linear programme (LP)** and solved with the configured
 solver (HiGHS as default as an open-source alternative for lower
