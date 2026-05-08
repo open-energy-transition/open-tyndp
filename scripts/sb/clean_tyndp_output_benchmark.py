@@ -128,7 +128,7 @@ LOOKUP_TABLES: dict[str, list[str]] = {
         "Native Demand (excl. H2 storage charge) [GWhH2]",
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
-    "demand_shedding_hours": [
+    "electricity_demand_shedding_hours": [
         "Yearly Outputs",
         "Loss of load expectation [hour]  ",
     ],  # includes white space

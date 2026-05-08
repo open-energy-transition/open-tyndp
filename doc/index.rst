@@ -169,7 +169,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - TYNDP plotting routines
-     - `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__
+     - `#443 <https://github.com/open-energy-transition/open-tyndp/pull/443>`__, `#657 <https://github.com/open-energy-transition/open-tyndp/pull/657>`__
      - 🔨
    * - **Automated tests and benchmarks**
      - Automated benchmarking routine

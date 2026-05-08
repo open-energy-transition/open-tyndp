@@ -619,45 +619,6 @@ def plot_benchmark(
                 source_unit=source_unit,
                 tech_colors=tech_colors,
             )
-        elif table_type == "prices":
-            _plot_prices(
-                df=bench_year,
-                table=table,
-                year=year,
-                output_dir=output_dir,
-                scenario=scenario,
-                cyear=cyear,
-                model_col=model_col,
-                rfc_source=rfc_source,
-                source_unit=source_unit,
-                bench_colors=bench_colors,
-            )
-        elif table_type == "flows":
-            _plot_flows(
-                df=bench_year,
-                table=table,
-                year=year,
-                output_dir=output_dir,
-                scenario=scenario,
-                cyear=cyear,
-                model_col=model_col,
-                rfc_source=rfc_source,
-                source_unit=source_unit,
-                bench_colors=bench_colors,
-            )
-        elif table_type == "hours":
-            _plot_hours(
-                df=bench_year,
-                table=table,
-                year=year,
-                output_dir=output_dir,
-                scenario=scenario,
-                cyear=cyear,
-                model_col=model_col,
-                rfc_source=rfc_source,
-                source_unit=source_unit,
-                bench_colors=bench_colors,
-            )
         elif plotter := plotters.get(table_type):
             plotter(
                 df=bench_year,
