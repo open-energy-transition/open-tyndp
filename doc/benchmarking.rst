@@ -85,9 +85,9 @@ are considered relevant for Scenario Building benchmarking:
 
 The data is published in the `Scenarios package
 <https://2024-data.entsos-tyndp-scenarios.eu/files/reports/TYNDP-2024-Scenarios-Package-20250128.zip>`_.
-In addition to the Scenarios Report data, data from the `Visualisation Platform
-<https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>`_ and the `Market Model
-Outputs <https://2024.entsos-tyndp-scenarios.eu/download/>`_ are also processed and
+In addition to the Scenarios Report data, data from the `Market Model
+Outputs <https://2024.entsos-tyndp-scenarios.eu/download/>`_ and the `Visualisation Platform
+<https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>`_ are also processed and
 included in the relevant figures.
 
 Hourly time series from TYNDP 2024 are aggregated to match the temporal resolution of
