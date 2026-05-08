@@ -23,9 +23,12 @@ storage cached_http:
     provider="cached-http",
 
 
+ARCHIVE_SOURCES = {"archive", "ot-archive"}
+
+
 if (EUROSTAT_BALANCES_DATASET := dataset_version("eurostat_balances"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_eurostat_balances:
@@ -45,7 +48,7 @@ if (
     )
 )["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_eurostat_household_balances:
@@ -78,7 +81,7 @@ if (SWISS_ENERGY_BALANCES_DATASET := dataset_version("swiss_energy_balances"))[
 
 if (NUTS3_POPULATION_DATASET := dataset_version("nuts3_population"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_nuts3_population:
@@ -93,7 +96,7 @@ if (NUTS3_POPULATION_DATASET := dataset_version("nuts3_population"))["source"] i
             copy2(input["gz"], output["gz"])
 
 
-if (CORINE_DATASET := dataset_version("corine"))["source"] in ["archive"]:
+if (CORINE_DATASET := dataset_version("corine"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_corine:
         message:
@@ -130,9 +133,9 @@ elif (CORINE_DATASET := dataset_version("corine"))["source"] in ["primary"]:
             scripts("retrieve_corine_dataset_primary.py")
 
 
-if (H2_SALT_CAVERNS_DATASET := dataset_version("h2_salt_caverns"))["source"] in [
-    "archive"
-]:
+if (H2_SALT_CAVERNS_DATASET := dataset_version("h2_salt_caverns"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_h2_salt_caverns:
         message:
@@ -146,9 +149,9 @@ if (H2_SALT_CAVERNS_DATASET := dataset_version("h2_salt_caverns"))["source"] in 
             copy2(input["geojson"], output["geojson"])
 
 
-if (GDP_PER_CAPITA_DATASET := dataset_version("gdp_per_capita"))["source"] in [
-    "archive"
-]:
+if (GDP_PER_CAPITA_DATASET := dataset_version("gdp_per_capita"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_gdp_per_capita:
         message:
@@ -163,8 +166,8 @@ if (GDP_PER_CAPITA_DATASET := dataset_version("gdp_per_capita"))["source"] in [
 
 
 if (POPULATION_COUNT_DATASET := dataset_version("population_count"))["source"] in [
-    "archive",
     "primary",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_population_count:
@@ -190,8 +193,8 @@ if (POPULATION_COUNT_DATASET := dataset_version("population_count"))["source"] i
 
 
 if (GHG_EMISSIONS_DATASET := dataset_version("ghg_emissions"))["source"] in [
-    "archive",
     "primary",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_ghg_emissions:
@@ -221,7 +224,10 @@ if (GHG_EMISSIONS_DATASET := dataset_version("ghg_emissions"))["source"] in [
 
 
 
-if (GEBCO_DATASET := dataset_version("gebco"))["source"] in ["archive", "primary"]:
+if (GEBCO_DATASET := dataset_version("gebco"))["source"] in [
+    "primary",
+    *ARCHIVE_SOURCES,
+]:
 
     rule retrieve_gebco:
         message:
@@ -254,8 +260,8 @@ if (GEBCO_DATASET := dataset_version("gebco"))["source"] in ["archive", "primary
 
 
 if (ATTRIBUTED_PORTS_DATASET := dataset_version("attributed_ports"))["source"] in [
-    "archive",
     "primary",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_attributed_ports:
@@ -272,7 +278,7 @@ if (ATTRIBUTED_PORTS_DATASET := dataset_version("attributed_ports"))["source"] i
 
 if (JRC_IDEES_DATASET := dataset_version("jrc_idees"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_jrc_idees:
@@ -291,7 +297,7 @@ if (JRC_IDEES_DATASET := dataset_version("jrc_idees"))["source"] in [
 
 if (EU_NUTS2013_DATASET := dataset_version("eu_nuts2013"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_eu_nuts_2013:
@@ -313,7 +319,7 @@ if (EU_NUTS2013_DATASET := dataset_version("eu_nuts2013"))["source"] in [
 
 if (EU_NUTS2021_DATASET := dataset_version("eu_nuts2021"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_eu_nuts_2021:
@@ -339,7 +345,7 @@ if (
     BIDDING_ZONES_ELECTRICITYMAPS_DATASET := dataset_version(
         "bidding_zones_electricitymaps"
     )
-)["source"] in ["primary", "archive"]:
+)["source"] in ["primary", *ARCHIVE_SOURCES]:
 
     rule retrieve_bidding_zones_electricitymaps:
         input:
@@ -357,7 +363,7 @@ if (
 
 if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))[
     "source"
-] in ["primary", "archive"]:
+] in ["primary", *ARCHIVE_SOURCES]:
 
     rule retrieve_bidding_zones_entsoepy:
         output:
@@ -408,9 +414,7 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
 
 
 
-if (CUTOUT_DATASET := dataset_version("cutout"))["source"] in [
-    "archive",
-]:
+if (CUTOUT_DATASET := dataset_version("cutout"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_cutout:
         message:
@@ -428,9 +432,9 @@ if (CUTOUT_DATASET := dataset_version("cutout"))["source"] in [
             copy2(input[0], output[0])
 
 
-if (COUNTRY_RUNOFF_DATASET := dataset_version("country_runoff"))["source"] in [
-    "archive"
-]:
+if (COUNTRY_RUNOFF_DATASET := dataset_version("country_runoff"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_country_runoff:
         message:
@@ -443,7 +447,7 @@ if (COUNTRY_RUNOFF_DATASET := dataset_version("country_runoff"))["source"] in [
             copy2(input[0], output[0])
 
 
-if (COUNTRY_HDD_DATASET := dataset_version("country_hdd"))["source"] in ["archive"]:
+if (COUNTRY_HDD_DATASET := dataset_version("country_hdd"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_country_hdd:
         message:
@@ -458,7 +462,7 @@ if (COUNTRY_HDD_DATASET := dataset_version("country_hdd"))["source"] in ["archiv
 
 if (COSTS_DATASET := dataset_version("costs"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_cost_data:
@@ -474,7 +478,7 @@ if (COSTS_DATASET := dataset_version("costs"))["source"] in [
 
 if (POWERPLANTS_DATASET := dataset_version("powerplants"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_powerplants:
@@ -490,7 +494,7 @@ if (POWERPLANTS_DATASET := dataset_version("powerplants"))["source"] in [
 
 if (SCIGRID_GAS_DATASET := dataset_version("scigrid_gas"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_gas_infrastructure_data:
@@ -529,9 +533,9 @@ if (OPSD_DEMAND_DATA := dataset_version("opsd_electricity_demand"))["source"] in
             scripts("retrieve_electricity_demand_opsd.py")
 
 
-if (OPSD_DEMAND_DATA := dataset_version("opsd_electricity_demand"))["source"] in [
-    "archive"
-]:
+if (OPSD_DEMAND_DATA := dataset_version("opsd_electricity_demand"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_electricity_demand_opsd:
         message:
@@ -624,9 +628,9 @@ if (ENTSOE_DEMAND_DATA := dataset_version("entsoe_electricity_demand"))["source"
             df.to_csv(output.csv)
 
 
-if (ENTSOE_DEMAND_DATA := dataset_version("entsoe_electricity_demand"))["source"] in [
-    "archive"
-]:
+if (ENTSOE_DEMAND_DATA := dataset_version("entsoe_electricity_demand"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_electricity_demand_entsoe:
         message:
@@ -658,9 +662,9 @@ if (NESO_DEMAND_DATA := dataset_version("neso_electricity_demand"))["source"] in
             scripts("retrieve_electricity_demand_neso.py")
 
 
-if (NESO_DEMAND_DATA := dataset_version("neso_electricity_demand"))["source"] in [
-    "archive"
-]:
+if (NESO_DEMAND_DATA := dataset_version("neso_electricity_demand"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_electricity_demand_neso:
         message:
@@ -680,7 +684,7 @@ if (
     )
 )["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_synthetic_electricity_demand:
@@ -696,8 +700,8 @@ if (
 
 
 if (SHIP_RASTER_DATASET := dataset_version("ship_raster"))["source"] in [
-    "archive",
     "primary",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_ship_raster:
@@ -718,7 +722,7 @@ if (SHIP_RASTER_DATASET := dataset_version("ship_raster"))["source"] in [
 
 if (ENSPRESO_BIOMASS_DATASET := dataset_version("enspreso_biomass"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_enspreso_biomass:
@@ -737,7 +741,7 @@ if (HOTMAPS_INDUSTRIAL_SITES := dataset_version("hotmaps_industrial_sites"))[
     "source"
 ] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_hotmaps_industrial_sites:
@@ -756,7 +760,7 @@ if (NITROGEN_STATISTICS_DATASET := dataset_version("nitrogen_statistics"))[
     "source"
 ] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_nitrogen_statistics:
@@ -773,7 +777,7 @@ if (NITROGEN_STATISTICS_DATASET := dataset_version("nitrogen_statistics"))[
 
 if (COPERNICUS_LAND_COVER_DATASET := dataset_version("copernicus_land_cover"))[
     "source"
-] in ["primary", "archive"]:
+] in ["primary", *ARCHIVE_SOURCES]:
 
     # Downloading Copernicus Global Land Cover for land cover and land use:
     # Website: https://land.copernicus.eu/global/products/lc
@@ -790,7 +794,7 @@ if (COPERNICUS_LAND_COVER_DATASET := dataset_version("copernicus_land_cover"))[
 
 if (LUISA_LAND_COVER_DATASET := dataset_version("luisa_land_cover"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     # Downloading LUISA Base Map for land cover and land use:
@@ -840,7 +844,7 @@ if (EEZ_DATASET := dataset_version("eez"))["source"] in ["primary"]:
             unpack_archive(output["zip_file"], output_folder)
 
 
-elif (EEZ_DATASET := dataset_version("eez"))["source"] in ["archive"]:
+elif (EEZ_DATASET := dataset_version("eez"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_eez:
         message:
@@ -860,7 +864,7 @@ elif (EEZ_DATASET := dataset_version("eez"))["source"] in ["archive"]:
 
 if (WB_URB_POP_DATASET := dataset_version("worldbank_urban_population"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_worldbank_urban_population:
@@ -888,7 +892,7 @@ if (WB_URB_POP_DATASET := dataset_version("worldbank_urban_population"))["source
 
 if (CO2STOP_DATASET := dataset_version("co2stop"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_co2stop:
@@ -915,7 +919,7 @@ if (GEM_EUROPE_GAS_TRACKER_DATASET := dataset_version("gem_europe_gas_tracker"))
     "source"
 ] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_gem_europe_gas_tracker:
@@ -931,7 +935,7 @@ if (GEM_EUROPE_GAS_TRACKER_DATASET := dataset_version("gem_europe_gas_tracker"))
 
 if (GEM_GSPT_DATASET := dataset_version("gem_gspt"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_gem_steel_plant_tracker:
@@ -947,7 +951,7 @@ if (GEM_GSPT_DATASET := dataset_version("gem_gspt"))["source"] in [
 
 if (GEM_GCCT_DATASET := dataset_version("gem_gcct"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_gem_cement_concrete_tracker:
@@ -963,7 +967,7 @@ if (BFS_ROAD_VEHICLE_STOCK_DATASET := dataset_version("bfs_road_vehicle_stock"))
     "source"
 ] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_bfs_road_vehicle_stock:
@@ -981,7 +985,7 @@ if (BFS_GDP_AND_POPULATION_DATASET := dataset_version("bfs_gdp_and_population"))
     "source"
 ] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_bfs_gdp_and_population:
@@ -999,7 +1003,7 @@ def get_wdpa_url(DATASET) -> str:
     """
     Find the right URL for the WDPA / WDPA marine dataset based on the source type.
     """
-    if DATASET["source"] == "archive":
+    if DATASET["source"] in ARCHIVE_SOURCES:
         return DATASET["url"]
     elif DATASET["source"] == "primary":
         # Some logic to find the correct file URL from the WDPA website (primary source)
@@ -1035,7 +1039,7 @@ def get_wdpa_url(DATASET) -> str:
 
 if (WDPA_DATASET := dataset_version("wdpa"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     # Downloading protected area database from WDPA
@@ -1072,7 +1076,7 @@ if (WDPA_DATASET := dataset_version("wdpa"))["source"] in [
 
 if (WDPA_MARINE_DATASET := dataset_version("wdpa_marine"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_wdpa_marine:
@@ -1138,7 +1142,7 @@ if (INSTRAT_CO2_PRICES_DATASET := dataset_version("instrat_co2_prices"))["source
 
 if (
     WORLD_BANK_COMMODITY_PRICES_DATASET := dataset_version("worldbank_commodity_prices")
-)["source"] in ["primary", "archive"]:
+)["source"] in ["primary", *ARCHIVE_SOURCES]:
 
     rule retrieve_worldbank_commodity_prices:
         message:
@@ -1153,7 +1157,7 @@ if (
 
 if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     if not config["tyndp_scenario"]:
@@ -1333,7 +1337,7 @@ def input_base_network_incumbent(w):
     return inputs
 
 
-if OSM_DATASET["source"] in ["archive"]:
+if OSM_DATASET["source"] in ARCHIVE_SOURCES:
     OSM_ARCHIVE_FILES = get_osm_archive_files(OSM_DATASET["version"])
 
     rule retrieve_osm_archive:
@@ -1367,7 +1371,7 @@ OSM_DATASET_INCUMBENT = get_osm_network_incumbent(
     .get("source", "archive"),
 )
 
-if OSM_DATASET_INCUMBENT["source"] in ["archive"] and OSM_DATASET_INCUMBENT[
+if OSM_DATASET_INCUMBENT["source"] in ARCHIVE_SOURCES and OSM_DATASET_INCUMBENT[
     "folder"
 ] != OSM_DATASET.get("folder"):
 
@@ -1435,7 +1439,7 @@ if OSM_DATASET["source"] == "build":
             ),
 
 
-if (NATURA_DATASET := dataset_version("natura"))["source"] in ["archive"]:
+if (NATURA_DATASET := dataset_version("natura"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_natura:
         message:
@@ -1484,9 +1488,9 @@ if (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
         script:
             scripts("retrieve_osm_boundaries.py")
 
-elif (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))["source"] in [
-    "archive"
-]:
+elif (OSM_BOUNDARIES_DATASET := dataset_version("osm_boundaries"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_osm_boundaries:
         message:
@@ -1511,7 +1515,7 @@ if (
     GEOTHERMAL_HEAT_UTILISATION_POTENTIALS_DATASET := dataset_version(
         "geothermal_heat_utilisation_potentials"
     )
-)["source"] in ["primary", "archive"]:
+)["source"] in ["primary", *ARCHIVE_SOURCES]:
 
     rule retrieve_geothermal_heat_utilisation_potentials:
         message:
@@ -1532,7 +1536,7 @@ if (
 
 if (LAU_REGIONS_DATASET := dataset_version("lau_regions"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_lau_regions:
@@ -1631,7 +1635,7 @@ if (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in [
                 copy2(input[key], output[key])
 
 
-elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ["archive"]:
+elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_jrc_ardeco:
         message:
@@ -1654,7 +1658,7 @@ elif (JRC_ARDECO_DATASET := dataset_version("jrc_ardeco"))["source"] in ["archiv
 
 if (AQUIFER_DATA_DATASET := dataset_version("aquifer_data"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_aquifer_data_bgr:
@@ -1686,7 +1690,7 @@ if (AQUIFER_DATA_DATASET := dataset_version("aquifer_data"))["source"] in [
 
 if (DH_AREAS_DATASET := dataset_version("dh_areas"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_dh_areas:
@@ -1702,9 +1706,9 @@ if (DH_AREAS_DATASET := dataset_version("dh_areas"))["source"] in [
             copy2(input["dh_areas"], output["dh_areas"])
 
 
-if (MOBILITY_PROFILES_DATASET := dataset_version("mobility_profiles"))["source"] in [
-    "archive"
-]:
+if (MOBILITY_PROFILES_DATASET := dataset_version("mobility_profiles"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_mobility_profiles:
         message:

@@ -19,7 +19,7 @@ from scripts.lib.validation.config._base import ConfigModel
 class _DataSourceConfig(ConfigModel):
     """Configuration for a single data source."""
 
-    source: Literal["archive", "primary", "build"] = Field(
+    source: Literal["archive", "ot-archive", "primary", "build"] = Field(
         "archive",
         description="Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
     )

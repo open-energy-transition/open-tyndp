@@ -53,9 +53,10 @@ repos:
 
   # Format Snakemake rule / workflow files
 - repo: https://github.com/snakemake/snakefmt
-  rev: v0.11.2
+  rev: v1.0.0
   hooks:
   - id: snakefmt
+    args: [--no-sort]
 
   # Check for FSFE REUSE compliance (licensing)
 - repo: https://github.com/fsfe/reuse-tool
