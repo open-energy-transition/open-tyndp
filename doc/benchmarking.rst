@@ -203,8 +203,8 @@ Cost-Benefit Analysis Benchmarking
 
 CBA indicators computed by Open-TYNDP are benchmarked against the official `TYNDP 2024 CBA
 results <https://tyndp2024.entsoe.eu/projects-map/transmission>`_ for all calculated
-indicators and all transmission projects. The comparison covers both individual climate year
-runs and multi-year averages.
+indicators (B1-B4) and all transmission projects. The comparison covers both individual climate year
+runs and multi-climate year averages.
 
 Metrics
 -------
