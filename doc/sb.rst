@@ -150,6 +150,7 @@ Scenarios and Planning Horizons
   horizon is solved as an independent optimisation.
 * ``run.name``: Identifies the run and determines the output directory; typically set to
   the scenario/climate-year identifier (e.g. ``NT-cy2009``).
+  * ``launch_explorer``: Whether to launch the `PyPSA Explorer <https://github.com/open-energy-transition/pypsa-explorer>`_ after the model solve within the workflow. Default is ``True``.
 
 Climate Years
 -------------
