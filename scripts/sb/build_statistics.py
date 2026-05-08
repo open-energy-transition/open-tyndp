@@ -107,7 +107,6 @@ def compute_benchmark(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time="sum",
             )
             .reindex(eu27_idx, level="bus")
             .groupby(level="bus_carrier")
@@ -119,7 +118,6 @@ def compute_benchmark(
             comps="Load",
             groupby=grouper,
             aggregate_across_components=True,
-            groupby_time="sum",
         ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
         # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
@@ -140,7 +138,6 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time="sum",
             )
             .loc[pd.IndexSlice[:, ["electricity"]]]
             .reindex(eu27_idx, level="bus")
@@ -245,7 +242,6 @@ def compute_benchmark(
             bus_carrier=elec_bus_carrier,
             groupby=["bus"] + grouper,
             aggregate_across_components=True,
-            groupby_time="sum",
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
 
         # TYNDP 2024 report available generation for renewables (pre-curtailment)
@@ -286,7 +282,6 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time="sum",
             )
             .loc[
                 lambda df: (
