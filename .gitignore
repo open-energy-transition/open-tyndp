@@ -56,6 +56,7 @@ config/config.private.yaml
 data/gas_network/scigrid-gas/
 data/costs_*.csv
 !/data/custom_costs.csv
+!/data/versions.csv
 
 dask-worker-space/
 publications.jrc.ec.europa.eu/
