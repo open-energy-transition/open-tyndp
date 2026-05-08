@@ -14,6 +14,7 @@ SPDX-License-Identifier: CC-BY-4.0
 [![REUSE status](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
 
 **Citations & Data:**
+
 [![Cite Open-TYNDP](https://img.shields.io/badge/cite-Open--TYNDP-blue)](https://doi.org/10.5281/zenodo.19372053)
 [![Cite PyPSA-Eur](https://img.shields.io/badge/cite-PyPSA--Eur-blue)](https://doi.org/10.5281/zenodo.3520874)
 [![Cite PyPSA-Eur-Sec](https://img.shields.io/badge/cite-PyPSA--Eur--Sec-blue)](https://doi.org/10.5281/zenodo.3938042)
