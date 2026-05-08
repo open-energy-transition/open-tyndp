@@ -194,7 +194,7 @@ power_generation             -0.07  0.27   0       3.82   0.01          3       
 Total (excl. time series)    0.06   0.3    0.02    1.48   0.01          13                —                  —                                v0.6.1
 ===========================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
 
-Example of summary figure created for the NT scenario:
+Example of summary figure created for the NT scenario with hourly resolution:
 
 .. image:: img/tyndp/benchmarking_overview_NT.png
 
