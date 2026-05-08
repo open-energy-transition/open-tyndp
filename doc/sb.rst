@@ -113,7 +113,7 @@ include:
 * **Demand-side electrification:** Where the scenario specifies it, electricity demand
   incorporates direct electrification of heat and transport end-uses.
 
-Capacity Optimisation
+Capacity and Dispatch Optimisation
 ---------------------
 
 The SB optimisation minimises **total annualised system cost** (variable operating cost, plus investment cost where capacity expansion is enabled) subject to:
