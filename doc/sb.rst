@@ -139,7 +139,9 @@ Configuration
 =============
 
 SB settings are split across ``config/config.tyndp.yaml`` (run-level settings) and
-``config/scenarios.tyndp.yaml`` (scenario-specific overrides).
+``config/scenarios.tyndp.yaml`` (scenario-specific overrides). You can refer to
+the `configuration <configuration.html>`_ page for a more comprehensive list of available PyPSA-Eur
+and Open-TYNDP configuration options.
 
 Scenarios and Planning Horizons
 --------------------------------
