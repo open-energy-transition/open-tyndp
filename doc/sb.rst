@@ -82,7 +82,7 @@ SB Workflow
 
 The SB workflow transforms raw ENTSO-E input datasets into a solved, sector-coupled PyPSA
 network. The key stages are: integrating public input data, constructing the sector-coupled
-network, applying TYNDP-specific constraints, solving the capacity expansion optimisation and visualisating results.
+network, applying TYNDP-specific constraints, solving the capacity expansion optimisation, visualising results, and running the Open-TYNDP `benchmarking framework <benchmarking.html>`_.
 
 
 Network Construction
