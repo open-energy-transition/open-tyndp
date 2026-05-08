@@ -67,7 +67,9 @@ Indicators are computed as the difference in system costs and emissions between 
 Configuration
 =============
 
-CBA settings are defined in the ``cba`` section of the configuration file.
+CBA settings are defined in the ``cba`` section of the configuration file. You can refer to
+the `configuration <configuration.html>`_ page for a more comprehensive list of available PyPSA-Eur
+and Open-TYNDP configuration options.```
 
 Project Selection
 -----------------
