@@ -64,7 +64,7 @@ Metrics
 
 The following metrics from the `TYNDP 2024 Scenarios Report
 <https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2025/01/TYNDP_2024_Scenarios_Report_FInal_Version_250128_web.pdf>`_
-are considered relevant for SB benchmarking:
+are considered relevant for Scenario Building benchmarking:
 
 * Exogenous inputs:
 
