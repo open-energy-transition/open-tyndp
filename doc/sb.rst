@@ -89,7 +89,7 @@ Network Construction
 --------------------
 
 The PyPSA network is built at **bidding zone / country-level resolution** for the electricity and hydrogen
-sectors. Buses represent national-level aggregations; AC lines and DC links represent
+sectors respectively. Buses represent national-level aggregations; AC lines and DC links represent
 cross-border interconnectors with capacities and impedances taken from the TYNDP Line Data.
 
 Generator and storage components are attached to country buses using PEMMDB 2.5 capacity data.
