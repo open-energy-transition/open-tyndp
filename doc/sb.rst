@@ -99,7 +99,7 @@ Sector Coupling
 ---------------
 
 Open-TYNDP models the electricity and hydrogen sectors as fully coupled. For the Distributed
-Energy (DE) scenario, heating sector links are included in addition. Cross-sector components
+Energy (DE) and Global Ambition (GA) scenarios, heating sector links are included in addition (see `Open-TYNDP scenarios <scenarios.html>`_). Cross-sector components
 include:
 
 * **Electrolysers:** Convert electricity to hydrogen; capacity is either fixed per PEMMDB 2.5
