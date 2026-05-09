@@ -134,22 +134,6 @@ def _add_identifier(s: str) -> str:
         return s
 
 
-def _group_labels(
-    df: pd.DataFrame,
-    labels: list[str],
-    group_name: str,
-    label_col: str = "carrier",
-    value_col: str = "value",
-    preserve_labels: bool = False,
-) -> pd.DataFrame:
-    if not preserve_labels:
-        df[label_col] = df[label_col].replace(labels, group_name)
-    else:
-        df.loc[~df[label_col].isin(labels), label_col] = group_name
-    df = df.groupby([c for c in df.columns if c != value_col]).sum().reset_index()
-    return df
-
-
 def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
     """
     Load report carrier mappings from the carrier mapping file and apply them
