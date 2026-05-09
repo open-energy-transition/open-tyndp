@@ -26,18 +26,18 @@ Hydro,Reservoir - Turbine,Reservoir,,,Reservoir,Hydro and pumped storage,Reservo
 ,,,,,,Hydro (exc. Pump storage),,,,,,hydro (exc. pump storage),,,,,,,,,,,,,
 Hydro,Pump Storage - Reservoir,PS_Open,,,,,,hydro-phs,hydro-phs-reservoir,Pumped Hydro (Reservoir),,,,,,,,,,,,,hydro-phs-reservoir,,
 Hydro,Pump Storage - Turbine,PS_Open,,,Pump Storage - Open Loop (turbine),Hydro and pumped storage,Pump Storage - Open Loop (turbine),hydro-phs,hydro-phs-turbine,Pumped Hydro,hydro and pumped storage,,hydro,,,,,,,,,,hydro-phs-turbine,,
-,,,,,,,PS Open,,,,hydro and pumped storage,,,,,,,,,,,,,,
+,,,,,,,PS Open,hydro-phs,,Pumped Hydro Open,hydro and pumped storage,,,,,,,,,,,,,,
 Hydro,Pump Storage - Pump,PS_Open,,,Pump Storage - Open Loop (pump),,,hydro-phs,hydro-phs-pump,Pumped Hydro,hydro and pumped storage (load),,hydro,,,,,,,,,,hydro-phs-pump,,
 ,,,,,,,,hydro-phs-inflows,,Pumped Hydro (Inflows),,,,,,,,,,,,,,,
 Hydro,Pure Pump Storage - Reservoir,PS_Closed,,,,,,hydro-phs-pure,hydro-phs-pure-reservoir,Pumped Hydro (Reservoir),,,,,,,,,,,,,hydro-phs-pure-reservoir,,
 Hydro,Pure Pump Storage - Turbine,PS_Closed,,,Pump Storage - Closed Loop (turbine),Hydro and pumped storage,Pump Storage - Closed Loop (turbine),hydro-phs-pure,hydro-phs-pure-turbine,Pumped Hydro,hydro and pumped storage,,hydro,,,,,,,,,,hydro-phs-pure-turbine,,
-,,,,,,,PS Closed,,,,hydro and pumped storage,,,,,,,,,,,,,,
+,,,,,,,PS Closed,hydro-phs-pure,,Pumped Hydro Closed,hydro and pumped storage,,,,,,,,,,,,,,
 Hydro,Pure Pump Storage - Pump,PS_Closed,,,Pump Storage - Closed Loop (pump),,,hydro-phs-pure,hydro-phs-pure-pump,Pumped Hydro,hydro and pumped storage (load),,hydro,,,,,,,,,,hydro-phs-pure-pump,,
 Other RES,Small Biomass,,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-biomass,Other Renewables,other res,other res,other res,,,,,,,other res,,,other-res-biomass,,
 Other RES,"Geothermal, Marine, Waste and Not Defined",,,,Others renewable,Small Scale RES,Other RES,other-res,other-res-mix,Other Renewables,other res,other res,other res,,,,,,,,,,other-res-mix,,
 Other RES,"Geothermal, Marine, Waste and Not Defined",,,,,Other RES,,,,,,other res,,,,,,,,,,,,,The TYNDP 2024 Scenarios Report maps Other RES capacities as 'Small Scale RES' and Other RES generation as 'Other RES'
-Gas,Conventional old 1,,,,Gas conventional old 1,Methane,Gas conventional,gas,gas-conv-old1,Conventional Gas,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-conv,OCGT,Methane demand benchmark
-Gas,Conventional old 2,,,,Gas conventional old 2,Methane,Gas conventional,gas,gas-conv-old2,Conventional Gas,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-conv,OCGT,Methane demand benchmark
+Gas,Conventional old 1,,,,Gas conventional old 1,Methane,Gas conventional,gas,gas-conv-old1,Gas Conventional,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-conv,OCGT,Methane demand benchmark
+Gas,Conventional old 2,,,,Gas conventional old 2,Methane,Gas conventional,gas,gas-conv-old2,Gas Conventional,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-conv,OCGT,Methane demand benchmark
 Gas,CCGT old 1,,,,Gas CCGT old 1,Methane,Gas CCGT,gas,gas-ccgt-old1,Gas CCGT,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-ccgt,CCGT,Methane demand benchmark
 Gas,CCGT old 2,,,,Gas CCGT old 2,Methane,Gas CCGT,gas,gas-ccgt-old2,Gas CCGT,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-ccgt,CCGT,Methane demand benchmark
 Gas,CCGT new,,,,Gas CCGT new,Methane,Gas CCGT,gas,gas-ccgt-new,Gas CCGT,methane (incl. biofuels),methane (incl. biofuels),methane&hydrogen,,,power generation,,,,,,,gas-ccgt,CCGT,Methane demand benchmark
@@ -91,7 +91,11 @@ Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 
 Battery,Discharge,,,,Battery Storage discharge (gen.),Battery,Large scale batteries,battery,battery discharger,Battery Storage,battery,,battery,,,,,,,,,,battery discharger,,
 Battery,Charge,,,,Battery Storage charge (load),,,battery,battery charger,Battery Storage,battery charge (load),,battery,,,,,,,,,,battery charger,,
 Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,battery,,
-,,,,Batteries Prosumer,,,,battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,battery-prosumer,,
+,,,,,,,,,battery-prosumer discharger,Battery Storage Prosumer,,,,,,,,,,,,,,,
+,,,,,,,,,battery-prosumer charger,Battery Storage Prosumer,,,,,,,,,,,,,,,
+,,,,Batteries Prosumer,,,,battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,,,
+,,,,,,,,,battery-utility discharger,Battery Storage Utility,,,,,,,,,,,,,,,
+,,,,,,,,,battery-utility charger,Battery Storage Utility,,,,,,,,,,,,,,,
 ,,,,Batteries Utility,,,,battery,battery-utility,Battery Storage Utility,,,,,,,,,,,,,battery-utility,,
 ,,,,,Lignite biofuel,Biofuels,Lignite biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,,
 ,,,,,Hard Coal biofuel,Biofuels,Hard coal biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,,
@@ -104,21 +108,22 @@ Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,battery,,
 ,,,,,Unserved energy [GWh],,,load,,Demand Shedding,demand shedding,demand shedding,,,,,,,demand shedding,,,,,,Load/Demand shedding
 ,,,,,Dump energy [GWh],,,,,,dumped energy,dumped energy,,,,,,,,,,,,,Curtailment/dump energy
 ,,,,,Native Demand (excl. H2 storage charge) [GWhH2],,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,Hydrogen demand benchmark
-,,,,,Marginal Cost Yearly Average [€],,,,,,,,,,,,,,,,,AC,,,Prices
-,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,,,,,,,,,,,,AC,,,Prices
-,,,,,Marginal Cost Yearly Average [€/MWhH2],,,,,,,,,,,,,,,,,H2,,,Prices
-,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2],,,,,,,,,,,,,,,,,H2,,,Prices
-,,,,,,Electricity,,AC,,,,,,electricity,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Electricity,,AC_OH,,,,,,electricity,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Electricity,,low voltage,,,,,,electricity,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Hydrogen,,H2,,,,,,hydrogen,,,,,,,,,,,Final energy demand benchmark
+,,,,,Marginal Cost Yearly Average [€],,,,,,,,,,,,,,,,,AC,,,Prices benchmark
+,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€],,,,,,,,,,,,,,,,,AC,,,Prices benchmark
+,,,,,Marginal Cost Yearly Average [€/MWhH2],,,,,,,,,,,,,,,,,H2,,,Prices benchmark
+,,,,,Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2],,,,,,,,,,,,,,,,,H2,,,Prices benchmark
+,,,,,,Electricity,,AC,,Electricity,,,,electricity,,,,,,,,,,,Final energy demand benchmark
+,,,,,,Electricity,,AC_OH,,Electricity Offshore Hub,,,,electricity,,,,,,,,,,,Final energy demand benchmark
+,,,,,,Electricity,,low voltage,,Electricity Low Voltage,,,,electricity,,,,,,,,,,,Final energy demand benchmark
+,,,,,,Hydrogen,,H2,,Hydrogen,,,,hydrogen,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Methane,,exogenous gas demand,,Gas Exogenous Demand,,,,methane,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Biofuels,,solid biomass,,Solid Biomass,,,,biofuels,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Solids,,coal,,Coal,,,,solids,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Liquids,,oil,,,,,,liquids,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Liquids,,kerosene for aviation,,,,,,liquids,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Liquids,,shipping oil,,,,,,liquids,,,,,,,,,,,Final energy demand benchmark
-,,,,,,Liquids,,land transport oil,,,,,,liquids,,,,,,,,,,,Final energy demand benchmark
+,,,,,,Liquids,,oil,,Oil,,,,liquids,,,,,,,,,,,Final energy demand benchmark
+,,,,,,,,oil refining,,Oil Refining,,,,,,,,,,,,,,,
+,,,,,,Liquids,,kerosene for aviation,,Kerosene for Aviation,,,,liquids,,,,,,,,,,,Final energy demand benchmark
+,,,,,,Liquids,,shipping oil,,Shipping Oil Demand,,,,liquids,,,,,,,,,,,Final energy demand benchmark
+,,,,,,Liquids,,land transport oil,,Land Transport Oil Demand,,,,liquids,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,"Final demand (inc. T&D losses, excl. pump storage )",,electricity,,Electricity Exogenous Demand,,,,,"final demand (inc. t&d losses, excl. pump storage )",,,,,,,,,,Electricity demand benchmark
 ,,,,,,H2 Residential&Tertiary,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 Transport,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,Hydrogen demand benchmark
@@ -127,8 +132,8 @@ Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,battery,,
 ,,,,,,H2 Power Generation,,,,,,,,,,,power generation,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 Non-energy use,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 Others,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 e-fuels,,Fischer-Tropsch,,,,,,,,,e-fuels,,,,,,,,Hydrogen demand benchmark
-,,,,,,H2 e-fuels,,Sabatier,,,,,,,,,e-fuels,,,,,,,,Hydrogen demand benchmark
+,,,,,,H2 e-fuels,,Fischer-Tropsch,,Fischer-Tropsch,,,,,,,e-fuels,,,,,,,,Hydrogen demand benchmark
+,,,,,,H2 e-fuels,,Sabatier,,Sabatier,,,,,,,e-fuels,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 e-fuels,,methanolisation,,Methanolisation,,,,,,,e-fuels,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 International maritime bunkers,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,Hydrogen demand benchmark
 ,,,,,,CH4 Residential&Tertiary,,exogenous gas demand,,Gas Exogenous Demand,,,,,,exogenous demand,,,,,,,,,Methane demand benchmark
@@ -146,23 +151,23 @@ Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,battery,,
 ,,,,,,Low carbon imports,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,imports (renewable & low carbon),,,,,,Hydrogen supply benchmark
 ,,,,,,Renewable imports,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,imports (renewable & low carbon),,,,,,Hydrogen supply benchmark
 ,,,,,,Ammonia imports,,H2 import LH2,,H2 Import LH2,,,,,,,,,ammonia imports,,,,,,Hydrogen supply benchmark
-,,,,,,Biomethane (Domestic),,biogas to gas,,,,,,,,,,biomethane (domestic),,,,,,,Methane supply benchmark
+,,,,,,Biomethane (Domestic),,biogas to gas,,Biogas to Gas,,,,,,,,biomethane (domestic),,,,,,,Methane supply benchmark
 ,,,,,,Biomethane (Import),,,,,,,,,,,,biomethane (import),,,,,,,Methane supply benchmark
 ,,,,,,Natural gas (Domestic),,,,,,,,,,,,natural gas (domestic),,,,,,,Methane supply benchmark
-,,,,,,Natural gas (Import),,gas,,,,,,,,,,natural gas (import),,,,,,,Methane supply benchmark
-,,,,,,Synthetic methane (Domestic),,Sabatier,,,,,,,,,,synthetic methane (domestic),,,,,,,Methane supply benchmark
+,,,,,,Natural gas (Import),,gas,,Gas Primary,,,,,,,,natural gas (import),,,,,,,Methane supply benchmark
+,,,,,,Synthetic methane (Domestic),,Sabatier,,Sabatier,,,,,,,,synthetic methane (domestic),,,,,,,Methane supply benchmark
 ,,,,,,Synthetic methane (Import),,,,,,,,,,,,synthetic methane (import),,,,,,,Methane supply benchmark
-,,,,,,Final demand,,biomass final energy demand,,,,,,,,,,,,final demand,,,,,Biomass supply benchmark
+,,,,,,Final demand,,biomass final energy demand,,Biomass Final Energy Demand,,,,,,,,,,final demand,,,,,Biomass supply benchmark
 ,,,,,,For electricity,,,,,,,,,,,,,,for electricity,,,,,Biomass supply benchmark
-,,,,,,For biomethane,,biogas,,,,,,,,,,,,for biomethane,,,,,Biomass supply benchmark
-,,,,,,For biofuels,,biomass to liquid,,,,,,,,,,,,for biofuels,,,,,Biomass supply benchmark
-,,,,,,For biofuels,,biomass to liquid CC,,,,,,,,,,,,for biofuels,,,,,Biomass supply benchmark
-,,,,,,Methane,,gas,,,,,,,,,,,,,methane,,,,Energy imports benchmark
+,,,,,,For biomethane,,biogas,,Biogas,,,,,,,,,,for biomethane,,,,,Biomass supply benchmark
+,,,,,,For biofuels,,biomass to liquid,,Biomass to Liquid,,,,,,,,,,for biofuels,,,,,Biomass supply benchmark
+,,,,,,For biofuels,,biomass to liquid CC,,Biomass to Liquid (CCS),,,,,,,,,,for biofuels,,,,,Biomass supply benchmark
+,,,,,,Methane,,gas,,Gas Primary,,,,,,,,,,,methane,,,,Energy imports benchmark
 ,,,,,,Hydrogen,,H2 import LH2,,H2 Import LH2,,,,,,,,,,,hydrogen,,,,Energy imports benchmark
 ,,,,,,Hydrogen,,H2 import Pipeline,,H2 Import Pipeline,,,,,,,,,,,hydrogen,,,,Energy imports benchmark
-,,,,,,Liquids,,oil primary,,,,,,,,,,,,,liquids,,,,Energy imports benchmark
-,,,,,,Solids,,coal,,Coal,,,,,,,,,,,solids,,,,Energy imports benchmark
-,,,,,,Solids,,lignite,,Lignite,,,,,,,,,,,solids,,,,Energy imports benchmark
+,,,,,,Liquids,,oil primary,,Oil Primary,,,,,,,,,,,liquids,,,,Energy imports benchmark
+,,,,,,Solids,,coal,,Coal Primary,,,,,,,,,,,solids,,,,Energy imports benchmark
+,,,,,,Solids,,lignite,,Lignite Primary,,,,,,,,,,,solids,,,,Energy imports benchmark
 ,,,,,,Biomass,,,,,,,,,,,,,,,biomass,,,,Energy imports benchmark
 ,,,,,,,,electricity distribution grid,,Electricity Distribution Grid,,,,,,,,,,,,,,,
 ,,,,,,,,DC,,Electricity Transmission,,,,,,,,,,,,,,,
@@ -171,3 +176,4 @@ Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,battery,,
 ,,,,,,,,H2 cavern-storage discharger,,H2 Cavern Storage Bicharger,,,,,,,,,,,,,,,
 ,,,,,,,,H2 cavern-storage,,H2 Cavern Storage,,,,,,,,,,,,,,,
 ,,,,,,,,H2,,Hydrogen,,,,,,,,,,,,,,,
+,,,,,,,,H2_OH,,Hydrogen Offshore Hub,,,,,,,,,,,,,,,
