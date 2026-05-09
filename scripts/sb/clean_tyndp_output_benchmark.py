@@ -374,9 +374,10 @@ def clean_MM_data_for_benchmarking(
 
     Performs the following operations:
     - Removes load and storage discharge entries
-    - Excludes pumped storage from power generation table
-    - Aggregates hydro capacities (combines regular hydro and pumped storage)
-    - Renames carrier categories for consistency with benchmark data
+    - Reflects H2 CCGT and Fuel Cells consumptions in the yearly H2 demand
+      and renames and aggregates them according to the given mapping
+    - Sets Norway (NO) reported H2 price to 0 EUR/MWh_H2 as it has no H2 demand
+    - Excludes price data for conventional offshore nodes when offshore hubs are modeled
 
     Parameters
     ----------
