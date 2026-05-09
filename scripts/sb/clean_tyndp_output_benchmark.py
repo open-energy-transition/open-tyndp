@@ -38,42 +38,6 @@ H2_POWER_EFF = {
 }  # TODO Remove hard coded values
 
 
-def _load_mm_carrier_mapping(
-    carrier_mapping_fn: str, tables: dict
-) -> tuple[dict[str, dict], dict[str, dict]]:
-    """
-    Load mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names.
-    """
-    tech_map = pd.read_csv(carrier_mapping_fn)
-    output_map = {}
-    for table, table_opts in tables.items():
-        if table not in LOOKUP_TABLES:
-            continue
-        col = table_opts.get("mapping_col")
-        if col is None:
-            continue
-        if col not in tech_map.columns:
-            logger.warning(
-                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
-            )
-            continue
-        output_map[table] = (
-            tech_map[["tyndp_output_carrier", col]]
-            .dropna(subset=["tyndp_output_carrier", col])
-            .set_index("tyndp_output_carrier")[col]
-            .to_dict()
-        )
-
-    # Extract H2 power techs separately
-    h2_power_rename = {}
-    for table, table_map in output_map.items():
-        h2_techs = {k: table_map.pop(k) for k in H2_POWER_EFF if k in table_map}
-        if h2_techs:
-            h2_power_rename[table] = h2_techs
-
-    return output_map, h2_power_rename
-
-
 # look up dictionary {name of plot: [sheet_name, output_type]}
 LOOKUP_TABLES: dict[str, list[str]] = {
     "power_capacity": ["Yearly Outputs", "Installed Capacities [MW]"],
@@ -108,6 +72,42 @@ CROSS_BORDER_DICT: dict[str, str] = {
     "electricity": "Crossborder exchanges",
     "H2": "Crossborder H2 exchanges",
 }
+
+
+def _load_mm_carrier_mapping(
+    carrier_mapping_fn: str, tables: dict
+) -> tuple[dict[str, dict], dict[str, dict]]:
+    """
+    Load mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    output_map = {}
+    for table, table_opts in tables.items():
+        if table not in LOOKUP_TABLES:
+            continue
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
+        if col not in tech_map.columns:
+            logger.warning(
+                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
+            )
+            continue
+        output_map[table] = (
+            tech_map[["tyndp_output_carrier", col]]
+            .dropna(subset=["tyndp_output_carrier", col])
+            .set_index("tyndp_output_carrier")[col]
+            .to_dict()
+        )
+
+    # Extract H2 power techs separately
+    h2_power_rename = {}
+    for table, table_map in output_map.items():
+        h2_techs = {k: table_map.pop(k) for k in H2_POWER_EFF if k in table_map}
+        if h2_techs:
+            h2_power_rename[table] = h2_techs
+
+    return output_map, h2_power_rename
 
 
 def load_crossborder_sheet(
