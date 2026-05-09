@@ -59,9 +59,8 @@ def _load_mm_carrier_mapping(
             continue
         output_map[table] = (
             tech_map[["tyndp_output_carrier", col]]
-            .dropna(subset=["tyndp_output_carrier"])
+            .dropna(subset=["tyndp_output_carrier", col])
             .set_index("tyndp_output_carrier")[col]
-            .dropna()
             .to_dict()
         )
 
@@ -409,10 +408,12 @@ def clean_MM_data_for_benchmarking(
 
     # Merge datasets
     MM_data = pd.concat([MM_data, h2_power])
+
     # Rename hydrogen power carriers for each table separately
     for tbl, rename_map in h2_power_rename.items():
         mask = MM_data["table"] == tbl
         MM_data.loc[mask, "carrier"] = MM_data.loc[mask, "carrier"].replace(rename_map)
+
     # Aggregate renamed carriers
     MM_data = (
         MM_data.groupby([c for c in MM_data.columns if c != "value"])

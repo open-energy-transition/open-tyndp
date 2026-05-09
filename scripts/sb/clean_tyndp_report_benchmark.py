@@ -161,8 +161,8 @@ def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
         Path to csv file with carrier mapping.
     tables : dict
         Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
-        defined in the configuration, the loaded carrier mapping will be added to the dictionary
-        with the ``mapping`` key.
+        defined in the configuration, the loaded carrier mapping will be added to 
+        the dictionary with the ``mapping`` key.
 
     Returns
     -------

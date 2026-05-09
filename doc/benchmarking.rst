@@ -149,19 +149,19 @@ Example of summary figure created for NT scenario:
 Naming conventions
 ------------
 
-To align naming conventions across data sources, Open-TYNDP uses a mapping table defined in `tyndp_technology_map.csv <https://github.com/open-energy-transition/open-tyndp/blob/master/data/tyndp_technology_map.csv>`_. This table maps the different naming conventions between the Open-TYNDP, various input data sources and the different benchmarking tables. It contains the following columns:
+To align naming conventions across data sources, Open-TYNDP uses a mapping table defined in `tyndp_technology_map.csv <https://github.com/open-energy-transition/open-tyndp/blob/master/data/tyndp_technology_map.csv>`_. This table maps the different naming conventions between the Open-TYNDP, various input data sources and benchmarking tables. It contains the following columns:
 
 * **pemmdb_carrier**: Higher level carrier names as listed in the PEMMDB v2.4 dataset.
 * **pemmdb_type**: Specific carrier technology type as listed in the PEMMDB v2.4 dataset.
 * **pemmdb_hydro_inflows**: Carrier names as listed in the PEMMDB v2.4 hydro inflows dataset.
 * **pecd_carrier**: Carrier names as listed in the PECD v3.1 dataset.
 * **investment_dataset_carrier**: Carrier names as listed in the TYNDP 2024 investment dataset.
-* **tyndp_output_carrier**: Carrier names as listed in the TYNDP 2024 market model output files.
-* **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2024 Scenario Report.
+* **tyndp_output_carrier**: Carrier names as listed in the TYNDP 2024 Market Model output files.
+* **tyndp_report_carrier**: Carrier names as listed in the TYNDP 2024 Scenarios Report.
 * **tyndp_vp_carrier**: Carrier names as listed on the TYNDP 2024 Visualization Platform.
-* **open_tyndp_carrier**: Open-TYNDP carrier naming convention representing a technology's dedicated fuel if applicable. Can be the same as the technology name.
-* **open_tyndp_index**: Open-TYNDP technology naming convention found in the components' index.
-* **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies after postprocessing.
+* **open_tyndp_carrier**: Open-TYNDP carrier naming convention representing either an energy carrier or a technology, depending on the context.
+* **open_tyndp_index**: Open-TYNDP technology naming convention found in the component index.
+* **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's ``power_capacity`` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's ``power_generation`` table.
 * **benchmarking_generation_profiles**: Naming convention for the benchmarking framework's ``generation_profiles`` table.

@@ -43,8 +43,8 @@ def add_benchmarking_mappings(
         Path to csv file with carrier mapping.
     tables : dict
         Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
-        defined in the configuration, the loaded carrier mapping will be added to the dictionary
-        with the ``mapping`` key.
+        defined in the configuration, the loaded carrier mapping will be added to 
+        the dictionary with the ``mapping`` key.
     group_tyndp_conventionals : bool, default False
         Whether TYNDP technologies are grouped to their ``open_tyndp_type``.
         These group names then take precedence over the names in ``open_tyndp_index`` and ``open_tyndp_carrier``.
