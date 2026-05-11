@@ -93,7 +93,7 @@ Battery,Charge,,,,Battery Storage charge (load),,,battery,battery charger,Batter
 Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,,battery,,
 ,,,,,,,,,battery-prosumer discharger,Battery Storage Prosumer,,,,,,,,,,,,,,,,
 ,,,,,,,,,battery-prosumer charger,Battery Storage Prosumer,,,,,,,,,,,,,,,,
-,,,,Batteries Prosumer,,,,battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,,,,
+,,,,Batteries Prosumer,,,,battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,,battery-prosumer,,
 ,,,,,,,,,battery-utility discharger,Battery Storage Utility,,,,,,,,,,,,,,,,
 ,,,,,,,,,battery-utility charger,Battery Storage Utility,,,,,,,,,,,,,,,,
 ,,,,Batteries Utility,,,,battery,battery-utility,Battery Storage Utility,,,,,,,,,,,,,,battery-utility,,
