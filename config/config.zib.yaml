@@ -27,6 +27,13 @@ cba:
 
   msv_extraction:
     solving:
+      options:
+        include_objective_constant: false
       solver:
         name: gurobi
         options: gurobi-default
+
+  # Rolling horizon solving settings
+  solving:
+    options:
+      include_objective_constant: false
