@@ -88,7 +88,7 @@ Running Single vs Multiple Climate Years
 
 Climate-year collections allow project benefits to be assessed across multiple weather years, consistent with the 2024 TYNDP implementation.
 
-The CBA entry point ``snakemake -call cba`` can run a **single scenario** that is one single climeate year or a **collection scenario** that defines a list of child (climate years) scenarios under ``cba.scenarios``.
+The CBA entry point ``pixi run tyndp-cba`` can run a **single scenario** that is one single climeate year or a **collection scenario** that defines a list of child (climate years) scenarios under ``cba.scenarios``.
 
 Example Collection (``config/scenarios.tyndp.yaml``):
 
