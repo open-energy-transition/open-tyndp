@@ -33,6 +33,8 @@ Upcoming Open-TYNDP Release
 
 * Change number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
 
+* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657)
+
 * Add buttons to the interactive balance maps and decrease file size (https://github.com/open-energy-transition/open-tyndp/pull/669).
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
