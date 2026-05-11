@@ -35,6 +35,7 @@ from tqdm.auto import tqdm
 from scripts._benchmark import memory_logger
 from scripts._helpers import (
     configure_logging,
+    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -361,5 +362,10 @@ if __name__ == "__main__":
 
     logger.info(f"Maximum memory usage: {mem.mem_usage}")
 
-    n.meta = dict(snakemake.config, **dict(wildcards=dict(snakemake.wildcards)))
+    # Assign meta data to network
+    n.meta = dict(
+        snakemake.config,
+        **dict(wildcards=dict(snakemake.wildcards)),
+        version_commit=get_version(),
+    )
     n.export_to_netcdf(snakemake.output.network)

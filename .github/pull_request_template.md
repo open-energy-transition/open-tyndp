@@ -28,5 +28,5 @@ Closes # (if applicable).
 - [ ] For new data sources or versions, [these instructions](https://open-tyndp.readthedocs.io/en/latest/data_sources.html) have been followed.
 - [ ] New rules are documented in the appropriate `doc/*.rst` files.
 - [ ] A release note `doc/release_notes.rst` is added.
-- [ ] Major features are documented with up-to-date information in `README` and `doc/index.rst`.
+- [ ] Major features are documented with up-to-date information in `doc/index.rst`.
 - [ ] Module docstrings added to new Python scripts.

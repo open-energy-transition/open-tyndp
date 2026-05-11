@@ -130,6 +130,7 @@ and the non-free, commercial software (for some of which free academic licenses 
 - `Gurobi <https://www.gurobi.com/documentation/quickstart.html>`__
 - `CPLEX <https://www.ibm.com/products/ilog-cplex-optimization-studio>`__
 - `FICO Xpress Solver <https://www.fico.com/de/products/fico-xpress-solver>`__
+- `Mosek <https://www.mosek.com/>`__
 
 For installation instructions of these solvers for your operating system, follow the links above.
 Commercial solvers such as Gurobi and CPLEX currently significantly outperform open-source solvers for large-scale problems, and
