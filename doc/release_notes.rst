@@ -35,6 +35,8 @@ Upcoming Open-TYNDP Release
 
 * Change number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
 
+* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657)
+
 * Add buttons to the interactive balance maps and decrease file size (https://github.com/open-energy-transition/open-tyndp/pull/669).
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
@@ -60,6 +62,8 @@ Upcoming Open-TYNDP Release
 * Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
 
 * Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
+
+* Refactor the extraction of cross-border flows used by the benchmarking framework to use ``n.statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/680).
 
 **Documentation**
 

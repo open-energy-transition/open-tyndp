@@ -266,3 +266,17 @@ benchmarking:
       rfc_sources:
       - market_out
       unit: MWh
+
+    electricity_demand_shedding_hours:
+      table_type: hours
+      mapping_col: benchmarking_shed_hours
+      rfc_sources:
+      - market_out
+      unit: hours
+
+    hydrogen_demand_shedding_hours:
+      table_type: hours
+      mapping_col: benchmarking_shed_hours
+      rfc_sources:
+      - market_out
+      unit: hours

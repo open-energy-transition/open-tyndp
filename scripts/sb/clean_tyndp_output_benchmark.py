@@ -54,6 +54,14 @@ LOOKUP_TABLES: dict[str, list[str]] = {
         "Native Demand (excl. H2 storage charge) [GWhH2]",
     ],
     "hydrogen_supply": ["Yearly H2 Outputs", "Annual generation [GWhH2]"],
+    "electricity_demand_shedding_hours": [
+        "Yearly Outputs",
+        "Loss of load expectation [hour]  ",
+    ],  # includes white space
+    "hydrogen_demand_shedding_hours": [
+        "Yearly H2 Outputs",
+        "Loss of H2 load expectation [hour]  ",
+    ],  # includes white space
     # prices
     "electricity_price": ["Yearly Outputs", "Marginal Cost Yearly Average [€]"],
     "electricity_price_excl_shed": [
@@ -284,7 +292,7 @@ def load_MM_sheet(
     )
 
     df["table"] = table_name
-    if "price" not in table_name:
+    if "price" not in table_name and "hours" not in table_name:
         df = convert_units(df)
 
     return df
@@ -396,7 +404,7 @@ def clean_MM_data_for_benchmarking(
         standardized carrier names.
     """
     # remove load and storages
-    MM_data = MM_data[~MM_data.carrier.str.contains("load|discharge")]
+    MM_data = MM_data[~MM_data.carrier.str.contains(r"\(load\)|discharge")]
 
     # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand
     h2_power = MM_data.query(

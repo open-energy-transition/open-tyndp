@@ -224,6 +224,8 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **benchmarking_h2_supply**: Naming convention for the benchmarking framework's ``hydrogen_supply`` table.
 * **benchmarking_biomass_supply**: Naming convention for the benchmarking framework's ``biomass_supply`` table.
 * **benchmarking_energy_imports**: Naming convention for the benchmarking framework's ``energy_imports`` table.
+* **benchmarking_prices**: Naming convention for the benchmarking framework's different ``price`` tables.
+* **benchmarking_shed_hours**: Naming convention for the benchmarking framework's ``electricity_demand_shedding_hours`` and ``hydrogen_demand_shedding_hours`` tables.
 * **open_tyndp_type**: Open-TYNDP technology type for grouping together detailed technologies if ``electricity:group_tyndp_conventionals`` is enabled in the configuration.
 * **pypsa_eur_carrier**: Corresponding PyPSA-Eur carrier/technology if applicable.
 * **comment**: Any additional comments.
