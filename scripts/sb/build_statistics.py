@@ -351,6 +351,7 @@ def compute_benchmark(
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
                 groupby_time=False,
+                components="Generator",
             )
             .mul(sws, axis=1)
             .sum(axis=1)
