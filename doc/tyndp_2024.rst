@@ -97,7 +97,7 @@ The original data files can be found under https://2024.entsos-tyndp-scenarios.e
 
 - **Source:** TYNDP 2024 Scenarios, https://2024.entsos-tyndp-scenarios.eu/download/
 - **Link:** https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PEMMDB2.zip
-- **Description:** Contains PEMMDB v2.4 capacities, as well as must-run and availability profiles for various PEMMDB technologies (thermal, RES, reserves, DSR, batteries and electrolysers).
+- **Description:** Contains PEMMDB v2.5 capacities, as well as must-run and availability profiles for various PEMMDB technologies (thermal, RES, reserves, DSR, batteries and electrolysers).
 
 ``Supply Tool``
 
