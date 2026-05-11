@@ -507,20 +507,47 @@ def compute_benchmark(
             bus_carrier.extend(["import H2"])
         connector = " -> " if carrier == "H2" else "-"
 
-        idx_b = n.buses.query("carrier.isin(@bus_carrier)").index  # noqa F841
-        idx_l = n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").index
+        # Intra-carrier transmission (bus0 and bus1 share carrier)
+        # n.statistics.transmission requires bus0 and bus1 to share the same carrier
+        df = n.statistics.transmission(
+            bus_carrier=bus_carrier,
+            at_port=0,
+            aggregate_across_components=True,
+            groupby=["name", "bus0"],
+        )
 
-        df = sws @ n.links_t.p0[idx_l]
+        # Cross-carrier transmission (bus0 and bus1 differ in carrier)
+        # Fall back to n.statistics.energy_balance
+        idx_b = n.buses.query("carrier.isin(@bus_carrier)").index  # noqa F841
+        carriers_l = list(
+            n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").carrier.unique()
+        )
+        df_x = n.statistics.energy_balance(
+            bus_carrier=carrier,
+            groupby=["name", "bus0"],
+            components="Link",
+            carrier=carriers_l,
+        )
+        bus0_carrier = df_x.index.get_level_values("bus0").map(n.buses.carrier)
+        df_x = df_x.where(bus0_carrier != carrier, -df_x)
+
+        # Combine intra- and cross-carrier transmission
+        df = pd.concat([df, df_x])
+        df.index = df.index.droplevel("bus0")
+
         if carrier == "H2":
             df = df.rename(
                 lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB")
             )
+
         df = normalize_direction(
             df, buses_from_index=True, connector=connector, format_index=True
         )
 
         df = (
-            df.to_frame("value")
+            df.groupby("border")
+            .sum()
+            .to_frame("value")
             .assign(carrier=carrier)
             .set_index("carrier", append=True)
         )
@@ -549,7 +576,6 @@ def compute_benchmark(
                 n.statistics.withdrawal(
                     groupby="bus",
                     bus_carrier=carrier,
-                    nice_names=False,
                 )
                 .groupby("bus")
                 .sum()
