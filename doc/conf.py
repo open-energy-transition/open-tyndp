@@ -81,6 +81,7 @@ autodoc_mock_imports = [
     "dask.distributed",
     "pydantic",
     "ruamel",
+    "git",
 ]
 
 autodoc_default_flags = ["members"]
