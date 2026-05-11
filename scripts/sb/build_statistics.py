@@ -494,6 +494,7 @@ def compute_benchmark(
         connector = " -> " if carrier == "H2" else "-"
 
         # Intra-carrier transmission (bus0 and bus1 share carrier)
+        # n.statistics.transmission requires bus0 and bus1 to share the same carrier
         df = n.statistics.transmission(
             bus_carrier=bus_carrier,
             at_port=0,
@@ -502,6 +503,7 @@ def compute_benchmark(
         )
 
         # Cross-carrier transmission (bus0 and bus1 differ in carrier)
+        # Fall back to n.statistics.energy_balance
         idx_b = n.buses.query("carrier.isin(@bus_carrier)").index  # noqa F841
         carriers_l = list(
             n.links.query("bus0.isin(@idx_b) and bus1.isin(@idx_b)").carrier.unique()
