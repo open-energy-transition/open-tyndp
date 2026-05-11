@@ -5177,7 +5177,7 @@ def add_offshore_grid_tyndp(
             "and p_nom > 0"
         ).bus
 
-        # identify the minimal list of links to patch
+        # identify the minimal list of links to patch with copperplating
         # prioritise interconnection within the same country
         idx_patch = []
         for b0 in buses_target:
