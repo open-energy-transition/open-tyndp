@@ -24,13 +24,13 @@ from scripts._helpers import (
 )
 
 NODE_MAP = {
-    "DKBH": "BEIOH01",
-    "BEOF": "BEOH001",
-    "DKNS": "DKWOH01",
-    "EEOF": "EEOH001",
-    "LTOF": "LTOR001",
-    "NLLL": "NLOH001",
-    "DEKF": "DEOH002",
+    "BEIOH01": "DKBH",
+    "BEOH001": "BEOF",
+    "DKWOH01": "DKNS",
+    "EEOH001": "EEOF",
+    "LTOR001": "LTOF",
+    "NLOH001": "NLLL",
+    "DEOH002": "DEKF",
 }
 
 logger = logging.getLogger(__name__)
@@ -531,7 +531,9 @@ def compute_benchmark(
         )
 
         df = (
-            df.groupby("border")
+            df.reset_index()
+            .replace(regex=NODE_MAP)
+            .groupby("border")
             .sum()
             .to_frame("value")
             .assign(carrier=carrier)

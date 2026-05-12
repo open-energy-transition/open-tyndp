@@ -4924,9 +4924,10 @@ def patch_offshore_grid_tyndp(
     logger.info("Patching offshore interconnector capacities with corrections.")
 
     # Read and format the fixes to apply
+    node_map_inv = {v: k for k, v in NODE_MAP.items()}
     fix_raw = (
         pd.read_csv(offshore_fix_fn, header=None, index_col=0)
-        .replace(regex=NODE_MAP)
+        .replace(regex=node_map_inv)
         .T.set_index(["carrier", "border"])
         .loc["electricity", ["max", "min"]]
         .drop(index="unit")
