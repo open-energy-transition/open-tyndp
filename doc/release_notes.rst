@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
 
+* Refactor the TYNDP carrier mappings into a central CSV file, adding consistent nice names to all carriers (https://github.com/open-energy-transition/open-tyndp/pull/658).
+
 **Changes**
 
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).

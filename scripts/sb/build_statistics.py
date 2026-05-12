@@ -38,6 +38,53 @@ logger = logging.getLogger(__name__)
 pypsa.options.params.statistics.nice_names = False
 
 
+def add_benchmarking_mappings(
+    carrier_mapping_fn: str, tables: dict, group_tyndp_conventionals: bool = False
+) -> None:
+    """
+    Load benchmarking mappings from the carrier mapping file and apply them
+    to the ``mapping`` configuration dictionary of each table.
+
+    Parameters
+    ----------
+    carrier_mapping_fn : str
+        Path to csv file with carrier mapping.
+    tables : dict
+        Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
+        defined in the configuration, the loaded carrier mapping will be added to
+        the dictionary with the ``mapping`` key.
+    group_tyndp_conventionals : bool, default False
+        Whether TYNDP technologies are grouped to their ``open_tyndp_type``.
+        These group names then take precedence over the names in ``open_tyndp_index`` and ``open_tyndp_carrier``.
+
+    Returns
+    -------
+    None
+        Modifies the tables dictionary in place by adding the mapping for each table.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    for table, table_opts in tables.items():
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
+        if col not in tech_map.columns:
+            logger.warning(
+                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
+            )
+            continue
+        if group_tyndp_conventionals:
+            id_cols = ["open_tyndp_type", "open_tyndp_index", "open_tyndp_carrier"]
+        else:
+            id_cols = ["open_tyndp_index", "open_tyndp_carrier"]
+        table_opts["mapping"] = (
+            tech_map[id_cols + [col]]
+            .assign(open_tyndp=lambda x: x[id_cols].bfill(axis=1).iloc[:, 0])
+            .dropna(subset=["open_tyndp", col])
+            .set_index("open_tyndp")[col]
+            .to_dict()
+        )
+
+
 def remove_last_day(sws: pd.Series, nhours: int = 24):
     """
     Remove the last day from snapshots to ensure exactly 52 weeks of data.
@@ -138,7 +185,7 @@ def compute_benchmark(
         df_eu.loc["solid biomass"] -= biogas_not_upgraded
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "elec_demand":
+    elif table == "electricity_demand":
         grouper = ["carrier"]
         df = (
             n.statistics.withdrawal(
@@ -290,6 +337,7 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
+                components="Generator",
             )
             .loc[
                 lambda df: (
@@ -632,9 +680,17 @@ if __name__ == "__main__":
     tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
     load_shedding = snakemake.params["load_shedding"]
     low_voltage = snakemake.params["low_voltage"]
+    group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
+
+    # Map Open-TYNDP carrier names to benchmarking carrier names
+    add_benchmarking_mappings(
+        carrier_mapping_fn=snakemake.input.carrier_mapping,
+        tables=options["tables"],
+        group_tyndp_conventionals=group_tyndp_conventionals,
+    )
 
     with memory_logger(
         filename=getattr(snakemake.log, "memory", None), interval=1

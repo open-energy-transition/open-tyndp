@@ -31,85 +31,11 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-# Mapping from TYNDP market model (MM) technology names to benchmark carrier names
-MM_CARRIER_MAPPING = {
-    # Power capacity and generation mappings
-    "Nuclear": "nuclear",
-    "Lignite old 1": "coal + other fossil (incl. biofuels)",
-    "Lignite old 2": "coal + other fossil (incl. biofuels)",
-    "Lignite new": "coal + other fossil (incl. biofuels)",
-    "Lignite CCS": "coal + other fossil (incl. biofuels)",
-    "Lignite biofuel": "coal + other fossil (incl. biofuels)",
-    "Hard coal old 1": "coal + other fossil (incl. biofuels)",
-    "Hard coal old 2": "coal + other fossil (incl. biofuels)",
-    "Hard coal new": "coal + other fossil (incl. biofuels)",
-    "Hard coal CCS": "coal + other fossil (incl. biofuels)",
-    "Hard Coal biofuel": "coal + other fossil (incl. biofuels)",
-    "Gas conventional old 1": "methane (incl. biofuels)",
-    "Gas conventional old 2": "methane (incl. biofuels)",
-    "Gas CCGT old 1": "methane (incl. biofuels)",
-    "Gas CCGT old 2": "methane (incl. biofuels)",
-    "Gas CCGT new": "methane (incl. biofuels)",
-    "Gas CCGT CCS": "methane (incl. biofuels)",
-    "Gas CCGT present 1": "methane (incl. biofuels)",
-    "Gas CCGT present 2": "methane (incl. biofuels)",
-    "Gas OCGT old": "methane (incl. biofuels)",
-    "Gas OCGT new": "methane (incl. biofuels)",
-    "Gas biofuel": "methane (incl. biofuels)",
-    "Light oil": "oil (incl. biofuels)",
-    "Heavy oil old 1": "oil (incl. biofuels)",
-    "Heavy oil old 2": "oil (incl. biofuels)",
-    "Light oil biofuel": "oil (incl. biofuels)",
-    "Heavy oil biofuel": "oil (incl. biofuels)",
-    "Oil shale old": "oil (incl. biofuels)",
-    "Oil shale new": "oil (incl. biofuels)",
-    "Oil shale biofuel": "oil (incl. biofuels)",
-    "Wind Onshore": "wind onshore",
-    "Wind Offshore": "wind offshore",
-    "Solar (Photovoltaic)": "solar",
-    "Solar (Thermal)": "solar thermal",
-    "Run-of-River": "hydro (exc. pump storage)",
-    "Reservoir": "hydro (exc. pump storage)",
-    "Pondage": "hydro (exc. pump storage)",
-    "Pump Storage - Open Loop (turbine)": "hydro and pumped storage",
-    "Pump Storage - Closed Loop (turbine)": "hydro and pumped storage",
-    "Pump Storage - Open Loop (pump)": "hydro and pumped storage (load)",
-    "Pump Storage - Closed Loop (pump)": "hydro and pumped storage (load)",
-    "Others renewable": "other res",
-    "Others non-renewable": "other non-res",
-    "Battery Storage discharge (gen.)": "battery",
-    "Battery Storage charge (load)": "battery charge (load)",
-    "Hydrogen CCGT": "hydrogen-ccgt",
-    "Hydrogen Fuel Cell": "hydrogen-fuel-cell",
-    # DSR and load shedding
-    "Demand Side Response Explicit": "dsr",
-    # Note: "Demand Side Response Implicit" is not included in the benchmarking for DSR.
-    "Unserved energy [GWh]": "demand shedding",
-    # Curtailment/"dump energy"
-    "Dump energy [GWh]": "dumped energy",
-    # Hydrogen_demand
-    "Native Demand (excl. H2 storage charge) [GWhH2]": "exogenous demand",
-    # "power generation" - could be calculated from power sheet (H2 Fuel Cell + H2 CCGT) * efficiency
-    # "e-fuels" - not available in TYNDP market model NT scenario, included in native demand
-    # Hydrogen supply from H2 sheet
-    "Electrolyser (gen.)": "p2g",
-    "Steam methane reformer": "smr (grey) and smr with ccs (blue)",
-    # Prices
-    "Marginal Cost Yearly Average [€]": "AC",
-    "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]": "AC",
-    "Marginal Cost Yearly Average [€/MWhH2]": "H2",
-    "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]": "H2",
-    # Demand/Load shedding hours
-    "Loss of load expectation [hour]  ": "loss of load expectation",
-    "Loss of H2 load expectation [hour]  ": "loss of h2 load expectation",
-    # Note: TYNDP market model doesn't distinguish between grey and blue SMR in the output files
-    # "Exchanges with non-modeled nodes" → "imports (renewable & low carbon)" (handled separately)
-    # NOT available in TYNDP market model (will not appear in output):
-    # - "ammonia imports"
-    # - "bi product"
-    # - "smr with ccs (blue)" - TYNDP market model only has generic SMR
-    # - "undefined for generation" . could be calculated from power sheet (H2 Fuel Cell + H2 CCGT) * efficiency
-}
+# Efficiencies for H2 power technologies
+H2_POWER_EFF = {
+    "Hydrogen CCGT": 0.59,
+    "Hydrogen Fuel Cell": 0.5,
+}  # TODO Remove hard coded values
 
 
 # look up dictionary {name of plot: [sheet_name, output_type]}
@@ -154,6 +80,42 @@ CROSS_BORDER_DICT: dict[str, str] = {
     "electricity": "Crossborder exchanges",
     "H2": "Crossborder H2 exchanges",
 }
+
+
+def _load_mm_carrier_mapping(
+    carrier_mapping_fn: str, tables: dict
+) -> tuple[dict[str, dict], dict[str, dict]]:
+    """
+    Load mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    output_map = {}
+    for table, table_opts in tables.items():
+        if table not in LOOKUP_TABLES:
+            continue
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
+        if col not in tech_map.columns:
+            logger.warning(
+                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
+            )
+            continue
+        output_map[table] = (
+            tech_map[["tyndp_output_carrier", col]]
+            .dropna(subset=["tyndp_output_carrier", col])
+            .set_index("tyndp_output_carrier")[col]
+            .to_dict()
+        )
+
+    # Extract H2 power techs separately
+    h2_power_rename = {}
+    for table, table_map in output_map.items():
+        h2_techs = {k: table_map.pop(k) for k in H2_POWER_EFF if k in table_map}
+        if h2_techs:
+            h2_power_rename[table] = h2_techs
+
+    return output_map, h2_power_rename
 
 
 def load_crossborder_sheet(
@@ -223,6 +185,7 @@ def load_MM_sheet(
     filepath: str | Path,
     countries: list[str],
     eu27: list,
+    mapping: dict[str, dict[str, str]],
     skiprows: int = 5,
 ) -> pd.DataFrame:
     """
@@ -244,6 +207,8 @@ def load_MM_sheet(
         List of modelled countries
     eu27 : list
         List of EU27 country codes.
+    mapping : dict[str, dict[str, str]]
+        Carrier mapping from market model carrier names to benchmarking carrier names per table.
     skiprows : int, default 5
         Number of metadata rows to skip.
 
@@ -272,13 +237,16 @@ def load_MM_sheet(
     df.index.names = ["output_type", "carrier"]
 
     # Rename and group
-    df = df.rename(index=MM_CARRIER_MAPPING, level=1).groupby(level=[0, 1]).sum()
+    df = df.rename(index=mapping[table_name], level=1).groupby(level=[0, 1]).sum()
     df = df.loc[output_type].droplevel("output_type")
     # Only include mapped carriers
-    mapped_carrier_mask = df.index.isin(MM_CARRIER_MAPPING.values())
-    logger.warning(
-        f"No carrier mappings for {df.index[~mapped_carrier_mask]}. They will be excluded from the benchmarking."
+    mapped_carrier_mask = (df.index.isin(mapping[table_name].values())) | (
+        df.index.isin(H2_POWER_EFF.keys())
     )
+    if unmapped := df.index[~mapped_carrier_mask].tolist():
+        logger.warning(
+            f"No carrier mappings for table '{table_name}' for: {unmapped}. They will be excluded from the benchmarking for this table."
+        )
     df = df[mapped_carrier_mask]
 
     # Rename and filter column names (buses)
@@ -305,6 +273,7 @@ def load_MM_sheet(
                 filepath=tyndp_output_file,
                 countries=countries,
                 eu27=eu27,
+                mapping=mapping,
                 skiprows=5,
             )
             .query("bus!='EU27'")
@@ -417,22 +386,27 @@ def set_load_sign(
 
 
 def clean_MM_data_for_benchmarking(
-    MM_data: pd.DataFrame, offshore_hubs: bool = False
+    MM_data: pd.DataFrame,
+    h2_power_rename: dict[str, dict[str, str]],
+    offshore_hubs: bool = False,
 ) -> pd.DataFrame:
     """
     Clean market model data for benchmarking analysis.
 
     Performs the following operations:
     - Removes load and storage discharge entries
-    - Excludes pumped storage from power generation table
-    - Aggregates hydro capacities (combines regular hydro and pumped storage)
-    - Renames carrier categories for consistency with benchmark data
+    - Reflects H2 CCGT and Fuel Cells consumptions in the yearly H2 demand
+      and renames and aggregates them according to the given mapping
+    - Sets Norway (NO) reported H2 price to 0 EUR/MWh_H2 as it has no H2 demand
+    - Excludes price data for conventional offshore nodes when offshore hubs are modeled
 
     Parameters
     ----------
     MM_data : pd.DataFrame
         Market model data with columns 'carrier', 'table', and 'value'.
         Expected to contain power capacity and generation data.
+    h2_power_rename : dict[str,dict[str,str]]
+        Mapping of H2 power carrier names to their benchmarking name per table.
     offshore_hubs : bool, default False
         Whether offshore hubs are modeled.
 
@@ -445,55 +419,26 @@ def clean_MM_data_for_benchmarking(
     # remove load and storages
     MM_data = MM_data[~MM_data.carrier.str.contains(r"\(load\)|discharge")]
 
-    # remove pumped storages from generation
-    MM_data = MM_data.query(
-        "not(table=='power_generation' and carrier=='hydro and pumped storage')"
-    )
-
-    # remove batteries from generation
-    MM_data = MM_data.query("not(table=='power_generation' and carrier=='battery')")
-
-    # aggregate hydro capacities
-    mask = (MM_data.table == "power_capacity") & (
-        MM_data.carrier == "hydro (exc. pump storage)"
-    )
-    MM_data.loc[mask, "carrier"] = "hydro and pumped storage"
-    MM_data = (
-        MM_data.groupby([c for c in MM_data.columns if c != "value"])
-        .sum()
-        .reset_index()
-    )
-
-    # rename other res to small scale res
-    MM_data.loc[
-        MM_data.query("table=='power_capacity' and carrier=='other res'").index,
-        "carrier",
-    ] = "small scale res"
-    MM_data.loc[
-        MM_data.query("table=='power_capacity' and carrier=='other non-res'").index,
-        "carrier",
-    ] = "chp and small thermal"
-
     # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand
     h2_power = MM_data.query(
-        "table=='power_generation' and carrier.isin(['hydrogen-ccgt', 'hydrogen-fuel-cell'])"
+        "table=='power_generation' and carrier.isin(@H2_POWER_EFF)"
     ).copy()
-    eff_fuel_cell, eff_ccgt = 0.5, 0.59  # TODO Remove hard coded values
     mask_eu27 = ~(h2_power["bus"] == "EU27")
     h2_power.loc[mask_eu27, "bus"] = h2_power.loc[mask_eu27, "bus"].str[:2] + " H2"
-    h2_power.loc[h2_power.carrier == "hydrogen-ccgt", "value"] = h2_power.loc[
-        h2_power.carrier == "hydrogen-ccgt", "value"
-    ].div(eff_ccgt)
-    h2_power.loc[h2_power.carrier == "hydrogen-fuel-cell", "value"] = h2_power.loc[
-        h2_power.carrier == "hydrogen-fuel-cell", "value"
-    ].div(eff_fuel_cell)
-    h2_power.loc[:, "table"] = "hydrogen_demand"
-    h2_power.loc[:, "carrier"] = "power generation"
+    h2_power["value"] /= h2_power["carrier"].map(H2_POWER_EFF)
+    h2_power["table"] = "hydrogen_demand"
 
+    # Merge datasets
+    MM_data = pd.concat([MM_data, h2_power])
+
+    # Rename hydrogen power carriers for each table separately
+    for tbl, rename_map in h2_power_rename.items():
+        mask = MM_data["table"] == tbl
+        MM_data.loc[mask, "carrier"] = MM_data.loc[mask, "carrier"].replace(rename_map)
+
+    # Aggregate renamed carriers
     MM_data = (
-        pd.concat([MM_data, h2_power])
-        .replace({"hydrogen-ccgt": "hydrogen", "hydrogen-fuel-cell": "hydrogen"})
-        .groupby([c for c in MM_data.columns if c != "value"])
+        MM_data.groupby([c for c in MM_data.columns if c != "value"])
         .sum()
         .reset_index()
     )
@@ -636,6 +581,11 @@ if __name__ == "__main__":
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     countries = snakemake.params["countries"]
 
+    # load carrier mapping
+    mm_carrier_mapping, h2_power_rename = _load_mm_carrier_mapping(
+        snakemake.input.carrier_mapping, options["tables"]
+    )
+
     # currently only implemented for NT
     if scenario != "NT":
         logger.warning(
@@ -664,6 +614,7 @@ if __name__ == "__main__":
             filepath=tyndp_output_file,
             countries=countries,
             eu27=eu27,
+            mapping=mm_carrier_mapping,
             skiprows=5,
         )
 
@@ -674,7 +625,9 @@ if __name__ == "__main__":
 
     # clean data for benchmarking
     MM_data = clean_MM_data_for_benchmarking(
-        MM_data, offshore_hubs=snakemake.params.offshore_hubs
+        MM_data,
+        h2_power_rename=h2_power_rename,
+        offshore_hubs=snakemake.params.offshore_hubs,
     )
 
     # load crossborder data

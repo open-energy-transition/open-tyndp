@@ -54,6 +54,7 @@ from scripts._helpers import (
     set_scenario_config,
     update_config_from_wildcards,
 )
+from scripts.add_electricity import sanitize_carriers
 
 logger = logging.getLogger(__name__)
 
@@ -497,6 +498,7 @@ def prepare_network(
     planning_horizons: str | None,
     co2_sequestration_potential: dict[str, float] | None,
     limit_max_growth: dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
 ) -> None:
     """
     Prepare network with various constraints and modifications.
@@ -515,6 +517,9 @@ def prepare_network(
         The current planning horizon year or None for perfect foresight
     co2_sequestration_potential : Dict[str, float]
         CO2 sequestration potential constraints by year
+    config : dict, default None
+        A dictionary containing configuration information, specifically the
+        "plotting" key with "nice_names" and "tech_colors" keys for carriers.
 
     Returns
     -------
@@ -606,6 +611,9 @@ def prepare_network(
             limit_dict=co2_sequestration_potential,
             planning_horizons=planning_horizons,
         )
+
+    if config:
+        sanitize_carriers(n, config)
 
 
 def add_CCL_constraints(
@@ -1704,6 +1712,7 @@ if __name__ == "__main__":
         planning_horizons=planning_horizons,
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
+        config=snakemake.config,
     )
 
     # Determine solve mode

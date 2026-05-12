@@ -2261,7 +2261,7 @@ def _add_electrolyzer_capacities(
 
     # Filter for capacities and add to the network
     # TODO: Add split between zones for DE/GA
-    caps = pemmdb_capacities.query("carrier == 'electrolyser'")["p_nom"]
+    caps = pemmdb_capacities.query("carrier == 'H2 Electrolysis'")["p_nom"]
     n.links.loc[electrolyser_i, ["p_nom", "p_nom_min"]] = (
         n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
     )
