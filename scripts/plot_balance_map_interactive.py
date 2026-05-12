@@ -283,12 +283,12 @@ if __name__ == "__main__":
 
     weights = n.snapshot_weightings.generators
     price = (
-         n.buses_t.marginal_price.reindex(buses, axis=1).rename(
-            n.buses.location, axis=1
-        )
-        .where(lambda x: x < load_shedding.get(carrier, np.inf)) # commment out to incl. load shedding
+        n.buses_t.marginal_price.reindex(buses, axis=1)
+        .rename(n.buses.location, axis=1)
+        .where(
+            lambda x: x < load_shedding.get(carrier, np.inf)
+        )  # commment out to incl. load shedding
         .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
-
     )
 
     if carrier == "co2 stored" and "CO2Limit" in n.global_constraints.index:
