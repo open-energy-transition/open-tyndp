@@ -12,9 +12,41 @@ Not all data dependencies are shipped with the git repository, since git is not 
 Instead we use separate steps in the workflow (``rules`` executed by ``snakemake``) to download external data using the ``retrieve_<dataset>`` rules.
 
 Data is generally retrieved in a version-controlled manner, enabling control over input data versions, reproducibility and consistency of modelling runs.
-The rules download data into subfolders in the `data/` directory, following the structure 
+The rules download data into subfolders in the `data/` directory, following the structure
 ``data/{dataset}/{source}/{version}``, e.g. ``data/jrc_idees/primary/March-2025-V1/``.
-Which specific data version is retrieve can be controlled in the `data configuration <https://pypsa-eur.readthedocs.io/en/latest/configuration.html#data>`__ .
+Which specific data version is retrieved can be controlled in the :ref:`data configuration <data_cf>`.
+
+.. _tyndp_archive:
+
+Open-TYNDP Data Archive (Google Cloud Storage)
+===============================================
+
+As an alternative to downloading from the original primary sources or the ``data.pypsa.org``
+archive, most datasets used by Open-TYNDP are also mirrored to a dedicated Google Cloud Storage
+bucket (``open-tyndp-data-store``). This ``tyndp-archive`` source requires no account and provides
+stable, versioned URLs for reproducibility.
+
+To activate it, set ``data_config: tyndp`` in any of the following ways:
+
+- Pass it on the command line when running the workflow:
+
+  .. code-block:: console
+
+      pixi run tyndp -- --config data_config=tyndp
+
+- Set it permanently in ``config/config.tyndp.yaml`` (for TYNDP runs):
+
+  .. code-block:: yaml
+
+      data_config: tyndp
+
+- Set it in ``config/test/config.tyndp.yaml`` for test runs.
+
+This loads ``config/data.tyndp.yaml``, which sets all supported datasets to ``tyndp-archive``.
+A small number of datasets (e.g. ``wdpa``, ``cutout``, ``open_tyndp_prelim``) are not yet mirrored
+to the GCS bucket and will still be retrieved from their respective sources.
+
+To see which datasets support ``tyndp-archive``, check the ``source`` column in ``data/versions.csv``.
 
 Below some specific ``retrieve_<dataset>`` rules are documented.
 For more information on the datasets retrieved, see the `data sources <https://pypsa-eur.readthedocs.io/en/latest/data_sources.html>`__ and *Data inventory* section there in the documentation.
