@@ -292,7 +292,21 @@ def compute_benchmark(
             .sum()
         )
         df = pd.concat([df, df_curtailment])
-
+    elif table in [
+        "electricity_demand_shedding_hours",
+        "hydrogen_demand_shedding_hours",
+    ]:
+        carrier = "AC" if "electricity" in table else "H2"
+        grouper = ["carrier"]
+        df = n.statistics.supply(
+            comps=supply_comps,
+            bus_carrier=carrier,
+            carrier="load",
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+            groupby_time=False,
+        )
+        df = (df > 1).mul(sws, axis=1).sum(axis=1)  # 1 MWh clipping
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (
