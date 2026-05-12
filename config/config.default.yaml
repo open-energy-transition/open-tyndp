@@ -8,6 +8,9 @@ version: v0.6.1
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#data_config
+data_config:
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#logging
 logging:
   level: INFO
