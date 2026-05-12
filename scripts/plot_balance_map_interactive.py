@@ -8,6 +8,7 @@ Create interactive energy balance maps for the defined carriers using `n.explore
 import geopandas as gpd
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pydeck as pdk
 import pypsa
@@ -186,6 +187,7 @@ if __name__ == "__main__":
 
     # Interactive map settings
     settings = snakemake.params.settings
+    load_shedding = snakemake.params.load_shedding
     unit_conversion = settings["unit_conversion"]
     cmap = settings["cmap"]
     region_alpha = settings["region_alpha"]
@@ -281,11 +283,12 @@ if __name__ == "__main__":
 
     weights = n.snapshot_weightings.generators
     price = (
-        weights
-        @ n.buses_t.marginal_price.reindex(buses, axis=1).rename(
+         n.buses_t.marginal_price.reindex(buses, axis=1).rename(
             n.buses.location, axis=1
         )
-        / weights.sum()
+        .where(lambda x: x < load_shedding.get(carrier, np.inf)) # commment out to incl. load shedding
+        .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
+
     )
 
     if carrier == "co2 stored" and "CO2Limit" in n.global_constraints.index:
@@ -322,7 +325,7 @@ if __name__ == "__main__":
         "<b>"
         + regions.index
         + "</b><br>"
-        + "<b>Weighted price:</b> "
+        + "<b>Weighted price (excl. load shedding):</b> "
         + pd.to_numeric(regions["price"], errors="coerce").round(2).astype(str)
         + " "
         + region_unit
