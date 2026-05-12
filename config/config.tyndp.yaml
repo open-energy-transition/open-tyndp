@@ -376,8 +376,15 @@ solving:
         H2: 3000
         AC: 3000
   solver:  # Use commercial solver for high resolution results in SB
-    name: highs
-    options: highs-default
+    name: gurobi
+    options: gurobi-default
+  oetc:
+    name: "open-tyndp-20260512" # Name it however makes sense to you
+    authentication_server_url: "https://oetc.openenergytransition.org" # This should be not changed
+    orchestrator_server_url: "https://oetc.openenergytransition.org" # This should be not changed
+    cpu_cores: 8 # Set it to N * 8 for the expected RAM usage you'll need to solve the model (For example the value 4 will spawn a machine with 32 GB RAM)
+    disk_space_gb: 100 # Set it to something that will suffice for all the files produced.
+    delete_worker_on_error: false # Best to set it to false on a first few runs so we can more easily debug stuff if any problem occurs during solving
 
 plotting:
   energy_threshold: 1.
