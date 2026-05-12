@@ -5020,6 +5020,16 @@ def patch_offshore_grid_tyndp(
         idx = existing_oh_pu.dropna(subset=c).index
         n.links.loc[idx, [c, "p_nom"]] = existing_oh_pu.loc[idx, [c, "p_nom"]]
 
+    # Manually patch EE00 <> LV00 interconnection to match observed Market Model flows
+    if "LV00-EEOH001-Offshore DC" in new_links_oh.index:
+        new_links_oh.loc["LV00-LVOH001-Offshore DC"] = new_links_oh.loc[
+            "LV00-EEOH001-Offshore DC"
+        ]
+        new_links_oh.loc["LV00-LVOH001-Offshore DC", "bus1"] = "LVOH001"
+    new_links_oh = new_links_oh.drop(
+        ["LV00-EEOH001-Offshore DC", "EEOH001-LV00-Offshore DC"], errors="ignore"
+    )
+
     # Add new links
     n.add(
         "Link",
