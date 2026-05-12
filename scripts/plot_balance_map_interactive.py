@@ -287,7 +287,7 @@ if __name__ == "__main__":
         .rename(n.buses.location, axis=1)
         .where(
             lambda x: x < load_shedding.get(carrier, np.inf)
-        )  # commment out to incl. load shedding
+        )  # comment out to incl. load shedding
         .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
     )
 
