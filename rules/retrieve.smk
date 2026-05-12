@@ -23,7 +23,7 @@ storage cached_http:
     provider="cached-http",
 
 
-ARCHIVE_SOURCES = {"archive", "ot-archive"}
+ARCHIVE_SOURCES = {"archive", "tyndp-archive"}
 
 
 if (EUROSTAT_BALANCES_DATASET := dataset_version("eurostat_balances"))["source"] in [

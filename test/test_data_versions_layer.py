@@ -14,7 +14,7 @@ VERSIONS_CSV = Path(__file__).parent.parent / "data" / "versions.csv"
 VALID_SOURCES = [
     "primary",
     "archive",
-    "ot-archive",
+    "tyndp-archive",
     "build",
 ]  # Order defines sort priority
 
@@ -52,7 +52,7 @@ def sort_versions(df: pd.DataFrame) -> pd.DataFrame:
 
 is_sorted = Check(lambda df: df.equals(sort_versions(df)), error="Data must be sorted")
 archive_has_url = Check(
-    lambda df: df.loc[df["source"].isin({"archive", "ot-archive"}), "url"]
+    lambda df: df.loc[df["source"].isin({"archive", "tyndp-archive"}), "url"]
     .str.len()
     .gt(0)
     .all(),
