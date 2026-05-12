@@ -186,7 +186,7 @@ Data Sources
 By default, Open-TYNDP retrieves input datasets from ``data.pypsa.org`` (``archive`` source)
 or their original primary sources. As an alternative, most datasets are also mirrored to a
 dedicated Google Cloud Storage bucket (``open-tyndp-data-store``) under the ``tyndp-archive``
-source. This requires no account and provides stable, versioned URLs for full reproducibility.
+source. This mirror consolidates downloads to a single URL, which can simplify IT or security approval processes. The Google Cloud Storage requires no account and all files are versioned for reproducibility.
 
 To activate ``tyndp-archive`` for all supported datasets, set ``data_config: tyndp`` in any
 of the following ways:
