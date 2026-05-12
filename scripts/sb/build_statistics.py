@@ -306,7 +306,9 @@ def compute_benchmark(
             aggregate_across_components=True,
             groupby_time=False,
         )
-        df = (df > 1).mul(sws, axis=1).sum(axis=1)  # 1 MWh clipping
+        df = (df > 1).mul(n.snapshot_weightings.generators, axis=1).sum(
+            axis=1
+        )  # 1 MWh clipping
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (
