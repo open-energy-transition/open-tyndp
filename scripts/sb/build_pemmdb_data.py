@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Collects and bundles the available PEMMDB v2.4 capacities and profiles for different PEMMDB technologies from TYNDP data bundle for a given planning horizon.
+Collects and bundles the available PEMMDB v2.5 capacities and profiles for different PEMMDB technologies from TYNDP data bundle for a given planning horizon.
 
 Outputs
 -------
