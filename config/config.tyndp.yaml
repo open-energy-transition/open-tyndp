@@ -381,9 +381,6 @@ solving:
   solver:  # Use commercial solver for high resolution results in SB
     name: gurobi
     options: gurobi-default
-  solver_options:
-    gurobi-default:
-      include_objective_constant: false
   oetc:
     name: "open-tyndp-20260512" # Name it however makes sense to you
     authentication_server_url: "https://oetc.openenergytransition.org" # This should be not changed
