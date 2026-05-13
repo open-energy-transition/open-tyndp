@@ -215,10 +215,10 @@ def compute_benchmark(
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[pd.IndexSlice[:, ["electricity"]]]
-            .reindex(eu27_idx, level="bus")
-            .dropna()
+            .reset_index()
+            .assign(bus=lambda df: df.bus.str.removesuffix(" low voltage"))
+            .set_index(["bus", "carrier"])
         )
-        df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
         grouper = ["carrier"]
         df_countries = (

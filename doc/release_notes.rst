@@ -71,6 +71,8 @@ Upcoming Open-TYNDP Release
 
 * Fix units in B4 indicator calculation (https://github.com/open-energy-transition/open-tyndp/pull/693).
 
+* Fix missing native electricity demand mapping for the Market Model in the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/692). This enables the load-weighted average Pan-EU Market Model price calculation and per-node electricity demand validation.
+
 **Documentation**
 
 * Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).

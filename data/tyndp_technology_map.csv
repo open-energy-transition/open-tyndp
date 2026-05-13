@@ -126,7 +126,7 @@ Battery,Store,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,,battery,,
 ,,,,,,Liquids,,kerosene for aviation,,Kerosene for Aviation,,,,liquids,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Liquids,,shipping oil,,Shipping Oil Demand,,,,liquids,,,,,,,,,,,,Final energy demand benchmark
 ,,,,,,Liquids,,land transport oil,,Land Transport Oil Demand,,,,liquids,,,,,,,,,,,,Final energy demand benchmark
-,,,,,,"Final demand (inc. T&D losses, excl. pump storage )",,electricity,,Electricity Exogenous Demand,,,,,"final demand (inc. t&d losses, excl. pump storage )",,,,,,,,,,,Electricity demand benchmark
+,,,,,Native Demand (excl. Pump load & Battery charge) [GWh],"Final demand (inc. T&D losses, excl. pump storage )",,electricity,,Electricity Exogenous Demand,,,,,"final demand (inc. t&d losses, excl. pump storage )",,,,,,,,,,,Electricity demand benchmark
 ,,,,,,H2 Residential&Tertiary,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 Transport,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
 ,,,,,,H2 Industry,,H2 exogenous demand,,H2 Exogenous Demand,,,,,,,exogenous demand,,,,,,,,,Hydrogen demand benchmark
