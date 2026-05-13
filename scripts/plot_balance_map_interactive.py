@@ -164,6 +164,8 @@ def add_buttons(html_file: str, version: str) -> None:
         html = f.read()
     map_additions = "\n".join([reset_button, fullscreen_button, version_label])
     html = html.replace("</body>", map_additions + "\n<body>")
+    html = html.replace(">label:<", ">Technology:<")
+    html = html.replace(">size:<", ">Gen/Demand (TWh):<")
     with open(html_file, "w") as f:
         f.write(html)
 
