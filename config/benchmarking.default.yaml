@@ -73,6 +73,7 @@ benchmarking:
       table_type: scenario_comparison
       mapping_col: benchmarking_elec_demand
       rfc_sources:
+      - market_out
       - report
       - vp
       unit: TWh
