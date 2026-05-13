@@ -14,6 +14,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
@@ -48,7 +50,7 @@ def add_metadata(
 ):
     # Version
     version = get_version()
-    fig.canvas.draw()
+    fig.draw_without_rendering()
     bbox_fig = fig.get_tightbbox(fig.canvas.get_renderer())
     fig_width_inches, fig_height_inches = fig.get_size_inches()
     x0_fig = (
@@ -132,7 +134,9 @@ def _plot_scenario_comparison(
     df.index = [textwrap.fill(label, width=30) for label in df.index]
 
     fig_width = FIGURE_WIDTH_DEFAULT + max((df.shape[0] - FIGURE_WIDTH_DEFAULT) * 3, 0)
-    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
+    fig = Figure(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
+    FigureCanvasAgg(fig)
+    ax = fig.subplots()
 
     bar_colors = [bench_colors.get(col, "grey") for col in idx]
     df[idx].clip(lower=0).plot.bar(
@@ -150,9 +154,9 @@ def _plot_scenario_comparison(
         if txt.get_text() in [model_col, rfc_source]:
             txt.set_fontweight("bold")
 
+    max_val = df[idx].replace(np.inf, np.nan).fillna(0).max().max()
+    rotation = 90 if max_val > 100 and fig_width > FIGURE_WIDTH_DEFAULT else 0
     for c in ax.containers:
-        max_val = df[idx].replace(np.inf, np.nan).fillna(0).max().max()
-        rotation = 90 if max_val > 100 and fig_width > FIGURE_WIDTH_DEFAULT else 0
         ax.bar_label(
             c,
             fmt=lambda x: f"{x:.1f}",
@@ -190,8 +194,6 @@ def _plot_scenario_comparison(
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
-    plt.close(fig)
-
 
 def _plot_time_series(
     df: pd.DataFrame,
@@ -206,18 +208,19 @@ def _plot_time_series(
     source_unit: str,
     tech_colors: dict,
 ):
-    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
+    fig = Figure(figsize=(FIGURE_WIDTH_DEFAULT, FIGURE_HEIGHT_DEFAULT))
+    FigureCanvasAgg(fig)
+    ax = fig.subplots()
 
     # Remove rows where either value is NaN
     df_clean = df.dropna(subset=[model_col, rfc_col])
 
     if df_clean.empty:
         logger.warning(f"No valid data points for time series plot: {table} {year}")
-        plt.close(fig)
         return
 
     # Create scatter plot
-    df.carrier = df.carrier.astype("category")
+    df["carrier"] = df["carrier"].astype("category")
     carriers = df.carrier.cat.categories
 
     for i, carrier in enumerate(carriers):
@@ -280,8 +283,6 @@ def _plot_time_series(
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
-    plt.close(fig)
-
 
 def _plot_prices(
     df: pd.DataFrame,
@@ -296,9 +297,9 @@ def _plot_prices(
     bench_colors: dict,
     eps: float = 1e-6,
 ):
-    fig, ax = plt.subplots(
-        figsize=(FIGURE_WIDTH_DEFAULT * 1.7, FIGURE_HEIGHT_DEFAULT * 0.7)
-    )
+    fig = Figure(figsize=(FIGURE_WIDTH_DEFAULT * 1.7, FIGURE_HEIGHT_DEFAULT * 0.7))
+    FigureCanvasAgg(fig)
+    ax = fig.subplots()
     table_title = (
         table.replace("_", " ").replace("excl shed", "excl. load shedding").title()
     )
@@ -350,8 +351,6 @@ def _plot_prices(
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
-    plt.close(fig)
-
 
 def _plot_flows(
     df: pd.DataFrame,
@@ -365,12 +364,14 @@ def _plot_flows(
     source_unit: str,
     bench_colors: dict,
 ):
-    fig, ax = plt.subplots(
+    fig = Figure(
         figsize=(
             FIGURE_WIDTH_DEFAULT,
             FIGURE_HEIGHT_DEFAULT * np.ceil(df.shape[0] / 45),
         )
     )
+    FigureCanvasAgg(fig)
+    ax = fig.subplots()
     table_title = (
         table.replace("_", " ")
         .replace("crossborder", "cross-border exchanges for")
@@ -404,18 +405,18 @@ def _plot_flows(
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
-    plt.close(fig)
-
     # Additional plot for crossborder flows with incorrect net direction
     mask_sign = np.sign(df[model_col].fillna(0)) != np.sign(df[rfc_source].fillna(0))
     df_direction = df[mask_sign].dropna(axis=0)
     if not df_direction.empty:
-        fig, ax = plt.subplots(
+        fig = Figure(
             figsize=(
                 FIGURE_WIDTH_DEFAULT,
                 FIGURE_HEIGHT_DEFAULT * np.ceil(df_direction.shape[0] / 45),
             )
         )
+        FigureCanvasAgg(fig)
+        ax = fig.subplots()
         df_direction[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
             title=f"{table_title} (focusing on incorrect net direction - Scenario {scenario} - CY {cyear} - Year {year}",
             xlabel=source_unit,
@@ -432,7 +433,6 @@ def _plot_flows(
             output_dir, f"benchmark_{table}_direction_errors_cy{cyear}_{year}.pdf"
         )
         fig.savefig(output_filename, bbox_inches="tight")
-        plt.close(fig)
 
 
 def _plot_hours(
@@ -447,9 +447,9 @@ def _plot_hours(
     source_unit: str,
     bench_colors: dict,
 ):
-    fig, ax = plt.subplots(
-        figsize=(FIGURE_WIDTH_DEFAULT * 1.7, FIGURE_HEIGHT_DEFAULT * 0.7)
-    )
+    fig = Figure(figsize=(FIGURE_WIDTH_DEFAULT * 1.7, FIGURE_HEIGHT_DEFAULT * 0.7))
+    FigureCanvasAgg(fig)
+    ax = fig.subplots()
     table_title = table.replace("_", " ").title()
     bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
     df.index = df.index.get_level_values("spatial")
@@ -460,7 +460,6 @@ def _plot_hours(
         logger.info(
             f"Skipping plot for {table} - Scenario {scenario} - CY {cyear} - Year {year}: no buses with non-zero values."
         )
-        plt.close(fig)
         return
     df[[model_col, rfc_source]].sort_values(model_col, ascending=False).plot.bar(
         title=f"{table_title} - Scenario {scenario} - CY {cyear} - Year {year}",
@@ -478,13 +477,11 @@ def _plot_hours(
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
-    plt.close(fig)
-
 
 def plot_benchmark(
     table: str,
     bus: str,
-    benchmarks_raw: pd.DataFrame,
+    benchmarks: pd.DataFrame,
     output_dir: str,
     scenario: str,
     snapshots: dict[str, str],
@@ -492,7 +489,6 @@ def plot_benchmark(
     tech_colors: dict,
     bench_colors: dict,
     model_col: str = "Open-TYNDP",
-    bus_col_name: str = "bus",
 ):
     """
     Create benchmark comparison figures and export one file per year.
@@ -503,7 +499,7 @@ def plot_benchmark(
         Benchmark table to plot.
     bus : str
         Bus of the current figure.
-    benchmarks_raw: pd.DataFrame
+    benchmarks: pd.DataFrame
         Combined DataFrame containing both model and reference data.
     output_dir: str
         Output directory.
@@ -519,8 +515,6 @@ def plot_benchmark(
         Dictionary mapping data source names to colors for scenario comparisons.
     model_col : str, default "Open-TYNDP"
         Column name for model values.
-    bus_col_name : str, default "bus"
-        Bus column name.
     """
 
     # Parameters
@@ -530,21 +524,12 @@ def plot_benchmark(
     rfc_cols = [SOURCES_MAP.get(s, s) for s in opt["rfc_sources"]]
     rfc_source = rfc_cols[0]
     cyear = get_snapshots(snapshots)[0].year
-    bus_col_name = get_bus_col_name(bus_col_name, table)
 
     # Filter data and Convert back to source unit
     logger.debug(
         f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
     )
 
-    filter_by_bus = opt["table_type"] not in {"prices", "flows", "hours"}
-    condition_str = f" and {bus_col_name}==@bus" if filter_by_bus else ""
-    benchmarks = (
-        benchmarks_raw.query(f"table==@table{condition_str}")
-        .dropna(how="all", axis=1)
-        .assign(spatial=lambda df: df[bus_col_name])
-        .drop(columns=["bus", "country", "border", "corridor"], errors="ignore")
-    )
     op = "sum" if "price" not in table else "mean"
     benchmarks = (
         benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
@@ -577,14 +562,14 @@ def plot_benchmark(
         )
         return
 
+    plotters = {
+        "prices": _plot_prices,
+        "flows": _plot_flows,
+        "hours": _plot_hours,
+    }
+
     for year in bench_wide.index.get_level_values("year").unique():
         bench_year = bench_wide.query("year==@year").copy()
-
-        plotters = {
-            "prices": _plot_prices,
-            "flows": _plot_flows,
-            "hours": _plot_hours,
-        }
 
         if table_type == "scenario_comparison":
             _plot_scenario_comparison(
@@ -652,37 +637,45 @@ def orchestrate_benchmark(
     output_dir_bus_col = Path(output_dir, f"by_{bus_col_name}")
     output_dir_bus_col.mkdir(parents=True, exist_ok=True)
 
-    table_bus_col_pairs = [
-        (table, bus_col)
-        for table in options["tables"]
+    table_bus_col_df_args = []
+    for table in options["tables"]:
+        opt = options["tables"][table]
+        bus_col_name_t = get_bus_col_name(bus_col_name, table)
         for bus_col in (
             [""]
-            if options["tables"][table]["table_type"] in {"prices", "flows", "hours"}
+            if opt["table_type"] in {"prices", "flows", "hours"}
             else benchmarks_raw.query("table == @table")[bus_col_name].unique()
-        )
-    ]
+        ):
+            filter_by_bus = opt["table_type"] not in {"prices", "flows", "hours"}
+            condition_str = f" and {bus_col_name_t}==@bus_col" if filter_by_bus else ""
+            benchmarks = (
+                benchmarks_raw.query(f"table==@table{condition_str}")
+                .dropna(how="all", axis=1)
+                .assign(spatial=lambda df: df[bus_col_name_t])
+                .drop(columns=["bus", "country", "border", "corridor"], errors="ignore")
+            )
+            table_bus_col_df_args.append((table, bus_col, benchmarks))
+    del benchmarks_raw  # free before forking workers
 
     tqdm_kwargs = {
         "ascii": False,
         "unit": " figure",
-        "total": len(table_bus_col_pairs),
+        "total": len(table_bus_col_df_args),
         "desc": "Producing benchmark figures",
     }
 
     func = partial(
         plot_benchmark,
-        benchmarks_raw=benchmarks_raw,
         output_dir=output_dir_bus_col,
         scenario=scenario,
         snapshots=snapshots,
         options=options,
         tech_colors=tech_colors,
         bench_colors=bench_colors,
-        bus_col_name=bus_col_name,
     )
 
     with mp.Pool(processes=threads) as pool:
-        list(tqdm(pool.starmap(func, table_bus_col_pairs), **tqdm_kwargs))
+        list(tqdm(pool.starmap(func, table_bus_col_df_args), **tqdm_kwargs))
 
 
 def plot_overview(
