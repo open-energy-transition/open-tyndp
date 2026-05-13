@@ -8,7 +8,7 @@ Loads and cleans the available hydro inflow data from TYNDP data bundle for a gi
 * planning horizon,
 * hydro technology.
 
-Input data for TYNDP 2024 comes from PEMMDB v2.4.
+Input data for TYNDP 2024 comes from PEMMDB v2.5.
 
 Outputs
 -------

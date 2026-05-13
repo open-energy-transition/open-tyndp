@@ -7,6 +7,7 @@
 import copy
 from itertools import chain
 from pathlib import Path
+import pandas as pd
 import yaml
 from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
@@ -93,8 +94,23 @@ include: "rules/development.smk"
 include: "rules/report.smk"
 
 
+# Specific Open-TYNDP rules and configurations
 if config["tyndp_scenario"]:
+    # Extend nice_names by open-tyndp nice_name mapping in `tyndp_technology_map.csv`
+    if config["electricity"]["group_tyndp_conventionals"]:
+        id_cols = ["open_tyndp_type", "open_tyndp_index", "open_tyndp_carrier"]
+    else:
+        id_cols = ["open_tyndp_index", "open_tyndp_carrier"]
+    tyndp_nice_names = (
+        pd.read_csv("data/tyndp_technology_map.csv")[id_cols + ["open_tyndp_nice_name"]]
+        .assign(carrier=lambda x: x[id_cols].bfill(axis=1).iloc[:, 0])
+        .dropna(subset=["carrier", "open_tyndp_nice_name"])
+        .set_index("carrier")["open_tyndp_nice_name"]
+        .to_dict()
+    )
+    config["plotting"]["nice_names"].update(tyndp_nice_names)
 
+    # Include Open-TYNDP specific set of rules for SB and CBA
     include: "rules/cba.smk"
     include: "rules/sb.smk"
 

@@ -2261,7 +2261,7 @@ def _add_electrolyzer_capacities(
 
     # Filter for capacities and add to the network
     # TODO: Add split between zones for DE/GA
-    caps = pemmdb_capacities.query("carrier == 'electrolyser'")["p_nom"]
+    caps = pemmdb_capacities.query("carrier == 'H2 Electrolysis'")["p_nom"]
     n.links.loc[electrolyser_i, ["p_nom", "p_nom_min"]] = (
         n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
     )
@@ -4940,8 +4940,8 @@ def patch_offshore_grid_tyndp(
         )
     )
 
-    # Manually adjust fixes for missing bus
-    # TODO Remove this once the OH dataset is more consistent with the Market Model outputs
+    # Remap buses and aggregate duplicate borders
+    # TODO Remove this once the OH dataset bus names align with the Market Model outputs
     fix_raw = (
         fix_raw.reset_index()
         .replace(regex={"DKKF": "DKE1", "NL60": "NLOH001", "NL6H": "NLOH001"})
@@ -4952,10 +4952,12 @@ def patch_offshore_grid_tyndp(
         )
     )
 
+    # Keep only borders with at least one offshore hub bus
     fix_raw = fix_raw.query(
         "bus0 in @spatial.offshore_hubs.nodes or bus1 in @spatial.offshore_hubs.nodes"
     )
 
+    # Build reverse-direction fixes by swapping bus0/bus1
     fix_inv = fix_raw.assign(
         p_nom=lambda df: df["min"].mul(-1),
         bus0_=lambda df: df.bus0,
@@ -4970,53 +4972,64 @@ def patch_offshore_grid_tyndp(
             border_inv=lambda df: df.bus1 + "-" + df.bus0 + "-Offshore DC",
         )
         .set_index("border")
-        .query("p_nom>0")
+        .query("p_nom>0")  # all the fixes are unidirectional
         .drop(columns=["max", "min"])
     )
 
-    # Define the minimal set of fixes to apply
+    # Retrieve existing offshore links
     links_oh = n.links[n.links.carrier.isin(offshore_grid_dc.carrier.unique())].assign(
         border_inv=lambda df: df.bus1 + "-" + df.bus0 + "-Offshore DC"
     )
 
+    # Identify new links to add
     new_links_oh = fix.loc[
-        list(set(fix.index) - set(links_oh.index) - set(links_oh.border_inv))
-    ]
-    new_links_oh = new_links_oh.query(
-        "bus0 in @n.buses.index and bus1 in @n.buses.index"
-    )
+        fix.index.difference(links_oh.index).difference(links_oh.border_inv)
+    ].query("bus0 in @n.buses.index and bus1 in @n.buses.index")
 
-    existing_oh = fix.loc[list(set(fix.index).intersection(set(links_oh.index)))].p_nom
-    existing_oh_gt = existing_oh[
-        existing_oh > links_oh.loc[existing_oh.index].p_nom
-    ].rename("p_max_pu")
-
-    existing_oh_inv = fix.loc[
-        list(set(fix.index).intersection(set(links_oh.border_inv)))
-    ]
-    existing_oh_inv = (
-        existing_oh_inv.reset_index()
+    # Identify capacities to update
+    fix_p_max = fix.loc[fix.index.intersection(links_oh.index), "p_nom"].rename("p_max")
+    fix_p_min = (
+        fix.loc[fix.index.intersection(links_oh.border_inv)]
         .set_index("border_inv")
-        .assign(p_nom=lambda df: df.p_nom * -1)
-        .p_nom
+        .p_nom.mul(-1)
+        .rename("p_min")
     )
-    links_oh_inv = links_oh.loc[existing_oh_inv.index]
-    existing_oh_st = existing_oh_inv[
-        existing_oh_inv < links_oh_inv.p_nom * links_oh_inv.p_min_pu
-    ].rename("p_min_pu")
 
-    existing_oh_pu = pd.concat([existing_oh_gt, existing_oh_st], axis=1).assign(
-        p_nom=lambda df: pd.concat(
-            [n.links.loc[df.index, "p_nom"], df[["p_min_pu", "p_max_pu"]].abs()], axis=1
-        ).max(axis=1),
-        p_min_pu=lambda df: df.p_min_pu.div(df.p_nom),
-        p_max_pu=lambda df: df.p_max_pu.div(df.p_nom),
+    existing_oh_p = pd.concat([fix_p_max, fix_p_min], axis=1)
+    current = links_oh.loc[existing_oh_p.index]
+    existing_oh_pu = (
+        existing_oh_p.assign(
+            p_max=lambda df: df.p_max.where(
+                df.p_max > current.p_nom * current.p_max_pu
+            ),
+            p_min=lambda df: df.p_min.where(
+                df.p_min < current.p_nom * current.p_min_pu
+            ),
+        )
+        .dropna(subset=["p_max", "p_min"], how="all")
+        .assign(
+            p_nom=lambda df: pd.concat(
+                [n.links.loc[df.index, "p_nom"], df[["p_min", "p_max"]].abs()], axis=1
+            ).max(axis=1),
+            p_min_pu=lambda df: df.p_min.div(df.p_nom),
+            p_max_pu=lambda df: df.p_max.div(df.p_nom),
+        )
     )
 
     # Update existing links
     for c in ["p_min_pu", "p_max_pu"]:
         idx = existing_oh_pu.dropna(subset=c).index
         n.links.loc[idx, [c, "p_nom"]] = existing_oh_pu.loc[idx, [c, "p_nom"]]
+
+    # Manually patch EE00 <> LV00 interconnection to match observed Market Model flows
+    if "LV00-EEOH001-Offshore DC" in new_links_oh.index:
+        new_links_oh.loc["LV00-LVOH001-Offshore DC"] = new_links_oh.loc[
+            "LV00-EEOH001-Offshore DC"
+        ]
+        new_links_oh.loc["LV00-LVOH001-Offshore DC", "bus1"] = "LVOH001"
+    new_links_oh = new_links_oh.drop(
+        ["LV00-EEOH001-Offshore DC", "EEOH001-LV00-Offshore DC"], errors="ignore"
+    )
 
     # Add new links
     n.add(
@@ -5026,8 +5039,6 @@ def patch_offshore_grid_tyndp(
         bus1=new_links_oh.bus1,
         p_nom_extendable=False,
         p_nom=new_links_oh.p_nom,
-        p_nom_min=new_links_oh.p_nom,
-        p_nom_max=np.inf,
         p_min_pu=0,
         p_max_pu=1,
         carrier="DC_OH",
@@ -5177,9 +5188,23 @@ def add_offshore_grid_tyndp(
             "and p_nom > 0"
         ).bus
 
-        idx_patch = links_oh_no.query(
-            "bus0 in @buses_target and bus1 in @buses_mainland "
-        ).index
+        # identify the minimal list of links to patch with copperplating
+        # prioritise interconnection within the same country
+        idx_patch = []
+        for b0 in buses_target:
+            b1_candidates = (
+                links_oh_no.query("bus0==@b0 and bus1 in @buses_mainland")
+                .sort_index()
+                .bus1
+            )
+            b0_c = n.buses.loc[b0].country
+            b1_candidates_c = b1_candidates.map(n.buses.loc[b1_candidates].country)
+            if b0_c in b1_candidates_c.values:
+                b1 = b1_candidates[b1_candidates_c == b0_c].iloc[0]  # noqa: F841
+            else:
+                b1 = b1_candidates[0]  # noqa: F841
+            idx_patch.extend(links_oh_no.query("bus0 == @b0 and bus1 == @b1").index)
+        idx_patch = pd.Index(idx_patch).drop_duplicates()
 
         n.links.loc[idx_patch, "p_nom"] = np.inf
         n.links.loc[idx_patch, "capital_cost"] = 0
