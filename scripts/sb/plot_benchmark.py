@@ -704,7 +704,9 @@ def plot_overview(
     bus_col_name : str, default "bus"
         Bus column name.
     """
-    fig, ax = plt.subplots(figsize=(12, FIGURE_HEIGHT_DEFAULT))
+    fig = Figure(figsize=(12, FIGURE_HEIGHT_DEFAULT))
+    FigureCanvasAgg(fig)
+    ax = fig.subplots()
     cyear = get_snapshots(snapshots)[0].year
 
     # Keep relevant indicators and rows
