@@ -73,6 +73,8 @@ Upcoming Open-TYNDP Release
 
 * Fix missing native electricity demand mapping for the Market Model in the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/692). This enables the load-weighted average Pan-EU Market Model price calculation and per-node electricity demand validation.
 
+* Refactor the ``plot_benchmarks`` script in order to reduce memory requirements and accelerate processing (https://github.com/open-energy-transition/open-tyndp/pull/696.
+
 **Documentation**
 
 * Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
