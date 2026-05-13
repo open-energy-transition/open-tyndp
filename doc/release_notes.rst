@@ -13,7 +13,7 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Add ``tyndp-archive`` as a new data source backed by an Open-TYNDP Google Cloud Storage bucket (``open-tyndp-data-store``) where archived datasets are mirrored. enabling fully reproducible runs without depending on third-party data providers (https://github.com/open-energy-transition/open-tyndp/pull/682).
+* Add ``tyndp-archive`` as a new data source backed by an Open-TYNDP Google Cloud Storage bucket (``open-tyndp-data-store``) where archived datasets are mirrored. This enables fully reproducible runs without depending on third-party data providers (https://github.com/open-energy-transition/open-tyndp/pull/682).
 
 * Implement demand side response (DSR) components and price bands. This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file (https://github.com/open-energy-transition/open-tyndp/pull/598).
 
