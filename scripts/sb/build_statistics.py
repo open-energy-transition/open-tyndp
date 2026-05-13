@@ -12,6 +12,7 @@ import country_converter as coco
 import numpy as np
 import pandas as pd
 import pypsa
+from tqdm import tqdm
 
 from scripts._benchmark import memory_logger
 from scripts._helpers import (
@@ -583,7 +584,6 @@ def compute_benchmark(
             .replace(regex=NODE_MAP)
             .groupby("border")
             .sum()
-            .to_frame("value")
             .assign(carrier=carrier)
             .set_index("carrier", append=True)
         )
@@ -710,7 +710,7 @@ if __name__ == "__main__":
         logger.info("Building benchmark from network")
 
         benchmarks = []
-        for i, table in enumerate(options["tables"].keys(), 1):
+        for i, table in tqdm(enumerate(options["tables"].keys(), 1)):
             df = compute_benchmark(
                 n,
                 table=table,
