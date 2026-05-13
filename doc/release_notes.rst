@@ -67,6 +67,8 @@ Upcoming Open-TYNDP Release
 
 * Update PEMMDB version reference to correct version v2.5 in the documentation (https://github.com/open-energy-transition/open-tyndp/pull/681).
 
+* Fix units in B4 indicator calculation (https://github.com/open-energy-transition/open-tyndp/pull/693).
+
 **Documentation**
 
 * Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
