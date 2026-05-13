@@ -67,7 +67,7 @@ Upcoming Open-TYNDP Release
 
 * Update PEMMDB version reference to correct version v2.5 in the documentation (https://github.com/open-energy-transition/open-tyndp/pull/681).
 
-* Add a missing mapping for electricity native demand to report market model Pan-EU prices (https://github.com/open-energy-transition/open-tyndp/pull/692).
+* Add a missing mapping for the electricity native demand when calculating the load-weighted average of the Pan-EU Market Model price (https://github.com/open-energy-transition/open-tyndp/pull/692).
 
 **Documentation**
 
