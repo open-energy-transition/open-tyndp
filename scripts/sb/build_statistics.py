@@ -709,8 +709,14 @@ if __name__ == "__main__":
 
         logger.info("Building benchmark from network")
 
+        tqdm_kwargs = {
+            "ascii": False,
+            "unit": " benchmark",
+            "total": len(options["tables"]),
+            "desc": "Computing benchmark",
+        }
         benchmarks = []
-        for i, table in tqdm(enumerate(options["tables"].keys(), 1)):
+        for table in tqdm((options["tables"]), **tqdm_kwargs):
             df = compute_benchmark(
                 n,
                 table=table,
