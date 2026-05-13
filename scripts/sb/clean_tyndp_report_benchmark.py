@@ -134,93 +134,106 @@ def _add_identifier(s: str) -> str:
         return s
 
 
-def _group_labels(
-    df: pd.DataFrame,
-    labels: list[str],
-    group_name: str,
-    label_col: str = "carrier",
-    value_col: str = "value",
-    preserve_labels: bool = False,
+def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
+    """
+    Load report carrier mappings from the carrier mapping file and apply them
+    to the ``mapping`` configuration dictionary of each table.
+
+    Parameters
+    ----------
+    carrier_mapping_fn : str
+        Path to csv file with carrier mapping.
+    tables : dict
+        Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
+        defined in the configuration, the loaded carrier mapping will be added to
+        the dictionary with the ``mapping`` key.
+
+    Returns
+    -------
+    None
+        Modifies the tables dictionary in place by adding the mapping for each table.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    for table, table_opts in tables.items():
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
+        if (
+            "tyndp_report_carrier" not in tech_map.columns
+            or col not in tech_map.columns
+        ):
+            logger.warning(
+                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
+            )
+            continue
+        table_opts["mapping"] = (
+            tech_map[["tyndp_report_carrier", col]]
+            .dropna(subset=["tyndp_report_carrier", col])
+            .assign(
+                tyndp_report_carrier=lambda x: x["tyndp_report_carrier"]
+                .str.removeprefix("H2 ")
+                .str.removeprefix("CH4 ")
+                .str.lower()
+                .str.rstrip("* ")
+            )
+            .set_index("tyndp_report_carrier")[col]
+            .to_dict()
+        )
+
+
+def clean_data_for_benchmarking(
+    table: str, df: pd.DataFrame, mapping: dict = {}
 ) -> pd.DataFrame:
-    if not preserve_labels:
-        df[label_col] = df[label_col].replace(labels, group_name)
-    else:
-        df.loc[~df[label_col].isin(labels), label_col] = group_name
-    df = df.groupby([c for c in df.columns if c != value_col]).sum().reset_index()
-    return df
+    """
+    Clean report data by removing non-modelled carriers, renaming and grouping
+    the remaining ones together according to the specified mapping.
 
+    Parameters
+    ----------
+    table : str
+        Benchmarking table name
+    df : pd.DataFrame
+        Dataframe containing report values for benchmarking
+    mapping : dict
+        Carrier mapping from report carrier names to benchmarking carrier names.
 
-def clean_data_for_benchmarking(table: str, df: pd.DataFrame) -> pd.DataFrame:
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe with report data cleaned for benchmarking.
+    """
     # Keep aggregated electricity demand - Input data for Open-TYNDP is provided in aggregated form
-    if table == "elec_demand":
+    if table == "electricity_demand":
         df = df[df.carrier == "final demand (inc. t&d losses, excl. pump storage )"]
-    # Aggregate methane demand to match input data resolution
+
+    # Drop total for Methane demand
     elif table == "methane_demand":
-        df = _group_labels(
-            df.query("carrier!='total'"),
-            ["smr", "power generation"],
-            "exogenous demand",
-            preserve_labels=True,
-        )
+        df = df[df.carrier != "total"]
 
-    # Aggregate hydrogen demand to match input data resolution
+    # Drop total and e-fuels for Hydrogen demand
     elif table == "hydrogen_demand":
-        df = _group_labels(
-            df.query("~carrier.isin(['total', 'e-fuels'])"),
-            ["power generation"],
-            "exogenous demand",
-            preserve_labels=True,
-        )
+        df = df[~df.carrier.isin(["total", "e-fuels"])]
 
-    # Aggregate hydrogen import sources together to match input data resolution
-    elif table == "hydrogen_supply":
-        df = _group_labels(
-            df,
-            ["low carbon imports", "renewable imports"],
-            "imports (renewable & low carbon)",
-        )
-        df = _group_labels(
-            df,
-            ["smr (grey)", "smr with ccs (blue)"],
-            "smr (grey) and smr with ccs (blue)",
-        )
-
-    # Remove carriers not explicitly modeled
+    # Drop non-modeled FED carriers and total
     elif table == "final_energy_demand":
         df = df[~df.carrier.isin(["total", "heat", "solids", "others"])]
 
-    # Group coal and biofuels together
-    elif table == "power_capacity" or table == "power_generation":
-        df = _group_labels(
-            df,
-            ["coal + other fossil", "biofuels"],
-            "coal + other fossil (incl. biofuels)",
-        )
-
-        df = _group_labels(
-            df,
-            ["methane"],
-            "methane (incl. biofuels)",
-        )
-
-        df = _group_labels(
-            df,
-            ["oil"],
-            "oil (incl. biofuels)",
-        )
-
-        df = _group_labels(
-            df,
-            ["demand shedding"],
-            "dsr",
-        )
-
-        if table == "power_generation":
-            df = df[df.carrier != "total generation"]
+    # Drop total for Power generation
+    elif table == "power_generation":
+        df = df[df.carrier != "total generation"]
 
     # Remove aggregated values
     else:
         df = df[~df.carrier.isin(["sum", "aggregated", "total generation", "total"])]
+
+    # Rename carriers via mapping and aggregate carriers with the same mapped name
+    unmapped = set(df.carrier).difference(set(mapping))
+    if unmapped:
+        logger.warning(
+            f"Table '{table}': carriers {unmapped} are not listed in mapping. Carrier names are kept unchanged."
+        )
+    df.loc[:, "carrier"] = df.loc[:, "carrier"].map(lambda x: mapping.get(x, x))
+    df = df.groupby([c for c in df.columns if c != "value"]).sum().reset_index()
 
     return df
 
@@ -323,7 +336,9 @@ def load_benchmark(
     df_converted["year"] = df_converted["year"].astype(int)
     df_converted["carrier"] = df_converted["carrier"].str.lower().str.rstrip("* ")
 
-    df_clean = clean_data_for_benchmarking(table, df_converted)
+    df_clean = clean_data_for_benchmarking(
+        table, df_converted, mapping=opt.get("mapping", {})
+    )
 
     return df_clean
 
@@ -340,6 +355,9 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     scenario = snakemake.params["scenario"]
+
+    # Map TYNDP report carrier names to benchmarking carrier names
+    add_report_carrier_mappings(snakemake.input.carrier_mapping, options["tables"])
 
     # Read benchmarks
     logger.info("Reading raw benchmark data")
