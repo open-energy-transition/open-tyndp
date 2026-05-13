@@ -25,6 +25,16 @@ from scripts._helpers import (
     set_scenario_config,
 )
 
+NODE_MAP = {
+    "DKBH": "BEIOH01",
+    "BEOF": "BEOH001",
+    "DKNS": "DKWOH01",
+    "EEOF": "EEOH001",
+    "LTOF": "LTOR001",
+    "NLLL": "NLOH001",
+    "DEKF": "DEOH002",
+}
+
 logger = logging.getLogger(__name__)
 
 pypsa.options.params.statistics.nice_names = False
@@ -205,10 +215,10 @@ def compute_benchmark(
             .mul(sws, axis=1)
             .sum(axis=1)
             .loc[pd.IndexSlice[:, ["electricity"]]]
-            .reindex(eu27_idx, level="bus")
-            .dropna()
+            .reset_index()
+            .assign(bus=lambda df: df.bus.str.removesuffix(" low voltage"))
+            .set_index(["bus", "carrier"])
         )
-        df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
         grouper = ["carrier"]
         df_countries = (
