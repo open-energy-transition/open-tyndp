@@ -1069,6 +1069,7 @@ sector:
       oil: 125
   offshore_hubs_tyndp:
     enable: false
+    patch_crossborder_with_mm: false
     connect_isolated: false
     max_capacity:
       DC_OH: 10

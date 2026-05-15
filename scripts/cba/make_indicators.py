@@ -55,12 +55,12 @@ INDICATOR_UNITS = {
     "B3a_res_capacity_change": "MW",
     "B3_res_generation_change": "MWh/year",
     "B3_annual_avoided_curtailment": "MWh/year",
-    "B4a_nox": "kg/year",
-    "B4b_nh3": "kg/year",
-    "B4c_sox": "kg/year",
-    "B4d_pm25": "kg/year",
-    "B4e_pm10": "kg/year",
-    "B4f_nmvoc": "kg/year",
+    "B4a_nox": "ton/year",
+    "B4b_nh3": "ton/year",
+    "B4c_sox": "ton/year",
+    "B4d_pm25": "ton/year",
+    "B4e_pm10": "ton/year",
+    "B4f_nmvoc": "ton/year",
 }
 
 CARRIER_TO_EMISSION_FACTORS = {
@@ -462,7 +462,7 @@ def calculate_b4_indicator(
     conventional_carriers: list[str],
 ) -> tuple[dict, dict]:
     """
-    Calculate B4 indicator: non-CO2 emissions (kg/year).
+    Calculate B4 indicator: non-CO2 emissions (ton/year).
 
     Parameters
     ----------
@@ -560,8 +560,9 @@ def calculate_b4_indicator(
             diff = ref_val - proj_val
         else:
             diff = proj_val - ref_val
-        results[pollutant_key] = diff
-        units[pollutant_key] = "kg/year"
+        # Convert kg to tons
+        results[pollutant_key] = diff / 1000.0
+        units[pollutant_key] = "ton/year"
 
     return results, units
 
