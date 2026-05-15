@@ -193,5 +193,5 @@ data:
     source: tyndp-archive
     version: latest
   open_tyndp_prelim:
-    source: archive
+    source: tyndp-archive
     version: latest

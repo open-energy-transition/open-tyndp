@@ -144,6 +144,7 @@ nuts3_population,13-03-2025,archive,latest supported,2026-01-13,earlier part of 
 nuts3_population,13-03-2025,tyndp-archive,latest supported,2026-05-08,earlier part of zenodo bundle,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
 open_tyndp_prelim,0.5,primary,not-supported,2026-02-16,Open-TYNDP preliminary outcomes,https://zenodo.org/records/18608106
 open_tyndp_prelim,0.5,archive,latest supported,2026-02-16,Open-TYNDP preliminary outcomes (results-0.5.zip),https://zenodo.org/records/18608106/files/results-0.5.zip
+open_tyndp_prelim,0.5,tyndp-archive,latest supported,2026-05-15,Open-TYNDP preliminary outcomes (results-0.5.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.5/results-0.5.zip
 opsd_electricity_demand,unknown,build,latest supported,2026-02-02,multiple versions concatenated,https://data.open-power-system-data.org/time_series/
 opsd_electricity_demand,2026-02-02,archive,latest supported,2026-02-03,,https://data.pypsa.org/workflows/eur/opsd_electricity_demand/2026-02-02/electricity_demand_opsd_raw.csv
 opsd_electricity_demand,2026-02-02,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/opsd_electricity_demand/2026-02-02/electricity_demand_opsd_raw.csv
