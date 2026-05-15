@@ -822,9 +822,6 @@ if config["benchmarking"]["enable"]:
             python=logs(
                 "build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
             ),
-            memory=logs(
-                "build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_memory.log"
-            ),
         benchmark:
             benchmarks(
                 "performances/build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"

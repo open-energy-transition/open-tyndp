@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 import pypsa
 
-from scripts._benchmark import memory_logger
 from scripts._helpers import (
     ENERGY_UNITS,
     POWER_UNITS,
@@ -624,47 +623,42 @@ if __name__ == "__main__":
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
 
-    with memory_logger(
-        filename=getattr(snakemake.log, "memory", None), interval=1
-    ) as mem:
-        # Read network
-        logger.info("Reading network")
-        n = pypsa.Network(snakemake.input.network)
+    # Read network
+    logger.info("Reading network")
+    n = pypsa.Network(snakemake.input.network)
 
-        # Optionally remove the last day of the year to have exactly 52 weeks
-        if options["remove_last_day"]:
-            logger.info("Adjusting snapshot weightings to remove the last day")
-            sws = remove_last_day(n.snapshot_weightings.generators)
-            n.snapshot_weightings.loc[:, "generators"] = sws
-            n.snapshot_weightings.loc[:, "objective"] = sws
-            n.snapshot_weightings.loc[:, "stores"] = sws
+    # Optionally remove the last day of the year to have exactly 52 weeks
+    if options["remove_last_day"]:
+        logger.info("Adjusting snapshot weightings to remove the last day")
+        sws = remove_last_day(n.snapshot_weightings.generators)
+        n.snapshot_weightings.loc[:, "generators"] = sws
+        n.snapshot_weightings.loc[:, "objective"] = sws
+        n.snapshot_weightings.loc[:, "stores"] = sws
 
-        logger.info("Building benchmark from network")
+    logger.info("Building benchmark from network")
 
-        benchmarks = []
-        for i, table in enumerate(options["tables"].keys(), 1):
-            df = compute_benchmark(
-                n,
-                table=table,
-                options=options,
-                eu27=eu27,
-                tyndp_renewable_carriers=tyndp_renewable_carriers,
-                planning_horizons=planning_horizons,
-                load_shedding=load_shedding,
-                low_voltage=low_voltage,
-            )
-            benchmarks.append(df)
-
-        # Combine all benchmark data
-        benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
-            year=planning_horizons,
-            scenario="TYNDP " + snakemake.params["scenario"],
-            source="Open-TYNDP",
+    benchmarks = []
+    for i, table in enumerate(options["tables"].keys(), 1):
+        df = compute_benchmark(
+            n,
+            table=table,
+            options=options,
+            eu27=eu27,
+            tyndp_renewable_carriers=tyndp_renewable_carriers,
+            planning_horizons=planning_horizons,
+            load_shedding=load_shedding,
+            low_voltage=low_voltage,
         )
-        if benchmarks_combined.empty:
-            logger.warning("No benchmark data was successfully processed")
+        benchmarks.append(df)
 
-        # Save data
-        benchmarks_combined.to_csv(snakemake.output[0], index=False)
+    # Combine all benchmark data
+    benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
+        year=planning_horizons,
+        scenario="TYNDP " + snakemake.params["scenario"],
+        source="Open-TYNDP",
+    )
+    if benchmarks_combined.empty:
+        logger.warning("No benchmark data was successfully processed")
 
-    logger.info(f"Maximum memory usage: {mem.mem_usage}")
+    # Save data
+    benchmarks_combined.to_csv(snakemake.output[0], index=False)
