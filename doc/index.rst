@@ -138,7 +138,7 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 - Added H2 cavern and tank storages with existing energy and charge/discharge capacities (see PR `#552 <https://github.com/open-energy-transition/open-tyndp/pull/552>`__).
 - Added PEMMDB common data assumptions from ERAA 2025 for power plant type specific efficiencies and VOM (see PR `#541 <https://github.com/open-energy-transition/open-tyndp/pull/541>`__).
 - Added battery store capacities and assumptions using PEMMDB data (see PR `#253 <https://github.com/open-energy-transition/open-tyndp/pull/253/>`__).
-- Added ``tyndp-archive`` as a new data source backed by an Open-TYNDP Google Cloud Storage bucket (``open-tyndp-data-store``) where archived datasets are mirrored to enable fully reproducible runs without depending on third-party data providers (see PR `#682 <https://github.com/open-energy-transition/open-tyndp/pull/682>`__). For licensing issues six datasets currently remain to be retrieved from the primary source.
+- Added Open-TYNDP data store option for fully reproducible runs without third-party data providers (see PR `#682 <https://github.com/open-energy-transition/open-tyndp/pull/682>`__). Six datasets currently remain to be retrieved from primary sources due to licensing constraints.
 
 
 .. list-table::
