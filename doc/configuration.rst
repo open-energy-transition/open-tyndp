@@ -763,6 +763,13 @@ Open-TYNDP's own data archive on Google Cloud Storage (see :ref:`tyndp_archive`)
 
     pixi run tyndp -- --config data_config=tyndp
 
+or set it permanently in ``config/config.tyndp.yaml`` (applied to all TYNDP runs):
+
+.. code-block:: yaml
+
+    data_config: tyndp
+
+
 This loads ``config/data.tyndp.yaml``, which sets all supported datasets to ``tyndp-archive``
 as their source.
 
