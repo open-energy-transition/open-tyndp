@@ -12,6 +12,7 @@ import country_converter as coco
 import numpy as np
 import pandas as pd
 import pypsa
+from tqdm import tqdm
 
 from scripts._helpers import (
     ENERGY_UNITS,
@@ -637,8 +638,14 @@ if __name__ == "__main__":
 
     logger.info("Building benchmark from network")
 
+    tqdm_kwargs = {
+        "ascii": False,
+        "unit": " benchmark",
+        "total": len(options["tables"]),
+        "desc": "Computing benchmark",
+    }
     benchmarks = []
-    for i, table in enumerate(options["tables"].keys(), 1):
+    for table in tqdm((options["tables"]), **tqdm_kwargs):
         df = compute_benchmark(
             n,
             table=table,
