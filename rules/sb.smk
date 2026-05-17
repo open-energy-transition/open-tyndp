@@ -6,12 +6,11 @@
 from scripts._helpers import safe_pyear, find_free_port
 from shutil import unpack_archive, copy2
 
-
 # Retrieve
 ##########
 
 
-if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ["archive"]:
+if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_pecd:
         input:
@@ -28,7 +27,7 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ["archive"]:
             os.remove(output["dir"] + ".zip")
 
 
-if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archive"]:
+if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_vp_data:
         input:
@@ -46,7 +45,9 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             os.remove(output["dir"] + ".zip")
 
 
-if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["archive"]:
+if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_nuclear_profiles:
         input:

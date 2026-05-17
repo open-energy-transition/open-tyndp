@@ -70,7 +70,7 @@ def input_base_network(w):
     base_network = config_provider("electricity", "base_network")(w)
     source = config_provider("data", "osm", "source")(w)
     components = {"buses", "lines", "links", "converters", "transformers"}
-    if (base_network == "osm") and (source == "archive"):
+    if (base_network == "osm") and (source in ARCHIVE_SOURCES):
         OSM_DATASET = dataset_version("osm")
         inputs = {c: f"{OSM_DATASET['folder']}/{c}.csv" for c in components}
     elif base_network == "osm" and (source == "build"):

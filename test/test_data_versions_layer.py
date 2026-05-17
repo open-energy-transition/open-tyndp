@@ -11,7 +11,12 @@ from natsort import natsort_keygen
 from pandera.pandas import Check, Column
 
 VERSIONS_CSV = Path(__file__).parent.parent / "data" / "versions.csv"
-VALID_SOURCES = ["primary", "archive", "build"]  # Order defines sort priority
+VALID_SOURCES = [
+    "primary",
+    "archive",
+    "tyndp-archive",
+    "build",
+]  # Order defines sort priority
 
 VALID_TAGS = {
     "latest",
@@ -47,7 +52,10 @@ def sort_versions(df: pd.DataFrame) -> pd.DataFrame:
 
 is_sorted = Check(lambda df: df.equals(sort_versions(df)), error="Data must be sorted")
 archive_has_url = Check(
-    lambda df: df.loc[df["source"] == "archive", "url"].str.len().gt(0).all(),
+    lambda df: df.loc[df["source"].isin({"archive", "tyndp-archive"}), "url"]
+    .str.len()
+    .gt(0)
+    .all(),
     error="Archive entries must have a URL",
 )
 one_latest_per_dataset_source = Check(
