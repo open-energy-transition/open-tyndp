@@ -6,9 +6,7 @@ This script computes the benchmark statistics from the optimised network.
 """
 
 import logging
-import multiprocessing as mp
 import re
-from functools import partial
 
 import country_converter as coco
 import numpy as np
@@ -157,12 +155,6 @@ def compute_benchmark(
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
 
-    # Optionally remove the last day of the year to have exactly 52 weeks
-    if options["remove_last_day"]:
-        sws = remove_last_day(n.snapshot_weightings.generators)
-    else:
-        sws = n.snapshot_weightings.generators
-
     if table == "final_energy_demand":
         grouper = ["bus_carrier"]
         df_countries = (
@@ -170,27 +162,18 @@ def compute_benchmark(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time=False,
             )
-            .mul(sws, axis=1)
-            .sum(axis=1)
             .reindex(eu27_idx, level="bus")
             .groupby(level="bus_carrier")
             .sum()
         )
 
         # Add EU level demands
-        df_eu = (
-            n.statistics.withdrawal(
-                comps="Load",
-                groupby=grouper,
-                aggregate_across_components=True,
-                groupby_time=False,
-            )
-            .mul(sws, axis=1)
-            .sum(axis=1)
-            .loc[lambda s: ~s.index.isin(df_countries.index)]
-        )
+        df_eu = n.statistics.withdrawal(
+            comps="Load",
+            groupby=grouper,
+            aggregate_across_components=True,
+        ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
         # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
         biogas_not_upgraded = (
@@ -210,10 +193,7 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time=False,
             )
-            .mul(sws, axis=1)
-            .sum(axis=1)
             .loc[pd.IndexSlice[:, ["electricity"]]]
             .reset_index()
             .assign(bus=lambda df: df.bus.str.removesuffix(" low voltage"))
@@ -242,9 +222,9 @@ def compute_benchmark(
             )
             .loc[
                 lambda s: (
-                    ~s.index.get_level_values("carrier").isin(df_countries.index)
+                    (~s.index.get_level_values("carrier").isin(df_countries.index))
+                    & (s.index.get_level_values("bus1").str.startswith("EU"))
                 )
-                & (s.index.get_level_values("bus1").str.startswith("EU"))
             ]
             .groupby(by=grouper)
             .sum()
@@ -312,18 +292,12 @@ def compute_benchmark(
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
         ]
-        df = (
-            n.statistics.supply(
-                comps=supply_comps + ["StorageUnit"],
-                bus_carrier=elec_bus_carrier,
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-                groupby_time=False,
-            )
-            .mul(sws, axis=1)
-            .sum(axis=1)
-            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
-        )
+        df = n.statistics.supply(
+            comps=supply_comps + ["StorageUnit"],
+            bus_carrier=elec_bus_carrier,
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
 
         # TYNDP 2024 report available generation for renewables (pre-curtailment)
         # and add H2 offwind capacities in MWh_e
@@ -333,7 +307,10 @@ def compute_benchmark(
         eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
 
         res_gen = (
-            (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
+            (
+                n.snapshot_weightings.generators
+                @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx])
+            )
             .div(eff_dc_to_b0)
             .groupby([n.generators.bus, n.generators.carrier])
             .sum()
@@ -360,14 +337,11 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time=False,
                 components="Generator",
             )
-            .mul(sws, axis=1)
-            .sum(axis=1)
             .loc[
-                lambda df: ~df.index.get_level_values("carrier").isin(
-                    curtailment_exclusions
+                lambda df: (
+                    ~df.index.get_level_values("carrier").isin(curtailment_exclusions)
                 )
             ]
             .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
@@ -390,7 +364,9 @@ def compute_benchmark(
             aggregate_across_components=True,
             groupby_time=False,
         )
-        df = (df > 1).mul(sws, axis=1).sum(axis=1)  # 1 MWh clipping
+        df = (
+            (df > 1).mul(n.snapshot_weightings.generators, axis=1).sum(axis=1)
+        )  # 1 MWh clipping
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (
@@ -410,7 +386,7 @@ def compute_benchmark(
             bus_carrier="gas",
             groupby=grouper,
             aggregate_across_components=True,
-        ).loc[lambda s: (~s.index.get_level_values("carrier").isin(df_countries.index))]
+        ).loc[lambda s: ~s.index.get_level_values("carrier").isin(df_countries.index)]
 
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
@@ -667,13 +643,15 @@ def compute_benchmark(
         .reset_index()
         .assign(
             table=table,
-            unit=lambda x: "MWh"
-            if opt["unit"] in ENERGY_UNITS
-            else "MW"
-            if opt["unit"] in POWER_UNITS
-            else "EUR/MWh"
-            if opt["unit"] in PRICE_UNITS
-            else opt["unit"],
+            unit=lambda x: (
+                "MWh"
+                if opt["unit"] in ENERGY_UNITS
+                else "MW"
+                if opt["unit"] in POWER_UNITS
+                else "EUR/MWh"
+                if opt["unit"] in PRICE_UNITS
+                else opt["unit"]
+            ),
         )
     )
 
@@ -716,29 +694,35 @@ if __name__ == "__main__":
     logger.info("Reading network")
     n = pypsa.Network(snakemake.input.network)
 
+    # Optionally remove the last day of the year to have exactly 52 weeks
+    if options["remove_last_day"]:
+        logger.info("Adjusting snapshot weightings to remove the last day")
+        sws = remove_last_day(n.snapshot_weightings.generators)
+        n.snapshot_weightings.loc[:, "generators"] = sws
+        n.snapshot_weightings.loc[:, "objective"] = sws
+        n.snapshot_weightings.loc[:, "stores"] = sws
+
     logger.info("Building benchmark from network")
+
     tqdm_kwargs = {
         "ascii": False,
         "unit": " benchmark",
         "total": len(options["tables"]),
         "desc": "Computing benchmark",
     }
-
-    func = partial(
-        compute_benchmark,
-        n,
-        options=options,
-        eu27=eu27,
-        tyndp_renewable_carriers=tyndp_renewable_carriers,
-        planning_horizons=planning_horizons,
-        load_shedding=load_shedding,
-        low_voltage=low_voltage,
-    )
-
-    with mp.Pool(processes=snakemake.threads) as pool:
-        benchmarks = list(
-            tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs)
+    benchmarks = []
+    for table in tqdm((options["tables"]), **tqdm_kwargs):
+        df = compute_benchmark(
+            n,
+            table=table,
+            options=options,
+            eu27=eu27,
+            tyndp_renewable_carriers=tyndp_renewable_carriers,
+            planning_horizons=planning_horizons,
+            load_shedding=load_shedding,
+            low_voltage=low_voltage,
         )
+        benchmarks.append(df)
 
     # Combine all benchmark data
     benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(

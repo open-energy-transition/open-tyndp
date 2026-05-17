@@ -47,6 +47,8 @@ Upcoming Open-TYNDP Release
 
 * Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
 
+* Improve performance of ``build_statistics`` by adjusting snapshot weightings within networks to be applied automatically within ``n.statistics`` instead of manually in ``build_statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/674).
+
 **Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
