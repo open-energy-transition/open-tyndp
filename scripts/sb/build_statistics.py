@@ -6,9 +6,7 @@ This script computes the benchmark statistics from the optimised network.
 """
 
 import logging
-import multiprocessing as mp
 import re
-from functools import partial
 
 import country_converter as coco
 import numpy as np
@@ -25,9 +23,66 @@ from scripts._helpers import (
     set_scenario_config,
 )
 
+NODE_MAP = {
+    "BEIOH01": "DKBH",
+    "BEOH001": "BEOF",
+    "DKWOH01": "DKNS",
+    "EEOH001": "EEOF",
+    "LTOR001": "LTOF",
+    "NLOH001": "NLLL",
+    "DEOH002": "DEKF",
+}
+
 logger = logging.getLogger(__name__)
 
 pypsa.options.params.statistics.nice_names = False
+
+
+def add_benchmarking_mappings(
+    carrier_mapping_fn: str, tables: dict, group_tyndp_conventionals: bool = False
+) -> None:
+    """
+    Load benchmarking mappings from the carrier mapping file and apply them
+    to the ``mapping`` configuration dictionary of each table.
+
+    Parameters
+    ----------
+    carrier_mapping_fn : str
+        Path to csv file with carrier mapping.
+    tables : dict
+        Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
+        defined in the configuration, the loaded carrier mapping will be added to
+        the dictionary with the ``mapping`` key.
+    group_tyndp_conventionals : bool, default False
+        Whether TYNDP technologies are grouped to their ``open_tyndp_type``.
+        These group names then take precedence over the names in ``open_tyndp_index`` and ``open_tyndp_carrier``.
+
+    Returns
+    -------
+    None
+        Modifies the tables dictionary in place by adding the mapping for each table.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    for table, table_opts in tables.items():
+        col = table_opts.get("mapping_col")
+        if col is None:
+            continue
+        if col not in tech_map.columns:
+            logger.warning(
+                f"No existing mapping for table {table} in 'tyndp_technology_map.csv'."
+            )
+            continue
+        if group_tyndp_conventionals:
+            id_cols = ["open_tyndp_type", "open_tyndp_index", "open_tyndp_carrier"]
+        else:
+            id_cols = ["open_tyndp_index", "open_tyndp_carrier"]
+        table_opts["mapping"] = (
+            tech_map[id_cols + [col]]
+            .assign(open_tyndp=lambda x: x[id_cols].bfill(axis=1).iloc[:, 0])
+            .dropna(subset=["open_tyndp", col])
+            .set_index("open_tyndp")[col]
+            .to_dict()
+        )
 
 
 def remove_last_day(sws: pd.Series, nhours: int = 24):
@@ -100,12 +155,6 @@ def compute_benchmark(
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
 
-    # Optionally remove the last day of the year to have exactly 52 weeks
-    if options["remove_last_day"]:
-        sws = remove_last_day(n.snapshot_weightings.generators)
-    else:
-        sws = n.snapshot_weightings.generators
-
     if table == "final_energy_demand":
         grouper = ["bus_carrier"]
         df_countries = (
@@ -113,27 +162,18 @@ def compute_benchmark(
                 comps="Load",
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time=False,
             )
-            .mul(sws, axis=1)
-            .sum(axis=1)
             .reindex(eu27_idx, level="bus")
             .groupby(level="bus_carrier")
             .sum()
         )
 
         # Add EU level demands
-        df_eu = (
-            n.statistics.withdrawal(
-                comps="Load",
-                groupby=grouper,
-                aggregate_across_components=True,
-                groupby_time=False,
-            )
-            .mul(sws, axis=1)
-            .sum(axis=1)
-            .loc[lambda s: ~s.index.isin(df_countries.index)]
-        )
+        df_eu = n.statistics.withdrawal(
+            comps="Load",
+            groupby=grouper,
+            aggregate_across_components=True,
+        ).loc[lambda s: ~s.index.isin(df_countries.index)]
 
         # Biogas not upgraded to biomethane is part of the FED in Open-TYNDP
         biogas_not_upgraded = (
@@ -145,7 +185,7 @@ def compute_benchmark(
         df_eu.loc["solid biomass"] -= biogas_not_upgraded
 
         df = pd.concat([df_countries, df_eu])
-    elif table == "elec_demand":
+    elif table == "electricity_demand":
         grouper = ["carrier"]
         df = (
             n.statistics.withdrawal(
@@ -153,15 +193,12 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time=False,
             )
-            .mul(sws, axis=1)
-            .sum(axis=1)
             .loc[pd.IndexSlice[:, ["electricity"]]]
-            .reindex(eu27_idx, level="bus")
-            .dropna()
+            .reset_index()
+            .assign(bus=lambda df: df.bus.str.removesuffix(" low voltage"))
+            .set_index(["bus", "carrier"])
         )
-        df = df.groupby(by=grouper).sum()
     elif table == "methane_demand":
         grouper = ["carrier"]
         df_countries = (
@@ -185,9 +222,9 @@ def compute_benchmark(
             )
             .loc[
                 lambda s: (
-                    ~s.index.get_level_values("carrier").isin(df_countries.index)
+                    (~s.index.get_level_values("carrier").isin(df_countries.index))
+                    & (s.index.get_level_values("bus1").str.startswith("EU"))
                 )
-                & (s.index.get_level_values("bus1").str.startswith("EU"))
             ]
             .groupby(by=grouper)
             .sum()
@@ -255,18 +292,12 @@ def compute_benchmark(
             "hydro-phs-pure-pump",
             "H2 Electrolysis",
         ]
-        df = (
-            n.statistics.supply(
-                comps=supply_comps + ["StorageUnit"],
-                bus_carrier=elec_bus_carrier,
-                groupby=["bus"] + grouper,
-                aggregate_across_components=True,
-                groupby_time=False,
-            )
-            .mul(sws, axis=1)
-            .sum(axis=1)
-            .loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
-        )
+        df = n.statistics.supply(
+            comps=supply_comps + ["StorageUnit"],
+            bus_carrier=elec_bus_carrier,
+            groupby=["bus"] + grouper,
+            aggregate_across_components=True,
+        ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
 
         # TYNDP 2024 report available generation for renewables (pre-curtailment)
         # and add H2 offwind capacities in MWh_e
@@ -276,7 +307,10 @@ def compute_benchmark(
         eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
 
         res_gen = (
-            (sws @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx]))
+            (
+                n.snapshot_weightings.generators
+                @ (n.generators_t.p_max_pu[res_idx] * n.generators.p_nom_opt[res_idx])
+            )
             .div(eff_dc_to_b0)
             .groupby([n.generators.bus, n.generators.carrier])
             .sum()
@@ -303,13 +337,11 @@ def compute_benchmark(
                 bus_carrier=elec_bus_carrier,
                 groupby=["bus"] + grouper,
                 aggregate_across_components=True,
-                groupby_time=False,
+                components="Generator",
             )
-            .mul(sws, axis=1)
-            .sum(axis=1)
             .loc[
-                lambda df: ~df.index.get_level_values("carrier").isin(
-                    curtailment_exclusions
+                lambda df: (
+                    ~df.index.get_level_values("carrier").isin(curtailment_exclusions)
                 )
             ]
             .rename(index=lambda x: x.removesuffix(" low voltage"), level="bus")
@@ -332,7 +364,9 @@ def compute_benchmark(
             aggregate_across_components=True,
             groupby_time=False,
         )
-        df = (df > 1).mul(sws, axis=1).sum(axis=1)  # 1 MWh clipping
+        df = (
+            (df > 1).mul(n.snapshot_weightings.generators, axis=1).sum(axis=1)
+        )  # 1 MWh clipping
     elif table == "methane_supply":
         grouper = ["carrier"]
         df_countries = (
@@ -352,7 +386,7 @@ def compute_benchmark(
             bus_carrier="gas",
             groupby=grouper,
             aggregate_across_components=True,
-        ).loc[lambda s: (~s.index.get_level_values("carrier").isin(df_countries.index))]
+        ).loc[lambda s: ~s.index.get_level_values("carrier").isin(df_countries.index)]
 
         df = pd.concat([df_countries, df_eu])
     elif table == "hydrogen_supply":
@@ -545,11 +579,11 @@ def compute_benchmark(
         )
 
         df = (
-            df.groupby("border")
-            .sum()
-            .to_frame("value")
+            df.reset_index()
+            .replace(regex=NODE_MAP)
             .assign(carrier=carrier)
-            .set_index("carrier", append=True)
+            .groupby(["border", "carrier"])
+            .sum()
         )
     else:
         logger.warning(f"Unknown benchmark table: {table}")
@@ -609,13 +643,15 @@ def compute_benchmark(
         .reset_index()
         .assign(
             table=table,
-            unit=lambda x: "MWh"
-            if opt["unit"] in ENERGY_UNITS
-            else "MW"
-            if opt["unit"] in POWER_UNITS
-            else "EUR/MWh"
-            if opt["unit"] in PRICE_UNITS
-            else opt["unit"],
+            unit=lambda x: (
+                "MWh"
+                if opt["unit"] in ENERGY_UNITS
+                else "MW"
+                if opt["unit"] in POWER_UNITS
+                else "EUR/MWh"
+                if opt["unit"] in PRICE_UNITS
+                else opt["unit"]
+            ),
         )
     )
 
@@ -642,37 +678,51 @@ if __name__ == "__main__":
     tyndp_renewable_carriers = snakemake.params["tyndp_renewable_carriers"]
     load_shedding = snakemake.params["load_shedding"]
     low_voltage = snakemake.params["low_voltage"]
+    group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
     planning_horizons = int(snakemake.wildcards.planning_horizons)
+
+    # Map Open-TYNDP carrier names to benchmarking carrier names
+    add_benchmarking_mappings(
+        carrier_mapping_fn=snakemake.input.carrier_mapping,
+        tables=options["tables"],
+        group_tyndp_conventionals=group_tyndp_conventionals,
+    )
 
     # Read network
     logger.info("Reading network")
     n = pypsa.Network(snakemake.input.network)
 
+    # Optionally remove the last day of the year to have exactly 52 weeks
+    if options["remove_last_day"]:
+        logger.info("Adjusting snapshot weightings to remove the last day")
+        sws = remove_last_day(n.snapshot_weightings.generators)
+        n.snapshot_weightings.loc[:, "generators"] = sws
+        n.snapshot_weightings.loc[:, "objective"] = sws
+        n.snapshot_weightings.loc[:, "stores"] = sws
+
     logger.info("Building benchmark from network")
+
     tqdm_kwargs = {
         "ascii": False,
         "unit": " benchmark",
         "total": len(options["tables"]),
         "desc": "Computing benchmark",
     }
-
-    func = partial(
-        compute_benchmark,
-        n,
-        options=options,
-        eu27=eu27,
-        tyndp_renewable_carriers=tyndp_renewable_carriers,
-        planning_horizons=planning_horizons,
-        load_shedding=load_shedding,
-        low_voltage=low_voltage,
-    )
-
-    with mp.Pool(processes=snakemake.threads) as pool:
-        benchmarks = list(
-            tqdm(pool.imap(func, options["tables"].keys()), **tqdm_kwargs)
+    benchmarks = []
+    for table in tqdm((options["tables"]), **tqdm_kwargs):
+        df = compute_benchmark(
+            n,
+            table=table,
+            options=options,
+            eu27=eu27,
+            tyndp_renewable_carriers=tyndp_renewable_carriers,
+            planning_horizons=planning_horizons,
+            load_shedding=load_shedding,
+            low_voltage=low_voltage,
         )
+        benchmarks.append(df)
 
     # Combine all benchmark data
     benchmarks_combined = pd.concat(benchmarks, ignore_index=True).assign(
