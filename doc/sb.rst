@@ -190,5 +190,16 @@ through to results and launching the
 `PyPSA Explorer <https://github.com/open-energy-transition/pypsa-explorer>`_ visualisation runs with a single command:
  
 .. code-block:: console
- 
+
     $ pixi run tyndp
+
+.. hint::
+
+   If too many parallel jobs cause out-of-memory issues, you can specify your machine's
+   physical RAM limit in ``profiles/default/config.yaml`` for Snakemake to use
+   when scheduling jobs:
+
+   .. code-block:: yaml
+
+       resources:
+         mem_mb: 16000

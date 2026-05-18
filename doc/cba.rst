@@ -153,3 +153,14 @@ Similarly, a single climate year can be run by modifying ``run.name``  in ``conf
 .. code-block:: console
 
     $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
+
+.. hint::
+
+   If too many parallel jobs cause out-of-memory issues, you can specify your machine's
+   physical RAM limit in ``profiles/default/config.yaml`` for Snakemake to use
+   when scheduling jobs:
+
+   .. code-block:: yaml
+
+       resources:
+         mem_mb: 16000
