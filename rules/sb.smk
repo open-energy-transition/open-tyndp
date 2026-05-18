@@ -826,14 +826,14 @@ if config["benchmarking"]["enable"]:
             RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
         log:
-            logs(
+            python=logs(
                 "build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
             ),
         benchmark:
             benchmarks(
                 "performances/build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
-        threads: 4
+        threads: 1
         resources:
             mem_mb=8000,
         script:
