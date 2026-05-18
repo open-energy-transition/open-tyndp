@@ -39,6 +39,9 @@ Upcoming Open-TYNDP Release
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
+* Improve price benchmarking without load shedding by lowering the carrier-specific threshold used to filter marginal prices
+  (https://github.com/open-energy-transition/open-tyndp/pull/701).
+
 **Bugfixes and Compatibility**
 
 * Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
