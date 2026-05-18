@@ -241,10 +241,7 @@ benchmarking:
       rfc_sources:
       - market_out
       unit: EUR/MWh_e
-      threshold:  # EUR/MWh_e; derived from 3000 EUR/MWh_e × electrolysis efficiency
-        2030: 2070 # 0.69 efficiency ; TYNDP 2024 Scenarios Methodology Report, p51
-        2035: 2100  # interpolated
-        2040: 2130  # 0.71 efficiency ; TYNDP 2024 Scenarios Methodology Report, p51
+      exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_H2 × electrolysis efficiency
 
     hydrogen_price:
       table_type: prices
@@ -259,10 +256,7 @@ benchmarking:
       rfc_sources:
       - market_out
       unit: EUR/MWh_H2
-      threshold:  # EUR/MWh_H2; derived from 3000 EUR/MWh_H2 × H2-CCGT efficiency
-        2030: 1800  # 0.6 efficiency ; ERAA 2025 Common Data
-        2035: 1800  # interpolated
-        2040: 1800  # 0.6 efficiency ; ERAA 2025 Common Data
+      exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_e × H2-CCGT efficiency
 
     crossborder_electricity:
       table_type: flows

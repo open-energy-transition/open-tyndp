@@ -164,22 +164,21 @@ if config["foresight"] != "perfect":
             load_shedding=config_provider(
                 "solving", "options", "load_shedding", "carriers"
             ),
-            price_excl_shed_thresholds=lambda w: {
-                "AC": config_provider(
+            exclude_coupling_effects=lambda w: (
+                config_provider(
                     "benchmarking",
                     "tables",
-                    "electricity_price_excl_shed",
-                    "threshold",
-                    default={},
-                )(w),
-                "H2": config_provider(
-                    "benchmarking",
-                    "tables",
-                    "hydrogen_price_excl_shed",
-                    "threshold",
-                    default={},
-                )(w),
-            },
+                    (
+                        "electricity_price_excl_shed"
+                        if w.carrier == "AC"
+                        else "hydrogen_price_excl_shed"
+                    ),
+                    "exclude_coupling_effects",
+                    default=False,
+                )(w)
+                if w.carrier in ("AC", "H2")
+                else False
+            ),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
