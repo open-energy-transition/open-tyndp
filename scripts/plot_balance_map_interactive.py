@@ -288,7 +288,7 @@ if __name__ == "__main__":
         n.buses_t.marginal_price.reindex(buses, axis=1)
         .rename(n.buses.location, axis=1)
         .where(
-            lambda x: x < load_shedding.get(carrier, np.inf)
+            lambda x: round(x) < load_shedding.get(carrier, np.inf)
         )  # comment out to incl. load shedding
         .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
     )
