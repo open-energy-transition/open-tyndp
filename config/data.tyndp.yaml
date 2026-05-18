@@ -1,0 +1,197 @@
+# yaml-language-server: $schema=schema.default.json
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Use this file by setting --config data_config=tyndp
+
+data:
+  hotmaps_industrial_sites:
+    source: tyndp-archive
+    version: latest
+  enspreso_biomass:
+    source: tyndp-archive
+    version: latest
+  osm:
+    source: tyndp-archive
+    version: latest
+  worldbank_urban_population:
+    source: tyndp-archive
+    version: latest
+  worldbank_commodity_prices:
+    source: tyndp-archive
+    version: latest
+  gem_europe_gas_tracker:
+    source: tyndp-archive
+    version: latest
+  gem_gcct:
+    source: tyndp-archive
+    version: latest
+  instrat_co2_prices:
+    source: primary
+    version: latest
+  co2stop:
+    source: tyndp-archive
+    version: latest
+  nitrogen_statistics:
+    source: tyndp-archive
+    version: latest
+  eu_nuts2013:
+    source: tyndp-archive
+    version: latest
+  eu_nuts2021:
+    source: tyndp-archive
+    version: latest
+  eurostat_balances:
+    source: tyndp-archive
+    version: latest
+  eurostat_household_balances:
+    source: tyndp-archive
+    version: latest
+  wdpa:
+    source: archive
+    version: latest
+  wdpa_marine:
+    source: archive
+    version: latest
+  luisa_land_cover:
+    source: tyndp-archive
+    version: latest
+  jrc_idees:
+    source: tyndp-archive
+    version: latest
+  scigrid_gas:
+    source: tyndp-archive
+    version: latest
+  seawater_temperature:
+    source: tyndp-archive
+    version: latest
+  swiss_energy_balances:
+    source: primary
+    version: latest
+  synthetic_electricity_demand:
+    source: tyndp-archive
+    version: latest
+  opsd_electricity_demand:
+    source: tyndp-archive
+    version: latest
+  entsoe_electricity_demand:
+    source: tyndp-archive
+    version: latest
+  neso_electricity_demand:
+    source: tyndp-archive
+    version: latest
+  copernicus_land_cover:
+    source: tyndp-archive
+    version: latest
+  ship_raster:
+    source: tyndp-archive
+    version: latest
+  eez:
+    source: tyndp-archive
+    version: latest
+  nuts3_population:
+    source: tyndp-archive
+    version: latest
+  gdp_per_capita:
+    source: tyndp-archive
+    version: latest
+  population_count:
+    source: tyndp-archive
+    version: latest
+  ghg_emissions:
+    source: tyndp-archive
+    version: latest
+  gebco:
+    source: tyndp-archive
+    version: latest
+  attributed_ports:
+    source: tyndp-archive
+    version: latest
+  corine:
+    source: tyndp-archive
+    version: latest
+  emobility:
+    source: tyndp-archive
+    version: latest
+  h2_salt_caverns:
+    source: tyndp-archive
+    version: latest
+  lau_regions:
+    source: tyndp-archive
+    version: latest
+  aquifer_data:
+    source: tyndp-archive
+    version: latest
+  osm_boundaries:
+    source: tyndp-archive
+    version: latest
+  gem_gspt:
+    source: tyndp-archive
+    version: latest
+  tyndp:
+    source: tyndp-archive
+    version: latest
+  powerplants:
+    source: tyndp-archive
+    version: latest
+  costs:
+    source: tyndp-archive
+    version: latest
+  country_runoff:
+    source: tyndp-archive
+    version: latest
+  country_hdd:
+    source: tyndp-archive
+    version: latest
+  natura:
+    source: tyndp-archive
+    version: latest
+  bfs_road_vehicle_stock:
+    source: primary
+    version: latest
+  bfs_gdp_and_population:
+    source: primary
+    version: latest
+  mobility_profiles:
+    source: tyndp-archive
+    version: latest
+  cutout:
+    source: archive
+    version: latest
+  dh_areas:
+    source: tyndp-archive
+    version: latest
+  geothermal_heat_utilisation_potentials:
+    source: tyndp-archive
+    version: latest
+  jrc_ardeco:
+    source: tyndp-archive
+    version: latest
+  bidding_zones_electricitymaps:
+    source: tyndp-archive
+    version: latest
+  bidding_zones_entsoepy:
+    source: tyndp-archive
+    version: latest
+  tyndp_pecd:
+    source: tyndp-archive
+    version: latest
+  tyndp_vis_plfm:
+    source: tyndp-archive
+    version: latest
+  tyndp_cba_projects:
+    source: tyndp-archive
+    version: latest
+  tyndp_nuclear_profiles:
+    source: tyndp-archive
+    version: latest
+  tyndp_cba_non_co2_emissions:
+    source: tyndp-archive
+    version: latest
+  cba_guidelines_reference_projects:
+    source: tyndp-archive
+    version: latest
+  open_tyndp_prelim:
+    source: tyndp-archive
+    version: latest

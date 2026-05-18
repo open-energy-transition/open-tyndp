@@ -33,6 +33,13 @@ configfile: "config/plotting.default.yaml"
 configfile: "config/benchmarking.default.yaml"
 
 
+if (tag := config["data_config"]) is not None and Path(
+    "config", f"data.{tag}.yaml"
+).exists():
+
+    configfile: f"config/data.{tag}.yaml"
+
+
 if Path("config/config.yaml").exists():
 
     configfile: "config/config.yaml"

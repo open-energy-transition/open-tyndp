@@ -12,9 +12,12 @@ Not all data dependencies are shipped with the git repository, since git is not 
 Instead we use separate steps in the workflow (``rules`` executed by ``snakemake``) to download external data using the ``retrieve_<dataset>`` rules.
 
 Data is generally retrieved in a version-controlled manner, enabling control over input data versions, reproducibility and consistency of modelling runs.
-The rules download data into subfolders in the `data/` directory, following the structure 
+The rules download data into subfolders in the `data/` directory, following the structure
 ``data/{dataset}/{source}/{version}``, e.g. ``data/jrc_idees/primary/March-2025-V1/``.
-Which specific data version is retrieve can be controlled in the `data configuration <https://pypsa-eur.readthedocs.io/en/latest/configuration.html#data>`__ .
+Which specific data version is retrieved can be controlled in the :ref:`data configuration <data_cf>`.
+
+For Open-TYNDP runs, most datasets can also be retrieved from a dedicated Google Cloud Storage
+bucket instead of their original sources. See :ref:`tyndp_archive` in the SB documentation.
 
 Below some specific ``retrieve_<dataset>`` rules are documented.
 For more information on the datasets retrieved, see the `data sources <https://pypsa-eur.readthedocs.io/en/latest/data_sources.html>`__ and *Data inventory* section there in the documentation.

@@ -747,6 +747,39 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
    :start-at: solving:
    :end-before: # docs
 
+.. _data_config_cf:
+
+``data_config``
+===============
+
+Selects a pre-defined data configuration file to load. When set, the workflow looks for
+``config/data.{data_config}.yaml`` and loads it as an additional configuration layer on top of
+the defaults, before any user ``config/config.yaml`` overrides.
+
+This is the recommended way to switch between data source strategies. For example, to use
+Open-TYNDP's own data archive on Google Cloud Storage (see :ref:`tyndp_archive`), run:
+
+.. code-block:: console
+
+    pixi run tyndp -- --config data_config=tyndp
+
+or set it permanently in ``config/config.tyndp.yaml`` (applied to all TYNDP runs):
+
+.. code-block:: yaml
+
+    data_config: tyndp
+
+
+This loads ``config/data.tyndp.yaml``, which sets all supported datasets to ``tyndp-archive``
+as their source.
+
+**YAML Syntax**
+
+.. literalinclude:: ../config/config.default.yaml
+   :language: yaml
+   :start-at: data_config:
+   :end-before: # docs
+
 .. _data_cf:
 
 ``data``
@@ -754,12 +787,15 @@ The list of available biomass is given by the category in `ENSPRESO_BIOMASS <htt
 
 Controls which versions of input data are used for building the model.
 Versions that are available for each dataset can be found in `data/versions.csv`.
-By default, we retrieve the `latest` supported version for each dataset from an archive source.
-This means that when upgrading between PyPSA-Eur versions, new versions of input data may also be downloaded and used.
+By default, we retrieve the `latest` supported version for each dataset from an archive source
+(``data.pypsa.org``).
+This means that when upgrading between Open-TYNDP versions, new versions of input data may also be downloaded and used.
 To freeze a model to a specific version of input data, you can set a specific version in the `version` field for each dataset to one specific version as listed in `data/versions.csv`.
 
 Some datasets support `primary` or `build` as a source option, meaning that the data can be retrieved from the original
 data source or build it from the latest available data.
+Datasets that are mirrored to the Open-TYNDP data store on Google Cloud Storage also support ``tyndp-archive`` as a source
+(see :ref:`tyndp_archive`).
 See the `data/versions.csv` file for all available datasets and their sources/versions that are supported.
 
 .. dropdown:: Details
