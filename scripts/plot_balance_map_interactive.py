@@ -327,7 +327,7 @@ if __name__ == "__main__":
         "<b>"
         + regions.index
         + "</b><br>"
-        + "<b>Weighted price (excl. load shedding):</b> "
+        + "<b>Time-weighted avg. price (excl. load shedding):</b> "
         + pd.to_numeric(regions["price"], errors="coerce").round(2).astype(str)
         + " "
         + region_unit
