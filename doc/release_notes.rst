@@ -83,6 +83,8 @@ Upcoming Open-TYNDP Release
 
 * Refactor the ``plot_benchmarks`` script in order to reduce memory requirements and accelerate processing (https://github.com/open-energy-transition/open-tyndp/pull/696.
 
+* Fix the interconnector normalisation by mapping the bus names prior to their normalisation for all the cross-border benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/703).
+
 **Documentation**
 
 * Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
