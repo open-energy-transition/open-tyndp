@@ -138,14 +138,6 @@ Example Collection (``config/scenarios.tyndp.yaml``):
 
 Individual child scenarios (e.g., ``NT-cy2009``) must define their specific ``snapshots``, ``atlite.default_cutout``, and the ``cba.sb_scenario`` used as input.
 
-Running Multiple Years
-----------------------
-To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.tyndp.yaml`` or override it via command line:
-
-.. code-block:: console
-
-    $ pixi run tyndp-cba --config run='{"name":"NT-cyears"}'
-
 .. hint::
 
    If too many parallel jobs cause out-of-memory issues, you can specify your machine's
@@ -156,6 +148,14 @@ To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.t
 
        resources:
          mem_mb: 16000
+
+Running Multiple Years
+----------------------
+To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.tyndp.yaml`` or override it via command line:
+
+.. code-block:: console
+
+    $ pixi run tyndp-cba --config run='{"name":"NT-cyears"}'
 
 Running a Single Climate Year
 -----------------------------
