@@ -242,6 +242,15 @@ if __name__ == "__main__":
     eb = eb.dropna()
     bus_size = eb.groupby(level=["bus", "carrier"]).sum()
 
+    # Rename carriers to nice names for pie charts
+    nice_names = n.carriers.nice_name[n.carriers.nice_name != ""].dropna()
+    for orig, nice in nice_names.items():
+        if nice not in n.carriers.index:
+            n.carriers.loc[nice] = n.carriers.loc[orig]
+    bus_size = (
+        bus_size.rename(nice_names, level="carrier").groupby(["bus", "carrier"]).sum()
+    )
+
     # line and links widths according to optimal capacity
     flow = n.statistics.transmission(groupby=False, bus_carrier=carrier, at_port=0)
     if not flow.empty:
