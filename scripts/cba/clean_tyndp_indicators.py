@@ -153,7 +153,7 @@ def parse_scenario_name(sheet_name: str) -> tuple[str, int]:
 
 def extract_sheet(excel_path: Path, sheet_name: str) -> pd.DataFrame:
     """Extract long-format indicator rows from a single scenario sheet."""
-    df = pd.read_excel(excel_path, sheet_name=sheet_name, header=[0, 1])
+    df = pd.read_excel(excel_path, sheet_name=sheet_name, header=[0, 1, 2])
     df = normalize_headers(df)
 
     project_cols = [c for c in df.columns if c[0] == "Project ID"]
@@ -183,9 +183,10 @@ def extract_sheet(excel_path: Path, sheet_name: str) -> pd.DataFrame:
 
     long = df[indicator_cols].copy()
     long.index = df[project_col]
-    long = long.stack(level=[0, 1], future_stack=True).reset_index()
-    long.columns = ["project_id", "shortcut", "stat", "value"]
+    long = long.stack(level=[0, 1, 2], future_stack=True).reset_index()
+    long.columns = ["project_id", "shortcut", "stat", "unit_from_sheet", "value"]
     long["value"] = pd.to_numeric(long["value"], errors="coerce")
+    long["unit_from_sheet"] = long["unit_from_sheet"].map(normalize_unit)
 
     stat = long["stat"].astype(str).str.strip().str.lower()
     long["subindex"] = stat.map(STAT_MAP).fillna(stat)
@@ -219,9 +220,20 @@ def normalize_headers(df: pd.DataFrame) -> pd.DataFrame:
             top = prev
         level0.append(top)
         prev = top
-    df.columns = pd.MultiIndex.from_tuples(
-        list(zip(level0, df.columns.get_level_values(1)))
-    )
+    if df.columns.nlevels == 3:
+        df.columns = pd.MultiIndex.from_tuples(
+            list(
+                zip(
+                    level0,
+                    df.columns.get_level_values(1),
+                    df.columns.get_level_values(2),
+                )
+            )
+        )
+    else:
+        df.columns = pd.MultiIndex.from_tuples(
+            list(zip(level0, df.columns.get_level_values(1)))
+        )
     return df
 
 
@@ -231,6 +243,11 @@ def join_indicator_data(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFra
 
     Some data processing and normalization is applied to match the indicators
     between the two tables.
+
+    Units are preferentially taken from the results sheet headers (unit_from_sheet).
+    Readme units (unit_readme) are kept as fallback and for reference.
+    This is because some indicators (such as B4) have inconsistent units in the Readme vs results sheets.
+    The results sheet units are used because those are the values compared with the Open-TYNDP outputs.
     """
     long["shortcut_norm"] = long["shortcut"].map(normalize_shortcut)
     mapping = mapping.copy()
@@ -243,7 +260,7 @@ def join_indicator_data(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFra
     merged = merged.rename(
         columns={
             "indicator": "indicator_raw",
-            "unit": "unit_raw",
+            "unit": "unit_readme",
             "full_name": "indicator_name",
         }
     )
@@ -254,8 +271,11 @@ def join_indicator_data(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFra
     merged["indicator_mapped"] = merged["indicator_key"].map(INDICATOR_MAP)
     merged["indicator"] = merged["indicator_raw"]
 
-    merged["unit_raw"] = merged["unit_raw"].map(normalize_unit)
-    merged["units"] = merged["unit_raw"]
+    # Normalize units from Readme table
+    merged["unit_readme"] = merged["unit_readme"].map(normalize_unit)
+
+    # Prefer units from results sheets, fallback to Readme units
+    merged["units"] = merged["unit_from_sheet"].fillna(merged["unit_readme"])
 
     cols = [
         "project_id",
@@ -265,7 +285,8 @@ def join_indicator_data(long: pd.DataFrame, mapping: pd.DataFrame) -> pd.DataFra
         "indicator_mapped",
         "subindex",
         "units",
-        "unit_raw",
+        "unit_readme",
+        "unit_from_sheet",
         "value",
         "indicator_name",
     ]
