@@ -487,13 +487,17 @@ def compute_benchmark(
     elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
         carrier = "AC" if "electricity" in table else "H2"
 
+        voll = opt.get("threshold", {}).get(
+            planning_horizons, load_shedding.get(carrier, np.inf)
+        )
+
         df = (
             n.statistics.prices(
                 bus_carrier=carrier,
                 weighting="time",
                 groupby_time=False,
             )
-            .pipe(lambda x: x.where(round(x) < load_shedding.get(carrier, np.inf)))
+            .pipe(lambda x: x.where(round(x) < voll))
             .mean(axis=1)
             .to_frame("value")
             .rename_axis("bus")

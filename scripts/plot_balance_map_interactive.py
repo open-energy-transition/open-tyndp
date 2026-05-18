@@ -188,6 +188,7 @@ if __name__ == "__main__":
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     # Interactive map settings
+    planning_horizons = int(snakemake.wildcards.planning_horizons)
     settings = snakemake.params.settings
     load_shedding = snakemake.params.load_shedding
     unit_conversion = settings["unit_conversion"]
@@ -284,12 +285,13 @@ if __name__ == "__main__":
     )
 
     weights = n.snapshot_weightings.generators
+    voll = snakemake.params.price_excl_shed_thresholds.get(carrier, {}).get(
+        planning_horizons, load_shedding.get(carrier, np.inf)
+    )
     price = (
         n.buses_t.marginal_price.reindex(buses, axis=1)
         .rename(n.buses.location, axis=1)
-        .where(
-            lambda x: round(x) < load_shedding.get(carrier, np.inf)
-        )  # comment out to incl. load shedding
+        .where(lambda x: round(x) < voll)  # comment out to incl. load shedding
         .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
     )
 
