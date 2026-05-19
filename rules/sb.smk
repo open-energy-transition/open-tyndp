@@ -6,12 +6,11 @@
 from scripts._helpers import safe_pyear, find_free_port
 from shutil import unpack_archive, copy2
 
-
 # Retrieve
 ##########
 
 
-if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ["archive"]:
+if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_pecd:
         input:
@@ -28,7 +27,7 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ["archive"]:
             os.remove(output["dir"] + ".zip")
 
 
-if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archive"]:
+if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_vp_data:
         input:
@@ -46,7 +45,9 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ["archiv
             os.remove(output["dir"] + ".zip")
 
 
-if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))["source"] in ["archive"]:
+if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_nuclear_profiles:
         input:
@@ -738,6 +739,7 @@ if config["benchmarking"]["enable"]:
                 rules.retrieve_tyndp.output,
                 f"market_outputs_{w.scenario}{w.planning_horizons}_CY2009",
             ),
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             benchmarks=RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_{scenario}{planning_horizons}.csv",
@@ -768,6 +770,7 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
         input:
             scenarios_figures=rules.retrieve_tyndp.output.benchmark,
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             benchmarks=RESULTS + "benchmarks/tyndp-2024/resources/benchmarks_tyndp.csv",
         log:
@@ -789,6 +792,7 @@ if config["benchmarking"]["enable"]:
             elec_demand=rules.retrieve_tyndp_vp_data.output.elec_demand,
             elec_supplymix=rules.retrieve_tyndp_vp_data.output.elec_supply,
             elec_flex=rules.retrieve_tyndp_vp_data.output.elec_flex,
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             RESULTS + "benchmarks/tyndp-2024/resources/vp_data_tyndp.csv",
         log:
@@ -812,21 +816,25 @@ if config["benchmarking"]["enable"]:
                 "solving", "options", "load_shedding", "carriers"
             ),
             low_voltage=config_provider("sector", "electricity_distribution_grid"),
+            group_tyndp_conventionals=config_provider(
+                "electricity", "group_tyndp_conventionals"
+            ),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
+            carrier_mapping="data/tyndp_technology_map.csv",
         output:
             RESULTS
             + "benchmarks/tyndp-2024/resources/benchmarks_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.csv",
         log:
-            logs(
+            python=logs(
                 "build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log"
             ),
         benchmark:
             benchmarks(
                 "performances/build_statistics_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
             )
-        threads: 4
+        threads: 1
         resources:
             mem_mb=8000,
         script:

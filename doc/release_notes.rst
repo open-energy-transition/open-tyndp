@@ -19,6 +19,10 @@ Upcoming Open-TYNDP Release
 
 **Documentation**
 
+* Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
+
+* Add hint on specifying physical RAM limit for Snakemake to use when scheduling jobs (https://github.com/open-energy-transition/open-tyndp/pull/699).
+
 **Developers Note**
 
 
@@ -262,7 +266,7 @@ Upcoming PyPSA-Eur Release
 * The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
 
 
-Open-TYNDP v0.7 (11th May 2026)
+Open-TYNDP v0.7 (19th May 2026)
 ========================================
 
 **Features**
@@ -273,11 +277,15 @@ Open-TYNDP v0.7 (11th May 2026)
 
 * Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
 
-* Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
+* Refactor the TYNDP carrier mappings into a central CSV file, adding consistent nice names to all carriers (https://github.com/open-energy-transition/open-tyndp/pull/658).
+
+* Add ``tyndp-archive`` as a new data source backed by an Open-TYNDP Google Cloud Storage bucket (``open-tyndp-data-store``) where archived datasets are mirrored. This enables fully reproducible runs without depending on third-party data providers (https://github.com/open-energy-transition/open-tyndp/pull/682). Six datasets currently remain to be retrieved from primary sources due to licensing constraints.
 
 **Changes**
 
 * Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
+
+* Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
 
 * Add imports to H2 Market Model (MM) supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
 
@@ -290,6 +298,14 @@ Open-TYNDP v0.7 (11th May 2026)
 * Refactor CBA workflow to only temporarily save CBA project networks in ``resources/`` (https://github.com/open-energy-transition/open-tyndp/pull/652).
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
+
+* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657)
+
+* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enable with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
+
+* Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
+
+* Disable noise added to costs in CBA solves, via ``cba.msv_extraction.solving.options.noisy_costs`` and ``cba.solving.options.noisy_costs`` (https://github.com/open-energy-transition/open-tyndp/pull/687).
 
 **Bugfixes and Compatibility**
 
@@ -313,6 +329,24 @@ Open-TYNDP v0.7 (11th May 2026)
 
 * Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
 
+* Refactor the extraction of cross-border flows used by the benchmarking framework to use ``n.statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/680).
+
+* Update PEMMDB version reference to correct version v2.5 in the documentation (https://github.com/open-energy-transition/open-tyndp/pull/681).
+
+* Fix units in B4 indicator calculation (https://github.com/open-energy-transition/open-tyndp/pull/693).
+
+* Fix missing native electricity demand mapping for the Market Model in the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/692). This enables the load-weighted average Pan-EU Market Model price calculation and per-node electricity demand validation.
+
+* Refactor the ``plot_benchmarks`` script in order to reduce memory requirements and accelerate processing (https://github.com/open-energy-transition/open-tyndp/pull/696.
+
+* Improve performance of ``build_statistics`` by adjusting snapshot weightings within networks to be applied automatically within ``n.statistics`` instead of manually in ``build_statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/674).
+
+**Documentation**
+
+* Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
+
+* Add hint on specifying physical RAM limit for Snakemake to use when scheduling jobs (https://github.com/open-energy-transition/open-tyndp/pull/699).
+
 **Developers Note**
 
 * Upload Windows installer as unzipped artifact (https://github.com/open-energy-transition/open-tyndp/pull/621).
@@ -320,6 +354,8 @@ Open-TYNDP v0.7 (11th May 2026)
 * Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
 
 * Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
+
+* Add buttons to the interactive balance maps and decrease file size (https://github.com/open-energy-transition/open-tyndp/pull/669).
 
 
 Open-TYNDP v0.6.1 (2nd April 2026)
@@ -652,11 +688,11 @@ Open-TYNDP v0.3 (24th October 2025)
 
 * Add complete processing and preparation of PECD v3.1 renewable profiles for all renewable technologies: Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, and Solar CSP (https://github.com/open-energy-transition/open-tyndp/pull/71). These profiles are used in TYNDP 2024 and replace the default ERA5- and SARAH3-based profiles processed with Atlite. The data processing infrastructure for renewable profile creation is complete, but full integration into the model workflow will follow in a subsequent PRs (https://github.com/open-energy-transition/open-tyndp/pull/115, https://github.com/open-energy-transition/open-tyndp/pull/139).
 
-* Introduce processing of PEMMDB v2.4 hydro inflows data for different hydro technologies: Run of River, Pondage, Reservoir, Pumped Storage Open Loop, and Pumped Storage Closed Loop (https://github.com/open-energy-transition/open-tyndp/pull/77). The data processing infrastructure for hydro inflow profiles is complete, but full integration into the model workflow will follow in a subsequent release.
+* Introduce processing of PEMMDB v2.5 hydro inflows data for different hydro technologies: Run of River, Pondage, Reservoir, Pumped Storage Open Loop, and Pumped Storage Closed Loop (https://github.com/open-energy-transition/open-tyndp/pull/77). The data processing infrastructure for hydro inflow profiles is complete, but full integration into the model workflow will follow in a subsequent release.
 
-* Introduce processing and preparation of PEMMDB v2.4 capacity data, including must-run and availability constraints, and expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and Demand Side Response (DSR) (https://github.com/open-energy-transition/open-tyndp/pull/97). The data processing infrastructure for PEMMDB v2.4 is complete, but full integration into the model workflow will follow in a subsequent release.
+* Introduce processing and preparation of PEMMDB v2.5 capacity data, including must-run and availability constraints, and expansion trajectories for conventional and renewable power generation, electrolysers, batteries, and Demand Side Response (DSR) (https://github.com/open-energy-transition/open-tyndp/pull/97). The data processing infrastructure for PEMMDB v2.5 is complete, but full integration into the model workflow will follow in a subsequent release.
 
-* Integrate solar PV and onshore wind technologies using PEMMDB v2.4 capacity data and PECD v3.1 renewable profiles in the model (https://github.com/open-energy-transition/open-tyndp/pull/115, https://github.com/open-energy-transition/open-tyndp/pull/139). Offshore wind statistics are also improved to include hydrogen generator capacities (in ``MW_e``).
+* Integrate solar PV and onshore wind technologies using PEMMDB v2.5 capacity data and PECD v3.1 renewable profiles in the model (https://github.com/open-energy-transition/open-tyndp/pull/115, https://github.com/open-energy-transition/open-tyndp/pull/139). Offshore wind statistics are also improved to include hydrogen generator capacities (in ``MW_e``).
 
 **Changes**
 

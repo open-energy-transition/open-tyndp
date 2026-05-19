@@ -14,6 +14,7 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
+data_config:   # change to 'tyndp' to use tyndp-archive where available
 
 launch_explorer: false
 
@@ -311,6 +312,7 @@ sector:
     - H2
   offshore_hubs_tyndp:
     enable: true
+    patch_crossborder_with_mm: true
     connect_isolated: true
     max_capacity:
       DC_OH: 10
@@ -464,6 +466,8 @@ cba:
     resample_method: ffill
     # Solve options for MSV extraction
     solving:
+      options:
+        noisy_costs: false
       solver:
         name: highs
         options: "highs-simplex"
@@ -471,6 +475,7 @@ cba:
   # Rolling horizon solving settings
   solving:
     options:
+      noisy_costs: false
       horizon: 168
       overlap: 1
       load_shedding:

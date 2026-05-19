@@ -104,6 +104,10 @@ class ConfigSchema(BaseModel):
         False,
         description="Switch to retrieve the tutorial data set instead of the full data set.",
     )
+    data_config: str | None = Field(
+        None,
+        description="Switch for loading a config file 'config/data.{data_config}.yaml' for default data sources.",
+    )
     logging: LoggingConfig = Field(
         default_factory=LoggingConfig,
         description="Logging configuration for the workflow",

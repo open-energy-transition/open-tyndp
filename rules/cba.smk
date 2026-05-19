@@ -23,9 +23,9 @@ wildcard_constraints:
     run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
 
 
-if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in [
-    "archive"
-]:
+if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
+    "source"
+] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_cba_projects:
         params:
@@ -44,7 +44,7 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))["source"] in 
 
 if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
     "source"
-] in ["archive"]:
+] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_cba_non_co2_emissions:
         input:
@@ -59,7 +59,7 @@ if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
 
 if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects"))[
     "source"
-] in ["archive"]:
+] in ARCHIVE_SOURCES:
 
     rule retreive_cba_guidelines_reference_projects:
         input:
@@ -105,7 +105,7 @@ def presolved_sb_network_path(w, horizon=None):
 if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
     if (SB_SOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
         "source"
-    ] in ["archive"]:
+    ] in ARCHIVE_SOURCES:
 
         rule retrieve_presolved_sb_networks:
             input:

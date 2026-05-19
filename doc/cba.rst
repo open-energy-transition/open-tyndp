@@ -6,255 +6,161 @@
 Cost-Benefit Analysis (CBA)
 ###########################
 
-CBA Workflow
-============
-
-At the high-level, the Scenario Building (SB) builds and solves the base network(s) for each scenario/planning horizon, optimizing investments and dispatch.
-The CBA does not re-optimize capacities -- it reuses the SB's solved network as a starting point, makes modifications (such as fixing capacities),
-and then runs dispatch-only optimizations on the prepared networks.
-
-A diagram of the workflow between SB and CBA is shown below:
+The Cost-Benefit Analysis (CBA) evaluates transmission and storage projects by comparing two dispatch-only simulations: a **reference network** (the baseline grid) and a **project network** (the grid with a specific project added or removed). Unlike the Scenario Building (SB) phase, the CBA does not re-optimize capacities; it reuses the SB's solved network, fixes capacities, and runs dispatch-only optimizations.
 
 .. image:: img/tyndp/SB-CBA-workflow-subsequent-h.png
+    :align: center
+    :alt: Workflow between Scenario Building and CBA
 
-The CBA workflow is described in detail in the ``doc/cba-workflow.rst`` document.
-
-
-Calculate CBA Indicators
+CBA Workflow Methodology
 ========================
 
-After solving both the reference and project networks, several key indicators are
-calculated to assess benefits of each project and to determine whether the project
-provides a positive net benefit to the energy system. The indicators calculated in the
-CBA are described in additional detail in the ``doc/cba-indicators.rst`` document.
-The calculations of the CBA indicators are implemented in the
-``scripts/cba/make_indicators.py`` script.
+The workflow evaluates projects using a **rolling horizon** approach where the full year is divided into sequential weekly windows (168 hourly snapshots each, with an overlap of 1 snapshot). 
 
-The calculated CBA indicators for each project are saved in:
+To resolve **myopia**—where the optimizer cannot see beyond the current week and makes suboptimal decisions for seasonal storage (H2, gas, large hydro)—the workflow uses Marginal Storage Values (MSV) derived from a full-year optimization.
 
-- ``results/{run}/cba/project_{cba_project}_{planning_horizons}.csv`` for individual
-  project indicators
-- ``results/{run}/cba/indicators_{planning_horizons}.csv`` for the collected
-  indicators across all projects in a run
+.. image:: img/tyndp/cba-rolling-horizon-pipeline.jpeg
+    :width: 60%
+    :align: center
+    :alt: CBA rolling horizon pipeline diagram
 
+Network Simplification
+----------------------
+The SB network is transformed into a dispatch-ready CBA network:
+
+* **Fixed Capacities:** Capacities are fixed via ``n.optimize.fix_optimal_capacities()``.
+* **Hurdle Costs:** A cost of 0.01 €/MWh is applied to all DC links.
+* **Fuel Capacities:** Primary fuel generator capacities (coal, gas, oil, nuclear) are set to infinity to prevent dispatch from being artificially restricted by fuel-supply limits during peak hours.
+
+Reference Network
+-----------------
+The simplified network is extended to form the CBA reference baseline by adding all TOOT project capacities. This ensures the reference and MSV extraction operate on the same topology.
+
+MSV Extraction
+--------------
+The reference network is solved with **perfect foresight** (entire year, single LP). This exposes the shadow prices (``mu_energy_balance``) of energy balance constraints, representing the **Marginal Storage Value (MSV)**—the opportunity cost of stored energy at that moment.
+
+Rolling Horizon Preparation
+---------------------------
+The reference network and MSV results are combined through five transformations:
+* **(a) Initial storage state:** Seasonal components have their initial state set to the perfect foresight solution's last-snapshot value.
+* **(b) Disable cyclicity:** Short-term storage (battery) keeps cyclicity, while seasonal units (H2, gas, hydro) have it disabled, guided instead by MSVs.
+* **(c) Remove global constraints:** Annual CO2 and biomass limits are removed as they cannot be enforced consistently in weekly windows.
+* **(d) Disable annual volume limits:** Annual budgets for biomass/biogas are distributed proportionally to the perfect foresight dispatch.
+* **(e) Apply MSV:** The ``mu_energy_balance`` time series is written into the ``marginal_cost`` of storage components.
+* **(f) Hydro Pinning:** Large hydro reservoirs are pinned to their perfect-foresight state-of-charge values at window boundaries to guide dispatch where duals are near-zero.
+
+Solve
+-----
+The prepared network is solved for the **Reference** baseline and then for each **Project**. Projects are evaluated using either **TOOT** (Take Out One at a Time) or **PINT** (Put IN at a Time) methods.
+
+CBA Indicators
+==============
+
+Indicators are computed as the difference in system costs and emissions between the reference and project dispatch solutions.
+
+* **B1: Social Economic Welfare (SEW):** Quantifies the change in operational system costs (socio-economic welfare).
+* **B2: Social costs of CO2 emissions:** Calculates the impact using societal cost assumptions (low, central, high).
+* **B3: RES integration costs:** Tracks changes in renewable capacity, generation, and avoided curtailment.
+* **B4: Non-direct greenhouse emissions:** Quantifies pollutants (NOx, SO2, PM, etc.) using fuel consumption multipliers.
 
 Configuration
 =============
 
-The CBA workflow is configured in the top-level ``cba`` section of the configuration
-file. This documentation section describes how the settings affect the workflow.
+CBA settings are defined in the ``cba`` section of the configuration file. You can refer to
+the `configuration <configuration.html>`_ page for a more comprehensive list of available PyPSA-Eur
+and Open-TYNDP configuration options.
 
-Project selection and scope
----------------------------
+Project Selection
+-----------------
+* ``planning_horizons``: Selects horizons (e.g., 2030, 2040).
+* ``projects``: Defines project identifiers (e.g., ``t1-t35``).
+* ``cba_scenario_input``: If ``use_presolved`` is true, the workflow retrieves pre-solved SB networks from an archive.
 
-The following settings define which CBA projects (transmission, storage) are evaluated, 
-for which planning horizons, and which geographic area is used for the calculation of the indicators:
-
-.. code-block:: yaml
-
-    cba:
-      planning_horizons:
-      - 2030
-      - 2040
-      projects:
-      - t1-t35
-      area: tyndp
-
-- ``cba.planning_horizons``: selects the planning horizons for the CBA workflow.
-  These are typically a subset of the main scenario planning horizons.
-- ``cba.projects``: defines which project identifiers are included in the assessment. 
-  One can use this setting to select a single project (e.g., ``t1``), 
-  subset of projects (e.g., ``t1-t35``, which would evaluate all projects with IDs from t1 to t35), 
-  or all projects (leave empty for all) for evaluation.
-- ``cba.area``: controls which geographic area is used for the calculation of the indicators.
-  The default is ``tyndp``.
-
-Scenario Building input into CBA
---------------------------------
-
-The CBA workflow can either reuse SB networks created in the same workflow run or
-pull pre-solved SB networks from an external archive, thereby not requiring the
-entire SB workflow to be run:
-
-.. code-block:: yaml
-
-    cba:
-      cba_scenario_input:
-        use_presolved: false
-        sb_version: latest
-
-- ``cba.cba_scenario_input.use_presolved``: If ``false``, the CBA depends on SB
-  outputs created by the workflow. If ``true``, the workflow retrieves pre-solved 
-  SB networks instead.
-- ``cba.cba_scenario_input.sb_version``: selects which pre-solved SB archive version
-  is used. Default is ``latest``, which retrieves the latest available version.
-
-Indicator assumptions
----------------------
-
-There are also CBA settings for assumptions used in the calculation of the CBA indicators.
-
-.. code-block:: yaml
-
-    cba:
-      hurdle_costs: 0.01
-      co2_societal_cost:
-        2030:
-          low: 126
-          central: 238
-          high: 315
-        2040:
-          low: 339
-          central: 628
-          high: 662
-      remove_noisy_costs: true
-      negative_toot_capacity: zero
-
-- ``cba.hurdle_costs``: applies a small marginal cost to transmission links in the CBA
-  networks. The default value is 0.01 EUR/MWh.
-- ``cba.co2_societal_cost``: provides the CO2 societal cost assumptions in 2030 and 2040,
-  for the low, central, and high scenarios. These values are used in the calculation of the CO2 societal cost indicator.
-  The default values are from the CBA Implementation Guide.
-- ``cba.remove_noisy_costs``: If ``true``, removes noisy costs that were added 
-  during the network solves to some components in the network for the calculation 
-  of the CBA B1 indicator. This is only a post-processing step. The default is ``true``.
-- ``cba.negative_toot_capacity``: defines how TOOT project removal is handled if the
-  removed capacity would make the remaining project capacity negative. This is only for fringe cases where the reference grid capacity 
-  leads to negative project capacity after removal. For almost all projects this is not needed. 
-
-Rolling horizon dispatch
+Rolling Horizon Settings
 ------------------------
+* ``storage.cyclic_carriers``: Carriers that remain cyclic within each weekly window.
+* ``storage.soc_boundary_carriers``: Carriers pinned at window boundaries.
+* ``msv_extraction.resolution``: Controls temporal resolution for the MSV solve (e.g., ``24H``). 
 
-The settings for the rolling horizon dispatch are defined in the following sections
-of the configuration file:
-
-.. code-block:: yaml
-
-    cba:
-      storage:
-        cyclic_carriers:
-        - battery
-        - home battery
-        soc_boundary_carriers:
-        - hydro-reservoir
-      msv_extraction:
-        resolution: false
-        resample_method: ffill
-      solving:
-        options:
-          horizon: 168
-          overlap: 1
-        solver:
-          name: highs
-          options: highs-simplex
-
-- ``cba.storage.cyclic_carriers``: lists which storage carriers remain cyclic within
-  each rolling horizon window. All other store and storage unit carriers automatically 
-  receive marginal storage value and have cyclicity disabled.
-- ``cba.storage.soc_boundary_carriers``: lists storage unit carriers for which the state of charge 
-  is pinned at the boundaries between rolling horizon windows, using values pre-computed from the 
-  perfect foresight (full-year) optimisation.
-- ``cba.msv_extraction.resolution``: controls temporal resolution for the MSV extraction solve. 
-  If ``false``, it uses the same temporal resolution as defined in ``clustering.resolution_sector``. 
-  Otherwise, one can provide a string like ``24H`` or ``48H`` for a different temporal resolution.
-- ``cba.msv_extraction.resample_method``: method for resampling marginal storage value to target network resolution. 
-  The default is ``ffill`` (forward fill), which holds the MSV constant within each cluster. 
-  Another option is ``interpolate``, which linearly interpolates the MSV between cluster centers.
-- ``cba.solving.options.horizon`` and ``cba.solving.options.overlap``: define the
-  rolling horizon window length and overlap.
-- ``cba.solving.solver`` and ``cba.solving.solver_options``: configure the solver and solver settings 
-  used for the CBA solves.
-
-For the detailed information about the design of the rolling horizon methodology
-itself, including MSV extraction, seasonal storage handling, and window-boundary
-SOC treatment, see :doc:`cba-workflow`.
-
-Running single vs multiple climate years
+Running Single vs Multiple Climate Years
 ========================================
 
-Climate-year collections allow project benefits to be assessed across multiple
-weather years, which is consistent with the 2024 TYNDP CBA implementation.
+Climate-year collections allow project benefits to be assessed across multiple weather years, consistent with the 2024 TYNDP implementation.
 
-On the current implementation, the CBA entry point ``snakemake -call cba`` expects a
-**collection scenario** that defines a list of child (climate years) scenarios. 
-In practice, the run selected in ``run.name`` must itself define a list under ``cba.scenarios`` in the scenario file.
+The CBA entry point ``pixi run tyndp-cba`` can run a **single scenario** that is one single climeate year or a **collection scenario** that defines a list of child (climate years) scenarios under ``cba.scenarios``.
 
-This is the pattern used in ``config/scenarios.tyndp.yaml``:
+Example Collection (``config/scenarios.tyndp.yaml``):
 
 .. code-block:: yaml
+
+    NT-cy1995:
+    #  <<: *cba-common
+    snapshots:
+        start: "1995-01-01"
+        end: "1996-01-01"
+
+    atlite:
+        default_cutout: europe-1995-sarah3-era5
+
+    cba:
+        sb_scenario: NT
+
+
+    NT-cy2008:
+    #  <<: *cba-common
+    snapshots:
+        start: "2008-01-01"
+        end: "2009-01-01"
+
+    atlite:
+        default_cutout: europe-2008-sarah3-era5
+
+    cba:
+        sb_scenario: NT
+
+
+    NT-cy2009:
+    #  <<: *cba-common
+    snapshots:
+        start: "2009-01-01"
+        end: "2010-01-01"
+
+    atlite:
+        default_cutout: europe-2009-sarah3-era5
+
+    cba:
+        sb_scenario: NT
 
     NT-cyears:
       cba:
         scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
 
-The individual climate-year scenarios should contain the weather-year-specific
-``snapshots`` and ``atlite.default_cutout`` settings. 
-They should also define a ``cba.sb_scenario`` setting to specify which SB scenario is used as the input for the CBA workflow.
-Note that any ``cba.sb_scenario`` defined here should also be defined in the scenario file with the same name (e.g., ``NT`` in this example) 
-and should contain the SB settings for the scenario, such as the planning horizon, cluster settings, etc.
+Individual child scenarios (e.g., ``NT-cy2009``) must define their specific ``snapshots``, ``atlite.default_cutout``, and the ``cba.sb_scenario`` used as input.
 
-.. code-block:: yaml
+.. hint::
 
-    NT-cy2009:
-      snapshots:
-        start: "2009-01-01"
-        end: "2010-01-01"
+   If too many parallel jobs cause out-of-memory issues, you can specify your machine's
+   physical RAM limit in ``profiles/default/config.yaml`` for Snakemake to use
+   when scheduling jobs:
 
-      atlite:
-        default_cutout: europe-2009-sarah3-era5
+   .. code-block:: yaml
 
-      cba:
-        sb_scenario: NT
+       resources:
+         mem_mb: 16000
 
-Running multiple climate years
-------------------------------
-
-For climate-year collections, the repository already contains ready-to-use scenarios
-such as ``NT-cyears``, ``DE-cyears`` and ``GA-cyears``.
-
-For example, to run the ``NT`` climate-year CBA scenarios, you can either modify
-``run.name`` in ``config/config.tyndp.yaml`` to ``NT-cyears`` and then run:
+Running Multiple Years
+----------------------
+To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.tyndp.yaml`` or override it via command line:
 
 .. code-block:: console
 
-    $ snakemake -call cba --configfile config/config.tyndp.yaml
+    $ pixi run tyndp-cba --config run='{"name":"NT-cyears"}'
 
-or keep the config file unchanged and override the run name on the command line:
-
-.. code-block:: console
-
-    $ snakemake -call cba --configfile config/config.tyndp.yaml --config run='{"name":"NT-cyears"}'
-
-This uses the ``NT-cyears`` entry from ``config/scenarios.tyndp.yaml``, which expands
-to the child scenarios ``NT-cy2009``, ``NT-cy2008`` and ``NT-cy1995``. 
-In this case, 2009, 2008, and 1995 are used as they are the three weather years used in 2024 TYNDP CBA Implementation.
-
-Running a single climate year on this branch
---------------------------------------------
-
-Running a plain scenario such as ``NT-cy2009`` directly with
-``snakemake -call cba`` is not sufficient. The CBA pseudo-rule collects only runs that
-themselves define ``cba.scenarios``. Therefore, the current workaround for a
-single-climate-year CBA is to create a **one-entry collection scenario** and run that
-wrapper scenario instead.
-
-For example, add the following entry to your scenario file:
-
-.. code-block:: yaml
-
-    NT-cy2009-only:
-      cba:
-        scenarios: [NT-cy2009]
-
-Then, either change ``run.name`` in ``config/config.tyndp.yaml`` to
-``NT-cy2009-only`` and run:
+Running a Single Climate Year
+-----------------------------
+Similarly, a single climate year can be run by modifying ``run.name``  in ``config/config.tyndp.yaml`` to the desired scenario (e.g., ``NT-cy2009``) or overriding it via command line:
 
 .. code-block:: console
 
-    $ snakemake -call cba --configfile config/config.tyndp.yaml
-
-or keep the config file unchanged and override the run name on the command line:
-
-.. code-block:: console
-
-    $ snakemake -call cba --configfile config/config.tyndp.yaml --config run='{"name":"NT-cy2009-only"}'
+    $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'

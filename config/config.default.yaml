@@ -8,6 +8,9 @@ version: v0.7
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tutorial
 tutorial: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#data_config
+data_config:
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#logging
 logging:
   level: INFO
@@ -1069,6 +1072,7 @@ sector:
       oil: 125
   offshore_hubs_tyndp:
     enable: false
+    patch_crossborder_with_mm: false
     connect_isolated: false
     max_capacity:
       DC_OH: 10
