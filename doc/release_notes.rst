@@ -341,6 +341,8 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Improve performance of ``build_statistics`` by adjusting snapshot weightings within networks to be applied automatically within ``n.statistics`` instead of manually in ``build_statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/674).
 
+ * Fix prices on interactive maps to exclude load shedding (https://github.com/open-energy-transition/open-tyndp/pull/689).
+
 **Documentation**
 
 * Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
