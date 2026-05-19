@@ -521,13 +521,23 @@ def compute_benchmark(
     elif table in ["electricity_price_excl_shed", "hydrogen_price_excl_shed"]:
         carrier = "AC" if "electricity" in table else "H2"
 
+        voll = load_shedding.get(carrier, np.inf)
+        if opt.get("exclude_coupling_effects", False):
+            other_carrier = "AC" if "electricity" not in table else "H2"
+            coupling_carrier = "h2-ccgt" if carrier == "H2" else "H2 Electrolysis"
+            voll = min(
+                voll,
+                load_shedding.get(other_carrier, np.inf)
+                * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean(),
+            )
+
         df = (
             n.statistics.prices(
                 bus_carrier=carrier,
                 weighting="time",
                 groupby_time=False,
             )
-            .pipe(lambda x: x.where(round(x) < load_shedding.get(carrier, np.inf)))
+            .pipe(lambda x: x.where(x < voll * 0.98))  # Add 2% of numerical tolerance
             .mean(axis=1)
             .to_frame("value")
             .rename_axis("bus")

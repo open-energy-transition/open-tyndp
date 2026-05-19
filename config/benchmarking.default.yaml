@@ -241,6 +241,7 @@ benchmarking:
       rfc_sources:
       - market_out
       unit: EUR/MWh_e
+      exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_H2 × electrolysis efficiency
 
     hydrogen_price:
       table_type: prices
@@ -255,6 +256,7 @@ benchmarking:
       rfc_sources:
       - market_out
       unit: EUR/MWh_H2
+      exclude_coupling_effects: true  # If true, derive threshold from VOLL EUR/MWh_e × H2-CCGT efficiency
 
     crossborder_electricity:
       table_type: flows
