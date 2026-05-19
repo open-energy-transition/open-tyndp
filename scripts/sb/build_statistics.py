@@ -528,7 +528,8 @@ def compute_benchmark(
             voll = min(
                 voll,
                 load_shedding.get(other_carrier, np.inf)
-                * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean(),
+                * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean()
+                * 0.98,  # Add 2% of numerical tolerance
             )
 
         df = (
