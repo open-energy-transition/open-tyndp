@@ -14,6 +14,7 @@ import os
 from itertools import product
 from types import SimpleNamespace
 
+import country_converter as coco
 import geopandas as gpd
 import networkx as nx
 import numpy as np
@@ -139,6 +140,16 @@ def define_spatial(
 
     spatial.nodes = nodes
 
+    separate_eu27_nodes = True  # TODO Implement as a configuration
+
+    # Separate EU27 from non-EU27 nodes when carrier is not spatially modelled
+    if separate_eu27_nodes:
+        cc = coco.CountryConverter()
+        eu27 = cc.EU27as("ISO2").ISO2.tolist()
+        nodes = pd.Index(
+            ["EU27" if n[:2] in eu27 else "non-EU27" for n in nodes], name="bus_id"
+        )
+
     # offshore hubs
 
     if options["offshore_hubs_tyndp"]["enable"] and offshore_buses_fn:
@@ -162,12 +173,19 @@ def define_spatial(
         spatial.offshore_hubs.type = offshore_buses.type
         spatial.offshore_hubs.type_h2 = offshore_buses_h2.type
 
+        spatial.offshore_hubs.df = pd.DataFrame(
+            vars(spatial.offshore_hubs), index=spatial.offshore_hubs.nodes
+        )
+
     # biomass
 
     spatial.biomass = SimpleNamespace()
     spatial.msw = SimpleNamespace()
 
-    if options.get("biomass_spatial", options["biomass_transport"]):
+    if (
+        options.get("biomass_spatial", options["biomass_transport"])
+        or separate_eu27_nodes
+    ):
         spatial.biomass.nodes = nodes + " solid biomass"
         spatial.biomass.nodes_unsustainable = nodes + " unsustainable solid biomass"
         spatial.biomass.bioliquids = nodes + " unsustainable bioliquids"
@@ -186,14 +204,14 @@ def define_spatial(
         spatial.msw.nodes = ["EU municipal solid waste"]
         spatial.msw.locations = ["EU"]
 
-    spatial.biomass.df = pd.DataFrame(vars(spatial.biomass), index=nodes)
-    spatial.msw.df = pd.DataFrame(vars(spatial.msw), index=nodes)
+    spatial.biomass.df = pd.DataFrame(vars(spatial.biomass), index=spatial.nodes)
+    spatial.msw.df = pd.DataFrame(vars(spatial.msw), index=spatial.nodes)
 
     # co2
 
     spatial.co2 = SimpleNamespace()
 
-    if options["co2_spatial"]:
+    if options["co2_spatial"] or separate_eu27_nodes:
         spatial.co2.nodes = nodes + " co2 stored"
         spatial.co2.locations = nodes
         spatial.co2.vents = nodes + " co2 vent"
@@ -204,13 +222,13 @@ def define_spatial(
         spatial.co2.vents = ["co2 vent"]
         spatial.co2.process_emissions = ["process emissions"]
 
-    spatial.co2.df = pd.DataFrame(vars(spatial.co2), index=nodes)
+    spatial.co2.df = pd.DataFrame(vars(spatial.co2), index=spatial.nodes)
 
     # gas
 
     spatial.gas = SimpleNamespace()
 
-    if options["gas_network"]:
+    if options["gas_network"] or separate_eu27_nodes:
         spatial.gas.nodes = nodes + " gas"
         spatial.gas.locations = nodes
         spatial.gas.biogas = nodes + " biogas"
@@ -238,7 +256,7 @@ def define_spatial(
         if options.get("gas_demand_exogenously"):
             spatial.gas.exo_demand = ["EU exogenous gas demand"]
 
-    spatial.gas.df = pd.DataFrame(vars(spatial.gas), index=nodes)
+    spatial.gas.df = pd.DataFrame(vars(spatial.gas), index=spatial.nodes)
 
     # ammonia
 
@@ -251,7 +269,7 @@ def define_spatial(
             spatial.ammonia.nodes = ["EU NH3"]
             spatial.ammonia.locations = ["EU"]
 
-        spatial.ammonia.df = pd.DataFrame(vars(spatial.ammonia), index=nodes)
+        spatial.ammonia.df = pd.DataFrame(vars(spatial.ammonia), index=spatial.nodes)
 
     # hydrogen
     spatial.h2 = SimpleNamespace()
@@ -271,10 +289,6 @@ def define_spatial(
             spatial.h2_tyndp.country = pd.Index(np.tile(buses_h2.country, 2))
             spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x, 2))
             spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y, 2))
-            spatial.h2_tyndp.df = pd.DataFrame(
-                vars(spatial.h2_tyndp),
-                index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
-            )
             spatial.buses_h2_z1 = spatial.h2_tyndp.nodes[
                 ~spatial.h2_tyndp.nodes.str.contains("IB")
                 & spatial.h2_tyndp.nodes.str.contains("Z1")
@@ -294,6 +308,27 @@ def define_spatial(
                 ~spatial.h2_tyndp.nodes.str.contains("IB")
             ]
 
+        spatial.h2_tyndp.df = pd.DataFrame(
+            vars(spatial.h2_tyndp), index=spatial.h2_tyndp.nodes
+        )
+
+        spatial.gas_h2 = SimpleNamespace()
+        spatial.gas_h2.nodes = [
+            "EU27 gas" if c[:2] in eu27 else "non-EU27 gas" for c in spatial.buses_h2_z2
+        ]
+        spatial.gas_h2.df = pd.DataFrame(
+            vars(spatial.gas_h2), index=spatial.buses_h2_z2
+        )
+
+        spatial.co2_h2 = SimpleNamespace()
+        spatial.co2_h2.nodes = [
+            "EU27 co2 stored" if c[:2] in eu27 else "non-EU27 co2 stored"
+            for c in spatial.buses_h2_z2
+        ]
+        spatial.co2_h2.df = pd.DataFrame(
+            vars(spatial.co2_h2), index=spatial.buses_h2_z2
+        )
+
     # methanol
 
     # beware: unlike other carriers, uses locations rather than locations+carriername
@@ -301,13 +336,17 @@ def define_spatial(
 
     spatial.methanol = SimpleNamespace()
 
-    spatial.methanol.nodes = ["EU methanol"]
-    spatial.methanol.locations = ["EU"]
+    if separate_eu27_nodes:
+        spatial.methanol.nodes = nodes + "methanol"
+        spatial.methanol.locations = nodes
+    else:
+        spatial.methanol.nodes = ["EU methanol"]
+        spatial.methanol.locations = ["EU"]
 
-    if options["methanol"]["regional_methanol_demand"]:
-        spatial.methanol.demand_locations = nodes
-        spatial.methanol.industry = nodes + " industry methanol"
-        spatial.methanol.shipping = nodes + " shipping methanol"
+    if options["methanol"]["regional_methanol_demand"] or separate_eu27_nodes:
+        spatial.methanol.demand_locations = spatial.nodes
+        spatial.methanol.industry = spatial.nodes + " industry methanol"
+        spatial.methanol.shipping = spatial.nodes + " shipping methanol"
     else:
         spatial.methanol.demand_locations = ["EU"]
         spatial.methanol.shipping = ["EU shipping methanol"]
@@ -316,17 +355,21 @@ def define_spatial(
     # oil
     spatial.oil = SimpleNamespace()
 
-    spatial.oil.nodes = ["EU oil"]
-    spatial.oil.locations = ["EU"]
+    if separate_eu27_nodes:
+        spatial.oil.nodes = nodes + " oil"
+        spatial.oil.locations = nodes
+    else:
+        spatial.oil.nodes = ["EU oil"]
+        spatial.oil.locations = ["EU"]
 
-    if options["regional_oil_demand"]:
-        spatial.oil.demand_locations = nodes
-        spatial.oil.naphtha = nodes + " naphtha for industry"
-        spatial.oil.non_sequestered_hvc = nodes + " non-sequestered HVC"
-        spatial.oil.kerosene = nodes + " kerosene for aviation"
-        spatial.oil.shipping = nodes + " shipping oil"
-        spatial.oil.agriculture_machinery = nodes + " agriculture machinery oil"
-        spatial.oil.land_transport = nodes + " land transport oil"
+    if options["regional_oil_demand"] or separate_eu27_nodes:
+        spatial.oil.demand_locations = spatial.nodes
+        spatial.oil.naphtha = spatial.nodes + " naphtha for industry"
+        spatial.oil.non_sequestered_hvc = spatial.nodes + " non-sequestered HVC"
+        spatial.oil.kerosene = spatial.nodes + " kerosene for aviation"
+        spatial.oil.shipping = spatial.nodes + " shipping oil"
+        spatial.oil.agriculture_machinery = spatial.nodes + " agriculture machinery oil"
+        spatial.oil.land_transport = spatial.nodes + " land transport oil"
     else:
         spatial.oil.demand_locations = ["EU"]
         spatial.oil.naphtha = ["EU naphtha for industry"]
@@ -343,10 +386,15 @@ def define_spatial(
 
     # coal
     spatial.coal = SimpleNamespace()
-    spatial.coal.nodes = ["EU coal"]
-    spatial.coal.locations = ["EU"]
 
-    if options["regional_coal_demand"]:
+    if separate_eu27_nodes:
+        spatial.coal.nodes = nodes + " coal"
+        spatial.coal.locations = nodes
+    else:
+        spatial.coal.nodes = ["EU coal"]
+        spatial.coal.locations = ["EU"]
+
+    if options["regional_coal_demand"] or separate_eu27_nodes:
         spatial.coal.demand_locations = nodes
         spatial.coal.industry = nodes + " coal for industry"
     else:
@@ -362,6 +410,20 @@ def define_spatial(
     spatial.geothermal_heat = SimpleNamespace()
     spatial.geothermal_heat.nodes = ["EU enhanced geothermal systems"]
     spatial.geothermal_heat.locations = ["EU"]
+
+    # sanitize spatial  # TODO Extract as a distinct function
+    for c in spatial.__dict__.keys():
+        s = vars(spatial)[c]
+        has_df = False
+        for k, v in s.__dict__.items():
+            if k == "df":
+                has_df = True
+            if isinstance(v, list):
+                vars(s)[k] = pd.Index(v)
+        if not has_df and (
+            isinstance(s, SimpleNamespace) and "nodes" in s.__dict__.keys()
+        ):
+            s.df = pd.DataFrame(vars(s), index=spatial.nodes)
 
     return spatial
 
@@ -745,6 +807,9 @@ def add_carrier_buses(
     if not isinstance(nodes, pd.Index):
         nodes = pd.Index(nodes)
 
+    if not isinstance(location, pd.Index):
+        location = pd.Index(location)
+
     n.add("Carrier", carrier)
 
     unit = "MWh_LHV" if carrier == "gas" else "MWh_th"
@@ -769,12 +834,12 @@ def add_carrier_buses(
     else:
         capital_cost = 0.1
 
-    n.add("Bus", nodes, location=location, carrier=carrier, unit=unit)
+    n.add("Bus", nodes.unique(), location=location.unique(), carrier=carrier, unit=unit)
 
     n.add(
         "Store",
-        nodes + " Store",
-        bus=nodes,
+        (nodes + " Store").unique(),
+        bus=nodes.unique(),
         e_nom_extendable=True,
         e_cyclic=True,
         carrier=carrier,
@@ -788,19 +853,19 @@ def add_carrier_buses(
         if carrier == "oil" and cf_industry["oil_refining_emissions"] > 0:
             n.add(
                 "Bus",
-                nodes + " primary",
-                location=location,
+                (nodes + " primary").unique(),
+                location=location.unique(),
                 carrier=carrier + " primary",
                 unit=unit,
             )
 
             n.add(
                 "Link",
-                nodes + " refining",
-                bus0=nodes + " primary",
-                bus1=nodes,
+                (nodes + " refining").unique(),
+                bus0=(nodes + " primary").unique(),
+                bus1=nodes.unique(),
                 bus2="co2 atmosphere",
-                location=location,
+                location=location.unique(),
                 carrier=carrier + " refining",
                 p_nom=1e6,
                 efficiency=1
@@ -815,8 +880,8 @@ def add_carrier_buses(
 
         n.add(
             "Generator",
-            nodes + suffix,
-            bus=nodes + suffix,
+            (nodes + suffix).unique(),
+            bus=(nodes + suffix).unique(),
             p_nom_extendable=True,
             carrier=carrier + suffix,
             marginal_cost=costs.at[carrier, "fuel"],
@@ -950,20 +1015,20 @@ def add_co2_tracking(
     # add CO2 tanks
     n.add(
         "Bus",
-        spatial.co2.nodes,
-        location=spatial.co2.locations,
+        spatial.co2.nodes.unique(),
+        location=spatial.co2.locations.unique(),
         carrier="co2 stored",
         unit="t_co2",
     )
 
     n.add(
         "Store",
-        spatial.co2.nodes,
+        spatial.co2.nodes.unique(),
         e_nom_extendable=True,
         capital_cost=costs.at["CO2 storage tank", "capital_cost"],
         carrier="co2 stored",
         e_cyclic=True,
-        bus=spatial.co2.nodes,
+        bus=spatial.co2.nodes.unique(),
     )
     n.add("Carrier", "co2 stored")
 
@@ -973,17 +1038,17 @@ def add_co2_tracking(
     )
     n.add(
         "Bus",
-        sequestration_buses,
-        location=spatial.co2.locations,
+        sequestration_buses.unique(),
+        location=spatial.co2.locations.unique(),
         carrier="co2 sequestered",
         unit="t_co2",
     )
 
     n.add(
         "Link",
-        sequestration_buses,
-        bus0=spatial.co2.nodes,
-        bus1=sequestration_buses,
+        sequestration_buses.unique(),
+        bus0=spatial.co2.nodes.unique(),
+        bus1=sequestration_buses.unique(),
         carrier="co2 sequestered",
         efficiency=1.0,
         p_nom_extendable=True,
@@ -1019,12 +1084,12 @@ def add_co2_tracking(
 
     n.add(
         "Store",
-        sequestration_buses,
+        sequestration_buses.unique(),
         e_nom_extendable=True,
         e_nom_max=e_nom_max,
         capital_cost=options["co2_sequestration_cost"],
         marginal_cost=-0.1,
-        bus=sequestration_buses,
+        bus=sequestration_buses.unique(),
         lifetime=options["co2_sequestration_lifetime"],
         carrier="co2 sequestered",
     )
@@ -1540,19 +1605,24 @@ def _add_other_non_res_tyndp(
         - price_bands.co2_factor * co2_price  # tCO2/MWhth * EUR/tCO2 = EUR/MWhth
     ).values
 
+    # TODO Validate that this is the best approach to propagate price band names
+    names = (
+        price_bands["bus"].astype(str)
+        + "-"
+        + price_bands["index_carrier"].astype(str)
+        + "-"
+        + price_bands["price"].round(2).astype(str)
+        + "eur"
+    ).values
+
     if "ccs" in generator:
         capture_rate = costs.at[generator, "capture_rate"]
         co2_capture = capture_rate * price_bands.co2_factor.values / (1 - capture_rate)
 
         n.add(
             "Link",
-            price_bands["bus"].astype(str)
-            + "-"
-            + price_bands["index_carrier"].astype(str)
-            + "-"
-            + price_bands["price"].round(2).astype(str)
-            + "eur",
-            bus0=carrier_nodes,
+            names,
+            bus0=carrier_nodes.loc[price_bands.bus].nodes.values,
             bus1=nodes,
             bus2="co2 atmosphere",
             bus3=spatial.co2.df.loc[nodes, "nodes"].values,
@@ -1569,13 +1639,10 @@ def _add_other_non_res_tyndp(
     else:
         n.add(
             "Link",
-            price_bands["bus"].astype(str)
-            + "-"
-            + price_bands["index_carrier"].astype(str)
-            + "-"
-            + price_bands["price"].round(2).astype(str)
-            + "eur",
-            bus0=carrier_nodes,
+            names,
+            bus0=carrier_nodes.loc[
+                price_bands.bus
+            ].nodes.values,  # TODO Validate approach
             bus1=nodes,
             bus2="co2 atmosphere",
             carrier=generator,
@@ -1639,7 +1706,8 @@ def add_thermal_generation_tyndp(
     """
 
     for generator, carrier in tyndp_conventionals.items():
-        carrier_nodes = vars(spatial)[carrier].nodes
+        names = nodes + " " + generator
+        carrier_nodes = vars(spatial)[carrier].df  # TODO Validate approach
 
         add_carrier_buses(
             n=n,
@@ -1668,11 +1736,11 @@ def add_thermal_generation_tyndp(
         elif "ccs" in generator:
             n.add(
                 "Link",
-                nodes + " " + generator,
-                bus0=carrier_nodes,
+                names,
+                bus0=carrier_nodes.set_index(names).nodes,
                 bus1=nodes,
                 bus2="co2 atmosphere",
-                bus3=spatial.co2.df.loc[nodes, "nodes"].values,
+                bus3=spatial.co2.df.loc[nodes].set_index(names)["nodes"],
                 carrier=generator,
                 p_nom_extendable=False,
                 capital_cost=costs.at[generator, "capital_cost"],
@@ -1687,8 +1755,8 @@ def add_thermal_generation_tyndp(
         else:
             n.add(
                 "Link",
-                nodes + " " + generator,
-                bus0=carrier_nodes,
+                names,
+                bus0=carrier_nodes.set_index(names).nodes,
                 bus1=nodes,
                 bus2="co2 atmosphere",
                 marginal_cost=costs.at[generator, "marginal_cost"],
@@ -1742,8 +1810,8 @@ def add_other_res_tyndp(
     if options["biomass"]:
         n.add(
             "Bus",
-            spatial.biomass.nodes,
-            location=spatial.biomass.locations,
+            spatial.biomass.nodes.unique(),
+            location=spatial.biomass.locations.unique(),
             carrier="solid biomass",
             unit="MWh_LHV",
         )
@@ -3543,10 +3611,10 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
         n.add(
             "Link",
             buses_h2 + " SMR CC",
-            bus0=spatial.gas.nodes,
+            bus0=spatial.gas_h2.nodes,
             bus1=buses_h2,
             bus2="co2 atmosphere",
-            bus3=spatial.co2.nodes,
+            bus3=spatial.co2_h2.nodes,
             p_nom_extendable=False,
             carrier="SMR CC",
             efficiency=costs.at["SMR CC", "efficiency"],
@@ -3565,7 +3633,7 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
         n.add(
             "Link",
             buses_h2 + " SMR",
-            bus0=spatial.gas.nodes,
+            bus0=spatial.gas_h2.nodes,
             bus1=buses_h2,
             bus2="co2 atmosphere",
             p_nom_extendable=False,
@@ -5361,8 +5429,8 @@ def attach_gas_load(
 
     n.add(
         "Bus",
-        spatial.gas.exo_demand,
-        location=spatial.gas.locations,
+        spatial.gas.exo_demand.unique(),
+        location=spatial.gas.locations.unique(),
         carrier="exogenous gas demand",
         unit="MWh_LHV",
     )
@@ -5758,8 +5826,8 @@ def add_ice_cars(
     # Add transport oil buses
     n.add(
         "Bus",
-        spatial.oil.land_transport,
-        location=spatial.oil.demand_locations,
+        spatial.oil.land_transport.unique(),
+        location=spatial.oil.demand_locations.unique(),
         carrier="land transport oil",
         unit="land transport",
     )
@@ -7116,16 +7184,16 @@ def add_biomass(
 
     n.add(
         "Bus",
-        spatial.gas.biogas,
-        location=spatial.gas.locations,
+        spatial.gas.biogas.unique(),
+        location=spatial.gas.locations.unique(),
         carrier="biogas",
         unit="MWh_LHV",
     )
 
     n.add(
         "Bus",
-        spatial.biomass.nodes,
-        location=spatial.biomass.locations,
+        spatial.biomass.nodes.unique(),
+        location=spatial.biomass.locations.unique(),
         carrier="solid biomass",
         unit="MWh_LHV",
     )
@@ -7846,8 +7914,8 @@ def add_industry(
 
     n.add(
         "Bus",
-        spatial.biomass.industry,
-        location=spatial.biomass.locations,
+        spatial.biomass.industry.unique(),
+        location=spatial.biomass.locations.unique(),
         carrier="solid biomass for industry",
         unit="MWh_LHV",
     )
@@ -7906,8 +7974,8 @@ def add_industry(
 
     n.add(
         "Bus",
-        spatial.gas.industry,
-        location=spatial.gas.locations,
+        spatial.gas.industry.unique(),
+        location=spatial.gas.locations.unique(),
         carrier="gas for industry",
         unit="MWh_LHV",
     )
@@ -7969,9 +8037,9 @@ def add_industry(
 
     n.add(
         "Bus",
-        spatial.methanol.industry,
+        spatial.methanol.industry.unique(),
         carrier="industry methanol",
-        location=spatial.methanol.demand_locations,
+        location=spatial.methanol.demand_locations.unique(),
         unit="MWh_LHV",
     )
 
@@ -8087,8 +8155,8 @@ def add_industry(
 
     n.add(
         "Bus",
-        spatial.oil.naphtha,
-        location=spatial.oil.demand_locations,
+        spatial.oil.naphtha.unique(),
+        location=spatial.oil.demand_locations.unique(),
         carrier="naphtha for industry",
         unit="MWh_LHV",
     )
@@ -8142,8 +8210,8 @@ def add_industry(
 
     n.add(
         "Bus",
-        spatial.oil.non_sequestered_hvc,
-        location=spatial.oil.demand_locations,
+        spatial.oil.non_sequestered_hvc.unique(),
+        location=spatial.oil.demand_locations.unique(),
         carrier="non-sequestered HVC",
         unit="MWh_LHV",
     )
@@ -8155,8 +8223,8 @@ def add_industry(
 
     n.add(
         "Store",
-        spatial.oil.non_sequestered_hvc,
-        bus=spatial.oil.non_sequestered_hvc,
+        spatial.oil.non_sequestered_hvc.unique(),
+        bus=spatial.oil.non_sequestered_hvc.unique(),
         carrier="non-sequestered HVC",
         e_nom=HVC_potential,
         marginal_cost=0,
@@ -8286,8 +8354,8 @@ def add_industry(
 
     n.add(
         "Bus",
-        spatial.co2.process_emissions,
-        location=spatial.co2.locations,
+        spatial.co2.process_emissions.unique(),
+        location=spatial.co2.locations.unique(),
         carrier="process emissions",
         unit="t_co2",
     )
@@ -8437,8 +8505,8 @@ def add_aviation(
 
     n.add(
         "Bus",
-        spatial.oil.kerosene,
-        location=spatial.oil.demand_locations,
+        spatial.oil.kerosene.unique(),
+        location=spatial.oil.demand_locations.unique(),
         carrier="kerosene for aviation",
         unit="MWh_LHV",
     )
@@ -9219,7 +9287,7 @@ def add_enhanced_geothermal(
 
     n.add(
         "Bus",
-        spatial.geothermal_heat.nodes,
+        spatial.geothermal_heat.nodes.unique(),
         carrier="geothermal heat",
         unit="MWh_th",
     )
@@ -9692,9 +9760,10 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_sector_network",
             opts="",
-            clusters="10",
+            clusters="all",
             sector_opts="",
-            planning_horizons="2050",
+            planning_horizons="2040",
+            run="NT",
         )
 
     configure_logging(snakemake)  # pylint: disable=E0606
