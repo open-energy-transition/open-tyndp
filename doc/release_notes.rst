@@ -19,10 +19,6 @@ Upcoming Open-TYNDP Release
 
 **Documentation**
 
-* Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
-
-* Add hint on specifying physical RAM limit for Snakemake to use when scheduling jobs (https://github.com/open-energy-transition/open-tyndp/pull/699).
-
 **Developers Note**
 
 
@@ -342,6 +338,8 @@ Open-TYNDP v0.7 (19th May 2026)
 * Improve performance of ``build_statistics`` by adjusting snapshot weightings within networks to be applied automatically within ``n.statistics`` instead of manually in ``build_statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/674).
 
 * Fix prices on interactive maps to exclude load shedding (https://github.com/open-energy-transition/open-tyndp/pull/689).
+
+* Fix the interconnector normalisation by mapping the bus names prior to their normalisation for all the cross-border benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/703).
 
 **Documentation**
 
