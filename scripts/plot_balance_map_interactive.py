@@ -8,6 +8,7 @@ Create interactive energy balance maps for the defined carriers using `n.explore
 import geopandas as gpd
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pydeck as pdk
 import pypsa
@@ -163,6 +164,8 @@ def add_buttons(html_file: str, version: str) -> None:
         html = f.read()
     map_additions = "\n".join([reset_button, fullscreen_button, version_label])
     html = html.replace("</body>", map_additions + "\n<body>")
+    html = html.replace(">label:<", ">Technology:<")
+    html = html.replace(">size:<", ">Gen/Demand (TWh):<")
     with open(html_file, "w") as f:
         f.write(html)
 
@@ -186,6 +189,7 @@ if __name__ == "__main__":
 
     # Interactive map settings
     settings = snakemake.params.settings
+    load_shedding = snakemake.params.load_shedding
     unit_conversion = settings["unit_conversion"]
     cmap = settings["cmap"]
     region_alpha = settings["region_alpha"]
@@ -238,6 +242,15 @@ if __name__ == "__main__":
     eb = eb.dropna()
     bus_size = eb.groupby(level=["bus", "carrier"]).sum()
 
+    # Rename carriers to nice names for pie charts
+    nice_names = n.carriers.nice_name[n.carriers.nice_name != ""].dropna()
+    for orig, nice in nice_names.items():
+        if nice not in n.carriers.index:
+            n.carriers.loc[nice] = n.carriers.loc[orig]
+    bus_size = (
+        bus_size.rename(nice_names, level="carrier").groupby(["bus", "carrier"]).sum()
+    )
+
     # line and links widths according to optimal capacity
     flow = n.statistics.transmission(groupby=False, bus_carrier=carrier, at_port=0)
     if not flow.empty:
@@ -281,11 +294,12 @@ if __name__ == "__main__":
 
     weights = n.snapshot_weightings.generators
     price = (
-        weights
-        @ n.buses_t.marginal_price.reindex(buses, axis=1).rename(
-            n.buses.location, axis=1
-        )
-        / weights.sum()
+        n.buses_t.marginal_price.reindex(buses, axis=1)
+        .rename(n.buses.location, axis=1)
+        .where(
+            lambda x: round(x) < load_shedding.get(carrier, np.inf)
+        )  # comment out to incl. load shedding
+        .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
     )
 
     if carrier == "co2 stored" and "CO2Limit" in n.global_constraints.index:
@@ -322,7 +336,7 @@ if __name__ == "__main__":
         "<b>"
         + regions.index
         + "</b><br>"
-        + "<b>Weighted price:</b> "
+        + "<b>Time-weighted avg. price (excl. load shedding):</b> "
         + pd.to_numeric(regions["price"], errors="coerce").round(2).astype(str)
         + " "
         + region_unit

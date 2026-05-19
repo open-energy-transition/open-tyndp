@@ -527,7 +527,7 @@ def compute_benchmark(
                 weighting="time",
                 groupby_time=False,
             )
-            .pipe(lambda x: x.where(x < load_shedding.get(carrier, np.inf)))
+            .pipe(lambda x: x.where(round(x) < load_shedding.get(carrier, np.inf)))
             .mean(axis=1)
             .to_frame("value")
             .rename_axis("bus")
