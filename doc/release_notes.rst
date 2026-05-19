@@ -269,7 +269,7 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Implement demand side response (DSR) components and price bands (https://github.com/open-energy-transition/open-tyndp/pull/598). This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file.
 
-* Add functionality to use different sources (ENTSO-E and ENTSOG) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
+* Add functionality to use different sources (ENTSO-E and ENTSOs) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
 
 * Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
 
@@ -278,6 +278,8 @@ Open-TYNDP v0.7 (19th May 2026)
 * Add ``tyndp-archive`` as a new data source backed by an Open-TYNDP Google Cloud Storage bucket (``open-tyndp-data-store``) where archived datasets are mirrored. This enables fully reproducible runs without depending on third-party data providers (https://github.com/open-energy-transition/open-tyndp/pull/682). Six datasets currently remain to be retrieved from primary sources due to licensing constraints.
 
 **Changes**
+
+* Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
 * Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
 
@@ -300,8 +302,6 @@ Open-TYNDP v0.7 (19th May 2026)
 * Change the number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
 
 * Refactor CBA workflow to only temporarily save CBA project networks in ``resources/`` (https://github.com/open-energy-transition/open-tyndp/pull/652).
-
-* Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
 * Disable noise added to costs in CBA solves, via ``cba.msv_extraction.solving.options.noisy_costs`` and ``cba.solving.options.noisy_costs`` (https://github.com/open-energy-transition/open-tyndp/pull/687).
 
