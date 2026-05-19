@@ -87,6 +87,8 @@ Upcoming Open-TYNDP Release
 
 * Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
 
+* Add hint on specifying physical RAM limit for Snakemake to use when scheduling jobs (https://github.com/open-energy-transition/open-tyndp/pull/699).
+
 **Developers Note**
 
 

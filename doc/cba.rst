@@ -25,7 +25,7 @@ To resolve **myopia**—where the optimizer cannot see beyond the current week a
     :alt: CBA rolling horizon pipeline diagram
 
 Network Simplification
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 The SB network is transformed into a dispatch-ready CBA network:
 
 * **Fixed Capacities:** Capacities are fixed via ``n.optimize.fix_optimal_capacities()``.
@@ -33,15 +33,15 @@ The SB network is transformed into a dispatch-ready CBA network:
 * **Fuel Capacities:** Primary fuel generator capacities (coal, gas, oil, nuclear) are set to infinity to prevent dispatch from being artificially restricted by fuel-supply limits during peak hours.
 
 Reference Network
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------
 The simplified network is extended to form the CBA reference baseline by adding all TOOT project capacities. This ensures the reference and MSV extraction operate on the same topology.
 
 MSV Extraction
-^^^^^^^^^^^^^^^^^^^^^^^^
+--------------
 The reference network is solved with **perfect foresight** (entire year, single LP). This exposes the shadow prices (``mu_energy_balance``) of energy balance constraints, representing the **Marginal Storage Value (MSV)**—the opportunity cost of stored energy at that moment.
 
 Rolling Horizon Preparation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------
 The reference network and MSV results are combined through five transformations:
 * **(a) Initial storage state:** Seasonal components have their initial state set to the perfect foresight solution's last-snapshot value.
 * **(b) Disable cyclicity:** Short-term storage (battery) keeps cyclicity, while seasonal units (H2, gas, hydro) have it disabled, guided instead by MSVs.
@@ -51,7 +51,7 @@ The reference network and MSV results are combined through five transformations:
 * **(f) Hydro Pinning:** Large hydro reservoirs are pinned to their perfect-foresight state-of-charge values at window boundaries to guide dispatch where duals are near-zero.
 
 Solve
-^^^^^^^^^^^^^^^^^^^
+-----
 The prepared network is solved for the **Reference** baseline and then for each **Project**. Projects are evaluated using either **TOOT** (Take Out One at a Time) or **PINT** (Put IN at a Time) methods.
 
 CBA Indicators
@@ -69,7 +69,7 @@ Configuration
 
 CBA settings are defined in the ``cba`` section of the configuration file. You can refer to
 the `configuration <configuration.html>`_ page for a more comprehensive list of available PyPSA-Eur
-and Open-TYNDP configuration options.```
+and Open-TYNDP configuration options.
 
 Project Selection
 -----------------
@@ -84,7 +84,7 @@ Rolling Horizon Settings
 * ``msv_extraction.resolution``: Controls temporal resolution for the MSV solve (e.g., ``24H``). 
 
 Running Single vs Multiple Climate Years
-----------------------------------------
+========================================
 
 Climate-year collections allow project benefits to be assessed across multiple weather years, consistent with the 2024 TYNDP implementation.
 
@@ -138,8 +138,19 @@ Example Collection (``config/scenarios.tyndp.yaml``):
 
 Individual child scenarios (e.g., ``NT-cy2009``) must define their specific ``snapshots``, ``atlite.default_cutout``, and the ``cba.sb_scenario`` used as input.
 
+.. hint::
+
+   If too many parallel jobs cause out-of-memory issues, you can specify your machine's
+   physical RAM limit in ``profiles/default/config.yaml`` for Snakemake to use
+   when scheduling jobs:
+
+   .. code-block:: yaml
+
+       resources:
+         mem_mb: 16000
+
 Running Multiple Years
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.tyndp.yaml`` or override it via command line:
 
 .. code-block:: console
@@ -147,7 +158,7 @@ To run a collection like ``NT-cyears``, modify ``run.name`` in ``config/config.t
     $ pixi run tyndp-cba --config run='{"name":"NT-cyears"}'
 
 Running a Single Climate Year
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 Similarly, a single climate year can be run by modifying ``run.name``  in ``config/config.tyndp.yaml`` to the desired scenario (e.g., ``NT-cy2009``) or overriding it via command line:
 
 .. code-block:: console
