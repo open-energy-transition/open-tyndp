@@ -281,11 +281,17 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
 
+* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657).
+
 * Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
 
 * Add imports to H2 Market Model (MM) supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
 
 * Add cross-border flows to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/609).
+
+* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enabled with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
+
+* Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
 
 * Add separate solver option for CBA MSV extraction (``cba.msv_extraction.solving``) and move CBA solve logs to ``results/cba/logs/`` (https://github.com/open-energy-transition/open-tyndp/pull/627).
 
@@ -295,19 +301,13 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
-* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657).
-
-* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enabled with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
-
-* Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
-
 * Disable noise added to costs in CBA solves, via ``cba.msv_extraction.solving.options.noisy_costs`` and ``cba.solving.options.noisy_costs`` (https://github.com/open-energy-transition/open-tyndp/pull/687).
 
 **Bugfixes and Compatibility**
 
-* Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
-
 * Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
+
+* Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
 
 * Adjust ``build_statistics`` to be compatible with not modelling the electricity distribution grid with low voltage buses (https://github.com/open-energy-transition/open-tyndp/pull/634).
 
@@ -317,9 +317,9 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Fix CBA workflow to correctly handle simple runs and collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
 
-* Fix mapping of biofuels in the Final Energy Demand table of the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/667).
-
 * Adjust DSR and demand shedding mapping across data sources to benchmark them accurately (https://github.com/open-energy-transition/open-tyndp/pull/645).
+
+* Fix mapping of biofuels in the Final Energy Demand table of the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/667).
 
 * Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
 
@@ -351,9 +351,9 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Upload Windows installer as unzipped artifact (https://github.com/open-energy-transition/open-tyndp/pull/621).
 
-* Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
-
 * Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
+
+* Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
 
 * Add buttons to the interactive balance maps and decrease file size (https://github.com/open-energy-transition/open-tyndp/pull/669).
 
