@@ -303,13 +303,12 @@ if __name__ == "__main__":
             voll,
             load_shedding.get(other_carrier, np.inf)
             * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean()
-            * 0.98,  # Add 2% of numerical tolerance
         )
 
     price = (
         n.buses_t.marginal_price.reindex(buses, axis=1)
         .rename(n.buses.location, axis=1)
-        .where(lambda x: round(x) < voll)  # comment out to incl. load shedding
+        .where(lambda x: x < voll * 0.98)  # Add 2% of numerical tolerance; comment out to incl. load shedding
         .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
     )
 

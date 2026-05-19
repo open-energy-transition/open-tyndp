@@ -529,7 +529,6 @@ def compute_benchmark(
                 voll,
                 load_shedding.get(other_carrier, np.inf)
                 * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean()
-                * 0.98,  # Add 2% of numerical tolerance
             )
 
         df = (
@@ -538,7 +537,7 @@ def compute_benchmark(
                 weighting="time",
                 groupby_time=False,
             )
-            .pipe(lambda x: x.where(round(x) < voll))
+            .pipe(lambda x: x.where(x < voll * 0.98))  # Add 2% of numerical tolerance
             .mean(axis=1)
             .to_frame("value")
             .rename_axis("bus")
