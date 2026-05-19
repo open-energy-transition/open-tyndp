@@ -273,7 +273,7 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Implement demand side response (DSR) components and price bands (https://github.com/open-energy-transition/open-tyndp/pull/598). This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file.
 
-* Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
+* Add functionality to use different sources (ENTSO-E and ENTSOG) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
 
 * Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
 
@@ -299,9 +299,9 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
 
-* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657)
+* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657).
 
-* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enable with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
+* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enabled with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
 
 * Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
 
@@ -319,7 +319,7 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Fix labeling of climate years in CBA indicators output CSVs (https://github.com/open-energy-transition/open-tyndp/pull/620).
 
-* Fix CBA workflow to correctly handle simple runs, collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
+* Fix CBA workflow to correctly handle simple runs and collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
 
 * Fix mapping of biofuels in the Final Energy Demand table of the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/667).
 
@@ -327,7 +327,7 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
 
-* Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
+* Fix CRS compatibility between ``entsoepy`` and ``electricitymaps`` bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
 
 * Refactor the extraction of cross-border flows used by the benchmarking framework to use ``n.statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/680).
 
@@ -337,7 +337,7 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Fix missing native electricity demand mapping for the Market Model in the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/692). This enables the load-weighted average Pan-EU Market Model price calculation and per-node electricity demand validation.
 
-* Refactor the ``plot_benchmarks`` script in order to reduce memory requirements and accelerate processing (https://github.com/open-energy-transition/open-tyndp/pull/696.
+* Refactor the ``plot_benchmarks`` script in order to reduce memory requirements and accelerate processing (https://github.com/open-energy-transition/open-tyndp/pull/696).
 
 * Improve performance of ``build_statistics`` by adjusting snapshot weightings within networks to be applied automatically within ``n.statistics`` instead of manually in ``build_statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/674).
 
