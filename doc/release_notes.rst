@@ -267,7 +267,7 @@ Open-TYNDP v0.7.1 (19th May 2026)
 
 **Bugfixes and Compatibility**
 
-* Restrict linopy to <0.7.0 to work around a bug in v0.7.0 where generator constraints are violated, resulting in a negative objective function value. This is a temporary pin until the issue is resolved upstream (https://github.com/open-energy-transition/open-tyndp/pull/678).
+* Restrict linopy to <0.7.0 to work around a bug in v0.7.0 where generator constraints are violated, resulting in a negative objective function value. This is a temporary pin until the issue is resolved upstream (https://github.com/open-energy-transition/open-tyndp/pull/705).
 
 
 Open-TYNDP v0.7 (19th May 2026)
