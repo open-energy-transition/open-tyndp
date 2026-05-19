@@ -13,85 +13,11 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Add ``tyndp-archive`` as a new data source backed by an Open-TYNDP Google Cloud Storage bucket (``open-tyndp-data-store``) where archived datasets are mirrored. This enables fully reproducible runs without depending on third-party data providers (https://github.com/open-energy-transition/open-tyndp/pull/682). Six datasets currently remain to be retrieved from primary sources due to licensing constraints.
-
-* Implement demand side response (DSR) components and price bands. This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file (https://github.com/open-energy-transition/open-tyndp/pull/598).
-
-* Add functionality to use different sources (ENTSO-E and ENTSOS) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
-
-* Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
-
-* Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
-
-* Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
-
-* Refactor the TYNDP carrier mappings into a central CSV file, adding consistent nice names to all carriers (https://github.com/open-energy-transition/open-tyndp/pull/658).
-
 **Changes**
-
-* Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
-
-* Add imports to H2 MM supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
-
-* Add separate solver option for CBA MSV extraction (`cba.msv_extraction.solving`) and move CBA solve logs to `results/cba/logs/` (https://github.com/open-energy-transition/open-tyndp/pull/627).
-
-* Change number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
-
-* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657)
-
-* Add buttons to the interactive balance maps and decrease file size (https://github.com/open-energy-transition/open-tyndp/pull/669).
-
-* Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
-
-* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enable with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
-
-* Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
-
-* Disable noise added to costs in CBA solves, via ``cba.msv_extraction.solving.options.noisy_costs`` and ``cba.solving.options.noisy_costs`` (https://github.com/open-energy-transition/open-tyndp/pull/687).
-
-* Improve performance of ``build_statistics`` by adjusting snapshot weightings within networks to be applied automatically within ``n.statistics`` instead of manually in ``build_statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/674).
-
-* Improve price benchmarking excluding load-shedding to account for sector-coupling effects by lowering the carrier-specific threshold used to filter marginal prices (https://github.com/open-energy-transition/open-tyndp/pull/701).
 
 **Bugfixes and Compatibility**
 
-* Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
-
-* Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
-
-* Adjust ``build_statistics`` to be compatible with not modelling the electricity distribution grid with low voltage buses (https://github.com/open-energy-transition/open-tyndp/pull/634).
-
-* Fix NaN values of ``marginal_cost_original`` in solved networks (https://github.com/open-energy-transition/open-tyndp/pull/613).
-
-* Fix labeling of climate years in CBA indicators output CSVs (https://github.com/open-energy-transition/open-tyndp/pull/620).
-
-* Fix CBA workflow to correctly handle simple runs, collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
-
-* Fix mapping of biofuels in the Final Energy Demand table of the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/667).
-
-* Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
-
-* Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
-
-* Fix CRS compatibility between entsoepy and electricitymaps bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
-
-* Refactor the extraction of cross-border flows used by the benchmarking framework to use ``n.statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/680).
-
-* Update PEMMDB version reference to correct version v2.5 in the documentation (https://github.com/open-energy-transition/open-tyndp/pull/681).
-
-* Fix units in B4 indicator calculation (https://github.com/open-energy-transition/open-tyndp/pull/693).
-
-* Fix missing native electricity demand mapping for the Market Model in the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/692). This enables the load-weighted average Pan-EU Market Model price calculation and per-node electricity demand validation.
-
-* Refactor the ``plot_benchmarks`` script in order to reduce memory requirements and accelerate processing (https://github.com/open-energy-transition/open-tyndp/pull/696.
-
-* Fix the interconnector normalisation by mapping the bus names prior to their normalisation for all the cross-border benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/703).
-
 **Documentation**
-
-* Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
-
-* Add hint on specifying physical RAM limit for Snakemake to use when scheduling jobs (https://github.com/open-energy-transition/open-tyndp/pull/699).
 
 **Developers Note**
 
@@ -334,6 +260,105 @@ Upcoming PyPSA-Eur Release
 * Fix: An issue with the download and extraction of WDPA and WDPA Marine data (https://github.com/PyPSA/pypsa-eur/issues/2005).
 
 * The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
+
+
+Open-TYNDP v0.7 (19th May 2026)
+========================================
+
+**Features**
+
+* Implement demand side response (DSR) components and price bands (https://github.com/open-energy-transition/open-tyndp/pull/598). This is configurable via ``electricity.constrain_dsr`` and ``cba.constrain_dsr`` in the configuration file.
+
+* Add functionality to use different sources (ENTSO-E and ENTSOs) of H2 reference grid data via ``sector.h2_reference_grid_source`` (https://github.com/open-energy-transition/open-tyndp/pull/611).
+
+* Add configuration switch to patch faulty electricity demand profiles with Market Model output data (https://github.com/open-energy-transition/open-tyndp/pull/647).
+
+* Refactor the TYNDP carrier mappings into a central CSV file, adding consistent nice names to all carriers (https://github.com/open-energy-transition/open-tyndp/pull/658).
+
+* Add ``tyndp-archive`` as a new data source backed by an Open-TYNDP Google Cloud Storage bucket (``open-tyndp-data-store``) where archived datasets are mirrored. This enables fully reproducible runs without depending on third-party data providers (https://github.com/open-energy-transition/open-tyndp/pull/682). Six datasets currently remain to be retrieved from primary sources due to licensing constraints.
+
+**Changes**
+
+* Modify B1 indicator calculation to only use OPEX and not total system cost (OPEX + CAPEX) (https://github.com/open-energy-transition/open-tyndp/pull/668).
+
+* Add dumped energy to power generation benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/615).
+
+* Add numbers of hours of demand shedding to benchmarking (https://github.com/open-energy-transition/open-tyndp/pull/657).
+
+* Disable OCGT as an extendable carrier and add load shedding for H2 and AC (https://github.com/open-energy-transition/open-tyndp/pull/547).
+
+* Add imports to H2 Market Model (MM) supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/604).
+
+* Add cross-border flows to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/609).
+
+* Improve price benchmarking excluding load-shedding to account for sector-coupling effects by lowering the carrier-specific threshold used to filter marginal prices (https://github.com/open-energy-transition/open-tyndp/pull/701).
+
+* Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enabled with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
+
+* Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
+
+* Add separate solver option for CBA MSV extraction (``cba.msv_extraction.solving``) and move CBA solve logs to ``results/cba/logs/`` (https://github.com/open-energy-transition/open-tyndp/pull/627).
+
+* Change the number of threads used for CBA MSV extraction (``solve_cba_msv_extraction``) to ``solver_threads`` to speed up high-resolution runs when using commercial solvers (https://github.com/open-energy-transition/open-tyndp/pull/649).
+
+* Refactor CBA workflow to only temporarily save CBA project networks in ``resources/`` (https://github.com/open-energy-transition/open-tyndp/pull/652).
+
+* Disable noise added to costs in CBA solves, via ``cba.msv_extraction.solving.options.noisy_costs`` and ``cba.solving.options.noisy_costs`` (https://github.com/open-energy-transition/open-tyndp/pull/687).
+
+**Bugfixes and Compatibility**
+
+* Fix flows in balance maps (https://github.com/open-energy-transition/open-tyndp/pull/608).
+
+* Improve EU-wide prices with Pan-European values (https://github.com/open-energy-transition/open-tyndp/pull/607).
+
+* Adjust ``build_statistics`` to be compatible with not modelling the electricity distribution grid with low voltage buses (https://github.com/open-energy-transition/open-tyndp/pull/634).
+
+* Fix NaN values of ``marginal_cost_original`` in solved networks (https://github.com/open-energy-transition/open-tyndp/pull/613).
+
+* Fix labeling of climate years in CBA indicators output CSVs (https://github.com/open-energy-transition/open-tyndp/pull/620).
+
+* Fix CBA workflow to correctly handle simple runs and collection (multi-climate year) runs (https://github.com/open-energy-transition/open-tyndp/pull/625).
+
+* Adjust DSR and demand shedding mapping across data sources to benchmark them accurately (https://github.com/open-energy-transition/open-tyndp/pull/645).
+
+* Fix mapping of biofuels in the Final Energy Demand table of the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/667).
+
+* Fix DSR benchmarking of installed capacities and add notes to plots (https://github.com/open-energy-transition/open-tyndp/pull/663).
+
+* Fix CRS compatibility between ``entsoepy`` and ``electricitymaps`` bidding zone shapes (https://github.com/open-energy-transition/open-tyndp/pull/672).
+
+* Refactor the extraction of cross-border flows used by the benchmarking framework to use ``n.statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/680).
+
+* Update PEMMDB version reference to correct version v2.5 in the documentation (https://github.com/open-energy-transition/open-tyndp/pull/681).
+
+* Fix units in B4 indicator calculation (https://github.com/open-energy-transition/open-tyndp/pull/693).
+
+* Fix missing native electricity demand mapping for the Market Model in the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/692). This enables the load-weighted average Pan-EU Market Model price calculation and per-node electricity demand validation.
+
+* Refactor the ``plot_benchmarks`` script in order to reduce memory requirements and accelerate processing (https://github.com/open-energy-transition/open-tyndp/pull/696).
+
+* Improve performance of ``build_statistics`` by adjusting snapshot weightings within networks to be applied automatically within ``n.statistics`` instead of manually in ``build_statistics`` (https://github.com/open-energy-transition/open-tyndp/pull/674).
+
+* Fix prices on interactive maps to exclude load shedding (https://github.com/open-energy-transition/open-tyndp/pull/689).
+
+* Fix the interconnector normalisation by mapping the bus names prior to their normalisation for all the cross-border benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/703).
+
+**Documentation**
+
+* Restructure documentation: split benchmarking into SB and CBA sections, add PyPSA-Eur pages (https://github.com/open-energy-transition/open-tyndp/pull/676).
+
+* Add hint on specifying physical RAM limit for Snakemake to use when scheduling jobs (https://github.com/open-energy-transition/open-tyndp/pull/699).
+
+**Developers Note**
+
+* Upload Windows installer as unzipped artifact (https://github.com/open-energy-transition/open-tyndp/pull/621).
+
+* Improve robustness of ``retrieve_bidding_zones_entsoepy`` by using ``requests`` instead of ``geopandas`` to retrieve data (https://github.com/open-energy-transition/open-tyndp/pull/644).
+
+* Save current git version label and commit in network metadata for improved versioning of runs (https://github.com/open-energy-transition/open-tyndp/pull/675).
+
+* Add buttons to the interactive balance maps and decrease file size (https://github.com/open-energy-transition/open-tyndp/pull/669).
+
 
 Open-TYNDP v0.6.1 (2nd April 2026)
 ========================================
