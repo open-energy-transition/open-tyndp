@@ -161,6 +161,9 @@ if config["foresight"] != "perfect":
                 "plotting", "balance_map_interactive", w.carrier
             ),
             h2_topology_tyndp=config_provider("sector", "h2_topology_tyndp"),
+            load_shedding=config_provider(
+                "solving", "options", "load_shedding", "carriers"
+            ),
         input:
             network=RESULTS
             + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
