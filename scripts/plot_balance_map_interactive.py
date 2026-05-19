@@ -190,6 +190,7 @@ if __name__ == "__main__":
     # Interactive map settings
     settings = snakemake.params.settings
     load_shedding = snakemake.params.load_shedding
+    exclude_coupling_effects = snakemake.params.exclude_coupling_effects
     unit_conversion = settings["unit_conversion"]
     cmap = settings["cmap"]
     region_alpha = settings["region_alpha"]
@@ -293,12 +294,23 @@ if __name__ == "__main__":
     )
 
     weights = n.snapshot_weightings.generators
+
+    voll = load_shedding.get(carrier, np.inf)
+    if exclude_coupling_effects:
+        other_carrier = "AC" if carrier == "H2" else "H2"
+        coupling_carrier = "h2-ccgt" if carrier == "H2" else "H2 Electrolysis"
+        voll = min(
+            voll,
+            load_shedding.get(other_carrier, np.inf)
+            * n.links.loc[n.links.carrier == coupling_carrier].efficiency.mean(),
+        )
+
     price = (
         n.buses_t.marginal_price.reindex(buses, axis=1)
         .rename(n.buses.location, axis=1)
         .where(
-            lambda x: round(x) < load_shedding.get(carrier, np.inf)
-        )  # comment out to incl. load shedding
+            lambda x: x < voll * 0.98
+        )  # Add 2% of numerical tolerance; comment out to incl. load shedding
         .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
     )
 

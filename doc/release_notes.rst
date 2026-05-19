@@ -289,6 +289,8 @@ Open-TYNDP v0.7 (19th May 2026)
 
 * Add cross-border flows to the benchmarking framework (https://github.com/open-energy-transition/open-tyndp/pull/609).
 
+* Improve price benchmarking excluding load-shedding to account for sector-coupling effects by lowering the carrier-specific threshold used to filter marginal prices (https://github.com/open-energy-transition/open-tyndp/pull/701).
+
 * Add option to patch offshore hubs interconnectors with Market Model data (https://github.com/open-energy-transition/open-tyndp/pull/654). The patch is optionally applied and is enabled with ``sector:offshore_hubs_tyndp:patch_crossborder_with_mm``.
 
 * Apply derived bus name mappings when computing offshore hubs interconnector benchmarks (https://github.com/open-energy-transition/open-tyndp/pull/656).
