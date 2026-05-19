@@ -178,6 +178,40 @@ Solver Settings
 * ``solving.solver_options``: Solver-specific parameters such as optimality gap and
   memory limits.
 
+.. _tyndp_archive:
+
+Data Sources
+------------
+
+By default, Open-TYNDP retrieves input datasets from ``data.pypsa.org`` (``archive`` source)
+or their original primary sources, meaning data is pulled from several different domains. As an alternative, most datasets are also mirrored to a
+dedicated Google Cloud Storage bucket (``open-tyndp-data-store``) under the ``tyndp-archive``
+source. This mirror consolidates downloads to a single URL, which can simplify IT or security approval processes. The Google Cloud Storage requires no account and all files are versioned for reproducibility.
+
+To activate ``tyndp-archive`` for all supported datasets, set ``data_config: tyndp`` in any
+of the following ways:
+
+- Pass it on the command line:
+
+  .. code-block:: console
+
+      $ pixi run tyndp -- --config data_config=tyndp
+
+- Set it permanently in ``config/config.tyndp.yaml`` (applied to all TYNDP runs):
+
+  .. code-block:: yaml
+
+      data_config: tyndp
+
+- Set it in ``config/test/config.tyndp.yaml`` for test runs.
+
+This loads ``config/data.tyndp.yaml``, which switches all mirrored datasets to ``tyndp-archive``.
+A small number of datasets (``wdpa``, ``cutout``, ``open_tyndp_prelim``) are not yet available
+on the GCS bucket and will still be retrieved from their respective sources.
+
+To see which datasets support ``tyndp-archive``, check the ``source`` column in ``data/versions.csv``.
+See also :ref:`data_config_cf` and :ref:`data_cf` in the configuration reference.
+
 Running Scenario Building
 =========================
 
@@ -190,5 +224,16 @@ through to results and launching the
 `PyPSA Explorer <https://github.com/open-energy-transition/pypsa-explorer>`_ visualisation runs with a single command:
  
 .. code-block:: console
- 
+
     $ pixi run tyndp
+
+.. hint::
+
+   If too many parallel jobs cause out-of-memory issues, you can specify your machine's
+   physical RAM limit in ``profiles/default/config.yaml`` for Snakemake to use
+   when scheduling jobs:
+
+   .. code-block:: yaml
+
+       resources:
+         mem_mb: 16000

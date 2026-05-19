@@ -512,7 +512,7 @@ rule plot_balance_timeseries:
         + "logs/plot_balance_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
     benchmark:
         RESULTS
-        +"benchmarks/performances/plot_balance_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+        + "benchmarks/performances/plot_balance_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
     output:
         directory(
             RESULTS
@@ -541,7 +541,7 @@ rule plot_heatmap_timeseries:
         + "logs/plot_heatmap_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
     benchmark:
         RESULTS
-        +"benchmarks/performances/plot_heatmap_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+        + "benchmarks/performances/plot_heatmap_timeseries/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
     output:
         directory(
             RESULTS
@@ -646,7 +646,7 @@ rule plot_interactive_bus_balance:
         + "logs/plot_interactive_bus_balance/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.log",
     benchmark:
         RESULTS
-        +"benchmarks/performances/plot_interactive_bus_balance/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
+        + "benchmarks/performances/plot_interactive_bus_balance/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}"
     resources:
         mem_mb=20000,
     script:

@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
@@ -5,3 +6,8 @@
 # See https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
 
 logger: pypsa
+
+# If too many parallel jobs cause out-of-memory issues, you can specify your machine's
+# physical RAM limit below for Snakemake to use when scheduling jobs.
+#resources:
+# mem_mb: 16000
