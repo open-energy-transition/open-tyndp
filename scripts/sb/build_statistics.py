@@ -574,13 +574,14 @@ def compute_benchmark(
                 lambda x: re.sub(r"\b([A-Z]+)00\b", r"\1", x).replace("UK", "GB")
             )
 
+        df.index = df.index.to_series().replace(regex=NODE_MAP).values
+
         df = normalize_direction(
             df, buses_from_index=True, connector=connector, format_index=True
         )
 
         df = (
             df.reset_index()
-            .replace(regex=NODE_MAP)
             .assign(carrier=carrier)
             .groupby(["border", "carrier"])
             .sum()
