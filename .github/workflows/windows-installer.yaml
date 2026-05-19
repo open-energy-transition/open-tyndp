@@ -46,7 +46,7 @@ jobs:
         git checkout master
 
     - name: Setup Pixi
-      uses: prefix-dev/setup-pixi@v0.9.3
+      uses: prefix-dev/setup-pixi@v0.9.5
       with:
         pixi-version: v0.59.0
         cache: true
@@ -59,7 +59,7 @@ jobs:
         utils/windows-installer/build_installer.sh
 
     - name: Sign Windows installer
-      uses: ossign/ossign@1.0.10
+      uses: ossign/ossign@1.1.0
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         config: |
