@@ -262,6 +262,14 @@ Upcoming PyPSA-Eur Release
 * The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases (https://github.com/PyPSA/pypsa-eur/pull/2130).
 
 
+Open-TYNDP v0.7.1 (19th May 2026)
+========================================
+
+**Bugfixes and Compatibility**
+
+* Restrict linopy to <0.7.0 to work around a bug in linopy v0.7.0 where generator constraints are violated, resulting in a negative objective function value. This is a temporary pin until the issue is resolved upstream (https://github.com/open-energy-transition/open-tyndp/pull/705).
+
+
 Open-TYNDP v0.7 (19th May 2026)
 ========================================
 
