@@ -8,7 +8,7 @@ authors = ["Contributors to Open-TYNDP"]
 channels = ["conda-forge", "bioconda", "gurobi", "https://repo.prefix.dev/open-tyndp"]
 name = "pypsa-eur"
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
-version = "v0.7"
+version = "v.0.7.1"
 
 [target.win-64.activation.env]
 
@@ -66,7 +66,7 @@ ipython = ">=9.7.0"
 jpype1 = ">=1.6.0"
 jupyter = ">=1.1.1"
 libgdal-netcdf = ">=3.10.3"
-linopy = ">=0.6.1"
+linopy = "<0.7.0"
 lxml = ">=6.0.2"
 matplotlib = ">=3.10.7"
 memory_profiler = ">=0.61.0"
