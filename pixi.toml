@@ -189,14 +189,14 @@ tyndp-cyears-test = """bash -c '
     snakemake -call --configfile config/test/config.cyears.yaml "$@"
     ' --
 """
-tyndp-cba = """
-    snakemake -call cba --configfile config/config.tyndp.yaml
-"""
 tyndp = """bash -c '
 	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
 	' --
- """
+"""
+tyndp-cba = """
+    snakemake -call cba --configfile config/config.tyndp.yaml
+"""
  clean-tyndp = """
      snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
      snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
