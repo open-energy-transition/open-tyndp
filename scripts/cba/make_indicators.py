@@ -133,23 +133,113 @@ def check_method(method: str) -> str:
     return method
 
 
-def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
-    """
-    Calculate net CO2 emissions using the final snapshot of the CO2 store.
+def _normalize_conventional_carrier(carrier: str) -> str:
+    """Map carrier aliases to the conventional fuel names used in CBA."""
+    return "oil" if carrier.startswith("oil-") else carrier
 
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network object for which to calculate CO2 emissions.
 
-    Returns
-    -------
-    float
-        Net CO2 emissions at the final snapshot.
+def _get_snapshot_weightings(n: pypsa.Network) -> pd.Series:
+    return n.snapshot_weightings.generators.reindex(n.snapshots).fillna(1.0)
+
+
+def get_ac_electricity_producing_assets(n: pypsa.Network) -> pd.Series:
     """
-    stores_by_carrier = n.stores_t.e.T.groupby(n.stores.carrier).sum().T
-    net_co2 = stores_by_carrier["co2"].iloc[-1]  # get final snapshot value
-    return float(net_co2)
+    Return assets with positive AC electricity production.
+
+    Check energy balance for components with bus_carrier "AC" and positive net balance.
+    This represents generators and links that produce electricity on AC buses.
+    """
+    balance = n.statistics.energy_balance(
+        groupby_time="sum",
+        nice_names=False,
+        bus_carrier="AC",
+        groupby=["name", "carrier", "bus_carrier"],
+    )
+    balance = balance[balance > 0]
+
+    assets = balance[
+        balance.index.get_level_values("component").isin(["Generator", "Link"])
+    ]
+    return assets
+
+
+def get_ac_electricity_producing_carriers(n: pypsa.Network) -> set[str]:
+    """
+    Return carriers that produce positive electricity on AC buses.
+
+    This uses the output of ``get_ac_electricity_producing_assets``.
+    """
+    return set(
+        get_ac_electricity_producing_assets(n)
+        .index.get_level_values("carrier")
+        .unique()
+    )
+
+
+def _get_component_names(balance: pd.Series, component: str) -> pd.Index:
+    if balance.empty:
+        return pd.Index([], dtype="object")
+    mask = balance.index.get_level_values("component") == component
+    if not mask.any():
+        return pd.Index([], dtype="object")
+    return balance[mask].index.get_level_values("name").unique()
+
+
+def _link_is_biofuel(link_name: str, network: pypsa.Network) -> bool:
+    link = network.links.loc[link_name]
+    bus_cols = [col for col in ["bus0", "bus1", "bus2", "bus3"] if col in link.index]
+    buses = " ".join(link[bus_cols].fillna("").astype(str)).lower()
+    return any(token in buses for token in ["biofuel", "biomass", "biogas"])
+
+
+def calculate_power_sector_co2_emissions(n: pypsa.Network) -> float:
+    """
+    Calculate annual power-sector CO2 emissions for assets producing on AC buses.
+
+    Generators use carrier-specific ``co2_emissions`` intensities. Links use the
+    explicit CO2 port flows of the electricity-producing asset.
+    """
+    ac_assets = get_ac_electricity_producing_assets(n)
+    weights = _get_snapshot_weightings(n)
+    total_emissions = 0.0
+
+    generator_names = _get_component_names(ac_assets, "Generator")
+    if len(generator_names):
+        generators = n.generators.loc[generator_names]
+        emission_intensity = generators.carrier.map(n.carriers.co2_emissions).fillna(
+            0.0
+        )
+        efficiency = generators.efficiency.replace(0.0, pd.NA)
+        emission_intensity = emission_intensity.div(efficiency).fillna(0.0)
+        emission_intensity = emission_intensity[emission_intensity != 0.0]
+
+        if not emission_intensity.empty:
+            dispatch = n.generators_t.p[emission_intensity.index]
+            total_emissions += (
+                dispatch.mul(weights, axis=0)
+                .mul(emission_intensity, axis=1)
+                .sum()
+                .sum()
+            )
+
+    link_names = _get_component_names(ac_assets, "Link")
+    if len(link_names):
+        links = n.links.loc[link_names]
+        for port in [1, 2, 3]:
+            bus_col = f"bus{port}"
+            p_col = f"p{port}"
+            if bus_col not in links.columns or p_col not in n.links_t:
+                continue
+
+            co2_links = links.index[
+                links[bus_col].map(n.buses.carrier).fillna("").eq("co2")
+            ]
+            if len(co2_links):
+                total_emissions += -(
+                    n.links_t[p_col][co2_links].mul(weights, axis=0).sum().sum()
+                )
+
+    return float(total_emissions)
 
 
 def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
@@ -365,8 +455,8 @@ def calculate_b2_indicator(
     societal cost assumptions.
     """
 
-    co2_reference = calculate_co2_emissions_per_carrier(n_reference)
-    co2_project = calculate_co2_emissions_per_carrier(n_project)
+    co2_reference = calculate_power_sector_co2_emissions(n_reference)
+    co2_project = calculate_power_sector_co2_emissions(n_project)
 
     if method == "pint":
         # Reference is without project, project is with project
@@ -484,48 +574,26 @@ def calculate_b4_indicator(
     """
 
     pollutant_keys = list(emission_factors.columns)
-
-    normalized = []
-    for c in conventional_carriers:
-        normalized.append("oil" if c.startswith("oil-") else c)
-    conventional_carriers = sorted(set(normalized))
+    conventional_carriers = sorted(
+        {_normalize_conventional_carrier(carrier) for carrier in conventional_carriers}
+    )
 
     # initialize emissions dictionary
     ref_emissions = {key: 0.0 for key in pollutant_keys}
     proj_emissions = {key: 0.0 for key in pollutant_keys}
 
-    # function to check if link is biofuel/biomass/biogas link
-    def is_biofuel_link(link_carrier: str, network: pypsa.Network) -> bool:
-        links = network.links[network.links.carrier == link_carrier]
-        if links.empty:
-            return False
-        buses = links[["bus0", "bus1"]].astype(str).agg(" ".join, axis=1).str.lower()
-        return buses.str.contains("biofuel|biomass|biogas", regex=True).any()
-
-    for carrier in conventional_carriers:
+    def factors_for_fuel(carrier: str) -> tuple[pd.Series, pd.Series | None]:
         if carrier not in CARRIER_TO_EMISSION_FACTORS:
             raise ValueError(
                 f"Carrier '{carrier}' missing in CARRIER_TO_EMISSION_FACTORS"
             )
         regular_fuel, biofuel = CARRIER_TO_EMISSION_FACTORS[carrier]
 
-        ref_balance = n_reference.statistics.energy_balance(
-            nice_names=False, bus_carrier=carrier
-        )
-        proj_balance = n_project.statistics.energy_balance(
-            nice_names=False, bus_carrier=carrier
-        )
-
-        # use only positive values
-        ref_balance = ref_balance[ref_balance > 0]
-        proj_balance = proj_balance[proj_balance > 0]
-
-        # if regular fuel, use regular emission factors
-        # if biofuel, use biofuel emission factors
         fuel_key = str(regular_fuel).strip()
         if fuel_key not in emission_factors.index:
             raise ValueError(f"No emission factors found for fuel '{regular_fuel}'")
         regular_factors = emission_factors.loc[fuel_key]
+
         biofuel_factors = None
         if biofuel:
             biofuel_key = str(biofuel).strip()
@@ -533,23 +601,55 @@ def calculate_b4_indicator(
                 raise ValueError(f"No emission factors found for fuel '{biofuel}'")
             biofuel_factors = emission_factors.loc[biofuel_key]
 
-        def accumulate(balance, emissions, network):
-            for (component, item, _), value in balance.items():
-                if component == "Generator":
-                    factors = regular_factors
-                elif component == "Link" and biofuel_factors is not None:
-                    factors = (
-                        biofuel_factors
-                        if is_biofuel_link(item, network)
-                        else regular_factors
-                    )
-                else:
-                    factors = regular_factors
-                for pollutant_key, kg_value in factors.items():
-                    emissions[pollutant_key] += float(value) * kg_value
+        return regular_factors, biofuel_factors
 
-        accumulate(ref_balance, ref_emissions, n_reference)
-        accumulate(proj_balance, proj_emissions, n_project)
+    def accumulate(network: pypsa.Network, emissions: dict[str, float]) -> None:
+        ac_assets = get_ac_electricity_producing_assets(network)
+        weights = _get_snapshot_weightings(network)
+
+        generator_names = _get_component_names(ac_assets, "Generator")
+        if len(generator_names):
+            generators = network.generators.loc[generator_names]
+            for name, generator in generators.iterrows():
+                fuel_carrier = _normalize_conventional_carrier(str(generator.carrier))
+                if fuel_carrier not in conventional_carriers:
+                    continue
+
+                efficiency = generator.efficiency
+                if not efficiency:
+                    continue
+
+                regular_factors, _ = factors_for_fuel(fuel_carrier)
+                fuel_input = (
+                    network.generators_t.p[name].mul(weights, axis=0).sum() / efficiency
+                )
+
+                for pollutant_key, kg_value in regular_factors.items():
+                    emissions[pollutant_key] += float(fuel_input) * kg_value
+
+        link_names = _get_component_names(ac_assets, "Link")
+        if len(link_names):
+            links = network.links.loc[link_names]
+            for name, link in links.iterrows():
+                fuel_carrier = _normalize_conventional_carrier(
+                    str(network.buses.at[link.bus0, "carrier"])
+                )
+                if fuel_carrier not in conventional_carriers:
+                    continue
+
+                regular_factors, biofuel_factors = factors_for_fuel(fuel_carrier)
+                factors = (
+                    biofuel_factors
+                    if biofuel_factors is not None and _link_is_biofuel(name, network)
+                    else regular_factors
+                )
+                fuel_input = network.links_t.p0[name].mul(weights, axis=0).sum()
+
+                for pollutant_key, kg_value in factors.items():
+                    emissions[pollutant_key] += float(fuel_input) * kg_value
+
+    accumulate(n_reference, ref_emissions)
+    accumulate(n_project, proj_emissions)
 
     results = {}
     units = {}
