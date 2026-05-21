@@ -32,7 +32,7 @@ from scripts._helpers import (
     set_scenario_config,
     update_config_from_wildcards,
 )
-from scripts.solve_network import prepare_network
+from scripts.solve_network import collect_kwargs, prepare_network
 from scripts.temporal_aggregation import set_temporal_aggregation
 
 logger = logging.getLogger(__name__)
@@ -64,11 +64,11 @@ if __name__ == "__main__":
 
     # Merge CBA-specific solving overrides into the global solving config
     solving = copy.deepcopy(snakemake.params.get("solving", {}))
-    update_config(solving, snakemake.params.get("cba_solving", {}))
+    cba_solving = snakemake.params.get("cba_solving", {})
+    update_config(solving, cba_solving)
 
     solver_name = solving.get("solver", {}).get("name", "highs")
     solver_options_key = solving.get("solver", {}).get("options", "highs-default")
-    solver_options = solving.get("solver_options", {}).get(solver_options_key, {})
     solver_log = getattr(snakemake.log, "solver", None)
 
     # Prepare network (e.g., load shedding setup)
@@ -101,13 +101,22 @@ if __name__ == "__main__":
     with memory_logger(
         filename=getattr(snakemake.log, "memory", None), interval=30
     ) as mem:
-        n.optimize.create_model()
-        status, termination_condition = n.optimize.solve_model(
-            solver_name=solver_name,
-            solver_options=solver_options,
-            assign_all_duals=True,
+        model_kwargs, solve_kwargs = collect_kwargs(
+            snakemake.config,
+            solving,
+            snakemake.wildcards.get("planning_horizons", None),
             log_fn=solver_log,
+            mode="single",
         )
+        if cba_solving.get("options", {}).get("assign_all_duals") is False:
+            raise ValueError(
+                "`cba.msv_extraction.solving.options.assign_all_duals` cannot be "
+                "false because MSV extraction requires dual values."
+            )
+        solve_kwargs["assign_all_duals"] = True
+
+        n.optimize.create_model(**model_kwargs)
+        status, termination_condition = n.optimize.solve_model(**solve_kwargs)
 
     if status != "ok":
         logger.error(f"Extraction solve failed: {termination_condition}")
