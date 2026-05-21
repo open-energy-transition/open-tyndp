@@ -1252,6 +1252,8 @@ solving:
     seed: 123
     custom_extra_functionality: ../data/custom_extra_functionality.py
     io_api:
+    include_objective_constant:
+    assign_all_duals: false
     track_iterations: false
     min_iterations: 2
     max_iterations: 3
@@ -1603,17 +1605,18 @@ cba:
     resolution: false
     resample_method: ffill
     solving:
+      options: {}
       solver:
         name: highs
         options: "highs-simplex"
       solver_options: {}
   solving:
     options:
-      horizon: 168
-      overlap: 1
       load_shedding:
         enable: true
       io_api: direct
+    horizon: 168
+    overlap: 1
     solver:
       name: highs
       options: "highs-simplex"

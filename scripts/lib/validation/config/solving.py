@@ -156,6 +156,14 @@ class _SolvingOptionsConfig(BaseModel):
         None,
         description="Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance.",
     )
+    include_objective_constant: bool | None = Field(
+        None,
+        description="Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
+    )
+    assign_all_duals: bool = Field(
+        False,
+        description="Assign all dual variables returned by the solver to the network.",
+    )
     track_iterations: bool = Field(
         False,
         description="Flag whether to store the intermediate branch capacities and objective function values are recorded for each iteration in `network.lines['s_nom_opt_X']` (where `X` labels the iteration)",
