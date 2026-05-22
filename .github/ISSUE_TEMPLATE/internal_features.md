@@ -1,3 +1,16 @@
+---
+name: Internal Feature Request
+about: For internal developers - request new features with security review
+title: ''
+labels: ['feature', 'needs triage']
+assignees: ''
+---
+
+<!--
+**For internal developers only.** External contributors should use the external issue template.
+Please do not post usage questions here. Ask them on Discord or contact tyndp@openenergytransition.org.
+-->
+
 ## Description
 <!-- Describe the requested feature or change. Extend the issue title with context if needed. -->
 

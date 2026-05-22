@@ -1,3 +1,11 @@
+---
+name: External Issue Report
+about: For external contributors - report bugs, request features, or ask questions
+title: ''
+labels: ['external', 'needs triage']
+assignees: ''
+---
+
 <!--
 Please do not post usage questions here.
 Use the PyPSA/Open-TYNDP Discord channel:
