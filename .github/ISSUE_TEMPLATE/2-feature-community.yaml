@@ -1,0 +1,87 @@
+name: Feature Request (Community)
+description: Suggest a new feature or enhancement
+labels: ["needs triage"]
+type: "Feature"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for filling out this feature request!
+      
+      Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
+
+- type: textarea
+  id: feature_description
+  attributes:
+    label: Feature Description
+    description: Describe the feature you'd like to see. What should be implemented?
+    placeholder: |
+      Provide a clear description:
+      - What functionality should be added?
+      - What problem does it solve?
+      - How should it work?
+  validations:
+    required: true
+
+- type: textarea
+  id: motivation
+  attributes:
+    label: Motivation / Use Case
+    description: Why is this feature important? What problem does it solve or what value does it add?
+    placeholder: |
+      Example: 
+      - Enables new types of analysis
+      - Improves workflow efficiency
+      - Addresses limitation in current functionality
+      - Requested by stakeholders
+  validations:
+    required: true
+
+- type: dropdown
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: Which part of Open-TYNDP would this feature affect?
+    options:
+    - Scenario Building (SB)
+    - Cost-Benefit Analysis (CBA)
+    - Network optimization
+    - Data retrieval/processing
+    - Plotting/visualization
+    - Documentation
+    - Installation/environment setup
+    - Other (specify in description)
+  validations:
+    required: true
+
+- type: textarea
+  id: proposed_solution
+  attributes:
+    label: Proposed Solution
+    description: |
+      How do you envision this feature working? Include any implementation ideas, references, or examples.
+    placeholder: |
+      Example:
+      - Add new configuration option to enable X
+      - Similar to feature in PyPSA-Eur: ...
+      - Could use approach from paper/tool: ...
+
+- type: textarea
+  id: alternatives
+  attributes:
+    label: Alternatives Considered
+    description: |
+      Have you considered alternative approaches or workarounds? What are the pros/cons?
+    placeholder: |
+      Example:
+      - Alternative 1: ...
+      - Alternative 2: ...
+      - Current workaround: ...
+
+- type: textarea
+  id: additional_context
+  attributes:
+    label: Additional Context
+    description: |
+      Any other relevant information: screenshots, mockups, related issues, links to references, etc.

@@ -1,0 +1,71 @@
+name: Feature - Parent Issue (Maintainer)
+description: High-level parent issue that will be broken down into sub-issues
+labels: ["enhancement"]
+title: "[PARENT] "
+type: "Feature"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Intended for maintainers.** Community contributors are welcome to use this but could also use the [community issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) instead.
+      
+      This template is for high-level parent issues that will be broken down into sub-issues. Use the "Feature - Sub Issue (Maintainer)" template for detailed feature requests.
+
+- type: textarea
+  id: overview
+  attributes:
+    label: Overview
+    description: |
+      Provide a high-level description of this parent issue. What is the overall goal?
+    placeholder: |
+      Example: 
+      Implement comprehensive validation framework for TYNDP 2024.
+  validations:
+    required: true
+
+- type: textarea
+  id: why_impact
+  attributes:
+    label: Reason for Change
+    description: What problem does this solve, or what value does it add? Be brief.
+    placeholder: |
+      Example: Improves performance by 50%, enables new analysis capabilities, addresses user feedback...
+  validations:
+    required: true
+
+- type: dropdown
+  id: affected_component
+  attributes:
+    label: Primary Component/Workflow
+    description: Which part of Open-TYNDP will this primarily affect?
+    options:
+    - Scenario Building (SB)
+    - Cost-Benefit Analysis (CBA)
+    - Network optimization
+    - Data retrieval/processing
+    - Plotting/visualization
+    - Documentation
+    - CI/CD workflows
+    - Multiple components
+  validations:
+    required: true
+
+- type: textarea
+  id: scope
+  attributes:
+    label: Scope & Key Deliverables
+    description: |
+      What are the main components or deliverables of this parent issue?
+    placeholder: |
+      Example:
+      - New validation scripts
+      - Updated documentation
+      - Benchmark comparison tools
+
+- type: textarea
+  id: additional_context
+  attributes:
+    label: Additional Context
+    description: |
+      Links, references, related issues, etc.

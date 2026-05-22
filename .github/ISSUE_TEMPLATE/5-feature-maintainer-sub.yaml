@@ -1,22 +1,26 @@
-name: Feature Request (Developer)
-description: Request new features or enhancements with security review
+name: Feature - Sub Issue (Maintainer)
+description: Suggest a new feature or enhancement
 labels: ["enhancement"]
+title: "[SUB] "
 type: "Feature"
 
 body:
 - type: markdown
   attributes:
     value: |
-      **Intended for developers.** External contributors are welcome to use this but could also use the [external issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=1-external.md).
-
-      Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
+      **Intended for maintainers.** Community contributors are welcome to use this but could also use the [community issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) instead.
+      
+      This template is for detailed feature requests. Use the "Feature - Parent Issue (Maintainer)" template for high-level parent issues that will be broken down into sub-issues.
 
 - type: input
   id: parent_issue
   attributes:
-    label: Parent Issue (if sub-issue)
+    label: Parent Issue
     description: |
-      Is this a sub-issue of a larger parent issue? If yes, link the parent issue here and **edit the title above to start with [SUB]**.
+      Link to the parent issue this belongs to.
+    placeholder: "#123"
+  validations:
+    required: true
     placeholder: "#123 or leave blank if standalone issue"
 
 - type: textarea

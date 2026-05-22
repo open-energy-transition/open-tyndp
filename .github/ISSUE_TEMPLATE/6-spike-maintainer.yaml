@@ -1,0 +1,130 @@
+name: Spike (Maintainer)
+description: Explore a concept, gather information, or investigate a technical question
+labels: []
+type: "Spike"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Intended for maintainers.** 
+      
+      Spikes are exploratory issues meant to gather information and explore concepts. They typically don't result in PRs but help inform future implementation decisions.
+
+- type: input
+  id: parent_issue
+  attributes:
+    label: Related Parent/Issue (optional)
+    description: |
+      Is this spike related to a another issue (parent, sub issue, bug report)?
+    placeholder: "#123 or leave blank if standalone"
+
+- type: dropdown
+  id: affected_component
+  attributes:
+    label: Affected Component/Area
+    description: Which part of Open-TYNDP does this exploration relate to?
+    options:
+    - Scenario Building (SB)
+    - Cost-Benefit Analysis (CBA)
+    - Network optimization
+    - Data retrieval/processing
+    - Plotting/visualization
+    - Documentation
+    - CI/CD workflows
+    - Dependencies/environment
+    - Architecture/design
+    - Multiple components
+    - Other (specify in description)
+  validations:
+    required: true
+
+- type: textarea
+  id: objective
+  attributes:
+    label: Spike Objective
+    description: |
+      What are we trying to explore or understand? What is the goal of this spike? Or, what specific questions need to be answered? List the main questions this spike should address.
+    placeholder: |
+      Example:
+      - Investigate performance bottlenecks in build_statistics rule
+      - Explore feasibility of integrating new data source
+      - Research alternative approaches for validation framework
+      - Understand TYNDP 2024 methodology for indicator X
+  validations:
+    required: true
+
+- type: textarea
+  id: context
+  attributes:
+    label: Background / Context
+    description: |
+      Provide context for this spike. Why is this exploration needed? What led to this investigation?
+    placeholder: |
+      Example:
+      - Stakeholder feedback indicates need for feature X
+      - Recent changes caused performance regression
+      - Planning for TYNDP 2026 cycle requires understanding new requirements
+      - Exploring alternatives to current implementation
+
+- type: textarea
+  id: success_criteria
+  attributes:
+    label: Definition of Done / Success Criteria
+    description: |
+      How do we know when this spike is complete? What outcomes are expected?
+    placeholder: |
+      - Document findings in this issue
+      - Identify recommended approach
+      - Create follow-up implementation issues if needed
+      - Share findings with team
+    render: markdown
+
+- type: textarea
+  id: timeframe
+  attributes:
+    label: Estimated Timeframe
+    description: |
+      Roughly how long should this spike take? (e.g., 1 day, 3 days, 1 week)
+    placeholder: "e.g., 2-3 days"
+
+- type: textarea
+  id: findings
+  attributes:
+    label: Findings / Outcomes
+    description: |
+      **To be filled in during/after the spike.** Document key findings, insights, and recommendations here.
+    placeholder: |
+      # Findings
+      
+      ## Summary
+      [High-level summary of what was discovered]
+      
+      ## Key Insights
+      - Finding 1: ...
+      - Finding 2: ...
+      - Finding 3: ...
+      
+      ## Recommendations
+      - Recommended approach: ...
+      - Pros: ...
+      - Cons: ...
+      - Alternative considerations: ...
+      
+      ## Follow-up Actions
+      - [ ] Create implementation issue #XXX
+      - [ ] Update documentation
+      - [ ] Schedule team discussion
+    render: markdown
+
+- type: textarea
+  id: additional_context
+  attributes:
+    label: Additional Context
+    description: |
+      Links to references, related issues, documentation, papers, code examples, etc.
+    placeholder: |
+      - Related to #123
+      - Reference: CBA methodology document
+      - Similar spike: #456
+      - Code to investigate: scripts/solve_network.py
