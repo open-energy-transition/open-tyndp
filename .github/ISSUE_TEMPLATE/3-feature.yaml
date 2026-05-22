@@ -105,8 +105,6 @@ body:
     - label: This feature adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
     - label: This feature changes the attack surface (new ports, APIs, external dependencies, auth flows)
     - label: This feature could affect data integrity or reproducibility of published results
-  validations:
-    required: true
 
 - type: dropdown
   id: risk_level
