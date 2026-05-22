@@ -62,7 +62,7 @@ body:
       - Updated documentation
       - Updated benchmarks
 
-- type: - type: textarea
+- type: textarea
   id: additional_details
   attributes:
     label: Additional Details

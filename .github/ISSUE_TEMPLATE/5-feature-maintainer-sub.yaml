@@ -169,7 +169,7 @@ body:
       - Disable feature flag in config
       - Pin previous dataset version
 
-- type: - type: textarea
+- type: textarea
   id: additional_details
   attributes:
     label: Additional Details

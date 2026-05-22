@@ -59,13 +59,13 @@ body:
       - Similar to feature in PyPSA-Eur: ...
       - Could use approach from paper/tool: ...
 
-- type: - type: textarea
+- type: textarea
   id: additional_details
   attributes:
     label: Additional Details
     description: |
       Any other relevant information: links, references, related issues, etc.
-    placeholder: |
+    placeholder: |-
       - Related to issue #123
       - Similar to upstream feature: https://github.com/pypsa/pypsa-eur/pull/...
       - References: Research paper, TYNDP documentation
