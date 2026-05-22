@@ -17,9 +17,9 @@ body:
     label: Version Checks
     description: Where does this bug exist? Check all that apply.
     options:
-    - label: I have confirmed this bug exists on the latest [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP
-    - label: I have confirmed this bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
-    - label: I have confirmed this bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (Open-TYNDP specific)
+    - label: This bug exists on the latest [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP
+    - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
+    - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific)
 
 - type: dropdown
   id: affected_component
@@ -46,7 +46,7 @@ body:
     description: |
       Clear description of the bug. What is broken? When does it occur?
     placeholder: |
-      Describe the issue, including:
+      Describe the issue, such as:
       - What operation/workflow were you running?
       - What scenario/configuration were you using?
       - Any error messages or unexpected outputs
@@ -81,12 +81,11 @@ body:
   attributes:
     label: Steps to Reproduce
     description: |
-      Provide minimal steps to reproduce the bug. Include relevant config files, commands, or code snippets.
+      Provide minimal steps to reproduce the bug, if possible. Include relevant config files, commands, or code snippets.
     placeholder: |
       Example:
       1. Set config option `remove_last_day: true`
       2. Run `pixi run snakemake -call build_statistics`
       3. Observe error in logs/...
-    render: shell
   validations:
     required: true
