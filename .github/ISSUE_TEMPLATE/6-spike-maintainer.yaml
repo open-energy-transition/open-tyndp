@@ -60,7 +60,6 @@ body:
       - Identify recommended approach
       - Create follow-up implementation issues if needed
       - Share findings with team
-    render: markdown
 
 - type: textarea
   id: timeframe
