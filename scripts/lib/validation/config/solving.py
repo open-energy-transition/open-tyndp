@@ -356,6 +356,17 @@ class SolvingConfig(BaseModel):
                 "PreDual": 0,
                 "GURO_PAR_BARDENSETHRESH": 200,
             },
+            "gurobi-simplex": {
+                "threads": 32,
+                "method": 1,
+                "NodeMethod": 1,
+                "Seed": 123,
+                "AggFill": 0,
+                "PreDual": 0,
+                "FeasibilityTol": 1e-5,
+                "OptimalityTol": 1e-5,
+                "ScaleFlag": -1,
+            },
             "gurobi-numeric-focus": {
                 "NumericFocus": 3,
                 "method": 2,
