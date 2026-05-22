@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=../schema.default.json
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+run:
+  name: "NT"
+
+clustering:
+  temporal:
+    # Use 1H for high-resolution SB results on ZIB.
+    resolution_sector: 1H
+
+solving:
+  options:
+    assign_all_duals: true
+    include_objective_constant: false
+  solver:
+    name: gurobi
+    options: gurobi-default
+  partition: big
+  mem_mb: 60000
+  runtime: 12h
+
+cba:
+  projects: [t1-t35, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207]
+
+  msv_extraction:
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          apply_to_all_carriers: false
+          carriers:
+            H2: 3000
+            AC: 3000
+            "co2 sequestered": 3000
+            "electricity distribution grid": 3000
+      solver:
+        name: gurobi
+        options: gurobi-default
+      solver_options:
+        gurobi-default:
+          BarConvTol: 1.0e-06
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+  # Rolling horizon solving settings
+  solving:
+    options:
+      include_objective_constant: false
+      load_sinks:
+        enable: true
+        apply_to_all_carriers: false
+        carriers:
+          H2: 3000
+          AC: 3000
+          "co2 sequestered": 3000
+          "electricity distribution grid": 3000
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
+    solver:
+      name: gurobi
+      options: gurobi-simplex
+
+    solver_options:
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06
