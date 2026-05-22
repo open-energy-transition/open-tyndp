@@ -17,6 +17,7 @@ they apply to the dispatch.
 """
 
 import copy
+import gc
 import importlib
 import logging
 import os
@@ -178,6 +179,28 @@ def optimize_with_rolling_horizon(
                 c.static.loc[comp, "e_sum_max"] = np.ceil(window_energy)
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
+        
+        # Explicitly dispose of Gurobi environment after each rolling horizon window
+        # This is critical for WLS license which doesn't allow multiple environments
+        # in the same process, even sequentially
+        if hasattr(n, "model") and n.model is not None:
+            try:
+                # Access the Gurobi model if it exists
+                if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
+                    gurobi_model = n.model.solver_model
+                    if hasattr(gurobi_model, "dispose"):
+                        gurobi_model.dispose()
+                    # Also try to dispose the environment
+                    if hasattr(gurobi_model, "_env") and gurobi_model._env is not None:
+                        gurobi_model._env.dispose()
+                    # Clear the solver_model reference
+                    n.model.solver_model = None
+                # Force garbage collection to ensure cleanup
+                # (Note: n.model is a read-only property, can't be deleted/set)
+                gc.collect()
+            except Exception as e:
+                logger.warning(f"Failed to dispose Gurobi environment: {e}")
+        
         if status != "ok":
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
@@ -192,6 +215,21 @@ def optimize_with_rolling_horizon(
                 retry_kwargs["solver_name"] = fallback_solver["name"]
                 retry_kwargs["solver_options"] = fallback_solver.get("options", {})
                 status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
+                
+                # Cleanup after fallback solver too
+                if hasattr(n, "model") and n.model is not None:
+                    try:
+                        if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
+                            gurobi_model = n.model.solver_model
+                            if hasattr(gurobi_model, "dispose"):
+                                gurobi_model.dispose()
+                            if hasattr(gurobi_model, "_env") and gurobi_model._env is not None:
+                                gurobi_model._env.dispose()
+                            n.model.solver_model = None
+                        gc.collect()
+                    except Exception as e:
+                        logger.warning(f"Failed to dispose Gurobi environment after fallback: {e}")
+                
             if status != "ok":
                 logger.warning(f"Fallback also failed: {status} / {condition}")
                 return status, condition
