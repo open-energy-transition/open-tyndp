@@ -132,7 +132,7 @@ body:
   attributes:
     label: Implementation Tasks
     description: |
-      List specific tasks or steps needed to implement this feature (if known). Use checkboxes.
+      List specific tasks or steps needed to implement this feature (if known).
     placeholder: |
       - [ ] Update config schema
       - [ ] Modify build_statistics.py

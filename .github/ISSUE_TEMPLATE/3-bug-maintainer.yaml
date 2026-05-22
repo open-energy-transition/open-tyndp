@@ -200,7 +200,6 @@ body:
       Pixi environment: open-tyndp
       OS: macOS / Linux / Windows
       Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
-    render: yaml
 
 - type: textarea
   id: additional_context
