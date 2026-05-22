@@ -7,7 +7,7 @@ body:
 - type: markdown
   attributes:
     value: |
-      **For Open-TYNDP developers only.** External contributors should use the [external issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=external.md).
+      **Intended for Open-TYNDP developers.** External contributors are welcome to use this but could also use the [external issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=external.md).
       
       Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
 
@@ -132,9 +132,9 @@ body:
     description: |
       Answer honestly. Checking a box flags what needs review but does not block the fix.
     options:
-    - label: This bug involves or could expose sensitive data (credentials, client data, PII)
+    - label: This bug involves or could expose sensitive data (user PII, client grid data, credentials)
     - label: This bug affects external data sources, APIs, download URLs, or authentication
-    - label: This bug changes the attack surface (ports, APIs, auth flows, external dependencies)
+    - label: This bug changes the attack surface (new ports, APIs, external deps, auth flows)
     - label: This bug could affect data integrity or reproducibility of published results
 
 - type: dropdown
@@ -197,14 +197,7 @@ body:
     placeholder: |
       Pixi environment: open-tyndp
       OS: macOS / Linux / Windows
-      Open-TYNDP version: v0.4.0 / master@abc123
-      
-      <details>
-      <summary>Environment details</summary>
-      
-      Paste pixi.lock excerpt or conda env export here
-      
-      </details>
+      Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
     render: yaml
 
 - type: textarea
