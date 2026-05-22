@@ -21,22 +21,6 @@ body:
     - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
     - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific)
 
-- type: checkboxes
-  id: affected_component
-  attributes:
-    label: Affected Component/Workflow
-    description: Which part(s) of Open-TYNDP are affected? Select all that apply.
-    options:
-    - label: Scenario Building (SB)
-    - label: Cost-Benefit Analysis (CBA)
-    - label: Network optimization
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
-    - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
-    - label: Other (specify in description)
-
 - type: textarea
   id: bug_description
   attributes:
@@ -44,10 +28,10 @@ body:
     description: |
       Clear description of the bug. What is broken? When does it occur?
     placeholder: |
-      Describe the issue, such as:
+      Briefly and concisely describe the issue/bug, including information such as:
       - What operation/workflow were you running?
       - What scenario/configuration were you using?
-      - Any error messages or unexpected outputs
+      - What could be causing the issue (if known)?
   validations:
     required: true
 
@@ -74,6 +58,22 @@ body:
   validations:
     required: true
 
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: Which part(s) of Open-TYNDP are affected? Select all that apply.
+    options:
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Network optimization
+    - label: Data retrieval/processing
+    - label: Plotting/visualization
+    - label: Documentation
+    - label: CI/CD workflows
+    - label: Dependencies/environment
+    - label: Other (specify in description)
+
 - type: textarea
   id: reproducible_example
   attributes:
@@ -81,10 +81,10 @@ body:
     description: |
       Provide minimal steps to reproduce the bug, if possible. Include relevant config files, commands, or code snippets.
     placeholder: |
-      Example:
-      1. Set config option `remove_last_day: true`
-      2. Run `pixi run snakemake -call build_statistics`
-      3. Observe error in logs/...
+      Examples:
+      - Set config option `remove_last_day: true`
+      - Run `pixi run snakemake -call ....`
+      - Observe error in logs/...
   validations:
     required: true
 
@@ -115,10 +115,13 @@ body:
     label: Change Classification
     description: |
       How urgent/critical is this fix?
+      - Standard — Low-risk, routine (e.g. docs update, non-critical dependency bump) → Developer self-approves
+      - Normal — Logic, infra, or API changes (e.g. new endpoint, schema change) → Project Lead approval before work starts
+      - Emergency (Break-Glass) — Critical hotfix / active security breach → Verbal approval from Senior Lead; document retrospectively within 24h
     options:
-    - "Standard — Low-risk, routine (e.g. docs update, non-critical dependency bump) → Developer self-approves"
-    - "Normal — Logic, infra, or API changes (e.g. new endpoint, schema change) → Project Lead approval before work starts"
-    - "Emergency (Break-Glass) — Critical hotfix / active security breach → Verbal approval from Senior Lead; document retrospectively within 24h"
+    - "Standard"
+    - "Normal"
+    - "Emergency"
   validations:
     required: true
 
