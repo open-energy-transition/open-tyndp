@@ -35,7 +35,7 @@ body:
 - type: textarea
   id: why_impact
   attributes:
-    label: Why (Reason for Change)
+    label: Reason for Change
     description: What problem does this solve, or what value does it add? Be brief.
     placeholder: |
       Example: Improves performance by 50%, enables new analysis capabilities, addresses user feedback...
@@ -101,22 +101,24 @@ body:
     description: |
       Answer honestly. Checking a box flags what needs review but does not block the feature.
     options:
-    - label: This touches sensitive data (user PII, client grid data, credentials)
-    - label: This adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
-    - label: This changes the attack surface (new ports, APIs, external dependencies, auth flows)
-    - label: This could affect data integrity or reproducibility of published results
+    - label: This feature touches sensitive data (user PII, client grid data, credentials)
+    - label: This feature adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
+    - label: This feature changes the attack surface (new ports, APIs, external dependencies, auth flows)
+    - label: This feature could affect data integrity or reproducibility of published results
+  validations:
+    required: true
 
 - type: dropdown
   id: risk_level
   attributes:
     label: Risk Level of Feature
     description: |
-      What is the risk level of this feature? (Required for major features)
+      What is the risk level of this feature?
     options:
+    - N/A (minor change)
     - Low
     - Medium
     - High (requires kick-off security review)
-    - N/A (minor change)
   validations:
     required: true
 
@@ -154,7 +156,7 @@ body:
   attributes:
     label: Rollback / Recovery Plan
     description: |
-      Required for Normal changes. How to undo this feature within ~15 minutes if it causes issues?
+      Required for Normal and Emergency changes. How to undo this feature within ~15 minutes if it causes issues?
     placeholder: |
       Example:
       - Revert PR commit SHA abc123
