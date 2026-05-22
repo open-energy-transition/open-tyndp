@@ -8,7 +8,7 @@ body:
   attributes:
     value: |
       **Intended for developers.** External contributors should use the [external issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=1-external.md).
-      
+
       Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
 
 - type: input
@@ -48,15 +48,15 @@ body:
     label: Affected Component/Workflow
     description: Which part of Open-TYNDP will this feature affect?
     options:
-      - Scenario Building (SB)
-      - Cost-Benefit Analysis (CBA)
-      - Network optimization
-      - Data retrieval/processing
-      - Plotting/visualization
-      - Documentation
-      - CI/CD workflows
-      - Dependencies/environment
-      - Other (specify in description)
+    - Scenario Building (SB)
+    - Cost-Benefit Analysis (CBA)
+    - Network optimization
+    - Data retrieval/processing
+    - Plotting/visualization
+    - Documentation
+    - CI/CD workflows
+    - Dependencies/environment
+    - Other (specify in description)
   validations:
     required: true
 
@@ -78,7 +78,7 @@ body:
     value: |
       ---
       ## Change Classification & Security Review
-      
+
       Feature requests require classification and security review per OET-ISMS-006, Annex A.
 
 - type: dropdown
@@ -88,9 +88,9 @@ body:
     description: |
       Pick one. This determines the approval path.
     options:
-      - "Standard — Low-risk, routine (e.g. docs update, non-critical dependency bump) → Developer self-approves"
-      - "Normal — Logic, infra, or API changes (e.g. new endpoint, schema change) → Project Lead approval before work starts"
-      - "Emergency (Break-Glass) — Critical hotfix / active security breach → Verbal approval from Senior Lead; document retrospectively within 24h"
+    - "Standard — Low-risk, routine (e.g. docs update, non-critical dependency bump) → Developer self-approves"
+    - "Normal — Logic, infra, or API changes (e.g. new endpoint, schema change) → Project Lead approval before work starts"
+    - "Emergency (Break-Glass) — Critical hotfix / active security breach → Verbal approval from Senior Lead; document retrospectively within 24h"
   validations:
     required: true
 
@@ -101,10 +101,10 @@ body:
     description: |
       Answer honestly. Checking a box flags what needs review but does not block the feature.
     options:
-      - label: This touches sensitive data (user PII, client grid data, credentials)
-      - label: This adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
-      - label: This changes the attack surface (new ports, APIs, external dependencies, auth flows)
-      - label: This could affect data integrity or reproducibility of published results
+    - label: This touches sensitive data (user PII, client grid data, credentials)
+    - label: This adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
+    - label: This changes the attack surface (new ports, APIs, external dependencies, auth flows)
+    - label: This could affect data integrity or reproducibility of published results
 
 - type: dropdown
   id: risk_level
@@ -113,10 +113,10 @@ body:
     description: |
       What is the risk level of this feature? (Required for major features)
     options:
-      - Low
-      - Medium
-      - High (requires kick-off security review)
-      - N/A (minor change)
+    - Low
+    - Medium
+    - High (requires kick-off security review)
+    - N/A (minor change)
   validations:
     required: true
 
