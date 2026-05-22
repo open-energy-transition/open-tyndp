@@ -1,6 +1,6 @@
 name: Bug Report (Developer)
 description: Report a bug or issue
-labels: ""
+labels: ["bug"]
 type: "Bug"
 
 body:

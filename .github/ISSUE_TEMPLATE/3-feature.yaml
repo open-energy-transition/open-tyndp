@@ -1,6 +1,6 @@
 name: Feature Request (Developer)
 description: Request new features or enhancements with security review
-labels: ""
+labels: ["enhancement"]
 type: "Feature"
 
 body:
