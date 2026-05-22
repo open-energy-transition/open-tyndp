@@ -9,7 +9,7 @@ body:
   attributes:
     value: |
       **Intended for maintainers.** Community contributors are welcome to use this but could also use the [community issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) instead.
-      
+
       This template is for high-level parent issues that will be broken down into sub-issues. Use the "Feature - Sub Issue (Maintainer)" template for detailed feature requests.
 
 - type: textarea

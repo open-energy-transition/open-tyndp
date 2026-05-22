@@ -8,7 +8,7 @@ body:
   attributes:
     value: |
       Thank you for filling out this bug report!
-      
+
       Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
 
 - type: checkboxes

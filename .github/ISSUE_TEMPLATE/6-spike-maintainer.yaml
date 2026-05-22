@@ -8,7 +8,7 @@ body:
   attributes:
     value: |
       **Intended for maintainers.** 
-      
+
       Spikes are exploratory issues meant to gather information and explore concepts. They typically don't result in PRs but help inform future implementation decisions.
 
 - type: input
@@ -96,21 +96,21 @@ body:
       **To be filled in during/after the spike.** Document key findings, insights, and recommendations here.
     placeholder: |
       # Findings
-      
+
       ## Summary
       [High-level summary of what was discovered]
-      
+
       ## Key Insights
       - Finding 1: ...
       - Finding 2: ...
       - Finding 3: ...
-      
+
       ## Recommendations
       - Recommended approach: ...
       - Pros: ...
       - Cons: ...
       - Alternative considerations: ...
-      
+
       ## Follow-up Actions
       - [ ] Create implementation issue #XXX
       - [ ] Update documentation
