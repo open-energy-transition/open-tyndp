@@ -458,6 +458,8 @@ def calculate_b2_indicator(
     co2_reference = calculate_power_sector_co2_emissions(n_reference)
     co2_project = calculate_power_sector_co2_emissions(n_project)
 
+    # co2_diff is avoided emissions: (positive = beneficial) for monetisation
+    # co2_diff is calculating the difference of emissions without project minus with project, regardless of method
     if method == "pint":
         # Reference is without project, project is with project
         co2_diff = co2_reference - co2_project
@@ -467,7 +469,7 @@ def calculate_b2_indicator(
 
     co2_diff_ktonnes = co2_diff / 1000.0
     results = {
-        "B2a_co2_variation": co2_diff_ktonnes,
+        "B2a_co2_variation": -co2_diff_ktonnes,  # Report B2a with guideline sign convention for CO2 variation
         "co2_ets_price": co2_ets_price,
         "co2_societal_cost_low": co2_societal_costs["low"],
         "co2_societal_cost_central": co2_societal_costs["central"],
