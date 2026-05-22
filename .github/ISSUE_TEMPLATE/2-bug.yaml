@@ -7,7 +7,7 @@ body:
 - type: markdown
   attributes:
     value: |
-      **Intended for Open-TYNDP developers.** External contributors are welcome to use this but could also use the [external issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=external.md).
+      **Intended for developers.** External contributors are welcome to use this but could also use the [external issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=external.md).
 
       Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
 
