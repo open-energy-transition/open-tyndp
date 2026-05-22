@@ -1,9 +1,10 @@
 ---
-name: Internal Feature Request
-about: For internal developers - request new features with security review
+name: Feature Request
+about: Suggest an idea for this project
 title: ''
-labels: ['feature', 'needs triage']
+labels: ''
 assignees: ''
+type: 'Feature'
 ---
 
 <!--

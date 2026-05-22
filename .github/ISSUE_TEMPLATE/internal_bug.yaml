@@ -1,6 +1,6 @@
-name: Internal Bug Report
-description: Report a bug or issue (for Open-TYNDP developers with security review)
-labels: ["needs triage", "bug"]
+name: Bug Report
+description: Report a bug or issue
+labels: ""
 type: "Bug"
 
 body:
