@@ -21,23 +21,21 @@ body:
     - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
     - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific)
 
-- type: dropdown
+- type: checkboxes
   id: affected_component
   attributes:
     label: Affected Component/Workflow
-    description: Which part of Open-TYNDP is affected?
+    description: Which part(s) of Open-TYNDP are affected? Select all that apply.
     options:
-    - Scenario Building (SB)
-    - Cost-Benefit Analysis (CBA)
-    - Network optimization
-    - Data retrieval/processing
-    - Plotting/visualization
-    - Documentation
-    - CI/CD workflows
-    - Dependencies/environment
-    - Other (specify in description)
-  validations:
-    required: true
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Network optimization
+    - label: Data retrieval/processing
+    - label: Plotting/visualization
+    - label: Documentation
+    - label: CI/CD workflows
+    - label: Dependencies/environment
+    - label: Other (specify in description)
 
 - type: textarea
   id: bug_description
