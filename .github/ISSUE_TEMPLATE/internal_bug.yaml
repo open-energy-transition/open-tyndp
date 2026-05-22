@@ -27,15 +27,15 @@ body:
     label: Affected Component/Workflow
     description: Which part of Open-TYNDP is affected?
     options:
-      - Scenario Building (SB)
-      - Cost-Benefit Analysis (CBA)
-      - Network optimization
-      - Data retrieval/processing
-      - Plotting/visualization
-      - Documentation
-      - CI/CD workflows
-      - Dependencies/environment
-      - Other (specify in description)
+    - Scenario Building (SB)
+    - Cost-Benefit Analysis (CBA)
+    - Network optimization
+    - Data retrieval/processing
+    - Plotting/visualization
+    - Documentation
+    - CI/CD workflows
+    - Dependencies/environment
+    - Other (specify in description)
   validations:
     required: true
 
@@ -97,10 +97,10 @@ body:
     label: Severity / Impact
     description: How severe is this bug?
     options:
-      - Critical - Blocks major workflows, data loss risk, or security issue
-      - High - Significant impact on results or usability
-      - Medium - Partial functionality affected, workaround available
-      - Low - Minor issue, cosmetic, or edge case
+    - Critical - Blocks major workflows, data loss risk, or security issue
+    - High - Significant impact on results or usability
+    - Medium - Partial functionality affected, workaround available
+    - Low - Minor issue, cosmetic, or edge case
   validations:
     required: true
 
@@ -109,7 +109,7 @@ body:
     value: |
       ---
       ## Change Classification & Security Review
-      
+
       Bug fixes require classification and security review per OET-ISMS-006, Annex A.
 
 - type: dropdown
@@ -119,9 +119,9 @@ body:
     description: |
       How urgent/critical is this fix?
     options:
-      - "Standard — Low-risk fix (typo, docs, minor bug) → Developer self-approves"
-      - "Normal — Logic/data/API fix requiring testing → Project Lead approval before merge"
-      - "Emergency (Break-Glass) — Critical hotfix, security breach, or data integrity issue → Verbal approval from Senior Lead; document retrospectively within 24h"
+    - "Standard — Low-risk fix (typo, docs, minor bug) → Developer self-approves"
+    - "Normal — Logic/data/API fix requiring testing → Project Lead approval before merge"
+    - "Emergency (Break-Glass) — Critical hotfix, security breach, or data integrity issue → Verbal approval from Senior Lead; document retrospectively within 24h"
   validations:
     required: true
 
@@ -144,10 +144,10 @@ body:
     description: |
       What is the risk level of the proposed fix? (Required for Normal and Emergency changes)
     options:
-      - Low
-      - Medium
-      - High (requires kick-off security review)
-      - N/A (Standard change)
+    - Low
+    - Medium
+    - High (requires kick-off security review)
+    - N/A (Standard change)
 
 - type: textarea
   id: proposed_fix
