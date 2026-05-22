@@ -19,53 +19,35 @@ body:
       Is this spike related to a another issue (parent, sub issue, bug report)?
     placeholder: "#123 or leave blank if standalone"
 
-- type: dropdown
-  id: affected_component
-  attributes:
-    label: Affected Component/Area
-    description: Which part of Open-TYNDP does this exploration relate to?
-    options:
-    - Scenario Building (SB)
-    - Cost-Benefit Analysis (CBA)
-    - Network optimization
-    - Data retrieval/processing
-    - Plotting/visualization
-    - Documentation
-    - CI/CD workflows
-    - Dependencies/environment
-    - Architecture/design
-    - Multiple components
-    - Other (specify in description)
-  validations:
-    required: true
-
-- type: textarea
-  id: objective
-  attributes:
-    label: Spike Objective
-    description: |
-      What are we trying to explore or understand? What is the goal of this spike? Or, what specific questions need to be answered? List the main questions this spike should address.
-    placeholder: |
-      Example:
-      - Investigate performance bottlenecks in build_statistics rule
-      - Explore feasibility of integrating new data source
-      - Research alternative approaches for validation framework
-      - Understand TYNDP 2024 methodology for indicator X
-  validations:
-    required: true
-
 - type: textarea
   id: context
   attributes:
     label: Background / Context
     description: |
-      Provide context for this spike. Why is this exploration needed? What led to this investigation?
+      Provide context for this spike. Why is this exploration needed? What led to this investigation? What are we trying to explore or understand? What is the goal of this spike?
     placeholder: |
-      Example:
+      Examples:
       - Stakeholder feedback indicates need for feature X
       - Recent changes caused performance regression
-      - Planning for TYNDP 2026 cycle requires understanding new requirements
-      - Exploring alternatives to current implementation
+      - Explore feasibility of integrating new data source
+  validations:
+    required: true
+
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: Which part(s) of Open-TYNDP does this spike pertain to? Select all that apply.
+    options:
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Network optimization
+    - label: Data retrieval/processing
+    - label: Plotting/visualization
+    - label: Documentation
+    - label: CI/CD workflows
+    - label: Dependencies/environment
+    - label: Other (specify in description)
 
 - type: textarea
   id: success_criteria
@@ -87,6 +69,18 @@ body:
     description: |
       Roughly how long should this spike take? (e.g., 1 day, 3 days, 1 week)
     placeholder: "e.g., 2-3 days"
+
+- type: textarea
+  id: additional_context
+  attributes:
+    label: Additional Context
+    description: |
+      Links to references, related issues, documentation, papers, code examples, etc.
+    placeholder: |
+      - Related to #123
+      - Reference: CBA methodology document
+      - Similar spike: #456
+      - Code to investigate: scripts/solve_network.py
 
 - type: textarea
   id: findings
@@ -116,15 +110,3 @@ body:
       - [ ] Update documentation
       - [ ] Schedule team discussion
     render: markdown
-
-- type: textarea
-  id: additional_context
-  attributes:
-    label: Additional Context
-    description: |
-      Links to references, related issues, documentation, papers, code examples, etc.
-    placeholder: |
-      - Related to #123
-      - Reference: CBA methodology document
-      - Similar spike: #456
-      - Code to investigate: scripts/solve_network.py
