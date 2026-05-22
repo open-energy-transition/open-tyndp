@@ -11,6 +11,14 @@ body:
 
       Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
 
+- type: input
+  id: parent_issue
+  attributes:
+    label: Parent Issue (if sub-issue)
+    description: |
+      Is this a sub-issue of a larger parent issue? If yes, link the parent issue here and **edit the title above to start with [SUB]**.
+    placeholder: "#123 or leave blank if standalone issue"
+
 - type: checkboxes
   id: version_checks
   attributes:

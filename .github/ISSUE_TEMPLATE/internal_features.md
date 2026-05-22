@@ -11,6 +11,12 @@ assignees: ''
 Please do not post usage questions here. Ask them on Discord or contact tyndp@openenergytransition.org.
 -->
 
+## Parent Issue (if sub-issue)
+<!-- Is this a sub-issue of a larger parent issue? If yes, link the parent here and **edit the title above to start with [SUB]**. -->
+<!-- Example: Relates to #123 -->
+<!-- Leave blank if this is a standalone feature request -->
+
+
 ## Description
 <!-- Describe the requested feature or change. Extend the issue title with context if needed. -->
 
