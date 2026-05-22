@@ -25,31 +25,30 @@ body:
     required: true
 
 - type: textarea
-  id: why_impact
+  id: motivation
   attributes:
-    label: Reason for Change
-    description: What problem does this solve, or what value does it add? Be brief.
+    label: Motivation / Reason for Change
+    description: Why is this feature important? What problem does it solve or what value does it add?
     placeholder: |
       Example: Improves performance by 50%, enables new analysis capabilities, addresses user feedback...
   validations:
     required: true
 
-- type: dropdown
+- type: checkboxes
   id: affected_component
   attributes:
-    label: Primary Component/Workflow
-    description: Which part of Open-TYNDP will this primarily affect?
+    label: Affected Component/Workflow
+    description: Which part(s) of Open-TYNDP will this feature affect? Select all that apply.
     options:
-    - Scenario Building (SB)
-    - Cost-Benefit Analysis (CBA)
-    - Network optimization
-    - Data retrieval/processing
-    - Plotting/visualization
-    - Documentation
-    - CI/CD workflows
-    - Multiple components
-  validations:
-    required: true
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Network optimization
+    - label: Data retrieval/processing
+    - label: Plotting/visualization
+    - label: Documentation
+    - label: CI/CD workflows
+    - label: Dependencies/environment
+    - label: Other (specify in description)
 
 - type: textarea
   id: scope
@@ -59,13 +58,18 @@ body:
       What are the main components or deliverables of this parent issue?
     placeholder: |
       Example:
-      - New validation scripts
+      - New scripts
       - Updated documentation
-      - Benchmark comparison tools
+      - Updated benchmarks
 
-- type: textarea
-  id: additional_context
+- type: - type: textarea
+  id: additional_details
   attributes:
-    label: Additional Context
+    label: Additional Details
     description: |
-      Links, references, related issues, etc.
+      Any other relevant information: links, references, related issues, etc.
+    placeholder: |
+      - Related to issue #123
+      - Similar to upstream feature: https://github.com/pypsa/pypsa-eur/pull/...
+      - References: Research paper, TYNDP documentation
+      - Alternative approaches considered

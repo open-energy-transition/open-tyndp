@@ -15,12 +15,9 @@ body:
 - type: input
   id: parent_issue
   attributes:
-    label: Parent Issue
+    label: Parent Issue (optional)
     description: |
-      Link to the parent issue this belongs to.
-    placeholder: "#123"
-  validations:
-    required: true
+      Link to the parent issue this belongs to (if any).
     placeholder: "#123 or leave blank if standalone issue"
 
 - type: textarea
@@ -29,40 +26,47 @@ body:
     label: Feature Description
     description: Describe the requested feature or change. What should be implemented?
     placeholder: |
-      Provide a clear description of the feature:
-      - What functionality should be added?
-      - What problem does it solve?
-      - How should it work?
+      Describe the feature clearly and concisely.
   validations:
     required: true
 
 - type: textarea
-  id: why_impact
+  id: motivation
   attributes:
-    label: Reason for Change
-    description: What problem does this solve, or what value does it add? Be brief.
+    label: Motivation / Reason for Change
+    description: Why is this feature important? What problem does it solve or what value does it add?
     placeholder: |
       Example: Improves performance by 50%, enables new analysis capabilities, addresses user feedback...
   validations:
     required: true
 
-- type: dropdown
+- type: checkboxes
   id: affected_component
   attributes:
     label: Affected Component/Workflow
-    description: Which part of Open-TYNDP will this feature affect?
+    description: Which part(s) of Open-TYNDP will this feature affect? Select all that apply.
     options:
-    - Scenario Building (SB)
-    - Cost-Benefit Analysis (CBA)
-    - Network optimization
-    - Data retrieval/processing
-    - Plotting/visualization
-    - Documentation
-    - CI/CD workflows
-    - Dependencies/environment
-    - Other (specify in description)
-  validations:
-    required: true
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Network optimization
+    - label: Data retrieval/processing
+    - label: Plotting/visualization
+    - label: Documentation
+    - label: CI/CD workflows
+    - label: Dependencies/environment
+    - label: Other (specify in description)
+
+- type: textarea
+  id: proposed_implementation
+  attributes:
+    label: Proposed Implementation
+    description: |
+      How do you envision this feature working? Include any implementation ideas, references, or examples. Alternative approaches considered and their pros/cons are also helpful.
+    placeholder: |
+      Example:
+      - Add new configuration option to enable X
+      - Similar to feature in PyPSA-Eur: ...
+      - Could use approach from paper/tool: ...
 
 - type: textarea
   id: expected_impact
@@ -72,10 +76,9 @@ body:
       What will change? Systems, APIs, data flows, dependencies affected. Mention affected files, workflows, datasets, scenarios, or outputs if known.
     placeholder: |
       Example:
-      - Modifies: scripts/sb/build_statistics.py
-      - Affects: All SB scenarios (2030NT, 2040NT, etc.)
-      - Changes: Output format of benchmarks CSV files
-      - Dependencies: Requires pypsa>=0.30
+      - Modifies ``scripts/sb/build_statistics.py``
+      - Affects all SB scenarios (2030NT, 2040NT, etc.)
+      - Changes output format of benchmarks CSV files
 
 - type: markdown
   attributes:
@@ -166,14 +169,13 @@ body:
       - Disable feature flag in config
       - Pin previous dataset version
 
-- type: textarea
-  id: additional_context
+- type: - type: textarea
+  id: additional_details
   attributes:
-    label: Additional Context
+    label: Additional Details
     description: |
-      Any other relevant information: links, references, implementation ideas, screenshots, related issues/PRs, alternative approaches, etc.
+      Any other relevant information: links, references, related issues, etc.
     placeholder: |
       - Related to issue #123
       - Similar to upstream feature: https://github.com/pypsa/pypsa-eur/pull/...
       - References: Research paper, TYNDP documentation
-      - Alternative approaches considered
