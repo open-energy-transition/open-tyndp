@@ -1,5 +1,5 @@
 ---
-name: Parent issue template
+name: Parent Issue
 about: High-level feature that will be broken down into sub-issues
 title: "[PARENT]"
 labels: ''

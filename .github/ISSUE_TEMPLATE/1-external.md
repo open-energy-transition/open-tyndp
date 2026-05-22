@@ -1,5 +1,5 @@
 ---
-name: External Issue Report
+name: Report Issue or Submit Feature Request
 about: For external contributors - report bugs, request features, or ask questions
 title: ''
 labels: ['external', 'needs triage']
