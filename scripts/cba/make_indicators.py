@@ -663,7 +663,7 @@ def calculate_b4_indicator(
         else:
             diff = proj_val - ref_val
         # Convert kg to tons
-        results[pollutant_key] = diff / 1000.0
+        results[pollutant_key] = -diff / 1000.0
         units[pollutant_key] = "ton/year"
 
     return results, units
