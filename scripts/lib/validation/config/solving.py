@@ -365,7 +365,7 @@ class SolvingConfig(BaseModel):
                 "PreDual": 0,
                 "FeasibilityTol": 1e-5,
                 "OptimalityTol": 1e-5,
-                "ScaleFlag": -1,
+                "ScaleFlag": -1,  # let Gurobi decide automatically how to scale the model
             },
             "gurobi-numeric-focus": {
                 "NumericFocus": 3,
