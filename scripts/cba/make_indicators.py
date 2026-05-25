@@ -163,14 +163,17 @@ def get_ac_electricity_producing_assets(n: pypsa.Network) -> pd.Series:
     return assets
 
 
-def calculate_power_sector_co2_emissions(n: pypsa.Network) -> float:
+def calculate_power_sector_co2_emissions(
+    n: pypsa.Network, ac_assets: pd.Series | None = None
+) -> float:
     """
     Calculate annual power-sector CO2 emissions for assets producing on AC buses.
 
     Generators use carrier-specific ``co2_emissions`` intensities. Links use the
     explicit CO2 port flows of the electricity-producing asset.
     """
-    ac_assets = get_ac_electricity_producing_assets(n)
+    if ac_assets is None:
+        ac_assets = get_ac_electricity_producing_assets(n)
     weights = _get_snapshot_weightings(n)
     total_emissions = 0.0
 
@@ -428,6 +431,8 @@ def calculate_b2_indicator(
     method: str,
     co2_societal_costs: dict,
     co2_ets_price: float,
+    ac_assets_reference: pd.Series | None = None,
+    ac_assets_project: pd.Series | None = None,
 ) -> tuple[dict, dict]:
     """
     Calculate B2 indicator: change in CO2 emissions and societal cost.
@@ -436,8 +441,12 @@ def calculate_b2_indicator(
     societal cost assumptions.
     """
 
-    co2_reference = calculate_power_sector_co2_emissions(n_reference)
-    co2_project = calculate_power_sector_co2_emissions(n_project)
+    co2_reference = calculate_power_sector_co2_emissions(
+        n_reference, ac_assets=ac_assets_reference
+    )
+    co2_project = calculate_power_sector_co2_emissions(
+        n_project, ac_assets=ac_assets_project
+    )
 
     # co2_diff is avoided emissions: (positive = beneficial) for monetisation
     # co2_diff is calculating the difference of emissions without project minus with project, regardless of method
@@ -533,6 +542,8 @@ def calculate_b4_indicator(
     method: str,
     emission_factors: pd.DataFrame,
     conventional_carriers: list[str],
+    ac_assets_reference: pd.Series | None = None,
+    ac_assets_project: pd.Series | None = None,
 ) -> tuple[dict, dict]:
     """
     Calculate B4 indicator: non-CO2 emissions (ton/year).
@@ -590,8 +601,13 @@ def calculate_b4_indicator(
         carrier: factors_for_fuel(carrier) for carrier in conventional_carriers
     }
 
-    def accumulate(network: pypsa.Network, emissions: dict[str, float]) -> None:
-        ac_assets = get_ac_electricity_producing_assets(network)
+    def accumulate(
+        network: pypsa.Network,
+        emissions: dict[str, float],
+        ac_assets: pd.Series | None = None,
+    ) -> None:
+        if ac_assets is None:
+            ac_assets = get_ac_electricity_producing_assets(network)
         weights = _get_snapshot_weightings(network)
         link_columns = [
             col
@@ -655,8 +671,8 @@ def calculate_b4_indicator(
                 for pollutant_key, kg_value in factors.items():
                     emissions[pollutant_key] += float(fuel_input) * kg_value
 
-    accumulate(n_reference, ref_emissions)
-    accumulate(n_project, proj_emissions)
+    accumulate(n_reference, ref_emissions, ac_assets=ac_assets_reference)
+    accumulate(n_project, proj_emissions, ac_assets=ac_assets_project)
 
     results = {}
     units = {}
@@ -872,12 +888,17 @@ if __name__ == "__main__":
     co2_societal_costs = get(co2_societal_costs_map, co2_cost_horizon)
 
     co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
+    ac_assets_reference = get_ac_electricity_producing_assets(n_reference)
+    ac_assets_project = get_ac_electricity_producing_assets(n_project)
+
     b2_indicators, b2_units = calculate_b2_indicator(
         n_reference,
         n_project,
         method=method,
         co2_societal_costs=co2_societal_costs,
         co2_ets_price=co2_ets_price,
+        ac_assets_reference=ac_assets_reference,
+        ac_assets_project=ac_assets_project,
     )
     indicators.update(b2_indicators)
     units.update(b2_units)
@@ -904,6 +925,8 @@ if __name__ == "__main__":
         method=method,
         emission_factors=emission_factors,
         conventional_carriers=conventional_carriers,
+        ac_assets_reference=ac_assets_reference,
+        ac_assets_project=ac_assets_project,
     )
     indicators.update(b4_indicators)
     units.update(b4_units)
