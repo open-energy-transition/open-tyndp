@@ -310,7 +310,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - B2: CO₂ Variation with societal costs
-     - `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__
+     - `#348 <https://github.com/open-energy-transition/open-tyndp/pull/348>`__, `#709 <https://github.com/open-energy-transition/open-tyndp/pull/709>`__
      - ✅
    * -
      - B3: DRES Integration (curtailment reduction)
@@ -318,7 +318,7 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
      - ✅
    * -
      - B4: Non-CO₂ Emissions (NOx, SOx, PM2.5/10, NMVOC, NH₃)
-     - `#398 <https://github.com/open-energy-transition/open-tyndp/pull/398>`__
+     - `#398 <https://github.com/open-energy-transition/open-tyndp/pull/398>`__, `#709 <https://github.com/open-energy-transition/open-tyndp/pull/709>`__
      - ✅
    * -
      - B5: Grid Losses, B6: Adequacy, B7: Flexibility, B8: Stability, B9: Reserves reduction
