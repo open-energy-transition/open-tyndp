@@ -586,6 +586,10 @@ def calculate_b4_indicator(
 
         return regular_factors, biofuel_factors
 
+    factors_by_fuel = {
+        carrier: factors_for_fuel(carrier) for carrier in conventional_carriers
+    }
+
     def accumulate(network: pypsa.Network, emissions: dict[str, float]) -> None:
         ac_assets = get_ac_electricity_producing_assets(network)
         weights = _get_snapshot_weightings(network)
@@ -617,7 +621,7 @@ def calculate_b4_indicator(
                 if not efficiency:
                     continue
 
-                regular_factors, _ = factors_for_fuel(fuel_carrier)
+                regular_factors, _ = factors_by_fuel[fuel_carrier]
                 fuel_input = (
                     network.generators_t.p[name].mul(weights, axis=0).sum() / efficiency
                 )
@@ -640,7 +644,7 @@ def calculate_b4_indicator(
                 if fuel_carrier not in conventional_carriers:
                     continue
 
-                regular_factors, biofuel_factors = factors_for_fuel(fuel_carrier)
+                regular_factors, biofuel_factors = factors_by_fuel[fuel_carrier]
                 factors = (
                     biofuel_factors
                     if biofuel_factors is not None and is_biofuel_link(name)
