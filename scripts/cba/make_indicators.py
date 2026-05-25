@@ -163,35 +163,6 @@ def get_ac_electricity_producing_assets(n: pypsa.Network) -> pd.Series:
     return assets
 
 
-def get_ac_electricity_producing_carriers(n: pypsa.Network) -> set[str]:
-    """
-    Return carriers that produce positive electricity on AC buses.
-
-    This uses the output of ``get_ac_electricity_producing_assets``.
-    """
-    return set(
-        get_ac_electricity_producing_assets(n)
-        .index.get_level_values("carrier")
-        .unique()
-    )
-
-
-def _get_component_names(balance: pd.Series, component: str) -> pd.Index:
-    if balance.empty:
-        return pd.Index([], dtype="object")
-    mask = balance.index.get_level_values("component") == component
-    if not mask.any():
-        return pd.Index([], dtype="object")
-    return balance[mask].index.get_level_values("name").unique()
-
-
-def _link_is_biofuel(link_name: str, network: pypsa.Network) -> bool:
-    link = network.links.loc[link_name]
-    bus_cols = [col for col in ["bus0", "bus1", "bus2", "bus3"] if col in link.index]
-    buses = " ".join(link[bus_cols].fillna("").astype(str)).lower()
-    return any(token in buses for token in ["biofuel", "biomass", "biogas"])
-
-
 def calculate_power_sector_co2_emissions(n: pypsa.Network) -> float:
     """
     Calculate annual power-sector CO2 emissions for assets producing on AC buses.
@@ -203,7 +174,12 @@ def calculate_power_sector_co2_emissions(n: pypsa.Network) -> float:
     weights = _get_snapshot_weightings(n)
     total_emissions = 0.0
 
-    generator_names = _get_component_names(ac_assets, "Generator")
+    generator_mask = ac_assets.index.get_level_values("component") == "Generator"
+    generator_names = (
+        ac_assets[generator_mask].index.get_level_values("name").unique()
+        if generator_mask.any()
+        else pd.Index([], dtype="object")
+    )
     if len(generator_names):
         generators = n.generators.loc[generator_names]
         emission_intensity = generators.carrier.map(n.carriers.co2_emissions).fillna(
@@ -222,7 +198,12 @@ def calculate_power_sector_co2_emissions(n: pypsa.Network) -> float:
                 .sum()
             )
 
-    link_names = _get_component_names(ac_assets, "Link")
+    link_mask = ac_assets.index.get_level_values("component") == "Link"
+    link_names = (
+        ac_assets[link_mask].index.get_level_values("name").unique()
+        if link_mask.any()
+        else pd.Index([], dtype="object")
+    )
     if len(link_names):
         links = n.links.loc[link_names]
         for port in [1, 2, 3]:
@@ -608,8 +589,23 @@ def calculate_b4_indicator(
     def accumulate(network: pypsa.Network, emissions: dict[str, float]) -> None:
         ac_assets = get_ac_electricity_producing_assets(network)
         weights = _get_snapshot_weightings(network)
+        link_columns = [
+            col
+            for col in ["bus0", "bus1", "bus2", "bus3"]
+            if col in network.links.columns
+        ]
 
-        generator_names = _get_component_names(ac_assets, "Generator")
+        def is_biofuel_link(link_name: str) -> bool:
+            link = network.links.loc[link_name]
+            buses = " ".join(link[link_columns].fillna("").astype(str)).lower()
+            return any(token in buses for token in ["biofuel", "biomass", "biogas"])
+
+        generator_mask = ac_assets.index.get_level_values("component") == "Generator"
+        generator_names = (
+            ac_assets[generator_mask].index.get_level_values("name").unique()
+            if generator_mask.any()
+            else pd.Index([], dtype="object")
+        )
         if len(generator_names):
             generators = network.generators.loc[generator_names]
             for name, generator in generators.iterrows():
@@ -629,7 +625,12 @@ def calculate_b4_indicator(
                 for pollutant_key, kg_value in regular_factors.items():
                     emissions[pollutant_key] += float(fuel_input) * kg_value
 
-        link_names = _get_component_names(ac_assets, "Link")
+        link_mask = ac_assets.index.get_level_values("component") == "Link"
+        link_names = (
+            ac_assets[link_mask].index.get_level_values("name").unique()
+            if link_mask.any()
+            else pd.Index([], dtype="object")
+        )
         if len(link_names):
             links = network.links.loc[link_names]
             for name, link in links.iterrows():
@@ -642,7 +643,7 @@ def calculate_b4_indicator(
                 regular_factors, biofuel_factors = factors_for_fuel(fuel_carrier)
                 factors = (
                     biofuel_factors
-                    if biofuel_factors is not None and _link_is_biofuel(name, network)
+                    if biofuel_factors is not None and is_biofuel_link(name)
                     else regular_factors
                 )
                 fuel_input = network.links_t.p0[name].mul(weights, axis=0).sum()
