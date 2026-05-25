@@ -15,6 +15,8 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Use only electricity-sourced emissions for and and change signs of B2 and B4 indicators (https://github.com/open-energy-transition/open-tyndp/pull/709).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
