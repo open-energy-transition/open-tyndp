@@ -15,6 +15,8 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Pass through and validate default solving options for CBA solves; add ``include_objective_constant`` and ``assign_all_duals`` to solving config validator; add ``gurobi-simplex`` as solver option. (https://github.com/open-energy-transition/open-tyndp/pull/708).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
