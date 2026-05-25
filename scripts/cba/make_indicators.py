@@ -133,8 +133,54 @@ def check_method(method: str) -> str:
     return method
 
 
+def difference_by_method(reference: float, project: float, method: str) -> float:
+    """
+    Calculate differences for indicator values by method (TOOT / PINT).
+
+    This maintains consistency in sign conventions across indicators (B2 and B4), for example.
+
+    - PINT: reference is without project, project is with project, so difference = reference - project
+    - TOOT: reference is with project, project is without project, so difference = project - reference
+
+    Using this method, for the B2 and B4 indicators, a positive difference will always indicate a beneficial
+    impact of the project (e.g. emissions reduction, even if the reference and project are swapped
+    between TOOT and PINT).
+
+    Parameters
+    ----------
+    reference : float
+        The value from the reference scenario.
+    project : float
+        The value from the project scenario.
+    method : str
+        The CBA method being used, either "pint" or "toot".
+
+    Returns
+    -------
+    float
+        The calculated difference according to the method's sign convention.
+    """
+    if method == "pint":
+        return reference - project
+    return project - reference
+
+
 def _normalize_conventional_carrier(carrier: str) -> str:
-    """Map carrier aliases to the conventional fuel names used in CBA."""
+    """
+    Map carrier aliases to the conventional fuel names used in CBA.
+
+    This maps all the oil carriers (such as "oil-light", "oil-heavy", and "oil-shale") to "oil" to use the same emission factors, while keeping other carriers unchanged.
+
+    Parameters
+    ----------
+    carrier : str
+        The original carrier name from the network.
+
+    Returns
+    -------
+    str
+        The normalized carrier name for matching with emission factors.
+    """
     return "oil" if carrier.startswith("oil-") else carrier
 
 
@@ -144,10 +190,20 @@ def _get_snapshot_weightings(n: pypsa.Network) -> pd.Series:
 
 def get_ac_electricity_producing_assets(n: pypsa.Network) -> pd.Series:
     """
-    Return assets with positive AC electricity production.
+    Get list of assets that produce electricity.
 
     Check energy balance for components with bus_carrier "AC" and positive net balance.
     This represents generators and links that produce electricity on AC buses.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing the electricity-producing assets on AC buses.
     """
     balance = n.statistics.energy_balance(
         groupby_time="sum",
@@ -171,6 +227,20 @@ def calculate_power_sector_co2_emissions(
 
     Generators use carrier-specific ``co2_emissions`` intensities. Links use the
     explicit CO2 port flows of the electricity-producing asset.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+    ac_assets : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses.
+        If not provided, it will be computed within the function.
+        However, calculating it before calling this function can improve performance.
+
+    Returns
+    -------
+    float
+        Total annual CO2 emissions.
     """
     if ac_assets is None:
         ac_assets = get_ac_electricity_producing_assets(n)
@@ -227,7 +297,19 @@ def calculate_power_sector_co2_emissions(
 
 
 def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
-    """Load non-CO2 emission factors and compute mean values."""
+    """
+    Load non-CO2 emission factors from ENTSO-E data and compute mean values.
+
+    Parameters
+    ----------
+    path : str
+        Path to the CSV file containing non-CO2 emission factors.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the mean non-CO2 emission factors for each fuel type.
+    """
     df = pd.read_csv(path, encoding="utf-8-sig")
     df = df[df["Fuel"].notna()]
     pollutant_cols = {
@@ -439,6 +521,39 @@ def calculate_b2_indicator(
 
     Returns totals for CO2 (t) and societal cost (EUR/year) for low/central/high
     societal cost assumptions.
+
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network.
+    n_project : pypsa.Network
+        Project network.
+    method : str
+        Either "pint" or "toot" (case-insensitive).
+    co2_societal_costs : dict
+        Dictionary with keys "low", "central", "high" for societal cost of CO2 in EUR/t.
+    co2_ets_price : float
+        The CO2 ETS price in EUR/t for the relevant planning horizon.
+    ac_assets_reference : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
+        If not provided, it will be computed within the function.
+        Providing these can improve performance by avoiding redundant calculations.
+    ac_assets_project : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses for the project network.
+        If not provided, it will be computed within the function.
+        Providing these can improve performance by avoiding redundant calculations.
+
+    Returns
+    -------
+    tuple[dict, dict]
+        A tuple containing:
+        - A dictionary with B2 indicators:
+            - B2a_co2_variation (ktonnes/year)
+            - co2_ets_price (EUR/t)
+            - co2_societal_cost_low (EUR/t)
+            - co2_societal_cost_central (EUR/t)
+            - co2_societal_cost_high (EUR/t)
+            - B2a_societal_cost_variation_{level} (Meuro/year), where the level is low, central, or high
     """
 
     co2_reference = calculate_power_sector_co2_emissions(
@@ -450,12 +565,7 @@ def calculate_b2_indicator(
 
     # co2_diff is avoided emissions: (positive = beneficial) for monetisation
     # co2_diff is calculating the difference of emissions without project minus with project, regardless of method
-    if method == "pint":
-        # Reference is without project, project is with project
-        co2_diff = co2_reference - co2_project
-    else:  # toot
-        # Reference is with all projects, project is without project
-        co2_diff = co2_project - co2_reference
+    co2_diff = difference_by_method(co2_reference, co2_project, method)
 
     co2_diff_ktonnes = co2_diff / 1000.0
     results = {
@@ -679,10 +789,7 @@ def calculate_b4_indicator(
     for pollutant_key in pollutant_keys:
         ref_val = ref_emissions.get(pollutant_key, 0.0)
         proj_val = proj_emissions.get(pollutant_key, 0.0)
-        if method == "pint":
-            diff = ref_val - proj_val
-        else:
-            diff = proj_val - ref_val
+        diff = difference_by_method(ref_val, proj_val, method)
         # Convert kg to tons
         results[pollutant_key] = -diff / 1000.0
         units[pollutant_key] = "ton/year"
@@ -691,6 +798,20 @@ def calculate_b4_indicator(
 
 
 def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply units to indicators based on INDICATOR_UNITS mapping.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing an 'indicator' column and optionally a 'units' column.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with 'units' column filled in based on INDICATOR_UNITS mapping for
+        indicators that were missing units.
+    """
     df = df.copy()
     missing_units = df["units"].isna() | (df["units"] == "")
     df.loc[missing_units, "units"] = df.loc[missing_units, "indicator"].map(
@@ -711,6 +832,24 @@ def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
+    """
+    Create long-format DataFrame of indicators
+
+    Parameters
+    ----------
+    indicators : dict
+        Dictionary of indicator values, where keys are indicator names (sometimes with suffixes like _min, _mean, _max)
+        and values are the corresponding indicator values.
+    units : dict
+        Dictionary mapping indicator names (without suffixes) to their units. This is used to assign
+        units to indicators, even if the indicator keys in the indicators dict have suffixes.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A long-format DataFrame with columns for meta information (planning horizon, project id, etc.) and
+        columns for indicator, subindex (e.g. min/mean/max), units, and value.
+    """
     meta = {
         "planning_horizon": indicators.get("planning_horizon"),
         "project_id": indicators.get("project_id"),
@@ -760,6 +899,34 @@ def load_benchmark_rows(
     scenario: str | None,
     project_type: str | None,
 ) -> pd.DataFrame:
+    """
+    Load benchmark rows for a given project and planning horizon from the ENTSOE TYNDP 2024 results.
+
+    This function looks through the TYNDP 2024 results CSV file for rows matching the specified project ID,
+    planning horizon, scenario, and project type.
+
+    The function applies some transformations to align the benchmark data with the calculated indicators,
+    such as adjusting the planning horizon to 2040 if benchmarks are only available for 2030 and 2040,
+    and mapping any "indicator_mapped" values to the "indicator" column.
+
+    Parameters
+    ----------
+    benchmark_path : str or Path
+        Path to the ENTSOE TYNDP 2024 results CSV file.
+    project_id : int
+        ID of the project for which to load benchmarks.
+    planning_horizon : int
+        Planning horizon for which to load benchmarks.
+    scenario : str or None
+        Scenario for which to load benchmarks.
+    project_type : str or None
+        Type of the project for which to load benchmarks.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the benchmark rows for the specified project and planning horizon.
+    """
     benchmark_horizon = planning_horizon
     if benchmark_horizon not in [2030, 2040]:
         logger.warning(
