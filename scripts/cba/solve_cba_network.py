@@ -173,6 +173,12 @@ def optimize_with_rolling_horizon(
                 if comp not in pf_p.columns:
                     continue
                 window_energy = pf_p.loc[sns, comp].sum()
+                # Set window_energy to just 4 significant digits
+                sig_dif = 3
+                window_energy = round(
+                    window_energy,
+                    sig_dif - int(np.floor(np.log10(abs(window_energy)))) - 1,
+                )
                 c.static.loc[comp, "e_sum_min"] = window_energy
                 c.static.loc[comp, "e_sum_max"] = window_energy
 
