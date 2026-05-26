@@ -52,6 +52,44 @@ from scripts.solve_network import (
 logger = logging.getLogger(__name__)
 
 
+def dispose_gurobi_model(n: pypsa.Network) -> None:
+    """
+    Explicitly dispose of Gurobi environment.
+    
+    This is critical for WLS license which doesn't allow multiple environments
+    in the same process, even sequentially. Without it, if using Gurobi, what happens is:
+    - First solve (project 1's first rolling horizon): Gurobi environment is created and holds the license.
+    - After solve completes, environment is not disposed, so license is still held.
+    - Second solve (project 2's first rolling horizon): Gurobi tries to create a new environment, 
+    but WLS license server denies it because the previous environment is still active. 
+    This results in an error and the second solve fails immediately with a license error, 
+    even though the first solve completed successfully.
+
+    What this function does is explicitly dispose of the Gurobi model and environment after each solve,
+    which releases the license and allows subsequent solves to create new environments without issue.
+    
+    This function should only be called after:
+    - A successful solve, OR
+    - Computing and printing infeasibilities for a failed solve
+    """
+    if hasattr(n, "model") and n.model is not None:
+        try:
+            # Access the Gurobi model if it exists
+            if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
+                gurobi_model = n.model.solver_model
+                if hasattr(gurobi_model, "dispose"):
+                    gurobi_model.dispose()
+                # Also try to dispose the environment
+                if hasattr(gurobi_model, "_env") and gurobi_model._env is not None:
+                    gurobi_model._env.dispose()
+                # Clear the solver_model reference
+                n.model.solver_model = None
+            # Force garbage collection to ensure cleanup
+            gc.collect()
+        except Exception as e:
+            logger.warning(f"Failed to dispose Gurobi environment: {e}")
+
+
 def extra_functionality(
     n: pypsa.Network,
     snapshots: pd.DatetimeIndex,
@@ -179,26 +217,10 @@ def optimize_with_rolling_horizon(
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
         
-        # Explicitly dispose of Gurobi environment after each rolling horizon window
-        # This is critical for WLS license which doesn't allow multiple environments
-        # in the same process, even sequentially
-        if hasattr(n, "model") and n.model is not None:
-            try:
-                # Access the Gurobi model if it exists
-                if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
-                    gurobi_model = n.model.solver_model
-                    if hasattr(gurobi_model, "dispose"):
-                        gurobi_model.dispose()
-                    # Also try to dispose the environment
-                    if hasattr(gurobi_model, "_env") and gurobi_model._env is not None:
-                        gurobi_model._env.dispose()
-                    # Clear the solver_model reference
-                    n.model.solver_model = None
-                # Force garbage collection to ensure cleanup
-                # (Note: n.model is a read-only property, can't be deleted/set)
-                gc.collect()
-            except Exception as e:
-                logger.warning(f"Failed to dispose Gurobi environment: {e}")
+        # Only dispose Gurobi model if solve succeeded
+        # If solve failed, keep model for infeasibility computation
+        if status == "ok":
+            dispose_gurobi_model(n)
         
         if status != "ok":
             logger.warning(
@@ -215,20 +237,10 @@ def optimize_with_rolling_horizon(
                 retry_kwargs["solver_options"] = fallback_solver.get("options", {})
                 status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
                 
-                # Cleanup after fallback solver too
-                if hasattr(n, "model") and n.model is not None:
-                    try:
-                        if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
-                            gurobi_model = n.model.solver_model
-                            if hasattr(gurobi_model, "dispose"):
-                                gurobi_model.dispose()
-                            if hasattr(gurobi_model, "_env") and gurobi_model._env is not None:
-                                gurobi_model._env.dispose()
-                            n.model.solver_model = None
-                        gc.collect()
-                    except Exception as e:
-                        logger.warning(f"Failed to dispose Gurobi environment after fallback: {e}")
-                
+                # Only dispose after fallback if it succeeded
+                if status == "ok":
+                    dispose_gurobi_model(n)
+            
             if status != "ok":
                 logger.warning(f"Fallback also failed: {status} / {condition}")
                 return status, condition
@@ -349,7 +361,12 @@ def solve_network(
             labels = n.model.compute_infeasibilities()
             logger.info(f"Labels:\n{labels}")
             n.model.print_infeasibilities()
+            # Now safe to dispose after computing infeasibilities
+            dispose_gurobi_model(n)
             raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
+    
+    # If solve succeeded - dispose the model
+    dispose_gurobi_model(n)
 
 
 if __name__ == "__main__":
