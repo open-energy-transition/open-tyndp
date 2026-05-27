@@ -21,17 +21,34 @@ body:
     - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
     - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific)
 
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: Which part(s) of Open-TYNDP are affected? Select all that apply.
+    options:
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Data retrieval/processing
+    - label: Plotting/visualization
+    - label: Documentation
+    - label: CI/CD workflows
+    - label: Dependencies/environment
+    - label: Other (specify in description)
+
 - type: textarea
   id: bug_description
   attributes:
     label: Bug Description
     description: |
-      Clear description of the bug. What is broken? When does it occur?
+      Description of the bug.
     placeholder: |
-      Briefly and concisely describe the issue/bug, including information such as:
-      - What operation/workflow were you running?
-      - What scenario/configuration were you using?
+      Briefly and concisely describe the bug, including information such as:
+      - What is the bug?
       - What could be causing the issue (if known)?
+      - If you have ideas of how to fix the issue, describe the solution. Include workarounds if available.
+      - What operation/workflow were you running? What scenario/configuration were you using?
+      - Any additional context
   validations:
     required: true
 
@@ -39,8 +56,11 @@ body:
   id: actual_behavior
   attributes:
     label: Actual Behavior
-    description: What happens currently? Include error messages, stack traces, or incorrect outputs.
-    placeholder: |
+    description: What happens currently?
+    placeholder: |2
+
+      Include error messages, stack traces, or incorrect outputs.
+
       Example:
       ```
       Error: MissingOutputException in rule build_statistics
@@ -54,25 +74,12 @@ body:
     label: Expected Behavior
     description: What should happen instead?
     placeholder: |
-      Example: The rule should complete successfully and produce results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv.
+      Describe the expected correct behavior. Include information such as:
+      - Expected outputs, successful completion of workflows, or resolution of errors.
+      - How should the proposed fix be tested? (Specific commands, files to check, or validation steps.)
+      - Example: The rule should complete successfully and produce results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv.
   validations:
     required: true
-
-- type: checkboxes
-  id: affected_component
-  attributes:
-    label: Affected Component/Workflow
-    description: Which part(s) of Open-TYNDP are affected? Select all that apply.
-    options:
-    - label: Scenario Building (SB)
-    - label: Cost-Benefit Analysis (CBA)
-    - label: Network optimization
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
-    - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
-    - label: Other (specify in description)
 
 - type: textarea
   id: reproducible_example
