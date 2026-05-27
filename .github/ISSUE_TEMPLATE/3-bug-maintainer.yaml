@@ -21,19 +21,6 @@ body:
     - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
     - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific)
 
-- type: dropdown
-  id: severity
-  attributes:
-    label: Severity / Impact
-    description: How severe is this bug?
-    options:
-    - Critical - Blocks major workflows, data loss risk, or security issue
-    - High - Significant impact on results or usability
-    - Medium - Partial functionality affected, workaround available
-    - Low - Minor issue, cosmetic, or edge case
-  validations:
-    required: true
-
 - type: checkboxes
   id: affected_component
   attributes:
@@ -41,7 +28,7 @@ body:
     description: |
       Label this issue with the affected component(s) using GitHub labels.
     options:
-    - label: I have labeled this bug with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+    - label: I have labeled this bug report with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
   validations:
     required: true
 
@@ -52,9 +39,9 @@ body:
     description: |
       Classify the level of how urgent/critical this fix is using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
 
-      **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump)
-      **Medium Priority** — Logic, infrastructure, or API changes (e.g. new endpoint, schema change)
-      **High Priority** — Critical hotfix, significant impact on results/usability, security or data loss risk
+      **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump, cosmetic change)
+      **Medium Priority** — Logic, infrastructure, API changes, partial functionality affected
+      **High Priority** — Critical hotfix, blocks major workflows, significant impact on results/usability, security or data loss risk
     options:
     - label: I have classified the urgency/priority of this fix in the Open-TYNDP Roadmap
   validations:
