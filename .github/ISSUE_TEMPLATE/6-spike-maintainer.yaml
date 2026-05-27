@@ -19,6 +19,17 @@ body:
       Is this spike related to a another issue (parent, sub issue, bug report)?
     placeholder: "#123 or leave blank if standalone"
 
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: |
+      Label this issue with the affected component(s) using GitHub labels.
+    options:
+    - label: I have labeled this feature request with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+  validations:
+    required: true
+
 - type: textarea
   id: context
   attributes:
@@ -30,24 +41,9 @@ body:
       - Stakeholder feedback indicates need for feature X
       - Recent changes caused performance regression
       - Explore feasibility of integrating new data source
+      - Additional context, references, links to related issues, documentation, papers, code examples, etc.
   validations:
     required: true
-
-- type: checkboxes
-  id: affected_component
-  attributes:
-    label: Affected Component/Workflow
-    description: Which part(s) of Open-TYNDP does this spike pertain to? Select all that apply.
-    options:
-    - label: Scenario Building (SB)
-    - label: Cost-Benefit Analysis (CBA)
-    - label: Network optimization
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
-    - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
-    - label: Other (specify in description)
 
 - type: textarea
   id: success_criteria
@@ -68,18 +64,6 @@ body:
     description: |
       Roughly how long should this spike take? (e.g., 1 day, 3 days, 1 week)
     placeholder: "e.g., 2-3 days"
-
-- type: textarea
-  id: additional_context
-  attributes:
-    label: Additional Context
-    description: |
-      Links to references, related issues, documentation, papers, code examples, etc.
-    placeholder: |
-      - Related to #123
-      - Reference: CBA methodology document
-      - Similar spike: #456
-      - Code to investigate: scripts/solve_network.py
 
 - type: textarea
   id: findings
