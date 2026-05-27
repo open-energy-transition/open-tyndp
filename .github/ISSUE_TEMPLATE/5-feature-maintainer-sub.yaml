@@ -20,84 +20,29 @@ body:
       Link to the parent issue this belongs to (if any).
     placeholder: "#123 or leave blank if standalone issue"
 
-- type: textarea
-  id: description
-  attributes:
-    label: Feature Description
-    description: Describe the requested feature or change. What should be implemented?
-    placeholder: |
-      Describe the feature clearly and concisely.
-  validations:
-    required: true
-
-- type: textarea
-  id: motivation
-  attributes:
-    label: Motivation / Reason for Change
-    description: Why is this feature important? What problem does it solve or what value does it add?
-    placeholder: |
-      Example: Improves performance by 50%, enables new analysis capabilities, addresses user feedback...
-  validations:
-    required: true
-
 - type: checkboxes
   id: affected_component
   attributes:
     label: Affected Component/Workflow
-    description: Which part(s) of Open-TYNDP will this feature affect? Select all that apply.
+    description: |
+      Label this issue with the affected component(s) using GitHub labels.
     options:
-    - label: Scenario Building (SB)
-    - label: Cost-Benefit Analysis (CBA)
-    - label: Network optimization
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
-    - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
-    - label: Other (specify in description)
+    - label: I have labeled this feature request with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+  validations:
+    required: true
 
-- type: textarea
-  id: proposed_implementation
-  attributes:
-    label: Proposed Implementation
-    description: |
-      How do you envision this feature working? Include any implementation ideas, references, or examples. Alternative approaches considered and their pros/cons are also helpful.
-    placeholder: |
-      Example:
-      - Add new configuration option to enable X
-      - Similar to feature in PyPSA-Eur: ...
-      - Could use approach from paper/tool: ...
-
-- type: textarea
-  id: expected_impact
-  attributes:
-    label: Expected Impact
-    description: |
-      What will change? Systems, APIs, data flows, dependencies affected. Mention affected files, workflows, datasets, scenarios, or outputs if known.
-    placeholder: |
-      Example:
-      - Modifies ``scripts/sb/build_statistics.py``
-      - Affects all SB scenarios (2030NT, 2040NT, etc.)
-      - Changes output format of benchmarks CSV files
-
-- type: markdown
-  attributes:
-    value: |
-      ---
-      ## Change Classification & Security Review
-
-      Feature requests require classification and security review per OET-ISMS-006, Annex A.
-
-- type: dropdown
+- type: checkboxes
   id: change_classification
   attributes:
     label: Change Classification
     description: |
-      Pick one. This determines the approval path.
+      Classify the level of how urgent/critical this feature is using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
+
+      **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump, cosmetic change)
+      **Medium Priority** — Logic, infrastructure, API changes, partial functionality affected
+      **High Priority** — Critical feature, blocks major workflows, significant impact on results/usability, security or data loss risk
     options:
-    - "Standard — Low-risk, routine (e.g. docs update, non-critical dependency bump) → Developer self-approves"
-    - "Normal — Logic, infra, or API changes (e.g. new endpoint, schema change) → Project Lead approval before work starts"
-    - "Emergency (Break-Glass) — Critical hotfix / active security breach → Verbal approval from Senior Lead; document retrospectively within 24h"
+    - label: I have classified the urgency/priority of this feature request in the Open-TYNDP Roadmap
   validations:
     required: true
 
@@ -106,11 +51,10 @@ body:
   attributes:
     label: Security & Data Risk Check
     description: |
-      Answer honestly. Checking a box flags what needs review but does not block the feature.
+      Checking a box flags what needs review but does not block the feature.
     options:
-    - label: This feature touches sensitive data (user PII, client grid data, credentials)
+    - label: This feature touches or exposes confidential data
     - label: This feature adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
-    - label: This feature changes the attack surface (new ports, APIs, external dependencies, auth flows)
     - label: This feature could affect data integrity or reproducibility of published results
 
 - type: dropdown
@@ -118,7 +62,7 @@ body:
   attributes:
     label: Risk Level of Feature
     description: |
-      What is the risk level of this feature?
+      What is the risk level of the proposed feature?
     options:
     - N/A (minor change)
     - Low
@@ -126,6 +70,38 @@ body:
     - High (requires kick-off security review)
   validations:
     required: true
+
+- type: textarea
+  id: description
+  attributes:
+    label: Feature Description / Reason for Change
+    description: Describe the requested feature or change. What should be implemented?
+    placeholder: |
+      Describe the feature clearly and concisely. 
+      Include information such as what the feature is, why it is needed, and what value it adds.
+      Examples:
+      - Improves performance by 50%
+      - Enables new analysis capabilities
+      - Addresses user feedback
+      - Any other relevant information: links, references, related issues, etc.
+  validations:
+    required: true
+
+- type: textarea
+  id: proposed_implementation
+  attributes:
+    label: Proposed Implementation / Expected Impact
+    description: |
+      How do you envision this feature working? What will change? 
+    placeholder: |
+      Include any implementation ideas, references, or examples. Alternative approaches considered and their pros/cons are also helpful.
+      Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
+      If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
+      Examples:
+      - Add new configuration option to enable X
+      - Modifies ``scripts/sb/build_statistics.py``
+      - Affects all SB scenarios (2030NT, 2040NT, etc.)
+      - Verify new outputs are generated correctly
 
 - type: textarea
   id: tasks
@@ -139,43 +115,3 @@ body:
       - [ ] Add new test cases
       - [ ] Update documentation
     render: markdown
-
-- type: textarea
-  id: test_validation_plan
-  attributes:
-    label: Test & Validation Plan
-    description: |
-      How should this feature be tested? List specific commands, files to check, expected outputs, or validation steps.
-    placeholder: |
-      Example:
-      - Run `pixi run snakemake -call [rule] --configfile config/test/...`
-      - Verify new outputs are generated correctly
-      - Compare with baseline results
-      - Check for performance improvements
-      - Validate against TYNDP 2024 reference data
-  validations:
-    required: true
-
-- type: textarea
-  id: rollback_plan
-  attributes:
-    label: Rollback / Recovery Plan
-    description: |
-      Required for Normal and Emergency changes. How to undo this feature within ~15 minutes if it causes issues?
-    placeholder: |
-      Example:
-      - Revert PR commit SHA abc123
-      - Restore previous config file version
-      - Disable feature flag in config
-      - Pin previous dataset version
-
-- type: textarea
-  id: additional_details
-  attributes:
-    label: Additional Details
-    description: |
-      Any other relevant information: links, references, related issues, etc.
-    placeholder: |
-      - Related to issue #123
-      - Similar to upstream feature: https://github.com/pypsa/pypsa-eur/pull/...
-      - References: Research paper, TYNDP documentation
