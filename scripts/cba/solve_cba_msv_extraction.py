@@ -87,6 +87,21 @@ if __name__ == "__main__":
         config=snakemake.config,
     )
 
+    # DSR generators
+    eps = 1e-6
+    dsr_i = n.generators.index[n.generators.carrier == "dsr"]
+    if len(dsr_i):
+        n.generators_t.p_max_pu.loc[:, dsr_i] = (
+            n.generators_t.p_max_pu.loc[:, dsr_i] + eps
+        ).clip(upper=1.0)
+
+    # optional: electricity distribution links on low-voltage chain
+    dist_i = n.links.index[n.links.carrier == "electricity distribution grid"]
+    if len(dist_i):
+        n.links_t.p_max_pu.loc[:, dist_i] = (
+            n.links_t.p_max_pu.loc[:, dist_i] + eps
+        ).clip(upper=1.0)
+
     if solver_log:
         with open(solver_log, "a") as f:
             print(
