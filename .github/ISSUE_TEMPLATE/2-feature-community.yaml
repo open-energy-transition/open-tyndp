@@ -14,22 +14,34 @@ body:
 - type: textarea
   id: description
   attributes:
-    label: Feature Description
+    label: Feature Description / Reason for Change
     description: Describe the requested feature or change. What should be implemented?
     placeholder: |
-      Describe the feature clearly and concisely.
+      Describe the feature clearly and concisely. 
+      Include information such as what the feature is, why it is needed, and what value it adds.
+      Examples:
+      - Improves performance by 50%
+      - Enables new analysis capabilities
+      - Addresses user feedback
+      - Any other relevant information: links, references, related issues, etc.
   validations:
     required: true
 
 - type: textarea
-  id: motivation
+  id: proposed_implementation
   attributes:
-    label: Motivation / Reason for Change
-    description: Why is this feature important? What problem does it solve or what value does it add?
+    label: Proposed Implementation / Expected Impact
+    description: |
+      How do you envision this feature working? What will change? 
     placeholder: |
-      Example: Improves performance by 50%, enables new analysis capabilities, addresses user feedback...
-  validations:
-    required: true
+      Include any implementation ideas, references, or examples. Alternative approaches considered and their pros/cons are also helpful.
+      Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
+      If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
+      Examples:
+      - Add new configuration option to enable X
+      - Modifies ``scripts/sb/build_statistics.py``
+      - Affects all SB scenarios (2030NT, 2040NT, etc.)
+      - Verify new outputs are generated correctly
 
 - type: checkboxes
   id: affected_component
@@ -46,26 +58,3 @@ body:
     - label: CI/CD workflows
     - label: Dependencies/environment
     - label: Other (specify in description)
-
-- type: textarea
-  id: proposed_implementation
-  attributes:
-    label: Proposed Implementation
-    description: |
-      How do you envision this feature working? Include any implementation ideas, references, or examples. Alternative approaches considered and their pros/cons are also helpful.
-    placeholder: |
-      Example:
-      - Add new configuration option to enable X
-      - Similar to feature in PyPSA-Eur: ...
-      - Could use approach from paper/tool: ...
-
-- type: textarea
-  id: additional_details
-  attributes:
-    label: Additional Details
-    description: |
-      Any other relevant information: links, references, related issues, etc.
-    placeholder: |-
-      - Related to issue #123
-      - Similar to upstream feature: https://github.com/pypsa/pypsa-eur/pull/...
-      - References: Research paper, TYNDP documentation
