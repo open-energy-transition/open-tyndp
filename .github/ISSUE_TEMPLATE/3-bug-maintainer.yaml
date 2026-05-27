@@ -77,14 +77,11 @@ body:
   attributes:
     label: Bug Description
     description: |
-      Description of the bug.
+      Briefly and concisely describe the bug, including information such as what the bug is, what could be causing the issue (if known), and if you have ideas of how to fix the issue, describe the solution. 
     placeholder: |
-      Briefly and concisely describe the bug, including information such as:
-      - What is the bug?
-      - What could be causing the issue (if known)?
-      - If you have ideas of how to fix the issue, describe the solution. Include workarounds if available.
-      - What operation/workflow were you running? What scenario/configuration were you using?
-      - Any additional context
+      Examples: 
+      - ``pixi run ...`` command not working
+      - Output file missing or incorrect
   validations:
     required: true
 
@@ -92,11 +89,8 @@ body:
   id: actual_behavior
   attributes:
     label: Actual Behavior
-    description: What happens currently?
-    placeholder: |2
-
-      Include error messages, stack traces, or incorrect outputs.
-
+    description: What happens currently? Include error messages, stack traces, or incorrect outputs.
+    placeholder: |
       Example:
       ```
       Error: MissingOutputException in rule build_statistics
@@ -108,12 +102,10 @@ body:
   id: expected_behavior
   attributes:
     label: Expected Behavior
-    description: What should happen instead?
+    description: What should happen instead? Describe the expected correct behavior. Include information such as expected outputs, resolution of errors, and how the proposed fix should be tested (specific commands, files to check, or validation steps).
     placeholder: |
-      Describe the expected correct behavior. Include information such as:
-      - Expected outputs, successful completion of workflows, or resolution of errors.
-      - How should the proposed fix be tested? (Specific commands, files to check, or validation steps.)
-      - Example: The rule should complete successfully and produce results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv.
+      Example: 
+      The rule should complete successfully and produce ``results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv.``
   validations:
     required: true
 
