@@ -39,9 +39,9 @@ body:
   attributes:
     label: Affected Component/Workflow
     description: |
-      Label this issue with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+      Label this issue with the affected component(s) using GitHub labels.
     options:
-    - label: I have labeled this bug with the affected component(s)
+    - label: I have labeled this bug with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
   validations:
     required: true
 
@@ -51,9 +51,10 @@ body:
     label: Change Classification
     description: |
       Classify the level of how urgent/critical this fix is using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
-      - **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump)
-      - **Medium Priority** — Logic, infrastructure, or API changes (e.g. new endpoint, schema change)
-      - **High Priority** — Critical hotfix, significant impact on results/usability, security or data loss risk
+
+      **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump)
+      **Medium Priority** — Logic, infrastructure, or API changes (e.g. new endpoint, schema change)
+      **High Priority** — Critical hotfix, significant impact on results/usability, security or data loss risk
     options:
     - label: I have classified the urgency/priority of this fix in the Open-TYNDP Roadmap
   validations:
@@ -64,7 +65,7 @@ body:
   attributes:
     label: Security & Data Risk Check
     description: |
-      Answer honestly. Checking a box flags what needs review but does not block the fix.
+      Checking a box flags what needs review but does not block the fix.
     options:
     - label: This bug touches or exposes confidential data
     - label: This bug adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
@@ -151,6 +152,6 @@ body:
       Share your environment details. For pixi, paste relevant sections from `pixi.lock` or run `pixi info`.
       For conda, paste output of `conda env export`.
     placeholder: |-
-      Pixi environment: open-tyndp
-      OS: macOS / Linux / Windows
-      Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
+      Environment details, such as:
+      - Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
+      - OS: Linux / macOS / Windows
