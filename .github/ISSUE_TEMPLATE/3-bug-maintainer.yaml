@@ -104,8 +104,8 @@ body:
   id: actual_behavior
   attributes:
     label: Actual Behavior
-    description: What happens currently? 
-    placeholder: |
+    description: What happens currently?
+    placeholder: |2
 
       Include error messages, stack traces, or incorrect outputs.
 
@@ -150,7 +150,7 @@ body:
     description: |
       Share your environment details. For pixi, paste relevant sections from `pixi.lock` or run `pixi info`.
       For conda, paste output of `conda env export`.
-    placeholder: |
+    placeholder: |-
       Pixi environment: open-tyndp
       OS: macOS / Linux / Windows
       Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
