@@ -419,7 +419,7 @@ def clean_MM_data_for_benchmarking(
     # remove load and storages
     MM_data = MM_data[~MM_data.carrier.str.contains(r"\(load\)|discharge")]
 
-    # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand
+    # reflect H2 CCGT and fuel cells consumptions in the yearly H2 demand and supply
     h2_power = MM_data.query(
         "table=='power_generation' and carrier.isin(@H2_POWER_EFF)"
     ).copy()
@@ -428,8 +428,17 @@ def clean_MM_data_for_benchmarking(
     h2_power["value"] /= h2_power["carrier"].map(H2_POWER_EFF)
     h2_power["table"] = "hydrogen_demand"
 
+    h2_supply = h2_power.copy().drop("carrier", axis=1)
+    h2_supply = (
+        h2_supply.groupby([c for c in h2_supply.columns if c != "value"])
+        .sum()
+        .reset_index()
+    )
+    h2_supply["carrier"] = "undefined for generation"
+    h2_supply["table"] = "hydrogen_supply"
+
     # Merge datasets
-    MM_data = pd.concat([MM_data, h2_power])
+    MM_data = pd.concat([MM_data, h2_power, h2_supply])
 
     # Rename hydrogen power carriers for each table separately
     for tbl, rename_map in h2_power_rename.items():
