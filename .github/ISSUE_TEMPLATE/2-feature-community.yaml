@@ -11,38 +11,6 @@ body:
 
       Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
 
-- type: textarea
-  id: description
-  attributes:
-    label: Feature Description / Reason for Change
-    description: Describe the requested feature or change. What should be implemented?
-    placeholder: |
-      Describe the feature clearly and concisely. 
-      Include information such as what the feature is, why it is needed, and what value it adds.
-      Examples:
-      - Improves performance by 50%
-      - Enables new analysis capabilities
-      - Addresses user feedback
-      - Any other relevant information: links, references, related issues, etc.
-  validations:
-    required: true
-
-- type: textarea
-  id: proposed_implementation
-  attributes:
-    label: Proposed Implementation / Expected Impact
-    description: |
-      How do you envision this feature working? What will change? 
-    placeholder: |
-      Include any implementation ideas, references, or examples. Alternative approaches considered and their pros/cons are also helpful.
-      Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
-      If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
-      Examples:
-      - Add new configuration option to enable X
-      - Modifies ``scripts/sb/build_statistics.py``
-      - Affects all SB scenarios (2030NT, 2040NT, etc.)
-      - Verify new outputs are generated correctly
-
 - type: checkboxes
   id: affected_component
   attributes:
@@ -58,3 +26,33 @@ body:
     - label: CI/CD workflows
     - label: Dependencies/environment
     - label: Other (specify in description)
+
+- type: textarea
+  id: description
+  attributes:
+    label: Feature Description / Reason for Change
+    description: Describe the requested feature or change clearly and concisely. Include information such as what the feature is, why it is needed, and what value it adds.
+    placeholder: |
+      Examples:
+      - Improves performance by 50%
+      - Enables new analysis capabilities
+      - Addresses user feedback
+      - Any other relevant information: links, references, related issues, etc.
+  validations:
+    required: true
+
+- type: textarea
+  id: proposed_implementation
+  attributes:
+    label: Proposed Implementation / Expected Impact
+    description: |
+      How do you envision this feature working? What will change? 
+      Include any implementation ideas, references, or examples. 
+      Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
+      If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
+    placeholder: |-
+      Examples:
+      - Add new configuration option to enable X
+      - Modifies ``scripts/sb/build_statistics.py``
+      - Affects all SB scenarios (2030NT, 2040NT, etc.)
+      - Verify new outputs are generated correctly
