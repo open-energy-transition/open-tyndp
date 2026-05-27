@@ -94,3 +94,15 @@ body:
       - Observe error in logs/...
   validations:
     required: true
+
+- type: textarea
+  id: environment_info
+  attributes:
+    label: Environment Information
+    description: |
+      Share your environment details. For pixi, paste relevant sections from `pixi.lock` or run `pixi info`.
+      For conda, paste output of `conda env export`.
+    placeholder: |-
+      Environment details, such as:
+      - Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
+      - OS: Linux / macOS / Windows
