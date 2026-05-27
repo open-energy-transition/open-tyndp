@@ -21,73 +21,6 @@ body:
     - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
     - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific)
 
-- type: textarea
-  id: bug_description
-  attributes:
-    label: Bug Description
-    description: |
-      Clear description of the bug. What is broken? When does it occur?
-    placeholder: |
-      Briefly and concisely describe the issue/bug, including information such as:
-      - What operation/workflow were you running?
-      - What scenario/configuration were you using?
-      - What could be causing the issue (if known)?
-  validations:
-    required: true
-
-- type: textarea
-  id: actual_behavior
-  attributes:
-    label: Actual Behavior
-    description: What happens currently? Include error messages, stack traces, or incorrect outputs.
-    placeholder: |
-      Example:
-      ```
-      Error: MissingOutputException in rule build_statistics
-      ```
-  validations:
-    required: true
-
-- type: textarea
-  id: expected_behavior
-  attributes:
-    label: Expected Behavior
-    description: What should happen instead?
-    placeholder: |
-      Example: The rule should complete successfully and produce results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv.
-  validations:
-    required: true
-
-- type: checkboxes
-  id: affected_component
-  attributes:
-    label: Affected Component/Workflow
-    description: Which part(s) of Open-TYNDP are affected? Select all that apply.
-    options:
-    - label: Scenario Building (SB)
-    - label: Cost-Benefit Analysis (CBA)
-    - label: Network optimization
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
-    - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
-    - label: Other (specify in description)
-
-- type: textarea
-  id: reproducible_example
-  attributes:
-    label: Steps to Reproduce
-    description: |
-      Provide minimal steps to reproduce the bug, if possible. Include relevant config files, commands, or code snippets.
-    placeholder: |
-      Examples:
-      - Set config option `remove_last_day: true`
-      - Run `pixi run snakemake -call ....`
-      - Observe error in logs/...
-  validations:
-    required: true
-
 - type: dropdown
   id: severity
   attributes:
@@ -101,27 +34,28 @@ body:
   validations:
     required: true
 
-- type: markdown
+- type: checkboxes
+  id: affected_component
   attributes:
-    value: |
-      ---
-      ## Change Classification & Security Review
+    label: Affected Component/Workflow
+    description: |
+      Label this issue with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+    options:
+    - label: I have labeled this bug with the affected component(s)
+  validations:
+    required: true
 
-      Bug fixes require classification and security review per OET-ISMS-006, Annex A.
-
-- type: dropdown
+- type: checkboxes
   id: change_classification
   attributes:
     label: Change Classification
     description: |
-      How urgent/critical is this fix?
-      - Standard — Low-risk, routine (e.g. docs update, non-critical dependency bump) → Developer self-approves
-      - Normal — Logic, infra, or API changes (e.g. new endpoint, schema change) → Project Lead approval before work starts
-      - Emergency (Break-Glass) — Critical hotfix / active security breach → Verbal approval from Senior Lead; document retrospectively within 24h
+      Classify the level of how urgent/critical this fix is using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
+      - **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump)
+      - **Medium Priority** — Logic, infrastructure, or API changes (e.g. new endpoint, schema change)
+      - **High Priority** — Critical hotfix, significant impact on results/usability, security or data loss risk
     options:
-    - "Standard"
-    - "Normal"
-    - "Emergency"
+    - label: I have classified the urgency/priority of this fix in the Open-TYNDP Roadmap
   validations:
     required: true
 
@@ -132,9 +66,8 @@ body:
     description: |
       Answer honestly. Checking a box flags what needs review but does not block the fix.
     options:
-    - label: This bug touches sensitive data (user PII, client grid data, credentials)
+    - label: This bug touches or exposes confidential data
     - label: This bug adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
-    - label: This bug changes the attack surface (new ports, APIs, external dependencies, auth flows)
     - label: This bug could affect data integrity or reproducibility of published results
 
 - type: dropdown
@@ -152,42 +85,63 @@ body:
     required: true
 
 - type: textarea
-  id: proposed_fix
+  id: bug_description
   attributes:
-    label: Proposed Fix / Workaround
+    label: Bug Description
     description: |
-      If you know how to fix this, describe the solution. Include workarounds if available.
+      Description of the bug.
     placeholder: |
-      Example:
-      - Fix: Move benchmark computation outside the conditional block
-      - Workaround: Set `remove_last_day: false` in config
-
-- type: textarea
-  id: test_validation_plan
-  attributes:
-    label: Test & Validation Plan
-    description: |
-      How should this fix be tested? List specific commands, files to check, or validation steps.
-    placeholder: |
-      Example:
-      - Run `pixi run snakemake -call build_statistics --configfile config/test/...`
-      - Verify benchmarks_s_all___2040.csv is created
-      - Compare results with previous run (should match within tolerance)
-      - Check logs for warnings
+      Briefly and concisely describe the bug, including information such as:
+      - What is the bug?
+      - What could be causing the issue (if known)?
+      - If you have ideas of how to fix the issue, describe the solution. Include workarounds if available.
+      - What operation/workflow were you running? What scenario/configuration were you using?
+      - Any additional context
   validations:
     required: true
 
 - type: textarea
-  id: rollback_plan
+  id: actual_behavior
   attributes:
-    label: Rollback / Recovery Plan
-    description: |
-      Required for Normal and Emergency fixes. How to undo this fix within ~15 minutes if it causes new issues?
+    label: Actual Behavior
+    description: What happens currently? 
     placeholder: |
+
+      Include error messages, stack traces, or incorrect outputs.
+
       Example:
-      - Revert PR commit SHA abc123
-      - Re-run affected workflow with previous config
-      - Restore output files from backup if data was modified
+      ```
+      Error: MissingOutputException in rule build_statistics
+      ```
+  validations:
+    required: true
+
+- type: textarea
+  id: expected_behavior
+  attributes:
+    label: Expected Behavior
+    description: What should happen instead?
+    placeholder: |
+      Describe the expected correct behavior. Include information such as:
+      - Expected outputs, successful completion of workflows, or resolution of errors.
+      - How should the proposed fix be tested? (Specific commands, files to check, or validation steps.)
+      - Example: The rule should complete successfully and produce results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv.
+  validations:
+    required: true
+
+- type: textarea
+  id: reproducible_example
+  attributes:
+    label: Steps to Reproduce
+    description: |
+      Provide minimal steps to reproduce the bug, if possible. Include relevant config files, commands, or code snippets.
+    placeholder: |
+      Examples:
+      - Set config option `remove_last_day: true`
+      - Run `pixi run snakemake -call ....`
+      - Observe error in logs/...
+  validations:
+    required: true
 
 - type: textarea
   id: environment_info
@@ -200,15 +154,3 @@ body:
       Pixi environment: open-tyndp
       OS: macOS / Linux / Windows
       Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
-
-- type: textarea
-  id: additional_context
-  attributes:
-    label: Additional Context
-    description: |
-      Any other relevant information: links to logs, related issues/PRs, screenshots, config files, affected scenarios, etc.
-    placeholder: |
-      - Related to issue #123
-      - Affects scenarios: 2040NT, 2040DE
-      - Log file: logs/...
-      - Configuration: config/config.tyndp.yaml
