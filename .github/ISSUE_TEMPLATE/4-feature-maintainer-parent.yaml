@@ -12,6 +12,17 @@ body:
 
       This template is for high-level parent issues that will be broken down into sub-issues. Use the "Feature - Sub Issue (Maintainer)" template for detailed feature requests.
 
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: |
+      Label this issue with the affected component(s) using GitHub labels.
+    options:
+    - label: I have labeled this feature with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+  validations:
+    required: true
+
 - type: textarea
   id: overview
   attributes:
@@ -19,8 +30,10 @@ body:
     description: |
       Provide a high-level description of this parent issue. What is the overall goal?
     placeholder: |
-      Example: 
-      Implement comprehensive validation framework for TYNDP 2024.
+      Examples: 
+      - Implement comprehensive validation framework for TYNDP 2024
+      - Refactor workflow
+      - Any other relevant information: links, references, related issues, etc.
   validations:
     required: true
 
@@ -30,25 +43,12 @@ body:
     label: Motivation / Reason for Change
     description: Why is this feature important? What problem does it solve or what value does it add?
     placeholder: |
-      Example: Improves performance by 50%, enables new analysis capabilities, addresses user feedback...
+      Examples: 
+      - Improves performance by 50%
+      - Enables new features-
+      - addresses user feedback...
   validations:
     required: true
-
-- type: checkboxes
-  id: affected_component
-  attributes:
-    label: Affected Component/Workflow
-    description: Which part(s) of Open-TYNDP will this feature affect? Select all that apply.
-    options:
-    - label: Scenario Building (SB)
-    - label: Cost-Benefit Analysis (CBA)
-    - label: Network optimization
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
-    - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
-    - label: Other (specify in description)
 
 - type: textarea
   id: scope
@@ -63,13 +63,14 @@ body:
       - Updated benchmarks
 
 - type: textarea
-  id: additional_details
+  id: tasks
   attributes:
-    label: Additional Details
+    label: Implementation Tasks
     description: |
-      Any other relevant information: links, references, related issues, etc.
+      List specific tasks or steps needed to implement (if known).
     placeholder: |
-      - Related to issue #123
-      - Similar to upstream feature: https://github.com/pypsa/pypsa-eur/pull/...
-      - References: Research paper, TYNDP documentation
-      - Alternative approaches considered
+      - [ ] Update config schema
+      - [ ] Modify build_statistics.py
+      - [ ] Add new test cases
+      - [ ] Update documentation
+    render: markdown
