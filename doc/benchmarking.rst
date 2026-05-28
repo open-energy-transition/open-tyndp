@@ -164,6 +164,16 @@ the NT scenario in 2030 with hourly resolution:
 
 .. image:: img/tyndp/benchmarking_power_capacity_NT_2030.png
 
+Example of figure created for the cross-border flows between countries (focusing on incorrect net direction) for the NT scenario in 2030 with
+hourly resolution:
+
+.. image:: img/tyndp/benchmarking_elec_crossborder_NT_2030.png
+
+Example of figure created for the electricity prices by country for the NT scenario in 2030 with
+hourly resolution:
+
+.. image:: img/tyndp/benchmark_elec_price_NT_2030.png
+
 Example of figure created for the generation profiles for the DE scenario in 2040 with 45SEG:
 
 .. image:: img/tyndp/benchmarking_gen_profiles_DE_2040.png
