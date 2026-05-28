@@ -216,13 +216,6 @@ def apply_biomass_biogas_bus_marginal_prices(
     resample_method : str, optional
         Method for resampling MSV bus marginal prices to target resolution. Default "ffill".
     """
-    import pandas as pd
-
-    if n_msv is None or n_msv.buses_t.marginal_price.empty:
-        logger.warning(
-            "No MSV bus marginal prices available; skipping biomass/biogas cost update."
-        )
-        return
     if isinstance(carriers, str):
         carriers = (carriers,)
 
@@ -233,34 +226,26 @@ def apply_biomass_biogas_bus_marginal_prices(
     else:
         bus_mp = resample_msv_to_target(msv_mp, n.snapshots, method=resample_method)
 
-    # Get biomass/biogas generators
+    # Get index of generators with target carriers
     g_idx = n.generators.index[n.generators.carrier.isin(carriers)]
-    if g_idx.empty:
-        logger.info("No biomass/biogas generators found for marginal-price update.")
-        return
 
-    # Ensure marginal cost frame exists on correct index
+    # Make sure marginal cost frame exists on correct index
     if (
         n.generators_t.marginal_cost.empty
         or not n.generators_t.marginal_cost.index.equals(n.snapshots)
     ):
         n.generators_t.marginal_cost = pd.DataFrame(index=n.snapshots)
 
-    updated = 0
+    number_updated = 0
     for g in g_idx:
         bus = n.generators.at[g, "bus"]
-        if bus not in bus_mp.columns:
-            logger.warning(
-                "Skipping %s: bus %s not found in MSV marginal prices.", g, bus
-            )
-            continue
-
         base_cost = float(n.generators.at[g, "marginal_cost"])
         n.generators_t.marginal_cost[g] = base_cost + bus_mp[bus].reindex(n.snapshots)
-        updated += 1
+        number_updated += 1
 
     logger.info(
-        "Applied bus-marginal-price costs to %d biomass/biogas generators.", updated
+        "Applied bus-marginal-price costs to %d biomass/biogas generators.",
+        number_updated,
     )
 
 
