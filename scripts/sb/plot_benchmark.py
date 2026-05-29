@@ -179,7 +179,7 @@ def _plot_scenario_comparison(
         ]
     elif table == "hydrogen_supply":
         note = [
-            'Note: Open-TYNDP uses endogenous hydrogen fuel prices. The price is fixed in the Market Model and the Scenarios Report and the supply of hydrogen \nis reported as "Undefined for generation", resulting in a zero value for Open-TYNDP.'
+            'Note: Open-TYNDP uses endogenous hydrogen fuel prices. The price is fixed in the Market Model and the Scenarios Report and the supply of hydrogen \nis reported as "Undefined for generation". In Open-TYNDP, however, this share is "defined" as either imports or domestic production.'
         ]
     else:
         note = []
