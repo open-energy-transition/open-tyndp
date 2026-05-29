@@ -15,6 +15,8 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Add ``Undefined for generation`` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/718).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
