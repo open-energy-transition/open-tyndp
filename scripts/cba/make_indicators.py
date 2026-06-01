@@ -245,53 +245,14 @@ def calculate_power_sector_co2_emissions(
     if ac_assets is None:
         ac_assets = get_ac_electricity_producing_assets(n)
     weights = _get_snapshot_weightings(n)
-    total_emissions = 0.0
-
-    generator_mask = ac_assets.index.get_level_values("component") == "Generator"
-    generator_names = (
-        ac_assets[generator_mask].index.get_level_values("name").unique()
-        if generator_mask.any()
-        else pd.Index([], dtype="object")
+    co2_balance = n.statistics.energy_balance(
+        groupby_time=False,
+        nice_names=False,
+        bus_carrier="co2",
+        groupby=["name", "carrier"],
     )
-    if len(generator_names):
-        generators = n.generators.loc[generator_names]
-        emission_intensity = generators.carrier.map(n.carriers.co2_emissions).fillna(
-            0.0
-        )
-        efficiency = generators.efficiency.replace(0.0, pd.NA)
-        emission_intensity = emission_intensity.div(efficiency).fillna(0.0)
-        emission_intensity = emission_intensity[emission_intensity != 0.0]
-
-        if not emission_intensity.empty:
-            dispatch = n.generators_t.p[emission_intensity.index]
-            total_emissions += (
-                dispatch.mul(weights, axis=0)
-                .mul(emission_intensity, axis=1)
-                .sum()
-                .sum()
-            )
-
-    link_mask = ac_assets.index.get_level_values("component") == "Link"
-    link_names = (
-        ac_assets[link_mask].index.get_level_values("name").unique()
-        if link_mask.any()
-        else pd.Index([], dtype="object")
-    )
-    if len(link_names):
-        links = n.links.loc[link_names]
-        for port in [1, 2, 3]:
-            bus_col = f"bus{port}"
-            p_col = f"p{port}"
-            if bus_col not in links.columns or p_col not in n.links_t:
-                continue
-
-            co2_links = links.index[
-                links[bus_col].map(n.buses.carrier).fillna("").eq("co2")
-            ]
-            if len(co2_links):
-                total_emissions += -(
-                    n.links_t[p_col][co2_links].mul(weights, axis=0).sum().sum()
-                )
+    co2_emissions_per_h = co2_balance.reindex(ac_assets.index.droplevel(3)).sum()
+    total_emissions = co2_emissions_per_h.mul(weights).sum()
 
     return float(total_emissions)
 
@@ -1000,8 +961,13 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("make_indicators")
-
+        snakemake = mock_snakemake(
+            "make_indicators",
+            run="NT",
+            cba_project="t4",
+            planning_horizons="2030",
+            configfiles=["config/config.tyndp.yaml"],
+        )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
