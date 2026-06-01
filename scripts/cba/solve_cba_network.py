@@ -173,12 +173,9 @@ def optimize_with_rolling_horizon(
                 if comp not in pf_p.columns:
                     continue
                 window_energy = pf_p.loc[sns, comp].sum()
-                # Apply a small relative relaxation to avoid over-constraining
-                # rolling-horizon windows for volume-limited components.
-                relax = 1e-3
-                slack = abs(window_energy) * relax
+                slack = 0.2 * window_energy
                 c.static.loc[comp, "e_sum_min"] = np.floor(window_energy - slack)
-                c.static.loc[comp, "e_sum_max"] = np.ceil(window_energy + slack)
+                c.static.loc[comp, "e_sum_max"] = np.ceil(window_energy)
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
         if status != "ok":
