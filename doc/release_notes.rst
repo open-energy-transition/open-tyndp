@@ -15,6 +15,10 @@ Upcoming Open-TYNDP Release
 
 **Changes**
 
+* Add ``Undefined for generation`` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/718).
+
+* Use only electricity-sourced emissions for and and change signs of B2 and B4 indicators (https://github.com/open-energy-transition/open-tyndp/pull/709).
+
 * Pass through and validate default solving options for CBA solves; add ``include_objective_constant`` and ``assign_all_duals`` to solving config validator; add ``gurobi-simplex`` as solver option. (https://github.com/open-energy-transition/open-tyndp/pull/708).
 
 **Bugfixes and Compatibility**
