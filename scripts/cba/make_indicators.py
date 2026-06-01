@@ -219,6 +219,34 @@ def get_ac_electricity_producing_assets(n: pypsa.Network) -> pd.Series:
     return assets
 
 
+def get_ac_energy_balance(
+    n: pypsa.Network,
+    assets: pd.Series,
+    *,
+    bus_carrier: str | None = None,
+) -> pd.DataFrame:
+    """
+    Return energy balance for provided assets.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+    assets : pandas.Series
+        Assets for which to calculate energy balance.
+    bus_carrier : str, optional
+        If set, filter energy balance to this bus carrier (e.g. "co2").
+    """
+    balance = n.statistics.energy_balance(
+        groupby_time=False,
+        nice_names=False,
+        bus_carrier=bus_carrier,
+        groupby=["name", "carrier"],
+    )
+
+    return balance.reindex(assets.index.droplevel("bus_carrier")).dropna(how="all")
+
+
 def calculate_power_sector_co2_emissions(
     n: pypsa.Network, ac_assets: pd.Series | None = None
 ) -> float:
@@ -245,13 +273,8 @@ def calculate_power_sector_co2_emissions(
     if ac_assets is None:
         ac_assets = get_ac_electricity_producing_assets(n)
     weights = _get_snapshot_weightings(n)
-    co2_balance = n.statistics.energy_balance(
-        groupby_time=False,
-        nice_names=False,
-        bus_carrier="co2",
-        groupby=["name", "carrier"],
-    )
-    co2_emissions_per_h = co2_balance.reindex(ac_assets.index.droplevel(3)).sum()
+    co2_balance = get_ac_energy_balance(n, ac_assets, bus_carrier="co2")
+    co2_emissions_per_h = co2_balance.sum()
     total_emissions = co2_emissions_per_h.mul(weights).sum()
 
     return float(total_emissions)
