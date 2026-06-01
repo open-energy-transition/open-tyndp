@@ -87,22 +87,13 @@ if __name__ == "__main__":
         config=snakemake.config,
     )
 
-    # clip dsr and distribution grid p_max_pu to 1.0 + eps to avoid numerical issues with binding p_max_pu constraints
-    eps = 1e-6
-
-    dsr_i = n.generators.index[n.generators.carrier == "dsr"]
-    dsr_cols = dsr_i.intersection(n.generators_t.p_max_pu.columns)
-    if len(dsr_cols):
-        n.generators_t.p_max_pu.loc[:, dsr_cols] = (
-            n.generators_t.p_max_pu.loc[:, dsr_cols] + eps
-        ).clip(upper=1.0)
-
-    dist_i = n.links.index[n.links.carrier == "electricity distribution grid"]
-    dist_cols = dist_i.intersection(n.links_t.p_max_pu.columns)
-    if len(dist_cols):
-        n.links_t.p_max_pu.loc[:, dist_cols] = (
-            n.links_t.p_max_pu.loc[:, dist_cols] + eps
-        ).clip(upper=1.0)
+    if solver_log:
+        with open(solver_log, "a") as f:
+            print(
+                f"Starting MSV extraction solve with solver={solver_name} "
+                f"options={solver_options_key}",
+                file=f,
+            )
 
     # Solve with perfect foresight (full year, single optimization).
     # Assign_all_duals=True ensures we get mu_energy_balance.
