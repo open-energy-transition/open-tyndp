@@ -99,7 +99,7 @@ body:
       Environment details, such as:
       - Pixi/Conda
       - OS: Linux / macOS / Windows
-      
+
       <details>
 
       Paste `pixi.lock` excerpt or `conda env  export` here.
