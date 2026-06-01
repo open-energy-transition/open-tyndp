@@ -64,10 +64,10 @@ body:
     description: |
       What is the risk level of the proposed feature?
     options:
-    - N/A (minor change)
-    - Low
-    - Medium
-    - High (requires kick-off security review)
+    - N/A: Minor fix or purely cosmetic (e.g., docs update).
+    - Low: No confidential data exposure; no new external sources/services/credentials; no expected impact on data integrity or reproducibility.
+    - Medium: May involve new external sources/services/credentials or could affect data integrity/reproducibility across workflows/results.
+    - High (requires kick-off security review): May expose confidential data.
   validations:
     required: true
 
