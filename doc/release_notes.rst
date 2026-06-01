@@ -21,6 +21,8 @@ Upcoming Open-TYNDP Release
 
 **Documentation**
 
+* Update benchmarking documentation tables and figures for v0.7.1 (https://github.com/open-energy-transition/open-tyndp/pull/711).
+
 **Developers Note**
 
 
