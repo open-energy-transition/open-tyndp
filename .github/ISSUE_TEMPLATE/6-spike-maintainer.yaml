@@ -51,45 +51,8 @@ body:
     label: Definition of Done / Success Criteria
     description: |
       How do we know when this spike is complete? What outcomes are expected?
-    placeholder: |
+    placeholder: |-
       - Document findings in this issue
       - Identify recommended approach
       - Create follow-up implementation issues if needed
       - Share findings with team
-
-- type: textarea
-  id: timeframe
-  attributes:
-    label: Estimated Timeframe
-    description: |
-      Roughly how long should this spike take? (e.g., 1 day, 3 days, 1 week)
-    placeholder: "e.g., 2-3 days"
-
-- type: textarea
-  id: findings
-  attributes:
-    label: Findings / Outcomes
-    description: |
-      **To be filled in during/after the spike.** Document key findings, insights, and recommendations here.
-    placeholder: |
-      # Findings
-
-      ## Summary
-      [High-level summary of what was discovered]
-
-      ## Key Insights
-      - Finding 1: ...
-      - Finding 2: ...
-      - Finding 3: ...
-
-      ## Recommendations
-      - Recommended approach: ...
-      - Pros: ...
-      - Cons: ...
-      - Alternative considerations: ...
-
-      ## Follow-up Actions
-      - [ ] Create implementation issue #XXX
-      - [ ] Update documentation
-      - [ ] Schedule team discussion
-    render: markdown
