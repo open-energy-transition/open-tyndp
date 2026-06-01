@@ -45,8 +45,7 @@ body:
       **High Priority** — Critical hotfix, blocks major workflows, significant impact on results/usability, security or data loss risk
     options:
     - label: I have classified the urgency/priority of this fix in the Open-TYNDP Roadmap.
-  validations:
-    required: true
+      required: true
 
 - type: checkboxes
   id: security_risk_check
