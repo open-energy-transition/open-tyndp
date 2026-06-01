@@ -8,9 +8,9 @@ body:
 - type: markdown
   attributes:
     value: |
-      **Intended for maintainers.** Community contributors are welcome to use this but could also use the [community issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) instead.
+      **Intended for maintainers.** Community contributors are welcome to use this but could also use the ["Feature Request (Community)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) template instead.
 
-      This template is for high-level parent issues that will be broken down into sub-issues. Use the "Feature - Sub Issue (Maintainer)" template for detailed feature requests. Security and risk assessment is captured at this sub-issue level.
+      This template is for high-level parent issues that will be broken down into sub-issues. Use the ["Feature - Sub Issue (Maintainer)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=5-feature-maintainer-sub.yaml) template for detailed feature requests. Security and risk assessment is captured at this sub-issue level.
 
 - type: checkboxes
   id: affected_component
