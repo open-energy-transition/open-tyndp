@@ -206,7 +206,6 @@ def get_ac_electricity_producing_assets(n: pypsa.Network) -> pd.Series:
         A Series containing the electricity-producing assets on AC buses.
     """
     balance = n.statistics.energy_balance(
-        groupby_time="sum",
         nice_names=False,
         bus_carrier="AC",
         groupby=["name", "carrier", "bus_carrier"],
