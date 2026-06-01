@@ -1,6 +1,6 @@
 name: Feature - Parent Issue (Maintainer)
 description: High-level parent issue that will be broken down into sub-issues
-labels: ["enhancement"]
+labels: []
 title: "[PARENT] "
 type: "Feature"
 
@@ -10,7 +10,7 @@ body:
     value: |
       **Intended for maintainers.** Community contributors are welcome to use this but could also use the [community issue template](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) instead.
 
-      This template is for high-level parent issues that will be broken down into sub-issues. Use the "Feature - Sub Issue (Maintainer)" template for detailed feature requests.
+      This template is for high-level parent issues that will be broken down into sub-issues. Use the "Feature - Sub Issue (Maintainer)" template for detailed feature requests. Security and risk assessment is captured at this sub-issue level.
 
 - type: checkboxes
   id: affected_component
@@ -19,7 +19,7 @@ body:
     description: |
       Label this issue with the affected component(s) using GitHub labels.
     options:
-    - label: I have labeled this feature with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+    - label: I have labeled this feature with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.).
   validations:
     required: true
 
@@ -30,7 +30,7 @@ body:
     description: |
       Provide a high-level description of this parent issue. What is the overall goal?
     placeholder: |
-      Examples: 
+      Examples:
       - Implement comprehensive validation framework for TYNDP 2024
       - Refactor workflow
       - Any other relevant information: links, references, related issues, etc.
@@ -43,10 +43,10 @@ body:
     label: Motivation / Reason for Change
     description: Why is this feature important? What problem does it solve or what value does it add?
     placeholder: |
-      Examples: 
+      Examples:
       - Improves performance by 50%
-      - Enables new features-
-      - addresses user feedback...
+      - Enables new features
+      - Addresses user feedback
   validations:
     required: true
 
@@ -73,4 +73,3 @@ body:
       - [ ] Modify build_statistics.py
       - [ ] Add new test cases
       - [ ] Update documentation
-    render: markdown

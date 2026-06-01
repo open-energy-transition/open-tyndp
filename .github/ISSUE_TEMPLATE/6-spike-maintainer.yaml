@@ -7,7 +7,7 @@ body:
 - type: markdown
   attributes:
     value: |
-      **Intended for maintainers.** 
+      **Intended for maintainers.**
 
       Spikes are exploratory issues meant to gather information and explore concepts. They typically don't result in PRs but help inform future implementation decisions.
 
@@ -16,7 +16,7 @@ body:
   attributes:
     label: Related Parent/Issue (optional)
     description: |
-      Is this spike related to a another issue (parent, sub issue, bug report)?
+      Is this spike related to another issue (parent, sub issue, bug report)?
     placeholder: "#123 or leave blank if standalone"
 
 - type: checkboxes
@@ -26,7 +26,7 @@ body:
     description: |
       Label this issue with the affected component(s) using GitHub labels.
     options:
-    - label: I have labeled this feature request with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+    - label: I have labeled this spike with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.).
   validations:
     required: true
 

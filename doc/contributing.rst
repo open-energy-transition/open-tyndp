@@ -27,7 +27,7 @@ Where to start
   * The Open-TYNDP team will review new issues shortly after they are submitted.
 
 * If you are wondering where we would greatly appreciate your efforts, check out the ``help wanted`` tag in the `issues list <https://github.com/open-energy-transition/open-tyndp/issues>`_ and initiate a discussion there.
-* If you start working on a feature in the code, let us know by opening an issue or a drafting a pull request.
+* If you start working on a feature in the code, let us know by opening an issue or a draft pull request.
   This helps all of us to keep an overview on what is being done and helps to avoid a situation where we
   are doing the same work twice in parallel.
 

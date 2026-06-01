@@ -19,12 +19,12 @@ body:
     options:
     - label: Scenario Building (SB)
     - label: Cost-Benefit Analysis (CBA)
-    - label: Network optimization
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
+    - label: Network Optimization
+    - label: Data retrieval / Processing
+    - label: Plotting / Visualization
     - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
+    - label: CI/CD Workflows
+    - label: Dependencies / Environment
     - label: Other (specify in description)
 
 - type: textarea
@@ -46,13 +46,13 @@ body:
   attributes:
     label: Proposed Implementation / Expected Impact
     description: |
-      How do you envision this feature working? What will change? 
-      Include any implementation ideas, references, or examples. 
+      How do you envision this feature working? What will change?
+      Include any implementation ideas, references, or examples.
       Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
       If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
-    placeholder: |-
+    placeholder: |
       Examples:
       - Add new configuration option to enable X
-      - Modifies ``scripts/sb/build_statistics.py``
+      - Modifies `scripts/sb/build_statistics.py`
       - Affects all SB scenarios (2030NT, 2040NT, etc.)
       - Verify new outputs are generated correctly

@@ -1,6 +1,6 @@
 name: Feature - Sub Issue (Maintainer)
 description: Suggest a new feature or enhancement
-labels: ["enhancement"]
+labels: []
 title: "[SUB] "
 type: "Feature"
 
@@ -27,7 +27,7 @@ body:
     description: |
       Label this issue with the affected component(s) using GitHub labels.
     options:
-    - label: I have labeled this feature request with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.)
+    - label: I have labeled this feature with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.).
   validations:
     required: true
 
@@ -42,7 +42,7 @@ body:
       **Medium Priority** — Logic, infrastructure, API changes, partial functionality affected
       **High Priority** — Critical feature, blocks major workflows, significant impact on results/usability, security or data loss risk
     options:
-    - label: I have classified the urgency/priority of this feature request in the Open-TYNDP Roadmap
+    - label: I have classified the urgency/priority of this feature request in the Open-TYNDP Roadmap.
   validations:
     required: true
 
@@ -53,9 +53,9 @@ body:
     description: |
       Checking a box flags what needs review but does not block the feature.
     options:
-    - label: This feature touches or exposes confidential data
-    - label: This feature adds or changes external data sources, download URLs, APIs, services, credentials, or tokens
-    - label: This feature could affect data integrity or reproducibility of published results
+    - label: This feature touches or exposes confidential data.
+    - label: This feature adds or changes external data sources, download URLs, APIs, services, credentials, or tokens.
+    - label: This feature could affect data integrity or reproducibility of published results.
 
 - type: dropdown
   id: risk_level
@@ -90,14 +90,14 @@ body:
   attributes:
     label: Proposed Implementation / Expected Impact
     description: |
-      How do you envision this feature working? What will change? 
-      Include any implementation ideas, references, or examples. 
+      How do you envision this feature working? What will change?
+      Include any implementation ideas, references, or examples.
       Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
       If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
     placeholder: |
       Examples:
       - Add new configuration option to enable X
-      - Modifies ``scripts/sb/build_statistics.py``
+      - Modifies `scripts/sb/build_statistics.py`
       - Affects all SB scenarios (2030NT, 2040NT, etc.)
       - Verify new outputs are generated correctly
 
@@ -112,4 +112,3 @@ body:
       - [ ] Modify build_statistics.py
       - [ ] Add new test cases
       - [ ] Update documentation
-    render: markdown

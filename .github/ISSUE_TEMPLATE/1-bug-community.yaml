@@ -17,9 +17,9 @@ body:
     label: Version Checks
     description: Where does this bug exist? Check all that apply.
     options:
-    - label: This bug exists on the latest [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP
-    - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP
-    - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific)
+    - label: This bug exists on the latest [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP.
+    - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP.
+    - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific).
 
 - type: checkboxes
   id: affected_component
@@ -29,11 +29,12 @@ body:
     options:
     - label: Scenario Building (SB)
     - label: Cost-Benefit Analysis (CBA)
-    - label: Data retrieval/processing
-    - label: Plotting/visualization
+    - label: Network Optimization
+    - label: Data retrieval / Processing
+    - label: Plotting / Visualization
     - label: Documentation
-    - label: CI/CD workflows
-    - label: Dependencies/environment
+    - label: CI/CD Workflows
+    - label: Dependencies / Environment
     - label: Other (specify in description)
 
 - type: textarea
@@ -41,10 +42,10 @@ body:
   attributes:
     label: Bug Description
     description: |
-      Briefly and concisely describe the bug, including information such as what the bug is, what could be causing the issue (if known), and if you have ideas of how to fix the issue, describe the solution. 
+      Briefly describe the bug, including information such as what the bug is, what could be causing the issue (if known), and if you have ideas of how to fix the issue, describe the solution.
     placeholder: |
-      Examples: 
-      - ``pixi run ...`` command not working
+      Examples:
+      - `pixi run ...` command not working
       - Output file missing or incorrect
   validations:
     required: true
@@ -68,8 +69,8 @@ body:
     label: Expected Behavior
     description: What should happen instead? Describe the expected correct behavior. Include information such as expected outputs, resolution of errors, and how the proposed fix should be tested (specific commands, files to check, or validation steps).
     placeholder: |
-      Example: 
-      The rule should complete successfully and produce ``results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv.``
+      Example:
+      The rule should complete successfully and produce `results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv`.
   validations:
     required: true
 
@@ -82,8 +83,8 @@ body:
     placeholder: |
       Examples:
       - Set config option `remove_last_day: true`
-      - Run `pixi run snakemake -call ....`
-      - Observe error in logs/...
+      - Run `pixi run snakemake -call ...`
+      - Observe error in `logs/...`
   validations:
     required: true
 
@@ -96,5 +97,11 @@ body:
       For conda, paste output of `conda env export`.
     placeholder: |-
       Environment details, such as:
-      - Pixi/Conda: Can paste pixi.lock excerpt or conda env export here
+      - Pixi/Conda
       - OS: Linux / macOS / Windows
+      
+      <details>
+
+      Paste `pixi.lock` excerpt or `conda env  export` here.
+
+      </details>
