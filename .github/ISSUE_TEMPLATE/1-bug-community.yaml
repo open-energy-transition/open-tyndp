@@ -20,6 +20,8 @@ body:
     - label: This bug exists on the latest [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP.
     - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP.
     - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific).
+  validations:
+    required: true
 
 - type: checkboxes
   id: affected_component
