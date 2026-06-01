@@ -55,19 +55,19 @@ logger = logging.getLogger(__name__)
 def dispose_gurobi_model(n: pypsa.Network) -> None:
     """
     Explicitly dispose of Gurobi environment.
-    
+
     This is critical for WLS license which doesn't allow multiple environments
     in the same process, even sequentially. Without it, if using Gurobi, what happens is:
     - First solve (project 1's first rolling horizon): Gurobi environment is created and holds the license.
     - After solve completes, environment is not disposed, so license is still held.
-    - Second solve (project 2's first rolling horizon): Gurobi tries to create a new environment, 
-    but WLS license server denies it because the previous environment is still active. 
-    This results in an error and the second solve fails immediately with a license error, 
+    - Second solve (project 2's first rolling horizon): Gurobi tries to create a new environment,
+    but WLS license server denies it because the previous environment is still active.
+    This results in an error and the second solve fails immediately with a license error,
     even though the first solve completed successfully.
 
     What this function does is explicitly dispose of the Gurobi model and environment after each solve,
     which releases the license and allows subsequent solves to create new environments without issue.
-    
+
     This function should only be called after:
     - A successful solve, OR
     - Computing and printing infeasibilities for a failed solve
@@ -216,12 +216,12 @@ def optimize_with_rolling_horizon(
                 c.static.loc[comp, "e_sum_max"] = window_energy
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
-        
+
         # Only dispose Gurobi model if solve succeeded
         # If solve failed, keep model for infeasibility computation
         if status == "ok":
             dispose_gurobi_model(n)
-        
+
         if status != "ok":
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
@@ -236,11 +236,11 @@ def optimize_with_rolling_horizon(
                 retry_kwargs["solver_name"] = fallback_solver["name"]
                 retry_kwargs["solver_options"] = fallback_solver.get("options", {})
                 status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
-                
+
                 # Only dispose after fallback if it succeeded
                 if status == "ok":
                     dispose_gurobi_model(n)
-            
+
             if status != "ok":
                 logger.warning(f"Fallback also failed: {status} / {condition}")
                 return status, condition
@@ -364,7 +364,7 @@ def solve_network(
             # Now safe to dispose after computing infeasibilities
             dispose_gurobi_model(n)
             raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
-    
+
     # If solve succeeded - dispose the model
     dispose_gurobi_model(n)
 
