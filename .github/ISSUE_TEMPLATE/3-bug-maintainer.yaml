@@ -38,7 +38,7 @@ body:
   attributes:
     label: Change Classification
     description: |
-      Classify the urgency/priority of this fix is using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
+      Classify the urgency/priority of this fix using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
 
       **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump, cosmetic change)
       **Medium Priority** — Logic, infrastructure, API changes, partial functionality affected
@@ -142,6 +142,6 @@ body:
 
       <details>
 
-      Paste `pixi.lock` excerpt or `conda env  export` here.
+      Paste `pixi.lock` excerpt or `conda env export` here.
 
       </details>

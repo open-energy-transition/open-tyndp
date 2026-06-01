@@ -36,7 +36,7 @@ body:
   attributes:
     label: Change Classification
     description: |
-      Classify the level of how urgent/critical this feature is using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
+      Classify the urgency/priority of this fix using the "Priority" classification in the "Open-TYNDP Roadmap" under "Projects":
 
       **Low Priority** — Low-risk, routine (e.g. docs update, non-critical dependency bump, cosmetic change)
       **Medium Priority** — Logic, infrastructure, API changes, partial functionality affected

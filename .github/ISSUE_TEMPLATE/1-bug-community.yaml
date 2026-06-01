@@ -104,6 +104,6 @@ body:
 
       <details>
 
-      Paste `pixi.lock` excerpt or `conda env  export` here.
+      Paste `pixi.lock` excerpt or `conda env export` here.
 
       </details>
