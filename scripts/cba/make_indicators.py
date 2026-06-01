@@ -703,18 +703,21 @@ def calculate_b4_indicator(
 
         for fuel in conventional_carriers:
             bal = get_ac_energy_balance(network, assets, bus_carrier=fuel)
-            if bal.empty:
-                continue
 
+            # function to check if component is biofuel/biomass/biogas
             is_bio = bal.index.get_level_values("name").astype(str).str.contains(
                 "bio", case=False, na=False
             ) | bal.index.get_level_values("carrier").astype(str).str.contains(
                 "bio", case=False, na=False
             )
 
-            fuel_use = -bal.clip(upper=0.0)
-            regular_use = fuel_use.loc[~is_bio].sum()  # per-snapshot
-            bio_use = fuel_use.loc[is_bio].sum()  # per-snapshot
+            fuel_use = -bal.clip(
+                upper=0.0
+            )  # convert negative consumption values to positive
+            regular_use = fuel_use.loc[
+                ~is_bio
+            ].sum()  # sum non-biomass fuel consumption
+            bio_use = fuel_use.loc[is_bio].sum()  # sum biomass fuel consumption
 
             regular_total = regular_use.mul(weights).sum()
             bio_total = bio_use.mul(weights).sum()
@@ -733,7 +736,9 @@ def calculate_b4_indicator(
         proj_val = proj_emissions.get(pollutant_key, 0.0)
         diff = difference_by_method(ref_val, proj_val, method)
         # Convert kg to tons
-        results[pollutant_key] = -diff / 1000.0
+        results[pollutant_key] = (
+            -diff / 1000.0
+        )  # report indicators to align with guideline sign convention (negative means reduction in emissions)
         units[pollutant_key] = "ton/year"
 
     return results, units
