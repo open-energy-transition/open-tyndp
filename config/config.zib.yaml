@@ -23,8 +23,6 @@ solving:
   runtime: 12h
 
 cba:
-  projects: []
-
   msv_extraction:
     solving:
       options:
@@ -32,8 +30,26 @@ cba:
       solver:
         name: gurobi
         options: gurobi-default
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+      solver_options:
+        gurobi-default:
+          BarConvTol: 1.0e-06
 
   # Rolling horizon solving settings
   solving:
     options:
       include_objective_constant: false
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
+    solver:
+      name: gurobi
+      options: gurobi-simplex
+
+    solver_options:
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06
