@@ -65,6 +65,38 @@ if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
             os.remove(output["dir"] + ".zip")
 
 
+if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
+    "source"
+] in ARCHIVE_SOURCES:
+
+    rule retrieve_presolved_networks:
+        input:
+            zip_file=storage(PRESOLVED_NETWORKS_DATASET["url"]),
+        output:
+            network=f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{planning_horizons}}.nc",
+        log:
+            "logs/retrieve_presolved_networks_{planning_horizons}.log",
+        run:
+            from pathlib import Path
+            from shutil import copyfileobj
+            from zipfile import ZipFile
+
+            target_suffix = (
+                f"networks/base_s_all___{wildcards.planning_horizons}.nc"
+            )
+            with ZipFile(input["zip_file"], "r") as zf:
+                matches = [m for m in zf.namelist() if m.endswith(target_suffix)]
+                if not matches:
+                    raise ValueError(
+                        f"Could not find '{target_suffix}' in {input['zip_file']}."
+                    )
+                out_path = Path(output["network"])
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                with zf.open(matches[0]) as src, out_path.open("wb") as dst:
+                    copyfileobj(src, dst)
+
+
+
 # Versioning not implemented as the dataset is used only for plotting
 # License - MIT - Copyright (c) 2021 Gavin Rehkemper
 # Website: https://github.com/gavinr/world-countries-centroids
@@ -1119,6 +1151,59 @@ rule launch_explorer:
             f"Your browser should open automatically. If not, click the link above."
         )
 
+
+
+rule launch_presolved_explorer:
+    params:
+        port=find_free_port(start_port=8050, max_attempts=50),
+    input:
+        expand(
+            f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{planning_horizons}}.nc",
+            planning_horizons=config["scenario"]["planning_horizons"],
+        ),
+    output:
+        "logs/presolved_explorer_launched.log",
+    run:
+        import platform
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        output_log = str(output[0])
+        input_files = list(input)
+
+        Path(output_log).touch()
+
+        # Define command line executable
+        cmd = [
+            sys.executable,
+            "scripts/sb/launch_explorer.py",
+            output_log,
+            str(params.port),
+        ] + input_files
+
+        print(
+            f"Launching PyPSA-Explorer with presolved networks for release v{PRESOLVED_NETWORKS_DATASET['version']}..."
+        )
+
+        popen_kwargs = {
+            "stdout": open(output_log, "w"),
+            "stderr": subprocess.STDOUT,
+        }
+
+        # Use creationflags for Windows and start_new_session for Linux/Unix
+        if platform.system() == "Windows":
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            popen_kwargs["start_new_session"] = True
+
+        process = subprocess.Popen(cmd, **popen_kwargs)
+
+        print(f"Explorer subprocess started with PID: {process.pid}")
+        print(f"PyPSA-Explorer is running at http://127.0.0.1:{params.port}.")
+        print(
+            f"Your browser should open automatically. If not, click the link above."
+        )
 
 
 rule close_explorers:
