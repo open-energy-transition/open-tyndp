@@ -107,3 +107,25 @@ None.
 **Outputs**
 
 - ``data/countries_centroids.geojson``
+
+
+Rule ``retrieve_presolved_networks``
+====================================
+
+This rule downloads pre-solved networks from a previous Open-TYNDP release
+(*preliminary outcomes* published on `Zenodo <https://zenodo.org/records/18608105>`__)
+and extracts the solved network for each planning horizon. These can be investigated with PyPSA-Explorer's
+web interface using the ``launch_presolved_explorer`` rule without having to re-run the workflow.
+
+**Relevant Settings**
+
+.. code:: yaml
+
+    data:
+        open_tyndp_prelim:
+            source:
+            version:
+
+**Outputs**
+
+- ``data/open_tyndp_prelim/{source}/{version}/base_s_all___{planning_horizons}.nc``
