@@ -70,10 +70,10 @@ body:
     description: |
       What is the risk level of the proposed fix?
 
-      **N/A**: Minor fix or purely cosmetic (e.g., docs update).
-      **Low**: No confidential data exposure; no new external sources/services/credentials; no expected impact on data integrity or reproducibility.
-      **Medium**: May involve new external sources/services/credentials or could affect data integrity/reproducibility across workflows/results.
-      **High (requires kick-off security review)**: May expose confidential data.
+      **N/A**: Cosmetic or docs change only — no code logic, data flows, or external sources affected.
+      **Low**: No security concerns — no confidential data changes, no external source/credential changes, no impact on data integrity or result reproducibility.
+      **Medium**: Limited scope impact — modifies existing (not new) external sources, or minor data integrity impact in isolated workflows but not on main published results. No changes to confidential data.
+      **High (requires kick-off security review)**: Critical impact — may expose confidential data, introduces new external sources/credentials, or affects data integrity or reproducibility of published results.
     options:
     - N/A
     - Low
