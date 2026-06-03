@@ -19,6 +19,8 @@ Upcoming Open-TYNDP Release
 
 * Add ``Undefined for generation`` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/718).
 
+* Update CBA workflow to accept different pre-solved SB network versions as input (https://github.com/open-energy-transition/open-tyndp/pull/725).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
