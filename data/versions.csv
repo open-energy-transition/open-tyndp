@@ -142,18 +142,18 @@ nitrogen_statistics,2022,tyndp-archive,latest supported,2026-05-08,,https://stor
 nuts3_population,13-03-2025,primary,latest supported,2025-12-02,,https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nama_10r_3popgdp?format=TSV&compressed=true
 nuts3_population,13-03-2025,archive,latest supported,2026-01-13,earlier part of zenodo bundle,https://data.pypsa.org/workflows/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
 nuts3_population,13-03-2025,tyndp-archive,latest supported,2026-05-08,earlier part of zenodo bundle,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
-open_tyndp_prelim,0.5,primary,not-supported,2026-02-16,Open-TYNDP preliminary outcomes,https://zenodo.org/records/18608106
-open_tyndp_prelim,0.5,archive,supported,2026-02-16,Open-TYNDP preliminary outcomes (results-0.5.zip),https://zenodo.org/records/18608106/files/results-0.5.zip
-open_tyndp_prelim,0.5,tyndp-archive,supported,2026-05-15,Open-TYNDP preliminary outcomes (results-0.5.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.5/results-0.5.zip
-open_tyndp_prelim,0.5.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/18713081
-open_tyndp_prelim,0.5.1,archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.5.1.zip),https://zenodo.org/records/18713081/files/results-0.5.1.zip
-open_tyndp_prelim,0.5.1,tyndp-archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.5.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.5.1/results-0.5.1.zip
-open_tyndp_prelim,0.6.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/19388086
-open_tyndp_prelim,0.6.1,archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.6.1.zip),https://zenodo.org/records/19388086/files/results-0.6.1.zip
-open_tyndp_prelim,0.6.1,tyndp-archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.6.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.6.1/results-0.6.1.zip
 open_tyndp_prelim,0.7.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/20303009
 open_tyndp_prelim,0.7.1,archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://zenodo.org/records/20303009/files/results-0.7.1.zip
 open_tyndp_prelim,0.7.1,tyndp-archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.7.1/results-0.7.1.zip
+open_tyndp_prelim,0.6.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/19388086
+open_tyndp_prelim,0.6.1,archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.6.1.zip),https://zenodo.org/records/19388086/files/results-0.6.1.zip
+open_tyndp_prelim,0.6.1,tyndp-archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.6.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.6.1/results-0.6.1.zip
+open_tyndp_prelim,0.5.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/18713081
+open_tyndp_prelim,0.5.1,archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.5.1.zip),https://zenodo.org/records/18713081/files/results-0.5.1.zip
+open_tyndp_prelim,0.5.1,tyndp-archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.5.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.5.1/results-0.5.1.zip
+open_tyndp_prelim,0.5,primary,not-supported,2026-02-16,Open-TYNDP preliminary outcomes,https://zenodo.org/records/18608106
+open_tyndp_prelim,0.5,archive,supported,2026-02-16,Open-TYNDP preliminary outcomes (results-0.5.zip),https://zenodo.org/records/18608106/files/results-0.5.zip
+open_tyndp_prelim,0.5,tyndp-archive,supported,2026-05-15,Open-TYNDP preliminary outcomes (results-0.5.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.5/results-0.5.zip
 opsd_electricity_demand,unknown,build,latest supported,2026-02-02,multiple versions concatenated,https://data.open-power-system-data.org/time_series/
 opsd_electricity_demand,2026-02-02,archive,latest supported,2026-02-03,,https://data.pypsa.org/workflows/eur/opsd_electricity_demand/2026-02-02/electricity_demand_opsd_raw.csv
 opsd_electricity_demand,2026-02-02,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/opsd_electricity_demand/2026-02-02/electricity_demand_opsd_raw.csv
