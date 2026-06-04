@@ -13,7 +13,7 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
-* Add Snakemake rule to launch the ``PyPSA-Explorer`` with presolved SB networks from past releases (https://github.com/open-energy-transition/open-tyndp/pull/724).
+* Add Snakemake rules to launch the ``PyPSA-Explorer`` with pre-solved SB networks from previous releases (https://github.com/open-energy-transition/open-tyndp/pull/724).
 
 **Changes**
 

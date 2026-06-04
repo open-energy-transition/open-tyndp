@@ -112,10 +112,7 @@ None.
 Rule ``retrieve_presolved_networks``
 ====================================
 
-This rule downloads pre-solved networks from a previous Open-TYNDP release
-(*preliminary outcomes* published on `Zenodo <https://zenodo.org/records/18608105>`__)
-and extracts the solved network for each planning horizon. These can be investigated with PyPSA-Explorer's
-web interface using the ``launch_presolved_explorer`` rule without having to re-run the workflow.
+This rule downloads pre-solved networks from a previous Open-TYNDP release (*preliminary outcomes* published on `Zenodo <https://zenodo.org/records/18608105>`__) and extracts the solved network for each planning horizon. These can be investigated with PyPSA-Explorer's web interface using the ``launch_presolved_explorer`` rule without having to re-run the workflow.
 
 **Relevant Settings**
 

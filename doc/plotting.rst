@@ -153,7 +153,7 @@ Rule ``launch_explorer``
 Rule ``launch_presolved_explorer``
 ======================================
 
-Mirrors the ``launch_explorer`` rule to launch the ``PyPSA-Explorer`` web interface with presolved SB networks from past Open-TYNDP release runs.
+Mirrors the ``launch_explorer`` rule to launch the ``PyPSA-Explorer`` web interface with pre-solved SB networks from previous Open-TYNDP release runs.
 
 Rule ``close_explorers``
 ======================================
