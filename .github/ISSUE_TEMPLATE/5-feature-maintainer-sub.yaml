@@ -47,7 +47,7 @@ body:
     - Emergency
     default: 0
   validations:
-    required: false
+    required: true
 
 - type: checkboxes
   id: security_risk_check
