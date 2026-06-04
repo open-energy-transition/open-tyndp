@@ -49,7 +49,7 @@ body:
     - Emergency
     default: 0
   validations:
-    required: true
+    required: false
 
 - type: checkboxes
   id: security_risk_check
