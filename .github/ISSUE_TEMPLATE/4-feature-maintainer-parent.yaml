@@ -73,3 +73,4 @@ body:
       - [ ] Modify build_statistics.py
       - [ ] Add new test cases
       - [ ] Update documentation
+    render: markdown
