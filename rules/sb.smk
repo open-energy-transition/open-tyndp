@@ -96,7 +96,6 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
                     copyfileobj(src, dst)
 
 
-
 # Versioning not implemented as the dataset is used only for plotting
 # License - MIT - Copyright (c) 2021 Gavin Rehkemper
 # Website: https://github.com/gavinr/world-countries-centroids
