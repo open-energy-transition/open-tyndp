@@ -121,7 +121,7 @@ def dataset_version(
     all_versions: bool
         Whether to return all supported versions instead of the configured one.
     version: str | None
-        Override to use configured version from different config source (e.g. for using a pre-solved SB network in the CBA, 
+        Override to use configured version from different config source (e.g. for using a pre-solved SB network in the CBA,
         where the version is defined in `cba.cba_scenario_input.sb_version`)
 
     Returns
