@@ -210,7 +210,10 @@ close-explorers = """bash -c '
      snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
      echo "All tyndp outputs have been cleaned up."
  """
- all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
+tyndp-checkpoint = """
+    snakemake -call cba --configfile config/config.tyndp.yaml --until clean_projects
+"""
+all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
 # open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
