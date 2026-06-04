@@ -185,12 +185,12 @@ def input_sb_network(w, run=None):
         scenario_name = config_provider("tyndp_scenario")(w)
         if scenario_name != "NT":
             raise ValueError(
-                "Presolved SB networks are only currently available for the NT scenario."
+                "Pre-solved SB networks are only currently available for the NT scenario."
             )
-        # Check that options match the presolved network naming convention
+        # Check that options match the pre-solved network naming convention
         if clusters != "all" or opts != "" or sector_opts != "":
             raise ValueError(
-                "Presolved SB runs require scenario.clusters=['all'], "
+                "Pre-solved SB runs require scenario.clusters=['all'], "
                 "scenario.opts=[''], and scenario.sector_opts=[''] to match "
                 "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
             )
@@ -198,7 +198,7 @@ def input_sb_network(w, run=None):
             int(w.planning_horizons),
             warn_fn=logger.warning,
             msg=(
-                "Presolved SB networks are only available for 2030 and 2040. "
+                "Pre-solved SB networks are only available for 2030 and 2040. "
                 "Falling back to 2040 for CBA planning horizon %s."
             ),
         )
