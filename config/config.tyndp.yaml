@@ -443,8 +443,7 @@ cba:
     - battery
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
-    soc_boundary_carriers:
-    - hydro-reservoir
+    soc_boundary_carriers: []
 
   # Constrain DSR daily dispatch
   constrain_dsr: true
