@@ -1102,6 +1102,7 @@ rule build_tyndp_gas_demands:
 rule launch_explorer:
     params:
         port=find_free_port(start_port=8050, max_attempts=50),
+        launch_msg="Launching PyPSA-Explorer...",
     input:
         expand(
             RESULTS
@@ -1130,7 +1131,7 @@ rule launch_explorer:
             str(params.port),
         ] + input_files
 
-        print(f"Launching PyPSA-Explorer...")
+        print(params.launch_msg)
 
         popen_kwargs = {
             "stdout": open(output_log, "w"),
@@ -1150,64 +1151,6 @@ rule launch_explorer:
         print(
             f"Your browser should open automatically. If not, click the link above."
         )
-
-
-
-if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    rule launch_presolved_explorer:
-        params:
-            port=find_free_port(start_port=8050, max_attempts=50),
-        input:
-            expand(
-                f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{planning_horizons}}.nc",
-                planning_horizons=config["scenario"]["planning_horizons"],
-            ),
-        output:
-            "logs/presolved_explorer_launched.log",
-        run:
-            import platform
-            import subprocess
-            import sys
-            from pathlib import Path
-
-            output_log = str(output[0])
-            input_files = list(input)
-
-            Path(output_log).touch()
-
-            # Define command line executable
-            cmd = [
-                sys.executable,
-                "scripts/sb/launch_explorer.py",
-                output_log,
-                str(params.port),
-            ] + input_files
-
-            print(
-                f"Launching PyPSA-Explorer with presolved networks for release v{PRESOLVED_NETWORKS_DATASET['version']}..."
-            )
-
-            popen_kwargs = {
-                "stdout": open(output_log, "w"),
-                "stderr": subprocess.STDOUT,
-            }
-
-            # Use creationflags for Windows and start_new_session for Linux/Unix
-            if platform.system() == "Windows":
-                popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
-            else:
-                popen_kwargs["start_new_session"] = True
-
-            process = subprocess.Popen(cmd, **popen_kwargs)
-
-            print(f"Explorer subprocess started with PID: {process.pid}")
-            print(f"PyPSA-Explorer is running at http://127.0.0.1:{params.port}.")
-            print(
-                f"Your browser should open automatically. If not, click the link above."
-            )
 
 
 
@@ -1232,3 +1175,20 @@ rule close_explorers:
             print("No explorer processes found running.")
         else:
             print(f"Closed {killed_count} explorer instance(s).")
+
+
+if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
+    "source"
+] in ARCHIVE_SOURCES:
+
+    use rule launch_explorer as launch_presolved_explorer with:
+        params:
+            port=find_free_port(start_port=8050, max_attempts=50),
+            launch_msg=f"Launching PyPSA-Explorer with presolved networks for release v{PRESOLVED_NETWORKS_DATASET['version']}...",
+        input:
+            expand(
+                f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{planning_horizons}}.nc",
+                planning_horizons=config["scenario"]["planning_horizons"],
+            ),
+        output:
+            "logs/presolved_explorer_launched.log",
