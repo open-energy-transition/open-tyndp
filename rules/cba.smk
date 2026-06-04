@@ -102,55 +102,15 @@ def presolved_sb_network_path(w, horizon=None):
     return RESULTS + f"networks/presolved-{sb_version}/base_s_all___{target_horizon}.nc"
 
 
-def resolve_cba_presolved_sb_dataset():
-    """Resolve open_tyndp_prelim dataset for CBA usage.
-
-    This is based off of the dataset_version() function in rules/common.smk, but with specific filtering
-    for the open_tyndp_prelim dataset using the cba.cba_scenario_input config options.
-    """
-    dataset_config = config["data"]["open_tyndp_prelim"]
+if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
     sb_version = (
         config.get("cba", {}).get("cba_scenario_input", {}).get("sb_version", "latest")
     )
-
-    fp = workflow.source_path("../data/versions.csv")
-    data_versions = load_data_versions(fp)
-
-    dataset = data_versions.loc[
-        (data_versions["dataset"] == "open_tyndp_prelim")
-        & (data_versions["source"] == dataset_config["source"])
-        & (data_versions["supported"])
-    ]
-
-    if dataset.empty:
-        raise ValueError(
-            "Dataset 'open_tyndp_prelim' with source "
-            f"'{dataset_config['source']}' not found in data/versions.csv."
+    if (
+        SB_SOLVED_NETWORKS_DATASET := dataset_version(
+            "open_tyndp_prelim", version=sb_version
         )
-
-    dataset = dataset.loc[
-        (dataset["version"] == str(sb_version) if sb_version != "latest" else True)
-        & (dataset["latest"] if sb_version == "latest" else True)
-    ]
-
-    if dataset.empty:
-        raise ValueError(
-            "Dataset 'open_tyndp_prelim' with source "
-            f"'{dataset_config['source']}' for '{sb_version}' not found in "
-            "data/versions.csv."
-        )
-
-    dataset = dataset.squeeze()
-    dataset["folder"] = Path(
-        "data", "open_tyndp_prelim", dataset["source"], dataset["version"]
-    ).as_posix()
-    return dataset
-
-
-if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
-    if (SB_SOLVED_NETWORKS_DATASET := resolve_cba_presolved_sb_dataset())[
-        "source"
-    ] in ARCHIVE_SOURCES:
+    )["source"] in ARCHIVE_SOURCES:
 
         rule retrieve_presolved_sb_networks:
             input:
