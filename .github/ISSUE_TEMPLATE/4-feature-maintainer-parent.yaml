@@ -28,25 +28,14 @@ body:
   attributes:
     label: Overview
     description: |
-      Provide a high-level description of this parent issue. What is the overall goal?
+      Provide a high-level description of this parent issue. 
+
+      What is the overall goal? Why is this feature important? What problem does it solve or what value does it add?
     placeholder: |
       Examples:
       - Implement comprehensive validation framework for TYNDP 2024
-      - Refactor workflow
+      - Refactor workflow to improve performance by X%
       - Any other relevant information: links, references, related issues, etc.
-  validations:
-    required: true
-
-- type: textarea
-  id: motivation
-  attributes:
-    label: Motivation / Reason for Change
-    description: Why is this feature important? What problem does it solve or what value does it add?
-    placeholder: |
-      Examples:
-      - Improves performance by 50%
-      - Enables new features
-      - Addresses user feedback
   validations:
     required: true
 
