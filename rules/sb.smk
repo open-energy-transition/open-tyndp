@@ -1183,7 +1183,7 @@ rule launch_presolved_explorer:
         ] + input_files
 
         print(
-            f"Launching PyPSA-Explorer with pre-solved networks for release v{PRESOLVED_NETWORKS_DATASET['version']}..."
+            f"Launching PyPSA-Explorer with presolved networks for release v{PRESOLVED_NETWORKS_DATASET['version']}..."
         )
 
         popen_kwargs = {
