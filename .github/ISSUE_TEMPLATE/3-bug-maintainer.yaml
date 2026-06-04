@@ -47,7 +47,7 @@ body:
     - Standard
     - Normal
     - Emergency
-    default: Standard
+    default: 0
   validations:
     required: true
 
