@@ -20,6 +20,12 @@ Where to start
 ================
 
 * If you already have some code changes, you can submit them directly as a `pull request <https://github.com/open-energy-transition/open-tyndp/pulls>`_.
+* To **report bugs or request features**, please `open a new issue <https://github.com/open-energy-transition/open-tyndp/issues/new/choose>`_. We provide issue templates to guide you:
+  
+  * Members of the community are welcome to use the simplified bug report and feature request templates designed for external contributors.
+  * You're also welcome to use the more detailed maintainer-oriented templates if you feel comfortable with the additional structure (which includes security review fields).
+  * The Open-TYNDP team will review new issues shortly after they are submitted.
+
 * If you are wondering where we would greatly appreciate your efforts, check out the ``help wanted`` tag in the `issues list <https://github.com/open-energy-transition/open-tyndp/issues>`_ and initiate a discussion there.
 * If you start working on a feature in the code, let us know by opening an issue or a draft pull request.
   This helps all of us to keep an overview on what is being done and helps to avoid a situation where we
