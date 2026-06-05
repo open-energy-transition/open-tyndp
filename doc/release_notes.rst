@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Update CBA workflow to accept different pre-solved SB network versions as input (https://github.com/open-energy-transition/open-tyndp/pull/725).
 
+* Add pixi tasks for running CBA workflow up until checkpoint `clean_projects` (https://github.com/open-energy-transition/open-tyndp/pull/726).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
