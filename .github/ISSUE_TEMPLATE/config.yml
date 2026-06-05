@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+- name: Email Contact
+  url: mailto:tyndp@openenergytransition.org
+  about: Contact the Open-TYNDP team directly
+- name: Discord Community Support
+  url: https://discord.com/channels/911692131440148490/1414977512089321564
+  about: Ask usage questions or get help from the community
+- name: PyPSA-Eur Upstream Issues
+  url: https://github.com/PyPSA/PyPSA-Eur/issues
+  about: Report issues that exist in upstream PyPSA-Eur (not Open-TYNDP specific)

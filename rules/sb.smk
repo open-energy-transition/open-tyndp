@@ -1183,7 +1183,6 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
 
     use rule launch_explorer as launch_presolved_explorer with:
         params:
-            port=find_free_port(start_port=8050, max_attempts=50),
             launch_msg=f"Launching PyPSA-Explorer with presolved networks for release v{PRESOLVED_NETWORKS_DATASET['version']}...",
         input:
             expand(
