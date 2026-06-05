@@ -107,6 +107,7 @@ def load_data_versions(file_path):
 def dataset_version(
     name: str,
     all_versions: bool = False,
+    version: str | None = None,
 ) -> pd.Series | pd.DataFrame:
     """
     Return the dataset version information and url for a given dataset name.
@@ -119,6 +120,9 @@ def dataset_version(
         The name of the dataset to retrieve version information for.
     all_versions: bool
         Whether to return all supported versions instead of the configured one.
+    version: str | None
+        Override to use configured version from different config source (e.g. for using a pre-solved SB network in the CBA,
+        where the version is defined in `cba.cba_scenario_input.sb_version`)
 
     Returns
     -------
@@ -132,6 +136,9 @@ def dataset_version(
     dataset_config = config["data"][
         name
     ]  # TODO as is right now, it is not compatible with config_provider
+
+    if version is None:
+        version = dataset_config["version"]
 
     # To use PyPSA-Eur as a snakemake module, the path to the versions.csv file needs to be
     # registered relative to the current file with Snakemake:
@@ -152,18 +159,14 @@ def dataset_version(
     if all_versions:
         return dataset
 
-    dataset = dataset.loc[
-        (
-            dataset["version"] == str(dataset_config["version"])
-            if "latest" != dataset_config["version"]
-            else True
-        )
-        & (dataset["latest"] if "latest" == dataset_config["version"] else True)
-    ]
+    version_mask = (
+        dataset["latest"] if version == "latest" else dataset["version"] == str(version)
+    )
+    dataset = dataset.loc[version_mask]
 
     if dataset.empty:
         raise ValueError(
-            f"Dataset '{name}' with source '{dataset_config['source']}' for '{dataset_config['version']}' not found in data/versions.csv."
+            f"Dataset '{name}' with source '{dataset_config['source']}' for '{version}' not found in data/versions.csv."
         )
 
     # Return single-row DataFrame as a Series

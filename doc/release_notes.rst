@@ -21,6 +21,8 @@ Upcoming Open-TYNDP Release
 
 * Change Github issue templates to comply with ISO security checks (https://github.com/open-energy-transition/open-tyndp/pull/714).
 
+* Update CBA workflow to accept different pre-solved SB network versions as input (https://github.com/open-energy-transition/open-tyndp/pull/725).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
