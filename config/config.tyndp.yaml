@@ -14,7 +14,7 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
-data_config:   # change to 'tyndp' to use tyndp-archive where available
+data_config: tyndp  # change to 'tyndp' to use tyndp-archive where available
 
 launch_explorer: true
 
