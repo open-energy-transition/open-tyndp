@@ -2,7 +2,7 @@ name: Feature - Parent Issue (Maintainer)
 description: High-level parent issue that will be broken down into sub-issues
 labels: []
 title: "[PARENT] "
-type: "Feature"
+type: "Parent"
 
 body:
 - type: markdown

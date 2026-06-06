@@ -2,7 +2,7 @@ name: Feature - Sub Issue (Maintainer)
 description: Suggest a new feature or enhancement
 labels: []
 title: "[SUB] "
-type: "Feature"
+type: "Sub"
 
 body:
 - type: markdown
