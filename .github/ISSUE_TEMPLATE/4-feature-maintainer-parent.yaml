@@ -2,7 +2,7 @@ name: Feature - Parent Issue (Maintainer)
 description: High-level parent issue that will be broken down into sub-issues
 labels: []
 title: "[PARENT] "
-type: "Feature"
+type: "Parent"
 
 body:
 - type: markdown
@@ -57,9 +57,8 @@ body:
     label: Implementation Tasks
     description: |
       List specific tasks or steps needed to implement (if known).
-    placeholder: |
+    placeholder: |-
       - [ ] Update config schema
       - [ ] Modify build_statistics.py
       - [ ] Add new test cases
       - [ ] Update documentation
-    render: markdown

@@ -19,8 +19,6 @@ Upcoming Open-TYNDP Release
 
 * Add ``Undefined for generation`` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/718).
 
-* Change Github issue templates to comply with ISO security checks (https://github.com/open-energy-transition/open-tyndp/pull/714).
-
 * Update CBA workflow to accept different pre-solved SB network versions as input (https://github.com/open-energy-transition/open-tyndp/pull/725).
 
 * Add pixi tasks for running CBA workflow up until checkpoint `clean_projects` (https://github.com/open-energy-transition/open-tyndp/pull/726).
@@ -32,6 +30,8 @@ Upcoming Open-TYNDP Release
 * Update benchmarking documentation tables and figures for v0.7.1 (https://github.com/open-energy-transition/open-tyndp/pull/711).
 
 **Developers Note**
+
+* Change GitHub issue templates to comply with ISO security checks (https://github.com/open-energy-transition/open-tyndp/pull/714, https://github.com/open-energy-transition/open-tyndp/pull/730).
 
 
 Upcoming PyPSA-Eur Release

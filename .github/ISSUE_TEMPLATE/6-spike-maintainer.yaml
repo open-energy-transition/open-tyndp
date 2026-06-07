@@ -1,6 +1,7 @@
 name: Spike (Maintainer)
 description: Explore a concept, gather information, or investigate a technical question
 labels: []
+title: "[SPIKE] "
 type: "Spike"
 
 body:
