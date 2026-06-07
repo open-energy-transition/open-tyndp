@@ -189,12 +189,23 @@ tyndp-cyears-test = """bash -c '
     snakemake -call --configfile config/test/config.cyears.yaml "$@"
     ' --
 """
-tyndp-cba = """
-    snakemake -call cba --configfile config/config.tyndp.yaml
-"""
 tyndp = """bash -c '
 	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
+	' --
+ """
+tyndp-checkpoint = """
+    snakemake -call cba --configfile config/config.tyndp.yaml --until clean_projects
+"""
+tyndp-cba = """
+    snakemake -call cba --configfile config/config.tyndp.yaml
+"""
+launch-presolved-explorer = """bash -c '
+	snakemake -call launch_presolved_explorer --configfile config/config.tyndp.yaml "$@"
+	' --
+ """
+close-explorers = """bash -c '
+	snakemake -call close_explorers --configfile config/config.tyndp.yaml "$@"
 	' --
  """
  clean-tyndp = """

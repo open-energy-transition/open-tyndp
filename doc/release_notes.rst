@@ -13,9 +13,15 @@ Upcoming Open-TYNDP Release
 
 **Features**
 
+* Add Snakemake rules to launch the ``PyPSA-Explorer`` with pre-solved SB networks from previous releases (https://github.com/open-energy-transition/open-tyndp/pull/724).
+
 **Changes**
 
 * Add ``Undefined for generation`` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark (https://github.com/open-energy-transition/open-tyndp/pull/718).
+
+* Update CBA workflow to accept different pre-solved SB network versions as input (https://github.com/open-energy-transition/open-tyndp/pull/725).
+
+* Add pixi tasks for running CBA workflow up until checkpoint `clean_projects` (https://github.com/open-energy-transition/open-tyndp/pull/726).
 
 **Bugfixes and Compatibility**
 
