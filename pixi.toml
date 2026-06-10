@@ -189,31 +189,30 @@ tyndp-cyears-test = """bash -c '
     snakemake -call --configfile config/test/config.cyears.yaml "$@"
     ' --
 """
-tyndp = """bash -c '
-	snakemake -call --configfile config/config.tyndp.yaml "$@" && \
+create-tyndp-rulegraphs = """
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
-	' --
  """
+tyndp-sb = """
+    snakemake -call --configfile config/config.tyndp.yaml
+"""
 tyndp-checkpoint = """
     snakemake -call cba --configfile config/config.tyndp.yaml --until clean_projects
 """
 tyndp-cba = """
     snakemake -call cba --configfile config/config.tyndp.yaml
 """
-launch-presolved-explorer = """bash -c '
-	snakemake -call launch_presolved_explorer --configfile config/config.tyndp.yaml "$@"
-	' --
+launch-presolved-explorer = """
+	snakemake -call launch_presolved_explorer --configfile config/config.tyndp.yaml
  """
-close-explorers = """bash -c '
-	snakemake -call close_explorers --configfile config/config.tyndp.yaml "$@"
-	' --
+close-explorers = """
+	snakemake -call close_explorers --configfile config/config.tyndp.yaml
  """
- clean-tyndp = """
+clean-tyndp = """
      snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
-     snakemake -call --configfile config/config.tyndp.yaml -n --delete-all-output ;
+     snakemake -call --configfile config/config.tyndp.yaml --delete-all-output ;
      echo "All tyndp outputs have been cleaned up."
  """
- all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
+all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
 # open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
