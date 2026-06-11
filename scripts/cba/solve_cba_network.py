@@ -268,6 +268,9 @@ def solve_network(
             "options": solving.get("solver_options", {}).get(fb_options_key, {}),
         }
 
+    if kwargs["solver_name"] == "gurobi":
+        logging.getLogger("gurobipy").setLevel(logging.CRITICAL)
+
     # add to network for extra_functionality
     n.config = config
     n.params = params
