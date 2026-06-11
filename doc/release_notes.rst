@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Add pixi tasks for running CBA workflow up until checkpoint `clean_projects` (https://github.com/open-energy-transition/open-tyndp/pull/726).
 
+* Update pixi task names and definitions to align between SB and CBA workflows (https://github.com/open-energy-transition/open-tyndp/pull/735).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
