@@ -237,3 +237,24 @@ through to results and launching the
 
        resources:
          mem_mb: 16000
+
+You can also launch the ``PyPSA-Explorer`` on its own, without rerunning the full workflow.
+
+To browse pre-solved SB networks from the latest release, simply run:
+
+.. code-block:: console
+
+    $ pixi run launch-presolved-explorer
+
+Alternatively, if you have downloaded solved networks yourself, you can point ``PyPSA-Explorer`` at them directly from within the ``open-tyndp`` environment shell:
+
+.. code-block:: console
+
+    $ pixi shell -e open-tyndp
+    $ pypsa-explorer path/to/network_2030.nc path/to/network_2040.nc
+
+Any explorer instances you launch will close automatically on reboot. To close all running instances yourself at any time, run:
+
+.. code-block:: console
+
+    $ pixi run close-explorers

@@ -1,0 +1,64 @@
+name: Feature - Parent Issue (Maintainer)
+description: High-level parent issue that will be broken down into sub-issues
+labels: []
+title: "[PARENT] "
+type: "Parent"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Intended for maintainers.** Community contributors are welcome to use this but could also use the ["Feature Request (Community)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) template instead.
+
+      This template is for high-level parent issues that will be broken down into sub-issues. Use the ["Feature - Sub Issue (Maintainer)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=5-feature-maintainer-sub.yaml) template for detailed feature requests. Security and risk assessment is captured at this sub-issue level.
+
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: |
+      Label this issue with the affected component(s) using GitHub labels.
+    options:
+    - label: I have labeled this feature with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.).
+  validations:
+    required: true
+
+- type: textarea
+  id: overview
+  attributes:
+    label: Overview
+    description: |
+      Provide a high-level description of this parent issue. 
+
+      What is the overall goal? Why is this feature important? What problem does it solve or what value does it add?
+    placeholder: |
+      Examples:
+      - Implement comprehensive validation framework for TYNDP 2024
+      - Refactor workflow to improve performance by X%
+      - Any other relevant information: links, references, related issues, etc.
+  validations:
+    required: true
+
+- type: textarea
+  id: scope
+  attributes:
+    label: Scope & Key Deliverables
+    description: |
+      What are the main components or deliverables of this parent issue?
+    placeholder: |
+      Example:
+      - New scripts
+      - Updated documentation
+      - Updated benchmarks
+
+- type: textarea
+  id: tasks
+  attributes:
+    label: Implementation Tasks
+    description: |
+      List specific tasks or steps needed to implement (if known).
+    placeholder: |-
+      - [ ] Update config schema
+      - [ ] Modify build_statistics.py
+      - [ ] Add new test cases
+      - [ ] Update documentation

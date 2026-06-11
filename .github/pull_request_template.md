@@ -17,6 +17,7 @@ Closes # (if applicable).
 
 ## Checklist
 
+- [ ] Security scan(s) show no high-severity bugs, critical vulnerabilities, or exposed secrets.
 - [ ] I tested my contribution locally and it works as intended.
 - [ ] Code and workflow changes are sufficiently documented.
 - [ ] Changed dependencies are added to `pixi.toml` (using `pixi add <dependency-name>`).

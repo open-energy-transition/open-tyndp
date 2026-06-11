@@ -134,7 +134,7 @@ class _CbaSbToCbaConfig(ConfigModel):
     )
     sb_version: str = Field(
         "latest",
-        description="Version tag for the pre-solved SB network archive (used when cba_scenario_input.use_presolved is true).",
+        description="Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
     )
 
 

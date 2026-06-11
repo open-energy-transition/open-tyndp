@@ -1,0 +1,59 @@
+name: Spike (Maintainer)
+description: Explore a concept, gather information, or investigate a technical question
+labels: []
+title: "[SPIKE] "
+type: "Spike"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Intended for maintainers.**
+
+      Spikes are exploratory issues meant to gather information and explore concepts. They typically don't result in PRs but help inform future implementation decisions.
+
+- type: input
+  id: parent_issue
+  attributes:
+    label: Related Parent/Issue (optional)
+    description: |
+      Is this spike related to another issue (parent, sub issue, bug report)?
+    placeholder: "#123 or leave blank if standalone"
+
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: |
+      Label this issue with the affected component(s) using GitHub labels.
+    options:
+    - label: I have labeled this spike with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.).
+  validations:
+    required: true
+
+- type: textarea
+  id: context
+  attributes:
+    label: Background / Context
+    description: |
+      Provide context for this spike. Why is this exploration needed? What led to this investigation? What are we trying to explore or understand? What is the goal of this spike?
+    placeholder: |
+      Examples:
+      - Stakeholder feedback indicates need for feature X
+      - Recent changes caused performance regression
+      - Explore feasibility of integrating new data source
+      - Additional context, references, links to related issues, documentation, papers, code examples, etc.
+  validations:
+    required: true
+
+- type: textarea
+  id: success_criteria
+  attributes:
+    label: Definition of Done / Success Criteria
+    description: |
+      How do we know when this spike is complete? What outcomes are expected?
+    placeholder: |-
+      - Document findings in this issue
+      - Identify recommended approach
+      - Create follow-up implementation issues if needed
+      - Share findings with team

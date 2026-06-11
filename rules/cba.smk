@@ -103,9 +103,14 @@ def presolved_sb_network_path(w, horizon=None):
 
 
 if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", False):
-    if (SB_SOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
-        "source"
-    ] in ARCHIVE_SOURCES:
+    sb_version = (
+        config.get("cba", {}).get("cba_scenario_input", {}).get("sb_version", "latest")
+    )
+    if (
+        SB_SOLVED_NETWORKS_DATASET := dataset_version(
+            "open_tyndp_prelim", version=sb_version
+        )
+    )["source"] in ARCHIVE_SOURCES:
 
         rule retrieve_presolved_sb_networks:
             input:
@@ -180,20 +185,12 @@ def input_sb_network(w, run=None):
         scenario_name = config_provider("tyndp_scenario")(w)
         if scenario_name != "NT":
             raise ValueError(
-                "Presolved SB networks are only currently available for the NT scenario."
+                "Pre-solved SB networks are only currently available for the NT scenario."
             )
-        sb_version = config_provider(
-            "cba", "cba_scenario_input", "sb_version", default="latest"
-        )(w)
-        # If sb_version is not "latest", raise error (for now) until we add functionality to handle gathering different Zenodo versions
-        if sb_version != "latest":
-            raise ValueError(
-                "Only cba.cba_scenario_input.sb_version='latest' is supported for presolved SB runs at the moment."
-            )
-        # Check that options match the presolved network naming convention
+        # Check that options match the pre-solved network naming convention
         if clusters != "all" or opts != "" or sector_opts != "":
             raise ValueError(
-                "Presolved SB runs require scenario.clusters=['all'], "
+                "Pre-solved SB runs require scenario.clusters=['all'], "
                 "scenario.opts=[''], and scenario.sector_opts=[''] to match "
                 "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
             )
@@ -201,7 +198,7 @@ def input_sb_network(w, run=None):
             int(w.planning_horizons),
             warn_fn=logger.warning,
             msg=(
-                "Presolved SB networks are only available for 2030 and 2040. "
+                "Pre-solved SB networks are only available for 2030 and 2040. "
                 "Falling back to 2040 for CBA planning horizon %s."
             ),
         )
