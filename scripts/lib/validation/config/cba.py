@@ -99,7 +99,7 @@ class _CbaSolvingConfig(ConfigModel):
             "load_shedding": {"enable": True},
             "io_api": "direct",
         },
-        description="Solving options for rolling horizon dispatch.",
+        description="Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
     )
     horizon: int = Field(
         168,

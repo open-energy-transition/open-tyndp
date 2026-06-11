@@ -613,7 +613,7 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "Solving options for rolling horizon dispatch.",
+              "description": "Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
               "type": "object"
             },
             "horizon": {
@@ -6672,7 +6672,7 @@
       "properties": {
         "options": {
           "additionalProperties": true,
-          "description": "Solving options for rolling horizon dispatch.",
+          "description": "Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
           "type": "object"
         },
         "horizon": {
@@ -15548,7 +15548,7 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "Solving options for rolling horizon dispatch.",
+              "description": "Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
               "type": "object"
             },
             "horizon": {
