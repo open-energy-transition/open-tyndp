@@ -195,7 +195,7 @@ of the following ways:
 
   .. code-block:: console
 
-      $ pixi run tyndp -- --config data_config=tyndp
+      $ pixi run tyndp-sb -- --config data_config=tyndp
 
 - Set it permanently in ``config/config.tyndp.yaml`` (applied to all TYNDP runs):
 
@@ -219,13 +219,13 @@ Running Scenario Building
 Before running, make sure you have completed the steps in the `installation guide
 <installation.html>`_.
  
-Scenarios are defined and modified in ``config/scenarios.tyndp.yaml``. The full workflow from raw input data
+Scenarios are defined and modified in ``config/scenarios.tyndp.yaml``. The full Scenario Building workflow from raw input data
 through to results and launching the
 `PyPSA Explorer <https://github.com/open-energy-transition/pypsa-explorer>`_ visualisation runs with a single command:
  
 .. code-block:: console
 
-    $ pixi run tyndp
+    $ pixi run tyndp-sb
 
 .. hint::
 
