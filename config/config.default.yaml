@@ -1252,7 +1252,7 @@ solving:
     seed: 123
     custom_extra_functionality: ../data/custom_extra_functionality.py
     io_api:
-    include_objective_constant:
+    include_objective_constant: false
     assign_all_duals: false
     track_iterations: false
     min_iterations: 2

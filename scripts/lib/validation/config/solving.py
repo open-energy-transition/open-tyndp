@@ -156,8 +156,8 @@ class _SolvingOptionsConfig(BaseModel):
         None,
         description="Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance.",
     )
-    include_objective_constant: bool | None = Field(
-        None,
+    include_objective_constant: bool = Field(
+        False,
         description="Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
     )
     assign_all_duals: bool = Field(

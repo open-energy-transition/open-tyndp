@@ -5968,16 +5968,9 @@
               "description": "Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance."
             },
             "include_objective_constant": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning."
+              "default": false,
+              "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
+              "type": "boolean"
             },
             "assign_all_duals": {
               "default": false,
@@ -8935,16 +8928,9 @@
           "description": "Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance."
         },
         "include_objective_constant": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning."
+          "default": false,
+          "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
+          "type": "boolean"
         },
         "assign_all_duals": {
           "default": false,
@@ -13758,16 +13744,9 @@
               "description": "Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance."
             },
             "include_objective_constant": {
-              "anyOf": [
-                {
-                  "type": "boolean"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning."
+              "default": false,
+              "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
+              "type": "boolean"
             },
             "assign_all_duals": {
               "default": false,
