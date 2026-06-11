@@ -253,8 +253,9 @@ def solve_network(
         extra_functionality,
         planning_horizons=planning_horizons,
     )
-    # Keep rolling-horizon controls as explicit CBA fields rather than
-    # piggybacking on upstream solving.options.
+
+    # The above takes in the horizon and overlap settings from config/config.default.yaml
+    # We want to pass the CBA-specific horizon and overlap settings from config/config.tyndp.yaml
     all_kwargs["horizon"] = solving.get("horizon", 168)
     all_kwargs["overlap"] = solving.get("overlap", 1)
 
@@ -297,11 +298,12 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "solve_cba_network",
-            name="reference",
-            planning_horizons="2030",
             run="NT",
+            cba_project="t4",
+            planning_horizons="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
+
     configure_logging(snakemake)
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
