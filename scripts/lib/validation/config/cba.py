@@ -18,7 +18,7 @@ from scripts.lib.validation.config.solving import _SolvingOptionsConfig
 
 def _validate_solving_options_keys(options: dict[str, Any]) -> dict[str, Any]:
     """
-    Reject misspelled CBA solving option names while accepting solving.config options.
+    Reject misspelled CBA solving option names while accepting solving config options.
 
     This checks that all keys in the provided options dict are valid solving option names,
     while allowing any valid option name from the top-level `solving.options` section.
