@@ -112,7 +112,12 @@ and append `-n` for the corresponding dry run:
 pixi run tyndp-cba -n
 ```
 
-Note: The workflow automatically generates dependency graphs after successful completion (via `rulegraphs` and `filegraphs` rules). The generated graphs are saved to the `resources/` directory.
+>[!TIP]
+>Dependency graphs can be built by a dedicated pixi task and saved to the `resources/` directory. Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
+>
+>```sh
+>pixi run create-tyndp-graphs --config 'run={"name":"NT"}'
+>```
 
 # Contributing and Support
 We strongly welcome anyone interested in contributing to this project. If you have any ideas, suggestions or encounter problems, feel invited to file issues or make pull requests on GitHub.

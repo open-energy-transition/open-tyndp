@@ -258,3 +258,12 @@ Any explorer instances you launch will close automatically on reboot. To close a
 .. code-block:: console
 
     $ pixi run close-explorers
+
+.. tip::
+
+   The workflow's dependency graphs can be built by a dedicated rule and saved to ``resources/``.
+   Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
+
+   .. code-block:: console
+
+       $ pixi run create-tyndp-graphs --config 'run={"name":"NT"}'
