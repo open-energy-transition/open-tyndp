@@ -195,7 +195,7 @@ of the following ways:
 
   .. code-block:: console
 
-      $ pixi run tyndp-sb -- --config data_config=tyndp
+      $ pixi run tyndp-sb --config data_config=tyndp
 
 - Set it permanently in ``config/config.tyndp.yaml`` (applied to all TYNDP runs):
 

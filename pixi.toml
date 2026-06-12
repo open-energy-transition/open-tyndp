@@ -189,7 +189,7 @@ tyndp-cyears-test = """bash -c '
     snakemake -call --configfile config/test/config.cyears.yaml "$@"
     ' --
 """
-create-tyndp-rulegraphs = """
+create-tyndp-graphs = """
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
  """
 tyndp-sb = """
