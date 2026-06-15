@@ -133,27 +133,26 @@ The structure of these outputs can be validated in the published preliminary ben
 Outputs
 -------
 
-Example of indicators extracted from ``power_generation_s_all__all_years.csv`` by countries
+Example of indicators extracted from ``power_generation_cy2009_s_all___all_years.csv`` by countries
 for the NT scenario with hourly resolution:
 
-========================================  =====  =====  ======  =====  ============  =================  ===============================  =======
-Carrier                                   sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing countries  reference                        version
-========================================  =====  =====  ======  =====  ============  =================  ===============================  =======
-**Coal + other fossil (incl. biofuels)**  0.25   0.82   0.2     8.75   -1.8          0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Hydro (exc. pump storage)**             0.02   0.02   0       0.06   0.02          0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Hydrogen**                              -0.86  1.29   1.66    6.09   -0.11         0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Methane (incl. biofuels)**              -0.33  0.49   0.2     1.25   0.22          0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Nuclear**                               0.08   0.08   0.07    0.09   0             0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Oil (incl. biofuels)**                  0.14   1.49   1.89    10.75  0.24          0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Other non-res**                         -0.25  0.33   0.06    1.13   -0.01         0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Other res**                             0      0      0       0      0             0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Solar**                                 0      0.01   0       0.02   0             0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Wind offshore**                         -0.1   0.11   0       6.23   0.01          0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Wind onshore**                          0      0      0       0      0             0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Demand shedding**                       —      —      —       —      —             0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Solar thermal**                         —      —      —       —      —             0                  TYNDP 2024 Market Model Outputs  v0.6.1
-**Slack generator**                       —      —      —       —      —             0                  TYNDP 2024 Market Model Outputs  v0.6.1
-========================================  =====  =====  ======  =====  ============  =================  ===============================  =======
+========================================  =====  ======  ========  =====  ============  =================  ===============================  =======
+Carrier                                   sMPE   sMAPE   sMdAPE    RMSLE  Growth Error  Missing countries  reference                        version
+========================================  =====  ======  ========  =====  ============  =================  ===============================  =======
+**Coal + other fossil (incl. biofuels)**  0.3    0.76    0.25      8.92   -1.87         0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Hydro (exc. pump storage)**             0.01   0.03    0.0       0.06   0.02          0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Hydrogen**                              -0.93  1.19    1.21      6.0    -0.51         1                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Methane (incl. biofuels)**              -0.21  0.34    0.17      0.65   0.16          0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Nuclear**                               0.08   0.08    0.07      0.08   0             0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Oil (incl. biofuels)**                  0.83   1.18    0.95      10.68  0.12          0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Other non-res**                         -0.23  0.31    0.06      1.16   0             0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Other res**                             0      0       0         0      0             0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Solar**                                 0      0.01    0         0.02   0             0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Wind offshore**                         -0.1   0.11    0         6.23   0.01          0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Wind onshore**                          0      0       0         0      0             0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Demand shedding**                       1.63   1.8     2.0       13.51  0.03          0                  TYNDP 2024 Market Model Outputs   v0.7.1
+**Solar thermal**                         —      —       —         —      —             0                  TYNDP 2024 Market Model Outputs   v0.7.1
+========================================  =====  ======  ========  =====  ============  =================  ===============================  =======
 
 Example of figure created for the final energy demand for the NT scenario in 2030 with
 hourly resolution:
@@ -165,6 +164,16 @@ the NT scenario in 2030 with hourly resolution:
 
 .. image:: img/tyndp/benchmarking_power_capacity_NT_2030.png
 
+Example of figure created for the cross-border flows between countries (focusing on incorrect net direction) for the NT scenario in 2030 with
+hourly resolution:
+
+.. image:: img/tyndp/benchmarking_elec_crossborder_NT_2030.png
+
+Example of figure created for the electricity prices by country for the NT scenario in 2030 with
+hourly resolution:
+
+.. image:: img/tyndp/benchmarking_elec_price_NT_2030.png
+
 Example of figure created for the generation profiles for the DE scenario in 2040 with 45SEG:
 
 .. image:: img/tyndp/benchmarking_gen_profiles_DE_2040.png
@@ -172,26 +181,30 @@ Example of figure created for the generation profiles for the DE scenario in 204
 Example of summary indicators extracted from ``kpis_s_all__all_years_by_country.csv`` for the NT
 scenario with hourly resolution:
 
-===========================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
-Metric                       sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing carriers  Missing countries  reference                        version
-===========================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
-biomass_supply               0.14   0.14   0.11    0.2    0             2                 0                  TYNDP 2024 Scenarios Report      v0.6.1
-elec_demand                  0      0      0       0      0             0                 0                  TYNDP 2024 Scenarios Report      v0.6.1
-electricity_price            -0.12  0.2    0.11    0.31   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-electricity_price_excl_shed  -0.08  0.17   0.1     0.26   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-energy_imports               0.54   0.54   0.33    1.15   0.01          1                 0                  TYNDP 2024 Scenarios Report      v0.6.1
-final_energy_demand          -0.02  0.18   0.09    0.27   0.01          0                 0                  TYNDP 2024 Scenarios Report      v0.6.1
-generation_profiles          —      —      —       —      —             NA                NA                 —                                v0.6.1
-hydrogen_demand              -0.21  0.32   0       3.08   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-hydrogen_price               -0.18  0.27   0.03    0.49   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-hydrogen_price_excl_shed     0.02   0.16   0.02    2.33   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-hydrogen_supply              -0.2   0.53   0.29    2.26   -0.68         3                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-methane_demand               -0.07  0.18   0.12    0.23   0             0                 0                  TYNDP 2024 Scenarios Report      v0.6.1
-methane_supply               0.12   0.12   0.11    0.13   0.01          4                 0                  TYNDP 2024 Scenarios Report      v0.6.1
-power_capacity               0      0      0       0.01   0             3                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-power_generation             -0.07  0.27   0       3.82   0.01          3                 0                  TYNDP 2024 Market Model Outputs  v0.6.1
-Total (excl. time series)    0.06   0.3    0.02    1.48   0.01          13                —                  —                                v0.6.1
-===========================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
+=================================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
+Metric                             sMPE   sMAPE  sMdAPE  RMSLE  Growth Error  Missing carriers  Missing countries  reference                        version
+=================================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
+biomass_supply                     0.14   0.14   0.11    0.2    0             2                 0                  TYNDP 2024 Scenarios Report      v0.7.1
+crossborder_electricity            -0.03  0.56   0.3     2.29   0             0                 27                 TYNDP 2024 Market Model Outputs  v0.7.1
+crossborder_hydrogen               -0.02  0.31   0.13    0.47   0.05          0                 1                  TYNDP 2024 Market Model Outputs  v0.7.1
+electricity_demand                 0      0      0       0      0             0                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+electricity_demand_shedding_hours  0.41   0.52   0       6.54   0.21          0                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+electricity_price                  0.11   0.19   0.07    0.3    0.05          0                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+electricity_price_excl_shed        -0.04  0.12   0.07    0.19   -0.02         0                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+energy_imports                     0.52   0.52   0.3     1.15   0.01          1                 0                  TYNDP 2024 Scenarios Report      v0.7.1
+final_energy_demand                0.11   0.11   0.09    0.15   0.01          0                 0                  TYNDP 2024 Scenarios Report      v0.7.1
+generation_profiles                —      —      —       —      —             NA                NA                 —                                v0.7.1
+hydrogen_demand                    -0.22  0.28   0       2.96   0             0                 1                  TYNDP 2024 Market Model Outputs  v0.7.1
+hydrogen_demand_shedding_hours     0.38   0.38   0       5.64   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+hydrogen_price                     0.11   0.16   0.03    0.27   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+hydrogen_price_excl_shed           0.01   0.06   0.02    0.11   0             0                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+hydrogen_supply                    -0.15  0.38   0.13    2.05   0.06          1                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+methane_demand                     -0.1   0.17   0.16    0.21   0             0                 0                  TYNDP 2024 Scenarios Report      v0.7.1
+methane_supply                     0.1    0.1    0.1     0.1    0             4                 0                  TYNDP 2024 Scenarios Report      v0.7.1
+power_capacity                     0      0      0       0.01   0             1                 0                  TYNDP 2024 Market Model Outputs  v0.7.1
+power_generation                   0.28   0.51   0.05    6.99   0             1                 1                  TYNDP 2024 Market Model Outputs  v0.7.1
+Total (excl. time series)          0.14   0.31   0.03    1.48   0             13                —                  —                                v0.7.1
+=================================  =====  =====  ======  =====  ============  ================  =================  ===============================  =======
 
 Example of summary figure created for the NT scenario with hourly resolution:
 

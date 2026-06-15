@@ -88,24 +88,41 @@ pixi shell -e open-tyndp
 
 ## 2. Run the analysis
 
-```sh
-pixi run tyndp
-```
+To run all analysis steps of the Scenario Building to reproduce results and build the report, you can execute:
 
-This will run all analysis steps to reproduce results and build the report.
+```sh
+pixi run tyndp-sb
+```
 
 To list all the rules that need to be executed (dry run), run:
 
 ```sh
-pixi run tyndp -n
+pixi run tyndp-sb -n
 ```
 
-Note: The workflow automatically generates dependency graphs after successful completion (via `rulegraphs` and `filegraphs` rules). The generated graphs are saved to the `resources/` directory.
+Similarly, to run all steps of the Cost-Benefit Analysis, you can execute:
+
+```sh
+pixi run tyndp-cba
+```
+
+and append `-n` for the corresponding dry run:
+
+```sh
+pixi run tyndp-cba -n
+```
+
+>[!TIP]
+>Dependency graphs can be built by a dedicated pixi task and saved to the `resources/` directory. Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
+>
+>```sh
+>pixi run create-tyndp-graphs --config 'run={"name":"NT"}'
+>```
 
 # Contributing and Support
 We strongly welcome anyone interested in contributing to this project. If you have any ideas, suggestions or encounter problems, feel invited to file issues or make pull requests on GitHub.
 -   To **discuss** with other PyPSA users, organise projects, share news, and get in touch with the community you can use the [Discord server](https://discord.gg/AnuJBk23FU). Open-TYNDP has its own dedicated channel [pypsa-open-tyndp](https://discord.com/channels/911692131440148490/1414977512089321564) for project-specific discussions.
--   For **bugs and feature requests**, please use the appropriate GitHub issues page. Issues specific to Open-TYNDP belong on the [Open-TYNDP Issues page](https://github.com/open-energy-transition/open-tyndp/issues), while PyPSA-Eur issues should be submitted to the [PyPSA-Eur Github Issues page](https://github.com/PyPSA/pypsa-eur/issues).
+-   For **bugs and feature requests**, please [open a new issue](https://github.com/open-energy-transition/open-tyndp/issues/new/choose). We provide templates geared for community members to report bugs or request features, but you're also welcome to use the more detailed maintainer-oriented templates if you're comfortable with them. The Open-TYNDP team reviews new issues shortly after they are submitted. Issues specific to Open-TYNDP belong on the [Open-TYNDP Issues page](https://github.com/open-energy-transition/open-tyndp/issues), while PyPSA-Eur issues should be submitted to the [PyPSA-Eur Github Issues page](https://github.com/PyPSA/pypsa-eur/issues).
 
 # Contact
 For any questions about Open-TYNDP or other queries, reach out via the [pypsa-open-tyndp](https://discord.com/channels/911692131440148490/1414977512089321564) channel or <a href="mailto:tyndp@openenergytransition.org">tyndp@openenergytransition.org</a>.

@@ -1,0 +1,151 @@
+name: Bug Report (Maintainer)
+description: Report a bug or issue
+labels: []
+type: "Bug"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Intended for maintainers.** Community contributors are welcome to use this but could also use the ["Bug Report (Community)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=1-bug-community.yaml) template instead.
+
+      Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
+
+- type: checkboxes
+  id: version_checks
+  attributes:
+    label: Version Checks
+    description: Where does this bug exist? Check all that apply.
+    options:
+    - label: This bug exists on the latest [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP.
+    - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP.
+    - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific).
+  validations:
+    required: true
+
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: |
+      Label this issue with the affected component(s) using GitHub labels.
+    options:
+    - label: I have labeled this bug report with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.).
+      required: true
+
+- type: dropdown
+  id: change_classification
+  attributes:
+    label: Change Classification
+    description: |
+      Classify the urgency/priority of this fix. This determines the approval path (OET-ISMS-006, Annex A).
+
+      - **Standard** — Low-risk, routine (e.g. docs update, non-critical dependency bump) --> *Developer self-approves*
+      - **Normal** — Logic, infra, or API changes (e.g. new endpoint, schema change) --> *Project Lead approval before work starts*
+      - **Emergency** (Break-Glass) — Critical hotfix, blocks major workflows, significant impact on results/usability, security or data loss risk. --> *Verbal approval from Senior Lead; ticket updated retrospectively within 24h*
+    options:
+    - Standard
+    - Normal
+    - Emergency
+    default: 0
+  validations:
+    required: true
+
+- type: checkboxes
+  id: security_risk_check
+  attributes:
+    label: Security & Data Risk Check
+    description: |
+      Checking a box flags what needs review but does not block the fix.
+    options:
+    - label: This bug touches or exposes confidential data.
+    - label: This bug adds or changes external data sources, download URLs, APIs, services, credentials, or tokens.
+    - label: This bug could affect data integrity or reproducibility of published results.
+
+- type: dropdown
+  id: risk_level
+  attributes:
+    label: Risk Level of Fix
+    description: |
+      What is the risk level of the proposed fix?
+
+      - **N/A**: Cosmetic or docs change only — no code logic, data flows, or external sources affected.
+      - **Low**: No security concerns — no confidential data changes, no external source/credential changes, no impact on data integrity or result reproducibility.
+      - **Medium**: Limited scope impact — modifies existing (not new) external sources, or minor data integrity impact in isolated workflows but not on main published results. No changes to confidential data.
+      - **High (requires kick-off security review)**: Critical impact — may expose confidential data, introduces new external sources/credentials, or affects data integrity or reproducibility of published results.
+    options:
+    - N/A
+    - Low
+    - Medium
+    - High
+  validations:
+    required: true
+
+- type: textarea
+  id: bug_description
+  attributes:
+    label: Bug Description
+    description: |
+      Briefly describe the bug, including information such as what the bug is, what could be causing the issue (if known), and if you have ideas of how to fix the issue, describe the solution.
+    placeholder: |
+      Examples:
+      - `pixi run ...` command not working
+      - Output file missing or incorrect
+  validations:
+    required: true
+
+- type: textarea
+  id: actual_behavior
+  attributes:
+    label: Actual Behavior
+    description: What happens currently? Include error messages, stack traces, or incorrect outputs.
+    placeholder: |
+      Example:
+      ```
+      Error: MissingOutputException in rule build_statistics
+      ```
+  validations:
+    required: true
+
+- type: textarea
+  id: expected_behavior
+  attributes:
+    label: Expected Behavior
+    description: What should happen instead? Describe the expected correct behavior. Include information such as expected outputs, resolution of errors, and how the proposed fix should be tested (specific commands, files to check, or validation steps).
+    placeholder: |
+      Example:
+      The rule should complete successfully and produce `results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv`.
+  validations:
+    required: true
+
+- type: textarea
+  id: reproducible_example
+  attributes:
+    label: Steps to Reproduce
+    description: |
+      Provide minimal steps to reproduce the bug, if possible. Include relevant config files, commands, or code snippets.
+    placeholder: |
+      Examples:
+      - Set config option `remove_last_day: true`
+      - Run `pixi run snakemake -call ...`
+      - Observe error in `logs/...`
+  validations:
+    required: true
+
+- type: textarea
+  id: environment_info
+  attributes:
+    label: Environment Information
+    description: |
+      Share your environment details. For pixi, paste relevant sections from `pixi.lock` or run `pixi info`.
+      For conda, paste output of `conda env export`.
+    placeholder: |-
+      Environment details, such as:
+      - Pixi/Conda
+      - OS: Linux / macOS / Windows
+
+      <details>
+
+      Paste `pixi.lock` excerpt or `conda env export` here.
+
+      </details>

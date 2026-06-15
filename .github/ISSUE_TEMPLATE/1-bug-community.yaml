@@ -1,0 +1,109 @@
+name: Bug Report (Community)
+description: Report a bug or issue
+labels: ["needs triage"]
+type: "Bug"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for filling out this bug report!
+
+      Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
+
+- type: checkboxes
+  id: version_checks
+  attributes:
+    label: Version Checks
+    description: Where does this bug exist? Check all that apply.
+    options:
+    - label: This bug exists on the latest [release](https://github.com/open-energy-transition/open-tyndp/releases) of Open-TYNDP.
+    - label: This bug exists on the current [`master`](https://github.com/open-energy-transition/open-tyndp/tree/master) branch of Open-TYNDP.
+    - label: This bug does NOT exist in the upstream [`master`](https://github.com/pypsa/pypsa-eur/tree/master) branch of PyPSA-Eur (therefore, the bug is likely Open-TYNDP specific).
+  validations:
+    required: true
+
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: Which part(s) of Open-TYNDP are affected? Select all that apply.
+    options:
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Network Optimization
+    - label: Data retrieval / Processing
+    - label: Plotting / Visualization
+    - label: Documentation
+    - label: CI/CD Workflows
+    - label: Dependencies / Environment
+    - label: Other (specify in description)
+
+- type: textarea
+  id: bug_description
+  attributes:
+    label: Bug Description
+    description: |
+      Briefly describe the bug, including information such as what the bug is, what could be causing the issue (if known), and if you have ideas of how to fix the issue, describe the solution.
+    placeholder: |
+      Examples:
+      - `pixi run ...` command not working
+      - Output file missing or incorrect
+  validations:
+    required: true
+
+- type: textarea
+  id: actual_behavior
+  attributes:
+    label: Actual Behavior
+    description: What happens currently? Include error messages, stack traces, or incorrect outputs.
+    placeholder: |
+      Example:
+      ```
+      Error: MissingOutputException in rule build_statistics
+      ```
+  validations:
+    required: true
+
+- type: textarea
+  id: expected_behavior
+  attributes:
+    label: Expected Behavior
+    description: What should happen instead? Describe the expected correct behavior. Include information such as expected outputs, resolution of errors, and how the proposed fix should be tested (specific commands, files to check, or validation steps).
+    placeholder: |
+      Example:
+      The rule should complete successfully and produce `results/[prefix]/[run]/benchmarks/tyndp-2024/resources/benchmarks_s_all___2040.csv`.
+  validations:
+    required: true
+
+- type: textarea
+  id: reproducible_example
+  attributes:
+    label: Steps to Reproduce
+    description: |
+      Provide minimal steps to reproduce the bug, if possible. Include relevant config files, commands, or code snippets.
+    placeholder: |
+      Examples:
+      - Set config option `remove_last_day: true`
+      - Run `pixi run snakemake -call ...`
+      - Observe error in `logs/...`
+  validations:
+    required: true
+
+- type: textarea
+  id: environment_info
+  attributes:
+    label: Environment Information
+    description: |
+      Share your environment details. For pixi, paste relevant sections from `pixi.lock` or run `pixi info`.
+      For conda, paste output of `conda env export`.
+    placeholder: |-
+      Environment details, such as:
+      - Pixi/Conda
+      - OS: Linux / macOS / Windows
+
+      <details>
+
+      Paste `pixi.lock` excerpt or `conda env export` here.
+
+      </details>
