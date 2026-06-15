@@ -254,8 +254,8 @@ def solve_network(
         planning_horizons=planning_horizons,
     )
 
-    # The above takes in the horizon and overlap settings from config/config.default.yaml
-    # We want to pass the CBA-specific horizon and overlap settings from config/config.tyndp.yaml
+    # Values for horizon and overlap are set in solve_network.collect_kwargs (mode == "rolling_horizon")
+    # Thus, we need to override them here with values from the config
     all_kwargs["horizon"] = solving.get("horizon", 168)
     all_kwargs["overlap"] = solving.get("overlap", 1)
 
