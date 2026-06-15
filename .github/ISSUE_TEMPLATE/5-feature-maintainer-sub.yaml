@@ -1,0 +1,122 @@
+name: Feature - Sub Issue (Maintainer)
+description: Suggest a new feature or enhancement
+labels: []
+title: "[SUB] "
+type: "Sub"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      **Intended for maintainers.** Community contributors are welcome to use this but could also use the ["Feature Request (Community)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=2-feature-community.yaml) template instead.
+
+      This template is for detailed feature requests. Use the ["Feature - Parent Issue (Maintainer)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=4-feature-maintainer-parent.yaml) template for high-level parent issues that will be broken down into sub-issues.
+
+- type: input
+  id: parent_issue
+  attributes:
+    label: Parent Issue (optional)
+    description: |
+      Link to the parent issue this belongs to (if any).
+    placeholder: "#123 or leave blank if standalone issue"
+
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: |
+      Label this issue with the affected component(s) using GitHub labels.
+    options:
+    - label: I have labeled this feature with the affected component(s) using GitHub labels (e.g., SB, CBA, documentation, etc.).
+  validations:
+    required: true
+
+- type: dropdown
+  id: change_classification
+  attributes:
+    label: Change Classification
+    description: |
+      Classify the urgency/priority of this feature. This determines the approval path (OET-ISMS-006, Annex A).
+
+      - **Standard** — Low-risk, routine (e.g. docs update, non-critical dependency bump) --> *Developer self-approves*
+      - **Normal** — Logic, infra, or API changes (e.g. new endpoint, schema change) --> *Project Lead approval before work starts*
+      - **Emergency** (Break-Glass) — Critical hotfix, blocks major workflows, significant impact on results/usability, security or data loss risk. --> *Verbal approval from Senior Lead; ticket updated retrospectively within 24h*
+    options:
+    - Standard
+    - Normal
+    - Emergency
+    default: 0
+  validations:
+    required: true
+
+- type: checkboxes
+  id: security_risk_check
+  attributes:
+    label: Security & Data Risk Check
+    description: |
+      Checking a box flags what needs review but does not block the feature.
+    options:
+    - label: This feature touches or exposes confidential data.
+    - label: This feature adds or changes external data sources, download URLs, APIs, services, credentials, or tokens.
+    - label: This feature could affect data integrity or reproducibility of published results.
+
+- type: dropdown
+  id: risk_level
+  attributes:
+    label: Risk Level of Feature
+    description: |
+      What is the risk level of the proposed feature?
+
+      - **N/A**: Cosmetic or docs change only — no code logic, data flows, or external sources affected.
+      - **Low**: No security concerns — no confidential data changes, no external source/credential changes, no impact on data integrity or result reproducibility.
+      - **Medium**: Limited scope impact — modifies existing (not new) external sources, or minor data integrity impact in isolated workflows but not on main published results. No changes to confidential data.
+      - **High (requires kick-off security review)**: Critical impact — may expose confidential data, introduces new external sources/credentials, or affects data integrity or reproducibility of published results.
+    options:
+    - N/A
+    - Low
+    - Medium
+    - High
+  validations:
+    required: true
+
+- type: textarea
+  id: description
+  attributes:
+    label: Feature Description / Reason for Change
+    description: Describe the requested feature or change clearly and concisely. Include information such as what the feature is, why it is needed, and what value it adds.
+    placeholder: |
+      Examples:
+      - Improves performance by 50%
+      - Enables new analysis capabilities
+      - Addresses user feedback
+      - Any other relevant information: links, references, related issues, etc.
+  validations:
+    required: true
+
+- type: textarea
+  id: proposed_implementation
+  attributes:
+    label: Proposed Implementation / Expected Impact
+    description: |
+      How do you envision this feature working? What will change?
+      Include any implementation ideas, references, or examples.
+      Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
+      If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
+    placeholder: |
+      Examples:
+      - Add new configuration option to enable X
+      - Modifies `scripts/sb/build_statistics.py`
+      - Affects all SB scenarios (2030NT, 2040NT, etc.)
+      - Verify new outputs are generated correctly
+
+- type: textarea
+  id: tasks
+  attributes:
+    label: Implementation Tasks
+    description: |
+      List specific tasks or steps needed to implement this feature (if known).
+    placeholder: |
+      - [ ] Update config schema
+      - [ ] Modify build_statistics.py
+      - [ ] Add new test cases
+      - [ ] Update documentation

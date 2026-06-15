@@ -195,7 +195,7 @@ of the following ways:
 
   .. code-block:: console
 
-      $ pixi run tyndp -- --config data_config=tyndp
+      $ pixi run tyndp-sb --config data_config=tyndp
 
 - Set it permanently in ``config/config.tyndp.yaml`` (applied to all TYNDP runs):
 
@@ -219,13 +219,13 @@ Running Scenario Building
 Before running, make sure you have completed the steps in the `installation guide
 <installation.html>`_.
  
-Scenarios are defined and modified in ``config/scenarios.tyndp.yaml``. The full workflow from raw input data
+Scenarios are defined and modified in ``config/scenarios.tyndp.yaml``. The full Scenario Building workflow from raw input data
 through to results and launching the
 `PyPSA Explorer <https://github.com/open-energy-transition/pypsa-explorer>`_ visualisation runs with a single command:
  
 .. code-block:: console
 
-    $ pixi run tyndp
+    $ pixi run tyndp-sb
 
 .. hint::
 
@@ -237,3 +237,33 @@ through to results and launching the
 
        resources:
          mem_mb: 16000
+
+You can also launch the ``PyPSA-Explorer`` on its own, without rerunning the full workflow.
+
+To browse pre-solved SB networks from the latest release, simply run:
+
+.. code-block:: console
+
+    $ pixi run launch-presolved-explorer
+
+Alternatively, if you have downloaded solved networks yourself, you can point ``PyPSA-Explorer`` at them directly from within the ``open-tyndp`` environment shell:
+
+.. code-block:: console
+
+    $ pixi shell -e open-tyndp
+    $ pypsa-explorer path/to/network_2030.nc path/to/network_2040.nc
+
+Any explorer instances you launch will close automatically on reboot. To close all running instances yourself at any time, run:
+
+.. code-block:: console
+
+    $ pixi run close-explorers
+
+.. tip::
+
+   The workflow's dependency graphs can be built by a dedicated rule and saved to ``resources/``.
+   Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
+
+   .. code-block:: console
+
+       $ pixi run create-tyndp-graphs --config 'run={"name":"NT"}'

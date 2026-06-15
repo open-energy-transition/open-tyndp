@@ -65,6 +65,38 @@ if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
             os.remove(output["dir"] + ".zip")
 
 
+if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
+    "source"
+] in ARCHIVE_SOURCES:
+
+    rule retrieve_presolved_networks:
+        input:
+            zip_file=storage(PRESOLVED_NETWORKS_DATASET["url"]),
+        output:
+            network=f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{planning_horizons}}.nc",
+        log:
+            "logs/retrieve_presolved_networks_{planning_horizons}.log",
+        run:
+            from pathlib import Path
+            from shutil import copyfileobj
+            from zipfile import ZipFile
+
+            target_suffix = (
+                f"networks/base_s_all___{wildcards.planning_horizons}.nc"
+            )
+            with ZipFile(input["zip_file"], "r") as zf:
+                matches = [m for m in zf.namelist() if m.endswith(target_suffix)]
+                if not matches:
+                    raise ValueError(
+                        f"Could not find '{target_suffix}' in {input['zip_file']}."
+                    )
+                out_path = Path(output["network"])
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                with zf.open(matches[0]) as src, out_path.open("wb") as dst:
+                    copyfileobj(src, dst)
+
+
+
 # Versioning not implemented as the dataset is used only for plotting
 # License - MIT - Copyright (c) 2021 Gavin Rehkemper
 # Website: https://github.com/gavinr/world-countries-centroids
@@ -1070,6 +1102,7 @@ rule build_tyndp_gas_demands:
 rule launch_explorer:
     params:
         port=find_free_port(start_port=8050, max_attempts=50),
+        launch_msg="Launching PyPSA-Explorer...",
     input:
         expand(
             RESULTS
@@ -1098,7 +1131,7 @@ rule launch_explorer:
             str(params.port),
         ] + input_files
 
-        print(f"Launching PyPSA-Explorer...")
+        print(params.launch_msg)
 
         popen_kwargs = {
             "stdout": open(output_log, "w"),
@@ -1142,3 +1175,19 @@ rule close_explorers:
             print("No explorer processes found running.")
         else:
             print(f"Closed {killed_count} explorer instance(s).")
+
+
+if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
+    "source"
+] in ARCHIVE_SOURCES:
+
+    use rule launch_explorer as launch_presolved_explorer with:
+        params:
+            launch_msg=f"Launching PyPSA-Explorer with presolved networks for release v{PRESOLVED_NETWORKS_DATASET['version']}...",
+        input:
+            expand(
+                f"{PRESOLVED_NETWORKS_DATASET['folder']}/base_s_all___{{planning_horizons}}.nc",
+                planning_horizons=config["scenario"]["planning_horizons"],
+            ),
+        output:
+            "logs/presolved_explorer_launched.log",

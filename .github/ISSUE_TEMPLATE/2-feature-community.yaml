@@ -1,0 +1,58 @@
+name: Feature Request (Community)
+description: Suggest a new feature or enhancement
+labels: ["needs triage"]
+type: "Feature"
+
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for filling out this feature request!
+
+      Please do not post usage questions here. Ask them on the [PyPSA/Open-TYNDP Discord channel](https://discord.com/channels/911692131440148490/1414977512089321564) or contact tyndp@openenergytransition.org.
+
+- type: checkboxes
+  id: affected_component
+  attributes:
+    label: Affected Component/Workflow
+    description: Which part(s) of Open-TYNDP will this feature affect? Select all that apply.
+    options:
+    - label: Scenario Building (SB)
+    - label: Cost-Benefit Analysis (CBA)
+    - label: Network Optimization
+    - label: Data retrieval / Processing
+    - label: Plotting / Visualization
+    - label: Documentation
+    - label: CI/CD Workflows
+    - label: Dependencies / Environment
+    - label: Other (specify in description)
+
+- type: textarea
+  id: description
+  attributes:
+    label: Feature Description / Reason for Change
+    description: Describe the requested feature or change clearly and concisely. Include information such as what the feature is, why it is needed, and what value it adds.
+    placeholder: |
+      Examples:
+      - Improves performance by 50%
+      - Enables new analysis capabilities
+      - Addresses user feedback
+      - Any other relevant information: links, references, related issues, etc.
+  validations:
+    required: true
+
+- type: textarea
+  id: proposed_implementation
+  attributes:
+    label: Proposed Implementation / Expected Impact
+    description: |
+      How do you envision this feature working? What will change?
+      Include any implementation ideas, references, or examples.
+      Mention affected systems, files, workflows, datasets, scenarios, or outputs if known.
+      If known, list specific commands, files to check, expected outputs, or validation steps to verify the feature works as intended.
+    placeholder: |
+      Examples:
+      - Add new configuration option to enable X
+      - Modifies `scripts/sb/build_statistics.py`
+      - Affects all SB scenarios (2030NT, 2040NT, etc.)
+      - Verify new outputs are generated correctly

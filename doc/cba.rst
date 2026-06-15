@@ -164,3 +164,25 @@ Similarly, a single climate year can be run by modifying ``run.name``  in ``conf
 .. code-block:: console
 
     $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
+
+
+Checkpoint
+==========
+
+If you run the CBA workflow for the first time, you might not see a full DAG and instead only see a small number of steps listed in your DAG (including a step called ``clean_projects``). 
+
+This rule represents a checkpoint in the workflow that first checks how many projects are being asked to run before building out the full DAG. 
+Specifically, the checkpoint tells the workflow which CBA projects exist, which project IDs to run, and which method applies (TOOT/PINT).
+
+Thus, if you see only a few steps in your DAG, it is because Snakemake has not yet reached the checkpoint to determine the full list of projects to evaluate. 
+This short DAG is therefore not reflective of the actual number of steps that will run once the checkpoint is passed.
+ 
+After ``clean_projects`` finishes and the checkpoint passes, Snakemake can read the cleaned CSV and expand the DAG into concrete jobs, at which point you will see the full set of steps.
+
+To run the workflow only up to the checkpoint, one can use the ``pixi run tyndp-checkpoint`` command, which executes all steps up to and including the checkpoint. 
+
+.. code-block:: console
+
+    $ pixi run tyndp-checkpoint
+
+After this, you can run the full workflow with ``pixi run tyndp-cba`` to execute all remaining steps, including those that follow the checkpoint.
