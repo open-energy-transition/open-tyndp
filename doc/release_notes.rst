@@ -25,6 +25,8 @@ Upcoming Open-TYNDP Release
 
 * Update pixi task names and definitions to align between SB and CBA workflows (https://github.com/open-energy-transition/open-tyndp/pull/735).
 
+* Use only electricity-sourced emissions for and and change signs of B2 and B4 indicators (https://github.com/open-energy-transition/open-tyndp/pull/709).
+
 * Pass through and validate default solving options for CBA solve (https://github.com/open-energy-transition/open-tyndp/pull/708):
 
   - Make breaking change by moving ``cba.solving.options.horizon`` and ``cba.solving.options.overlap`` to ``cba.solving.horizon`` and ``cba.solving.overlap``, respectively.
