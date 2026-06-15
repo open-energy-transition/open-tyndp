@@ -25,6 +25,8 @@ Upcoming Open-TYNDP Release
 
 * Update pixi task names and definitions to align between SB and CBA workflows (https://github.com/open-energy-transition/open-tyndp/pull/735).
 
+* Use only electricity-sourced emissions for and and change signs of B2 and B4 indicators (https://github.com/open-energy-transition/open-tyndp/pull/709).
+
 **Bugfixes and Compatibility**
 
 **Documentation**

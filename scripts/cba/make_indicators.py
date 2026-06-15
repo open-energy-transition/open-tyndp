@@ -133,27 +133,166 @@ def check_method(method: str) -> str:
     return method
 
 
-def calculate_co2_emissions_per_carrier(n: pypsa.Network) -> float:
+def difference_by_method(reference: float, project: float, method: str) -> float:
     """
-    Calculate net CO2 emissions using the final snapshot of the CO2 store.
+    Calculate differences for indicator values by method (TOOT / PINT).
+
+    This maintains consistency in sign conventions across indicators (B2 and B4), for example.
+
+    - PINT: reference is without project, project is with project, so difference = reference - project
+    - TOOT: reference is with project, project is without project, so difference = project - reference
+
+    Using this method, for the B2 and B4 indicators, a positive difference will always indicate a beneficial
+    impact of the project (e.g. emissions reduction, even if the reference and project are swapped
+    between TOOT and PINT).
 
     Parameters
     ----------
-    n : pypsa.Network
-        The PyPSA network object for which to calculate CO2 emissions.
+    reference : float
+        The value from the reference scenario.
+    project : float
+        The value from the project scenario.
+    method : str
+        The CBA method being used, either "pint" or "toot".
 
     Returns
     -------
     float
-        Net CO2 emissions at the final snapshot.
+        The calculated difference according to the method's sign convention.
     """
-    stores_by_carrier = n.stores_t.e.T.groupby(n.stores.carrier).sum().T
-    net_co2 = stores_by_carrier["co2"].iloc[-1]  # get final snapshot value
-    return float(net_co2)
+    if method == "pint":
+        return reference - project
+    return project - reference
+
+
+def _normalize_conventional_carrier(carrier: str) -> str:
+    """
+    Map carrier aliases to the conventional fuel names used in CBA.
+
+    This maps all the oil carriers (such as "oil-light", "oil-heavy", and "oil-shale") to "oil" to use the same emission factors, while keeping other carriers unchanged.
+
+    Parameters
+    ----------
+    carrier : str
+        The original carrier name from the network.
+
+    Returns
+    -------
+    str
+        The normalized carrier name for matching with emission factors.
+    """
+    return "oil" if carrier.startswith("oil-") else carrier
+
+
+def _get_snapshot_weightings(n: pypsa.Network) -> pd.Series:
+    return n.snapshot_weightings.generators.reindex(n.snapshots).fillna(1.0)
+
+
+def get_ac_electricity_producing_assets(n: pypsa.Network) -> pd.Series:
+    """
+    Get list of assets that produce electricity.
+
+    Check energy balance for components with bus_carrier "AC" and positive net balance.
+    This represents generators and links that produce electricity on AC buses.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+
+    Returns
+    -------
+    pandas.Series
+        A Series containing the electricity-producing assets on AC buses.
+    """
+    balance = n.statistics.energy_balance(
+        nice_names=False,
+        bus_carrier="AC",
+        groupby=["name", "carrier", "bus_carrier"],
+    )
+    balance = balance[balance > 0]
+
+    assets = balance[
+        balance.index.get_level_values("component").isin(["Generator", "Link"])
+    ]
+    return assets
+
+
+def get_ac_energy_balance(
+    n: pypsa.Network,
+    assets: pd.Series,
+    *,
+    bus_carrier: str | None = None,
+) -> pd.DataFrame:
+    """
+    Return energy balance for provided assets.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+    assets : pandas.Series
+        Assets for which to calculate energy balance.
+    bus_carrier : str, optional
+        If set, filter energy balance to this bus carrier (e.g. "co2").
+    """
+    balance = n.statistics.energy_balance(
+        groupby_time=False,
+        nice_names=False,
+        bus_carrier=bus_carrier,
+        groupby=["name", "carrier"],
+    )
+
+    return balance.reindex(assets.index.droplevel("bus_carrier")).dropna(how="all")
+
+
+def calculate_power_sector_co2_emissions(
+    n: pypsa.Network, ac_assets: pd.Series | None = None
+) -> float:
+    """
+    Calculate annual power-sector CO2 emissions for assets producing on AC buses.
+
+    Generators use carrier-specific ``co2_emissions`` intensities. Links use the
+    explicit CO2 port flows of the electricity-producing asset.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network object.
+    ac_assets : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses.
+        If not provided, it will be computed within the function.
+        However, calculating it before calling this function can improve performance.
+
+    Returns
+    -------
+    float
+        Total annual CO2 emissions.
+    """
+    if ac_assets is None:
+        ac_assets = get_ac_electricity_producing_assets(n)
+    weights = _get_snapshot_weightings(n)
+    co2_balance = get_ac_energy_balance(n, ac_assets, bus_carrier="co2")
+    co2_emissions_per_h = co2_balance.sum()
+    total_emissions = co2_emissions_per_h.mul(weights).sum()
+
+    return float(total_emissions)
 
 
 def load_non_co2_emission_factors(path: str) -> pd.DataFrame:
-    """Load non-CO2 emission factors and compute mean values."""
+    """
+    Load non-CO2 emission factors from ENTSO-E data and compute mean values.
+
+    Parameters
+    ----------
+    path : str
+        Path to the CSV file containing non-CO2 emission factors.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the mean non-CO2 emission factors for each fuel type.
+    """
     df = pd.read_csv(path, encoding="utf-8-sig")
     df = df[df["Fuel"].notna()]
     pollutant_cols = {
@@ -357,27 +496,63 @@ def calculate_b2_indicator(
     method: str,
     co2_societal_costs: dict,
     co2_ets_price: float,
+    ac_assets_reference: pd.Series | None = None,
+    ac_assets_project: pd.Series | None = None,
 ) -> tuple[dict, dict]:
     """
     Calculate B2 indicator: change in CO2 emissions and societal cost.
 
     Returns totals for CO2 (t) and societal cost (EUR/year) for low/central/high
     societal cost assumptions.
+
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network.
+    n_project : pypsa.Network
+        Project network.
+    method : str
+        Either "pint" or "toot" (case-insensitive).
+    co2_societal_costs : dict
+        Dictionary with keys "low", "central", "high" for societal cost of CO2 in EUR/t.
+    co2_ets_price : float
+        The CO2 ETS price in EUR/t for the relevant planning horizon.
+    ac_assets_reference : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
+        If not provided, it will be computed within the function.
+        Providing these can improve performance by avoiding redundant calculations.
+    ac_assets_project : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses for the project network.
+        If not provided, it will be computed within the function.
+        Providing these can improve performance by avoiding redundant calculations.
+
+    Returns
+    -------
+    tuple[dict, dict]
+        A tuple containing:
+        - A dictionary with B2 indicators:
+            - B2a_co2_variation (ktonnes/year)
+            - co2_ets_price (EUR/t)
+            - co2_societal_cost_low (EUR/t)
+            - co2_societal_cost_central (EUR/t)
+            - co2_societal_cost_high (EUR/t)
+            - B2a_societal_cost_variation_{level} (Meuro/year), where the level is low, central, or high
     """
 
-    co2_reference = calculate_co2_emissions_per_carrier(n_reference)
-    co2_project = calculate_co2_emissions_per_carrier(n_project)
+    co2_reference = calculate_power_sector_co2_emissions(
+        n_reference, ac_assets=ac_assets_reference
+    )
+    co2_project = calculate_power_sector_co2_emissions(
+        n_project, ac_assets=ac_assets_project
+    )
 
-    if method == "pint":
-        # Reference is without project, project is with project
-        co2_diff = co2_reference - co2_project
-    else:  # toot
-        # Reference is with all projects, project is without project
-        co2_diff = co2_project - co2_reference
+    # co2_diff is avoided emissions: (positive = beneficial) for monetisation
+    # co2_diff is calculating the difference of emissions without project minus with project, regardless of method
+    co2_diff = difference_by_method(co2_reference, co2_project, method)
 
     co2_diff_ktonnes = co2_diff / 1000.0
     results = {
-        "B2a_co2_variation": co2_diff_ktonnes,
+        "B2a_co2_variation": -co2_diff_ktonnes,  # Report B2a with guideline sign convention for CO2 variation
         "co2_ets_price": co2_ets_price,
         "co2_societal_cost_low": co2_societal_costs["low"],
         "co2_societal_cost_central": co2_societal_costs["central"],
@@ -460,6 +635,8 @@ def calculate_b4_indicator(
     method: str,
     emission_factors: pd.DataFrame,
     conventional_carriers: list[str],
+    ac_assets_reference: pd.Series | None = None,
+    ac_assets_project: pd.Series | None = None,
 ) -> tuple[dict, dict]:
     """
     Calculate B4 indicator: non-CO2 emissions (ton/year).
@@ -484,48 +661,25 @@ def calculate_b4_indicator(
     """
 
     pollutant_keys = list(emission_factors.columns)
+    conventional_carriers = sorted(
+        {_normalize_conventional_carrier(carrier) for carrier in conventional_carriers}
+    )
 
-    normalized = []
-    for c in conventional_carriers:
-        normalized.append("oil" if c.startswith("oil-") else c)
-    conventional_carriers = sorted(set(normalized))
-
-    # initialize emissions dictionary
     ref_emissions = {key: 0.0 for key in pollutant_keys}
     proj_emissions = {key: 0.0 for key in pollutant_keys}
 
-    # function to check if link is biofuel/biomass/biogas link
-    def is_biofuel_link(link_carrier: str, network: pypsa.Network) -> bool:
-        links = network.links[network.links.carrier == link_carrier]
-        if links.empty:
-            return False
-        buses = links[["bus0", "bus1"]].astype(str).agg(" ".join, axis=1).str.lower()
-        return buses.str.contains("biofuel|biomass|biogas", regex=True).any()
-
-    for carrier in conventional_carriers:
+    def factors_for_fuel(carrier: str) -> tuple[pd.Series, pd.Series | None]:
         if carrier not in CARRIER_TO_EMISSION_FACTORS:
             raise ValueError(
                 f"Carrier '{carrier}' missing in CARRIER_TO_EMISSION_FACTORS"
             )
         regular_fuel, biofuel = CARRIER_TO_EMISSION_FACTORS[carrier]
 
-        ref_balance = n_reference.statistics.energy_balance(
-            nice_names=False, bus_carrier=carrier
-        )
-        proj_balance = n_project.statistics.energy_balance(
-            nice_names=False, bus_carrier=carrier
-        )
-
-        # use only positive values
-        ref_balance = ref_balance[ref_balance > 0]
-        proj_balance = proj_balance[proj_balance > 0]
-
-        # if regular fuel, use regular emission factors
-        # if biofuel, use biofuel emission factors
         fuel_key = str(regular_fuel).strip()
         if fuel_key not in emission_factors.index:
             raise ValueError(f"No emission factors found for fuel '{regular_fuel}'")
         regular_factors = emission_factors.loc[fuel_key]
+
         biofuel_factors = None
         if biofuel:
             biofuel_key = str(biofuel).strip()
@@ -533,41 +687,77 @@ def calculate_b4_indicator(
                 raise ValueError(f"No emission factors found for fuel '{biofuel}'")
             biofuel_factors = emission_factors.loc[biofuel_key]
 
-        def accumulate(balance, emissions, network):
-            for (component, item, _), value in balance.items():
-                if component == "Generator":
-                    factors = regular_factors
-                elif component == "Link" and biofuel_factors is not None:
-                    factors = (
-                        biofuel_factors
-                        if is_biofuel_link(item, network)
-                        else regular_factors
-                    )
-                else:
-                    factors = regular_factors
-                for pollutant_key, kg_value in factors.items():
-                    emissions[pollutant_key] += float(value) * kg_value
+        return regular_factors, biofuel_factors
 
-        accumulate(ref_balance, ref_emissions, n_reference)
-        accumulate(proj_balance, proj_emissions, n_project)
+    factors_by_fuel = {
+        carrier: factors_for_fuel(carrier) for carrier in conventional_carriers
+    }
+    for network, assets, emissions in [
+        (n_reference, ac_assets_reference, ref_emissions),
+        (n_project, ac_assets_project, proj_emissions),
+    ]:
+        if assets is None:
+            assets = get_ac_electricity_producing_assets(network)
+        weights = _get_snapshot_weightings(network)
+
+        for fuel in conventional_carriers:
+            bal = get_ac_energy_balance(network, assets, bus_carrier=fuel)
+
+            # function to check if component is biofuel/biomass/biogas
+            is_bio = bal.index.get_level_values("name").astype(str).str.contains(
+                "bio", case=False, na=False
+            ) | bal.index.get_level_values("carrier").astype(str).str.contains(
+                "bio", case=False, na=False
+            )
+
+            fuel_use = -bal.clip(
+                upper=0.0
+            )  # convert negative consumption values to positive
+            regular_use = fuel_use.loc[
+                ~is_bio
+            ].sum()  # sum non-biomass fuel consumption
+            bio_use = fuel_use.loc[is_bio].sum()  # sum biomass fuel consumption
+
+            regular_total = regular_use.mul(weights).sum()
+            bio_total = bio_use.mul(weights).sum()
+            regular_factors, bio_factors = factors_by_fuel[fuel]
+
+            for pollutant_key, kg_value in regular_factors.items():
+                emissions[pollutant_key] += float(regular_total) * kg_value
+            if bio_factors is not None:
+                for pollutant_key, kg_value in bio_factors.items():
+                    emissions[pollutant_key] += float(bio_total) * kg_value
 
     results = {}
     units = {}
     for pollutant_key in pollutant_keys:
         ref_val = ref_emissions.get(pollutant_key, 0.0)
         proj_val = proj_emissions.get(pollutant_key, 0.0)
-        if method == "pint":
-            diff = ref_val - proj_val
-        else:
-            diff = proj_val - ref_val
+        diff = difference_by_method(ref_val, proj_val, method)
         # Convert kg to tons
-        results[pollutant_key] = diff / 1000.0
+        results[pollutant_key] = (
+            -diff / 1000.0
+        )  # report indicators to align with guideline sign convention (negative means reduction in emissions)
         units[pollutant_key] = "ton/year"
 
     return results, units
 
 
 def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply units to indicators based on INDICATOR_UNITS mapping.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing an 'indicator' column and optionally a 'units' column.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with 'units' column filled in based on INDICATOR_UNITS mapping for
+        indicators that were missing units.
+    """
     df = df.copy()
     missing_units = df["units"].isna() | (df["units"] == "")
     df.loc[missing_units, "units"] = df.loc[missing_units, "indicator"].map(
@@ -588,6 +778,24 @@ def apply_indicator_units(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_long_indicators(indicators: dict, units: dict) -> pd.DataFrame:
+    """
+    Create long-format DataFrame of indicators
+
+    Parameters
+    ----------
+    indicators : dict
+        Dictionary of indicator values, where keys are indicator names (sometimes with suffixes like _min, _mean, _max)
+        and values are the corresponding indicator values.
+    units : dict
+        Dictionary mapping indicator names (without suffixes) to their units. This is used to assign
+        units to indicators, even if the indicator keys in the indicators dict have suffixes.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A long-format DataFrame with columns for meta information (planning horizon, project id, etc.) and
+        columns for indicator, subindex (e.g. min/mean/max), units, and value.
+    """
     meta = {
         "planning_horizon": indicators.get("planning_horizon"),
         "project_id": indicators.get("project_id"),
@@ -637,6 +845,34 @@ def load_benchmark_rows(
     scenario: str | None,
     project_type: str | None,
 ) -> pd.DataFrame:
+    """
+    Load benchmark rows for a given project and planning horizon from the ENTSOE TYNDP 2024 results.
+
+    This function looks through the TYNDP 2024 results CSV file for rows matching the specified project ID,
+    planning horizon, scenario, and project type.
+
+    The function applies some transformations to align the benchmark data with the calculated indicators,
+    such as adjusting the planning horizon to 2040 if benchmarks are only available for 2030 and 2040,
+    and mapping any "indicator_mapped" values to the "indicator" column.
+
+    Parameters
+    ----------
+    benchmark_path : str or Path
+        Path to the ENTSOE TYNDP 2024 results CSV file.
+    project_id : int
+        ID of the project for which to load benchmarks.
+    planning_horizon : int
+        Planning horizon for which to load benchmarks.
+    scenario : str or None
+        Scenario for which to load benchmarks.
+    project_type : str or None
+        Type of the project for which to load benchmarks.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the benchmark rows for the specified project and planning horizon.
+    """
     benchmark_horizon = planning_horizon
     if benchmark_horizon not in [2030, 2040]:
         logger.warning(
@@ -710,8 +946,13 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("make_indicators")
-
+        snakemake = mock_snakemake(
+            "make_indicators",
+            run="NT",
+            cba_project="t4",
+            planning_horizons="2030",
+            configfiles=["config/config.tyndp.yaml"],
+        )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
@@ -765,12 +1006,17 @@ if __name__ == "__main__":
     co2_societal_costs = get(co2_societal_costs_map, co2_cost_horizon)
 
     co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
+    ac_assets_reference = get_ac_electricity_producing_assets(n_reference)
+    ac_assets_project = get_ac_electricity_producing_assets(n_project)
+
     b2_indicators, b2_units = calculate_b2_indicator(
         n_reference,
         n_project,
         method=method,
         co2_societal_costs=co2_societal_costs,
         co2_ets_price=co2_ets_price,
+        ac_assets_reference=ac_assets_reference,
+        ac_assets_project=ac_assets_project,
     )
     indicators.update(b2_indicators)
     units.update(b2_units)
@@ -797,6 +1043,8 @@ if __name__ == "__main__":
         method=method,
         emission_factors=emission_factors,
         conventional_carriers=conventional_carriers,
+        ac_assets_reference=ac_assets_reference,
+        ac_assets_project=ac_assets_project,
     )
     indicators.update(b4_indicators)
     units.update(b4_units)
