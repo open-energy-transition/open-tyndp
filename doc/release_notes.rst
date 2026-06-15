@@ -23,6 +23,8 @@ Upcoming Open-TYNDP Release
 
 * Add pixi tasks for running CBA workflow up until checkpoint `clean_projects` (https://github.com/open-energy-transition/open-tyndp/pull/726).
 
+* Update pixi task names and definitions to align between SB and CBA workflows (https://github.com/open-energy-transition/open-tyndp/pull/735).
+
 * Pass through and validate default solving options for CBA solve (https://github.com/open-energy-transition/open-tyndp/pull/708):
 
   - Make breaking change by moving ``cba.solving.options.horizon`` and ``cba.solving.options.overlap`` to ``cba.solving.horizon`` and ``cba.solving.overlap``, respectively.

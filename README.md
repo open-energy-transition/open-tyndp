@@ -88,19 +88,36 @@ pixi shell -e open-tyndp
 
 ## 2. Run the analysis
 
-```sh
-pixi run tyndp
-```
+To run all analysis steps of the Scenario Building to reproduce results and build the report, you can execute:
 
-This will run all analysis steps to reproduce results and build the report.
+```sh
+pixi run tyndp-sb
+```
 
 To list all the rules that need to be executed (dry run), run:
 
 ```sh
-pixi run tyndp -n
+pixi run tyndp-sb -n
 ```
 
-Note: The workflow automatically generates dependency graphs after successful completion (via `rulegraphs` and `filegraphs` rules). The generated graphs are saved to the `resources/` directory.
+Similarly, to run all steps of the Cost-Benefit Analysis, you can execute:
+
+```sh
+pixi run tyndp-cba
+```
+
+and append `-n` for the corresponding dry run:
+
+```sh
+pixi run tyndp-cba -n
+```
+
+>[!TIP]
+>Dependency graphs can be built by a dedicated pixi task and saved to the `resources/` directory. Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
+>
+>```sh
+>pixi run create-tyndp-graphs --config 'run={"name":"NT"}'
+>```
 
 # Contributing and Support
 We strongly welcome anyone interested in contributing to this project. If you have any ideas, suggestions or encounter problems, feel invited to file issues or make pull requests on GitHub.
