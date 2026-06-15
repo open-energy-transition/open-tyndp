@@ -1571,10 +1571,9 @@ def collect_kwargs(
     model_kwargs["linearized_unit_commitment"] = cf_solving.get(
         "linearized_unit_commitment", False
     )
-    if cf_solving.get("include_objective_constant") is not None:
-        model_kwargs["include_objective_constant"] = cf_solving[
-            "include_objective_constant"
-        ]
+    model_kwargs["include_objective_constant"] = cf_solving.get(
+        "include_objective_constant"
+    )
 
     # Solve kwargs
     solver_name = solving["solver"]["name"]
