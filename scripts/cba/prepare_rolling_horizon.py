@@ -200,8 +200,9 @@ def apply_biomass_biogas_bus_marginal_prices(
     """
     Add marginal prices to biomass/biogas generator marginal costs.
 
-    For each biomass/biogas generator in the rolling-horizon network, use the
-    marginal price time series of its attached bus from the MSV network and add it to the generator's base marginal cost.
+    For each biomass/biogas generator in the rolling-horizon network:
+    use the marginal price time series of its attached bus from the MSV network and
+    add the marginal price to the generator's base marginal cost.
 
     effective_marginal_cost_t = static_marginal_cost + bus_marginal_price_t
 
@@ -236,17 +237,10 @@ def apply_biomass_biogas_bus_marginal_prices(
     ):
         n.generators_t.marginal_cost = pd.DataFrame(index=n.snapshots)
 
-    number_updated = 0
     for g in g_idx:
         bus = n.generators.at[g, "bus"]
         base_cost = float(n.generators.at[g, "marginal_cost"])
         n.generators_t.marginal_cost[g] = base_cost + bus_mp[bus].reindex(n.snapshots)
-        number_updated += 1
-
-    logger.info(
-        "Applied bus-marginal-price costs to %d biomass/biogas generators.",
-        number_updated,
-    )
 
 
 def set_initial_state_from_pf(
