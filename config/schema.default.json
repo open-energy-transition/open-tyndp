@@ -584,6 +584,11 @@
             "solving": {
               "description": "Configuration for `cba.msv_extraction.solving` settings.",
               "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Solving option overrides for MSV extraction. Uses the same option names as the top-level `solving.options` section.",
+                  "type": "object"
+                },
                 "solver": {
                   "additionalProperties": {
                     "type": "string"
@@ -608,8 +613,18 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "Solving options for rolling horizon dispatch.",
+              "description": "Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
               "type": "object"
+            },
+            "horizon": {
+              "default": 168,
+              "description": "Number of snapshots to consider in each rolling-horizon window for CBA project solves.",
+              "type": "integer"
+            },
+            "overlap": {
+              "default": 1,
+              "description": "Number of snapshots to overlap between rolling-horizon windows for CBA project solves.",
+              "type": "integer"
             },
             "solver": {
               "additionalProperties": {
@@ -5952,6 +5967,16 @@
               "default": null,
               "description": "Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance."
             },
+            "include_objective_constant": {
+              "default": false,
+              "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
+              "type": "boolean"
+            },
+            "assign_all_duals": {
+              "default": false,
+              "description": "Assign all dual variables returned by the solver to the network.",
+              "type": "boolean"
+            },
             "track_iterations": {
               "default": false,
               "description": "Flag whether to store the intermediate branch capacities and objective function values are recorded for each iteration in `network.lines['s_nom_opt_X']` (where `X` labels the iteration)",
@@ -6578,6 +6603,11 @@
         "solving": {
           "description": "Configuration for `cba.msv_extraction.solving` settings.",
           "properties": {
+            "options": {
+              "additionalProperties": true,
+              "description": "Solving option overrides for MSV extraction. Uses the same option names as the top-level `solving.options` section.",
+              "type": "object"
+            },
             "solver": {
               "additionalProperties": {
                 "type": "string"
@@ -6600,6 +6630,11 @@
     "_CbaMsvSolvingConfig": {
       "description": "Configuration for `cba.msv_extraction.solving` settings.",
       "properties": {
+        "options": {
+          "additionalProperties": true,
+          "description": "Solving option overrides for MSV extraction. Uses the same option names as the top-level `solving.options` section.",
+          "type": "object"
+        },
         "solver": {
           "additionalProperties": {
             "type": "string"
@@ -6637,8 +6672,18 @@
       "properties": {
         "options": {
           "additionalProperties": true,
-          "description": "Solving options for rolling horizon dispatch.",
+          "description": "Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
           "type": "object"
+        },
+        "horizon": {
+          "default": 168,
+          "description": "Number of snapshots to consider in each rolling-horizon window for CBA project solves.",
+          "type": "integer"
+        },
+        "overlap": {
+          "default": 1,
+          "description": "Number of snapshots to overlap between rolling-horizon windows for CBA project solves.",
+          "type": "integer"
         },
         "solver": {
           "additionalProperties": {
@@ -8881,6 +8926,16 @@
           ],
           "default": null,
           "description": "Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance."
+        },
+        "include_objective_constant": {
+          "default": false,
+          "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
+          "type": "boolean"
+        },
+        "assign_all_duals": {
+          "default": false,
+          "description": "Assign all dual variables returned by the solver to the network.",
+          "type": "boolean"
         },
         "track_iterations": {
           "default": false,
@@ -13688,6 +13743,16 @@
               "default": null,
               "description": "Passed to linopy and determines the API used to communicate with the solver. With the `'lp'` and `'mps'` options linopy passes a file to the solver; with the `'direct'` option (only supported for HIGHS and Gurobi) linopy uses an in-memory python API resulting in better performance."
             },
+            "include_objective_constant": {
+              "default": false,
+              "description": "Passed to linopy model creation. When false, objective constants are not represented as variables, which can improve numerical conditioning.",
+              "type": "boolean"
+            },
+            "assign_all_duals": {
+              "default": false,
+              "description": "Assign all dual variables returned by the solver to the network.",
+              "type": "boolean"
+            },
             "track_iterations": {
               "default": false,
               "description": "Flag whether to store the intermediate branch capacities and objective function values are recorded for each iteration in `network.lines['s_nom_opt_X']` (where `X` labels the iteration)",
@@ -15454,6 +15519,11 @@
             "solving": {
               "description": "Configuration for `cba.msv_extraction.solving` settings.",
               "properties": {
+                "options": {
+                  "additionalProperties": true,
+                  "description": "Solving option overrides for MSV extraction. Uses the same option names as the top-level `solving.options` section.",
+                  "type": "object"
+                },
                 "solver": {
                   "additionalProperties": {
                     "type": "string"
@@ -15478,8 +15548,18 @@
           "properties": {
             "options": {
               "additionalProperties": true,
-              "description": "Solving options for rolling horizon dispatch.",
+              "description": "Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
               "type": "object"
+            },
+            "horizon": {
+              "default": 168,
+              "description": "Number of snapshots to consider in each rolling-horizon window for CBA project solves.",
+              "type": "integer"
+            },
+            "overlap": {
+              "default": 1,
+              "description": "Number of snapshots to overlap between rolling-horizon windows for CBA project solves.",
+              "type": "integer"
             },
             "solver": {
               "additionalProperties": {

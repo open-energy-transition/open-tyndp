@@ -10,9 +10,32 @@ See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#cba
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from scripts.lib.validation.config._base import ConfigModel
+from scripts.lib.validation.config.solving import _SolvingOptionsConfig
+
+
+def _validate_solving_options_keys(options: dict[str, Any]) -> dict[str, Any]:
+    """
+    Reject misspelled CBA solving option names while accepting solving config options.
+
+    This checks that all keys in the provided options dict are valid solving option names,
+    while allowing any valid option name from the top-level `solving.options` section.
+
+    This is used to validate both the top-level `cba.solving.options` and the
+    `cba.msv_extraction.solving.options`, which have the same valid option names as
+    the top-level `solving.options`.
+    """
+    valid_options = set(_SolvingOptionsConfig.model_fields)
+    unknown_options = sorted(set(options) - valid_options)
+    if unknown_options:
+        valid = ", ".join(sorted(valid_options))
+        unknown = ", ".join(unknown_options)
+        raise ValueError(
+            f"Unknown CBA solving option(s): {unknown}. Valid options are: {valid}"
+        )
+    return options
 
 
 class _CbaStorageConfig(ConfigModel):
@@ -31,6 +54,10 @@ class _CbaStorageConfig(ConfigModel):
 class _CbaMsvSolvingConfig(ConfigModel):
     """Configuration for `cba.msv_extraction.solving` settings."""
 
+    options: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Solving option overrides for MSV extraction. Uses the same option names as the top-level `solving.options` section.",
+    )
     solver: dict[str, str] = Field(
         default_factory=lambda: {"name": "highs", "options": "highs-simplex"},
         description="Solver configuration for MSV extraction.",
@@ -39,6 +66,12 @@ class _CbaMsvSolvingConfig(ConfigModel):
         default_factory=dict,
         description="Solver-specific options for MSV extraction.",
     )
+
+    @field_validator("options")
+    @classmethod
+    def check_options(cls, options: dict[str, Any]) -> dict[str, Any]:
+        """Validate CBA MSV solving option names."""
+        return _validate_solving_options_keys(options)
 
 
 class _CbaMsvExtractionConfig(ConfigModel):
@@ -63,12 +96,18 @@ class _CbaSolvingConfig(ConfigModel):
 
     options: dict[str, Any] = Field(
         default_factory=lambda: {
-            "horizon": 168,
-            "overlap": 1,
             "load_shedding": {"enable": True},
             "io_api": "direct",
         },
-        description="Solving options for rolling horizon dispatch.",
+        description="Solving option overrides for rolling horizon CBA dispatch. Uses the same option names as the top-level `solving.options`.",
+    )
+    horizon: int = Field(
+        168,
+        description="Number of snapshots to consider in each rolling-horizon window for CBA project solves.",
+    )
+    overlap: int = Field(
+        1,
+        description="Number of snapshots to overlap between rolling-horizon windows for CBA project solves.",
     )
     solver: dict[str, str] = Field(
         default_factory=lambda: {"name": "highs", "options": "highs-simplex"},
@@ -78,6 +117,12 @@ class _CbaSolvingConfig(ConfigModel):
         default_factory=dict,
         description="Solver-specific options.",
     )
+
+    @field_validator("options")
+    @classmethod
+    def check_options(cls, options: dict[str, Any]) -> dict[str, Any]:
+        """Validate CBA rolling-horizon solving option names."""
+        return _validate_solving_options_keys(options)
 
 
 class _CbaSbToCbaConfig(ConfigModel):

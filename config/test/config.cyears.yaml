@@ -16,6 +16,7 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
+data_config:   # change to 'tyndp' to use tyndp-archive where available
 
 launch_explorer: false
 
@@ -136,7 +137,6 @@ electricity:
     - Electrolyser
     - Battery
     - DSR
-    - DSR
 
   transmission_limit: v1.0
 
@@ -188,6 +188,7 @@ load:
   - 2050
   manual_adjustments: false
   supplement_synthetic: false
+  patch_demand_with_mm: true
 
 pypsa_eur:
   Bus:
@@ -313,6 +314,7 @@ sector:
     - H2
   offshore_hubs_tyndp:
     enable: true
+    patch_crossborder_with_mm: true
     connect_isolated: true
     max_capacity:
       DC_OH: 10
@@ -474,10 +476,10 @@ cba:
 
   # Rolling horizon solving settings
   solving:
+    horizon: 168
+    overlap: 1
     options:
       noisy_costs: false
-      horizon: 168
-      overlap: 1
       load_shedding:
         enable: true
         apply_to_all_carriers: true
