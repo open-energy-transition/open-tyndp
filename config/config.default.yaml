@@ -1252,6 +1252,8 @@ solving:
     seed: 123
     custom_extra_functionality: ../data/custom_extra_functionality.py
     io_api:
+    include_objective_constant: false
+    assign_all_duals: false
     track_iterations: false
     min_iterations: 2
     max_iterations: 3
@@ -1315,6 +1317,16 @@ solving:
       AggFill: 0
       PreDual: 0
       GURO_PAR_BARDENSETHRESH: 200
+    "gurobi-simplex":
+      threads: 32
+      method: 1
+      NodeMethod: 1
+      Seed: 123
+      AggFill: 0
+      PreDual: 0
+      FeasibilityTol: 1.0e-05
+      OptimalityTol: 1.0e-05
+      ScaleFlag: -1
     "gurobi-numeric-focus":
       NumericFocus: 3
       method: 2
@@ -1603,17 +1615,18 @@ cba:
     resolution: false
     resample_method: ffill
     solving:
+      options: {}
       solver:
         name: highs
         options: "highs-simplex"
       solver_options: {}
   solving:
     options:
-      horizon: 168
-      overlap: 1
       load_shedding:
         enable: true
       io_api: direct
+    horizon: 168
+    overlap: 1
     solver:
       name: highs
       options: "highs-simplex"

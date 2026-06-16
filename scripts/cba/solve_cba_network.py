@@ -28,7 +28,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pypsa
-from linopy.remote.oetc import OetcCredentials, OetcHandler, OetcSettings
 from snakemake.utils import update_config
 from tqdm.auto import tqdm
 
@@ -44,6 +43,7 @@ from scripts.solve_network import (
     add_import_limit_constraint,
     add_operational_reserve_margin,
     check_objective_value,
+    collect_kwargs,
     constrain_dsr_daily_dispatch,
     prepare_network,
 )
@@ -242,59 +242,40 @@ def solve_network(
     ObjectiveValueError
         If objective value differs from expected value
     """
-    set_of_options = solving["solver"]["options"]
-    cf_solving = solving["options"]
-
-    kwargs["multi_investment_periods"] = config["foresight"] == "perfect"
-    kwargs["solver_options"] = (
-        solving["solver_options"][set_of_options] if set_of_options else {}
+    all_kwargs, _ = collect_kwargs(
+        config,
+        solving,
+        planning_horizons,
+        log_fn=kwargs.get("log_fn"),
+        mode="rolling_horizon",
     )
-    kwargs["solver_name"] = solving["solver"]["name"]
-    kwargs["extra_functionality"] = partial(
+    all_kwargs["extra_functionality"] = partial(
         extra_functionality,
         planning_horizons=planning_horizons,
     )
-    kwargs["transmission_losses"] = cf_solving.get("transmission_losses", False)
-    kwargs["linearized_unit_commitment"] = cf_solving.get(
-        "linearized_unit_commitment", False
-    )
-    kwargs["assign_all_duals"] = cf_solving.get("assign_all_duals", False)
-    kwargs["io_api"] = cf_solving.get("io_api", None)
 
-    oetc = solving.get("oetc", None)
-    if oetc:
-        oetc["credentials"] = OetcCredentials(
-            email=os.environ["OETC_EMAIL"], password=os.environ["OETC_PASSWORD"]
-        )
-        oetc["solver"] = kwargs["solver_name"]
-        oetc["solver_options"] = kwargs["solver_options"]
-        oetc_settings = OetcSettings(**oetc)
-        oetc_handler = OetcHandler(oetc_settings)
-        kwargs["remote"] = oetc_handler
-
-    kwargs["model_kwargs"] = cf_solving.get("model_kwargs", {})
-    kwargs["keep_files"] = cf_solving.get("keep_files", False)
+    # Values for horizon and overlap are set in solve_network.collect_kwargs (mode == "rolling_horizon")
+    # Thus, we need to override them here with values from the config
+    all_kwargs["horizon"] = solving.get("horizon", 168)
+    all_kwargs["overlap"] = solving.get("overlap", 1)
 
     # Configure fallback solver
     fallback_solver = solving.get("fallback_solver", None)
     if fallback_solver:
         fb_options_key = fallback_solver.get("options", "")
-        kwargs["fallback_solver"] = {
+        all_kwargs["fallback_solver"] = {
             "name": fallback_solver["name"],
             "options": solving.get("solver_options", {}).get(fb_options_key, {}),
         }
 
-    if kwargs["solver_name"] == "gurobi":
+    if all_kwargs.get("solver_name") == "gurobi":
         logging.getLogger("gurobipy").setLevel(logging.CRITICAL)
 
     # add to network for extra_functionality
     n.config = config
     n.params = params
 
-    kwargs["horizon"] = cf_solving.get("horizon", 24 * 7)
-    kwargs["overlap"] = cf_solving.get("overlap", 0)
-
-    status, condition = optimize_with_rolling_horizon(n, **kwargs)
+    status, condition = optimize_with_rolling_horizon(n, **all_kwargs)
 
     if status != "ok":
         logger.warning(
@@ -320,11 +301,12 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "solve_cba_network",
-            name="reference",
-            planning_horizons="2030",
             run="NT",
+            cba_project="t4",
+            planning_horizons="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
+
     configure_logging(snakemake)
     set_scenario_config(snakemake)
     update_config_from_wildcards(snakemake.config, snakemake.wildcards)
