@@ -220,15 +220,18 @@ def apply_biomass_biogas_bus_marginal_prices(
     if isinstance(carriers, str):
         carriers = (carriers,)
 
-    # Get bus marginal prices from MSV network, resampling if needed
+    # Get bus marginal prices from MSV network
     msv_mp = n_msv.buses_t.marginal_price
-    if msv_mp.index.equals(n.snapshots):
-        bus_mp = msv_mp
-    else:
-        bus_mp = resample_msv_to_target(msv_mp, n.snapshots, method=resample_method)
+
+    # Resample marginal prices if needed
+    bus_mp = (
+        msv_mp
+        if msv_mp.index.equals(n.snapshots)
+        else resample_msv_to_target(msv_mp, n.snapshots, method=resample_method)
+    )
 
     # Get index of generators with target carriers
-    g_idx = n.generators.index[n.generators.carrier.isin(carriers)]
+    gen_index = n.generators.index[n.generators.carrier.isin(carriers)]
 
     # Make sure marginal cost frame exists on correct index
     if (
@@ -237,7 +240,8 @@ def apply_biomass_biogas_bus_marginal_prices(
     ):
         n.generators_t.marginal_cost = pd.DataFrame(index=n.snapshots)
 
-    for g in g_idx:
+    # Add bus marginal price to generator marginal cost for each generator
+    for g in gen_index:
         bus = n.generators.at[g, "bus"]
         base_cost = float(n.generators.at[g, "marginal_cost"])
         n.generators_t.marginal_cost[g] = base_cost + bus_mp[bus].reindex(n.snapshots)
