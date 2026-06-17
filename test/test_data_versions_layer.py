@@ -52,26 +52,32 @@ def sort_versions(df: pd.DataFrame) -> pd.DataFrame:
 
 is_sorted = Check(lambda df: df.equals(sort_versions(df)), error="Data must be sorted")
 archive_has_url = Check(
-    lambda df: df.loc[df["source"].isin({"archive", "tyndp-archive"}), "url"]
-    .str.len()
-    .gt(0)
-    .all(),
+    lambda df: (
+        df.loc[df["source"].isin({"archive", "tyndp-archive"}), "url"]
+        .str.len()
+        .gt(0)
+        .all()
+    ),
     error="Archive entries must have a URL",
 )
 one_latest_per_dataset_source = Check(
-    lambda df: df[df["tags"].str.contains("latest")]
-    .groupby(["dataset", "source"])
-    .size()
-    .eq(1)
-    .all(),
+    lambda df: (
+        df[df["tags"].str.contains("latest")]
+        .groupby(["dataset", "source"])
+        .size()
+        .eq(1)
+        .all()
+    ),
     error="Exactly one 'latest' tag required per dataset/source combination",
 )
 latest_same_version_across_sources = Check(
-    lambda df: df[(df["tags"].str.contains("latest")) & (df["version"] != "unknown")]
-    .groupby("dataset")["version"]
-    .nunique()
-    .le(1)
-    .all(),
+    lambda df: (
+        df[(df["tags"].str.contains("latest")) & (df["version"] != "unknown")]
+        .groupby("dataset")["version"]
+        .nunique()
+        .le(1)
+        .all()
+    ),
     error="All 'latest' entries for a dataset must have the same version across sources (excluding 'unknown')",
 )
 VersionsSchema = pa.DataFrameSchema(

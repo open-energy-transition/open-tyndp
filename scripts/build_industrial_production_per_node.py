@@ -77,8 +77,6 @@ def build_nodal_industrial_production():
             )
             keys[mapping] = 0
             key = keys.loc[buses, mapping].fillna(0)
-
-        key = keys.loc[buses, mapping]
         nodal_production.loc[buses, sector] = (
             industrial_production.at[country, sector] * key
         )

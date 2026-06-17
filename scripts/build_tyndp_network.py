@@ -100,15 +100,25 @@ def extract_shape_by_bbox(
 
     Parameters
     ----------
-        - gdf (GeoDataFrame): GeoDataFrame containing country geometries.
-        - country (str): The country code or name to filter.
-        - min_lon, max_lon (float): Longitude bounds for extraction.
-        - min_lat, max_lat (float): Latitude bounds for extraction.
-        - region_id (str): String to assign an ID to the extracted region.
+    gdf : GeoDataFrame
+        GeoDataFrame containing country geometries.
+    country : str
+        The country code or name to filter.
+    min_lon : float
+        Minimum longitude bound for extraction.
+    max_lon : float
+        Maximum longitude bound for extraction.
+    min_lat : float
+        Minimum latitude bound for extraction.
+    max_lat : float
+        Maximum latitude bound for extraction.
+    region_id : str
+        String to assign an ID to the extracted region.
 
     Returns
     -------
-        - gdf_new: Updated GeoDataFrame with the extracted shape separated.
+    GeoDataFrame
+        Updated GeoDataFrame with the extracted shape separated.
     """
     country_gdf = gdf.explode().query(f"country == '{country}'").reset_index(drop=True)
 
@@ -140,33 +150,37 @@ def build_shapes(
 
     Parameters
     ----------
-        - bz_fn (str): Path to bidding zone shape file.
-        - countries (list[str]): List of countries to consider
-        - geo_crs (CRS, optional): Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-        - distance_crs (CRS, optional): Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
+    bz_fn : str
+        Path to bidding zone shape file.
+    countries : list[str]
+        List of countries to consider.
+    geo_crs : CRS, optional
+        Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
+    distance_crs : CRS, optional
+        Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns
     -------
-        - bidding_shapes: A GeoDataFrame including bidding zone geometry, representative point and id.
-        - country_shapes: A GeoDataFrame including country geometry and representative point.
+    tuple
+        A tuple of (bidding_shapes, country_shapes) GeoDataFrames.
     """
     bidding_zones = gpd.read_file(bz_fn)
 
     # Bidding zone shapes
     bidding_shapes = bidding_zones.assign(
         bz_id=lambda df: df["zone_name"].apply(format_bz_names),
-        node=lambda df: df.geometry.to_crs(distance_crs)
-        .representative_point()
-        .to_crs(geo_crs),
+        node=lambda df: (
+            df.geometry.to_crs(distance_crs).representative_point().to_crs(geo_crs)
+        ),
         x=lambda df: df["node"].x,
         y=lambda df: df["node"].y,
     ).set_index("bz_id")
 
     # Country shapes
     country_shapes = bidding_shapes.dissolve(by="country")[["geometry"]].assign(
-        node=lambda df: df.geometry.to_crs(distance_crs)
-        .representative_point()
-        .to_crs(geo_crs),
+        node=lambda df: (
+            df.geometry.to_crs(distance_crs).representative_point().to_crs(geo_crs)
+        ),
         x=lambda df: df["node"].x,
         y=lambda df: df["node"].y,
     )
@@ -208,17 +222,21 @@ def build_buses(
 
     Parameters
     ----------
-        - buses_fn (str): Path to bidding zone shape file.
-        - countries (List[str]): List of countries to consider
-        - bidding_shapes (GeoDataFrame): A GeoDataFrame including bidding zone geometry, representative point and id.
-        - country_shapes (GeoDataFrame): A GeoDataFrame including country geometry and representative point.
-        - geo_crs (CRS, optional): Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-
+    buses_fn : str
+        Path to bidding zone shape file.
+    countries : list[str]
+        List of countries to consider.
+    bidding_shapes : GeoDataFrame
+        A GeoDataFrame including bidding zone geometry, representative point and id.
+    country_shapes : GeoDataFrame
+        A GeoDataFrame including country geometry and representative point.
+    geo_crs : CRS, optional
+        Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
 
     Returns
     -------
-        - buses: A GeoDataFrame of electrical buses including country and coordinates.
-        - buses_h2: A GeoDataFrame of hydrogen buses including country and coordinates.
+    tuple
+        A tuple of (buses, buses_h2) GeoDataFrames.
     """
     buses = (
         pd.read_excel(buses_fn)
@@ -390,19 +408,27 @@ def add_links_missing_attributes(
 def build_links(
     grid_fn,
     buses: gpd.GeoDataFrame,
+    geo_crs: str = GEO_CRS,
+    distance_crs: str = DISTANCE_CRS,
 ):
     """
     Process reference grid information to produce link data. p_nom are NTC values.
 
     Parameters
     ----------
-        - grid_fn (str | Path): Path to bidding zone shape file.
-        - buses (gpd.GeoDataFrame): GeoDataFrame of electrical buses including country and coordinates.
+    grid_fn : str | Path
+        Path to bidding zone shape file.
+    buses : GeoDataFrame
+        A GeoDataFrame of electrical buses including country and coordinates.
+    geo_crs : CRS, optional
+        Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
+    distance_crs : CRS, optional
+        Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns
     -------
-        - links: A GeoDataFrame including NTC from the reference grid.
-
+    GeoDataFrame
+        A GeoDataFrame including NTC from the reference grid.
     """
     links = pd.read_excel(grid_fn)
     links = extract_grid_data_tyndp(
