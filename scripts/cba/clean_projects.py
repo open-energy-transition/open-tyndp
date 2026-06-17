@@ -131,6 +131,18 @@ def extract_transmission_projects(
         .str.extract(r"(?P<bus0>[A-Za-z0-9]{4,}) ?- ?(?P<bus1>[A-Za-z0-9]{4,})$")
     )
 
+    # For project t339, the border is given as ITCS-ITSI and ITSA-ITSI, when it should be ITCS-ITVI and ITSA-ITVI
+    # Manually fixing this here (changing the border, bus0, and bus1 columns)
+    t339_mask = projects.loc[projects["project_id"] == 339].index
+    projects.loc[t339_mask, ["border", "bus1"]] = projects.loc[
+        t339_mask, ["border", "bus1"]
+    ].replace(
+        {
+            "border": {"ITCS-ITSI": "ITCS-ITVI", "ITSA-ITSI": "ITSA-ITVI"},
+            "bus1": {"ITSI": "ITVI"},
+        }
+    )
+
     unclear_border = ~(
         projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
     )
