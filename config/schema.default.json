@@ -175,7 +175,7 @@
           "description": "Defines a default cutout. Can refer to a single cutout or a list of cutouts."
         },
         "nprocesses": {
-          "default": 16,
+          "default": 1,
           "description": "Number of parallel processes in cutout preparation.",
           "type": "integer"
         },
@@ -186,7 +186,7 @@
         },
         "plot_availability_matrix": {
           "default": false,
-          "description": "Whether to plot the landuse availability matrix.",
+          "description": "Whether to plot the landuse availability matrix. Warning: This requires a significant amount of memory and time and may crash for larger workflows. Use with caution.",
           "type": "boolean"
         },
         "cutouts": {
@@ -564,6 +564,11 @@
                 "hac"
               ],
               "type": "string"
+            },
+            "allow_ac_dc_mixing_in_bus_clusters": {
+              "default": false,
+              "description": "Controls whether clustering is allowed to mix AC and DC buses within a bus cluster. If true, mixed clusters are coerced to AC before aggregation. If false, mixed clusters are kept separate.",
+              "type": "boolean"
             },
             "hac_features": {
               "description": "List of meteorological variables contained in the weather data cutout that should be considered for hierarchical clustering.",
@@ -2402,6 +2407,11 @@
           "default": 20,
           "description": "Default lifetime for heating technologies (years).",
           "type": "integer"
+        },
+        "solar_rooftop_ratio": {
+          "default": 0.5,
+          "description": "Ratio of existing solar capacity to assign to rooftop vs utility-scale (between 0 and 1).",
+          "type": "number"
         },
         "conventional_carriers": {
           "description": "List of conventional power plants to include in the sectoral network.",
@@ -4873,6 +4883,13 @@
               "description": "H2 pipeline transmission efficiency.",
               "type": "object"
             },
+            "H2 pipeline retrofitted": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "H2 pipeline retrofitted transmission efficiency.",
+              "type": "object"
+            },
             "gas pipeline": {
               "additionalProperties": {
                 "type": "number"
@@ -5211,16 +5228,64 @@
               "type": "number"
             },
             "load_shedding": {
-              "anyOf": [
-                {
+              "description": "Configuration for `solving.options.load_shedding` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                {
+                "default_cost": {
+                  "default": 100000,
+                  "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "exclusiveMinimum": 0,
                   "type": "number"
+                },
+                "all_carriers": {
+                  "default": true,
+                  "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
+                  "type": "object"
                 }
-              ],
-              "default": false,
-              "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+              }
+            },
+            "load_sinks": {
+              "description": "Configuration for `solving.options.load_sinks` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
+                  "type": "boolean"
+                },
+                "default_cost": {
+                  "default": 100000,
+                  "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                "all_carriers": {
+                  "default": false,
+                  "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
+                  "type": "object"
+                }
+              }
             },
             "curtailment_mode": {
               "default": false,
@@ -5905,6 +5970,11 @@
             "hac"
           ],
           "type": "string"
+        },
+        "allow_ac_dc_mixing_in_bus_clusters": {
+          "default": false,
+          "description": "Controls whether clustering is allowed to mix AC and DC buses within a bus cluster. If true, mixed clusters are coerced to AC before aggregation. If false, mixed clusters are kept separate.",
+          "type": "boolean"
         },
         "hac_features": {
           "description": "List of meteorological variables contained in the weather data cutout that should be considered for hierarchical clustering.",
@@ -6723,6 +6793,66 @@
             "type": "number"
           },
           "description": "The historic maximum relative growth of a carrier.",
+          "type": "object"
+        }
+      }
+    },
+    "_LoadSheddingConfig": {
+      "description": "Configuration for `solving.options.load_shedding` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
+          "type": "boolean"
+        },
+        "default_cost": {
+          "default": 100000,
+          "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "all_carriers": {
+          "default": true,
+          "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+          "type": "boolean"
+        },
+        "carriers": {
+          "additionalProperties": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "default": {},
+          "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
+          "type": "object"
+        }
+      }
+    },
+    "_LoadSinksConfig": {
+      "description": "Configuration for `solving.options.load_sinks` settings.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
+          "type": "boolean"
+        },
+        "default_cost": {
+          "default": 100000,
+          "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "all_carriers": {
+          "default": false,
+          "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
+          "type": "boolean"
+        },
+        "carriers": {
+          "additionalProperties": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "default": {},
+          "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
           "type": "object"
         }
       }
@@ -7710,16 +7840,64 @@
           "type": "number"
         },
         "load_shedding": {
-          "anyOf": [
-            {
+          "description": "Configuration for `solving.options.load_shedding` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
               "type": "boolean"
             },
-            {
+            "default_cost": {
+              "default": 100000,
+              "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+              "exclusiveMinimum": 0,
               "type": "number"
+            },
+            "all_carriers": {
+              "default": true,
+              "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              "default": {},
+              "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
+              "type": "object"
             }
-          ],
-          "default": false,
-          "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+          }
+        },
+        "load_sinks": {
+          "description": "Configuration for `solving.options.load_sinks` settings.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
+              "type": "boolean"
+            },
+            "default_cost": {
+              "default": 100000,
+              "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "all_carriers": {
+              "default": false,
+              "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
+              "type": "boolean"
+            },
+            "carriers": {
+              "additionalProperties": {
+                "exclusiveMinimum": 0,
+                "type": "number"
+              },
+              "default": {},
+              "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
+              "type": "object"
+            }
+          }
         },
         "curtailment_mode": {
           "default": false,
@@ -7937,6 +8115,13 @@
             "type": "number"
           },
           "description": "H2 pipeline transmission efficiency.",
+          "type": "object"
+        },
+        "H2 pipeline retrofitted": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "H2 pipeline retrofitted transmission efficiency.",
           "type": "object"
         },
         "gas pipeline": {
@@ -8636,7 +8821,7 @@
           "description": "Defines a default cutout. Can refer to a single cutout or a list of cutouts."
         },
         "nprocesses": {
-          "default": 16,
+          "default": 1,
           "description": "Number of parallel processes in cutout preparation.",
           "type": "integer"
         },
@@ -8647,7 +8832,7 @@
         },
         "plot_availability_matrix": {
           "default": false,
-          "description": "Whether to plot the landuse availability matrix.",
+          "description": "Whether to plot the landuse availability matrix. Warning: This requires a significant amount of memory and time and may crash for larger workflows. Use with caution.",
           "type": "boolean"
         },
         "cutouts": {
@@ -10398,6 +10583,11 @@
           "description": "Default lifetime for heating technologies (years).",
           "type": "integer"
         },
+        "solar_rooftop_ratio": {
+          "default": 0.5,
+          "description": "Ratio of existing solar capacity to assign to rooftop vs utility-scale (between 0 and 1).",
+          "type": "number"
+        },
         "conventional_carriers": {
           "description": "List of conventional power plants to include in the sectoral network.",
           "items": {
@@ -11166,6 +11356,13 @@
               "description": "H2 pipeline transmission efficiency.",
               "type": "object"
             },
+            "H2 pipeline retrofitted": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "H2 pipeline retrofitted transmission efficiency.",
+              "type": "object"
+            },
             "gas pipeline": {
               "additionalProperties": {
                 "type": "number"
@@ -11856,6 +12053,11 @@
               ],
               "type": "string"
             },
+            "allow_ac_dc_mixing_in_bus_clusters": {
+              "default": false,
+              "description": "Controls whether clustering is allowed to mix AC and DC buses within a bus cluster. If true, mixed clusters are coerced to AC before aggregation. If false, mixed clusters are kept separate.",
+              "type": "boolean"
+            },
             "hac_features": {
               "description": "List of meteorological variables contained in the weather data cutout that should be considered for hierarchical clustering.",
               "items": {
@@ -12105,16 +12307,64 @@
               "type": "number"
             },
             "load_shedding": {
-              "anyOf": [
-                {
+              "description": "Configuration for `solving.options.load_shedding` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                {
+                "default_cost": {
+                  "default": 100000,
+                  "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "exclusiveMinimum": 0,
                   "type": "number"
+                },
+                "all_carriers": {
+                  "default": true,
+                  "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
+                  "type": "object"
                 }
-              ],
-              "default": false,
-              "description": "Add generators with very high marginal cost to simulate load shedding and avoid problem infeasibilities. If load shedding is a float, it denotes the marginal cost in EUR/kWh."
+              }
+            },
+            "load_sinks": {
+              "description": "Configuration for `solving.options.load_sinks` settings.",
+              "properties": {
+                "enable": {
+                  "default": false,
+                  "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
+                  "type": "boolean"
+                },
+                "default_cost": {
+                  "default": 100000,
+                  "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                "all_carriers": {
+                  "default": false,
+                  "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
+                  "type": "boolean"
+                },
+                "carriers": {
+                  "additionalProperties": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "default": {},
+                  "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
+                  "type": "object"
+                }
+              }
             },
             "curtailment_mode": {
               "default": false,
