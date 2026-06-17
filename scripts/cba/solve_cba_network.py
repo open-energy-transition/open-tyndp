@@ -173,7 +173,7 @@ def optimize_with_rolling_horizon(
                 if comp not in pf_p.columns:
                     continue
                 window_energy = pf_p.loc[sns, comp].sum()
-                slack = 0.3
+                slack = 0.4
                 c.static.loc[comp, "e_sum_min"] = (1 - slack) * window_energy
                 c.static.loc[comp, "e_sum_max"] = window_energy
 
