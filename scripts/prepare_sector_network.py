@@ -557,7 +557,9 @@ def create_network_topology(
     if not bidirectional:
         topo_reverse = topo.copy()
         topo_reverse.rename(columns=swap_buses, inplace=True)
-        topo_reverse.index = topo_reverse.apply(make_index, axis=1)
+        topo_reverse.index = topo_reverse.apply(
+            make_index, axis=1, prefix=prefix, connector=connector
+        )
         topo = pd.concat([topo, topo_reverse])
 
     return topo
