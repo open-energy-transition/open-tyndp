@@ -147,7 +147,12 @@ Configuration for `foresight` settings.
 
 ## `tyndp_scenario` {#tyndp_scenario_cf}
 
-{{ schema_table("tyndp_scenario") }}
+Configuration for `tyndp_scenario` settings.
+
+- **Type:** enum (`NT`, `DE`, `GA`, `false`)
+- **Default:** `false`
+
+Scenario configuration of the TYNDP data, which is one of `NT`, `DE` or `GA`. `false` disables the TYNDP-specific rules.
 
 **YAML Syntax**
 
@@ -1096,12 +1101,13 @@ Configuration for `overpass_api` settings.
 
 ## `benchmarking` {#benchmarking_cf}
 
-{{ schema_table("benchmarking") }}
+!!! note
+    Schema table not yet available for `benchmarking` (tracked separately from the main configuration schema).
 
 **YAML Syntax**
 
 ```yaml
-{{ yaml_section("benchmarking", source="benchmarking") }}
+{{ yaml_section("benchmarking", source="benchmarking.default.yaml") }}
 ```
 
 

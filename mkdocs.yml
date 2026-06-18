@@ -6,7 +6,7 @@
 site_name: Open-TYNDP
 site_url: https://open-tyndp.readthedocs.io
 repo_url: https://github.com/open-energy-transition/open-tyndp
-repo_name: open-energy-transition/open-tyndp
+repo_name: oet/open-tyndp
 
 docs_dir: doc
 
@@ -101,7 +101,7 @@ plugins:
     enable_inventory: true
     handlers:
       python:
-        paths: [scripts, .]
+        paths: [scripts, scripts/sb, scripts/cba, .]
         options:
           docstring_style: numpy
           show_source: false

@@ -29,11 +29,11 @@
 
 ## Rule `plot_base_offshore_network`
 
-::: plot_base_offshore_network
+::: plot_offshore_network
 
 ## Rule `plot_offshore_network`
 
-::: plot_base_offshore_network
+::: plot_offshore_network
 
 ## Rule `plot_power_network_clustered`
 
@@ -93,9 +93,13 @@
 
 ::: plot_interactive_bus_balance
 
-## Rule `clean_tyndp_benchmark`
+## Rule `clean_tyndp_output_benchmark`
 
-::: clean_tyndp_benchmark
+::: clean_tyndp_output_benchmark
+
+## Rule `clean_tyndp_report_benchmark`
+
+::: clean_tyndp_report_benchmark
 
 ## Rule `clean_tyndp_vp_data`
 

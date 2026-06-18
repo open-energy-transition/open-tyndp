@@ -102,7 +102,7 @@ together into a detailed PyPSA network stored in `networks/base_s_{clusters}_ele
 
 ## Rule `build_electricity_demand_tyndp`
 
-::: build_electricity_demand_tyndp
+::: build_electricity_demand
 
 ## Rule `build_hac_features`
 
@@ -155,6 +155,10 @@ together into a detailed PyPSA network stored in `networks/base_s_{clusters}_ele
 ## Rule `prepare_network` {#prepare}
 
 ::: prepare_network
+
+## Rule `prepare_pecd_release`
+
+::: prepare_pecd_release
 
 ## Rule `clean_pecd_data`
 
