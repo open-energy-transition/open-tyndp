@@ -75,13 +75,13 @@ highspy = ">=1.12.0"
 ipython = ">=9.7.0"
 jpype1 = ">=1.6.0"
 libgdal-netcdf = ">=3.10.3"
-linopy = ">=0.6.1,<0.7.0"
+linopy = ">=0.6.1"
 lxml = ">=6.0.2"
 matplotlib = ">=3.10.7"
 memory_profiler = ">=0.61.0"
 netcdf4 = ">=1.7.2,!=1.7.4"
 networkx = ">=3.5"
-numpy = ">=1.26.4,<2"
+numpy = ">=1.26.4"
 openpyxl = ">=3.1.5"
 pandas = ">=2.1"
 plotly = ">=6.4.0"
@@ -226,7 +226,10 @@ close-explorers = """
  """
 clean-tyndp = """
      snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
+     snakemake -call cba --configfile config/test/config.tyndp.yaml --delete-all-output ;
+     snakemake -call --configfile config/test/config.cyears.yaml --delete-all-output ;
      snakemake -call --configfile config/config.tyndp.yaml --delete-all-output ;
+     snakemake -call cba --configfile config/config.tyndp.yaml --delete-all-output ;
      echo "All tyndp outputs have been cleaned up."
  """
 all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
