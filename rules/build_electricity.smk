@@ -622,6 +622,7 @@ rule build_electricity_demand_base:
     params:
         distribution_key=config_provider("load", "distribution_key"),
         substation_only=config_provider("load", "substation_only"),
+        load_source=config_provider("load", "source"),
     message:
         "Building electricity demand time series for base network"
     script:
