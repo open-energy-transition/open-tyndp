@@ -20,7 +20,7 @@ jobs:
     name: Validate Zenodo metadata
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Cache Zenodo JSON schema
       id: cache-schema
@@ -48,7 +48,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.9.6
@@ -75,7 +75,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - uses: dorny/paths-filter@v4
       id: filter
