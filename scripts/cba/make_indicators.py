@@ -99,11 +99,17 @@ def calculate_total_system_cost(n, remove_noisy_costs: bool = False):
     - Time-aggregated operational costs
     - All component types (generators, links, storage, etc.)
 
-    Args:
-        n: PyPSA Network (must be solved)
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network (must be solved).
+    remove_noisy_costs : bool, optional
+        Whether to remove noisy costs before calculation.
 
-    Returns:
-        float: Total system cost in currency units (Euros)
+    Returns
+    -------
+    dict
+        Dictionary with keys total, capex, and opex (all in MEur).
     """
     if not n.is_solved:
         raise ValueError("Network must be solved before calculating costs")
@@ -252,7 +258,7 @@ def calculate_power_sector_co2_emissions(
     """
     Calculate annual power-sector CO2 emissions for assets producing on AC buses.
 
-    Generators use carrier-specific ``co2_emissions`` intensities. Links use the
+    Generators use carrier-specific `co2_emissions` intensities. Links use the
     explicit CO2 port flows of the electricity-producing asset.
 
     Parameters
@@ -418,13 +424,21 @@ def calculate_b1_indicator(
     - PINT: positive B1 means beneficial (project reduces costs)
     - TOOT: positive B1 means beneficial (removing project increases costs)
 
-    Args:
-        n_reference: Reference network
-        n_project: Project network
-        method: Either "pint" or "toot" (case-insensitive)
+    Parameters
+    ----------
+    n_reference : pypsa.Network
+        Reference network (solved).
+    n_project : pypsa.Network
+        Project network.
+    method : str, optional
+        Either "pint" or "toot".
+    remove_noisy_costs : bool, optional
+        Whether to remove noisy costs before calculation.
 
-    Returns:
-        dict: Dictionary with B1 and component costs
+    Returns
+    -------
+    dict
+        Dictionary with B1 and component costs.
     """
     # Calculate full cost breakdowns for reporting
     cost_reference = calculate_total_system_cost(n_reference, remove_noisy_costs)

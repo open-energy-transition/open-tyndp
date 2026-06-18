@@ -33,7 +33,7 @@ def disable_global_constraints(n: pypsa.Network):
     Parameters
     ----------
     n : pypsa.Network
-        Network to modify
+        Network to modify.
     """
     if "co2_sequestration_limit" in n.global_constraints.index:
         n.remove("GlobalConstraint", "co2_sequestration_limit")
@@ -89,13 +89,18 @@ def resample_msv_to_target(
     Parameters
     ----------
     msv : pd.DataFrame
-        MSV data from extraction (e.g., 24H resolution)
+        MSV data from extraction (e.g., 24H resolution).
     target_snapshots : pd.DatetimeIndex
-        Target snapshots (e.g., 3H resolution)
+        Target snapshots (e.g., 3H resolution).
     method : str, optional
         Resampling method:
-        - "ffill": Forward fill - each MSV value applies until the next one
-        - "interpolate": Linear interpolation between marginal storage values
+        - "ffill": Forward fill - each MSV value applies until the next one.
+        - "interpolate": Linear interpolation between marginal storage values.
+
+    Returns
+    -------
+    pd.DataFrame
+        Resampled MSV data aligned to target_snapshots.
     """
     if method == "interpolate":
         # Combine indices and interpolate
@@ -125,7 +130,7 @@ def disable_volume_limits(n: pypsa.Network):
     Parameters
     ----------
     n : pypsa.Network
-        Network to modify
+        Network to modify.
     """
     for c in n.components[{"Generator", "Link"}]:
         has_e_sum_min = isfinite(c.static.get("e_sum_min", []))

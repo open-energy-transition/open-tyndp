@@ -1143,11 +1143,11 @@ def extract_grid_data_tyndp(
     Parameters
     ----------
     links : pd.DataFrame
-        DataFrame with raw links to extract grid information from
+        DataFrame with raw links to extract grid information from.
     replace_dict : dict
-        Dictionary with region names to replace
+        Dictionary with region names to replace.
     expand_from_index : bool
-        Whether to expand the bus0 and bus1 from index or directly use the columns
+        Whether to expand the bus0 and bus1 from index or directly use the columns.
     idx_prefix : str, optional
         Prefix to prepend to generated indices.
     idx_connector : str, optional
@@ -1160,7 +1160,7 @@ def extract_grid_data_tyndp(
     Returns
     -------
     pd.DataFrame
-        DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1
+        DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1.
     """
 
     if expand_from_index:
@@ -1231,7 +1231,7 @@ def safe_pyear(
     Returns
     -------
     year_new : int
-        Safe pyear adjusted for available years
+        Safe pyear adjusted for available years.
     """
 
     if not available_years:
@@ -1341,6 +1341,16 @@ def get_version(hash_len: int = 9) -> str:
     - If HEAD is exactly at a tag: returns the tag name (e.g., "v1.2.3")
     - If HEAD is beyond a tag: returns "tag+g{hash}" (e.g., "v1.2.3+g1a2b3c4d")
     - If no tags found: returns just the commit hash (e.g., "1a2b3c4d5")
+
+    Parameters
+    ----------
+    hash_len : int, optional
+        Number of characters to use from the commit hash. Defaults to 9.
+
+    Returns
+    -------
+    str
+        Version string derived from the git repository state.
     """
     try:
         repo = git.Repo(search_parent_directories=True)
@@ -1434,7 +1444,21 @@ def convert_units(
 
 
 def check_cyear(cyear: int, scenario: str) -> int:
-    """Check if the climatic year is valid for the given scenario."""
+    """
+    Check if the climatic year is valid for the given scenario.
+
+    Parameters
+    ----------
+    cyear : int
+        Climatic year to validate.
+    scenario : str
+        TYNDP scenario name.
+
+    Returns
+    -------
+    int
+        Valid climatic year, falling back to 2009 if the input is not available.
+    """
 
     valid_years = {
         "NT": [1995, 2008, 2009],
@@ -1604,9 +1628,21 @@ def interpolate_demand(
     return result
 
 
-def find_free_port(start_port=8050, max_attempts=50):
+def find_free_port(start_port: int = 8050, max_attempts: int = 50) -> int:
     """
     Find the first available port starting from start_port.
+
+    Parameters
+    ----------
+    start_port : int, optional
+        Port number to begin scanning from. Defaults to 8050.
+    max_attempts : int, optional
+        Maximum number of ports to check before raising an error. Defaults to 50.
+
+    Returns
+    -------
+    int
+        First available port number in the scanned range.
     """
     for port in range(start_port, start_port + max_attempts):
         try:
@@ -1703,8 +1739,21 @@ def align_demand_to_snapshots(
     demand: pd.DataFrame, snapshots: pd.DatetimeIndex, format: str = None
 ) -> pd.DataFrame:
     """
-    Convert demand index to DatetimeIndex, adjust year to match snapshots,
-    and reindex to snapshots.
+    Convert demand index to DatetimeIndex, adjust year to match snapshots, and reindex to snapshots.
+
+    Parameters
+    ----------
+    demand : pd.DataFrame
+        Demand time series with a datetime-compatible index.
+    snapshots : pd.DatetimeIndex
+        Target snapshot index to align demand to.
+    format : str, optional
+        Datetime format string for parsing the demand index. Defaults to None.
+
+    Returns
+    -------
+    pd.DataFrame
+        Demand data reindexed to the provided snapshots.
     """
 
     demand.index = pd.to_datetime(demand.index, format=format)

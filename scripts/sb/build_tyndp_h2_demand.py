@@ -5,16 +5,16 @@
 Builds TYNDP Scenario Building hydrogen demand profiles for Open-TYNDP.
 
 This script processes hydrogen demand data from TYNDP 2024, using the
-``snapshots`` year as the climatic year (``cyear``) for demand profiles.
+`snapshots` year as the climatic year (`cyear`) for demand profiles.
 The data is filtered and interpolated based on the selected scenario
 (Distributed Energy, Global Ambition, or National Trends) and planning horizon.
 
 Climatic Year Selection
 -----------------------
 
-The ``snapshots`` year determines the climatic year for demand profiles:
+The `snapshots` year determines the climatic year for demand profiles:
 
-- **DE and GA scenarios**: Must use 1995, 2008, or 2009. If ``snapshots``
+- **DE and GA scenarios**: Must use 1995, 2008, or 2009. If `snapshots`
   is not one of these years, 2009 is used as the default (considered most
   representative).
 - **NT scenario**: Must be between 1982 and 2019.
@@ -40,12 +40,12 @@ Missing years are linearly interpolated between available data points.
 Inputs
 ------
 
-- ``data/tyndp_2024_bundle/Demand Profiles``: TYNDP 2024 hydrogen demand profiles
+- `data/tyndp_2024_bundle/Demand Profiles`: TYNDP 2024 hydrogen demand profiles
 
 Outputs
 -------
 
-- ``resources/h2_demand_tyndp_{planning_horizons}.csv``: Processed hydrogen
+- `resources/h2_demand_tyndp_{planning_horizons}.csv`: Processed hydrogen
   demand time series for the specified planning horizon
 """
 

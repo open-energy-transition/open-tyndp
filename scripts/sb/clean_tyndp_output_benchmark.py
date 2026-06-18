@@ -204,7 +204,7 @@ def load_MM_sheet(
     table_name : str
         Name of the table from LOOKUP_TABLES (e.g., "power_capacity").
     countries : list[str]
-        List of modelled countries
+        List of modelled countries.
     eu27 : list
         List of EU27 country codes.
     mapping : dict[str, dict[str, str]]
@@ -505,7 +505,7 @@ def clean_h2_imports_for_benchmarking(
     Returns
     -------
     pd.DataFrame
-        dataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
+        DataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
     """
     df = (
         crossborder_h2.loc[["bus0", "bus1", "sum"]]

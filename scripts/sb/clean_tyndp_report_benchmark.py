@@ -137,16 +137,16 @@ def _add_identifier(s: str) -> str:
 def add_report_carrier_mappings(carrier_mapping_fn: str, tables: dict) -> None:
     """
     Load report carrier mappings from the carrier mapping file and apply them
-    to the ``mapping`` configuration dictionary of each table.
+    to the `mapping` configuration dictionary of each table.
 
     Parameters
     ----------
     carrier_mapping_fn : str
         Path to csv file with carrier mapping.
     tables : dict
-        Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
+        Dictionary defining the benchmarking tables. When the `mapping_col` key is
         defined in the configuration, the loaded carrier mapping will be added to
-        the dictionary with the ``mapping`` key.
+        the dictionary with the `mapping` key.
 
     Returns
     -------
@@ -193,9 +193,9 @@ def clean_data_for_benchmarking(
     Parameters
     ----------
     table : str
-        Benchmarking table name
+        Benchmarking table name.
     df : pd.DataFrame
-        Dataframe containing report values for benchmarking
+        DataFrame containing report values for benchmarking.
     mapping : dict
         Carrier mapping from report carrier names to benchmarking carrier names.
 

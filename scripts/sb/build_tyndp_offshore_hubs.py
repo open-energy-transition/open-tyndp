@@ -96,7 +96,7 @@ def load_offshore_grid(
     countries : list[str]
         List of country codes used to clean data.
     max_capacity : dict[str, int]
-        Maximum transmission capacity between two offshore hubs per carrier
+        Maximum transmission capacity between two offshore hubs per carrier.
     h2_zones_tyndp : bool
         Whether to use TYNDP hydrogen zones splitting.
 
@@ -430,10 +430,10 @@ def load_offshore_generators(
     Returns
     -------
     generators : pd.DataFrame
-        DataFrame containing the formatted offshore generators data
+        DataFrame containing the formatted offshore generators data.
 
     zone_trajectories : pd.DataFrame
-        DataFrame containing the zone potentials trajectories
+        DataFrame containing the zone potentials trajectories.
     """
     column_names = {
         "NODE": "bus",

@@ -53,9 +53,9 @@ def plot_offshore_map(
     map_fn : str
         Path to save the final map plot to.
     planning_horizons : int
-        The planning horizon year
+        The planning horizon year.
     carrier : str, optional
-        Carrier to plot
+        Carrier to plot.
     p_nom : str | float, optional
         Nominal power parameter for determining link thickness. If str, must be "p_nom" or "p_nom_opt".
         If float, uses fixed value for all links. Defaults to plotting only base network (p_nom).

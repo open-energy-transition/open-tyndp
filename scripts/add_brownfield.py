@@ -45,21 +45,21 @@ def add_brownfield(
     Parameters
     ----------
     n : pypsa.Network
-        Network to add brownfield to
+        Network to add brownfield to.
     n_p : pypsa.Network
-        Previous network to get brownfield from
+        Previous network to get brownfield from.
     year : int
-        Planning year
+        Planning year.
     h2_retrofit : bool
-        Whether to allow hydrogen pipeline retrofitting
+        Whether to allow hydrogen pipeline retrofitting.
     h2_retrofit_capacity_per_ch4 : float
-        Ratio of hydrogen to methane capacity for pipeline retrofitting
+        Ratio of hydrogen to methane capacity for pipeline retrofitting.
     capacity_threshold : float
-        Threshold for removing assets with low capacity
+        Threshold for removing assets with low capacity.
     offshore_hubs_tyndp : bool
-        Whether to enable offshore hubs
+        Whether to enable offshore hubs.
     h2_topology_tyndp : bool
-        Whether to enable TYNDP Hydrogen topology
+        Whether to enable TYNDP Hydrogen topology.
     carriers_tyndp : list[str]
         List of TYNDP carriers included in the model.
     """

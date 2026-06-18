@@ -1256,13 +1256,13 @@ def add_offshore_hubs_constraint(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network instance
-    planning_horizons : int, optional
-        The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn: str
-        Path to the file containing the offshore zone potentials trajectories
-    renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        The PyPSA network instance.
+    planning_horizons : int
+        The current planning horizon year.
+    offshore_zone_trajectories_fn : str
+        Path to the file containing the offshore zone potentials trajectories.
+    renewable_carriers_tyndp : list[str]
+        List of TYNDP renewable carriers.
     """
     ext_i = n.generators.p_nom_extendable
     gens = n.generators.assign(

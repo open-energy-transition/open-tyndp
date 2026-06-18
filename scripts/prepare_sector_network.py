@@ -120,7 +120,7 @@ def define_spatial(
     Parameters
     ----------
     nodes : list-like
-        Nodes to define spatial data for
+        Nodes to define spatial data for.
     options : dict
         Configuration options containing at least:
         - biomass_spatial : bool
@@ -572,9 +572,9 @@ def create_h2_topology_tyndp(n, fn_h2_network, options):
     Parameters
     ----------
     n : pypsa.Network
-        Network to create H2 topology for
+        Network to create H2 topology for.
     fn_h2_network : str
-        Pointing to the input TYNDP H2 reference grid csv file
+        Pointing to the input TYNDP H2 reference grid csv file.
     options : dict
         Dictionary of configuration options. Key options include:
         - h2_zones_tyndp : bool
@@ -1507,22 +1507,22 @@ def _add_other_non_res_tyndp(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     generator : str
-        Name of the Other Non-RES generator
+        Name of the Other Non-RES generator.
     carrier : str
-        Name of the Other Non-RES fuel carrier
+        Name of the Other Non-RES fuel carrier.
     carrier_nodes : list
-        Nodes of the fuel carrier
+        Nodes of the fuel carrier.
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
-        including nodes and locations
+        including nodes and locations.
     costs : pd.DataFrame
-        DataFrame containing cost and technical parameters for different technologies
+        DataFrame containing cost and technical parameters for different technologies.
     pemmdb_capacities : pd.DataFrame
-        Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands
+        Dataframe containing PEMMDB capacities including information on the different Other Non-RES price bands.
     co2_price: float
-        Emission price for the given planning year
+        Emission price for the given planning year.
 
     Returns
     -------
@@ -1610,24 +1610,24 @@ def add_thermal_generation_tyndp(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     costs : pd.DataFrame
-        DataFrame containing cost and technical parameters for different technologies
+        DataFrame containing cost and technical parameters for different technologies.
     nodes : pd.Index
-        pd.Index with demand nodes
+        pd.Index with demand nodes.
     tyndp_conventionals : dict[str, str]
-        Dictionary mapping TYNDP conventional generation technologies to their energy carriers
+        Dictionary mapping TYNDP conventional generation technologies to their energy carriers.
     spatial : SimpleNamespace
         Namespace containing spatial information for different carriers,
-        including nodes and locations
+        including nodes and locations.
     options : dict
-        Configuration dictionary containing settings for the model
+        Configuration dictionary containing settings for the model.
     cf_industry : dict
-        Dictionary of industrial conversion factors, needed for carrier buses
+        Dictionary of industrial conversion factors, needed for carrier buses.
     pemmdb_capacities: pd.DataFrame
-        Dataframe containing PEMMDB capacities including Other Non-RES price band information
+        Dataframe containing PEMMDB capacities including Other Non-RES price band information.
     co2_price: float
-        Emission price for the given planning year
+        Emission price for the given planning year.
 
     Returns
     -------
@@ -1721,7 +1721,7 @@ def add_other_res_tyndp(
     n : pypsa.Network
         The PyPSA network container object.
     costs : pd.DataFrame
-        DataFrame containing cost and technical parameters for different technologies
+        DataFrame containing cost and technical parameters for different technologies.
     pop_layout : SimpleNamespace.
         Namespace containing spatial information for different carriers,
         including nodes and locations.
@@ -1965,7 +1965,7 @@ def _add_other_non_res_capacities(
     tech : str
         Other Non-RES price band to be added to the network.
     group_conventionals : bool
-        Whether TYNDP conventional carriers are aggregated into higher level groups
+        Whether TYNDP conventional carriers are aggregated into higher level groups.
 
     Returns
     -------
@@ -2114,7 +2114,7 @@ def _add_conventional_thermal_capacities(
     nuclear_profiles : pd.DataFrame
         DataFrame containing the availability profiles of nuclear power plants.
     group_conventionals : bool
-        Whether TYNDP conventional carriers are aggregated into higher level groups
+        Whether TYNDP conventional carriers are aggregated into higher level groups.
 
     Returns
     -------
@@ -2314,7 +2314,7 @@ def _extract_inflows(
     hydro_tech_i : pd.Index
         Index of network components associated with the hydro technology.
     name_sfx : str, optional
-        String suffix added to the column name of the returned inflow Dataframe
+        String suffix added to the column name of the returned inflow Dataframe.
 
     Returns
     -------
@@ -3490,13 +3490,13 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     nodes : pd.Index
-        Pandas Index of electricity node locations/nodes
+        Pandas Index of electricity node locations/nodes.
     buses_h2 : pd.Index
-        Pandas Index of hydrogen nodes to which H2 production technologies will connect
+        Pandas Index of hydrogen nodes to which H2 production technologies will connect.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -3614,13 +3614,13 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     spatial : object
-        Namespace object with spatial nodes for different carriers such as `h2_tyndp`
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     buses_h2_z2 : SimpleNamespace
-        Namespace object with spatial nodes of H2 Z2 buses
+        Namespace object with spatial nodes of H2 Z2 buses.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
 
     Returns
     -------
@@ -3660,15 +3660,15 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     spatial : object
-        Namespace object with spatial nodes for different carriers such as `h2_tyndp`
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     nodes : pd.Index
-        Pandas Index of electricity node locations/nodes
+        Pandas Index of electricity node locations/nodes.
     buses_h2 : pd.Index
-        Pandas Index of hydrogen nodes to which H2 reconversion technologies will connect
+        Pandas Index of hydrogen nodes to which H2 reconversion technologies will connect.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -3747,15 +3747,15 @@ def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, options):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     nodes : pd.Index
-        Pandas Index of electricity node locations/nodes
+        Pandas Index of electricity node locations/nodes.
     h2_pipes_file : str
-        Path to CSV file containing prepped H2 reference grid data
+        Path to CSV file containing prepped H2 reference grid data.
     interzonal_file : str
-        Path to CSV file containing prepped H2 interzonal connection data
+        Path to CSV file containing prepped H2 interzonal connection data.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
     options : dict
         Dictionary of configuration options. Key options include:
         - h2_zones_tyndp : bool
@@ -3823,13 +3823,13 @@ def _add_h2_stores_and_links_tyndp(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     storage_tech: str
         Storage technology to add. Can be either 'cavern-storage' or 'tank-storage'
     buses : pd.Index
-        nodes of H2 buses to add the storages to
+        nodes of H2 buses to add the storages to.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
     extendable : bool
         Whether the added storage components shall be extendable in the optimization or not.
 
@@ -3900,13 +3900,13 @@ def add_h2_storage_tyndp(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     buses_h2_z1 : pd.Index
-        Nnodes of H2 Z1 buses
+        Nnodes of H2 Z1 buses.
     buses_h2_z2 : pd.Index
-        Nodes of H2 Z2 buses
+        Nodes of H2 Z2 buses.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
        - h2_zones_tyndp : bool
@@ -3965,21 +3965,21 @@ def add_h2_topology_tyndp(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     pop_layout : pd.DataFrame
-        Population layout with index of locations/nodes
+        Population layout with index of locations/nodes.
     spatial : object
-        Namespace object with spatial nodes for different carriers such as `h2_tyndp`
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     h2_pipes_file : str
-        Path to CSV file containing prepped H2 reference grid data
+        Path to CSV file containing prepped H2 reference grid data.
     interzonal_file : str
-        Path to CSV file containing prepped H2 interzonal connection data
+        Path to CSV file containing prepped H2 interzonal connection data.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
     options : dict, optional
        Dictionary of configuration options. Defaults to empty dict if not provided.
     h2_demand_file : str
-        Path to CSV file containing exogenous hydrogen demand time series
+        Path to CSV file containing exogenous hydrogen demand time series.
 
 
     Returns
@@ -4068,9 +4068,9 @@ def add_h2_demand_tyndp(n, h2_demand_file):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     h2_demand_file : str
-        Path to CSV file containing exogenous hydrogen demand time series
+        Path to CSV file containing exogenous hydrogen demand time series.
     """
     logger.info("Add exogenous hydrogen demand to network")
 
@@ -4105,9 +4105,9 @@ def add_h2_production(n, nodes, options, spatial, costs):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     nodes : pd.Index
-        Pandas Index of locations/nodes
+        Pandas Index of locations/nodes.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -4115,9 +4115,9 @@ def add_h2_production(n, nodes, options, spatial, costs):
         - SMR : bool
         - cc_fraction : float
     spatial : object, optional
-        Object containing spatial information about nodes and their locations
+        Object containing spatial information about nodes and their locations.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
 
     Returns
     -------
@@ -4182,9 +4182,9 @@ def add_h2_reconversion(n, nodes, options, spatial, costs):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     nodes : pd.Index
-        Pandas Index of locations/nodes
+        Pandas Index of locations/nodes.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -4192,9 +4192,9 @@ def add_h2_reconversion(n, nodes, options, spatial, costs):
         - hydrogen_turbine : bool
         - methanation : bool
     spatial : object, optional
-        Object containing spatial information about nodes and their locations
+        Object containing spatial information about nodes and their locations.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
 
     Returns
     -------
@@ -4264,19 +4264,19 @@ def add_h2_storage(n, nodes, options, cavern_types, h2_cavern_file, costs):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     nodes : pd.Index
-        Pandas Index of locations/nodes
+        Pandas Index of locations/nodes.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
         - hydrogen_underground_storage : bool
     cavern_types : list
-        List of underground storage types to consider
+        List of underground storage types to consider.
     h2_cavern_file : str
-        Path to CSV file containing hydrogen cavern storage potentials
+        Path to CSV file containing hydrogen cavern storage potentials.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
 
     Returns
     -------
@@ -4343,16 +4343,16 @@ def add_gas_network(n, gas_pipes, options, costs, gas_input_nodes):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     gas_pipes : pd.DataFrame
-        Dataframe containing gas network data
+        Dataframe containing gas network data.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
         - H2_retrofit : bool
         - gas_network_connectivity_upgrade : int
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
     gas_input_nodes : pd.DataFrame, optional
        DataFrame containing gas input node information (LNG, pipeline, etc.)
 
@@ -4489,15 +4489,15 @@ def add_h2_pipeline_retrofit(n, gas_pipes, options, costs):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     gas_pipes : pd.DataFrame
-        Dataframe containing gas network data
+        Dataframe containing gas network data.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
         - H2_retrofit_capacity_per_CH4 : float
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
 
     Returns
     -------
@@ -4535,9 +4535,9 @@ def add_h2_pipeline_new(n, costs):
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     costs : pd.DataFrame
-        Technology cost assumptions
+        Technology cost assumptions.
 
     Returns
     -------
@@ -4587,25 +4587,25 @@ def add_h2_gas_infrastructure(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network container object
+        The PyPSA network container object.
     costs : pd.DataFrame
         Cost assumptions for different technologies. Must include gas and hydrogen assumptions.
     pop_layout : pd.DataFrame
-        Population layout with index of locations/nodes
+        Population layout with index of locations/nodes.
     h2_cavern_file : str
-        Path to CSV file containing hydrogen cavern storage potentials
+        Path to CSV file containing hydrogen cavern storage potentials.
     h2_pipes_file : str
-        Path to CSV file containing prepped H2 reference grid data
+        Path to CSV file containing prepped H2 reference grid data.
     interzonal_file : str
-        Path to CSV file containing prepped H2 interzonal connection data
+        Path to CSV file containing prepped H2 interzonal connection data.
     cavern_types : list
-        List of underground storage types to consider
+        List of underground storage types to consider.
     clustered_gas_network_file : str, optional
-        Path to CSV file containing gas network data
+        Path to CSV file containing gas network data.
     gas_input_nodes : pd.DataFrame, optional
         DataFrame containing gas input node information (LNG, pipeline, etc.)
     spatial : object, optional
-        Object containing spatial information about nodes and their locations
+        Object containing spatial information about nodes and their locations.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -4620,7 +4620,7 @@ def add_h2_gas_infrastructure(
         - cc_fraction : float
         - methanation : bool
     h2_demand_file : str
-        Path to CSV file containing exogenous hydrogen demand data
+        Path to CSV file containing exogenous hydrogen demand data.
 
     Returns
     -------

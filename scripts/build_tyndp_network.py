@@ -81,7 +81,20 @@ MAP_GRID_TYNDP = {
 IBFI_COORD = (63.0, 25.0)
 
 
-def format_bz_names(s: str):
+def format_bz_names(s: str) -> str:
+    """
+    Standardize bidding zone name formats to Open-TYNDP conventions.
+
+    Parameters
+    ----------
+    s : str
+        Raw bidding zone name string to format.
+
+    Returns
+    -------
+    str
+        Formatted bidding zone name with standardized region codes.
+    """
     s = s.replace("FR-C", "FR15").replace("UK-N", "UKNI").replace("UK", "GB")
     return s
 
@@ -100,7 +113,7 @@ def extract_shape_by_bbox(
 
     Parameters
     ----------
-    gdf : GeoDataFrame
+    gdf : gpd.GeoDataFrame
         GeoDataFrame containing country geometries.
     country : str
         The country code or name to filter.
@@ -117,7 +130,7 @@ def extract_shape_by_bbox(
 
     Returns
     -------
-    GeoDataFrame
+    gpd.GeoDataFrame
         Updated GeoDataFrame with the extracted shape separated.
     """
     country_gdf = gdf.explode().query(f"country == '{country}'").reset_index(drop=True)
@@ -226,9 +239,9 @@ def build_buses(
         Path to bidding zone shape file.
     countries : list[str]
         List of countries to consider.
-    bidding_shapes : GeoDataFrame
+    bidding_shapes : gpd.GeoDataFrame
         A GeoDataFrame including bidding zone geometry, representative point and id.
-    country_shapes : GeoDataFrame
+    country_shapes : gpd.GeoDataFrame
         A GeoDataFrame including country geometry and representative point.
     geo_crs : CRS, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
@@ -329,14 +342,19 @@ def add_links_missing_attributes(
 
     Parameters
     ----------
-        - links (pd.DataFrame): DataFrame of links with 'bus0' and 'bus1' columns.
-        - buses (gpd.GeoDataFrame): GeoDataFrame of electrical buses including country and coordinates.
-        - geo_crs (CRS, optional): Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-        - distance_crs (CRS, optional): Coordinate reference system for distance calculations. Defaults to DISTANCE_CRS.
+    links : pd.DataFrame
+        DataFrame of links with bus0 and bus1 columns.
+    buses : gpd.GeoDataFrame
+        GeoDataFrame of electrical buses including country and coordinates.
+    geo_crs : str, optional
+        Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
+    distance_crs : str, optional
+        Coordinate reference system for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns
     -------
-        - links: DataFrame with added geometry columns.
+    gpd.GeoDataFrame
+        GeoDataFrame of links with added geometry columns.
     """
     links = links.merge(
         buses["geometry"], how="left", left_on="bus0", right_index=True
@@ -418,7 +436,7 @@ def build_links(
     ----------
     grid_fn : str | Path
         Path to bidding zone shape file.
-    buses : GeoDataFrame
+    buses : gpd.GeoDataFrame
         A GeoDataFrame of electrical buses including country and coordinates.
     geo_crs : CRS, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
@@ -427,7 +445,7 @@ def build_links(
 
     Returns
     -------
-    GeoDataFrame
+    gpd.GeoDataFrame
         A GeoDataFrame including NTC from the reference grid.
     """
     links = pd.read_excel(grid_fn)

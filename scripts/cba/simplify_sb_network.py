@@ -15,7 +15,7 @@ Creates the base CBA network with:
 
 **Outputs**
 
-- ``resources/cba/networks/simple_{planning_horizons}.nc``: Simplified network for CBA
+- `resources/cba/networks/simple_{planning_horizons}.nc`: Simplified network for CBA
 """
 
 import logging
@@ -40,7 +40,7 @@ def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: l
     Parameters
     ----------
     n : pypsa.Network
-        Network to modify
+        Network to modify.
     tyndp_conventional_carriers : list
         List of conventional carrier names from TYNDP data, which may include
         fuel sub-types (e.g., 'oil-light', 'oil-heavy'). These are grouped by
