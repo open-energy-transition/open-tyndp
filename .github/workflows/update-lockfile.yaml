@@ -1,16 +1,23 @@
 name: Update locked envs
 on:
+  push:
+    paths:
+    - pixi.toml
+    - pixi.lock
   schedule:
   - cron: "0 8 1,16 * *" # Bi-weekly
   workflow_dispatch:
 
 jobs:
   update-lockfiles:
-    if: ${{ github.ref == 'refs/heads/master' }}
+    if: |
+      (github.event_name == 'schedule' && github.ref == 'refs/heads/master') ||
+      (github.event_name != 'schedule' && github.ref != 'refs/heads/master')
     name: Update lockfiles
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     defaults:
       run:
         shell: bash -l {0}
@@ -32,7 +39,14 @@ jobs:
       if: ${{ !vars.PYPSA_BOT_ID }}
       run: pixi run sync-locks
 
+    - name: Create Commit
+      if: ${{ github.ref != 'refs/heads/master' }}
+      uses: stefanzweifel/git-auto-commit-action@v7
+      with:
+        commit_message: "[github-actions.ci] Update locked envs"
+
     - name: Create Pull Request
+      if: ${{ github.ref == 'refs/heads/master' }}
       uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -41,5 +55,5 @@ jobs:
         body: |
           Automatically generated PR to update the pixi lockfile.
 
-          **Note: Do not merge without manual test execution, unless pypsa-bot has already exported the environment files and triggered tests.**
+          **Note: Do not merge without manual test execution. Either update the branch to trigger tests, or use `workflow_dispatch` to run tests manually. Unlike standard PRs, tests will not run automatically.**
         commit-message: "Update locked environment files for all platforms"
