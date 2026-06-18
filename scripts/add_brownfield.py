@@ -74,7 +74,7 @@ def add_brownfield(
     dc_i_p = dc_i.intersection(n_p.links.index)
     n.links.loc[dc_i_p, "p_nom_min"] = n_p.links.loc[dc_i_p, "p_nom_opt"]
     n.links.loc[dc_i_p, "p_nom_max"] = n.links.loc[dc_i_p, "p_nom_max"].clip(
-        lower=n.links.loc[dc_i, "p_nom_min"]
+        lower=n.links.loc[dc_i_p, "p_nom_min"]
     )
 
     for c in n_p.components[["Link", "Generator", "Store"]]:
