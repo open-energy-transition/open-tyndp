@@ -479,7 +479,12 @@ if __name__ == "__main__":
     planning_horizon = snakemake.wildcards.get("planning_horizons")
     area = snakemake.config.get("cba", {}).get("area")
 
-    if snakemake.rule == "plot_summary_projects_benchmark":
+    if "cba_project" in snakemake.wildcards.keys():
+        output_target = snakemake.output.get("plot_file") or snakemake.output.plot_dir
+        create_plots(snakemake.input.indicators, output_target, planning_horizon, area)
+    elif not snakemake.input.indicators:
+        logger.warning("No indicators input files for summary plot", snakemake.output.plot_file,)
+    else:
         df = pd.concat(map(pd.read_csv, snakemake.input.indicators), ignore_index=True)
         plot_summary_projects_benchmark(
             df, 
@@ -487,6 +492,3 @@ if __name__ == "__main__":
             planning_horizon,
             format_area_subtitle(area)
         )
-    else:
-        output_target = snakemake.output.get("plot_file") or snakemake.output.plot_dir
-        create_plots(snakemake.input.indicators, output_target, planning_horizon, area)
