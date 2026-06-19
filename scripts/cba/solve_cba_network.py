@@ -212,11 +212,11 @@ def optimize_with_rolling_horizon(
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
 
-        # Only dispose Gurobi model if solve succeeded
-        # If solve failed, keep model for infeasibility computation
+        # If solve is successful, dispose of Gurobi model to release license before next rolling horizon
         if status == "ok":
             dispose_gurobi_model(n)
 
+        # If solve failed, hold on to license until after IIS is computed in solve_network()
         if status != "ok":
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
@@ -337,11 +337,11 @@ def solve_network(
             labels = n.model.compute_infeasibilities()
             logger.info(f"Labels:\n{labels}")
             n.model.print_infeasibilities()
-            # Now safe to dispose after computing infeasibilities
+            # Dispose of Gurobi license after computing infeasibilities
             dispose_gurobi_model(n)
             raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
-    # If solve succeeded - dispose the model
+    # Final disposal of Gurobi environment (if needed)
     dispose_gurobi_model(n)
 
 
