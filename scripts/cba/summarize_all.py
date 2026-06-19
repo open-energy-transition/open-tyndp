@@ -143,9 +143,9 @@ def format_area_subtitle(area: str | None) -> str | None:
 def create_plots(
     df: pd.DataFrame,
     output_file: str,
-    planning_horizons=None,
-    area: str = None,
-):
+    planning_horizons: list | None = None,
+    area: str | None = None,
+) -> None:
     """
     Create benchmark plot from all collected indicator files.
 
@@ -157,7 +157,7 @@ def create_plots(
         Output file path for the generated plot.
     planning_horizons : list, optional
         Planning horizons to include. Default is None (derived from df).
-    area : str, optional
+    area : str or None, optional
         Spatial scope identifier passed to format_area_subtitle. Default is None.
     """
     #

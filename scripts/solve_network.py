@@ -1243,11 +1243,11 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
 
 
 def add_offshore_hubs_constraint(
-    n,
+    n: pypsa.Network,
     planning_horizons: int,
-    offshore_zone_trajectories_fn,
+    offshore_zone_trajectories_fn: str,
     renewable_carriers_tyndp: list[str],
-):
+) -> None:
     """
     Add two constraints on offshore hubs.
 
@@ -1430,7 +1430,7 @@ def extra_functionality(
         Simulation timesteps
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight.
-    offshore_zone_trajectories_fn : str, optional
+    offshore_zone_trajectories_fn : str or None, optional
         Path to the file containing the offshore zone potentials trajectories.
         Default is None.
     renewable_carriers_tyndp : list[str], optional
@@ -1675,7 +1675,7 @@ def create_optimization_model(
         Arguments for n.optimize.solve_model()
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn : str, optional
+    offshore_zone_trajectories_fn : str or None, optional
         Path to DataFrame containing the offshore zone potentials trajectories.
         Default is None.
     renewable_carriers_tyndp : list[str], optional

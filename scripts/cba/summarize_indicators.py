@@ -164,9 +164,9 @@ def plot_project_benchmarks(
         DataFrame containing indicator data for one project.
     output_path : Path
         File path where the plot is saved.
-    project_label : str, optional
+    project_label : str or None, optional
         Label shown in the plot title. Default is None (no label).
-    area_subtitle : str, optional
+    area_subtitle : str or None, optional
         Subtitle describing the spatial scope of the assessment. Default is None.
     """
     indicators = sorted(df["indicator"].dropna().unique())
@@ -327,7 +327,7 @@ def create_plots(df, output_file, area):
     logger.info("Benchmark plots saved to %s", output_file)
 
 
-def summarize_indicators(input_files, output_file):
+def summarize_indicators(input_files: list[str], output_file: str) -> None:
     """
     Concatenate multiple CSV files into one using the csv module.
 

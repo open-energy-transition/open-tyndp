@@ -3140,7 +3140,7 @@ def add_ammonia(
         'fixed', 'VOM', 'efficiency', 'lifetime', etc.
     pop_layout : pd.DataFrame
         Population layout data with index of location nodes
-    spatial : Namespace
+    spatial : SimpleNamespace
         Configuration object containing ammonia-specific spatial information
         with attributes:
         - nodes: list of ammonia bus nodes
@@ -3485,7 +3485,13 @@ def add_electricity_grid_connection(n, costs):
     ]
 
 
-def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
+def add_h2_production_tyndp(
+    n: pypsa.Network,
+    nodes: pd.Index,
+    buses_h2: pd.Index,
+    costs: pd.DataFrame,
+    options: dict = {},
+) -> None:
     """
     Add TYNDP electrolyzers for Z1 and Z2, and optionally add SMR, SMR CC and ATR.
 
@@ -3609,7 +3615,12 @@ def add_h2_production_tyndp(n, nodes, buses_h2, costs, options={}):
         )
 
 
-def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
+def add_h2_dres_tyndp(
+    n: pypsa.Network,
+    spatial: SimpleNamespace,
+    buses_h2_z2: SimpleNamespace,
+    costs: pd.DataFrame,
+) -> None:
     """
     Adds TYNDP Z2 DRES electricity buses and electrolyzers.
 
@@ -3617,7 +3628,7 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     ----------
     n : pypsa.Network
         The PyPSA network container object.
-    spatial : object
+    spatial : SimpleNamespace
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     buses_h2_z2 : SimpleNamespace
         Namespace object with spatial nodes of H2 Z2 buses.
@@ -3655,7 +3666,14 @@ def add_h2_dres_tyndp(n, spatial, buses_h2_z2, costs):
     )
 
 
-def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
+def add_h2_reconversion_tyndp(
+    n: pypsa.Network,
+    spatial: SimpleNamespace,
+    nodes: pd.Index,
+    buses_h2: pd.Index,
+    costs: pd.DataFrame,
+    options: dict | None = None,
+) -> None:
     """
     Adds TYNDP H2 reconversion with options for Fuel cells, H2 turbines and methanation.
 
@@ -3663,7 +3681,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
     ----------
     n : pypsa.Network
         The PyPSA network container object.
-    spatial : object
+    spatial : SimpleNamespace
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     nodes : pd.Index
         Pandas Index of electricity node locations/nodes.
@@ -3671,7 +3689,7 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
         Pandas Index of hydrogen nodes to which H2 reconversion technologies will connect.
     costs : pd.DataFrame
         Technology cost assumptions.
-    options : dict, optional
+    options : dict or None, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
         - methanation : bool
@@ -3742,7 +3760,14 @@ def add_h2_reconversion_tyndp(n, spatial, nodes, buses_h2, costs, options=None):
         )
 
 
-def add_h2_grid_tyndp(n, nodes, h2_pipes_file, interzonal_file, costs, options):
+def add_h2_grid_tyndp(
+    n: pypsa.Network,
+    nodes: pd.Index,
+    h2_pipes_file: str,
+    interzonal_file: str,
+    costs: pd.DataFrame,
+    options: dict,
+) -> None:
     """
     Adds TYNDP hydrogen pipelines and interzonal (Z1 <-> Z2) connections.
 
@@ -3943,15 +3968,15 @@ def add_h2_storage_tyndp(
 
 
 def add_h2_topology_tyndp(
-    n,
-    pop_layout,
-    spatial,
-    h2_pipes_file,
-    interzonal_file,
-    costs,
-    options,
-    h2_demand_file,
-):
+    n: pypsa.Network,
+    pop_layout: pd.DataFrame,
+    spatial: SimpleNamespace,
+    h2_pipes_file: str,
+    interzonal_file: str,
+    costs: pd.DataFrame,
+    options: dict,
+    h2_demand_file: str,
+) -> None:
     """
     Add TYNDP H2 topology to the network.
     This adds new single country H2 buses (Z1 + Z2 nodes) and pipeline connections
@@ -3970,7 +3995,7 @@ def add_h2_topology_tyndp(
         The PyPSA network container object.
     pop_layout : pd.DataFrame
         Population layout with index of locations/nodes.
-    spatial : object
+    spatial : SimpleNamespace
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     h2_pipes_file : str
         Path to CSV file containing prepped H2 reference grid data.
@@ -4063,7 +4088,7 @@ def add_h2_topology_tyndp(
     add_h2_demand_tyndp(n=n, h2_demand_file=h2_demand_file)
 
 
-def add_h2_demand_tyndp(n, h2_demand_file):
+def add_h2_demand_tyndp(n: pypsa.Network, h2_demand_file: str) -> None:
     """
     Add exogenous TYNDP hydrogen demand to the network.
 
@@ -5254,7 +5279,7 @@ def add_offshore_hubs_tyndp(
         Series mapping technology names (indexes) to PECD profile file paths (values).
     costs : pd.DataFrame
         Technology costs assumptions.
-    spatial : object, optional
+    spatial : SimpleNamespace
         Object containing spatial information about nodes and their locations.
     options : dict
         Configuration options containing at least:
@@ -5347,7 +5372,7 @@ def attach_gas_load(
         - gas_demand_exogenously
     costs : pd.DataFrame
         Technology costs assumptions.
-    spatial : object
+    spatial : SimpleNamespace
         Object containing spatial information about nodes and their locations.
     nhours : int, optional
         Number of hours over which the annual gas demand is divided. Default is 8760.

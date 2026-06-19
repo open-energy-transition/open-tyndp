@@ -90,7 +90,9 @@ def _apply_original_costs(n, remove_noisy_costs: bool) -> None:
             ].astype(t.static["capital_cost"].dtype)
 
 
-def calculate_total_system_cost(n, remove_noisy_costs: bool = False):
+def calculate_total_system_cost(
+    n: pypsa.Network, remove_noisy_costs: bool = False
+) -> dict:
     """
     Calculate total annualized system cost using PyPSA built-in statistics.
 
@@ -239,7 +241,7 @@ def get_ac_energy_balance(
         PyPSA network object.
     assets : pandas.Series
         Assets for which to calculate energy balance.
-    bus_carrier : str, optional
+    bus_carrier : str or None, optional
         If set, filter energy balance to this bus carrier (e.g. "co2"). Default is None.
     """
     balance = n.statistics.energy_balance(
@@ -265,11 +267,11 @@ def calculate_power_sector_co2_emissions(
     ----------
     n : pypsa.Network
         PyPSA network object.
-    ac_assets : pandas.Series, optional
+    ac_assets : pandas.Series or None, optional
         Pre-filtered Series of electricity-producing assets on AC buses.
         If not provided, it will be computed within the function.
         However, calculating it before calling this function can improve performance.
-    Default is None.
+        Default is None.
 
     Returns
     -------
@@ -388,7 +390,7 @@ def calculate_res_dump_per_carrier(
     return res_dump
 
 
-def get_co2_ets_price(config, planning_horizon) -> float:
+def get_co2_ets_price(config: dict, planning_horizon: int | str) -> float:
     """
     Retrieve the CO2 ETS price for a given planning horizon from the configuration.
 
@@ -416,8 +418,11 @@ def get_co2_ets_price(config, planning_horizon) -> float:
 
 
 def calculate_b1_indicator(
-    n_reference, n_project, method="pint", remove_noisy_costs: bool = False
-):
+    n_reference: pypsa.Network,
+    n_project: pypsa.Network,
+    method: str = "pint",
+    remove_noisy_costs: bool = False,
+) -> tuple[dict, dict]:
     """
     Calculate B1 indicator.
 
@@ -438,8 +443,8 @@ def calculate_b1_indicator(
 
     Returns
     -------
-    dict
-        Dictionary with B1 and component costs.
+    tuple[dict, dict]
+        Tuple of (results, units) dictionaries with B1 and component costs.
     """
     # Calculate full cost breakdowns for reporting
     cost_reference = calculate_total_system_cost(n_reference, remove_noisy_costs)
@@ -532,12 +537,12 @@ def calculate_b2_indicator(
         Dictionary with keys "low", "central", "high" for societal cost of CO2 in EUR/t.
     co2_ets_price : float
         The CO2 ETS price in EUR/t for the relevant planning horizon.
-    ac_assets_reference : pandas.Series, optional
+    ac_assets_reference : pandas.Series or None, optional
         Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
         If not provided, it will be computed within the function.
         Providing these can improve performance by avoiding redundant calculations.
         Default is None.
-    ac_assets_project : pandas.Series, optional
+    ac_assets_project : pandas.Series or None, optional
         Pre-filtered Series of electricity-producing assets on AC buses for the project network.
         If not provided, it will be computed within the function.
         Providing these can improve performance by avoiding redundant calculations.
@@ -669,17 +674,17 @@ def calculate_b4_indicator(
     emission_factors : pd.DataFrame
         DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier and
         with columns for different pollutants and statistics (min, mean, max).
-    ac_assets_reference : pandas.Series, optional
+    ac_assets_reference : pandas.Series or None, optional
         Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
         Default is None.
-    ac_assets_project : pandas.Series, optional
+    ac_assets_project : pandas.Series or None, optional
         Pre-filtered Series of electricity-producing assets on AC buses for the project network.
         Default is None.
 
     Returns
     -------
-    dict
-        Dictionary with B4 indicators for each pollutant:
+    tuple[dict, dict]
+        Tuple of (results, units) dictionaries with B4 indicators for each pollutant:
         - B4{sub}_{pollutant}
     """
 

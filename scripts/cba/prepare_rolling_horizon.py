@@ -55,8 +55,8 @@ def disable_store_cyclicity(
     ----------
     n : pypsa.Network
         Network to modify in place.
-    cyclic_carriers : list[str], optional
-        Carriers that remain cyclic. Defaults to empty list.
+    cyclic_carriers : list[str] or None, optional
+        Carriers that remain cyclic. Default is None (treated as empty list).
     """
     if cyclic_carriers is None:
         cyclic_carriers = []
@@ -265,8 +265,8 @@ def fix_reservoir_soc_at_boundaries(
         Target network for rolling horizon (will be modified in place).
     n_msv : pypsa.Network
         Network with perfect foresight solution.
-    carriers : list[str], optional
-        Carriers to fix. Defaults to ["hydro-reservoir"].
+    carriers : list[str] or None, optional
+        Carriers to fix. Default is None (treated as ["hydro-reservoir"]).
     horizon : int
         Number of snapshots per rolling horizon window. Default 168 (one week at 1H).
     overlap : int

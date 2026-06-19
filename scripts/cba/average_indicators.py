@@ -42,7 +42,9 @@ cyear_weightings = {
 }
 
 
-def average_indicators_csv(input_files, output_file, planning_horizon):
+def average_indicators_csv(
+    input_files: list[str], output_file: str, planning_horizon: int | str
+) -> None:
     """
     Concatenate multiple CSV files into one using the csv module.
 
@@ -57,6 +59,10 @@ def average_indicators_csv(input_files, output_file, planning_horizon):
         Path to output CSV file.
     planning_horizon : int or str
         Planning horizon year used for climatic year weighting.
+
+    Returns
+    -------
+    None
     """
     if not input_files:
         logger.warning("No input files provided")

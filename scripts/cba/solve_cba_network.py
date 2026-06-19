@@ -72,7 +72,7 @@ def extra_functionality(
         The PyPSA network instance with config and params attributes.
     snapshots : pd.DatetimeIndex
         Simulation timesteps.
-    planning_horizons : str, optional
+    planning_horizons : str or None, optional
         The current planning horizon year or None in perfect foresight.
     """
     config = n.config
@@ -115,7 +115,7 @@ def optimize_with_rolling_horizon(
     ----------
     n : pypsa.Network
         The PyPSA network instance to optimize.
-    snapshots : Sequence, optional
+    snapshots : Sequence or None, optional
         Set of snapshots to consider in the optimization. The default is None.
     horizon : int
         Number of snapshots to consider in each iteration. Defaults to 100.
@@ -221,7 +221,7 @@ def solve_network(
         Dictionary of solving parameters.
     solving : dict
         Dictionary of solving options and configuration.
-    planning_horizons : str, optional
+    planning_horizons : str or None, optional
         The current planning horizon year or None in perfect foresight.
     **kwargs
         Additional keyword arguments passed to the solver.

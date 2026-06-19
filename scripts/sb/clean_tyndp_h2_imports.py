@@ -21,7 +21,9 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def match_centroids(df, countries_centroids):
+def match_centroids(
+    df: pd.DataFrame, countries_centroids: gpd.GeoDataFrame
+) -> pd.DataFrame:
     """
     Matches coordinates of country centroids to bus0 countries.
     Manually matches coordinates next to Faroe Island ("FO") to Ammonia import node.
@@ -67,7 +69,7 @@ def match_centroids(df, countries_centroids):
     )
 
 
-def load_import_data(fn, countries_centroids):
+def load_import_data(fn: str, countries_centroids: gpd.GeoDataFrame) -> pd.DataFrame:
     """
     Load and clean TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost for pipeline and shipping.
 

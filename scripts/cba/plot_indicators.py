@@ -102,8 +102,14 @@ def load_and_merge_data(indicators_path, projects_path):
 
 
 def plot_b1_top_projects(
-    df, output_dir, method, colors, output_formats, n_top=20, filename_suffix=""
-):
+    df: pd.DataFrame,
+    output_dir: str | Path,
+    method: str,
+    colors: dict,
+    output_formats: list[str],
+    n_top: int = 20,
+    filename_suffix: str = "",
+) -> None:
     """
     Diverging bar chart showing B1 with CAPEX/OPEX breakdown for top N projects.
 
@@ -266,8 +272,14 @@ def plot_b1_top_projects(
 
 
 def plot_b1_summary(
-    df, output_dir, method, colors, output_formats, total_projects, filename_suffix=""
-):
+    df: pd.DataFrame,
+    output_dir: str | Path,
+    method: str,
+    colors: dict,
+    output_formats: list[str],
+    total_projects: int,
+    filename_suffix: str = "",
+) -> None:
     """
     Summary histogram of B1 values across all projects.
 
@@ -333,8 +345,13 @@ def plot_b1_summary(
 
 
 def plot_b1_capex_vs_opex(
-    df, output_dir, method, colors, output_formats, filename_suffix=""
-):
+    df: pd.DataFrame,
+    output_dir: str | Path,
+    method: str,
+    colors: dict,
+    output_formats: list[str],
+    filename_suffix: str = "",
+) -> None:
     """
     Scatter plot of B1 CAPEX vs OPEX changes per project.
 

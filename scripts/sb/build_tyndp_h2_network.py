@@ -62,7 +62,9 @@ def normalize_starting_grid_h2_nodes(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
+def load_h2_interzonal_connections(
+    fn: str, scenario: str = "GA", pyear: int = 2030
+) -> pd.DataFrame:
     """
     Load and clean H2 interzonal connections.
     Returns the cleaned interzonal connections as dataframe.

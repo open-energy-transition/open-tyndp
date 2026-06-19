@@ -140,9 +140,9 @@ def plot_project_benchmarks(
         DataFrame containing indicator data for one project.
     output_path : Path
         File path where the plot is saved.
-    project_label : str, optional
+    project_label : str or None, optional
         Label shown in the plot title. Default is None (no label).
-    area_subtitle : str, optional
+    area_subtitle : str or None, optional
         Subtitle describing the spatial scope of the assessment. Default is None.
     """
     indicators = sorted(df["indicator"].dropna().unique())
@@ -352,7 +352,12 @@ def plot_project_benchmarks(
     plt.close(fig)
 
 
-def create_plots(indicators_file, output_path, planning_horizon=None, area=None):
+def create_plots(
+    indicators_file: str | Path,
+    output_path: str | Path,
+    planning_horizon: int | str | None = None,
+    area: str | None = None,
+) -> None:
     """
     Create benchmark plots from a per-project or collected indicators file.
 
@@ -363,8 +368,8 @@ def create_plots(indicators_file, output_path, planning_horizon=None, area=None)
     output_path : str or Path
         Output file path or directory for the generated plots.
     planning_horizon : int or str, optional
-        Planning horizon year used to label project. Default is None.
-    area : str, optional
+        Planning horizon used to label project. Default is None.
+    area : str or None, optional
         Spatial scope identifier passed to format_area_subtitle. Default is None.
     """
     output_path = Path(output_path)

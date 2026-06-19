@@ -85,7 +85,7 @@ def add_benchmarking_mappings(
         )
 
 
-def remove_last_day(sws: pd.Series, nhours: int = 24):
+def remove_last_day(sws: pd.Series, nhours: int = 24) -> pd.Series:
     """
     Remove the last day from snapshots to ensure exactly 52 weeks of data.
 
@@ -98,8 +98,8 @@ def remove_last_day(sws: pd.Series, nhours: int = 24):
 
     Returns
     -------
-    tuple[pd.DatetimeIndex, pd.Series]
-        Modified snapshots and snapshot weightings with the last day removed.
+    pd.Series
+        Snapshot weightings with the last day zeroed out.
     """
     sws = sws.copy()
 

@@ -17,7 +17,7 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def collect_indicators_csv(input_files, output_file):
+def collect_indicators_csv(input_files: list[str], output_file: str) -> None:
     """
     Concatenate multiple CSV files into one using the csv module.
 

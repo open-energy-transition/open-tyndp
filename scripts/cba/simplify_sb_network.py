@@ -29,7 +29,9 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def extend_primary_fuel_sources(n: pypsa.Network, tyndp_conventional_carriers: list):
+def extend_primary_fuel_sources(
+    n: pypsa.Network, tyndp_conventional_carriers: list
+) -> None:
     """
     Set infinite capacity for primary fuel source generators.
 
