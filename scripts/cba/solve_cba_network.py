@@ -341,9 +341,6 @@ def solve_network(
             dispose_gurobi_model(n)
             raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
-    # Final disposal of Gurobi environment (if needed)
-    dispose_gurobi_model(n)
-
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
