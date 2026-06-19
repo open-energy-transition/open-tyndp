@@ -104,7 +104,7 @@ def calculate_total_system_cost(n, remove_noisy_costs: bool = False):
     n : pypsa.Network
         PyPSA network (must be solved).
     remove_noisy_costs : bool, optional
-        Whether to remove noisy costs before calculation.
+        Whether to remove noisy costs before calculation. Default is False.
 
     Returns
     -------
@@ -240,7 +240,7 @@ def get_ac_energy_balance(
     assets : pandas.Series
         Assets for which to calculate energy balance.
     bus_carrier : str, optional
-        If set, filter energy balance to this bus carrier (e.g. "co2").
+        If set, filter energy balance to this bus carrier (e.g. "co2"). Default is None.
     """
     balance = n.statistics.energy_balance(
         groupby_time=False,
@@ -269,6 +269,7 @@ def calculate_power_sector_co2_emissions(
         Pre-filtered Series of electricity-producing assets on AC buses.
         If not provided, it will be computed within the function.
         However, calculating it before calling this function can improve performance.
+    Default is None.
 
     Returns
     -------
@@ -431,9 +432,9 @@ def calculate_b1_indicator(
     n_project : pypsa.Network
         Project network.
     method : str, optional
-        Either "pint" or "toot".
+        Either "pint" or "toot". Default is "pint".
     remove_noisy_costs : bool, optional
-        Whether to remove noisy costs before calculation.
+        Whether to remove noisy costs before calculation. Default is False.
 
     Returns
     -------
@@ -535,10 +536,12 @@ def calculate_b2_indicator(
         Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
         If not provided, it will be computed within the function.
         Providing these can improve performance by avoiding redundant calculations.
+        Default is None.
     ac_assets_project : pandas.Series, optional
         Pre-filtered Series of electricity-producing assets on AC buses for the project network.
         If not provided, it will be computed within the function.
         Providing these can improve performance by avoiding redundant calculations.
+        Default is None.
 
     Returns
     -------
@@ -666,6 +669,12 @@ def calculate_b4_indicator(
     emission_factors : pd.DataFrame
         DataFrame with non-CO2 emission factors (kg/MWh) indexed by carrier and
         with columns for different pollutants and statistics (min, mean, max).
+    ac_assets_reference : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses for the reference network.
+        Default is None.
+    ac_assets_project : pandas.Series, optional
+        Pre-filtered Series of electricity-producing assets on AC buses for the project network.
+        Default is None.
 
     Returns
     -------

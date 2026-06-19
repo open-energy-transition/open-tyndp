@@ -53,7 +53,23 @@ def select_value_by_subindex(
 def benchmark_range(
     df: pd.DataFrame, indicator: str, source: str = "TYNDP 2024"
 ) -> tuple[float, float, float] | None:
-    """Return (min, mean, max) range for a benchmark indicator."""
+    """
+    Return (min, mean, max) range for a benchmark indicator.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing benchmark indicator data.
+    indicator : str
+        Indicator key.
+    source : str, optional
+        Data source label to filter on. Default is "TYNDP 2024".
+
+    Returns
+    -------
+    tuple[float, float, float] or None
+        (min, mean, max) values for the indicator, or None if no data.
+    """
     benchmark = df[(df["source"] == source) & (df["indicator"] == indicator)].copy()
     benchmark.subindex = benchmark.subindex.fillna("explicit")
     if benchmark.empty:
@@ -115,7 +131,20 @@ def plot_project_benchmarks(
     project_label: str | None = None,
     area_subtitle: str | None = None,
 ) -> None:
-    """Plot one subplot per indicator with its own y-axis and legend."""
+    """
+    Plot one subplot per indicator with its own y-axis and legend.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing indicator data for one project.
+    output_path : Path
+        File path where the plot is saved.
+    project_label : str, optional
+        Label shown in the plot title. Default is None (no label).
+    area_subtitle : str, optional
+        Subtitle describing the spatial scope of the assessment. Default is None.
+    """
     indicators = sorted(df["indicator"].dropna().unique())
     if not indicators:
         logger.info("No benchmark indicators available to plot")
@@ -324,7 +353,20 @@ def plot_project_benchmarks(
 
 
 def create_plots(indicators_file, output_path, planning_horizon=None, area=None):
-    """Create benchmark plots from a per-project or collected indicators file."""
+    """
+    Create benchmark plots from a per-project or collected indicators file.
+
+    Parameters
+    ----------
+    indicators_file : str or Path
+        Path to the CSV file containing indicator data.
+    output_path : str or Path
+        Output file path or directory for the generated plots.
+    planning_horizon : int or str, optional
+        Planning horizon year used to label project. Default is None.
+    area : str, optional
+        Spatial scope identifier passed to format_area_subtitle. Default is None.
+    """
     output_path = Path(output_path)
     output_dir = output_path if output_path.suffix == "" else output_path.parent
     output_dir.mkdir(parents=True, exist_ok=True)

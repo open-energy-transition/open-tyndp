@@ -106,7 +106,8 @@ def read_pemmdb_data(
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
     required_sheets : list[str], optional
-        List of required technology sheets to read PEMMDB data for.
+        List of required technology sheets to read PEMMDB data for. Default is None,
+        which reads all available sheets.
 
     Returns
     -------

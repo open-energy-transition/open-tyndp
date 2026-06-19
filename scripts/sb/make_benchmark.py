@@ -310,7 +310,20 @@ def _compute_growth_error(
 
 def _compute_missing(df_na: pd.DataFrame, cols: str | list[str] = "carrier") -> int:
     """
-    Calculate missing count, by default, using carriers.
+    Calculate missing count by unique values of the specified column(s).
+
+    Parameters
+    ----------
+    df_na : pd.DataFrame
+        DataFrame containing rows with missing values.
+    cols : str or list[str], optional
+        Column(s) to use for deduplication when counting missing items.
+        Default is "carrier".
+
+    Returns
+    -------
+    int
+        Number of unique missing entries.
     """
     if isinstance(cols, str):
         cols = [cols]
@@ -660,8 +673,10 @@ def compute_overall_accuracy(
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
     options : dict
         Full benchmarking configuration.
-    bus_col_name : str, default "bus"
-        Bus column name.
+    bus_col_name : str, optional
+        Bus column name. Default is "bus".
+    model_col : str, optional
+        Column name identifying Open-TYNDP model results. Default is "Open-TYNDP".
 
     Returns
     -------

@@ -260,7 +260,7 @@ def read_tyndp_electricity_buses(buses_fn: str):
 
     Returns
     -------
-        - buses: Index of electricity buses as used in open tyndp
+        - buses: Index of electricity buses as used in Open-TYNDP
 
     See Also
     --------

@@ -131,10 +131,12 @@ def define_spatial(
         - methanol : dict
         - regional_oil_demand : bool
         - regional_coal_demand : bool
-    buses_h2_file : str
-        Path to the file containing TYNDP H2 buses information.
-    offshore_buses_fn : str
-        Path to the file containing offshore bus data.
+    offshore_buses_fn : str, optional
+        Path to the file containing offshore bus data. Default is None.
+    buses_h2_file : str, optional
+        Path to the file containing TYNDP H2 buses information. Default is None.
+    tyndp_scenario : str, optional
+        TYNDP scenario name. Default is None.
     """
 
     spatial.nodes = nodes
@@ -5345,10 +5347,10 @@ def attach_gas_load(
         - gas_demand_exogenously
     costs : pd.DataFrame
         Technology costs assumptions.
-    spatial : object, optional
+    spatial : object
         Object containing spatial information about nodes and their locations.
-    nhours : int
-        Number of hours over which the annual gas demand is divided.
+    nhours : int, optional
+        Number of hours over which the annual gas demand is divided. Default is 8760.
     """
 
     gas_demand = pd.read_csv(gas_demand_fn, index_col=0) / nhours

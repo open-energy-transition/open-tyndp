@@ -50,16 +50,16 @@ def add_brownfield(
         Previous network to get brownfield from.
     year : int
         Planning year.
-    h2_retrofit : bool
-        Whether to allow hydrogen pipeline retrofitting.
-    h2_retrofit_capacity_per_ch4 : float
-        Ratio of hydrogen to methane capacity for pipeline retrofitting.
-    capacity_threshold : float
-        Threshold for removing assets with low capacity.
-    offshore_hubs_tyndp : bool
-        Whether to enable offshore hubs.
-    h2_topology_tyndp : bool
-        Whether to enable TYNDP Hydrogen topology.
+    h2_retrofit : bool, optional
+        Whether to allow hydrogen pipeline retrofitting. Default is False.
+    h2_retrofit_capacity_per_ch4 : float, optional
+        Ratio of hydrogen to methane capacity for pipeline retrofitting. Default is None.
+    capacity_threshold : float, optional
+        Threshold for removing assets with low capacity. Default is None.
+    offshore_hubs_tyndp : bool, optional
+        Whether to enable offshore hubs. Default is False.
+    h2_topology_tyndp : bool, optional
+        Whether to enable TYNDP Hydrogen topology. Default is False.
     carriers_tyndp : list[str]
         List of TYNDP carriers included in the model.
     """

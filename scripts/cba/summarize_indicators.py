@@ -79,7 +79,25 @@ def benchmark_range(
     source: str = "TYNDP 2024",
     planning_horizon: int = 0,
 ) -> tuple[float, float, float] | None:
-    """Return (min, mean, max) range for a benchmark indicator."""
+    """
+    Return (min, mean, max) range for a benchmark indicator.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing benchmark indicator data.
+    indicator : str
+        Indicator key to look up.
+    source : str, optional
+        Data source label to filter on. Default is "TYNDP 2024".
+    planning_horizon : int, optional
+        Planning horizons to filter on. Default is 0.
+
+    Returns
+    -------
+    tuple[float, float, float] or None
+        (min, mean, max) values for the indicator, or None if no data.
+    """
     benchmark = df[
         (df["source"] == source)
         & (df["indicator"] == indicator)
@@ -137,7 +155,20 @@ def plot_project_benchmarks(
     project_label: str | None = None,
     area_subtitle: str | None = None,
 ) -> None:
-    """Plot one subplot per indicator with its own y-axis and legend."""
+    """
+    Plot one subplot per indicator with its own y-axis and legend.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing indicator data for one project.
+    output_path : Path
+        File path where the plot is saved.
+    project_label : str, optional
+        Label shown in the plot title. Default is None (no label).
+    area_subtitle : str, optional
+        Subtitle describing the spatial scope of the assessment. Default is None.
+    """
     indicators = sorted(df["indicator"].dropna().unique())
     if not indicators:
         logger.info("No benchmark indicators available to plot")

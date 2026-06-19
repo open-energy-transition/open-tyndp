@@ -196,8 +196,9 @@ def clean_data_for_benchmarking(
         Benchmarking table name.
     df : pd.DataFrame
         DataFrame containing report values for benchmarking.
-    mapping : dict
+    mapping : dict, optional
         Carrier mapping from report carrier names to benchmarking carrier names.
+        Default is {} (no renaming applied).
 
     Returns
     -------

@@ -123,6 +123,23 @@ def load_crossborder_sheet(
     filepath: str | Path,
     skiprows: int = 5,
 ) -> pd.DataFrame:
+    """
+    Load the cross-border flow sheet from a TYNDP Market Model output file.
+
+    Parameters
+    ----------
+    sheet_name : str
+        Name of the Excel sheet to read.
+    filepath : str or Path
+        Path to the Excel file.
+    skiprows : int, optional
+        Number of header rows to skip. Default is 5.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with normalized cross-border flow data.
+    """
     df = pd.read_excel(
         filepath,
         sheet_name=sheet_name,

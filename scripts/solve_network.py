@@ -519,6 +519,7 @@ def prepare_network(
     config : dict, default None
         A dictionary containing configuration information, specifically the
         "plotting" key with "nice_names" and "tech_colors" keys for carriers.
+        Default is None.
 
     Returns
     -------
@@ -1429,10 +1430,11 @@ def extra_functionality(
         Simulation timesteps
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight.
-    offshore_zone_trajectories_fn: str, optional
-        Path to the file containing the offshore zone potentials trajectories
+    offshore_zone_trajectories_fn : str, optional
+        Path to the file containing the offshore zone potentials trajectories.
+        Default is None.
     renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        List of TYNDP renewable carriers. Default is [].
 
     Notes
     -----
@@ -1674,9 +1676,10 @@ def create_optimization_model(
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
     offshore_zone_trajectories_fn : str, optional
-        Path to DataFrame containing the offshore zone potentials trajectories
+        Path to DataFrame containing the offshore zone potentials trajectories.
+        Default is None.
     renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        List of TYNDP renewable carriers. Default is [].
     """
     # Add config and params to network for extra_functionality
     n.config = config

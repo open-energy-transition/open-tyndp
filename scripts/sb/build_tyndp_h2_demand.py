@@ -139,7 +139,25 @@ def read_h2_excel(
 
 
 def get_file_path(fn: str, scenario: str, pyear: int, h2_zone: int = None) -> Path:
-    """Construct file path for given planning year and zone."""
+    """
+    Construct file path for given planning year and zone.
+
+    Parameters
+    ----------
+    fn : str
+        Base directory path containing scenario subdirectories.
+    scenario : str
+        Scenario name.
+    pyear : int
+        Planning year.
+    h2_zone : int, optional
+        H2 zone identifier required for "DE" and "GA" scenarios. Default is None.
+
+    Returns
+    -------
+    Path
+        Path to the H2 demand Excel file for the given scenario and year.
+    """
 
     if scenario == "NT":
         return Path(
