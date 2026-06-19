@@ -17,7 +17,6 @@ they apply to the dispatch.
 """
 
 import copy
-import gc
 import importlib
 import logging
 import os
@@ -79,13 +78,8 @@ def dispose_gurobi_model(n: pypsa.Network) -> None:
                 gurobi_model = n.model.solver_model
                 if hasattr(gurobi_model, "dispose"):
                     gurobi_model.dispose()
-                # Also try to dispose the environment
-                if hasattr(gurobi_model, "_env") and gurobi_model._env is not None:
-                    gurobi_model._env.dispose()
                 # Clear the solver_model reference
                 n.model.solver_model = None
-            # Force garbage collection to ensure cleanup
-            gc.collect()
         except Exception as e:
             logger.warning(f"Failed to dispose Gurobi environment: {e}")
 
