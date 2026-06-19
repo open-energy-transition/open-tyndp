@@ -326,20 +326,23 @@ def solve_network(
         logger.warning(
             f"Solving status '{status}' with termination condition '{condition}'"
         )
+        # If infeasible and using Gurobi or Xpress, compute and log infeasibilities before raising error
+        if "infeasible" in condition:
+            solver_name = solving["solver"]["name"]
+            if solver_name in ["gurobi", "xpress"]:
+                labels = n.model.compute_infeasibilities()
+                logger.info(f"Labels:\n{labels}")
+                n.model.print_infeasibilities()
+                # Dispose of Gurobi license after computing infeasibilities
+                dispose_gurobi_model(n)
+                raise RuntimeError(
+                    "Solving status 'infeasible'. Infeasibilities computed."
+                )
+        raise RuntimeError(
+            f"Solving status '{status}' with termination condition '{condition}'."
+        )
+
     check_objective_value(n, solving)
-
-    if "warning" in condition:
-        raise RuntimeError("Solving status 'warning'. Discarding solution.")
-
-    if "infeasible" in condition:
-        solver_name = solving["solver"]["name"]
-        if solver_name in ["gurobi", "xpress"]:
-            labels = n.model.compute_infeasibilities()
-            logger.info(f"Labels:\n{labels}")
-            n.model.print_infeasibilities()
-            # Dispose of Gurobi license after computing infeasibilities
-            dispose_gurobi_model(n)
-            raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
 if __name__ == "__main__":
