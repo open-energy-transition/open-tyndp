@@ -55,14 +55,14 @@ def dispose_gurobi_model(n: pypsa.Network) -> None:
     """
     Explicitly dispose of Gurobi environment.
 
-    This is critical for WLS license which doesn't allow multiple environments
-    in the same process, even sequentially. Without it, if using Gurobi, what happens is:
+    This function is relevant when using Gurobi for the CBA rolling horizon optimization.
+    Without this function, what happens is:
     - First solve (project 1's first rolling horizon): Gurobi environment is created and holds the license.
     - After solve completes, environment is not disposed, so license is still held.
-    - Second solve (project 2's first rolling horizon): Gurobi tries to create a new environment,
+    - Second solve (project 1's second rolling horizon, or project 2's first rolling horizon): Gurobi tries to create a new environment,
     but WLS license server denies it because the previous environment is still active.
-    This results in an error and the second solve fails immediately with a license error,
-    even though the first solve completed successfully.
+
+    This situation results the second solve failing with a license error, causing the workflow to fail.
 
     What this function does is explicitly dispose of the Gurobi model and environment after each solve,
     which releases the license and allows subsequent solves to create new environments without issue.
@@ -76,6 +76,7 @@ def dispose_gurobi_model(n: pypsa.Network) -> None:
             # Access the Gurobi model if it exists
             if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
                 gurobi_model = n.model.solver_model
+                # Dispose of the Gurobi model to release the license
                 if hasattr(gurobi_model, "dispose"):
                     gurobi_model.dispose()
                 # Clear the solver_model reference
