@@ -555,6 +555,18 @@ rule summarize_indicators_per_project:
     script:
         "../scripts/cba/summarize_indicators.py"
 
+rule plot_summary_projects_benchmark:
+    input:
+        indicators=lambda w: expand(
+            rules.average_indicators_per_project_and_planning_horizon.output.indicators,
+            planning_horizons=[w.planning_horizons],
+            cba_project=cba_projects(w),
+            run=[w.run],
+        ),
+    output:
+        plot_file=RESULTS + "cba/ensemble_plots/summary_benchmark_{planning_horizons}.png",
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
 
 rule summarize_all_indicators:
     input:
@@ -740,6 +752,13 @@ def cba_ensemble_inputs(w):
             rules.summarize_all_indicators.output.plot_file,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
+            run=runs,
+        )
+    )
+    inputs.extend(
+        expand(
+            rules.plot_summary_projects_benchmark.output.plot_file,
+            planning_horizons=config["cba"]["planning_horizons"],
             run=runs,
         )
     )
