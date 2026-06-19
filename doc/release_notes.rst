@@ -35,6 +35,8 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
+* Dispose of Gurobi model after each rolling horizon optimization to prevent license conflicts (https://github.com/open-energy-transition/open-tyndp/pull/756). 
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 (https://github.com/open-energy-transition/open-tyndp/pull/711).
