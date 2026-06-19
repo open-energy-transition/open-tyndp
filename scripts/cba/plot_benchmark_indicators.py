@@ -349,10 +349,18 @@ def plot_summary_projects_benchmark(
         pairs = []
         for project_id in project_ids:
             project_df = average_df[average_df["project_id"] == project_id]
-            model = benchmark_range(project_df, indicator, source="Open-TYNDP")
-            bench = benchmark_range(project_df, indicator, source="TYNDP 2024")
-            if model is not None and bench is not None:
-                pairs.append((bench[1], model[1]))
+            if indicator == "B2a_societal_cost_variation":
+                levels = ["low", "central", "high"]
+                for level in levels:
+                    model_val = select_value_by_subindex(project_df, indicator, "Open-TYNDP", level)
+                    bench_val = select_value_by_subindex(project_df, indicator, "TYNDP 2024", level)
+                    if model_val is not None and bench_val is not None:
+                        pairs.append((bench_val, model_val, level))
+            else:                                                         
+                model = benchmark_range(project_df, indicator, source="Open-TYNDP")
+                bench = benchmark_range(project_df, indicator, source="TYNDP 2024")
+                if model is not None and bench is not None:
+                    pairs.append((bench[1], model[1], None))
         if pairs:
             plot_items[indicator] = pairs
     if not plot_items:
@@ -369,10 +377,20 @@ def plot_summary_projects_benchmark(
     )
 
     for ax, (indicator, pairs) in zip(axes.flatten(), plot_items.items()):
-        xs, ys = zip(*pairs)
+        xs = [p[0] for p in pairs]
+        ys = [p[1] for p in pairs]
+        if indicator == "B2a_societal_cost_variation":
+            level_colors = {
+                "low": "tab:orange",
+                "central": "tab:green",
+                "high": "tab:red",
+            }
+            colors = [level_colors[level] for _, _, level in pairs]
+        else:
+            colors = "tab:blue"
         ax.scatter(
             xs, ys,
-            s=20, color="tab:blue", alpha=0.6,
+            s=20, color=colors, alpha=0.6,
             edgecolor="white", linewidth=0.5,
         )
         ax.axline((0, 0), slope=1, color="black", linestyle="--", linewidth=1, alpha=0.5)
@@ -483,7 +501,7 @@ if __name__ == "__main__":
         output_target = snakemake.output.get("plot_file") or snakemake.output.plot_dir
         create_plots(snakemake.input.indicators, output_target, planning_horizon, area)
     elif not snakemake.input.indicators:
-        logger.warning("No indicators input files for summary plot", snakemake.output.plot_file,)
+        logger.warning("No indicators input files for summary plot: %s", snakemake.output.plot_file)
     else:
         df = pd.concat(map(pd.read_csv, snakemake.input.indicators), ignore_index=True)
         plot_summary_projects_benchmark(
