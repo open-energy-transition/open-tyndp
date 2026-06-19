@@ -18,7 +18,7 @@ https://conda.anaconda.org/conda-forge/linux-64/libsqlite-3.53.2-h0c1763c_0.cond
 https://conda.anaconda.org/conda-forge/linux-64/libnsl-2.0.1-hb9d3cd8_1.conda#d864d34357c3b65a4b731f78c0801dc4
 https://conda.anaconda.org/conda-forge/linux-64/liblzma-5.8.3-hb03c661_0.conda#b88d90cad08e6bc8ad540cb310a761fb
 https://conda.anaconda.org/conda-forge/linux-64/libffi-3.5.2-h3435931_0.conda#a360c33a5abe61c07959e449fa1453eb
-https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.8.1-hecca717_0.conda#93764a5ca80616e9c10106cdaec92f74
+https://conda.anaconda.org/conda-forge/linux-64/libexpat-2.8.1-hecca717_1.conda#b24d3c612f71e7aa74158d92106318b2
 https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_6.conda#4a13eeac0b5c8e5b8ab496e6c4ddd829
 https://conda.anaconda.org/conda-forge/linux-64/ld_impl_linux-64-2.45.1-default_hbd61a6d_102.conda#18335a698559cdbcd86150a48bf54ba6
 https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-hda65f42_9.conda#d2ffd7602c02f2b316fd921d39876885
@@ -503,9 +503,9 @@ https://conda.anaconda.org/conda-forge/noarch/cached-property-1.5.2-hd8ed1ab_1.t
 https://conda.anaconda.org/conda-forge/linux-64/h5py-3.16.0-nompi_py312ha4f8f14_102.conda#b270340809d19ae40ff9913f277b803a
 https://conda.anaconda.org/conda-forge/noarch/h5netcdf-1.8.1-pyhd8ed1ab_0.conda#ca7f9ba8762d3e360e47917a10e23760
 https://conda.anaconda.org/conda-forge/noarch/jmespath-1.1.0-pyhcf101f3_1.conda#cc73a9bd315659dc5307a5270f44786f
-https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.26-pyhd8ed1ab_0.conda#6fe1684bf107ce5d814e9ee39b8add2d
+https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.27-pyhd8ed1ab_0.conda#b2d0ce05d097824ccfa3ab6f52535d0f
 https://conda.anaconda.org/conda-forge/noarch/s3transfer-0.18.0-pyhd8ed1ab_0.conda#ebdb9fd5092c50620a226c7e23daab3b
-https://conda.anaconda.org/conda-forge/noarch/boto3-1.43.26-pyhd8ed1ab_0.conda#ce1b275cf8ba620ff0d5a5f4aa85a52b
+https://conda.anaconda.org/conda-forge/noarch/boto3-1.43.27-pyhd8ed1ab_0.conda#4b9a16cd57559083d52f7a50071dc463
 https://conda.anaconda.org/conda-forge/noarch/arcosparse-0.5.1-pyhd8ed1ab_0.conda#3fab2110d93a828f88ace66e418d6ef8
 https://conda.anaconda.org/conda-forge/noarch/copernicusmarine-2.4.1-pyhd8ed1ab_0.conda#690847cdb78772816f430fc91490f915
 https://conda.anaconda.org/conda-forge/noarch/pyshp-3.0.12-pyhcf101f3_0.conda#8e6ba36f4f355b2be42009a13b6e8f29
