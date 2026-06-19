@@ -33,6 +33,8 @@ Upcoming Open-TYNDP Release
   - Add ``include_objective_constant`` and ``assign_all_duals`` to solving config validator.
   - Add ``gurobi-simplex`` as solver option.
 
+* Add CBA per horizon summary plots for each indicator benchmarking TYNDP and Open-TYNDP (https://github.com/open-energy-transition/open-tyndp/pull/753).
+
 **Bugfixes and Compatibility**
 
 **Documentation**
