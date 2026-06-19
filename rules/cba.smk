@@ -555,6 +555,7 @@ rule summarize_indicators_per_project:
     script:
         "../scripts/cba/summarize_indicators.py"
 
+
 rule plot_summary_projects_benchmark:
     input:
         indicators=lambda w: expand(
@@ -564,9 +565,11 @@ rule plot_summary_projects_benchmark:
             run=[w.run],
         ),
     output:
-        plot_file=RESULTS + "cba/ensemble_plots/summary_benchmark_{planning_horizons}.png",
+        plot_file=RESULTS
+        + "cba/ensemble_plots/summary_benchmark_{planning_horizons}.png",
     script:
         "../scripts/cba/plot_benchmark_indicators.py"
+
 
 rule summarize_all_indicators:
     input:
