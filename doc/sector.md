@@ -216,34 +216,6 @@ Having downloaded the necessary data,
 
 ::: build_snapshot_weightings
 
-## Rule `build_tyndp_h2_network`
-
-::: build_tyndp_h2_network
-
-## Rule `clean_tyndp_h2_imports`
-
-::: clean_tyndp_h2_imports
-
-## Rule `build_tyndp_h2_imports`
-
-::: build_tyndp_h2_imports
-
-## Rule `build_tyndp_offshore_hubs`
-
-::: build_tyndp_offshore_hubs
-
-## Rule `build_tyndp_h2_demand`
-
-::: build_tyndp_h2_demand
-
-## Rule `group_tyndp_conventionals`
-
-::: group_tyndp_conventionals
-
-## Rule `build_tyndp_gas_demand`
-
-::: build_tyndp_gas_demand
-
 ## Rule `prepare_sector_network`
 
 ::: prepare_sector_network

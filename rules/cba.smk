@@ -23,6 +23,9 @@ wildcard_constraints:
     run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
 
 
+# Retrieve
+##########
+
 if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
     "source"
 ] in ARCHIVE_SOURCES:
@@ -138,6 +141,10 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
                     with zf.open(member) as src, out_path.open("wb") as dst:
                         shutil.copyfileobj(src, dst)
 
+
+
+# Build MSV
+############
 
 
 # read in transmission and storage projects from excel sheets
@@ -346,6 +353,10 @@ rule solve_cba_msv_extraction:
         "../scripts/cba/solve_cba_msv_extraction.py"
 
 
+# Build rolling
+################
+
+
 # Prepare network for rolling horizon: disable seasonal cyclicity, apply marginal storage value
 rule prepare_rolling_horizon:
     input:
@@ -427,6 +438,10 @@ rule solve_cba_network:
         scripts("cba/solve_cba_network.py")
 
 
+# Postprocess
+##############
+
+
 # Compute CBA indicators comparing reference and project networks
 rule make_indicators:
     input:
@@ -495,6 +510,10 @@ rule plot_indicators:
         plotting=config_provider("plotting"),
     script:
         scripts("cba/plot_indicators.py")
+
+
+# Benchmarking
+###############
 
 
 rule plot_cba_benchmark:
@@ -704,6 +723,10 @@ def collect_cba_scenario_inputs(w):
         )
 
     return inputs
+
+
+# Collect
+##########
 
 
 # collect files to be stored in the scenario directory, e.g., NT-cy1995
