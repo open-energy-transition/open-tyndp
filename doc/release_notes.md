@@ -1009,7 +1009,7 @@
       full year(s) and then sliced to the subannual periods. This is to align
       better with the normalization process that uses annual EIA statistics.
 
-    - In [time_aggregation][], the resampling will now be applied separately
+    - In [build_snapshot_weightings][], the resampling will now be applied separately
       for each year covered in the snapshots. This prevents snapshots that
       overflow into the next year, which simplifies running non-contiguous
       periods.
@@ -1237,12 +1237,12 @@
 * Fail on solving status 'warning' because results are likely not valid.
   ([#1591](https://github.com/PyPSA/pypsa-eur/pull/1591))
 
-* Bugfix in [time_aggregation][]. The resampling produces a contiguous date
+* Bugfix in [build_snapshot_weightings][]. The resampling produces a contiguous date
   range. In case the original index was not contiguous, all rows with zero
   weight must be dropped (corresponding to time steps not included in the
   original snapshots). ([#1613](https://github.com/PyPSA/pypsa-eur/pull/1613))
 
-* Bugfix in [time_aggregation][]. Avoid that aggregated snapshot indices land
+* Bugfix in [build_snapshot_weightings][]. Avoid that aggregated snapshot indices land
   on February 29th in leap years when `enable: drop_leap_day: true`.
   ([#1613](https://github.com/PyPSA/pypsa-eur/pull/1613))
 
@@ -1506,7 +1506,7 @@
   [prepare_sector_network][] to correctly offset the corresponding oil
   emissions. ([#1410](https://github.com/PyPSA/pypsa-eur/pull/1410))
 
-* Add `{sector_opts}` wildcard to [time_aggregation][].
+* Add `{sector_opts}` wildcard to [build_snapshot_weightings][].
   ([#1307](https://github.com/PyPSA/pypsa-eur/pull/1307))
 
 * Resolved a problem where excluding certain countries from `countries`
@@ -2030,7 +2030,7 @@
   ([#1064](https://github.com/PyPSA/pypsa-eur/pull/1064))
 
 * Time aggregation for sector-coupled networks is now its own rule
-  [time_aggregation][]. Time aggregation is constant over planning horizons
+  [build_snapshot_weightings][]. Time aggregation is constant over planning horizons
   of the same network when using time step segmentation.
   ([#1065](https://github.com/PyPSA/pypsa-eur/pull/1065),
   [#1075](https://github.com/PyPSA/pypsa-eur/pull/1075))

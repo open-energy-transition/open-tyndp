@@ -30,43 +30,43 @@ The following datasets are ingested and processed by dedicated `build_tyndp_*` S
 
 **[PEMMDB 2.5](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PEMMDB2.zip)**
 
-: Installed generation and storage capacities, must-run constraints, and per-unit cost
+Installed generation and storage capacities, must-run constraints, and per-unit cost
 assumptions by country and technology. Also provides efficiency and variable O&M parameters
 for conventional thermal generation sourced from ERAA 2025.
 
 **[PECD 3.1](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip)**
 
-: Hourly capacity factor time series for wind (onshore and offshore) and solar PV, derived
+Hourly capacity factor time series for wind (onshore and offshore) and solar PV, derived
 from ERA5 reanalysis data. Profiles are provided per climate year and TYNDP bidding zone.
 
 **[Hydro Inflows](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydro-Inflows.zip)**
 
-: Hourly inflow profiles for reservoir and run-of-river hydro plants, used to constrain
+Hourly inflow profiles for reservoir and run-of-river hydro plants, used to constrain
 hydro dispatch across planning horizons. Profiles are provided per climate year and TYNDP bidding zone.
 
 **[Demand Profiles](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Demand-Profiles.zip)**
 
-: Hourly electricity and hydrogen demand profiles by country, interpolated to the target
+Hourly electricity and hydrogen demand profiles by country, interpolated to the target
 planning horizon. Where public profiles do not match fixed values in the Market Model output
 files, the output files are used as the reference.
 
 **[Line Data](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Line-data.zip)**
 
-: Electricity and hydrogen transmission network topology for both the reference grid and
+Electricity and hydrogen transmission network topology for both the reference grid and
 candidate lines. Electricity and H₂ line data are used from 2030 onward.
 
 **[Investment Candidates](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Investment-Datasets.zip)**
 
-: Optional extendable transmission and storage assets for the 2035 and 2040 planning horizons.
+Optional extendable transmission and storage assets for the 2035 and 2040 planning horizons.
 
 **[Hydrogen](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/Hydrogen.zip)**
 
-: Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, and
+Hydrogen storage parameters, steam methane reforming (SMR and SMR+CCS) capacities, and
 import pipeline assumptions.
 
 **[Supply Tool](https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-outputs/20240518-Supply-Tool.xlsm.zip)**
 
-: Methane demand and biomass potentials for energy carriers modelled in Open-TYNDP. This is
+Methane demand and biomass potentials for energy carriers modelled in Open-TYNDP. This is
 a scenario output file from the TYNDP 2024 process used as a fixed input.
 
 !!! note

@@ -17,7 +17,6 @@
 [![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
 [![REUSE](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
 
-|
 
 !!! warning
     Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open TYNDP was successfully benchmarked against TYNDP 2024 (see [results](https://open-tyndp.openenergytransition.org)). The current [development status](#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
@@ -67,7 +66,6 @@ Within this ecosystem, independent organisations can develop their own private r
 
 Each organisation in this open-source ecosystem remains fully independent of the shared foundation, maintaining its own governance structure and decision-making processes regarding its codebase. Organisations are also free to keep parts of their code and sensitive data completely private.
 
-|
 
 ## Development status {#development-status}
 
@@ -108,7 +106,6 @@ The back-casting of the 2024 TYNDP cycle involves developing new features based 
 </tbody>
 </table>
 
-|
 
 ### Features in development
 
@@ -153,7 +150,6 @@ While multiple TYNDP features are already introduced to the Open-TYNDP model, th
 !!! note "See also"
     See also the [GitHub repository issues](https://github.com/open-energy-transition/open-tyndp/issues) for a comprehensive list of currently open issues.
 
-|
 
 ## Citing Open-TYNDP
 
@@ -161,7 +157,6 @@ If you want to cite a specific Open-TYNDP version, since v0.6, each release is a
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19372053.svg)](https://doi.org/10.5281/zenodo.19372053)
 
-|
 
 Versions v0.5 and v0.5.1 are archived at [10.5281/zenodo.18494362](https://doi.org/10.5281/zenodo.18494362).
 
@@ -169,7 +164,6 @@ If you use Open-TYNDP in your research, please cite it as shown on Zenodo or usi
 
 This work builds upon [PyPSA-Eur](https://github.com/pypsa/pypsa-eur) and follows the methodology described in [ENTSO-E's and entsog's TYNDP 2024 Scenarios Methodology Report](https://2024.entsos-tyndp-scenarios.eu/scenarios-methodology-report/).
 
-|
 
 ## Background on PyPSA-Eur
 
@@ -325,4 +319,3 @@ If you want to cite a specific PyPSA-Eur version, each release of PyPSA-Eur is s
 
 The PyPSA-Eur workflow is continuously tested for Linux, macOS and Windows (WSL only).
 
-|
