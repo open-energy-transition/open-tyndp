@@ -64,13 +64,13 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
     "source"
 ] in ARCHIVE_SOURCES:
 
-    rule retreive_cba_guidelines_reference_projects:
+    rule retrieve_cba_guidelines_reference_projects:
         input:
             file=storage(CBA_GUIDELINES_DATASET["url"]),
         output:
             file=f"{CBA_GUIDELINES_DATASET['folder']}/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         log:
-            "logs/retreive_cba_guidelines_reference_projects.log",
+            "logs/retrieve_cba_guidelines_reference_projects.log",
         run:
             copy2(input["file"], output["file"])
 
@@ -159,7 +159,7 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
-        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
+        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
         # transmission projects (no storage). In order to confirm, we should check
@@ -274,7 +274,7 @@ def get_elec_project_build_years(w):
 rule fix_reference_sb_to_cba:
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
-        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
+        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         buses=rules.build_tyndp_network.output.substations_geojson,
     output:

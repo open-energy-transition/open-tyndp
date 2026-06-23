@@ -15,7 +15,7 @@ Downloads the CBA project explorer dataset, containing project definitions.
 
 Downloads non-CO₂ emission factors (NOx, SO₂, PM, etc.) used to compute B4 indicators.
 
-### Rule `retreive_cba_guidelines_reference_projects`
+### Rule `retrieve_cba_guidelines_reference_projects`
 
 Downloads the CBA Implementation Guidelines reference project table
 (`table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`) used to reconcile SB investments
