@@ -20,7 +20,7 @@
 |
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. The current [development status](#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
+    Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open TYNDP was successfully benchmarked against TYNDP 2024 (see [results](https://open-tyndp.openenergytransition.org)). The current [development status](#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
 
 
 This repository introduces the open-source model of the Open-TYNDP research and innovation project, which is a collaboration between [Open Energy Transition (OET)](https://openenergytransition.org/) and the European Network of Transmission System Operators for Electricity (ENTSO-E).
@@ -72,7 +72,7 @@ Each organisation in this open-source ecosystem remains fully independent of the
 ## Development status {#development-status}
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [limitations](limitations.md) are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its benchmarking is ongoing. The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. This [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
+    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete and the results can be viewed [online](https://open-tydnp.openenergytransition.org). The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. This [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
 ### Already implemented features
 
