@@ -167,9 +167,9 @@ def build_shapes(
         Path to bidding zone shape file.
     countries : list[str]
         List of countries to consider.
-    geo_crs : CRS, optional
+    geo_crs : str, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-    distance_crs : CRS, optional
+    distance_crs : str, optional
         Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns
@@ -243,7 +243,7 @@ def build_buses(
         A GeoDataFrame including bidding zone geometry, representative point and id.
     country_shapes : gpd.GeoDataFrame
         A GeoDataFrame including country geometry and representative point.
-    geo_crs : CRS, optional
+    geo_crs : str, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
 
     Returns
@@ -438,9 +438,9 @@ def build_links(
         Path to bidding zone shape file.
     buses : gpd.GeoDataFrame
         A GeoDataFrame of electrical buses including country and coordinates.
-    geo_crs : CRS, optional
+    geo_crs : str, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-    distance_crs : CRS, optional
+    distance_crs : str, optional
         Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns

@@ -118,9 +118,9 @@ def optimize_with_rolling_horizon(
     snapshots : Sequence or None, optional
         Set of snapshots to consider in the optimization. The default is None.
     horizon : int
-        Number of snapshots to consider in each iteration. Defaults to 100.
+        Number of snapshots to consider in each iteration. Default is 100.
     overlap : int
-        Number of snapshots to overlap between two iterations. Defaults to 0.
+        Number of snapshots to overlap between two iterations. Default is 0.
     **kwargs
         Keyword arguments used by `linopy.Model.solve`, such as `solver_name`.
 
