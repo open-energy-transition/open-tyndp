@@ -330,13 +330,17 @@ def plot_summary_projects_benchmark(
     area_subtitle: str | None = None,
 ) -> None:
     """Plot one summary subplot per indicator for each horizon"""
-    average_df = df[
-        ((df["source"] == "Open-TYNDP") & (df["cyear"] == "weighted-average"))
-        | (df["source"] == "TYNDP 2024")
-    ]
-    if average_df[average_df["source"] == "Open-TYNDP"].empty:
-        logger.info("No Open-TYNDP weighted-average data to plot")
+    model_df = df[df["source"] == "Open-TYNDP"]
+    if model_df.empty:
+        logger.info("No Open-TYNDP data to plot")
         return
+    weighted_df = model_df[model_df["cyear"] == "weighted-average"]
+    if not weighted_df.empty:
+        model_df = weighted_df
+
+    average_df = pd.concat(
+        [model_df, df[df["source"] == "TYNDP 2024"]], ignore_index=True
+    )
 
     indicators = sorted(
         average_df.loc[average_df["source"] == "Open-TYNDP", "indicator"]
