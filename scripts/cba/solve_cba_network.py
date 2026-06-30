@@ -51,6 +51,40 @@ from scripts.solve_network import (
 logger = logging.getLogger(__name__)
 
 
+def dispose_gurobi_model(n: pypsa.Network) -> None:
+    """
+    Explicitly dispose of Gurobi environment.
+
+    This function is relevant when using Gurobi for the CBA rolling horizon optimization.
+    Without this function, what happens is:
+    - First solve (project 1's first rolling horizon): Gurobi environment is created and holds the license.
+    - After solve completes, environment is not disposed, so license is still held.
+    - Second solve (project 1's second rolling horizon, or project 2's first rolling horizon): Gurobi tries to create a new environment,
+    but WLS license server denies it because the previous environment is still active.
+
+    This situation results the second solve failing with a license error, causing the workflow to fail.
+
+    What this function does is explicitly dispose of the Gurobi model and environment after each solve,
+    which releases the license and allows subsequent solves to create new environments without issue.
+
+    This function should only be called after:
+    - A successful solve, OR
+    - Computing and printing infeasibilities for a failed solve
+    """
+    if hasattr(n, "model") and n.model is not None:
+        try:
+            # Access the Gurobi model if it exists
+            if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
+                gurobi_model = n.model.solver_model
+                # Dispose of the Gurobi model to release the license
+                if hasattr(gurobi_model, "dispose"):
+                    gurobi_model.dispose()
+                # Clear the solver_model reference
+                n.model.solver_model = None
+        except Exception as e:
+            logger.warning(f"Failed to dispose Gurobi environment: {e}")
+
+
 def extra_functionality(
     n: pypsa.Network,
     snapshots: pd.DatetimeIndex,
@@ -177,6 +211,12 @@ def optimize_with_rolling_horizon(
                 c.static.loc[comp, "e_sum_max"] = window_energy
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
+
+        # If solve is successful, dispose of Gurobi model to release license before next rolling horizon
+        if status == "ok":
+            dispose_gurobi_model(n)
+
+        # If solve failed, hold on to license until after IIS is computed in solve_network()
         if status != "ok":
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
@@ -191,6 +231,11 @@ def optimize_with_rolling_horizon(
                 retry_kwargs["solver_name"] = fallback_solver["name"]
                 retry_kwargs["solver_options"] = fallback_solver.get("options", {})
                 status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
+
+                # Only dispose after fallback if it succeeded
+                if status == "ok":
+                    dispose_gurobi_model(n)
+
             if status != "ok":
                 logger.warning(f"Fallback also failed: {status} / {condition}")
                 return status, condition
@@ -281,18 +326,23 @@ def solve_network(
         logger.warning(
             f"Solving status '{status}' with termination condition '{condition}'"
         )
+        # If infeasible and using Gurobi or Xpress, compute and log infeasibilities before raising error
+        if "infeasible" in condition:
+            solver_name = solving["solver"]["name"]
+            if solver_name in ["gurobi", "xpress"]:
+                labels = n.model.compute_infeasibilities()
+                logger.info(f"Labels:\n{labels}")
+                n.model.print_infeasibilities()
+                # Dispose of Gurobi license after computing infeasibilities
+                dispose_gurobi_model(n)
+                raise RuntimeError(
+                    "Solving status 'infeasible'. Infeasibilities computed."
+                )
+        raise RuntimeError(
+            f"Solving status '{status}' with termination condition '{condition}'."
+        )
+
     check_objective_value(n, solving)
-
-    if "warning" in condition:
-        raise RuntimeError("Solving status 'warning'. Discarding solution.")
-
-    if "infeasible" in condition:
-        solver_name = solving["solver"]["name"]
-        if solver_name in ["gurobi", "xpress"]:
-            labels = n.model.compute_infeasibilities()
-            logger.info(f"Labels:\n{labels}")
-            n.model.print_infeasibilities()
-            raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
 if __name__ == "__main__":

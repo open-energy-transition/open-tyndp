@@ -35,6 +35,8 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
+* Fix CBA workflow to (a) release Gurobi license after each successful rolling horizon optimization or after computing infeasibilities and (b) crash if rolling horizon fails when using HiGHS (https://github.com/open-energy-transition/open-tyndp/pull/756). 
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 (https://github.com/open-energy-transition/open-tyndp/pull/711).
