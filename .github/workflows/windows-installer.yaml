@@ -28,7 +28,7 @@ jobs:
     env:
       TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         ref: ${{ env.TAG || github.event.issue.pull_request && format('refs/pull/{0}/head', github.event.issue.number) }}
         fetch-depth: 0
