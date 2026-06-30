@@ -323,6 +323,136 @@ def plot_project_benchmarks(
     plt.close(fig)
 
 
+def plot_summary_projects_benchmark(
+    df: pd.DataFrame,
+    output_path: Path,
+    planning_horizon: str | None = None,
+    area_subtitle: str | None = None,
+) -> None:
+    """Plot one summary subplot per indicator for each horizon"""
+    model_df = df[df["source"] == "Open-TYNDP"]
+    if model_df.empty:
+        logger.info("No Open-TYNDP data to plot")
+        return
+    weighted_df = model_df[model_df["cyear"] == "weighted-average"]
+    if not weighted_df.empty:
+        model_df = weighted_df
+
+    average_df = pd.concat(
+        [model_df, df[df["source"] == "TYNDP 2024"]], ignore_index=True
+    )
+
+    indicators = sorted(
+        average_df.loc[average_df["source"] == "Open-TYNDP", "indicator"]
+        .dropna()
+        .unique()
+    )
+    project_ids = sorted(
+        average_df.loc[average_df["source"] == "Open-TYNDP", "project_id"]
+        .dropna()
+        .unique()
+    )
+
+    plot_items = {}
+    for indicator in indicators:
+        pairs = []
+        for project_id in project_ids:
+            project_df = average_df[average_df["project_id"] == project_id]
+            if indicator == "B2a_societal_cost_variation":
+                levels = ["low", "central", "high"]
+                for level in levels:
+                    model_val = select_value_by_subindex(
+                        project_df, indicator, "Open-TYNDP", level
+                    )
+                    bench_val = select_value_by_subindex(
+                        project_df, indicator, "TYNDP 2024", level
+                    )
+                    if model_val is not None and bench_val is not None:
+                        pairs.append((bench_val, model_val, level))
+            else:
+                model = benchmark_range(project_df, indicator, source="Open-TYNDP")
+                bench = benchmark_range(project_df, indicator, source="TYNDP 2024")
+                if model is not None and bench is not None:
+                    pairs.append((bench[1], model[1], None))
+        if pairs:
+            plot_items[indicator] = pairs
+    if not plot_items:
+        logger.info("Incomplete benchmark data to plot")
+        return
+
+    ncols = min(4, len(plot_items))
+    nrows = (len(plot_items) + ncols - 1) // ncols
+    fig, axes = plt.subplots(
+        nrows=nrows,
+        ncols=ncols,
+        figsize=(3.6 * ncols, 3.3 * nrows),
+        squeeze=False,
+    )
+
+    for ax, (indicator, pairs) in zip(axes.flatten(), plot_items.items()):
+        xs = [p[0] for p in pairs]
+        ys = [p[1] for p in pairs]
+        if indicator == "B2a_societal_cost_variation":
+            level_colors = {
+                "low": "tab:orange",
+                "central": "tab:green",
+                "high": "tab:red",
+            }
+            colors = [level_colors[level] for _, _, level in pairs]
+        else:
+            colors = "tab:blue"
+        ax.scatter(
+            xs,
+            ys,
+            s=20,
+            color=colors,
+            alpha=0.6,
+            edgecolor="white",
+            linewidth=0.5,
+        )
+        ax.axline(
+            (0, 0), slope=1, color="black", linestyle="--", linewidth=1, alpha=0.5
+        )
+
+        combined = [abs(v) for v in (*xs, *ys) if v != 0]
+        if combined:
+            abs_max = max(combined)
+            abs_min = min(combined)
+            if abs_min > 0 and abs_max / abs_min >= 1e3:
+                linthresh = max(abs_min, 1.0)
+                ax.set_xscale("symlog", linthresh=linthresh)
+                ax.set_yscale("symlog", linthresh=linthresh)
+
+        units = average_df.loc[
+            (average_df["indicator"] == indicator)
+            & (average_df["source"] == "Open-TYNDP"),
+            "units",
+        ].dropna()
+        unit_label = units.iloc[0] if not units.empty else ""
+        ax.set_title(
+            f"{indicator} ({unit_label})" if unit_label else indicator, fontsize=9
+        )
+        ax.set_xlabel("TYNDP 2024")
+        ax.set_ylabel("Open-TYNDP")
+        ax.axhline(0, color="gray", linewidth=0.5, alpha=0.4)
+        ax.axvline(0, color="gray", linewidth=0.5, alpha=0.4)
+        ax.grid(alpha=0.3)
+
+    for ax in axes.flatten()[len(plot_items) :]:
+        ax.axis("off")
+
+    title = "Benchmark of indicators across all projects"
+    if planning_horizon:
+        title += f" ({planning_horizon})"
+    fig.suptitle(title, y=0.995)
+    if area_subtitle:
+        fig.text(0.5, 0.965, area_subtitle, ha="center", va="center", fontsize=9)
+
+    fig.tight_layout(rect=[0, 0, 1, 0.94])
+    fig.savefig(output_path, dpi=400)
+    plt.close(fig)
+
+
 def create_plots(indicators_file, output_path, planning_horizon=None, area=None):
     """Create benchmark plots from a per-project or collected indicators file."""
     output_path = Path(output_path)
@@ -388,6 +518,20 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     planning_horizon = snakemake.wildcards.get("planning_horizons")
-    output_target = snakemake.output.get("plot_file") or snakemake.output.plot_dir
     area = snakemake.config.get("cba", {}).get("area")
-    create_plots(snakemake.input.indicators, output_target, planning_horizon, area)
+
+    if "cba_project" in snakemake.wildcards.keys():
+        output_target = snakemake.output.get("plot_file") or snakemake.output.plot_dir
+        create_plots(snakemake.input.indicators, output_target, planning_horizon, area)
+    elif not snakemake.input.indicators:
+        logger.warning(
+            "No indicators input files for summary plot: %s", snakemake.output.plot_file
+        )
+    else:
+        df = pd.concat(map(pd.read_csv, snakemake.input.indicators), ignore_index=True)
+        plot_summary_projects_benchmark(
+            df,
+            Path(snakemake.output.plot_file),
+            planning_horizon,
+            format_area_subtitle(area),
+        )

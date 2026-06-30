@@ -556,6 +556,35 @@ rule summarize_indicators_per_project:
         "../scripts/cba/summarize_indicators.py"
 
 
+def summary_benchmark_indicators(w):
+    """
+    Returns Indicator CSVs as inputs for the per-horizon summary benchmark plot.
+    If collection scenarios, returns the weighted-average ensemble indicators CSV as inputs for plotting.
+    """
+    if get_run_name(w) in cba_collection_scenarios(w):
+        return expand(
+            rules.average_indicators_per_project_and_planning_horizon.output.indicators,
+            planning_horizons=[w.planning_horizons],
+            cba_project=cba_projects(w),
+            run=[w.run],
+        )
+    return expand(
+        rules.collect_indicators.output.indicators,
+        planning_horizons=[w.planning_horizons],
+        run=[w.run],
+    )
+
+
+rule plot_summary_projects_benchmark:
+    input:
+        indicators=summary_benchmark_indicators,
+    output:
+        plot_file=RESULTS
+        + "cba/ensemble_plots/summary_benchmark_{planning_horizons}.png",
+    script:
+        "../scripts/cba/plot_benchmark_indicators.py"
+
+
 rule summarize_all_indicators:
     input:
         indicators=lambda w: expand(
@@ -691,6 +720,13 @@ def collect_cba_scenario_inputs(w):
             run=cba_scenarios(w),
         )
     )
+    inputs.extend(
+        expand(
+            rules.plot_summary_projects_benchmark.output.plot_file,
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
+            run=cba_scenarios(w),
+        )
+    )
 
     run = get_run_name(w)
     if run in cba_collection_scenarios(w):
@@ -740,6 +776,13 @@ def cba_ensemble_inputs(w):
             rules.summarize_all_indicators.output.plot_file,
             planning_horizons=config["cba"]["planning_horizons"],
             cba_project=cba_projects(w),
+            run=runs,
+        )
+    )
+    inputs.extend(
+        expand(
+            rules.plot_summary_projects_benchmark.output.plot_file,
+            planning_horizons=config["cba"]["planning_horizons"],
             run=runs,
         )
     )
