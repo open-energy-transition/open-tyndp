@@ -37,7 +37,9 @@
 
 * Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
 
-* Improve docstring formatting and add missing type hints (https://github.com/open-energy-transition/open-tyndp/pull/759).
+* Improve docstring formatting and add missing type hints ([759](https://github.com/open-energy-transition/open-tyndp/pull/759)).
+
+* Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761))
 
 **Developers Note**
 

@@ -9,12 +9,9 @@ Outputs
 
 - `resources/profile_pemmdb_hydro.nc`:
 
-    ===================  ================  =========================================================
-    Field                Dimensions        Description
-    ===================  ================  =========================================================
-    inflow               bus, time,         Inflow to the state of charge (in MW),
-                         year, hydro_tech   e.g. due to river inflow in hydro reservoir.
-    ===================  ================  =========================================================
+    | Field  | Dimensions                      | Description                                                              |
+    | ------ | ------------------------------- | ------------------------------------------------------------------------ |
+    | inflow | bus, time, year, hydro_tech     | Inflow to the state of charge (in MW), e.g. due to river inflow in hydro reservoir. |
 """
 
 import logging

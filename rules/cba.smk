@@ -23,6 +23,9 @@ wildcard_constraints:
     run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
 
 
+# Retrieve
+##########
+
 if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
     "source"
 ] in ARCHIVE_SOURCES:
@@ -61,13 +64,13 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
     "source"
 ] in ARCHIVE_SOURCES:
 
-    rule retreive_cba_guidelines_reference_projects:
+    rule retrieve_cba_guidelines_reference_projects:
         input:
             file=storage(CBA_GUIDELINES_DATASET["url"]),
         output:
             file=f"{CBA_GUIDELINES_DATASET['folder']}/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         log:
-            "logs/retreive_cba_guidelines_reference_projects.log",
+            "logs/retrieve_cba_guidelines_reference_projects.log",
         run:
             copy2(input["file"], output["file"])
 
@@ -140,6 +143,10 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
 
 
 
+# Build MSV
+############
+
+
 # read in transmission and storage projects from excel sheets
 #
 def input_clustered_network(w):
@@ -152,7 +159,7 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
-        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
+        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
         # transmission projects (no storage). In order to confirm, we should check
@@ -267,7 +274,7 @@ def get_elec_project_build_years(w):
 rule fix_reference_sb_to_cba:
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
-        guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
+        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         buses=rules.build_tyndp_network.output.substations_geojson,
     output:
@@ -314,7 +321,7 @@ rule build_msv_snapshot_weightings:
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
     script:
-        "../scripts/cba/build_msv_snapshot_weightings.py"
+        scripts("cba/build_msv_snapshot_weightings.py")
 
 
 def input_msv_snapshot_weightings(w):
@@ -343,7 +350,11 @@ rule solve_cba_msv_extraction:
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     script:
-        "../scripts/cba/solve_cba_msv_extraction.py"
+        scripts("cba/solve_cba_msv_extraction.py")
+
+
+# Build rolling
+################
 
 
 # Prepare network for rolling horizon: disable seasonal cyclicity, apply marginal storage value
@@ -427,6 +438,10 @@ rule solve_cba_network:
         scripts("cba/solve_cba_network.py")
 
 
+# Postprocess
+##############
+
+
 # Compute CBA indicators comparing reference and project networks
 rule make_indicators:
     input:
@@ -497,6 +512,10 @@ rule plot_indicators:
         scripts("cba/plot_indicators.py")
 
 
+# Benchmarking
+###############
+
+
 rule plot_cba_benchmark:
     input:
         indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
@@ -524,7 +543,7 @@ rule plot_weather_benchmark:
         plot_file=RESULTS
         + "cba/ensemble_plots/ensemble_{cba_project}_{planning_horizons}.png",
     script:
-        "../scripts/cba/plot_benchmark_indicators.py"
+        scripts("cba/plot_benchmark_indicators.py")
 
 
 rule average_indicators_per_project_and_planning_horizon:
@@ -539,7 +558,7 @@ rule average_indicators_per_project_and_planning_horizon:
         indicators=RESULTS
         + "cba/ensemble_indicators/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     script:
-        "../scripts/cba/average_indicators.py"
+        scripts("cba/average_indicators.py")
 
 
 rule summarize_indicators_per_project:
@@ -553,7 +572,7 @@ rule summarize_indicators_per_project:
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_all_horizons.png",
     script:
-        "../scripts/cba/summarize_indicators.py"
+        scripts("cba/summarize_indicators.py")
 
 
 rule summarize_all_indicators:
@@ -567,7 +586,7 @@ rule summarize_all_indicators:
     output:
         plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
     script:
-        "../scripts/cba/summarize_all.py"
+        scripts("cba/summarize_all.py")
 
 
 def cba_target_runs(w):
@@ -704,6 +723,10 @@ def collect_cba_scenario_inputs(w):
         )
 
     return inputs
+
+
+# Collect
+##########
 
 
 # collect files to be stored in the scenario directory, e.g., NT-cy1995

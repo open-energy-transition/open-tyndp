@@ -77,6 +77,8 @@ nav:
   - Data Repositories: data-repos.md
 
 - Rules Overview:
+  - Scenario Building: sb_rules.md
+  - Cost-Benefit Analysis: cba_rules.md
   - Retrieving Data: retrieve.md
   - Building Electricity Networks: preparation.md
   - Building Sector-Coupled Networks: sector.md
@@ -107,6 +109,7 @@ plugins:
           show_source: false
           show_root_heading: false
           show_root_full_path: false
+          show_root_toc_entry: false
           members: false
           allow_inspection: true
         inventories:

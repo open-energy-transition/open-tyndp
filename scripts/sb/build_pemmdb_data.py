@@ -11,13 +11,9 @@ Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file c
 - `resources/pemmdb_capacities_{planning_horizon}.csv` in long format
 - `resources/pemmdb_profiles_{planning_horizon}.nc` with the following structure:
 
-    ===================  ====================  =========================================================
-    Field                Coordinates           Description
-    ===================  ====================  =========================================================
-    p_min_pu,            time, bus, carrier,   the per unit hourly availability and must-run obligations
-    p_max_pu             index_carrier,        for each bus and PEMMDB technology
-                         open_tyndp_type
-    ===================  ====================  =========================================================
+    | Field              | Coordinates                                        | Description                                                          |
+    | ------------------ | -------------------------------------------------- | -------------------------------------------------------------------- |
+    | p_min_pu, p_max_pu | time, bus, carrier, index_carrier, open_tyndp_type | the per unit hourly availability and must-run obligations for each bus and PEMMDB technology |
 """
 
 import logging
