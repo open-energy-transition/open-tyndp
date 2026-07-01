@@ -193,19 +193,6 @@ def upsample_load(
         regions = regions.reindex(substation_lv_i)
     load = pd.read_csv(load_fn, index_col=0, parse_dates=True)
 
-    ea_keys = energy_atlas_distribution_keys(raster_fn, regions)
-    gb_keys = gb_distribution_keys(gb_excel_fn, gb_geojson_fn, regions)
-    nuts3_keys = nuts3_distribution_keys(nuts3_fn, distribution_key, regions)
-
-    factors = ea_keys.combine_first(gb_keys).combine_first(nuts3_keys)
-
-    # sanitize: need to renormalize since `gb_keys` only cover Great Britain
-    # and Northern Ireland is taken from `nuts3_keys`
-    if "GB" in regions.country:
-        uk_regions_i = regions.query("country == 'GB'").index
-        uk_weights = factors.loc[uk_regions_i].sum()
-        factors.loc[uk_regions_i] /= uk_weights
-
     if load_source == "tyndp":
         data_array = xr.DataArray(
             load,
@@ -213,6 +200,19 @@ def upsample_load(
             coords={"time": load.index.values, "bus": load.columns.values},
         )
     else:
+        ea_keys = energy_atlas_distribution_keys(raster_fn, regions)
+        gb_keys = gb_distribution_keys(gb_excel_fn, gb_geojson_fn, regions)
+        nuts3_keys = nuts3_distribution_keys(nuts3_fn, distribution_key, regions)
+
+        factors = ea_keys.combine_first(gb_keys).combine_first(nuts3_keys)
+
+        # sanitize: need to renormalize since `gb_keys` only cover Great Britain
+        # and Northern Ireland is taken from `nuts3_keys`
+        if "GB" in regions.country:
+            uk_regions_i = regions.query("country == 'GB'").index
+            uk_weights = factors.loc[uk_regions_i].sum()
+            factors.loc[uk_regions_i] /= uk_weights
+
         data_arrays = []
 
         for cntry, group in regions.geometry.groupby(regions.country):

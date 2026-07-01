@@ -12,7 +12,7 @@ and Cost-Benefit Analysis (CBA) phases.
 * **Cost-Benefit Analysis** indicators are benchmarked for all calculated indicators and
   all projects against the official [TYNDP 2024 CBA results](https://tyndp2024.entsoe.eu/projects-map/transmission).
 
-Benchmarking results are published with every release on [Zenodo](https://doi.org/10.5281/zenodo.18608105) (currently only Scenario Building results).
+Benchmarking results continue to be published with every release on [Zenodo](https://doi.org/10.5281/zenodo.18608105) (currently only Scenario Building results).  View the [project website](https://open-tyndp.openenergytransition.org) for a detailed explanation of the results.
 
 !!! warning
     Open-TYNDP is under active development and is not yet feature-complete. The current
