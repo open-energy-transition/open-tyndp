@@ -11,8 +11,8 @@ sector coupled network.
 Description
 -----------
 
-The optimization is based on the :func:`network.optimize_with_rolling_horizon` method.
-Additionally, some extra constraints specified in :mod:`solve_network` are added, if
+The optimization is based on the `network.optimize_with_rolling_horizon` method.
+Additionally, some extra constraints specified in `solve_network` are added, if
 they apply to the dispatch.
 """
 
@@ -57,23 +57,23 @@ def extra_functionality(
     planning_horizons: str | None = None,
 ) -> None:
     """
-    Add custom constraints and functionality for operations network
+    Add custom constraints and functionality for operations network.
+
+    Collects supplementary constraints which will be passed to
+    `pypsa.optimization.optimize`.
+
+    If you want to enforce additional custom constraints, this is a good
+    location to add them. The arguments `opts` and
+    `snakemake.config` are expected to be attached to the network.
 
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network instance with config and params attributes
+        The PyPSA network instance with config and params attributes.
     snapshots : pd.DatetimeIndex
-        Simulation timesteps
-    planning_horizons : str, optional
-        The current planning horizon year or None in perfect foresight
-
-    Collects supplementary constraints which will be passed to
-    ``pypsa.optimization.optimize``.
-
-    If you want to enforce additional custom constraints, this is a good
-    location to add them. The arguments ``opts`` and
-    ``snakemake.config`` are expected to be attached to the network.
+        Simulation timesteps.
+    planning_horizons : str or None, optional
+        The current planning horizon year or None in perfect foresight.
     """
     config = n.config
 
@@ -114,18 +114,20 @@ def optimize_with_rolling_horizon(
     Parameters
     ----------
     n : pypsa.Network
-    snapshots : list-like
-        Set of snapshots to consider in the optimization. The default is None.
+        The PyPSA network instance to optimize.
+    snapshots : Sequence or None, optional
+        Set of snapshots to consider in the optimization. Default is None.
     horizon : int
-        Number of snapshots to consider in each iteration. Defaults to 100.
+        Number of snapshots to consider in each iteration. Default is 100.
     overlap : int
-        Number of snapshots to overlap between two iterations. Defaults to 0.
-    **kwargs:
-        Keyword argument used by `linopy.Model.solve`, such as `solver_name`,
+        Number of snapshots to overlap between two iterations. Default is 0.
+    **kwargs
+        Keyword arguments used by `linopy.Model.solve`, such as `solver_name`.
 
     Returns
     -------
     tuple[str, str]
+        Tuple of (status, condition) from the final optimization window.
     """
     if snapshots is None:
         snapshots: Sequence = n.snapshots
@@ -212,28 +214,17 @@ def solve_network(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network instance
-    config : Dict
-        Configuration dictionary containing solver settings
-    params : Dict
-        Dictionary of solving parameters
-    solving : Dict
-        Dictionary of solving options and configuration
-    rule_name : str, optional
-        Name of the snakemake rule being executed
-    planning_horizons : str, optional
-        The current planning horizon year or None in perfect foresight
+        The PyPSA network instance.
+    config : dict
+        Configuration dictionary containing solver settings.
+    params : dict
+        Dictionary of solving parameters.
+    solving : dict
+        Dictionary of solving options and configuration.
+    planning_horizons : str or None, optional
+        The current planning horizon year or None in perfect foresight.
     **kwargs
-        Additional keyword arguments passed to the solver
-
-    Returns
-    -------
-    n : pypsa.Network
-        Solved network instance
-    status : str
-        Solution status
-    condition : str
-        Termination condition
+        Additional keyword arguments passed to the solver.
 
     Raises
     ------

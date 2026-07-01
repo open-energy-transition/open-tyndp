@@ -21,22 +21,24 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def match_centroids(df, countries_centroids):
+def match_centroids(
+    df: pd.DataFrame, countries_centroids: gpd.GeoDataFrame
+) -> pd.DataFrame:
     """
     Matches coordinates of country centroids to bus0 countries.
     Manually matches coordinates next to Faroe Island ("FO") to Ammonia import node.
 
     Parameters
     ----------
-    df : pd:DataFrame
-        Dataframe containing import data with bus0 as import nodes
+    df : pd.DataFrame
+        DataFrame containing import data with bus0 as import nodes.
     countries_centroids : gpd.GeoDataFrame
-        GeoDataFrame containing country centroid information as geometry
+        GeoDataFrame containing country centroid information as geometry.
 
     Returns
     -------
     pd.DataFrame
-        The function returns the input Dataframe df with matched coordinates inside new columns bus0_x and bus0_y
+        Input DataFrame with matched coordinates in new columns bus0_x and bus0_y.
     """
     import_nodes = df.bus0.unique()
 
@@ -67,20 +69,21 @@ def match_centroids(df, countries_centroids):
     )
 
 
-def load_import_data(fn, countries_centroids):
+def load_import_data(fn: str, countries_centroids: gpd.GeoDataFrame) -> pd.DataFrame:
     """
-    Load and clean TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost for pipeline and shipping
-    Returns the cleaned data as dataframe.
+    Load and clean TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost for pipeline and shipping.
 
     Parameters
     ----------
     fn : str
         Path to Excel file containing TYNDP H2 imports data.
+    countries_centroids : gpd.GeoDataFrame
+        GeoDataFrame containing country centroid information as geometry.
 
     Returns
     -------
     pd.DataFrame
-        The function returns cleaned TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost.
+        Cleaned TYNDP H2 import potentials, maximum capacity, offer quantity and marginal cost.
     """
 
     column_dict = {
