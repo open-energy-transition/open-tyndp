@@ -78,7 +78,7 @@ def attach_tyndp_transmission_projects(
     fn_projects : str
         Path to CSV file containing transmission project data.
     fn_projects_fix : str|None (optional)
-        Path to CSV file containing transmission project corrections (default: None).
+        Path to CSV file containing transmission project corrections. Default is None.
     """
     logger.info("Adding transmission projects to the electrical network")
     projects = _load_links_from_raw(fn_projects)

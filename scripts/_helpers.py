@@ -1222,11 +1222,11 @@ def safe_pyear(
     year : int
         Planning horizon year which will be checked and possibly adjusted to previous available year.
     available_years : list[int], optional
-        List of available years. Defaults to [2030, 2040, 2050].
+        List of available years. Default is [2030, 2040, 2050].
     source : str, optional
-        Source of the data for which availability will be checked. For logging purpose only. Defaults to "TYNDP".
+        Source of the data for which availability will be checked. For logging purpose only. Default is "TYNDP".
     verbose : bool, optional
-        Whether to activate verbose logging. Defaults to True.
+        Whether to activate verbose logging. Default is True.
 
     Returns
     -------
@@ -1273,7 +1273,7 @@ def map_tyndp_carrier_names(
         Columns to merge on between the external carriers and tyndp_carriers.
     drop_on_columns : bool, optional
         Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier`
-        and `index_carrier`. Defaults to False.
+        and `index_carrier`. Default is False.
 
     Returns
     -------
@@ -1345,7 +1345,7 @@ def get_version(hash_len: int = 9) -> str:
     Parameters
     ----------
     hash_len : int, optional
-        Number of characters to use from the commit hash. Defaults to 9.
+        Number of characters to use from the commit hash. Default is 9.
 
     Returns
     -------
@@ -1635,9 +1635,9 @@ def find_free_port(start_port: int = 8050, max_attempts: int = 50) -> int:
     Parameters
     ----------
     start_port : int, optional
-        Port number to begin scanning from. Defaults to 8050.
+        Port number to begin scanning from. Default is 8050.
     max_attempts : int, optional
-        Maximum number of ports to check before raising an error. Defaults to 50.
+        Maximum number of ports to check before raising an error. Default is 50.
 
     Returns
     -------
@@ -1748,7 +1748,7 @@ def align_demand_to_snapshots(
     snapshots : pd.DatetimeIndex
         Target snapshot index to align demand to.
     format : str, optional
-        Datetime format string for parsing the demand index. Defaults to None.
+        Datetime format string for parsing the demand index. Default is None.
 
     Returns
     -------

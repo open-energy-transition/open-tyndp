@@ -116,7 +116,7 @@ def optimize_with_rolling_horizon(
     n : pypsa.Network
         The PyPSA network instance to optimize.
     snapshots : Sequence or None, optional
-        Set of snapshots to consider in the optimization. The default is None.
+        Set of snapshots to consider in the optimization. Default is None.
     horizon : int
         Number of snapshots to consider in each iteration. Default is 100.
     overlap : int
