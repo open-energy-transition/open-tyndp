@@ -442,6 +442,7 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
         unpack(input_elec_demand_base),
         raster=[],
         gb_excel=[],
+        gb_geojson=[],
         nuts3=[],
         load=resources("electricity_demand_{planning_horizons}.csv"),
     output:
