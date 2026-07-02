@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: MIT
 
 import copy
-from itertools import chain
 from pathlib import Path
 import pandas as pd
 import yaml
@@ -208,9 +207,10 @@ def input_all_tyndp(w):
 
 
 rule all:
+    default_target: True
     input:
         input_all_tyndp,
-        expand(RESULTS + "graphs/costs.svg", run=config["run"]["name"]),
+        expand(RESULTS + "graphs/costs.pdf", run=config["run"]["name"]),
         expand(resources("maps/power-network.pdf"), run=config["run"]["name"]),
         expand(
             resources("maps/power-network-s-{clusters}.pdf"),
@@ -339,7 +339,6 @@ rule all:
         ),
         lambda w: balance_map_paths("static", w),
         lambda w: balance_map_paths("interactive", w),
-    default_target: True
 
 
 rule create_scenarios:
@@ -390,8 +389,6 @@ rule dump_graph_config:
 
 rule rulegraph:
     """Generates Rule DAG in DOT, PDF, PNG, and SVG formats using the final configuration."""
-    message:
-        "Creating RULEGRAPH dag in multiple formats using the final configuration."
     input:
         config_file=rules.dump_graph_config.output.config_file,
     output:
@@ -399,6 +396,8 @@ rule rulegraph:
         pdf=resources("dag_rulegraph.pdf"),
         png=resources("dag_rulegraph.png"),
         svg=resources("dag_rulegraph.svg"),
+    message:
+        "Creating RULEGRAPH dag in multiple formats using the final configuration."
     shell:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
@@ -407,7 +406,6 @@ rule rulegraph:
 
         # Generate visualizations from the DOT file
         if [ -s {output.dot} ]; then
-            dot -c
 
             echo "[Rule rulegraph] Generating PDF from DOT"
             dot -Tpdf -o {output.pdf} {output.dot} || {{ echo "Error: Failed to generate PDF. Is graphviz installed?" >&2; exit 1; }}
@@ -428,8 +426,6 @@ rule rulegraph:
 
 rule filegraph:
     """Generates File DAG in DOT, PDF, PNG, and SVG formats using the final configuration."""
-    message:
-        "Creating FILEGRAPH dag in multiple formats using the final configuration."
     input:
         config_file=rules.dump_graph_config.output.config_file,
     output:
@@ -437,6 +433,8 @@ rule filegraph:
         pdf=resources("dag_filegraph.pdf"),
         png=resources("dag_filegraph.png"),
         svg=resources("dag_filegraph.svg"),
+    message:
+        "Creating FILEGRAPH dag in multiple formats using the final configuration."
     shell:
         r"""
         # Generate DOT file using nested snakemake with the dumped final config
@@ -463,10 +461,10 @@ rule filegraph:
 
 
 rule doc:
-    message:
-        "Build documentation."
     output:
         directory("doc/_build"),
+    message:
+        "Build documentation."
     shell:
         "pixi run build-docs {output} html"
 
