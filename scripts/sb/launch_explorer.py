@@ -10,6 +10,7 @@ To close all running explorer instances when finished, run:
 """
 
 import logging
+import re
 import sys
 import webbrowser
 from pathlib import Path
@@ -20,10 +21,117 @@ from pypsa_explorer import create_app
 
 logger = logging.getLogger(__name__)
 
+# Allow-list of characters permitted in a command-line file path
+ALLOWED_PATH = re.compile(r"[A-Za-z0-9._/\\-]+")
+
+
+def sanitize_path(path_str: str, label: str) -> Path:
+    """
+    Validate an untrusted path and resolve it inside the working directory.
+
+    Guards against path manipulation: only allow-listed characters are accepted,
+    absolute paths and ``..`` traversal are rejected, and the resolved path must
+    stay within the current working directory.
+
+    Parameters
+    ----------
+    path_str : str
+        Untrusted path, expected to be relative to the working directory.
+    label : str
+        Human-readable input name, used in error messages.
+
+    Returns
+    -------
+    pathlib.Path
+        The validated path resolved against the working directory.
+
+    Raises
+    ------
+    ValueError
+        If the path is empty, contains disallowed characters, is absolute or
+        contains ``..``, or resolves outside the working directory.
+    """
+    if not path_str or not ALLOWED_PATH.fullmatch(path_str):
+        raise ValueError(f"Invalid characters in {label}: {path_str!r}")
+    path = Path(path_str)
+    if path.is_absolute() or ".." in path.parts:
+        raise ValueError(f"{label} must be relative and without '..': {path_str!r}")
+    base_dir = Path.cwd().resolve()
+    resolved = (base_dir / path).resolve()
+    if not resolved.is_relative_to(base_dir):
+        raise ValueError(f"{label} escapes the working directory: {path_str!r}")
+    return resolved
+
+
+def sanitize_port(port_str: str) -> int:
+    """
+    Parse an untrusted TCP port and ensure it lies in the valid range.
+
+    Parameters
+    ----------
+    port_str : str
+        Untrusted port value to validate.
+
+    Returns
+    -------
+    int
+        The parsed port number, guaranteed to be within 1-65535.
+
+    Raises
+    ------
+    ValueError
+        If the value is not an integer within the range 1-65535.
+    """
+    if not (port_str.isdigit() and 1 <= (port := int(port_str)) <= 65535):
+        raise ValueError(f"Port must be an integer in 1-65535, got: {port_str!r}")
+    return port
+
+
+def sanitize_input_files(path_strs: list[str]) -> list[str]:
+    """
+    Validate untrusted network file paths.
+
+    Each path must resolve inside the working directory (see ``sanitize_path``),
+    carry a ``.nc`` suffix, and refer to an existing file.
+
+    Parameters
+    ----------
+    path_strs : list[str]
+        Untrusted network file paths, expected to be relative to the working
+        directory.
+
+    Returns
+    -------
+    list[str]
+        The validated paths resolved against the working directory.
+
+    Raises
+    ------
+    ValueError
+        If any path fails validation, lacks a ``.nc`` suffix, or does not exist.
+    """
+    files = []
+    for path_str in path_strs:
+        path = sanitize_path(path_str, "network file")
+        if path.suffix != ".nc" or not path.is_file():
+            raise ValueError(f"Not an existing '.nc' file: {path_str!r}")
+        files.append(str(path))
+    return files
+
 
 def import_network(fn: str):
     """
     Import PyPSA network and set default color for 'none' carrier.
+
+    Parameters
+    ----------
+    fn : str
+        Path to the PyPSA network file to load.
+
+    Returns
+    -------
+    pypsa.Network
+        The loaded network with a default color assigned to the 'none' carrier.
     """
     n = pypsa.Network(fn)
     n.carriers.loc["none", "color"] = "#000000"
@@ -33,6 +141,15 @@ def import_network(fn: str):
 def open_browser(port):
     """
     Opens browser with chosen port.
+
+    Parameters
+    ----------
+    port : int
+        Port on which the PyPSA-Explorer app is launched.
+
+    Returns
+    -------
+    None
     """
     webbrowser.open_new(f"http://127.0.0.1:{port}")
 
@@ -65,9 +182,9 @@ if __name__ == "__main__":
     else:
         # Running from command line
         logging.basicConfig(level=logging.INFO)
-        output_log = sys.argv[1]
-        port = int(sys.argv[2])
-        files = sys.argv[3:]
+        output_log = sanitize_path(sys.argv[1], "log path")
+        port = sanitize_port(sys.argv[2])
+        files = sanitize_input_files(sys.argv[3:])
         print("Running from command line.")
 
     # Add file handler to write to explorer_launched.log
