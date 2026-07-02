@@ -243,8 +243,7 @@ def apply_biomass_biogas_bus_marginal_prices(
     # Add bus marginal price to generator marginal cost for each generator
     for g in gen_index:
         bus = n.generators.at[g, "bus"]
-        base_cost = float(n.generators.at[g, "marginal_cost"])
-        n.generators_t.marginal_cost[g] = base_cost + bus_mp[bus].reindex(n.snapshots)
+        n.generators_t.marginal_cost[g] = bus_mp[bus].reindex(n.snapshots)
 
 
 def set_initial_state_from_pf(
