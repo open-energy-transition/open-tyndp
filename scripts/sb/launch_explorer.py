@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 # Allow-list of characters permitted in a command-line file path
 ALLOWED_PATH = re.compile(r"[A-Za-z0-9._/\\-]+")
 
+# Highest valid TCP port (2**16 - 1)
+MAX_PORT = 65535
+
 
 def sanitize_path(path_str: str, label: str) -> Path:
     """
@@ -75,15 +78,15 @@ def sanitize_port(port_str: str) -> int:
     Returns
     -------
     int
-        The parsed port number, guaranteed to be within 1-65535.
+        The parsed port number, guaranteed to be within 1-``MAX_PORT``.
 
     Raises
     ------
     ValueError
-        If the value is not an integer within the range 1-65535.
+        If the value is not an integer within the range 1-``MAX_PORT``.
     """
-    if not (port_str.isdigit() and 1 <= (port := int(port_str)) <= 65535):
-        raise ValueError(f"Port must be an integer in 1-65535, got: {port_str!r}")
+    if not (port_str.isdigit() and 1 <= (port := int(port_str)) <= MAX_PORT):
+        raise ValueError(f"Port must be an integer in 1-{MAX_PORT}, got: {port_str!r}")
     return port
 
 
