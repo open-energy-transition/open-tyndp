@@ -35,6 +35,8 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
+* Ensure ``inflow_t`` is always defined in ``attach_hydro``, resolving a pylint use-before-assignment issue (https://github.com/open-energy-transition/open-tyndp/pull/777).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 (https://github.com/open-energy-transition/open-tyndp/pull/711).
