@@ -75,7 +75,7 @@ highspy = ">=1.12.0"
 ipython = ">=9.7.0"
 jpype1 = ">=1.6.0"
 libgdal-netcdf = ">=3.10.3"
-linopy = ">=0.6.1,<0.7.0"
+linopy = ">=0.6.1,<0.7.0"  # remove <0.7.0 with pypsa >= 1.2.2
 lxml = ">=6.0.2"
 matplotlib = ">=3.10.7"
 memory_profiler = ">=0.61.0"
@@ -208,7 +208,7 @@ tyndp-cyears-test = """bash -c '
 """
 create-tyndp-graphs = """
 	snakemake -call rulegraphs filegraphs --configfile config/config.tyndp.yaml
- """
+"""
 tyndp-sb = """
     snakemake -call --configfile config/config.tyndp.yaml
 """
@@ -220,10 +220,10 @@ tyndp-cba = """
 """
 launch-presolved-explorer = """
 	snakemake -call launch_presolved_explorer --configfile config/config.tyndp.yaml
- """
+"""
 close-explorers = """
 	snakemake -call close_explorers --configfile config/config.tyndp.yaml
- """
+"""
 clean-tyndp = """
      snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
      snakemake -call cba --configfile config/test/config.tyndp.yaml --delete-all-output ;
@@ -231,7 +231,7 @@ clean-tyndp = """
      snakemake -call --configfile config/config.tyndp.yaml --delete-all-output ;
      snakemake -call cba --configfile config/config.tyndp.yaml --delete-all-output ;
      echo "All tyndp outputs have been cleaned up."
- """
+"""
 all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
