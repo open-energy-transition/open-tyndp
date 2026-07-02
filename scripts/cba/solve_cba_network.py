@@ -136,6 +136,7 @@ def optimize_with_rolling_horizon(
     assert len(snapshots), "Need at least one snapshot to optimize"
 
     fallback_solver = kwargs.pop("fallback_solver", None)
+    biomass_biogas_slack = n.config["cba"].get("biomass_biogas_slack", 0.4)
 
     starting_points = range(0, len(snapshots), horizon - overlap)
     for i, start in tqdm(enumerate(starting_points), total=len(starting_points)):
@@ -173,8 +174,9 @@ def optimize_with_rolling_horizon(
                 if comp not in pf_p.columns:
                     continue
                 window_energy = pf_p.loc[sns, comp].sum()
-                slack = 0.4
-                c.static.loc[comp, "e_sum_min"] = (1 - slack) * window_energy
+                c.static.loc[comp, "e_sum_min"] = (
+                    1 - biomass_biogas_slack
+                ) * window_energy
                 c.static.loc[comp, "e_sum_max"] = window_energy
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore

@@ -533,6 +533,13 @@
           ],
           "type": "string"
         },
+        "biomass_biogas_slack": {
+          "default": 0.4,
+          "description": "Slack applied to rolling-horizon biomass and biogas `e_sum_min` limits as a fraction of the perfect-foresight window dispatch.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -15467,6 +15474,13 @@
             "break"
           ],
           "type": "string"
+        },
+        "biomass_biogas_slack": {
+          "default": 0.4,
+          "description": "Slack applied to rolling-horizon biomass and biogas `e_sum_min` limits as a fraction of the perfect-foresight window dispatch.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
         },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",

@@ -441,6 +441,7 @@ cba:
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
+  biomass_biogas_slack: 0.4 # Slack on rolling-horizon biomass and biogas e_sum_min volume limits
 
   # Storage settings for dispatch
   storage:
