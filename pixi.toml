@@ -244,6 +244,7 @@ python-calamine = ">=0.6.1"
 
 [feature.open-tyndp.target.win-64.dependencies]
 git = ">=2.52.0"
+cachetools = ">=5"
 
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
