@@ -35,6 +35,8 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
+* Add missing regex anchors with ``re.fullmatch`` to ``create_zenodo_deposition_cli`` utils script (https://github.com/open-energy-transition/open-tyndp/pull/778).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 (https://github.com/open-energy-transition/open-tyndp/pull/711).
