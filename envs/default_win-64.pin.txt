@@ -463,7 +463,7 @@ https://conda.anaconda.org/conda-forge/noarch/s3transfer-0.19.0-pyhd8ed1ab_0.con
 https://conda.anaconda.org/conda-forge/noarch/boto3-1.43.36-pyhd8ed1ab_0.conda#f740e8acb38ea16c22e60b6fc0ae7c9e
 https://conda.anaconda.org/conda-forge/noarch/arcosparse-0.5.1-pyhd8ed1ab_0.conda#3fab2110d93a828f88ace66e418d6ef8
 https://conda.anaconda.org/conda-forge/noarch/copernicusmarine-2.4.1-pyhd8ed1ab_0.conda#690847cdb78772816f430fc91490f915
-https://conda.anaconda.org/conda-forge/noarch/pyshp-3.1.1-pyhcf101f3_0.conda#e7a21e9b9a9755570cbcd2ef0d488256
+https://conda.anaconda.org/conda-forge/noarch/pyshp-3.1.2-pyhcf101f3_0.conda#0b9176cd15bf526d74fd6638df5194af
 https://conda.anaconda.org/conda-forge/win-64/cartopy-0.25.0-py314hd8fd7ce_1.conda#f087cf669551d9c98b68869395f311f4
 https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhf9edf01_1.conda#d7585b6550ad04c8c5e21097ada2888e
 https://conda.anaconda.org/conda-forge/noarch/iniconfig-2.3.0-pyhd8ed1ab_0.conda#9614359868482abba1bd15ce465e3c42
