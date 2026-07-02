@@ -191,6 +191,61 @@ def apply_msv_to_network(
         n.c[c].dynamic["marginal_cost"].loc[:, s_i] = msv
 
 
+def apply_biomass_biogas_bus_marginal_prices(
+    n,
+    n_msv,
+    carriers=("solid biomass", "biogas"),
+    resample_method="ffill",
+):
+    """
+    Add marginal prices to biomass/biogas generator marginal costs.
+
+    For each biomass/biogas generator in the rolling-horizon network:
+    use the marginal price time series of its attached bus from the MSV network and
+    add the marginal price to the generator's base marginal cost.
+
+    effective_marginal_cost_t = static_marginal_cost + bus_marginal_price_t
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Target network (will be modified in place).
+    n_msv : pypsa.Network
+        Solved MSV network containing bus marginal prices.
+    carriers : tuple[str], optional
+        Generator carriers to apply bus marginal prices to. Defaults to ("solid biomass", "biogas").
+    resample_method : str, optional
+        Method for resampling MSV bus marginal prices to target resolution. Default "ffill".
+    """
+    if isinstance(carriers, str):
+        carriers = (carriers,)
+
+    # Get bus marginal prices from MSV network
+    msv_mp = n_msv.buses_t.marginal_price
+
+    # Resample marginal prices if needed
+    bus_mp = (
+        msv_mp
+        if n_msv.snapshots.equals(n.snapshots)
+        else resample_msv_to_target(msv_mp, n.snapshots, method=resample_method)
+    )
+
+    # Get index of generators with target carriers
+    gen_index = n.generators.index[n.generators.carrier.isin(carriers)]
+
+    # Make sure marginal cost frame exists on correct index
+    if (
+        n.generators_t.marginal_cost.empty
+        or not n.generators_t.marginal_cost.index.equals(n.snapshots)
+    ):
+        n.generators_t.marginal_cost = pd.DataFrame(index=n.snapshots)
+
+    # Add bus marginal price to generator marginal cost for each generator
+    for g in gen_index:
+        bus = n.generators.at[g, "bus"]
+        n.generators_t.marginal_cost[g] = bus_mp[bus].reindex(n.snapshots)
+
+
 def set_initial_state_from_pf(
     n: pypsa.Network,
     n_msv: pypsa.Network,
@@ -353,6 +408,9 @@ if __name__ == "__main__":
 
     # Apply marginal storage value to all non-cyclic carriers
     apply_msv_to_network(n, n_msv, cyclic_carriers, resample_method)
+
+    # Add bus marginal prices to the marginal costs of the biomass/biogas generators
+    apply_biomass_biogas_bus_marginal_prices(n, n_msv, resample_method=resample_method)
 
     # Fix reservoir state of charge at window boundaries from perfect foresight
     soc_boundary_carriers = snakemake.params.get("soc_boundary_carriers", [])
