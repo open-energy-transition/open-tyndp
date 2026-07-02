@@ -409,7 +409,7 @@ if __name__ == "__main__":
     # Apply marginal storage value to all non-cyclic carriers
     apply_msv_to_network(n, n_msv, cyclic_carriers, resample_method)
 
-    # Add bus marginal prices to biomass/biogas generators
+    # Add bus marginal prices to the marginal costs of the biomass/biogas generators
     apply_biomass_biogas_bus_marginal_prices(n, n_msv, resample_method=resample_method)
 
     # Fix reservoir state of charge at window boundaries from perfect foresight
