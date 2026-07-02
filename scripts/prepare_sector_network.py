@@ -104,7 +104,7 @@ def attach_tyndp_transmission_projects(
             projects = pd.concat([projects, new_projects])
 
     links = n.links[n.links.carrier == "DC"].index
-    new_links = projects.loc[list(set(projects.index) - set(links))]
+    new_links = projects.loc[sorted(set(projects.index) - set(links))]
     n.links.loc[links, "p_nom"] += projects.reindex(links, fill_value=0).p_nom
 
     if not new_links.empty:
