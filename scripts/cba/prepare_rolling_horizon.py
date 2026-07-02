@@ -226,7 +226,7 @@ def apply_biomass_biogas_bus_marginal_prices(
     # Resample marginal prices if needed
     bus_mp = (
         msv_mp
-        if msv_mp.index.equals(n.snapshots)
+        if n_msv.snapshots.equals(n.snapshots)
         else resample_msv_to_target(msv_mp, n.snapshots, method=resample_method)
     )
 
