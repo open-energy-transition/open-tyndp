@@ -192,7 +192,7 @@ def optimize_with_rolling_horizon(
 
         # Set per-window energy budgets for biomass/biogas components
         # based on PF dispatch stored in generators_t.p
-        for c_name in ["Link"]:
+        for c_name in ["Generator", "Link"]:
             c = n.c[c_name]
             vol_idx = get_components_with_volume_limits(
                 n, c_name, ["solid biomass", "biogas"]
