@@ -51,6 +51,37 @@ from scripts.solve_network import (
 logger = logging.getLogger(__name__)
 
 
+def get_components_with_volume_limits(
+    n: pypsa.Network,
+    type: str,
+    carriers: list[str],
+) -> pd.Index:
+    """
+    Return components that have volume limits, given a list of carriers.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        PyPSA network
+    type : str
+        Component type, e.g. "Generator" or "Link"
+    carriers : list of str
+        List of carriers to filter components by
+
+    Returns
+    -------
+    pd.Index
+        Index of components that have volume limits and match the given carriers
+    """
+    static = n.c[type].static
+    if "has_volume_limit" not in static.columns:
+        return pd.Index([])
+
+    return static.index[
+        static["carrier"].isin(carriers) & static["has_volume_limit"].eq(1)
+    ]
+
+
 def extra_functionality(
     n: pypsa.Network,
     snapshots: pd.DatetimeIndex,
@@ -159,13 +190,13 @@ def optimize_with_rolling_horizon(
                     n.storage_units_t.state_of_charge.loc[snapshots[start - 1]]
                 )
 
-        # Set per-window energy budgets for volume-limited components
-        # (biomass, biogas) based on PF dispatch stored in generators_t.p
-        for c_name in ["Generator", "Link"]:
+        # Set per-window energy budgets for biomass/biogas components
+        # based on PF dispatch stored in generators_t.p
+        for c_name in ["Link"]:
             c = n.c[c_name]
-            if "has_volume_limit" not in c.static.columns:
-                continue
-            vol_idx = c.static.index[c.static["has_volume_limit"] == 1]
+            vol_idx = get_components_with_volume_limits(
+                n, c_name, ["solid biomass", "biogas"]
+            )
             if vol_idx.empty:
                 continue
             p_col = "p" if c_name == "Generator" else "p0"
@@ -305,7 +336,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "solve_cba_network",
             run="NT",
-            cba_project="t4",
+            cba_project="t16",
             planning_horizons="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
