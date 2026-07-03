@@ -242,7 +242,7 @@ def validate_api_url() -> None:
     """
     if ZENODO_API_URL not in API_URLS.values():
         raise ValueError(
-            f"Refusing to use unrecognised Zenodo API URL: {ZENODO_API_URL!r}. "
+            f"Invalid Zenodo API URL: {ZENODO_API_URL!r}. "
             f"Expected one of {sorted(API_URLS.values())}."
         )
 
