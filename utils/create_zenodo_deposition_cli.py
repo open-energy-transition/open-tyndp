@@ -451,6 +451,9 @@ def main(
     """
     Guide the user through creating a new Zenodo deposition or version.
     """
+    # Set the global logging level.
+    logging.basicConfig(level=logging.INFO)
+
     global ZENODO_API_URL
     ZENODO_API_URL = API_URLS["sandbox"] if sandbox else API_URLS["production"]
 
@@ -462,7 +465,8 @@ def main(
             fg=typer.colors.YELLOW,
         )
     if debug:
-        logging.basicConfig(level=logging.DEBUG)
+        # change local logger level to debug
+        logger.setLevel(logging.DEBUG)
         typer.secho("Debug mode enabled.", fg=typer.colors.YELLOW)
 
     typer.secho("=" * 80, fg=typer.colors.CYAN)
