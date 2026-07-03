@@ -43,6 +43,8 @@ Upcoming Open-TYNDP Release
 
 * Change GitHub issue templates to comply with ISO security checks (https://github.com/open-energy-transition/open-tyndp/pull/714, https://github.com/open-energy-transition/open-tyndp/pull/730).
 
+* Add validation of Zenodo API base URL and deposition ID in ``create_zenodo_deposition_cli`` to close URL-manipulation finding (https://github.com/open-energy-transition/open-tyndp/pull/780).
+
 
 Upcoming PyPSA-Eur Release
 ================
