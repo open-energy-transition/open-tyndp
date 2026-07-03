@@ -233,14 +233,6 @@ def apply_biomass_biogas_bus_marginal_prices(
     # Get index of generators with target carriers
     gen_index = n.generators.index[n.generators.carrier.isin(carriers)]
 
-    # Make sure marginal cost frame exists on correct index
-    if (
-        n.generators_t.marginal_cost.empty
-        or not n.generators_t.marginal_cost.index.equals(n.snapshots)
-    ):
-        n.generators_t.marginal_cost = pd.DataFrame(index=n.snapshots)
-
-    # Add bus marginal price to generator marginal cost for each generator
     for g in gen_index:
         bus = n.generators.at[g, "bus"]
         n.generators_t.marginal_cost[g] = bus_mp[bus].reindex(n.snapshots)
