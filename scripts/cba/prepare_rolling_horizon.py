@@ -192,10 +192,10 @@ def apply_msv_to_network(
 
 
 def apply_biomass_biogas_bus_marginal_prices(
-    n,
-    n_msv,
-    carriers=("solid biomass", "biogas"),
-    resample_method="ffill",
+    n: pypsa.Network,
+    n_msv: pypsa.Network,
+    carriers: list[str] = ["solid biomass", "biogas"],
+    resample_method: str = "ffill",
 ):
     """
     Add marginal prices to biomass/biogas generator marginal costs.
@@ -212,13 +212,13 @@ def apply_biomass_biogas_bus_marginal_prices(
         Target network (will be modified in place).
     n_msv : pypsa.Network
         Solved MSV network containing bus marginal prices.
-    carriers : tuple[str], optional
-        Generator carriers to apply bus marginal prices to. Defaults to ("solid biomass", "biogas").
+    carriers : list[str], optional
+        Generator carriers to apply bus marginal prices to. Defaults to ["solid biomass", "biogas"].
     resample_method : str, optional
         Method for resampling MSV bus marginal prices to target resolution. Default "ffill".
     """
     if isinstance(carriers, str):
-        carriers = (carriers,)
+        carriers = [carriers]
 
     # Get bus marginal prices from MSV network
     msv_mp = n_msv.buses_t.marginal_price
@@ -233,6 +233,7 @@ def apply_biomass_biogas_bus_marginal_prices(
     # Get index of generators with target carriers
     gen_index = n.generators.index[n.generators.carrier.isin(carriers)]
 
+    # Set marginal cost for each generator based on the marginal price of its bus
     for g in gen_index:
         bus = n.generators.at[g, "bus"]
         n.generators_t.marginal_cost[g] = bus_mp[bus].reindex(n.snapshots)
