@@ -64,7 +64,7 @@ def dispose_model(n: pypsa.Network) -> None:
 
     This situation results in the second solve failing with a single-use license error, causing the workflow to fail.
 
-    What this function does is explicitly dispose of the Model after each solve, which releases the license 
+    What this function does is explicitly dispose of the Model after each solve, which releases the license
     and allows subsequent solves to create new Model objects without issue.
 
     This function should only be called after:
@@ -73,9 +73,9 @@ def dispose_model(n: pypsa.Network) -> None:
     """
     try:
         if (
-                n.model is not None
-                and hasattr(n.model, "solver_model")
-                and n.model.solver_model is not None
+            n.model is not None
+            and hasattr(n.model, "solver_model")
+            and n.model.solver_model is not None
         ):
             n.model.solver_model = None
     except Exception as e:
@@ -219,7 +219,6 @@ def optimize_with_rolling_horizon(
                 f"Optimization failed with status {status} and condition {condition}"
             )
             # Retry with fallback solver if configured
-            if fallback_solver:
             if fallback_solver:
                 # If solve failed and fallback is configured, dispose of Model before creating a new one.
                 dispose_model(n)
