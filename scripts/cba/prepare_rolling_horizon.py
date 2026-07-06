@@ -198,18 +198,16 @@ def apply_biomass_biogas_bus_marginal_prices(
     resample_method: str = "ffill",
 ):
     """
-    Add marginal prices to biomass/biogas generator marginal costs.
+    Set biomass/biogas buses' marginal prices as the generators' marginal costs.
 
-    For each biomass/biogas generator in the rolling-horizon network:
+    For each biomass/biogas generator in the rolling horizon network:
     use the marginal price time series of its attached bus from the MSV network and
-    add the marginal price to the generator's base marginal cost.
-
-    effective_marginal_cost_t = static_marginal_cost + bus_marginal_price_t
+    set the marginal price as the generator's marginal cost.
 
     Parameters
     ----------
     n : pypsa.Network
-        Target network (will be modified in place).
+        Target network.
     n_msv : pypsa.Network
         Solved MSV network containing bus marginal prices.
     carriers : list[str], optional
