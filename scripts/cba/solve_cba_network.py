@@ -334,8 +334,6 @@ def solve_network(
                 labels = n.model.compute_infeasibilities()
                 logger.info(f"Labels:\n{labels}")
                 n.model.print_infeasibilities()
-                # Dispose of Gurobi license after computing infeasibilities
-                dispose_gurobi_model(n)
                 raise RuntimeError(
                     "Solving status 'infeasible'. Infeasibilities computed."
                 )
