@@ -181,7 +181,7 @@ class CbaConfig(BaseModel):
         0.4,
         ge=0.0,
         le=1.0,
-        description="Slack applied to rolling-horizon biomass and biogas `e_sum_min` limits as a fraction of the perfect-foresight window dispatch.",
+        description="Slack applied to CBA rolling horizon biomass and biogas `e_sum_min` limits. The slack is applied as a fraction of the original value, allowing for more flexible dispatch of biomass and biogas units in the CBA workflow. This is only applied to the `e_sum_min`, while the `e_sum_max` remains unchanged.",
     )
     storage: _CbaStorageConfig = Field(
         default_factory=_CbaStorageConfig,
