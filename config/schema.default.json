@@ -175,13 +175,18 @@
           "description": "Defines a default cutout. Can refer to a single cutout or a list of cutouts."
         },
         "nprocesses": {
-          "default": 16,
+          "default": 1,
           "description": "Number of parallel processes in cutout preparation.",
           "type": "integer"
         },
         "show_progress": {
           "default": false,
           "description": "Whether progressbar for atlite conversion processes should be shown. False saves time.",
+          "type": "boolean"
+        },
+        "plot_availability_matrix": {
+          "default": false,
+          "description": "Whether to plot the landuse availability matrix. Warning: This requires a significant amount of memory and time and may crash for larger workflows. Use with caution.",
           "type": "boolean"
         },
         "cutouts": {
@@ -737,13 +742,6 @@
               "description": "Aggregates all nodes without power injection (positive or negative, i.e. demand or generation) to electrically closest ones.",
               "type": "boolean"
             },
-            "exclude_carriers": {
-              "description": "List of carriers which will not be aggregated. If empty, all carriers will be aggregated.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
             "remove_stubs": {
               "default": true,
               "description": "Controls whether radial parts of the network should be recursively aggregated. Defaults to true.",
@@ -768,6 +766,11 @@
               ],
               "type": "string"
             },
+            "allow_ac_dc_mixing_in_bus_clusters": {
+              "default": false,
+              "description": "Controls whether clustering is allowed to mix AC and DC buses within a bus cluster. If true, mixed clusters are coerced to AC before aggregation. If false, mixed clusters are kept separate.",
+              "type": "boolean"
+            },
             "hac_features": {
               "description": "List of meteorological variables contained in the weather data cutout that should be considered for hierarchical clustering.",
               "items": {
@@ -785,9 +788,19 @@
           "type": "array"
         },
         "consider_efficiency_classes": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            }
+          ],
           "default": false,
-          "description": "Aggregated each carriers into the top 10-quantile (high), the bottom 90-quantile (low), and everything in between (medium).",
-          "type": "boolean"
+          "description": "Aggregate each carrier into efficiency classes defined by quantile boundaries. If True, uses [0.1, 0.9] as default quantiles (labels: Q0, Q10, Q90). If a list of floats, defines custom quantile boundaries, e.g. [0.1, 0.5, 0.9]."
         },
         "aggregation_strategies": {
           "description": "Configuration for `clustering.aggregation_strategies` settings.",
@@ -2196,6 +2209,69 @@
             }
           }
         },
+        "jrc_energy_atlas": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "desnz_electricity_consumption": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "ons_lad": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "bidding_zones_electricitymaps": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -2839,6 +2915,11 @@
             }
           }
         },
+        "estimate_battery_capacities": {
+          "default": false,
+          "description": "Enable estimation of existing battery storage capacities.",
+          "type": "boolean"
+        },
         "autarky": {
           "description": "Configuration for `electricity.autarky` settings.",
           "properties": {
@@ -2923,6 +3004,11 @@
           "default": 20,
           "description": "Default lifetime for heating technologies (years).",
           "type": "integer"
+        },
+        "solar_rooftop_ratio": {
+          "default": 0.5,
+          "description": "Ratio of existing solar capacity to assign to rooftop vs utility-scale (between 0 and 1).",
+          "type": "number"
         },
         "conventional_carriers": {
           "description": "List of conventional power plants to include in the sectoral network.",
@@ -3141,7 +3227,7 @@
           "type": "boolean"
         },
         "reference_year": {
-          "default": 2019,
+          "default": 2023,
           "description": "The year used as the baseline for industrial energy demand and production. Data extracted from `JRC-IDEES 2015 <https://data.jrc.ec.europa.eu/dataset/jrc-10110-10001>`_.",
           "markdownDescription": "The year used as the baseline for industrial energy demand and production. Data extracted from [JRC-IDEES 2015 ](https://data.jrc.ec.europa.eu/dataset/jrc-10110-10001).",
           "type": "integer"
@@ -3361,6 +3447,11 @@
           "default": true,
           "description": "Whether to supplement missing data for selected time period should be supplemented by synthetic data from `Zenodo <https://zenodo.org/records/10820928>`_.",
           "markdownDescription": "Whether to supplement missing data for selected time period should be supplemented by synthetic data from [Zenodo ](https://zenodo.org/records/10820928).",
+          "type": "boolean"
+        },
+        "substation_only": {
+          "default": true,
+          "description": "Whether to only consider substations for the spatial disaggregation of the per-country electricity demand data.",
           "type": "boolean"
         },
         "distribution_key": {
@@ -3735,6 +3826,7 @@
                   "type": "array"
                 }
               ],
+              "default": false,
               "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
@@ -3917,6 +4009,7 @@
                   "type": "array"
                 }
               ],
+              "default": false,
               "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
@@ -4099,6 +4192,7 @@
                   "type": "array"
                 }
               ],
+              "default": false,
               "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
@@ -5447,6 +5541,13 @@
               "description": "H2 pipeline transmission efficiency.",
               "type": "object"
             },
+            "H2 pipeline retrofitted": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "H2 pipeline retrofitted transmission efficiency.",
+              "type": "object"
+            },
             "gas pipeline": {
               "additionalProperties": {
                 "type": "number"
@@ -5870,16 +5971,16 @@
               "properties": {
                 "enable": {
                   "default": false,
-                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                "default_price": {
+                "default_cost": {
                   "default": 100000,
-                  "description": "The default price for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
                   "exclusiveMinimum": 0,
                   "type": "number"
                 },
-                "apply_to_all_carriers": {
+                "all_carriers": {
                   "default": true,
                   "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
                   "type": "boolean"
@@ -5890,7 +5991,7 @@
                     "type": "number"
                   },
                   "default": {},
-                  "description": "Dictionary of carriers and their specific load shedding price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+                  "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
                   "type": "object"
                 }
               }
@@ -5900,16 +6001,16 @@
               "properties": {
                 "enable": {
                   "default": false,
-                  "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+                  "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                "default_price": {
+                "default_cost": {
                   "default": 100000,
-                  "description": "The default price for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
                   "exclusiveMinimum": 0,
                   "type": "number"
                 },
-                "apply_to_all_carriers": {
+                "all_carriers": {
                   "default": false,
                   "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
                   "type": "boolean"
@@ -5920,7 +6021,7 @@
                     "type": "number"
                   },
                   "default": {},
-                  "description": "Dictionary of carriers and their specific load sink price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default price is assumed for non-listed carriers.",
+                  "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
                   "type": "object"
                 }
               }
@@ -6012,6 +6113,11 @@
             "horizon": {
               "default": 365,
               "description": "Number of snapshots to consider in each iteration. Defaults to 100.",
+              "type": "integer"
+            },
+            "overlap": {
+              "default": 0,
+              "description": "Number of overlapping snapshots between consecutive iterations in rolling horizon optimization. Defaults to 0, which means no overlap.",
               "type": "integer"
             },
             "post_discretization": {
@@ -6788,6 +6894,11 @@
             "hac"
           ],
           "type": "string"
+        },
+        "allow_ac_dc_mixing_in_bus_clusters": {
+          "default": false,
+          "description": "Controls whether clustering is allowed to mix AC and DC buses within a bus cluster. If true, mixed clusters are coerced to AC before aggregation. If false, mixed clusters are kept separate.",
+          "type": "boolean"
         },
         "hac_features": {
           "description": "List of meteorological variables contained in the weather data cutout that should be considered for hierarchical clustering.",
@@ -7616,16 +7727,16 @@
       "properties": {
         "enable": {
           "default": false,
-          "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+          "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
           "type": "boolean"
         },
-        "default_price": {
+        "default_cost": {
           "default": 100000,
-          "description": "The default price for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+          "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
           "exclusiveMinimum": 0,
           "type": "number"
         },
-        "apply_to_all_carriers": {
+        "all_carriers": {
           "default": true,
           "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
           "type": "boolean"
@@ -7636,7 +7747,7 @@
             "type": "number"
           },
           "default": {},
-          "description": "Dictionary of carriers and their specific load shedding price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+          "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
           "type": "object"
         }
       }
@@ -7646,16 +7757,16 @@
       "properties": {
         "enable": {
           "default": false,
-          "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+          "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
           "type": "boolean"
         },
-        "default_price": {
+        "default_cost": {
           "default": 100000,
-          "description": "The default price for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+          "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
           "exclusiveMinimum": 0,
           "type": "number"
         },
-        "apply_to_all_carriers": {
+        "all_carriers": {
           "default": false,
           "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
           "type": "boolean"
@@ -7666,7 +7777,7 @@
             "type": "number"
           },
           "default": {},
-          "description": "Dictionary of carriers and their specific load sink price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default price is assumed for non-listed carriers.",
+          "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
           "type": "object"
         }
       }
@@ -7920,6 +8031,7 @@
               "type": "array"
             }
           ],
+          "default": false,
           "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
         },
         "luisa": {
@@ -8590,13 +8702,6 @@
           "description": "Aggregates all nodes without power injection (positive or negative, i.e. demand or generation) to electrically closest ones.",
           "type": "boolean"
         },
-        "exclude_carriers": {
-          "description": "List of carriers which will not be aggregated. If empty, all carriers will be aggregated.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
         "remove_stubs": {
           "default": true,
           "description": "Controls whether radial parts of the network should be recursively aggregated. Defaults to true.",
@@ -8830,16 +8935,16 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+              "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
               "type": "boolean"
             },
-            "default_price": {
+            "default_cost": {
               "default": 100000,
-              "description": "The default price for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+              "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
               "exclusiveMinimum": 0,
               "type": "number"
             },
-            "apply_to_all_carriers": {
+            "all_carriers": {
               "default": true,
               "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
               "type": "boolean"
@@ -8850,7 +8955,7 @@
                 "type": "number"
               },
               "default": {},
-              "description": "Dictionary of carriers and their specific load shedding price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+              "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
               "type": "object"
             }
           }
@@ -8860,16 +8965,16 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+              "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
               "type": "boolean"
             },
-            "default_price": {
+            "default_cost": {
               "default": 100000,
-              "description": "The default price for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+              "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
               "exclusiveMinimum": 0,
               "type": "number"
             },
-            "apply_to_all_carriers": {
+            "all_carriers": {
               "default": false,
               "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
               "type": "boolean"
@@ -8880,7 +8985,7 @@
                 "type": "number"
               },
               "default": {},
-              "description": "Dictionary of carriers and their specific load sink price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default price is assumed for non-listed carriers.",
+              "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
               "type": "object"
             }
           }
@@ -8972,6 +9077,11 @@
         "horizon": {
           "default": 365,
           "description": "Number of snapshots to consider in each iteration. Defaults to 100.",
+          "type": "integer"
+        },
+        "overlap": {
+          "default": 0,
+          "description": "Number of overlapping snapshots between consecutive iterations in rolling horizon optimization. Defaults to 0, which means no overlap.",
           "type": "integer"
         },
         "post_discretization": {
@@ -9106,6 +9216,13 @@
             "type": "number"
           },
           "description": "H2 pipeline transmission efficiency.",
+          "type": "object"
+        },
+        "H2 pipeline retrofitted": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "description": "H2 pipeline retrofitted transmission efficiency.",
           "type": "object"
         },
         "gas pipeline": {
@@ -9973,6 +10090,11 @@
             }
           }
         },
+        "estimate_battery_capacities": {
+          "default": false,
+          "description": "Enable estimation of existing battery storage capacities.",
+          "type": "boolean"
+        },
         "autarky": {
           "description": "Configuration for `electricity.autarky` settings.",
           "properties": {
@@ -10019,13 +10141,18 @@
           "description": "Defines a default cutout. Can refer to a single cutout or a list of cutouts."
         },
         "nprocesses": {
-          "default": 16,
+          "default": 1,
           "description": "Number of parallel processes in cutout preparation.",
           "type": "integer"
         },
         "show_progress": {
           "default": false,
           "description": "Whether progressbar for atlite conversion processes should be shown. False saves time.",
+          "type": "boolean"
+        },
+        "plot_availability_matrix": {
+          "default": false,
+          "description": "Whether to plot the landuse availability matrix. Warning: This requires a significant amount of memory and time and may crash for larger workflows. Use with caution.",
           "type": "boolean"
         },
         "cutouts": {
@@ -10445,6 +10572,7 @@
                   "type": "array"
                 }
               ],
+              "default": false,
               "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
@@ -10627,6 +10755,7 @@
                   "type": "array"
                 }
               ],
+              "default": false,
               "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
@@ -10809,6 +10938,7 @@
                   "type": "array"
                 }
               ],
+              "default": false,
               "description": "Specifies areas according to CORINE Land Cover codes which are generally eligible for AC-connected offshore wind turbine placement."
             },
             "luisa": {
@@ -11609,6 +11739,11 @@
           "markdownDescription": "Whether to supplement missing data for selected time period should be supplemented by synthetic data from [Zenodo ](https://zenodo.org/records/10820928).",
           "type": "boolean"
         },
+        "substation_only": {
+          "default": true,
+          "description": "Whether to only consider substations for the spatial disaggregation of the per-country electricity demand data.",
+          "type": "boolean"
+        },
         "distribution_key": {
           "description": "Configuration for `load.distribution_key` settings.",
           "properties": {
@@ -11833,6 +11968,11 @@
           "default": 20,
           "description": "Default lifetime for heating technologies (years).",
           "type": "integer"
+        },
+        "solar_rooftop_ratio": {
+          "default": 0.5,
+          "description": "Ratio of existing solar capacity to assign to rooftop vs utility-scale (between 0 and 1).",
+          "type": "number"
         },
         "conventional_carriers": {
           "description": "List of conventional power plants to include in the sectoral network.",
@@ -12632,6 +12772,13 @@
               "description": "H2 pipeline transmission efficiency.",
               "type": "object"
             },
+            "H2 pipeline retrofitted": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "description": "H2 pipeline retrofitted transmission efficiency.",
+              "type": "object"
+            },
             "gas pipeline": {
               "additionalProperties": {
                 "type": "number"
@@ -13146,7 +13293,7 @@
           "type": "boolean"
         },
         "reference_year": {
-          "default": 2019,
+          "default": 2023,
           "description": "The year used as the baseline for industrial energy demand and production. Data extracted from `JRC-IDEES 2015 <https://data.jrc.ec.europa.eu/dataset/jrc-10110-10001>`_.",
           "markdownDescription": "The year used as the baseline for industrial energy demand and production. Data extracted from [JRC-IDEES 2015 ](https://data.jrc.ec.europa.eu/dataset/jrc-10110-10001).",
           "type": "integer"
@@ -13372,13 +13519,6 @@
               "description": "Aggregates all nodes without power injection (positive or negative, i.e. demand or generation) to electrically closest ones.",
               "type": "boolean"
             },
-            "exclude_carriers": {
-              "description": "List of carriers which will not be aggregated. If empty, all carriers will be aggregated.",
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            },
             "remove_stubs": {
               "default": true,
               "description": "Controls whether radial parts of the network should be recursively aggregated. Defaults to true.",
@@ -13403,6 +13543,11 @@
               ],
               "type": "string"
             },
+            "allow_ac_dc_mixing_in_bus_clusters": {
+              "default": false,
+              "description": "Controls whether clustering is allowed to mix AC and DC buses within a bus cluster. If true, mixed clusters are coerced to AC before aggregation. If false, mixed clusters are kept separate.",
+              "type": "boolean"
+            },
             "hac_features": {
               "description": "List of meteorological variables contained in the weather data cutout that should be considered for hierarchical clustering.",
               "items": {
@@ -13420,9 +13565,19 @@
           "type": "array"
         },
         "consider_efficiency_classes": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            }
+          ],
           "default": false,
-          "description": "Aggregated each carriers into the top 10-quantile (high), the bottom 90-quantile (low), and everything in between (medium).",
-          "type": "boolean"
+          "description": "Aggregate each carrier into efficiency classes defined by quantile boundaries. If True, uses [0.1, 0.9] as default quantiles (labels: Q0, Q10, Q90). If a list of floats, defines custom quantile boundaries, e.g. [0.1, 0.5, 0.9]."
         },
         "aggregation_strategies": {
           "description": "Configuration for `clustering.aggregation_strategies` settings.",
@@ -13646,16 +13801,16 @@
               "properties": {
                 "enable": {
                   "default": false,
-                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+                  "description": "Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                "default_price": {
+                "default_cost": {
                   "default": 100000,
-                  "description": "The default price for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "description": "The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
                   "exclusiveMinimum": 0,
                   "type": "number"
                 },
-                "apply_to_all_carriers": {
+                "all_carriers": {
                   "default": true,
                   "description": "Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
                   "type": "boolean"
@@ -13666,7 +13821,7 @@
                     "type": "number"
                   },
                   "default": {},
-                  "description": "Dictionary of carriers and their specific load shedding price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+                  "description": "Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
                   "type": "object"
                 }
               }
@@ -13676,16 +13831,16 @@
               "properties": {
                 "enable": {
                   "default": false,
-                  "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+                  "description": "Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
                   "type": "boolean"
                 },
-                "default_price": {
+                "default_cost": {
                   "default": 100000,
-                  "description": "The default price for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+                  "description": "The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
                   "exclusiveMinimum": 0,
                   "type": "number"
                 },
-                "apply_to_all_carriers": {
+                "all_carriers": {
                   "default": false,
                   "description": "Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
                   "type": "boolean"
@@ -13696,7 +13851,7 @@
                     "type": "number"
                   },
                   "default": {},
-                  "description": "Dictionary of carriers and their specific load sink price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default price is assumed for non-listed carriers.",
+                  "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
                   "type": "object"
                 }
               }
@@ -13788,6 +13943,11 @@
             "horizon": {
               "default": 365,
               "description": "Number of snapshots to consider in each iteration. Defaults to 100.",
+              "type": "integer"
+            },
+            "overlap": {
+              "default": 0,
+              "description": "Number of overlapping snapshots between consecutive iterations in rolling horizon optimization. Defaults to 0, which means no overlap.",
               "type": "integer"
             },
             "post_discretization": {
@@ -15141,6 +15301,69 @@
           }
         },
         "jrc_ardeco": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "jrc_energy_atlas": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "desnz_electricity_consumption": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "ons_lad": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {

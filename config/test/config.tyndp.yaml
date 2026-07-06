@@ -380,7 +380,7 @@ solving:
   options:
     load_shedding:
       enable: true
-      apply_to_all_carriers: false
+      all_carriers: false
       carriers:
         H2: 3000
         AC: 3000
@@ -481,7 +481,7 @@ cba:
       noisy_costs: false
       load_shedding:
         enable: true
-        apply_to_all_carriers: true
+        all_carriers: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
