@@ -220,6 +220,10 @@ def optimize_with_rolling_horizon(
             )
             # Retry with fallback solver if configured
             if fallback_solver:
+            if fallback_solver:
+                # If solve failed and fallback is configured, dispose of Model before creating a new one.
+                dispose_model(n)
+
                 logger.info(
                     f"Retrying window {i + 1}/{len(starting_points)} "
                     f"with fallback solver '{fallback_solver['name']}'"
