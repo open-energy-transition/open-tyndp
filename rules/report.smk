@@ -4,15 +4,15 @@
 
 
 rule report:
-    message:
-        "Compile report."
-    params:
-        fn="report",
     input:
         tex="report/report.tex",
         bib="report/references.bib",
     output:
         "report/report.pdf",
+    params:
+        fn="report",
+    message:
+        "Compile report."
     shell:
         """
         pdflatex -output-directory report {input.tex}
