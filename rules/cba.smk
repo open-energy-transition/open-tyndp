@@ -384,13 +384,6 @@ rule prepare_project:
 
 # Solve reference network with rolling horizon (MSV already applied)
 rule solve_cba_reference_network:
-    params:
-        solving=config_provider("solving"),
-        cba_solving=config_provider("cba", "solving"),
-        biomass_biogas_slack=config_provider("cba", "biomass_biogas_slack"),
-        foresight=config_provider("foresight"),
-        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
-        custom_extra_functionality=None,
     input:
         network=rules.prepare_rolling_horizon.output.network,
     output:
