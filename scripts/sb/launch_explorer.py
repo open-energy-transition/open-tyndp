@@ -122,25 +122,6 @@ def sanitize_input_nc_files(path_strs: list[str]) -> list[str]:
     return files
 
 
-def import_network(fn: str):
-    """
-    Import PyPSA network and set default color for 'none' carrier.
-
-    Parameters
-    ----------
-    fn : str
-        Path to the PyPSA network file to load.
-
-    Returns
-    -------
-    pypsa.Network
-        The loaded network with a default color assigned to the 'none' carrier.
-    """
-    n = pypsa.Network(fn)
-    n.carriers.loc["none", "color"] = "#000000"
-    return n
-
-
 def open_browser(port):
     """
     Opens browser with chosen port.
@@ -194,7 +175,7 @@ if __name__ == "__main__":
     logger.addHandler(file_handler)
 
     # Load networks into a dictionary for PyPSA-Explorer
-    networks = {fn.split("_")[-1].split(".")[0]: import_network(fn) for fn in files}
+    networks = {fn.split("_")[-1].split(".")[0]: pypsa.Network(fn) for fn in files}
     logger.info(f"Successfully loaded {len(networks)} networks: {networks}")
 
     # Create the PyPSA-Explorer dash app
