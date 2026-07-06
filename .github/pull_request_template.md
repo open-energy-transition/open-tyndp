@@ -17,17 +17,18 @@ Closes # (if applicable).
 
 ## Checklist
 
-- [ ] Security scan(s) show no high-severity bugs, critical vulnerabilities, or exposed secrets.
-- [ ] I tested my contribution locally and it works as intended.
-- [ ] Code and workflow changes are sufficiently documented.
-- [ ] Changed dependencies are added to `pixi.toml` (using `pixi add <dependency-name>`).
-- [ ] Changes in configuration options are added in `config/config.default.yaml`.
-- [ ] Changes in configuration options are documented in `doc/configtables/*.csv`.
-- [ ] Changes in configuration options are added in `config/test/*.yaml`.
-- [ ] The multiple weather/climate years test is passing locally (using `pixi run -e open-tyndp tyndp-cyears-test`).
-- [ ] Open-TYNDP SPDX license header added to all touched files.
+**Required:**
+- [ ] Security scans show no high-severity bugs, critical vulnerabilities, or exposed secrets.
+- [ ] Changes are tested locally and behave as expected.
+- [ ] Code and workflow changes are documented.
+- [ ] A release note entry is added to `doc/release_notes.md`.
+
+**If applicable:**
+- [ ] Changes in configuration options are reflected in `scripts/lib/validation`.
+- [ ] Changes in configuration options are added to `config/test/*.yaml`.
+- [ ] Multiple climate years test passes locally (`pixi run -e open-tyndp tyndp-cyears-test`).
 - [ ] For new data sources or versions, [these instructions](https://open-tyndp.readthedocs.io/en/latest/data_sources.html) have been followed.
-- [ ] New rules are documented in the appropriate `doc/*.rst` files.
-- [ ] A release note `doc/release_notes.rst` is added.
-- [ ] Major features are documented with up-to-date information in `doc/index.rst`.
-- [ ] Module docstrings added to new Python scripts.
+- [ ] Open-TYNDP SPDX license header is added to all touched files.
+- [ ] Module docstrings are added to new Python scripts.
+- [ ] New rules are documented in the appropriate `doc/*.md` files.
+- [ ] Major features are documented in `doc/index.md`.
