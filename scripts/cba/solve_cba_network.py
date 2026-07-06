@@ -209,11 +209,11 @@ def optimize_with_rolling_horizon(
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
 
-        # If solve is successful, dispose of Gurobi model to release license before next rolling horizon
+        # If solve is successful, dispose of Model object to release license before next rolling horizon
         if status == "ok":
             dispose_model(n)
 
-        # If solve failed, hold on to license until after IIS is computed in solve_network()
+        # If solve failed, hold on to the Model object until after IIS is computed in solve_network()
         if status != "ok":
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
