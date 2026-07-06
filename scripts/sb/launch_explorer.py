@@ -85,12 +85,12 @@ def sanitize_port(port_str: str) -> int:
     ValueError
         If the value is not an integer within the range 1-``MAX_PORT``.
     """
-    if not (port_str.isdigit() and 1 <= (port := int(port_str)) <= MAX_PORT):
+    if not (port_str.isdecimal() and 1 <= (port := int(port_str)) <= MAX_PORT):
         raise ValueError(f"Port must be an integer in 1-{MAX_PORT}, got: {port_str!r}")
     return port
 
 
-def sanitize_input_files(path_strs: list[str]) -> list[str]:
+def sanitize_input_nc_files(path_strs: list[str]) -> list[str]:
     """
     Validate untrusted network file paths.
 
@@ -149,10 +149,6 @@ def open_browser(port):
     ----------
     port : int
         Port on which the PyPSA-Explorer app is launched.
-
-    Returns
-    -------
-    None
     """
     webbrowser.open_new(f"http://127.0.0.1:{port}")
 
@@ -187,7 +183,7 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.INFO)
         output_log = sanitize_path(sys.argv[1], "log path")
         port = sanitize_port(sys.argv[2])
-        files = sanitize_input_files(sys.argv[3:])
+        files = sanitize_input_nc_files(sys.argv[3:])
         print("Running from command line.")
 
     # Add file handler to write to explorer_launched.log

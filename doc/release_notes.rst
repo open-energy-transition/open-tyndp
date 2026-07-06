@@ -35,7 +35,7 @@ Upcoming Open-TYNDP Release
 
 **Bugfixes and Compatibility**
 
-* Add sanitization of cli inputs passed to launch_explorer (https://github.com/open-energy-transition/open-tyndp/pull/776).
+* Add sanitization of CLI inputs passed to `launch_explorer` (https://github.com/open-energy-transition/open-tyndp/pull/776).
 
 **Documentation**
 
