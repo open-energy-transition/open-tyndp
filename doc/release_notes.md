@@ -31,6 +31,8 @@
 
 **Bugfixes and Compatibility**
 
+* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI (https://github.com/open-energy-transition/open-tyndp/pull/751).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
