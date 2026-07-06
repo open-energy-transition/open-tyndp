@@ -451,7 +451,7 @@ def main(
     """
     Guide the user through creating a new Zenodo deposition or version.
     """
-    # Set the global logging level.
+    # Set the global logging level
     logging.basicConfig(level=logging.INFO)
 
     global ZENODO_API_URL
