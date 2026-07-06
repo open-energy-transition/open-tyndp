@@ -137,8 +137,9 @@ def _group_profiles(
             how="left",
         )
         .assign(
-            p_max_t=lambda df: df.p_max_t
-            + (df.p_nom - df.p_nom_profiles),  # add missing capacities to p_max
+            p_max_t=lambda df: (
+                df.p_max_t + (df.p_nom - df.p_nom_profiles)
+            ),  # add missing capacities to p_max
             p_min_pu=lambda df: df.p_min_t / df.p_nom,
             p_max_pu=lambda df: df.p_max_t / df.p_nom,
             open_tyndp_type=lambda df: df.index_carrier,
