@@ -43,7 +43,7 @@
 
 * Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
 
-* Add missing regex anchors with ``re.fullmatch`` to ``create_zenodo_deposition_cli`` utils script ([778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
+* Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
 
 
 ## Upcoming PyPSA-Eur Release
