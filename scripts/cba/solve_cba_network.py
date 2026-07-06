@@ -51,38 +51,35 @@ from scripts.solve_network import (
 logger = logging.getLogger(__name__)
 
 
-def dispose_gurobi_model(n: pypsa.Network) -> None:
+def dispose_model(n: pypsa.Network) -> None:
     """
-    Explicitly dispose of Gurobi environment.
+    Explicitly dispose of Model object.
 
-    This function is relevant when using Gurobi for the CBA rolling horizon optimization.
+    This function is relevant when using a single-use license solver for the CBA rolling horizon optimization.
     Without this function, what happens is:
-    - First solve (project 1's first rolling horizon): Gurobi environment is created and holds the license.
-    - After solve completes, environment is not disposed, so license is still held.
-    - Second solve (project 1's second rolling horizon, or project 2's first rolling horizon): Gurobi tries to create a new environment,
-    but WLS license server denies it because the previous environment is still active.
+    - First solve (project 1's first rolling horizon): Model object is created and holds the license.
+    - After solve completes, Model will be garbage-collected, but license may still be held until next solve.
+    - Second solve (project 1's second rolling horizon, or project 2's first rolling horizon): Solver tries
+     to create a new Model object, but the license server denies it because the previous object is still active.
 
-    This situation results the second solve failing with a license error, causing the workflow to fail.
+    This situation results in the second solve failing with a single-use license error, causing the workflow to fail.
 
-    What this function does is explicitly dispose of the Gurobi model and environment after each solve,
-    which releases the license and allows subsequent solves to create new environments without issue.
+    What this function does is explicitly dispose of the Model after each solve, which releases the license 
+    and allows subsequent solves to create new Model objects without issue.
 
     This function should only be called after:
     - A successful solve, OR
     - Computing and printing infeasibilities for a failed solve
     """
-    if hasattr(n, "model") and n.model is not None:
-        try:
-            # Access the Gurobi model if it exists
-            if hasattr(n.model, "solver_model") and n.model.solver_model is not None:
-                gurobi_model = n.model.solver_model
-                # Dispose of the Gurobi model to release the license
-                if hasattr(gurobi_model, "dispose"):
-                    gurobi_model.dispose()
-                # Clear the solver_model reference
-                n.model.solver_model = None
-        except Exception as e:
-            logger.warning(f"Failed to dispose Gurobi environment: {e}")
+    try:
+        if (
+                n.model is not None
+                and hasattr(n.model, "solver_model")
+                and n.model.solver_model is not None
+        ):
+            n.model.solver_model = None
+    except Exception as e:
+        logger.warning(f"Failed to dispose Model object: {e}")
 
 
 def extra_functionality(
