@@ -3,11 +3,11 @@
 # SPDX-License-Identifier: CC0-1.0
 
 cff-version: 1.2.0
-title: >-
-  Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
-message: >-
-  If you use this package, please cite it in the following
-  way.
+message: 'If you use this package, please cite it in the following way.'
+title: 'Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP'
+repository-code: 'https://github.com/open-energy-transition/open-tyndp'
+version: v0.7.1
+license: MIT
 type: software
 authors:
   - name: Open Energy Transition
@@ -54,15 +54,14 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.19372053
     description: 'Zenodo record archiving released versions of Open-TYNDP starting with v0.6. Versions v0.5 and v0.5.1 are archived at 10.5281/zenodo.18494362.'
-repository-code: 'https://github.com/open-energy-transition/open-tyndp'
-license: MIT
-version: v0.7.1
 
 # Preferred citation and references
 preferred-citation:
   type: software
-  title: >-
-    Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP
+  title: 'Open-TYNDP: Interfacing Open Energy System Planning with ENTSO-E Models and Contributing to TYNDP'
+  repository-code: 'https://github.com/open-energy-transition/open-tyndp'
+  version: v0.7.1
+  license: MIT
   authors:
     - name: Open Energy Transition
     - family-names: Gilon
@@ -99,9 +98,6 @@ preferred-citation:
       given-names: Maximilian
       orcid: https://orcid.org/0000-0002-4390-0063
   doi: 10.5281/zenodo.19372053
-  repository-code: 'https://github.com/open-energy-transition/open-tyndp'
-  version: v0.7.1
-  license: MIT
 
 # Reference the original work
 references:
@@ -129,8 +125,8 @@ references:
   - type: software
     title: 'PyPSA-Eur: An open sector-coupled optimisation model of the European energy system'
     repository-code: 'https://github.com/pypsa/pypsa-eur'
-    doi: 10.5281/zenodo.15864616
-    version: v2025.07.0
+    doi: 10.5281/zenodo.18693292
+    version: v2026.02.0
     license: MIT
     authors:
       - family-names: Brown

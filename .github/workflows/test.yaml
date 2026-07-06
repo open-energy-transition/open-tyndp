@@ -20,11 +20,11 @@ jobs:
     name: Validate Zenodo metadata
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Cache Zenodo JSON schema
       id: cache-schema
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: /tmp/zenodo_schema.json
         key: zenodo-schema-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -48,12 +48,12 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Setup Pixi
-      uses: prefix-dev/setup-pixi@v0.9.6
+      uses: prefix-dev/setup-pixi@v0.10.0
       with:
-        pixi-version: v0.59.0
+        pixi-version: v0.68.1
         cache: true
         cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
 
@@ -75,7 +75,7 @@ jobs:
         shell: bash -l {0}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - uses: dorny/paths-filter@v4
       id: filter
@@ -103,39 +103,39 @@ jobs:
         df -h
 
     - name: Skip - no source changes
-      if: steps.filter.outputs.src != 'true' && github.event_name != 'schedule'
+      if: steps.filter.outputs.src != 'true' && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
       run: echo "Skipping tests because no source code changes detected"
 
     - name: Setup Pixi
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
-      uses: prefix-dev/setup-pixi@v0.9.6
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      uses: prefix-dev/setup-pixi@v0.10.0
       with:
-        pixi-version: v0.59.0
+        pixi-version: v0.68.1
         cache: true
         cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
         environments: open-tyndp
 
     - name: Setup cache keys
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       run: |
         echo "WEEK=$(date +'%Y%U')" >> $GITHUB_ENV # data
         echo "MONTH=$(date +'%Y%m')" >> $GITHUB_ENV # cutouts
         echo "VERSIONS_HASH=${{ hashFiles('data/versions.csv') }}" >> $GITHUB_ENV
 
-    - uses: actions/cache@v5
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
+    - uses: actions/cache@v6
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       with:
         path: data
         key: data-${{ env.WEEK }}-${{ env.VERSIONS_HASH }}
 
-    - uses: actions/cache@v5
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
+    - uses: actions/cache@v6
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       with:
         path: cutouts
         key: cutouts-${{ env.MONTH }}
 
     - name: Restore git-tracked files in data/
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       run: git checkout HEAD -- data/
 
     - name: Restore git-tracked files in data/
@@ -146,10 +146,10 @@ jobs:
       if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
       # check for undefined variables to reuse functions across scripts
       run: |
-        pixi run pylint --disable=all --enable=E0601,E0606 --output-format=parseable scripts/add_* scripts/prepare_* scripts/solve_*
+        pixi run -e dev pylint --disable=all --enable=E0601,E0606 --output-format=parseable scripts/add_* scripts/prepare_* scripts/solve_*
 
     - name: Run snakemake test workflows (sb)
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       env:
         SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
         SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
@@ -157,7 +157,7 @@ jobs:
         pixi run -e open-tyndp tyndp-sb-test
 
     - name: Run snakemake test workflows (cba)
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       env:
         SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
         SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
@@ -165,7 +165,7 @@ jobs:
         pixi run -e open-tyndp tyndp-cba-test
 
     - name: Run snakemake test workflows (upstream)
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule'
+      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       env:
         SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
         SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
