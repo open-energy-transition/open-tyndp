@@ -124,9 +124,9 @@ def load_data(
         lambda x: _bus_to_country(x) if pd.notna(x) else x
     )
     benchmarks_raw.loc[:, "corridor"] = benchmarks_raw["border"].map(
-        lambda x: "->".join(_bus_to_country(b) for b in x.split("->"))
-        if pd.notna(x)
-        else x
+        lambda x: (
+            "->".join(_bus_to_country(b) for b in x.split("->")) if pd.notna(x) else x
+        )
     )
 
     return benchmarks_raw

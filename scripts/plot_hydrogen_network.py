@@ -38,7 +38,9 @@ def group_pipes(df, drop_direction=False):
     # there are pipes for each investment period rename to AC buses name for plotting
     df["index_orig"] = df.index
     df.index = df.apply(
-        lambda x: f"H2 pipeline {x.bus0.replace(' H2', '')} -> {x.bus1.replace(' H2', '')}",
+        lambda x: (
+            f"H2 pipeline {x.bus0.replace(' H2', '')} -> {x.bus1.replace(' H2', '')}"
+        ),
         axis=1,
     )
     return df.groupby(level=0).agg(
@@ -115,7 +117,9 @@ def plot_h2_map(n, regions, map_fn):
 
             h2_retro["index_orig"] = h2_retro.index
             h2_retro.index = h2_retro.apply(
-                lambda x: f"H2 pipeline {x.bus0.replace(' H2', '')} -> {x.bus1.replace(' H2', '')}",
+                lambda x: (
+                    f"H2 pipeline {x.bus0.replace(' H2', '')} -> {x.bus1.replace(' H2', '')}"
+                ),
                 axis=1,
             )
 
