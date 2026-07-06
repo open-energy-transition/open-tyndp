@@ -20,7 +20,12 @@ from pydantic import BaseModel, Field, FilePath, field_validator
 
 from scripts.lib.validation.config._base import ConfigModel
 
-VALID_SOURCES = ["primary", "archive", "build"]  # Order defines sort priority
+VALID_SOURCES = [
+    "primary",
+    "archive",
+    "tyndp-archive",
+    "build",
+]  # Order defines sort priority
 
 VALID_TAGS = {
     "latest",
@@ -35,8 +40,8 @@ VALID_TAGS = {
 not_empty = [Check.str_length(min_value=1), Check.str_matches(r"\S")]
 valid_tags = Check(lambda s: all(t in VALID_TAGS for t in s.split()), element_wise=True)
 url_safe = Check.str_matches(
-    r"^[a-z0-9_\-\.]+$",
-    error="Version must be URL-safe (only alphanumeric, hyphen, underscore, dot)",
+    r"^[a-z0-9_\-\.+]+$",
+    error="Version must be URL-safe (only alphanumeric, hyphen, underscore, dot, plus)",
 )
 
 
@@ -57,7 +62,12 @@ def sort_versions(df: pd.DataFrame) -> pd.DataFrame:
 
 is_sorted = Check(lambda df: df.equals(sort_versions(df)), error="Data must be sorted")
 archive_has_url = Check(
-    lambda df: df.loc[df["source"] == "archive", "url"].str.len().gt(0).all(),
+    lambda df: (
+        df.loc[df["source"].isin({"archive", "tyndp-archive"}), "url"]
+        .str.len()
+        .gt(0)
+        .all()
+    ),
     error="Archive entries must have a URL",
 )
 one_latest_per_dataset_source = Check(

@@ -12,6 +12,8 @@ body:
 
       Spikes are exploratory issues meant to gather information and explore concepts. They typically don't result in PRs but help inform future implementation decisions.
 
+      Please write this issue description yourself. Any potentially verbose AI-generated content should be marked.
+
 - type: input
   id: parent_issue
   attributes:

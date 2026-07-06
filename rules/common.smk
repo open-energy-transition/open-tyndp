@@ -87,7 +87,6 @@ def config_provider(*keys, default=None):
 def dataset_version(
     name: str,
     all_versions: bool = False,
-    version: str | None = None,
     **dataset_config_overrides: str,
 ) -> pd.Series | pd.DataFrame:
     """
@@ -102,9 +101,6 @@ def dataset_version(
         The name of the dataset to retrieve version information for.
     all_versions: bool
         Whether to return all supported versions instead of the configured one.
-    version: str | None
-        Override to use configured version from different config source (e.g. for using a pre-solved SB network in the CBA,
-        where the version is defined in `cba.cba_scenario_input.sb_version`)
     **dataset_config_overrides : str
         entries to override the dataset config for the given `name`.
 
@@ -118,9 +114,6 @@ def dataset_version(
     """
     dataset_config = {**config["data"][name], **dataset_config_overrides}
     data_version_files = config["data"]["version_files"]
-
-    if version is None:
-        version = dataset_config["version"]
 
     data_versions = load_data_versions(
         *(
