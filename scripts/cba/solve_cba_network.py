@@ -211,7 +211,7 @@ def optimize_with_rolling_horizon(
 
         # If solve is successful, dispose of Gurobi model to release license before next rolling horizon
         if status == "ok":
-            dispose_gurobi_model(n)
+            dispose_model(n)
 
         # If solve failed, hold on to license until after IIS is computed in solve_network()
         if status != "ok":
@@ -231,7 +231,7 @@ def optimize_with_rolling_horizon(
 
                 # Only dispose after fallback if it succeeded
                 if status == "ok":
-                    dispose_gurobi_model(n)
+                    dispose_model(n)
 
             if status != "ok":
                 logger.warning(f"Fallback also failed: {status} / {condition}")
