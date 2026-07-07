@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
     # Get files and output path from snakemake or command line arguments
     if "snakemake" in globals():
-        # Running from Snakemake directly for debugging
+        # Running with Mock Snakemake directly for debugging
         # Add parent directory to path to find scripts module
         sys.path.insert(0, str(Path(__file__).parent.parent.parent))
         from scripts._helpers import configure_logging
@@ -164,7 +164,7 @@ if __name__ == "__main__":
         port = snakemake.params.port
         print("Running from Snakemake directly.")
     else:
-        # Running from command line
+        # CLI entry point, allows the app to be launched as a subprocess
         logging.basicConfig(level=logging.INFO)
         output_log = sanitize_path(sys.argv[1], "log path")
         port = sanitize_port(sys.argv[2])
