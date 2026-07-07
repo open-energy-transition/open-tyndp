@@ -232,21 +232,6 @@ def get_archive_folders(dataset):
     return sorted([f.name for f in archive_path.iterdir() if f.is_dir()])
 
 
-def validate_api_url() -> None:
-    """
-    Validate the configured Zenodo API base URL against the allowlist.
-
-    Ensures the scheme and authority match a known Zenodo API endpoint before it
-    is used to build request URLs, guarding against URL manipulation. Raises a
-    ``ValueError`` if the URL is not recognised.
-    """
-    if ZENODO_API_URL not in API_URLS.values():
-        raise ValueError(
-            f"Invalid Zenodo API URL: {ZENODO_API_URL!r}. "
-            f"Expected one of {sorted(API_URLS.values())}."
-        )
-
-
 def create_zenodo_deposition(metadata: dict, files: list[Path]) -> requests.Response:
     """
     Create a new Zenodo deposition with the specified metadata and files.
@@ -475,7 +460,6 @@ def main(
     """
     global ZENODO_API_URL
     ZENODO_API_URL = API_URLS["sandbox"] if sandbox else API_URLS["production"]
-    validate_api_url()
 
     if sandbox:
         typer.secho(
