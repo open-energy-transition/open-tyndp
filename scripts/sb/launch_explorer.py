@@ -10,7 +10,6 @@ To close all running explorer instances when finished, run:
 """
 
 import logging
-import re
 import sys
 import webbrowser
 from pathlib import Path
@@ -21,9 +20,6 @@ from pypsa_explorer import create_app
 
 logger = logging.getLogger(__name__)
 
-# Allow-list of characters permitted in a command-line file path
-ALLOWED_PATH = re.compile(r"[A-Za-z0-9._/\\-]+")
-
 # Exclude privileged ports
 MIN_PORT = 1024
 # Highest valid TCP port (2**16 - 1)
@@ -32,11 +28,11 @@ MAX_PORT = 65535
 
 def sanitize_path(path_str: str, label: str) -> Path:
     """
-    Validate an untrusted path and resolve it inside the working directory.
+    Resolve an untrusted path and confirm it stays inside the working directory.
 
-    Guards against path manipulation: only allow-listed characters are accepted,
-    absolute paths and ``..`` traversal are rejected, and the resolved path must
-    stay within the current working directory.
+    Returns the absolute, resolved path, guaranteed to exist and to lie within
+    the working directory. Absolute inputs, ``..`` traversal, and symlinks
+    pointing outside the directory are all rejected.
 
     Parameters
     ----------
@@ -48,23 +44,24 @@ def sanitize_path(path_str: str, label: str) -> Path:
     Returns
     -------
     pathlib.Path
-        The validated path resolved against the working directory.
+        The resolved path, guaranteed to exist and lie within the working directory.
 
     Raises
     ------
     ValueError
-        If the path is empty, contains disallowed characters, is absolute or
-        contains ``..``, or resolves outside the working directory.
+        If the path cannot be resolved (missing, unreadable, or a symlink loop) or
+        if it resolves outside the working directory.
     """
-    if not path_str or not ALLOWED_PATH.fullmatch(path_str):
-        raise ValueError(f"Invalid characters in {label}: {path_str!r}")
     path = Path(path_str)
-    if path.is_absolute() or ".." in path.parts:
-        raise ValueError(f"{label} must be relative and without '..': {path_str!r}")
     base_dir = Path.cwd().resolve()
-    resolved = (base_dir / path).resolve()
+    try:
+        resolved = (base_dir / path).resolve(strict=True)
+    except OSError as e:
+        raise ValueError(f"Invalid {label}: {e}") from e
+
     if not resolved.is_relative_to(base_dir):
         raise ValueError(f"{label} escapes the working directory: {path_str!r}")
+
     return resolved
 
 
@@ -119,7 +116,7 @@ def sanitize_input_nc_files(path_strs: list[str]) -> list[str]:
     """
     files = []
     for path_str in path_strs:
-        path = sanitize_path(path_str, "network file")
+        path = sanitize_path(path_str, "network file path")
         if path.suffix != ".nc" or not path.is_file():
             raise ValueError(f"Not an existing '.nc' file: {path_str!r}")
         files.append(str(path))
