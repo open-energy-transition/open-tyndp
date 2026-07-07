@@ -475,8 +475,9 @@ def load_offshore_generators(
             .replace({"scenario": SCENARIO_DICT})
             .query("pyear in @planning_horizons and scenario == @scenario")
             .assign(
-                carrier=lambda x: "offwind-"
-                + x.carrier.str.lower().replace("_", "-", regex=True)
+                carrier=lambda x: (
+                    "offwind-" + x.carrier.str.lower().replace("_", "-", regex=True)
+                )
             )
             .drop(columns=column_del, errors="ignore")
         )
