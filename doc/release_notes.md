@@ -31,6 +31,8 @@
 
 **Bugfixes and Compatibility**
 
+* Add explicit `cachetools` package dependency to avoid an import error on Windows installs ([#774](https://github.com/open-energy-transition/open-tyndp/pull/774)).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
