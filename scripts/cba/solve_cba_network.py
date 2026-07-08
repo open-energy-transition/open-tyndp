@@ -77,9 +77,7 @@ def get_components_with_volume_limits(
     if "has_volume_limit" not in static.columns:
         return pd.Index([])
 
-    return static.index[
-        static["carrier"].isin(carriers) & static["has_volume_limit"].eq(1)
-    ]
+    return static.index[static["carrier"].isin(carriers) & static["has_volume_limit"]]
 
 
 def extra_functionality(

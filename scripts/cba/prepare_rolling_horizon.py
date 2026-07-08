@@ -130,8 +130,8 @@ def disable_volume_limits(n: pypsa.Network):
     for c in n.components[{"Generator", "Link"}]:
         has_e_sum_min = isfinite(c.static.get("e_sum_min", []))
         if has_e_sum_min.any():
-            c.static["has_volume_limit"] = 0
-            c.static.loc[has_e_sum_min, "has_volume_limit"] = 1
+            c.static["has_volume_limit"] = False
+            c.static.loc[has_e_sum_min, "has_volume_limit"] = True
             c.static.loc[has_e_sum_min, "e_sum_min"] = -inf
             c.static.loc[has_e_sum_min, "e_sum_max"] = inf
 
