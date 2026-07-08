@@ -47,7 +47,7 @@
 
 * Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
 
-* Add validation of Zenodo API base URL and deposition ID in `create_zenodo_deposition_cli` to close URL-manipulation finding ([780](https://github.com/open-energy-transition/open-tyndp/pull/780)).
+* Add validation of Zenodo deposition ID in `create_zenodo_deposition_cli` to close URL-manipulation finding ([#780](https://github.com/open-energy-transition/open-tyndp/pull/780)).
 
 
 ## Upcoming PyPSA-Eur Release
