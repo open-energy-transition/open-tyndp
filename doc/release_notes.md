@@ -31,7 +31,7 @@
 
 **Bugfixes and Compatibility**
 
-* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI (https://github.com/open-energy-transition/open-tyndp/pull/751).
+* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
 
 **Documentation**
 
