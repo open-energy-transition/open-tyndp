@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=../schema.default.json
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+run:
+  name: "NT"
+
+clustering:
+  temporal:
+    # Use 1H for high-resolution SB results on ZIB.
+    resolution_sector: 1H
+
+solving:
+  options:
+    assign_all_duals: true
+    include_objective_constant: false
+  solver:
+    name: gurobi
+    options: gurobi-default
+  partition: big
+  mem_mb: 60000
+  runtime: 12h
+
+cba:
+  msv_extraction:
+    solving:
+      options:
+        include_objective_constant: false
+      solver:
+        name: gurobi
+        options: gurobi-default
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+      solver_options:
+        gurobi-default:
+          BarConvTol: 1.0e-06
+
+  # Rolling horizon solving settings
+  solving:
+    options:
+      include_objective_constant: false
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
+    solver:
+      name: gurobi
+      options: gurobi-simplex
+
+    solver_options:
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06
