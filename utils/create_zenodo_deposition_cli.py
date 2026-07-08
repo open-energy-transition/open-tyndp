@@ -310,6 +310,13 @@ def publish_zenodo_deposition(deposition_id: int) -> requests.Response:
     Response
         The response from the Zenodo API after publishing the deposition.
     """
+    # Validate id to be positive integer (rejecting bool, int-like strings and traversals)
+    if (
+        isinstance(deposition_id, bool)
+        or not isinstance(deposition_id, int)
+        or deposition_id <= 0
+    ):
+        raise ValueError(f"Invalid Zenodo deposition ID: {deposition_id!r}")
     r = requests.post(
         f"{ZENODO_API_URL}/deposit/depositions/{deposition_id}/actions/publish",
         params={"access_token": ZENODO_API_KEY},
