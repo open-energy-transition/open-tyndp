@@ -31,6 +31,8 @@
 
 **Bugfixes and Compatibility**
 
+* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
+
 * Fix CBA workflow to (a) release solver license after each successful rolling horizon optimization or after computing infeasibilities and (b) raise an error if rolling horizon fails when using HiGHS (https://github.com/open-energy-transition/open-tyndp/pull/756). 
 
 **Documentation**
@@ -44,6 +46,10 @@
 * Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).
 
 * Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+
+* Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([777](https://github.com/open-energy-transition/open-tyndp/pull/777)).
+
+* Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
 
 
 ## Upcoming PyPSA-Eur Release
