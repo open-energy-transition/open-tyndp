@@ -31,6 +31,8 @@
 
 **Bugfixes and Compatibility**
 
+* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
@@ -42,6 +44,10 @@
 * Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).
 
 * Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+
+* Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([777](https://github.com/open-energy-transition/open-tyndp/pull/777)).
+
+* Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
 
 * Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
 
