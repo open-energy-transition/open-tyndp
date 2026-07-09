@@ -60,6 +60,8 @@
 
 * Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
 
+* Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
+
 
 ## Upcoming PyPSA-Eur Release
 * Security: SBOM security scan included in CI.
