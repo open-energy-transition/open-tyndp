@@ -8,6 +8,7 @@ Plot offshore transmission network with existing capacities. If `expanded` is en
 import logging
 import re
 
+import cartopy.crs as ccrs
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,16 +29,16 @@ logger = logging.getLogger(__name__)
 
 
 def plot_offshore_map(
-    network,
-    map_opts,
-    proj,
-    map_fn,
-    planning_horizons,
-    carrier="DC_OH",
-    p_nom="p_nom",
-    legend=True,
-    hubs_only=False,
-):
+    network: pypsa.Network,
+    map_opts: dict,
+    proj: ccrs.Projection,
+    map_fn: str,
+    planning_horizons: int,
+    carrier: str = "DC_OH",
+    p_nom: str | float = "p_nom",
+    legend: bool = True,
+    hubs_only: bool = False,
+) -> None:
     """
     Plots the offshore network hydrogen or electricity capacities and offshore-hubs buses.
     If `p_nom` parameter is set as `p_nom_opt`, optimal capacities are plotted instead.
@@ -48,14 +49,14 @@ def plot_offshore_map(
         PyPSA network for plotting the offshore grid. Can be either presolving or post solving.
     map_opts : dict
         Map options for plotting.
-    proj : cartopy.crs.Projection
-        Projection to use for plotting.
+    proj : ccrs.Projection
+        Cartopy CRS projection to use for plotting.
     map_fn : str
         Path to save the final map plot to.
     planning_horizons : int
-        The planning horizon year
+        The planning horizon year.
     carrier : str, optional
-        Carrier to plot
+        Carrier to plot.
     p_nom : str | float, optional
         Nominal power parameter for determining link thickness. If str, must be "p_nom" or "p_nom_opt".
         If float, uses fixed value for all links. Defaults to plotting only base network (p_nom).

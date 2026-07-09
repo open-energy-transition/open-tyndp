@@ -702,7 +702,7 @@ if (
 
 if (ENERGY_ATLAS_DATASET := dataset_version("jrc_energy_atlas"))["source"] in [
     "primary",
-    "archive",
+    *ARCHIVE_SOURCES,
 ]:
 
     rule retrieve_electricity_demand_energy_atlas:
@@ -725,7 +725,7 @@ if (
     DESNZ_ELECTRICITY_CONSUMPTION_DATASET := dataset_version(
         "desnz_electricity_consumption"
     )
-)["source"] in ["primary", "archive"]:
+)["source"] in ["primary", *ARCHIVE_SOURCES]:
 
     rule retrieve_desnz_electricity_consumption:
         output:
@@ -743,7 +743,7 @@ if (
 
 
 
-if (ONS_LAD_DATASET := dataset_version("ons_lad"))["source"] in ["archive"]:
+if (ONS_LAD_DATASET := dataset_version("ons_lad"))["source"] in [*ARCHIVE_SOURCES]:
 
     rule retrieve_ons_lad:
         input:

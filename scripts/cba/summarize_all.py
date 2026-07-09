@@ -70,7 +70,25 @@ def benchmark_range(
     source: str = "TYNDP 2024",
     planning_horizon: int = 0,
 ) -> tuple[float, float, float] | None:
-    """Return (min, mean, max) range for a benchmark indicator."""
+    """
+    Return (min, mean, max) range for a benchmark indicator.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing benchmark indicator data.
+    indicator : str
+        Indicator key to look up.
+    source : str, optional
+        Data source label to filter on. Default is "TYNDP 2024".
+    planning_horizon : int, optional
+        Planning horizon year to filter on. Default is 0.
+
+    Returns
+    -------
+    tuple[float, float, float] or None
+        (min, mean, max) values for the indicator, or None if no data.
+    """
     benchmark = df[
         (df["source"] == source)
         & (df["indicator"] == indicator)
@@ -125,10 +143,23 @@ def format_area_subtitle(area: str | None) -> str | None:
 def create_plots(
     df: pd.DataFrame,
     output_file: str,
-    planning_horizons=None,
-    area: str = None,
-):
-    """Create benchmark plot from all collected indicator files."""
+    planning_horizons: list | None = None,
+    area: str | None = None,
+) -> None:
+    """
+    Create benchmark plot from all collected indicator files.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Combined DataFrame with all indicator data.
+    output_file : str
+        Output file path for the generated plot.
+    planning_horizons : list, optional
+        Planning horizons to include. Default is None (derived from df).
+    area : str or None, optional
+        Spatial scope identifier passed to format_area_subtitle. Default is None.
+    """
     #
 
     if df.empty:

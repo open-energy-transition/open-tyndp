@@ -39,7 +39,7 @@ def load_h2_storage_data(
     Returns
     -------
     pd.DataFrame
-        The function returns cleaned TYNDP H2 storage data.
+        Cleaned TYNDP H2 storage data.
     """
 
     column_dict = {
