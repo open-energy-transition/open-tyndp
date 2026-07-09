@@ -221,26 +221,6 @@ def optimize_with_rolling_horizon(
                     n.storage_units_t.state_of_charge.loc[snapshots[start - 1]]
                 )
 
-        # Set per-window energy budgets for biomass/biogas components
-        # based on PF dispatch stored in generators_t.p
-        for c_name in ["Generator", "Link"]:
-            c = n.c[c_name]
-            vol_idx = get_components_with_volume_limits(
-                n, c_name, ["solid biomass", "biogas"]
-            )
-            if vol_idx.empty:
-                continue
-            p_col = "p" if c_name == "Generator" else "p0"
-            pf_p = c.dynamic[p_col]
-            for comp in vol_idx:
-                if comp not in pf_p.columns:
-                    continue
-                window_energy = pf_p.loc[sns, comp].sum()
-                c.static.loc[comp, "e_sum_min"] = (
-                    1 - biomass_biogas_slack
-                ) * window_energy
-                c.static.loc[comp, "e_sum_max"] = window_energy
-
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
 
         # If solve is successful, dispose of Model object to release license before next rolling horizon
