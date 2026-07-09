@@ -51,6 +51,37 @@ from scripts.solve_network import (
 logger = logging.getLogger(__name__)
 
 
+def dispose_model(n: pypsa.Network) -> None:
+    """
+    Explicitly dispose of Model object.
+
+    This function is relevant when using a single-use license solver for the CBA rolling horizon optimization.
+    Without this function, what happens is:
+    - First solve (project 1's first rolling horizon): Model object is created and holds the license.
+    - After solve completes, Model will be garbage-collected, but license may still be held until next solve.
+    - Second solve (project 1's second rolling horizon, or project 2's first rolling horizon): Solver tries
+     to create a new Model object, but the license server denies it because the previous object is still active.
+
+    This situation results in the second solve failing with a single-use license error, causing the workflow to fail.
+
+    What this function does is explicitly dispose of the Model after each solve, which releases the license
+    and allows subsequent solves to create new Model objects without issue.
+
+    This function should only be called after:
+    - A successful solve, OR
+    - Computing and printing infeasibilities for a failed solve
+    """
+    try:
+        if (
+            n.model is not None
+            and hasattr(n.model, "solver_model")
+            and n.model.solver_model is not None
+        ):
+            n.model.solver_model = None
+    except Exception as e:
+        logger.warning(f"Failed to dispose Model object: {e}")
+
+
 def extra_functionality(
     n: pypsa.Network,
     snapshots: pd.DatetimeIndex,
@@ -177,12 +208,21 @@ def optimize_with_rolling_horizon(
                 c.static.loc[comp, "e_sum_max"] = window_energy
 
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
+
+        # If solve is successful, dispose of Model object to release license before next rolling horizon
+        if status == "ok":
+            dispose_model(n)
+
+        # If solve failed, hold on to the Model object until after IIS is computed in solve_network()
         if status != "ok":
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
             )
             # Retry with fallback solver if configured
             if fallback_solver:
+                # If solve failed and fallback is configured, dispose of Model before creating a new one.
+                dispose_model(n)
+
                 logger.info(
                     f"Retrying window {i + 1}/{len(starting_points)} "
                     f"with fallback solver '{fallback_solver['name']}'"
@@ -191,6 +231,11 @@ def optimize_with_rolling_horizon(
                 retry_kwargs["solver_name"] = fallback_solver["name"]
                 retry_kwargs["solver_options"] = fallback_solver.get("options", {})
                 status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
+
+                # Only dispose after fallback if it succeeded
+                if status == "ok":
+                    dispose_model(n)
+
             if status != "ok":
                 logger.warning(f"Fallback also failed: {status} / {condition}")
                 return status, condition
@@ -281,18 +326,21 @@ def solve_network(
         logger.warning(
             f"Solving status '{status}' with termination condition '{condition}'"
         )
+        # If infeasible and using Gurobi or Xpress, compute and log infeasibilities before raising error
+        if "infeasible" in condition:
+            solver_name = solving["solver"]["name"]
+            if solver_name in ["gurobi", "xpress"]:
+                labels = n.model.compute_infeasibilities()
+                logger.info(f"Labels:\n{labels}")
+                n.model.print_infeasibilities()
+                raise RuntimeError(
+                    "Solving status 'infeasible'. Infeasibilities computed."
+                )
+        raise RuntimeError(
+            f"Solving status '{status}' with termination condition '{condition}'."
+        )
+
     check_objective_value(n, solving)
-
-    if "warning" in condition:
-        raise RuntimeError("Solving status 'warning'. Discarding solution.")
-
-    if "infeasible" in condition:
-        solver_name = solving["solver"]["name"]
-        if solver_name in ["gurobi", "xpress"]:
-            labels = n.model.compute_infeasibilities()
-            logger.info(f"Labels:\n{labels}")
-            n.model.print_infeasibilities()
-            raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
 if __name__ == "__main__":
