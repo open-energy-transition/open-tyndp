@@ -51,35 +51,6 @@ from scripts.solve_network import (
 logger = logging.getLogger(__name__)
 
 
-def get_components_with_volume_limits(
-    n: pypsa.Network,
-    type: str,
-    carriers: list[str],
-) -> pd.Index:
-    """
-    Return components that have volume limits, given a list of carriers.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        PyPSA network
-    type : str
-        Component type, e.g. "Generator" or "Link"
-    carriers : list of str
-        List of carriers to filter components by
-
-    Returns
-    -------
-    pd.Index
-        Index of components that have volume limits and match the given carriers
-    """
-    static = n.c[type].static
-    if "has_volume_limit" not in static.columns:
-        return pd.Index([])
-
-    return static.index[static["carrier"].isin(carriers) & static["has_volume_limit"]]
-
-
 def dispose_model(n: pypsa.Network) -> None:
     """
     Explicitly dispose of Model object.
