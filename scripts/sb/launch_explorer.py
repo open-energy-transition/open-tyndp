@@ -77,12 +77,12 @@ def sanitize_port(port_str: str) -> int:
     Returns
     -------
     int
-        The parsed port number, guaranteed to be within 1-``MAX_PORT``.
+        The parsed port number, guaranteed to be within ``MIN_PORT``-``MAX_PORT``.
 
     Raises
     ------
     ValueError
-        If the value is not an integer within the range 1-``MAX_PORT``.
+        If the value is not an integer within the range ``MIN_PORT``-``MAX_PORT``.
     """
     if not (port_str.isdecimal() and MIN_PORT <= (port := int(port_str)) <= MAX_PORT):
         raise ValueError(
