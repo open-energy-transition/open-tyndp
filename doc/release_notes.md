@@ -47,7 +47,7 @@
 
 * Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
 
-* Add sanitization of CLI inputs passed to `launch_explorer` ([776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
+* Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
 
 
 ## Upcoming PyPSA-Eur Release

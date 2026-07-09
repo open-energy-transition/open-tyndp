@@ -161,7 +161,7 @@ if __name__ == "__main__":
         port = snakemake.params.port
         print("Running from Snakemake directly.")
     else:
-        # CLI entry point, allows the app to be launched as a subprocess
+        # CLI entry point for Snakemake, allows the app to be launched as a subprocess
         logging.basicConfig(level=logging.INFO)
         output_log = sanitize_path(sys.argv[1], "log path")
         port = sanitize_port(sys.argv[2])
