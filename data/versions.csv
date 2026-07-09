@@ -49,6 +49,7 @@ cutout,v1.0,archive,latest supported,2026-01-13,Pre-build cutouts for PyPSA-Eur,
 cutout,unknown,build,latest supported,2025-12-02,Build latest cutouts using ERA5/SARAH3 data.,
 desnz_electricity_consumption,unknown,primary,latest supported,2026-02-02,,https://assets.publishing.service.gov.uk/media/6762951abe7b2c675de30705/Subnational_electricity_consumption_statistics_2005-2024.xlsx
 desnz_electricity_consumption,2026-02-16,archive,latest supported,2026-02-16,,https://data.pypsa.org/workflows/eur/desnz_electricity_consumption/2026-02-16/Subnational_electricity_consumption_statistics_2005-2024.xlsx
+desnz_electricity_consumption,2026-02-16,tyndp-archive,latest supported,2026-02-16,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/desnz_electricity_consumption/2026-02-16/Subnational_electricity_consumption_statistics_2005-2024.xlsx
 dh_areas,341.5,primary,latest supported,2025-12-02,,https://fordatis.fraunhofer.de/bitstream/fordatis/341.5/2/dh_areas.gpkg
 dh_areas,341.5,archive,latest supported,2026-01-13,,https://data.pypsa.org/workflows/eur/dh_areas/341.5/dh_areas.gpkg
 dh_areas,341.5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/dh_areas/341.5/dh_areas.gpkg
@@ -113,6 +114,7 @@ jrc_ardeco,2021,archive,latest supported,2026-01-13,,https://data.pypsa.org/work
 jrc_ardeco,2021,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/jrc_ardeco/2021
 jrc_energy_atlas,unknown,primary,latest supported,2026-02-02,,https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EIGL-Data/RASTER/electricity_tot_demand_2019.tif
 jrc_energy_atlas,2026-02-16,archive,latest supported,2026-02-16,,https://data.pypsa.org/workflows/eur/jrc_energy_atlas/2026-02-16/electricity_tot_demand_2019.tif
+jrc_energy_atlas,2026-02-16,tyndp-archive,latest supported,2026-02-16,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/jrc_energy_atlas/2026-02-16/electricity_tot_demand_2019.tif
 jrc_idees,2023-v1,primary,latest supported,2026-02-04,,https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/JRC-IDEES/JRC-IDEES-2023_v1/JRC-IDEES-2023.zip
 jrc_idees,2023-v1,archive,latest supported,2026-02-09,,https://data.pypsa.org/workflows/eur/jrc_idees/2023-v1/JRC-IDEES-2023.zip
 jrc_idees,2023-v1,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/jrc_idees/2023-v1/JRC-IDEES-2023.zip
@@ -141,6 +143,7 @@ neso_electricity_demand,2026-02-02,archive,latest supported,2026-02-03,,https://
 neso_electricity_demand,2026-02-02,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/neso_electricity_demand/2026-02-02/electricity_demand_neso_raw.csv
 nitrogen_statistics,2023,primary,latest supported,2025-12-02,,https://d9-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/s3fs-public/media/files/myb1-2023-nitro-ERT.xlsx
 nitrogen_statistics,2023,archive,latest supported,2026-02-26,,https://data.pypsa.org/workflows/eur/nitrogen_statistics/2023/myb1-2023-nitro-ERT.xlsx
+nitrogen_statistics,2023,tyndp-archive,latest supported,2026-02-26,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nitrogen_statistics/2023/nitro-ert.xlsx
 nitrogen_statistics,2022,primary,supported,2025-12-02,,https://d9-wret.s3.us-west-2.amazonaws.com/assets/palladium/production/s3fs-public/media/files/myb1-2022-nitro-ert.xlsx
 nitrogen_statistics,2022,archive,supported,2026-01-13,,https://data.pypsa.org/workflows/eur/nitrogen_statistics/2022/nitro-ert.xlsx
 nitrogen_statistics,2022,tyndp-archive,supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nitrogen_statistics/2022/nitro-ert.xlsx
@@ -149,6 +152,7 @@ nuts3_population,13-03-2025,archive,latest supported,2026-01-13,earlier part of 
 nuts3_population,13-03-2025,tyndp-archive,latest supported,2026-05-08,earlier part of zenodo bundle,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
 ons_lad,may-2024,primary,latest supported,2026-02-02,API request used,https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Local_Authority_Districts_May_2024_Boundaries__UK_BSC/FeatureServer/0/query
 ons_lad,may-2024,archive,latest supported,2026-02-17,API request used,https://data.pypsa.org/workflows/eur/ons_lad/may-2024/ons_lad.geojson
+ons_lad,may-2024,tyndp-archive,latest supported,2026-02-17,API request used,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/ons_lad/may-2024/Local_Authority_Districts_May_2024_Boundaries__UK_BSC.geojson
 open_tyndp_prelim,0.7.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/20303009
 open_tyndp_prelim,0.7.1,archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://zenodo.org/records/20303009/files/results-0.7.1.zip
 open_tyndp_prelim,0.7.1,tyndp-archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.7.1/results-0.7.1.zip
@@ -210,7 +214,7 @@ swiss_energy_balances,2025-10-01,primary,latest supported,2026-02-12,,https://pu
 swiss_energy_balances,2025-10-01,archive,latest supported,2026-02-16,,https://web.archive.org/web/20260216/https%3A//pubdb.bfe.admin.ch/de/publication/download/12361
 synthetic_electricity_demand,v2,primary,latest supported,2025-12-02,the primary is already from Zenodo published by original authors,https://zenodo.org/records/10820928/files/demand_hourly.csv
 synthetic_electricity_demand,v2,archive,latest supported,2026-01-20,the primary is already from Zenodo published by original authors,https://data.pypsa.org/workflows/eur/synthetic_electricity_demand/v2/demand_hourly.csv
-synthetic_electricity_demand,v2,tyndp-archive,latest supported,2026-05-08,the primary is already from Zenodo published by original authors,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/synthetic_electricity_demand/v2
+synthetic_electricity_demand,v2,tyndp-archive,latest supported,2026-05-08,the primary is already from Zenodo published by original authors,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/synthetic_electricity_demand/v2/demand_hourly.csv
 synthetic_electricity_demand,0.1.0,archive,deprecated might-work,2026-01-13,,https://data.pypsa.org/workflows/eur/synthetic_electricity_demand/0.1.0/demand_hourly.csv
 tyndp,2024,primary,latest supported,2026-02-05,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
 tyndp,2024,archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024
