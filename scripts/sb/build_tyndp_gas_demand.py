@@ -38,7 +38,7 @@ For each planning year, the script:
 Inputs
 ------
 
-- ``data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm``: TYNDP 2024 Supply Tool Excel file containing:
+- `data/tyndp_2024_bundle/Supply Tool/20240518-Supply-Tool.xlsm`: TYNDP 2024 Supply Tool Excel file containing:
   - NT+ data sheet: Final demand by country
   - Other data and Conversions sheet: Heat distribution and efficiency factors
   - IT sheet: Italian gas production data
@@ -46,7 +46,7 @@ Inputs
 Outputs
 -------
 
-- ``gas_demand_tyndp_{planning_horizons}.csv``: Processed gas demand data (MWh) by country/bus
+- `gas_demand_tyndp_{planning_horizons}.csv`: Processed gas demand data (MWh) by country/bus
   for the specified planning horizon
 """
 

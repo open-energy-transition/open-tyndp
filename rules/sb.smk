@@ -1120,12 +1120,9 @@ rule launch_explorer:
         import platform
         import subprocess
         import sys
-        from pathlib import Path
 
         output_log = str(output[0])
         input_files = list(input)
-
-        Path(output_log).touch()
 
         # Define command line executable
         cmd = [
@@ -1137,6 +1134,7 @@ rule launch_explorer:
 
         print(params.launch_msg)
 
+        # Open logfile before Popen so the log exists when the subprocess validates its path
         popen_kwargs = {
             "stdout": open(output_log, "w"),
             "stderr": subprocess.STDOUT,
