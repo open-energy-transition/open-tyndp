@@ -8,8 +8,8 @@ Outputs
 -------
 Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file containing the must run obligations (p_min_pu) and availability (p_max_pu) for each of the different PEMMDB technologies.
 
-- ``resources/pemmdb_capacities_{planning_horizon}.csv`` in long format
-- ``resources/pemmdb_profiles_{planning_horizon}.nc`` with the following structure:
+- `resources/pemmdb_capacities_{planning_horizon}.csv` in long format
+- `resources/pemmdb_profiles_{planning_horizon}.nc` with the following structure:
 
     ===================  ====================  =========================================================
     Field                Coordinates           Description
@@ -106,7 +106,8 @@ def read_pemmdb_data(
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
     required_sheets : list[str], optional
-        List of required technology sheets to read PEMMDB data for.
+        List of required technology sheets to read PEMMDB data for. Default is None,
+        which reads all available sheets.
 
     Returns
     -------
@@ -155,18 +156,18 @@ def _drop_duplicate_price_bands(
         Dataframe to check for duplicate prices bands.
     groupby : str|list[str]
         Columns to group by.
-    pemmdb_tech: str
+    pemmdb_tech : str
         PEMMDB technology name.
-    node: str
+    node : str
         Node name.
-    cyear: int
+    cyear : int
         Climate year.
     **kwargs : dict
         Keyword arguments passed to pd.DataFrame.groupby().
 
     Returns
     -------
-    df : pd.DataFrame
+    pd.DataFrame
         Dataframe without duplicate prices bands.
     """
     if (groupby in df.columns and df[groupby].duplicated().any()) or (
@@ -1083,7 +1084,7 @@ def process_pemmdb_profiles(
     sns_year_h : pd.DatetimeIndex
         Hourly Datetime index for a full given cyear.
     carrier_mapping_fn : str
-        Path to file with mapping from external carriers to available tyndp_carrier names
+        Path to file with mapping from external carriers to available tyndp_carrier names.
 
     Returns
     -------

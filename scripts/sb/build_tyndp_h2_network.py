@@ -29,14 +29,26 @@ def normalize_starting_grid_h2_nodes(df: pd.DataFrame) -> pd.DataFrame:
     Normalize node IDs from the newer H2 starting grid workbook to the country-level
     H2 node IDs currently used in the TYNDP H2 topology.
 
-    This is needed because the newer H2 starting grid workbook contains node IDs with trailing zeros (e.g. ``DE00``)
-    and some exceptions (e.g. ``UK00`` instead of ``GB00``) that need to be normalized to match the country-level node IDs
-    used in the TYNDP H2 topology (e.g. ``DE``, ``GB``).
+    This is needed because the newer H2 starting grid workbook contains node IDs with
+    trailing zeros (e.g. `DE00`) and some exceptions (e.g. `UK00` instead of `GB00`)
+    that need to be normalized to match the country-level node IDs used in the TYNDP
+    H2 topology (e.g. `DE`, `GB`).
 
-    Examples:
-    - ``AT00`` -> ``AT``
-    - ``IBIT00`` -> ``IBIT``
-    - ``UK00`` -> ``GB``
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with bus0 and bus1 columns containing raw H2 node IDs.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with normalized node IDs in bus0 and bus1.
+
+    Notes
+    -----
+    - `AT00` -> `AT`
+    - `IBIT00` -> `IBIT`
+    - `UK00` -> `GB`
     """
 
     df = df.copy()
@@ -50,7 +62,9 @@ def normalize_starting_grid_h2_nodes(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
+def load_h2_interzonal_connections(
+    fn: str, scenario: str = "GA", pyear: int = 2030
+) -> pd.DataFrame:
     """
     Load and clean H2 interzonal connections.
     Returns the cleaned interzonal connections as dataframe.
@@ -77,7 +91,7 @@ def load_h2_interzonal_connections(fn, scenario="GA", pyear=2030):
     Returns
     -------
     pd.DataFrame
-        The function returns cleaned TYNDP H2 interzonal connections.
+        Cleaned TYNDP H2 interzonal connections.
     """
 
     if scenario in ["DE", "GA"]:
@@ -130,7 +144,7 @@ def load_h2_grid_entsoe(fn_grid: str, pyear: int) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame
-        The function returns the cleaned TYNDP H2 reference grid.
+        Cleaned TYNDP H2 reference grid.
     """
 
     available_years = [2030, 2040, 2050]
@@ -173,13 +187,13 @@ def load_h2_grid_entsos(fn_grid: str, fn_projects: str | None) -> pd.DataFrame:
     ----------
     fn_grid : str
         Path to Excel file containing the ENTSO-E H2 reference grid data.
-    fn_projects : str
+    fn_projects : str or None
         Path to CSV file containing H2 projects data.
 
     Returns
     -------
     pd.DataFrame
-        The function returns the cleaned TYNDP H2 reference grid.
+        Cleaned TYNDP H2 reference grid.
     """
 
     h2_grid_raw = pd.read_excel(fn_grid)
@@ -210,6 +224,24 @@ def load_h2_grid(
 ) -> pd.DataFrame:
     """
     Load the corresponding H2 grid based on the source.
+
+    Parameters
+    ----------
+    source : str
+        Source identifier, either 'entsoe' or 'entsos'.
+    fn_grid_entsoe : str
+        Path to the ENTSO-E H2 reference grid file.
+    fn_grid_entsos : str
+        Path to the ENTSO-E/ENTSOG joint scenarios H2 reference grid file.
+    fn_projects : str or None
+        Path to CSV file containing H2 projects data.
+    pyear : int
+        Planning horizon year.
+
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned H2 grid data for the specified source.
     """
 
     if source == "entsoe":
