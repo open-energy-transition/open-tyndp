@@ -408,8 +408,6 @@ def add_links_missing_attributes(
 def build_links(
     grid_fn,
     buses: gpd.GeoDataFrame,
-    geo_crs: str = GEO_CRS,
-    distance_crs: str = DISTANCE_CRS,
 ):
     """
     Process reference grid information to produce link data. p_nom are NTC values.
@@ -420,10 +418,6 @@ def build_links(
         Path to bidding zone shape file.
     buses : GeoDataFrame
         A GeoDataFrame of electrical buses including country and coordinates.
-    geo_crs : CRS, optional
-        Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-    distance_crs : CRS, optional
-        Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns
     -------

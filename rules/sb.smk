@@ -440,6 +440,10 @@ rule build_tyndp_hydro_profile:
 use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
     input:
         unpack(input_elec_demand_base),
+        raster=[],
+        gb_excel=[],
+        gb_geojson=[],
+        nuts3=[],
         load=resources("electricity_demand_{planning_horizons}.csv"),
     output:
         resources("electricity_demand_base_s_{planning_horizons}.nc"),

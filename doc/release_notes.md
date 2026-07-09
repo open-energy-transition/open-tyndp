@@ -31,19 +31,32 @@
 
 **Bugfixes and Compatibility**
 
+* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
+
+* Fix CBA workflow to (a) release solver license after each successful rolling horizon optimization or after computing infeasibilities and (b) raise an error if rolling horizon fails when using HiGHS ([#756](https://github.com/open-energy-transition/open-tyndp/pull/756)).
+
 * Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
+
 
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
 
-* Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+* Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
 
 **Developers Note**
 
 * Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).
 
-* Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+* Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+
+* Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([#777](https://github.com/open-energy-transition/open-tyndp/pull/777)).
+
+* Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([#778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
+
+* Add validation of Zenodo deposition ID in `create_zenodo_deposition_cli` to close URL-manipulation finding ([#780](https://github.com/open-energy-transition/open-tyndp/pull/780)).
+
+* Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
 
 
 ## Upcoming PyPSA-Eur Release
@@ -1011,7 +1024,7 @@
       full year(s) and then sliced to the subannual periods. This is to align
       better with the normalization process that uses annual EIA statistics.
 
-    - In [time_aggregation][], the resampling will now be applied separately
+    - In [build_snapshot_weightings][], the resampling will now be applied separately
       for each year covered in the snapshots. This prevents snapshots that
       overflow into the next year, which simplifies running non-contiguous
       periods.
@@ -1239,12 +1252,12 @@
 * Fail on solving status 'warning' because results are likely not valid.
   ([#1591](https://github.com/PyPSA/pypsa-eur/pull/1591))
 
-* Bugfix in [time_aggregation][]. The resampling produces a contiguous date
+* Bugfix in [build_snapshot_weightings][]. The resampling produces a contiguous date
   range. In case the original index was not contiguous, all rows with zero
   weight must be dropped (corresponding to time steps not included in the
   original snapshots). ([#1613](https://github.com/PyPSA/pypsa-eur/pull/1613))
 
-* Bugfix in [time_aggregation][]. Avoid that aggregated snapshot indices land
+* Bugfix in [build_snapshot_weightings][]. Avoid that aggregated snapshot indices land
   on February 29th in leap years when `enable: drop_leap_day: true`.
   ([#1613](https://github.com/PyPSA/pypsa-eur/pull/1613))
 
@@ -1508,7 +1521,7 @@
   [prepare_sector_network][] to correctly offset the corresponding oil
   emissions. ([#1410](https://github.com/PyPSA/pypsa-eur/pull/1410))
 
-* Add `{sector_opts}` wildcard to [time_aggregation][].
+* Add `{sector_opts}` wildcard to [build_snapshot_weightings][].
   ([#1307](https://github.com/PyPSA/pypsa-eur/pull/1307))
 
 * Resolved a problem where excluding certain countries from `countries`
@@ -2032,7 +2045,7 @@
   ([#1064](https://github.com/PyPSA/pypsa-eur/pull/1064))
 
 * Time aggregation for sector-coupled networks is now its own rule
-  [time_aggregation][]. Time aggregation is constant over planning horizons
+  [build_snapshot_weightings][]. Time aggregation is constant over planning horizons
   of the same network when using time step segmentation.
   ([#1065](https://github.com/PyPSA/pypsa-eur/pull/1065),
   [#1075](https://github.com/PyPSA/pypsa-eur/pull/1075))
