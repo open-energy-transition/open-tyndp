@@ -538,13 +538,6 @@
           ],
           "type": "string"
         },
-        "biomass_biogas_slack": {
-          "default": 0.4,
-          "description": "Slack applied to CBA rolling horizon biomass and biogas `e_sum_min` limits. The slack is applied as a fraction of the original value, allowing for more flexible dispatch of biomass and biogas units in the CBA workflow. This is only applied to the `e_sum_min`, while the `e_sum_max` remains unchanged.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "type": "number"
-        },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",
           "properties": {
@@ -15697,13 +15690,6 @@
             "break"
           ],
           "type": "string"
-        },
-        "biomass_biogas_slack": {
-          "default": 0.4,
-          "description": "Slack applied to CBA rolling horizon biomass and biogas `e_sum_min` limits. The slack is applied as a fraction of the original value, allowing for more flexible dispatch of biomass and biogas units in the CBA workflow. This is only applied to the `e_sum_min`, while the `e_sum_max` remains unchanged.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "type": "number"
         },
         "storage": {
           "description": "Configuration for `cba.storage` settings.",

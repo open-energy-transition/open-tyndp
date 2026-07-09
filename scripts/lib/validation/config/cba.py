@@ -177,12 +177,6 @@ class CbaConfig(BaseModel):
         default="zero",
         description="How to handle TOOT project removal when removing project capacity would make an existing interconnector capacity negative. 'zero' clamps the resulting capacity to zero and continues; 'break' raises an error.",
     )
-    biomass_biogas_slack: float = Field(
-        0.4,
-        ge=0.0,
-        le=1.0,
-        description="Slack applied to CBA rolling horizon biomass and biogas `e_sum_min` limits. The slack is applied as a fraction of the original value, allowing for more flexible dispatch of biomass and biogas units in the CBA workflow. This is only applied to the `e_sum_min`, while the `e_sum_max` remains unchanged.",
-    )
     storage: _CbaStorageConfig = Field(
         default_factory=_CbaStorageConfig,
         description="Storage configuration for the cost-benefit analysis workflow.",

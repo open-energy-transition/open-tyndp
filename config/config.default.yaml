@@ -1617,7 +1617,6 @@ cba:
   area: tyndp
   remove_noisy_costs: true
   negative_toot_capacity: zero
-  biomass_biogas_slack: 0.4
   storage:
     cyclic_carriers:
     - battery
