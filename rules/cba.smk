@@ -353,8 +353,8 @@ rule solve_cba_msv_extraction:
         scripts("cba/solve_cba_msv_extraction.py")
 
 
-# Build rolling
-################
+# Build rolling horizon
+#######################
 
 
 # Prepare network for rolling horizon: disable seasonal cyclicity, apply marginal storage value

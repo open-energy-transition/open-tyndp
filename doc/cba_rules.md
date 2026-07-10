@@ -3,7 +3,7 @@
 
 # Cost-Benefit Analysis (CBA)
 
-The Cost-Benefit Analysis (CBA) workflow is implemented in `rules/cba.smk`. Rules are organised into stages: `Retrieve`, `Build MSV`, `Build rolling`, `Postprocess`, `Benchmarking` and `Collect`.
+The Cost-Benefit Analysis (CBA) workflow is implemented in `rules/cba.smk`. Rules are organised into stages: `Retrieve`, `Build MSV`, `Build rolling horizon`, `Postprocess` and `Benchmark`. In addition, a `Collect` stage provides convenient target rules that run the workflow up to a specific stage, aggregating each stage's output across all configured wildcards.
 
 ## Retrieve
 
@@ -52,11 +52,7 @@ when `cba.cba_scenario_input.use_presolved` is `true`.
 
 ::: build_msv_snapshot_weightings
 
-### Rule `solve_cba_msv_extraction`
-
-::: solve_cba_msv_extraction
-
-## Build rolling
+## Build rolling horizon
 
 ### Rule `prepare_rolling_horizon`
 
@@ -65,6 +61,12 @@ when `cba.cba_scenario_input.use_presolved` is `true`.
 ### Rule `prepare_project`
 
 ::: prepare_project
+
+## Solve
+
+### Rule `solve_cba_msv_extraction`
+
+::: solve_cba_msv_extraction
 
 ### Rule `solve_cba_reference_network`
 
@@ -93,7 +95,7 @@ Solves the CBA network using the rolling horizon approach. Shares the script wit
 
 ::: plot_indicators
 
-## Benchmarking
+## Benchmark
 
 ### Rule `plot_cba_benchmark`
 

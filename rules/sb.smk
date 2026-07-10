@@ -756,8 +756,8 @@ if config["foresight"] != "perfect":
             expanded=True,
 
 
-# Benchmarking
-##############
+# Benchmark
+###########
 
 if config["benchmarking"]["enable"]:
 
@@ -1103,7 +1103,7 @@ rule build_tyndp_gas_demands:
         ),
 
 
-# Visualize
+# Explore
 ###########
 
 

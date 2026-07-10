@@ -3,7 +3,7 @@
 
 # Scenario Building (SB)
 
-The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are organised into stages: `Retrieve`, `Development`, `Build electricity`, `Build sector`, `Postprocess`, `Benchmarking`, `Collect` and `Visualize`.
+The Scenario Building (SB) workflow is implemented in `rules/sb.smk`. Rules are organised into stages: `Retrieve`, `Development`, `Build electricity`, `Build sector`, `Postprocess`, `Benchmark` and `Explore`. In addition, a `Collect` stage provides convenient target rules that run the workflow up to a specific stage, aggregating each stage's output across all configured wildcards.
 
 ## Retrieve
 
@@ -156,7 +156,7 @@ the electricity demand for base regions from the TYNDP electricity demand prepar
 
 ::: plot_offshore_network
 
-## Benchmarking
+## Benchmark
 
 ### Rule `clean_tyndp_output_benchmark`
 
@@ -218,7 +218,7 @@ Aggregate [`build_tyndp_h2_demand`](#rule-build_tyndp_h2_demand) outputs.
 
 Aggregate [`build_tyndp_gas_demand`](#rule-build_tyndp_gas_demand) outputs.
 
-## Visualize
+## Explore
 
 ### Rule `launch_explorer`
 
