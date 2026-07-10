@@ -29,6 +29,8 @@
     - Add `include_objective_constant` and `assign_all_duals` to solving config validator.
     - Add `gurobi-simplex` as solver option.
 
+* Change dispatch of biomass and biogas generators in CBA by (a) setting the buses' marginal prices as the generators' marginal costs and (b) removing energy budget constraints ([#719](https://github.com/open-energy-transition/open-tyndp/pull/719)).
+
 **Bugfixes and Compatibility**
 
 * Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
@@ -44,6 +46,8 @@
 
 * Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
 
+* Improve docstring formatting and add missing type hints (https://github.com/open-energy-transition/open-tyndp/pull/759).
+
 **Developers Note**
 
 * Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).
@@ -58,9 +62,24 @@
 
 * Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
 
+* Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
+
 
 ## Upcoming PyPSA-Eur Release
+
+* feat: data version CSV / YAML file can be specified separately or extended by the user in the `data.version_files` config entry ([#2016](https://github.com/PyPSA/pypsa-eur/issues/2016)).
+
+* Fix: Resolve plotting crashes from missing `tech_colors` entries by adding `heat dsm` color and implementing upfront validation for missing keys in `plot_summary.py` ([#2108](https://github.com/PyPSA/pypsa-eur/issues/2108)).
+
+* feat: Make the default target rule configurable (defaults to "all" for backwards compatibility)
+
+* Fix: Keep unset `p_set` (NaN) as NaN when aggregating components in `cluster_heat_buses`, required for [PyPSA#1703](https://github.com/PyPSA/PyPSA/pull/1703).
+
+* Fix: When clustering heat buses, in myopic optimization, and afterwards viewing the heat energy_balance with n.statistics (and with nice_names=True, which is the default), some assets would still be displayed as belonging to "residential" or "services" sectors, because the nice_names still lingered from the unclustered version. This has been fixed.
+
 * Security: SBOM security scan included in CI.
+
+* Updated contribution guidelines outline what we expect from AI-based contributions.
 
 * Security: Development dependencies (pre-commit, pylint, jupyter, etc.) moved to `dev` `pixi` environment.
   Removed 62 CVEs from `default` environment.
@@ -90,6 +109,8 @@
 * feat: Improve the config validation to cover scenario management ([#2155](https://github.com/PyPSA/pypsa-eur/pull/2155)).
 
 - Added solar rooftop ratio setting to `add_existing_baseyear` for heuristically splitting existing solar capacity between rooftop and utility-scale (defaults to a 50:50 split).
+
+- doc: Disable root TOC entries in order to declutter the table of contents for the rules overview ([2216](https://github.com/PyPSA/pypsa-eur/pull/2216)).
 
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)

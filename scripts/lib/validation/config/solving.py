@@ -351,14 +351,12 @@ class SolvingConfig(BaseModel):
                 "random_seed": 123,
             },
             "highs-hipo": {
-                "threads": 1,
                 "solver": "hipo",
-                "run_crossover": "off",
                 "parallel": "on",
                 "primal_feasibility_tolerance": 1e-5,
                 "dual_feasibility_tolerance": 1e-5,
-                "parallel": "on",
                 "random_seed": 123,
+                "run_crossover": "off",
             },
             "gurobi-default": {
                 "threads": 32,

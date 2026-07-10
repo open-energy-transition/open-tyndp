@@ -102,8 +102,14 @@ def load_and_merge_data(indicators_path, projects_path):
 
 
 def plot_b1_top_projects(
-    df, output_dir, method, colors, output_formats, n_top=20, filename_suffix=""
-):
+    df: pd.DataFrame,
+    output_dir: str | Path,
+    method: str,
+    colors: dict,
+    output_formats: list[str],
+    n_top: int = 20,
+    filename_suffix: str = "",
+) -> None:
     """
     Diverging bar chart showing B1 with CAPEX/OPEX breakdown for top N projects.
 
@@ -111,6 +117,23 @@ def plot_b1_top_projects(
     - CAPEX change extending left from zero (negative = cost saved)
     - OPEX change extending right from zero (positive = additional cost)
     - Diamond marker showing the net B1 value
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with B1 results per project.
+    output_dir : str or Path
+        Directory where the plot file is saved.
+    method : str
+        CBA method ("pint" or "toot").
+    colors : dict
+        Color mapping.
+    output_formats : list[str]
+        File formats to save.
+    n_top : int, optional
+        Number of top projects to display. Default is 20.
+    filename_suffix : str, optional
+        Suffix appended to the output filename. Default is "".
     """
     df_top = df.nlargest(n_top, "B1_billion_EUR", keep="first")
     df_sorted = df_top.sort_values("B1_billion_EUR", ascending=True).reset_index(
@@ -249,9 +272,34 @@ def plot_b1_top_projects(
 
 
 def plot_b1_summary(
-    df, output_dir, method, colors, output_formats, total_projects, filename_suffix=""
-):
-    """Summary plot with B1 histogram."""
+    df: pd.DataFrame,
+    output_dir: str | Path,
+    method: str,
+    colors: dict,
+    output_formats: list[str],
+    total_projects: int,
+    filename_suffix: str = "",
+) -> None:
+    """
+    Summary histogram of B1 values across all projects.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with B1 results per project.
+    output_dir : str or Path
+        Directory where the plot file is saved.
+    method : str
+        CBA method ("pint" or "toot").
+    colors : dict
+        Color mapping.
+    output_formats : list[str]
+        File formats to save.
+    total_projects : int
+        Total number of projects.
+    filename_suffix : str, optional
+        Suffix appended to the output filename. Default is "".
+    """
     beneficial = df[df["is_beneficial"] == True]
     not_beneficial = df[df["is_beneficial"] == False]
 
@@ -297,9 +345,32 @@ def plot_b1_summary(
 
 
 def plot_b1_capex_vs_opex(
-    df, output_dir, method, colors, output_formats, filename_suffix=""
-):
-    """Scatter plot of B1 CAPEX vs OPEX changes."""
+    df: pd.DataFrame,
+    output_dir: str | Path,
+    method: str,
+    colors: dict,
+    output_formats: list[str],
+    filename_suffix: str = "",
+) -> None:
+    """
+    Scatter plot of B1 CAPEX vs OPEX changes per project.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with B1 results per project including capex_change_billion
+        and opex_change_billion columns.
+    output_dir : str or Path
+        Directory where the plot file is saved.
+    method : str
+        CBA method ("pint" or "toot").
+    colors : dict
+        Color mapping.
+    output_formats : list[str]
+        File formats to save.
+    filename_suffix : str, optional
+        Suffix appended to the output filename. Default is "".
+    """
     fig, ax = plt.subplots(figsize=(10, 8))
 
     beneficial = df[df["is_beneficial"]]

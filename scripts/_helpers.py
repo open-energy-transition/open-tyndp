@@ -13,7 +13,7 @@ import socket
 import time
 from bisect import bisect_right
 from collections.abc import Callable
-from functools import partial, wraps
+from functools import lru_cache, partial, wraps
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Literal
@@ -31,6 +31,8 @@ import yaml
 from dask.distributed import Client, LocalCluster
 from snakemake.utils import update_config
 from tqdm import tqdm
+
+from scripts.lib.validation.config.data import VersionsSchema
 
 logger = logging.getLogger(__name__)
 
@@ -942,9 +944,7 @@ def get_snapshots(
         )
         time_periods.append(period)
 
-    time = pd.DatetimeIndex([])
-    for period in time_periods:
-        time = time.append(period)
+    time = pd.DatetimeIndex([ts for period in time_periods for ts in period])
 
     if drop_leap_day and time.is_leap_year.any():
         time = time[~((time.month == 2) & (time.day == 29))]
@@ -1120,6 +1120,77 @@ def load_costs(cost_file: str) -> pd.DataFrame:
     return pd.read_csv(cost_file, index_col=0)
 
 
+@lru_cache
+def load_data_versions(*files: Path) -> pd.DataFrame:
+    """
+    Load data versions from multiple CSV or YAML files and combine them into a single DataFrame.
+
+    Parameters
+    ----------
+    *files : Path
+        Paths to the CSV or YAML files containing data version information.
+
+    Returns
+    -------
+    pd.DataFrame
+        Combined DataFrame containing the data version information from all files, with, optionally, columns for each tag.
+    """
+    data_versions_list = [
+        _load_data_version(file).set_index(["dataset", "version", "source"])
+        for file in files
+    ]
+    combined_data_versions = pd.concat(data_versions_list)
+
+    deduplicated_data_versions = (
+        combined_data_versions.loc[
+            ~combined_data_versions.index.duplicated(keep="last")
+        ]
+        .sort_index()
+        .reset_index()
+    )
+
+    # Turn space-separated tags into individual columns
+    deduplicated_data_versions["tags"] = deduplicated_data_versions["tags"].str.split()
+    exploded = deduplicated_data_versions.explode("tags")
+    dummies = pd.get_dummies(exploded["tags"], dtype=bool)
+    tags_matrix = dummies.groupby(dummies.index).max()
+    deduplicated_data_versions = deduplicated_data_versions.join(tags_matrix)
+
+    return deduplicated_data_versions
+
+
+def _load_data_version(file: str | Path, validate: bool = True) -> pd.DataFrame:
+    """
+    Load data versions from a CSV or YAML file.
+
+    Parameters
+    ----------
+    file : str
+        Path to the CSV or YAML file containing data version information.
+    validate : bool, default True
+        If True, validate the loaded data against the VersionsSchema.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing the data version information, with, optionally, columns for each tag.
+    """
+    if (file_path := Path(file)).suffix.lower() in [".yaml", ".yml"]:
+        data_versions = pd.DataFrame(yaml.safe_load(file_path.read_text()))
+    else:
+        data_versions = pd.read_csv(
+            file_path,
+            dtype=str,
+            na_filter=False,
+            delimiter=",",
+            comment="#",
+        )
+    if validate:
+        data_versions = VersionsSchema.validate(data_versions)
+
+    return data_versions
+
+
 def make_index(
     c, cname0="bus0", cname1="bus1", prefix="", connector="->", suffix="", separator=" "
 ):
@@ -1143,11 +1214,11 @@ def extract_grid_data_tyndp(
     Parameters
     ----------
     links : pd.DataFrame
-        DataFrame with raw links to extract grid information from
+        DataFrame with raw links to extract grid information from.
     replace_dict : dict
-        Dictionary with region names to replace
+        Dictionary with region names to replace.
     expand_from_index : bool
-        Whether to expand the bus0 and bus1 from index or directly use the columns
+        Whether to expand the bus0 and bus1 from index or directly use the columns.
     idx_prefix : str, optional
         Prefix to prepend to generated indices.
     idx_connector : str, optional
@@ -1160,7 +1231,7 @@ def extract_grid_data_tyndp(
     Returns
     -------
     pd.DataFrame
-        DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1
+        DataFrame with extracted grid data information with nominal capacity in input unit, bus0 and bus1.
     """
 
     if expand_from_index:
@@ -1222,16 +1293,16 @@ def safe_pyear(
     year : int
         Planning horizon year which will be checked and possibly adjusted to previous available year.
     available_years : list[int], optional
-        List of available years. Defaults to [2030, 2040, 2050].
+        List of available years. Default is [2030, 2040, 2050].
     source : str, optional
-        Source of the data for which availability will be checked. For logging purpose only. Defaults to "TYNDP".
+        Source of the data for which availability will be checked. For logging purpose only. Default is "TYNDP".
     verbose : bool, optional
-        Whether to activate verbose logging. Defaults to True.
+        Whether to activate verbose logging. Default is True.
 
     Returns
     -------
     year_new : int
-        Safe pyear adjusted for available years
+        Safe pyear adjusted for available years.
     """
 
     if not available_years:
@@ -1273,7 +1344,7 @@ def map_tyndp_carrier_names(
         Columns to merge on between the external carriers and tyndp_carriers.
     drop_on_columns : bool, optional
         Whether to drop merge columns and rename `open_tyndp_carrier` and `open_tyndp_index` to `carrier`
-        and `index_carrier`. Defaults to False.
+        and `index_carrier`. Default is False.
 
     Returns
     -------
@@ -1341,6 +1412,16 @@ def get_version(hash_len: int = 9) -> str:
     - If HEAD is exactly at a tag: returns the tag name (e.g., "v1.2.3")
     - If HEAD is beyond a tag: returns "tag+g{hash}" (e.g., "v1.2.3+g1a2b3c4d")
     - If no tags found: returns just the commit hash (e.g., "1a2b3c4d5")
+
+    Parameters
+    ----------
+    hash_len : int, optional
+        Number of characters to use from the commit hash. Default is 9.
+
+    Returns
+    -------
+    str
+        Version string derived from the git repository state.
     """
     try:
         repo = git.Repo(search_parent_directories=True)
@@ -1434,7 +1515,21 @@ def convert_units(
 
 
 def check_cyear(cyear: int, scenario: str) -> int:
-    """Check if the climatic year is valid for the given scenario."""
+    """
+    Check if the climatic year is valid for the given scenario.
+
+    Parameters
+    ----------
+    cyear : int
+        Climatic year to validate.
+    scenario : str
+        TYNDP scenario name.
+
+    Returns
+    -------
+    int
+        Valid climatic year, falling back to 2009 if the input is not available.
+    """
 
     valid_years = {
         "NT": [1995, 2008, 2009],
@@ -1604,9 +1699,21 @@ def interpolate_demand(
     return result
 
 
-def find_free_port(start_port=8050, max_attempts=50):
+def find_free_port(start_port: int = 8050, max_attempts: int = 50) -> int:
     """
     Find the first available port starting from start_port.
+
+    Parameters
+    ----------
+    start_port : int, optional
+        Port number to begin scanning from. Default is 8050.
+    max_attempts : int, optional
+        Maximum number of ports to check before raising an error. Default is 50.
+
+    Returns
+    -------
+    int
+        First available port number in the scanned range.
     """
     for port in range(start_port, start_port + max_attempts):
         try:
@@ -1703,8 +1810,21 @@ def align_demand_to_snapshots(
     demand: pd.DataFrame, snapshots: pd.DatetimeIndex, format: str = None
 ) -> pd.DataFrame:
     """
-    Convert demand index to DatetimeIndex, adjust year to match snapshots,
-    and reindex to snapshots.
+    Convert demand index to DatetimeIndex, adjust year to match snapshots, and reindex to snapshots.
+
+    Parameters
+    ----------
+    demand : pd.DataFrame
+        Demand time series with a datetime-compatible index.
+    snapshots : pd.DatetimeIndex
+        Target snapshot index to align demand to.
+    format : str, optional
+        Datetime format string for parsing the demand index. Default is None.
+
+    Returns
+    -------
+    pd.DataFrame
+        Demand data reindexed to the provided snapshots.
     """
 
     demand.index = pd.to_datetime(demand.index, format=format)

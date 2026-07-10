@@ -6,12 +6,12 @@ Create renewable profiles for each region from PECD and TYNDP datasets, building
 generation time series are read for each node across all renewable technologies, including onshore wind, AC-connected offshore wind,
 DC-connected offshore wind, and solar PV generators.
 
-.. note:: Hydroelectric profiles will be built in script :mod:`build_hydro_profiles_PECD`. Not yet implemented.
+.. note:: Hydroelectric profiles will be built in script `build_hydro_profiles_PECD`. Not yet implemented.
 
 Outputs
 -------
 
-- ``resources/profile_pecd_{clusters}_{technology}.nc`` with the following structure
+- `resources/profile_pecd_{clusters}_{technology}.nc` with the following structure
 
     ===================  ====================  =========================================================
     Field                Dimensions            Description

@@ -12,6 +12,8 @@ body:
 
       This template is for detailed feature requests. Use the ["Feature - Parent Issue (Maintainer)"](https://github.com/open-energy-transition/open-tyndp/issues/new?template=4-feature-maintainer-parent.yaml) template for high-level parent issues that will be broken down into sub-issues.
 
+      Please write this issue description yourself. Any potentially verbose AI-generated content should be marked.
+
 - type: input
   id: parent_issue
   attributes:
