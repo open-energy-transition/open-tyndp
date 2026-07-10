@@ -14,7 +14,7 @@ The rules download data into subfolders in the `data/` directory, following the 
 Which specific data version is retrieved can be controlled in the [data configuration](configuration.md#data_cf).
 
 For Open-TYNDP runs, most datasets can also be retrieved from a dedicated Google Cloud Storage
-bucket instead of their original sources. See [tyndp_archive](solving.md#tyndp_archive) in the SB documentation.
+bucket instead of their original sources. See [tyndp_archive](sb.md#tyndp_archive) in the SB documentation.
 
 Below some specific `retrieve_<dataset>` rules are documented.
 For more information on the datasets retrieved, see the [data sources](data_sources.md) and *Data inventory* section there in the documentation.

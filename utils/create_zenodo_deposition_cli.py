@@ -310,6 +310,13 @@ def publish_zenodo_deposition(deposition_id: int) -> requests.Response:
     Response
         The response from the Zenodo API after publishing the deposition.
     """
+    # Validate id to be positive integer (rejecting bool, int-like strings and traversals)
+    if (
+        isinstance(deposition_id, bool)
+        or not isinstance(deposition_id, int)
+        or deposition_id <= 0
+    ):
+        raise ValueError(f"Invalid Zenodo deposition ID: {deposition_id!r}")
     r = requests.post(
         f"{ZENODO_API_URL}/deposit/depositions/{deposition_id}/actions/publish",
         params={"access_token": ZENODO_API_KEY},
@@ -428,8 +435,8 @@ def extract_zenodo_deposition_url(record_url: str) -> tuple[str, str]:
         The Zenodo deposition API URL, or None if extraction fails.
     """
     # Match both sandbox and production, with or without /files/...
-    m = re.match(
-        r"https://(?:sandbox\.)?zenodo\.org/records/(\d+)(/files/.*)?", record_url
+    m = re.fullmatch(
+        r"https://(?:sandbox\.)?zenodo\.org/records/(\d+)(/files(/.*)?)?", record_url
     )
     if not m:
         raise ValueError(f"Invalid Zenodo record URL format: {record_url}. ")
@@ -451,6 +458,9 @@ def main(
     """
     Guide the user through creating a new Zenodo deposition or version.
     """
+    # Set the global logging level
+    logging.basicConfig(level=logging.INFO)
+
     global ZENODO_API_URL
     ZENODO_API_URL = API_URLS["sandbox"] if sandbox else API_URLS["production"]
 
@@ -462,7 +472,8 @@ def main(
             fg=typer.colors.YELLOW,
         )
     if debug:
-        logging.basicConfig(level=logging.DEBUG)
+        # change local logger level to debug
+        logger.setLevel(logging.DEBUG)
         typer.secho("Debug mode enabled.", fg=typer.colors.YELLOW)
 
     typer.secho("=" * 80, fg=typer.colors.CYAN)

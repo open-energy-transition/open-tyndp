@@ -59,7 +59,7 @@ def plot_h2_map_base(
     map_fn : str
         Path to save the final map plot to.
     expanded : bool, optional
-        Whether to plot expanded capacities. Defaults to plotting only base network (p_nom).
+        Whether to plot expanded capacities. Default is plotting only base network (p_nom).
     regions_for_storage : gpd.GeoDataframe, optional
         Geodataframe of regions to use for plotting hydrogen storage capacities. Index needs to match storage locations.
         Default is None (no hydrogen storage capacities are plotted).

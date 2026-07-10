@@ -440,6 +440,10 @@ rule build_tyndp_hydro_profile:
 use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
     input:
         unpack(input_elec_demand_base),
+        raster=[],
+        gb_excel=[],
+        gb_geojson=[],
+        nuts3=[],
         load=resources("electricity_demand_{planning_horizons}.csv"),
     output:
         resources("electricity_demand_base_s_{planning_horizons}.nc"),
@@ -1120,12 +1124,9 @@ rule launch_explorer:
         import platform
         import subprocess
         import sys
-        from pathlib import Path
 
         output_log = str(output[0])
         input_files = list(input)
-
-        Path(output_log).touch()
 
         # Define command line executable
         cmd = [
@@ -1137,6 +1138,7 @@ rule launch_explorer:
 
         print(params.launch_msg)
 
+        # Open logfile before Popen so the log exists when the subprocess validates its path
         popen_kwargs = {
             "stdout": open(output_log, "w"),
             "stderr": subprocess.STDOUT,
