@@ -29,6 +29,8 @@
     - Add `include_objective_constant` and `assign_all_duals` to solving config validator.
     - Add `gurobi-simplex` as solver option.
 
+* Change dispatch of biomass and biogas generators in CBA by (a) setting the buses' marginal prices as the generators' marginal costs and (b) removing energy budget constraints ([#719](https://github.com/open-energy-transition/open-tyndp/pull/719)).
+
 **Bugfixes and Compatibility**
 
 * Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
@@ -59,6 +61,8 @@
 * Add validation of Zenodo deposition ID in `create_zenodo_deposition_cli` to close URL-manipulation finding ([#780](https://github.com/open-energy-transition/open-tyndp/pull/780)).
 
 * Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
+
+* Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
 
 * Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file. 
 
