@@ -29,6 +29,8 @@
     - Add `include_objective_constant` and `assign_all_duals` to solving config validator.
     - Add `gurobi-simplex` as solver option.
 
+* Change dispatch of biomass and biogas generators in CBA by (a) setting the buses' marginal prices as the generators' marginal costs and (b) removing energy budget constraints ([#719](https://github.com/open-energy-transition/open-tyndp/pull/719)).
+
 **Bugfixes and Compatibility**
 
 * Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
