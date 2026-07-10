@@ -33,14 +33,14 @@ def load_smr_data(
     pyear : int
         Planning horizon to read SMR data for.
     h2_zones_tyndp : bool
-        Whether TYNDP H2 nodes are split into two zones (Z1, Z2)
+        Whether TYNDP H2 nodes are split into two zones (Z1, Z2).
     scenario : str
         TYNDP scenario to filter for.
 
     Returns
     -------
     pd.DataFrame
-        The function returns cleaned TYNDP SMR data with capacity, must run and CCS information.
+        Cleaned TYNDP SMR data with capacity, must run and CCS information.
     """
 
     column_dict = {

@@ -33,7 +33,7 @@ def disable_global_constraints(n: pypsa.Network):
     Parameters
     ----------
     n : pypsa.Network
-        Network to modify
+        Network to modify.
     """
     if "co2_sequestration_limit" in n.global_constraints.index:
         n.remove("GlobalConstraint", "co2_sequestration_limit")
@@ -55,8 +55,8 @@ def disable_store_cyclicity(
     ----------
     n : pypsa.Network
         Network to modify in place.
-    cyclic_carriers : list[str], optional
-        Carriers that remain cyclic. Defaults to empty list.
+    cyclic_carriers : list[str] or None, optional
+        Carriers that remain cyclic. Default is None (treated as empty list).
     """
     if cyclic_carriers is None:
         cyclic_carriers = []
@@ -89,13 +89,18 @@ def resample_msv_to_target(
     Parameters
     ----------
     msv : pd.DataFrame
-        MSV data from extraction (e.g., 24H resolution)
+        MSV data from extraction (e.g., 24H resolution).
     target_snapshots : pd.DatetimeIndex
-        Target snapshots (e.g., 3H resolution)
+        Target snapshots (e.g., 3H resolution).
     method : str, optional
         Resampling method:
-        - "ffill": Forward fill - each MSV value applies until the next one
-        - "interpolate": Linear interpolation between marginal storage values
+        - "ffill": Forward fill - each MSV value applies until the next one.
+        - "interpolate": Linear interpolation between marginal storage values.
+
+    Returns
+    -------
+    pd.DataFrame
+        Resampled MSV data aligned to target_snapshots.
     """
     if method == "interpolate":
         # Combine indices and interpolate
@@ -125,7 +130,7 @@ def disable_volume_limits(n: pypsa.Network):
     Parameters
     ----------
     n : pypsa.Network
-        Network to modify
+        Network to modify.
     """
     for c in n.components[{"Generator", "Link"}]:
         has_e_sum_min = isfinite(c.static.get("e_sum_min", []))
@@ -260,8 +265,8 @@ def fix_reservoir_soc_at_boundaries(
         Target network for rolling horizon (will be modified in place).
     n_msv : pypsa.Network
         Network with perfect foresight solution.
-    carriers : list[str], optional
-        Carriers to fix. Defaults to ["hydro-reservoir"].
+    carriers : list[str] or None, optional
+        Carriers to fix. Default is None (treated as ["hydro-reservoir"]).
     horizon : int
         Number of snapshots per rolling horizon window. Default 168 (one week at 1H).
     overlap : int

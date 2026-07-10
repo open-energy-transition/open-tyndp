@@ -43,19 +43,19 @@ def add_benchmarking_mappings(
 ) -> None:
     """
     Load benchmarking mappings from the carrier mapping file and apply them
-    to the ``mapping`` configuration dictionary of each table.
+    to the `mapping` configuration dictionary of each table.
 
     Parameters
     ----------
     carrier_mapping_fn : str
         Path to csv file with carrier mapping.
     tables : dict
-        Dictionary defining the benchmarking tables. When the ``mapping_col`` key is
+        Dictionary defining the benchmarking tables. When the `mapping_col` key is
         defined in the configuration, the loaded carrier mapping will be added to
-        the dictionary with the ``mapping`` key.
+        the dictionary with the `mapping` key.
     group_tyndp_conventionals : bool, default False
-        Whether TYNDP technologies are grouped to their ``open_tyndp_type``.
-        These group names then take precedence over the names in ``open_tyndp_index`` and ``open_tyndp_carrier``.
+        Whether TYNDP technologies are grouped to their `open_tyndp_type`.
+        These group names then take precedence over the names in `open_tyndp_index` and `open_tyndp_carrier`.
 
     Returns
     -------
@@ -85,7 +85,7 @@ def add_benchmarking_mappings(
         )
 
 
-def remove_last_day(sws: pd.Series, nhours: int = 24):
+def remove_last_day(sws: pd.Series, nhours: int = 24) -> pd.Series:
     """
     Remove the last day from snapshots to ensure exactly 52 weeks of data.
 
@@ -98,8 +98,8 @@ def remove_last_day(sws: pd.Series, nhours: int = 24):
 
     Returns
     -------
-    tuple[pd.DatetimeIndex, pd.Series]
-        Modified snapshots and snapshot weightings with the last day removed.
+    pd.Series
+        Snapshot weightings with the last day zeroed out.
     """
     sws = sws.copy()
 

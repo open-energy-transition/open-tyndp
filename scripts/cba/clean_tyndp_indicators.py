@@ -47,8 +47,22 @@ def normalize_text(
     """
     Normalize text for parsing the TYNDP Excel data.
 
-    Strips whitespace, remove Delta symbol, replace Euro symbols with 'euro',
-    standardizes spelling.
+    Strips whitespace, removes Delta symbol, replaces Euro symbols with 'euro',
+    and standardizes spelling.
+
+    Parameters
+    ----------
+    value : str
+        Input text to normalize.
+    drop_spaces : bool, optional
+        If True, remove all spaces from the result. Default is False.
+    monetised : bool, optional
+        If True, replace "monetized" with "monetised". Default is False.
+
+    Returns
+    -------
+    str
+        Normalized text string.
     """
     text = (
         str(value)

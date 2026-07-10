@@ -503,11 +503,11 @@ def plot_benchmark(
         Benchmark table to plot.
     bus : str
         Bus of the current figure.
-    benchmarks: pd.DataFrame
+    benchmarks : pd.DataFrame
         Combined DataFrame containing both model and reference data.
-    output_dir: str
+    output_dir : str
         Output directory.
-    scenario: str
+    scenario : str
         Scenario name.
     snapshots : dict[str, str]
         Dictionary defining the temporal range with 'start' and 'end' keys.

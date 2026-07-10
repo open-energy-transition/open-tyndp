@@ -519,6 +519,7 @@ def prepare_network(
     config : dict, default None
         A dictionary containing configuration information, specifically the
         "plotting" key with "nice_names" and "tech_colors" keys for carriers.
+        Default is None.
 
     Returns
     -------
@@ -1242,11 +1243,11 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
 
 
 def add_offshore_hubs_constraint(
-    n,
+    n: pypsa.Network,
     planning_horizons: int,
-    offshore_zone_trajectories_fn,
+    offshore_zone_trajectories_fn: str,
     renewable_carriers_tyndp: list[str],
-):
+) -> None:
     """
     Add two constraints on offshore hubs.
 
@@ -1256,13 +1257,13 @@ def add_offshore_hubs_constraint(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network instance
-    planning_horizons : int, optional
-        The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn: str
-        Path to the file containing the offshore zone potentials trajectories
-    renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        The PyPSA network instance.
+    planning_horizons : int
+        The current planning horizon year.
+    offshore_zone_trajectories_fn : str
+        Path to the file containing the offshore zone potentials trajectories.
+    renewable_carriers_tyndp : list[str]
+        List of TYNDP renewable carriers.
     """
     ext_i = n.generators.p_nom_extendable
     gens = n.generators.assign(
@@ -1429,10 +1430,11 @@ def extra_functionality(
         Simulation timesteps
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight.
-    offshore_zone_trajectories_fn: str, optional
-        Path to the file containing the offshore zone potentials trajectories
+    offshore_zone_trajectories_fn : str or None, optional
+        Path to the file containing the offshore zone potentials trajectories.
+        Default is None.
     renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        List of TYNDP renewable carriers. Default is [].
 
     Notes
     -----
@@ -1673,10 +1675,11 @@ def create_optimization_model(
         Arguments for n.optimize.solve_model()
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn : str, optional
-        Path to DataFrame containing the offshore zone potentials trajectories
+    offshore_zone_trajectories_fn : str or None, optional
+        Path to DataFrame containing the offshore zone potentials trajectories.
+        Default is None.
     renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        List of TYNDP renewable carriers. Default is [].
     """
     # Add config and params to network for extra_functionality
     n.config = config

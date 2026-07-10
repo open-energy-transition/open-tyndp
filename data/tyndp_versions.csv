@@ -12,6 +12,7 @@ corine,v18_5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleap
 costs,v0.14.0,tyndp-archive,latest supported,2026-05-08,Part of the `technologydata` repository and versioned on GitHub.,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/costs/v0.14.0
 country_hdd,2025-08-13,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/country_hdd/2025-08-13/era5-HDD-per-country.csv
 country_runoff,2025-08-13,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/country_runoff/2025-08-13/era5-runoff-per-country.csv
+desnz_electricity_consumption,2026-02-16,tyndp-archive,latest supported,2026-02-16,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/desnz_electricity_consumption/2026-02-16/Subnational_electricity_consumption_statistics_2005-2024.xlsx
 dh_areas,341.5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/dh_areas/341.5/dh_areas.gpkg
 eez,v12_20231025,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/eez/v12_20231025/World_EEZ_v12_20231025_LR.zip
 emobility,28-08-2016,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/emobility/28-08-2016/emobility.zip
@@ -31,6 +32,7 @@ ghg_emissions,v23,tyndp-archive,latest supported,2026-05-08,earlier part of data
 h2_salt_caverns,16-10-2019,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/h2_salt_caverns/16-10-2019/h2_salt_caverns_GWh_per_sqkm.geojson
 hotmaps_industrial_sites,version-1.1,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/hotmaps_industrial_sites/version-1.1/Industrial_Database.csv
 jrc_ardeco,2021,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/jrc_ardeco/2021
+jrc_energy_atlas,2026-02-16,tyndp-archive,latest supported,2026-02-16,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/jrc_energy_atlas/2026-02-16/electricity_tot_demand_2019.tif
 jrc_idees,2023-v1,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/jrc_idees/2023-v1/JRC-IDEES-2023.zip
 lau_regions,2019,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/lau_regions/2019/ref-lau-2019-01m.geojson.zip
 luisa_land_cover,2021-03-02,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/luisa_land_cover/2021-03-02/LUISA_basemap_020321_50m.tif
@@ -38,7 +40,9 @@ mobility_profiles,2025-08-27,tyndp-archive,latest supported,2026-05-08,New versi
 natura,2025-08-15,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/natura/2025-08-15/natura.tiff
 neso_electricity_demand,2026-02-02,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/neso_electricity_demand/2026-02-02/electricity_demand_neso_raw.csv
 nitrogen_statistics,2022,tyndp-archive,supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nitrogen_statistics/2022/nitro-ert.xlsx
+nitrogen_statistics,2023,tyndp-archive,latest supported,2026-02-26,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nitrogen_statistics/2023/nitro-ert.xlsx
 nuts3_population,13-03-2025,tyndp-archive,latest supported,2026-05-08,earlier part of zenodo bundle,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
+ons_lad,may-2024,tyndp-archive,latest supported,2026-02-17,API request used,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/ons_lad/may-2024/Local_Authority_Districts_May_2024_Boundaries__UK_BSC.geojson
 open_tyndp_prelim,0.7.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/20303009
 open_tyndp_prelim,0.7.1,archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://zenodo.org/records/20303009/files/results-0.7.1.zip
 open_tyndp_prelim,0.7.1,tyndp-archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.7.1/results-0.7.1.zip
@@ -59,7 +63,7 @@ powerplants,0.8.1,tyndp-archive,latest supported,2026-05-08,Part of the `powerpl
 scigrid_gas,1.1.2,tyndp-archive,latest supported,2026-05-08,the primary is already from Zenodo published by original authors,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/scigrid_gas/1.1.2/IGGIELGN.zip
 seawater_temperature,v1.0,tyndp-archive,latest supported,2026-05-08,Test cutout seawater temperature,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/seawater_temperature/v1.0/seawater_temperature.nc
 ship_raster,v5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/ship_raster/v5/shipdensity_global.zip
-synthetic_electricity_demand,v2,tyndp-archive,latest supported,2026-05-08,the primary is already from Zenodo published by original authors,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/synthetic_electricity_demand/v2
+synthetic_electricity_demand,v2,tyndp-archive,latest supported,2026-05-08,the primary is already from Zenodo published by original authors,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/synthetic_electricity_demand/v2/demand_hourly.csv
 tyndp,2024,primary,latest supported,2026-02-05,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
 tyndp,2024,archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024
 tyndp,2024,tyndp-archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024

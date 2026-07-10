@@ -31,17 +31,34 @@
 
 **Bugfixes and Compatibility**
 
+* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
+
+* Fix CBA workflow to (a) release solver license after each successful rolling horizon optimization or after computing infeasibilities and (b) raise an error if rolling horizon fails when using HiGHS ([#756](https://github.com/open-energy-transition/open-tyndp/pull/756)).
+
+* Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
+
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
 
 * Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
 
+* Improve docstring formatting and add missing type hints (https://github.com/open-energy-transition/open-tyndp/pull/759).
+
 **Developers Note**
 
 * Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).
 
 * Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+
+* Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([#777](https://github.com/open-energy-transition/open-tyndp/pull/777)).
+
+* Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([#778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
+
+* Add validation of Zenodo deposition ID in `create_zenodo_deposition_cli` to close URL-manipulation finding ([#780](https://github.com/open-energy-transition/open-tyndp/pull/780)).
+
+* Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
 
 * Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file. 
 
