@@ -87,9 +87,9 @@ Solves the CBA network using the rolling horizon approach. Shares the script wit
 
 ::: make_indicators
 
-### Rule `collect_indicators`
+### Rule `combine_indicators`
 
-::: collect_indicators
+::: combine_indicators
 
 ### Rule `plot_indicators`
 

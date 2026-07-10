@@ -17,7 +17,7 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def collect_indicators_csv(input_files: list[str], output_file: str) -> None:
+def combine_indicators_csv(input_files: list[str], output_file: str) -> None:
     """
     Concatenate multiple CSV files into one using the csv module.
 
@@ -38,7 +38,7 @@ def collect_indicators_csv(input_files: list[str], output_file: str) -> None:
             pass
         return
 
-    logger.info(f"Collecting {len(input_files)} indicator files")
+    logger.info(f"Combining {len(input_files)} indicator files")
 
     # Read header from first file
     with open(input_files[0], newline="") as f:
@@ -68,17 +68,17 @@ def collect_indicators_csv(input_files: list[str], output_file: str) -> None:
                     writer.writerow(row)
                     row_count += 1
 
-    logger.info(f"Collected {row_count} rows from {len(input_files)} files")
+    logger.info(f"Combined {row_count} rows from {len(input_files)} files")
 
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("collect_indicators")
+        snakemake = mock_snakemake("combine_indicators")
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Collect all indicators into a single CSV
-    collect_indicators_csv(snakemake.input.indicators, snakemake.output.indicators)
+    # Combine all indicators into a single CSV
+    combine_indicators_csv(snakemake.input.indicators, snakemake.output.indicators)

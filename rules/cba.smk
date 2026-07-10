@@ -490,19 +490,19 @@ def input_indicators(w):
     )
 
 
-# Collect indicators for all projects into overview CSV
-rule collect_indicators:
+# Combine indicators for all projects into overview CSV
+rule combine_indicators:
     input:
         indicators=input_indicators,
     output:
         indicators=RESULTS + "cba/indicators_{planning_horizons}.csv",
     script:
-        scripts("cba/collect_indicators.py")
+        scripts("cba/combine_indicators.py")
 
 
 rule plot_indicators:
     input:
-        indicators=rules.collect_indicators.output.indicators,
+        indicators=rules.combine_indicators.output.indicators,
         transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
@@ -528,7 +528,7 @@ rule plot_cba_benchmark:
 
 # rule plot_all_cba_benchmark:
 #     input:
-#         indicators=rules.collect_indicators.output.indicators,
+#         indicators=rules.combine_indicators.output.indicators,
 #     output:
 #         plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
 #     script:
@@ -537,7 +537,7 @@ rule plot_cba_benchmark:
 
 rule plot_weather_benchmark:
     input:
-        # indicators=rules.collect_indicators.output.indicators,
+        # indicators=rules.combine_indicators.output.indicators,
         indicators=rules.make_indicators.output.indicators,
     output:
         plot_file=RESULTS
