@@ -324,3 +324,527 @@ DE-cyears:
 GA-cyears:
   cba:
     scenarios: [GA-cy2009, GA-cy2008, GA-cy1995]
+
+NT-hipo-crossover-off-threads1:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: highs
+      options: highs-hipo
+    solver_options:
+      highs-hipo:
+        threads: 1
+        run_crossover: 'off'
+        user_bound_scale: -12
+    partition: big
+    mem_mb: 200000
+    runtime: 3h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 1
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+        partition: big
+        mem_mb: 200000
+        runtime: 3h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 200000
+      runtime: 3h
+
+      solver:
+        name: highs
+        options: highs-hipo
+
+      solver_options:
+        highs-hipo:
+          threads: 1
+          parallel: 'off'
+          run_crossover: 'off'
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
+
+NT-hipo-crossover-off-threads4:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: highs
+      options: highs-hipo
+    solver_options:
+      highs-hipo:
+        threads: 4
+        run_crossover: 'off'
+        user_bound_scale: -12
+    partition: big
+    mem_mb: 200000
+    runtime: 3h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 4
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+        partition: big
+        mem_mb: 200000
+        runtime: 3h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 200000
+      runtime: 3h
+
+      solver:
+        name: highs
+        options: highs-hipo
+
+      solver_options:
+        highs-hipo:
+          threads: 4
+          parallel: 'off'
+          run_crossover: 'off'
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
+
+NT-hipo-crossover-off-threads32:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: highs
+      options: highs-hipo
+    solver_options:
+      highs-hipo:
+        threads: 32
+        run_crossover: 'off'
+    partition: big
+    mem_mb: 200000
+    runtime: 3h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 32
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+        partition: big
+        mem_mb: 200000
+        runtime: 3h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 200000
+      runtime: 3h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          parallel: 'off'
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
+
+NT-gurobi-sb-hipo-msv-threads32:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 80000
+    runtime: 1h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 32
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+        partition: big
+        mem_mb: 200000
+        runtime: 3h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 80000
+      runtime: 1h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          parallel: 'off'
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
+
+NT-hipo-crossover-on-threads1:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: highs
+      options: highs-hipo
+    solver_options:
+      highs-hipo:
+        threads: 1
+        run_crossover: 'on'
+        user_bound_scale: -12
+    partition: big
+    mem_mb: 200000
+    runtime: 3h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 1
+            run_crossover: 'on'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+        partition: big
+        mem_mb: 200000
+        runtime: 3h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 200000
+      runtime: 3h
+
+      solver:
+        name: highs
+        options: highs-hipo
+
+      solver_options:
+        highs-hipo:
+          threads: 1
+          parallel: 'off'
+          run_crossover: 'on'
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
+
+NT-6h-hipo-crossover-off-threads1:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 6H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: highs
+      options: highs-hipo
+    solver_options:
+      highs-hipo:
+        threads: 1
+        run_crossover: 'off'
+    partition: big
+    mem_mb: 200000
+    runtime: 3h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 1
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+        partition: big
+        mem_mb: 200000
+        runtime: 3h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 200000
+      runtime: 3h
+
+      solver:
+        name: highs
+        options: highs-hipo
+
+      solver_options:
+        highs-hipo:
+          threads: 1
+          parallel: 'off'
+          run_crossover: 'off'
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
+
+gurobi-sb-hipo-msv-gurobi-rh:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 80000
+    runtime: 1h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 32
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+        partition: big
+        mem_mb: 80000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 80000
+      runtime: 1h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
+gurobi-sb-gurobi-msv-gurobi-rh:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 80000
+    runtime: 1h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            FeasibilityTol: 1.0e-08
+            OptimalityTol: 1.0e-08
+        partition: big
+        mem_mb: 80000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 80000
+      runtime: 1h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
