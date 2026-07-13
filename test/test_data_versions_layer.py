@@ -19,6 +19,9 @@ VERSIONS_PATHS = [
     Path(__file__).parent.parent / file if not Path(file).is_absolute() else Path(file)
     for file in validate_config({}).data.version_files
 ]
+_tyndp_versions = Path(__file__).parent.parent / "data/tyndp_versions.csv"
+if _tyndp_versions.exists():
+    VERSIONS_PATHS.append(_tyndp_versions)
 
 
 @pytest.mark.parametrize("file", VERSIONS_PATHS, ids=[str(p) for p in VERSIONS_PATHS])
