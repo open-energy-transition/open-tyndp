@@ -20,11 +20,11 @@ public file storage for the repository under `https://data.pypsa.org`.
     For users, selection and control over which data sources to use is managed through the configuration file.
     See [Data Configuration](configuration.md#data_cf) for details. In most cases you just wanna stick with the latest archive
     version. Reproducibility is given even when using the `latest` tag via the
-    `versions.csv`, which is version controlled.
+    `versions.csv` and `tyndp_versions.csv`, which are version controlled.
 
-### Understanding `versions.csv`
+### Understanding `versions.csv` files
 
-The file `data/versions.csv` is the central registry for all data sources and their versions.
+The version files (e.g. `data/versions.csv` and `data/tyndp_versions.csv`) are central registries for all data sources and their versions. The file `data/versions.csv` defines generic PyPSA-Eur data, and `data/tyndp_versions.csv` defines TYNDP-specific data.
 Each row defines a specific version of a dataset with the following columns:
 
 * `dataset`: The name of the dataset (e.g., `worldbank_urban_population`).
@@ -35,21 +35,21 @@ Each row defines a specific version of a dataset with the following columns:
 * `note`: Optional notes about the dataset or version.
 * `url`: The download URL for the data.
 
-Entries to the `versions.csv` are never deleted and if a dataset was removed or is not available, the entry is marked as `deprecated`.
+Entries to the `versions.csv` files are never deleted and if a dataset was removed or is not available, the entry is marked as `deprecated`.
 
 !!! note
     For `primary` sources, each combination of dataset and version should point to a specific version of that dataset with a unique URL.
     If the original data source does not provide versioned URLs (i.e., the URL always points to the latest data), the `version` is set to `unknown`.
     In this case, the corresponding `archive` entries do not mirror the same version but represent snapshots taken at specific points in time from that primary source.
 
-### Updating `versions.csv`
+### Updating `versions.csv` files
 
 There are two methods for updating the data versions:
 
-1. Add a new row to `data/versions.csv`.
+1. Add a new row to the appropriate `versions.csv` file.
 1. Create a new version file and reference it in the configuration under [`data→version_files`](configuration.md#data_cf).
 
-If you are working on a fork of PyPSA-Eur, you will benefit from updating versions in a separate file as it mitigates merge conflicts when `data/versions.csv` is updated upstream.
+If you are working on a fork of PyPSA-Eur, you will benefit from updating versions in a separate file as it mitigates merge conflicts when `data/versions.csv` is updated upstream. Open-TYNDP leverages this feature and uses `data/tyndp_versions.csv`.
 It also clearly separates the data versions that are specific to your project from those that have been inherited from upstream.
 
 #### Maintaining multiple version files
@@ -85,10 +85,10 @@ Any new entries will be appended to the list.
 
 #### Adding a new version of a dataset
 
-=== "Updating PyPSA/PyPSA-Eur"
-    If you notice that a data source has been updated and want to add the new version to PyPSA-Eur:
+=== "Updating Open-TYNDP"
+    If you notice that a data source has been updated and want to add the new version to Open-TYNDP:
 
-    1. Add a new row to `data/versions.csv` with the same `dataset` name, the new `version`, `source` set to `primary`, and the `url` pointing to the new data source.
+    1. Add a new row to `data/tyndp_versions.csv` with the same `dataset` name, the new `version`, `source` set to `primary`, and the `url` pointing to the new data source.
     1. Set appropriate tags (typically `latest supported`).
     1. Update the tags of the previous version (remove `latest`, keep `supported` if still compatible).
     1. Create a pull request with your changes.
@@ -97,7 +97,7 @@ Any new entries will be appended to the list.
 === "Updating your own project / soft fork"
     If you want to update a version in your own project, to one that better reflects your needs:
 
-    1. Add a new row to your own file (e.g., `data/custom_versions.csv`) with a copy of the relevant dataset row in `data/versions.csv`.
+    1. Add a new row to your own file (e.g., `data/custom_versions.csv`) with a copy of the relevant dataset row in `data/tyndp_versions.csv`.
     1. Update the `version` and `url` in this copied row, and set the `source` to `primary`.
     1. Set appropriate tags (typically `latest supported`).
     1. Add a reference to your own version file in the configuration by extending the `data→version_files` list.
@@ -108,9 +108,9 @@ Any new entries will be appended to the list.
 
 #### Adding a new dataset
 
-=== "Updating PyPSA/PyPSA-Eur"
+=== "Updating Open-TYNDP"
 
-    1. Add a `primary` entry to `data/versions.csv` with a new unique dataset name, version, and URL pointing to the original data source.
+    1. Add a `primary` entry to `data/tyndp_versions.csv` with a new unique dataset name, version, and URL pointing to the original data source.
     1. Implement a `retrieve` rule for your dataset in `rules/retrieve.smk`.
        Take inspiration from existing rules in the file.
     1. Add the new data source to:
