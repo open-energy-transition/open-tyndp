@@ -194,7 +194,7 @@ This loads `config/data.tyndp.yaml`, which switches all mirrored datasets to `ty
 A small number of datasets (`wdpa`, `cutout`, `open_tyndp_prelim`) are not yet available
 on the GCS bucket and will still be retrieved from their respective sources.
 
-To see which datasets support `tyndp-archive`, check the `source` column in `data/versions.csv`.
+To see which datasets support `tyndp-archive`, check the `source` column in `data/tyndp_versions.csv`.
 See also [`data_config`](configuration.md#data_config_cf) and [`data`](configuration.md#data_cf) in the configuration reference.
 
 ## Running Scenario Building

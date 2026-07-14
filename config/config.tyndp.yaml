@@ -381,6 +381,11 @@ solving:
     name: highs
     options: highs-default
 
+data:
+  version_files:
+  - data/versions.csv
+  - data/tyndp_versions.csv
+
 plotting:
   energy_threshold: 1.
   projection:
