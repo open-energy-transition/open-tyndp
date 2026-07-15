@@ -64,10 +64,10 @@ def extend_primary_fuel_sources(
 
 
 def move_bus_carrier_and_cleanup(
-    n,
-    from_carrier="low voltage",
-    busmap=None,
-):
+    n: pypsa.Network,
+    from_carrier: str = "low voltage",
+    busmap: pd.Series | None = None,
+) -> None:
     """
     Reassign all components attached to buses of `from_carrier` onto their
     corresponding buses (as given by `busmap`), remove the now-empty
@@ -92,8 +92,8 @@ def move_bus_carrier_and_cleanup(
 
     Returns
     -------
-    n : pypsa.Network
-        The modified network (same object, mutated in place).
+    None
+        Network is modified in place.
     """
     if busmap is None:
         busmap = n.buses.loc[n.buses.carrier == from_carrier, "location"]
