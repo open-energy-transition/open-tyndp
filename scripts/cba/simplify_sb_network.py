@@ -95,8 +95,13 @@ def move_bus_carrier_and_cleanup(
     None
         Network is modified in place.
     """
+    # create busmap
     if busmap is None:
         busmap = n.buses.loc[n.buses.carrier == from_carrier, "location"]
+    # check if buses exist in network
+    if not busmap.isin(n.buses.index).all():
+        missing = busmap[~busmap.isin(n.buses.index)]
+        raise ValueError(f"Locations not found in n.buses.index: {missing.tolist()}")
 
     # remove load shedding generators on low voltage buses to avoid having two
     # load shedding generators at market node
