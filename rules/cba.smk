@@ -50,7 +50,7 @@ if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
         input:
             file=storage(CBA_NON_CO2_DATASET["url"]),
         output:
-            file=f"{CBA_NON_CO2_DATASET["folder"]}/a.3_non-co2-emissions.csv",
+            file=f"{CBA_NON_CO2_DATASET['folder']}/a.3_non-co2-emissions.csv",
         log:
             "logs/retrieve_tyndp_cba_non_co2_emissions.log",
         run:
