@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+executor: cluster-generic
+cluster-generic-submit-cmd: >-
+  mkdir -p logs/slurm && sbatch
+  --cpus-per-task={threads}
+  --ntasks-per-node=1
+  --mem={resources.mem_mb}
+  --time={resources.runtime}
+  --job-name="project=open-tyndp_smk-{rule}-{wildcards}"
+  --output=logs/slurm/%x-%j.out
+  --partition=$(if [ {resources.mem_mb} -gt 3000 ] && [ "{resources.partition}" = "small" ]; then echo high-mem; elif [ {resources.runtime} \> "50h" ]; then echo big; else echo {resources.partition}; fi)
+  --exclude=$(if [ "{rule}" = "solve_sector_network_myopic" ] || [ "{rule}" = "solve_cba_msv_extraction" ]; then python profiles/tyndp-slurm/exclude.py; fi)
+cluster-generic-cancel-cmd: scancel
+default-resources:
+  mem_mb: 3000
+  disk_mb: 4000
+  runtime: 2h
+  partition: small
+  tmpdir: "'/scratch/local'"
+restart-times: 0
+max-jobs-per-timespan: "1/3s"
+max-status-checks-per-second: 1
+local-cores: 1
+latency-wait: 60
+jobs: 999
+keep-going: true
+rerun-incomplete: true
+set-resources:
+  build_shapes:
+    mem_mb: 4000
+  build_eurostat_balances:
+    mem_mb: 8000
+  build_industrial_production_per_country:
+    mem_mb: 16000
+  build_renewable_profiles:
+    mem_mb: 10000
+  build_solar_thermal_profiles:
+    mem_mb: 32000
+  prepare_sector_network:
+    mem_mb: 4000
+
