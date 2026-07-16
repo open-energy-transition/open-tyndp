@@ -328,6 +328,7 @@ def plot_summary_projects_benchmark(
     output_path: Path,
     planning_horizon: str | None = None,
     area_subtitle: str | None = None,
+    eps: float = 1e-6,
 ) -> None:
     """Plot one summary subplot per indicator for each horizon"""
     model_df = df[df["source"] == "Open-TYNDP"]
@@ -359,21 +360,19 @@ def plot_summary_projects_benchmark(
         for project_id in project_ids:
             project_df = average_df[average_df["project_id"] == project_id]
             if indicator == "B2a_societal_cost_variation":
-                levels = ["low", "central", "high"]
-                for level in levels:
-                    model_val = select_value_by_subindex(
-                        project_df, indicator, "Open-TYNDP", level
-                    )
-                    bench_val = select_value_by_subindex(
-                        project_df, indicator, "TYNDP 2024", level
-                    )
-                    if model_val is not None and bench_val is not None:
-                        pairs.append((bench_val, model_val, level))
+                model_val = select_value_by_subindex(
+                    project_df, indicator, "Open-TYNDP", "central"
+                )
+                bench_val = select_value_by_subindex(
+                    project_df, indicator, "TYNDP 2024", "central"
+                )
+                if model_val is not None and bench_val is not None:
+                    pairs.append((bench_val, model_val))
             else:
                 model = benchmark_range(project_df, indicator, source="Open-TYNDP")
                 bench = benchmark_range(project_df, indicator, source="TYNDP 2024")
                 if model is not None and bench is not None:
-                    pairs.append((bench[1], model[1], None))
+                    pairs.append((bench[1], model[1]))
         if pairs:
             plot_items[indicator] = pairs
     if not plot_items:
@@ -392,15 +391,7 @@ def plot_summary_projects_benchmark(
     for ax, (indicator, pairs) in zip(axes.flatten(), plot_items.items()):
         xs = [p[0] for p in pairs]
         ys = [p[1] for p in pairs]
-        if indicator == "B2a_societal_cost_variation":
-            level_colors = {
-                "low": "tab:orange",
-                "central": "tab:green",
-                "high": "tab:red",
-            }
-            colors = [level_colors[level] for _, _, level in pairs]
-        else:
-            colors = "tab:blue"
+        colors = "tab:blue"
         ax.scatter(
             xs,
             ys,
@@ -437,6 +428,21 @@ def plot_summary_projects_benchmark(
         ax.axhline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.axvline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.grid(alpha=0.3)
+
+        benchmark_df = pd.DataFrame(pairs, columns=["TYNDP 2024", "Open-TYNDP"])
+        errors = (
+            (benchmark_df["Open-TYNDP"] - benchmark_df["TYNDP 2024"]).abs()
+            / ((benchmark_df["Open-TYNDP"].abs() + benchmark_df["TYNDP 2024"].abs()) 
+            / 2 + eps) * 100
+        )
+        values = (
+            f"n = {len(pairs)}\n" 
+            f"sMAPE = {errors.mean():.1f}%\n"
+            f"sMdAPE = {errors.median():.1f}%"
+        )
+        ax.text(0.05, 0.95, values, transform=ax.transAxes, fontsize=6, verticalalignment="top",
+                bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+            )
 
     for ax in axes.flatten()[len(plot_items) :]:
         ax.axis("off")
