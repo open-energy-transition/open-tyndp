@@ -561,17 +561,18 @@ def summary_benchmark_indicators(w):
     Returns Indicator CSVs as inputs for the per-horizon summary benchmark plot.
     If collection scenarios, returns the weighted-average ensemble indicators CSV as inputs for plotting.
     """
-    if get_run_name(w) in cba_collection_scenarios(w):
+    run = get_run_name(w)
+    if run in cba_collection_scenarios(w):
         return expand(
             rules.average_indicators_per_project_and_planning_horizon.output.indicators,
             planning_horizons=[w.planning_horizons],
             cba_project=cba_projects(w),
-            run=[w.run],
+            run=[run],
         )
     return expand(
         rules.collect_indicators.output.indicators,
         planning_horizons=[w.planning_horizons],
-        run=[w.run],
+        run=[run],
     )
 
 
