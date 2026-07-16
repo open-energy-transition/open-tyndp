@@ -7,9 +7,9 @@ scripts
 config
 config/test
 envs
+profiles
 matplotlibrc
 Snakefile
-data
 pixi.toml
 pixi.lock
 matplotlibrc
