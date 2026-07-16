@@ -461,17 +461,27 @@ def plot_summary_projects_benchmark(
         benchmark_df = pd.DataFrame(pairs, columns=["TYNDP 2024", "Open-TYNDP"])
         errors = (
             (benchmark_df["Open-TYNDP"] - benchmark_df["TYNDP 2024"]).abs()
-            / ((benchmark_df["Open-TYNDP"].abs() + benchmark_df["TYNDP 2024"].abs()) 
-            / 2 + eps) * 100
+            / (
+                (benchmark_df["Open-TYNDP"].abs() + benchmark_df["TYNDP 2024"].abs())
+                / 2
+                + eps
+            )
+            * 100
         )
         values = (
-            f"n = {len(pairs)}\n" 
+            f"n = {len(pairs)}\n"
             f"sMAPE = {errors.mean():.1f}%\n"
             f"sMdAPE = {errors.median():.1f}%"
         )
-        ax.text(0.05, 0.95, values, transform=ax.transAxes, fontsize=6, verticalalignment="top",
-                bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
-            )
+        ax.text(
+            0.05,
+            0.95,
+            values,
+            transform=ax.transAxes,
+            fontsize=6,
+            verticalalignment="top",
+            bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+        )
 
     for ax in axes.flatten()[len(plot_items) :]:
         ax.axis("off")
