@@ -8,6 +8,7 @@ Creates the base CBA network with:
 - Fixed optimal capacities from scenario building
 - Hurdle costs on DC links
 - Extended primary fuel source capacities
+- Merge low and high voltage buses
 
 **Inputs**
 
@@ -62,6 +63,82 @@ def extend_primary_fuel_sources(
     n.generators.loc[gen_i, "p_nom"] = inf
 
 
+def move_bus_carrier_and_cleanup(
+    n: pypsa.Network,
+    from_carrier: str = "low voltage",
+    busmap: pd.Series | None = None,
+) -> None:
+    """
+    Reassign all components attached to buses of `from_carrier` onto their
+    corresponding buses (as given by `busmap`), remove the now-empty
+    `from_carrier` buses, and drop any lines/links that end up with
+    bus0 == bus1 as a result.
+
+    Also drops redundant load-shedding generators sitting on `from_carrier`
+    buses, since after reassignment they would duplicate the load-shedding
+    generator already present at the target bus.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify in place.
+    from_carrier : str, default "low voltage"
+        Bus carrier to remove (e.g. "low voltage").
+    busmap : pandas.Series, optional
+        Mapping of `from_carrier` bus name -> target bus name onto which its
+        components should be reassigned. Defaults to
+        `n.buses.loc[n.buses.carrier == from_carrier, "location"]`, i.e.
+        each bus is mapped onto the bus matching its `location` field.
+
+    Returns
+    -------
+    None
+        Network is modified in place.
+    """
+    # create busmap
+    if busmap is None:
+        busmap = n.buses.loc[n.buses.carrier == from_carrier, "location"]
+    # check if buses exist in network
+    if not busmap.isin(n.buses.index).all():
+        missing = busmap[~busmap.isin(n.buses.index)]
+        raise ValueError(f"Locations not found in n.buses.index: {missing.tolist()}")
+
+    # remove load shedding generators on low voltage buses to avoid having two
+    # load shedding generators at market node
+    load_shedding_gens = n.generators.index[
+        (n.generators.bus.map(n.buses.carrier) == from_carrier)
+        & (n.generators.carrier == "load")
+    ]
+    n.remove("Generator", load_shedding_gens)
+
+    # reassign every component attached to the from_carrier buses
+    components = sorted(n.branch_components | n.one_port_components)
+    for cname in components:
+        c = n.c[cname]
+        static = c.static
+        if static.empty:
+            continue
+        for port in c.ports:
+            col = f"bus{port}"
+            if col not in static:
+                continue
+            mask = static[col].isin(busmap.index)
+            if mask.any():
+                static.loc[mask, col] = static.loc[mask, col].map(busmap)
+
+    # remove carrier buses
+    n.remove("Bus", busmap.index)
+
+    # drop lines/links where bus0 == bus1 after remapping
+    for cname in ["Line", "Link"]:
+        static = n.c[cname].static
+        if static.empty:
+            continue
+        to_remove = static.index[static.bus0 == static.bus1]
+        if len(to_remove):
+            n.remove(cname, to_remove)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -95,6 +172,9 @@ if __name__ == "__main__":
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
     # TODO: for DE/GA add merging of the two H2 zones
     # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
+
+    # merge low voltage to market node
+    move_bus_carrier_and_cleanup(n, from_carrier="low voltage")
 
     # Save base network
     n.export_to_netcdf(snakemake.output.network)
