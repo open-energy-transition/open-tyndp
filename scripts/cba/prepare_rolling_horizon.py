@@ -33,7 +33,7 @@ def disable_global_constraints(n: pypsa.Network):
     Parameters
     ----------
     n : pypsa.Network
-        Network to modify
+        Network to modify.
     """
     if "co2_sequestration_limit" in n.global_constraints.index:
         n.remove("GlobalConstraint", "co2_sequestration_limit")
@@ -55,8 +55,8 @@ def disable_store_cyclicity(
     ----------
     n : pypsa.Network
         Network to modify in place.
-    cyclic_carriers : list[str], optional
-        Carriers that remain cyclic. Defaults to empty list.
+    cyclic_carriers : list[str] or None, optional
+        Carriers that remain cyclic. Default is None (treated as empty list).
     """
     if cyclic_carriers is None:
         cyclic_carriers = []
@@ -89,13 +89,18 @@ def resample_msv_to_target(
     Parameters
     ----------
     msv : pd.DataFrame
-        MSV data from extraction (e.g., 24H resolution)
+        MSV data from extraction (e.g., 24H resolution).
     target_snapshots : pd.DatetimeIndex
-        Target snapshots (e.g., 3H resolution)
+        Target snapshots (e.g., 3H resolution).
     method : str, optional
         Resampling method:
-        - "ffill": Forward fill - each MSV value applies until the next one
-        - "interpolate": Linear interpolation between marginal storage values
+        - "ffill": Forward fill - each MSV value applies until the next one.
+        - "interpolate": Linear interpolation between marginal storage values.
+
+    Returns
+    -------
+    pd.DataFrame
+        Resampled MSV data aligned to target_snapshots.
     """
     if method == "interpolate":
         # Combine indices and interpolate
@@ -125,13 +130,13 @@ def disable_volume_limits(n: pypsa.Network):
     Parameters
     ----------
     n : pypsa.Network
-        Network to modify
+        Network to modify.
     """
     for c in n.components[{"Generator", "Link"}]:
         has_e_sum_min = isfinite(c.static.get("e_sum_min", []))
         if has_e_sum_min.any():
-            c.static["has_volume_limit"] = 0
-            c.static.loc[has_e_sum_min, "has_volume_limit"] = 1
+            c.static["has_volume_limit"] = False
+            c.static.loc[has_e_sum_min, "has_volume_limit"] = True
             c.static.loc[has_e_sum_min, "e_sum_min"] = -inf
             c.static.loc[has_e_sum_min, "e_sum_max"] = inf
 
@@ -189,6 +194,52 @@ def apply_msv_to_network(
             msv = resample_msv_to_target(msv, n.snapshots, method=resample_method)
         # Set shadow prices as marginal cost
         n.c[c].dynamic["marginal_cost"].loc[:, s_i] = msv
+
+
+def apply_biomass_biogas_bus_marginal_prices(
+    n: pypsa.Network,
+    n_msv: pypsa.Network,
+    carriers: list[str] = ["solid biomass", "biogas"],
+    resample_method: str = "ffill",
+):
+    """
+    Set biomass/biogas buses' marginal prices as the generators' marginal costs.
+
+    For each biomass/biogas generator in the rolling horizon network:
+    use the marginal price time series of its attached bus from the MSV network and
+    set the marginal price as the generator's marginal cost.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Target network.
+    n_msv : pypsa.Network
+        Solved MSV network containing bus marginal prices.
+    carriers : list[str], optional
+        Generator carriers to apply bus marginal prices to. Defaults to ["solid biomass", "biogas"].
+    resample_method : str, optional
+        Method for resampling MSV bus marginal prices to target resolution. Default "ffill".
+    """
+    if isinstance(carriers, str):
+        carriers = [carriers]
+
+    # Get bus marginal prices from MSV network
+    msv_mp = n_msv.buses_t.marginal_price
+
+    # Resample marginal prices if needed
+    bus_mp = (
+        msv_mp
+        if n_msv.snapshots.equals(n.snapshots)
+        else resample_msv_to_target(msv_mp, n.snapshots, method=resample_method)
+    )
+
+    # Get index of generators with target carriers
+    gen_index = n.generators.index[n.generators.carrier.isin(carriers)]
+
+    # Set marginal cost for each generator based on the marginal price of its bus
+    for g in gen_index:
+        bus = n.generators.at[g, "bus"]
+        n.generators_t.marginal_cost[g] = bus_mp[bus].reindex(n.snapshots)
 
 
 def set_initial_state_from_pf(
@@ -260,8 +311,8 @@ def fix_reservoir_soc_at_boundaries(
         Target network for rolling horizon (will be modified in place).
     n_msv : pypsa.Network
         Network with perfect foresight solution.
-    carriers : list[str], optional
-        Carriers to fix. Defaults to ["hydro-reservoir"].
+    carriers : list[str] or None, optional
+        Carriers to fix. Default is None (treated as ["hydro-reservoir"]).
     horizon : int
         Number of snapshots per rolling horizon window. Default 168 (one week at 1H).
     overlap : int
@@ -353,6 +404,9 @@ if __name__ == "__main__":
 
     # Apply marginal storage value to all non-cyclic carriers
     apply_msv_to_network(n, n_msv, cyclic_carriers, resample_method)
+
+    # Add bus marginal prices to the marginal costs of the biomass/biogas generators
+    apply_biomass_biogas_bus_marginal_prices(n, n_msv, resample_method=resample_method)
 
     # Fix reservoir state of charge at window boundaries from perfect foresight
     soc_boundary_carriers = snakemake.params.get("soc_boundary_carriers", [])

@@ -28,14 +28,14 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
 ] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_cba_projects:
-        params:
-            source="CBA project explorer",
         input:
             zip_file=storage(CBA_PROJECTS_DATASET["url"]),
         output:
             dir=directory(CBA_PROJECTS_DATASET["folder"]),
         log:
             "logs/retrieve_tyndp_cba_projects.log",
+        params:
+            source="CBA project explorer",
         run:
             copy2(input["zip_file"], output["dir"] + ".zip")
             unpack_archive(output["dir"] + ".zip", output["dir"])
@@ -241,11 +241,6 @@ def input_sb_network(w, run=None):
 # Simplify scenario building network for CBA
 # Fixes capacities, adds hurdle costs, extends primary fuel sources, disables volume limits
 rule simplify_sb_network:
-    params:
-        tyndp_conventional_carriers=config_provider(
-            "electricity", "tyndp_conventional_carriers"
-        ),
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
     input:
         network=input_sb_network,
         sb_network=lambda w: input_sb_network(
@@ -253,6 +248,11 @@ rule simplify_sb_network:
         ),
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
+    params:
+        tyndp_conventional_carriers=config_provider(
+            "electricity", "tyndp_conventional_carriers"
+        ),
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
     script:
         scripts("cba/simplify_sb_network.py")
 
@@ -265,8 +265,6 @@ def get_elec_project_build_years(w):
 
 
 rule fix_reference_sb_to_cba:
-    params:
-        build_years=get_elec_project_build_years,
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
         guidelines=rules.retreive_cba_guidelines_reference_projects.output.file,
@@ -278,6 +276,8 @@ rule fix_reference_sb_to_cba:
         logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/cba/fix_reference_sb_to_cba_{planning_horizons}")
+    params:
+        build_years=get_elec_project_build_years,
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 
@@ -285,11 +285,6 @@ rule fix_reference_sb_to_cba:
 # Build reference network with all TOOT projects included
 # Ensures MSV extraction and rolling horizon use the same baseline
 rule prepare_reference:
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
-        patch_sb_with_annexe=config_provider(
-            "tyndp_investment_candidates", "patch_sb_with_annexe"
-        ),
     input:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
@@ -298,21 +293,26 @@ rule prepare_reference:
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
+        patch_sb_with_annexe=config_provider(
+            "tyndp_investment_candidates", "patch_sb_with_annexe"
+        ),
     script:
         scripts("cba/prepare_reference.py")
 
 
 # Generate snapshot weightings for MSV extraction temporal aggregation
 rule build_msv_snapshot_weightings:
-    params:
-        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
     input:
         network=rules.prepare_reference.output.network,
     output:
         snapshot_weightings=resources(
             "cba/msv_snapshot_weightings_{planning_horizons}.csv"
         ),
+    params:
+        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
     script:
         "../scripts/cba/build_msv_snapshot_weightings.py"
 
@@ -327,11 +327,6 @@ def input_msv_snapshot_weightings(w):
 
 # Extract marginal storage values via perfect foresight solve (full year with cyclicity enabled)
 rule solve_cba_msv_extraction:
-    params:
-        solving=config_provider("solving"),
-        cba_solving=config_provider("cba", "msv_extraction", "solving"),
-        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     input:
         network=rules.prepare_reference.output.network,
         snapshot_weightings=input_msv_snapshot_weightings,
@@ -342,31 +337,32 @@ rule solve_cba_msv_extraction:
         memory=RESULTS + "logs/cba/msv/{planning_horizons}_memory.log",
         python=RESULTS + "logs/cba/msv/{planning_horizons}_python.log",
     threads: solver_threads
+    params:
+        solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "msv_extraction", "solving"),
+        msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     script:
         "../scripts/cba/solve_cba_msv_extraction.py"
 
 
 # Prepare network for rolling horizon: disable seasonal cyclicity, apply marginal storage value
 rule prepare_rolling_horizon:
-    params:
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
-        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
-        msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
     input:
         network=rules.prepare_reference.output.network,
         network_msv=rules.solve_cba_msv_extraction.output.network,
     output:
         network=resources("cba/networks/rl_{planning_horizons}.nc"),
+    params:
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
+        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
+        msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
     script:
         scripts("cba/prepare_rolling_horizon.py")
 
 
 # add or remove the cba project based on assigned method
 rule prepare_project:
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
-        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
     input:
         network=rules.prepare_rolling_horizon.output.network,
         network_msv=rules.solve_cba_msv_extraction.output.network,
@@ -378,18 +374,16 @@ rule prepare_project:
         network=temp(
             resources("cba/networks/project_{cba_project}_{planning_horizons}.nc")
         ),
+    params:
+        hurdle_costs=config_provider("cba", "hurdle_costs"),
+        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
+        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
     script:
         scripts("cba/prepare_project.py")
 
 
 # Solve reference network with rolling horizon (MSV already applied)
 rule solve_cba_reference_network:
-    params:
-        solving=config_provider("solving"),
-        cba_solving=config_provider("cba", "solving"),
-        foresight=config_provider("foresight"),
-        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
-        custom_extra_functionality=None,
     input:
         network=rules.prepare_rolling_horizon.output.network,
     output:
@@ -399,18 +393,18 @@ rule solve_cba_reference_network:
         memory=RESULTS + "logs/cba/reference/reference_{planning_horizons}_memory.log",
         python=RESULTS + "logs/cba/reference/reference_{planning_horizons}_python.log",
     threads: 1
-    script:
-        scripts("cba/solve_cba_network.py")
-
-
-# Solve TOOT/PINT project network with rolling horizon
-rule solve_cba_network:
     params:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "solving"),
         foresight=config_provider("foresight"),
         time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
+    script:
+        scripts("cba/solve_cba_network.py")
+
+
+# Solve TOOT/PINT project network with rolling horizon
+rule solve_cba_network:
     input:
         network=resources("cba/networks/project_{cba_project}_{planning_horizons}.nc"),
     output:
@@ -423,6 +417,12 @@ rule solve_cba_network:
         python=RESULTS
         + "logs/cba/projects/project_{cba_project}_{planning_horizons}_python.log",
     threads: 1
+    params:
+        solving=config_provider("solving"),
+        cba_solving=config_provider("cba", "solving"),
+        foresight=config_provider("foresight"),
+        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
+        custom_extra_functionality=None,
     script:
         scripts("cba/solve_cba_network.py")
 
@@ -486,13 +486,13 @@ rule collect_indicators:
 
 
 rule plot_indicators:
-    params:
-        plotting=config_provider("plotting"),
     input:
         indicators=rules.collect_indicators.output.indicators,
         transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
         plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
+    params:
+        plotting=config_provider("plotting"),
     script:
         scripts("cba/plot_indicators.py")
 

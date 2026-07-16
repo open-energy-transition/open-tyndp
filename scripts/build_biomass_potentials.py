@@ -14,6 +14,9 @@ import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
 
+pd.set_option("future.no_silent_downcasting", True)
+
+
 logger = logging.getLogger(__name__)
 AVAILABLE_BIOMASS_YEARS = [2010, 2020, 2030, 2040, 2050]
 
@@ -47,9 +50,11 @@ def _calc_unsustainable_potential(df, df_unsustainable, share_unsus, resource_ty
 
     return (
         df.apply(
-            lambda c: c.sum()
-            / df.loc[df.index.str[:2] == c.name[:2]].sum().sum()
-            * resource_potential.loc[c.name[:2]],
+            lambda c: (
+                c.sum()
+                / df.loc[df.index.str[:2] == c.name[:2]].sum().sum()
+                * resource_potential.loc[c.name[:2]]
+            ),
             axis=1,
         )
         .mul(share_unsus)
@@ -255,8 +260,8 @@ def add_unsustainable_potentials(df, input_eurostat):
     ----------
     df : pd.DataFrame
         The dataframe with sustainable biomass potentials.
-    unsustainable_biomass : str
-        Path to the file with unsustainable biomass potentials.
+    input_eurostat : str
+        Path to the file with Eurostat biomass data.
 
     Returns
     -------
@@ -327,7 +332,11 @@ def add_unsustainable_potentials(df, input_eurostat):
     share_sus = params.get("share_sustainable_potential_available").get(investment_year)
     df.loc[df_wo_ch.index] *= share_sus
 
-    df = df.join(df_wo_ch.filter(like="unsustainable")).fillna(0)
+    df = (
+        df.join(df_wo_ch.filter(like="unsustainable"))
+        .fillna(0)
+        .infer_objects(copy=False)
+    )
 
     return df
 

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 GEO_CRS = "EPSG:4326"
 
 
-def load_offshore_hubs(fn: str):
+def load_offshore_hubs(fn: str) -> gpd.GeoDataFrame:
     """
     Load and process offshore hub coordinates from Excel file.
 
@@ -79,7 +79,7 @@ def load_offshore_grid(
     countries: list[str],
     max_capacity: dict[str, int],
     h2_zones_tyndp: bool,
-):
+) -> pd.DataFrame:
     """
     Load offshore grid (electricity and hydrogen) and format data.
 
@@ -96,7 +96,7 @@ def load_offshore_grid(
     countries : list[str]
         List of country codes used to clean data.
     max_capacity : dict[str, int]
-        Maximum transmission capacity between two offshore hubs per carrier
+        Maximum transmission capacity between two offshore hubs per carrier.
     h2_zones_tyndp : bool
         Whether to use TYNDP hydrogen zones splitting.
 
@@ -219,7 +219,7 @@ def load_offshore_electrolysers(
     planning_horizons: list[int],
     countries: list[str],
     h2_zones_tyndp: bool,
-):
+) -> pd.DataFrame:
     """
     Load offshore electrolysers data and format data.
 
@@ -292,7 +292,9 @@ def load_offshore_electrolysers(
     return electrolysers
 
 
-def collect_from_layer(generators_e, generators_l, nodes):
+def collect_from_layer(
+    generators_e: pd.DataFrame, generators_l: pd.DataFrame, nodes: pd.DataFrame
+) -> pd.DataFrame:
     """
     Combine existing capacities with potentials and resolve bus allocations.
 
@@ -396,7 +398,7 @@ def load_offshore_generators(
     planning_horizons: list[int],
     countries: list[str],
     extendable_carriers: dict[str, list[str]],
-):
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Load offshore generators data and format data.
 
@@ -430,10 +432,10 @@ def load_offshore_generators(
     Returns
     -------
     generators : pd.DataFrame
-        DataFrame containing the formatted offshore generators data
+        DataFrame containing the formatted offshore generators data.
 
     zone_trajectories : pd.DataFrame
-        DataFrame containing the zone potentials trajectories
+        DataFrame containing the zone potentials trajectories.
     """
     column_names = {
         "NODE": "bus",
@@ -475,8 +477,9 @@ def load_offshore_generators(
             .replace({"scenario": SCENARIO_DICT})
             .query("pyear in @planning_horizons and scenario == @scenario")
             .assign(
-                carrier=lambda x: "offwind-"
-                + x.carrier.str.lower().replace("_", "-", regex=True)
+                carrier=lambda x: (
+                    "offwind-" + x.carrier.str.lower().replace("_", "-", regex=True)
+                )
             )
             .drop(columns=column_del, errors="ignore")
         )

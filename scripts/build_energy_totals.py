@@ -7,10 +7,10 @@
 Build total energy demands and carbon emissions per country using JRC IDEES,
 eurostat, and EEA data.
 
-- Country-specific data is read in :func:`build_idees` and read in from :mod:`scripts/build_eurostat_balances` and :mod:`scripts/build_swiss_energy_balances`.
-- :func:`build_energy_totals` then combines energy data from Eurostat, Swiss, and IDEES data.
-- :func:`build_district_heat_share` calculates the share of district heating for each country from IDEES data.
-- Historical CO2 emissions are calculated in :func:`build_eea_co2` and :func:`build_eurostat_co2` and combined in :func:`build_co2_totals`.
+- Country-specific data is read in `build_idees` and read in from [build_eurostat_balances][] and `build_swiss_energy_balances`.
+- `build_energy_totals` then combines energy data from Eurostat, Swiss, and IDEES data.
+- `build_district_heat_share` calculates the share of district heating for each country from IDEES data.
+- Historical CO2 emissions are calculated in `build_eea_co2` and `build_eurostat_co2` and combined in `build_co2_totals`.
 
 Outputs
 -------
@@ -33,6 +33,9 @@ from tqdm import tqdm
 
 from scripts._helpers import configure_logging, mute_print, set_scenario_config
 
+pd.set_option("future.no_silent_downcasting", True)
+
+
 cc = coco.CountryConverter()
 logger = logging.getLogger(__name__)
 idx = pd.IndexSlice
@@ -44,10 +47,10 @@ def cartesian(s1: pd.Series, s2: pd.Series) -> pd.DataFrame:
 
     Parameters
     ----------
-        s1: pd.Series
-            The first pandas Series
-        s2: pd.Series:
-            The second pandas Series.
+    s1 : pd.Series
+        The first pandas Series.
+    s2 : pd.Series
+        The second pandas Series.
 
     Returns
     -------
@@ -659,7 +662,9 @@ def build_energy_totals(
                 df[f"total {sector} {use}"] - df[f"electricity {sector} {use}"]
             )
             nonelectric = df[f"total {sector}"] - df[f"electricity {sector}"]
-            nonelectric = nonelectric.copy().replace(0, np.nan)
+            nonelectric = (
+                nonelectric.copy().replace(0, np.nan).infer_objects(copy=False)
+            )
             avg = nonelectric_use.div(nonelectric).mean()
             logger.debug(
                 f"{sector}: average fraction of non-electric for {use} is {avg:.3f}"
@@ -696,7 +701,9 @@ def build_energy_totals(
                 nonelectric = (
                     no_norway[f"total {sector}"] - no_norway[f"electricity {sector}"]
                 )
-                nonelectric = nonelectric.copy().replace(0, np.nan)
+                nonelectric = (
+                    nonelectric.copy().replace(0, np.nan).infer_objects(copy=False)
+                )
                 fraction = nonelectric_use.div(nonelectric).mean()
                 df.loc["NO", f"total {sector} {use}"] = (
                     total_heating * fraction
@@ -829,6 +836,7 @@ def build_district_heat_share(countries: list[str], idees: pd.DataFrame) -> pd.S
         idees[["thermal uses residential", "thermal uses services"]]
         .sum(axis=1)
         .replace(0, np.nan)
+        .infer_objects(copy=False)
     )
 
     district_heat_share = district_heat / total_heat
@@ -855,7 +863,10 @@ def build_district_heat_share(countries: list[str], idees: pd.DataFrame) -> pd.S
 
     # restrict to available years
     district_heat_share = (
-        district_heat_share.unstack().dropna(how="all", axis=1).ffill(axis=1)
+        district_heat_share.unstack()
+        .dropna(how="all", axis=1)
+        .ffill(axis=1)
+        .infer_objects(copy=False)
     )
 
     return district_heat_share
@@ -1213,11 +1224,13 @@ def build_transformation_output_coke(eurostat, fn):
 
     Parameters
     ----------
-    eurostat (pd.DataFrame): A pandas DataFrame containing Eurostat data with
-                             a multi-level index
-    fn (str): The file path where the resulting CSV file should be saved.
+    eurostat : pd.DataFrame
+        A pandas DataFrame containing Eurostat data with a multi-level index.
+    fn : str
+        The file path where the resulting CSV file should be saved.
 
-    Output:
+    Notes
+    -----
     The resulting transformation output data for coke ovens is saved as a CSV
     file at the path specified in fn.
     """

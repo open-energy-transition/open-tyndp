@@ -90,7 +90,7 @@ electricity:
       - 2009
     fill_gaps_method: zero
     # Complete PECD data is only available for the years 2030, 2040
-    # TODO: adjust once udpated 2050 PECD data is available
+    # TODO: adjust once updated 2050 PECD data is available
     available_years:
     - 2030
     - 2040
@@ -382,7 +382,7 @@ solving:
   options:
     load_shedding:
       enable: true
-      apply_to_all_carriers: false
+      all_carriers: false
       carriers:
         H2: 3000
         AC: 3000
@@ -390,6 +390,11 @@ solving:
     name: highs
     options: highs-default
   mem: 4000
+
+data:
+  version_files:
+  - data/versions.csv
+  - data/tyndp_versions.csv
 
 plotting:
   energy_threshold: 1.
@@ -472,7 +477,7 @@ cba:
         noisy_costs: false
       solver:
         name: highs
-        options: "highs-simplex"
+        options: highs-simplex
 
   # Rolling horizon solving settings
   solving:
@@ -482,7 +487,7 @@ cba:
       noisy_costs: false
       load_shedding:
         enable: true
-        apply_to_all_carriers: true
+        all_carriers: true
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:

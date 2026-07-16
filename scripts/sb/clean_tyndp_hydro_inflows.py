@@ -56,11 +56,13 @@ def read_hydro_inflows_file(
     inflow_tech = pd.read_excel(
         fn,
         skiprows=1,
-        usecols=lambda name: name == "Day"
-        or name == "Week"
-        or name == "ShortName"
-        or name == "Variable"
-        or name == int(cyear),
+        usecols=lambda name: (
+            name == "Day"
+            or name == "Week"
+            or name == "ShortName"
+            or name == "Variable"
+            or name == int(cyear)
+        ),
         sheet_name=f"{hydro_tech} - Year Dependent",
     )
 

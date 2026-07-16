@@ -11,8 +11,8 @@ sector coupled network.
 Description
 -----------
 
-The optimization is based on the :func:`network.optimize_with_rolling_horizon` method.
-Additionally, some extra constraints specified in :mod:`solve_network` are added, if
+The optimization is based on the `network.optimize_with_rolling_horizon` method.
+Additionally, some extra constraints specified in `solve_network` are added, if
 they apply to the dispatch.
 """
 
@@ -51,29 +51,60 @@ from scripts.solve_network import (
 logger = logging.getLogger(__name__)
 
 
+def dispose_model(n: pypsa.Network) -> None:
+    """
+    Explicitly dispose of Model object.
+
+    This function is relevant when using a single-use license solver for the CBA rolling horizon optimization.
+    Without this function, what happens is:
+    - First solve (project 1's first rolling horizon): Model object is created and holds the license.
+    - After solve completes, Model will be garbage-collected, but license may still be held until next solve.
+    - Second solve (project 1's second rolling horizon, or project 2's first rolling horizon): Solver tries
+     to create a new Model object, but the license server denies it because the previous object is still active.
+
+    This situation results in the second solve failing with a single-use license error, causing the workflow to fail.
+
+    What this function does is explicitly dispose of the Model after each solve, which releases the license
+    and allows subsequent solves to create new Model objects without issue.
+
+    This function should only be called after:
+    - A successful solve, OR
+    - Computing and printing infeasibilities for a failed solve
+    """
+    try:
+        if (
+            n.model is not None
+            and hasattr(n.model, "solver_model")
+            and n.model.solver_model is not None
+        ):
+            n.model.solver_model = None
+    except Exception as e:
+        logger.warning(f"Failed to dispose Model object: {e}")
+
+
 def extra_functionality(
     n: pypsa.Network,
     snapshots: pd.DatetimeIndex,
     planning_horizons: str | None = None,
 ) -> None:
     """
-    Add custom constraints and functionality for operations network
+    Add custom constraints and functionality for operations network.
+
+    Collects supplementary constraints which will be passed to
+    `pypsa.optimization.optimize`.
+
+    If you want to enforce additional custom constraints, this is a good
+    location to add them. The arguments `opts` and
+    `snakemake.config` are expected to be attached to the network.
 
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network instance with config and params attributes
+        The PyPSA network instance with config and params attributes.
     snapshots : pd.DatetimeIndex
-        Simulation timesteps
-    planning_horizons : str, optional
-        The current planning horizon year or None in perfect foresight
-
-    Collects supplementary constraints which will be passed to
-    ``pypsa.optimization.optimize``.
-
-    If you want to enforce additional custom constraints, this is a good
-    location to add them. The arguments ``opts`` and
-    ``snakemake.config`` are expected to be attached to the network.
+        Simulation timesteps.
+    planning_horizons : str or None, optional
+        The current planning horizon year or None in perfect foresight.
     """
     config = n.config
 
@@ -114,18 +145,20 @@ def optimize_with_rolling_horizon(
     Parameters
     ----------
     n : pypsa.Network
-    snapshots : list-like
-        Set of snapshots to consider in the optimization. The default is None.
+        The PyPSA network instance to optimize.
+    snapshots : Sequence or None, optional
+        Set of snapshots to consider in the optimization. Default is None.
     horizon : int
-        Number of snapshots to consider in each iteration. Defaults to 100.
+        Number of snapshots to consider in each iteration. Default is 100.
     overlap : int
-        Number of snapshots to overlap between two iterations. Defaults to 0.
-    **kwargs:
-        Keyword argument used by `linopy.Model.solve`, such as `solver_name`,
+        Number of snapshots to overlap between two iterations. Default is 0.
+    **kwargs
+        Keyword arguments used by `linopy.Model.solve`, such as `solver_name`.
 
     Returns
     -------
     tuple[str, str]
+        Tuple of (status, condition) from the final optimization window.
     """
     if snapshots is None:
         snapshots: Sequence = n.snapshots
@@ -158,31 +191,22 @@ def optimize_with_rolling_horizon(
                     n.storage_units_t.state_of_charge.loc[snapshots[start - 1]]
                 )
 
-        # Set per-window energy budgets for volume-limited components
-        # (biomass, biogas) based on PF dispatch stored in generators_t.p
-        for c_name in ["Generator", "Link"]:
-            c = n.c[c_name]
-            if "has_volume_limit" not in c.static.columns:
-                continue
-            vol_idx = c.static.index[c.static["has_volume_limit"] == 1]
-            if vol_idx.empty:
-                continue
-            p_col = "p" if c_name == "Generator" else "p0"
-            pf_p = c.dynamic[p_col]
-            for comp in vol_idx:
-                if comp not in pf_p.columns:
-                    continue
-                window_energy = pf_p.loc[sns, comp].sum()
-                c.static.loc[comp, "e_sum_min"] = window_energy
-                c.static.loc[comp, "e_sum_max"] = window_energy
-
         status, condition = n.optimize(sns, **kwargs)  # type: ignore
+
+        # If solve is successful, dispose of Model object to release license before next rolling horizon
+        if status == "ok":
+            dispose_model(n)
+
+        # If solve failed, hold on to the Model object until after IIS is computed in solve_network()
         if status != "ok":
             logger.warning(
                 f"Optimization failed with status {status} and condition {condition}"
             )
             # Retry with fallback solver if configured
             if fallback_solver:
+                # If solve failed and fallback is configured, dispose of Model before creating a new one.
+                dispose_model(n)
+
                 logger.info(
                     f"Retrying window {i + 1}/{len(starting_points)} "
                     f"with fallback solver '{fallback_solver['name']}'"
@@ -191,6 +215,11 @@ def optimize_with_rolling_horizon(
                 retry_kwargs["solver_name"] = fallback_solver["name"]
                 retry_kwargs["solver_options"] = fallback_solver.get("options", {})
                 status, condition = n.optimize(sns, **retry_kwargs)  # type: ignore
+
+                # Only dispose after fallback if it succeeded
+                if status == "ok":
+                    dispose_model(n)
+
             if status != "ok":
                 logger.warning(f"Fallback also failed: {status} / {condition}")
                 return status, condition
@@ -212,28 +241,17 @@ def solve_network(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network instance
-    config : Dict
-        Configuration dictionary containing solver settings
-    params : Dict
-        Dictionary of solving parameters
-    solving : Dict
-        Dictionary of solving options and configuration
-    rule_name : str, optional
-        Name of the snakemake rule being executed
-    planning_horizons : str, optional
-        The current planning horizon year or None in perfect foresight
+        The PyPSA network instance.
+    config : dict
+        Configuration dictionary containing solver settings.
+    params : dict
+        Dictionary of solving parameters.
+    solving : dict
+        Dictionary of solving options and configuration.
+    planning_horizons : str or None, optional
+        The current planning horizon year or None in perfect foresight.
     **kwargs
-        Additional keyword arguments passed to the solver
-
-    Returns
-    -------
-    n : pypsa.Network
-        Solved network instance
-    status : str
-        Solution status
-    condition : str
-        Termination condition
+        Additional keyword arguments passed to the solver.
 
     Raises
     ------
@@ -281,18 +299,21 @@ def solve_network(
         logger.warning(
             f"Solving status '{status}' with termination condition '{condition}'"
         )
+        # If infeasible and using Gurobi or Xpress, compute and log infeasibilities before raising error
+        if "infeasible" in condition:
+            solver_name = solving["solver"]["name"]
+            if solver_name in ["gurobi", "xpress"]:
+                labels = n.model.compute_infeasibilities()
+                logger.info(f"Labels:\n{labels}")
+                n.model.print_infeasibilities()
+                raise RuntimeError(
+                    "Solving status 'infeasible'. Infeasibilities computed."
+                )
+        raise RuntimeError(
+            f"Solving status '{status}' with termination condition '{condition}'."
+        )
+
     check_objective_value(n, solving)
-
-    if "warning" in condition:
-        raise RuntimeError("Solving status 'warning'. Discarding solution.")
-
-    if "infeasible" in condition:
-        solver_name = solving["solver"]["name"]
-        if solver_name in ["gurobi", "xpress"]:
-            labels = n.model.compute_infeasibilities()
-            logger.info(f"Labels:\n{labels}")
-            n.model.print_infeasibilities()
-            raise RuntimeError("Solving status 'infeasible'. Infeasibilities computed.")
 
 
 if __name__ == "__main__":
@@ -302,7 +323,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "solve_cba_network",
             run="NT",
-            cba_project="t4",
+            cba_project="t16",
             planning_horizons="2030",
             configfiles=["config/config.tyndp.yaml"],
         )

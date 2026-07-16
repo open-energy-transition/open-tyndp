@@ -11,12 +11,12 @@ rolling horizon optimization.
 
 **Inputs**
 
-- ``resources/cba/networks/reference_{planning_horizons}.nc``: Reference network
-- ``resources/cba/msv_snapshot_weightings_{planning_horizons}.csv``: Snapshot weightings (optional)
+- `resources/cba/networks/reference_{planning_horizons}.nc`: Reference network
+- `resources/cba/msv_snapshot_weightings_{planning_horizons}.csv`: Snapshot weightings (optional)
 
 **Outputs**
 
-- ``resources/cba/networks/msv_{planning_horizons}.nc``: Network with marginal storage values in stores_t.mu_energy_balance
+- `resources/cba/networks/msv_{planning_horizons}.nc`: Network with marginal storage values in stores_t.mu_energy_balance
 """
 
 import copy

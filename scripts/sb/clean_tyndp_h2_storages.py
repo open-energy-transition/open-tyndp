@@ -39,7 +39,7 @@ def load_h2_storage_data(
     Returns
     -------
     pd.DataFrame
-        The function returns cleaned TYNDP H2 storage data.
+        Cleaned TYNDP H2 storage data.
     """
 
     column_dict = {
@@ -76,10 +76,12 @@ def load_h2_storage_data(
             e_nom_max=lambda df: df.e_nom_max * 1e3,  # [MWh]
             efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
             efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
-            bus=lambda df: df.bus
-            + np.where(df.h2_zone == "H2 Z2", suffix, " H2 Z1")
-            + " "
-            + np.where(df.h2_zone == "H2 Z2", "cavern-storage", "tank-storage"),
+            bus=lambda df: (
+                df.bus
+                + np.where(df.h2_zone == "H2 Z2", suffix, " H2 Z1")
+                + " "
+                + np.where(df.h2_zone == "H2 Z2", "cavern-storage", "tank-storage")
+            ),
         )
     )
 

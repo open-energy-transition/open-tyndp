@@ -57,28 +57,28 @@ class _LoadSheddingConfig(ConfigModel):
 
     enable: bool = Field(
         False,
-        description="Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+        description="Enable load shedding by adding high-cost generators to avoid infeasibilities. Requires either all_carriers: true or at least one entry in carriers.",
     )
-    default_price: PositiveFloat = Field(
+    default_cost: PositiveFloat = Field(
         100000,
-        description="The default price for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+        description="The default cost for load-shedding in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
     )
-    apply_to_all_carriers: bool = Field(
+    all_carriers: bool = Field(
         True,
         description="Switch to apply load shedding to all carriers. Otherwise, load shedding will be applied to listed carriers only.",
     )
     carriers: dict[str, PositiveFloat] = Field(
         {},
-        description="Dictionary of carriers and their specific load shedding price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default price is assumed for non-listed carriers.",
+        description="Dictionary of carriers and their specific load shedding cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load shedding is enabled for all carriers, the default cost is assumed for non-listed carriers.",
     )
 
     @model_validator(mode="after")
     def check_enabled_has_targets(self):
-        if self.enable and not self.carriers and not self.apply_to_all_carriers:
+        if self.enable and not self.carriers and not self.all_carriers:
             raise ValueError(
                 "Load shedding is enabled but no carriers are specified and "
-                "'apply_to_all_carriers' is False. Either specify carriers or "
-                "set 'apply_to_all_carriers' to True."
+                "'all_carriers' is False. Either specify carriers or "
+                "set 'all_carriers' to True."
             )
         return self
 
@@ -88,28 +88,28 @@ class _LoadSinksConfig(ConfigModel):
 
     enable: bool = Field(
         False,
-        description="Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either apply_to_all_carriers: true or at least one entry in carriers.",
+        description="Add load sinks by adding negative-cost, energy consuming generators to avoid infeasibilities by absorbing excess energy. Requires either all_carriers: true or at least one entry in carriers.",
     )
-    default_price: PositiveFloat = Field(
+    default_cost: PositiveFloat = Field(
         100000,
-        description="The default price for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
+        description="The default cost for load sinks in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). Must be positive.",
     )
-    apply_to_all_carriers: bool = Field(
+    all_carriers: bool = Field(
         False,
         description="Switch to add load sinks for all carriers. Otherwise, load sinks will be added for listed carriers only.",
     )
     carriers: dict[str, PositiveFloat] = Field(
         {},
-        description="Dictionary of carriers and their specific load sink price in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default price is assumed for non-listed carriers.",
+        description="Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
     )
 
     @model_validator(mode="after")
     def check_enabled_has_targets(self):
-        if self.enable and not self.carriers and not self.apply_to_all_carriers:
+        if self.enable and not self.carriers and not self.all_carriers:
             raise ValueError(
                 "Load sinks are enabled but no carriers are specified and "
-                "'apply_to_all_carriers' is False. Either specify carriers or "
-                "set 'apply_to_all_carriers' to True."
+                "'all_carriers' is False. Either specify carriers or "
+                "set 'all_carriers' to True."
             )
         return self
 
@@ -187,6 +187,10 @@ class _SolvingOptionsConfig(BaseModel):
     horizon: int = Field(
         365,
         description="Number of snapshots to consider in each iteration. Defaults to 100.",
+    )
+    overlap: int = Field(
+        0,
+        description="Number of overlapping snapshots between consecutive iterations in rolling horizon optimization. Defaults to 0, which means no overlap.",
     )
     post_discretization: _PostDiscretizationConfig = Field(
         default_factory=_PostDiscretizationConfig,
@@ -346,6 +350,14 @@ class SolvingConfig(BaseModel):
                 "dual_feasibility_tolerance": 1e-5,
                 "random_seed": 123,
             },
+            "highs-hipo": {
+                "solver": "hipo",
+                "parallel": "on",
+                "primal_feasibility_tolerance": 1e-5,
+                "dual_feasibility_tolerance": 1e-5,
+                "random_seed": 123,
+                "run_crossover": "off",
+            },
             "gurobi-default": {
                 "threads": 32,
                 "method": 2,
@@ -355,6 +367,7 @@ class SolvingConfig(BaseModel):
                 "AggFill": 0,
                 "PreDual": 0,
                 "GURO_PAR_BARDENSETHRESH": 200,
+                "IISMethod": 1,
             },
             "gurobi-simplex": {
                 "threads": 32,

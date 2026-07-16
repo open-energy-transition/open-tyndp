@@ -12,10 +12,10 @@ def get_link_attrs(project: pd.Series, costs: pd.DataFrame) -> dict:
     Return length, underwater_fraction, and capital_cost for a new DC link.
 
     The capital_cost is computed using the same per-km formula as
-    ``add_electricity.py`` to ensure consistency with existing network
+    `add_electricity.py` to ensure consistency with existing network
     links:
 
-    ``capital_cost = length * ((1 - uf) * overhead + uf * submarine) + inverter``
+    `capital_cost = length * ((1 - uf) * overhead + uf * submarine) + inverter`
 
     Parameters
     ----------
@@ -24,8 +24,13 @@ def get_link_attrs(project: pd.Series, costs: pd.DataFrame) -> dict:
         underwater_fraction.
     costs : pd.DataFrame
         Technology costs table (indexed by technology name) with a
-        ``capital_cost`` column containing annualized EUR/MW or EUR/MW/km
+        `capital_cost` column containing annualized EUR/MW or EUR/MW/km
         values.
+
+    Returns
+    -------
+    dict
+        Dictionary with keys length, underwater_fraction, and capital_cost.
     """
     length = float(project.get("length_km", 0))
     uf = float(project.get("underwater_fraction", 0))
@@ -57,9 +62,9 @@ def filter_projects_by_specs(
     Parameters
     ----------
     project_list : list[str]
-        List of all available project names to filter from
+        List of all available project names to filter from.
     spec_list : list[str], str, or None
-        List of specifications, a single specification string, or None to return all projects
+        List of specifications, a single specification string, or None to return all projects.
 
     Returns
     -------

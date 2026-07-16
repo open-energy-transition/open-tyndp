@@ -15,16 +15,14 @@ Description
 Total annual system costs are minimised with PyPSA. The full formulation of the
 linear optimal power flow (plus investment planning
 is provided in the
-`documentation of PyPSA <https://pypsa.readthedocs.io/en/latest/optimal_power_flow.html#linear-optimal-power-flow>`_.
+[documentation of PyPSA](https://pypsa.readthedocs.io/en/latest/optimal_power_flow.html#linear-optimal-power-flow).
 
-The optimization is based on the :func:`network.optimize` function.
-Additionally, some extra constraints specified in :mod:`solve_network` are added.
+The optimization is based on the `network.optimize` function.
+Additionally, some extra constraints specified in [solve_network][] are added.
 
-.. note::
-
-    The rules ``solve_elec_networks`` and ``solve_sector_networks`` run
-    the workflow for all scenarios in the configuration file (``scenario:``)
-    based on the rule :mod:`solve_network`.
+**Note:** The rules `solve_elec_networks` and `solve_sector_networks` run
+    the workflow for all scenarios in the configuration file (`scenario:`)
+    based on the rule [solve_network][].
 """
 
 import importlib
@@ -456,11 +454,11 @@ def add_load_balance_components(n, config, sign=1):
         n.add("Carrier", "load")
 
     carriers = config.get("carriers", {})
-    default_price = config.get("default_price")
+    default_cost = config.get("default_cost")
     balance_comp = "shedding" if sign > 0 else "sink"
 
     logger.info(
-        f"Add load {balance_comp} for {'all carriers' if config.get('apply_to_all_carriers') else ', '.join(carriers)}."
+        f"Add load {balance_comp} for {'all carriers' if config.get('all_carriers') else ', '.join(carriers)}."
     )
 
     for bus_carrier, price in carriers.items():
@@ -476,7 +474,7 @@ def add_load_balance_components(n, config, sign=1):
             sign=sign,
         )
 
-    if config.get("apply_to_all_carriers", False):
+    if config.get("all_carriers", False):
         buses_rest_i = n.buses[~n.buses.carrier.isin(carriers)].index
         n.add(
             "Generator",
@@ -484,7 +482,7 @@ def add_load_balance_components(n, config, sign=1):
             f" load {balance_comp}",
             bus=buses_rest_i,
             carrier="load",
-            marginal_cost=default_price,
+            marginal_cost=default_cost,
             p_nom=np.inf,
             sign=sign,
         )
@@ -498,6 +496,7 @@ def prepare_network(
     planning_horizons: str | None,
     co2_sequestration_potential: dict[str, float] | None,
     limit_max_growth: dict[str, Any] | None = None,
+    rolling_horizon: bool = False,
     config: dict[str, Any] | None = None,
 ) -> None:
     """
@@ -520,6 +519,7 @@ def prepare_network(
     config : dict, default None
         A dictionary containing configuration information, specifically the
         "plotting" key with "nice_names" and "tech_colors" keys for carriers.
+        Default is None.
 
     Returns
     -------
@@ -537,6 +537,8 @@ def prepare_network(
             df.where(df.abs() > solve_opts["clip_p_max_pu"], other=0.0, inplace=True)
 
     if (load_shedding := solve_opts.get("load_shedding", {})).get("enable", False):
+        # intersect between macroeconomic and surveybased willingness to pay
+        # http://journal.frontiersin.org/article/10.3389/fenrg.2015.00055/full
         add_load_balance_components(n, load_shedding)
 
     if (load_sinks := solve_opts.get("load_sinks", {})).get("enable", False):
@@ -611,6 +613,13 @@ def prepare_network(
             limit_dict=co2_sequestration_potential,
             planning_horizons=planning_horizons,
         )
+
+    # rolling horizon disables cyclic storage
+    if rolling_horizon:
+        n.storage_units.cyclic_state_of_charge = False
+        n.storage_units.state_of_charge_initial = 0
+        n.stores.e_cyclic = False
+        n.stores.e_initial = 0
 
     if config:
         sanitize_carriers(n, config)
@@ -824,8 +833,10 @@ def add_SAFE_constraints(n, config):
 
     Parameters
     ----------
-        n : pypsa.Network
-        config : dict
+    n : pypsa.Network
+        The PyPSA network instance.
+    config : dict
+        Configuration dictionary.
 
     Example
     -------
@@ -860,12 +871,15 @@ def add_operational_reserve_margin(n, sns, config):
 
     Parameters
     ----------
-        n : pypsa.Network
-        sns: pd.DatetimeIndex
-        config : dict
+    n : pypsa.Network
+        The PyPSA network instance.
+    sns : pd.DatetimeIndex
+        Snapshots for the simulation.
+    config : dict
+        Configuration dictionary.
 
-    Example:
-    --------
+    Example
+    -------
     config.yaml requires to specify operational_reserve:
     operational_reserve: # like https://genxproject.github.io/GenX/dev/core/#Reserves
         activate: true
@@ -1229,11 +1243,11 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
 
 
 def add_offshore_hubs_constraint(
-    n,
+    n: pypsa.Network,
     planning_horizons: int,
-    offshore_zone_trajectories_fn,
+    offshore_zone_trajectories_fn: str,
     renewable_carriers_tyndp: list[str],
-):
+) -> None:
     """
     Add two constraints on offshore hubs.
 
@@ -1243,13 +1257,13 @@ def add_offshore_hubs_constraint(
     Parameters
     ----------
     n : pypsa.Network
-        The PyPSA network instance
-    planning_horizons : int, optional
-        The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn: str
-        Path to the file containing the offshore zone potentials trajectories
-    renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        The PyPSA network instance.
+    planning_horizons : int
+        The current planning horizon year.
+    offshore_zone_trajectories_fn : str
+        Path to the file containing the offshore zone potentials trajectories.
+    renewable_carriers_tyndp : list[str]
+        List of TYNDP renewable carriers.
     """
     ext_i = n.generators.p_nom_extendable
     gens = n.generators.assign(
@@ -1415,12 +1429,15 @@ def extra_functionality(
     snapshots : pd.DatetimeIndex
         Simulation timesteps
     planning_horizons : str, optional
-        The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn: str, optional
-        Path to the file containing the offshore zone potentials trajectories
+        The current planning horizon year or None in perfect foresight.
+    offshore_zone_trajectories_fn : str or None, optional
+        Path to the file containing the offshore zone potentials trajectories.
+        Default is None.
     renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        List of TYNDP renewable carriers. Default is [].
 
+    Notes
+    -----
     Collects supplementary constraints which will be passed to
     ``pypsa.optimization.optimize``.
 
@@ -1618,6 +1635,7 @@ def collect_kwargs(
 
         if cf_solving["post_discretization"].get("enable", False):
             logger.info("Add post-discretization parameters.")
+            cf_solving["post_discretization"].pop("enable", None)
             all_kwargs.update(cf_solving["post_discretization"])
 
         return all_kwargs, {}
@@ -1657,10 +1675,11 @@ def create_optimization_model(
         Arguments for n.optimize.solve_model()
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn : str, optional
-        Path to DataFrame containing the offshore zone potentials trajectories
+    offshore_zone_trajectories_fn : str or None, optional
+        Path to DataFrame containing the offshore zone potentials trajectories.
+        Default is None.
     renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers
+        List of TYNDP renewable carriers. Default is [].
     """
     # Add config and params to network for extra_functionality
     n.config = config
@@ -1715,6 +1734,7 @@ if __name__ == "__main__":
         planning_horizons=planning_horizons,
         co2_sequestration_potential=snakemake.params["co2_sequestration_potential"],
         limit_max_growth=snakemake.params.get("sector", {}).get("limit_max_growth"),
+        rolling_horizon=cf_solving["rolling_horizon"],
         config=snakemake.config,
     )
 
@@ -1734,7 +1754,7 @@ if __name__ == "__main__":
     with memory_logger(
         filename=getattr(snakemake.log, "memory", None), interval=logging_frequency
     ) as mem:
-        if rolling_horizon and snakemake.rule == "solve_operations_network":
+        if rolling_horizon:
             logger.info("Using rolling horizon optimization...")
             all_kwargs, _ = collect_kwargs(
                 snakemake.config,

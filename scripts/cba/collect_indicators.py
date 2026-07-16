@@ -17,18 +17,19 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 
-def collect_indicators_csv(input_files, output_file):
+def collect_indicators_csv(input_files: list[str], output_file: str) -> None:
     """
     Concatenate multiple CSV files into one using the csv module.
 
-    Args:
-        input_files: List of paths to input CSV files
-        output_file: Path to output CSV file
+    Reads the header from the first file, writes all rows from all files to the
+    output, and ensures all files have the same header structure.
 
-    The function:
-    1. Reads the header from the first file
-    2. Writes all rows from all files to the output
-    3. Ensures all files have the same header structure
+    Parameters
+    ----------
+    input_files : list[str]
+        List of paths to input CSV files.
+    output_file : str
+        Path to output CSV file.
     """
     if not input_files:
         logger.warning("No input files provided")

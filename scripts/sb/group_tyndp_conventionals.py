@@ -12,16 +12,16 @@ configuration and will be executed once for each planning horizon.
 Inputs
 ------
 
-- ``pemmdb_capacities_{planning_horizon}.csv``: Processed PEMMDB capacities for the given planning_horizon.
-- ``pemmdb_profiles_{planning_horizon}.nc``: Processed PEMMDB must-run and availability profiles for the given
+- `pemmdb_capacities_{planning_horizon}.csv`: Processed PEMMDB capacities for the given planning_horizon.
+- `pemmdb_profiles_{planning_horizon}.nc`: Processed PEMMDB must-run and availability profiles for the given
     planning_horizon.
-- ``data/tyndp_technology_map.csv``: TYNDP technology mapping used for the grouping.
+- `data/tyndp_technology_map.csv`: TYNDP technology mapping used for the grouping.
 
 Outputs
 -------
 
-- ``pemmdb_capacities_{planning_horizon}_grouped.csv``: Grouped PEMMDB capacities for the given planning_horizon.
-- ``pemmdb_profiles_{planning_horizon}_grouped.nc``: Grouped PEMMDB must-run and availability profiles for the given
+- `pemmdb_capacities_{planning_horizon}_grouped.csv`: Grouped PEMMDB capacities for the given planning_horizon.
+- `pemmdb_profiles_{planning_horizon}_grouped.nc`: Grouped PEMMDB must-run and availability profiles for the given
     planning_horizon.
 """
 
@@ -137,8 +137,9 @@ def _group_profiles(
             how="left",
         )
         .assign(
-            p_max_t=lambda df: df.p_max_t
-            + (df.p_nom - df.p_nom_profiles),  # add missing capacities to p_max
+            p_max_t=lambda df: (
+                df.p_max_t + (df.p_nom - df.p_nom_profiles)
+            ),  # add missing capacities to p_max
             p_min_pu=lambda df: df.p_min_t / df.p_nom,
             p_max_pu=lambda df: df.p_max_t / df.p_nom,
             open_tyndp_type=lambda df: df.index_carrier,
@@ -170,7 +171,7 @@ def group_tyndp_conventionals(
     pemmdb_profiles : pd.DataFrame
         All PEMMDB must-run and availability profiles.
     tyndp_conventional_carriers : list[str]
-        List of TYNDP conventional carriers to group
+        List of TYNDP conventional carriers to group.
 
     Returns
     -------

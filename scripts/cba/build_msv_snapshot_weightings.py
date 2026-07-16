@@ -5,21 +5,21 @@
 Generate snapshot weightings for MSV extraction temporal aggregation.
 
 Produces a CSV with resampled snapshot weightings at the configured
-MSV extraction resolution. Follows the same logic as ``time_aggregation.py``
+MSV extraction resolution. Follows the same logic as `time_aggregation.py`
 for the supported resolution formats:
 
-- ``false``: No aggregation, outputs empty CSV
-- ``"Nsn"``: Representative snapshots (e.g., "2sn"), outputs empty CSV
-  (handled directly by ``set_temporal_aggregation``)
-- ``"Nh"``: Hourly resampling (e.g., "24H", "48H"), outputs resampled weightings
+- `false`: No aggregation, outputs empty CSV
+- `"Nsn"`: Representative snapshots (e.g., "2sn"), outputs empty CSV
+  (handled directly by `set_temporal_aggregation`)
+- `"Nh"`: Hourly resampling (e.g., "24H", "48H"), outputs resampled weightings
 
 **Inputs**
 
-- ``resources/cba/networks/reference_{planning_horizons}.nc``: Reference network
+- `resources/cba/networks/reference_{planning_horizons}.nc`: Reference network
 
 **Outputs**
 
-- ``resources/cba/msv_snapshot_weightings_{planning_horizons}.csv``: Snapshot weightings
+- `resources/cba/msv_snapshot_weightings_{planning_horizons}.csv`: Snapshot weightings
 """
 
 import logging

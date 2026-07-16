@@ -79,7 +79,25 @@ def benchmark_range(
     source: str = "TYNDP 2024",
     planning_horizon: int = 0,
 ) -> tuple[float, float, float] | None:
-    """Return (min, mean, max) range for a benchmark indicator."""
+    """
+    Return (min, mean, max) range for a benchmark indicator.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing benchmark indicator data.
+    indicator : str
+        Indicator key to look up.
+    source : str, optional
+        Data source label to filter on. Default is "TYNDP 2024".
+    planning_horizon : int, optional
+        Planning horizons to filter on. Default is 0.
+
+    Returns
+    -------
+    tuple[float, float, float] or None
+        (min, mean, max) values for the indicator, or None if no data.
+    """
     benchmark = df[
         (df["source"] == source)
         & (df["indicator"] == indicator)
@@ -137,7 +155,20 @@ def plot_project_benchmarks(
     project_label: str | None = None,
     area_subtitle: str | None = None,
 ) -> None:
-    """Plot one subplot per indicator with its own y-axis and legend."""
+    """
+    Plot one subplot per indicator with its own y-axis and legend.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing indicator data for one project.
+    output_path : Path
+        File path where the plot is saved.
+    project_label : str or None, optional
+        Label shown in the plot title. Default is None (no label).
+    area_subtitle : str or None, optional
+        Subtitle describing the spatial scope of the assessment. Default is None.
+    """
     indicators = sorted(df["indicator"].dropna().unique())
     if not indicators:
         logger.info("No benchmark indicators available to plot")
@@ -296,18 +327,19 @@ def create_plots(df, output_file, area):
     logger.info("Benchmark plots saved to %s", output_file)
 
 
-def summarize_indicators(input_files, output_file):
+def summarize_indicators(input_files: list[str], output_file: str) -> None:
     """
     Concatenate multiple CSV files into one using the csv module.
 
-    Args:
-        input_files: List of paths to input CSV files
-        output_file: Path to output CSV file
+    Reads the header from the first file, writes all rows from all files to the
+    output, and ensures all files have the same header structure.
 
-    The function:
-    1. Reads the header from the first file
-    2. Writes all rows from all files to the output
-    3. Ensures all files have the same header structure
+    Parameters
+    ----------
+    input_files : list[str]
+        List of paths to input CSV files.
+    output_file : str
+        Path to output CSV file.
     """
     if not input_files:
         logger.warning("No input files provided")

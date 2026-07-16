@@ -33,6 +33,7 @@ run:
     policy: false
     exclude: []
   use_shadow_directory: false
+  default_target_rule: all
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#foresight
 foresight: overnight
@@ -244,6 +245,7 @@ electricity:
       Offshore: "offwind-ac"
       Onshore: onwind
       PV: solar
+  estimate_battery_capacities: false
   autarky:
     enable: false
     by_country: false
@@ -253,8 +255,9 @@ electricity:
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#atlite
 atlite:
   default_cutout: "europe-2013-sarah3-era5"
-  nprocesses: 16
+  nprocesses: 1
   show_progress: false
+  plot_availability_matrix: false
   cutouts:
     "europe-1940-2024-era5":
       module: era5
@@ -336,9 +339,7 @@ renewable:
     resource_classes: 1
     capacity_per_sqkm: 2
     correction_factor: 0.8855
-    corine:
-    - 44
-    - 255
+    corine: false
     luisa: false
     natura: true
     ship_threshold: 400
@@ -359,9 +360,7 @@ renewable:
     resource_classes: 1
     capacity_per_sqkm: 2
     correction_factor: 0.8855
-    corine:
-    - 44
-    - 255
+    corine: false
     luisa: false
     natura: true
     ship_threshold: 400
@@ -382,9 +381,7 @@ renewable:
     resource_classes: 1
     capacity_per_sqkm: 2
     correction_factor: 0.8855
-    corine:
-    - 44
-    - 255
+    corine: false
     luisa: false
     natura: true
     ship_threshold: 400
@@ -580,6 +577,7 @@ load:
   scaling_factor: 1.0
   fixed_year: false
   supplement_synthetic: true
+  substation_only: true
   distribution_key:
     gdp: 0.6
     population: 0.4
@@ -694,6 +692,7 @@ existing_capacities:
   - 2019
   threshold_capacity: 10
   default_heating_lifetime: 20
+  solar_rooftop_ratio: 0.5
   conventional_carriers:
   - lignite
   - coal
@@ -992,12 +991,16 @@ sector:
     enable:
     - DC
     - H2 pipeline
+    - H2 pipeline retrofitted
     - gas pipeline
     - electricity distribution grid
     DC:
       efficiency_static: 0.98
       efficiency_per_1000km: 0.977
     H2 pipeline:
+      efficiency_per_1000km: 1
+      compression_per_1000km: 0.018
+    H2 pipeline retrofitted:
       efficiency_per_1000km: 1
       compression_per_1000km: 0.018
     gas pipeline:
@@ -1161,7 +1164,7 @@ industry:
   MWh_CH4_per_tMeOH: 10.25
   MWh_MeOH_per_tMeOH: 5.528
   hotmaps_locate_missing: false
-  reference_year: 2019
+  reference_year: 2023
   oil_refining_emissions: 0.013
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#costs
@@ -1201,11 +1204,11 @@ clustering:
     aggregate_to_tyndp: false
   simplify_network:
     to_substations: false
-    exclude_carriers: []
     remove_stubs: true
     remove_stubs_across_borders: false
   cluster_network:
     algorithm: kmeans
+    allow_ac_dc_mixing_in_bus_clusters: false
     hac_features:
     - wnd100m
     - influx_direct
@@ -1237,13 +1240,13 @@ solving:
     clip_p_max_pu: 0.01
     load_shedding:
       enable: false
-      default_price: 100000
-      apply_to_all_carriers: true
+      default_cost: 100000
+      all_carriers: true
       carriers: {}
     load_sinks:
       enable: false
-      default_price: 100000
-      apply_to_all_carriers: false
+      default_cost: 100000
+      all_carriers: false
       carriers: {}
     curtailment_mode: false
     noisy_costs: true
@@ -1260,6 +1263,7 @@ solving:
     transmission_losses: 2
     linearized_unit_commitment: true
     horizon: 365
+    overlap: 0
     post_discretization:
       enable: false
       line_unit_size: 1700
@@ -1308,6 +1312,13 @@ solving:
       primal_feasibility_tolerance: 1.0e-05
       dual_feasibility_tolerance: 1.0e-05
       random_seed: 123
+    "highs-hipo":
+      solver: hipo
+      parallel: 'on'
+      primal_feasibility_tolerance: 1.0e-05
+      dual_feasibility_tolerance: 1.0e-05
+      random_seed: 123
+      run_crossover: 'off'
     "gurobi-default":
       threads: 32
       method: 2
@@ -1317,6 +1328,7 @@ solving:
       AggFill: 0
       PreDual: 0
       GURO_PAR_BARDENSETHRESH: 200
+      IISMethod: 1
     "gurobi-simplex":
       threads: 32
       method: 1
@@ -1390,6 +1402,8 @@ solving:
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#data
 data:
+  version_files:
+  - data/versions.csv
   hotmaps_industrial_sites:
     source: archive
     version: latest
@@ -1550,6 +1564,15 @@ data:
     source: archive
     version: latest
   jrc_ardeco:
+    source: archive
+    version: latest
+  jrc_energy_atlas:
+    source: archive
+    version: latest
+  desnz_electricity_consumption:
+    source: archive
+    version: latest
+  ons_lad:
     source: archive
     version: latest
   bidding_zones_electricitymaps:

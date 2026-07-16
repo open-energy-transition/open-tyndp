@@ -14,24 +14,24 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 
 **Inputs**
 
-- ``data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx``: Excel file containing CBA transmission projects
-- ``data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx``: Excel file containing CBA storage projects (not yet processed)
+- `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
+- `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
 
 **Outputs**
 
-- ``resources/cba/transmission_projects.csv``: Cleaned CSV with columns:
-  - ``project_id``: Integer project identifier
-  - ``project_name``: Project name
-  - ``border``: Border string in format "BUS0-BUS1"
-  - ``p_nom 0->1``: Transfer capacity increase from bus0 to bus1 (MW)
-  - ``p_nom 1->0``: Transfer capacity increase from bus1 to bus0 (MW)
-  - ``bus0``: Source bus code (4 alphanumeric characters)
-  - ``bus1``: Destination bus code (4 alphanumeric characters)
-  - ``length_km``: Total route length in km (from Trans.Investments)
-  - ``capex_meur``: Total estimated CAPEX in MEUR (from Trans.Investments)
-  - ``underwater_fraction``: Fraction of route that is offshore cable
+- `resources/cba/transmission_projects.csv`: Cleaned CSV with columns:
+  - `project_id`: Integer project identifier
+  - `project_name`: Project name
+  - `border`: Border string in format "BUS0-BUS1"
+  - `p_nom 0->1`: Transfer capacity increase from bus0 to bus1 (MW)
+  - `p_nom 1->0`: Transfer capacity increase from bus1 to bus0 (MW)
+  - `bus0`: Source bus code (4 alphanumeric characters)
+  - `bus1`: Destination bus code (4 alphanumeric characters)
+  - `length_km`: Total route length in km (from Trans.Investments)
+  - `capex_meur`: Total estimated CAPEX in MEUR (from Trans.Investments)
+  - `underwater_fraction`: Fraction of route that is offshore cable
 
-- ``resources/cba/storage_projects.csv``: Empty CSV with columns project_id and project_name (stub implementation)
+- `resources/cba/storage_projects.csv`: Empty CSV with columns project_id and project_name (stub implementation)
 
 """
 
@@ -129,6 +129,18 @@ def extract_transmission_projects(
         **projects["border"]
         .replace(replace_dict, regex=True)
         .str.extract(r"(?P<bus0>[A-Za-z0-9]{4,}) ?- ?(?P<bus1>[A-Za-z0-9]{4,})$")
+    )
+
+    # For project t339, the border is given as ITCS-ITSI and ITSA-ITSI, when it should be connected to the virtual node ITVI instead: ITCS-ITVI and ITSA-ITVI
+    # Manually fixing this here (changing the border and bus1 columns)
+    t339_mask = projects.loc[projects["project_id"] == 339].index
+    projects.loc[t339_mask, ["border", "bus1"]] = projects.loc[
+        t339_mask, ["border", "bus1"]
+    ].replace(
+        {
+            "border": {"ITCS-ITSI": "ITCS-ITVI", "ITSA-ITSI": "ITSA-ITVI"},
+            "bus1": {"ITSI": "ITVI"},
+        }
     )
 
     unclear_border = ~(
@@ -260,7 +272,7 @@ def read_tyndp_electricity_buses(buses_fn: str):
 
     Returns
     -------
-        - buses: Index of electricity buses as used in open tyndp
+        - buses: Index of electricity buses as used in Open-TYNDP
 
     See Also
     --------

@@ -195,3 +195,12 @@ data:
   open_tyndp_prelim:
     source: tyndp-archive
     version: latest
+  desnz_electricity_consumption:
+    source: tyndp-archive
+    version: latest
+  jrc_energy_atlas:
+    source: tyndp-archive
+    version: latest
+  ons_lad:
+    source: tyndp-archive
+    version: latest

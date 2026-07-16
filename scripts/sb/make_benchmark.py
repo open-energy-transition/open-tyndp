@@ -50,14 +50,14 @@ def load_data(
         Path to the Open-TYNDP results data file.
     scenario : str
         Name of scenario to compare.
-    vp_data_fn : str (optional)
+    vp_data_fn : str, optional
         Path to the Visualisation data file.
-    mm_data_fn : str (optional)
+    mm_data_fn : str, optional
         Path to the Market Model Output data file.
 
     Returns
     -------
-    benchmarks_raw : pd.DataFrame
+    pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
 
     """
@@ -124,9 +124,9 @@ def load_data(
         lambda x: _bus_to_country(x) if pd.notna(x) else x
     )
     benchmarks_raw.loc[:, "corridor"] = benchmarks_raw["border"].map(
-        lambda x: "->".join(_bus_to_country(b) for b in x.split("->"))
-        if pd.notna(x)
-        else x
+        lambda x: (
+            "->".join(_bus_to_country(b) for b in x.split("->")) if pd.notna(x) else x
+        )
     )
 
     return benchmarks_raw
@@ -310,7 +310,20 @@ def _compute_growth_error(
 
 def _compute_missing(df_na: pd.DataFrame, cols: str | list[str] = "carrier") -> int:
     """
-    Calculate missing count, by default, using carriers.
+    Calculate missing count by unique values of the specified column(s).
+
+    Parameters
+    ----------
+    df_na : pd.DataFrame
+        DataFrame containing rows with missing values.
+    cols : str or list[str], optional
+        Column(s) to use for deduplication when counting missing items.
+        Default is "carrier".
+
+    Returns
+    -------
+    int
+        Number of unique missing entries.
     """
     if isinstance(cols, str):
         cols = [cols]
@@ -341,9 +354,9 @@ def compute_all_indicators(
         Column name for model/projected values (ŷᵢ).
     rfc_col : str, default "TYNDP 2024 Scenarios Report"
         Column name for reference/actual values (yᵢ).
-    eps: float, default 1e-6
+    eps : float, default 1e-6
         Small value used when the denominator is zero.
-    carrier: str, default None
+    carrier : str, default None
         Name of the carrier for indicator calculation. If None, calculates overall table indicator.
     df_na : pd.DataFrame, default pd.DataFrame()
         DataFrame with missing values for missing carrier calculation.
@@ -451,9 +464,9 @@ def compute_indicators(
     Returns
     -------
     pd.DataFrame
-       DataFrame with per carriers accuracy indicators.
+        DataFrame with per carriers accuracy indicators.
     pd.Series
-       Series containing overall accuracy indicators.
+        Series containing overall accuracy indicators.
     """
     opt = options["tables"][table]
     missing_name = "Missing countries" if bus_col_name != "bus" else "Missing buses"
@@ -543,8 +556,6 @@ def compare_sources(
     ----------
     table : str
         Benchmark metric to compute.
-    bus : str
-        Bus of the current figure.
     benchmarks_raw : pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
     scenario : str
@@ -561,9 +572,9 @@ def compare_sources(
     Returns
     -------
     pd.DataFrame
-       DataFrame containing original data with appended multi-value accuracy metric columns.
+        DataFrame containing original data with appended multi-value accuracy metric columns.
     pd.Series
-       Series containing single-value accuracy metrics.
+        Series containing single-value accuracy metrics.
     """
     # Parameters
     opt = options["tables"][table]
@@ -658,17 +669,19 @@ def compute_overall_accuracy(
 
     Parameters
     ----------
-    benchmarks_raw: pd.DataFrame
+    benchmarks_raw : pd.DataFrame
         Combined DataFrame containing both Open-TYNDP and TYNDP 2024 data.
     options : dict
         Full benchmarking configuration.
-    bus_col_name : str, default "bus"
-        Bus column name.
+    bus_col_name : str, optional
+        Bus column name. Default is "bus".
+    model_col : str, optional
+        Column name identifying Open-TYNDP model results. Default is "Open-TYNDP".
 
     Returns
     -------
     pd.Series
-       Series containing overall accuracy metrics.
+        Series containing overall accuracy metrics.
     """
     logger.info("Making global benchmark using TYNDP 2024 and Open-TYNDP")
     tables_series = [  # noqa: F841
