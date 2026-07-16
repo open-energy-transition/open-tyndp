@@ -308,8 +308,17 @@ if __name__ == "__main__":
     transmission_projects = extract_transmission_projects(excel_path, existing_buses)
 
     investment_attrs = extract_investment_attributes(excel_path)
+
+    # investment costs + length are given per project and not per transmission
+    # line, therefore split these attributes before merging
+    link_counts = transmission_projects.groupby("project_id").size()
+    investment_attrs_split = investment_attrs.assign(
+        length_km=lambda d: d.length_km / d.index.map(link_counts).fillna(1),
+        capex_meur=lambda d: d.capex_meur / d.index.map(link_counts).fillna(1),
+    )
+
     transmission_projects = transmission_projects.merge(
-        investment_attrs, on="project_id", how="left"
+        investment_attrs_split, on="project_id", how="left"
     )
 
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
