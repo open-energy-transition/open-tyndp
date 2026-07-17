@@ -31,6 +31,8 @@
 
 * Change dispatch of biomass and biogas generators in CBA by (a) setting the buses' marginal prices as the generators' marginal costs and (b) removing energy budget constraints ([#719](https://github.com/open-energy-transition/open-tyndp/pull/719)).
 
+* Add CBA per horizon summary plots for each indicator benchmarking TYNDP and Open-TYNDP ([#753](https://github.com/open-energy-transition/open-tyndp/pull/753)).
+
 **Bugfixes and Compatibility**
 
 * Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
