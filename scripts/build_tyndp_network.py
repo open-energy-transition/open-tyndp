@@ -78,6 +78,8 @@ MAP_GRID_TYNDP = {
     "UK": "GB",
 }
 
+AC_VIRTUAL_NODES = ["ITCO", "ITVI"]
+
 IBFI_COORD = (63.0, 25.0)
 
 
