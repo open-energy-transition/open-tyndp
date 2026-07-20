@@ -9799,10 +9799,11 @@ if __name__ == "__main__":
     pop_weighted_energy_totals = (
         pd.read_csv(snakemake.input.pop_weighted_energy_totals, index_col=0) * nyears
     )
-    pop_weighted_heat_totals = (
-        pd.read_csv(snakemake.input.pop_weighted_heat_totals, index_col=0) * nyears
-    )
-    pop_weighted_energy_totals.update(pop_weighted_heat_totals)
+    if options["heating"]:
+        pop_weighted_heat_totals = (
+            pd.read_csv(snakemake.input.pop_weighted_heat_totals, index_col=0) * nyears
+        )
+        pop_weighted_energy_totals.update(pop_weighted_heat_totals)
 
     fn = snakemake.input.get("gas_input_nodes_simplified")
     gas_input_nodes = pd.read_csv(fn, index_col=0) if fn else None

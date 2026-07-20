@@ -1720,7 +1720,10 @@ rule prepare_sector_network:
         pop_weighted_energy_totals=resources(
             "pop_weighted_energy_totals_s_{clusters}.csv"
         ),
-        pop_weighted_heat_totals=resources("pop_weighted_heat_totals_s_{clusters}.csv"),
+        pop_weighted_heat_totals=branch(
+            config_provider("sector", "heating"),
+            resources("pop_weighted_heat_totals_s_{clusters}.csv"),
+        ),
         shipping_demand=resources("shipping_demand_s_{clusters}.csv"),
         transport_demand=resources("transport_demand_s_{clusters}.csv"),
         transport_data=resources("transport_data_s_{clusters}.csv"),
