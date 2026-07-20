@@ -50,6 +50,10 @@
 
 * Improve docstring formatting and add missing type hints (https://github.com/open-energy-transition/open-tyndp/pull/759).
 
+* Improve docstring formatting and add missing type hints ([759](https://github.com/open-energy-transition/open-tyndp/pull/759)).
+
+* Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761))
+
 **Developers Note**
 
 * Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).

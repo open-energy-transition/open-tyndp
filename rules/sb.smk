@@ -592,7 +592,7 @@ if config["sector"]["h2_topology_tyndp"]:
             tyndp_scenario=config_provider("tyndp_scenario"),
             h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
         script:
-            "../scripts/sb/clean_tyndp_smr.py"
+            scripts("sb/clean_tyndp_smr.py")
 
     rule clean_tyndp_h2_storages:
         input:
@@ -612,7 +612,7 @@ if config["sector"]["h2_topology_tyndp"]:
             tyndp_scenario=config_provider("tyndp_scenario"),
             h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
         script:
-            "../scripts/sb/clean_tyndp_h2_storages.py"
+            scripts("sb/clean_tyndp_h2_storages.py")
 
 
 if config["sector"]["offshore_hubs_tyndp"]["enable"]:
@@ -756,8 +756,8 @@ if config["foresight"] != "perfect":
             expanded=True,
 
 
-# Benchmarking
-##############
+# Benchmark
+###########
 
 if config["benchmarking"]["enable"]:
 
@@ -1101,6 +1101,10 @@ rule build_tyndp_gas_demands:
             **config["scenario"],
             run=config["run"]["name"],
         ),
+
+
+# Explore
+###########
 
 
 rule launch_explorer:
