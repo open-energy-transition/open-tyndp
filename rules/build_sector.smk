@@ -830,7 +830,9 @@ rule build_swiss_energy_balances:
 rule build_energy_totals:
     input:
         nuts3_shapes=resources("nuts3_shapes.geojson"),
-        co2=rules.retrieve_ghg_emissions.output["csv"],
+        co2=branch(
+            rules.retrieve_ghg_emissions.output["csv"], config_provider("co2_budget")
+        ),
         swiss=resources("switzerland_energy_balances.csv"),
         swiss_transport=f"{BFS_ROAD_VEHICLE_STOCK_DATASET['folder']}/vehicle_stock.csv",
         idees=rules.retrieve_jrc_idees.output["directory"],
@@ -1739,8 +1741,12 @@ rule prepare_sector_network:
             config_provider("sector", "residential_heat", "dsm", "enable"),
             resources("residential_heat_dsm_profile_total_base_s_{clusters}.csv"),
         ),
-        co2_totals_name=resources("co2_totals.csv"),
-        co2=rules.retrieve_ghg_emissions.output["csv"],
+        co2_totals_name=branch(
+            resources("co2_totals.csv"), config_provider("co2_budget")
+        ),
+        co2=branch(
+            rules.retrieve_ghg_emissions.output["csv"], config_provider("co2_budget")
+        ),
         biomass_potentials=resources(
             "biomass_potentials_s_{clusters}_{planning_horizons}.csv"
         ),

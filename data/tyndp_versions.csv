@@ -28,7 +28,7 @@ gem_europe_gas_tracker,may-2024,tyndp-archive,deprecated not-supported,2026-05-0
 gem_gcct,july-2025,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/gem_gcct/july-2025/Global-Cement-and-Concrete-Tracker_July-2025.xlsx
 gem_gspt,march-2025-v1.1,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/gem_gspt/march-2025-v1.1/Plant-level-data-Global-Iron-and-Steel-Tracker-March-2025-V1.1.xlsx
 geothermal_heat_utilisation_potentials,341.5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/geothermal_heat_utilisation_potentials/341.5/Results_DH_Matching_Cluster.xlsx
-ghg_emissions,v23,tyndp-archive,latest supported,2026-05-08,earlier part of databundle,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/ghg_emissions/v23/UNFCCC_v23.csv
+ghg_emissions,v23,tyndp-archive,deprecated not-supported,2026-05-08,earlier part of databundle,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/ghg_emissions/v23/UNFCCC_v23.csv
 h2_salt_caverns,16-10-2019,tyndp-archive,deprecated not-supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/h2_salt_caverns/16-10-2019/h2_salt_caverns_GWh_per_sqkm.geojson
 hotmaps_industrial_sites,version-1.1,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/hotmaps_industrial_sites/version-1.1/Industrial_Database.csv
 jrc_ardeco,2021,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/jrc_ardeco/2021
