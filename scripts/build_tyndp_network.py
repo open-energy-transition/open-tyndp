@@ -78,7 +78,10 @@ MAP_GRID_TYNDP = {
     "UK": "GB",
 }
 
-AC_VIRTUAL_NODES = ["ITCO", "ITVI"]
+AC_VIRTUAL_NODES_IT = {
+    "ITCO": "FR15",
+    "ITVI": "ITSI",
+}
 
 IBFI_COORD = (63.0, 25.0)
 
@@ -225,6 +228,41 @@ def build_shapes(
     return bidding_shapes, country_shapes
 
 
+def _add_virtual_node(
+    target_gdf: gpd.GeoDataFrame,
+    new_bus: str,
+    ref_bus: str,
+    source_gdf: gpd.GeoDataFrame | None = None,
+    **overrides,
+) -> None:
+    """
+    Add a virtual node to target Dataframe as a copy of an existing reference bus.
+
+    The virtual node inherits every attribute of the reference bus and takes its
+    own name as ``station_id`` and ``tags``. Any remaining attribute is set
+    through ``overrides``.
+
+    Parameters
+    ----------
+    target_gdf : gpd.GeoDataFrame
+        Bus GeoDataFrame the virtual node is appended to, modified in place.
+    new_bus : str
+        Name of the virtual node.
+    ref_bus : str
+        Name of the reference bus whose attributes are copied.
+    source_gdf : gpd.GeoDataFrame, optional
+        Bus GeoDataFrame holding the reference bus. Defaults to ``target``.
+    **overrides, optional
+        Attribute values overriding those inherited from the reference bus.
+    """
+    source_gdf = target_gdf if source_gdf is None else source_gdf
+    target_gdf.loc[new_bus] = (
+        source_gdf.loc[[ref_bus]]
+        .assign(station_id=new_bus, tags=new_bus, **overrides)
+        .loc[ref_bus]
+    )
+
+
 def build_buses(
     buses_fn: str,
     countries: list[str],
@@ -283,14 +321,10 @@ def build_buses(
 
     # Manually add Italian virtual nodes  # TODO Refine assumptions
     if "IT" in countries:
-        buses.loc["ITCO"] = (
-            buses.loc[["FR15"]]
-            .assign(station_id="ITCO", country="IT", tags="ITCO")
-            .loc["FR15"]
-        )
-        buses.loc["ITVI"] = (
-            buses.loc[["ITSI"]].assign(station_id="ITVI", tags="ITVI").loc["ITSI"]
-        )
+        for node, location in AC_VIRTUAL_NODES_IT.items():
+            _add_virtual_node(
+                target_gdf=buses, new_bus=node, ref_bus=location, country="IT"
+            )
 
     buses_h2 = (
         country_shapes[["node", "x", "y"]]
@@ -311,23 +345,23 @@ def build_buses(
 
     # Manually add IBIT and IBFI nodes  # TODO Refine assumptions
     if "IT" in countries:
-        buses_h2.loc["IBIT H2"] = (
-            buses.loc[["ITN1"]]
-            .assign(station_id="IBIT H2", voltage=None, dc="f", tags="IBIT H2")
-            .loc["ITN1"]
+        _add_virtual_node(
+            target_gdf=buses_h2,
+            new_bus="IBIT H2",
+            ref_bus="ITN1",
+            source_gdf=buses,
+            voltage=None,
+            dc="f",
         )
     if "FI" in countries:
         ibfi_lat, ibfi_long = IBFI_COORD
-        buses_h2.loc["IBFI H2"] = (
-            buses_h2.loc[["FI H2"]]
-            .assign(
-                station_id="IBFI H2",
-                tags="IBFI H2",
-                x=ibfi_long,
-                y=ibfi_lat,
-                geometry=Point(ibfi_long, ibfi_lat),
-            )
-            .loc["FI H2"]
+        _add_virtual_node(
+            target_gdf=buses_h2,
+            new_bus="IBFI H2",
+            ref_bus="FI H2",
+            x=ibfi_long,
+            y=ibfi_lat,
+            geometry=Point(ibfi_long, ibfi_lat),
         )
 
     return buses, buses_h2

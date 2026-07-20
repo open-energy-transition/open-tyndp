@@ -42,7 +42,7 @@ from scripts._helpers import (
     get_snapshots,
     set_scenario_config,
 )
-from scripts.build_tyndp_network import AC_VIRTUAL_NODES
+from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
 
 PD_GE_2_2 = parse(pd.__version__) >= Version("2.2")
 
@@ -576,7 +576,7 @@ def _restore_virtual_node_countries_tyndp(
         Buses as loaded in `_load_buses`, holding the countries declared in
         build_tyndp_network before the coordinate-based reassignment.
     """
-    nodes = n.buses.index.intersection(AC_VIRTUAL_NODES)
+    nodes = n.buses.index.intersection(AC_VIRTUAL_NODES_IT)
     n.buses.loc[nodes, "country"] = buses.loc[nodes, "country"]
 
 
