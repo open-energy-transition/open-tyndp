@@ -1740,7 +1740,11 @@ rule prepare_sector_network:
             if config_provider("foresight")(w) == "overnight"
             else resources("costs_{planning_horizons}_processed.csv")
         ),
-        h2_cavern=resources("salt_cavern_potentials_s_{clusters}.csv"),
+        h2_cavern=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            None,
+            resources("salt_cavern_potentials_s_{clusters}.csv"),
+        ),
         busmap_s=resources("busmap_base_s.csv"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
         clustered_pop_layout=resources("pop_layout_base_s_{clusters}.csv"),
