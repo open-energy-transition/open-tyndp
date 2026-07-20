@@ -1646,10 +1646,16 @@ def input_pemmdb_data(w):
 
 def input_gas_network(w):
     inputs = {}
-    if config_provider("sector", "gas_network")(w) or config_provider(
-        "sector", "H2_retrofit"
-    )(w):
-        inputs["clustered_gas_network"] = resources("gas_network_base_s_{clusters}.csv")
+
+    def include_gas_network(w):
+        return config_provider("sector", "gas_network")(w) or config_provider(
+            "sector", "H2_retrofit"
+        )(w)
+
+    inputs["clustered_gas_network"] = (
+        resources("gas_network_base_s_{clusters}.csv") if include_gas_network else None
+    )
+
     if config_provider("sector", "gas_network")(w) or (
         config_provider("sector", "imports", "enable")(w)
         and (
