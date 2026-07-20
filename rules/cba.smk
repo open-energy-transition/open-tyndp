@@ -589,7 +589,7 @@ def summary_benchmark_indicators(w):
             run=[run],
         )
     return expand(
-        rules.collect_indicators.output.indicators,
+        rules.combine_indicators.output.indicators,
         planning_horizons=[w.planning_horizons],
         run=[run],
     )
