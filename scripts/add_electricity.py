@@ -1342,13 +1342,16 @@ if __name__ == "__main__":
 
     costs = load_costs(snakemake.input.costs)
 
-    ppl = load_and_aggregate_powerplants(
-        snakemake.input.powerplants,
-        costs,
-        params.consider_efficiency_classes,
-        params.aggregation_strategies,
-        params.exclude_carriers,
-    )
+    if ppl_fn := snakemake.input.powerplants:
+        ppl = load_and_aggregate_powerplants(
+            ppl_fn,
+            costs,
+            params.consider_efficiency_classes,
+            params.aggregation_strategies,
+            params.exclude_carriers,
+        )
+    else:
+        ppl = pd.DataFrame()
 
     if snakemake.params.load_source != "tyndp":
         logger.info(

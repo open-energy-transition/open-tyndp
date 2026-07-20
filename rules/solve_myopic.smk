@@ -10,7 +10,16 @@ rule add_existing_baseyear:
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
         ),
-        powerplants=resources("powerplants_s_{clusters}.csv"),
+        powerplants=lambda w: (
+            resources("powerplants_s_{clusters}.csv")
+            if (
+                config_provider("electricity", "conventional_carriers")(w)
+                or config_provider("electricity", "extendable_carriers", "Generator")(
+                    w
+                )
+            )
+            else []
+        ),
         costs=lambda w: resources(
             f"costs_{config_provider('scenario', 'planning_horizons',0)(w)}_processed.csv"
         ),

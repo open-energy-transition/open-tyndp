@@ -208,7 +208,11 @@ def add_power_capacities_installed_before_baseyear(
     """
     logger.debug(f"Adding power capacities installed before {baseyear}")
 
-    df_agg = pd.read_csv(powerplants_file, index_col=0)
+    df_agg = (
+        pd.read_csv(powerplants_file, index_col=0)
+        if powerplants_file
+        else pd.DataFrame()
+    )
 
     rename_fuel = {
         "Hard Coal": "coal",
