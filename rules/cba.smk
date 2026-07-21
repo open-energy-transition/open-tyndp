@@ -159,6 +159,7 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
+        buses_oh=rules.retrieve_tyndp.output.offshore_hubs,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
         offshore_hub_corrections="data/cba/offshore_hub_projects_corrections.csv",
     output:
