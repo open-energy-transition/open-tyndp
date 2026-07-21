@@ -11,7 +11,7 @@ cluster-generic-submit-cmd: >-
   --time={resources.runtime}
   --job-name="project=open-tyndp_smk-{rule}-{wildcards}"
   --output=logs/slurm/%x-%j.out
-  --partition=$(if [ {resources.mem_mb} -gt 3000 ] && [ "{resources.partition}" = "small" ]; then echo high-mem; elif [ {resources.runtime} \> "50h" ]; then echo big; else echo {resources.partition}; fi)
+  --partition=$(if [ {resources.mem_mb} -gt 3000 ] && [ "{resources.partition}" = "small" ]; then echo big; elif [ {resources.runtime} \> "50h" ]; then echo big; else echo {resources.partition}; fi)
   --exclude=$(if [ "{rule}" = "solve_sector_network_myopic" ] || [ "{rule}" = "solve_cba_reference_network" ] || [ "{rule}" = "solve_cba_network" ]; then python profiles/tyndp-slurm/exclude.py; fi)
 cluster-generic-cancel-cmd: scancel
 default-resources:

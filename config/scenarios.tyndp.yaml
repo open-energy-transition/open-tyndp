@@ -670,7 +670,7 @@ hipo-msv-ipm-tol-user-bound-hipo-system:
             primal_feasibility_tolerance: 1.0e-08
             dual_feasibility_tolerance: 1.0e-08
             ipm_optimality_tolerance: 1e-5
-            user_bound_scale: -11
+            user_bound_scale: -12
             hipo_system: augmented
             hipo_ordering: metis
         partition: big
