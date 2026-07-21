@@ -9978,7 +9978,7 @@ if __name__ == "__main__":
         h2_pipes_file=snakemake.input.h2_grid_tyndp,
         interzonal_file=snakemake.input.interzonal_prepped,
         cavern_types=snakemake.params.sector["hydrogen_underground_storage_locations"],
-        clustered_gas_network_file=snakemake.input.clustered_gas_network,
+        clustered_gas_network_file=snakemake.input.get("clustered_gas_network"),
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
@@ -10230,15 +10230,14 @@ if __name__ == "__main__":
         limit = co2_cap.loc[investment_year]
     else:
         limit = get(co2_budget, investment_year)
-    if limit:
-        add_co2limit(
-            n,
-            options,
-            snakemake.input.co2_totals_name,
-            snakemake.params.countries,
-            nyears,
-            limit,
-        )
+    add_co2limit(
+        n,
+        options,
+        snakemake.input.get("co2_totals_name"),
+        snakemake.params.get("countries"),
+        nyears,
+        limit,
+    )
 
     maxext = snakemake.params["lines"]["max_extension"]
     if maxext is not None:
