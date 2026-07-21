@@ -831,7 +831,7 @@ rule build_energy_totals:
     input:
         nuts3_shapes=resources("nuts3_shapes.geojson"),
         co2=branch(
-            rules.retrieve_ghg_emissions.output["csv"], config_provider("co2_budget")
+            config_provider("co2_budget"), rules.retrieve_ghg_emissions.output["csv"]
         ),
         swiss=resources("switzerland_energy_balances.csv"),
         swiss_transport=f"{BFS_ROAD_VEHICLE_STOCK_DATASET['folder']}/vehicle_stock.csv",
@@ -1742,10 +1742,10 @@ rule prepare_sector_network:
             resources("residential_heat_dsm_profile_total_base_s_{clusters}.csv"),
         ),
         co2_totals_name=branch(
-            resources("co2_totals.csv"), config_provider("co2_budget")
+            config_provider("co2_budget"), resources("co2_totals.csv")
         ),
         co2=branch(
-            rules.retrieve_ghg_emissions.output["csv"], config_provider("co2_budget")
+            config_provider("co2_budget"), rules.retrieve_ghg_emissions.output["csv"]
         ),
         biomass_potentials=resources(
             "biomass_potentials_s_{clusters}_{planning_horizons}.csv"
@@ -1757,8 +1757,7 @@ rule prepare_sector_network:
         ),
         h2_cavern=branch(
             config_provider("sector", "h2_topology_tyndp"),
-            None,
-            resources("salt_cavern_potentials_s_{clusters}.csv"),
+            otherwise=resources("salt_cavern_potentials_s_{clusters}.csv"),
         ),
         busmap_s=resources("busmap_base_s.csv"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
