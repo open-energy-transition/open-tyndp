@@ -437,7 +437,7 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest # currently only latest is supported
+    sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   methods:
   - toot
   - pint

@@ -830,7 +830,9 @@ rule build_swiss_energy_balances:
 rule build_energy_totals:
     input:
         nuts3_shapes=resources("nuts3_shapes.geojson"),
-        co2=rules.retrieve_ghg_emissions.output["csv"],
+        co2=branch(
+            config_provider("co2_budget"), rules.retrieve_ghg_emissions.output["csv"]
+        ),
         swiss=resources("switzerland_energy_balances.csv"),
         swiss_transport=f"{BFS_ROAD_VEHICLE_STOCK_DATASET['folder']}/vehicle_stock.csv",
         idees=rules.retrieve_jrc_idees.output["directory"],
@@ -1644,6 +1646,30 @@ def input_pemmdb_data(w):
     }
 
 
+def input_gas_network(w):
+    inputs = {}
+
+    if config_provider("sector", "gas_network")(w) or config_provider(
+        "sector", "H2_retrofit"
+    )(w):
+        inputs["clustered_gas_network"] = resources("gas_network_base_s_{clusters}.csv")
+
+    if config_provider("sector", "gas_network")(w) or (
+        config_provider("sector", "imports", "enable")(w)
+        and (
+            "gas" in config_provider("sector", "imports", "carriers")(w)
+            or (
+                "H2" in config_provider("sector", "imports", "carriers")(w)
+                and not config_provider("sector", "h2_topology_tyndp")(w)
+            )
+        )
+    ):
+        inputs["gas_input_nodes_simplified"] = resources(
+            "gas_input_locations_s_{clusters}_simplified.csv"
+        )
+    return inputs
+
+
 def include_tyndp_projects(w):
     horizons = config_provider("tyndp_investment_candidates", "elec_projects")(w)
     if not horizons:
@@ -1667,8 +1693,7 @@ rule prepare_sector_network:
         unpack(input_heat_source_power),
         unpack(input_offshore_hubs),
         unpack(input_pemmdb_data),
-        **rules.cluster_gas_network.output,
-        **rules.build_gas_input_locations.output,
+        unpack(input_gas_network),
         retro_cost=lambda w: (
             resources("retro_cost_base_s_{clusters}.csv")
             if config_provider("sector", "heating")(w)
@@ -1699,7 +1724,10 @@ rule prepare_sector_network:
         pop_weighted_energy_totals=resources(
             "pop_weighted_energy_totals_s_{clusters}.csv"
         ),
-        pop_weighted_heat_totals=resources("pop_weighted_heat_totals_s_{clusters}.csv"),
+        pop_weighted_heat_totals=branch(
+            config_provider("sector", "heating"),
+            resources("pop_weighted_heat_totals_s_{clusters}.csv"),
+        ),
         shipping_demand=resources("shipping_demand_s_{clusters}.csv"),
         transport_demand=resources("transport_demand_s_{clusters}.csv"),
         transport_data=resources("transport_data_s_{clusters}.csv"),
@@ -1709,8 +1737,12 @@ rule prepare_sector_network:
             config_provider("sector", "residential_heat", "dsm", "enable"),
             resources("residential_heat_dsm_profile_total_base_s_{clusters}.csv"),
         ),
-        co2_totals_name=resources("co2_totals.csv"),
-        co2=rules.retrieve_ghg_emissions.output["csv"],
+        co2_totals_name=branch(
+            config_provider("co2_budget"), resources("co2_totals.csv")
+        ),
+        co2=branch(
+            config_provider("co2_budget"), rules.retrieve_ghg_emissions.output["csv"]
+        ),
         biomass_potentials=resources(
             "biomass_potentials_s_{clusters}_{planning_horizons}.csv"
         ),
@@ -1719,7 +1751,10 @@ rule prepare_sector_network:
             if config_provider("foresight")(w) == "overnight"
             else resources("costs_{planning_horizons}_processed.csv")
         ),
-        h2_cavern=resources("salt_cavern_potentials_s_{clusters}.csv"),
+        h2_cavern=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            otherwise=resources("salt_cavern_potentials_s_{clusters}.csv"),
+        ),
         busmap_s=resources("busmap_base_s.csv"),
         busmap=resources("busmap_base_s_{clusters}.csv"),
         clustered_pop_layout=resources("pop_layout_base_s_{clusters}.csv"),
