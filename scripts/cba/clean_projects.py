@@ -338,8 +338,8 @@ def read_tyndp_electricity_buses(buses_fn: str):
         .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
     )
 
-    # Manually add Italian virtual nodes
-    buses = buses.union(["ITCO", "ITVI"])
+    # Manually add Italian virtual nodes and Corsica
+    buses = buses.union(["ITCO", "ITVI", "FR15"])
 
     return buses
 
