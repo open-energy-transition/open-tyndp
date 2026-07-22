@@ -119,6 +119,11 @@ def filter_projects_by_specs(
             op(spec)
 
     if not removals:
-        return [p for p in project_list if p in projects]
+        filtered_list = [p for p in project_list if p in projects]
     else:
-        return [p for p in project_list if p not in projects]
+        filtered_list = [p for p in project_list if p not in projects]
+
+    if not filtered_list:
+        raise ValueError(f"Project specification {spec_list} selects no projects.")
+
+    return filtered_list
