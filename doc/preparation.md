@@ -92,15 +92,7 @@ together into a detailed PyPSA network stored in `networks/base_s_{clusters}_ele
 
 ::: build_electricity_demand_base
 
-## Rule `build_electricity_demand_base_tyndp`
-
-::: build_electricity_demand_base
-
 ## Rule `build_electricity_demand` {#electricity_demand}
-
-::: build_electricity_demand
-
-## Rule `build_electricity_demand_tyndp`
 
 ::: build_electricity_demand
 
@@ -155,47 +147,3 @@ together into a detailed PyPSA network stored in `networks/base_s_{clusters}_ele
 ## Rule `prepare_network` {#prepare}
 
 ::: prepare_network
-
-## Rule `prepare_pecd_release`
-
-::: prepare_pecd_release
-
-## Rule `clean_pecd_data`
-
-::: clean_pecd_data
-
-## Rule `build_renewable_profiles_pecd`
-
-::: build_renewable_profiles_pecd
-
-## Rule `clean_tyndp_hydro_inflows`
-
-::: clean_tyndp_hydro_inflows
-
-## Rule `build_tyndp_hydro_profile`
-
-::: build_tyndp_hydro_profile
-
-## Rule `build_pemmdb_data`
-
-::: build_pemmdb_data
-
-## Rule `build_tyndp_transmission_projects`
-
-::: build_tyndp_transmission_projects
-
-## Rule `build_tyndp_trajectories`
-
-::: build_tyndp_trajectories
-
-## Rule `clean_tyndp_electricity_demand`
-
-::: clean_tyndp_electricity_demand
-
-## Rule `clean_tyndp_smr`
-
-::: clean_tyndp_smr
-
-## Rule `clean_tyndp_h2_storages`
-
-::: clean_tyndp_h2_storages
