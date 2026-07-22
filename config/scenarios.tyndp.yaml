@@ -448,6 +448,75 @@ hipo-msv-baseline:
           FeasibilityTol: 1.0e-08
           OptimalityTol: 1.0e-08
 
+hipo-msv-baseline-optimality-tolerance:
+  run:
+    name: "NT"
+
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 80000
+    runtime: 1h
+
+
+  cba:
+    projects: [t16]
+
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 32
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+            hipo_optimality_tolerance: 1e-5
+        partition: big
+        mem_mb: 80000
+        runtime: 12h
+
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 80000
+      runtime: 1h
+
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
 hipo-msv-ipm-tol:
   run:
     name: "NT"
@@ -608,6 +677,134 @@ hipo-msv-hipo-system:
             primal_feasibility_tolerance: 1.0e-08
             dual_feasibility_tolerance: 1.0e-08
             hipo_system: augmented
+        partition: big
+        mem_mb: 80000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 80000
+      runtime: 1h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
+hipo-msv-system-augmented-ordering-amd:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 80000
+    runtime: 1h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 32
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+            hipo_system: augmented
+            hipo_ordering: amd
+        partition: big
+        mem_mb: 80000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_sinks:
+          enable: true
+          all_carriers: false
+          carriers:
+            "co2 sequestered": 3000
+      partition: big
+      mem_mb: 80000
+      runtime: 1h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
+
+hipo-msv-system-augmented-ordering-amd-parallel-node-c8:
+  run:
+    name: "NT"
+
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+      include_objective_constant: false
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 80000
+    runtime: 1h
+
+  cba:
+    projects: [t16]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: highs
+          options: highs-hipo
+        solver_options:
+          highs-hipo:
+            threads: 8
+            run_crossover: 'off'
+            primal_feasibility_tolerance: 1.0e-08
+            dual_feasibility_tolerance: 1.0e-08
+            hipo_system: augmented
+            hipo_ordering: amd
+            hipo_parallel_type: node
         partition: big
         mem_mb: 80000
         runtime: 12h
