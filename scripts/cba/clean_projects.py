@@ -197,16 +197,21 @@ def extract_transmission_projects(
     projects = projects.loc[~(empty_capacity | unclear_border)]
 
     # Several projects have capacities with "Up to ..."
-    up_to_projects = set()
-    for col in ["p_nom 0->1", "p_nom 1->0"]:
-        up_to = projects[col].str.startswith("Up to ")
-        if up_to.any():
-            projects.loc[up_to, col] = projects.loc[up_to, col].str[len("Up to ") :]
-            up_to_projects.update(projects.loc[up_to, "project_name"])
-    if up_to_projects:
+    cols = ["p_nom 0->1", "p_nom 1->0"]
+    mask = (
+        projects[cols]
+        .apply(lambda col: col.str.contains("Up to ", na=False))
+        .any(axis=1)
+    )
+
+    if mask.any():
+        projects[cols] = projects[cols].apply(
+            lambda col: col.str.replace("Up to ", "", regex=False)
+        )
         logger.info(
-            f"Removed 'Up to ' capacity prefix from {len(up_to_projects)} projects:\n"
-            + ", ".join(up_to_projects)
+            "Removed 'Up to ' capacity prefix from %d projects:\n%s",
+            mask.sum(),
+            projects.loc[mask, ["project_id", "project_name"]].to_string(index=False),
         )
 
     return projects
