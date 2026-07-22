@@ -251,7 +251,7 @@ def _add_virtual_node(
     ref_bus : str
         Name of the reference bus whose attributes are copied.
     source_gdf : gpd.GeoDataFrame, optional
-        Bus GeoDataFrame holding the reference bus. Defaults to ``target``.
+        Bus GeoDataFrame holding the reference bus. Defaults to None in which case ``target_gdf`` is used.
     **overrides, optional
         Attribute values overriding those inherited from the reference bus.
     """
