@@ -70,9 +70,11 @@
 
 * Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
 
-* Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file. 
+* Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file.
 
 * Fix quoting patterns for clarity ([#791](https://github.com/open-energy-transition/open-tyndp/pull/791)).
+
+* Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
 
 
 ## Upcoming PyPSA-Eur Release
