@@ -183,6 +183,60 @@ def extract_transmission_projects(
     return projects
 
 
+def overwrite_projects(
+    projects: pd.DataFrame, custom_projects: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Apply custom project modifications to the list of projects.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        Base list of projects.
+    custom_projects : pd.DataFrame
+        Custom project modifications.
+
+    Returns
+    -------
+    pd.DataFrame
+        Updated list of projects with custom project modifications applied (if applicable).
+    """
+    if custom_projects.empty:
+        return projects
+
+    idx = ["project_id", "bus0", "bus1"]
+    custom_isnull = custom_projects[idx].isnull().any(axis=1)
+    if custom_isnull.any():
+        malformed = custom_projects.loc[custom_isnull, idx].to_string(index=False)
+        raise ValueError(
+            f"Custom projects must define project_id, bus0 and bus1, but the "
+            f"following rows have missing values:\n{malformed}"
+        )
+
+    custom_projects = custom_projects.set_index(idx, verify_integrity=True).sort_index()
+    projects = projects.set_index(idx).sort_index()
+
+    # Identify existing and new projects
+    new_projects = custom_projects.index.difference(projects.index)
+    existing_projects = custom_projects.index.intersection(projects.index)
+
+    # Fill missing values with existing projects
+    custom_projects = custom_projects.reindex(columns=projects.columns).fillna(projects)
+    custom_projects["is_crossborder"] = (
+        custom_projects["is_crossborder"].fillna(True).astype(bool)
+    )
+    custom_projects = custom_projects.fillna(0).infer_objects(copy=False)
+
+    # Overwrite unique pairs of (project_id, bus0, bus1)
+    projects.loc[existing_projects] = custom_projects.loc[existing_projects]
+
+    # Add projects that don't already exist
+    if len(new_projects) > 0:
+        projects = pd.concat([projects, custom_projects.loc[new_projects]])
+
+    return projects.reset_index()
+
+
 def extract_storage_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -301,25 +355,38 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    transmission_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+    storage_path = Path(snakemake.input.dir) / "20250312_export_storage.xlsx"
+
     existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
 
-    excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+    # Transmission projects
+    transmission_projects = extract_transmission_projects(
+        transmission_path, existing_buses
+    )
 
-    transmission_projects = extract_transmission_projects(excel_path, existing_buses)
-
-    investment_attrs = extract_investment_attributes(excel_path)
+    investment_attrs = extract_investment_attributes(transmission_path)
     transmission_projects = transmission_projects.merge(
         investment_attrs, on="project_id", how="left"
     )
 
+    custom_transmission_projects = (
+        pd.read_csv(snakemake.input.custom_transmission)
+        .assign(border=lambda df: df.bus0 + "-" + df.bus1)
+        .drop(["source", "further description"], axis=1)
+    )
+    transmission_projects = overwrite_projects(
+        transmission_projects, custom_transmission_projects
+    )
+
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
-    storage_projects = extract_storage_projects(
-        Path(snakemake.input.dir) / "20250312_export_storage.xlsx",
-        existing_buses,
-    )
+    # Storage projects
+    storage_projects = extract_storage_projects(storage_path, existing_buses)
+    # TODO Add overwrite_projects for storages
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
+    # Method definition (PINT / TOOT)
     guidelines = pd.read_csv(snakemake.input.guidelines)
     methods = build_method_assignments(guidelines, transmission_projects)
     methods.to_csv(snakemake.output.methods, index=False)

@@ -160,6 +160,7 @@ checkpoint clean_projects:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        custom_transmission="data/custom_cba_transmission_projects.csv",
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
         # transmission projects (no storage). In order to confirm, we should check
