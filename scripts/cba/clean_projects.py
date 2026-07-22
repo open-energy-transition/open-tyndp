@@ -39,6 +39,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -98,8 +99,34 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     return agg
 
 
+def apply_offshore_hub_corrections(
+    hub_corrections_path: Path, projects: pd.DataFrame
+) -> pd.DataFrame:
+    """Replace bus0/bus1/p_nom of select projects with manually curated offshore hub corrections."""
+    # read in offshore hub corrections
+    corrections = pd.read_csv(hub_corrections_path)
+    corrected_ids = corrections["project_id"].unique()
+
+    logger.info(
+        "Applying offshore hub corrections for %d projects with project ID:\n%s",
+        len(corrected_ids),
+        ", ".join(corrected_ids.astype(str)),
+    )
+
+    # add border column to corrections
+    corrections["border"] = corrections.bus0 + "-" + corrections.bus1
+
+    # drop projects which are in corrections
+    projects_reduced = projects[~projects.project_id.isin(corrected_ids)]
+
+    # add corrections
+    return pd.concat([projects_reduced, corrections.drop("notes", axis=1)]).sort_values(
+        by="project_id"
+    )
+
+
 def extract_transmission_projects(
-    excel_path: Path, existing_buses: pd.Index
+    excel_path: Path, hub_corrections_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
     projects = (
         pd.read_excel(
@@ -142,6 +169,8 @@ def extract_transmission_projects(
             "bus1": {"ITSI": "ITVI"},
         }
     )
+
+    projects = apply_offshore_hub_corrections(hub_corrections_path, projects)
 
     unclear_border = ~(
         projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
@@ -262,34 +291,7 @@ def build_method_assignments(
     return projects.merge(assigned, on="project_id", how="left")
 
 
-def read_tyndp_electricity_buses(buses_fn: str):
-    """
-    Read node list for electricity from tyndp data input.
-
-    Parameters
-    ----------
-        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
-
-    Returns
-    -------
-        - buses: Index of electricity buses as used in Open-TYNDP
-
-    See Also
-    --------
-        build_tyndp_network.py : build_buses
-    """
-    buses = pd.Index(
-        pd.read_excel(buses_fn)
-        .replace("UK", "GB", regex=True)
-        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
-    )
-
-    # Manually add Italian virtual nodes
-    buses = buses.union(["ITCO", "ITVI"])
-
-    return buses
-
-
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -301,11 +303,16 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
+    # get existing buses
+    n = pypsa.Network(snakemake.input.network)
+    existing_buses = n.buses[n.buses.carrier.isin(["AC", "AC_OH"])].index
 
     excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+    hub_corrections_path = snakemake.input.offshore_hub_corrections
 
-    transmission_projects = extract_transmission_projects(excel_path, existing_buses)
+    transmission_projects = extract_transmission_projects(
+        excel_path, hub_corrections_path, existing_buses
+    )
 
     investment_attrs = extract_investment_attributes(excel_path)
     transmission_projects = transmission_projects.merge(
