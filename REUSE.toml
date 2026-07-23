@@ -19,6 +19,7 @@ SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
 path = [
+    "data/cba/offshore_hub_projects_corrections.csv",
     "data/tyndp_technology_map.csv",
     "data/tyndp_versions.csv",
     "doc/configtables/benchmarking.csv",

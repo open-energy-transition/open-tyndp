@@ -155,38 +155,21 @@ def input_clustered_network(w):
     return fill_wildcards(rules.cluster_network.output.network, clusters=clusters)
 
 
-checkpoint clean_projects:
-    input:
-        dir=rules.retrieve_tyndp_cba_projects.output.dir,
-        buses=rules.retrieve_tyndp.output.nodes,
-        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
-    output:
-        # TODO: The toot_projects and pint_projects outputs are likely only
-        # transmission projects (no storage). In order to confirm, we should check
-        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv)
-        # contains only transmission or also storage projects.
-        transmission_projects=resources("cba/transmission_projects.csv"),
-        storage_projects=resources("cba/storage_projects.csv"),
-        methods=resources("cba/cba_project_methods.csv"),
-    script:
-        scripts("cba/clean_projects.py")
+def input_sb_network(w, run=None, planning_horizons=None):
+    """
+    Return the path to the SB network used as CBA input.
 
-
-rule clean_tyndp_indicators:
-    input:
-        dir=rules.retrieve_tyndp_cba_projects.output.dir,
-    output:
-        indicators=resources("cba/tyndp_indicators.csv"),
-        readme=resources("cba/tyndp_indicators_name_unit.csv"),
-    script:
-        scripts("cba/clean_tyndp_indicators.py")
-
-
-def input_sb_network(w, run=None):
+    `planning_horizons` overrides `w.planning_horizons`, needed for rules
+    (e.g. `clean_projects`) that have no `planning_horizons` wildcard of
+    their own and must pin one explicitly.
+    """
     scenario = config_provider("scenario")(w)
     (clusters,) = scenario["clusters"]
     (opts,) = scenario["opts"]
     (sector_opts,) = scenario["sector_opts"]
+
+    if planning_horizons is None:
+        planning_horizons = int(w.planning_horizons)
 
     if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(w):
         scenario_name = config_provider("tyndp_scenario")(w)
@@ -202,7 +185,7 @@ def input_sb_network(w, run=None):
                 "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
             )
         horizon = _effective_horizon(
-            int(w.planning_horizons),
+            planning_horizons,
             warn_fn=logger.warning,
             msg=(
                 "Pre-solved SB networks are only available for 2030 and 2040. "
@@ -224,7 +207,7 @@ def input_sb_network(w, run=None):
             expanded_wildcards["planning_horizons"] = "all"
         case "myopic":
             expanded_wildcards["planning_horizons"] = _effective_horizon(
-                int(w.planning_horizons),
+                planning_horizons,
                 warn_fn=logger.warning,
                 msg=(
                     "CBA planning horizon %s is not supported for SB inputs. "
@@ -243,6 +226,36 @@ def input_sb_network(w, run=None):
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
         **expanded_wildcards,
     )
+
+
+checkpoint clean_projects:
+    input:
+        dir=rules.retrieve_tyndp_cba_projects.output.dir,
+        network=lambda w: input_sb_network(
+            w, planning_horizons=config_provider("scenario", "planning_horizons")(w)[0]
+        ),
+        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        offshore_hub_corrections="data/cba/offshore_hub_projects_corrections.csv",
+    output:
+        # TODO: The toot_projects and pint_projects outputs are likely only
+        # transmission projects (no storage). In order to confirm, we should check
+        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv)
+        # contains only transmission or also storage projects.
+        transmission_projects=resources("cba/transmission_projects.csv"),
+        storage_projects=resources("cba/storage_projects.csv"),
+        methods=resources("cba/cba_project_methods.csv"),
+    script:
+        scripts("cba/clean_projects.py")
+
+
+rule clean_tyndp_indicators:
+    input:
+        dir=rules.retrieve_tyndp_cba_projects.output.dir,
+    output:
+        indicators=resources("cba/tyndp_indicators.csv"),
+        readme=resources("cba/tyndp_indicators_name_unit.csv"),
+    script:
+        scripts("cba/clean_tyndp_indicators.py")
 
 
 # Simplify scenario building network for CBA
