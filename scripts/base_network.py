@@ -42,6 +42,7 @@ from scripts._helpers import (
     get_snapshots,
     set_scenario_config,
 )
+from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
 
 PD_GE_2_2 = parse(pd.__version__) >= Version("2.2")
 
@@ -560,6 +561,25 @@ def _set_countries_and_substations(n, config, country_shapes, offshore_shapes):
     return buses
 
 
+def _restore_virtual_node_countries_tyndp(
+    n: pypsa.Network, buses: pd.DataFrame
+) -> None:
+    """
+    Restore the declared country of TYNDP virtual nodes instead of coordinate-based country assignment
+    from `_set_countries_and_substations`.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network whose `buses` country assignment is corrected in place.
+    buses : pd.DataFrame
+        Buses as loaded in `_load_buses`, holding the countries declared in
+        build_tyndp_network before the coordinate-based reassignment.
+    """
+    nodes = n.buses.index.intersection(AC_VIRTUAL_NODES_IT)
+    n.buses.loc[nodes, "country"] = buses.loc[nodes, "country"]
+
+
 def _replace_b2b_converter_at_country_border_by_link(n):
     # Affects only the B2B converter in Lithuania at the Polish border at the moment
     buscntry = n.buses.country
@@ -751,6 +771,8 @@ def base_network(
     n = _remove_unconnected_components(n)
 
     _set_countries_and_substations(n, config, country_shapes, offshore_shapes)
+
+    _restore_virtual_node_countries_tyndp(n, buses)
 
     _set_links_underwater_fraction(n, offshore_shapes)
 

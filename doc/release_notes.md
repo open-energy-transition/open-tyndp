@@ -41,6 +41,8 @@
 
 * Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
 
+* Restore correct assigned countries for virtual TYNDP nodes ([#794](https://github.com/open-energy-transition/open-tyndp/pull/794)).
+
 
 **Documentation**
 
@@ -72,7 +74,10 @@
 
 * Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file.
 
+* Fix quoting patterns for clarity ([#791](https://github.com/open-energy-transition/open-tyndp/pull/791)).
+
 * Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
+
 
 ## Upcoming PyPSA-Eur Release
 
