@@ -105,6 +105,9 @@ def remove_unclear_border(
     pd.DataFrame
         Curated list of projects that only use existing buses.
     """
+    if projects.empty:
+        return projects
+
     unclear_border = ~(
         projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
     )
@@ -135,6 +138,9 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Curated list of projects with a defined capacity
     """
+    if projects.empty:
+        return projects
+
     empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
     if empty_capacity.sum() > 0:
         logger.warning(
@@ -152,6 +158,21 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
 def extract_transmission_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
+    """
+    Extract transmission projects.
+
+    Parameters
+    ----------
+    transmission_path : Path
+        File path to transmission projects.
+    existing_buses : pd.Index
+        List of existing buses.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of projects.
+    """
     projects = (
         pd.read_excel(
             excel_path,
@@ -212,6 +233,38 @@ def extract_transmission_projects(
         )
 
     return projects
+
+
+def extract_custom_transmission_projects(
+    custom_transmission_path: Path, existing_buses: pd.Index
+) -> pd.DataFrame:
+    """
+    Extract custom transmission projects.
+
+    Parameters
+    ----------
+    custom_transmission_path : Path
+        File path to custom transmission projects.
+    existing_buses : pd.Index
+        List of existing buses.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of custom projects.
+    """
+    custom_transmission_projects = (
+        pd.read_csv(custom_transmission_path)
+        .assign(border=lambda df: df.bus0 + "-" + df.bus1)
+        .drop(["source", "further description"], axis=1)
+    )
+
+    custom_transmission_projects = remove_unclear_border(
+        custom_transmission_projects, existing_buses
+    )
+    custom_transmission_projects = remove_no_capacity(custom_transmission_projects)
+
+    return custom_transmission_projects
 
 
 def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
@@ -399,6 +452,7 @@ if __name__ == "__main__":
 
     transmission_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
     storage_path = Path(snakemake.input.dir) / "20250312_export_storage.xlsx"
+    custom_transmission_path = Path(snakemake.input.custom_transmission)
 
     existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
 
@@ -406,17 +460,15 @@ if __name__ == "__main__":
     transmission_projects = extract_transmission_projects(
         transmission_path, existing_buses
     )
+    custom_transmission_projects = extract_custom_transmission_projects(
+        custom_transmission_path, existing_buses
+    )
 
     investment_attrs = extract_investment_attributes(transmission_path)
     transmission_projects = transmission_projects.merge(
         investment_attrs, on="project_id", how="left"
     )
 
-    custom_transmission_projects = (
-        pd.read_csv(snakemake.input.custom_transmission)
-        .assign(border=lambda df: df.bus0 + "-" + df.bus1)
-        .drop(["source", "further description"], axis=1)
-    )
     transmission_projects = overwrite_projects(
         transmission_projects, custom_transmission_projects
     )
