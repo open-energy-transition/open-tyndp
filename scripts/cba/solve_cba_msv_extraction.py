@@ -22,6 +22,7 @@ rolling horizon optimization.
 import copy
 import logging
 
+import linopy
 import pypsa
 from snakemake.utils import update_config
 
@@ -120,6 +121,8 @@ if __name__ == "__main__":
         # Export the built linopy optimization model before solving
         n.model.to_file(snakemake.output.model_lp)
         n.model.to_netcdf(snakemake.output.model_nc)
+        print(f"PyPSA version: {pypsa.__version__}")
+        print(f"Linopy version: {linopy.__version__}")
 
         status, termination_condition = n.optimize.solve_model(**solve_kwargs)
 
