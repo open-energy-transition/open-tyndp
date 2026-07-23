@@ -324,3 +324,483 @@ DE-cyears:
 GA-cyears:
   cba:
     scenarios: [GA-cy2009, GA-cy2008, GA-cy1995]
+
+
+cba-gurobi-msv1e6-rh1e6-voll300:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-06
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-06
+          OptimalityTol: 1.0e-06
+
+
+cba-gurobi-msv1e6-rh1e6-voll500:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-06
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 500
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-06
+          OptimalityTol: 1.0e-06
+
+
+cba-highs-msv1e6-rh1e6-voll300:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-06
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+
+
+cba-highs-msv1e6-rh1e6-voll500:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-06
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 500
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+
+
+cba-gurobi-msv1e8-rh1e6-voll300:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-06
+          OptimalityTol: 1.0e-06
+
+
+cba-gurobi-msv1e8-rh1e6-voll500:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 500
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-06
+          OptimalityTol: 1.0e-06
+
+
+cba-gurobi-msv1e8-rh1e8-voll300:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
+
+cba-gurobi-msv1e8-rh1e8-voll500:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 500
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
+
+cba-highs-msv1e8-rh1e6-voll300:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+
+
+cba-highs-msv1e8-rh1e6-voll500:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 500
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+
+
+cba-highs-msv1e8-rh1e8-voll300:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
+
+
+cba-highs-msv1e8-rh1e8-voll500:
+  cba:
+    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 500
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-08
+          dual_feasibility_tolerance: 1.0e-08
