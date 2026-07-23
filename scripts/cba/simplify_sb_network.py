@@ -69,7 +69,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "simplify_sb_network",
             planning_horizons="2030",
-            run="test-sector-tyndp",
+            run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
 
@@ -91,8 +91,12 @@ if __name__ == "__main__":
     # Add hurdle costs to DC links
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
     hurdle_costs = snakemake.params.hurdle_costs
+    # rename offshore link carriers DC_OH -> DC, buses AC_OH -> AC
+    n.links["carrier"] = n.links.carrier.str.replace("DC_OH", "DC")
+    n.buses["carrier"] = n.buses.carrier.str.replace("AC_OH", "AC")
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
+
     # TODO: for DE/GA add merging of the two H2 zones
     # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
 
