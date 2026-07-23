@@ -332,6 +332,8 @@ rule solve_cba_msv_extraction:
         snapshot_weightings=input_msv_snapshot_weightings,
     output:
         network=resources("cba/networks/msv_{planning_horizons}.nc"),
+        model_lp=resources("cba/networks/msv_linopy_model_{planning_horizons}.lp"),
+        model_nc=resources("cba/networks/msv_linopy_model_{planning_horizons}.nc"),
     log:
         solver=RESULTS + "logs/cba/msv/{planning_horizons}_solver.log",
         memory=RESULTS + "logs/cba/msv/{planning_horizons}_memory.log",

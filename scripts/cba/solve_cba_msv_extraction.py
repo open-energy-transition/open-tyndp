@@ -116,6 +116,11 @@ if __name__ == "__main__":
         solve_kwargs["assign_all_duals"] = True
 
         n.optimize.create_model(**model_kwargs)
+
+        # Export the built linopy optimization model before solving
+        n.model.to_file(snakemake.output.model_lp)
+        n.model.to_netcdf(snakemake.output.model_nc)
+
         status, termination_condition = n.optimize.solve_model(**solve_kwargs)
 
     if status != "ok":
