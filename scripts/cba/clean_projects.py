@@ -98,6 +98,68 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     return agg
 
 
+def remove_unclear_border(
+    projects: pd.DataFrame, existing_buses: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Remove projects defined by unclear borders from the list of projects.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        List of projects to assess.
+    existing_buses : pd.DataFrame
+        List of existing buses.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of projects that only use existing buses.
+    """
+    unclear_border = ~(
+        projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
+    )
+    if unclear_border.sum() > 0:
+        logger.warning(
+            "%d out of %d extensions do not follow the simple <bus0>-<bus1> format or are not defined in the base network, ignoring them:\n%s",
+            unclear_border.sum(),
+            len(unclear_border),
+            projects.loc[
+                unclear_border, ["project_id", "project_name", "border"]
+            ].to_string(index=False, max_colwidth=40, line_width=100),
+        )
+
+    return projects.loc[~unclear_border]
+
+
+def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
+    """
+    Remove projects with no capacity from the list of projects.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        List of projects to clean.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of projects with a defined capacity
+    """
+    empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
+    if empty_capacity.sum() > 0:
+        logger.warning(
+            "%d out of %d extensions have no capacity, ignoring them:\n%s",
+            empty_capacity.sum(),
+            len(empty_capacity),
+            projects.loc[
+                empty_capacity, ["project_id", "project_name", "border"]
+            ].to_string(index=False, max_colwidth=40, line_width=100),
+        )
+
+    return projects.loc[~empty_capacity]
+
+
 def extract_transmission_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -143,29 +205,9 @@ def extract_transmission_projects(
         }
     )
 
-    unclear_border = ~(
-        projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
-    )
-    logger.warning(
-        "%d out of %d extensions do not follow the simple <bus0>-<bus1> format or are not defined in the base network, ignoring them:\n%s",
-        unclear_border.sum(),
-        len(unclear_border),
-        projects.loc[
-            unclear_border, ["project_id", "project_name", "border"]
-        ].to_string(index=False, max_colwidth=40, line_width=100),
-    )
-
-    empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
-    logger.warning(
-        "%d out of %d extensions have no capacity, ignoring them:\n%s",
-        empty_capacity.sum(),
-        len(empty_capacity),
-        projects.loc[
-            empty_capacity, ["project_id", "project_name", "border"]
-        ].to_string(index=False, max_colwidth=40, line_width=100),
-    )
-
-    projects = projects.loc[~(empty_capacity | unclear_border)]
+    # Clean the project list by removing unclear border and projects with no capacity
+    projects = remove_unclear_border(projects, existing_buses)
+    projects = remove_no_capacity(projects)
 
     # Several projects have capacities with "Up to ..."
     up_to_projects = set()
