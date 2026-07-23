@@ -205,7 +205,7 @@ def extract_transmission_projects(
     )
 
     if mask.any():
-        projects[cols] = projects[cols].apply(
+        projects.loc[mask, cols] = projects.loc[mask, cols].apply(
             lambda col: col.str.replace("Up to ", "", regex=False)
         )
         logger.info(
@@ -213,6 +213,9 @@ def extract_transmission_projects(
             mask.sum(),
             projects.loc[mask, ["project_id", "project_name"]].to_string(index=False),
         )
+
+    # convert to numeric
+    projects[cols] = projects[cols].apply(pd.to_numeric, errors="coerce")
 
     return projects
 
