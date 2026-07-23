@@ -198,20 +198,17 @@ def extract_transmission_projects(
 
     # Several projects have capacities with "Up to ..."
     cols = ["p_nom 0->1", "p_nom 1->0"]
-    mask = (
-        projects[cols]
-        .apply(lambda col: col.str.contains("Up to ", na=False))
-        .any(axis=1)
-    )
-
-    if mask.any():
-        projects.loc[mask, cols] = projects.loc[mask, cols].apply(
-            lambda col: col.str.replace("Up to ", "", regex=False)
-        )
+    # Several projects have capacities with "Up to ..."
+    up_to_projects = set()
+    for col in cols:
+        up_to = projects[col].str.startswith("Up to ")
+        if up_to.any():
+            projects.loc[up_to, col] = projects.loc[up_to, col].str[len("Up to ") :]
+            up_to_projects.update(projects.loc[up_to, "project_name"])
+    if up_to_projects:
         logger.info(
-            "Removed 'Up to ' capacity prefix from %d projects:\n%s",
-            mask.sum(),
-            projects.loc[mask, ["project_id", "project_name"]].to_string(index=False),
+            f"Removed 'Up to ' capacity prefix from {len(up_to_projects)} projects:\n"
+            + ", ".join(up_to_projects)
         )
 
     # convert to numeric
@@ -299,7 +296,6 @@ def build_method_assignments(
     return projects.merge(assigned, on="project_id", how="left")
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
