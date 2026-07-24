@@ -266,15 +266,18 @@ def extract_custom_transmission_projects(
         Curated list of custom projects.
     """
     custom_transmission_projects = (
-        pd.read_csv(custom_transmission_path)
+        pd.read_csv(
+            custom_transmission_path,
+            true_values=["TRUE", "True", "true", "1"],
+            false_values=["FALSE", "False", "false", "0"],
+        )
         .assign(border=lambda df: df.bus0 + "-" + df.bus1)
-        .drop(["source", "further description"], axis=1)
+        .drop(["source", "further description"], axis=1, errors="ignore")
     )
 
     custom_transmission_projects = remove_unclear_border(
         custom_transmission_projects, existing_buses
     )
-    custom_transmission_projects = remove_no_capacity(custom_transmission_projects)
 
     return custom_transmission_projects
 
