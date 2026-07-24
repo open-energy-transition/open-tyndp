@@ -664,7 +664,8 @@ rule plot_summary_projects_benchmark:
     input:
         indicators=summary_benchmark_indicators,
     output:
-        plot_file=RESULTS + "cba/graphs/all/summary_benchmark_{planning_horizons}.png",
+        plot_file=RESULTS
+        + "cba/validation/{planning_horizons}/summary_benchmark_{planning_horizons}.png",
     log:
         logs("cba/plot_summary_projects_benchmark_{planning_horizons}.log"),
     benchmark:
