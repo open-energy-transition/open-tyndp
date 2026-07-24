@@ -78,6 +78,8 @@
 
 * Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
 
+* Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
+
 
 ## Upcoming PyPSA-Eur Release
 
