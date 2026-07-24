@@ -61,6 +61,10 @@ class LoadConfig(BaseModel):
         default_factory=lambda: [2030, 2040, 2050],
         description="List of years for which TYNDP demand data is available.",
     )
+    weather_year_tyndp: dict[int, list[int]] = Field(
+        default_factory=dict,
+        description="Mapping of planning horizons to the weather years (climate year column indices, e.g. 3 for `WS003`) that contain data in the TYNDP 2026 demand data, for that planning horizon. The first entry is used as the preferred weather year; if it's missing for a given demand type/file, the script falls back to another entry in the list (see `scripts._helpers.check_weather_year`).",
+    )
     manual_adjustments: bool = Field(
         True,
         description="Whether to adjust the load data manually according to the function in `manual_adjustment`.",
