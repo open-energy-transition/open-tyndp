@@ -16,17 +16,17 @@ Custom transmission projects can be configured using `data/custom_cba_transmissi
 the user can modify existing projects and add new ones.
 
 - Using an existing combination (`project_id`, `bus0`, `bus1`), the user can overwrite any
-field of an existing project with a custom value. Not all fields need to be specified; leaving
-a field empty keeps its existing value.
+  field of an existing project with a custom value. Not all fields need to be specified; leaving
+  a field empty keeps its existing value.
 
-- New projects are added as PINT projects. A new `project_id` must be used, and custom projects are added as links.
+- New projects must use a new `project_id` and are added as PINT links.
 
 **Inputs**
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
 - `rules.retrieve_tyndp.output.nodes`: List of nodes defined in the workflow
-- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Overview of the projects included in the reference grid, as defined in the Implementation Guidelines.
+- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Overview of the projects included in the reference grid, as defined in the Implementation Guidelines
 - `data/custom_cba_transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
 
 **Outputs**
@@ -44,6 +44,8 @@ a field empty keeps its existing value.
   - `underwater_fraction`: Fraction of route that is offshore cable
 
 - `resources/cba/storage_projects.csv`: Empty CSV with columns project_id and project_name (stub implementation)
+
+- `resources/cba/cba_project_methods.csv`: List of the method to apply on projects
 
 """
 
@@ -71,21 +73,23 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def read_tyndp_electricity_buses(buses_fn: str):
+def read_tyndp_electricity_buses(buses_fn: str) -> pd.Index:
     """
     Read node list for electricity from tyndp data input.
 
     Parameters
     ----------
-        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
+    buses_fn : str
+        Path to "LIST OF NODES.xlsx" from tyndp bundle.
 
     Returns
     -------
-        - buses: Index of electricity buses as used in Open-TYNDP
+    pd.Index
+        Index of electricity buses as used in Open-TYNDP.
 
     See Also
     --------
-        build_tyndp_network.py : build_buses
+    build_tyndp_network.py : build_buses
     """
     buses = pd.Index(
         pd.read_excel(buses_fn)
@@ -148,7 +152,7 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame
-        Curated list of projects with a defined capacity
+        Curated list of projects with a defined capacity.
     """
     if projects.empty:
         return projects
@@ -227,7 +231,7 @@ def extract_transmission_projects(
         }
     )
 
-    # Clean the project list by removing unclear border and projects with no capacity
+    # Clean the project list by removing projects with unclear borders or no capacity
     projects = remove_unclear_border(projects, existing_buses)
     projects = remove_no_capacity(projects)
 
@@ -358,7 +362,7 @@ def overwrite_projects(
     new_projects = custom_projects.index.difference(projects.index)
     existing_projects = custom_projects.index.intersection(projects.index)
 
-    # Fill missing values with existing projects
+    # Fill missing values from existing projects
     custom_projects = custom_projects.reindex(columns=projects.columns).fillna(projects)
     custom_projects["is_crossborder"] = (
         custom_projects["is_crossborder"].fillna(True).astype(bool)
@@ -395,12 +399,28 @@ def normalize_yes_no(value: str) -> str:
 
 
 def compute_method(flag: str) -> str:
-    return "TOOT" if flag == "yes" else "PINT"
+    return "toot" if flag == "yes" else "pint"
 
 
 def build_method_assignments(
     guidelines: pd.DataFrame, projects: pd.DataFrame
 ) -> pd.DataFrame:
+    """
+    Determine the CBA assessment method for each project. The method is PINT (default) or TOOT and
+    depends on the planning horizon (2030 or 2040).
+
+    Parameters
+    ----------
+    guidelines : pd.DataFrame
+        Overview of the projects included in the reference grid, as defined in the Implementation Guidelines.
+    projects : pd.DataFrame
+        List of projects.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of the method to apply on projects.
+    """
     guidelines = guidelines.rename(
         columns={
             "ID": "project_id",
@@ -444,14 +464,14 @@ def build_method_assignments(
                     "in_ref_grid_2030": "no",
                     "in_ref_grid_2040": "no",
                     "planning_horizon": horizon,
-                    "method": "PINT",
+                    "method": "pint",
                 }
             )
             rows = pd.concat([rows, missing_rows], ignore_index=True)
         assigned.append(rows)
 
     assigned = pd.concat(assigned, ignore_index=True)
-    return projects.merge(assigned, on="project_id", how="left")
+    return assigned
 
 
 if __name__ == "__main__":
@@ -492,7 +512,7 @@ if __name__ == "__main__":
 
     # Storage projects
     storage_projects = extract_storage_projects(storage_path, existing_buses)
-    # TODO Add overwrite_projects for storages
+    # TODO Add overwrite_projects for storage projects
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
     # Method definition (PINT / TOOT)

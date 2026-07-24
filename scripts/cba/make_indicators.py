@@ -35,6 +35,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.cba.prepare_project import load_method
 from scripts.prepare_sector_network import get
 
 logger = logging.getLogger(__name__)
@@ -128,18 +129,6 @@ def calculate_total_system_cost(
         "capex": capex,
         "opex": opex,
     }
-
-
-def check_method(method: str) -> str:
-    """
-    Normalize and validate the CBA method name.
-
-    If the method is not recognized as either "pint" or "toot", a ValueError is raised.
-    """
-    method = method.lower()
-    if method not in ["pint", "toot"]:
-        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
-    return method
 
 
 def difference_by_method(reference: float, project: float, method: str) -> float:
@@ -999,16 +988,7 @@ if __name__ == "__main__":
     # Detect method from assignments (toot or pint)
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
-    methods = pd.read_csv(snakemake.input.methods)
-    method_row = methods[
-        (methods["project_id"] == project_id)
-        & (methods["planning_horizon"] == planning_horizon)
-    ]
-    if method_row.empty:
-        raise ValueError(
-            f"Missing CBA method for project {project_id} and horizon {planning_horizon}"
-        )
-    method = check_method(method_row["method"].iloc[0])
+    method = load_method(snakemake.input.methods, project_id, planning_horizon)
 
     # Calculate indicators
     indicators = {}
