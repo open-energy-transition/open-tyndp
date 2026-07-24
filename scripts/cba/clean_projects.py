@@ -12,10 +12,22 @@ are filtered out with a warning.
 
 Storage project extraction is not yet implemented and returns an empty DataFrame.
 
+Custom transmission projects can be configured using `data/custom_cba_transmission_projects.csv`. With it,
+the user can modify existing projects and add new ones.
+
+- Using an existing combination (`project_id`, `bus0`, `bus1`), the user can overwrite any
+field of an existing project with a custom value. Not all fields need to be specified; leaving
+a field empty keeps its existing value.
+
+- New projects are added as PINT projects. A new `project_id` must be used, and custom projects are added as links.
+
 **Inputs**
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
+- `rules.retrieve_tyndp.output.nodes`: List of nodes defined in the workflow
+- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Overview of the projects included in the reference grid, as defined in the Implementation Guidelines.
+- `data/custom_cba_transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
 
 **Outputs**
 
@@ -81,18 +93,101 @@ def read_tyndp_electricity_buses(buses_fn: str):
         .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
     )
 
-    # Manually add Italian virtual nodes
-    buses = buses.union(["ITCO", "ITVI"])
+    # Manually add Italian virtual nodes and Corsica
+    buses = buses.union(["ITCO", "ITVI", "FR15"])
 
     return buses
 
 
-def extract_transmission_projects(
-    excel_path: Path, existing_buses: pd.Index
+def remove_unclear_border(
+    projects: pd.DataFrame, existing_buses: pd.Index
 ) -> pd.DataFrame:
+    """
+    Remove projects defined by unclear borders from the list of projects.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        List of projects to assess.
+    existing_buses : pd.Index
+        List of existing buses.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of projects that only use existing buses.
+    """
+    if projects.empty:
+        return projects
+
+    unclear_border = ~(
+        projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
+    )
+    if unclear_border.sum() > 0:
+        logger.warning(
+            "%d out of %d extensions do not follow the simple <bus0>-<bus1> format or are not defined in the base network, ignoring them:\n%s",
+            unclear_border.sum(),
+            len(unclear_border),
+            projects.loc[
+                unclear_border, ["project_id", "project_name", "border"]
+            ].to_string(index=False, max_colwidth=40, line_width=100),
+        )
+
+    return projects.loc[~unclear_border]
+
+
+def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
+    """
+    Remove projects with no capacity from the list of projects.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        List of projects to clean.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of projects with a defined capacity
+    """
+    if projects.empty:
+        return projects
+
+    empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
+    if empty_capacity.sum() > 0:
+        logger.warning(
+            "%d out of %d extensions have no capacity, ignoring them:\n%s",
+            empty_capacity.sum(),
+            len(empty_capacity),
+            projects.loc[
+                empty_capacity, ["project_id", "project_name", "border"]
+            ].to_string(index=False, max_colwidth=40, line_width=100),
+        )
+
+    return projects.loc[~empty_capacity]
+
+
+def extract_transmission_projects(
+    transmission_path: Path, existing_buses: pd.Index
+) -> pd.DataFrame:
+    """
+    Extract transmission projects.
+
+    Parameters
+    ----------
+    transmission_path : Path
+        File path to transmission projects.
+    existing_buses : pd.Index
+        List of existing buses.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of projects.
+    """
     projects = (
         pd.read_excel(
-            excel_path,
+            transmission_path,
             sheet_name="Trans.Projects",
             skiprows=1,
             usecols=list(TRANSMISSION_PROJECTS_COLUMN_MAP),
@@ -132,29 +227,9 @@ def extract_transmission_projects(
         }
     )
 
-    unclear_border = ~(
-        projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
-    )
-    logger.warning(
-        "%d out of %d extensions do not follow the simple <bus0>-<bus1> format or are not defined in the base network, ignoring them:\n%s",
-        unclear_border.sum(),
-        len(unclear_border),
-        projects.loc[
-            unclear_border, ["project_id", "project_name", "border"]
-        ].to_string(index=False, max_colwidth=40, line_width=100),
-    )
-
-    empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
-    logger.warning(
-        "%d out of %d extensions have no capacity, ignoring them:\n%s",
-        empty_capacity.sum(),
-        len(empty_capacity),
-        projects.loc[
-            empty_capacity, ["project_id", "project_name", "border"]
-        ].to_string(index=False, max_colwidth=40, line_width=100),
-    )
-
-    projects = projects.loc[~(empty_capacity | unclear_border)]
+    # Clean the project list by removing unclear border and projects with no capacity
+    projects = remove_unclear_border(projects, existing_buses)
+    projects = remove_no_capacity(projects)
 
     # Several projects have capacities with "Up to ..."
     up_to_projects = set()
@@ -170,6 +245,41 @@ def extract_transmission_projects(
         )
 
     return projects
+
+
+def extract_custom_transmission_projects(
+    custom_transmission_path: Path, existing_buses: pd.Index
+) -> pd.DataFrame:
+    """
+    Extract custom transmission projects.
+
+    Parameters
+    ----------
+    custom_transmission_path : Path
+        File path to custom transmission projects.
+    existing_buses : pd.Index
+        List of existing buses.
+
+    Returns
+    -------
+    pd.DataFrame
+        Curated list of custom projects.
+    """
+    custom_transmission_projects = (
+        pd.read_csv(
+            custom_transmission_path,
+            true_values=["TRUE", "True", "true", "1"],
+            false_values=["FALSE", "False", "false", "0"],
+        )
+        .assign(border=lambda df: df.bus0 + "-" + df.bus1)
+        .drop(["source", "further description"], axis=1, errors="ignore")
+    )
+
+    custom_transmission_projects = remove_unclear_border(
+        custom_transmission_projects, existing_buses
+    )
+
+    return custom_transmission_projects
 
 
 def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
@@ -209,6 +319,60 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
 
     return agg
+
+
+def overwrite_projects(
+    projects: pd.DataFrame, custom_projects: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Apply custom project modifications to the list of projects.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        Base list of projects.
+    custom_projects : pd.DataFrame
+        Custom project modifications.
+
+    Returns
+    -------
+    pd.DataFrame
+        Updated list of projects with custom project modifications applied (if applicable).
+    """
+    if custom_projects.empty:
+        return projects
+
+    idx = ["project_id", "bus0", "bus1"]
+    custom_isnull = custom_projects[idx].isnull().any(axis=1)
+    if custom_isnull.any():
+        malformed = custom_projects.loc[custom_isnull, idx].to_string(index=False)
+        raise ValueError(
+            f"Custom projects must define project_id, bus0 and bus1, but the "
+            f"following rows have missing values:\n{malformed}"
+        )
+
+    custom_projects = custom_projects.set_index(idx, verify_integrity=True).sort_index()
+    projects = projects.set_index(idx).sort_index()
+
+    # Identify existing and new projects
+    new_projects = custom_projects.index.difference(projects.index)
+    existing_projects = custom_projects.index.intersection(projects.index)
+
+    # Fill missing values with existing projects
+    custom_projects = custom_projects.reindex(columns=projects.columns).fillna(projects)
+    custom_projects["is_crossborder"] = (
+        custom_projects["is_crossborder"].fillna(True).astype(bool)
+    )
+    custom_projects = custom_projects.fillna(0).infer_objects(copy=False)
+
+    # Overwrite unique pairs of (project_id, bus0, bus1)
+    projects.loc[existing_projects] = custom_projects.loc[existing_projects]
+
+    # Add projects that don't already exist
+    if len(new_projects) > 0:
+        projects = pd.concat([projects, custom_projects.loc[new_projects]])
+
+    return projects.reset_index()
 
 
 def extract_storage_projects(
@@ -301,25 +465,37 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    transmission_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+    storage_path = Path(snakemake.input.dir) / "20250312_export_storage.xlsx"
+    custom_transmission_path = Path(snakemake.input.custom_transmission)
+
     existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
 
-    excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
+    # Transmission projects
+    transmission_projects = extract_transmission_projects(
+        transmission_path, existing_buses
+    )
+    custom_transmission_projects = extract_custom_transmission_projects(
+        custom_transmission_path, existing_buses
+    )
 
-    transmission_projects = extract_transmission_projects(excel_path, existing_buses)
-
-    investment_attrs = extract_investment_attributes(excel_path)
+    investment_attrs = extract_investment_attributes(transmission_path)
     transmission_projects = transmission_projects.merge(
         investment_attrs, on="project_id", how="left"
     )
 
+    transmission_projects = overwrite_projects(
+        transmission_projects, custom_transmission_projects
+    )
+
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
-    storage_projects = extract_storage_projects(
-        Path(snakemake.input.dir) / "20250312_export_storage.xlsx",
-        existing_buses,
-    )
+    # Storage projects
+    storage_projects = extract_storage_projects(storage_path, existing_buses)
+    # TODO Add overwrite_projects for storages
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
+    # Method definition (PINT / TOOT)
     guidelines = pd.read_csv(snakemake.input.guidelines)
     methods = build_method_assignments(guidelines, transmission_projects)
     methods.to_csv(snakemake.output.methods, index=False)
