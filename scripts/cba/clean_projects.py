@@ -100,7 +100,7 @@ def read_tyndp_electricity_buses(buses_fn: str):
 
 
 def remove_unclear_border(
-    projects: pd.DataFrame, existing_buses: pd.DataFrame
+    projects: pd.DataFrame, existing_buses: pd.Index
 ) -> pd.DataFrame:
     """
     Remove projects defined by unclear borders from the list of projects.
@@ -109,7 +109,7 @@ def remove_unclear_border(
     ----------
     projects : pd.DataFrame
         List of projects to assess.
-    existing_buses : pd.DataFrame
+    existing_buses : pd.Index
         List of existing buses.
 
     Returns
@@ -168,7 +168,7 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
 
 
 def extract_transmission_projects(
-    excel_path: Path, existing_buses: pd.Index
+    transmission_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
     """
     Extract transmission projects.
@@ -187,7 +187,7 @@ def extract_transmission_projects(
     """
     projects = (
         pd.read_excel(
-            excel_path,
+            transmission_path,
             sheet_name="Trans.Projects",
             skiprows=1,
             usecols=list(TRANSMISSION_PROJECTS_COLUMN_MAP),
