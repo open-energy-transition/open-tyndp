@@ -12,10 +12,22 @@ are filtered out with a warning.
 
 Storage project extraction is not yet implemented and returns an empty DataFrame.
 
+Custom transmission projects can be configured using `data/custom_cba_transmission_projects.csv`. With it,
+the user can modify existing projects and add new ones.
+
+- Using an existing combination (`project_id`, `bus0`, `bus1`), the user can overwrite any
+field of an existing project with a custom value. Not all fields need to be specified; leaving
+a field empty keeps its existing value.
+
+- New projects are added as PINT projects. A new `project_id` must be used, and custom projects are added as links.
+
 **Inputs**
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
+- `rules.retrieve_tyndp.output.nodes`: List of nodes defined in the workflow
+- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Overview of the projects included in the reference grid, as defined in the Implementation Guidelines.
+- `data/custom_cba_transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
 
 **Outputs**
 

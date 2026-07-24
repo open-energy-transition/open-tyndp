@@ -11,6 +11,8 @@
 
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
+* Add the option to define custom transmission projects for the CBA assessment ([#802](https://github.com/open-energy-transition/open-tyndp/pull/802)). The new file `data/custom_cba_transmission_projects.csv` is used to configure these projects. With it, the user can modify existing projects and add new ones.
+
 **Changes**
 
 * Add `Undefined for generation` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark ([#718](https://github.com/open-energy-transition/open-tyndp/pull/718)).
