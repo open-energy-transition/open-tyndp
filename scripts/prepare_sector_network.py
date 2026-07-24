@@ -3929,7 +3929,7 @@ def add_h2_storage_tyndp(
     n : pypsa.Network
         The PyPSA network container object.
     buses_h2_z1 : pd.Index
-        Nnodes of H2 Z1 buses.
+        Nodes of H2 Z1 buses.
     buses_h2_z2 : pd.Index
         Nodes of H2 Z2 buses.
     costs : pd.DataFrame

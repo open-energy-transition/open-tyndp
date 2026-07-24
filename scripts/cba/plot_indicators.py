@@ -5,7 +5,7 @@
 """
 Create plots for CBA indicators.
 
-This script reads the collected indicators CSV file and generates various
+This script reads the combined indicators CSV file and generates various
 plots to visualize the cost-benefit analysis results, including the B1
 indicator (Total System Cost difference).
 """

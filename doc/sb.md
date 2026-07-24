@@ -79,7 +79,7 @@ a scenario output file from the TYNDP 2024 process used as a fixed input.
 
 The SB workflow transforms raw ENTSO-E input datasets into a solved, sector-coupled PyPSA
 network. The key stages are: integrating public input data, constructing the sector-coupled
-network, applying TYNDP-specific constraints, solving the capacity expansion optimisation, visualising results, and running the Open-TYNDP [benchmarking framework](benchmarking.md).
+network, applying TYNDP-specific constraints, solving the capacity expansion optimisation, visualising results, and running the Open-TYNDP [benchmarking framework](benchmarking.md). An overview of the SB rules is documented at [SB rules](sb_rules.md).
 
 ### Network Construction
 

@@ -9,7 +9,7 @@ The Cost-Benefit Analysis (CBA) evaluates transmission and storage projects by c
 
 ## CBA Workflow Methodology
 
-The workflow evaluates projects using a **rolling horizon** approach where the full year is divided into sequential weekly windows (168 hourly snapshots each, with an overlap of 1 snapshot).
+The workflow evaluates projects using a **rolling horizon** approach where the full year is divided into sequential weekly windows (168 hourly snapshots each, with an overlap of 1 snapshot). An overview of the CBA rules is documented at [CBA rules](cba_rules.md).
 
 To resolve **myopia**—where the optimizer cannot see beyond the current week and makes suboptimal decisions for seasonal storage (H2, gas, large hydro)—the workflow uses Marginal Storage Values (MSV) derived from a full-year optimization.
 

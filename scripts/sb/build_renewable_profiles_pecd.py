@@ -13,11 +13,9 @@ Outputs
 
 - `resources/profile_pecd_{clusters}_{technology}.nc` with the following structure
 
-    ===================  ====================  =========================================================
-    Field                Dimensions            Description
-    ===================  ====================  =========================================================
-    profile              year, bus, bin, time  the per unit hourly availability factors for each bus
-    ===================  ====================  =========================================================
+    | Field   | Dimensions           | Description                                        |
+    | ------- | -------------------- | -------------------------------------------------- |
+    | profile | year, bus, bin, time | the per unit hourly availability factors for each bus |
 """
 
 import logging
