@@ -20,7 +20,38 @@ from scripts.cba._helpers import get_link_attrs
 logger = logging.getLogger(__name__)
 
 
-def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -> str:
+def check_method(method: str) -> str:
+    """
+    Normalize and validate the CBA method name.
+
+    If the method is not recognized as either "pint" or "toot", a ValueError is raised.
+    """
+    method = method.lower().strip()
+    if method not in ["pint", "toot"]:
+        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
+    return method
+
+
+def load_method(methods_fn: str, project_id: int, planning_horizon: int) -> str:
+    """
+    Load the method for a specific project and planning horizon.
+
+    Parameters
+    ----------
+    methods_fn : str
+        Path to the file defining the methods.
+    project_id : int
+        Project reference ID.
+    planning_horizon : int
+        Planning horizon
+
+    Returns
+    -------
+    str
+        Method to be used to assess a project at a planning horizon.
+
+    """
+    methods = pd.read_csv(methods_fn)
     row = methods[
         (methods["project_id"] == project_id)
         & (methods["planning_horizon"] == planning_horizon)
@@ -29,7 +60,7 @@ def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -
         raise ValueError(
             f"Missing CBA method for project {project_id} and horizon {planning_horizon}"
         )
-    return str(row["method"].iloc[0]).strip().upper()
+    return check_method(row["method"].iloc[0])
 
 
 def apply_toot(
@@ -145,13 +176,15 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    n = pypsa.Network(snakemake.input.network)
-    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
-    methods = pd.read_csv(snakemake.input.methods)
-
     cba_project = snakemake.wildcards.cba_project
-    project_id = int(cba_project[1:])
     planning_horizon = int(snakemake.wildcards.planning_horizons)
+    methods_fn = snakemake.input.methods
+    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
+    n = pypsa.Network(snakemake.input.network)
+    hurdle_costs = snakemake.params.hurdle_costs
+    costs = pd.read_csv(snakemake.input.costs, index_col=0)
+
+    project_id = int(cba_project[1:])
     if planning_horizon not in [2030, 2040]:
         logger.warning(
             "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
@@ -159,13 +192,10 @@ if __name__ == "__main__":
         )
         planning_horizon = 2040
 
-    method = load_method(methods, project_id, planning_horizon)
-    hurdle_costs = snakemake.params.hurdle_costs
+    method = load_method(methods_fn, project_id, planning_horizon)
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
     )
-
-    costs = pd.read_csv(snakemake.input.costs, index_col=0)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
@@ -174,9 +204,9 @@ if __name__ == "__main__":
         f"Transmission project {project_id} not found."
     )
 
-    if method == "TOOT":
+    if method == "toot":
         apply_toot(n, transmission_project, negative_toot_capacity)
-    elif method == "PINT":
+    elif method == "pint":
         apply_pint(n, transmission_project, hurdle_costs, costs)
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")

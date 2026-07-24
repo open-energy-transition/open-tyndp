@@ -71,7 +71,7 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def read_tyndp_electricity_buses(buses_fn: str):
+def read_tyndp_electricity_buses(buses_fn: str) -> pd.Index:
     """
     Read node list for electricity from tyndp data input.
 
@@ -392,12 +392,29 @@ def normalize_yes_no(value: str) -> str:
 
 
 def compute_method(flag: str) -> str:
-    return "TOOT" if flag == "yes" else "PINT"
+    return "toot" if flag == "yes" else "pint"
 
 
 def build_method_assignments(
     guidelines: pd.DataFrame, projects: pd.DataFrame
 ) -> pd.DataFrame:
+    """
+    Define the method to apply on a project. The method can be PINT (default) or TOOT and can verify on
+    the planning horizon (2030 or 2040).
+
+    Parameters
+    ----------
+    guidelines : pd.DataFrame
+        Overview of the projects included in the reference grid, as defined in the Implementation Guidelines.
+    projects : pd.DataFrame
+        List of projects.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of the method to apply on projects.
+
+    """
     guidelines = guidelines.rename(
         columns={
             "ID": "project_id",
@@ -441,14 +458,14 @@ def build_method_assignments(
                     "in_ref_grid_2030": "no",
                     "in_ref_grid_2040": "no",
                     "planning_horizon": horizon,
-                    "method": "PINT",
+                    "method": "pint",
                 }
             )
             rows = pd.concat([rows, missing_rows], ignore_index=True)
         assigned.append(rows)
 
     assigned = pd.concat(assigned, ignore_index=True)
-    return projects.merge(assigned, on="project_id", how="left")
+    return assigned
 
 
 if __name__ == "__main__":
