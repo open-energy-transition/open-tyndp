@@ -1621,8 +1621,6 @@ cba:
   cba_scenario_input:
     use_presolved: false
     sb_version: latest
-  methods:
-  - toot
   projects: []
   area: tyndp
   remove_noisy_costs: true

@@ -157,10 +157,6 @@ class CbaConfig(BaseModel):
         default_factory=_CbaSbToCbaConfig,
         description="Settings for using pre-solved SB networks as inputs to the CBA workflow.",
     )
-    methods: list[Literal["toot", "pint"]] = Field(
-        default_factory=lambda: ["toot"],
-        description="Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
-    )
     projects: list[str] = Field(
         default_factory=list,
         description="List of project identifiers to evaluate (e.g., 't1-t35').",

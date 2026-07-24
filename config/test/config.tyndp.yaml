@@ -438,9 +438,6 @@ cba:
   cba_scenario_input:
     use_presolved: false
     sb_version: latest # currently only latest is supported
-  methods:
-  - toot
-  - pint
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
