@@ -486,7 +486,8 @@ rule make_indicators:
         benchmark=rules.clean_tyndp_indicators.output.indicators,
         methods=rules.clean_projects.output.methods,
     output:
-        indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
+        indicators=RESULTS
+        + "cba/results/{planning_horizons}/project_{cba_project}_{planning_horizons}.csv",
     log:
         logs("cba/make_indicators_{cba_project}_{planning_horizons}.log"),
     benchmark:
@@ -534,7 +535,8 @@ rule combine_indicators:
     input:
         indicators=input_indicators,
     output:
-        indicators=RESULTS + "cba/indicators_{planning_horizons}.csv",
+        indicators=RESULTS
+        + "cba/results/{planning_horizons}/indicators_{planning_horizons}.csv",
     log:
         logs("cba/combine_indicators_{planning_horizons}.log"),
     benchmark:
@@ -548,7 +550,7 @@ rule plot_indicators:
         indicators=rules.combine_indicators.output.indicators,
         transmission_projects=rules.clean_projects.output.transmission_projects,
     output:
-        plot_dir=directory(RESULTS + "cba/plots_{planning_horizons}"),
+        plot_dir=directory(RESULTS + "cba/graphs/{planning_horizons}"),
     log:
         logs("cba/plot_indicators_{planning_horizons}.log"),
     benchmark:
@@ -565,10 +567,10 @@ rule plot_indicators:
 
 rule plot_cba_benchmark:
     input:
-        indicators=RESULTS + "cba/project_{cba_project}_{planning_horizons}.csv",
+        indicators=rules.make_indicators.output.indicators,
     output:
         plot_file=RESULTS
-        + "cba/validation_{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
+        + "cba/validation/{planning_horizons}/project_{cba_project}_{planning_horizons}.png",
     log:
         logs("cba/plot_cba_benchmark_{cba_project}_{planning_horizons}.log"),
     benchmark:
@@ -581,7 +583,7 @@ rule plot_cba_benchmark:
 #     input:
 #         indicators=rules.combine_indicators.output.indicators,
 #     output:
-#         plot_dir=directory(RESULTS + "cba/validation_{planning_horizons}"),
+#         plot_dir=directory(RESULTS + "cba/validation/{planning_horizons}"),
 #     script:
 #         scripts("cba/plot_benchmark_indicators.py")
 
@@ -592,7 +594,7 @@ rule plot_weather_benchmark:
         indicators=rules.make_indicators.output.indicators,
     output:
         plot_file=RESULTS
-        + "cba/ensemble_plots/ensemble_{cba_project}_{planning_horizons}.png",
+        + "cba/graphs/{planning_horizons}/ensemble_{cba_project}_{planning_horizons}.png",
     log:
         logs("cba/plot_weather_benchmark_{cba_project}_{planning_horizons}.log"),
     benchmark:
@@ -611,7 +613,7 @@ rule average_indicators_per_project_and_planning_horizon:
         ),
     output:
         indicators=RESULTS
-        + "cba/ensemble_indicators/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
+        + "cba/results/all/ensemble_indicators_{cba_project}_{planning_horizons}.csv",
     log:
         logs("cba/average_indicators_{cba_project}_{planning_horizons}.log"),
     benchmark:
@@ -629,7 +631,7 @@ rule summarize_indicators_per_project:
             run=[w.run],
         ),
     output:
-        plot_file=RESULTS + "cba/ensemble_plots/ensemble_{cba_project}_all_horizons.png",
+        plot_file=RESULTS + "cba/graphs/all/ensemble_{cba_project}_all_horizons.png",
     log:
         logs("cba/summarize_indicators_{cba_project}.log"),
     benchmark:
@@ -662,8 +664,7 @@ rule plot_summary_projects_benchmark:
     input:
         indicators=summary_benchmark_indicators,
     output:
-        plot_file=RESULTS
-        + "cba/ensemble_plots/summary_benchmark_{planning_horizons}.png",
+        plot_file=RESULTS + "cba/graphs/all/summary_benchmark_{planning_horizons}.png",
     log:
         logs("cba/plot_summary_projects_benchmark_{planning_horizons}.log"),
     benchmark:
@@ -683,7 +684,7 @@ rule summarize_all_indicators:
             run=cba_source_runs(w),
         ),
     output:
-        plot_file=RESULTS + "cba/ensemble_plots/ensemble_all.png",
+        plot_file=RESULTS + "cba/graphs/all/ensemble_all.png",
     log:
         logs("cba/summarize_all_indicators.log"),
     benchmark:
