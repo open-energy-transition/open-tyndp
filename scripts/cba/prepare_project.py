@@ -43,13 +43,12 @@ def load_method(methods_fn: str, project_id: int, planning_horizon: int) -> str:
     project_id : int
         Project reference ID.
     planning_horizon : int
-        Planning horizon
+        Planning horizon.
 
     Returns
     -------
     str
         Method to be used to assess a project at a planning horizon.
-
     """
     methods = pd.read_csv(methods_fn)
     row = methods[
