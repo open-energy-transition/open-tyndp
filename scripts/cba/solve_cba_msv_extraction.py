@@ -22,6 +22,7 @@ rolling horizon optimization.
 import copy
 import logging
 
+import linopy
 import pypsa
 from snakemake.utils import update_config
 
@@ -116,6 +117,8 @@ if __name__ == "__main__":
         solve_kwargs["assign_all_duals"] = True
 
         n.optimize.create_model(**model_kwargs)
+        print(f"PyPSA version: {pypsa.__version__}")
+        print(f"Linopy version: {linopy.__version__}")
         status, termination_condition = n.optimize.solve_model(**solve_kwargs)
 
     if status != "ok":
