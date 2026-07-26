@@ -327,6 +327,20 @@ GA-cyears:
 
 
 cba-gurobi-msv1e6-rh1e6-voll300:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -367,6 +381,20 @@ cba-gurobi-msv1e6-rh1e6-voll300:
 
 
 cba-gurobi-msv1e6-rh1e6-voll500:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -407,6 +435,20 @@ cba-gurobi-msv1e6-rh1e6-voll500:
 
 
 cba-highs-msv1e6-rh1e6-voll300:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -447,6 +489,20 @@ cba-highs-msv1e6-rh1e6-voll300:
 
 
 cba-highs-msv1e6-rh1e6-voll500:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -487,6 +543,20 @@ cba-highs-msv1e6-rh1e6-voll500:
 
 
 cba-gurobi-msv1e8-rh1e6-voll300:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -527,6 +597,20 @@ cba-gurobi-msv1e8-rh1e6-voll300:
 
 
 cba-gurobi-msv1e8-rh1e6-voll500:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -567,6 +651,20 @@ cba-gurobi-msv1e8-rh1e6-voll500:
 
 
 cba-gurobi-msv1e8-rh1e8-voll300:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -607,6 +705,20 @@ cba-gurobi-msv1e8-rh1e8-voll300:
 
 
 cba-gurobi-msv1e8-rh1e8-voll500:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -647,6 +759,20 @@ cba-gurobi-msv1e8-rh1e8-voll500:
 
 
 cba-highs-msv1e8-rh1e6-voll300:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -687,6 +813,20 @@ cba-highs-msv1e8-rh1e6-voll300:
 
 
 cba-highs-msv1e8-rh1e6-voll500:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -727,6 +867,20 @@ cba-highs-msv1e8-rh1e6-voll500:
 
 
 cba-highs-msv1e8-rh1e8-voll300:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
@@ -767,6 +921,20 @@ cba-highs-msv1e8-rh1e8-voll300:
 
 
 cba-highs-msv1e8-rh1e8-voll500:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
   cba:
     projects: [t4, t339, t1207]
 
