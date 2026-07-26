@@ -328,7 +328,7 @@ GA-cyears:
 
 cba-gurobi-msv1e6-rh1e6-voll300:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -368,7 +368,7 @@ cba-gurobi-msv1e6-rh1e6-voll300:
 
 cba-gurobi-msv1e6-rh1e6-voll500:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -408,7 +408,7 @@ cba-gurobi-msv1e6-rh1e6-voll500:
 
 cba-highs-msv1e6-rh1e6-voll300:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -448,7 +448,7 @@ cba-highs-msv1e6-rh1e6-voll300:
 
 cba-highs-msv1e6-rh1e6-voll500:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -488,7 +488,7 @@ cba-highs-msv1e6-rh1e6-voll500:
 
 cba-gurobi-msv1e8-rh1e6-voll300:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -528,7 +528,7 @@ cba-gurobi-msv1e8-rh1e6-voll300:
 
 cba-gurobi-msv1e8-rh1e6-voll500:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -568,7 +568,7 @@ cba-gurobi-msv1e8-rh1e6-voll500:
 
 cba-gurobi-msv1e8-rh1e8-voll300:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -608,7 +608,7 @@ cba-gurobi-msv1e8-rh1e8-voll300:
 
 cba-gurobi-msv1e8-rh1e8-voll500:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -648,7 +648,7 @@ cba-gurobi-msv1e8-rh1e8-voll500:
 
 cba-highs-msv1e8-rh1e6-voll300:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -688,7 +688,7 @@ cba-highs-msv1e8-rh1e6-voll300:
 
 cba-highs-msv1e8-rh1e6-voll500:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -728,7 +728,7 @@ cba-highs-msv1e8-rh1e6-voll500:
 
 cba-highs-msv1e8-rh1e8-voll300:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
@@ -768,7 +768,7 @@ cba-highs-msv1e8-rh1e8-voll300:
 
 cba-highs-msv1e8-rh1e8-voll500:
   cba:
-    projects: [t4, t227, t350, t342, t1167, t1109, t127, t341, t1112, t328, t1235, t150, t1207, t339]
+    projects: [t4, t339, t1207]
 
     msv_extraction:
       solving:
