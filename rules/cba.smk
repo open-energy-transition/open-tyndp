@@ -574,7 +574,9 @@ rule plot_cba_benchmark:
     log:
         logs("cba/plot_cba_benchmark_{cba_project}_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/cba/plot_cba_benchmark_{cba_project}_{planning_horizons}")
+        benchmarks(
+            "performances/cba/plot_cba_benchmark_{cba_project}_{planning_horizons}"
+        )
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -598,7 +600,9 @@ rule plot_weather_benchmark:
     log:
         logs("cba/plot_weather_benchmark_{cba_project}_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/cba/plot_weather_benchmark_{cba_project}_{planning_horizons}")
+        benchmarks(
+            "performances/cba/plot_weather_benchmark_{cba_project}_{planning_horizons}"
+        )
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -617,7 +621,9 @@ rule average_indicators_per_project_and_planning_horizon:
     log:
         logs("cba/average_indicators_{cba_project}_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/cba/average_indicators_{cba_project}_{planning_horizons}")
+        benchmarks(
+            "performances/cba/average_indicators_{cba_project}_{planning_horizons}"
+        )
     script:
         scripts("cba/average_indicators.py")
 
