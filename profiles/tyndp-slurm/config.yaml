@@ -44,8 +44,8 @@ set-resources:
   solve_cba_msv_extraction:
     mem_mb: 150000
   solve_cba_reference_network:
-    mem_mb: 8000
+    mem_mb: 15000
   solve_cba_network:
-    mem_mb: 8000
+    mem_mb: 15000
 
 
