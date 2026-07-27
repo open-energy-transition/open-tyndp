@@ -7,6 +7,59 @@
 NT:
   tyndp_scenario: NT
 
+NT-cy2009-20260727-upstream-merge:
+  tyndp_scenario: NT
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+      solver_options:
+        gurobi-default:
+          BarConvTol: 1.0e-06
+    partition: big
+    mem_mb: 60000
+    runtime: 4h
+
+  cba:
+    projects: [t4]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-06
+        partition: big
+        mem_mb: 60000
+        runtime: 4h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+      partition: big
+      mem_mb: 60000
+      runtime: 4h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
