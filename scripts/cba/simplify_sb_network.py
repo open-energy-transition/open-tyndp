@@ -125,7 +125,7 @@ def move_bus_carrier_and_cleanup(
     # remove carrier buses
     n.remove("Bus", busmap.index)
 
-    # drop lines/links where bus0 == bus1 after remapping
+    # drop branch components (e.g. lines/links) where bus0 == bus1 after remapping
     for c in n.components[sorted(n.branch_components)]:
         static = c.static
         if static.empty:
