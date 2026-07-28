@@ -86,9 +86,9 @@ def move_bus_carrier_and_cleanup(
         Bus carrier to remove (e.g. "low voltage").
     busmap : pandas.Series, optional
         Mapping of `from_carrier` bus name -> target bus name onto which its
-        components should be reassigned. Defaults to
-        `n.buses.loc[n.buses.carrier == from_carrier, "location"]`, i.e.
-        each bus is mapped onto the bus matching its `location` field.
+        components should be reassigned. Defaults to `None`, in which case
+        each bus is mapped onto the bus matching its `location` field, i.e.
+        `n.buses.loc[n.buses.carrier == from_carrier, "location"]` is used.
 
     Returns
     -------
