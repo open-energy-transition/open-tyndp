@@ -22,9 +22,11 @@ NT-cy2009-20260727-upstream-merge:
       solver_options:
         gurobi-default:
           BarConvTol: 1.0e-06
+          FeasibilityTol: 1.0e-06
+          OptimalityTol: 1.0e-06
     partition: big
     mem_mb: 60000
-    runtime: 4h
+    runtime: 1h
 
   cba:
     projects: [t4]
@@ -39,9 +41,11 @@ NT-cy2009-20260727-upstream-merge:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
-        runtime: 4h
+        runtime: 1h
 
     # Rolling horizon solving settings
     solving:
@@ -49,7 +53,7 @@ NT-cy2009-20260727-upstream-merge:
         include_objective_constant: false
       partition: big
       mem_mb: 60000
-      runtime: 4h
+      runtime: 1h
 
       solver:
         name: highs
