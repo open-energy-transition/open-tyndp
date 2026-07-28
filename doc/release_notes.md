@@ -33,6 +33,8 @@
 
 **Bugfixes and Compatibility**
 
+* Fix: split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
+  
 * Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
 
 * Fix CBA workflow to (a) release solver license after each successful rolling horizon optimization or after computing infeasibilities and (b) raise an error if rolling horizon fails when using HiGHS ([#756](https://github.com/open-energy-transition/open-tyndp/pull/756)).
