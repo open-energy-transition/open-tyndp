@@ -9,6 +9,8 @@
 
 **Features**
 
+* Merge low voltage and market nodes in the CBA ([#722](https://github.com/open-energy-transition/open-tyndp/pull/722)).
+  
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
 **Changes**
