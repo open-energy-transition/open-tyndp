@@ -15,7 +15,7 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
     rule retrieve_tyndp_pecd:
         input:
             zip_file=storage(
-                PECD_DATASET["url"] + f"PECD_{PECD_DATASET["version"]}.zip"
+                PECD_DATASET["url"] + f"PECD_{PECD_DATASET['version']}.zip"
             ),
         output:
             dir=directory(PECD_DATASET["folder"]),
@@ -34,9 +34,9 @@ if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ARCHIVE_
             zip_file=storage(VIS_PLFM_DATASET["url"]),
         output:
             dir=directory(VIS_PLFM_DATASET["folder"]),
-            elec_demand=f"{VIS_PLFM_DATASET["folder"]}/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
-            elec_flex=f"{VIS_PLFM_DATASET["folder"]}/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
-            elec_supply=f"{VIS_PLFM_DATASET["folder"]}/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
+            elec_demand=f"{VIS_PLFM_DATASET['folder']}/250117_TYNDP2024Scenarios_Electricity_Demand.xlsx",
+            elec_flex=f"{VIS_PLFM_DATASET['folder']}/250117_TYNDP2024Scenarios_Electricity_Flexibility.xlsx",
+            elec_supply=f"{VIS_PLFM_DATASET['folder']}/250117_TYNDP2024Scenarios_Electricity_SupplyMix.xlsx",
         log:
             "logs/retrieve_tyndp_vp_data.log",
         run:
@@ -55,8 +55,8 @@ if (NUC_PROFILES := dataset_version("tyndp_nuclear_profiles"))[
             zip_file=storage(NUC_PROFILES["url"]),
         output:
             dir=directory(NUC_PROFILES["folder"]),
-            nuclear_p_max_pu_2030=f"{NUC_PROFILES["folder"]}/nuclear_p_max_pu_2030.csv",
-            nuclear_p_max_pu_2040=f"{NUC_PROFILES["folder"]}/nuclear_p_max_pu_2040.csv",
+            nuclear_p_max_pu_2030=f"{NUC_PROFILES['folder']}/nuclear_p_max_pu_2030.csv",
+            nuclear_p_max_pu_2040=f"{NUC_PROFILES['folder']}/nuclear_p_max_pu_2040.csv",
         log:
             "logs/retrieve_tyndp_nuclear_profiles.log",
         run:
@@ -120,7 +120,7 @@ rule retrieve_countries_centroids:
 if not "pre-built" in PECD_DATASET["version"]:
 
     def get_pecd_prebuilt_version(increment_minor=True):
-        prebuilt_prefix = f"{PECD_DATASET["version"]}+pre-built."
+        prebuilt_prefix = f"{PECD_DATASET['version']}+pre-built."
         versions = (
             dataset_version("tyndp_pecd", all_versions=True)
             .query("version.str.contains(@prebuilt_prefix, regex=False)")
@@ -142,7 +142,7 @@ if not "pre-built" in PECD_DATASET["version"]:
             pecd_raw=PECD_DATASET["folder"],
         output:
             pecd_prebuilt=directory(
-                f"{PECD_DATASET["folder"]}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
+                f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
             ),
         log:
             "logs/prepare_pecd_release.log",
