@@ -112,16 +112,12 @@ def move_bus_carrier_and_cleanup(
     n.remove("Generator", load_shedding_gens)
 
     # reassign every component attached to the from_carrier buses
-    components = sorted(n.branch_components | n.one_port_components)
-    for cname in components:
-        c = n.c[cname]
+    for c in n.components[sorted(n.branch_components | n.one_port_components)]:
         static = c.static
         if static.empty:
             continue
         for port in c.ports:
             col = f"bus{port}"
-            if col not in static:
-                continue
             mask = static[col].isin(busmap.index)
             if mask.any():
                 static.loc[mask, col] = static.loc[mask, col].map(busmap)
