@@ -470,7 +470,9 @@ def build_method_assignments(
             rows = pd.concat([rows, missing_rows], ignore_index=True)
         assigned.append(rows)
 
-    assigned = pd.concat(assigned, ignore_index=True)
+    assigned = pd.concat(assigned, ignore_index=True).query(
+        "project_id in @projects.project_id"
+    )
     return assigned
 
 
