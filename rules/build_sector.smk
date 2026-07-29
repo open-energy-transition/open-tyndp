@@ -1649,24 +1649,23 @@ def input_pemmdb_data(w):
 def input_gas_network(w):
     inputs = {}
 
-    if config_provider("sector", "gas_network")(w) or config_provider(
-        "sector", "H2_retrofit"
-    )(w):
+    gas_network = config_provider("sector", "gas_network")(w)
+    h2_retrofit = config_provider("sector", "H2_retrofit")(w)
+    imports_enabled = config_provider("sector", "imports", "enable")(w)
+    import_carriers = config_provider("sector", "imports", "carriers")(w)
+    h2_topology_tyndp = config_provider("sector", "h2_topology_tyndp")(w)
+
+    if gas_network or h2_retrofit:
         inputs["clustered_gas_network"] = resources("gas_network_base_s_{clusters}.csv")
 
-    if config_provider("sector", "gas_network")(w) or (
-        config_provider("sector", "imports", "enable")(w)
-        and (
-            "gas" in config_provider("sector", "imports", "carriers")(w)
-            or (
-                "H2" in config_provider("sector", "imports", "carriers")(w)
-                and not config_provider("sector", "h2_topology_tyndp")(w)
-            )
-        )
-    ):
+    gas_imports = "gas" in import_carriers
+    h2_imports_not_tyndp = "H2" in import_carriers and not h2_topology_tyndp
+
+    if gas_network or (imports_enabled and (gas_imports or h2_imports_not_tyndp)):
         inputs["gas_input_nodes_simplified"] = resources(
             "gas_input_locations_s_{clusters}_simplified.csv"
         )
+
     return inputs
 
 
