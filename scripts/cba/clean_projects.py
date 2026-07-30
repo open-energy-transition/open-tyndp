@@ -7,8 +7,9 @@ Extracts and cleans CBA transmission and storage projects from Excel exports.
 Reads transmission projects from the "Trans.Projects" sheet of the CBA projects Excel file.
 For projects with multiple borders (newline-separated in the Excel), the script explodes
 these into separate rows, creating one row per border. Bus codes are extracted from the
-border strings (expected format: "BUS0-BUS1") and projects that don't match this format
-are filtered out with a warning.
+border strings (expected format: "BUS0-BUS1") and rows are filtered out with a warning
+when the format does not match, when either bus is absent from the TYNDP node list, or
+when no capacity is reported in either direction.
 
 Storage project extraction is not yet implemented and returns an empty DataFrame.
 
@@ -16,12 +17,15 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
+- `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
+- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Table of projects as defined in the Implementation Guidelines Appendix B.1
 
 **Outputs**
 
 - `resources/cba/transmission_projects.csv`: Cleaned CSV with columns:
   - `project_id`: Integer project identifier
   - `project_name`: Project name
+  - `is_crossborder`: Whether the project is reported as cross-border
   - `border`: Border string in format "BUS0-BUS1"
   - `p_nom 0->1`: Transfer capacity increase from bus0 to bus1 (MW)
   - `p_nom 1->0`: Transfer capacity increase from bus1 to bus0 (MW)
@@ -32,6 +36,8 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
   - `underwater_fraction`: Fraction of route that is offshore cable
 
 - `resources/cba/storage_projects.csv`: Empty CSV with columns project_id and project_name (stub implementation)
+
+- `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
 
 """
 
@@ -59,21 +65,23 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def read_tyndp_electricity_buses(buses_fn: str):
+def read_tyndp_electricity_buses(buses_fn: str) -> pd.Index:
     """
-    Read node list for electricity from tyndp data input.
+    Read the list of electricity nodes from the TYNDP input data.
 
     Parameters
     ----------
-        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
+    buses_fn : str
+        Path to the list of nodes from the TYNDP bundle.
 
     Returns
     -------
-        - buses: Index of electricity buses as used in Open-TYNDP
+    pd.Index
+        Electricity buses as used in Open-TYNDP.
 
     See Also
     --------
-        build_tyndp_network.py : build_buses
+    build_tyndp_network.build_buses
     """
     buses = pd.Index(
         pd.read_excel(buses_fn)
@@ -90,6 +98,25 @@ def read_tyndp_electricity_buses(buses_fn: str):
 def extract_transmission_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
+    """
+    Read and clean the transmission projects from the "Trans.Projects" sheet.
+
+    Projects reporting several expected capacity increases are exploded into one row per
+    border. Rows are dropped when the border cannot be parsed or when no capacity is
+    reported in either direction.
+
+    Parameters
+    ----------
+    excel_path : Path
+        Path to the Excel export defining the transmission projects.
+    existing_buses : pd.Index
+        Electricity buses as used in Open-TYNDP.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of projects with their detailed characteristics. One row per project and border.
+    """
     projects = (
         pd.read_excel(
             excel_path,
@@ -179,6 +206,16 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     Aggregates investment-level data to the project level by summing route
     lengths and CAPEX, and computing the underwater fraction from offshore
     cable lengths.
+
+    Parameters
+    ----------
+    excel_path : Path
+        Path to the Excel export defining the transmission projects.
+
+    Returns
+    -------
+    pd.DataFrame
+        Route length, CAPEX and underwater fraction per project, indexed by ``project_id``.
     """
     inv = pd.read_excel(
         excel_path,
@@ -237,6 +274,22 @@ def compute_method(flag: str) -> str:
 def build_method_assignments(
     guidelines: pd.DataFrame, projects: pd.DataFrame
 ) -> pd.DataFrame:
+    """
+    Define the assignment method of the project. Can be TOOT (Take-Out One at the Time) or PINT (Put IN at a Time).
+    Leverage the Implementation Guidelines to define the method.
+
+    Parameters
+    ----------
+    guidelines : pd.DataFrame
+        Table of projects as defined in the Implementation Guidelines Appendix B.1.
+    projects: pd.DataFrame
+        List of projects with their detailed characteristics.
+
+    Returns
+    -------
+    pd.DataFrame
+        Table defining the assignment method of each project.
+    """
     guidelines = guidelines.rename(
         columns={
             "ID": "project_id",
