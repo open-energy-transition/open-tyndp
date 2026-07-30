@@ -1363,39 +1363,10 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 
 # TYNDP 2026 data package. Added alongside `retrieve_tyndp` (2024) rather than
 # replacing it. Rules are going to be migrated to it gradually.
-if (TYNDP_2026_DATASET := dataset_version("tyndp", version="2026"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    if not config["tyndp_scenario"]:
-
-        rule retrieve_tyndp_2026:
-            input:
-                line_data=storage(TYNDP_2026_DATASET["url"] + "/inputs/Line-data.zip"),
-                nodes=storage(TYNDP_2026_DATASET["url"] + "/inputs/Nodes.zip"),
-            output:
-                line_data_zip=f"{TYNDP_2026_DATASET['folder']}/Line-data.zip",
-                nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
-                elec_reference_grid=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Electricity.xlsx",
-                nodes=f"{TYNDP_2026_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
-            log:
-                "logs/retrieve_tyndp_2026.log",
-            message:
-                "Retrieving TYNDP 2026 network topology data"
-            run:
-                for key in input.keys():
-                    # Keep zip file
-                    copy2(input[key], output[f"{key}_zip"])
-
-                    # unzip
-                    output_folder = Path(output[f"{key}_zip"]).parent
-                    unpack_archive(output[f"{key}_zip"], output_folder)
-
-                    # Remove __MACOSX directory if it exists
-                    macosx_dir = output_folder / "__MACOSX"
-                    rmtree(macosx_dir, ignore_errors=True)
-
-    else:
+if config["tyndp_scenario"]:
+    if (TYNDP_2026_DATASET := dataset_version("tyndp", version="2026"))[
+        "source"
+    ] in ARCHIVE_SOURCES:
 
         rule retrieve_tyndp_2026:
             input:
