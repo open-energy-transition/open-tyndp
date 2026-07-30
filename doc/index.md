@@ -19,7 +19,7 @@
 
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open TYNDP was successfully benchmarked against TYNDP 2024 (see [results](https://open-tyndp.openenergytransition.org)). The current [development status](#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
+    Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open-TYNDP was successfully benchmarked against TYNDP 2024 (see [results](https://open-tyndp.openenergytransition.org)). The current [development status](#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
 
 
 This repository introduces the open-source model of the Open-TYNDP research and innovation project, which is a collaboration between [Open Energy Transition (OET)](https://openenergytransition.org/) and the European Network of Transmission System Operators for Electricity (ENTSO-E).
