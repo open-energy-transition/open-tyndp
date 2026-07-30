@@ -76,14 +76,14 @@ def expand_nodestr_to_set(nodelist_str: str) -> set[str]:
 # Get nodes running "smk-solv" jobs
 # -----------------------------
 def get_smk_solv_nodes():
-    # Get all running jobs with user info
-    out = cmd(["squeue", "-h", "-o", "%.18i %.30j %.2t %R %.20u"])
+    # Get all running jobs with user info.
+    out = cmd(["squeue", "-h", "-o", "%.18i|%.30j|%.2t|%R|%.20u"])
 
     nodelists = []
     for line in out.splitlines():
-        jobid, name, state, nodelist, job_user = line.split(maxsplit=4)
+        jobid, name, state, nodelist, job_user = line.split("|", 4)
 
-        if state != "R":
+        if state.strip() != "R":
             continue
         if "smk-solv" not in name:
             continue
@@ -123,13 +123,13 @@ def compress_nodelist(nodes):
 def get_queued_jobs(user=None):
     # Get all queued jobs with user info
     if user:
-        out = cmd(["squeue", "-h", "-o", "%.18i %.30j %.2t", "-u", user])
+        out = cmd(["squeue", "-h", "-o", "%.18i|%.30j|%.2t", "-u", user])
     else:
-        out = cmd(["squeue", "-h", "-o", "%.18i %.30j %.2t"])
+        out = cmd(["squeue", "-h", "-o", "%.18i|%.30j|%.2t"])
 
     queued = []
     for line in out.splitlines():
-        jobid, name, state = line.split(maxsplit=3)
+        jobid, name, state = (f.strip() for f in line.split("|", 2))
 
         if state != "PD":
             continue
