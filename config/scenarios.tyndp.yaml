@@ -354,6 +354,8 @@ cba-gurobi-msv1e6-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -408,6 +410,8 @@ cba-gurobi-msv1e6-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -462,6 +466,8 @@ cba-highs-msv1e6-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -516,6 +522,8 @@ cba-highs-msv1e6-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -570,6 +578,8 @@ cba-gurobi-msv1e8-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -624,6 +634,8 @@ cba-gurobi-msv1e8-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -678,6 +690,8 @@ cba-gurobi-msv1e8-rh1e8-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -732,6 +746,8 @@ cba-gurobi-msv1e8-rh1e8-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -786,6 +802,8 @@ cba-highs-msv1e8-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -840,6 +858,8 @@ cba-highs-msv1e8-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -894,6 +914,8 @@ cba-highs-msv1e8-rh1e8-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -948,6 +970,8 @@ cba-highs-msv1e8-rh1e8-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
