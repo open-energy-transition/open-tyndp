@@ -68,6 +68,8 @@ nav:
   - Configuration:
     - Wildcards: wildcards.md
     - Configuration: configuration.md
+  - References:
+    - FAQ: faq.md
 
 - Data Sources:
   - Data Sources: data_sources.md
