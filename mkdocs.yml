@@ -44,7 +44,6 @@ nav:
     - Licenses: licenses.md
     - Limitations: limitations.md
     - Support: support.md
-    - FAQ: faq.md
     - Publications: publications.md
     - Contributors: contributors.md
 
@@ -69,6 +68,8 @@ nav:
   - Configuration:
     - Wildcards: wildcards.md
     - Configuration: configuration.md
+  - References:
+    - FAQ: faq.md
 
 - Data Sources:
   - Data Sources: data_sources.md

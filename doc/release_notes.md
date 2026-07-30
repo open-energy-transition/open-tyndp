@@ -9,6 +9,8 @@
 
 **Features**
 
+* Merge low voltage and market nodes in the CBA ([#722](https://github.com/open-energy-transition/open-tyndp/pull/722)).
+  
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
 **Changes**
@@ -42,6 +44,8 @@
 * Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
 
 * Restore correct assigned countries for virtual TYNDP nodes ([#794](https://github.com/open-energy-transition/open-tyndp/pull/794)).
+
+* Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
 
 * Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
 
@@ -78,6 +82,8 @@
 * Fix quoting patterns for clarity ([#791](https://github.com/open-energy-transition/open-tyndp/pull/791)).
 
 * Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
+
+* Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
 
 
 ## Upcoming PyPSA-Eur Release
