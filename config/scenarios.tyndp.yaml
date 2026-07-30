@@ -354,6 +354,8 @@ cba-gurobi-msv1e6-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -408,6 +410,8 @@ cba-gurobi-msv1e6-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -462,6 +466,8 @@ cba-highs-msv1e6-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -516,6 +522,8 @@ cba-highs-msv1e6-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -553,9 +561,14 @@ cba-gurobi-msv1e8-rh1e6-voll300:
     solver:
       name: gurobi
       options: gurobi-default
+    solver_options:
+      gurobi-default:
+        BarConvTol: 1.0e-06
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06
     partition: big
-    mem_mb: 60000
-    runtime: 12h
+    mem_mb: 45000
+    runtime: 2h
 
   cba:
     projects: [t4, t339, t1207]
@@ -570,9 +583,11 @@ cba-gurobi-msv1e8-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
-        mem_mb: 60000
-        runtime: 12h
+        mem_mb: 45000
+        runtime: 1h
 
     # Rolling horizon solving settings
     solving:
@@ -583,8 +598,8 @@ cba-gurobi-msv1e8-rh1e6-voll300:
           all_carriers: true
           default_cost: 300
       partition: big
-      mem_mb: 60000
-      runtime: 12h
+      mem_mb: 45000
+      runtime: 2h
 
       solver:
         name: gurobi
@@ -624,6 +639,8 @@ cba-gurobi-msv1e8-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -678,6 +695,8 @@ cba-gurobi-msv1e8-rh1e8-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -732,6 +751,8 @@ cba-gurobi-msv1e8-rh1e8-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -786,6 +807,8 @@ cba-highs-msv1e8-rh1e6-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -840,6 +863,8 @@ cba-highs-msv1e8-rh1e6-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -894,6 +919,8 @@ cba-highs-msv1e8-rh1e8-voll300:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -948,6 +975,8 @@ cba-highs-msv1e8-rh1e8-voll500:
         solver_options:
           gurobi-default:
             BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
         partition: big
         mem_mb: 60000
         runtime: 12h
