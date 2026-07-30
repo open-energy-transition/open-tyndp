@@ -70,7 +70,7 @@ Each organisation in this open-source ecosystem remains fully independent of the
 ## Development status {#development-status}
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete and the results can be viewed [online](https://open-tydnp.openenergytransition.org). The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. This [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
+    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete and the results can be viewed [online](https://open-tyndp.openenergytransition.org). The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. This [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
 ### Already implemented features
 
