@@ -9,6 +9,8 @@
 
 **Features**
 
+* Merge low voltage and market nodes in the CBA ([#722](https://github.com/open-energy-transition/open-tyndp/pull/722)).
+  
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
 **Changes**
@@ -77,6 +79,8 @@
 * Fix quoting patterns for clarity ([#791](https://github.com/open-energy-transition/open-tyndp/pull/791)).
 
 * Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
+
+* Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
 
 * Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
 
