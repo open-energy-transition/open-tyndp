@@ -13,7 +13,12 @@
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT
+  - cba-gurobi-msv1e6-rh1e6-voll300-crossover-on
+  - cba-highs-msv1e6-rh1e6-voll300-crossover-on
+  - cba-gurobi-msv1e8-rh1e6-voll300-crossover-on
+  - cba-gurobi-msv1e8-rh1e8-voll300-crossover-on
+  - cba-highs-msv1e8-rh1e6-voll300-crossover-on
+  - cba-highs-msv1e8-rh1e8-voll300-crossover-on
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
