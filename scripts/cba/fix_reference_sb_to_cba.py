@@ -75,7 +75,12 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("fix_reference_sb_to_cba", planning_horizons="2040")
+        snakemake = mock_snakemake(
+            "fix_reference_sb_to_cba",
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
+            planning_horizons="2040",
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
