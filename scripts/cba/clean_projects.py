@@ -419,7 +419,7 @@ def build_method_assignments(
     Returns
     -------
     pd.DataFrame
-        List of the method to apply on projects.
+        DataFrame of projects with the corresponding method to apply.
     """
     guidelines = guidelines.rename(
         columns={

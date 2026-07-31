@@ -80,7 +80,7 @@
 
 * Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
 
-* Refactor `clean_projects` script to reduce the redundancy in its outputs ([#804](https://github.com/open-energy-transition/open-tyndp/issues/804)).
+* Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/issues/807)).
 
 
 ## Upcoming PyPSA-Eur Release

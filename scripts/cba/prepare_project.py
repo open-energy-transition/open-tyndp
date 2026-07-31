@@ -22,9 +22,12 @@ logger = logging.getLogger(__name__)
 
 def check_method(method: str) -> str:
     """
-    Normalize and validate the CBA method name.
+    Normalize and validate a given CBA method name.
 
-    If the method is not recognized as either "pint" or "toot", a ValueError is raised.
+    Raises
+    ------
+    ValueError
+        If the normalized value is neither "pint" nor "toot".
     """
     method = method.lower().strip()
     if method not in ["pint", "toot"]:
