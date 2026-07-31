@@ -38,6 +38,7 @@ nav:
   - Getting Started:
     - Introduction: introduction.md
     - Installation: installation.md
+    - Configuration: configuration.md
     - FAQ and Troubleshooting: faq_troubleshooting.md
   - References:
     - Release Notes: release_notes.md
@@ -67,7 +68,6 @@ nav:
     - Validation: validation.md
   - Configuration:
     - Wildcards: wildcards.md
-    - Configuration: configuration.md
   - References:
     - FAQ: faq.md
 
