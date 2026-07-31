@@ -39,7 +39,6 @@ import logging
 from pathlib import Path
 
 import pandas as pd
-import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -97,6 +96,64 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
 
     return agg
+
+
+def read_tyndp_electricity_buses(
+    buses_fn: str, col: str, virtual_buses: list[str] | None = None
+) -> pd.Index:
+    """
+    Read node list for electricity from tyndp data input.
+
+    Parameters
+    ----------
+        - buses_fn (str): Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
+          or offshore hubs "NODE.xlsx")
+        - col (str): Column which is selected from the dataframe
+        - virtual_buses (list): list of virtual buses to add, not present in
+          the raw node list (e.g. added later in build_tyndp_network.py)
+
+    Returns
+    -------
+        - buses: Index of electricity buses as used in Open-TYNDP
+
+    See Also
+    --------
+        build_tyndp_network.py : build_buses
+        build_tyndp_offshore_hubs.py : load_offshore_hubs
+    """
+    virtual_buses = virtual_buses if virtual_buses is not None else []
+
+    buses = pd.read_excel(buses_fn).replace("UK", "GB", regex=True).set_index(col)
+
+    if "OFFSHORE_NODE_TYPE" in buses.columns:
+        # drop radial offshore nodes, which are not built as hub buses
+        buses = buses[buses.OFFSHORE_NODE_TYPE != "Radial"]
+
+    return buses.index.union(virtual_buses)
+
+
+def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list) -> pd.Index:
+    """
+    Return the electricity bus universe used to validate CBA project borders.
+
+    Offshore hub buses (AC_OH carrier) only get created inside
+    prepare_sector_network.py, so they can't be read off a built network here
+    without depending on the (downstream) SB network and creating a cycle
+    with fix_reference_sb_to_cba's use of clean_projects's own output. They
+    are instead read directly from the raw offshore hub node list, mirroring
+    build_tyndp_offshore_hubs.py's own node filtering.
+    """
+    existing_buses = read_tyndp_electricity_buses(
+        buses_fn, col="NODE", virtual_buses=["ITCO", "ITVI"]
+    )
+
+    if offshore_buses_fn:
+        existing_oh_buses = read_tyndp_electricity_buses(
+            offshore_buses_fn, col="OFFSHORE_NODE"
+        )
+        existing_buses = existing_buses.union(existing_oh_buses)
+
+    return existing_buses
 
 
 def apply_offshore_hub_corrections(
@@ -198,10 +255,9 @@ def extract_transmission_projects(
 
     # Several projects have capacities with "Up to ..."
     cols = ["p_nom 0->1", "p_nom 1->0"]
-    # Several projects have capacities with "Up to ..."
     up_to_projects = set()
     for col in cols:
-        up_to = projects[col].str.startswith("Up to ")
+        up_to = projects[col].str.startswith("Up to ", na=False)
         if up_to.any():
             projects.loc[up_to, col] = projects.loc[up_to, col].str[len("Up to ") :]
             up_to_projects.update(projects.loc[up_to, "project_name"])
@@ -296,6 +352,7 @@ def build_method_assignments(
     return projects.merge(assigned, on="project_id", how="left")
 
 
+# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -308,8 +365,9 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # get existing buses
-    n = pypsa.Network(snakemake.input.network)
-    existing_buses = n.buses[n.buses.carrier.isin(["AC", "AC_OH"])].index
+    existing_buses = get_existing_buses(
+        snakemake.input.buses, snakemake.input.offshore_buses
+    )
 
     excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
     hub_corrections_path = snakemake.input.offshore_hub_corrections

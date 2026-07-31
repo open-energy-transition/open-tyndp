@@ -155,21 +155,11 @@ def input_clustered_network(w):
     return fill_wildcards(rules.cluster_network.output.network, clusters=clusters)
 
 
-def input_sb_network(w, run=None, planning_horizons=None):
-    """
-    Return the path to the SB network used as CBA input.
-
-    `planning_horizons` overrides `w.planning_horizons`, needed for rules
-    (e.g. `clean_projects`) that have no `planning_horizons` wildcard of
-    their own and must pin one explicitly.
-    """
+def input_sb_network(w, run=None):
     scenario = config_provider("scenario")(w)
     (clusters,) = scenario["clusters"]
     (opts,) = scenario["opts"]
     (sector_opts,) = scenario["sector_opts"]
-
-    if planning_horizons is None:
-        planning_horizons = int(w.planning_horizons)
 
     if config_provider("cba", "cba_scenario_input", "use_presolved", default=False)(w):
         scenario_name = config_provider("tyndp_scenario")(w)
@@ -185,7 +175,7 @@ def input_sb_network(w, run=None, planning_horizons=None):
                 "the Zenodo network naming (base_s_all___{planning_horizons}.nc)."
             )
         horizon = _effective_horizon(
-            planning_horizons,
+            int(w.planning_horizons),
             warn_fn=logger.warning,
             msg=(
                 "Pre-solved SB networks are only available for 2030 and 2040. "
@@ -207,7 +197,7 @@ def input_sb_network(w, run=None, planning_horizons=None):
             expanded_wildcards["planning_horizons"] = "all"
         case "myopic":
             expanded_wildcards["planning_horizons"] = _effective_horizon(
-                planning_horizons,
+                int(w.planning_horizons),
                 warn_fn=logger.warning,
                 msg=(
                     "CBA planning horizon %s is not supported for SB inputs. "
@@ -231,9 +221,8 @@ def input_sb_network(w, run=None, planning_horizons=None):
 checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
-        network=lambda w: input_sb_network(
-            w, planning_horizons=config_provider("scenario", "planning_horizons")(w)[0]
-        ),
+        buses=rules.retrieve_tyndp.output.nodes,
+        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
         offshore_hub_corrections="data/cba/offshore_hub_projects_corrections.csv",
     output:
