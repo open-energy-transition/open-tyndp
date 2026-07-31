@@ -9,23 +9,24 @@ and other CBA metrics by analyzing the solved networks for reference and project
 cases.
 
 PINT (Put In at a Time):
-    - Reference: Network WITHOUT any projects
-    - Project: Network WITH the specific project added
-    - B1 = OPEX(reference) - OPEX(with project)
+
+- Reference: Network WITHOUT any projects
+- Project: Network WITH the specific project added
+- B1 = OPEX(reference) - OPEX(with project)
 
 TOOT (Take Out One at a Time):
-    - Reference: Network WITH all projects (current plan)
-    - Project: Network WITHOUT the specific project (removed)
-    - B1 = OPEX(without project) - OPEX(reference)
+
+- Reference: Network WITH all projects (current plan)
+- Project: Network WITHOUT the specific project (removed)
+- B1 = OPEX(without project) - OPEX(reference)
 
 
 References:
-- CBA guidelines: https://eepublicdownloads.blob.core.windows.net/public-cdn-container/clean-documents/news/2024/entso-e_4th_CBA_Guideline_240409.pdf
-    - section 3.2.2: TOOT and PINT, page 23-24
-- CBA implementation guidelines: https://eepublicdownloads.blob.core.windows.net/public-cdn-container/tyndp-documents/TYNDP2024/foropinion/CBA_Implementation_Guidelines.pdf
-    - section 5.1: B1 - SEW, page 58-59
 
-"""
+- [CBA guidelines](https://eepublicdownloads.blob.core.windows.net/public-cdn-container/clean-documents/news/2024/entso-e_4th_CBA_Guideline_240409.pdf), section 3.2.2: TOOT and PINT, page 23-24
+- [CBA implementation guidelines](https://eepublicdownloads.blob.core.windows.net/public-cdn-container/tyndp-documents/TYNDP2024/foropinion/CBA_Implementation_Guidelines.pdf), section 5.1: B1 - SEW, page 58-59
+
+"""  # noqa: D412
 
 import logging
 from pathlib import Path

@@ -9,6 +9,8 @@
 
 **Features**
 
+* Merge low voltage and market nodes in the CBA ([#722](https://github.com/open-energy-transition/open-tyndp/pull/722)).
+  
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
 **Changes**
@@ -31,9 +33,13 @@
 
 * Change dispatch of biomass and biogas generators in CBA by (a) setting the buses' marginal prices as the generators' marginal costs and (b) removing energy budget constraints ([#719](https://github.com/open-energy-transition/open-tyndp/pull/719)).
 
+* Add CBA per horizon summary plots for each indicator benchmarking TYNDP and Open-TYNDP ([#753](https://github.com/open-energy-transition/open-tyndp/pull/753)).
+
 **Bugfixes and Compatibility**
 
 * Fix: split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
+
+* Use `overnight` foresight in MSV network preparation instead of `perfect` ([#813](https://github.com/open-energy-transition/open-tyndp/pull/813)).
   
 * Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
 
@@ -41,6 +47,11 @@
 
 * Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
 
+* Restore correct assigned countries for virtual TYNDP nodes ([#794](https://github.com/open-energy-transition/open-tyndp/pull/794)).
+
+* Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
+
+* Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
 
 **Documentation**
 
@@ -49,6 +60,10 @@
 * Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
 
 * Improve docstring formatting and add missing type hints (https://github.com/open-energy-transition/open-tyndp/pull/759).
+
+* Improve docstring formatting and add missing type hints ([759](https://github.com/open-energy-transition/open-tyndp/pull/759)).
+
+* Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761))
 
 **Developers Note**
 
@@ -66,14 +81,26 @@
 
 * Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
 
-* Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file. 
+* Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file.
+
+* Fix quoting patterns for clarity ([#791](https://github.com/open-energy-transition/open-tyndp/pull/791)).
+
+* Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
+
+* Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
+
+* Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
 
 
 ## Upcoming PyPSA-Eur Release
 
+* fix: update stale contribution docs (linting and formatting ruff)
+
 * feat: data version CSV / YAML file can be specified separately or extended by the user in the `data.version_files` config entry ([#2016](https://github.com/PyPSA/pypsa-eur/issues/2016)).
 
 * Fix: Resolve plotting crashes from missing `tech_colors` entries by adding `heat dsm` color and implementing upfront validation for missing keys in `plot_summary.py` ([#2108](https://github.com/PyPSA/pypsa-eur/issues/2108)).
+
+* Fix: Retry interrupted WDPA and WDPA-marine downloads ([#2138](https://github.com/PyPSA/pypsa-eur/issues/2138)).
 
 * feat: Make the default target rule configurable (defaults to "all" for backwards compatibility)
 
@@ -115,6 +142,12 @@
 - Added solar rooftop ratio setting to `add_existing_baseyear` for heuristically splitting existing solar capacity between rooftop and utility-scale (defaults to a 50:50 split).
 
 - doc: Disable root TOC entries in order to declutter the table of contents for the rules overview ([2216](https://github.com/PyPSA/pypsa-eur/pull/2216)).
+
+* fix: Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([#2224](https://github.com/PyPSA/pypsa-eur/pull/2224)).
+* Add missing regex anchor with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([#2225](https://github.com/PyPSA/pypsa-eur/pull/2225)).
+
+* doc: Add FAQ section to docs (`faq.md`) with troubleshooting for `SSL: CERTIFICATE_VERIFY_FAILED` during data retrieval behind proxy servers ([#2228](https://github.com/PyPSA/pypsa-eur/pull/2228)).
+* Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
 
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)

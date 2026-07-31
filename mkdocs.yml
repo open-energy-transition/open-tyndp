@@ -68,6 +68,8 @@ nav:
   - Configuration:
     - Wildcards: wildcards.md
     - Configuration: configuration.md
+  - References:
+    - FAQ: faq.md
 
 - Data Sources:
   - Data Sources: data_sources.md
@@ -77,6 +79,8 @@ nav:
   - Data Repositories: data-repos.md
 
 - Rules Overview:
+  - Scenario Building: sb_rules.md
+  - Cost-Benefit Analysis: cba_rules.md
   - Retrieving Data: retrieve.md
   - Building Electricity Networks: preparation.md
   - Building Sector-Coupled Networks: sector.md

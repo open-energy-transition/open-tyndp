@@ -182,7 +182,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("collect_indicators")
+        snakemake = mock_snakemake(
+            "average_indicators_per_project_and_planning_horizon"
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
