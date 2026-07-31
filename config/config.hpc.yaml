@@ -40,9 +40,6 @@ cba:
       partition: big
       mem_mb: 45000
       runtime: 2h
-      solver_options:
-        gurobi-default:
-          BarConvTol: 1.0e-06
 
   # Rolling horizon solving settings
   solving:
@@ -55,8 +52,3 @@ cba:
     solver:
       name: highs
       options: highs-simplex
-
-    solver_options:
-      highs-simplex:
-        primal_feasibility_tolerance: 1.0e-06
-        dual_feasibility_tolerance: 1.0e-06
