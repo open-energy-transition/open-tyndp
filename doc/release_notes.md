@@ -35,8 +35,12 @@
 
 * Add CBA per horizon summary plots for each indicator benchmarking TYNDP and Open-TYNDP ([#753](https://github.com/open-energy-transition/open-tyndp/pull/753)).
 
+* Tighten and align solver tolerances across the SB, MSV and RH solves ([#821](https://github.com/open-energy-transition/open-tyndp/pull/821)). Relative to SB, the feasibility tolerance in the MSV and RH solves is relaxed by one order of magnitude to avoid infeasibilities caused by the rounding of constraints introduced during the MSV solve.
+
 **Bugfixes and Compatibility**
 
+* Use `overnight` foresight in MSV network preparation instead of `perfect` ([#813](https://github.com/open-energy-transition/open-tyndp/pull/813)).
+  
 * Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
 
 * Fix CBA workflow to (a) release solver license after each successful rolling horizon optimization or after computing infeasibilities and (b) raise an error if rolling horizon fails when using HiGHS ([#756](https://github.com/open-energy-transition/open-tyndp/pull/756)).
@@ -44,6 +48,10 @@
 * Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
 
 * Restore correct assigned countries for virtual TYNDP nodes ([#794](https://github.com/open-energy-transition/open-tyndp/pull/794)).
+
+* Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
+
+* Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
 
 **Documentation**
 
@@ -80,6 +88,8 @@
 * Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
 
 * Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
+
+* Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820))
 
 * Add rule to sync individual files from remote cluster ([#823](https://github.com/open-energy-transition/open-tyndp/pull/823))
 
