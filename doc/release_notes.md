@@ -53,8 +53,6 @@
 
 * Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
 
-* Apply minor fixes to cba msv rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
-
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
@@ -92,6 +90,8 @@
 * Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
 
 * Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
+
+* Apply minor fixes to CBA MSV rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
 
 
 ## Upcoming PyPSA-Eur Release
