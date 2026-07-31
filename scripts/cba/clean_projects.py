@@ -302,13 +302,16 @@ def split_investment_attributes_per_line(
 
     Parameters
     ----------
-        - investment_attrs (pd.DataFrame): Investment attributes indexed by project_id
-        - transmission_projects (pd.DataFrame): Transmission projects with a project_id column
+    investment_attrs : pd.DataFrame
+        Investment attributes indexed by project_id.
+    transmission_projects : pd.DataFrame
+        Transmission projects with a project_id column.
 
     Returns
     -------
-        - pd.DataFrame: investment_attrs with length_km and capex_meur divided by
-          the number of lines per project
+    pd.DataFrame
+        investment_attrs with length_km and capex_meur divided by the number
+        of lines per project.
     """
     link_counts = transmission_projects.groupby("project_id").size()
     return investment_attrs.assign(
