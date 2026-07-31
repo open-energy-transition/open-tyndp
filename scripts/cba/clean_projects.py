@@ -465,8 +465,8 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    transmission_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
-    storage_path = Path(snakemake.input.dir) / "20250312_export_storage.xlsx"
+    transmission_path = Path(snakemake.input.dir, "20250312_export_transmission.xlsx")
+    storage_path = Path(snakemake.input.dir, "20250312_export_storage.xlsx")
     custom_transmission_path = Path(snakemake.input.custom_transmission)
 
     existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
