@@ -22,25 +22,25 @@ The configuration of an Open-TYNDP run is set from several files. The list below
 hierarchy in which they are applied, from the base defaults up to the most specific overrides,
 with each layer overriding the ones listed before it:
 
-- **`config/config.default.yaml`** — the base defaults, auto-generated from the configuration
-  schema and inherited from PyPSA-Eur. Together with `config/plotting.default.yaml` and
-  `config/benchmarking.default.yaml`, it covers every option that can be set and provides a
-  value for each. These files are maintained in the repository and should not be edited
-  directly.
-- **`config/data.tyndp.yaml`** — an optional data-source layer, loaded on top of the defaults
+- **`config/config.default.yaml`**: The base defaults, auto-generated from the configuration
+  schema, inherited from PyPSA-Eur and extended by new default open-tyndp configuration options.
+  Together with `config/plotting.default.yaml` and `config/benchmarking.default.yaml`, it covers
+  every option that can be set and provides a value for each. These files are maintained in the
+  repository and should not be edited directly.
+- **`config/data.tyndp.yaml`**: An optional data-source layer, loaded on top of the defaults
   when [`data_config: tyndp`](#data_config_cf) is set. It switches the supported datasets to the
   Open-TYNDP archive mirror on Google Cloud Storage (see [Data Sources](sb.md#tyndp_archive)).
-- **`config/config.yaml`** — your own local overrides. This file is not part of the repository
+- **`config/config.yaml`**: A user's local overrides. This file is not part of the repository
   and is not tracked by git, but Snakemake always picks it up if it exists, which makes it a
-  convenient place to keep machine-specific settings without touching the tracked files. You
-  can use `config/config.private.template.yaml` as a starting point.
-- **`config/config.tyndp.yaml`** — the Open-TYNDP run-level configuration. This is the file
+  convenient place to keep machine-specific settings without touching the tracked files.
+  `config/config.private.template.yaml` can be used as a starting point.
+- **`config/config.tyndp.yaml`**: The Open-TYNDP run-level configuration. This is the file
   passed to Snakemake by the `pixi run tyndp-sb` and `pixi run tyndp-cba` entry points via
-  `--configfile`, so it overrides all of the layers above. It activates the TYNDP-specific
-  rules (through [`tyndp_scenario`](#tyndp_scenario_cf)) and sets the model-wide choices shared
-  across scenarios, such as the modelled countries, snapshots, foresight mode, and planning
-  horizons.
-- **`config/scenarios.tyndp.yaml`** — the per-scenario overrides, applied on top of the
+  `--configfile`, so it overrides all of the layers above for the specified configuration options.
+  It activates the TYNDP-specific rules (through [`tyndp_scenario`](#tyndp_scenario_cf)) and sets the model-wide
+  choices shared across scenarios, such as the modelled countries, snapshots, foresight mode, 
+  and planning horizons.
+- **`config/scenarios.tyndp.yaml`**: The per-scenario overrides, applied on top of the
   run-level configuration. `config.tyndp.yaml` points to this file through `run.scenarios.file`
   and switches it on with `run.scenarios.enable: true`. Each named scenario (e.g. `NT`, `DE`,
   `GA`, or a climate-year collection) supplies only the settings that differ from the run-level
@@ -49,12 +49,12 @@ with each layer overriding the ones listed before it:
   [Cost-Benefit Analysis](cba.md#running-single-vs-multiple-climate-years) for how each
   workflow uses these scenarios.
 
-Any option you set in a higher layer overrides the value from the layers below it, while
-options you leave unset are inherited from the defaults. To try out a change you therefore only
-need to specify the handful of options that differ — everything else falls back to
+Any option a user sets in a higher layer overrides the value from the layers below it, while
+options that are left unset are inherited from the defaults. To try out a change a user therefore only
+need to specify the handful of options that differ while everything else falls back to
 `config.tyndp.yaml` and the defaults.
 
-Beyond these files, you are free to add configuration files of your own, e.g. `my_config.yaml`,
+Beyond these files, users are free to add configuration files of their own, e.g. `my_config.yaml`,
 and pass them explicitly to Snakemake:
 
 ```console
@@ -83,10 +83,10 @@ with `--configfile`, it takes precedence over `config/config.yaml`; to override 
 
 ## `version` {#version_cf}
 
-Version of PyPSA-Eur. Descriptive only.
+Version of Open-TYNDP. Descriptive only.
 
 - **Type:** string
-- **Default:** `v2026.02.0`
+- **Default:** `v0.7.1`
 
 **YAML Syntax**
 
@@ -145,7 +145,7 @@ investment changes as more ambitious greenhouse-gas emission reduction targets a
 
 The `run` section is used for running and storing scenarios with different configurations which are not covered by [wildcards](#wildcards).
 It determines the path at which resources, networks and results are stored.
-Therefore the user can run different configurations within the same directory.
+Therefore, the user can run different configurations within the same directory.
 
 Configuration for top level `run` settings.
 
