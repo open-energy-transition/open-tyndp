@@ -394,6 +394,36 @@ def build_method_assignments(
     return projects.merge(assigned, on="project_id", how="left")
 
 
+def split_investment_attributes_per_line(
+    investment_attrs: pd.DataFrame, transmission_projects: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Split investment costs and length evenly across transmission lines.
+
+    Investment costs and length are given per project and not per
+    transmission line, therefore these attributes need to be split before
+    merging.
+
+    Parameters
+    ----------
+    investment_attrs : pd.DataFrame
+        Investment attributes indexed by project_id.
+    transmission_projects : pd.DataFrame
+        Transmission projects with a project_id column.
+
+    Returns
+    -------
+    pd.DataFrame
+        investment_attrs with length_km and capex_meur divided by the number
+        of lines per project.
+    """
+    link_counts = transmission_projects.groupby("project_id").size()
+    return investment_attrs.assign(
+        length_km=lambda d: d.length_km / d.index.map(link_counts).fillna(1),
+        capex_meur=lambda d: d.capex_meur / d.index.map(link_counts).fillna(1),
+    )
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -418,8 +448,13 @@ if __name__ == "__main__":
     )
 
     investment_attrs = extract_investment_attributes(excel_path)
+
+    investment_attrs_per_line = split_investment_attributes_per_line(
+        investment_attrs, transmission_projects
+    )
+
     transmission_projects = transmission_projects.merge(
-        investment_attrs, on="project_id", how="left"
+        investment_attrs_per_line, on="project_id", how="left"
     )
 
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
