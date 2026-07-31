@@ -382,62 +382,6 @@ cba-gurobi-msv1e6-rh1e6-voll300:
           OptimalityTol: 1.0e-06
 
 
-cba-gurobi-msv1e6-rh1e6-voll500:
-  clustering:
-    temporal:
-      resolution_sector: 1H
-
-  solving:
-    options:
-      assign_all_duals: true
-    solver:
-      name: gurobi
-      options: gurobi-default
-    partition: big
-    mem_mb: 60000
-    runtime: 12h
-
-  cba:
-    projects: [t4, t339, t1207]
-
-    msv_extraction:
-      solving:
-        options:
-          include_objective_constant: false
-        solver:
-          name: gurobi
-          options: gurobi-default
-        solver_options:
-          gurobi-default:
-            BarConvTol: 1.0e-06
-            FeasibilityTol: 1.0e-05
-            OptimalityTol: 1.0e-06
-        partition: big
-        mem_mb: 60000
-        runtime: 12h
-
-    # Rolling horizon solving settings
-    solving:
-      options:
-        include_objective_constant: false
-        load_shedding:
-          enable: true
-          all_carriers: true
-          default_cost: 500
-      partition: big
-      mem_mb: 60000
-      runtime: 12h
-
-      solver:
-        name: gurobi
-        options: gurobi-simplex
-
-      solver_options:
-        gurobi-simplex:
-          FeasibilityTol: 1.0e-06
-          OptimalityTol: 1.0e-06
-
-
 cba-highs-msv1e6-rh1e6-voll300:
   clustering:
     temporal:
@@ -480,62 +424,6 @@ cba-highs-msv1e6-rh1e6-voll300:
           enable: true
           all_carriers: true
           default_cost: 300
-      partition: big
-      mem_mb: 60000
-      runtime: 12h
-
-      solver:
-        name: highs
-        options: highs-simplex
-
-      solver_options:
-        highs-simplex:
-          primal_feasibility_tolerance: 1.0e-06
-          dual_feasibility_tolerance: 1.0e-06
-
-
-cba-highs-msv1e6-rh1e6-voll500:
-  clustering:
-    temporal:
-      resolution_sector: 1H
-
-  solving:
-    options:
-      assign_all_duals: true
-    solver:
-      name: gurobi
-      options: gurobi-default
-    partition: big
-    mem_mb: 60000
-    runtime: 12h
-
-  cba:
-    projects: [t4, t339, t1207]
-
-    msv_extraction:
-      solving:
-        options:
-          include_objective_constant: false
-        solver:
-          name: gurobi
-          options: gurobi-default
-        solver_options:
-          gurobi-default:
-            BarConvTol: 1.0e-06
-            FeasibilityTol: 1.0e-05
-            OptimalityTol: 1.0e-06
-        partition: big
-        mem_mb: 60000
-        runtime: 12h
-
-    # Rolling horizon solving settings
-    solving:
-      options:
-        include_objective_constant: false
-        load_shedding:
-          enable: true
-          all_carriers: true
-          default_cost: 500
       partition: big
       mem_mb: 60000
       runtime: 12h
@@ -611,62 +499,6 @@ cba-gurobi-msv1e8-rh1e6-voll300:
           OptimalityTol: 1.0e-06
 
 
-cba-gurobi-msv1e8-rh1e6-voll500:
-  clustering:
-    temporal:
-      resolution_sector: 1H
-
-  solving:
-    options:
-      assign_all_duals: true
-    solver:
-      name: gurobi
-      options: gurobi-default
-    partition: big
-    mem_mb: 60000
-    runtime: 12h
-
-  cba:
-    projects: [t4, t339, t1207]
-
-    msv_extraction:
-      solving:
-        options:
-          include_objective_constant: false
-        solver:
-          name: gurobi
-          options: gurobi-default
-        solver_options:
-          gurobi-default:
-            BarConvTol: 1.0e-08
-            FeasibilityTol: 1.0e-05
-            OptimalityTol: 1.0e-08
-        partition: big
-        mem_mb: 60000
-        runtime: 12h
-
-    # Rolling horizon solving settings
-    solving:
-      options:
-        include_objective_constant: false
-        load_shedding:
-          enable: true
-          all_carriers: true
-          default_cost: 500
-      partition: big
-      mem_mb: 60000
-      runtime: 12h
-
-      solver:
-        name: gurobi
-        options: gurobi-simplex
-
-      solver_options:
-        gurobi-simplex:
-          FeasibilityTol: 1.0e-06
-          OptimalityTol: 1.0e-06
-
-
 cba-gurobi-msv1e8-rh1e8-voll300:
   clustering:
     temporal:
@@ -709,62 +541,6 @@ cba-gurobi-msv1e8-rh1e8-voll300:
           enable: true
           all_carriers: true
           default_cost: 300
-      partition: big
-      mem_mb: 60000
-      runtime: 12h
-
-      solver:
-        name: gurobi
-        options: gurobi-simplex
-
-      solver_options:
-        gurobi-simplex:
-          FeasibilityTol: 1.0e-08
-          OptimalityTol: 1.0e-08
-
-
-cba-gurobi-msv1e8-rh1e8-voll500:
-  clustering:
-    temporal:
-      resolution_sector: 1H
-
-  solving:
-    options:
-      assign_all_duals: true
-    solver:
-      name: gurobi
-      options: gurobi-default
-    partition: big
-    mem_mb: 60000
-    runtime: 12h
-
-  cba:
-    projects: [t4, t339, t1207]
-
-    msv_extraction:
-      solving:
-        options:
-          include_objective_constant: false
-        solver:
-          name: gurobi
-          options: gurobi-default
-        solver_options:
-          gurobi-default:
-            BarConvTol: 1.0e-08
-            FeasibilityTol: 1.0e-05
-            OptimalityTol: 1.0e-08
-        partition: big
-        mem_mb: 60000
-        runtime: 12h
-
-    # Rolling horizon solving settings
-    solving:
-      options:
-        include_objective_constant: false
-        load_shedding:
-          enable: true
-          all_carriers: true
-          default_cost: 500
       partition: big
       mem_mb: 60000
       runtime: 12h
@@ -835,62 +611,6 @@ cba-highs-msv1e8-rh1e6-voll300:
           dual_feasibility_tolerance: 1.0e-06
 
 
-cba-highs-msv1e8-rh1e6-voll500:
-  clustering:
-    temporal:
-      resolution_sector: 1H
-
-  solving:
-    options:
-      assign_all_duals: true
-    solver:
-      name: gurobi
-      options: gurobi-default
-    partition: big
-    mem_mb: 60000
-    runtime: 12h
-
-  cba:
-    projects: [t4, t339, t1207]
-
-    msv_extraction:
-      solving:
-        options:
-          include_objective_constant: false
-        solver:
-          name: gurobi
-          options: gurobi-default
-        solver_options:
-          gurobi-default:
-            BarConvTol: 1.0e-08
-            FeasibilityTol: 1.0e-05
-            OptimalityTol: 1.0e-08
-        partition: big
-        mem_mb: 60000
-        runtime: 12h
-
-    # Rolling horizon solving settings
-    solving:
-      options:
-        include_objective_constant: false
-        load_shedding:
-          enable: true
-          all_carriers: true
-          default_cost: 500
-      partition: big
-      mem_mb: 60000
-      runtime: 12h
-
-      solver:
-        name: highs
-        options: highs-simplex
-
-      solver_options:
-        highs-simplex:
-          primal_feasibility_tolerance: 1.0e-06
-          dual_feasibility_tolerance: 1.0e-06
-
-
 cba-highs-msv1e8-rh1e8-voll300:
   clustering:
     temporal:
@@ -946,8 +666,186 @@ cba-highs-msv1e8-rh1e8-voll300:
           primal_feasibility_tolerance: 1.0e-08
           dual_feasibility_tolerance: 1.0e-08
 
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-cba-highs-msv1e8-rh1e8-voll500:
+
+cba-gurobi-msv1e6-rh1e6-voll300-crossover-on:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
+  cba:
+    projects: [t4, t339, t1207]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
+            crossover: 1
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-06
+          OptimalityTol: 1.0e-06
+
+
+cba-highs-msv1e6-rh1e6-voll300-crossover-on:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
+  cba:
+    projects: [t4, t339, t1207]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-06
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-06
+            crossover: 1
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+
+
+cba-gurobi-msv1e8-rh1e6-voll300-crossover-on:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    solver_options:
+      gurobi-default:
+        BarConvTol: 1.0e-06
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06
+    partition: big
+    mem_mb: 45000
+    runtime: 2h
+
+  cba:
+    projects: [t4, t339, t1207]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
+            crossover: 1
+        partition: big
+        mem_mb: 45000
+        runtime: 1h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 45000
+      runtime: 2h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-06
+          OptimalityTol: 1.0e-06
+
+
+cba-gurobi-msv1e8-rh1e8-voll300-crossover-on:
   clustering:
     temporal:
       resolution_sector: 1H
@@ -977,6 +875,7 @@ cba-highs-msv1e8-rh1e8-voll500:
             BarConvTol: 1.0e-08
             FeasibilityTol: 1.0e-05
             OptimalityTol: 1.0e-08
+            crossover: 1
         partition: big
         mem_mb: 60000
         runtime: 12h
@@ -988,7 +887,121 @@ cba-highs-msv1e8-rh1e8-voll500:
         load_shedding:
           enable: true
           all_carriers: true
-          default_cost: 500
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: gurobi
+        options: gurobi-simplex
+
+      solver_options:
+        gurobi-simplex:
+          FeasibilityTol: 1.0e-08
+          OptimalityTol: 1.0e-08
+
+
+cba-highs-msv1e8-rh1e6-voll300-crossover-on:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
+  cba:
+    projects: [t4, t339, t1207]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
+            crossover: 1
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+      partition: big
+      mem_mb: 60000
+      runtime: 12h
+
+      solver:
+        name: highs
+        options: highs-simplex
+
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+
+
+cba-highs-msv1e8-rh1e8-voll300-crossover-on:
+  clustering:
+    temporal:
+      resolution_sector: 1H
+
+  solving:
+    options:
+      assign_all_duals: true
+    solver:
+      name: gurobi
+      options: gurobi-default
+    partition: big
+    mem_mb: 60000
+    runtime: 12h
+
+  cba:
+    projects: [t4, t339, t1207]
+
+    msv_extraction:
+      solving:
+        options:
+          include_objective_constant: false
+        solver:
+          name: gurobi
+          options: gurobi-default
+        solver_options:
+          gurobi-default:
+            BarConvTol: 1.0e-08
+            FeasibilityTol: 1.0e-05
+            OptimalityTol: 1.0e-08
+            crossover: 1
+        partition: big
+        mem_mb: 60000
+        runtime: 12h
+
+    # Rolling horizon solving settings
+    solving:
+      options:
+        include_objective_constant: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
       partition: big
       mem_mb: 60000
       runtime: 12h
