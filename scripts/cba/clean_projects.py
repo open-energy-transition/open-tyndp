@@ -16,6 +16,10 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
+- `data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx`: TYNDP electricity node list, used (together with `ITCO`/`ITVI` virtual nodes and the offshore hub node list) to validate that project borders reference existing buses
+- `data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx`: TYNDP offshore hub node list, unioned into the existing bus list; offshore hub (`AC_OH`) buses are only created later during sector network preparation, so they aren't available from any network at this point in the workflow
+- `data/cba_guidelines_reference_projects/.../table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: CBA guidelines reference table, used to assign the TOOT/PINT method per project and planning horizon
+- `data/cba/offshore_hub_projects_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for offshore hub projects, applied in place of the corresponding raw Excel entries
 
 **Outputs**
 
