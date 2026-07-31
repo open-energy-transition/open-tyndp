@@ -384,6 +384,7 @@ solving:
     highs-default:
       primal_feasibility_tolerance: 1.0e-06
       dual_feasibility_tolerance: 1.0e-06
+      ipm_optimality_tolerance: 1.0e-06
     gurobi-default:
       BarConvTol: 1.0e-06
       FeasibilityTol: 1.0e-06
@@ -502,7 +503,6 @@ cba:
         parallel: "off" # does not speed up solution
         primal_feasibility_tolerance: 1.0e-06
         dual_feasibility_tolerance: 1.0e-06
-      gurobi-default:
-        BarConvTol: 1.0e-06
-        FeasibilityTol: 1.0e-05
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
         OptimalityTol: 1.0e-06
