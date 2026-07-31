@@ -1393,7 +1393,7 @@ def constrain_dsr_daily_dispatch(n: pypsa.Network, snapshots: pd.DatetimeIndex) 
     )
 
     # calculate weighted daily energy
-    daily_energy = (p * weightings).groupby(day).sum(dim="snapshot")
+    daily_energy = (p * weightings).groupby(day).sum()
 
     # calculate daily energy limit using p_nom and pemmdb_hours
     rhs = xr.DataArray(
