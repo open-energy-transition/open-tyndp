@@ -7,8 +7,9 @@ Extracts and cleans CBA transmission and storage projects from Excel exports.
 Reads transmission projects from the "Trans.Projects" sheet of the CBA projects Excel file.
 For projects with multiple borders (newline-separated in the Excel), the script explodes
 these into separate rows, creating one row per border. Bus codes are extracted from the
-border strings (expected format: "BUS0-BUS1") and projects that don't match this format
-are filtered out with a warning.
+border strings (expected format: "BUS0-BUS1") and rows are filtered out with a warning
+when the format does not match, when either bus is absent from the TYNDP node list, or
+when no capacity is reported in either direction.
 
 Storage project extraction is not yet implemented and returns an empty DataFrame.
 
@@ -209,6 +210,17 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     Aggregates investment-level data to the project level by summing route
     lengths and CAPEX, and computing the underwater fraction from offshore
     cable lengths.
+
+    Parameters
+    ----------
+    excel_path : Path
+       Path to the Excel export defining the transmission projects and their investment attributes.
+
+    Returns
+    -------
+    pd.DataFrame
+       Route length, CAPEX and underwater fraction per project, indexed by ``project_id``.
+
     """
     inv = pd.read_excel(
         excel_path,
@@ -372,14 +384,22 @@ def read_tyndp_electricity_buses(
 
 def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list) -> pd.Index:
     """
-    Return the electricity bus universe used to validate CBA project borders.
+    Return the electricity buses used to validate CBA project borders.
+    Combines onshore buses with offshore hub buses, if provided, into a
+    single index of existing bus names.
 
-    Offshore hub buses (AC_OH carrier) only get created inside
-    prepare_sector_network.py, so they can't be read off a built network here
-    without depending on the (downstream) SB network and creating a cycle
-    with fix_reference_sb_to_cba's use of clean_projects's own output. They
-    are instead read directly from the raw offshore hub node list, mirroring
-    build_tyndp_offshore_hubs.py's own node filtering.
+    Parameters
+    ----------
+    buses_fn : str
+        Path to the file defining TYNDP electricity buses.
+    offshore_buses_fn : str | list
+        Path(s) to the file(s) defining offshore hub buses. If falsy, only
+        onshore buses are returned.
+
+    Returns
+    -------
+    pd.Index
+        Existing bus names, combining onshore and offshore buses.
     """
     existing_buses = read_tyndp_electricity_buses(
         buses_fn, col="NODE", virtual_buses=["ITCO", "ITVI"]
