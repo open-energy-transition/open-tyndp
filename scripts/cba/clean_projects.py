@@ -16,8 +16,8 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
-- `data/tyndp_2024_bundle/Nodes/LIST OF NODES.xlsx`: TYNDP electricity node list, used (together with `ITCO`/`ITVI` virtual nodes and the offshore hub node list) to validate that project borders reference existing buses
-- `data/tyndp_2024_bundle/Offshore hubs/NODE.xlsx`: TYNDP offshore hub node list, unioned into the existing bus list; offshore hub (`AC_OH`) buses are only created later during sector network preparation, so they aren't available from any network at this point in the workflow
+- `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
+- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Table of projects as defined in the Implementation Guidelines Appendix B.1
 - `data/cba_guidelines_reference_projects/.../table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: CBA guidelines reference table, used to assign the TOOT/PINT method per project and planning horizon
 - `data/cba/offshore_hub_projects_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for offshore hub projects, applied in place of the corresponding raw Excel entries
 
@@ -26,6 +26,7 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 - `resources/cba/transmission_projects.csv`: Cleaned CSV with columns:
   - `project_id`: Integer project identifier
   - `project_name`: Project name
+  - `is_crossborder`: Whether the project is reported as cross-border
   - `border`: Border string in format "BUS0-BUS1"
   - `p_nom 0->1`: Transfer capacity increase from bus0 to bus1 (MW)
   - `p_nom 1->0`: Transfer capacity increase from bus1 to bus0 (MW)
@@ -36,6 +37,8 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
   - `underwater_fraction`: Fraction of route that is offshore cable
 
 - `resources/cba/storage_projects.csv`: Empty CSV with columns project_id and project_name (stub implementation)
+
+- `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
 
 """
 
@@ -189,6 +192,25 @@ def apply_offshore_hub_corrections(
 def extract_transmission_projects(
     excel_path: Path, hub_corrections_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
+    """
+    Read and clean the transmission projects from the "Trans.Projects" sheet.
+
+    Projects reporting several expected capacity increases are exploded into one row per
+    border. Rows are dropped when the border cannot be parsed or when no capacity is
+    reported in either direction.
+
+    Parameters
+    ----------
+    excel_path : Path
+        Path to the Excel export defining the transmission projects.
+    existing_buses : pd.Index
+        Electricity buses as used in Open-TYNDP.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of projects with their detailed characteristics. One row per project and border.
+    """
     projects = (
         pd.read_excel(
             excel_path,
@@ -303,6 +325,22 @@ def compute_method(flag: str) -> str:
 def build_method_assignments(
     guidelines: pd.DataFrame, projects: pd.DataFrame
 ) -> pd.DataFrame:
+    """
+    Define the assignment method of the project. Can be TOOT (Take Out One at a Time) or PINT (Put IN one at a Time).
+    Leverage the Implementation Guidelines to define the method.
+
+    Parameters
+    ----------
+    guidelines : pd.DataFrame
+        Table of projects as defined in the Implementation Guidelines Appendix B.1.
+    projects: pd.DataFrame
+        List of projects with their detailed characteristics.
+
+    Returns
+    -------
+    pd.DataFrame
+        Table defining the assignment method of each project.
+    """
     guidelines = guidelines.rename(
         columns={
             "ID": "project_id",
