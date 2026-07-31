@@ -66,103 +66,6 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
-    """
-    Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
-
-    Aggregates investment-level data to the project level by summing route
-    lengths and CAPEX, and computing the underwater fraction from offshore
-    cable lengths.
-    """
-    inv = pd.read_excel(
-        excel_path,
-        sheet_name="Trans.Investments",
-        skiprows=1,
-        usecols=[
-            "This investment belongs to project number…",
-            "Total route length (km)",
-            "Estimated CAPEX (MEUR)",
-            "Type of Element",
-        ],
-    ).rename(
-        columns={
-            "This investment belongs to project number…": "project_id",
-            "Total route length (km)": "length_km",
-            "Estimated CAPEX (MEUR)": "capex_meur",
-            "Type of Element": "element_type",
-        }
-    )
-
-    is_offshore = inv["element_type"].isin(OFFSHORE_ELEMENT_TYPES)
-
-    agg = inv.groupby("project_id").agg(
-        length_km=("length_km", "sum"),
-        capex_meur=("capex_meur", "sum"),
-    )
-    offshore_km = inv.loc[is_offshore].groupby("project_id")["length_km"].sum()
-    agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
-
-    return agg
-
-
-def read_tyndp_electricity_buses(
-    buses_fn: str, col: str, virtual_buses: list[str] | None = None
-) -> pd.Index:
-    """
-    Read node list for electricity from tyndp data input.
-
-    Parameters
-    ----------
-        - buses_fn (str): Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
-          or offshore hubs "NODE.xlsx")
-        - col (str): Column which is selected from the dataframe
-        - virtual_buses (list): list of virtual buses to add, not present in
-          the raw node list (e.g. added later in build_tyndp_network.py)
-
-    Returns
-    -------
-        - buses: Index of electricity buses as used in Open-TYNDP
-
-    See Also
-    --------
-        build_tyndp_network.py : build_buses
-        build_tyndp_offshore_hubs.py : load_offshore_hubs
-    """
-    virtual_buses = virtual_buses if virtual_buses is not None else []
-
-    buses = pd.read_excel(buses_fn).replace("UK", "GB", regex=True).set_index(col)
-
-    if "OFFSHORE_NODE_TYPE" in buses.columns:
-        # drop radial offshore nodes, which are not built as hub buses
-        buses = buses[buses.OFFSHORE_NODE_TYPE != "Radial"]
-
-    return buses.index.union(virtual_buses)
-
-
-def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list) -> pd.Index:
-    """
-    Return the electricity bus universe used to validate CBA project borders.
-
-    Offshore hub buses (AC_OH carrier) only get created inside
-    prepare_sector_network.py, so they can't be read off a built network here
-    without depending on the (downstream) SB network and creating a cycle
-    with fix_reference_sb_to_cba's use of clean_projects's own output. They
-    are instead read directly from the raw offshore hub node list, mirroring
-    build_tyndp_offshore_hubs.py's own node filtering.
-    """
-    existing_buses = read_tyndp_electricity_buses(
-        buses_fn, col="NODE", virtual_buses=["ITCO", "ITVI"]
-    )
-
-    if offshore_buses_fn:
-        existing_oh_buses = read_tyndp_electricity_buses(
-            offshore_buses_fn, col="OFFSHORE_NODE"
-        )
-        existing_buses = existing_buses.union(existing_oh_buses)
-
-    return existing_buses
-
-
 def apply_offshore_hub_corrections(
     hub_corrections_path: Path, projects: pd.DataFrame
 ) -> pd.DataFrame:
@@ -299,6 +202,45 @@ def extract_transmission_projects(
     return projects
 
 
+def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
+    """
+    Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
+
+    Aggregates investment-level data to the project level by summing route
+    lengths and CAPEX, and computing the underwater fraction from offshore
+    cable lengths.
+    """
+    inv = pd.read_excel(
+        excel_path,
+        sheet_name="Trans.Investments",
+        skiprows=1,
+        usecols=[
+            "This investment belongs to project number…",
+            "Total route length (km)",
+            "Estimated CAPEX (MEUR)",
+            "Type of Element",
+        ],
+    ).rename(
+        columns={
+            "This investment belongs to project number…": "project_id",
+            "Total route length (km)": "length_km",
+            "Estimated CAPEX (MEUR)": "capex_meur",
+            "Type of Element": "element_type",
+        }
+    )
+
+    is_offshore = inv["element_type"].isin(OFFSHORE_ELEMENT_TYPES)
+
+    agg = inv.groupby("project_id").agg(
+        length_km=("length_km", "sum"),
+        capex_meur=("capex_meur", "sum"),
+    )
+    offshore_km = inv.loc[is_offshore].groupby("project_id")["length_km"].sum()
+    agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
+
+    return agg
+
+
 def extract_storage_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -392,6 +334,64 @@ def build_method_assignments(
 
     assigned = pd.concat(assigned, ignore_index=True)
     return projects.merge(assigned, on="project_id", how="left")
+
+
+def read_tyndp_electricity_buses(
+    buses_fn: str, col: str, virtual_buses: list[str] | None = None
+) -> pd.Index:
+    """
+    Read node list for electricity from tyndp data input.
+
+    Parameters
+    ----------
+        - buses_fn (str): Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
+          or offshore hubs "NODE.xlsx")
+        - col (str): Column which is selected from the dataframe
+        - virtual_buses (list): list of virtual buses to add, not present in
+          the raw node list (e.g. added later in build_tyndp_network.py)
+
+    Returns
+    -------
+        - buses: Index of electricity buses as used in Open-TYNDP
+
+    See Also
+    --------
+        build_tyndp_network.py : build_buses
+        build_tyndp_offshore_hubs.py : load_offshore_hubs
+    """
+    virtual_buses = virtual_buses if virtual_buses is not None else []
+
+    buses = pd.read_excel(buses_fn).replace("UK", "GB", regex=True).set_index(col)
+
+    if "OFFSHORE_NODE_TYPE" in buses.columns:
+        # drop radial offshore nodes, which are not built as hub buses
+        buses = buses[buses.OFFSHORE_NODE_TYPE != "Radial"]
+
+    return buses.index.union(virtual_buses)
+
+
+def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list) -> pd.Index:
+    """
+    Return the electricity bus universe used to validate CBA project borders.
+
+    Offshore hub buses (AC_OH carrier) only get created inside
+    prepare_sector_network.py, so they can't be read off a built network here
+    without depending on the (downstream) SB network and creating a cycle
+    with fix_reference_sb_to_cba's use of clean_projects's own output. They
+    are instead read directly from the raw offshore hub node list, mirroring
+    build_tyndp_offshore_hubs.py's own node filtering.
+    """
+    existing_buses = read_tyndp_electricity_buses(
+        buses_fn, col="NODE", virtual_buses=["ITCO", "ITVI"]
+    )
+
+    if offshore_buses_fn:
+        existing_oh_buses = read_tyndp_electricity_buses(
+            offshore_buses_fn, col="OFFSHORE_NODE"
+        )
+        existing_buses = existing_buses.union(existing_oh_buses)
+
+    return existing_buses
 
 
 def split_investment_attributes_per_line(
