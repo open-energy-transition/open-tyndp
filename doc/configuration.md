@@ -55,10 +55,10 @@ need to specify the handful of options that differ while everything else falls b
 `config.tyndp.yaml` and the defaults.
 
 Beyond these files, users are free to add configuration files of their own, e.g. `my_config.yaml`,
-and pass them explicitly to Snakemake:
+and pass them explicitly to Snakemake stacked on top of `config.tyndp.yaml`:
 
 ```console
-$ snakemake -call --configfile my_config.yaml
+$ snakemake -call --configfile config/config.tyndp.yaml config/my_config.yaml
 ```
 
 Taking all of this together, the order of precedence (highest first) is as follows:
