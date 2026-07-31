@@ -525,3 +525,34 @@ rule sync_file_dry:
         printf '%s\\n' {params.files} \
           | rsync -uvarh --no-g --files-from=- {params.cluster}/ . -n
         """
+
+
+def remote_sync_files():
+    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
+    rdir = get_rdir(run)
+    return [
+        f"{d}/{rdir.replace('{run}', n)}{f}"
+        for d, files in config["remote"]["sync_file"].items()
+        for n in names
+        for f in files
+    ]
+
+
+rule sync_file:
+    params:
+        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        files=remote_sync_files(),
+    shell:
+        """
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ .
+        """
+
+
+rule sync_file_dry:
+    params:
+        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        files=remote_sync_files(),
+    shell:
+        """
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ . -n
+        """
