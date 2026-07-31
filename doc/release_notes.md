@@ -35,6 +35,8 @@
 
 * Add CBA per horizon summary plots for each indicator benchmarking TYNDP and Open-TYNDP ([#753](https://github.com/open-energy-transition/open-tyndp/pull/753)).
 
+* Tighten and align solver tolerances across the SB, MSV and RH solves ([#821](https://github.com/open-energy-transition/open-tyndp/pull/821)). Relative to SB, the feasibility tolerance in the MSV and RH solves is relaxed by one order of magnitude to avoid infeasibilities caused by the rounding of constraints introduced during the MSV solve.
+
 **Bugfixes and Compatibility**
 
 * Use `overnight` foresight in MSV network preparation instead of `perfect` ([#813](https://github.com/open-energy-transition/open-tyndp/pull/813)).
