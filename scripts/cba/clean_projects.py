@@ -210,7 +210,7 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     Parameters
     ----------
     excel_path : Path
-        Path to the Excel export defining the transmission projects.
+        Path to the Excel export defining the transmission projects and their investment attributes.
 
     Returns
     -------
@@ -275,7 +275,7 @@ def build_method_assignments(
     guidelines: pd.DataFrame, projects: pd.DataFrame
 ) -> pd.DataFrame:
     """
-    Define the assignment method of the project. Can be TOOT (Take-Out One at the Time) or PINT (Put IN at a Time).
+    Define the assignment method of the project. Can be TOOT (Take Out One at a Time) or PINT (Put IN one at a Time).
     Leverage the Implementation Guidelines to define the method.
 
     Parameters
