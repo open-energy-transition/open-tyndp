@@ -325,7 +325,7 @@ def overwrite_projects(
     projects: pd.DataFrame, custom_projects: pd.DataFrame
 ) -> pd.DataFrame:
     """
-    Apply custom project modifications to the list of projects.
+    Apply custom project modifications to a list of projects.
 
     Parameters
     ----------
