@@ -75,6 +75,34 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
+def read_tyndp_electricity_buses(buses_fn: str):
+    """
+    Read node list for electricity from tyndp data input.
+
+    Parameters
+    ----------
+        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
+
+    Returns
+    -------
+        - buses: Index of electricity buses as used in Open-TYNDP
+
+    See Also
+    --------
+        build_tyndp_network.py : build_buses
+    """
+    buses = pd.Index(
+        pd.read_excel(buses_fn)
+        .replace("UK", "GB", regex=True)
+        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
+    )
+
+    # Manually add Italian virtual nodes and Corsica
+    buses = buses.union(["ITCO", "ITVI", "FR15"])
+
+    return buses
+
+
 def remove_unclear_border(
     projects: pd.DataFrame, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -332,6 +360,36 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     return agg
 
 
+def split_investment_attributes_per_line(
+    investment_attrs: pd.DataFrame, transmission_projects: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Split investment costs and length evenly across transmission lines.
+
+    Investment costs and length are given per project and not per
+    transmission line, therefore these attributes need to be split before
+    merging.
+
+    Parameters
+    ----------
+    investment_attrs : pd.DataFrame
+        Investment attributes indexed by project_id.
+    transmission_projects : pd.DataFrame
+        Transmission projects with a project_id column.
+
+    Returns
+    -------
+    pd.DataFrame
+        investment_attrs with length_km and capex_meur divided by the number
+        of lines per project.
+    """
+    link_counts = transmission_projects.groupby("project_id").size()
+    return investment_attrs.assign(
+        length_km=lambda d: d.length_km / d.index.map(link_counts).fillna(1),
+        capex_meur=lambda d: d.capex_meur / d.index.map(link_counts).fillna(1),
+    )
+
+
 def extract_storage_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -506,64 +564,6 @@ def overwrite_projects(
         projects = pd.concat([projects, custom_projects.loc[new_projects]])
 
     return projects.reset_index()
-
-
-def read_tyndp_electricity_buses(buses_fn: str):
-    """
-    Read node list for electricity from tyndp data input.
-
-    Parameters
-    ----------
-        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
-
-    Returns
-    -------
-        - buses: Index of electricity buses as used in Open-TYNDP
-
-    See Also
-    --------
-        build_tyndp_network.py : build_buses
-    """
-    buses = pd.Index(
-        pd.read_excel(buses_fn)
-        .replace("UK", "GB", regex=True)
-        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
-    )
-
-    # Manually add Italian virtual nodes and Corsica
-    buses = buses.union(["ITCO", "ITVI", "FR15"])
-
-    return buses
-
-
-def split_investment_attributes_per_line(
-    investment_attrs: pd.DataFrame, transmission_projects: pd.DataFrame
-) -> pd.DataFrame:
-    """
-    Split investment costs and length evenly across transmission lines.
-
-    Investment costs and length are given per project and not per
-    transmission line, therefore these attributes need to be split before
-    merging.
-
-    Parameters
-    ----------
-    investment_attrs : pd.DataFrame
-        Investment attributes indexed by project_id.
-    transmission_projects : pd.DataFrame
-        Transmission projects with a project_id column.
-
-    Returns
-    -------
-    pd.DataFrame
-        investment_attrs with length_km and capex_meur divided by the number
-        of lines per project.
-    """
-    link_counts = transmission_projects.groupby("project_id").size()
-    return investment_attrs.assign(
-        length_km=lambda d: d.length_km / d.index.map(link_counts).fillna(1),
-        capex_meur=lambda d: d.capex_meur / d.index.map(link_counts).fillna(1),
-    )
 
 
 if __name__ == "__main__":
