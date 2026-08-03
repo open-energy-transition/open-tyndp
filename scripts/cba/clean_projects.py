@@ -117,9 +117,6 @@ def remove_unclear_border(
     pd.DataFrame
         Curated list of projects that only use existing buses.
     """
-    if projects.empty:
-        return projects
-
     unclear_border = ~(
         projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
     )
@@ -150,9 +147,6 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         Curated list of projects with a defined capacity
     """
-    if projects.empty:
-        return projects
-
     empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
     if empty_capacity.sum() > 0:
         logger.warning(
@@ -275,9 +269,36 @@ def extract_custom_transmission_projects(
         .drop(["source", "further description"], axis=1, errors="ignore")
     )
 
+    # Remove unclear borders
     custom_transmission_projects = remove_unclear_border(
         custom_transmission_projects, existing_buses
     )
+
+    # Remove projects without capacity
+    custom_transmission_projects = remove_no_capacity(custom_transmission_projects)
+
+    # Remove projects without project_id
+    mask_null = custom_transmission_projects.project_id.notnull()
+    null_projects = custom_transmission_projects[~mask_null]
+    if not null_projects.empty:
+        logger.warning(
+            f"Some custom projects have no project_id (mandatory field), ignoring them:\n{null_projects.to_string(index=False)}"
+        )
+    custom_transmission_projects = custom_transmission_projects[mask_null]
+    custom_transmission_projects["project_id"] = custom_transmission_projects[
+        "project_id"
+    ].astype(int)
+
+    # Remove projects with two identical buses
+    mask_dup_buses = (
+        custom_transmission_projects.bus0 != custom_transmission_projects.bus1
+    )
+    dup_projects = custom_transmission_projects[~mask_dup_buses]
+    if not dup_projects.empty:
+        logger.warning(
+            f"Some custom projects have identical bus0 and bus1, ignoring them:\n{dup_projects.to_string(index=False)}"
+        )
+    custom_transmission_projects = custom_transmission_projects[mask_dup_buses]
 
     return custom_transmission_projects
 
@@ -432,13 +453,6 @@ def overwrite_projects(
         return projects
 
     idx = ["project_id", "bus0", "bus1"]
-    custom_isnull = custom_projects[idx].isnull().any(axis=1)
-    if custom_isnull.any():
-        malformed = custom_projects.loc[custom_isnull, idx].to_string(index=False)
-        raise ValueError(
-            f"Custom projects must define project_id, bus0 and bus1, but the "
-            f"following rows have missing values:\n{malformed}"
-        )
 
     mask_pint = custom_projects["project_id"].isin(
         methods.query("method=='PINT'").project_id
@@ -455,6 +469,7 @@ def overwrite_projects(
         custom_projects = custom_projects.set_index(
             idx, verify_integrity=True
         ).sort_index()
+        projects = projects.set_index(idx, verify_integrity=True).sort_index()
     except ValueError:
         malformed = custom_projects.loc[
             custom_projects[idx].duplicated(), idx
@@ -463,7 +478,6 @@ def overwrite_projects(
             f"Custom projects must define unique set of project_id, bus0 and bus1, but the "
             f"following rows have duplicated keys:\n{malformed}"
         )
-    projects = projects.set_index(idx).sort_index()
 
     # Identify existing and new projects
     new_projects = custom_projects.index.difference(projects.index)
