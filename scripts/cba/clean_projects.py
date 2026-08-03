@@ -321,86 +321,6 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
     return agg
 
 
-def overwrite_projects(
-    projects: pd.DataFrame, custom_projects: pd.DataFrame, methods: pd.DataFrame
-) -> pd.DataFrame:
-    """
-    Apply custom PINT project modifications to a list of projects.
-
-    Parameters
-    ----------
-    projects : pd.DataFrame
-        Base list of projects.
-    custom_projects : pd.DataFrame
-        Custom project modifications.
-    methods : pd.DataFrame
-        DataFrame of projects with the corresponding method to apply.
-
-    Returns
-    -------
-    pd.DataFrame
-        Updated list of projects with custom project modifications applied (if applicable).
-    """
-
-    # Validate inputs
-    if custom_projects.empty:
-        return projects
-
-    idx = ["project_id", "bus0", "bus1"]
-    custom_isnull = custom_projects[idx].isnull().any(axis=1)
-    if custom_isnull.any():
-        malformed = custom_projects.loc[custom_isnull, idx].to_string(index=False)
-        raise ValueError(
-            f"Custom projects must define project_id, bus0 and bus1, but the "
-            f"following rows have missing values:\n{malformed}"
-        )
-
-    mask_pint = custom_projects["project_id"].isin(
-        methods.query("method=='PINT'").project_id
-    )
-    custom_toot = custom_projects[~mask_pint]
-    custom_projects = custom_projects[mask_pint]
-    if not custom_toot.empty:
-        logger.warning(
-            f"Custom projects must refer to PINT projects. The following rows are ignored "
-            f"because they refer to TOOT projects:\n{custom_toot[idx].to_string(index=False)}"
-        )
-
-    try:
-        custom_projects = custom_projects.set_index(
-            idx, verify_integrity=True
-        ).sort_index()
-    except ValueError:
-        malformed = custom_projects.loc[
-            custom_projects[idx].duplicated(), idx
-        ].to_string(index=False)
-        raise ValueError(
-            f"Custom projects must define unique set of project_id, bus0 and bus1, but the "
-            f"following rows have duplicated keys:\n{malformed}"
-        )
-    projects = projects.set_index(idx).sort_index()
-
-    # Identify existing and new projects
-    new_projects = custom_projects.index.difference(projects.index)
-    existing_projects = custom_projects.index.intersection(projects.index)
-
-    # Fill missing values with existing projects
-    custom_projects = custom_projects.reindex(columns=projects.columns).fillna(projects)
-    custom_projects["is_crossborder"] = (
-        custom_projects["is_crossborder"].fillna(True).astype(bool)
-    )
-    custom_projects = custom_projects.fillna(0).infer_objects(copy=False)
-
-    # Overwrite unique pairs of (project_id, bus0, bus1)
-    projects.loc[existing_projects] = custom_projects.loc[existing_projects]
-
-    # Add projects that don't already exist
-    if len(new_projects) > 0:
-        projects = pd.concat([projects, custom_projects.loc[new_projects]])
-
-    return projects.reset_index()
-
-
 def extract_storage_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -484,6 +404,86 @@ def build_method_assignments(
     return projects.merge(
         assigned, on="project_id", how="outer"
     )  # Improved by https://github.com/open-energy-transition/open-tyndp/pull/807
+
+
+def overwrite_projects(
+    projects: pd.DataFrame, custom_projects: pd.DataFrame, methods: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Apply custom PINT project modifications to a list of projects.
+
+    Parameters
+    ----------
+    projects : pd.DataFrame
+        Base list of projects.
+    custom_projects : pd.DataFrame
+        Custom project modifications.
+    methods : pd.DataFrame
+        DataFrame of projects with the corresponding method to apply.
+
+    Returns
+    -------
+    pd.DataFrame
+        Updated list of projects with custom project modifications applied (if applicable).
+    """
+
+    # Validate inputs
+    if custom_projects.empty:
+        return projects
+
+    idx = ["project_id", "bus0", "bus1"]
+    custom_isnull = custom_projects[idx].isnull().any(axis=1)
+    if custom_isnull.any():
+        malformed = custom_projects.loc[custom_isnull, idx].to_string(index=False)
+        raise ValueError(
+            f"Custom projects must define project_id, bus0 and bus1, but the "
+            f"following rows have missing values:\n{malformed}"
+        )
+
+    mask_pint = custom_projects["project_id"].isin(
+        methods.query("method=='PINT'").project_id
+    )
+    custom_toot = custom_projects[~mask_pint]
+    custom_projects = custom_projects[mask_pint]
+    if not custom_toot.empty:
+        logger.warning(
+            f"Custom projects must refer to PINT projects. The following rows are ignored "
+            f"because they refer to TOOT projects:\n{custom_toot[idx].to_string(index=False)}"
+        )
+
+    try:
+        custom_projects = custom_projects.set_index(
+            idx, verify_integrity=True
+        ).sort_index()
+    except ValueError:
+        malformed = custom_projects.loc[
+            custom_projects[idx].duplicated(), idx
+        ].to_string(index=False)
+        raise ValueError(
+            f"Custom projects must define unique set of project_id, bus0 and bus1, but the "
+            f"following rows have duplicated keys:\n{malformed}"
+        )
+    projects = projects.set_index(idx).sort_index()
+
+    # Identify existing and new projects
+    new_projects = custom_projects.index.difference(projects.index)
+    existing_projects = custom_projects.index.intersection(projects.index)
+
+    # Fill missing values with existing projects
+    custom_projects = custom_projects.reindex(columns=projects.columns).fillna(projects)
+    custom_projects["is_crossborder"] = (
+        custom_projects["is_crossborder"].fillna(True).astype(bool)
+    )
+    custom_projects = custom_projects.fillna(0).infer_objects(copy=False)
+
+    # Overwrite unique pairs of (project_id, bus0, bus1)
+    projects.loc[existing_projects] = custom_projects.loc[existing_projects]
+
+    # Add projects that don't already exist
+    if len(new_projects) > 0:
+        projects = pd.concat([projects, custom_projects.loc[new_projects]])
+
+    return projects.reset_index()
 
 
 if __name__ == "__main__":
