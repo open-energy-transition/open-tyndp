@@ -380,6 +380,15 @@ solving:
   solver:  # Use commercial solver for high resolution results in SB
     name: highs
     options: highs-default
+  solver_options:
+    highs-default:
+      primal_feasibility_tolerance: 1.0e-06
+      dual_feasibility_tolerance: 1.0e-06
+      ipm_optimality_tolerance: 1.0e-06
+    gurobi-default:
+      BarConvTol: 1.0e-06
+      FeasibilityTol: 1.0e-06
+      OptimalityTol: 1.0e-06
 
 data:
   version_files:
@@ -430,9 +439,6 @@ cba:
   cba_scenario_input:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
-  methods:
-  - toot
-  - pint
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
@@ -468,6 +474,14 @@ cba:
       solver:
         name: highs
         options: highs-simplex
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+        gurobi-default:
+          BarConvTol: 1.0e-06
+          FeasibilityTol: 1.0e-05
+          OptimalityTol: 1.0e-06
 
   # Rolling horizon solving settings
   solving:
@@ -487,3 +501,8 @@ cba:
     solver_options:
       highs-simplex:
         parallel: "off" # does not speed up solution
+        primal_feasibility_tolerance: 1.0e-06
+        dual_feasibility_tolerance: 1.0e-06
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06

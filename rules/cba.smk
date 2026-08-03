@@ -365,7 +365,12 @@ rule solve_cba_msv_extraction:
         python=RESULTS + "logs/cba/msv/{planning_horizons}_python.log",
     benchmark:
         RESULTS + "benchmarks/performances/cba/msv/{planning_horizons}"
-    threads: solver_threads
+    threads: msv_solver_threads
+    resources:
+        mem_mb=config_provider("cba", "msv_extraction", "solving", "mem_mb"),
+        runtime=config_provider(
+            "cba", "msv_extraction", "solving", "runtime", default="12h"
+        ),
     params:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "msv_extraction", "solving"),
