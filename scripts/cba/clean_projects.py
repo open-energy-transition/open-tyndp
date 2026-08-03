@@ -322,10 +322,10 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
 
 
 def overwrite_projects(
-    projects: pd.DataFrame, custom_projects: pd.DataFrame
+    projects: pd.DataFrame, custom_projects: pd.DataFrame, methods: pd.DataFrame
 ) -> pd.DataFrame:
     """
-    Apply custom project modifications to a list of projects.
+    Apply custom PINT project modifications to a list of projects.
 
     Parameters
     ----------
@@ -333,6 +333,8 @@ def overwrite_projects(
         Base list of projects.
     custom_projects : pd.DataFrame
         Custom project modifications.
+    methods : pd.DataFrame
+        DataFrame of projects with the corresponding method to apply.
 
     Returns
     -------
@@ -351,6 +353,17 @@ def overwrite_projects(
         raise ValueError(
             f"Custom projects must define project_id, bus0 and bus1, but the "
             f"following rows have missing values:\n{malformed}"
+        )
+
+    mask_pint = custom_projects["project_id"].isin(
+        methods.query("method=='PINT'").project_id
+    )
+    custom_toot = custom_projects[~mask_pint]
+    custom_projects = custom_projects[mask_pint]
+    if not custom_toot.empty:
+        logger.warning(
+            f"Custom projects must refer to PINT projects. The following rows are ignored "
+            f"because they refer to TOOT projects:\n{custom_toot[idx].to_string(index=False)}"
         )
 
     try:
@@ -412,9 +425,11 @@ def compute_method(flag: str) -> str:
 
 
 def build_method_assignments(
-    guidelines: pd.DataFrame, projects: pd.DataFrame
+    guidelines_fn: pd.DataFrame,
+    projects: pd.DataFrame,
+    custom_transmission_projects: pd.DataFrame,
 ) -> pd.DataFrame:
-    guidelines = guidelines.rename(
+    guidelines = pd.read_csv(guidelines_fn).rename(
         columns={
             "ID": "project_id",
             "Project_name": "project_name",
@@ -436,7 +451,9 @@ def build_method_assignments(
         in_ref_2040=("in_ref_2040", lambda s: "yes" if (s == "yes").any() else "no"),
     )
 
-    all_project_ids = projects["project_id"].unique()
+    all_project_ids = set(projects["project_id"]).union(
+        set(custom_transmission_projects["project_id"])
+    )
     assigned = []
     for horizon, col in [(2030, "in_ref_2030"), (2040, "in_ref_2040")]:
         rows = agg[["project_id", "in_ref_2030", "in_ref_2040"]].copy()
@@ -449,7 +466,7 @@ def build_method_assignments(
             }
         )
 
-        missing_ids = set(all_project_ids) - set(rows["project_id"])
+        missing_ids = all_project_ids - set(rows["project_id"])
         if missing_ids:
             missing_rows = pd.DataFrame(
                 {
@@ -464,7 +481,9 @@ def build_method_assignments(
         assigned.append(rows)
 
     assigned = pd.concat(assigned, ignore_index=True)
-    return projects.merge(assigned, on="project_id", how="left")
+    return projects.merge(
+        assigned, on="project_id", how="outer"
+    )  # Improved by https://github.com/open-energy-transition/open-tyndp/pull/807
 
 
 if __name__ == "__main__":
@@ -497,18 +516,22 @@ if __name__ == "__main__":
         investment_attrs, on="project_id", how="left"
     )
 
+    # Storage projects
+    storage_projects = extract_storage_projects(storage_path, existing_buses)
+
+    # Method definition (PINT / TOOT)
+    methods = build_method_assignments(
+        snakemake.input.guidelines, transmission_projects, custom_transmission_projects
+    )
+
+    # Apply custom projects
     transmission_projects = overwrite_projects(
-        transmission_projects, custom_transmission_projects
+        transmission_projects, custom_transmission_projects, methods
     )
 
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
-    # Storage projects
-    storage_projects = extract_storage_projects(storage_path, existing_buses)
     # TODO Add overwrite_projects for storages
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
-    # Method definition (PINT / TOOT)
-    guidelines = pd.read_csv(snakemake.input.guidelines)
-    methods = build_method_assignments(guidelines, transmission_projects)
     methods.to_csv(snakemake.output.methods, index=False)
