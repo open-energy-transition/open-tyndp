@@ -71,34 +71,6 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def read_tyndp_electricity_buses(buses_fn: str):
-    """
-    Read node list for electricity from tyndp data input.
-
-    Parameters
-    ----------
-        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
-
-    Returns
-    -------
-        - buses: Index of electricity buses as used in Open-TYNDP
-
-    See Also
-    --------
-        build_tyndp_network.py : build_buses
-    """
-    buses = pd.Index(
-        pd.read_excel(buses_fn)
-        .replace("UK", "GB", regex=True)
-        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
-    )
-
-    # Manually add Italian virtual nodes and Corsica
-    buses = buses.union(["ITCO", "ITVI", "FR15"])
-
-    return buses
-
-
 def remove_unclear_border(
     projects: pd.DataFrame, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -498,6 +470,34 @@ def overwrite_projects(
         projects = pd.concat([projects, custom_projects.loc[new_projects]])
 
     return projects.reset_index()
+
+
+def read_tyndp_electricity_buses(buses_fn: str):
+    """
+    Read node list for electricity from tyndp data input.
+
+    Parameters
+    ----------
+        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
+
+    Returns
+    -------
+        - buses: Index of electricity buses as used in Open-TYNDP
+
+    See Also
+    --------
+        build_tyndp_network.py : build_buses
+    """
+    buses = pd.Index(
+        pd.read_excel(buses_fn)
+        .replace("UK", "GB", regex=True)
+        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
+    )
+
+    # Manually add Italian virtual nodes and Corsica
+    buses = buses.union(["ITCO", "ITVI", "FR15"])
+
+    return buses
 
 
 if __name__ == "__main__":
