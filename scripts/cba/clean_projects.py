@@ -75,21 +75,23 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def read_tyndp_electricity_buses(buses_fn: str):
+def read_tyndp_electricity_buses(buses_fn: str) -> pd.Index:
     """
     Read node list for electricity from tyndp data input.
 
     Parameters
     ----------
-        - buses_fn (str): Path to "LIST OF NODES.xlsx" from tyndp bundle
+    buses_fn : str
+        Path to "LIST OF NODES.xlsx" from the TYNDP bundle.
 
     Returns
     -------
-        - buses: Index of electricity buses as used in Open-TYNDP
+    pd.Index
+        Index of electricity buses as used in Open-TYNDP.
 
     See Also
     --------
-        build_tyndp_network.py : build_buses
+    build_tyndp_network.build_buses
     """
     buses = pd.Index(
         pd.read_excel(buses_fn)
@@ -424,7 +426,7 @@ def build_method_assignments(
 
     Parameters
     ----------
-    guidelines : str
+    guidelines_fn : str
         Path to the table of projects as defined in the Implementation Guidelines Appendix B.1.
     projects: pd.DataFrame
         List of projects with their detailed characteristics.
