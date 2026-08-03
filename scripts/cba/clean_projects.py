@@ -339,6 +339,8 @@ def overwrite_projects(
     pd.DataFrame
         Updated list of projects with custom project modifications applied (if applicable).
     """
+
+    # Validate inputs
     if custom_projects.empty:
         return projects
 
@@ -351,7 +353,18 @@ def overwrite_projects(
             f"following rows have missing values:\n{malformed}"
         )
 
-    custom_projects = custom_projects.set_index(idx, verify_integrity=True).sort_index()
+    try:
+        custom_projects = custom_projects.set_index(
+            idx, verify_integrity=True
+        ).sort_index()
+    except ValueError:
+        malformed = custom_projects.loc[
+            custom_projects[idx].duplicated(), idx
+        ].to_string(index=False)
+        raise ValueError(
+            f"Custom projects must define unique set of project_id, bus0 and bus1, but the "
+            f"following rows have duplicated keys:\n{malformed}"
+        )
     projects = projects.set_index(idx).sort_index()
 
     # Identify existing and new projects
