@@ -268,8 +268,8 @@ def extract_custom_transmission_projects(
     custom_transmission_projects = (
         pd.read_csv(
             custom_transmission_path,
-            true_values=["TRUE", "True", "true", "1"],
-            false_values=["FALSE", "False", "false", "0"],
+            true_values=["TRUE", "True", "true"],
+            false_values=["FALSE", "False", "false"],
         )
         .assign(border=lambda df: df.bus0 + "-" + df.bus1)
         .drop(["source", "further description"], axis=1, errors="ignore")
