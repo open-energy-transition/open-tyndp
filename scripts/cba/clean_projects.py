@@ -12,10 +12,10 @@ are filtered out with a warning.
 
 Storage project extraction is not yet implemented and returns an empty DataFrame.
 
-Custom transmission projects can be configured using `data/custom_cba_transmission_projects.csv`. With it,
-the user can modify existing projects and add new ones.
+Custom PINT transmission projects can be configured using `data/custom_cba_transmission_projects.csv`. With it,
+the user can modify existing projects and add new ones. Transmission capacities are in MW.
 
-- Using an existing combination (`project_id`, `bus0`, `bus1`), the user can overwrite any
+- Using an existing PINT combination (`project_id`, `bus0`, `bus1`), the user can overwrite any
 field of an existing project with a custom value. Not all fields need to be specified; leaving
 a field empty keeps its existing value.
 
