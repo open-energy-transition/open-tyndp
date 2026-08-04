@@ -105,6 +105,7 @@
 
 * Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
+* Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820))
 
 ## Upcoming PyPSA-Eur Release
 
