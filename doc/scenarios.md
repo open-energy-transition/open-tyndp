@@ -87,7 +87,7 @@ to form the two deviation scenarios are defined in `config/scenarios.tyndp.yaml`
 | `solving` | Solver selection and option set (uses HiGHS by default). |
 | `plotting` | Thresholds, map projection, balance map settings and factors. |
 | `benchmarking` | Enables benchmarking. |
-| `cba` | Cost-benefit analysis settings (hurdle costs, horizons, methods, projects, solver options). |
+| `cba` | Cost-benefit analysis settings (hurdle costs, horizons, projects, solver options). |
 
 The base config is `config.tyndp.yaml`. The scenario file `scenarios.tyndp.yaml` defines per-scenario override blocks (e.g., NT, DE, GA).
 When a scenario is selected, its keys are merged onto the base config: matching keys override the base values,
