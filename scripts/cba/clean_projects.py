@@ -7,8 +7,9 @@ Extracts and cleans CBA transmission and storage projects from Excel exports.
 Reads transmission projects from the "Trans.Projects" sheet of the CBA projects Excel file.
 For projects with multiple borders (newline-separated in the Excel), the script explodes
 these into separate rows, creating one row per border. Bus codes are extracted from the
-border strings (expected format: "BUS0-BUS1") and projects that don't match this format
-are filtered out with a warning.
+border strings (expected format: "BUS0-BUS1") and rows are filtered out with a warning
+when the format does not match, when either bus is absent from the TYNDP node list, or
+when no capacity is reported in either direction.
 
 Storage project extraction is not yet implemented and returns an empty DataFrame.
 
@@ -16,12 +17,15 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
+- `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
+- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Table of projects as defined in the Implementation Guidelines Appendix B.1
 
 **Outputs**
 
 - `resources/cba/transmission_projects.csv`: Cleaned CSV with columns:
   - `project_id`: Integer project identifier
   - `project_name`: Project name
+  - `is_crossborder`: Whether the project is reported as cross-border
   - `border`: Border string in format "BUS0-BUS1"
   - `p_nom 0->1`: Transfer capacity increase from bus0 to bus1 (MW)
   - `p_nom 1->0`: Transfer capacity increase from bus1 to bus0 (MW)
@@ -32,6 +36,8 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
   - `underwater_fraction`: Fraction of route that is offshore cable
 
 - `resources/cba/storage_projects.csv`: Empty CSV with columns project_id and project_name (stub implementation)
+
+- `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
 
 """
 
@@ -59,48 +65,28 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
-    """
-    Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
-
-    Aggregates investment-level data to the project level by summing route
-    lengths and CAPEX, and computing the underwater fraction from offshore
-    cable lengths.
-    """
-    inv = pd.read_excel(
-        excel_path,
-        sheet_name="Trans.Investments",
-        skiprows=1,
-        usecols=[
-            "This investment belongs to project number…",
-            "Total route length (km)",
-            "Estimated CAPEX (MEUR)",
-            "Type of Element",
-        ],
-    ).rename(
-        columns={
-            "This investment belongs to project number…": "project_id",
-            "Total route length (km)": "length_km",
-            "Estimated CAPEX (MEUR)": "capex_meur",
-            "Type of Element": "element_type",
-        }
-    )
-
-    is_offshore = inv["element_type"].isin(OFFSHORE_ELEMENT_TYPES)
-
-    agg = inv.groupby("project_id").agg(
-        length_km=("length_km", "sum"),
-        capex_meur=("capex_meur", "sum"),
-    )
-    offshore_km = inv.loc[is_offshore].groupby("project_id")["length_km"].sum()
-    agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
-
-    return agg
-
-
 def extract_transmission_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
+    """
+    Read and clean the transmission projects from the "Trans.Projects" sheet.
+
+    Projects reporting several expected capacity increases are exploded into one row per
+    border. Rows are dropped when the border cannot be parsed or when no capacity is
+    reported in either direction.
+
+    Parameters
+    ----------
+    excel_path : Path
+        Path to the Excel export defining the transmission projects.
+    existing_buses : pd.Index
+        Electricity buses as used in Open-TYNDP.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of projects with their detailed characteristics. One row per project and border.
+    """
     projects = (
         pd.read_excel(
             excel_path,
@@ -183,6 +169,55 @@ def extract_transmission_projects(
     return projects
 
 
+def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
+    """
+    Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
+
+    Aggregates investment-level data to the project level by summing route
+    lengths and CAPEX, and computing the underwater fraction from offshore
+    cable lengths.
+
+    Parameters
+    ----------
+    excel_path : Path
+        Path to the Excel export defining the transmission projects and their investment attributes.
+
+    Returns
+    -------
+    pd.DataFrame
+        Route length, CAPEX and underwater fraction per project, indexed by ``project_id``.
+    """
+    inv = pd.read_excel(
+        excel_path,
+        sheet_name="Trans.Investments",
+        skiprows=1,
+        usecols=[
+            "This investment belongs to project number…",
+            "Total route length (km)",
+            "Estimated CAPEX (MEUR)",
+            "Type of Element",
+        ],
+    ).rename(
+        columns={
+            "This investment belongs to project number…": "project_id",
+            "Total route length (km)": "length_km",
+            "Estimated CAPEX (MEUR)": "capex_meur",
+            "Type of Element": "element_type",
+        }
+    )
+
+    is_offshore = inv["element_type"].isin(OFFSHORE_ELEMENT_TYPES)
+
+    agg = inv.groupby("project_id").agg(
+        length_km=("length_km", "sum"),
+        capex_meur=("capex_meur", "sum"),
+    )
+    offshore_km = inv.loc[is_offshore].groupby("project_id")["length_km"].sum()
+    agg["underwater_fraction"] = (offshore_km / agg["length_km"]).fillna(0).round(3)
+
+    return agg
+
+
 def extract_storage_projects(
     excel_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
@@ -209,6 +244,22 @@ def compute_method(flag: str) -> str:
 def build_method_assignments(
     guidelines: pd.DataFrame, projects: pd.DataFrame
 ) -> pd.DataFrame:
+    """
+    Define the assignment method of the project. Can be TOOT (Take Out One at a Time) or PINT (Put IN one at a Time).
+    Leverage the Implementation Guidelines to define the method.
+
+    Parameters
+    ----------
+    guidelines : pd.DataFrame
+        Table of projects as defined in the Implementation Guidelines Appendix B.1.
+    projects: pd.DataFrame
+        List of projects with their detailed characteristics.
+
+    Returns
+    -------
+    pd.DataFrame
+        Table defining the assignment method of each project.
+    """
     guidelines = guidelines.rename(
         columns={
             "ID": "project_id",
@@ -290,6 +341,36 @@ def read_tyndp_electricity_buses(buses_fn: str):
     return buses
 
 
+def split_investment_attributes_per_line(
+    investment_attrs: pd.DataFrame, transmission_projects: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Split investment costs and length evenly across transmission lines.
+
+    Investment costs and length are given per project and not per
+    transmission line, therefore these attributes need to be split before
+    merging.
+
+    Parameters
+    ----------
+    investment_attrs : pd.DataFrame
+        Investment attributes indexed by project_id.
+    transmission_projects : pd.DataFrame
+        Transmission projects with a project_id column.
+
+    Returns
+    -------
+    pd.DataFrame
+        investment_attrs with length_km and capex_meur divided by the number
+        of lines per project.
+    """
+    link_counts = transmission_projects.groupby("project_id").size()
+    return investment_attrs.assign(
+        length_km=lambda d: d.length_km / d.index.map(link_counts).fillna(1),
+        capex_meur=lambda d: d.capex_meur / d.index.map(link_counts).fillna(1),
+    )
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -308,8 +389,13 @@ if __name__ == "__main__":
     transmission_projects = extract_transmission_projects(excel_path, existing_buses)
 
     investment_attrs = extract_investment_attributes(excel_path)
+
+    investment_attrs_per_line = split_investment_attributes_per_line(
+        investment_attrs, transmission_projects
+    )
+
     transmission_projects = transmission_projects.merge(
-        investment_attrs, on="project_id", how="left"
+        investment_attrs_per_line, on="project_id", how="left"
     )
 
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)

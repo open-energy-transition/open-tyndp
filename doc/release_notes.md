@@ -37,7 +37,13 @@
 
 * Tighten and align solver tolerances across the SB, MSV and RH solves ([#821](https://github.com/open-energy-transition/open-tyndp/pull/821)). Relative to SB, the feasibility tolerance in the MSV and RH solves is relaxed by one order of magnitude to avoid infeasibilities caused by the rounding of constraints introduced during the MSV solve.
 
+* Add benchmarks for CBA workflow rules and restructure CBA outputs to better mirror SB outputs ([#809](https://github.com/open-energy-transition/open-tyndp/pull/809)).
+
+* Add a configurable default cost for load shedding (VOLL) for CBA (for both MSV and RH), set to 300 EUR/MWh in the config, and change the default run option in the config to "NT" instead of "all" ([#831](https://github.com/open-energy-transition/open-tyndp/pull/831)).
+
 **Bugfixes and Compatibility**
+
+* Fix: split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
 
 * Use `overnight` foresight in MSV network preparation instead of `perfect` ([#813](https://github.com/open-energy-transition/open-tyndp/pull/813)).
   
@@ -89,6 +95,10 @@
 
 * Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
 
+* Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
+
+* Apply minor fixes to CBA MSV rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
+
 * Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820))
 
 * Add rule to sync individual files from remote cluster ([#823](https://github.com/open-energy-transition/open-tyndp/pull/823))
@@ -97,9 +107,13 @@
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
+
 * feat: data version CSV / YAML file can be specified separately or extended by the user in the `data.version_files` config entry ([#2016](https://github.com/PyPSA/pypsa-eur/issues/2016)).
+
 * Fix: Resolve plotting crashes from missing `tech_colors` entries by adding `heat dsm` color and implementing upfront validation for missing keys in `plot_summary.py` ([#2108](https://github.com/PyPSA/pypsa-eur/issues/2108)).
+
 * Fix: Retry interrupted WDPA and WDPA-marine downloads ([#2138](https://github.com/PyPSA/pypsa-eur/issues/2138)).
+
 * feat: Make the default target rule configurable (defaults to "all" for backwards compatibility)
 
 * Fix: Keep unset `p_set` (NaN) as NaN when aggregating components in `cluster_heat_buses`, required for [PyPSA#1703](https://github.com/PyPSA/PyPSA/pull/1703).

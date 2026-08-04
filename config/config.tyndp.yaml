@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -384,6 +384,7 @@ solving:
     highs-default:
       primal_feasibility_tolerance: 1.0e-06
       dual_feasibility_tolerance: 1.0e-06
+      ipm_optimality_tolerance: 1.0e-06
     gurobi-default:
       BarConvTol: 1.0e-06
       FeasibilityTol: 1.0e-06
@@ -470,6 +471,12 @@ cba:
     solving:
       options:
         noisy_costs: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          carriers:
+            H2: 300
+            AC: 300
       solver:
         name: highs
         options: highs-simplex
@@ -491,6 +498,9 @@ cba:
       load_shedding:
         enable: true
         all_carriers: true
+        carriers:
+          H2: 300
+          AC: 300
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
@@ -502,7 +512,6 @@ cba:
         parallel: "off" # does not speed up solution
         primal_feasibility_tolerance: 1.0e-06
         dual_feasibility_tolerance: 1.0e-06
-      gurobi-default:
-        BarConvTol: 1.0e-06
-        FeasibilityTol: 1.0e-05
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
         OptimalityTol: 1.0e-06
