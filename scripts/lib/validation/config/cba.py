@@ -66,6 +66,11 @@ class _CbaMsvSolvingConfig(ConfigModel):
         default_factory=dict,
         description="Solver-specific options for MSV extraction.",
     )
+    mem_mb: int = Field(
+        2_000,
+        description="Estimated maximum memory requirement for solving networks (MB).",
+    )
+    runtime: str = Field("12h", description="Runtime in humanfriendly style.")
 
     @field_validator("options")
     @classmethod
