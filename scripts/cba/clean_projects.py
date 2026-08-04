@@ -419,8 +419,8 @@ def build_method_assignments(
     custom_transmission_projects: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Define the assignment method of the project. Can be TOOT (Take Out One at a Time) or PINT (Put IN one at a Time).
-    Leverage the Implementation Guidelines to define the method.
+    Determine the CBA assessment method for each project. The method is PINT (default) or TOOT and
+    depends on the planning horizon (2030 or 2040).
 
     Parameters
     ----------
