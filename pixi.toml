@@ -16,6 +16,7 @@ linopy = "0d"
 pypsa = "0d"
 atlite = "0d"
 snakemake-minimal = "0d"
+cryptography = "0d"
 
 [target.win-64.activation.env]
 
