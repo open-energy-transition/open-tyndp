@@ -497,7 +497,7 @@ def build_method_assignments(
     )  # Improved by https://github.com/open-energy-transition/open-tyndp/pull/807
 
 
-def overwrite_projects(
+def apply_custom_projects(
     projects: pd.DataFrame, custom_projects: pd.DataFrame, methods: pd.DataFrame
 ) -> pd.DataFrame:
     """
@@ -614,7 +614,7 @@ if __name__ == "__main__":
     )
 
     # Apply custom projects
-    transmission_projects = overwrite_projects(
+    transmission_projects = apply_custom_projects(
         transmission_projects, custom_transmission_projects, methods
     )
 
