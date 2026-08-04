@@ -162,7 +162,7 @@ Custom PINT transmission projects can be evaluated with the CBA workflow. Each p
 
 - **New projects**: if `project_id` is not yet used, the entry is added as a new PINT project, modeled as a link.
 
-Every entry must define `project_id`, `bus0` and `bus1`, and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning.
+Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning.
 
 Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf). Transmission capacities are in MW.
 
