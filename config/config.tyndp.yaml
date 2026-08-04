@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "all"
+  name: "NT"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -471,6 +471,12 @@ cba:
     solving:
       options:
         noisy_costs: false
+        load_shedding:
+          enable: true
+          all_carriers: true
+          carriers:
+            H2: 300
+            AC: 300
       solver:
         name: highs
         options: highs-simplex
@@ -492,6 +498,9 @@ cba:
       load_shedding:
         enable: true
         all_carriers: true
+        carriers:
+          H2: 300
+          AC: 300
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:

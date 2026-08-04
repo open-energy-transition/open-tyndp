@@ -472,6 +472,7 @@ def add_load_balance_components(n, config, sign=1):
             marginal_cost=price,
             p_nom=np.inf,
             sign=sign,
+            overwrite=True,
         )
 
     if config.get("all_carriers", False):
@@ -485,6 +486,7 @@ def add_load_balance_components(n, config, sign=1):
             marginal_cost=default_cost,
             p_nom=np.inf,
             sign=sign,
+            overwrite=True,
         )
 
 

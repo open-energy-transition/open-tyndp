@@ -39,6 +39,8 @@
 
 * Add benchmarks for CBA workflow rules and restructure CBA outputs to better mirror SB outputs ([#809](https://github.com/open-energy-transition/open-tyndp/pull/809)).
 
+* Add a configurable default cost for load shedding (VOLL) for CBA (for both MSV and RH), set to 300 EUR/MWh in the config, and change the default run option in the config to "NT" instead of "all" ([#831](https://github.com/open-energy-transition/open-tyndp/pull/831)).
+
 **Bugfixes and Compatibility**
 
 * Fix: split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
@@ -56,6 +58,8 @@
 * Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
 
 * Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
+
+* Bump `cryptography` to 50.0.0 to fix a Bleichenbacher oracle in PKCS#7 decryption ([CVE-2026-69247](https://advisories.gitlab.com/pypi/cryptography/CVE-2026-69247/), [#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
 * Fix pandas version (allowed versions >= 2.1 and < 3) ([#829](https://github.com/open-energy-transition/open-tyndp/pull/829)).
 
@@ -98,6 +102,8 @@
 * Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
 
 * Apply minor fixes to CBA MSV rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
+
+* Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
 
 ## Upcoming PyPSA-Eur Release
