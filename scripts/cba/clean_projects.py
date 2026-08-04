@@ -533,19 +533,19 @@ def apply_custom_projects(
             f"because they refer to TOOT projects:\n{custom_toot[idx].to_string(index=False)}"
         )
 
-    def set_validate_index(df: pd.DataFrame, is_custom: bool) -> pd.DataFrame:
+    def set_valid_index(df: pd.DataFrame, is_custom: bool) -> pd.DataFrame:
         try:
             return df.set_index(idx, verify_integrity=True).sort_index()
-        except ValueError:
+        except ValueError as e:
             malformed = df.loc[df[idx].duplicated(), idx].to_string(index=False)
             label = "Custom projects" if is_custom else "Projects"
             raise ValueError(
                 f"{label} must define a unique set of project_id, bus0 and bus1, but the "
                 f"following rows have duplicated keys:\n{malformed}"
-            )
+            ) from e
 
-    custom_projects = set_validate_index(custom_projects, is_custom=True)
-    projects = set_validate_index(projects, is_custom=False)
+    custom_projects = set_valid_index(custom_projects, is_custom=True)
+    projects = set_valid_index(projects, is_custom=False)
 
     # Identify existing and new projects
     new_projects = custom_projects.index.difference(projects.index)
