@@ -39,6 +39,8 @@
 
 * Add benchmarks for CBA workflow rules and restructure CBA outputs to better mirror SB outputs ([#809](https://github.com/open-energy-transition/open-tyndp/pull/809)).
 
+* Add a configurable default cost for load shedding (VOLL) for CBA (for both MSV and RH), set to 300 EUR/MWh in the config, and change the default run option in the config to "NT" instead of "all" ([#831](https://github.com/open-energy-transition/open-tyndp/pull/831)).
+
 **Bugfixes and Compatibility**
 
 * Fix: split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
