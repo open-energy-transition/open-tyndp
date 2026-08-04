@@ -9,8 +9,6 @@
 
 **Features**
 
-* Fix pandas version (allowed versions >= 2.1 and < 3) ([#829](https://github.com/open-energy-transition/open-tyndp/pull/829)).
-
 * Merge low voltage and market nodes in the CBA ([#722](https://github.com/open-energy-transition/open-tyndp/pull/722)).
   
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
@@ -58,6 +56,8 @@
 * Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
 
 * Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
+
+* Fix pandas version (allowed versions >= 2.1 and < 3) ([#829](https://github.com/open-energy-transition/open-tyndp/pull/829)).
 
 **Documentation**
 
