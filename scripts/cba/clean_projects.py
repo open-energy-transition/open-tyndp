@@ -491,7 +491,9 @@ def build_method_assignments(
 
     assigned = pd.concat(assigned, ignore_index=True)
     return projects.merge(
-        assigned, on="project_id", how="outer"
+        custom_transmission_projects["project_id"], how="outer"
+    ).merge(
+        assigned, on="project_id", how="left"
     )  # Improved by https://github.com/open-energy-transition/open-tyndp/pull/807
 
 
