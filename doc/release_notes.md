@@ -13,6 +13,8 @@
   
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
+* Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
+
 **Changes**
 
 * Add `Undefined for generation` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark ([#718](https://github.com/open-energy-transition/open-tyndp/pull/718)).
@@ -54,6 +56,8 @@
 * Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
 
 * Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
+
+* Bump `cryptography` to 50.0.0 to fix a Bleichenbacher oracle in PKCS#7 decryption ([CVE-2026-69247](https://advisories.gitlab.com/pypi/cryptography/CVE-2026-69247/), [#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
 **Documentation**
 
