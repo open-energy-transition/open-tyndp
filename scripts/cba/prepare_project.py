@@ -32,19 +32,85 @@ def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -
     return str(row["method"].iloc[0]).strip().upper()
 
 
+def get_link_capacity_data(n, project, method="TOOT"):
+    """
+    Get link IDs and capacities for a DC link project between bus0 and bus1.
+
+    For the "toot" method, link IDs are looked up directly in `n.links`. For
+    the "pint" method, if no matching link exists in the network yet, a
+    placeholder ID is constructed instead (e.g. for links to be created).
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network containing the links.
+    project : pd.Series
+        Project data with fields "bus0", "bus1", "p_nom 0->1", "p_nom 1->0".
+    method : {"TOOT", "PINT"}, default "TOOT"
+        Lookup strategy. If "PINT", missing links fall back to a
+        constructed placeholder ID of the form "{bus0}-{bus1}-DC".
+
+    Returns
+    -------
+    link_id : str
+        Forward link (bus0 -> bus1): index of matching links in `n.links`,
+        or a placeholder string if method="pint" and none was found.
+    reverse_link_id : str
+        Reverse link (bus1 -> bus0), same lookup rules as `link_id`.
+    capacity : float
+        Forward direction capacity (p_nom 0->1).
+    capacity_reverse : float
+        Reverse direction capacity (p_nom 1->0).
+    """
+    bus0 = project["bus0"]
+    bus1 = project["bus1"]
+
+    link_id = n.links[
+        (n.links.bus0 == bus0) & (n.links.bus1 == bus1) & (n.links.carrier == "DC")
+    ].index
+    reverse_link_id = n.links[
+        (n.links.bus0 == bus1) & (n.links.bus1 == bus0) & (n.links.carrier == "DC")
+    ].index
+
+    assert len(link_id) <= 1, (
+        f"Expected at most one forward link for {bus0}->{bus1}, found {len(link_id)}."
+    )
+    assert len(reverse_link_id) <= 1, (
+        f"Expected at most one reverse link for {bus1}->{bus0}, found {len(reverse_link_id)}."
+    )
+
+    if method.upper() == "PINT":
+        link_id = link_id[0] if not link_id.empty else f"{bus0}-{bus1}-DC"
+        reverse_link_id = (
+            reverse_link_id[0] if not reverse_link_id.empty else f"{bus1}-{bus0}-DC"
+        )
+    else:  # TOOT
+        if link_id.empty:
+            logger.warning(f"TOOT: no forward link found for {bus0} -> {bus1}.")
+            link_id = None
+        else:
+            link_id = link_id[0]
+        if reverse_link_id.empty:
+            logger.warning(f"TOOT: no reverse link found for {bus1} -> {bus0}.")
+            reverse_link_id = None
+        else:
+            reverse_link_id = reverse_link_id[0]
+
+    capacity = project["p_nom 0->1"]
+    capacity_reverse = project["p_nom 1->0"]
+
+    return link_id, reverse_link_id, capacity, capacity_reverse
+
+
 def apply_toot(
     n: pypsa.Network,
     transmission_project: pd.DataFrame,
     negative_toot_option: str,
 ) -> None:
     for _, project in transmission_project.iterrows():
-        bus0 = project["bus0"]
-        bus1 = project["bus1"]
-        link_id = f"{bus0}-{bus1}-DC"
-        reverse_link_id = f"{bus1}-{bus0}-DC"
-
-        capacity = project["p_nom 0->1"]
-        capacity_reverse = project["p_nom 1->0"]
+        link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
+            n, project, method="TOOT"
+        )
 
         result_capacity = n.links.loc[link_id, "p_nom"] - capacity
         result_capacity_reverse = (
@@ -102,11 +168,10 @@ def apply_pint(
     for _, project in transmission_project.iterrows():
         bus0 = project["bus0"]
         bus1 = project["bus1"]
-        link_id = f"{bus0}-{bus1}-DC"
-        reverse_link_id = f"{bus1}-{bus0}-DC"
 
-        capacity = project["p_nom 0->1"]
-        capacity_reverse = project["p_nom 1->0"]
+        link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
+            n, project, method="PINT"
+        )
 
         if link_id in n.links.index and reverse_link_id in n.links.index:
             n.links.loc[link_id, "p_nom"] += capacity
@@ -136,7 +201,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "prepare_project",
-            cba_project="t1",
+            cba_project="t335",
             planning_horizons="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
@@ -146,6 +211,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
+
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
     methods = pd.read_csv(snakemake.input.methods)
 
