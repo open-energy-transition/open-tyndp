@@ -13,8 +13,6 @@
   
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
-* Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
-
 **Changes**
 
 * Add `Undefined for generation` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark ([#718](https://github.com/open-energy-transition/open-tyndp/pull/718)).
@@ -98,6 +96,8 @@
 * Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
 
 * Apply minor fixes to CBA MSV rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
+
+* Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
 
 ## Upcoming PyPSA-Eur Release
