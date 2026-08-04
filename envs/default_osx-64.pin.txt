@@ -304,7 +304,7 @@ https://conda.anaconda.org/conda-forge/noarch/fsspec-2026.6.0-pyhd8ed1ab_0.conda
 https://conda.anaconda.org/conda-forge/noarch/cloudpickle-3.1.2-pyhcf101f3_1.conda#61b8078a0905b12529abc622406cb62c
 https://conda.anaconda.org/conda-forge/noarch/dask-core-2026.7.1-pyhc364b38_0.conda#7e9fcc61c119f585f2b7b491147df821
 https://conda.anaconda.org/conda-forge/osx-64/bottleneck-1.6.0-np2py314hfeef9c2_3.conda#5088e82d7776efb203ff2ef560d0dc52
-https://conda.anaconda.org/conda-forge/noarch/linopy-0.9.0-pyhc364b38_0.conda#2a286c70e60d2f019366008e55078d93
+https://conda.anaconda.org/conda-forge/noarch/linopy-0.8.0-pyhc364b38_0.conda#b31f977eb05161665ccab866d83e14de
 https://conda.anaconda.org/conda-forge/osx-64/rapidfuzz-3.14.5-py314h7008281_0.conda#a2d5344ac031280855463759eb453827
 https://conda.anaconda.org/conda-forge/osx-64/levenshtein-0.27.3-py314h21b9a27_0.conda#7932e30d1729d913a2b05ad1ed4e3a2f
 https://conda.anaconda.org/conda-forge/noarch/xyzservices-2026.3.0-pyhd8ed1ab_0.conda#4487b9c371d0161d54b5c7bbd890c0fc
