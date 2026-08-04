@@ -99,6 +99,8 @@
 
 * Apply minor fixes to CBA MSV rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
 
+* Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/issues/807)).
+
 
 ## Upcoming PyPSA-Eur Release
 

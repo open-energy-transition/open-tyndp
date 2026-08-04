@@ -17,10 +17,10 @@ Custom PINT transmission projects can be configured using `data/custom_cba_trans
 the user can modify existing projects and add new ones. Transmission capacities are in MW.
 
 - Using an existing PINT combination (`project_id`, `bus0`, `bus1`), the user can overwrite any
-field of an existing project with a custom value. Not all fields need to be specified; leaving
-a field empty keeps its existing value.
+  field of an existing project with a custom value. Not all fields need to be specified; leaving
+  a field empty keeps its existing value.
 
-- New projects are added as PINT projects. A new `project_id` must be used, and custom projects are added as links.
+- New projects must use a new `project_id` and are added as PINT links.
 
 **Inputs**
 
@@ -151,7 +151,7 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
     Returns
     -------
     pd.DataFrame
-        Curated list of projects with a defined capacity
+        Curated list of projects with a defined capacity.
     """
     empty_capacity = projects["p_nom 0->1"].isna() & projects["p_nom 1->0"].isna()
     if empty_capacity.sum() > 0:
@@ -231,7 +231,7 @@ def extract_transmission_projects(
         }
     )
 
-    # Clean the project list by removing unclear border and projects with no capacity
+    # Clean the project list by removing projects with unclear borders or no capacity
     projects = remove_unclear_border(projects, existing_buses)
     projects = remove_no_capacity(projects)
 
@@ -410,7 +410,7 @@ def normalize_yes_no(value: str) -> str:
 
 
 def compute_method(flag: str) -> str:
-    return "TOOT" if flag == "yes" else "PINT"
+    return "toot" if flag == "yes" else "pint"
 
 
 def build_method_assignments(
@@ -419,8 +419,8 @@ def build_method_assignments(
     custom_transmission_projects: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Define the assignment method of the project. Can be TOOT (Take Out One at a Time) or PINT (Put IN one at a Time).
-    Leverage the Implementation Guidelines to define the method.
+    Determine the CBA assessment method for each project. The method is PINT (default) or TOOT and
+    depends on the planning horizon (2030 or 2040).
 
     Parameters
     ----------
@@ -481,18 +481,16 @@ def build_method_assignments(
                     "in_ref_grid_2030": "no",
                     "in_ref_grid_2040": "no",
                     "planning_horizon": horizon,
-                    "method": "PINT",
+                    "method": "pint",
                 }
             )
             rows = pd.concat([rows, missing_rows], ignore_index=True)
         assigned.append(rows)
 
-    assigned = pd.concat(assigned, ignore_index=True)
-    return projects.merge(
-        custom_transmission_projects["project_id"], how="outer"
-    ).merge(
-        assigned, on="project_id", how="left"
-    )  # Improved by https://github.com/open-energy-transition/open-tyndp/pull/807
+    assigned = pd.concat(assigned, ignore_index=True).query(
+        "project_id in @projects.project_id"
+    )
+    return assigned
 
 
 def apply_custom_projects(
@@ -523,7 +521,7 @@ def apply_custom_projects(
     idx = ["project_id", "bus0", "bus1"]
 
     mask_pint = custom_projects["project_id"].isin(
-        methods.query("method=='PINT'").project_id
+        methods.query("method=='pint'").project_id
     )
     custom_toot = custom_projects[~mask_pint]
     custom_projects = custom_projects[mask_pint]
@@ -551,7 +549,7 @@ def apply_custom_projects(
     new_projects = custom_projects.index.difference(projects.index)
     existing_projects = custom_projects.index.intersection(projects.index)
 
-    # Fill missing values with existing projects
+    # Fill missing values from existing projects
     custom_projects = custom_projects.reindex(columns=projects.columns).fillna(projects)
     custom_projects["is_crossborder"] = (
         custom_projects["is_crossborder"].fillna(True).astype(bool)
@@ -618,7 +616,7 @@ if __name__ == "__main__":
 
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
-    # TODO Add overwrite_projects for storages
+    # TODO Add overwrite_projects for storage projects
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
     methods.to_csv(snakemake.output.methods, index=False)
