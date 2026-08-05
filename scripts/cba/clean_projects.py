@@ -108,6 +108,8 @@ def extract_transmission_projects(
     ----------
     excel_path : Path
         Path to the Excel export defining the transmission projects.
+    hub_corrections_path : Path
+        Path to the file containing manual offshore hub corrections.
     existing_buses : pd.Index
         Electricity buses as used in Open-TYNDP.
 
