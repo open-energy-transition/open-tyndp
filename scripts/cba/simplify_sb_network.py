@@ -227,9 +227,12 @@ if __name__ == "__main__":
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
     hurdle_costs = snakemake.params.hurdle_costs
 
-    # Rename offshore link carriers DC_OH -> DC, buses AC_OH -> AC
-    n.links["carrier"] = n.links.carrier.str.replace("DC_OH", "DC")
-    n.buses["carrier"] = n.buses.carrier.str.replace("AC_OH", "AC")
+    # Rename offshore link carriers and buses
+    n.links["carrier"] = n.links.carrier.replace(
+        {"DC_OH": "DC", "H2 pipeline OH": "H2 pipeline"}
+    )
+    n.buses["carrier"] = n.buses.carrier.replace({"AC_OH": "AC", "H2_OH": "H2"})
+
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
 
