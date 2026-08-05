@@ -455,7 +455,7 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # get existing buses
+    # Get existing buses
     existing_buses = get_existing_buses(
         snakemake.input.buses, snakemake.input.offshore_buses
     )
