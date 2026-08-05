@@ -157,6 +157,7 @@ def extract_transmission_projects(
         }
     )
 
+    # Apply manual offshore hub corrections
     projects = apply_offshore_hub_corrections(hub_corrections_path, projects)
 
     unclear_border = ~(
