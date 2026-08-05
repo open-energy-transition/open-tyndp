@@ -7,8 +7,49 @@
 NT:
   tyndp_scenario: NT
 
-NT-20260804:
+NT-cy2009-20260805-voll300-all:
   tyndp_scenario: NT
+  cba:
+    msv_extraction:
+      solving:
+        options:
+          load_shedding:
+            enable: true
+            all_carriers: true
+            default_cost: 300
+            carriers:
+              H2: 300
+              AC: 300
+    solving:
+      options:
+        load_shedding:
+          enable: true
+          all_carriers: true
+          default_cost: 300
+          carriers:
+            H2: 300
+            AC: 300
+
+NT-cy2009-20260805-voll300-ac-h2:
+  tyndp_scenario: NT
+  cba:
+    msv_extraction:
+      solving:
+        options:
+          load_shedding:
+            enable: true
+            all_carriers: false
+            carriers:
+              H2: 300
+              AC: 300
+    solving:
+      options:
+        load_shedding:
+          enable: true
+          all_carriers: false
+          carriers:
+            H2: 300
+            AC: 300
 
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:

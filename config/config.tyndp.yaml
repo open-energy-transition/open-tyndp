@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "NT-20260804"
+  name: "NT"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
