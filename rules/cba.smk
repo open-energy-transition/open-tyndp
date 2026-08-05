@@ -368,9 +368,7 @@ rule solve_cba_msv_extraction:
     threads: msv_solver_threads
     resources:
         mem_mb=config_provider("cba", "msv_extraction", "solving", "mem_mb"),
-        runtime=config_provider(
-            "cba", "msv_extraction", "solving", "runtime", default="12h"
-        ),
+        runtime=config_provider("cba", "msv_extraction", "solving", "runtime"),
     params:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "msv_extraction", "solving"),

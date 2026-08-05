@@ -597,6 +597,16 @@
                   },
                   "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
+                },
+                "mem_mb": {
+                  "default": 2000,
+                  "description": "Estimated maximum memory requirement for solving networks (MB).",
+                  "type": "integer"
+                },
+                "runtime": {
+                  "default": "12h",
+                  "description": "Runtime in humanfriendly style.",
+                  "type": "string"
                 }
               }
             }
@@ -6737,6 +6747,16 @@
               },
               "description": "Solver-specific options for MSV extraction.",
               "type": "object"
+            },
+            "mem_mb": {
+              "default": 2000,
+              "description": "Estimated maximum memory requirement for solving networks (MB).",
+              "type": "integer"
+            },
+            "runtime": {
+              "default": "12h",
+              "description": "Runtime in humanfriendly style.",
+              "type": "string"
             }
           }
         }
@@ -6764,6 +6784,16 @@
           },
           "description": "Solver-specific options for MSV extraction.",
           "type": "object"
+        },
+        "mem_mb": {
+          "default": 2000,
+          "description": "Estimated maximum memory requirement for solving networks (MB).",
+          "type": "integer"
+        },
+        "runtime": {
+          "default": "12h",
+          "description": "Runtime in humanfriendly style.",
+          "type": "string"
         }
       }
     },
@@ -15779,6 +15809,16 @@
                   },
                   "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
+                },
+                "mem_mb": {
+                  "default": 2000,
+                  "description": "Estimated maximum memory requirement for solving networks (MB).",
+                  "type": "integer"
+                },
+                "runtime": {
+                  "default": "12h",
+                  "description": "Runtime in humanfriendly style.",
+                  "type": "string"
                 }
               }
             }

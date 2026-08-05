@@ -6,6 +6,7 @@
 # See https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles
 
 logger: pypsa
+persistence-backend: db
 
 # If too many parallel jobs cause out-of-memory issues, you can specify your machine's
 # physical RAM limit below for Snakemake to use when scheduling jobs.
