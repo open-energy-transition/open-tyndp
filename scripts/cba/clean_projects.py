@@ -49,6 +49,7 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
 
 logger = logging.getLogger(__name__)
 
@@ -407,7 +408,7 @@ def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list | bool) -> p
         Existing bus names, combining onshore and offshore buses.
     """
     existing_buses = read_tyndp_electricity_buses(
-        buses_fn, col="NODE", virtual_buses=["ITCO", "ITVI"]
+        buses_fn, col="NODE", virtual_buses=list(AC_VIRTUAL_NODES_IT.keys())
     )
 
     if offshore_buses_fn:
