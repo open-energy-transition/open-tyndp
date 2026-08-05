@@ -357,20 +357,24 @@ def read_tyndp_electricity_buses(
 
     Parameters
     ----------
-        - buses_fn (str): Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
-          or offshore hubs "NODE.xlsx")
-        - col (str): Column which is selected from the dataframe
-        - virtual_buses (list): list of virtual buses to add, not present in
-          the raw node list (e.g. added later in build_tyndp_network.py)
+    buses_fn : str
+        Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
+        or offshore hubs "NODE.xlsx").
+    col : str
+        Column which is selected from the dataframe.
+    virtual_buses : list
+        List of virtual buses to add, not present in the raw node list
+        (e.g. added later in build_tyndp_network.py).
 
     Returns
     -------
-        - buses: Index of electricity buses as used in Open-TYNDP
+    buses : pandas.Index
+        Index of electricity buses as used in Open-TYNDP.
 
     See Also
     --------
-        build_tyndp_network.py : build_buses
-        build_tyndp_offshore_hubs.py : load_offshore_hubs
+    build_tyndp_network.py : build_buses
+    build_tyndp_offshore_hubs.py : load_offshore_hubs
     """
     virtual_buses = virtual_buses if virtual_buses is not None else []
 
