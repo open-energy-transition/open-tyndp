@@ -84,7 +84,7 @@ def apply_offshore_hub_corrections(
     # Add border column to corrections
     corrections["border"] = corrections.bus0 + "-" + corrections.bus1
 
-    # drop projects which are in corrections
+    # Drop projects which are in corrections
     projects_reduced = projects[~projects.project_id.isin(corrected_ids)]
 
     # add corrections
