@@ -20,7 +20,7 @@ Storage project extraction is not yet implemented and returns an empty DataFrame
 - `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
 - `rules.retrieve_cba_guidelines_reference_projects.output.file`: Table of projects as defined in the Implementation Guidelines Appendix B.1
 - `data/cba_guidelines_reference_projects/.../table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: CBA guidelines reference table, used to assign the TOOT/PINT method per project and planning horizon
-- `data/cba/offshore_hub_projects_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for offshore hub projects, applied in place of the corresponding raw Excel entries
+- `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
 
 **Outputs**
 
@@ -68,16 +68,16 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def apply_offshore_hub_corrections(
-    hub_corrections_path: Path, projects: pd.DataFrame
+def apply_cba_project_corrections(
+    corrections_path: Path, projects: pd.DataFrame
 ) -> pd.DataFrame:
     """
-    Replace bus0/bus1/p_nom of select projects with manually curated offshore hub corrections.
+    Replace bus0/bus1/p_nom of select projects with manually curated corrections.
 
     Parameters
     ----------
-    hub_corrections_path : Path
-        Path to the file containing manual offshore hub corrections.
+    corrections_path : Path
+        Path to the file containing manual corrections.
     projects : pd.DataFrame
         List of transmission projects with their detailed characteristics.
 
@@ -85,15 +85,15 @@ def apply_offshore_hub_corrections(
     -------
     pd.DataFrame
         List of transmission projects with corrected bus0, bus1 and p_nom values
-        for the projects covered by the offshore hub corrections.
+        for the projects covered by the corrections.
     """
 
-    # Read in offshore hub corrections
-    corrections = pd.read_csv(hub_corrections_path)
+    # Read in CBA project corrections
+    corrections = pd.read_csv(corrections_path)
     corrected_ids = corrections["project_id"].unique()
 
     logger.info(
-        "Applying offshore hub corrections for %d projects with project ID:\n%s",
+        "Applying CBA project corrections for %d projects with project ID:\n%s",
         len(corrected_ids),
         ", ".join(corrected_ids.astype(str)),
     )
@@ -111,7 +111,7 @@ def apply_offshore_hub_corrections(
 
 
 def extract_transmission_projects(
-    excel_path: Path, hub_corrections_path: Path, existing_buses: pd.Index
+    excel_path: Path, corrections_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
     """
     Read and clean the transmission projects from the "Trans.Projects" sheet.
@@ -124,8 +124,8 @@ def extract_transmission_projects(
     ----------
     excel_path : Path
         Path to the Excel export defining the transmission projects.
-    hub_corrections_path : Path
-        Path to the file containing manual offshore hub corrections.
+    corrections_path : Path
+        Path to the file containing manual corrections.
     existing_buses : pd.Index
         Electricity buses as used in Open-TYNDP.
 
@@ -176,8 +176,8 @@ def extract_transmission_projects(
         }
     )
 
-    # Apply manual offshore hub corrections
-    projects = apply_offshore_hub_corrections(hub_corrections_path, projects)
+    # Apply manual CBA project corrections
+    projects = apply_cba_project_corrections(corrections_path, projects)
 
     unclear_border = ~(
         projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
@@ -486,10 +486,10 @@ if __name__ == "__main__":
     )
 
     excel_path = Path(snakemake.input.dir) / "20250312_export_transmission.xlsx"
-    hub_corrections_path = snakemake.input.offshore_hub_corrections
+    corrections_path = snakemake.input.cba_project_corrections
 
     transmission_projects = extract_transmission_projects(
-        excel_path, hub_corrections_path, existing_buses
+        excel_path, corrections_path, existing_buses
     )
 
     investment_attrs = extract_investment_attributes(excel_path)

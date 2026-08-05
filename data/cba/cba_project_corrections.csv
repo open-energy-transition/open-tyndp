@@ -1,7 +1,7 @@
 project_id,project_name,is_crossborder,p_nom 0->1,p_nom 1->0,bus0,bus1,notes,
 120,Princess Elisabeth Island (MOG 2),False,1400,1400,BEOH001,BE00,"Raw border 'internalBE00' (blank bus codes, 2 candidate AC+DC lines collapsed to 1, 1400 MW line used). bus0 -> BEOH001, bus1 -> BE00.",
 121,Nautilus: multi-purpose interconnector Belgium - UK,True,1400,1400,BEOH001,GB00,Raw border 'BE00-UK00'. bus0 'BE00' -> BEOH001 (Princess Elisabeth Island hub), bus1 GB00 unchanged.
-235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,True,0,1150,DE00,DKW,"Raw Border ‘DE00-DKW’ , bus1 `DKW` → DKW1",
+235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,True,0,1150,DE00,DKW1,"Raw Border ‘DE00-DKW’ , bus1 `DKW` → DKW1",
 235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,True,2250,50,DE00,NL00,"Raw Border ‘DE00-NL00’, no change",
 335,North Sea Wind Power Hub,True,6000,6000,DE00,DEOH001,"Investments 1508 (Heide(West)) + 1509 (north of Bremen) + 1511 (Rastede) - three separate 2000 MW radial cables from different German onshore substations to the same German hub, all in the DE00 zone - summed into a single DE00-DEOH001 link: 3x2000 MW = 6000 MW each direction.",
 335,North Sea Wind Power Hub,True,4000,4000,NL00,NLOH001,Investments 1506+1507 (two separate 2000 MW cables on the same Maasvlakte 380kV -> Dutch hub route) summed into a single NL00-NLOH001 link: 2x2000 MW = 4000 MW each direction.,
@@ -24,3 +24,4 @@ project_id,project_name,is_crossborder,p_nom 0->1,p_nom 1->0,bus0,bus1,notes,
 1211,Baltic WindConnector (BWC),True,2000,700,EEOH001,DE00,"Raw border 'EEOF-DE00'. bus0 'EEOF' -> EEOH001 (Baltic/Gulf of Finland hub); bus1 DE00 kept as onshore zone (no fitting German hub, radial connection).",
 1214,Hybrid Interconnector Denmark-Germany,True,2000,2000,DEOH001,DKWOH01,"Raw border 'DE00-DKW1' (plain zone-level); replaced with hub-to-hub per project PDF. bus0 -> DEOH001 (German offshore grid connection), bus1 -> DKWOH01 (Danish Energy Island, North Sea side).",
 1217,Further Development of Offshore Renewables (MOG 3),False,2000,2000,BEOH001,BE00,"Raw border 'BE00Internal' (blank bus codes). bus0 -> BEOH001, bus1 -> BE00.",
+1218,Hybrid HVDC Interconnector BE-NL,True,2000,2000,BE00,NL00,"Raw border ‘BE00-NL60’, bus1 ‘NL60→NL00`",

@@ -161,7 +161,7 @@ checkpoint clean_projects:
         buses=rules.retrieve_tyndp.output.nodes,
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
-        offshore_hub_corrections="data/cba/offshore_hub_projects_corrections.csv",
+        cba_project_corrections="data/cba/cba_project_corrections.csv",
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
         # transmission projects (no storage). In order to confirm, we should check
