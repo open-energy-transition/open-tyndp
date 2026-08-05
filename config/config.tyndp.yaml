@@ -5,7 +5,7 @@
 
 run:
   prefix: "tyndp"
-  name: "NT"
+  name: "NT-20260804"
   scenarios:
     enable: true
     file: config/scenarios.tyndp.yaml
@@ -440,7 +440,9 @@ cba:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
-  - t1-t35
+  - t339
+  - t1207
+  - t1106
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero

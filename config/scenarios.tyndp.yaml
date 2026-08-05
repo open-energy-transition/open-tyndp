@@ -7,6 +7,9 @@
 NT:
   tyndp_scenario: NT
 
+NT-20260804:
+  tyndp_scenario: NT
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
