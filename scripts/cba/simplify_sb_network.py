@@ -173,6 +173,8 @@ def make_links_unidirectional(
     # Set capacity
     p_nom = (rev_links.p_min_pu * rev_links.p_nom).abs()
     rev_links["p_nom"] = p_nom
+    rev_links["p_nom_min"] = p_nom
+    rev_links["p_nom_opt"] = p_nom
 
     # Set links to uni-directional
     n.links.loc[bidirectional_i, "p_min_pu"] = 0
