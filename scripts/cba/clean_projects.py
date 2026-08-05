@@ -427,12 +427,12 @@ def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list | bool) -> p
     """
     virtual_buses = [x for pair in AC_VIRTUAL_NODES_IT.items() for x in pair]
     existing_buses = read_tyndp_electricity_buses(
-        buses_fn, col="NODE", virtual_buses=virtual_buses
+        buses_fn, col_name="NODE", virtual_buses=virtual_buses
     )
 
     if offshore_buses_fn:
         existing_oh_buses = read_tyndp_electricity_buses(
-            offshore_buses_fn, col="OFFSHORE_NODE"
+            offshore_buses_fn, col_name="OFFSHORE_NODE"
         )
         existing_buses = existing_buses.union(existing_oh_buses)
 
