@@ -440,19 +440,7 @@ cba:
     use_presolved: false
     sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
-  - t120
-  - t121
-  - t235
-  - t335
-  - t1034
-  - t1088
-  - t1092
-  - t1993
-  - t1200
-  - t1211
-  - t1214
-  - t1217
-
+  - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
