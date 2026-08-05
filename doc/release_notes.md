@@ -63,6 +63,8 @@
 
 * Fix pandas version (allowed versions >= 2.1 and < 3) ([#829](https://github.com/open-energy-transition/open-tyndp/pull/829)).
 
+* Change axis of the CBA summary indicator benchmark plots ([#837](https://github.com/open-energy-transition/open-tyndp/pull/837)).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
