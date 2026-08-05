@@ -353,7 +353,7 @@ def build_method_assignments(
 
 
 def read_tyndp_electricity_buses(
-    buses_fn: str, col: str, virtual_buses: list[str] | None = None
+    buses_fn: str, col_name: str, virtual_buses: list[str] | None = None
 ) -> pd.Index:
     """
     Read node list for electricity from tyndp data input.
@@ -363,7 +363,7 @@ def read_tyndp_electricity_buses(
     buses_fn : str
         Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
         or offshore hubs "NODE.xlsx").
-    col : str
+    col_name : str
         Column which is selected from the dataframe.
     virtual_buses : list
         List of virtual buses to add, not present in the raw node list
@@ -381,7 +381,7 @@ def read_tyndp_electricity_buses(
     """
     virtual_buses = virtual_buses if virtual_buses is not None else []
 
-    buses = pd.read_excel(buses_fn).replace("UK", "GB", regex=True).set_index(col)
+    buses = pd.read_excel(buses_fn).replace("UK", "GB", regex=True).set_index(col_name)
 
     if "OFFSHORE_NODE_TYPE" in buses.columns:
         # drop radial offshore nodes, which are not built as hub buses
