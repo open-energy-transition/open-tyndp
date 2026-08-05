@@ -122,7 +122,7 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
                 network=RESULTS
                 + f"networks/presolved-{config['cba']['cba_scenario_input']['sb_version']}/base_s_all___{{planning_horizons}}.nc",
             log:
-                logs("retrieve_presolved_sb_networks_{planning_horizons}.log"),
+                logs("cba/retrieve_presolved_sb_networks_{planning_horizons}.log"),
             run:
                 target_suffix = (
                     f"networks/base_s_all___{wildcards.planning_horizons}.nc"
