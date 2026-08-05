@@ -13,7 +13,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg)](https://doi.org/10.5281/zenodo.3520874)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3938042.svg)](https://doi.org/10.5281/zenodo.3938042)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14230568.svg)](https://doi.org/10.5281/zenodo.14230568)
-[![Snakemake](https://img.shields.io/badge/snakemake-≥7.19-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥9.17-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
 [![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
 [![REUSE](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
 
@@ -70,7 +70,7 @@ Each organisation in this open-source ecosystem remains fully independent of the
 ## Development status {#development-status}
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete and the results can be viewed [online](https://open-tydnp.openenergytransition.org). The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. This [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
+    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general [limitations](limitations.md) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete and the results can be viewed [online](https://open-tyndp.openenergytransition.org). The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collects known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. This [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
 ### Already implemented features
 
