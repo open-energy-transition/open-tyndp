@@ -191,7 +191,7 @@ def make_links_unidirectional(
         lambda x: "-".join([x.split("-")[1], x.split("-")[0], *x.split("-")[2:]])
     )
 
-    n.links = pd.concat([n.links, rev_links], sort=False)
+    n.links = pd.concat([n.links, rev_links])
 
 
 if __name__ == "__main__":
