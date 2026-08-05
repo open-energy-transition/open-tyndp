@@ -425,8 +425,9 @@ def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list | bool) -> p
     pd.Index
         Existing bus names, combining onshore and offshore buses.
     """
+    virtual_buses = [x for pair in AC_VIRTUAL_NODES_IT.items() for x in pair]
     existing_buses = read_tyndp_electricity_buses(
-        buses_fn, col="NODE", virtual_buses=list(AC_VIRTUAL_NODES_IT.keys())
+        buses_fn, col="NODE", virtual_buses=virtual_buses
     )
 
     if offshore_buses_fn:
