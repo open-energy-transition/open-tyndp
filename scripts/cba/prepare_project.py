@@ -36,8 +36,8 @@ def get_link_capacity_data(n, project, method="TOOT"):
     """
     Get link IDs and capacities for a DC link project between bus0 and bus1.
 
-    For the "toot" method, link IDs are looked up directly in `n.links`. For
-    the "pint" method, if no matching link exists in the network yet, a
+    For the TOOT projects, link IDs are looked up directly in `n.links`. For
+    the PINT projects, if no matching link exists in the network yet, a
     placeholder ID is constructed instead (e.g. for links to be created).
 
     Parameters
