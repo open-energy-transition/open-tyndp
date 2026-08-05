@@ -71,7 +71,7 @@ def apply_offshore_hub_corrections(
     hub_corrections_path: Path, projects: pd.DataFrame
 ) -> pd.DataFrame:
     """Replace bus0/bus1/p_nom of select projects with manually curated offshore hub corrections."""
-    # read in offshore hub corrections
+    # Read in offshore hub corrections
     corrections = pd.read_csv(hub_corrections_path)
     corrected_ids = corrections["project_id"].unique()
 
