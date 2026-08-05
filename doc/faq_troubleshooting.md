@@ -21,7 +21,7 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "When will Open-TYNDP be ready?"
 
-    Benchmarking of the 2024 NT (National Trends) scenario is complete, giving us confidence in the model's outcomes. We are now moving forward with development to align with the 2026 TYNDP cycle. The [development status](index.md#development-status) page provides a detailed roadmap of implemented and planned features.s
+    Benchmarking of the 2024 NT (National Trends) scenario is complete, giving us confidence in the model's outcomes. We are now moving forward with development to align with the 2026 TYNDP cycle. The [development status](index.md#development-status) page provides a detailed roadmap of implemented and planned features.
 
 ??? question "How to use Open-TYNDP?"
 
