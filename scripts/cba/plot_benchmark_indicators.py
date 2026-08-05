@@ -459,6 +459,7 @@ def plot_summary_projects_benchmark(
         )
         ax.set_xlabel("TYNDP 2024")
         ax.set_ylabel("Open-TYNDP")
+        ax.tick_params(axis="both", labelsize=6)
         ax.axhline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.axvline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.grid(alpha=0.3)
