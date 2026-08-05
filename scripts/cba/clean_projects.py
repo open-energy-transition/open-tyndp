@@ -520,15 +520,16 @@ def apply_custom_projects(
 
     idx = ["project_id", "bus0", "bus1"]
 
-    mask_pint = custom_projects["project_id"].isin(
-        methods.query("method=='pint'").project_id
+    mask_toot = custom_projects["project_id"].isin(
+        methods.query("method=='toot'").project_id
     )
-    custom_toot = custom_projects[~mask_pint]
-    custom_projects = custom_projects[mask_pint]
+    custom_toot = custom_projects[mask_toot]
+    custom_projects = custom_projects[~mask_toot]
     if not custom_toot.empty:
         logger.warning(
             f"Custom projects must refer to PINT projects. The following rows are ignored "
-            f"because they refer to TOOT projects:\n{custom_toot[idx].to_string(index=False)}"
+            f"because they refer to TOOT projects in at least one planning horizon:\n"
+            f"{custom_toot[idx].to_string(index=False)}"
         )
 
     def set_valid_index(df: pd.DataFrame, is_custom: bool) -> pd.DataFrame:
