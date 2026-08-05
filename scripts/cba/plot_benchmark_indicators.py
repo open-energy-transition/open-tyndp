@@ -443,6 +443,11 @@ def plot_summary_projects_benchmark(
                 ax.set_xscale("symlog", linthresh=linthresh)
                 ax.set_yscale("symlog", linthresh=linthresh)
 
+        low, high = min([*xs, *ys, 0]), max([*xs, *ys, 0])
+        ax.set_xlim(low, high)
+        ax.set_ylim(low, high)
+        ax.set_aspect("equal", adjustable="box")
+
         units = average_df.loc[
             (average_df["indicator"] == indicator)
             & (average_df["source"] == "Open-TYNDP"),
