@@ -75,6 +75,15 @@ if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects
             copy2(input["file"], output["file"])
 
 
+def project_codes(projects: pd.DataFrame) -> list[str]:
+    """Return unique project codes (e.g. 't1', 's1001') from a methods table with project_id/project_type columns."""
+    projects = projects[["project_id", "project_type"]].drop_duplicates()
+    return list(
+        projects["project_type"].map({"storage": "s", "transmission": "t"})
+        + projects["project_id"].astype(str)
+    )
+
+
 def _effective_horizon(h, warn_fn=None, msg=None):
     if h not in [2030, 2040]:
         if warn_fn:
@@ -161,10 +170,6 @@ checkpoint clean_projects:
         buses=rules.retrieve_tyndp.output.nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
     output:
-        # TODO: The toot_projects and pint_projects outputs are likely only
-        # transmission projects (no storage). In order to confirm, we should check
-        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv)
-        # contains only transmission or also storage projects.
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
@@ -172,6 +177,8 @@ checkpoint clean_projects:
         logs("cba/clean_projects.log"),
     benchmark:
         benchmarks("performances/cba/clean_projects")
+    params:
+        planning_horizons=config_provider("cba", "planning_horizons"),
     script:
         scripts("cba/clean_projects.py")
 
@@ -422,6 +429,8 @@ rule prepare_project:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
+        storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
+        storage_default_lifetime=config_provider("cba", "storage", "default_lifetime"),
     script:
         scripts("cba/prepare_project.py")
 
@@ -517,7 +526,7 @@ def input_indicators(w):
     )
     if "planning_horizon" in projects.columns:
         projects = projects.loc[projects["planning_horizon"] == horizon]
-    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+    cba_projects = project_codes(projects)
 
     # Collection scenarios look for results within nested source runs,
     # regular scenarios look within their own run.
@@ -791,7 +800,7 @@ def cba_projects(w):
 
     run = cba_projects_run(w)
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
-    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+    cba_projects = project_codes(projects)
     project_specs = config_provider("cba", "projects")(w)
     cba_project = filter_projects_by_specs(cba_projects, project_specs)
 
