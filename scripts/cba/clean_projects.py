@@ -87,7 +87,7 @@ def apply_offshore_hub_corrections(
     # Drop projects which are in corrections
     projects_reduced = projects[~projects.project_id.isin(corrected_ids)]
 
-    # add corrections
+    # Add corrections
     return pd.concat(
         [projects_reduced, corrections.drop("notes", axis=1)], ignore_index=True
     ).sort_values(by="project_id")
