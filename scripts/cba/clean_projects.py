@@ -383,7 +383,7 @@ def read_tyndp_electricity_buses(
     return buses.index.union(virtual_buses)
 
 
-def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list) -> pd.Index:
+def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list | bool) -> pd.Index:
     """
     Return the electricity buses used to validate CBA project borders.
     Combines onshore buses with offshore hub buses, if provided, into a
@@ -393,7 +393,7 @@ def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list) -> pd.Index
     ----------
     buses_fn : str
         Path to the file defining TYNDP electricity buses.
-    offshore_buses_fn : str | list
+    offshore_buses_fn : str | list | bool
         Path(s) to the file(s) defining offshore hub buses. If falsy, only
         onshore buses are returned.
 
