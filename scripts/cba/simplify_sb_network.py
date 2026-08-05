@@ -199,7 +199,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "simplify_sb_network",
             planning_horizons="2030",
-            run="test-sector-tyndp",
+            run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
 
