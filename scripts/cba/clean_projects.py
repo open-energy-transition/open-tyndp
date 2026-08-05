@@ -488,7 +488,7 @@ def build_method_assignments(
         assigned.append(rows)
 
     assigned = pd.concat(assigned, ignore_index=True).query(
-        "project_id in @projects.project_id"
+        "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id"
     )
     return assigned
 
@@ -549,7 +549,7 @@ def apply_custom_projects(
     new_projects = custom_projects.index.difference(projects.index)
     existing_projects = custom_projects.index.intersection(projects.index)
 
-    # Fill missing values from existing projects
+    # Fill missing values using existing projects
     custom_projects = custom_projects.reindex(columns=projects.columns).fillna(projects)
     custom_projects["is_crossborder"] = (
         custom_projects["is_crossborder"].fillna(True).astype(bool)
