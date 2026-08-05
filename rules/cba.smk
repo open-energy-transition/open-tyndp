@@ -165,8 +165,6 @@ def input_clustered_network(w):
 
 
 checkpoint clean_projects:
-    params:
-        planning_horizons=config_provider("cba", "planning_horizons"),
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
@@ -179,6 +177,8 @@ checkpoint clean_projects:
         logs("cba/clean_projects.log"),
     benchmark:
         benchmarks("performances/cba/clean_projects")
+    params:
+        planning_horizons=config_provider("cba", "planning_horizons"),
     script:
         scripts("cba/clean_projects.py")
 
