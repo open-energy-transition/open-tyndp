@@ -107,20 +107,14 @@ def apply_toot(
     transmission_project: pd.DataFrame,
     negative_toot_option: str,
 ) -> None:
-    for _, project in transmission_project.iterrows():
-        link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
-            n, project, method="TOOT"
-        )
 
+    def _apply_toot_capacity(link_id, capacity):
+        if link_id is None:
+            return
         result_capacity = n.links.loc[link_id, "p_nom"] - capacity
-        result_capacity_reverse = (
-            n.links.loc[reverse_link_id, "p_nom"] - capacity_reverse
-        )
-
-        if result_capacity < 0 or result_capacity_reverse < 0:
+        if result_capacity < 0:
             logger.warning(
                 "Applying TOOT for project %s (%s) would create negative capacity: "
-                "%s %.0f -> %.0f MW after removing %.0f MW, "
                 "%s %.0f -> %.0f MW after removing %.0f MW (policy=%s).",
                 project["project_id"],
                 project["project_name"],
@@ -128,10 +122,6 @@ def apply_toot(
                 n.links.loc[link_id, "p_nom"],
                 result_capacity,
                 capacity,
-                reverse_link_id,
-                n.links.loc[reverse_link_id, "p_nom"],
-                result_capacity_reverse,
-                capacity_reverse,
                 negative_toot_option,
             )
             if negative_toot_option == "break":
@@ -140,23 +130,23 @@ def apply_toot(
                 )
             if negative_toot_option == "zero":
                 result_capacity = max(result_capacity, 0)
-                result_capacity_reverse = max(result_capacity_reverse, 0)
             else:
                 raise ValueError(
                     f"Unknown cba.negative_toot_option policy: {negative_toot_option}"
                 )
-
         if result_capacity == 0:
             n.remove("Link", link_id)
             logger.debug("Removed link %s (capacity reached zero)", link_id)
         else:
             n.links.loc[link_id, "p_nom"] = result_capacity
 
-        if result_capacity_reverse == 0:
-            n.remove("Link", reverse_link_id)
-            logger.debug("Removed link %s (capacity reached zero)", reverse_link_id)
-        else:
-            n.links.loc[reverse_link_id, "p_nom"] = result_capacity_reverse
+    for _, project in transmission_project.iterrows():
+        link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
+            n, project, method="TOOT"
+        )
+
+        _apply_toot_capacity(link_id, capacity)
+        _apply_toot_capacity(reverse_link_id, capacity_reverse)
 
 
 def apply_pint(
@@ -201,8 +191,8 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "prepare_project",
-            cba_project="t335",
-            planning_horizons="2030",
+            cba_project="t1124",
+            planning_horizons="2040",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
