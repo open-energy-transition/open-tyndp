@@ -71,7 +71,23 @@ OFFSHORE_ELEMENT_TYPES = {
 def apply_offshore_hub_corrections(
     hub_corrections_path: Path, projects: pd.DataFrame
 ) -> pd.DataFrame:
-    """Replace bus0/bus1/p_nom of select projects with manually curated offshore hub corrections."""
+    """
+    Replace bus0/bus1/p_nom of select projects with manually curated offshore hub corrections.
+
+    Parameters
+    ----------
+    hub_corrections_path : Path
+        Path to the file containing manual offshore hub corrections.
+    projects : pd.DataFrame
+        List of transmission projects with their detailed characteristics.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of transmission projects with corrected bus0, bus1 and p_nom values
+        for the projects covered by the offshore hub corrections.
+    """
+
     # Read in offshore hub corrections
     corrections = pd.read_csv(hub_corrections_path)
     corrected_ids = corrections["project_id"].unique()
