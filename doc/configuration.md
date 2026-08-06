@@ -75,6 +75,8 @@ with `--configfile`, it takes precedence over `config/config.yaml`; to override 
 `config.tyndp.yaml` already sets, pass it on the command line with `--config` or edit
 `config.tyndp.yaml` directly or via the scenario file `scenarios.tyndp.yaml`.
 
+For each scenario, the fully resolved configuration, the result of merging all layers above with that scenario's overrides, is also stored directly on the solved PyPSA network under `n.meta`. This is the config to check if you want to see exactly what settings produced a given scenario's outcomes.
+
 !!! warning
     In a previous version of PyPSA-Eur (`<=2025.04.0`), a full copy of the created config
     was stored in the `config/config.yaml` file. This is no longer the case. If the
