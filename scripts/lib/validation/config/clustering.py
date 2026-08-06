@@ -34,7 +34,7 @@ class _BuildBiddingZonesConfig(BaseModel):
 
     remove_islands: bool = Field(
         False,
-        description="Exclude from the shape file the Balearic Islands, Bornholm, the Canary Islands, the Orkney Islands, the Shetland Islands, the Azores Islands and Madeira.",
+        description="Exclude from the shape file the Balearic Islands, Bornholm, the Canary Islands, the Orkney Islands, the Shetland Islands, the Azores Islands and Madeira. This only drops the island polygons in the pre-processing step, with each island's nodes aggregating back to their respective TYNDP mainland node, and thus included in the modelling scope.",
     )
     aggregate_to_tyndp: bool = Field(
         False,
