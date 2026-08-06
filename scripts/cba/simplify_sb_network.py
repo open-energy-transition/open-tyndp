@@ -196,7 +196,7 @@ def make_links_unidirectional(
 
 def merge_offshore_hub_carriers(n):
     """
-    Merge overhead ("_OH") carrier variants into their base carriers.
+    Merge Offshore Hub ("_OH") carrier variants into their base carriers.
 
     Renames carrier labels such as "DC_OH", "AC_OH", "H2_OH", and
     "H2 pipeline OH" to their mainland equivalents across links,
