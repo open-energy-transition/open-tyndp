@@ -119,6 +119,8 @@
 
 * Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/issues/807)).
 
+* Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820))
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
