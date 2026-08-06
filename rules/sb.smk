@@ -416,7 +416,7 @@ def get_pecd_prebuilt(w):
 
 rule clean_pecd_data:
     input:
-        pecd_prebuilt=get_pecd_prebuilt,
+        pecd_input="data/tyndp_2026_bundle/PECD",  #replace with retrieve rule once available
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         onshore_buses=resources("busmap_base_s_all.csv"),
     output:
@@ -437,9 +437,8 @@ rule clean_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        prebuilt_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
-        ),
+        weather_year=get_weather_year_tyndp,
+        weather_years=config_provider("load", "weather_year_tyndp"),
     script:
         scripts("sb/clean_pecd_data.py")
 

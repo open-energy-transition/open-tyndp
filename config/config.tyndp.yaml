@@ -88,11 +88,13 @@ electricity:
     # TODO: adjust once updated 2050 PECD data is available
     available_years:
     - 2030
+    - 2035
     - 2040
+    - 2050
     technologies:
     - Wind_Offshore
-    - LFSolarPVRooftop
-    - LFSolarPVUtility
+    - Solar PV Rooftop
+    - Solar PV Utility
     - Wind_Onshore
 
   pemmdb_hydro_profiles:
