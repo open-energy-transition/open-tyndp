@@ -65,7 +65,7 @@
 
 * Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761))
 
-* Modify configuration section for open-tyndp specific config hierarchy and move section to Home tab under Getting Started ([#826](https://github.com/open-energy-transition/open-tyndp/pull/826))
+* Modify configuration section for Open-TYNDP specific config hierarchy and move section to Home tab under Getting Started ([#826](https://github.com/open-energy-transition/open-tyndp/pull/826))
 
 **Developers Note**
 
