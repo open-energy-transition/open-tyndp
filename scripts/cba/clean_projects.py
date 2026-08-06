@@ -28,6 +28,8 @@ the user can modify existing projects and add new ones. Transmission capacities 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
 - `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
 - `rules.retrieve_cba_guidelines_reference_projects.output.file`: Table of projects as defined in the Implementation Guidelines Appendix B.1
+- `data/cba_guidelines_reference_projects/.../table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: CBA guidelines reference table, used to assign the TOOT/PINT method per project and planning horizon
+- `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
 - `data/custom_cba_transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
 
 **Outputs**
@@ -57,6 +59,7 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
 
 logger = logging.getLogger(__name__)
 
@@ -75,34 +78,117 @@ OFFSHORE_ELEMENT_TYPES = {
 }
 
 
-def read_tyndp_electricity_buses(buses_fn: str) -> pd.Index:
+def read_tyndp_electricity_buses(
+    buses_fn: str, col_name: str, virtual_buses: list[str] | None = None
+) -> pd.Index:
     """
     Read node list for electricity from tyndp data input.
 
     Parameters
     ----------
     buses_fn : str
-        Path to "LIST OF NODES.xlsx" from the TYNDP bundle.
+        Path to a TYNDP node list Excel file ("LIST OF NODES.xlsx"
+        or offshore hubs "NODE.xlsx").
+    col_name : str
+        Column which is selected from the dataframe.
+    virtual_buses : list
+        List of virtual buses to add, not present in the raw node list
+        (e.g. added later in build_tyndp_network.py).
 
     Returns
     -------
-    pd.Index
+    buses : pandas.Index
         Index of electricity buses as used in Open-TYNDP.
 
     See Also
     --------
-    build_tyndp_network.build_buses
+    build_tyndp_network.py : build_buses
+    build_tyndp_offshore_hubs.py : load_offshore_hubs
     """
-    buses = pd.Index(
-        pd.read_excel(buses_fn)
-        .replace("UK", "GB", regex=True)
-        .rename({"NODE": "bus_id"}, axis=1)["bus_id"]
+    virtual_buses = virtual_buses if virtual_buses is not None else []
+
+    buses = pd.read_excel(buses_fn).replace("UK", "GB", regex=True).set_index(col_name)
+
+    if "OFFSHORE_NODE_TYPE" in buses.columns:
+        # drop radial offshore nodes, which are not built as hub buses
+        buses = buses[buses.OFFSHORE_NODE_TYPE != "Radial"]
+
+    return buses.index.union(virtual_buses)
+
+
+def get_existing_buses(buses_fn: str, offshore_buses_fn: str | list | bool) -> pd.Index:
+    """
+    Return the electricity buses used to validate CBA project borders.
+    Combines onshore buses with offshore hub buses, if provided, into a
+    single index of existing bus names.
+
+    Parameters
+    ----------
+    buses_fn : str
+        Path to the file defining TYNDP electricity buses.
+    offshore_buses_fn : str | list | bool
+        Path(s) to the file(s) defining offshore hub buses. If falsy, only
+        onshore buses are returned.
+
+    Returns
+    -------
+    pd.Index
+        Existing bus names, combining onshore and offshore buses.
+    """
+    virtual_buses = [x for pair in AC_VIRTUAL_NODES_IT.items() for x in pair]
+    existing_buses = read_tyndp_electricity_buses(
+        buses_fn, col_name="NODE", virtual_buses=virtual_buses
     )
 
-    # Manually add Italian virtual nodes and Corsica
-    buses = buses.union(["ITCO", "ITVI", "FR15"])
+    if offshore_buses_fn:
+        existing_oh_buses = read_tyndp_electricity_buses(
+            offshore_buses_fn, col_name="OFFSHORE_NODE"
+        )
+        existing_buses = existing_buses.union(existing_oh_buses)
 
-    return buses
+    return existing_buses.rename("bus_ID")
+
+
+def apply_cba_project_corrections(
+    corrections_path: Path, projects: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Replace bus0/bus1/p_nom of select projects with manually curated corrections.
+
+    Parameters
+    ----------
+    corrections_path : Path
+        Path to the file containing manual corrections.
+    projects : pd.DataFrame
+        List of transmission projects with their detailed characteristics.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of transmission projects with corrected bus0, bus1 and p_nom values
+        for the projects covered by the corrections.
+    """
+
+    # Read in CBA project corrections
+    corrections = pd.read_csv(corrections_path)
+    corrected_ids = corrections["project_id"].unique()
+
+    logger.info(
+        "Applying CBA project corrections for %d projects with project ID:\n%s",
+        len(corrected_ids),
+        ", ".join(corrected_ids.astype(str)),
+    )
+
+    # Add border column to corrections
+    corrections["border"] = corrections.bus0 + "-" + corrections.bus1
+
+    # Drop projects which are in corrections
+    projects_reduced = projects[~projects.project_id.isin(corrected_ids)]
+
+    # Add corrections
+    return pd.concat(
+        [projects_reduced, corrections.drop("notes", axis=1)], ignore_index=True
+    ).sort_values(by="project_id")
 
 
 def remove_unclear_border(
@@ -168,7 +254,7 @@ def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
 
 
 def extract_transmission_projects(
-    transmission_path: Path, existing_buses: pd.Index
+    transmission_path: Path, corrections_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
     """
     Read and clean the transmission projects from the "Trans.Projects" sheet.
@@ -181,6 +267,8 @@ def extract_transmission_projects(
     ----------
     transmission_path : Path
         Path to the Excel export defining the transmission projects.
+    corrections_path : Path
+        Path to the file containing manual corrections.
     existing_buses : pd.Index
         Electricity buses as used in Open-TYNDP.
 
@@ -231,14 +319,18 @@ def extract_transmission_projects(
         }
     )
 
+    # Apply manual CBA project corrections
+    projects = apply_cba_project_corrections(corrections_path, projects)
+
     # Clean the project list by removing projects with unclear borders or no capacity
     projects = remove_unclear_border(projects, existing_buses)
     projects = remove_no_capacity(projects)
 
     # Several projects have capacities with "Up to ..."
+    cols = ["p_nom 0->1", "p_nom 1->0"]
     up_to_projects = set()
-    for col in ["p_nom 0->1", "p_nom 1->0"]:
-        up_to = projects[col].str.startswith("Up to ")
+    for col in cols:
+        up_to = projects[col].str.startswith("Up to ", na=False)
         if up_to.any():
             projects.loc[up_to, col] = projects.loc[up_to, col].str[len("Up to ") :]
             up_to_projects.update(projects.loc[up_to, "project_name"])
@@ -247,6 +339,9 @@ def extract_transmission_projects(
             f"Removed 'Up to ' capacity prefix from {len(up_to_projects)} projects:\n"
             + ", ".join(up_to_projects)
         )
+
+    # convert to numeric
+    projects[cols] = projects[cols].apply(pd.to_numeric, errors="coerce")
 
     return projects
 
@@ -311,7 +406,7 @@ def extract_custom_transmission_projects(
     return custom_transmission_projects
 
 
-def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
+def extract_investment_attributes(transmission_path: Path) -> pd.DataFrame:
     """
     Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
 
@@ -321,16 +416,17 @@ def extract_investment_attributes(excel_path: Path) -> pd.DataFrame:
 
     Parameters
     ----------
-    excel_path : Path
-        Path to the Excel export defining the transmission projects and their investment attributes.
+    transmission_path : Path
+       Path to the Excel export defining the transmission projects and their investment attributes.
 
     Returns
     -------
     pd.DataFrame
-        Route length, CAPEX and underwater fraction per project, indexed by ``project_id``.
+       Route length, CAPEX and underwater fraction per project, indexed by ``project_id``.
+
     """
     inv = pd.read_excel(
-        excel_path,
+        transmission_path,
         sheet_name="Trans.Investments",
         skiprows=1,
         usecols=[
@@ -391,7 +487,7 @@ def split_investment_attributes_per_line(
 
 
 def extract_storage_projects(
-    excel_path: Path, existing_buses: pd.Index
+    storage_path: Path, existing_buses: pd.Index
 ) -> pd.DataFrame:
     """
     Stub method to extract storage projects.
@@ -578,22 +674,29 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
+    # File paths
     transmission_path = Path(snakemake.input.dir, "20250312_export_transmission.xlsx")
     storage_path = Path(snakemake.input.dir, "20250312_export_storage.xlsx")
     custom_transmission_path = Path(snakemake.input.custom_transmission)
+    corrections_path = snakemake.input.cba_project_corrections
 
-    existing_buses = read_tyndp_electricity_buses(snakemake.input.buses)
+    # Get existing buses
+    existing_buses = get_existing_buses(
+        snakemake.input.buses, snakemake.input.offshore_buses
+    )
 
     # Transmission projects
     transmission_projects = extract_transmission_projects(
-        transmission_path, existing_buses
+        transmission_path, corrections_path, existing_buses
     )
+
+    # Custom transmission projects
     custom_transmission_projects = extract_custom_transmission_projects(
         custom_transmission_path, existing_buses
     )
 
+    # Investment costs and length transmission
     investment_attrs = extract_investment_attributes(transmission_path)
-
     investment_attrs_per_line = split_investment_attributes_per_line(
         investment_attrs, transmission_projects
     )
