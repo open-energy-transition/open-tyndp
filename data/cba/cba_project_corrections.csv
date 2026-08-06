@@ -13,7 +13,7 @@ project_id,project_name,is_crossborder,p_nom 0->1,p_nom 1->0,bus0,bus1,notes,
 1034,HVDC corridor from Northern Germany to Western Germany,True,0,650,DE00,DKW1,"Raw Border ‘DE00-DKW’ , bus1 `DKW` → DKW1, Investment 1693 HVDC from Heide/West to Polsum,  rename ",
 1088,Latvia and Estonia Hybrid Off-Shore interconnector,True,1000,1000,EE00,EEOH001,Raw border 'EE00-OBZ'. bus1 'OBZ' -> EEOH001, bus0 EE00 unchanged.
 1088,Latvia and Estonia Hybrid Off-Shore interconnector,True,1000,1000,EEOH001,LV00,Raw border 'OBZ-LV00'. bus0 'OBZ' -> EEOH001, bus1 LV00 unchanged.
-1092,TritonLink: offshore hybrid HVDC interconnector Belgium – Denmark,True,2000,2000,BE00,DKWOH01,"Raw border 'BE00-DKOBZ'. bus1 'DKOBZ' -> DKWOH01 (Danish Energy Island, North Sea/DKW1 side); bus0 BE00 unchanged.",
+1092,TritonLink: offshore hybrid HVDC interconnector Belgium – Denmark,True,2000,2000,BEOH001,DKWOH01,"Raw border 'BE00-DKOBZ'. bus1 'DKOBZ' -> DKWOH01 (Danish Energy Island, North Sea/DKW1 side); bus0 BE00 unchanged.",
 1092,TritonLink: offshore hybrid HVDC interconnector Belgium – Denmark,True,1400,1400,DKW1,DKWOH01,Raw border 'DKW1-DKOBZ'. bus1 'DKOBZ' -> DKWOH01, bus0 DKW1 unchanged.
 1106,Bornholm Energy Island (BEI),True,2000,2000,DE00,BEIOH01,Raw border 'DE00-BolEnergy'. bus1 'BolEnergy' -> BEIOH01 (Bornholm hub), bus0 DE00 unchanged.
 1106,Bornholm Energy Island (BEI),True,1200,1200,BEIOH01,DKE1,Raw border 'BolEnergy-DKE1'. bus0 'BolEnergy' -> BEIOH01, bus1 DKE1 unchanged.
