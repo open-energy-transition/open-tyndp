@@ -7,11 +7,13 @@
 
 # Configuration
 
-Open-TYNDP is configured through layered YAML files. It inherits the complete PyPSA-Eur
-configuration surface and adds a TYNDP-specific layer on top, so the options documented in
-this section span both the general PyPSA-Eur settings and the Open-TYNDP additions. Both
-Open-TYNDP workflows, [Scenario Building (SB)](sb.md) and
-[Cost-Benefit Analysis (CBA)](cba.md), are driven by the same set of files.
+Open-TYNDP is configured through a set of YAML files that build on each other. Both
+Open-TYNDP workflows, [Scenario Building (SB)](sb.md) and [Cost-Benefit Analysis (CBA)](cba.md), are driven by this same set of files. Each file only specifies the options it wants to change, and anything it leaves out falls back to the file below it.
+
+Going from the most general to the most specific, the hierarchy is:
+**defaults (`config.default.yaml`, `config/plotting.default.yaml`, `config/benchmarking.default.yaml`) → data source (`data.tyndp.yaml`, optional) → user overrides (`config.yaml`, optional) → run-level config (`config.tyndp.yaml`) → per-scenario overrides (`scenarios.tyndp.yaml`, optional)**
+
+Open-TYNDP inherits the complete PyPSA-Eur configuration surface and adds a TYNDP-specific layer on top, so the options documented in this section span both the general PyPSA-Eur settings and the Open-TYNDP additions.
 
 <a id="defaultconfig"></a>
 
