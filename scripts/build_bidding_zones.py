@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 """
 Combines bidding zone shape files from two sources. The `electricitymaps-contrib` data is more accurate and are used as the baseline. The Italian bidding zones from `entsoe-py` are more preferred and are used to override the baseline. Manual adjustments are made to match the TYNDP 2024 configuration. Small islands are removed and Crete is considered as independent of Greece. Southern Norwegian zones are merged.
- 
+
 If `remove_islands` is enabled, a fixed list of small island and exclave zones
 (Bornholm, the Canary Islands, the Balearic Islands, Melilla & Ceuta, Orkney,
 Shetland, and Madeira & Azores) is dropped from the bidding zones before any
@@ -12,18 +12,18 @@ further processing. These zones are excluded because they are not part of the
 interconnected TYNDP transmission network modelled by this workflow. For
 Open-TYNDP, `remove_islands` must be set to `true`, otherwise these zones
 have no matching TYNDP nodes and cause the workflow to fail downstream.
- 
+
 If `aggregate_to_tyndp` is enabled, the three southern Norwegian zones
 (NO-NO1, NO-NO2, NO-NO5) are merged into a single zone (NOS0), and Crete is
 split out from Greece as an independent zone (GR03), to match the TYNDP 2024
 zone configuration. For Open-TYNDP, `aggregate_to_tyndp` must be set to
 `true`, since the rest of the workflow expects bidding zones at TYNDP 2024
 resolution.
- 
+
 **Inputs**
 - `bidding_zones_entsoepy`: Bidding zone shapes derived from `entsoe-py`, used to override the Italian bidding zones
 - `bidding_zones_electricitymaps`: Bidding zone shapes from `electricitymaps-contrib`, used as the baseline
- 
+
 **Outputs**
 - `resources/bidding_zones.geojson`: Combined and corrected bidding zone shapes, renamed to TYNDP node codes
 """
