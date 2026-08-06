@@ -261,7 +261,7 @@ if __name__ == "__main__":
     hurdle_costs = snakemake.params.hurdle_costs
 
     # Rename offshore link carriers and buses
-    merge_overhead_carriers(n)
+    merge_offshore_hub_carriers(n)
 
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
