@@ -141,8 +141,16 @@ def apply_toot(
     negative_toot_option: str,
 ) -> None:
 
-    def _apply_toot_capacity(link_id, capacity):
+    def _apply_toot_capacity(link_id, capacity, project):
         if link_id is None:
+            if capacity != 0:
+                logger.warning(
+                    "Project %s (border: %s) has TOOT capacity of %.0f MW but no matching "
+                    "link was found; capacity change skipped.",
+                    project["project_id"],
+                    project["border"],
+                    capacity,
+                )
             return
         result_capacity = n.links.loc[link_id, "p_nom"] - capacity
         if result_capacity < 0:
@@ -178,8 +186,8 @@ def apply_toot(
             n, project, method="toot"
         )
 
-        _apply_toot_capacity(link_id, capacity)
-        _apply_toot_capacity(reverse_link_id, capacity_reverse)
+        _apply_toot_capacity(link_id, capacity, project)
+        _apply_toot_capacity(reverse_link_id, capacity_reverse, project)
 
 
 def apply_pint(
