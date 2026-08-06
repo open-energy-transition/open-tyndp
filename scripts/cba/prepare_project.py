@@ -20,7 +20,40 @@ from scripts.cba._helpers import get_link_attrs
 logger = logging.getLogger(__name__)
 
 
-def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -> str:
+def check_method(method: str) -> str:
+    """
+    Normalize and validate a given CBA method name.
+
+    Raises
+    ------
+    ValueError
+        If the normalized value is neither "pint" nor "toot".
+    """
+    method = method.lower().strip()
+    if method not in ["pint", "toot"]:
+        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
+    return method
+
+
+def load_method(methods_fn: str, project_id: int, planning_horizon: int) -> str:
+    """
+    Load the method for a specific project and planning horizon.
+
+    Parameters
+    ----------
+    methods_fn : str
+        Path to the file defining the methods.
+    project_id : int
+        Project reference ID.
+    planning_horizon : int
+        Planning horizon.
+
+    Returns
+    -------
+    str
+        Method to be used to assess a project at a planning horizon.
+    """
+    methods = pd.read_csv(methods_fn)
     row = methods[
         (methods["project_id"] == project_id)
         & (methods["planning_horizon"] == planning_horizon)
@@ -29,10 +62,10 @@ def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -
         raise ValueError(
             f"Missing CBA method for project {project_id} and horizon {planning_horizon}"
         )
-    return str(row["method"].iloc[0]).strip().upper()
+    return check_method(row["method"].iloc[0])
 
 
-def get_link_capacity_data(n, project, method="TOOT"):
+def get_link_capacity_data(n, project, method="toot"):
     """
     Get link IDs and capacities for a DC link project between bus0 and bus1.
 
@@ -46,8 +79,8 @@ def get_link_capacity_data(n, project, method="TOOT"):
         Network containing the links.
     project : pd.Series
         Project data with fields "bus0", "bus1", "p_nom 0->1", "p_nom 1->0".
-    method : {"TOOT", "PINT"}, default "TOOT"
-        Lookup strategy. If "PINT", missing links fall back to a
+    method : {"toot", "pint"}, default "toot"
+        Lookup strategy. If "pint", missing links fall back to a
         constructed placeholder ID of the form "{bus0}-{bus1}-DC".
 
     Returns
@@ -79,7 +112,7 @@ def get_link_capacity_data(n, project, method="TOOT"):
         f"Expected at most one reverse link for {bus1}->{bus0}, found {len(reverse_link_id)}."
     )
 
-    if method.upper() == "PINT":
+    if method.lower() == "pint":
         link_id = link_id[0] if not link_id.empty else f"{bus0}-{bus1}-DC"
         reverse_link_id = (
             reverse_link_id[0] if not reverse_link_id.empty else f"{bus1}-{bus0}-DC"
@@ -142,7 +175,7 @@ def apply_toot(
 
     for _, project in transmission_project.iterrows():
         link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
-            n, project, method="TOOT"
+            n, project, method="toot"
         )
 
         _apply_toot_capacity(link_id, capacity)
@@ -160,7 +193,7 @@ def apply_pint(
         bus1 = project["bus1"]
 
         link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
-            n, project, method="PINT"
+            n, project, method="pint"
         )
 
         if link_id in n.links.index and reverse_link_id in n.links.index:
@@ -191,8 +224,8 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "prepare_project",
-            cba_project="t1124",
-            planning_horizons="2040",
+            cba_project="t1",
+            planning_horizons="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
@@ -200,28 +233,18 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    n = pypsa.Network(snakemake.input.network)
-
-    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
-    methods = pd.read_csv(snakemake.input.methods)
-
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
     planning_horizon = int(snakemake.wildcards.planning_horizons)
-    if planning_horizon not in [2030, 2040]:
-        logger.warning(
-            "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
-            snakemake.wildcards.planning_horizons,
-        )
-        planning_horizon = 2040
-
-    method = load_method(methods, project_id, planning_horizon)
+    methods_fn = snakemake.input.methods
     hurdle_costs = snakemake.params.hurdle_costs
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
     )
 
+    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
+    n = pypsa.Network(snakemake.input.network)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
@@ -229,10 +252,18 @@ if __name__ == "__main__":
     assert not transmission_project.empty, (
         f"Transmission project {project_id} not found."
     )
+    if planning_horizon not in [2030, 2040]:
+        logger.warning(
+            "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
+            snakemake.wildcards.planning_horizons,
+        )
+        planning_horizon = 2040
 
-    if method == "TOOT":
+    method = load_method(methods_fn, project_id, planning_horizon)
+
+    if method == "toot":
         apply_toot(n, transmission_project, negative_toot_capacity)
-    elif method == "PINT":
+    elif method == "pint":
         apply_pint(n, transmission_project, hurdle_costs, costs)
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")
