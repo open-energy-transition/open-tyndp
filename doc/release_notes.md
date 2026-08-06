@@ -67,6 +67,8 @@
 
 * Change axis of the CBA summary indicator benchmark plots ([#837](https://github.com/open-energy-transition/open-tyndp/pull/837)).
 
+* Disable load shedding for all carriers in MSV and RH ([#847](https://github.com/open-energy-transition/open-tyndp/pull/847)).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
