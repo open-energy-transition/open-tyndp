@@ -416,7 +416,7 @@ def get_pecd_prebuilt(w):
 
 rule clean_pecd_data:
     input:
-        pecd_input = "data/tyndp_2026_bundle/PECD", #replace with retrieve rule once available
+        pecd_input="data/tyndp_2026_bundle/PECD",  #replace with retrieve rule once available
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         onshore_buses=resources("busmap_base_s_all.csv"),
     output:
