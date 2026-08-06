@@ -194,7 +194,7 @@ def make_links_unidirectional(
     n.links = pd.concat([n.links, rev_links])
 
 
-def merge_overhead_carriers(n):
+def merge_offshore_hub_carriers(n):
     """
     Merge overhead ("_OH") carrier variants into their base carriers.
 
