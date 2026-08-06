@@ -79,7 +79,7 @@
 
 * Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761)).
 
-* Improve documentation of the `remove_islands` option for bidding zones building ([845](https://github.com/open-energy-transition/open-tyndp/pull/845)).
+* Improve documentation of the `remove_islands` option ([845](https://github.com/open-energy-transition/open-tyndp/pull/845)).
 
 **Developers Note**
 
