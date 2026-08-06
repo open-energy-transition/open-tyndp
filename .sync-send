@@ -11,6 +11,7 @@ profiles
 matplotlibrc
 Snakefile
 # data
+data/cba
 pixi.toml
 pixi.lock
 matplotlibrc

@@ -6,7 +6,7 @@
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT
+  - NT-cy2009-20260806
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
