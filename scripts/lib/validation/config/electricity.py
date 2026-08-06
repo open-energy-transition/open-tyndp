@@ -205,8 +205,8 @@ class _PecdRenewableProfilesConfig(BaseModel):
     technologies: list[
         Literal[
             "Wind_Offshore",
-            "LFSolarPVRooftop",
-            "LFSolarPVUtility",
+            "Solar PV Rooftop",
+            "Solar PV Utility",
             "CSP_noStorage",
             "CSP_withStorage",
             "Wind_Onshore",
@@ -214,8 +214,8 @@ class _PecdRenewableProfilesConfig(BaseModel):
     ] = Field(
         default_factory=lambda: [
             "Wind_Offshore",
-            "LFSolarPVRooftop",
-            "LFSolarPVUtility",
+            "Solar PV Rooftop",
+            "Solar PV Utility",
             "Wind_Onshore",
         ],
         description="The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",

@@ -5,8 +5,8 @@
 Loads and cleans the available PECD capacity factor generation time series based on PECD weather data.
 The script is executed for a given technology and planning horizon. Technologies can be one of:
 
-   * LFSolarPVUtility,
-   * LFSolarPVRooftop,
+   * Solar PV Utility,
+   * Solar PV Rooftop,
    * Wind_Offshore,
    * Wind_Onshore,
    * CSP_noStorage,
@@ -41,36 +41,34 @@ def read_pecd_file(
     node: str,
     dir_pecd: str,
     cyear: int,
-    cyear_i: int,
     pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
+    weather_year: int,
 ):
     fn = Path(
         dir_pecd,
         str(pyear),
-        f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
+        # f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
+        f"{node.replace('GB', 'UK')}_CapacityFactors_{technology}_{pyear}.csv",
     )
-
     # PECD only differentiates between utility and rooftop PV for some nodes
-    if not os.path.isfile(fn) and "LFSolarPV" in technology:
-        fn = Path(str(fn).replace(technology, "LFSolarPV"))
+    if not os.path.isfile(fn) and "Solar" in technology:
+        fn = Path(dir_pecd, str(pyear), f"{technology} {node.replace('GB', 'UK')}.csv")
     if not os.path.isfile(fn):
         logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
         return None
 
-    pecd_bus = pd.read_csv(fn)
-
-    datetime_str = f"{cyear_i}." + pecd_bus["Date"].str.cat(
+    pecd_bus = pd.read_csv(fn, skiprows=10)
+    datetime_str = f"{cyear}." + pecd_bus["Date"].str.cat(
         (pecd_bus["Hour"] - 1).astype(str), sep=" "
     )
     cf_pecd = (
         pecd_bus.set_index(pd.to_datetime(datetime_str, format="%Y.%d.%m. %H"))
         .drop(columns=["Date", "Hour"])
-        .loc[sns, [str(cyear)]]  # filter for snapshots and climate year only
-        .rename(columns={str(cyear): node})
+        .loc[sns, [f"WS{weather_year:03d}"]]  # filter for snapshots and climate year only
+        .rename(columns={f"WS{weather_year:03d}": node})
     )
-
     return cf_pecd
 
 
@@ -93,19 +91,8 @@ if __name__ == "__main__":
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
-    # define climate year to use for the Datetime Index later on
-    cyear_i = cyear
-    prebuilt_years = snakemake.params.prebuilt_years
 
-    if int(cyear) not in prebuilt_years:
-        # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
-        fallback_year = (
-            2009 if 2009 in prebuilt_years else (prebuilt_years[-1])
-        )  # use 2009 as default fallback if one of the filtered cyears
-        logger.warning(
-            f"Snapshot year doesn't match available TYNDP data. Falling back to {fallback_year}."
-        )
-        cyear = fallback_year
+    weather_year = snakemake.params.weather_year
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
@@ -121,13 +108,13 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
 
     nodes = (
-        offshore_buses.index.str.replace(
+        offshore_buses['HOME_NODE'].str.replace(
             "UK", "GB", regex=True
-        )  # replace UK with GB for naming convention
+        ).unique().tolist()  # replace UK with GB for naming convention
         if pecd_tech == "Wind_Offshore"
         else onshore_buses.index
     )
-    dir_pecd = snakemake.input.pecd_prebuilt
+    dir_pecd = snakemake.input.pecd_input
 
     # Load and prep pecd data
     #########################
@@ -143,10 +130,10 @@ if __name__ == "__main__":
         read_pecd_file,
         dir_pecd=dir_pecd,
         cyear=cyear,
-        cyear_i=cyear_i,
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,
+        weather_year=weather_year
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
