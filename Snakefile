@@ -30,6 +30,9 @@ from scripts.lib.validation.config import validate_config
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
 configfile: "config/benchmarking.default.yaml"
+configfile: "config/config.tyndp.yaml"
+configfile: "config/config.hpc.yaml"
+configfile: "config/config.private.yaml"
 
 
 if (tag := config["data_config"]) is not None and Path(
@@ -480,10 +483,10 @@ rule sync:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
     shell:
         """
-        rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster}
-        rsync -uvarh --no-g {params.cluster}/resources . || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/results . || echo "No results directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
+        rsync -varh --ignore-missing-args --files-from=.sync-send . {params.cluster}
+        # rsync -uvarh --no-g {params.cluster}/resources . || echo "No resources directory, skipping rsync"
+        # rsync -uvarh --no-g {params.cluster}/results . || echo "No results directory, skipping rsync"
+        # rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
         """
 
 
@@ -492,8 +495,8 @@ rule sync_dry:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
     shell:
         """
-        rsync -uvarh --ignore-missing-args --files-from=.sync-send . {params.cluster} -n
-        rsync -uvarh --no-g {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/results . -n || echo "No results directory, skipping rsync"
-        rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
+        rsync -varh --ignore-missing-args --files-from=.sync-send . {params.cluster} -n
+        # rsync -uvarh --no-g {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
+        # rsync -uvarh --no-g {params.cluster}/results . -n || echo "No results directory, skipping rsync"
+        # rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
         """

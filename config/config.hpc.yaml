@@ -6,7 +6,7 @@
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT
+  - NT-cy2009-20260807
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
@@ -46,7 +46,7 @@ cba:
     options:
       include_objective_constant: false
     partition: big
-    mem_mb: 45000
+    mem_mb: 10000
     runtime: 2h
 
     solver:
