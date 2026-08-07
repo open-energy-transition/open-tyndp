@@ -159,7 +159,9 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
+        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only

@@ -45,6 +45,8 @@
 
 **Bugfixes and Compatibility**
 
+* Fix: correct wrong or missing bus assignments and transfer capacities for transmission projects in the CBA ([#795](https://github.com/open-energy-transition/open-tyndp/pull/795)).
+  
 * Fix: split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
 
 * Use `overnight` foresight in MSV network preparation instead of `perfect` ([#813](https://github.com/open-energy-transition/open-tyndp/pull/813)).
@@ -80,6 +82,8 @@
 * Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761)).
 
 * Improve documentation of the `remove_islands` option ([845](https://github.com/open-energy-transition/open-tyndp/pull/845)).
+
+* Modify configuration section for Open-TYNDP specific config hierarchy and move section to Home tab under Getting Started ([#826](https://github.com/open-energy-transition/open-tyndp/pull/826))
 
 **Developers Note**
 
