@@ -10,6 +10,11 @@ NT:
 NT-cy2009-20260806:
   tyndp_scenario: NT
 
+NT-cy2009-20260806-cba-all:
+  tyndp_scenario: NT
+  cba:
+    projects: []
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
