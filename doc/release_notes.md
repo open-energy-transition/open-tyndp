@@ -66,7 +66,7 @@
 * Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
 
 
-## Open-TYNDP v0.8.0 (7th August 2026)
+## Open-TYNDP v0.8 (7th August 2026)
 
 **Features**
 

@@ -116,7 +116,7 @@ pixi run tyndp-cba -n
 >Dependency graphs can be built by a dedicated pixi task and saved to the `resources/` directory. Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
 >
 >```sh
->pixi run create-tyndp-graphs --config 'run={"name":"NT"}'
+>pixi run create-tyndp-graphs
 >```
 
 # Contributing and Support
