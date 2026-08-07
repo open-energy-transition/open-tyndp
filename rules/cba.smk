@@ -159,7 +159,10 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
+        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        cba_project_corrections="data/cba/cba_project_corrections.csv",
+        custom_transmission="data/custom_cba_transmission_projects.csv",
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
         # transmission projects (no storage). In order to confirm, we should check
@@ -287,7 +290,6 @@ rule fix_reference_sb_to_cba:
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
         buses=rules.build_tyndp_network.output.substations_geojson,
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),

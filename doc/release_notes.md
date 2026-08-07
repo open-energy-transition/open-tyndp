@@ -66,7 +66,7 @@
 * Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
 
 
-## Open-TYNDP v0.8.0 (6th August 2026)
+## Open-TYNDP v0.8.0 (7th August 2026)
 
 **Features**
 
@@ -77,6 +77,8 @@
 * Merge low voltage and market nodes in the CBA ([#790](https://github.com/open-energy-transition/open-tyndp/pull/790)).
 
 * Add a configurable default cost for load shedding (VOLL) for CBA (for both MSV and RH), set to 300 EUR/MWh in the config, and change the default run option in the config to "NT" instead of "all" ([#831](https://github.com/open-energy-transition/open-tyndp/pull/831)).
+
+* Add the option to define custom transmission projects for the CBA assessment ([#802](https://github.com/open-energy-transition/open-tyndp/pull/802)). The new file `data/custom_cba_transmission_projects.csv` is used to configure these projects. With it, the user can modify existing projects and add new ones.
 
 **Changes**
 
@@ -126,6 +128,12 @@
 
 * Fix pandas version (allowed versions >= 2.1 and < 3) ([#829](https://github.com/open-energy-transition/open-tyndp/pull/829)).
 
+* Change axis of the CBA summary indicator benchmark plots ([#837](https://github.com/open-energy-transition/open-tyndp/pull/837)).
+
+* Correct wrong or missing bus assignments and transfer capacities for transmission projects in the CBA ([#795](https://github.com/open-energy-transition/open-tyndp/pull/795)).
+
+* Disable load shedding for all carriers in MSV and RH ([#847](https://github.com/open-energy-transition/open-tyndp/pull/847)).
+
 **Documentation**
 
 * Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
@@ -135,6 +143,10 @@
 * Improve docstring formatting and add missing type hints ([#759](https://github.com/open-energy-transition/open-tyndp/pull/759)).
 
 * Create rules overview for SB and CBA rules ([#761](https://github.com/open-energy-transition/open-tyndp/pull/761)).
+
+* Modify configuration section for Open-TYNDP specific config hierarchy and move section to Home tab under Getting Started ([#826](https://github.com/open-energy-transition/open-tyndp/pull/826)).
+
+* Improve documentation of the `remove_islands` and `aggregate_to_tyndp` options ([#845](https://github.com/open-energy-transition/open-tyndp/pull/845)).
 
 **Developers Note**
 
@@ -164,6 +176,7 @@
 
 * Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
+* Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/pull/807)).
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 

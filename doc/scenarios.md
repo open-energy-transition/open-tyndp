@@ -1,7 +1,7 @@
 <!-- SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Open TYNDP Scenarios {#scenarios}
+# Open-TYNDP Scenarios {#scenarios}
 
 The modelling for the reference, National Trends+ (NT+),
 and the deviation, Distributed Energy (DE) and Global Ambition (GA), scenarios
@@ -57,7 +57,7 @@ of TYNDP 2024 (e.g. during 2023).
 >
 > — [TYNDP 2024 Scenarios Storyline Report](https://2024.entsos-tyndp-scenarios.eu/wp-content/uploads/2023/12/ENTSOs_TYNDP_2024_Scenarios_Storyline_Report_2023-12-04.pdf)
 
-## Open TYNDP Implementation
+## Open-TYNDP Implementation
 
 The TYNDP scenarios are defined in `config/config.tyndp.yaml` and `config/scenarios.tyndp.yaml`.
 
