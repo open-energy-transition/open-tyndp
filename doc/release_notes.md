@@ -81,9 +81,9 @@
 
 * Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761)).
 
-* Improve documentation of the `remove_islands` option ([845](https://github.com/open-energy-transition/open-tyndp/pull/845)).
+* Modify configuration section for Open-TYNDP specific config hierarchy and move section to Home tab under Getting Started ([#826](https://github.com/open-energy-transition/open-tyndp/pull/826)).
 
-* Modify configuration section for Open-TYNDP specific config hierarchy and move section to Home tab under Getting Started ([#826](https://github.com/open-energy-transition/open-tyndp/pull/826))
+* Improve documentation of the `remove_islands` and `aggregate_to_tyndp` options ([#845](https://github.com/open-energy-transition/open-tyndp/pull/845)).
 
 **Developers Note**
 
