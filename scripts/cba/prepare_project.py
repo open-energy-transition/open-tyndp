@@ -20,14 +20,18 @@ from scripts.cba._helpers import get_link_attrs, get_storage_attrs
 logger = logging.getLogger(__name__)
 
 
-def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -> str:
+def load_method(
+    methods: pd.DataFrame, project_id: int, project_type: str, planning_horizon: int
+) -> str:
     row = methods[
         (methods["project_id"] == project_id)
+        & (methods["project_type"] == project_type)
         & (methods["planning_horizon"] == planning_horizon)
     ]
     if row.empty:
         raise ValueError(
-            f"Missing CBA method for project {project_id} and horizon {planning_horizon}"
+            f"Missing CBA method for {project_type} project {project_id} "
+            f"and horizon {planning_horizon}"
         )
     return str(row["method"].iloc[0]).strip().upper()
 
@@ -278,7 +282,8 @@ if __name__ == "__main__":
         )
         planning_horizon = 2040
 
-    method = load_method(methods, project_id, planning_horizon)
+    project_type = "storage" if is_storage else "transmission"
+    method = load_method(methods, project_id, project_type, planning_horizon)
 
     if is_storage:
         prepare_storage_project(n, snakemake, project_id, method)
