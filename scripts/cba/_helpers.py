@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+import fnmatch
 import re
 
 import pandas as pd
@@ -112,8 +113,10 @@ def filter_projects_by_specs(
     Supports:
     - Single projects: 't1', 's4'
     - Ranges: 't20-t25', 's4-s6'
+    - Globs: 's*', 't1*'
     - Exclusions: '-t22', '-s5'
     - Exclusion ranges: '-t22-t25'
+    - Exclusion globs: '-s*'
 
     The function operates in two modes:
     - Inclusion mode (default): Start with empty set, add specified projects
@@ -144,6 +147,9 @@ def filter_projects_by_specs(
 
     >>> filter_projects_by_specs(['t1', 't2', 't3', 't4'], ['-t2', '-t3'])
     ['t1', 't4']
+
+    >>> filter_projects_by_specs(['t1', 's1', 's2'], ['s*'])
+    ['s1', 's2']
     """
 
     if not spec_list:
@@ -174,6 +180,10 @@ def filter_projects_by_specs(
 
             for i in range(start, end + 1):
                 op(f"{prefix}{i}")
+        elif any(c in spec for c in "*?["):
+            # Glob pattern
+            for p in fnmatch.filter(project_list, spec):
+                op(p)
         else:
             # Single project
             op(spec)
