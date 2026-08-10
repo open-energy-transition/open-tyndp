@@ -179,64 +179,7 @@
 
 * Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
-
-## Upcoming PyPSA-Eur Release
-
-* fix: update stale contribution docs (linting and formatting ruff)
-
-* feat: data version CSV / YAML file can be specified separately or extended by the user in the `data.version_files` config entry ([#2016](https://github.com/PyPSA/pypsa-eur/issues/2016)).
-
-* Fix: Resolve plotting crashes from missing `tech_colors` entries by adding `heat dsm` color and implementing upfront validation for missing keys in `plot_summary.py` ([#2108](https://github.com/PyPSA/pypsa-eur/issues/2108)).
-
-* Fix: Retry interrupted WDPA and WDPA-marine downloads ([#2138](https://github.com/PyPSA/pypsa-eur/issues/2138)).
-
-* feat: Make the default target rule configurable (defaults to "all" for backwards compatibility)
-
-* Fix: Keep unset `p_set` (NaN) as NaN when aggregating components in `cluster_heat_buses`, required for [PyPSA#1703](https://github.com/PyPSA/PyPSA/pull/1703).
-
-* Fix: When clustering heat buses, in myopic optimization, and afterwards viewing the heat energy_balance with n.statistics (and with nice_names=True, which is the default), some assets would still be displayed as belonging to "residential" or "services" sectors, because the nice_names still lingered from the unclustered version. This has been fixed.
-
-* Security: SBOM security scan included in CI.
-
-* Updated contribution guidelines outline what we expect from AI-based contributions.
-
-* Security: Development dependencies (pre-commit, pylint, jupyter, etc.) moved to `dev` `pixi` environment.
-  Removed 62 CVEs from `default` environment.
-
-* Fix: Prevent over-aggressive HVDC simplification in `simplify_network` for branched/multi-terminal DC topologies (e.g. UK/Shetland edge cases). Supernode detection now only collapses true chain nodes (degree 2) and preserves DC junctions (degree 3+) so branches are not dropped ([#2147](https://github.com/PyPSA/pypsa-eur/pull/2147)).
-
-* Fix: `atlite.plot_availability_matrix` config option for `determine_availability_matrix` and `determine_availability_matrix_MD_UA` scripts, changed their output and behaviour to align consistently ([#2173](https://github.com/PyPSA/pypsa-eur/pull/2173)).
-
-* Fix: Activate losses for `H2 pipeline retrofitted` links by default, to ensure consistency with `H2 pipeline` links.
-
-* Fix: Re-introduce capital costs for non-bicharging discharge links in `add_electricity.py`, e.g. fuel cells.
-
-* The lockfile update workflow now excludes packages published within the last 7 days to reduce the risk of pulling in broken or yanked releases ([#2130](https://github.com/PyPSA/pypsa-eur/pull/2130)).
-
-* The industry reference year and the ammonia production data have been updated to 2023 ([#2103](https://github.com/PyPSA/pypsa-eur/pull/2103))
-
-* refactor: Use scripts path provider consistently ([#2093](https://github.com/PyPSA/pypsa-eur/pull/2093)).
-
-* Fix: Lower the lower bound used to group the power plants in `add_existing_baseyear` ([#2097](https://github.com/PyPSA/pypsa-eur/pull/2097)). This now includes all power plants built since 1900.
-
-* feat: Add options for carrier specific load shedding and load sinks configurable via `load_shedding` and `load_sinks` respectively ([#2105](https://github.com/PyPSA/pypsa-eur/pull/2105)).
-
-* perf: Optimize dask settings for computing weather-dependent profiles ([#2137](https://github.com/PyPSA/pypsa-eur/pull/2137)).
-
-* Fix: correct definition of `marginal_cost` for those links were `vom` values from technology cost datasets are defined per units of output (e.g., electricity) ([#2154](https://github.com/PyPSA/pypsa-eur/pull/2154)).
-
-* feat: Improve the config validation to cover scenario management ([#2155](https://github.com/PyPSA/pypsa-eur/pull/2155)).
-
-- Added solar rooftop ratio setting to `add_existing_baseyear` for heuristically splitting existing solar capacity between rooftop and utility-scale (defaults to a 50:50 split).
-
-- doc: Disable root TOC entries in order to declutter the table of contents for the rules overview ([2216](https://github.com/PyPSA/pypsa-eur/pull/2216)).
-
-* fix: Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([#2224](https://github.com/PyPSA/pypsa-eur/pull/2224)).
-* Add missing regex anchor with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([#2225](https://github.com/PyPSA/pypsa-eur/pull/2225)).
-
-* doc: Add FAQ section to docs (`faq.md`) with troubleshooting for `SSL: CERTIFICATE_VERIFY_FAILED` during data retrieval behind proxy servers ([#2228](https://github.com/PyPSA/pypsa-eur/pull/2228)).
-* Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
-
+* Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/pull/807)).
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 
