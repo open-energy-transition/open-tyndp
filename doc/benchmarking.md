@@ -15,11 +15,7 @@ and Cost-Benefit Analysis (CBA) phases.
 Benchmarking results continue to be published with every release on [Zenodo](https://doi.org/10.5281/zenodo.18608105) (currently only Scenario Building results).  View the [project website](https://open-tyndp.openenergytransition.org) for a detailed explanation of the results.
 
 !!! warning
-    Open-TYNDP is under active development and is not yet feature-complete. The current
-    [development status](index.md#development-status)
-    and the general [Limitations](limitations.md)
-    are important to understand before using the model. The following outputs are presented
-    for illustrative purposes and do not reflect the quality of the results.
+    Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open-TYNDP was successfully benchmarked against TYNDP 2024 (see [outcomes](https://open-tyndp.openenergytransition.org)). The current [development status](index.md#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
 
 ## Benchmarking Methodology
 
