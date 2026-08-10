@@ -64,7 +64,9 @@ def read_pecd_file(
     cf_pecd = (
         pecd_bus.set_index(pd.to_datetime(datetime_str, format="%Y.%d.%m. %H"))
         .drop(columns=["Date", "Hour"])
-        .loc[sns, [f"WS{weather_year:03d}"]]  # filter for snapshots and climate year only
+        .loc[
+            sns, [f"WS{weather_year:03d}"]
+        ]  # filter for snapshots and climate year only
         .rename(columns={f"WS{weather_year:03d}": node})
     )
     return cf_pecd
@@ -106,9 +108,10 @@ if __name__ == "__main__":
     onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
 
     nodes = (
-        offshore_buses['HOME_NODE'].str.replace(
-            "UK", "GB", regex=True
-        ).unique().tolist()  # replace UK with GB for naming convention
+        offshore_buses["HOME_NODE"]
+        .str.replace("UK", "GB", regex=True)
+        .unique()
+        .tolist()  # replace UK with GB for naming convention
         if pecd_tech == "Wind_Offshore"
         else onshore_buses.index
     )
@@ -131,7 +134,7 @@ if __name__ == "__main__":
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,
-        weather_year=weather_year
+        weather_year=weather_year,
     )
 
     with mp.Pool(processes=snakemake.threads) as pool:
