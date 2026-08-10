@@ -2769,10 +2769,9 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "CSP_noStorage_0h_dispatched",
                   "Wind_Onshore"
                 ],
                 "type": "string"
@@ -8380,10 +8379,9 @@
           "items": {
             "enum": [
               "Wind_Offshore",
-              "LFSolarPVRooftop",
-              "LFSolarPVUtility",
-              "CSP_noStorage",
-              "CSP_withStorage",
+              "Solar PV Rooftop",
+              "Solar PV Utility",
+              "CSP_noStorage_0h_dispatched",
               "Wind_Onshore"
             ],
             "type": "string"
@@ -9978,10 +9976,9 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "CSP_noStorage_0h_dispatched",
                   "Wind_Onshore"
                 ],
                 "type": "string"

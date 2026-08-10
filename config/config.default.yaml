@@ -192,12 +192,14 @@ electricity:
     fill_gaps_method: zero
     available_years:
     - 2030
+    - 2035
     - 2040
     - 2050
     technologies:
     - Wind_Offshore
-    - LFSolarPVRooftop
-    - LFSolarPVUtility
+    - Solar PV Rooftop
+    - Solar PV Utility
+    - CSP_noStorage_0h_dispatched
     - Wind_Onshore
   pemmdb_hydro_profiles:
     enable: false
@@ -1404,7 +1406,7 @@ solving:
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#data
 data:
   version_files:
-  - data/versions.csv
+  - data\versions.csv
   hotmaps_industrial_sites:
     source: archive
     version: latest

@@ -15,7 +15,7 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
     rule retrieve_tyndp_pecd:
         input:
             zip_file=storage(
-                PECD_DATASET["url"] + f"PECD_{PECD_DATASET['version']}.zip"
+                PECD_DATASET["url"] 
             ),
         output:
             dir=directory(PECD_DATASET["folder"]),
@@ -416,8 +416,8 @@ def get_pecd_prebuilt(w):
 
 rule clean_pecd_data:
     input:
-        pecd_input="data/tyndp_2026_bundle/PECD",  #replace with retrieve rule once available
-        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
+        pecd_input=f"{rules.retrieve_tyndp_pecd.output.dir}/PECD/",
+        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes, 
         onshore_buses=resources("busmap_base_s_all.csv"),
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
