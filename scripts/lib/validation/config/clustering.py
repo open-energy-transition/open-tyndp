@@ -34,7 +34,7 @@ class _BuildBiddingZonesConfig(BaseModel):
 
     remove_islands: bool = Field(
         False,
-        description="Exclude from the shape file the Balearic Islands, Bornholm, the Canary Islands, the Orkney Islands, the Shetland Islands, the Azores Islands and Madeira.",
+        description="Exclude from the shape file the small island and exclave bidding zones: Bornholm, the Canary Islands, the Balearic Islands, Melilla and Ceuta, the Orkney Islands, the Shetland Islands, Madeira and the Azores. Only the polygons are dropped; the underlying regions are reassigned to the nearest remaining bidding zone of the same country, so their demand and supply stay within the modelling scope. The Bornholm Energy Island offshore hub is built from separate TYNDP offshore hub data and is unaffected by this option.",
     )
     aggregate_to_tyndp: bool = Field(
         False,

@@ -20,7 +20,40 @@ from scripts.cba._helpers import get_link_attrs
 logger = logging.getLogger(__name__)
 
 
-def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -> str:
+def check_method(method: str) -> str:
+    """
+    Normalize and validate a given CBA method name.
+
+    Raises
+    ------
+    ValueError
+        If the normalized value is neither "pint" nor "toot".
+    """
+    method = method.lower().strip()
+    if method not in ["pint", "toot"]:
+        raise ValueError(f"Method must be 'pint' or 'toot', got: {method}")
+    return method
+
+
+def load_method(methods_fn: str, project_id: int, planning_horizon: int) -> str:
+    """
+    Load the method for a specific project and planning horizon.
+
+    Parameters
+    ----------
+    methods_fn : str
+        Path to the file defining the methods.
+    project_id : int
+        Project reference ID.
+    planning_horizon : int
+        Planning horizon.
+
+    Returns
+    -------
+    str
+        Method to be used to assess a project at a planning horizon.
+    """
+    methods = pd.read_csv(methods_fn)
     row = methods[
         (methods["project_id"] == project_id)
         & (methods["planning_horizon"] == planning_horizon)
@@ -29,7 +62,77 @@ def load_method(methods: pd.DataFrame, project_id: int, planning_horizon: int) -
         raise ValueError(
             f"Missing CBA method for project {project_id} and horizon {planning_horizon}"
         )
-    return str(row["method"].iloc[0]).strip().upper()
+    return check_method(row["method"].iloc[0])
+
+
+def get_link_capacity_data(n, project, method="toot"):
+    """
+    Get link IDs and capacities for a DC link project between bus0 and bus1.
+
+    For the TOOT projects, link IDs are looked up directly in `n.links`. For
+    the PINT projects, if no matching link exists in the network yet, a
+    placeholder ID is constructed instead (e.g. for links to be created).
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network containing the links.
+    project : pd.Series
+        Project data with fields "bus0", "bus1", "p_nom 0->1", "p_nom 1->0".
+    method : {"toot", "pint"}, default "toot"
+        Lookup strategy. If "pint", missing links fall back to a
+        constructed placeholder ID of the form "{bus0}-{bus1}-DC".
+
+    Returns
+    -------
+    link_id : str
+        Forward link (bus0 -> bus1): index of matching links in `n.links`,
+        or a placeholder string if method="pint" and none was found.
+    reverse_link_id : str
+        Reverse link (bus1 -> bus0), same lookup rules as `link_id`.
+    capacity : float
+        Forward direction capacity (p_nom 0->1).
+    capacity_reverse : float
+        Reverse direction capacity (p_nom 1->0).
+    """
+    bus0 = project["bus0"]
+    bus1 = project["bus1"]
+
+    link_id = n.links[
+        (n.links.bus0 == bus0) & (n.links.bus1 == bus1) & (n.links.carrier == "DC")
+    ].index
+    reverse_link_id = n.links[
+        (n.links.bus0 == bus1) & (n.links.bus1 == bus0) & (n.links.carrier == "DC")
+    ].index
+
+    assert len(link_id) <= 1, (
+        f"Expected at most one forward link for {bus0}->{bus1}, found {len(link_id)}."
+    )
+    assert len(reverse_link_id) <= 1, (
+        f"Expected at most one reverse link for {bus1}->{bus0}, found {len(reverse_link_id)}."
+    )
+
+    if method.lower() == "pint":
+        link_id = link_id[0] if not link_id.empty else f"{bus0}-{bus1}-DC"
+        reverse_link_id = (
+            reverse_link_id[0] if not reverse_link_id.empty else f"{bus1}-{bus0}-DC"
+        )
+    else:  # TOOT
+        if link_id.empty:
+            logger.warning(f"TOOT: no forward link found for {bus0} -> {bus1}.")
+            link_id = None
+        else:
+            link_id = link_id[0]
+        if reverse_link_id.empty:
+            logger.warning(f"TOOT: no reverse link found for {bus1} -> {bus0}.")
+            reverse_link_id = None
+        else:
+            reverse_link_id = reverse_link_id[0]
+
+    capacity = project["p_nom 0->1"]
+    capacity_reverse = project["p_nom 1->0"]
+
+    return link_id, reverse_link_id, capacity, capacity_reverse
 
 
 def apply_toot(
@@ -37,24 +140,22 @@ def apply_toot(
     transmission_project: pd.DataFrame,
     negative_toot_option: str,
 ) -> None:
-    for _, project in transmission_project.iterrows():
-        bus0 = project["bus0"]
-        bus1 = project["bus1"]
-        link_id = f"{bus0}-{bus1}-DC"
-        reverse_link_id = f"{bus1}-{bus0}-DC"
 
-        capacity = project["p_nom 0->1"]
-        capacity_reverse = project["p_nom 1->0"]
-
+    def _apply_toot_capacity(link_id, capacity, project):
+        if link_id is None:
+            if capacity != 0:
+                logger.warning(
+                    "Project %s (border: %s) has TOOT capacity of %.0f MW but no matching "
+                    "link was found; capacity change skipped.",
+                    project["project_id"],
+                    project["border"],
+                    capacity,
+                )
+            return
         result_capacity = n.links.loc[link_id, "p_nom"] - capacity
-        result_capacity_reverse = (
-            n.links.loc[reverse_link_id, "p_nom"] - capacity_reverse
-        )
-
-        if result_capacity < 0 or result_capacity_reverse < 0:
+        if result_capacity < 0:
             logger.warning(
                 "Applying TOOT for project %s (%s) would create negative capacity: "
-                "%s %.0f -> %.0f MW after removing %.0f MW, "
                 "%s %.0f -> %.0f MW after removing %.0f MW (policy=%s).",
                 project["project_id"],
                 project["project_name"],
@@ -62,10 +163,6 @@ def apply_toot(
                 n.links.loc[link_id, "p_nom"],
                 result_capacity,
                 capacity,
-                reverse_link_id,
-                n.links.loc[reverse_link_id, "p_nom"],
-                result_capacity_reverse,
-                capacity_reverse,
                 negative_toot_option,
             )
             if negative_toot_option == "break":
@@ -74,23 +171,23 @@ def apply_toot(
                 )
             if negative_toot_option == "zero":
                 result_capacity = max(result_capacity, 0)
-                result_capacity_reverse = max(result_capacity_reverse, 0)
             else:
                 raise ValueError(
                     f"Unknown cba.negative_toot_option policy: {negative_toot_option}"
                 )
-
         if result_capacity == 0:
             n.remove("Link", link_id)
             logger.debug("Removed link %s (capacity reached zero)", link_id)
         else:
             n.links.loc[link_id, "p_nom"] = result_capacity
 
-        if result_capacity_reverse == 0:
-            n.remove("Link", reverse_link_id)
-            logger.debug("Removed link %s (capacity reached zero)", reverse_link_id)
-        else:
-            n.links.loc[reverse_link_id, "p_nom"] = result_capacity_reverse
+    for _, project in transmission_project.iterrows():
+        link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
+            n, project, method="toot"
+        )
+
+        _apply_toot_capacity(link_id, capacity, project)
+        _apply_toot_capacity(reverse_link_id, capacity_reverse, project)
 
 
 def apply_pint(
@@ -102,11 +199,10 @@ def apply_pint(
     for _, project in transmission_project.iterrows():
         bus0 = project["bus0"]
         bus1 = project["bus1"]
-        link_id = f"{bus0}-{bus1}-DC"
-        reverse_link_id = f"{bus1}-{bus0}-DC"
 
-        capacity = project["p_nom 0->1"]
-        capacity_reverse = project["p_nom 1->0"]
+        link_id, reverse_link_id, capacity, capacity_reverse = get_link_capacity_data(
+            n, project, method="pint"
+        )
 
         if link_id in n.links.index and reverse_link_id in n.links.index:
             n.links.loc[link_id, "p_nom"] += capacity
@@ -145,27 +241,18 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    n = pypsa.Network(snakemake.input.network)
-    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
-    methods = pd.read_csv(snakemake.input.methods)
-
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
     planning_horizon = int(snakemake.wildcards.planning_horizons)
-    if planning_horizon not in [2030, 2040]:
-        logger.warning(
-            "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
-            snakemake.wildcards.planning_horizons,
-        )
-        planning_horizon = 2040
-
-    method = load_method(methods, project_id, planning_horizon)
+    methods_fn = snakemake.input.methods
     hurdle_costs = snakemake.params.hurdle_costs
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
     )
 
+    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
+    n = pypsa.Network(snakemake.input.network)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
@@ -173,10 +260,18 @@ if __name__ == "__main__":
     assert not transmission_project.empty, (
         f"Transmission project {project_id} not found."
     )
+    if planning_horizon not in [2030, 2040]:
+        logger.warning(
+            "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
+            snakemake.wildcards.planning_horizons,
+        )
+        planning_horizon = 2040
 
-    if method == "TOOT":
+    method = load_method(methods_fn, project_id, planning_horizon)
+
+    if method == "toot":
         apply_toot(n, transmission_project, negative_toot_capacity)
-    elif method == "PINT":
+    elif method == "pint":
         apply_pint(n, transmission_project, hurdle_costs, costs)
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")

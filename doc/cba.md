@@ -154,6 +154,18 @@ Similarly, a single climate year can be run by modifying `run.name` in `config/c
 $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
 ```
 
+## Evaluation of custom projects
+
+Custom PINT transmission projects can be evaluated with the CBA workflow. Each project is defined in `data/custom_cba_transmission_projects.csv` and selected in the configuration. Two types of custom project are supported, depending on whether `project_id` refers to an existing PINT project:
+
+- **Modified projects**: if the combination (`project_id`, `bus0`, `bus1`) matches an existing PINT project, the specified fields overwrite those of that project. Fields left empty retain their original values.
+
+- **New projects**: if `project_id` is not yet used, the entry is added as a new PINT project, modeled as a link.
+
+Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning.
+
+Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf). Transmission capacities are in MW.
+
 ## Checkpoint
 
 If you run the CBA workflow for the first time, you might not see a full DAG and instead only see a small number of steps listed in your DAG (including a step called `clean_projects`).
