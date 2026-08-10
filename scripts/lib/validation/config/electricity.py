@@ -199,7 +199,7 @@ class _PecdRenewableProfilesConfig(BaseModel):
         description="The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
+        default_factory=lambda: [2030, 2035, 2040, 2050],
         description="List of years for which PECD data is available.",
     )
     technologies: list[
@@ -207,8 +207,7 @@ class _PecdRenewableProfilesConfig(BaseModel):
             "Wind_Offshore",
             "Solar PV Rooftop",
             "Solar PV Utility",
-            "CSP_noStorage",
-            "CSP_withStorage",
+            "CSP_noStorage_0h_dispatched",
             "Wind_Onshore",
         ]
     ] = Field(
@@ -216,6 +215,7 @@ class _PecdRenewableProfilesConfig(BaseModel):
             "Wind_Offshore",
             "Solar PV Rooftop",
             "Solar PV Utility",
+            "CSP_noStorage_0h_dispatched",
             "Wind_Onshore",
         ],
         description="The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",

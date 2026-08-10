@@ -9,9 +9,7 @@ The script is executed for a given technology and planning horizon. Technologies
    * Solar PV Rooftop,
    * Wind_Offshore,
    * Wind_Onshore,
-   * CSP_noStorage,
-   * CSP_withStorage_7h_dispatched,
-   * CSP_withStorage_7h_preDispatch (note: includes cf > 1 for when thermal storage can be used).
+   * CSP_noStorage_0h_dispatched,
 
 Outputs
 -------
