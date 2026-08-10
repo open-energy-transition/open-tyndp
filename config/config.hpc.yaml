@@ -46,7 +46,7 @@ cba:
     options:
       include_objective_constant: false
     partition: big
-    mem_mb: 10000
+    mem_mb: 15000
     runtime: 2h
 
     solver:
