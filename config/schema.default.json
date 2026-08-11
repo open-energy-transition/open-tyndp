@@ -496,17 +496,6 @@
             }
           }
         },
-        "methods": {
-          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
-          "items": {
-            "enum": [
-              "toot",
-              "pint"
-            ],
-            "type": "string"
-          },
-          "type": "array"
-        },
         "projects": {
           "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
@@ -608,6 +597,16 @@
                   },
                   "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
+                },
+                "mem_mb": {
+                  "default": 2000,
+                  "description": "Estimated maximum memory requirement for solving networks (MB).",
+                  "type": "integer"
+                },
+                "runtime": {
+                  "default": "12h",
+                  "description": "Runtime in humanfriendly style.",
+                  "type": "string"
                 }
               }
             }
@@ -717,7 +716,7 @@
           "properties": {
             "remove_islands": {
               "default": false,
-              "description": "Exclude from the shape file the Balearic Islands, Bornholm, the Canary Islands, the Orkney Islands, the Shetland Islands, the Azores Islands and Madeira.",
+              "description": "Exclude from the shape file the small island and exclave bidding zones: Bornholm, the Canary Islands, the Balearic Islands, Melilla and Ceuta, the Orkney Islands, the Shetland Islands, Madeira and the Azores. Only the polygons are dropped; the underlying regions are reassigned to the nearest remaining bidding zone of the same country, so their demand and supply stay within the modelling scope. The Bornholm Energy Island offshore hub is built from separate TYNDP offshore hub data and is unaffected by this option.",
               "type": "boolean"
             },
             "aggregate_to_tyndp": {
@@ -6670,7 +6669,7 @@
       "properties": {
         "remove_islands": {
           "default": false,
-          "description": "Exclude from the shape file the Balearic Islands, Bornholm, the Canary Islands, the Orkney Islands, the Shetland Islands, the Azores Islands and Madeira.",
+          "description": "Exclude from the shape file the small island and exclave bidding zones: Bornholm, the Canary Islands, the Balearic Islands, Melilla and Ceuta, the Orkney Islands, the Shetland Islands, Madeira and the Azores. Only the polygons are dropped; the underlying regions are reassigned to the nearest remaining bidding zone of the same country, so their demand and supply stay within the modelling scope. The Bornholm Energy Island offshore hub is built from separate TYNDP offshore hub data and is unaffected by this option.",
           "type": "boolean"
         },
         "aggregate_to_tyndp": {
@@ -6748,6 +6747,16 @@
               },
               "description": "Solver-specific options for MSV extraction.",
               "type": "object"
+            },
+            "mem_mb": {
+              "default": 2000,
+              "description": "Estimated maximum memory requirement for solving networks (MB).",
+              "type": "integer"
+            },
+            "runtime": {
+              "default": "12h",
+              "description": "Runtime in humanfriendly style.",
+              "type": "string"
             }
           }
         }
@@ -6775,6 +6784,16 @@
           },
           "description": "Solver-specific options for MSV extraction.",
           "type": "object"
+        },
+        "mem_mb": {
+          "default": 2000,
+          "description": "Estimated maximum memory requirement for solving networks (MB).",
+          "type": "integer"
+        },
+        "runtime": {
+          "default": "12h",
+          "description": "Runtime in humanfriendly style.",
+          "type": "string"
         }
       }
     },
@@ -9316,7 +9335,7 @@
   "description": "Combined configuration schema for PyPSA-EUR.",
   "properties": {
     "version": {
-      "default": "v0.7.1",
+      "default": "v0.8",
       "description": "Version of Open-TYNDP. Descriptive only.",
       "type": "string"
     },
@@ -13526,7 +13545,7 @@
           "properties": {
             "remove_islands": {
               "default": false,
-              "description": "Exclude from the shape file the Balearic Islands, Bornholm, the Canary Islands, the Orkney Islands, the Shetland Islands, the Azores Islands and Madeira.",
+              "description": "Exclude from the shape file the small island and exclave bidding zones: Bornholm, the Canary Islands, the Balearic Islands, Melilla and Ceuta, the Orkney Islands, the Shetland Islands, Madeira and the Azores. Only the polygons are dropped; the underlying regions are reassigned to the nearest remaining bidding zone of the same country, so their demand and supply stay within the modelling scope. The Bornholm Energy Island offshore hub is built from separate TYNDP offshore hub data and is unaffected by this option.",
               "type": "boolean"
             },
             "aggregate_to_tyndp": {
@@ -15689,17 +15708,6 @@
             }
           }
         },
-        "methods": {
-          "description": "Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
-          "items": {
-            "enum": [
-              "toot",
-              "pint"
-            ],
-            "type": "string"
-          },
-          "type": "array"
-        },
         "projects": {
           "description": "List of project identifiers to evaluate (e.g., 't1-t35').",
           "items": {
@@ -15801,6 +15809,16 @@
                   },
                   "description": "Solver-specific options for MSV extraction.",
                   "type": "object"
+                },
+                "mem_mb": {
+                  "default": 2000,
+                  "description": "Estimated maximum memory requirement for solving networks (MB).",
+                  "type": "integer"
+                },
+                "runtime": {
+                  "default": "12h",
+                  "description": "Runtime in humanfriendly style.",
+                  "type": "string"
                 }
               }
             }

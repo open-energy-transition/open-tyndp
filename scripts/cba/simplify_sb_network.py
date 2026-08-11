@@ -9,6 +9,7 @@ Creates the base CBA network with:
 - Hurdle costs on DC links
 - Extended primary fuel source capacities
 - Merge low and high voltage buses
+- Convert bidirectional DC links to unidirectional links
 
 **Inputs**
 
@@ -135,6 +136,97 @@ def move_bus_carrier_and_cleanup(
             n.remove(c.name, to_remove)
 
 
+def make_links_unidirectional(
+    n: pypsa.Network, carrier: tuple = ("DC", "DC_OH")
+) -> None:
+    """
+    Split bidirectional DC links into two unidirectional links.
+    Links with p_min_pu < 0 are capped at p_min_pu=0, and a new reversed-flow
+    link is added carrying the negative capacity as a positive p_nom in the
+    opposite direction. The reversed link has zero capital cost and length,
+    since it represents existing capacity already accounted for by the
+    original link.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    carrier : tuple
+        Carrier names identifying DC links to check for bidirectional flow.
+
+    Returns
+    -------
+    None
+        Network is modified in place.
+    """
+    # Get bi-directional links
+    dc_links = n.links[n.links.carrier.isin(carrier)]
+    bidirectional_i = dc_links[dc_links.p_min_pu < 0].index
+
+    # Define reverse links
+    rev_links = (
+        n.links.loc[bidirectional_i]
+        .copy()
+        .rename({"bus0": "bus1", "bus1": "bus0"}, axis=1)
+    )
+
+    # Set capacity
+    p_nom = (rev_links.p_min_pu * rev_links.p_nom).abs()
+    rev_links["p_nom"] = p_nom
+    rev_links["p_nom_min"] = p_nom
+    rev_links["p_nom_opt"] = p_nom
+
+    # Set links to uni-directional
+    n.links.loc[bidirectional_i, "p_min_pu"] = 0
+    rev_links["p_min_pu"] = 0
+
+    # Avoid double counting of capital costs
+    rev_links["length_original"] = rev_links["length"]
+    rev_links["capital_cost"] = 0
+    rev_links["length"] = 0
+    rev_links["reversed"] = True
+
+    # Rename index to follow convention bus0-bus1-suffix
+    rev_links.index = rev_links.index.map(
+        lambda x: "-".join([x.split("-")[1], x.split("-")[0], *x.split("-")[2:]])
+    )
+
+    n.links = pd.concat([n.links, rev_links])
+
+
+def merge_offshore_hub_carriers(n):
+    """
+    Merge Offshore Hub ("_OH") carrier variants into their base carriers.
+
+    Renames carrier labels such as "DC_OH", "AC_OH", "H2_OH", and
+    "H2 pipeline OH" to their mainland equivalents across links,
+    buses, and sub-networks, then removes the now-unused offshore
+    carrier entries from the network's carrier list. Modifies `n` in
+    place.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network whose ``links``, ``buses``, ``sub_networks``, and
+        ``carriers`` components are modified in place.
+
+    Returns
+    -------
+    None
+    """
+    n.links["carrier"] = n.links.carrier.replace(
+        {"DC_OH": "DC", "H2 pipeline OH": "H2 pipeline"}
+    )
+    n.buses["carrier"] = n.buses.carrier.replace({"AC_OH": "AC", "H2_OH": "H2"})
+    n.sub_networks["carrier"] = n.sub_networks.carrier.replace(
+        {"AC_OH": "AC", "H2_OH": "H2"}
+    )
+    carriers_to_remove = n.carriers.index.intersection(
+        ["DC_OH", "AC_OH", "H2 pipeline OH", "H2_OH"]
+    )
+    n.remove("Carrier", carriers_to_remove)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -142,7 +234,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "simplify_sb_network",
             planning_horizons="2030",
-            run="test-sector-tyndp",
+            run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
 
@@ -151,6 +243,9 @@ if __name__ == "__main__":
 
     # Load the solved network from scenario building
     n = pypsa.Network(snakemake.input.network)
+
+    # Make DC and DC_OH links uni-directional
+    make_links_unidirectional(n, carrier=("DC", "DC_OH"))
 
     # Extend primary fuel sources capacity
     tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
@@ -164,8 +259,13 @@ if __name__ == "__main__":
     # Add hurdle costs to DC links
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
     hurdle_costs = snakemake.params.hurdle_costs
+
+    # Rename offshore link carriers and buses
+    merge_offshore_hub_carriers(n)
+
     n.links.loc[n.links.carrier == "DC", "marginal_cost"] = hurdle_costs
     logger.info(f"Applied hurdle costs of {hurdle_costs} EUR/MWh to DC links")
+
     # TODO: for DE/GA add merging of the two H2 zones
     # TODO: for DE/GA add EV electricity consumption from SB as fixed demand
 

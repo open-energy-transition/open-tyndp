@@ -472,6 +472,7 @@ def add_load_balance_components(n, config, sign=1):
             marginal_cost=price,
             p_nom=np.inf,
             sign=sign,
+            overwrite=True,
         )
 
     if config.get("all_carriers", False):
@@ -485,6 +486,7 @@ def add_load_balance_components(n, config, sign=1):
             marginal_cost=default_cost,
             p_nom=np.inf,
             sign=sign,
+            overwrite=True,
         )
 
 
@@ -1393,7 +1395,7 @@ def constrain_dsr_daily_dispatch(n: pypsa.Network, snapshots: pd.DatetimeIndex) 
     )
 
     # calculate weighted daily energy
-    daily_energy = (p * weightings).groupby(day).sum(dim="snapshot")
+    daily_energy = (p * weightings).groupby(day).sum()
 
     # calculate daily energy limit using p_nom and pemmdb_hours
     rhs = xr.DataArray(

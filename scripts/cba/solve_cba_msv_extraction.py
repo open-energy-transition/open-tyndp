@@ -79,7 +79,7 @@ if __name__ == "__main__":
     prepare_network(
         n,
         solve_opts=solve_opts,
-        foresight="perfect",
+        foresight="overnight",
         renewable_carriers=[],
         planning_horizons=snakemake.wildcards.get("planning_horizons", None),
         co2_sequestration_potential=None,

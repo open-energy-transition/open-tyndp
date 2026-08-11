@@ -7,39 +7,77 @@
 
 # Configuration
 
-PyPSA-Eur has several configuration options which are documented in this section.
+Open-TYNDP is configured through a set of YAML files that build on each other. Both
+Open-TYNDP workflows, [Scenario Building (SB)](sb.md) and [Cost-Benefit Analysis (CBA)](cba.md), are driven by this same set of files. Each file only specifies the options it wants to change, and anything it leaves out falls back to the file below it.
+
+Going from the most general to the most specific, the hierarchy is:
+**defaults (`config.default.yaml`, `config/plotting.default.yaml`, `config/benchmarking.default.yaml`) → data source (`data.tyndp.yaml`, optional) → user overrides (`config.yaml`, optional) → run-level config (`config.tyndp.yaml`) → per-scenario overrides (`scenarios.tyndp.yaml`, optional)**
+
+Open-TYNDP inherits the complete PyPSA-Eur configuration surface and adds a TYNDP-specific layer on top, so the options documented in this section span both the general PyPSA-Eur settings and the Open-TYNDP additions.
 
 <a id="defaultconfig"></a>
 
 
 ## Configuration Files
 
-As for PyPSA-Eur, any Open-TYNDP configuration can be set in a `.yaml` file. The default configurations
-`config/config.default.yaml`, `config/plotting.default.yaml` and `config/benchmarking.default.yaml`
-are maintained in the repository and cover all the options that are used/ can be set.
+The configuration of an Open-TYNDP run is set from several files. The list below follows the
+hierarchy in which they are applied, from the base defaults up to the most specific overrides,
+with each layer overriding the ones listed before it:
 
-To pass your own configuration, you can create a new file, e.g. `my_config.yaml`,
-and specify the options you want to change. They will override the default settings and
-options which are not set, will be inherited from the defaults above.
+- **`config/config.default.yaml`**: The base defaults, auto-generated from the configuration
+  schema, inherited from PyPSA-Eur and extended by new default open-tyndp configuration options.
+  Together with `config/plotting.default.yaml` and `config/benchmarking.default.yaml`, it covers
+  every option that can be set and provides a value for each. These files are maintained in the
+  repository and should not be edited directly.
+- **`config/data.tyndp.yaml`**: An optional data-source layer, loaded on top of the defaults
+  when [`data_config: tyndp`](#data_config_cf) is set. It switches the supported datasets to the
+  Open-TYNDP archive mirror on Google Cloud Storage (see [Data Sources](sb.md#tyndp_archive)).
+- **`config/config.yaml`**: A user's local overrides. This file is not part of the repository
+  and is not tracked by git, but Snakemake always picks it up if it exists, which makes it a
+  convenient place to keep machine-specific settings without touching the tracked files.
+  `config/config.private.template.yaml` can be used as a starting point.
+- **`config/config.tyndp.yaml`**: The Open-TYNDP run-level configuration. This is the file
+  passed to Snakemake by the `pixi run tyndp-sb` and `pixi run tyndp-cba` entry points via
+  `--configfile`, so it overrides all of the layers above for the specified configuration options.
+  It activates the TYNDP-specific rules (through [`tyndp_scenario`](#tyndp_scenario_cf)) and sets the model-wide
+  choices shared across scenarios, such as the modelled countries, snapshots, foresight mode, 
+  and planning horizons.
+- **`config/scenarios.tyndp.yaml`**: The per-scenario overrides, applied on top of the
+  run-level configuration. `config.tyndp.yaml` points to this file through `run.scenarios.file`
+  and switches it on with `run.scenarios.enable: true`. Each named scenario (e.g. `NT`, `DE`,
+  `GA`, or a climate-year collection) supplies only the settings that differ from the run-level
+  configuration and is selected through the `{run}` wildcard. See
+  [Scenario Building](sb.md#configuration) and
+  [Cost-Benefit Analysis](cba.md#running-single-vs-multiple-climate-years) for how each
+  workflow uses these scenarios.
 
-Another way is to use the `config/config.yaml` file, which does not exist in the
-repository and is also not tracked by git. But snakemake will always use this file if
-it exists. This way you can run snakemake with a custom config without having to
-specify the config file each time.
+Any option a user sets in a higher layer overrides the value from the layers below it, while
+options that are left unset are inherited from the defaults. To try out a change a user therefore only
+need to specify the handful of options that differ while everything else falls back to
+`config.tyndp.yaml` and the defaults.
 
-Configuration order of precedence is as follows:
-1. Command line options specified with `--config` (optional)
-2. Custom configuration file specified with `--configfile` (optional)
-3. The `config/config.yaml` file (optional)
-4. The default configuration files `config/config.default.yaml` and `config/plotting.default.yaml`
-
-To use your custom configuration file, you need to pass it to the `snakemake` command
-using the `--configfile` option:
+Beyond these files, users are free to add configuration files of their own, e.g. `my_config.yaml`,
+and pass them explicitly to Snakemake stacked on top of `config.tyndp.yaml`:
 
 ```console
-$ snakemake -call --configfile my_config.yaml
+$ snakemake -call --configfile config/config.tyndp.yaml config/my_config.yaml
 ```
 
+Taking all of this together, the order of precedence (highest first) is as follows:
+
+1. Command-line options passed with `--config` (optional)
+2. Configuration files passed with `--configfile`, such as `config/config.tyndp.yaml` (optional)
+3. The `config/config.yaml` file (optional)
+4. The default configuration files `config/config.default.yaml`, `config/plotting.default.yaml`
+   and `config/benchmarking.default.yaml`
+
+On top of this, the per-scenario overrides from `config/scenarios.tyndp.yaml` are merged in for
+the scenario selected by the `{run}` wildcard. Note that because `config.tyndp.yaml` is passed
+with `--configfile`, it takes precedence over `config/config.yaml`; to override a value that
+`config.tyndp.yaml` already sets, pass it on the command line with `--config` or edit
+`config.tyndp.yaml` directly or via the scenario file `scenarios.tyndp.yaml`.
+
+For each scenario, the fully resolved configuration, the result of merging all layers above with that scenario's overrides, is also stored directly on the solved PyPSA network under `n.meta`. This is the config to check if you want to see exactly what settings produced a given scenario's outcomes.
 
 !!! warning
     In a previous version of PyPSA-Eur (`<=2025.04.0`), a full copy of the created config
@@ -49,10 +87,10 @@ $ snakemake -call --configfile my_config.yaml
 
 ## `version` {#version_cf}
 
-Version of PyPSA-Eur. Descriptive only.
+Version of Open-TYNDP. Descriptive only.
 
 - **Type:** string
-- **Default:** `v2026.02.0`
+- **Default:** `v0.8`
 
 **YAML Syntax**
 
@@ -111,7 +149,7 @@ investment changes as more ambitious greenhouse-gas emission reduction targets a
 
 The `run` section is used for running and storing scenarios with different configurations which are not covered by [wildcards](#wildcards).
 It determines the path at which resources, networks and results are stored.
-Therefore the user can run different configurations within the same directory.
+Therefore, the user can run different configurations within the same directory.
 
 Configuration for top level `run` settings.
 

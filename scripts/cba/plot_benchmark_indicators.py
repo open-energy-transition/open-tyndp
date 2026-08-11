@@ -443,6 +443,11 @@ def plot_summary_projects_benchmark(
                 ax.set_xscale("symlog", linthresh=linthresh)
                 ax.set_yscale("symlog", linthresh=linthresh)
 
+        lims = (*ax.get_xlim(), *ax.get_ylim())
+        ax.set_xlim(min(lims), max(lims))
+        ax.set_ylim(min(lims), max(lims))
+        ax.set_aspect("equal", adjustable="box")
+
         units = average_df.loc[
             (average_df["indicator"] == indicator)
             & (average_df["source"] == "Open-TYNDP"),
@@ -454,6 +459,7 @@ def plot_summary_projects_benchmark(
         )
         ax.set_xlabel("TYNDP 2024")
         ax.set_ylabel("Open-TYNDP")
+        ax.tick_params(axis="both", labelsize=6)
         ax.axhline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.axvline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.grid(alpha=0.3)
