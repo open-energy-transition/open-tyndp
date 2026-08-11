@@ -115,7 +115,7 @@ if __name__ == "__main__":
         if pecd_tech == "Wind_Offshore"
         else onshore_buses.index
     )
-    dir_pecd = snakemake.input.pecd_input
+    dir_pecd = f"{snakemake.input.pecd_input}/PECD/"
 
     # Load and prep pecd data
     #########################
