@@ -9,6 +9,8 @@
 
 **Features**
 
+* Align PECD to 2026 TYNDP data ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843))
+
 * Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
 
 **Changes**
