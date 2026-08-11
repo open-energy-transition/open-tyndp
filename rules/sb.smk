@@ -116,6 +116,7 @@ rule retrieve_countries_centroids:
 # Development
 #############
 if not "pre-built" in PECD_DATASET["version"]:
+
     def get_pecd_prebuilt_version(increment_minor=True):
         prebuilt_prefix = f"{PECD_DATASET['version']}+pre-built."
         versions = (
@@ -144,7 +145,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         log:
             "logs/prepare_pecd_release.log",
         benchmark:
-            "benchmarks/performances/prepare_pecd_release",
+            "benchmarks/performances/prepare_pecd_release"
         threads: 4
         resources:
             mem_mb=1000,
