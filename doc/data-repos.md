@@ -194,3 +194,13 @@ New data should generally not be added to the data, but externally retrieved in 
 - **Link:** https://publications.jrc.ec.europa.eu/repository/handle/JRC98626
 - **License:** CC-BY 4.0 ([reference](https://commission.europa.eu/legal-notice_en#copyright-notice))
 - **Description:** Contains transport costs for different types of biomass.
+
+`data/cba/cba_project_corrections.csv`
+
+- **Source:** Source manually compiled by Open-TYNDP maintainers, based on cross-referencing raw TYNDP CBA project export data with individual TYNDP project investment sheets/PDFs.
+- **Link:** https://tyndp2024.entsoe.eu/projects-map/transmission
+- **License:** CC-BY 4.0 
+- **Description:** Contains manual corrections to raw TYNDP cost-benefit analysis (CBA) project data, including fixes to malformed or missing border/bus codes (e.g. mapping blank or ambiguous codes to offshore hub buses), splitting single malformed rows into their correct per-investment legs, and correcting transfer capacities (`p_nom`) between project endpoints. Used to override erroneous entries in the raw CBA project list before building CBA networks.
+
+
+

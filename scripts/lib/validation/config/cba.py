@@ -66,6 +66,11 @@ class _CbaMsvSolvingConfig(ConfigModel):
         default_factory=dict,
         description="Solver-specific options for MSV extraction.",
     )
+    mem_mb: int = Field(
+        2_000,
+        description="Estimated maximum memory requirement for solving networks (MB).",
+    )
+    runtime: str = Field("12h", description="Runtime in humanfriendly style.")
 
     @field_validator("options")
     @classmethod
@@ -156,10 +161,6 @@ class CbaConfig(BaseModel):
     cba_scenario_input: _CbaSbToCbaConfig = Field(
         default_factory=_CbaSbToCbaConfig,
         description="Settings for using pre-solved SB networks as inputs to the CBA workflow.",
-    )
-    methods: list[Literal["toot", "pint"]] = Field(
-        default_factory=lambda: ["toot"],
-        description="Methodologies to apply: 'toot' (take one out at a time) and 'pint' (put in one at a time).",
     )
     projects: list[str] = Field(
         default_factory=list,

@@ -9,7 +9,7 @@ SPDX-License-Identifier: CC-BY-4.0
 [![Test workflows](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml/badge.svg)](https://github.com/open-energy-transition/open-tyndp/actions/workflows/test.yaml)
 [![Documentation](https://readthedocs.org/projects/open-tyndp/badge/?version=latest)](https://open-tyndp.readthedocs.io/en/latest/?badge=latest)
 [![Website](https://img.shields.io/badge/website-open--tyndp-4a6fa5?logo=internet-explorer)](https://open-tyndp.openenergytransition.org/)
-[![Snakemake](https://img.shields.io/badge/snakemake-≥9-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥9.17-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
 [![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
 [![REUSE status](https://api.reuse.software/badge/github.com/open-energy-transition/open-tyndp)](https://api.reuse.software/info/github.com/open-energy-transition/open-tyndp)
 
@@ -24,7 +24,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <img src="https://raw.githubusercontent.com/open-energy-transition/oet-website/main/assets/img/oet-logo-red-n-subtitle.png" alt="Open Energy Transition Logo" width="260" height="100" align="right">
 
 > [!WARNING]
-> Open-TYNDP is under active development and is not yet feature-complete. The current [development status](#development-status) and the general [Limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) are important to understand before using the model.
+> Open-TYNDP is under active development and is not yet feature-complete. The current [development status](https://github.com/open-energy-transition/open-tyndp#development-status) and the general [Limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete, and the outcomes can be viewed [online](https://open-tyndp.openenergytransition.org/). The development is now moving forward to align with the TYNDP 2026 cycle. The GitHub repository's [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
 This repository introduces the open model dataset of the Open-TYNDP research and innovation project, which is a collaboration between [Open Energy Transition (OET)](https://openenergytransition.org/) and the European Network of Transmission System Operators for Electricity (ENTSO-E). The project’s aim is to explore and consider the adoption of PyPSA in the Ten-Year Network Development Plan (TYNDP) by building a workflow based on [PyPSA-Eur](https://github.com/pypsa/pypsa-eur). It seeks to complement the tools currently used in the TYNDP cycles, especially for Scenario Building (SB) and Cost-Benefit Analysis (CBA). This approach is designed to enhance transparency and lower barriers to stakeholder participation in European energy planning. Beyond Europe, the project aspires to demonstrate the viability of open-source (OS) frameworks in energy planning, encouraging broader global adoption.
 
@@ -36,7 +36,7 @@ This repository is maintained using [OET's soft-fork strategy](https://open-ener
 
 # Development status
 
-**Warning**: Open-TYNDP is under active development and is not yet feature-complete. The current [development status](https://open-tyndp.readthedocs.io/en/latest/#development-status) and general [Limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) are important to understand before using the model. The model includes partial data from the TYNDP 2024 cycle, and its validation is ongoing. The github repository [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
+**Warning**: Open-TYNDP is under active development and is not yet feature-complete. The current [development status](https://open-tyndp.readthedocs.io/en/latest/#development-status) and the general [Limitations](https://open-tyndp.readthedocs.io/en/latest/limitations.html) are important to understand before using the model. Benchmarking against the TYNDP 2024 cycle is complete, and the outcomes can be viewed [online](https://open-tyndp.openenergytransition.org/). The development is now moving forward to align with the TYNDP 2026 cycle. The GitHub repository's [issues](https://github.com/open-energy-transition/open-tyndp/issues) collect known topics we are working on (please feel free to help or make suggestions). The fact that this project relies on a soft-fork strategy implies that [upstream issues](https://github.com/PyPSA/PyPSA-Eur/issues) need to be addressed in the PyPSA-Eur repository. The [documentation](https://open-tyndp.readthedocs.io/) also remains work in progress.
 
 
 # Repository structure
@@ -116,7 +116,7 @@ pixi run tyndp-cba -n
 >Dependency graphs can be built by a dedicated pixi task and saved to the `resources/` directory. Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
 >
 >```sh
->pixi run create-tyndp-graphs --config 'run={"name":"NT"}'
+>pixi run create-tyndp-graphs
 >```
 
 # Contributing and Support
