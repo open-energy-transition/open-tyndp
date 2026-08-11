@@ -116,7 +116,6 @@ rule retrieve_countries_centroids:
 # Development
 #############
 if not "pre-built" in PECD_DATASET["version"]:
-
     def get_pecd_prebuilt_version(increment_minor=True):
         prebuilt_prefix = f"{PECD_DATASET['version']}+pre-built."
         versions = (
@@ -137,15 +136,15 @@ if not "pre-built" in PECD_DATASET["version"]:
 
     rule prepare_pecd_release:
         input:
-            pecd_raw=PECD_DATASET["folder"],
+            pecd_raw=f"{PECD_DATASET['folder']}/PECD/",
         output:
             pecd_prebuilt=directory(
-                f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
+                f"{PECD_DATASET['folder']}/PECD+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
             ),
         log:
             "logs/prepare_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_pecd_release")
+            "benchmarks/performances/prepare_pecd_release",
         threads: 4
         resources:
             mem_mb=1000,
