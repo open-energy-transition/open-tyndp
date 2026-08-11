@@ -247,5 +247,5 @@ $ pixi run close-explorers
     Since this can grow very large for the full list of scenarios, you can restrict it to a single scenario:
 
     ```console
-    $ pixi run create-tyndp-graphs --config 'run={"name":"NT"}'
+    $ pixi run create-tyndp-graphs
     ```

@@ -17,11 +17,11 @@ This page contains frequently asked questions about the Open-TYNDP project:
 
 ??? question "Is Open-TYNDP ready for production use?"
 
-    Open-TYNDP is under active development and is not yet feature-complete. The current development status and general limitations are important to understand before using the model. Please refer to [limitations](limitations.md) and [development status](index.md#development-status) for more details. The latest version of the model is always available on [GitHub](https://github.com/open-energy-transition/open-tyndp).
+    Open-TYNDP is under active development and is not yet feature-complete. As of v0.7, Open-TYNDP was successfully benchmarked against TYNDP 2024 (see [outcomes](https://open-tyndp.openenergytransition.org)). The current [development status](index.md#development-status) and the general [Limitations](limitations.md) are important to understand before using the model.
 
 ??? question "When will Open-TYNDP be ready?"
 
-    The project is currently back-casting the 2024 TYNDP cycle to build confidence before aligning with the 2026 TYNDP cycle in Q2 2026. The [development status](index.md#development-status) page provides a detailed roadmap of implemented and planned features.
+    Benchmarking of the 2024 NT (National Trends) scenario is complete, giving us confidence in the model's outcomes. We are now moving forward with development to align with the 2026 TYNDP cycle. The [development status](index.md#development-status) page provides a detailed roadmap of implemented and planned features.
 
 ??? question "How to use Open-TYNDP?"
 

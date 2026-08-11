@@ -167,6 +167,31 @@ def solver_threads(w):
     return threads
 
 
+def msv_solver_threads(w):
+    """Return solver thread count for the CBA MSV extraction solve.
+
+    Resolves threads from the effective MSV solving config, obtained by merging
+    `cba.msv_extraction.solving` over the top-level `solving` config, mirroring
+    the merge performed in `solve_cba_msv_extraction.py`.
+
+    Parameters
+    ----------
+    w : snakemake.io.Wildcards
+        Rule wildcards used to resolve the active scenario config.
+
+    Returns
+    -------
+    int
+        Number of solver threads, defaulting to 4 when unset.
+    """
+    solving = copy.deepcopy(config_provider("solving")(w))
+    update_config(solving, config_provider("cba", "msv_extraction", "solving")(w))
+    option_set = solving["solver"]["options"]
+    solver_option_set = solving.get("solver_options", {}).get(option_set, {})
+    threads = solver_option_set.get("threads") or solver_option_set.get("Threads") or 4
+    return threads
+
+
 def memory(w):
     factor = 3.0
     for o in w.opts.split("-"):
