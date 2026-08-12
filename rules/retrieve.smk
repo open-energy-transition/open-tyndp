@@ -1363,6 +1363,87 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 
 
 
+# TYNDP 2026 data package. Added alongside `retrieve_tyndp` (2024) rather than
+# replacing it. Subsequent rules are going to be migrated to it gradually.
+# TODO: rename to retrieve_tyndp for 2026 and phase out 2024 retrieve
+
+if config["tyndp_scenario"]:
+    if (TYNDP_2026_DATASET := dataset_version("tyndp", version="2026"))[
+        "source"
+    ] in ARCHIVE_SOURCES:
+
+        rule retrieve_tyndp_2026:
+            input:
+                line_data=storage(TYNDP_2026_DATASET["url"] + "/inputs/Line-data.zip"),
+                nodes=storage(TYNDP_2026_DATASET["url"] + "/inputs/Nodes.zip"),
+                hydro_inflows=storage(
+                    TYNDP_2026_DATASET["url"] + "/inputs/Hydro-Inflow.zip"
+                ),
+                pemmdb=storage(TYNDP_2026_DATASET["url"] + "/inputs/PEMMDB_2.X.zip"),
+                supply_tool=storage(
+                    TYNDP_2026_DATASET["url"] + "/outputs/Supply-Tool.zip"
+                ),
+                demand_profiles=storage(
+                    TYNDP_2026_DATASET["url"] + "/inputs/Demand.zip"
+                ),
+                ev_modelling=storage(
+                    TYNDP_2026_DATASET["url"] + "/inputs/Electric-Vehicle.zip"
+                ),
+                hybrid_hp_modelling=storage(
+                    TYNDP_2026_DATASET["url"] + "/inputs/Heat.zip"
+                ),
+                hydrogen=storage(TYNDP_2026_DATASET["url"] + "/inputs/Hydrogen.zip"),
+                market_outputs=storage(
+                    TYNDP_2026_DATASET["url"] + "/outputs/NT+_TimeSeriesDashboard.zip"
+                ),
+            output:
+                line_data_zip=f"{TYNDP_2026_DATASET['folder']}/Line-data.zip",
+                nodes_zip=f"{TYNDP_2026_DATASET['folder']}/Nodes.zip",
+                elec_reference_grid=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Electricity.xlsx",
+                h2_reference_grid_entsos=f"{TYNDP_2026_DATASET['folder']}/Line-data/ReferenceGrid_Hydrogen.xlsx",
+                nodes=f"{TYNDP_2026_DATASET['folder']}/Nodes/LIST OF NODES.xlsx",
+                hydro_inflows_zip=f"{TYNDP_2026_DATASET['folder']}/Hydro-Inflow.zip",
+                hydro_inflows=directory(f"{TYNDP_2026_DATASET['folder']}/Hydro-Inflow"),
+                pemmdb_zip=f"{TYNDP_2026_DATASET['folder']}/PEMMDB_2.X.zip",
+                pemmdb=directory(f"{TYNDP_2026_DATASET['folder']}/PEMMDB_2.X"),
+                supply_tool_zip=f"{TYNDP_2026_DATASET['folder']}/Supply-Tool.zip",
+                supply_tool=directory(f"{TYNDP_2026_DATASET['folder']}/Supply-Tool"),
+                demand_profiles_zip=f"{TYNDP_2026_DATASET['folder']}/Demand.zip",
+                demand_profiles=directory(f"{TYNDP_2026_DATASET['folder']}/Demand"),
+                ev_modelling_zip=f"{TYNDP_2026_DATASET['folder']}/Electric-Vehicle.zip",
+                ev_modelling=directory(
+                    f"{TYNDP_2026_DATASET['folder']}/Electric-Vehicle"
+                ),
+                hybrid_hp_modelling_zip=f"{TYNDP_2026_DATASET['folder']}/Heat.zip",
+                hybrid_hp_modelling=directory(f"{TYNDP_2026_DATASET['folder']}/Heat"),
+                hydrogen_zip=f"{TYNDP_2026_DATASET['folder']}/Hydrogen.zip",
+                hydrogen=directory(f"{TYNDP_2026_DATASET['folder']}/Hydrogen"),
+                h2_imports=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 IMPORTS GENERATORS PROPERTIES.xlsx",
+                h2_storages=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/H2 STORAGES.xlsx",
+                smr=f"{TYNDP_2026_DATASET['folder']}/Hydrogen/SMR.xlsx",
+                market_outputs_zip=f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard.zip",
+                market_outputs=directory(
+                    f"{TYNDP_2026_DATASET['folder']}/NT+_TimeSeriesDashboard"
+                ),
+            log:
+                "logs/retrieve_tyndp_2026.log",
+            message:
+                "Retrieving TYNDP 2026 data package"
+            run:
+                for key in input.keys():
+                    # Keep zip file
+                    copy2(input[key], output[f"{key}_zip"])
+
+                    # unzip
+                    output_folder = Path(output[f"{key}_zip"]).parent
+                    unpack_archive(output[f"{key}_zip"], output_folder)
+
+                    # Remove __MACOSX directory if it exists
+                    macosx_dir = output_folder / "__MACOSX"
+                    rmtree(macosx_dir, ignore_errors=True)
+
+
+
 def get_osm_archive_files(version):
     return [
         "buses.csv",
