@@ -60,16 +60,16 @@ def read_pecd_file(
         return None
 
     pecd_bus = pd.read_csv(fn)
-    datetime_idx = pd.to_datetime(f"{cyear}." + pecd_bus["Date"].str.cat(
-        (pecd_bus["Hour"] - 1).astype(str), sep=" "
-    ), format="%Y.%d.%m. %H")
+    datetime_idx = pd.to_datetime(
+        f"{cyear}."
+        + pecd_bus["Date"].str.cat((pecd_bus["Hour"] - 1).astype(str), sep=" "),
+        format="%Y.%d.%m. %H",
+    )
 
     cf_pecd = (
         pecd_bus.set_index(datetime_idx)
         .drop(columns=["Date", "Hour"])
-        .loc[
-            sns, [weather_year]
-        ]  # filter for snapshots and weather scenario only
+        .loc[sns, [weather_year]]  # filter for snapshots and weather scenario only
         .rename(columns={weather_year: node})
     )
     return cf_pecd

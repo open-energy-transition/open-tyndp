@@ -14,7 +14,7 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_pecd:
         input:
-            zip_file=storage(PECD_DATASET["url"]), #having version here is causing a retrieve error
+            zip_file=storage(PECD_DATASET["url"]),  #having version here is causing a retrieve error
         output:
             dir=directory(PECD_DATASET["folder"]),
         log:
