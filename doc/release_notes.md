@@ -7,9 +7,9 @@
 
 ## Upcoming Open-TYNDP Release
 
-**Features**
+**Migration to TYNDP 2026**
 
-* Align PECD to 2026 TYNDP data ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843))
+* Add support for the PECD 4.2 dataset released with the TYNDP 2026 ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843)).  
 
 ## Upcoming PyPSA-Eur Release
 

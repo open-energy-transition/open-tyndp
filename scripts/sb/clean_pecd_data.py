@@ -47,7 +47,6 @@ def read_pecd_file(
     fn = Path(
         dir_pecd,
         str(pyear),
-        # f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
         f"{node.replace('GB', 'UK')}_CapacityFactors_{technology}_{pyear}.csv",
     )
     # PECD only differentiates between utility and rooftop PV for some nodes
@@ -57,16 +56,16 @@ def read_pecd_file(
         logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
         return None
 
-    pecd_bus = pd.read_csv(fn, skiprows=10)
-    datetime_str = f"{cyear}." + pecd_bus["Date"].str.cat(
+    pecd_bus = pd.read_csv(fn)
+    datetime_idx = pd.to_datetime(f"{cyear}." + pecd_bus["Date"].str.cat(
         (pecd_bus["Hour"] - 1).astype(str), sep=" "
-    )
+    ), format="%Y.%d.%m. %H")
     cf_pecd = (
-        pecd_bus.set_index(pd.to_datetime(datetime_str, format="%Y.%d.%m. %H"))
+        pecd_bus.set_index(datetime_idx, format="%Y.%d.%m. %H")
         .drop(columns=["Date", "Hour"])
         .loc[
             sns, [f"WS{weather_year:03d}"]
-        ]  # filter for snapshots and climate year only
+        ]  # filter for snapshots and weather scenario only
         .rename(columns={f"WS{weather_year:03d}": node})
     )
     return cf_pecd
@@ -135,7 +134,15 @@ if __name__ == "__main__":
         technology=pecd_tech,
         sns=sns,
         weather_year=weather_year,
-    )
+func = partial(
+        read_pecd_file,
+        dir_pecd=dir_pecd,
+        weather_year=weather_year,
+        cyear=cyear,
+        pyear=pyear,
+        technology=pecd_tech,
+        sns=sns,
+)
 
     with mp.Pool(processes=snakemake.threads) as pool:
         pecd = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))
