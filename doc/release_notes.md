@@ -7,7 +7,8 @@
 
 ## Upcoming Open-TYNDP Release
 
-
+* feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
+  
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
