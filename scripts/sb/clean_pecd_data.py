@@ -107,13 +107,12 @@ if __name__ == "__main__":
     # Technology as in PECD terminology
     pecd_tech = snakemake.wildcards.technology
 
-    df_nodes=pd.read_excel(snakemake.input.nodes, sheet_name=None)
-    onshore_buses = df_nodes["Electricity"]['NODE'].tolist()
-    offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]['NODE'].tolist()
+    df_nodes = pd.read_excel(snakemake.input.nodes, sheet_name=None)
+    onshore_buses = df_nodes["Electricity"]["NODE"].tolist()
+    offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]["NODE"].tolist()
 
     nodes = (
-        offshore_buses
-        .str.replace("UK", "GB", regex=True)
+        offshore_buses.str.replace("UK", "GB", regex=True)
         if pecd_tech == "Wind_Offshore"
         else onshore_buses
     )
