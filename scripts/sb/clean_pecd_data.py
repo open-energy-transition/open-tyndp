@@ -44,14 +44,17 @@ def read_pecd_file(
     technology: str,
     sns: pd.DatetimeIndex,
 ):
+    if "GB" in node:
+        node = node.replace("GB", "UK")
+
     fn = Path(
         dir_pecd,
         str(pyear),
-        f"{node.replace('GB', 'UK')}_CapacityFactors_{technology}_{pyear}.csv",
+        f"{node}_CapacityFactors_{technology}_{pyear}.csv",
     )
     # PECD only differentiates between utility and rooftop PV for some nodes
     if not os.path.isfile(fn) and "Solar" in technology:
-        fn = Path(dir_pecd, str(pyear), f"{technology} {node.replace('GB', 'UK')}.csv")
+        fn = Path(dir_pecd, str(pyear), f"{technology} {node}.csv")
     if not os.path.isfile(fn):
         logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
         return None
@@ -104,16 +107,15 @@ if __name__ == "__main__":
     # Technology as in PECD terminology
     pecd_tech = snakemake.wildcards.technology
 
-    offshore_buses = pd.read_excel(snakemake.input.offshore_buses, index_col=0)
-    onshore_buses = pd.read_csv(snakemake.input.onshore_buses, index_col=0)
+    df_nodes=pd.read_excel(snakemake.input.nodes, sheet_name=None)
+    onshore_buses = df_nodes["Electricity"]['NODE'].tolist()
+    offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]['NODE'].tolist()
 
     nodes = (
-        offshore_buses["HOME_NODE"]
+        offshore_buses
         .str.replace("UK", "GB", regex=True)
-        .unique()
-        .tolist()  # replace UK with GB for naming convention
         if pecd_tech == "Wind_Offshore"
-        else onshore_buses.index
+        else onshore_buses
     )
     dir_pecd = snakemake.input.pecd_input
 
