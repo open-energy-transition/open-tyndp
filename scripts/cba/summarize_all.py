@@ -220,7 +220,7 @@ def create_plots(
     plt.yticks(fontsize=6)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
     add_metadata(fig)
-    plt.savefig(output_file, dpi=400)
+    plt.savefig(output_file, dpi=400, bbox_inches="tight")
     plt.close()
 
     logger.info("Benchmark plots saved to %s", output_file)

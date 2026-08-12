@@ -284,7 +284,7 @@ def plot_project_benchmarks(
         )
     fig.tight_layout(rect=[0, 0.12, 1, 0.90])
     add_metadata(fig)
-    fig.savefig(output_path, dpi=400)
+    fig.savefig(output_path, dpi=400, bbox_inches="tight")
     plt.close(fig)
 
 
