@@ -2745,7 +2745,7 @@
                 "cyears": {
                   "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
                   "items": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "type": "array"
                 }
@@ -2770,7 +2770,6 @@
                   "Wind_Offshore",
                   "Solar PV Rooftop",
                   "Solar PV Utility",
-                  "CSP_noStorage_0h_dispatched",
                   "Wind_Onshore"
                 ],
                 "type": "string"
@@ -8355,7 +8354,7 @@
         "cyears": {
           "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
           "items": {
-            "type": "integer"
+            "type": "string"
           },
           "type": "array"
         }
@@ -8375,7 +8374,7 @@
             "cyears": {
               "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
               "items": {
-                "type": "integer"
+                "type": "string"
               },
               "type": "array"
             }
@@ -8400,7 +8399,6 @@
               "Wind_Offshore",
               "Solar PV Rooftop",
               "Solar PV Utility",
-              "CSP_noStorage_0h_dispatched",
               "Wind_Onshore"
             ],
             "type": "string"
@@ -9972,7 +9970,7 @@
                 "cyears": {
                   "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
                   "items": {
-                    "type": "integer"
+                    "type": "string"
                   },
                   "type": "array"
                 }
@@ -9997,7 +9995,6 @@
                   "Wind_Offshore",
                   "Solar PV Rooftop",
                   "Solar PV Utility",
-                  "CSP_noStorage_0h_dispatched",
                   "Wind_Onshore"
                 ],
                 "type": "string"

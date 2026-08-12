@@ -14,7 +14,7 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
 
     rule retrieve_tyndp_pecd:
         input:
-            zip_file=storage(PECD_DATASET["url"]),
+            zip_file=storage(PECD_DATASET["url"]), #having version here is causing a retrieve error
         output:
             dir=directory(PECD_DATASET["folder"]),
         log:
@@ -414,7 +414,7 @@ def get_pecd_prebuilt(w):
 
 rule clean_pecd_data:
     input:
-        pecd_input=rules.retrieve_tyndp_pecd.output.dir,
+        pecd_input=get_pecd_prebuilt,
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         onshore_buses=resources("busmap_base_s_all.csv"),
     output:
@@ -436,7 +436,6 @@ rule clean_pecd_data:
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
         weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
     script:
         scripts("sb/clean_pecd_data.py")
 

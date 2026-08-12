@@ -38,11 +38,11 @@ logger = logging.getLogger(__name__)
 def read_pecd_file(
     node: str,
     dir_pecd: str,
+    weather_year: int,
     cyear: int,
     pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
-    weather_year: int,
 ):
     fn = Path(
         dir_pecd,
@@ -60,13 +60,14 @@ def read_pecd_file(
     datetime_idx = pd.to_datetime(f"{cyear}." + pecd_bus["Date"].str.cat(
         (pecd_bus["Hour"] - 1).astype(str), sep=" "
     ), format="%Y.%d.%m. %H")
+
     cf_pecd = (
-        pecd_bus.set_index(datetime_idx, format="%Y.%d.%m. %H")
+        pecd_bus.set_index(datetime_idx)
         .drop(columns=["Date", "Hour"])
         .loc[
-            sns, [f"WS{weather_year:03d}"]
+            sns, [weather_year]
         ]  # filter for snapshots and weather scenario only
-        .rename(columns={f"WS{weather_year:03d}": node})
+        .rename(columns={weather_year: node})
     )
     return cf_pecd
 
@@ -91,7 +92,7 @@ if __name__ == "__main__":
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = sns[0].year
 
-    weather_year = snakemake.params.weather_year
+    weather_year = f"WS{snakemake.params.weather_year:03d}"
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
@@ -114,7 +115,7 @@ if __name__ == "__main__":
         if pecd_tech == "Wind_Offshore"
         else onshore_buses.index
     )
-    dir_pecd = f"{snakemake.input.pecd_input}/PECD/"
+    dir_pecd = snakemake.input.pecd_input
 
     # Load and prep pecd data
     #########################
@@ -129,20 +130,12 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
-        cyear=cyear,
-        pyear=pyear,
-        technology=pecd_tech,
-        sns=sns,
-        weather_year=weather_year,
-func = partial(
-        read_pecd_file,
-        dir_pecd=dir_pecd,
         weather_year=weather_year,
         cyear=cyear,
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,
-)
+    )
 
     with mp.Pool(processes=snakemake.threads) as pool:
         pecd = list(tqdm(pool.imap(func, nodes), **tqdm_kwargs))

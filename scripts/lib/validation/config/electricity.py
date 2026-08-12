@@ -168,18 +168,19 @@ class _AutarkyConfig(BaseModel):
 class _PecdPreBuiltConfig(BaseModel):
     """Configuration for `electricity.pecd_renewable_profiles.pre_built` settings."""
 
-    cyears: list[int] = Field(
-        default_factory=lambda: [1995, 2008, 2009],
-        description="List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+    cyears: list[str] = Field(
+        default_factory=lambda: ["WS003","WS021","WS029","WS032","WS037","WS059","WS065","WS071","WS077","WS091","WS092","WS106"],
+        description="List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
     )
 
     @field_validator("cyears")
     @classmethod
-    def validate_cyears(cls, v: list[int]) -> list[int]:
-        """Validate that climate years are between 1982 and 2019."""
-        for year in v:
-            if not 1982 <= year <= 2019:
-                raise ValueError(f"Climate year {year} must be between 1982 and 2019")
+    def validate_cyears(cls, v: list[str]) -> list[str]:
+        """Validate that weather scenarios are """
+        years = [int(year[2:]) for year in v]
+        for year in years:
+            if not 1 <= year <= 120:
+                raise ValueError(f"Weather scenario {year} must be between 1 and 120")
         return v
 
 
