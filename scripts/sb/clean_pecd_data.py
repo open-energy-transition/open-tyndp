@@ -110,6 +110,10 @@ if __name__ == "__main__":
     nodes = offshore_buses if pecd_tech == "Wind_Offshore" else onshore_buses
     nodes = [x.replace("UK", "GB") for x in nodes]
 
+    # Artefact of using nodes from 2026 data for PECD alone
+    # To be removed when aligning nodes in all datasets
+    exclude_nodes = ["MD00", "NOS1", "NOS2", "TR00", "UA00", "PL00E", "PL00I"]
+    nodes = [x for x in nodes if x not in exclude_nodes]
     dir_pecd = snakemake.input.pecd_input
 
     # Load and prep pecd data
