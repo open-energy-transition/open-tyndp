@@ -27,7 +27,9 @@ if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
             "logs/retrieve_tyndp_pecd.log",
         run:
             zip_path = f"{PECD_DATASET['folder']}.zip"
-            extract_to = PECD_DATASET["folder"] if PECD_RAW_NESTED else output["dir"]
+            extract_to = (
+                PECD_DATASET["folder"] if PECD_RAW_NESTED else output["dir"]
+            )
             copy2(input["zip_file"], zip_path)
             unpack_archive(zip_path, extract_to)
             os.remove(zip_path)
