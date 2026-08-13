@@ -48,13 +48,10 @@ set-resources:
   solve_sector_network_myopic:
     solver_license: 1
   solve_cba_msv_extraction:
-    mem_mb: 150000
     solver_license: 1
   solve_cba_reference_network:
-    mem_mb: 15000
     solver_license: 1
   solve_cba_network:
-    mem_mb: 15000
     solver_license: 1
 
 
