@@ -320,7 +320,6 @@ def _process_other_nonres_capacities(
     if node in ["ITS1", "PL00"]:
         # hydrogen ccgt missing efficiency in 2050
         df["efficiency"] = df.efficiency.replace(0, 0.6)
-    
 
     if df.empty:
         logger.debug(
@@ -496,7 +495,7 @@ def _process_battery_capacities(
         node_tech_data.iloc[7:]
         .dropna(how="all", axis=0)
         .dropna(how="all", axis=1)
-        .iloc[1:] # drop the first row which contains the Battery Total 
+        .iloc[1:]  # drop the first row which contains the Battery Total
         .reset_index(drop=True)
     )
 
@@ -520,7 +519,11 @@ def _process_battery_capacities(
     df_raw = df_raw.set_axis(column_names, axis=1)
 
     units = {"p_nom_charge": "MW", "p_nom_discharge": "MW", "p_nom_store": "MWh"}
-    types = {"p_nom_charge": "Charge", "p_nom_discharge": "Discharge", "p_nom_store": "Store"}
+    types = {
+        "p_nom_charge": "Charge",
+        "p_nom_discharge": "Discharge",
+        "p_nom_store": "Store",
+    }
 
     df = df_raw.melt(
         id_vars=["pemmdb_carrier", "efficiency"],
@@ -828,13 +831,15 @@ def _process_dsr_profiles(
     """
     # Extract data
     df = node_tech_data.iloc[7:, 1:]
-    df = df.set_index(df.columns[0]).rename(
+    df = df.set_index(
+        df.columns[0]
+    ).rename(
         index={
             "Capacity": "p_nom",
             "Units": "units_count",
             "Hours": "hours",
             "Price": "price",
-            "Climate year start": "cyear_start", # The PEMMDB data sheet still uses "Climate year start" and "Climate year end" names for DSR
+            "Climate year start": "cyear_start",  # The PEMMDB data sheet still uses "Climate year start" and "Climate year end" names for DSR
             "Climate year end": "cyear_end",
         }
     )
