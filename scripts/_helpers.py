@@ -1594,7 +1594,8 @@ def get_tyndp_conventional_thermals(
     if include_h2_fuel_cell:
         conventional_thermals.append("h2-fuel-cell")
     if include_h2_turbine:
-        conventional_thermals.append("h2-ccgt")
+        conventional_thermals.extend(["h2-ccgt","h2-ocgt"])
+        
 
     return conventional_dict, conventional_thermals
 

@@ -59,6 +59,12 @@ RENEWABLES = [
     "Hydro",
 ]
 
+TOTALS = [
+    "Installed capacities Photovoltaic (GW):",
+    "Installed capacities Onshore wind Total(GW):",
+    "Installed capacities Offshore wind Total (GW):",
+]
+
 PEMMDB_SHEET_MAPPING = {
     "Gas": "Thermal",
     "Nuclear": "Thermal",
@@ -307,16 +313,14 @@ def _process_other_nonres_capacities(
     # with values of equivalent plant types of other countries (same for all countries)
     df[["efficiency", "co2_factor"]] = df[["efficiency", "co2_factor"]].astype(float)
     if node == "AT00":
-        # gas CCGT old 1
-        df.loc[:, ["efficiency", "co2_factor"]] = [0.4, 0.513]
+        # gas CCGT old 1 C02 emissions factor missing in 2040 and 2050 (average derived from NL00 and ITN1 for those planning years)
+        co2_factors = {2040: 0.3521, 2050: 0.1308}
+        df["co2_factor"] = df.co2_factor.replace(0, co2_factors.get(pyear, 0))
 
-    if node in ["ITN1", "ITS1"]:
-        # gas conventional old 2
-        df.loc[:, ["efficiency", "co2_factor"]] = [0.41, 0.500488]
-
-    if node == "HU00":
-        # gas conventional old 1
-        df.loc[:, ["efficiency", "co2_factor"]] = [0.36, 0.57]
+    if node in ["ITS1", "PL00"]:
+        # hydrogen ccgt missing efficiency in 2050
+        df["efficiency"] = df.efficiency.replace(0, 0.6)
+    
 
     if df.empty:
         logger.debug(
@@ -363,6 +367,7 @@ def _process_res_capacities(
         .set_index("attributes")
         .rename_axis(None, axis=0)
         .dropna()
+        .drop(TOTALS, errors="ignore")
     )
 
     if df.empty:
@@ -450,7 +455,7 @@ def _process_electrolyser_capacities(
     Extract and clean `Electrolyser` capacities.
     """
     # Extract data
-    df = node_tech_data.iloc[7:, 1:].dropna(how="all", axis=0).dropna(how="all", axis=1)
+    df = node_tech_data.iloc[7:].dropna(how="all", axis=0).dropna(how="all", axis=1)
 
     if df.empty:
         logger.debug(
@@ -459,6 +464,7 @@ def _process_electrolyser_capacities(
         return None
 
     column_names = [
+        "pemmdb_type",
         "p_nom",
         "units_count",
         "efficiency",
@@ -472,7 +478,6 @@ def _process_electrolyser_capacities(
         pemmdb_carrier=pemmdb_tech,
         bus=node,
         country=node[:2],
-        pemmdb_type="Onshore grid connected",
         unit="MW",
     )
 
@@ -485,15 +490,13 @@ def _process_battery_capacities(
     """
     Extract and clean `Battery` capacities.
     """
-    # Fill missing data for FR15
-    if node == "FR15":
-        node_tech_data.iloc[-1, [5, 7, 8]] = 0
 
     # Extract data
     df_raw = (
-        node_tech_data.iloc[7:, 1:]
+        node_tech_data.iloc[7:]
         .dropna(how="all", axis=0)
         .dropna(how="all", axis=1)
+        .iloc[1:] # drop the first row which contains the Battery Total 
         .reset_index(drop=True)
     )
 
@@ -504,6 +507,7 @@ def _process_battery_capacities(
         return None
 
     column_names = [
+        "pemmdb_carrier",
         "p_nom_discharge",
         "p_nom_charge",
         "p_nom_store",
@@ -515,19 +519,18 @@ def _process_battery_capacities(
 
     df_raw = df_raw.set_axis(column_names, axis=1)
 
-    units = ["MW", "MW", "MWh"]
-    types = ["Charge", "Discharge", "Store"]
+    units = {"p_nom_charge": "MW", "p_nom_discharge": "MW", "p_nom_store": "MWh"}
+    types = {"p_nom_charge": "Charge", "p_nom_discharge": "Discharge", "p_nom_store": "Store"}
 
     df = df_raw.melt(
-        value_vars=["p_nom_charge", "p_nom_discharge", "p_nom_store"],
+        id_vars=["pemmdb_carrier", "efficiency"],
+        value_vars=list(types),
         value_name="p_nom",
     ).assign(
-        efficiency=df_raw.efficiency[0],
-        pemmdb_carrier=pemmdb_tech,
         bus=node,
         country=node[:2],
-        pemmdb_type=types,
-        unit=units,
+        pemmdb_type=lambda x: x.variable.map(types),
+        unit=lambda x: x.variable.map(units),
     )
 
     return df
@@ -751,8 +754,8 @@ def _process_other_nonres_profiles(
                 "Purpose": "purpose",
                 "Avg. Market Offer Price (€/MWh)": "price",
                 "Avg. Efficiency Ratio": "efficiency",
-                "Start climate year": "cyear_start",
-                "End climate year": "cyear_end",
+                "Start weather scenario": "cyear_start",
+                "End weather scenario": "cyear_end",
             }
         )
         .rename_axis(None, axis=0)
@@ -831,7 +834,7 @@ def _process_dsr_profiles(
             "Units": "units_count",
             "Hours": "hours",
             "Price": "price",
-            "Climate year start": "cyear_start",
+            "Climate year start": "cyear_start", # The PEMMDB data sheet still uses "Climate year start" and "Climate year end" names for DSR
             "Climate year end": "cyear_end",
         }
     )
