@@ -38,21 +38,18 @@ def read_pecd_file(
     node: str,
     dir_pecd: str,
     weather_year: int,
-    cyear: int,
     pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
-    if "GB" in node:
-        node = node.replace("GB", "UK")
 
     if "Solar" in technology:
-        fn = Path(dir_pecd, str(pyear), f"{technology} {node}.csv")
+        fn = Path(dir_pecd, str(pyear), f"{technology} {node.replace('UK', 'GB')}.csv")
     else:
         fn = Path(
             dir_pecd,
             str(pyear),
-            f"{node}_CapacityFactors_{technology}_{pyear}.csv",
+            f"{node.replace('UK', 'GB')}_CapacityFactors_{technology}_{pyear}.csv",
         )
 
     if not os.path.isfile(fn):
@@ -60,8 +57,9 @@ def read_pecd_file(
         return None
 
     pecd_bus = pd.read_csv(fn)
+    year = sns[0].year
     datetime_idx = pd.to_datetime(
-        f"{cyear}."
+        f"{year}."
         + pecd_bus["Date"].str.cat((pecd_bus["Hour"] - 1).astype(str), sep=" "),
         format="%Y.%d.%m. %H",
     )
@@ -93,8 +91,6 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    cyear = sns[0].year
-
     weather_year = f"WS{snakemake.params.weather_year:03d}"
 
     # Planning year (falls back to latest available pyear if not in list of available years)
@@ -111,11 +107,9 @@ if __name__ == "__main__":
     onshore_buses = df_nodes["Electricity"]["NODE"].tolist()
     offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]["NODE"].tolist()
 
-    nodes = (
-        offshore_buses
-        if pecd_tech == "Wind_Offshore"
-        else onshore_buses
-    )
+    nodes = offshore_buses if pecd_tech == "Wind_Offshore" else onshore_buses
+    nodes = [x.replace("UK", "GB") for x in nodes]
+
     dir_pecd = snakemake.input.pecd_input
 
     # Load and prep pecd data
@@ -132,7 +126,6 @@ if __name__ == "__main__":
         read_pecd_file,
         dir_pecd=dir_pecd,
         weather_year=weather_year,
-        cyear=cyear,
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,
