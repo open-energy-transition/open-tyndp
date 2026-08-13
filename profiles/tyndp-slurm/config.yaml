@@ -28,6 +28,9 @@ latency-wait: 60
 jobs: 999
 keep-going: true
 rerun-incomplete: true
+# Define solver license limitation
+resources:
+  solver_license: 2
 # Account for variations in HPC memory consumption
 set-resources:
   build_shapes:
@@ -42,11 +45,16 @@ set-resources:
     mem_mb: 32000
   prepare_sector_network:
     mem_mb: 4000
+  solve_sector_network_myopic:
+    solver_license: 1
   solve_cba_msv_extraction:
     mem_mb: 150000
+    solver_license: 1
   solve_cba_reference_network:
     mem_mb: 15000
+    solver_license: 1
   solve_cba_network:
     mem_mb: 15000
+    solver_license: 1
 
 
