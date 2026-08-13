@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
     # Artefact of using nodes from 2026 data for PECD alone
     # To be removed when aligning nodes in all datasets
-    exclude_nodes = ["MD00", "NOS1", "NOS2", "TR00", "UA00", "PL00E", "PL00I"]
+    exclude_nodes = ["MD00", "NOS1", "NOS2", "NOS3", "TR00", "UA00", "PL00E", "PL00I"]
     nodes = [x for x in nodes if x not in exclude_nodes]
     dir_pecd = snakemake.input.pecd_input
 
