@@ -17,8 +17,8 @@ cluster-generic-cancel-cmd: scancel
 default-resources:
   mem_mb: 5000
   disk_mb: 4000
-  runtime: 2h
-  partition: small
+  runtime: 1h
+  partition: high-mem
   tmpdir: "'/scratch/local'"
 restart-times: 0
 max-jobs-per-timespan: "1/3s"
