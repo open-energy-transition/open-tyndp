@@ -12,17 +12,25 @@ from shutil import unpack_archive, copy2
 
 if (PECD_DATASET := dataset_version("tyndp_pecd"))["source"] in ARCHIVE_SOURCES:
 
+    PECD_RAW_NESTED = "pre-built" not in PECD_DATASET["version"]
+
     rule retrieve_tyndp_pecd:
         input:
-            zip_file=storage(PECD_DATASET["url"]),  #having version here is causing a retrieve error
+            zip_file=storage(PECD_DATASET["url"]),
         output:
-            dir=directory(PECD_DATASET["folder"]),
+            dir=directory(
+                f"{PECD_DATASET['folder']}/PECD"
+                if PECD_RAW_NESTED
+                else PECD_DATASET["folder"]
+            ),
         log:
             "logs/retrieve_tyndp_pecd.log",
         run:
-            copy2(input["zip_file"], output["dir"] + ".zip")
-            unpack_archive(output["dir"] + ".zip", output["dir"])
-            os.remove(output["dir"] + ".zip")
+            zip_path = f"{PECD_DATASET['folder']}.zip"
+            extract_to = PECD_DATASET["folder"] if PECD_RAW_NESTED else output["dir"]
+            copy2(input["zip_file"], zip_path)
+            unpack_archive(zip_path, extract_to)
+            os.remove(zip_path)
 
 
 if (VIS_PLFM_DATASET := dataset_version("tyndp_vis_plfm"))["source"] in ARCHIVE_SOURCES:
@@ -137,7 +145,7 @@ if not "pre-built" in PECD_DATASET["version"]:
 
     rule prepare_pecd_release:
         input:
-            pecd_raw=f"{PECD_DATASET['folder']}/PECD/",
+            pecd_raw=rules.retrieve_tyndp_pecd.output.dir,
         output:
             pecd_prebuilt=directory(
                 f"{PECD_DATASET['folder']}/PECD+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"

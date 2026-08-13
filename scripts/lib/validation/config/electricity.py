@@ -189,7 +189,7 @@ class _PecdPreBuiltConfig(BaseModel):
     @field_validator("cyears")
     @classmethod
     def validate_cyears(cls, v: list[str]) -> list[str]:
-        """Validate that weather scenarios are"""
+        """Validate that weather scenarios are between WS001 and WS120."""
         years = [int(year[2:]) for year in v]
         for year in years:
             if not 1 <= year <= 120:

@@ -47,14 +47,15 @@ def read_pecd_file(
     if "GB" in node:
         node = node.replace("GB", "UK")
 
-    fn = Path(
-        dir_pecd,
-        str(pyear),
-        f"{node}_CapacityFactors_{technology}_{pyear}.csv",
-    )
-    # PECD only differentiates between utility and rooftop PV for some nodes
-    if not os.path.isfile(fn) and "Solar" in technology:
+    if "Solar" in technology:
         fn = Path(dir_pecd, str(pyear), f"{technology} {node}.csv")
+    else:
+        fn = Path(
+            dir_pecd,
+            str(pyear),
+            f"{node}_CapacityFactors_{technology}_{pyear}.csv",
+        )
+
     if not os.path.isfile(fn):
         logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
         return None
