@@ -28,6 +28,7 @@ latency-wait: 60
 jobs: 999
 keep-going: true
 rerun-incomplete: true
+# Account for variations in HPC memory consumption
 set-resources:
   build_shapes:
     mem_mb: 4000
