@@ -24,7 +24,7 @@ solving:
   solver:
     name: gurobi
     options: gurobi-default
-  partition: big
+  partition: high-mem
   mem_mb: 45000
   runtime: 2h
 
@@ -42,7 +42,7 @@ cba:
       solver:
         name: gurobi
         options: gurobi-default
-      partition: big
+      partition: high-mem
       mem_mb: 45000
       runtime: 2h
 
@@ -50,9 +50,9 @@ cba:
   solving:
     options:
       include_objective_constant: false
-    partition: big
     mem_mb: 45000
     runtime: 2h
+    partition: high-mem
 
     solver:
       name: highs
