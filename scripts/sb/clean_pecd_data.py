@@ -9,7 +9,6 @@ The script is executed for a given technology and planning horizon. Technologies
    * Solar PV Rooftop,
    * Wind_Offshore,
    * Wind_Onshore,
-   * CSP_noStorage_0h_dispatched,
 
 Outputs
 -------
@@ -113,7 +112,7 @@ if __name__ == "__main__":
     offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]["NODE"].tolist()
 
     nodes = (
-        offshore_buses.str.replace("UK", "GB", regex=True)
+        offshore_buses
         if pecd_tech == "Wind_Offshore"
         else onshore_buses
     )
