@@ -44,15 +44,15 @@ cba:
         options: gurobi-default
       partition: high-mem
       mem_mb: 45000
-      runtime: 2h
+      runtime: 1h
 
   # Rolling horizon solving settings
   solving:
     options:
       include_objective_constant: false
-    mem_mb: 45000
-    runtime: 2h
     partition: high-mem
+    mem_mb: 10000
+    runtime: 1h
 
     solver:
       name: highs
