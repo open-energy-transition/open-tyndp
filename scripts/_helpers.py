@@ -1546,6 +1546,48 @@ def check_cyear(cyear: int, scenario: str) -> int:
     return cyear
 
 
+def check_weather_year(weather_year: int, valid_weather_years: list[int]) -> int:
+    """
+    Check if the weather year is one of the known-valid ones, falling back if not.
+
+    TYNDP 2026 demand profiles provide 30 climate year columns per planning
+    horizon (labelled ``WSxxx``), but depending on the demand type, either all
+    of them contain data or only a handful of them do (the rest being empty
+    placeholders). Which weather years are valid therefore has to be
+    determined per file (see e.g. ``get_valid_weather_years`` in
+    `scripts/sb/build_tyndp_demand.py`) rather than assumed globally.
+
+    Parameters
+    ----------
+    weather_year : int
+        Weather year (climate year column index, e.g. 3 for ``WS003``) to validate.
+    valid_weather_years : list[int]
+        Weather years known to contain data, for the file being processed.
+
+    Returns
+    -------
+    int
+        Valid weather year, falling back to the first entry of
+        `valid_weather_years` if the input is not among them.
+    """
+
+    if not valid_weather_years:
+        raise ValueError(
+            "No `valid_weather_years` provided. Expected a non-empty list of weather years."
+        )
+
+    if weather_year not in valid_weather_years:
+        fallback = valid_weather_years[0]
+        logger.warning(
+            f"Weather year WS{weather_year:03d} doesn't contain data for this file "
+            f"(available: {[f'WS{y:03d}' for y in valid_weather_years]}). "
+            f"Falling back to WS{fallback:03d}."
+        )
+        weather_year = fallback
+
+    return weather_year
+
+
 def get_tyndp_conventional_thermals(
     mapping: pd.DataFrame,
     tyndp_conventional_carriers: list[str],

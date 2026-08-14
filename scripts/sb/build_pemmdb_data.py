@@ -245,7 +245,7 @@ def _process_thermal_hydrogen_capacities(
 
 
 def _process_other_nonres_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
+    node_tech_data: pd.DataFrame, node: str, cyear: int, pyear: int,pemmdb_tech: str
 ) -> pd.DataFrame:
     """
     Extract and clean `Other Non-RES` capacities.
@@ -309,7 +309,7 @@ def _process_other_nonres_capacities(
         df.pemmdb_type,
     )
 
-    # Manually fix missing efficiency and CO2 factor information for AT, HU, ITN1, ITS1
+    # Manually fix missing efficiency and CO2 factor information for AT, PL, ITS1
     # with values of equivalent plant types of other countries (same for all countries)
     df[["efficiency", "co2_factor"]] = df[["efficiency", "co2_factor"]].astype(float)
     if node == "AT00":
@@ -319,8 +319,7 @@ def _process_other_nonres_capacities(
 
     if node in ["ITS1", "PL00"]:
         # hydrogen ccgt missing efficiency in 2050
-        df["efficiency"] = df.efficiency.replace(0, 0.6)
-    
+        df["efficiency"] = df.efficiency.replace(0, 0.6)    
 
     if df.empty:
         logger.debug(
@@ -455,7 +454,7 @@ def _process_electrolyser_capacities(
     Extract and clean `Electrolyser` capacities.
     """
     # Extract data
-    df = node_tech_data.iloc[7:].dropna(how="all", axis=0).dropna(how="all", axis=1)
+    df = node_tech_data.iloc[7:, :9].dropna(how="all", axis=0).dropna(how="all", axis=1)
 
     if df.empty:
         logger.debug(
@@ -493,7 +492,7 @@ def _process_battery_capacities(
 
     # Extract data
     df_raw = (
-        node_tech_data.iloc[7:]
+        node_tech_data.iloc[7:, :9]
         .dropna(how="all", axis=0)
         .dropna(how="all", axis=1)
         .iloc[1:] # drop the first row which contains the Battery Total 
@@ -938,7 +937,7 @@ def process_pemmdb_capacities(
         # Other Non-RES
         elif pemmdb_tech_sheet == "Other Non-RES":
             capacities = _process_other_nonres_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet
+                node_tech_data, node, cyear, pyear, pemmdb_tech_sheet
             )
 
         # Renewables (Solar, Wind, Hydro)
