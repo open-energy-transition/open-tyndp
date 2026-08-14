@@ -490,7 +490,7 @@ pemmdb_techs = branch(
 
 rule build_pemmdb_data:
     input:
-        pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
+        pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
     output:

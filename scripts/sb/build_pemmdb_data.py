@@ -506,7 +506,7 @@ def _process_battery_capacities(
         return None
 
     column_names = [
-        "pemmdb_carrier",
+        "pemmdb_type",
         "p_nom_discharge",
         "p_nom_charge",
         "p_nom_store",
@@ -526,13 +526,14 @@ def _process_battery_capacities(
     }
 
     df = df_raw.melt(
-        id_vars=["pemmdb_carrier", "efficiency"],
+        id_vars=["pemmdb_type", "efficiency"],
         value_vars=list(types),
         value_name="p_nom",
     ).assign(
+        pemmdb_carrier=pemmdb_tech,
         bus=node,
         country=node[:2],
-        pemmdb_type=lambda x: x.variable.map(types),
+        pemmdb_type=lambda x: x.pemmdb_type + " " + x.variable.map(types),
         unit=lambda x: x.variable.map(units),
     )
 
@@ -759,6 +760,8 @@ def _process_other_nonres_profiles(
                 "Avg. Efficiency Ratio": "efficiency",
                 "Start weather scenario": "cyear_start",
                 "End weather scenario": "cyear_end",
+                "Start climate year": "cyear_start", # FR15 and AZ00 still follow the old naming convention
+                "End climate year": "cyear_end", # FR15 and AZ00 still follow the old naming convention
             }
         )
         .rename_axis(None, axis=0)
