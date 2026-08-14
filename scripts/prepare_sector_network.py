@@ -2507,10 +2507,12 @@ def _add_phs_capacities(
         (pemmdb_capacities["open_tyndp_type"] == f"{tech}-turbine")
         & (pemmdb_capacities["unit"] == "MW")
     ]["p_nom"]
-    p_nom_pump = pemmdb_capacities.loc[
-        (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
-        & (pemmdb_capacities["unit"] == "MW")
-    ]["p_nom"].abs  # input pump capacities are given in positive direction except for MA, EG, IL, TN
+    p_nom_pump = (
+        pemmdb_capacities.loc[
+            (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
+            & (pemmdb_capacities["unit"] == "MW")
+        ]["p_nom"].abs
+    )  # input pump capacities are given in positive direction except for MA, EG, IL, TN
     e_nom = pemmdb_capacities.loc[
         (pemmdb_capacities["carrier"] == tech) & (pemmdb_capacities["unit"] == "MWh")
     ].rename(index=lambda x: f"{x} {tech}")["e_nom"]

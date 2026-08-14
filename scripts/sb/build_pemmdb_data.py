@@ -760,8 +760,8 @@ def _process_other_nonres_profiles(
                 "Avg. Efficiency Ratio": "efficiency",
                 "Start weather scenario": "cyear_start",
                 "End weather scenario": "cyear_end",
-                "Start climate year": "cyear_start", # FR15 and AZ00 still follow the old naming convention
-                "End climate year": "cyear_end", # FR15 and AZ00 still follow the old naming convention
+                "Start climate year": "cyear_start",  # FR15 and AZ00 still follow the old naming convention
+                "End climate year": "cyear_end",  # FR15 and AZ00 still follow the old naming convention
             }
         )
         .rename_axis(None, axis=0)
