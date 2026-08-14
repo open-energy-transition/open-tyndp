@@ -245,7 +245,7 @@ def _process_thermal_hydrogen_capacities(
 
 
 def _process_other_nonres_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pyear: int,pemmdb_tech: str
+    node_tech_data: pd.DataFrame, node: str, cyear: int, pyear: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
     Extract and clean `Other Non-RES` capacities.
@@ -319,7 +319,7 @@ def _process_other_nonres_capacities(
 
     if node in ["ITS1", "PL00"]:
         # hydrogen ccgt missing efficiency in 2050
-        df["efficiency"] = df.efficiency.replace(0, 0.6)    
+        df["efficiency"] = df.efficiency.replace(0, 0.6)
 
     if df.empty:
         logger.debug(
