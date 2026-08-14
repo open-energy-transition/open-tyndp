@@ -3744,9 +3744,7 @@ def add_h2_reconversion_tyndp(
         )
 
     if options["hydrogen_turbine"]:
-        logger.info(
-            "Adding hydrogen turbine for re-electrification."
-        )
+        logger.info("Adding hydrogen turbine for re-electrification.")
         n.add(
             "Link",
             nodes.index + f" {suffix} h2-ccgt",
