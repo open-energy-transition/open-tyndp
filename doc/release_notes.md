@@ -7,6 +7,17 @@
 
 ## Upcoming Open-TYNDP Release
 
+**Features**
+
+**Changes**
+
+**Bugfixes and Compatibility**
+
+* Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
+
+**Documentation**
+
+**Developers Note**
 
 ## Upcoming PyPSA-Eur Release
 
