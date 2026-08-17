@@ -5586,15 +5586,6 @@
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
         },
-        "h2_reference_grid_source": {
-          "default": "entsoe",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-          "enum": [
-            "entsoe",
-            "entsos"
-          ],
-          "type": "string"
-        },
         "h2_zones_tyndp": {
           "default": false,
           "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
@@ -6467,17 +6458,7 @@
             },
             "type": "array"
           },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        },
-        "h2_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the CBA reference grid corrections for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
           "type": "object"
         }
       }
@@ -11681,17 +11662,7 @@
             },
             "type": "array"
           },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        },
-        "h2_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
+          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the CBA reference grid corrections for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
           "type": "object"
         }
       }
@@ -12848,15 +12819,6 @@
           "default": false,
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
-        },
-        "h2_reference_grid_source": {
-          "default": "entsoe",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-          "enum": [
-            "entsoe",
-            "entsos"
-          ],
-          "type": "string"
         },
         "h2_zones_tyndp": {
           "default": false,
