@@ -12,8 +12,9 @@ when the format does not match, when either bus is absent from the TYNDP node li
 when no capacity is reported in either direction.
 
 Reads storage projects from the "Stor.Projects" sheet. Each project's country is mapped
-to a representative electricity bus. Storage projects are always assigned the PINT method,
-since they represent new capacity additions rather than reference-grid corrections.
+to a representative electricity bus. Storage projects are assigned TOOT or PINT based on
+whether they are already part of the reference grid, same as transmission projects; TOOT
+storage projects are not yet supported downstream (see `prepare_project.py`).
 
 **Inputs**
 
