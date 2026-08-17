@@ -76,9 +76,9 @@ tyndp_pecd,4.2+pre-built.0.1,tyndp-archive,latest supported,2026-08-13,Pre-built
 tyndp_pecd,4.2,primary,not-supported,2026-07-30,TYNDP 2026 preliminary data package,https://2026-data.entsos-tyndp-scenarios.eu/input/model-input/national-trends/PECD.zip
 tyndp_pecd,4.2,archive,supported,2026-08-13,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,4.2,tyndp-archive,supported,2026-08-13,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_pecd,3.1+pre-built.0.1,archive,supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_pecd,3.1+pre-built.0.1,tyndp-archive,supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
-tyndp_pecd,3.1,primary,not-supported,2026-01-27,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
+tyndp_pecd,3.1+pre-built.0.1,archive,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
+tyndp_pecd,3.1+pre-built.0.1,tyndp-archive,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://storage.googleapis.com/open-tyndp-data-store/PECD/
+tyndp_pecd,3.1,primary,not-supported,2026-01-27,Pre-built PECD data for Open-TYNDP,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs/PECD.zip
 tyndp_pecd,3.1,archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_pecd,3.1,tyndp-archive,supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/PECD/
 tyndp_vis_plfm,unknown,primary,not-supported,2026-01-27,,https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/

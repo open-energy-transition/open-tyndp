@@ -139,7 +139,7 @@ if not "pre-built" in PECD_DATASET["version"]:
 
     rule prepare_pecd_release:
         input:
-            pecd_raw=f"{PECD_DATASET['folder']}/PECD",
+            pecd_raw=PECD_DATASET["folder"],
         output:
             pecd_prebuilt=directory(
                 f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
@@ -416,7 +416,7 @@ def get_pecd_prebuilt(w):
 
 rule clean_pecd_data:
     input:
-        pecd_input=get_pecd_prebuilt,
+        pecd_prebuilt=get_pecd_prebuilt,
         nodes=rules.retrieve_tyndp_2026.output.nodes,
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),

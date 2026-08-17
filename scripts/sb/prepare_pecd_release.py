@@ -41,8 +41,7 @@ def process_pecd_files(
 
         return (
             name in ("Date", "Hour")
-            or name in cyears.values
-            or name in cyears.astype(str).values
+or name in cyears.values
         )
 
     if "xls" in pecd_file or "xlsx" in pecd_file:
