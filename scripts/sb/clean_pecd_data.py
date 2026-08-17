@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # TODO Remove once the TYNDP 2026 nodes are integrated
     # excluded nodes - "MD00", "NOS1", "NOS2", "NOS3", "TR00", "UA00", "PL00E", "PL00I"
     nodes = [x for x in nodes if x in busmap]
-    dir_pecd = snakemake.input.pecd_input
+    dir_pecd = snakemake.input.pecd_prebuilt
 
     # Load and prep pecd data
     #########################
