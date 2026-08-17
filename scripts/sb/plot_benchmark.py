@@ -20,10 +20,10 @@ from matplotlib.ticker import AutoMinorLocator
 from tqdm import tqdm
 
 from scripts._helpers import (
+    add_metadata,
     configure_logging,
     convert_units,
     get_snapshots,
-    get_version,
     set_scenario_config,
 )
 from scripts.sb.make_benchmark import (
@@ -38,68 +38,6 @@ plt.style.use("bmh")
 
 FIGURE_WIDTH_DEFAULT = 12
 FIGURE_HEIGHT_DEFAULT = 8
-
-
-def add_metadata(
-    ax: plt.Axes,
-    fig: plt.Figure,
-    model_col: str = "",
-    rfc_source: str = "",
-    rfc_cols: list[str] = [],
-    note: str = "",
-):
-    # Version
-    version = get_version()
-    fig.draw_without_rendering()
-    bbox_fig = fig.get_tightbbox(fig.canvas.get_renderer())
-    fig_width_inches, fig_height_inches = fig.get_size_inches()
-    x0_fig = (
-        bbox_fig.x0 / fig_width_inches
-    )  # Convert bbox coordinates from inches to figure coordinates
-    x1_fig = (
-        bbox_fig.x1 / fig_width_inches
-    )  # Convert bbox coordinates from inches to figure coordinates
-    y0_fig = bbox_fig.y0 / fig_height_inches
-
-    ax.text(
-        x1_fig,
-        y0_fig - 0.05,
-        f"version: {version}",
-        transform=fig.transFigure,
-        ha="right",
-        va="bottom",
-        fontsize=8,
-        alpha=0.7,
-    )
-
-    # Reference source
-    if model_col != "" and rfc_source != "":
-        additional_sources = (
-            "" if len(rfc_cols) <= 1 else " Other sources shown for comparison."
-        )
-        ax.text(
-            x0_fig,
-            y0_fig - 0.05,
-            f"Model outputs ({model_col}) benchmarked against {rfc_source}.{additional_sources}",
-            transform=fig.transFigure,
-            ha="left",
-            va="bottom",
-            fontsize=8,
-            alpha=0.7,
-        )
-
-    # Notes
-    if note:
-        ax.text(
-            x0_fig,
-            y0_fig - 0.07,
-            "\n".join(note),
-            transform=fig.transFigure,
-            ha="left",
-            va="top",
-            fontsize=8,
-            alpha=0.7,
-        )
 
 
 def _plot_scenario_comparison(
@@ -185,8 +123,8 @@ def _plot_scenario_comparison(
         note = []
 
     add_metadata(
-        ax,
         fig,
+        ax,
         model_col=model_col,
         rfc_source=rfc_source,
         rfc_cols=rfc_cols,
@@ -280,7 +218,7 @@ def _plot_time_series(
         bbox=props,
     )
 
-    add_metadata(ax, fig)
+    add_metadata(fig, ax)
 
     output_filename = Path(
         output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{cyear}_{year}.pdf"
@@ -350,7 +288,7 @@ def _plot_prices(
         facecolor="white",
     )
 
-    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+    add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -404,7 +342,7 @@ def _plot_flows(
         facecolor="white",
     )
 
-    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+    add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -432,7 +370,7 @@ def _plot_flows(
         ax.grid(axis="x", which="minor", linestyle="--", alpha=0.7)
         ax.grid(axis="y", linestyle="-", alpha=0.7)
         ax.legend(frameon=True, facecolor="white")
-        add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+        add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
         output_filename = Path(
             output_dir, f"benchmark_{table}_direction_errors_cy{cyear}_{year}.pdf"
         )
@@ -476,7 +414,7 @@ def _plot_hours(
     plt.setp(ax.get_xticklabels(), ha="right")
     ax.grid(axis="y", linestyle="--")
     ax.legend(frameon=True, facecolor="white")
-    add_metadata(ax, fig, model_col=model_col, rfc_source=rfc_source)
+    add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
@@ -762,7 +700,7 @@ def plot_overview(
         loc="upper left",
     )
 
-    add_metadata(ax, fig)
+    add_metadata(fig, ax)
 
     fig.savefig(fn, bbox_inches="tight")
 
