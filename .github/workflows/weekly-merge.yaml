@@ -2,7 +2,7 @@ name: Weekly merge master into tyndp-2026
 
 on:
   schedule:
-    - cron: '0 6 * * 1'  # every Monday at 06:00 UTC
+  - cron: '0 6 * * 1'    # every Monday at 06:00 UTC
   workflow_dispatch:      # allows manual trigger from the Actions tab
 
 permissions:
@@ -13,47 +13,47 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout tyndp-2026
-        uses: actions/checkout@v4
-        with:
-          ref: tyndp-2026
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout tyndp-2026
+      uses: actions/checkout@v4
+      with:
+        ref: tyndp-2026
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+    - name: Configure git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Create merge branch
-        id: merge
-        run: |
-          git fetch origin master
-          git checkout -b weekly-merge-master-into-tyndp-2026
-          if git merge origin/master --no-edit; then
-            echo "conflict=false" >> "$GITHUB_OUTPUT"
+    - name: Create merge branch
+      id: merge
+      run: |
+        git fetch origin master
+        git checkout -b weekly-merge-master-into-tyndp-2026
+        if git merge origin/master --no-edit; then
+          echo "conflict=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "conflict=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Push merge branch
+      run: git push origin weekly-merge-master-into-tyndp-2026 --force
+
+    - name: Create or update PR
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        if gh pr list --head weekly-merge-master-into-tyndp-2026 --json number | grep -q number; then
+          echo "PR already exists, skipping creation"
+        else
+          if [ "${{ steps.merge.outputs.conflict }}" = "true" ]; then
+            BODY="This merge has conflicts that need manual resolution before merging."
           else
-            echo "conflict=true" >> "$GITHUB_OUTPUT"
+            BODY="Automated weekly merge of master into tyndp-2026. No conflicts detected."
           fi
-
-      - name: Push merge branch
-        run: git push origin weekly-merge-master-into-tyndp-2026 --force
-
-      - name: Create or update PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if gh pr list --head weekly-merge-master-into-tyndp-2026 --json number | grep -q number; then
-            echo "PR already exists, skipping creation"
-          else
-            if [ "${{ steps.merge.outputs.conflict }}" = "true" ]; then
-              BODY="This merge has conflicts that need manual resolution before merging."
-            else
-              BODY="Automated weekly merge of master into tyndp-2026. No conflicts detected."
-            fi
-            gh pr create \
-              --base tyndp-2026 \
-              --head weekly-merge-master-into-tyndp-2026 \
-              --title "Weekly sync: master into tyndp-2026" \
-              --body "$BODY"
-          fi
+          gh pr create \
+            --base tyndp-2026 \
+            --head weekly-merge-master-into-tyndp-2026 \
+            --title "Weekly sync: master into tyndp-2026" \
+            --body "$BODY"
+        fi
