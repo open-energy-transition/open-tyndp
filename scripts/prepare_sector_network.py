@@ -2511,7 +2511,7 @@ def _add_phs_capacities(
         pemmdb_capacities.loc[
             (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
             & (pemmdb_capacities["unit"] == "MW")
-        ]["p_nom"].abs
+        ]["p_nom"].abs()
     )  # input pump capacities are given in positive direction except for MA, EG, IL, TN
     e_nom = pemmdb_capacities.loc[
         (pemmdb_capacities["carrier"] == tech) & (pemmdb_capacities["unit"] == "MWh")
