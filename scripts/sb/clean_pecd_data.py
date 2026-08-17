@@ -9,6 +9,7 @@ The script is executed for a given technology and planning horizon. Technologies
    * Solar PV Rooftop,
    * Wind_Offshore,
    * Wind_Onshore,
+   * CSP_noStorage_0h_dispatched,
 
 Outputs
 -------
@@ -106,14 +107,14 @@ if __name__ == "__main__":
     df_nodes = pd.read_excel(snakemake.input.nodes, sheet_name=None)
     onshore_buses = df_nodes["Electricity"]["NODE"].tolist()
     offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]["NODE"].tolist()
-
+    busmap = pd.read_csv(snakemake.input.busmap).name.tolist()
     nodes = offshore_buses if pecd_tech == "Wind_Offshore" else onshore_buses
     nodes = [x.replace("UK", "GB") for x in nodes]
 
     # Artefact of using nodes from 2026 data for PECD alone
     # To be removed when aligning nodes in all datasets
-    exclude_nodes = ["MD00", "NOS1", "NOS2", "NOS3", "TR00", "UA00", "PL00E", "PL00I"]
-    nodes = [x for x in nodes if x not in exclude_nodes]
+    # excluded nodes - "MD00", "NOS1", "NOS2", "NOS3", "TR00", "UA00", "PL00E", "PL00I"
+    nodes = [x for x in nodes if x in busmap]
     dir_pecd = snakemake.input.pecd_input
 
     # Load and prep pecd data

@@ -229,6 +229,7 @@ class _PecdRenewableProfilesConfig(BaseModel):
             "Solar PV Rooftop",
             "Solar PV Utility",
             "Wind_Onshore",
+            "CSP_noStorage_0h_dispatched",
         ],
         description="The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",
     )

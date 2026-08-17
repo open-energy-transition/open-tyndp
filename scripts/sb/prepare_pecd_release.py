@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Loads and filters the available raw PECD data for the subset of required climate years as specified in the configuration.
+Loads and filters the available raw PECD data for the subset of required weather scenarios as specified in the configuration.
 
 Outputs
 -------
-PECD prebuilt directory with filtered csv files including only relevant climate year data.
+PECD prebuilt directory with filtered csv files including only relevant weather scenario data.
 """
 
 import logging
@@ -79,12 +79,12 @@ if __name__ == "__main__":
     # Parameters
     ############
 
-    # Climate year from snapshots
+    # Weather scenarios from snakemake params
     cyears = pd.Series(snakemake.params.cyears)
     available_cyears = [f"WS{x:03d}" for x in np.arange(1, 120, 1)]
     if set(cyears).difference(available_cyears):
         logger.warning(
-            "Climate scenarios doesn't match available TYNDP data. Only returning subset of available climate scenarios."
+            "Weather scenarios doesn't match available TYNDP data. Only returning subset of available weather scenarios."
         )
         cyears = pd.Series(list(set(cyears).intersection(available_cyears)))
     # Planning years for which PECD data is available for in the specified PECD version

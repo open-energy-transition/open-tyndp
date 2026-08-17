@@ -104,6 +104,7 @@ electricity:
     - 2030
     - 2035
     - 2040
+    - 2050
     technologies:
     - Wind_Offshore
     - Solar PV Rooftop
