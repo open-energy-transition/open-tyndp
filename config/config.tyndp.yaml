@@ -105,6 +105,7 @@ electricity:
     - Solar PV Rooftop
     - Solar PV Utility
     - Wind_Onshore
+    - CSP_noStorage_0h_dispatched
 
   pemmdb_hydro_profiles:
     enable: true
