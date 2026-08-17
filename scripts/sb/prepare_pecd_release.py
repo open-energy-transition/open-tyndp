@@ -39,11 +39,7 @@ def process_pecd_files(
 
     def _usecols(name):
 
-        return (
-            name in ("Date", "Hour")
-            or name in cyears.values
-            or name in cyears.astype(str).values
-        )
+        return name in ("Date", "Hour") or name in cyears.values
 
     if "xls" in pecd_file or "xlsx" in pecd_file:
         df = pd.read_excel(
