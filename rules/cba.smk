@@ -169,6 +169,7 @@ checkpoint clean_projects:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        carrier_mapping="data/tyndp_technology_map.csv",
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),

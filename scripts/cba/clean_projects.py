@@ -95,11 +95,25 @@ STORAGE_PROJECTS_COLUMN_MAP = {
     "Is the project in the reference grid 2035?": "in_ref_grid_2035",
 }
 
-STORAGE_TECHNOLOGY_CARRIER_MAP = {
-    "HydroPumpedStorage": "hydro-phs",
-    "CompressedAirEnergyStorage": "caes",
-    "ElectrochemicalStorage": "battery",
-}
+
+def load_storage_technology_carrier_map(carrier_mapping_fn: str) -> pd.Series:
+    """
+    Load the storage technology -> carrier mapping from the technology map CSV.
+
+    Parameters
+    ----------
+    carrier_mapping_fn : str
+        Path to `data/tyndp_technology_map.csv`.
+
+    Returns
+    -------
+    pd.Series
+        Mapping from `cba_storage_technology` (as reported in the CBA storage
+        projects Excel export) to `open_tyndp_carrier`.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    tech_map = tech_map.dropna(subset=["cba_storage_technology"])
+    return tech_map.set_index("cba_storage_technology")["open_tyndp_carrier"]
 
 
 def extract_transmission_projects(
@@ -302,7 +316,10 @@ def assign_country_bus(countries: pd.Series, existing_buses: pd.Index) -> pd.Ser
 
 
 def extract_storage_projects(
-    excel_path: Path, existing_buses: pd.Index, default_lifetime: float
+    excel_path: Path,
+    existing_buses: pd.Index,
+    default_lifetime: float,
+    technology_carrier_map: pd.Series,
 ) -> pd.DataFrame:
     """
     Read and clean the storage projects from the "Stor.Projects" sheet.
@@ -321,6 +338,9 @@ def extract_storage_projects(
     default_lifetime : float
         Lifetime (years) used to replace missing or zero operational
         lifetimes reported in the Excel export.
+    technology_carrier_map : pd.Series
+        Mapping from `cba_storage_technology` to `open_tyndp_carrier`, as
+        returned by `load_storage_technology_carrier_map`.
 
     Returns
     -------
@@ -340,7 +360,7 @@ def extract_storage_projects(
     projects["project_id"] = projects["project_id"].astype(int)
     projects["roundtrip_efficiency"] = projects["roundtrip_efficiency"] / 100.0
 
-    unknown_technology = ~projects["technology"].isin(STORAGE_TECHNOLOGY_CARRIER_MAP)
+    unknown_technology = ~projects["technology"].isin(technology_carrier_map.index)
     if unknown_technology.any():
         logger.warning(
             "%d out of %d storage projects have an unknown storage technology, ignoring them:\n%s",
@@ -351,7 +371,7 @@ def extract_storage_projects(
             ].to_string(index=False, max_colwidth=40),
         )
     projects = projects.loc[~unknown_technology]
-    projects["carrier"] = projects["technology"].map(STORAGE_TECHNOLOGY_CARRIER_MAP)
+    projects["carrier"] = projects["technology"].map(technology_carrier_map)
 
     projects["bus"] = assign_country_bus(projects["country"], existing_buses)
     projects = projects.dropna(subset=["bus"])
@@ -583,10 +603,14 @@ if __name__ == "__main__":
 
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
+    technology_carrier_map = load_storage_technology_carrier_map(
+        snakemake.input.carrier_mapping
+    )
     storage_projects = extract_storage_projects(
         Path(snakemake.input.dir) / "20250312_export_storage.xlsx",
         existing_buses,
         snakemake.params.storage_default_lifetime,
+        technology_carrier_map,
     )
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
