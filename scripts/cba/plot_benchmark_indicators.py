@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import add_metadata, configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -348,7 +348,8 @@ def plot_project_benchmarks(
             frameon=False,
         )
     fig.tight_layout(rect=[0, 0.12, 1, 0.90])
-    fig.savefig(output_path, dpi=400)
+    add_metadata(fig)
+    fig.savefig(output_path, dpi=400, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -443,6 +444,11 @@ def plot_summary_projects_benchmark(
                 ax.set_xscale("symlog", linthresh=linthresh)
                 ax.set_yscale("symlog", linthresh=linthresh)
 
+        lims = (*ax.get_xlim(), *ax.get_ylim())
+        ax.set_xlim(min(lims), max(lims))
+        ax.set_ylim(min(lims), max(lims))
+        ax.set_aspect("equal", adjustable="box")
+
         units = average_df.loc[
             (average_df["indicator"] == indicator)
             & (average_df["source"] == "Open-TYNDP"),
@@ -454,6 +460,7 @@ def plot_summary_projects_benchmark(
         )
         ax.set_xlabel("TYNDP 2024")
         ax.set_ylabel("Open-TYNDP")
+        ax.tick_params(axis="both", labelsize=6)
         ax.axhline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.axvline(0, color="gray", linewidth=0.5, alpha=0.4)
         ax.grid(alpha=0.3)
@@ -494,7 +501,8 @@ def plot_summary_projects_benchmark(
         fig.text(0.5, 0.965, area_subtitle, ha="center", va="center", fontsize=9)
 
     fig.tight_layout(rect=[0, 0, 1, 0.94])
-    fig.savefig(output_path, dpi=400)
+    add_metadata(fig)
+    fig.savefig(output_path, dpi=400, bbox_inches="tight")
     plt.close(fig)
 
 

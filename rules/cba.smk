@@ -168,8 +168,11 @@ checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
+        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
         carrier_mapping="data/tyndp_technology_map.csv",
+        cba_project_corrections="data/cba/cba_project_corrections.csv",
+        custom_transmission="data/custom_cba_transmission_projects.csv",
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
@@ -267,9 +270,6 @@ def input_sb_network(w, run=None):
 rule simplify_sb_network:
     input:
         network=input_sb_network,
-        sb_network=lambda w: input_sb_network(
-            w, run=config_provider("cba", "sb_scenario")(w)
-        ),
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     log:
@@ -296,7 +296,6 @@ rule fix_reference_sb_to_cba:
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
         buses=rules.build_tyndp_network.output.substations_geojson,
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),

@@ -9,102 +9,18 @@
 
 **Features**
 
-* Merge low voltage and market nodes in the CBA ([#722](https://github.com/open-energy-transition/open-tyndp/pull/722)).
-  
-* Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
-
 **Changes**
-
-* Add `Undefined for generation` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark ([#718](https://github.com/open-energy-transition/open-tyndp/pull/718)).
-
-* Update CBA workflow to accept different pre-solved SB network versions as input ([#725](https://github.com/open-energy-transition/open-tyndp/pull/725)).
-
-* Add pixi tasks for running CBA workflow up until checkpoint `clean_projects` ([#726](https://github.com/open-energy-transition/open-tyndp/pull/726)).
-
-* Update pixi task names and definitions to align between SB and CBA workflows ([#735](https://github.com/open-energy-transition/open-tyndp/pull/735)).
-
-* Use only electricity-sourced emissions for and change signs of B2 and B4 indicators ([#709](https://github.com/open-energy-transition/open-tyndp/pull/709)).
-
-* Pass through and validate default solving options for CBA solve ([#708](https://github.com/open-energy-transition/open-tyndp/pull/708)):
-
-    - Make breaking change by moving `cba.solving.options.horizon` and `cba.solving.options.overlap` to `cba.solving.horizon` and `cba.solving.overlap`, respectively.
-    - Add `include_objective_constant` and `assign_all_duals` to solving config validator.
-    - Add `gurobi-simplex` as solver option.
-
-* Change dispatch of biomass and biogas generators in CBA by (a) setting the buses' marginal prices as the generators' marginal costs and (b) removing energy budget constraints ([#719](https://github.com/open-energy-transition/open-tyndp/pull/719)).
-
-* Add CBA per horizon summary plots for each indicator benchmarking TYNDP and Open-TYNDP ([#753](https://github.com/open-energy-transition/open-tyndp/pull/753)).
-
-* Tighten and align solver tolerances across the SB, MSV and RH solves ([#821](https://github.com/open-energy-transition/open-tyndp/pull/821)). Relative to SB, the feasibility tolerance in the MSV and RH solves is relaxed by one order of magnitude to avoid infeasibilities caused by the rounding of constraints introduced during the MSV solve.
-
-* Add benchmarks for CBA workflow rules and restructure CBA outputs to better mirror SB outputs ([#809](https://github.com/open-energy-transition/open-tyndp/pull/809)).
-
-* Add a configurable default cost for load shedding (VOLL) for CBA (for both MSV and RH), set to 300 EUR/MWh in the config, and change the default run option in the config to "NT" instead of "all" ([#831](https://github.com/open-energy-transition/open-tyndp/pull/831)).
 
 **Bugfixes and Compatibility**
 
-* Fix: split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
-
-* Use `overnight` foresight in MSV network preparation instead of `perfect` ([#813](https://github.com/open-energy-transition/open-tyndp/pull/813)).
-  
-* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
-
-* Fix CBA workflow to (a) release solver license after each successful rolling horizon optimization or after computing infeasibilities and (b) raise an error if rolling horizon fails when using HiGHS ([#756](https://github.com/open-energy-transition/open-tyndp/pull/756)).
-
-* Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
-
-* Restore correct assigned countries for virtual TYNDP nodes ([#794](https://github.com/open-energy-transition/open-tyndp/pull/794)).
-
-* Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
-
-* Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
-
-* Bump `cryptography` to 50.0.0 to fix a Bleichenbacher oracle in PKCS#7 decryption ([CVE-2026-69247](https://advisories.gitlab.com/pypi/cryptography/CVE-2026-69247/), [#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
-
-* Fix pandas version (allowed versions >= 2.1 and < 3) ([#829](https://github.com/open-energy-transition/open-tyndp/pull/829)).
+* Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
 
 **Documentation**
 
-* Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
-
-* Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
-
-* Improve docstring formatting and add missing type hints (https://github.com/open-energy-transition/open-tyndp/pull/759).
-
-* Improve docstring formatting and add missing type hints ([759](https://github.com/open-energy-transition/open-tyndp/pull/759)).
-
-* Create rules overview for SB and CBA rules ([761](https://github.com/open-energy-transition/open-tyndp/pull/761))
-
 **Developers Note**
 
-* Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).
-
-* Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
-
-* Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([#777](https://github.com/open-energy-transition/open-tyndp/pull/777)).
-
-* Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([#778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
-
-* Add validation of Zenodo deposition ID in `create_zenodo_deposition_cli` to close URL-manipulation finding ([#780](https://github.com/open-energy-transition/open-tyndp/pull/780)).
-
-* Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
-
-* Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
-
-* Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file.
-
-* Fix quoting patterns for clarity ([#791](https://github.com/open-energy-transition/open-tyndp/pull/791)).
-
-* Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
-
-* Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
-
-* Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
-
-* Apply minor fixes to CBA MSV rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
-
-* Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
-
+* feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
+  
 
 ## Upcoming PyPSA-Eur Release
 
@@ -163,6 +79,118 @@
 * doc: Add FAQ section to docs (`faq.md`) with troubleshooting for `SSL: CERTIFICATE_VERIFY_FAILED` during data retrieval behind proxy servers ([#2228](https://github.com/PyPSA/pypsa-eur/pull/2228)).
 * Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
 
+
+## Open-TYNDP v0.8 (7th August 2026)
+
+**Features**
+
+* Add Snakemake rules to launch the `PyPSA-Explorer` with pre-solved SB networks from previous releases ([#724](https://github.com/open-energy-transition/open-tyndp/pull/724)).
+
+* Use only electricity-sourced emissions for, and change the signs of, the B2 and B4 indicators ([#709](https://github.com/open-energy-transition/open-tyndp/pull/709)).
+
+* Merge low voltage and market nodes in the CBA ([#790](https://github.com/open-energy-transition/open-tyndp/pull/790)).
+
+* Add a configurable default cost for load shedding (VOLL) for CBA (for both MSV and RH), set to 300 EUR/MWh in the config, and change the default run option in the config to "NT" instead of "all" ([#831](https://github.com/open-energy-transition/open-tyndp/pull/831)).
+
+* Add the option to define custom transmission projects for the CBA assessment ([#802](https://github.com/open-energy-transition/open-tyndp/pull/802)). The new file `data/custom_cba_transmission_projects.csv` is used to configure these projects. With it, the user can modify existing projects and add new ones.
+
+**Changes**
+
+* Add `Undefined for generation` hydrogen demand to the Market Model data for the Hydrogen Supply benchmark ([#718](https://github.com/open-energy-transition/open-tyndp/pull/718)).
+
+* Update CBA workflow to accept different pre-solved SB network versions as input ([#725](https://github.com/open-energy-transition/open-tyndp/pull/725)).
+
+* Add pixi tasks for running CBA workflow up until checkpoint `clean_projects` ([#726](https://github.com/open-energy-transition/open-tyndp/pull/726)).
+
+* Update pixi task names and definitions to align between SB and CBA workflows ([#735](https://github.com/open-energy-transition/open-tyndp/pull/735)).
+
+* Pass through and validate default solving options for CBA solve ([#708](https://github.com/open-energy-transition/open-tyndp/pull/708)):
+
+    - Make breaking change by moving `cba.solving.options.horizon` and `cba.solving.options.overlap` to `cba.solving.horizon` and `cba.solving.overlap`, respectively.
+    - Add `include_objective_constant` and `assign_all_duals` to solving config validator.
+    - Add `gurobi-simplex` as solver option.
+
+* Change dispatch of biomass and biogas generators in CBA by (a) setting the buses' marginal prices as the generators' marginal costs and (b) removing energy budget constraints ([#719](https://github.com/open-energy-transition/open-tyndp/pull/719)).
+
+* Disentangle the `data/versions.csv` file by introducing `data/tyndp_versions.csv` ([#788](https://github.com/open-energy-transition/open-tyndp/pull/788)). All the TYNDP-specific version entries, as well as the `tyndp-archive` entries, are now tracked in this dedicated file.
+
+* Add CBA per horizon summary plots for each indicator benchmarking TYNDP and Open-TYNDP ([#753](https://github.com/open-energy-transition/open-tyndp/pull/753)).
+
+* Tighten and align solver tolerances across the SB, MSV and RH solves ([#821](https://github.com/open-energy-transition/open-tyndp/pull/821)). Relative to SB, the feasibility tolerance in the MSV and RH solves is relaxed by one order of magnitude to avoid infeasibilities caused by the rounding of constraints introduced during the MSV solve.
+
+* Add benchmarks for CBA workflow rules and restructure CBA outputs to better mirror SB outputs ([#809](https://github.com/open-energy-transition/open-tyndp/pull/809)).
+
+**Bugfixes and Compatibility**
+
+* Rename bus for `t339` project (Tyrrhenian) from ITSI to ITVI ([#751](https://github.com/open-energy-transition/open-tyndp/pull/751)).
+
+* Fix CBA workflow to (a) release solver license after each successful rolling horizon optimization or after computing infeasibilities and (b) raise an error if rolling horizon fails when using HiGHS ([#756](https://github.com/open-energy-transition/open-tyndp/pull/756)).
+
+* Extend `tyndp-archive` support to integrate three new datasets (`desnz_electricity_consumption`, `jrc_energy_atlas`, `ons_lad`) and two new versions (`nitrogen_statistics`, `synthetic_electricity_demand`) ([#758](https://github.com/open-energy-transition/open-tyndp/pull/758)).
+
+* Restore correct assigned countries for virtual TYNDP nodes ([#794](https://github.com/open-energy-transition/open-tyndp/pull/794)).
+
+* Remove unused `cba.methods` config option ([#805](https://github.com/open-energy-transition/open-tyndp/pull/805)).
+
+* Use `overnight` foresight in MSV network preparation instead of `perfect` ([#813](https://github.com/open-energy-transition/open-tyndp/pull/813)).
+
+* Remove `dim` argument from `.groupby(...).sum()` call in DSR daily dispatch constraint as it is no longer accepted by linopy >= 0.9.0 and no longer needed since groupby-sum always reduces the grouped dimension ([#811](https://github.com/open-energy-transition/open-tyndp/pull/811)).
+
+* Split project-level cost and length evenly across lines for multi-link transmission projects, avoiding inflated values ([#793](https://github.com/open-energy-transition/open-tyndp/pull/793)).
+
+* Bump `cryptography` to 50.0.0 to fix a Bleichenbacher oracle in PKCS#7 decryption ([CVE-2026-69247](https://advisories.gitlab.com/pypi/cryptography/CVE-2026-69247/), [#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
+
+* Fix pandas version (allowed versions >= 2.1 and < 3) ([#829](https://github.com/open-energy-transition/open-tyndp/pull/829)).
+
+* Change axis of the CBA summary indicator benchmark plots ([#837](https://github.com/open-energy-transition/open-tyndp/pull/837)).
+
+* Correct wrong or missing bus assignments and transfer capacities for transmission projects in the CBA ([#795](https://github.com/open-energy-transition/open-tyndp/pull/795)).
+
+* Disable load shedding for all carriers in MSV and RH ([#847](https://github.com/open-energy-transition/open-tyndp/pull/847)).
+
+**Documentation**
+
+* Update benchmarking documentation tables and figures for v0.7.1 ([#711](https://github.com/open-energy-transition/open-tyndp/pull/711)).
+
+* Migrate the Sphinx/RST-based documentation to MkDocs/Markdown, as a follow-up to the [upstream migration](https://github.com/PyPSA/pypsa-eur/pull/2162) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+
+* Improve docstring formatting and add missing type hints ([#759](https://github.com/open-energy-transition/open-tyndp/pull/759)).
+
+* Create rules overview for SB and CBA rules ([#761](https://github.com/open-energy-transition/open-tyndp/pull/761)).
+
+* Modify configuration section for Open-TYNDP specific config hierarchy and move section to Home tab under Getting Started ([#826](https://github.com/open-energy-transition/open-tyndp/pull/826)).
+
+* Improve documentation of the `remove_islands` and `aggregate_to_tyndp` options ([#845](https://github.com/open-energy-transition/open-tyndp/pull/845)).
+
+**Developers Note**
+
+* Change GitHub issue templates to comply with ISO security checks ([#714](https://github.com/open-energy-transition/open-tyndp/pull/714), [#730](https://github.com/open-energy-transition/open-tyndp/pull/730)).
+
+* Introduce SBOM/Grype vulnerability scanning workflow, as a follow-up to the [upstream addition](https://github.com/PyPSA/pypsa-eur/pull/2164) ([#754](https://github.com/open-energy-transition/open-tyndp/pull/754)).
+
+* Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([#777](https://github.com/open-energy-transition/open-tyndp/pull/777)).
+
+* Add missing regex anchors with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([#778](https://github.com/open-energy-transition/open-tyndp/pull/778)).
+
+* Add validation of Zenodo deposition ID in `create_zenodo_deposition_cli` to close URL-manipulation finding ([#780](https://github.com/open-energy-transition/open-tyndp/pull/780)).
+
+* Prevent `create_zenodo_deposition_cli` from leaking secrets in logs under `--debug` by scoping debug logging to the local logger instead of the root logger ([#781](https://github.com/open-energy-transition/open-tyndp/pull/781)).
+
+* Add sanitization of CLI inputs passed to `launch_explorer` ([#776](https://github.com/open-energy-transition/open-tyndp/pull/776)).
+
+* Fix quoting patterns for clarity ([#791](https://github.com/open-energy-transition/open-tyndp/pull/791)).
+
+* Use `combine_indicators` instead of `collect_indicators` in the function `summary_benchmark_indicators` ([#797](https://github.com/open-energy-transition/open-tyndp/pull/797)).
+
+* Reduce dependency on upstream retrieves ([#798](https://github.com/open-energy-transition/open-tyndp/pull/798)).
+
+* Sort functions in `clean_projects` into a logical order ([#803](https://github.com/open-energy-transition/open-tyndp/pull/803)).
+
+* Apply minor fixes to CBA MSV rule definition related to resources for remote execution ([#827](https://github.com/open-energy-transition/open-tyndp/pull/827)).
+
+* Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
+
+* Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/pull/807)).
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 

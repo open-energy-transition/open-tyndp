@@ -479,7 +479,7 @@ cba:
         noisy_costs: false
         load_shedding:
           enable: true
-          all_carriers: true
+          all_carriers: false
           carriers:
             H2: 300
             AC: 300
@@ -503,7 +503,7 @@ cba:
       noisy_costs: false
       load_shedding:
         enable: true
-        all_carriers: true
+        all_carriers: false
         carriers:
           H2: 300
           AC: 300
