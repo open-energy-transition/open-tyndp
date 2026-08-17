@@ -441,9 +441,7 @@ cba:
     sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
   - t1-t35
-  - s1001 # HydroPumpedStorage
-  - s1013 # CompressedAirEnergyStorage
-  - s1035 # ElectrochemicalStorage
+  - s*
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
