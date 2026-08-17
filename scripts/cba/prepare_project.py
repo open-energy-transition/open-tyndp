@@ -138,7 +138,6 @@ def apply_pint_storage(
     n: pypsa.Network,
     storage_project: pd.Series,
     discount_rate: float,
-    default_lifetime: float,
 ) -> None:
     """
     Add a new CBA storage project as a Bus/Store/Link triple.
@@ -153,7 +152,7 @@ def apply_pint_storage(
     ac_bus = storage_project["bus"]
     storage_bus = f"{ac_bus} cba s{project_id} storage"
 
-    attrs = get_storage_attrs(storage_project, discount_rate, default_lifetime)
+    attrs = get_storage_attrs(storage_project, discount_rate)
 
     if carrier not in n.carriers.index:
         n.add("Carrier", carrier)
@@ -213,7 +212,6 @@ def prepare_storage_project(
             n,
             storage_project.iloc[0],
             snakemake.params.storage_discount_rate,
-            snakemake.params.storage_default_lifetime,
         )
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")

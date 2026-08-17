@@ -179,6 +179,7 @@ checkpoint clean_projects:
         benchmarks("performances/cba/clean_projects")
     params:
         planning_horizons=config_provider("cba", "planning_horizons"),
+        storage_default_lifetime=config_provider("cba", "storage", "default_lifetime"),
     script:
         scripts("cba/clean_projects.py")
 
@@ -430,7 +431,6 @@ rule prepare_project:
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
-        storage_default_lifetime=config_provider("cba", "storage", "default_lifetime"),
     script:
         scripts("cba/prepare_project.py")
 

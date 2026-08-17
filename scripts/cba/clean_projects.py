@@ -47,7 +47,7 @@ storage projects are not yet supported downstream (see `prepare_project.py`).
   - `e_nom_gwh`: Storage capacity (GWh)
   - `p_nom_charge`: Total pumping/charge capacity (MW)
   - `roundtrip_efficiency`: Roundtrip efficiency (fraction)
-  - `lifetime_years`: Operational lifetime (years)
+  - `lifetime_years`: Operational lifetime (years); missing or zero values are replaced with `cba.storage.default_lifetime`
   - `carrier`: PyPSA carrier name for the storage technology
   - `bus`: Representative electricity bus for the project's country
 
@@ -302,14 +302,15 @@ def assign_country_bus(countries: pd.Series, existing_buses: pd.Index) -> pd.Ser
 
 
 def extract_storage_projects(
-    excel_path: Path, existing_buses: pd.Index
+    excel_path: Path, existing_buses: pd.Index, default_lifetime: float
 ) -> pd.DataFrame:
     """
     Read and clean the storage projects from the "Stor.Projects" sheet.
 
     Each project's country is mapped to a representative electricity bus.
     Rows with an unknown technology or that cannot be matched to a bus are
-    dropped with a warning.
+    dropped with a warning. Projects with a missing or zero operational
+    lifetime are overwritten with ``default_lifetime``.
 
     Parameters
     ----------
@@ -317,6 +318,9 @@ def extract_storage_projects(
         Path to the Excel export defining the storage projects.
     existing_buses : pd.Index
         Electricity buses as used in Open-TYNDP.
+    default_lifetime : float
+        Lifetime (years) used to replace missing or zero operational
+        lifetimes reported in the Excel export.
 
     Returns
     -------
@@ -354,6 +358,13 @@ def extract_storage_projects(
 
     # Data quirk: project 1064 reports a negative pumping capacity
     projects["p_nom_charge"] = projects["p_nom_charge"].abs()
+
+    # Data quirk: some projects report a missing or zero operational lifetime
+    # (e.g. project 1076); fall back to default_lifetime in that case
+    missing_lifetime = projects["lifetime_years"].isna() | (
+        projects["lifetime_years"] <= 0
+    )
+    projects.loc[missing_lifetime, "lifetime_years"] = default_lifetime
 
     return projects.drop(columns=["technology", "country"])
 
@@ -575,6 +586,7 @@ if __name__ == "__main__":
     storage_projects = extract_storage_projects(
         Path(snakemake.input.dir) / "20250312_export_storage.xlsx",
         existing_buses,
+        snakemake.params.storage_default_lifetime,
     )
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 

@@ -10,32 +10,29 @@ import pandas as pd
 from scripts.add_electricity import calculate_annuity
 
 
-def get_storage_attrs(
-    project: pd.Series, discount_rate: float, default_lifetime: float
-) -> dict:
+def get_storage_attrs(project: pd.Series, discount_rate: float) -> dict:
     """
     Return sized bus/link/store attributes for a new CBA storage project.
 
     All costs and capacities are taken directly from the CBA storage projects
     Excel export (via ``project``), rather than from the technology cost
     tables, since project-level CAPEX and OPEX are reported explicitly.
-    CAPEX is annualized using the project's own operational lifetime (falling
-    back to ``default_lifetime`` when missing or zero) and ``discount_rate``;
-    the already-annual OPEX is added on top (matching how `capital_cost` is
-    built from investment + FOM in process_cost_data.py). The combined
-    annualized cost is booked entirely on the Store (in EUR/MWh/yr) so it is
-    only counted once; both links get zero capital cost.
+    CAPEX is annualized using the project's operational lifetime (already
+    cleaned up in clean_projects.py, i.e. missing or zero values replaced
+    with default_lifetime) and ``discount_rate``; the already-annual OPEX is
+    added on top (matching how `capital_cost` is built from investment + FOM
+    in process_cost_data.py). The combined annualized cost is booked entirely
+    on the Store (in EUR/MWh/yr) so it is only counted once; both links get
+    zero capital cost.
 
     Parameters
     ----------
     project : pd.Series
         Row from storage_projects with columns p_nom_discharge, p_nom_charge,
         e_nom_gwh, roundtrip_efficiency, capex_meur, opex_meur_per_year, and
-        (optionally) operational lifetime in years under "lifetime_years".
+        operational lifetime in years under "lifetime_years".
     discount_rate : float
         Discount rate used to annualize the project's CAPEX.
-    default_lifetime : float
-        Lifetime (years) used when the project's own lifetime is missing or zero.
 
     Returns
     -------
@@ -43,10 +40,7 @@ def get_storage_attrs(
         Dictionary with keys p_nom_discharge, p_nom_charge, e_nom,
         efficiency, and capital_cost_per_mwh.
     """
-    lifetime = project.get("lifetime_years")
-    lifetime = lifetime if pd.notna(lifetime) and lifetime > 0 else default_lifetime
-
-    annuity = calculate_annuity(lifetime, discount_rate)
+    annuity = calculate_annuity(project["lifetime_years"], discount_rate)
     annualized_capex = project["capex_meur"] * 1e6 * annuity
     annual_opex = project["opex_meur_per_year"] * 1e6
     annualized_cost = annualized_capex + annual_opex
