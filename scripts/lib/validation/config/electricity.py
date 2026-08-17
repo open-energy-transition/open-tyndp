@@ -222,7 +222,7 @@ class _PecdRenewableProfilesConfig(BaseModel):
             "Solar PV Rooftop",
             "Solar PV Utility",
             "Wind_Onshore",
-            "CSP_noStorage_0h_dispatched"
+            "CSP_noStorage_0h_dispatched",
         ]
     ] = Field(
         default_factory=lambda: [
