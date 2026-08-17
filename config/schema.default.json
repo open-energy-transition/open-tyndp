@@ -2770,7 +2770,8 @@
                   "Wind_Offshore",
                   "Solar PV Rooftop",
                   "Solar PV Utility",
-                  "Wind_Onshore"
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },
@@ -8399,7 +8400,8 @@
               "Wind_Offshore",
               "Solar PV Rooftop",
               "Solar PV Utility",
-              "Wind_Onshore"
+              "Wind_Onshore",
+              "CSP_noStorage_0h_dispatched"
             ],
             "type": "string"
           },
@@ -9995,7 +9997,8 @@
                   "Wind_Offshore",
                   "Solar PV Rooftop",
                   "Solar PV Utility",
-                  "Wind_Onshore"
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },
