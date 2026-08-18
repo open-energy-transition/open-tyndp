@@ -312,7 +312,7 @@ def solve_network(
             f"Solving status '{status}' with termination condition '{condition}'."
         )
 
-    check_objective_value(n, solving)
+    check_objective_value(n, solving, planning_horizons)
 
 
 if __name__ == "__main__":
