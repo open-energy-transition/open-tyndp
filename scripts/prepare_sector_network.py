@@ -2984,7 +2984,7 @@ def add_existing_tyndp_capacities(
     h2_storage_capacities : pd.DataFrame
         DataFrame containing existing H2 storage capacities.
     trajectories : pd.DataFrame
-        DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max).
+        DataFrame containing the trajectories for the current planning_horizon to attach (p_nom_min and p_nom_max).
     tyndp_renewable_carriers : list[str]
         List of TYNDP renewable carriers.
     tyndp_conventional_thermals : list[str]
@@ -3031,7 +3031,7 @@ def add_existing_tyndp_capacities(
         if tyndp_solar_onwind:
             ppl = pemmdb_capacities.query("carrier.isin(@tyndp_solar_onwind)")
             trajectories_solar_onwind = trajectories.query(
-                "pyear == @investment_year and carrier.isin(@tyndp_solar_onwind)"
+                "planning_horizon == @investment_year and carrier.isin(@tyndp_solar_onwind)"
             )
 
             attach_wind_and_solar(
@@ -3057,7 +3057,7 @@ def add_existing_tyndp_capacities(
         # Add existing conventional thermal capacities from PEMMDB to already attached conventional technologies
         if tyndp_conventional_thermals:
             trajectories_nuclear = trajectories.query(
-                "pyear == @investment_year and index_carrier == 'nuclear'"
+                "planning_horizon == @investment_year and index_carrier == 'nuclear'"
             ).set_index("bus")
 
             _add_conventional_thermal_capacities(
@@ -3087,7 +3087,7 @@ def add_existing_tyndp_capacities(
         # Add existing electrolyzer capacities from PEMMDB to already attached electrolyzer components
         if h2_topology_tyndp:
             trajectories_electrolyser = trajectories.query(
-                "pyear == @investment_year and carrier == 'electrolyser'"
+                "planning_horizon == @investment_year and carrier == 'electrolyser'"
             ).set_index("bus")
 
             _add_electrolyzer_capacities(
@@ -4740,7 +4740,7 @@ def add_h2_gas_infrastructure(
 
 def add_offshore_generators_tyndp(
     n: pypsa.Network,
-    pyear: int,
+    planning_horizon: int,
     offshore_generators_fn: str,
     profiles_pecd: pd.Series,
     costs: pd.DataFrame,
@@ -4759,7 +4759,7 @@ def add_offshore_generators_tyndp(
     ----------
     n : pypsa.Network
         The network object to add offshore generators to.
-    pyear : int
+    planning_horizon : int
         Planning horizon used to filter which reference generator data to include.
     offshore_generators_fn : str
         Path to the file containing offshore generators configuration data.
@@ -4777,7 +4777,7 @@ def add_offshore_generators_tyndp(
     """
     logger.info("Adding offshore generators")
 
-    offshore_generators = pd.read_csv(offshore_generators_fn).query("pyear==@pyear")
+    offshore_generators = pd.read_csv(offshore_generators_fn).query("planning_horizon==@planning_horizon")
 
     # Assign locations and index
     offshore_generators.index = (
@@ -4818,7 +4818,7 @@ def add_offshore_generators_tyndp(
     def read_profile(fn):
         with xr.open_dataset(fn) as ds:
             ds = ds.stack(bus_bin=["bus", "bin"])
-            return ds["profile"].sel(year=pyear, time=n.snapshots).to_pandas()
+            return ds["profile"].sel(year=planning_horizon, time=n.snapshots).to_pandas()
 
     for key, fn in profiles_pecd.items():
         tech = key.removeprefix("profile_")
@@ -4857,7 +4857,7 @@ def add_offshore_generators_tyndp(
 
 def add_offshore_electrolysers_tyndp(
     n: pypsa.Network,
-    pyear: int,
+    planning_horizon: int,
     offshore_electrolysers_fn: str,
     costs: pd.DataFrame,
     nyears: float = 1,
@@ -4871,7 +4871,7 @@ def add_offshore_electrolysers_tyndp(
     ----------
     n : pypsa.Network
         The network object to add offshore generators to.
-    pyear : int
+    planning_horizon : int
         Planning horizon used to filter which reference generator data to include.
     offshore_electrolysers_fn : str
         Path to the file containing offshore electrolysers configuration data.
@@ -4888,7 +4888,7 @@ def add_offshore_electrolysers_tyndp(
     logger.info("Adding offshore electrolysers")
 
     offshore_electrolysers = pd.read_csv(offshore_electrolysers_fn).query(
-        "pyear==@pyear"
+        "planning_horizon==@planning_horizon"
     )
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
     offshore_electrolysers.index = (
@@ -5078,7 +5078,7 @@ def patch_offshore_grid_tyndp(
 
 def add_offshore_grid_tyndp(
     n: pypsa.Network,
-    pyear: int,
+    planning_horizon: int,
     offshore_grid_fn: str,
     costs: pd.DataFrame,
     options: dict,
@@ -5094,7 +5094,7 @@ def add_offshore_grid_tyndp(
     ----------
     n : pypsa.Network
         The network object to add offshore grid connections to.
-    pyear : int
+    planning_horizon : int
         Planning horizon used to filter which reference grid data to include.
     offshore_grid_fn : str
         Path to the file containing offshore grid configuration data.
@@ -5122,7 +5122,7 @@ def add_offshore_grid_tyndp(
     """
     logger.info("Adding offshore grid connections")
 
-    offshore_grid = pd.read_csv(offshore_grid_fn).query("pyear==@pyear")
+    offshore_grid = pd.read_csv(offshore_grid_fn).query("planning_horizon==@planning_horizon")
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
 
     # Add DC grid connections
@@ -5246,7 +5246,7 @@ def add_offshore_grid_tyndp(
 
 def add_offshore_hubs_tyndp(
     n: pypsa.Network,
-    pyear: int,
+    planning_horizon: int,
     offshore_generators_fn: str,
     offshore_electrolysers_fn: str,
     offshore_grid_fn: str,
@@ -5267,7 +5267,7 @@ def add_offshore_hubs_tyndp(
     ----------
     n : pypsa.Network
         The network object to add offshore hubs and grid to.
-    pyear: int
+    planning_horizon: int
         Planning horizon used to filter which reference grid data to include.
     offshore_generators_fn : str
         Path to the file containing offshore generators configuration data.
@@ -5329,16 +5329,16 @@ def add_offshore_hubs_tyndp(
 
     # Add power production units
     add_offshore_generators_tyndp(
-        n, pyear, offshore_generators_fn, profiles_pecd, costs, nyears
+        n, planning_horizon, offshore_generators_fn, profiles_pecd, costs, nyears
     )
 
     # Add H2 production units
-    add_offshore_electrolysers_tyndp(n, pyear, offshore_electrolysers_fn, costs, nyears)
+    add_offshore_electrolysers_tyndp(n, planning_horizon, offshore_electrolysers_fn, costs, nyears)
 
     # Add offshore DC and H2 grid connections
     add_offshore_grid_tyndp(
         n,
-        pyear,
+        planning_horizon,
         offshore_grid_fn,
         costs,
         options,
@@ -10037,7 +10037,7 @@ if __name__ == "__main__":
     if options["offshore_hubs_tyndp"]["enable"]:
         add_offshore_hubs_tyndp(
             n=n,
-            pyear=int(snakemake.wildcards.planning_horizons),
+            planning_horizon=int(snakemake.wildcards.planning_horizons),
             offshore_generators_fn=snakemake.input.offshore_generators,
             offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
             offshore_grid_fn=snakemake.input.offshore_grid,

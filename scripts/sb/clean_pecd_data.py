@@ -30,7 +30,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
+    safe_planning_horizon,
     set_scenario_config,
 )
 
@@ -42,21 +42,21 @@ def read_pecd_file(
     dir_pecd: str,
     weather_scenario: int,
     weather_scenario_i: int,
-    pyear: int,
+    plansafe_planning_horizon: int,
     technology: str,
     sns: pd.DatetimeIndex,
 ):
     fn = Path(
         dir_pecd,
-        str(pyear),
-        f"PECD_{technology}_{pyear}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
+        str(plansafe_planning_horizon),
+        f"PECD_{technology}_{plansafe_planning_horizon}_{node.replace('GB', 'UK')}_edition 2023.2.csv",
     )
 
     # PECD only differentiates between utility and rooftop PV for some nodes
     if not os.path.isfile(fn) and "LFSolarPV" in technology:
         fn = Path(str(fn).replace(technology, "LFSolarPV"))
     if not os.path.isfile(fn):
-        logger.warning(f"Missing data for {technology} in {node} in {pyear}.")
+        logger.warning(f"Missing data for {technology} in {node} in {plansafe_planning_horizon}.")
         return None
 
     pecd_bus = pd.read_csv(fn)
@@ -107,8 +107,8 @@ if __name__ == "__main__":
         )
         weather_scenario = fallback_year
 
-    # Planning year (falls back to latest available pyear if not in list of available years)
-    pyear = safe_pyear(
+    # Planning year (falls back to latest available plansafe_planning_horizon if not in list of available years)
+    plansafe_planning_horizon = safe_planning_horizon(
         snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
         source="PECD",
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         dir_pecd=dir_pecd,
         weather_scenario=weather_scenario,
         weather_scenario_i=weather_scenario_i,
-        pyear=pyear,
+        plansafe_planning_horizon=plansafe_planning_horizon,
         technology=pecd_tech,
         sns=sns,
     )
@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     if all(data is None for data in pecd):
         raise ValueError(
-            f"No PECD data found for {pecd_tech} in {pyear}. Please specify a technology covered within the TYNDP PECD data."
+            f"No PECD data found for {pecd_tech} in {plansafe_planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (

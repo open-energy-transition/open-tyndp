@@ -1279,14 +1279,14 @@ def extract_grid_data_tyndp(
     return links
 
 
-def safe_pyear(
+def safe_planning_horizon(
     year: int | str,
     available_years: list[int] = [2030, 2040, 2050],
     source: str = "TYNDP",
     verbose: bool = True,
 ) -> int:
     """
-    Checks and adjusts whether a given pyear is in the available years of a given data source. If not, it
+    Checks and adjusts whether a given planning_horizon is in the available years of a given data source. If not, it
     falls back to the previous available year.
 
     Parameters
@@ -1303,7 +1303,7 @@ def safe_pyear(
     Returns
     -------
     year_new : int
-        Safe pyear adjusted for available years.
+        Safe planning_horizon adjusted for available years.
     """
 
     if not available_years:
@@ -1692,7 +1692,7 @@ def get_tyndp_conventional_thermals(
 
 def interpolate_demand(
     available_years: list[int],
-    pyear: int,
+    planning_horizon: int,
     load_single_year_func: Callable,
     **load_kwargs,
 ) -> pd.DataFrame | pd.Series:
@@ -1703,12 +1703,12 @@ def interpolate_demand(
     ----------
     available_years : list[int]
         Sorted list of years for which data is available.
-    pyear : int
+    planning_horizon : int
         Planning year to interpolate demand for.
     load_single_year_func : Callable
         Function to load data for a single planning year.
     **load_kwargs
-        Keyword arguments to pass to load_single_year_func. Must include 'pyear'
+        Keyword arguments to pass to load_single_year_func. Must include 'planning_horizon'
         as a parameter key, which will be overridden with interpolation boundary years.
 
     Returns
@@ -1717,18 +1717,18 @@ def interpolate_demand(
         Interpolated demand data.
     """
     # Currently, only interpolation is implemented, not extrapolation
-    idx = bisect_right(available_years, pyear)
+    idx = bisect_right(available_years, planning_horizon)
     if idx == 0:
         # Planning horizon is before all available years
         logger.warning(
-            f"Year {pyear} is before the first available year {available_years[0]}. "
+            f"Year {planning_horizon} is before the first available year {available_years[0]}. "
             f"Falling back to first available year."
         )
         year_lower = year_upper = available_years[0]
     elif idx == len(available_years):
         # Planning horizon is after all available years
         logger.warning(
-            f"Year {pyear} is after the latest available year {available_years[-1]}. "
+            f"Year {planning_horizon} is after the latest available year {available_years[-1]}. "
             f"Falling back to latest available year."
         )
         year_lower = year_upper = available_years[-1]
@@ -1736,10 +1736,10 @@ def interpolate_demand(
         year_lower = available_years[idx - 1]
         year_upper = available_years[idx]
 
-    logger.debug(f"Interpolating {pyear} from {year_lower} and {year_upper}")
+    logger.debug(f"Interpolating {planning_horizon} from {year_lower} and {year_upper}")
 
-    kwargs_lower = {**load_kwargs, "pyear": year_lower}
-    kwargs_upper = {**load_kwargs, "pyear": year_upper}
+    kwargs_lower = {**load_kwargs, "planning_horizon": year_lower}
+    kwargs_upper = {**load_kwargs, "planning_horizon": year_upper}
 
     df_lower = load_single_year_func(**kwargs_lower)
     df_upper = load_single_year_func(**kwargs_upper)
@@ -1784,7 +1784,7 @@ def interpolate_demand(
         )
 
     # Perform linear interpolation
-    weight = (pyear - year_lower) / (year_upper - year_lower)
+    weight = (planning_horizon - year_lower) / (year_upper - year_lower)
     result = df_lower_aligned * (1 - weight) + df_upper_aligned * weight
 
     return result
