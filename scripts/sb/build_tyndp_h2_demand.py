@@ -109,7 +109,11 @@ def get_available_years(fn: str, scenario: str) -> list[int]:
 
 
 def read_h2_excel(
-    demand_fn: str, scenario: str, planning_horizon: int, weather_scenario: int, h2_zone: int
+    demand_fn: str,
+    scenario: str,
+    planning_horizon: int,
+    weather_scenario: int,
+    h2_zone: int,
 ) -> pd.DataFrame:
     """Read and process hydrogen demand data from Excel file for a specific year and h2 zone."""
     try:
@@ -118,7 +122,9 @@ def read_h2_excel(
             header=10,
             index_col=[0, 1],
             sheet_name=None,
-            usecols=lambda name: name == "Date" or name == "Hour" or name == int(weather_scenario),
+            usecols=lambda name: (
+                name == "Date" or name == "Hour" or name == int(weather_scenario)
+            ),
         )
 
         demand = pd.concat(data, axis=1).droplevel(1, axis=1)
@@ -138,7 +144,9 @@ def read_h2_excel(
     return demand
 
 
-def get_file_path(fn: str, scenario: str, planning_horizon: int, h2_zone: int = None) -> Path:
+def get_file_path(
+    fn: str, scenario: str, planning_horizon: int, h2_zone: int = None
+) -> Path:
     """
     Construct file path for given planning year and zone.
 
@@ -176,11 +184,15 @@ def get_file_path(fn: str, scenario: str, planning_horizon: int, h2_zone: int = 
         )
 
 
-def load_single_year(fn: str, scenario: str, planning_horizon: int, weather_scenario: int) -> pd.DataFrame:
+def load_single_year(
+    fn: str, scenario: str, planning_horizon: int, weather_scenario: int
+) -> pd.DataFrame:
     """Load demand data for a single planning year."""
     if scenario == "NT":
         demand_fn = get_file_path(fn, scenario, planning_horizon)
-        demand = read_h2_excel(demand_fn, scenario, planning_horizon, weather_scenario, h2_zone=2)
+        demand = read_h2_excel(
+            demand_fn, scenario, planning_horizon, weather_scenario, h2_zone=2
+        )
         demand.columns = [f"{col[:2]} H2" for col in demand.columns]
     elif scenario in ["DE", "GA"]:
         demands = {}
@@ -197,7 +209,9 @@ def load_single_year(fn: str, scenario: str, planning_horizon: int, weather_scen
     return demand
 
 
-def load_h2_demand(fn: str, scenario: str, planning_horizon: int, weather_scenario: int) -> pd.DataFrame:
+def load_h2_demand(
+    fn: str, scenario: str, planning_horizon: int, weather_scenario: int
+) -> pd.DataFrame:
     """
     Load hydrogen demand data for a specific scenario, climate year, planning year.
 
@@ -230,7 +244,9 @@ def load_h2_demand(fn: str, scenario: str, planning_horizon: int, weather_scenar
 
     # If target year exists in data, load it directly
     if planning_horizon in available_years:
-        logger.info(f"Year {planning_horizon} found in available data. Loading directly.")
+        logger.info(
+            f"Year {planning_horizon} found in available data. Loading directly."
+        )
         return load_single_year(fn, scenario, planning_horizon, weather_scenario)
 
     # Target year not available, do linear interpolation

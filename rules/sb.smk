@@ -153,7 +153,10 @@ if not "pre-built" in PECD_DATASET["version"]:
             mem_mb=1000,
         params:
             weather_scenarios=config_provider(
-                "electricity", "pecd_renewable_profiles", "pre_built", "weather_scenarios"
+                "electricity",
+                "pecd_renewable_profiles",
+                "pre_built",
+                "weather_scenarios",
             ),
             available_planning_horizons=config_provider(
                 "electricity", "pecd_renewable_profiles", "available_years"
@@ -249,7 +252,9 @@ def input_data_pecd(w):
         for year in planning_horizons
     )
     return {
-        f"pecd_data_{planning_horizon}": resources("pecd_data_{technology}_" + str(planning_horizon) + ".csv")
+        f"pecd_data_{planning_horizon}": resources(
+            "pecd_data_{technology}_" + str(planning_horizon) + ".csv"
+        )
         for planning_horizon in safe_planning_horizons
     }
 

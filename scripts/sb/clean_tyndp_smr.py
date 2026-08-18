@@ -104,7 +104,10 @@ if __name__ == "__main__":
 
     # Load and prep SMR data
     smr = load_smr_data(
-        fn=smr_fn, planning_horizon=planning_horizon, h2_zones_tyndp=h2_zones_tyndp, scenario=scenario
+        fn=smr_fn,
+        planning_horizon=planning_horizon,
+        h2_zones_tyndp=h2_zones_tyndp,
+        scenario=scenario,
     )
 
     # Save clean H2 SMR data

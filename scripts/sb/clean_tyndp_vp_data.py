@@ -106,7 +106,11 @@ def get_elec_demand(
 
 
 def get_power_capacities(
-    caps_fn: str, flex_fn: str, scenario: str, weather_scenario: int, unit_conversion: dict
+    caps_fn: str,
+    flex_fn: str,
+    scenario: str,
+    weather_scenario: int,
+    unit_conversion: dict,
 ) -> pd.DataFrame:
     """
     Read and process the power capacity data files.

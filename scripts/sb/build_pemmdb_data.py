@@ -284,15 +284,21 @@ def _process_other_nonres_capacities(
             unit="MW",
             price_band_type=lambda x: _extract_price_band_type(x),
             pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
-            weather_scenario_start=lambda x: pd.to_numeric(x.weather_scenario_start, errors="coerce"),
-            weather_scenario_end=lambda x: pd.to_numeric(x.weather_scenario_end, errors="coerce"),
+            weather_scenario_start=lambda x: pd.to_numeric(
+                x.weather_scenario_start, errors="coerce"
+            ),
+            weather_scenario_end=lambda x: pd.to_numeric(
+                x.weather_scenario_end, errors="coerce"
+            ),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
             efficiency=lambda x: pd.to_numeric(x.efficiency, errors="coerce"),
             co2_factor=lambda x: pd.to_numeric(x.co2_factor, errors="coerce"),
         )
-        .query("weather_scenario_start <= @weather_scenario and weather_scenario_end >= @weather_scenario and p_nom > 0")
+        .query(
+            "weather_scenario_start <= @weather_scenario and weather_scenario_end >= @weather_scenario and p_nom > 0"
+        )
         .reset_index(drop=True)
     )
 
@@ -568,8 +574,12 @@ def _process_dsr_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            weather_scenario_start=lambda x: pd.to_numeric(x.weather_scenario_start, errors="coerce"),
-            weather_scenario_end=lambda x: pd.to_numeric(x.weather_scenario_end, errors="coerce"),
+            weather_scenario_start=lambda x: pd.to_numeric(
+                x.weather_scenario_start, errors="coerce"
+            ),
+            weather_scenario_end=lambda x: pd.to_numeric(
+                x.weather_scenario_end, errors="coerce"
+            ),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -577,7 +587,9 @@ def _process_dsr_capacities(
             pemmdb_type=lambda x: _extract_price_band_type(x),
             efficiency=1.0,  # dummy value for efficiency
         )
-        .query("weather_scenario_start <= @weather_scenario and weather_scenario_end >= @weather_scenario and p_nom > 0")
+        .query(
+            "weather_scenario_start <= @weather_scenario and weather_scenario_end >= @weather_scenario and p_nom > 0"
+        )
         .reset_index(drop=True)
     )
 
@@ -759,10 +771,18 @@ def _process_other_nonres_profiles(
     )
 
     # Create mask to filter for given climate year
-    weather_scenario_start = pd.to_numeric(df.loc["weather_scenario_start", :], errors="coerce")
-    weather_scenario_end = pd.to_numeric(df.loc["weather_scenario_end", :], errors="coerce")
+    weather_scenario_start = pd.to_numeric(
+        df.loc["weather_scenario_start", :], errors="coerce"
+    )
+    weather_scenario_end = pd.to_numeric(
+        df.loc["weather_scenario_end", :], errors="coerce"
+    )
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
-    mask = (weather_scenario_start <= weather_scenario) & (weather_scenario <= weather_scenario_end) & (cap > 0)
+    mask = (
+        (weather_scenario_start <= weather_scenario)
+        & (weather_scenario <= weather_scenario_end)
+        & (cap > 0)
+    )
 
     if not mask.any():
         logger.debug(
@@ -837,10 +857,18 @@ def _process_dsr_profiles(
     )
 
     # Create mask to filter for given climate year and for capacity > 0
-    weather_scenario_start = pd.to_numeric(df.loc["weather_scenario_start", :], errors="coerce")
-    weather_scenario_end = pd.to_numeric(df.loc["weather_scenario_end", :], errors="coerce")
+    weather_scenario_start = pd.to_numeric(
+        df.loc["weather_scenario_start", :], errors="coerce"
+    )
+    weather_scenario_end = pd.to_numeric(
+        df.loc["weather_scenario_end", :], errors="coerce"
+    )
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
-    mask = (weather_scenario_start <= weather_scenario) & (weather_scenario <= weather_scenario_end) & (cap > 0)
+    mask = (
+        (weather_scenario_start <= weather_scenario)
+        & (weather_scenario <= weather_scenario_end)
+        & (cap > 0)
+    )
 
     if not mask.any():
         logger.debug(
@@ -1102,19 +1130,34 @@ def process_pemmdb_profiles(
         # Other RES
         elif pemmdb_tech_sheet == "Other RES":
             profiles = _process_other_res_profiles(
-                node_tech_data, node, pemmdb_tech_sheet, planning_horizon, sns, sns_year_h
+                node_tech_data,
+                node,
+                pemmdb_tech_sheet,
+                planning_horizon,
+                sns,
+                sns_year_h,
             )
 
         # Other Non-RES
         elif pemmdb_tech_sheet == "Other Non-RES":
             profiles = _process_other_nonres_profiles(
-                node_tech_data, node, pemmdb_tech_sheet, weather_scenario, sns, sns_year_h
+                node_tech_data,
+                node,
+                pemmdb_tech_sheet,
+                weather_scenario,
+                sns,
+                sns_year_h,
             )
 
         # DSR
         elif pemmdb_tech_sheet == "DSR":
             profiles = _process_dsr_profiles(
-                node_tech_data, node, pemmdb_tech_sheet, weather_scenario, sns, sns_year_h
+                node_tech_data,
+                node,
+                pemmdb_tech_sheet,
+                weather_scenario,
+                sns,
+                sns_year_h,
             )
 
         else:
@@ -1265,7 +1308,11 @@ if __name__ == "__main__":
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     weather_scenario = sns[0].year
     sns_year_h = get_snapshots(
-        {"start": f"{weather_scenario}-01-01", "end": f"{weather_scenario + 1}-01-01", "inclusive": "left"},
+        {
+            "start": f"{weather_scenario}-01-01",
+            "end": f"{weather_scenario + 1}-01-01",
+            "inclusive": "left",
+        },
         drop_leap_day=True,
     )
 
