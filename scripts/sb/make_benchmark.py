@@ -792,9 +792,6 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "make_benchmark",
-            opts="",
-            clusters="all",
-            sector_opts="",
         )
 
     configure_logging(snakemake)

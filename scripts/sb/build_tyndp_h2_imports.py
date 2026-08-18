@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_imports",
-            planning_horizons=2030,
+            horizon=2030,
         )
 
     configure_logging(snakemake)

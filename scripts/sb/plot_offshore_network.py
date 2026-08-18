@@ -223,10 +223,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "plot_offshore_network",
-            opts="",
-            clusters="all",
-            sector_opts="",
-            planning_horizons=2050,
+            horizon=2050,
             carrier="DC_OH",
         )
     configure_logging(snakemake)

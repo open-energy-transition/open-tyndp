@@ -968,7 +968,7 @@ if __name__ == "__main__":
             "make_indicators",
             run="NT",
             cba_project="t4",
-            planning_horizons="2030",
+            horizon="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
     configure_logging(snakemake)

@@ -158,7 +158,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_tyndp_transmission_projects", planning_horizons="2040"
+            "build_tyndp_transmission_projects", horizon="2040"
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)

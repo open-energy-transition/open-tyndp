@@ -250,8 +250,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_demand",
-            planning_horizons="2040",
-            clusters="all",
+            horizon="2040",
             configfiles="config/test/config.tyndp.yaml",
         )
 

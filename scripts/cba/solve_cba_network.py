@@ -324,7 +324,7 @@ if __name__ == "__main__":
             "solve_cba_network",
             run="NT",
             cba_project="t16",
-            planning_horizons="2030",
+            horizon="2030",
             configfiles=["config/config.tyndp.yaml"],
         )
 

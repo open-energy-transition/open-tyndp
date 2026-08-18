@@ -593,7 +593,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_output_benchmark",
-            planning_horizons="2040",
+            horizon="2040",
             scenario="NT",
             configfiles="config/test/config.tyndp.yaml",
         )

@@ -233,7 +233,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "prepare_project",
             cba_project="t1",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
