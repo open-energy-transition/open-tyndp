@@ -26,7 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 def load_elec_demand(
-    fn: str, scenario: str, planning_horizon: int, weather_scenario: int, available_years: list
+    fn: str,
+    scenario: str,
+    planning_horizon: int,
+    weather_scenario: int,
+    available_years: list,
 ):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
@@ -35,7 +39,9 @@ def load_elec_demand(
 
     # handle intermediate years
     # TODO: Possibly improve this with linear interpolation for 2035 and 2045
-    planning_horizon = safe_planning_horizon(planning_horizon, available_years=available_years, source="TYNDP demand")
+    planning_horizon = safe_planning_horizon(
+        planning_horizon, available_years=available_years, source="TYNDP demand"
+    )
 
     if scenario == "NT":
         if planning_horizon == 2050:
@@ -91,7 +97,9 @@ def load_elec_demand(
                 demand_fn,
                 skiprows=11,
                 index_col=0,
-                usecols=lambda name: name == "Date" or name == int(weather_scenario) - 1,
+                usecols=lambda name: (
+                    name == "Date" or name == int(weather_scenario) - 1
+                ),
                 sheet_name="UK00",
             )
 

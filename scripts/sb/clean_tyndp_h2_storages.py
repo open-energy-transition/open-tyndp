@@ -131,7 +131,10 @@ if __name__ == "__main__":
 
     # Load and prep H2 storage data
     h2_storages = load_h2_storage_data(
-        fn=h2_storage_fn, planning_horizon=planning_horizon, scenario=scenario, h2_zones_tyndp=h2_zones_tyndp
+        fn=h2_storage_fn,
+        planning_horizon=planning_horizon,
+        scenario=scenario,
+        h2_zones_tyndp=h2_zones_tyndp,
     )
 
     # Save clean H2 Storage data

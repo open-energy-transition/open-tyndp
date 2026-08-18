@@ -73,7 +73,9 @@ if __name__ == "__main__":
         logger.warning(
             "Weather scenarios doesn't match available TYNDP data. Only returning subset of available weather scenarios."
         )
-        weather_scenarios = pd.Series(list(set(weather_scenarios).intersection(available_weather_scenarios)))
+        weather_scenarios = pd.Series(
+            list(set(weather_scenarios).intersection(available_weather_scenarios))
+        )
     # Planning years for which PECD data is available for in the specified PECD version
     available_planning_horizons = snakemake.params.available_planning_horizons
     # Input and output directories and prebuilt version

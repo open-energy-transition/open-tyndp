@@ -61,7 +61,9 @@ logger = logging.getLogger(__name__)
 cc = coco.CountryConverter()
 
 
-def read_fed_data(fn: str, scenario: str, planning_horizon: int) -> tuple[pd.Series, pd.Series]:
+def read_fed_data(
+    fn: str, scenario: str, planning_horizon: int
+) -> tuple[pd.Series, pd.Series]:
     """
     Read and process final gas demand data and final heat demand data from Supply Tool for a specific year.
     """
@@ -119,7 +121,9 @@ def read_heat_frame(
             f"Invalid type '{type}'. Must be 'distribution' or 'efficiency'."
         )
     if planning_horizon not in [2030, 2040, 2050]:
-        raise ValueError(f"Invalid planning_horizon '{planning_horizon}'. Must be 2030, 2040, or 2050.")
+        raise ValueError(
+            f"Invalid planning_horizon '{planning_horizon}'. Must be 2030, 2040, or 2050."
+        )
 
     offset = ((planning_horizon - 2030) // 10) * 34
     offset += 17 if type == "efficiency" else 0
@@ -240,7 +244,9 @@ def load_gas_demand(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
 
     # If target year exists in data, load it directly
     if planning_horizon in available_years:
-        logger.debug(f"Year {planning_horizon} found in available data. Loading directly.")
+        logger.debug(
+            f"Year {planning_horizon} found in available data. Loading directly."
+        )
         return load_single_year(fn, scenario, planning_horizon)
 
     # Target year not available, do linear interpolation

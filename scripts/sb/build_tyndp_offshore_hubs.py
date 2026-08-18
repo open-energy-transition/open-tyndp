@@ -150,7 +150,9 @@ def load_offshore_grid(
 
     # Merge information
     grid = grid.merge(
-        grid_costs, how="outer", on=["bus0", "bus1", "planning_horizon", "scenario", "carrier"]
+        grid_costs,
+        how="outer",
+        on=["bus0", "bus1", "planning_horizon", "scenario", "carrier"],
     ).assign(
         p_min_pu=lambda x: np.where(
             x["bus0"].str.contains("OH") & x["bus1"].str.contains("OH"), -1, 0

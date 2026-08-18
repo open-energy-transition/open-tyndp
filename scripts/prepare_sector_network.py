@@ -4777,7 +4777,9 @@ def add_offshore_generators_tyndp(
     """
     logger.info("Adding offshore generators")
 
-    offshore_generators = pd.read_csv(offshore_generators_fn).query("planning_horizon==@planning_horizon")
+    offshore_generators = pd.read_csv(offshore_generators_fn).query(
+        "planning_horizon==@planning_horizon"
+    )
 
     # Assign locations and index
     offshore_generators.index = (
@@ -4818,7 +4820,9 @@ def add_offshore_generators_tyndp(
     def read_profile(fn):
         with xr.open_dataset(fn) as ds:
             ds = ds.stack(bus_bin=["bus", "bin"])
-            return ds["profile"].sel(year=planning_horizon, time=n.snapshots).to_pandas()
+            return (
+                ds["profile"].sel(year=planning_horizon, time=n.snapshots).to_pandas()
+            )
 
     for key, fn in profiles_pecd.items():
         tech = key.removeprefix("profile_")
@@ -5122,7 +5126,9 @@ def add_offshore_grid_tyndp(
     """
     logger.info("Adding offshore grid connections")
 
-    offshore_grid = pd.read_csv(offshore_grid_fn).query("planning_horizon==@planning_horizon")
+    offshore_grid = pd.read_csv(offshore_grid_fn).query(
+        "planning_horizon==@planning_horizon"
+    )
     annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
 
     # Add DC grid connections
@@ -5333,7 +5339,9 @@ def add_offshore_hubs_tyndp(
     )
 
     # Add H2 production units
-    add_offshore_electrolysers_tyndp(n, planning_horizon, offshore_electrolysers_fn, costs, nyears)
+    add_offshore_electrolysers_tyndp(
+        n, planning_horizon, offshore_electrolysers_fn, costs, nyears
+    )
 
     # Add offshore DC and H2 grid connections
     add_offshore_grid_tyndp(

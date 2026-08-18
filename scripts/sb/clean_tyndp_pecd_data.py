@@ -132,14 +132,8 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
-<<<<<<< HEAD:scripts/sb/clean_tyndp_pecd_data.py
         cyear=cyear,
         pyear=pyear,
-=======
-        weather_scenario=weather_scenario,
-        weather_scenario_i=weather_scenario_i,
-        plansafe_planning_horizon=plansafe_planning_horizon,
->>>>>>> a98451e9 (rename: pyear -> planning_horizon):scripts/sb/clean_pecd_data.py
         technology=pecd_tech,
         sns=sns,
     )

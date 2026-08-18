@@ -1630,7 +1630,9 @@ def input_pemmdb_data(w):
     available_years = config_provider(
         "electricity", "pemmdb_capacities", "available_years"
     )(w)
-    pemmdb_year = safe_planning_horizon(w.planning_horizons, available_years, verbose=False)
+    pemmdb_year = safe_planning_horizon(
+        w.planning_horizons, available_years, verbose=False
+    )
 
     grouped = ""
     if config_provider("electricity", "group_tyndp_conventionals")(w):
