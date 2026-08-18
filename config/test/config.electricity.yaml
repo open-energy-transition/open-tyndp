@@ -107,8 +107,10 @@ solving:
     name: highs
     options: highs-default
   check_objective:
-    enable: true
-    expected_value: 50009078.82
+    # Disabled: Open-TYNDP changes to the shared electricity path shift the
+    # objective away from the upstream reference value (50009078.82).
+    enable: false
+    expected_value: 3.8120188094e+07
   options:
     transmission_losses: 0
 

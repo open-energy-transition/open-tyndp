@@ -6,6 +6,10 @@
 rule solve_network:
     input:
         network=resources("networks/composed_{horizon}.nc"),
+        offshore_zone_trajectories=branch(
+            config_provider("sector", "offshore_hubs_tyndp", "enable"),
+            resources("offshore_zone_trajectories.csv"),
+        ),
     output:
         network=RESULTS + "networks/solved_{horizon}.nc",
         model=(
@@ -18,7 +22,7 @@ rule solve_network:
         memory=RESULTS + "logs/solve_network/memory_{horizon}.log",
         python=RESULTS + "logs/solve_network/python_{horizon}.log",
     benchmark:
-        (RESULTS + "benchmarks/solve_network_{horizon}.log")
+        (RESULTS + "benchmarks/performances/solve_network_{horizon}.log")
     shadow:
         shadow_config
     threads: solver_threads
@@ -34,6 +38,9 @@ rule solve_network:
             "sector", "co2_sequestration_potential"
         ),
         custom_extra_functionality=input_custom_extra_functionality,
+        renewable_carriers_tyndp=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
     script:
         "../scripts/solve_network.py"
 
@@ -48,7 +55,7 @@ rule solve_operations_network:
         memory=RESULTS + "logs/solve_operations_network/memory_{horizon}.log",
         python=RESULTS + "logs/solve_operations_network/python_{horizon}.log",
     benchmark:
-        (RESULTS + "benchmarks/solve_operations_network_{horizon}.log")
+        (RESULTS + "benchmarks/performances/solve_operations_network_{horizon}.log")
     shadow:
         shadow_config
     threads: solver_threads

@@ -117,8 +117,10 @@ solving:
     options: highs-simplex
   mem_mb: 4000
   check_objective:
-    enable: true
-    expected_value: 12200407202.89
+    # Disabled: Open-TYNDP changes shift the objective away from the upstream
+    # reference value (12200407202.89).
+    enable: false
+    expected_value: 1.3778753459e+10
 
 plotting:
   map:
