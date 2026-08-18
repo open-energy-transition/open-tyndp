@@ -9758,7 +9758,6 @@ def main(
 
     investment_year = current_horizon
 
-    ext_carriers = params.electricity.get("extendable_carriers", dict())
     tyndp_scenario = params.tyndp_scenario
 
     if fn_projects := inputs.tyndp_projects:
@@ -9781,7 +9780,7 @@ def main(
         )
 
     pop_layout = pd.read_csv(inputs.clustered_pop_layout, index_col=0)
-    max_hours = params.electricity["max_hours"]
+    nhours = n.snapshot_weightings.generators.sum()
 
     pop_weighted_energy_totals = (
         pd.read_csv(inputs["pop_weighted_energy_totals"], index_col=0) * nyears
@@ -9824,9 +9823,7 @@ def main(
 
     buses_h2_file = inputs.buses_h2 if options["h2_topology_tyndp"] else None
     buses_oh_file = (
-        inputs.offshore_buses
-        if options["offshore_hubs_tyndp"]["enable"]
-        else None
+        inputs.offshore_buses if options["offshore_hubs_tyndp"]["enable"] else None
     )
     spatial = define_spatial(
         pop_layout.index,
@@ -9872,9 +9869,7 @@ def main(
         get_tyndp_conventional_thermals(
             mapping=tyndp_carrier_mapping,
             tyndp_conventional_carriers=params.tyndp_conventional_carriers,
-            group_conventionals=params.electricity[
-                "group_tyndp_conventionals"
-            ],
+            group_conventionals=params.electricity["group_tyndp_conventionals"],
             include_h2_fuel_cell=options["hydrogen_fuel_cell"],
             include_h2_turbine=options["hydrogen_turbine"],
         )
@@ -9891,12 +9886,8 @@ def main(
     # Read in PEMMDB data, trajectories and availability profiles
     enable_pemmdb_caps = params.electricity["pemmdb_capacities"]["enable"]
     if enable_pemmdb_caps:
-        pemmdb_capacities = pd.read_csv(inputs.pemmdb_capacities).set_index(
-            "bus"
-        )
-        pemmdb_profiles = xr.open_dataset(
-            inputs.pemmdb_profiles
-        ).to_dataframe()
+        pemmdb_capacities = pd.read_csv(inputs.pemmdb_capacities).set_index("bus")
+        pemmdb_profiles = xr.open_dataset(inputs.pemmdb_profiles).to_dataframe()
     if tyndp_trajectories_fn := inputs.tyndp_trajectories:
         tyndp_trajectories = pd.read_csv(tyndp_trajectories_fn)
     if tyndp_nuclear_profiles_fn := inputs.tyndp_nuclear_profiles:
@@ -10006,9 +9997,7 @@ def main(
             investment_year=investment_year,
             enable_pemmdb_caps=enable_pemmdb_caps,
             tyndp_scenario=tyndp_scenario,
-            group_conventionals=params.electricity[
-                "group_tyndp_conventionals"
-            ],
+            group_conventionals=params.electricity["group_tyndp_conventionals"],
         )
 
     if options["offshore_hubs_tyndp"]["enable"]:
@@ -10098,7 +10087,7 @@ def main(
             cf_industry=cf_industry,
             pop_layout=pop_layout,
             biomass_potentials_file=inputs.biomass_potentials,
-            nhours=n.snapshot_weightings.generators.sum(),
+            nhours=nhours,
             investment_year=investment_year,
             biomass_transport_costs_file=inputs.biomass_transport_costs,
             nyears=nyears,

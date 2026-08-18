@@ -144,7 +144,8 @@ if config["foresight"] != "perfect":
         log:
             RESULTS + "logs/plot_balance_map_interactive/{horizon}_{carrier}.log",
         benchmark:
-            RESULTS + "benchmarks/performances/plot_balance_map_interactive/{horizon}_{carrier}"
+            RESULTS
+            + "benchmarks/performances/plot_balance_map_interactive/{horizon}_{carrier}"
         threads: 1
         resources:
             mem_mb=8000,
@@ -195,7 +196,10 @@ if config["foresight"] != "perfect":
         log:
             RESULTS + "logs/plot_heat_source_map/{carrier}_{horizon}.log",
         benchmark:
-            (RESULTS + "benchmarks/performances/plot_heat_source_map/{carrier}_{horizon}")
+            (
+                RESULTS
+                + "benchmarks/performances/plot_heat_source_map/{carrier}_{horizon}"
+            )
         threads: 1
         resources:
             mem_mb=150000,
@@ -366,7 +370,10 @@ rule build_ambient_air_temperature_yearly_average:
     log:
         RESULTS + "logs/build_ambient_air_temperature_yearly_average.log",
     benchmark:
-        (RESULTS + "benchmarks/performances/build_ambient_air_temperature_yearly_average")
+        (
+            RESULTS
+            + "benchmarks/performances/build_ambient_air_temperature_yearly_average"
+        )
     threads: 1
     resources:
         mem_mb=5000,

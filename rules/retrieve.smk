@@ -378,7 +378,6 @@ if (BIDDING_ZONES_ENTSOEPY_DATASET := dataset_version("bidding_zones_entsoepy"))
             logger = logging.getLogger(__name__)
             logger.setLevel(config["logging"]["level"])
             logger.addHandler(logging.FileHandler(log[0]))
-
             logger.info("Downloading entsoe-py zones...")
             gdfs: list[gpd.GeoDataFrame] = []
             url = f"{BIDDING_ZONES_ENTSOEPY_DATASET['url']}"
@@ -1236,11 +1235,9 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
@@ -1329,11 +1326,9 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
                 for key in input.keys():
                     # Keep zip file
                     copy2(input[key], output[f"{key}_zip"])
-
                     # unzip
                     output_folder = Path(output[f"{key}_zip"]).parent
                     unpack_archive(output[f"{key}_zip"], output_folder)
-
                     # Remove __MACOSX directory if it exists
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)

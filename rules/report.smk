@@ -16,7 +16,9 @@ rule report:
     shell:
         """
         pdflatex -output-directory report {input.tex}
-        cd report; bibtex {params.fn}; cd ..
+        cd report
+        bibtex {params.fn}
+        cd ..
         pdflatex -output-directory report {input.tex}
         pdflatex -output-directory report {input.tex}
         """

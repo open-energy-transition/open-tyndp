@@ -124,9 +124,7 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
             log:
                 logs("cba/retrieve_presolved_sb_networks_{horizon}.log"),
             run:
-                target_suffix = (
-                    f"networks/base_s_all___{wildcards.horizon}.nc"
-                )
+                target_suffix = f"networks/base_s_all___{wildcards.horizon}.nc"
                 with ZipFile(input["zip_file"], "r") as zf:
                     matches = [
                         m for m in zf.namelist() if m.endswith(target_suffix)
@@ -140,7 +138,6 @@ if config.get("cba", {}).get("cba_scenario_input", {}).get("use_presolved", Fals
                     out_path.parent.mkdir(parents=True, exist_ok=True)
                     with zf.open(member) as src, out_path.open("wb") as dst:
                         shutil.copyfileobj(src, dst)
-
 
 
 # Build MSV
@@ -310,9 +307,7 @@ rule build_msv_snapshot_weightings:
     input:
         network=rules.prepare_reference.output.network,
     output:
-        snapshot_weightings=resources(
-            "cba/msv_snapshot_weightings_{horizon}.csv"
-        ),
+        snapshot_weightings=resources("cba/msv_snapshot_weightings_{horizon}.csv"),
     log:
         logs("cba/build_msv_snapshot_weightings_{horizon}.log"),
     benchmark:
@@ -391,9 +386,7 @@ rule prepare_project:
         methods=rules.clean_projects.output.methods,
         costs=resources("costs_{horizon}_processed.csv"),
     output:
-        network=temp(
-            resources("cba/networks/project_{cba_project}_{horizon}.nc")
-        ),
+        network=temp(resources("cba/networks/project_{cba_project}_{horizon}.nc")),
     log:
         logs("cba/prepare_project_{cba_project}_{horizon}.log"),
     benchmark:
@@ -436,15 +429,11 @@ rule solve_cba_network:
     output:
         network=RESULTS + "cba/networks/project_{cba_project}_{horizon}.nc",
     log:
-        solver=RESULTS
-        + "logs/cba/projects/project_{cba_project}_{horizon}_solver.log",
-        memory=RESULTS
-        + "logs/cba/projects/project_{cba_project}_{horizon}_memory.log",
-        python=RESULTS
-        + "logs/cba/projects/project_{cba_project}_{horizon}_python.log",
+        solver=RESULTS + "logs/cba/projects/project_{cba_project}_{horizon}_solver.log",
+        memory=RESULTS + "logs/cba/projects/project_{cba_project}_{horizon}_memory.log",
+        python=RESULTS + "logs/cba/projects/project_{cba_project}_{horizon}_python.log",
     benchmark:
-        RESULTS
-        + "benchmarks/performances/cba/projects/project_{cba_project}_{horizon}"
+        RESULTS + "benchmarks/performances/cba/projects/project_{cba_project}_{horizon}"
     threads: 1
     params:
         solving=config_provider("solving"),
@@ -469,8 +458,7 @@ rule make_indicators:
         benchmark=rules.clean_tyndp_indicators.output.indicators,
         methods=rules.clean_projects.output.methods,
     output:
-        indicators=RESULTS
-        + "cba/results/{horizon}/project_{cba_project}_{horizon}.csv",
+        indicators=RESULTS + "cba/results/{horizon}/project_{cba_project}_{horizon}.csv",
     log:
         logs("cba/make_indicators_{cba_project}_{horizon}.log"),
     benchmark:
@@ -518,8 +506,7 @@ rule combine_indicators:
     input:
         indicators=input_indicators,
     output:
-        indicators=RESULTS
-        + "cba/results/{horizon}/indicators_{horizon}.csv",
+        indicators=RESULTS + "cba/results/{horizon}/indicators_{horizon}.csv",
     log:
         logs("cba/combine_indicators_{horizon}.log"),
     benchmark:
@@ -557,9 +544,7 @@ rule plot_cba_benchmark:
     log:
         logs("cba/plot_cba_benchmark_{cba_project}_{horizon}.log"),
     benchmark:
-        benchmarks(
-            "performances/cba/plot_cba_benchmark_{cba_project}_{horizon}"
-        )
+        benchmarks("performances/cba/plot_cba_benchmark_{cba_project}_{horizon}")
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -569,14 +554,11 @@ rule plot_weather_benchmark:
         # indicators=rules.combine_indicators.output.indicators,
         indicators=rules.make_indicators.output.indicators,
     output:
-        plot_file=RESULTS
-        + "cba/graphs/{horizon}/ensemble_{cba_project}_{horizon}.png",
+        plot_file=RESULTS + "cba/graphs/{horizon}/ensemble_{cba_project}_{horizon}.png",
     log:
         logs("cba/plot_weather_benchmark_{cba_project}_{horizon}.log"),
     benchmark:
-        benchmarks(
-            "performances/cba/plot_weather_benchmark_{cba_project}_{horizon}"
-        )
+        benchmarks("performances/cba/plot_weather_benchmark_{cba_project}_{horizon}")
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -595,9 +577,7 @@ rule average_indicators_per_project_and_planning_horizon:
     log:
         logs("cba/average_indicators_{cba_project}_{horizon}.log"),
     benchmark:
-        benchmarks(
-            "performances/cba/average_indicators_{cba_project}_{horizon}"
-        )
+        benchmarks("performances/cba/average_indicators_{cba_project}_{horizon}")
     script:
         scripts("cba/average_indicators.py")
 
@@ -644,14 +624,11 @@ rule plot_summary_projects_benchmark:
     input:
         indicators=summary_benchmark_indicators,
     output:
-        plot_file=RESULTS
-        + "cba/validation/{horizon}/summary_benchmark_{horizon}.png",
+        plot_file=RESULTS + "cba/validation/{horizon}/summary_benchmark_{horizon}.png",
     log:
         logs("cba/plot_summary_projects_benchmark_{horizon}.log"),
     benchmark:
-        benchmarks(
-            "performances/cba/plot_summary_projects_benchmark_{horizon}"
-        )
+        benchmarks("performances/cba/plot_summary_projects_benchmark_{horizon}")
     script:
         scripts("cba/plot_benchmark_indicators.py")
 

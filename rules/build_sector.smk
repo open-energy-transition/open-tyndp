@@ -238,7 +238,9 @@ rule build_central_heating_temperature_profiles:
     log:
         logs("build_central_heating_temperature_profiles_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_central_heating_temperature_profiles/s_{horizon}")
+        benchmarks(
+            "performances/build_central_heating_temperature_profiles/s_{horizon}"
+        )
     resources:
         mem_mb=20000,
     params:
@@ -721,7 +723,9 @@ rule build_direct_heat_source_utilisation_profiles:
     log:
         logs("build_direct_heat_source_utilisation_profiles_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_direct_heat_source_utilisation_profiles/s_{horizon}")
+        benchmarks(
+            "performances/build_direct_heat_source_utilisation_profiles/s_{horizon}"
+        )
     resources:
         mem_mb=20000,
     params:
@@ -1134,7 +1138,11 @@ rule build_industrial_production_per_country_tomorrow:
     log:
         logs("build_industrial_production_per_country_tomorrow_{horizon}.log"),
     benchmark:
-        (benchmarks("performances/build_industrial_production_per_country_tomorrow_{horizon}"))
+        (
+            benchmarks(
+                "performances/build_industrial_production_per_country_tomorrow_{horizon}"
+            )
+        )
     threads: 1
     resources:
         mem_mb=1000,
