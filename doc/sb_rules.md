@@ -37,7 +37,7 @@ data:
 
 **Outputs**
 
-- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{planning_horizons}.nc`
+- `data/open_tyndp_prelim/{source}/{version}/base_s_all___{horizon}.nc`
 
 ### Rule `retrieve_countries_centroids`
 
