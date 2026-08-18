@@ -3,17 +3,17 @@ Solar,Photovoltaic e-market,,Solar PV Utility,Solar PV Utility,Solar (Photovolta
 Solar,Rooftop,,Solar PV Rooftop,Solar PV Rooftop,Solar (Photovoltaic),Solar,Solar PV Rooftop,solar-pv-rooftop,solar-pv-rooftop,Solar PV (Rooftop),solar,solar,solar,,,,,,,,,,,solar-pv-rooftop,,
 ,,,,,,,Solar PV,,,,solar,solar,solar,,,,,,,,,,,,,
 ,,,,,,,DRES Solar PV,,,,solar,solar,solar,,,,,,,,,,,,,
-Solar,Photovoltaic dedicated,,,,,,,solar-pv-utility,solar-pv-utility-dedicated,Solar PV (Utility-DRES),,,,,,,,,,,,,,solar-pv-utility,,
-Solar,Photovoltaic Shared RES - H2Z1,,,,,,,solar-pv-utility,solar-pv-utility-shared-h2z1,Solar PV (Utility-SRES),,,,,,,,,,,,,,solar-pv-utility,,
-Solar,Photovoltaic Shared RES - H2Z2,,,,,,,solar-pv-utility,solar-pv-utility-shared-h2z2,Solar PV (Utility-SRES),,,,,,,,,,,,,,solar-pv-utility,,
+Solar,Photovoltaic dedicated,,,,,,,solar-pv-utility,solar-pv-utility-dres,Solar PV (Utility-DRES),,,,,,,,,,,,,,solar-pv-utility,,
+Solar,Photovoltaic Shared RES - H2Z1,,,,,,,solar-pv-utility,solar-pv-utility-sres-h2z1,Solar PV (Utility-SRES),,,,,,,,,,,,,,solar-pv-utility,,
+Solar,Photovoltaic Shared RES - H2Z2,,,,,,,solar-pv-utility,solar-pv-utility-sres-h2z2,Solar PV (Utility-SRES),,,,,,,,,,,,,,solar-pv-utility,,
 Solar,Thermal Solar,,CSP_noStorage,,Solar (Thermal),,Solar Thermal,solar-thermal,solar-thermal,Solar Thermal,solar thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal,,
 Solar,Solar Thermal with Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage,Solar Thermal,solar thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage,,
 Solar,Solar Thermal with Storage - Storage,,CSP_withStorage,,,,,solar-thermal-w-storage,solar-thermal-w-storage-storage,Solar Thermal,solar thermal,solar thermal,solar thermal,,,,,,,,,,,solar-thermal-w-storage-storage,,
 Wind,Onshore wind e-market,,Wind_Onshore,Wind Onshore,Wind Onshore,Wind Onshore,Wind Onshore,onwind,onwind,Onshore Wind,wind onshore,wind onshore,onshore wind,,,,,,,,,,,onwind,,
 ,,,,,,,DRES Wind On,,,,wind onshore,wind onshore,onshore wind,,,,,,,,,,,,,
-Wind,Onshore wind dedicated,,,,,,,onwind,onwind-dedicated,Onshore Wind (DRES),,,,,,,,,,,,,,onwind,,
-Wind,Onshore wind Shared RES - H2Z1,,,,,,,onwind,onwind-shared-h2z1,Onshore Wind (SRES),,,,,,,,,,,,,,onwind,,
-Wind,Onshore wind Shared RES - H2Z2,,,,,,,onwind,onwind-shared-h2z2,Onshore Wind (SRES),,,,,,,,,,,,,,onwind,,
+Wind,Onshore wind dedicated,,,,,,,onwind,onwind-dres,Onshore Wind (DRES),,,,,,,,,,,,,,onwind,,
+Wind,Onshore wind Shared RES - H2Z1,,,,,,,onwind,onwind-sres-h2z1,Onshore Wind (SRES),,,,,,,,,,,,,,onwind,,
+Wind,Onshore wind Shared RES - H2Z2,,,,,,,onwind,onwind-sres-h2z2,Onshore Wind (SRES),,,,,,,,,,,,,,onwind,,
 Wind,Offshore wind e-market,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind,offwind,Offshore Wind,wind offshore,wind offshore,offshore wind,,,,,,,,,,,offwind,,only used w/o offshore hubs
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-ac-fb-r,offwind-ac-fb-r,Offshore Wind (AC),wind offshore,wind offshore,offshore wind,,,,,,,,,,,offwind-ac-fb-r,,only used with offshore hubs
 ,,,Wind_Offshore,,Wind Offshore,Wind Offshore,Wind Offshore,offwind-ac-fl-r,offwind-ac-fl-r,Offshore Wind (AC Float.),wind offshore,wind offshore,offshore wind,,,,,,,,,,,offwind-ac-fl-r,,only used with offshore hubs
@@ -96,15 +96,17 @@ Other Non-RES Lignite,ccs,,,,Others non-renewable,CHP and Small Thermal,Others n
 Other Non-RES Light oil,light oil,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-light,other-non-res-oil-light,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-light,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Heavy oil,old 1,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old1,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 Other Non-RES Heavy oil,old 2,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-heavy,other-non-res-oil-heavy-old2,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-heavy,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Oil shale,old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-old,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
-Other Non-RES Oil shale,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-new,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Shale oil,old,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-old,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
+Other Non-RES Shale oil,new,,,,Others non-renewable,CHP and Small Thermal,Others non-RES,oil-shale,other-non-res-oil-shale-new,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-oil-shale,oil,"PyPSA-Eur does not explicitly differentiate light, heavy and shale oil"
 ,,,,,,Other non-res,,,,,,other non-res,,,,,,,,,,,,,,The TYNDP 2024 Scenarios Report maps Other Non-RES capacities as 'CHP and Small Thermal' and Other Non-RES generation as 'Other non-res'
+Other Non-RES Hydrogen,ccgt,,,,,,,h2-ccgt,other-non-res-h2-ccgt,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-h2-ccgt,,
+Other Non-RES Hydrogen,ocgt,,,,,,,h2-ocgt,other-non-res-h2-ocgt,Other Non-Renewables,other non-res,other non-res,other non-res,,,,,,,,,,,other-non-res-h2-ocgt,,
 Hydrogen,Fuel Cell,,,,Hydrogen Fuel Cell,Hydrogen,Hydrogen FC,h2-fuel-cell,h2-fuel-cell,H2 Fuel Cell,hydrogen,hydrogen,methane&hydrogen,,,,power generation,,,,,,,h2-fuel-cell,,Hydrogen demand benchmark
 Hydrogen,CCGT,,,,Hydrogen CCGT,Hydrogen,Hydrogen CCGT,h2-ccgt,h2-ccgt,H2 CCGT,hydrogen,hydrogen,methane&hydrogen,,,,power generation,,,,,,,h2-ccgt,,Hydrogen demand benchmark
 Hydrogen,OCGT,,,,,,,h2-ocgt,h2-ocgt,H2 OCGT,hydrogen,hydrogen,methane&hydrogen,,,,power generation,,,,,,,h2-ocgt,,Hydrogen demand benchmark
 Electrolyser,Onshore grid connected,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis,H2 Electrolysis,,,,,,,,,p2g,,,,,electrolyser-onshore-grid,,Hydrogen supply benchmark
-Electrolyser,Electrolyser e-market Z1,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis  e-market Z1,H2 Electrolysis,,,,,,,,,,,,,,h2-electrolysis,,
-Electrolyser,Electrolyser e-market Z2,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis  e-market Z2,H2 Electrolysis,,,,,,,,,,,,,,h2-electrolysis,,
+Electrolyser,Electrolyser e-market Z1,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis Z1,H2 Electrolysis,,,,,,,,,,,,,,h2-electrolysis,,
+Electrolyser,Electrolyser e-market Z2,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis Z2,H2 Electrolysis,,,,,,,,,,,,,,h2-electrolysis,,
 Electrolyser,Electrolyser Shared RES Z1,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis SRES Z1,H2 Electrolysis SRES,,,,,,,,,,,,,,h2-electrolysis-sres,,
 Electrolyser,Electrolyser Shared RES Z2,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis SRES Z2,H2 Electrolysis SRES,,,,,,,,,,,,,,h2-electrolysis-sres,,
 Electrolyser,Electrolyser Dedicated RES Z1,,,Electrolyzers,Electrolyser (gen.),P2G,,H2 Electrolysis,H2 Electrolysis DRES Z1,H2 Electrolysis DRES,,,,,,,,,,,,,,h2-electrolysis-dres,,
@@ -114,10 +116,10 @@ Electrolyser,Electrolyser Dedicated RES Z2,,,Electrolyzers,Electrolyser (gen.),P
 ,,,,,,,,battery,battery,Battery Storage,,,,,,,,,,,,,,battery,,
 Battery,Battery Residential Discharge,,,,,,,battery,battery-prosumer discharger,Battery Storage Prosumer,,,,,,,,,,,,,,battery discharger,,
 Battery,Battery Residential Charge,,,,,,,battery,battery-prosumer charger,Battery Storage Prosumer,,,,,,,,,,,,,,battery charger,,
-Battery,Battery Residential Store,,,Batteries Prosumer,,,,battery,battery-prosumer store,Battery Storage Prosumer,,,,,,,,,,,,,,battery,,
+Battery,Battery Residential Store,,,Batteries Prosumer,,,,battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,,battery,,
 Battery,Battery Utility Scale Discharge,,,,,,,battery,battery-utility discharger,Battery Storage Utility,,,,,,,,,,,,,,battery discharger,,
 Battery,Battery Utility Scale Charge,,,,,,,battery,battery-utility charger,Battery Storage Utility,,,,,,,,,,,,,,battery charger,,
-Battery,Battery Utility Scale Store,,,Batteries Utility,,,,battery,battery-utility store,Battery Storage Utility,,,,,,,,,,,,,,battery,,
+Battery,Battery Utility Scale Store,,,Batteries Utility,,,,battery,battery-utility,Battery Storage Utility,,,,,,,,,,,,,,battery,,
 ,,,,,Lignite biofuel,Biofuels,Lignite biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,,,
 ,,,,,Hard Coal biofuel,Biofuels,Hard coal biofuel,,,,coal + other fossil (incl. biofuels),coal + other fossil (incl. biofuels),,,,,,,,,,,,,,
 ,,,,,Gas biofuel,,,,,,methane (incl. biofuels),methane (incl. biofuels),,,,,,,,,,,,,,
