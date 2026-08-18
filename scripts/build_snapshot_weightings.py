@@ -122,8 +122,9 @@ if __name__ == "__main__":
             inflow = xr.open_dataarray(snakemake.input.hydro_profile).to_pandas()
             dfs.append(align_basis(inflow, "inflow", sns))
 
-        demand = xr.open_dataarray(snakemake.input.electricity_demand).to_pandas()
-        dfs.append(align_basis(demand, "electricity-demand", sns))
+        if snakemake.input.electricity_demand:
+            demand = xr.open_dataarray(snakemake.input.electricity_demand).to_pandas()
+            dfs.append(align_basis(demand, "electricity-demand", sns))
 
         if snakemake.input.hourly_heat_demand_total:
             heat_demand = (

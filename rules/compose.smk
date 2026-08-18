@@ -158,7 +158,11 @@ def get_compose_inputs(w):
             if cfg["co2_budget"]["relative"]
             else []
         ),
-        load=resources("electricity_demand.nc"),
+        load=(
+            resources("electricity_demand.nc")
+            if cfg["load"]["source"] != "tyndp"
+            else []
+        ),
         snapshot_weightings=resources("snapshot_weightings.csv"),
         network=resources("networks/clustered.nc"),
         solar_rooftop_potentials=(

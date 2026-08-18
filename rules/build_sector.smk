@@ -1466,7 +1466,11 @@ rule build_existing_heating_distribution:
 rule build_snapshot_weightings:
     input:
         network=resources("networks/clustered.nc"),
-        electricity_demand=resources("electricity_demand.nc"),
+        electricity_demand=lambda w: (
+            resources("electricity_demand.nc")
+            if config_provider("load", "source")(w) != "tyndp"
+            else []
+        ),
         profiles=lambda w: [
             resources(f"profile_{tech}.nc")
             for tech in config_provider("electricity", "renewable_carriers")(w)
