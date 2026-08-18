@@ -1007,8 +1007,8 @@ rule build_osm_network:
 
 rule build_tyndp_network:
     input:
-        elec_reference_grid=rules.retrieve_tyndp.output.elec_reference_grid,
-        buses=rules.retrieve_tyndp.output.nodes,
+        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+        buses=rules.retrieve_tyndp_2026.output.nodes,
         bidding_shapes=resources("bidding_zones.geojson"),
     output:
         lines=resources("tyndp/build/lines.csv"),
@@ -1016,13 +1016,11 @@ rule build_tyndp_network:
         converters=resources("tyndp/build/converters.csv"),
         transformers=resources("tyndp/build/transformers.csv"),
         substations=resources("tyndp/build/buses.csv"),
-        substations_h2=resources("tyndp/build/buses_h2.csv"),
         lines_geojson=resources("tyndp/build/geojson/lines.geojson"),
         links_geojson=resources("tyndp/build/geojson/links.geojson"),
         converters_geojson=resources("tyndp/build/geojson/converters.geojson"),
         transformers_geojson=resources("tyndp/build/geojson/transformers.geojson"),
         substations_geojson=resources("tyndp/build/geojson/buses.geojson"),
-        substations_h2_geojson=resources("tyndp/build/geojson/buses_h2.geojson"),
     log:
         logs("build_tyndp_network.log"),
     benchmark:
