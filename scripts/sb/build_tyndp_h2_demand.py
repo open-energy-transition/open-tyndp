@@ -56,7 +56,7 @@ import pandas as pd
 
 from scripts._helpers import (
     align_demand_to_snapshots,
-    check_weather_scenario,
+    check_weather_scenarios,
     configure_logging,
     get_snapshots,
     interpolate_demand,
@@ -272,7 +272,7 @@ if __name__ == "__main__":
 
     else:
         # Check if climatic year is valid for scenario
-        weather_scenario = check_weather_scenario(weather_scenario, scenario)
+        weather_scenario = check_weather_scenarios(weather_scenario, scenario)
 
         # Load demand with interpolation
         logger.info(
