@@ -28,7 +28,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
+    safe_planning_horizon,
     set_scenario_config,
 )
 
@@ -93,8 +93,8 @@ if __name__ == "__main__":
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = f"WS{snakemake.params.weather_scenario:03d}"
 
-    # Planning year (falls back to latest available pyear if not in list of available years)
-    pyear = safe_pyear(
+    # Planning year (falls back to latest available plansafe_planning_horizon if not in list of available years)
+    plansafe_planning_horizon = safe_planning_horizon(
         snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
         source="PECD",
@@ -132,8 +132,14 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
+<<<<<<< HEAD:scripts/sb/clean_tyndp_pecd_data.py
         cyear=cyear,
         pyear=pyear,
+=======
+        weather_scenario=weather_scenario,
+        weather_scenario_i=weather_scenario_i,
+        plansafe_planning_horizon=plansafe_planning_horizon,
+>>>>>>> a98451e9 (rename: pyear -> planning_horizon):scripts/sb/clean_pecd_data.py
         technology=pecd_tech,
         sns=sns,
     )
@@ -143,7 +149,7 @@ if __name__ == "__main__":
 
     if all(data is None for data in pecd):
         raise ValueError(
-            f"No PECD data found for {pecd_tech} in {pyear}. Please specify a technology covered within the TYNDP PECD data."
+            f"No PECD data found for {pecd_tech} in {plansafe_planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (

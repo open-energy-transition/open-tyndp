@@ -34,7 +34,7 @@ from scripts._helpers import (
     convert_units,
     get_snapshots,
     map_tyndp_carrier_names,
-    safe_pyear,
+    safe_planning_horizon,
     set_scenario_config,
 )
 
@@ -84,7 +84,7 @@ def read_pemmdb_data(
     node: str,
     pemmdb_dir: str,
     weather_scenario: int,
-    pyear: int,
+    planning_horizon: int,
     required_sheets: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
@@ -99,8 +99,8 @@ def read_pemmdb_data(
         Path to directory containing PEMMDB data.
     weather_scenario : int
         Climate year to read data for.
-    pyear : int
-        Planning year used for data retrieval (fallback year if pyear_i not available).
+    planning_horizon : int
+        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
     required_sheets : list[str], optional
         List of required technology sheets to read PEMMDB data for. Default is None,
         which reads all available sheets.
@@ -112,12 +112,12 @@ def read_pemmdb_data(
     """
     fn = Path(
         pemmdb_dir,
-        str(pyear),
-        f"PEMMDB_{node.replace('GB', 'UK')}_NationalTrends_{pyear}.xlsx",
+        str(planning_horizon),
+        f"PEMMDB_{node.replace('GB', 'UK')}_NationalTrends_{planning_horizon}.xlsx",
     )
 
     if not fn.is_file():
-        logger.info(f"No PEMMDB data available for {node} in {pyear}.")
+        logger.info(f"No PEMMDB data available for {node} in {planning_horizon}.")
         return None
 
     try:
@@ -130,7 +130,7 @@ def read_pemmdb_data(
 
     except Exception as e:
         raise Exception(
-            f"Error reading PEMMDB data at {node} for climate year {weather_scenario} and planning year {pyear}: {e}"
+            f"Error reading PEMMDB data at {node} for climate year {weather_scenario} and planning year {planning_horizon}: {e}"
         )
 
 
@@ -600,7 +600,7 @@ def _process_thermal_hydrogen_profiles(
     node: str,
     thermal_techs: list[str],
     tyndp_scenario: str,
-    pyear_i: int,
+    planning_horizon_i: int,
     sns: pd.DatetimeIndex,
 ) -> pd.DataFrame:
     """
@@ -666,7 +666,7 @@ def _process_thermal_hydrogen_profiles(
     )
 
     # Remove must-runs for DE and GA scenarios after 2030 (per TYNDP 2024 Methodology, p.37)
-    if tyndp_scenario != "NT" and pyear_i > 2030:
+    if tyndp_scenario != "NT" and planning_horizon_i > 2030:
         profiles.loc[:, "p_min_pu"] = 0.0
 
     return profiles
@@ -676,7 +676,7 @@ def _process_other_res_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
     pemmdb_tech: str,
-    pyear: int,
+    planning_horizon: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame | None:
@@ -698,7 +698,7 @@ def _process_other_res_profiles(
 
     if capacity.sum() == 0:
         logger.debug(
-            f"No 'Other RES' capacity found for {node} in {pyear}, hence no must-run profile available."
+            f"No 'Other RES' capacity found for {node} in {planning_horizon}, hence no must-run profile available."
         )
         return None
 
@@ -897,7 +897,7 @@ def process_pemmdb_capacities(
     pemmdb_tech_sheet: str,
     thermal_techs: list[str],
     weather_scenario: int,
-    pyear: int,
+    planning_horizon: int,
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
@@ -915,8 +915,8 @@ def process_pemmdb_capacities(
         List of PEMMDB thermal technologies included in the model.
     weather_scenario : int
         Climate year to read data for.
-    pyear : int
-        Planning year used for data retrieval (fallback year if pyear_i not available).
+    planning_horizon : int
+        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names.
 
@@ -1011,7 +1011,7 @@ def process_pemmdb_capacities(
 
     except Exception as e:
         raise Exception(
-            f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for climate year {weather_scenario} and planning year {pyear}: {e}"
+            f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for climate year {weather_scenario} and planning year {planning_horizon}: {e}"
         )
 
 
@@ -1047,8 +1047,8 @@ def process_pemmdb_profiles(
     thermal_techs: list[str],
     tyndp_scenario: str,
     weather_scenario: int,
-    pyear: int,
-    pyear_i: int,
+    planning_horizon: int,
+    planning_horizon_i: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
     carrier_mapping_fn: str,
@@ -1071,9 +1071,9 @@ def process_pemmdb_profiles(
         TYNDP scenario to read data for.
     weather_scenario : int
         Climate year to read data for.
-    pyear : int
-        Planning year used for data retrieval (fallback year if pyear_i not available).
-    pyear_i : int
+    planning_horizon : int
+        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
+    planning_horizon_i : int
         Original planning year.
     sns : pd.DatetimeIndex
         Modelled snapshots.
@@ -1095,14 +1095,14 @@ def process_pemmdb_profiles(
                 node,
                 thermal_techs,
                 tyndp_scenario,
-                pyear_i,
+                planning_horizon_i,
                 sns,
             )
 
         # Other RES
         elif pemmdb_tech_sheet == "Other RES":
             profiles = _process_other_res_profiles(
-                node_tech_data, node, pemmdb_tech_sheet, pyear, sns, sns_year_h
+                node_tech_data, node, pemmdb_tech_sheet, planning_horizon, sns, sns_year_h
             )
 
         # Other Non-RES
@@ -1146,7 +1146,7 @@ def process_pemmdb_profiles(
 
     except Exception as e:
         raise Exception(
-            f"Error reading PEMMDB profiles for '{pemmdb_tech_sheet}' at {node} for climate year {weather_scenario} and planning year {pyear}: {e}"
+            f"Error reading PEMMDB profiles for '{pemmdb_tech_sheet}' at {node} for climate year {weather_scenario} and planning year {planning_horizon}: {e}"
         )
 
 
@@ -1156,8 +1156,8 @@ def process_pemmdb_data(
     pemmdb_data: dict[str, dict[str, pd.DataFrame]],
     thermal_techs: list[str],
     weather_scenario: int,
-    pyear: int,
-    pyear_i: int,
+    planning_horizon: int,
+    planning_horizon_i: int,
     tyndp_scenario: str,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
@@ -1179,9 +1179,9 @@ def process_pemmdb_data(
         Thermal technologies to read data for.
     weather_scenario : int
         Climate year to read data for.
-    pyear : int
-        Planning year used for data retrieval (fallback year if pyear_i not available).
-    pyear_i : int
+    planning_horizon : int
+        Planning year used for data retrieval (fallback year if planning_horizon_i not available).
+    planning_horizon_i : int
         Original planning year.
     tyndp_scenario : str
         TYNDP scenario to read data for.
@@ -1213,7 +1213,7 @@ def process_pemmdb_data(
             pemmdb_tech_sheet,
             thermal_techs,
             weather_scenario,
-            pyear,
+            planning_horizon,
             carrier_mapping_fn,
         )
     elif category == "profiles":
@@ -1224,8 +1224,8 @@ def process_pemmdb_data(
             thermal_techs,
             tyndp_scenario,
             weather_scenario,
-            pyear,
-            pyear_i,
+            planning_horizon,
+            planning_horizon_i,
             sns,
             sns_year_h,
             carrier_mapping_fn,
@@ -1277,9 +1277,9 @@ if __name__ == "__main__":
         weather_scenario = 2009
 
     # Planning year
-    pyear_i = int(snakemake.wildcards.planning_horizons)
-    pyear = safe_pyear(
-        pyear_i,
+    planning_horizon_i = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = safe_planning_horizon(
+        planning_horizon_i,
         available_years=snakemake.params.available_years,
         source="PEMMDB",
     )
@@ -1296,7 +1296,7 @@ if __name__ == "__main__":
         read_pemmdb_data,
         pemmdb_dir=pemmdb_dir,
         weather_scenario=weather_scenario,
-        pyear=pyear,
+        planning_horizon=planning_horizon,
         required_sheets=pemmdb_tech_sheets,
     )
 
@@ -1332,8 +1332,8 @@ if __name__ == "__main__":
                     pemmdb_data=pemmdb_data,
                     thermal_techs=thermal_techs,
                     weather_scenario=weather_scenario,
-                    pyear=pyear,
-                    pyear_i=pyear_i,
+                    planning_horizon=planning_horizon,
+                    planning_horizon_i=planning_horizon_i,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     sns_year_h=sns_year_h,
@@ -1346,7 +1346,7 @@ if __name__ == "__main__":
 
     if not pemmdb_capacities:
         logger.warning(
-            f"No PEMMDB capacities available for climate year {weather_scenario} and planning year {pyear}. "
+            f"No PEMMDB capacities available for climate year {weather_scenario} and planning year {planning_horizon}. "
             f"Please specify different technologies, climate year or planning year."
         )
         # Save empty file
@@ -1378,8 +1378,8 @@ if __name__ == "__main__":
                     pemmdb_data=pemmdb_data,
                     thermal_techs=thermal_techs,
                     weather_scenario=weather_scenario,
-                    pyear=pyear,
-                    pyear_i=pyear_i,
+                    planning_horizon=planning_horizon,
+                    planning_horizon_i=planning_horizon_i,
                     tyndp_scenario=tyndp_scenario,
                     sns=sns,
                     sns_year_h=sns_year_h,
@@ -1392,7 +1392,7 @@ if __name__ == "__main__":
 
     if not pemmdb_profiles:
         logger.warning(
-            f"No PEMMDB profiles available for climate year {weather_scenario} and planning year {pyear}. "
+            f"No PEMMDB profiles available for climate year {weather_scenario} and planning year {planning_horizon}. "
             f"Please specify different technologies, climate year or planning year."
         )
         # Save empty dataset
