@@ -100,7 +100,7 @@ def attach_tyndp_transmission_projects(
 
     links = n.links[n.links.carrier == "DC"].index
     new_links = projects.loc[sorted(set(projects.index) - set(links))]
-    n.links.loc[links, "p_nom"] += projects.reindex(links, fill_value=0).p_nom
+    n.links.loc[links, "p_nom"] += projects.p_nom.reindex(links, fill_value=0)
 
     if not new_links.empty:
         n.add("Link", new_links.index, **new_links)
