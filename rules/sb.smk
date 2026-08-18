@@ -466,25 +466,6 @@ rule build_tyndp_h2_demand:
 
 if config["sector"]["h2_topology_tyndp"]:
 
-    rule build_tyndp_h2_nodes:
-        input:
-            nodes=rules.retrieve_tyndp_2026.output.nodes,
-            bidding_shapes=resources("bidding_zones.geojson"),
-        output:
-            buses_h2=resources("tyndp/build/buses_h2.csv"),
-            buses_h2_geojson=resources("tyndp/build/geojson/buses_h2.geojson"),
-        log:
-            logs("build_tyndp_h2_nodes.log"),
-        benchmark:
-            benchmarks("performances/build_tyndp_h2_nodes")
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            countries=config_provider("countries"),
-        script:
-            scripts("sb/build_tyndp_h2_nodes.py")
-
     rule build_tyndp_h2_network:
         input:
             h2_reference_grid=rules.retrieve_tyndp_2026.output.h2_reference_grid_entsos,
