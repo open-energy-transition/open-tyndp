@@ -2265,12 +2265,8 @@ def _add_electrolyzer_capacities(
         return
 
     # Filter for capacities and add to the network
-    # TODO: Add split between zones for DE/GA. If wanted, add split between electrolysis types instead of aggregating.
-    caps = (
-        pemmdb_capacities.query("carrier == 'H2 Electrolysis'")["p_nom"]
-        .groupby(level=0)
-        .sum()
-    )
+    # TODO: Add split between zones for DE/GA
+    caps = pemmdb_capacities.query("carrier == 'H2 Electrolysis'")["p_nom"]
     n.links.loc[electrolyser_i, ["p_nom", "p_nom_min"]] = (
         n.links.loc[electrolyser_i, "bus0"].map(caps).fillna(0.0)
     )
@@ -2507,12 +2503,10 @@ def _add_phs_capacities(
         (pemmdb_capacities["open_tyndp_type"] == f"{tech}-turbine")
         & (pemmdb_capacities["unit"] == "MW")
     ]["p_nom"]
-    p_nom_pump = (
-        pemmdb_capacities.loc[
-            (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
-            & (pemmdb_capacities["unit"] == "MW")
-        ]["p_nom"].abs()
-    )  # input pump capacities are given in positive direction except for MA, EG, IL, TN
+    p_nom_pump = pemmdb_capacities.loc[
+        (pemmdb_capacities["open_tyndp_type"] == f"{tech}-pump")
+        & (pemmdb_capacities["unit"] == "MW")
+    ]["p_nom"].mul(-1)  # input pump capacities are given in negative direction
     e_nom = pemmdb_capacities.loc[
         (pemmdb_capacities["carrier"] == tech) & (pemmdb_capacities["unit"] == "MWh")
     ].rename(index=lambda x: f"{x} {tech}")["e_nom"]
@@ -3746,7 +3740,9 @@ def add_h2_reconversion_tyndp(
         )
 
     if options["hydrogen_turbine"]:
-        logger.info("Adding hydrogen turbine for re-electrification.")
+        logger.info(
+            "Adding hydrogen turbine for re-electrification. Assuming CCGT technology costs."
+        )
         n.add(
             "Link",
             nodes.index + f" {suffix} h2-ccgt",
@@ -3761,21 +3757,6 @@ def add_h2_reconversion_tyndp(
             ],  # NB: using default assumptions for capex, fixed cost is per MWel
             marginal_cost=costs.at["h2-ccgt", "VOM"],
             lifetime=costs.at["h2-ccgt", "lifetime"],
-        )
-        n.add(
-            "Link",
-            nodes.index + f" {suffix} h2-ocgt",
-            bus0=(nodes.country + f" {suffix}").values,
-            bus1=nodes.index,
-            p_nom_extendable=False,
-            carrier="h2-ocgt",
-            efficiency=costs.at["h2-ocgt", "efficiency"],
-            capital_cost=costs.at["CCGT", "capital_cost"]
-            * costs.at[
-                "h2-ocgt", "efficiency"
-            ],  # NB: using default assumptions for capex, fixed cost is per MWel
-            marginal_cost=costs.at["h2-ocgt", "VOM"],
-            lifetime=costs.at["h2-ocgt", "lifetime"],
         )
 
 
