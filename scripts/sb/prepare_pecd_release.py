@@ -55,13 +55,23 @@ def process_pecd_files(
             skiprows=skiprows,  # first rows contain only file metadata
             usecols=lambda name: _usecols(name),
             engine="openpyxl",
-        ).rename(columns={str(float(weather_scenario)): str(weather_scenario) for weather_scenario in weather_scenarios})
+        ).rename(
+            columns={
+                str(float(weather_scenario)): str(weather_scenario)
+                for weather_scenario in weather_scenarios
+            }
+        )
     else:
         df = pd.read_csv(
             fn,
             skiprows=skiprows,  # first rows contain only file metadata
             usecols=lambda name: _usecols(name),
-        ).rename(columns={str(float(weather_scenario)): str(weather_scenario) for weather_scenario in weather_scenarios})
+        ).rename(
+            columns={
+                str(float(weather_scenario)): str(weather_scenario)
+                for weather_scenario in weather_scenarios
+            }
+        )
 
     output_file = Path(output_dir, pecd_file).with_suffix(".csv")
 
@@ -91,7 +101,9 @@ if __name__ == "__main__":
         logger.warning(
             "Climate year doesn't match available TYNDP data. Only returning subset of available climate years."
         )
-        weather_scenarios = pd.Series(list(set(weather_scenarios).intersection(available_weather_scenarios)))
+        weather_scenarios = pd.Series(
+            list(set(weather_scenarios).intersection(available_weather_scenarios))
+        )
     # Planning years for which PECD data is available for in the specified PECD version
     available_planning_horizons = snakemake.params.available_planning_horizons
     # Input and output directories and prebuilt version

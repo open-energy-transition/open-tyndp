@@ -281,7 +281,9 @@ if __name__ == "__main__":
         planning_horizon=planning_horizon,
     )
     interzonal = load_h2_interzonal_connections(
-        fn=snakemake.input.h2_reference_grid_entsos, scenario=scenario, planning_horizon=planning_horizon
+        fn=snakemake.input.h2_reference_grid_entsos,
+        scenario=scenario,
+        planning_horizon=planning_horizon,
     )
 
     # Save prepped H2 grid and interzonal

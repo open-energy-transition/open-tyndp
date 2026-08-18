@@ -56,7 +56,9 @@ def read_pecd_file(
     if not os.path.isfile(fn) and "LFSolarPV" in technology:
         fn = Path(str(fn).replace(technology, "LFSolarPV"))
     if not os.path.isfile(fn):
-        logger.warning(f"Missing data for {technology} in {node} in {plansafe_planning_horizon}.")
+        logger.warning(
+            f"Missing data for {technology} in {node} in {plansafe_planning_horizon}."
+        )
         return None
 
     pecd_bus = pd.read_csv(fn)

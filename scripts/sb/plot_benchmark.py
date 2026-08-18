@@ -132,7 +132,8 @@ def _plot_scenario_comparison(
     )
 
     output_filename = Path(
-        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{weather_scenario}_{year}.pdf"
+        output_dir,
+        f"benchmark_{table}_{bus.replace(' ', '_')}_cy{weather_scenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -221,7 +222,8 @@ def _plot_time_series(
     add_metadata(fig, ax)
 
     output_filename = Path(
-        output_dir, f"benchmark_{table}_{bus.replace(' ', '_')}_cy{weather_scenario}_{year}.pdf"
+        output_dir,
+        f"benchmark_{table}_{bus.replace(' ', '_')}_cy{weather_scenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -290,7 +292,9 @@ def _plot_prices(
 
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf")
+    output_filename = Path(
+        output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf"
+    )
     fig.savefig(output_filename, bbox_inches="tight")
 
 
@@ -344,7 +348,9 @@ def _plot_flows(
 
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf")
+    output_filename = Path(
+        output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf"
+    )
     fig.savefig(output_filename, bbox_inches="tight")
 
     # Additional plot for crossborder flows with incorrect net direction
@@ -372,7 +378,8 @@ def _plot_flows(
         ax.legend(frameon=True, facecolor="white")
         add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
         output_filename = Path(
-            output_dir, f"benchmark_{table}_direction_errors_cy{weather_scenario}_{year}.pdf"
+            output_dir,
+            f"benchmark_{table}_direction_errors_cy{weather_scenario}_{year}.pdf",
         )
         fig.savefig(output_filename, bbox_inches="tight")
 
@@ -416,7 +423,9 @@ def _plot_hours(
     ax.legend(frameon=True, facecolor="white")
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf")
+    output_filename = Path(
+        output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf"
+    )
     fig.savefig(output_filename, bbox_inches="tight")
 
 
