@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     # Weather scenarios from snakemake params
     cyears = pd.Series(snakemake.params.cyears)
-    available_cyears = [f"WS{x:03d}" for x in np.arange(1, 120, 1)]
+    available_cyears = [f"WS{x:03d}" for x in np.arange(1, 121, 1)]
     if set(cyears).difference(available_cyears):
         logger.warning(
             "Weather scenarios doesn't match available TYNDP data. Only returning subset of available weather scenarios."

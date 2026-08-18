@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 def read_pecd_file(
     node: str,
     dir_pecd: str,
-    weather_year: int,
+    cyear: int,
     pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
-        weather_year=weather_year,
+        cyear=cyear
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,
