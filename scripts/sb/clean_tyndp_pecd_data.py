@@ -68,8 +68,8 @@ def read_pecd_file(
     cf_pecd = (
         pecd_bus.set_index(datetime_idx)
         .drop(columns=["Date", "Hour"])
-        .loc[sns, [weather_year]]  # filter for snapshots and weather scenario only
-        .rename(columns={weather_year: node})
+        .loc[sns, [cyear]]  # filter for snapshots and weather scenario only
+        .rename(columns={cyear: node})
     )
     return cf_pecd
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    weather_year = f"WS{snakemake.params.weather_year:03d}"
+    cyear = f"WS{snakemake.params.weather_year:03d}"
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
@@ -106,16 +106,18 @@ if __name__ == "__main__":
 
     df_nodes = pd.read_excel(snakemake.input.nodes, sheet_name=None)
     onshore_buses = df_nodes["Electricity"]["NODE"].tolist()
-    offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]["NODE"].tolist()
-    busmap = pd.read_csv(snakemake.input.busmap).name.tolist()
-    nodes = offshore_buses if pecd_tech == "Wind_Offshore" else onshore_buses
-    nodes = [x.replace("UK", "GB") for x in nodes]
 
     # Nodes present in the TYNDP 2026 node list but absent from the rest of the workflow,
     # which still relies on the TYNDP 2024 node set. Dropped to keep PECD consistent with it.
     # TODO Remove once the TYNDP 2026 nodes are integrated
     # excluded nodes - "MD00", "NOS1", "NOS2", "NOS3", "TR00", "UA00", "PL00E", "PL00I"
-    nodes = [x for x in nodes if x in busmap]
+    busmap = pd.read_csv(snakemake.input.busmap).name.tolist()
+    onshore_buses = [x for x in onshore_buses if x in busmap]
+
+    offshore_buses = onshore_buses + df_nodes["Electricity_Offshore"]["NODE"].tolist()
+    nodes = offshore_buses if pecd_tech == "Wind_Offshore" else onshore_buses
+    nodes = [x.replace("UK", "GB") for x in nodes]
+
     dir_pecd = snakemake.input.pecd_prebuilt
 
     # Load and prep pecd data
@@ -131,7 +133,7 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
-        cyear=cyear
+        cyear=cyear,
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,

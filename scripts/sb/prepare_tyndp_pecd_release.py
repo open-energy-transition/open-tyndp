@@ -38,22 +38,13 @@ def process_pecd_files(
     skiprows = 10
 
     def _usecols(name):
+        return name in ("Date", "Hour") or name in cyears
 
-        return name in ("Date", "Hour") or name in cyears.values
-
-    if "xls" in pecd_file or "xlsx" in pecd_file:
-        df = pd.read_excel(
-            fn,
-            skiprows=skiprows,  # first rows contain only file metadata
-            usecols=lambda name: _usecols(name),
-            engine="openpyxl",
-        )
-    else:
-        df = pd.read_csv(
-            fn,
-            skiprows=skiprows,  # first rows contain only file metadata
-            usecols=lambda name: _usecols(name),
-        )
+    df = pd.read_csv(
+        fn,
+        skiprows=skiprows,  # first rows contain only file metadata
+        usecols=lambda name: _usecols(name),
+    )
     output_file = Path(output_dir, pecd_file).with_suffix(".csv")
 
     df.to_csv(output_file, index=False)
@@ -76,7 +67,7 @@ if __name__ == "__main__":
     ############
 
     # Weather scenarios from snakemake params
-    cyears = pd.Series(snakemake.params.cyears)
+    cyears = [f"WS{x:03d}" for x in pd.Series(snakemake.params.cyears)]
     available_cyears = [f"WS{x:03d}" for x in np.arange(1, 121, 1)]
     if set(cyears).difference(available_cyears):
         logger.warning(

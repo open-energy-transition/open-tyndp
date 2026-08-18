@@ -137,7 +137,7 @@ if not "pre-built" in PECD_DATASET["version"]:
         else:
             return f"{str(int(major)+1)}.0"
 
-    rule prepare_pecd_release:
+    rule prepare_tyndp_pecd_release:
         input:
             pecd_raw=PECD_DATASET["folder"],
         output:
@@ -145,9 +145,9 @@ if not "pre-built" in PECD_DATASET["version"]:
                 f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
             ),
         log:
-            "logs/prepare_pecd_release.log",
+            "logs/prepare_tyndp_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_pecd_release")
+            benchmarks("performances/prepare_tyndp_pecd_release")
         threads: 4
         resources:
             mem_mb=1000,
@@ -159,7 +159,7 @@ if not "pre-built" in PECD_DATASET["version"]:
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:
-            scripts("sb/prepare_pecd_release.py")
+            scripts("sb/prepare_tyndp_pecd_release.py")
 
 
 # Build electricity
@@ -411,10 +411,10 @@ def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
     else:
-        return rules.prepare_pecd_release.output.pecd_prebuilt
+        return rules.prepare_tyndp_pecd_release.output.pecd_prebuilt
 
 
-rule clean_pecd_data:
+rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
         nodes=rules.retrieve_tyndp_2026.output.nodes,
@@ -422,9 +422,11 @@ rule clean_pecd_data:
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:
-        logs("clean_pecd_data_{technology}_{planning_horizons}.log"),
+        logs("clean_tyndp_pecd_data_{technology}_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/clean_pecd_data_{technology}_{planning_horizons}")
+        benchmarks(
+            "performances/clean_tyndp_pecd_data_{technology}_{planning_horizons}"
+        )
     threads: 4
     resources:
         mem_mb=4000,
@@ -439,7 +441,7 @@ rule clean_pecd_data:
         ),
         weather_year=get_weather_year_tyndp,
     script:
-        scripts("sb/clean_pecd_data.py")
+        scripts("sb/clean_tyndp_pecd_data.py")
 
 
 def input_data_pecd(w):
@@ -1193,7 +1195,7 @@ if config["benchmarking"]["enable"]:
 #########
 
 
-rule clean_pecd_datas:
+rule clean_tyndp_pecd_datas:
     input:
         lambda w: expand(
             resources("pecd_data_{technology}_{planning_horizons}.csv"),

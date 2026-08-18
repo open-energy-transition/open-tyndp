@@ -186,18 +186,18 @@ electricity:
     enable: false
     pre_built:
       cyears:
-      - WS003
-      - WS021
-      - WS029
-      - WS032
-      - WS037
-      - WS059
-      - WS065
-      - WS071
-      - WS077
-      - WS091
-      - WS092
-      - WS106
+      - 3
+      - 21
+      - 29
+      - 32
+      - 37
+      - 59
+      - 65
+      - 71
+      - 77
+      - 91
+      - 92
+      - 106
     fill_gaps_method: zero
     available_years:
     - 2030
