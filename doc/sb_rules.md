@@ -98,11 +98,17 @@ per-country load time series from the TYNDP electricity demand prepared by
 
 ::: build_tyndp_hydro_profile
 
-### Rule `build_electricity_demand_base_tyndp`
+### Rule `build_electricity_demand_simplified_tyndp`
 
 Extends the upstream [`build_electricity_demand_base`](preparation.md#rule-build_electricity_demand_base) rule with TYNDP-specific load data. Builds
-the electricity demand for base regions from the TYNDP electricity demand prepared by
-[`build_electricity_demand_tyndp`](#rule-build_electricity_demand_tyndp).
+the electricity demand for the simplified network from the TYNDP electricity demand prepared by
+[`build_electricity_demand_tyndp`](#rule-build_electricity_demand_tyndp), once per planning horizon.
+
+### Rule `cluster_electricity_demand_tyndp`
+
+Extends the upstream [`cluster_electricity_demand`](preparation.md#rule-cluster_electricity_demand) rule to aggregate the
+per-horizon TYNDP electricity demand onto the clustered network buses, so that
+[`compose_network`](preparation.md#rule-compose_network) can attach it directly.
 
 ## Build sector
 
