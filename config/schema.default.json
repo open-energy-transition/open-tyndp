@@ -3078,6 +3078,7 @@
           "default": false,
           "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
           "type": "boolean"
+        },
         "phase_outs": {
           "description": "National policy phase-outs capping conventional asset lifetimes by carrier and country (applied in perfect foresight).",
           "items": {
@@ -5074,9 +5075,7 @@
             }
           ],
           "default": 0.05,
-          "description": "The average size of battery electric vehicles (BEV) in MWh."
-          "description": "The average available net battery capacity of battery electric vehicles (BEV) in MWh.",
-          "type": "number"
+          "description": "The average available net battery capacity of battery electric vehicles (BEV) in MWh."
         },
         "bev_charge_efficiency": {
           "default": 0.9,
@@ -8614,6 +8613,7 @@
           "type": "array"
         }
       }
+    },
     "_PhaseOutConfig": {
       "description": "A single national policy phase-out for conventional assets.",
       "properties": {
@@ -9696,49 +9696,6 @@
       "description": "Switch to launch the PyPSA-Explorer with the result networks.",
       "type": "boolean"
     },
-    "scenario": {
-      "description": "Configuration for top level `scenario` settings.",
-      "properties": {
-        "clusters": {
-          "description": "List of ``{clusters}`` wildcards to run. Use 'adm' for administrative clustering mode, 'all' for all nodes.",
-          "items": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "enum": [
-                  "adm",
-                  "all"
-                ],
-                "type": "string"
-              }
-            ]
-          },
-          "type": "array"
-        },
-        "opts": {
-          "description": "List of ``{opts}`` wildcards to run.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "sector_opts": {
-          "description": "List of ``{sector_opts}`` wildcards to run.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "planning_horizons": {
-          "description": "List of ``{planning_horizon}`` wildcards to run.",
-          "items": {
-            "type": "integer"
-          },
-          "type": "array"
-        }
-      }
     "planning_horizons": {
       "default": [
         2050
@@ -12245,6 +12202,7 @@
           "default": false,
           "description": "Use the same renewable profiles for all assets regardless of build year. When true, brownfield generators receive the current planning horizon's profiles instead of their vintage profiles.",
           "type": "boolean"
+        },
         "phase_outs": {
           "description": "National policy phase-outs capping conventional asset lifetimes by carrier and country (applied in perfect foresight).",
           "items": {
@@ -12540,9 +12498,7 @@
             }
           ],
           "default": 0.05,
-          "description": "The average size of battery electric vehicles (BEV) in MWh."
-          "description": "The average available net battery capacity of battery electric vehicles (BEV) in MWh.",
-          "type": "number"
+          "description": "The average available net battery capacity of battery electric vehicles (BEV) in MWh."
         },
         "bev_charge_efficiency": {
           "default": 0.9,

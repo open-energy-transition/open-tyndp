@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     # Planning year
     pyear = safe_pyear(
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="Hydro inflows",
     )

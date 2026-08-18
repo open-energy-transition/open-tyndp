@@ -3,6 +3,10 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
+planning_horizons:
+- 2030
+- 2040
+
 run:
   prefix: "tyndp"
   name: "NT"
@@ -18,12 +22,6 @@ data_config:   # change to 'tyndp' to use tyndp-archive where available
 
 launch_explorer: true
 
-scenario:
-  clusters:
-  - all
-  planning_horizons:
-  - 2030
-  - 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
@@ -32,6 +30,8 @@ snapshots:
   end: "2009-12-31"  # Ignore the last day of the year to get exactly 52 weeks
 
 co2_budget:
+  upper:
+  lower:
 
 electricity:
   base_network: tyndp
@@ -215,6 +215,7 @@ existing_capacities:
   uniform_renewable_profiles: true
 
 sector:
+  enabled: true
   transport: true
   heating: false
   biomass: true
@@ -334,7 +335,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 168H  # Use 1H for high resolution results in SB (requires commercial solver)
+    averaging: 168  # Use 1 for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false

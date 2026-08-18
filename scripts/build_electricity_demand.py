@@ -254,8 +254,8 @@ if __name__ == "__main__":
 
     if snakemake.params.load["source"] == "tyndp":
         planning_slice = slice(
-            str(snakemake.wildcards.planning_horizons),
-            str(snakemake.wildcards.planning_horizons),
+            str(snakemake.wildcards.horizon),
+            str(snakemake.wildcards.horizon),
         )
 
         load = load_timeseries(

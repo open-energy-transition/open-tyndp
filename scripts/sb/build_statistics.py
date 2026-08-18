@@ -692,7 +692,7 @@ if __name__ == "__main__":
     group_tyndp_conventionals = snakemake.params["group_tyndp_conventionals"]
     cc = coco.CountryConverter()
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
-    planning_horizons = int(snakemake.wildcards.planning_horizons)
+    planning_horizons = int(snakemake.wildcards.horizon)
 
     # Map Open-TYNDP carrier names to benchmarking carrier names
     add_benchmarking_mappings(

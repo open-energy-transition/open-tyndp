@@ -250,7 +250,7 @@ if __name__ == "__main__":
         map_opts,
         proj,
         map_fn,
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         carrier=snakemake.wildcards.carrier,
         p_nom=p_nom,
     )

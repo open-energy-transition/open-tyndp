@@ -838,9 +838,6 @@ rule build_transformation_output_coke:
 rule build_energy_totals:
     input:
         nuts3_shapes=resources("nuts3_shapes.geojson"),
-        co2=branch(
-            config_provider("co2_budget"), rules.retrieve_ghg_emissions.output["csv"]
-        ),
         swiss=resources("switzerland_energy_balances.csv"),
         swiss_transport=lambda w: (
             f"{BFS_ROAD_VEHICLE_STOCK_DATASET['folder']}/vehicle_stock.csv"

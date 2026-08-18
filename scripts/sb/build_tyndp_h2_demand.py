@@ -260,7 +260,7 @@ if __name__ == "__main__":
 
     # Parameters
     scenario = snakemake.params["scenario"]
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )

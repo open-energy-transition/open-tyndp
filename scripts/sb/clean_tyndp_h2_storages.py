@@ -124,7 +124,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
     h2_storage_fn = snakemake.input.h2_storages
     scenario = snakemake.params.tyndp_scenario
     h2_zones_tyndp = snakemake.params.h2_zones_tyndp

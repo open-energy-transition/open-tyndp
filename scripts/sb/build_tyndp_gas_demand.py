@@ -270,7 +270,7 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params["scenario"]
     fn = snakemake.input.supply_tool
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
 
     if scenario != "NT":
         # TODO Remove the fallback once DE/GA are implemented

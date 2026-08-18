@@ -44,17 +44,7 @@ tyndp_scenario: false
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#launch_explorer
 launch_explorer: false
 
-# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#scenario
-scenario:
-  clusters:
-  - 50
-  opts:
-  - ""
-  sector_opts:
-  - ""
-  planning_horizons:
-  - 2050
-# docs in https://pypsa-eur.readthedocs.io/en/latest/configuration.html#planning_horizons
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#planning_horizons
 planning_horizons:
 - 2050
 

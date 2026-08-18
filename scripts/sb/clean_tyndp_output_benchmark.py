@@ -604,7 +604,7 @@ if __name__ == "__main__":
     # Parameters
     options = snakemake.params["benchmarking"]
     scenario = snakemake.params["scenario"]
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.horizon)
     countries = snakemake.params["countries"]
 
     # load carrier mapping

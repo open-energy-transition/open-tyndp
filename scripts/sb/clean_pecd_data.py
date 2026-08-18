@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
-        snakemake.wildcards.planning_horizons,
+        snakemake.wildcards.horizon,
         available_years=snakemake.params.available_years,
         source="PECD",
     )
