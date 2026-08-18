@@ -340,8 +340,10 @@ if __name__ == "__main__":
             lambda x: x < voll * 0.98
         )  # Add 2% of numerical tolerance; comment out to incl. load shedding
         .pipe(
-            lambda x: (weights @ x.fillna(0))
-            / (weights @ x.notna()).astype(float).replace(0.0, np.nan)
+            lambda x: (
+                (weights @ x.fillna(0))
+                / (weights @ x.notna()).astype(float).replace(0.0, np.nan)
+            )
         )
     )
 
