@@ -750,9 +750,17 @@
           "description": "Configuration for `clustering.cluster_network` settings.",
           "properties": {
             "n_clusters": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "const": "all",
+                  "type": "string"
+                }
+              ],
               "default": 50,
-              "description": "Number of clusters to aggregate the network to.",
-              "type": "integer"
+              "description": "Number of clusters to aggregate the network to. Open-TYNDP additionally accepts 'all' to keep every bus of the base network, which is what the TYNDP workflow uses because its base network is already at bidding-zone resolution."
             },
             "algorithm": {
               "default": "kmeans",
@@ -7029,9 +7037,17 @@
       "description": "Configuration for `clustering.cluster_network` settings.",
       "properties": {
         "n_clusters": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "const": "all",
+              "type": "string"
+            }
+          ],
           "default": 50,
-          "description": "Number of clusters to aggregate the network to.",
-          "type": "integer"
+          "description": "Number of clusters to aggregate the network to. Open-TYNDP additionally accepts 'all' to keep every bus of the base network, which is what the TYNDP workflow uses because its base network is already at bidding-zone resolution."
         },
         "algorithm": {
           "default": "kmeans",
@@ -13817,9 +13833,17 @@
           "description": "Configuration for `clustering.cluster_network` settings.",
           "properties": {
             "n_clusters": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "const": "all",
+                  "type": "string"
+                }
+              ],
               "default": 50,
-              "description": "Number of clusters to aggregate the network to.",
-              "type": "integer"
+              "description": "Number of clusters to aggregate the network to. Open-TYNDP additionally accepts 'all' to keep every bus of the base network, which is what the TYNDP workflow uses because its base network is already at bidding-zone resolution."
             },
             "algorithm": {
               "default": "kmeans",

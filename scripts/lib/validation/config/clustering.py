@@ -62,9 +62,9 @@ class _SimplifyNetworkConfig(BaseModel):
 class _ClusterNetworkConfig(BaseModel):
     """Configuration for `clustering.cluster_network` settings."""
 
-    n_clusters: int = Field(
+    n_clusters: int | Literal["all"] = Field(
         50,
-        description="Number of clusters to aggregate the network to.",
+        description="Number of clusters to aggregate the network to. Open-TYNDP additionally accepts 'all' to keep every bus of the base network, which is what the TYNDP workflow uses because its base network is already at bidding-zone resolution.",
     )
     algorithm: Literal["kmeans", "hac"] = Field(
         "kmeans",
