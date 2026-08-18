@@ -11,13 +11,21 @@
 
 **Changes**
 
+* Merge the upstream PyPSA-Eur streamlined workflow ([#1838](https://github.com/PyPSA/pypsa-eur/pull/1838)). This is a breaking change for every Open-TYNDP configuration and for any script that reads Open-TYNDP resources or results. See the upstream [migration guide](migration.md) for the full picture; the Open-TYNDP-specific consequences are:
+
+    - The `scenario` block is gone from `config.tyndp.yaml`, `config/test/config.tyndp.yaml` and `config/test/config.cyears.yaml`. Planning horizons move to the top-level `planning_horizons` key, and the bidding-zone resolution is expressed through `clustering.mode: administrative` alone.
+    - `clustering.temporal.resolution_sector` is replaced by `clustering.temporal.averaging`, given as an integer number of hours (`168H` becomes `168`).
+    - `co2_budget` is now a block. Open-TYNDP configs set `upper:` and `lower:` to null to keep the previous unconstrained behaviour.
+    - The `{clusters}`, `{opts}` and `{sector_opts}` wildcards were removed from `rules/sb.smk` and `rules/cba.smk`, and `{planning_horizons}` was renamed to `{horizon}`. SB networks are now `resources/networks/composed_{horizon}.nc` and `results/networks/solved_{horizon}.nc`; the CBA reads the latter.
+    - The Open-TYNDP inputs and parameters that used to live in the `prepare_sector_network`, `add_brownfield` and `add_existing_baseyear` rules are assembled in `get_tyndp_compose_inputs()` in `rules/compose.smk` and passed to the unified `compose_network` rule.
+    - `build_electricity_demand_base_tyndp` is renamed to `build_electricity_demand_simplified_tyndp`, and the new `cluster_electricity_demand_tyndp` rule aggregates the per-horizon TYNDP demand onto the clustered buses.
+    - The `profile_pecd_{technology}.nc` and `profile_pemmdb_hydro.nc` resources are renamed to `pecd_profile_{technology}.nc` and `pemmdb_hydro_profile.nc` so that they no longer collide with the upstream `profile_{technology}.nc` pattern.
+
 **Bugfixes and Compatibility**
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
 
 **Documentation**
-
-* Merge upstream PyPSA-Eur streamlined workflow ([#1838](https://github.com/PyPSA/pypsa-eur/pull/1838)). The `scenario` wildcards are gone; horizons and cluster count now live in the configuration. See the [migration guide](migration.md).
 
 **Developers Note**
 

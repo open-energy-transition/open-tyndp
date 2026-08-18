@@ -279,8 +279,7 @@ def get_compose_inputs(w):
         )
         inputs.update(sector_inputs)
 
-    if cfg["tyndp_scenario"]:
-        inputs.update(get_tyndp_compose_inputs(w))
+    inputs.update(get_tyndp_compose_inputs(w))
 
     # Add brownfield inputs for non-first horizons
     if foresight == "overnight" and len(horizons) > 1:
