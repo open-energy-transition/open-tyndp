@@ -36,7 +36,6 @@ from scripts._helpers import (
     configure_logging,
     get_version,
     set_scenario_config,
-    update_config_from_wildcards,
 )
 from scripts.solve_network import (
     add_co2_atmosphere_constraint,
@@ -330,8 +329,6 @@ if __name__ == "__main__":
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
-    update_config_from_wildcards(snakemake.config, snakemake.wildcards)
-
     solving = copy.deepcopy(snakemake.params.solving)
     update_config(solving, snakemake.params.cba_solving)
 
@@ -344,7 +341,6 @@ if __name__ == "__main__":
         n,
         solve_opts=solving["options"],
         foresight=snakemake.params.foresight,
-        renewable_carriers=[],
         planning_horizons=planning_horizons,
         co2_sequestration_potential=None,
         limit_max_growth=None,

@@ -555,16 +555,45 @@
           "description": "Configuration for `cba.msv_extraction` settings.",
           "properties": {
             "resolution": {
-              "anyOf": [
-                {
-                  "type": "boolean"
+              "description": "Configuration for `cba.msv_extraction.resolution` settings.",
+              "properties": {
+                "averaging": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Average the MSV extraction solve over this many hours."
                 },
-                {
-                  "type": "string"
+                "segmentation": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Aggregate the MSV extraction solve into this many segments."
+                },
+                "representative": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Keep every n-th snapshot for the MSV extraction solve."
                 }
-              ],
-              "default": false,
-              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              }
             },
             "resample_method": {
               "default": "ffill",
@@ -6817,16 +6846,45 @@
       "description": "Configuration for `cba.msv_extraction` settings.",
       "properties": {
         "resolution": {
-          "anyOf": [
-            {
-              "type": "boolean"
+          "description": "Configuration for `cba.msv_extraction.resolution` settings.",
+          "properties": {
+            "averaging": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": false,
+              "description": "Average the MSV extraction solve over this many hours."
             },
-            {
-              "type": "string"
+            "segmentation": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": false,
+              "description": "Aggregate the MSV extraction solve into this many segments."
+            },
+            "representative": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "integer"
+                }
+              ],
+              "default": false,
+              "description": "Keep every n-th snapshot for the MSV extraction solve."
             }
-          ],
-          "default": false,
-          "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+          }
         },
         "resample_method": {
           "default": "ffill",
@@ -6871,6 +6929,47 @@
               "type": "string"
             }
           }
+        }
+      }
+    },
+    "_CbaMsvResolutionConfig": {
+      "description": "Configuration for `cba.msv_extraction.resolution` settings.",
+      "properties": {
+        "averaging": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": false,
+          "description": "Average the MSV extraction solve over this many hours."
+        },
+        "segmentation": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": false,
+          "description": "Aggregate the MSV extraction solve into this many segments."
+        },
+        "representative": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": false,
+          "description": "Keep every n-th snapshot for the MSV extraction solve."
         }
       }
     },
@@ -16075,16 +16174,45 @@
           "description": "Configuration for `cba.msv_extraction` settings.",
           "properties": {
             "resolution": {
-              "anyOf": [
-                {
-                  "type": "boolean"
+              "description": "Configuration for `cba.msv_extraction.resolution` settings.",
+              "properties": {
+                "averaging": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Average the MSV extraction solve over this many hours."
                 },
-                {
-                  "type": "string"
+                "segmentation": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Aggregate the MSV extraction solve into this many segments."
+                },
+                "representative": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ],
+                  "default": false,
+                  "description": "Keep every n-th snapshot for the MSV extraction solve."
                 }
-              ],
-              "default": false,
-              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              }
             },
             "resample_method": {
               "default": "ffill",

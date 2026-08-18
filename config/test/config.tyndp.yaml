@@ -472,9 +472,10 @@ cba:
 
   # Marginal storage value extraction settings
   msv_extraction:
-    # Temporal resolution for extraction solve
-    # Options: false (use native resolution), "24H", "48H", etc.
-    resolution: false
+    # Temporal resolution for extraction solve, in the same form as
+    # clustering.temporal. Leave unset to use the native resolution.
+    resolution:
+      averaging: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
     # Solve options for MSV extraction

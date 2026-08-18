@@ -28,12 +28,12 @@ from snakemake.utils import update_config
 from scripts._benchmark import memory_logger
 from scripts._helpers import (
     configure_logging,
+    get_temporal_resolution,
     get_version,
     set_scenario_config,
-    update_config_from_wildcards,
 )
+from scripts.prepare_sector_network import set_temporal_aggregation
 from scripts.solve_network import collect_kwargs, prepare_network
-from scripts.temporal_aggregation import set_temporal_aggregation
 
 logger = logging.getLogger(__name__)
 
@@ -51,15 +51,13 @@ if __name__ == "__main__":
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
-    update_config_from_wildcards(snakemake.config, snakemake.wildcards)
-
     # Load base network
     n = pypsa.Network(snakemake.input.network)
 
     # Optional: resample to coarser resolution for faster solve
-    msv_resolution = snakemake.params.get("msv_resolution", False)
+    msv_resolution = snakemake.params.msv_resolution
     snapshot_weightings = snakemake.input.get("snapshot_weightings", None)
-    if msv_resolution:
+    if get_temporal_resolution(msv_resolution):
         n = set_temporal_aggregation(n, msv_resolution, snapshot_weightings)
 
     # Merge CBA-specific solving overrides into the global solving config
@@ -80,8 +78,7 @@ if __name__ == "__main__":
         n,
         solve_opts=solve_opts,
         foresight="overnight",
-        renewable_carriers=[],
-        planning_horizons=snakemake.wildcards.get("planning_horizons", None),
+        planning_horizons=snakemake.wildcards.get("horizon", None),
         co2_sequestration_potential=None,
         limit_max_growth=None,
         config=snakemake.config,
