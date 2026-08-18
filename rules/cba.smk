@@ -279,26 +279,15 @@ rule simplify_sb_network:
         scripts("cba/simplify_sb_network.py")
 
 
-# build reference corrections between SB investments and CBA guidelines
-def get_elec_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "elec_projects")(w).get(
-        int(w.planning_horizons)
-    )
-
-
+# Placeholder for reference corrections aligning the SB base network with the
+# CBA reference grid of a given planning horizon
 rule fix_reference_sb_to_cba:
-    input:
-        invest_grid=rules.retrieve_tyndp.output.invest_grid,
-        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
-        buses=rules.build_tyndp_network.output.substations_geojson,
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
     log:
         logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/cba/fix_reference_sb_to_cba_{planning_horizons}")
-    params:
-        build_years=get_elec_project_build_years,
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 
