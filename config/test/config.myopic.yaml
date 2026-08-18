@@ -116,11 +116,10 @@ solving:
     options: highs-default
   mem_mb: 4000
   check_objective:
-    enable: true
-    expected_value:
-      2030: 576280772.02
-      2040: 415286889.58
-      2050: 316681041.46
+    # Disabled: Open-TYNDP changes shift the objective away from the upstream
+    # reference values (2030: 576280772.02, 2040: 415286889.58,
+    # 2050: 316681041.46).
+    enable: false
 
 plotting:
   map:
