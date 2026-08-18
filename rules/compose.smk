@@ -312,7 +312,7 @@ rule compose_network:
     log:
         logs("compose_network_{horizon}.log"),
     benchmark:
-        benchmarks("compose_network_{horizon}")
+        benchmarks("performances/compose_network_{horizon}")
     threads: 1
     resources:
         mem_mb=8000,
