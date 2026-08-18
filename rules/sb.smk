@@ -505,6 +505,7 @@ rule build_pemmdb_data:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
+        weather_year=get_weather_year_tyndp,
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
