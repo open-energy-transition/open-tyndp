@@ -17,13 +17,55 @@
 
 **Documentation**
 
+* Merge upstream PyPSA-Eur streamlined workflow ([#1838](https://github.com/PyPSA/pypsa-eur/pull/1838)). The `scenario` wildcards are gone; horizons and cluster count now live in the configuration. See the [migration guide](migration.md).
+
 **Developers Note**
 
 * feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
-  
+
 
 ## Upcoming PyPSA-Eur Release
 
+* Streamlined workflow ([#1838](https://github.com/PyPSA/pypsa-eur/pull/1838)). See the [migration guide](migration.md) for detailed migration guidance.
+
+    **Workflow structure:**
+
+    - The network pipeline now follows a 4-stage progression: `base.nc` → `simplified.nc` → `clustered.nc` → `composed_{horizon}.nc` → `solved_{horizon}.nc`.
+    - Cryptic filenames like `elec_s_37_lv1.25_3H_2030.nc` are replaced with readable names. Scenario parameters (clusters, opts, sector_opts) are now set via configuration rather than filename wildcards.
+    - A unified `compose_network` rule handles greenfield, brownfield, and perfect foresight network assembly for both electricity-only and sector-coupled models.
+    - A single `solve_network` rule replaces the separate `solve_electricity.smk`, `solve_overnight.smk`, `solve_myopic.smk`, and `solve_perfect.smk` rule files (now deleted).
+    - **Electricity-only models now support myopic and perfect foresight**, not just overnight optimization. New test configs `config.electricity-myopic.yaml` and `config.electricity-perfect.yaml` added.
+    - **Perfect foresight runs on PyPSA ≥1.0 again.** The previous `prepare_perfect_foresight.py` raised `PyPSA versions >=1.0 are not supported for perfect foresight`; perfect foresight has been ported to the current PyPSA API so it is usable once more.
+    - Post-processing (summaries, maps, plots) works uniformly across all foresight modes and model types.
+    - Results CSVs (`costs.csv`, `capacities.csv`, `energy.csv`, etc.) are unified across horizons.
+    - `make_summary.py` now handles all foresight modes, consolidating the functionality of `make_summary_perfect.py` and `make_global_summary.py`.
+    - A new migration guide documents file name mappings and configuration changes in detail.
+
+    **Breaking configuration changes:**
+
+    - Removed `scenario:` block. The `scenario: clusters/opts/sector_opts/planning_horizons` section is removed. Use `planning_horizons` at top-level and `clustering: cluster_network: n_clusters` for cluster count.
+    - Removed `electricity: co2limit_enable`, `electricity: co2limit`, and `electricity: co2base`. Use the unified `co2_budget` section with `upper:`/`lower:` bounds instead. The `Co2L` and `cb*` wildcards (both opts and sector_opts) are also removed.
+    - Restructured `co2_budget:`. Now requires `emissions_scope` and `relative` (true/false) plus `upper`/`lower` bounds, where each bound can be `null`, a scalar, or a `{year: value}` mapping.
+    - Renamed transmission extension keys. `lines: max_extension` → `s_nom_max_extension`; `links: max_extension` → `p_nom_max_extension`.
+    - Retrofitted H2 pipelines now model directional transmission losses. `H2 pipeline retrofitted` was added to `sector: transmission_efficiency: enable`, so these links are split into two unidirectional lossy links (as already done for `H2 pipeline` and `gas pipeline`) instead of a single lossless bidirectional link. This changes results where H2 pipeline losses are relevant.
+    - Added `sector: enabled` to control sector coupling. Set to `false` for electricity-only models.
+    - Moved national policy phase-outs to `existing_capacities: phase_outs` as a list of `{carriers, countries, year}` rules. Previously hardcoded in `prepare_perfect_foresight.py`, they now cap conventional asset lifetimes for both generators (electricity-only) and links (sector-coupled) in perfect foresight. Defaults reproduce the previous behaviour.
+    - Added `clustering: cluster_network: n_clusters`. Replaces the `{clusters}` wildcard in filenames.
+    - Retained `solve_operations_network` as an opt-in rule that re-dispatches the fixed-capacity `solved_{horizon}.nc` into `operations_{horizon}.nc`. Its rolling horizon settings moved to a new `solving: operations` block (`rolling_horizon`, `horizon`, `overlap`), enabling capacity expansion followed by rolling-horizon dispatch; `solving: options: rolling_horizon` now controls the `solve_network` rule only.
+    - Renamed `regions_onshore_base_s_{clusters}.geojson` to `onshore_regions.geojson` and `regions_offshore_base_s_{clusters}.geojson` to `offshore_regions.geojson`. The process chain for shape files is now: `onshore_shapes`/`offshore_shapes` → `onshore_regions.geojson`/`offshore_regions.geojson`; shape files for the simplified resolution are now stored at `onshore_regions_simplified.geojson` and `offshore_regions_simplified.geojson`.
+
+    **Conventions:**
+
+    - Inputs to `compose_network` are already regionally clustered and simplified to be processed without further aggregation.
+    - Data files that represent a final version of themselves don't have dedicated suffixes (e.g. regionally aggregated shapes are stored at `onshore_regions.geojson`). Ancestor files that are intermediate steps in the processing chain may rely on suffixes (e.g. `onshore_shapes_simplified.geojson`).
+
+* Unified temporal resolution configuration: `clustering: temporal: resolution_elec` and `clustering: temporal: resolution_sector` have been merged into `clustering: temporal`, which exposes three mutually exclusive integer options: `averaging` (average over `n` hours), `segmentation` (aggregate into `n` `tsam` segments) and `representative` (use every `n`-th snapshot). Electricity-only and sector-coupled runs now share the same aggregation path.
+
+* Adding option to include the compression step in carbon dioxide transport before transporting in dense phase and including electricity demand for post combustion carbon capture. Adjusting the capital costs for post combustion capture that differs depending on the carbon dioxide percentage in the flue gas ([#2161](https://github.com/PyPSA/pypsa-eur/pull/2161)).
+
+* compat: Compatibility with `tsam` v4.0.
+* fix: `solve_network.py` now raises an error if solver status is `warning`
+* refactor: `prepare_sector_network.py` functions now take `spatial` as an explicit parameter instead of a module-level global.
 * fix: update stale contribution docs (linting and formatting ruff)
 
 * feat: data version CSV / YAML file can be specified separately or extended by the user in the `data.version_files` config entry ([#2016](https://github.com/PyPSA/pypsa-eur/issues/2016)).
@@ -76,8 +118,21 @@
 * fix: Ensure `inflow_t` is always defined in `attach_hydro`, resolving a pylint use-before-assignment issue ([#2224](https://github.com/PyPSA/pypsa-eur/pull/2224)).
 * Add missing regex anchor with `re.fullmatch` to `create_zenodo_deposition_cli` utils script ([#2225](https://github.com/PyPSA/pypsa-eur/pull/2225)).
 
+* doc: Add note about deep-discharge protection for BEV available battery capacity ([#2227](https://github.com/PyPSA/pypsa-eur/pull/2227)).
 * doc: Add FAQ section to docs (`faq.md`) with troubleshooting for `SSL: CERTIFICATE_VERIFY_FAILED` during data retrieval behind proxy servers ([#2228](https://github.com/PyPSA/pypsa-eur/pull/2228)).
+* doc: Expand the [FAQ and Troubleshooting](faq.md) page with common installation, solving, configuration, results, and contribution questions ([#1939](https://github.com/PyPSA/pypsa-eur/pull/1939)).
 * Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
+
+* chore: Bump the python version to 3.12 ([#2235](https://github.com/PyPSA/pypsa-eur/pull/2235)). This does not increase the real requirement, because 3.12 is already the effective minimum.
+
+* Fix: `build_electricity_demand_base` fetched the non-existent `load.distribution_key.pop` key instead of correct `population`, silently ignoring the configured value ([#2241](https://github.com/PyPSA/pypsa-eur/pull/2241)).
+* Fix: `fill_missing_years` applied the backward fill across country boundaries, so countries without any Eurostat value silently inherited the values of the next country ([#2242](https://github.com/PyPSA/pypsa-eur/pull/2242)).
+
+* chore: Drop the `grpcio < 1.78` pin and add a temporary `python < 3.14` pin ([#2244](https://github.com/PyPSA/pypsa-eur/pull/2244)). The upper bound on python will be lifted once [#2245](https://github.com/PyPSA/pypsa-eur/issues/2245) is resolved.
+
+* refactor: Split `build_shapes` into three independent rules: `build_offshore_shapes` (EEZ only), `build_nuts3_shapes` (NUTS3/ADM1 regions with GDP/population data), and `build_shapes` (country and Europe boundary aggregation).
+* refactor: Split `build_energy_totals` into three rules: `build_co2_totals` (CO2 emissions from EEA and Eurostat, no IDEES dependency) and `build_transformation_output_coke` (coke oven transformation output from Eurostat only) run independently of the remaining `build_energy_totals` (IDEES-based energy totals, transport data, district heat share, and heating efficiencies).
+* Fix: Operational reserve margin constraints now work for PyPSA v1.0. Load shedding generators are now excluded from reserve margin calculations. Renewable generators are now identified based on the configuration rather than presence of ``p_max_pu`` data. Fixed for networks without extendable generators ([#2178](https://github.com/PyPSA/pypsa-eur/pull/2178)). 
 
 
 ## Open-TYNDP v0.8 (7th August 2026)
@@ -1154,7 +1209,7 @@
 
     - Additionally, a new `.geojson` file of clustered regions split by resource
       classes is exported, which is is used in [add_electricity][] and
-      [build_clustered_solar_rooftop_potentials][] to assign existing wind and
+      `build_clustered_solar_rooftop_potentials` to assign existing wind and
       solar capacities to the correct combination of bus and resource class.
       Within a clustered region, the resource classes do not have to be
       contiguous.
@@ -1246,13 +1301,13 @@
 
     - Computes summaries for only a single network at a time.
 
-    - Concatenation is outsourced to new rule [make_global_summary][].
+    - Concatenation is outsourced to new rule `make_global_summary`.
 
     - Rule no longer depends on network plots; use the `all` collection rule to
       generate summaries and plots.
 
     - Calculation of cumulative costs for myopic foresight networks was moved to
-      [make_cumulative_costs][].
+      `make_cumulative_costs`.
 
     - Rewrote functions in [make_summary][] to use PyPSA statistics module
       more.

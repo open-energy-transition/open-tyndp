@@ -11,14 +11,6 @@
 ::: make_summary
 
 
-## Rule `make_global_summary`
-
-::: make_global_summary
-
-## Rule `make_cumulative_costs`
-
-::: make_cumulative_costs
-
 ## Rule `plot_summary` {#summary_plot}
 
 ::: plot_summary

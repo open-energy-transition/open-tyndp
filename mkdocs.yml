@@ -42,8 +42,10 @@ nav:
     - FAQ and Troubleshooting: faq_troubleshooting.md
   - References:
     - Release Notes: release_notes.md
+    - Migration Guide: migration.md
     - Licenses: licenses.md
     - Limitations: limitations.md
+    - FAQ and Troubleshooting: faq.md
     - Support: support.md
     - Publications: publications.md
     - Contributors: contributors.md

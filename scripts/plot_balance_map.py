@@ -12,14 +12,18 @@ import numpy as np
 import pandas as pd
 import pypsa
 from packaging.version import Version, parse
-from pypsa.plot import add_legend_lines, add_legend_patches, add_legend_semicircles
+from pypsa.plot.maps.static import (
+    add_legend_lines,
+    add_legend_patches,
+    add_legend_semicircles,
+)
 from pypsa.statistics import get_transmission_carriers
 
 from scripts._helpers import (
     PYPSA_V1,
     configure_logging,
+    create_placeholder_plot,
     set_scenario_config,
-    update_config_from_wildcards,
 )
 from scripts.add_electricity import sanitize_carriers
 from scripts.plot_power_network import load_projection
@@ -32,16 +36,12 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "plot_balance_map",
-            clusters="50",
-            opts="",
-            sector_opts="",
-            planning_horizons="2050",
+            horizon=2050,
             carrier="H2",
         )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
-    update_config_from_wildcards(snakemake.config, snakemake.wildcards)
 
     config = snakemake.params.plotting
     imports_as_flows = config["balance_map"]["imports_as_flows"]
@@ -75,9 +75,18 @@ if __name__ == "__main__":
     branch_color = settings.get("branch_color") or "darkseagreen"
 
     if carrier not in n.buses.carrier.unique():
-        raise ValueError(
-            f"Carrier {carrier} is not in the network. Remove from configuration `plotting: balance_map: bus_carriers`."
+        import logging
+        import sys
+
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Carrier {carrier} is not in the network. Skipping balance map plot. "
+            f"Consider removing from configuration `plotting: balance_map: bus_carriers` for this scenario."
         )
+        create_placeholder_plot(
+            snakemake.output[0], f"No {carrier} carrier\nin network", figsize=(1, 1)
+        )
+        sys.exit(0)
 
     # for plotting change bus to location
     n.buses["location"] = n.buses["location"].replace("", "EU").fillna("EU")
@@ -86,13 +95,32 @@ if __name__ == "__main__":
     n.buses["x"] = n.buses.location.map(n.buses.x)
     n.buses["y"] = n.buses.location.map(n.buses.y)
 
-    # bus_size according to energy balance of bus carrier
-    eb = n.statistics.energy_balance(bus_carrier=carrier, groupby=["bus", "carrier"])
+    if carrier == "co2 stored" and "co2 dense" in n.buses.carrier.unique():
+        co2_carriers = ["co2 stored", "co2 dense"]
+        # Aggregate energy balance of "co2 stored" and "co2 dense" to get the total CO2 balance for each bus
+        eb = n.statistics.energy_balance(
+            bus_carrier=co2_carriers, groupby=["bus", "carrier"]
+        )
+        eb = eb.rename(
+            index=lambda value: value.replace("co2 dense", carrier), level="bus"
+        )
+        eb = eb.groupby(level=["component", "bus", "carrier"]).sum()
 
-    # remove energy balance of transmission carriers which relate to losses
-    transmission_carriers = get_transmission_carriers(n, bus_carrier=carrier).rename(
-        {"name": "carrier"}
-    )
+        # remove energy balance of transmission carriers which relate to losses
+        transmission_carriers = get_transmission_carriers(
+            n, bus_carrier=co2_carriers
+        ).rename({"name": "carrier"})
+    else:
+        # bus_size according to energy balance of bus carrier
+        eb = n.statistics.energy_balance(
+            bus_carrier=carrier, groupby=["bus", "carrier"]
+        )
+
+        # remove energy balance of transmission carriers which relate to losses
+        transmission_carriers = get_transmission_carriers(
+            n, bus_carrier=carrier
+        ).rename({"name": "carrier"})
+
     components = transmission_carriers.unique("component")
     carriers = transmission_carriers.unique("carrier")
 
