@@ -6448,18 +6448,8 @@
       "properties": {
         "patch_sb_with_annexe": {
           "default": false,
-          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align the SB base network with the TYNDP reference grid of the requested planning horizon. Corrections are only relevant for horizons other than the SB base year (build_tyndp_network.REFERENCE_YEAR, 2030).",
           "type": "boolean"
-        },
-        "elec_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the CBA reference grid corrections for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
         }
       }
     },
@@ -11652,18 +11642,8 @@
       "properties": {
         "patch_sb_with_annexe": {
           "default": false,
-          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
+          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align the SB base network with the TYNDP reference grid of the requested planning horizon. Corrections are only relevant for horizons other than the SB base year (build_tyndp_network.REFERENCE_YEAR, 2030).",
           "type": "boolean"
-        },
-        "elec_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the CBA reference grid corrections for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
         }
       }
     },
