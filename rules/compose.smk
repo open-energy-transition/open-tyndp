@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: CC0-1.0
@@ -10,6 +11,8 @@ base → simplified → clustered → composed → solved
 
 All configuration is now driven by config sections rather than wildcards.
 """
+
+from scripts._helpers import safe_pyear
 
 
 def get_tyndp_compose_inputs(w):
