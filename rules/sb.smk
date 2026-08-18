@@ -213,7 +213,7 @@ rule clean_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        onshore_buses=resources("busmap_base_s_all.csv"),
+        onshore_buses=resources("busmap_cluster_network.csv"),
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{horizon}.csv"),
     log:
@@ -258,7 +258,7 @@ rule build_renewable_profiles_pecd:
     input:
         unpack(input_data_pecd),
     output:
-        profile=resources("profile_pecd_{technology}.nc"),
+        profile=resources("pecd_profile_{technology}.nc"),
     log:
         logs("build_renewable_profile_pecd_{technology}.log"),
     benchmark:
@@ -287,7 +287,7 @@ rule build_pemmdb_data:
     input:
         pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
-        busmap=resources("busmap_base_s_all.csv"),
+        busmap=resources("busmap_cluster_network.csv"),
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{horizon}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{horizon}.nc"),
@@ -364,7 +364,7 @@ rule build_tyndp_trajectories:
 rule clean_tyndp_hydro_inflows:
     input:
         hydro_inflows_dir=rules.retrieve_tyndp.output.hydro_inflows,
-        busmap=resources("busmap_base_s_all.csv"),
+        busmap=resources("busmap_cluster_network.csv"),
     output:
         hydro_inflows_tyndp=resources(
             "hydro_inflows_tyndp_{tech}_{horizon}.csv"
@@ -416,7 +416,7 @@ rule build_tyndp_hydro_profile:
         unpack(input_data_hydro_tyndp),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
-        profile=resources("profile_pemmdb_hydro.nc"),
+        profile=resources("pemmdb_hydro_profile.nc"),
     log:
         logs("build_tyndp_hydro_profile.log"),
     benchmark:
@@ -437,7 +437,7 @@ rule build_tyndp_hydro_profile:
         scripts("sb/build_tyndp_hydro_profile.py")
 
 
-use rule build_electricity_demand_base as build_electricity_demand_base_tyndp with:
+use rule build_electricity_demand_base as build_electricity_demand_simplified_tyndp with:
     input:
         unpack(input_elec_demand_base),
         raster=[],
@@ -446,11 +446,23 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
         nuts3=[],
         load=resources("electricity_demand_{horizon}.csv"),
     output:
-        resources("electricity_demand_base_s_{horizon}.nc"),
+        resources("electricity_demand_simplified_{horizon}.nc"),
     log:
-        logs("build_electricity_demand_base_s_{horizon}.log"),
+        logs("build_electricity_demand_simplified_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_electricity_demand_base_s_{horizon}")
+        benchmarks("performances/build_electricity_demand_simplified_{horizon}")
+
+
+use rule cluster_electricity_demand as cluster_electricity_demand_tyndp with:
+    input:
+        load=resources("electricity_demand_simplified_{horizon}.nc"),
+        busmap=resources("busmap_cluster_network.csv"),
+    output:
+        resources("electricity_demand_clustered_{horizon}.nc"),
+    log:
+        logs("cluster_electricity_demand_{horizon}.log"),
+    benchmark:
+        benchmarks("performances/cluster_electricity_demand_{horizon}")
 
 
 # Build sector
@@ -1001,7 +1013,7 @@ rule clean_pecd_datas:
 rule build_renewable_profiles_pecds:
     input:
         lambda w: expand(
-            resources("profile_pecd_{technology}.nc"),
+            resources("pecd_profile_{technology}.nc"),
             horizon=config["planning_horizons"],
             run=config["run"]["name"],
             technology=config_provider(
