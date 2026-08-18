@@ -35,7 +35,7 @@ INDICATOR_UNITS = {
 }
 
 # TODO read from CSV file
-cyear_weightings = {
+weather_scenarios_weightings = {
     1995: 0.233,
     2008: 0.367,
     2009: 0.400,
@@ -78,7 +78,7 @@ def average_indicators_csv(
         reader = csv.reader(f)
         header = next(reader)
         # add additional field to the new header structure
-        header.insert(0, "cyear_weight")
+        header.insert(0, "weather_scenarios_weight")
 
     # Write output file
     row_count = 0
@@ -88,18 +88,18 @@ def average_indicators_csv(
 
         for input_file in input_files:
             # check if input_file shows reference to required weather year
-            cyear = None
-            cyear_weight = 1
-            for cy in cyear_weightings:
-                cyear_str = "cy" + str(cy)
-                if cyear_str in input_file:
-                    cyear = cy
-                    cyear_weight = cyear_weightings[cy]
+            weather_scenarios = None
+            weather_scenarios_weight = 1
+            for cy in weather_scenarios_weightings:
+                weather_scenarios_str = "cy" + str(cy)
+                if weather_scenarios_str in input_file:
+                    weather_scenarios = cy
+                    weather_scenarios_weight = weather_scenarios_weightings[cy]
                     break
 
-            if cyear is None:
+            if weather_scenarios is None:
                 logger.info(
-                    "No cyear tag found in %s, defaulting to weight=1",
+                    "No weather_scenarios tag found in %s, defaulting to weight=1",
                     input_file,
                 )
 
@@ -110,7 +110,7 @@ def average_indicators_csv(
                 # Read and verify header
                 file_header = next(reader, None)
                 # add additional field to the new header structure
-                file_header.insert(0, "cyear_weight")
+                file_header.insert(0, "weather_scenarios_weight")
                 if file_header != header:
                     logger.warning(
                         f"Header mismatch in {input_file}. "
@@ -120,9 +120,9 @@ def average_indicators_csv(
                 # Write all data rows
                 for row in reader:
                     if "Open-TYNDP" in row:
-                        row.insert(0, cyear_weight)
+                        row.insert(0, weather_scenarios_weight)
                     else:
-                        row.insert(0, 1)  # cyear_weight
+                        row.insert(0, 1)  # weather_scenarios_weight
                     writer.writerow(row)
                     row_count += 1
 
@@ -145,7 +145,7 @@ def average_indicators_csv(
                 df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value
                 * df[
                     (df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")
-                ].cyear_weight
+                ].weather_scenarios_weight
             ).sum(),
             "max": (
                 df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value
@@ -161,8 +161,8 @@ def average_indicators_csv(
             df.loc[len(df)] = dict(
                 {
                     "planning_horizon": planning_horizon,
-                    "cyear_weight": 1.0,
-                    "cyear": "weighted-average",
+                    "weather_scenarios_weight": 1.0,
+                    "weather_scenarios": "weighted-average",
                     "project_id": project_id,
                     "method": method,
                     "source": "Open-TYNDP",

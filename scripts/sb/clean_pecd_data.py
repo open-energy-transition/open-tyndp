@@ -40,8 +40,8 @@ logger = logging.getLogger(__name__)
 def read_pecd_file(
     node: str,
     dir_pecd: str,
-    cyear: int,
-    cyear_i: int,
+    weather_scenario: int,
+    weather_scenario_i: int,
     pyear: int,
     technology: str,
     sns: pd.DatetimeIndex,
@@ -61,14 +61,14 @@ def read_pecd_file(
 
     pecd_bus = pd.read_csv(fn)
 
-    datetime_str = f"{cyear_i}." + pecd_bus["Date"].str.cat(
+    datetime_str = f"{weather_scenario_i}." + pecd_bus["Date"].str.cat(
         (pecd_bus["Hour"] - 1).astype(str), sep=" "
     )
     cf_pecd = (
         pecd_bus.set_index(pd.to_datetime(datetime_str, format="%Y.%d.%m. %H"))
         .drop(columns=["Date", "Hour"])
-        .loc[sns, [str(cyear)]]  # filter for snapshots and climate year only
-        .rename(columns={str(cyear): node})
+        .loc[sns, [str(weather_scenario)]]  # filter for snapshots and climate year only
+        .rename(columns={str(weather_scenario): node})
     )
 
     return cf_pecd
@@ -92,20 +92,20 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    cyear = sns[0].year
+    weather_scenario = sns[0].year
     # define climate year to use for the Datetime Index later on
-    cyear_i = cyear
+    weather_scenario_i = weather_scenario
     prebuilt_years = snakemake.params.prebuilt_years
 
-    if int(cyear) not in prebuilt_years:
+    if int(weather_scenario) not in prebuilt_years:
         # TODO: Note that because of this fallback, the snapshots of the profiles will not always match with the model snapshots
         fallback_year = (
             2009 if 2009 in prebuilt_years else (prebuilt_years[-1])
-        )  # use 2009 as default fallback if one of the filtered cyears
+        )  # use 2009 as default fallback if one of the filtered weather_scenarios
         logger.warning(
             f"Snapshot year doesn't match available TYNDP data. Falling back to {fallback_year}."
         )
-        cyear = fallback_year
+        weather_scenario = fallback_year
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
@@ -142,8 +142,8 @@ if __name__ == "__main__":
     func = partial(
         read_pecd_file,
         dir_pecd=dir_pecd,
-        cyear=cyear,
-        cyear_i=cyear_i,
+        weather_scenario=weather_scenario,
+        weather_scenario_i=weather_scenario_i,
         pyear=pyear,
         technology=pecd_tech,
         sns=sns,

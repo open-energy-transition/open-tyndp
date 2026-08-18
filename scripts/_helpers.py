@@ -1605,13 +1605,13 @@ def convert_units(
     return df
 
 
-def check_cyear(cyear: int, scenario: str) -> int:
+def check_weather_scenarios(weather_scenarios: int, scenario: str) -> int:
     """
     Check if the climatic year is valid for the given scenario.
 
     Parameters
     ----------
-    cyear : int
+    weather_scenarios : int
         Climatic year to validate.
     scenario : str
         TYNDP scenario name.
@@ -1628,13 +1628,13 @@ def check_cyear(cyear: int, scenario: str) -> int:
         "GA": [1995, 2008, 2009],
     }
 
-    if cyear not in valid_years[scenario]:
+    if weather_scenarios not in valid_years[scenario]:
         logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {weather_scenarios} doesn't match available TYNDP data. Falling back to 2009."
         )
-        cyear = 2009
+        weather_scenarios = 2009
 
-    return cyear
+    return weather_scenarios
 
 
 def get_tyndp_conventional_thermals(

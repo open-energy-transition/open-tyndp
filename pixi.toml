@@ -207,8 +207,8 @@ tyndp-cba-test = """bash -c '
     snakemake -call cba --configfile config/config.tyndp.yaml -n \
     ' --
 """
-tyndp-cyears-test = """bash -c '
-    snakemake -call --configfile config/test/config.cyears.yaml "$@"
+tyndp-weather_scenarios-test = """bash -c '
+    snakemake -call --configfile config/test/config.weather_scenarios.yaml "$@"
     ' --
 """
 create-tyndp-graphs = """
@@ -232,7 +232,7 @@ close-explorers = """
 clean-tyndp = """
      snakemake -call --configfile config/test/config.tyndp.yaml --delete-all-output ;
      snakemake -call cba --configfile config/test/config.tyndp.yaml --delete-all-output ;
-     snakemake -call --configfile config/test/config.cyears.yaml --delete-all-output ;
+     snakemake -call --configfile config/test/config.weather_scenarios.yaml --delete-all-output ;
      snakemake -call --configfile config/config.tyndp.yaml --delete-all-output ;
      snakemake -call cba --configfile config/config.tyndp.yaml --delete-all-output ;
      echo "All tyndp outputs have been cleaned up."

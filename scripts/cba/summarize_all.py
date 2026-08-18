@@ -170,7 +170,7 @@ def create_plots(
     subindexes = df.subindex.unique()
     planning_horizons = df.planning_horizon.unique()
     project_ids = df.loc[df["source"] == "Open-TYNDP", "project_id"].dropna().unique()
-    cyears = df.loc[df["source"] == "Open-TYNDP", "cyear"].dropna().unique()
+    weather_scenarios = df.loc[df["source"] == "Open-TYNDP", "weather_scenario"].dropna().unique()
 
     if len(planning_horizons) == 0:
         logger.info("No planning horizons found in dataset")
@@ -189,10 +189,10 @@ def create_plots(
     plot_items_percent = []
     axis_items = []
     for planning_horizon in planning_horizons:
-        for cyear in cyears:
+        for weather_scenario in weather_scenarios:
             for project_id in project_ids:
                 # Collect data to plot
-                project_label = f"{planning_horizon}, {cyear}, t{project_id}"
+                project_label = f"{planning_horizon}, {weather_scenario}, t{project_id}"
                 project_df = df[df["project_id"] == project_id].copy()
                 indicators = sorted(project_df["indicator"].dropna().unique())
 

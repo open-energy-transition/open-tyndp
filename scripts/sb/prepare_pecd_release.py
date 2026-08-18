@@ -31,7 +31,7 @@ def process_pecd_files(
     pecd_file: str,
     dir_pecd: Path,
     output_dir: Path,
-    cyears: pd.Series,
+    weather_scenarios: pd.Series,
 ) -> pd.DataFrame:
     fn = Path(dir_pecd, pecd_file)
 
@@ -44,9 +44,9 @@ def process_pecd_files(
     def _usecols(name):
         return (
             name in ("Date", "Hour")
-            or name in cyears.values
-            or name in cyears.astype(str).values
-            or name in cyears.astype(float).astype(str).values
+            or name in weather_scenarios.values
+            or name in weather_scenarios.astype(str).values
+            or name in weather_scenarios.astype(float).astype(str).values
         )
 
     if "xls" in pecd_file or "xlsx" in pecd_file:
@@ -55,13 +55,13 @@ def process_pecd_files(
             skiprows=skiprows,  # first rows contain only file metadata
             usecols=lambda name: _usecols(name),
             engine="openpyxl",
-        ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
+        ).rename(columns={str(float(weather_scenario)): str(weather_scenario) for weather_scenario in weather_scenarios})
     else:
         df = pd.read_csv(
             fn,
             skiprows=skiprows,  # first rows contain only file metadata
             usecols=lambda name: _usecols(name),
-        ).rename(columns={str(float(cyear)): str(cyear) for cyear in cyears})
+        ).rename(columns={str(float(weather_scenario)): str(weather_scenario) for weather_scenario in weather_scenarios})
 
     output_file = Path(output_dir, pecd_file).with_suffix(".csv")
 
@@ -85,13 +85,13 @@ if __name__ == "__main__":
     ############
 
     # Climate year from snapshots
-    cyears = pd.Series(snakemake.params.cyears).astype(int)
-    available_cyears = np.arange(1982, 2020, 1)
-    if set(cyears).difference(available_cyears):
+    weather_scenarios = pd.Series(snakemake.params.weather_scenarios).astype(int)
+    available_weather_scenarios = np.arange(1982, 2020, 1)
+    if set(weather_scenarios).difference(available_weather_scenarios):
         logger.warning(
             "Climate year doesn't match available TYNDP data. Only returning subset of available climate years."
         )
-        cyears = pd.Series(list(set(cyears).intersection(available_cyears)))
+        weather_scenarios = pd.Series(list(set(weather_scenarios).intersection(available_weather_scenarios)))
     # Planning years for which PECD data is available for in the specified PECD version
     available_pyears = snakemake.params.available_pyears
     # Input and output directories and prebuilt version
@@ -124,7 +124,7 @@ if __name__ == "__main__":
             process_pecd_files,
             dir_pecd=dir_pecd_year,
             output_dir=output_dir,
-            cyears=cyears,
+            weather_scenarios=weather_scenarios,
         )
 
         with mp.Pool(processes=snakemake.threads) as pool:

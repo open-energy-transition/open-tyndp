@@ -50,7 +50,7 @@ def _load_vp_carrier_mapping(carrier_mapping_fn: str) -> dict:
 def get_elec_demand(
     elec_demand_fn: str,
     scenario: str,
-    cyear: int,
+    weather_scenario: int,
     unit_conversion: dict,
 ) -> pd.DataFrame:
     """
@@ -63,7 +63,7 @@ def get_elec_demand(
         Path to the electricity demand data file.
     scenario : str
         Name of the scenario being processed.
-    cyear : int
+    weather_scenario : int
         Climate year.
     unit_conversion : dict
         Dictionary of unit conversions.
@@ -79,7 +79,7 @@ def get_elec_demand(
         .replace(SCENARIO_DICT, regex=True)
         .query(
             f"Scenario==@scenario and "
-            f"Climate_Year=='CY{cyear}' and "
+            f"Climate_Year=='CY{weather_scenario}' and "
             f"Technology=='Native Demand (excl. pump load and battery charge)' and "
             f"Country in @EU27_COUNTRIES"
         )
@@ -106,7 +106,7 @@ def get_elec_demand(
 
 
 def get_power_capacities(
-    caps_fn: str, flex_fn: str, scenario: str, cyear: int, unit_conversion: dict
+    caps_fn: str, flex_fn: str, scenario: str, weather_scenario: int, unit_conversion: dict
 ) -> pd.DataFrame:
     """
     Read and process the power capacity data files.
@@ -119,7 +119,7 @@ def get_power_capacities(
         Path to the flexible power capacity data file.
     scenario : str
         Name of the scenario being processed.
-    cyear : int
+    weather_scenario : int
         Climate year.
     unit_conversion : dict
         Dictionary of unit conversions.
@@ -136,7 +136,7 @@ def get_power_capacities(
             .replace(SCENARIO_DICT, regex=True)
             .query(
                 f"Scenario==@scenario and "
-                f"Climate_Year=='CY{cyear}' and "
+                f"Climate_Year=='CY{weather_scenario}' and "
                 f"Property_Name == 'Installed Capacity' and "
                 f"Country in @EU27_COUNTRIES"
             )
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params["scenario"]
     unit_conversion = snakemake.params["unit_conversion"]
-    cyear = get_snapshots(snakemake.params.snapshots)[0].year
+    weather_scenario = get_snapshots(snakemake.params.snapshots)[0].year
 
     # load carrier mapping
     CARRIER_MAP = _load_vp_carrier_mapping(snakemake.input.carrier_mapping)
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     elec_demand = get_elec_demand(
         elec_demand_fn=snakemake.input.elec_demand,
         scenario=scenario,
-        cyear=cyear,
+        weather_scenario=weather_scenario,
         unit_conversion=unit_conversion,
     )
 
@@ -202,7 +202,7 @@ if __name__ == "__main__":
         caps_fn=snakemake.input.elec_supplymix,
         flex_fn=snakemake.input.elec_flex,
         scenario=scenario,
-        cyear=cyear,
+        weather_scenario=weather_scenario,
         unit_conversion=unit_conversion,
     )
 
