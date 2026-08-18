@@ -270,7 +270,7 @@ if __name__ == "__main__":
     scenario = snakemake.params.scenario
     source = snakemake.params.h2_reference_grid_source
     pyear = int(snakemake.wildcards.planning_horizons)
-    cyear = get_snapshots(snakemake.params.snapshots)[0].year
+    weather_scenario = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
     h2_grid = load_h2_grid(

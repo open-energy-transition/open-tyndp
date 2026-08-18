@@ -633,8 +633,8 @@ def compare_sources(
         # Generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios
         show_warning = True
         if table == "generation_profiles":
-            cyear = int(pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0])
-            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and cyear == 2009
+            weather_scenario = int(pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0])
+            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and weather_scenario == 2009
 
         if show_warning:
             logger.warning(
@@ -642,7 +642,7 @@ def compare_sources(
             )
         else:
             logger.info(
-                f"Skipping table {table} for scenario {scenario} and climate year {cyear}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
+                f"Skipping table {table} for scenario {scenario} and climate year {weather_scenario}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
             )
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],

@@ -365,7 +365,7 @@ def plot_summary_projects_benchmark(
     if model_df.empty:
         logger.info("No Open-TYNDP data to plot")
         return
-    weighted_df = model_df[model_df["cyear"] == "weighted-average"]
+    weighted_df = model_df[model_df["weather_scenario"] == "weighted-average"]
     if not weighted_df.empty:
         model_df = weighted_df
 

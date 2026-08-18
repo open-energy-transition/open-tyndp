@@ -31,7 +31,7 @@ def process_pecd_files(
     pecd_file: str,
     dir_pecd: Path,
     output_dir: Path,
-    cyears: pd.Series,
+    weather_scenarios: pd.Series,
 ) -> pd.DataFrame:
     fn = Path(dir_pecd, pecd_file)
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         logger.warning(
             "Weather scenarios doesn't match available TYNDP data. Only returning subset of available weather scenarios."
         )
-        cyears = pd.Series(list(set(cyears).intersection(available_cyears)))
+        weather_scenarios = pd.Series(list(set(weather_scenarios).intersection(available_weather_scenarios)))
     # Planning years for which PECD data is available for in the specified PECD version
     available_pyears = snakemake.params.available_pyears
     # Input and output directories and prebuilt version
@@ -106,7 +106,7 @@ if __name__ == "__main__":
             process_pecd_files,
             dir_pecd=dir_pecd_year,
             output_dir=output_dir,
-            cyears=cyears,
+            weather_scenarios=weather_scenarios,
         )
 
         with mp.Pool(processes=snakemake.threads) as pool:

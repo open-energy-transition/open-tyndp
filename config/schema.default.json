@@ -8361,8 +8361,13 @@
     "_PecdPreBuiltConfig": {
       "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
       "properties": {
+<<<<<<< HEAD
         "cyears": {
           "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
+=======
+        "weather_scenarios": {
+          "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+>>>>>>> 51ad1362 (rename: cyear -> weather_scenario)
           "items": {
             "type": "integer"
           },
@@ -8381,8 +8386,13 @@
         "pre_built": {
           "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
           "properties": {
+<<<<<<< HEAD
             "cyears": {
               "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
+=======
+            "weather_scenarios": {
+              "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+>>>>>>> 51ad1362 (rename: cyear -> weather_scenario)
               "items": {
                 "type": "integer"
               },
@@ -9988,8 +9998,13 @@
             "pre_built": {
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
+<<<<<<< HEAD
                 "cyears": {
                   "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
+=======
+                "weather_scenarios": {
+                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+>>>>>>> 51ad1362 (rename: cyear -> weather_scenario)
                   "items": {
                     "type": "integer"
                   },

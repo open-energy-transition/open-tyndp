@@ -173,7 +173,7 @@ class _PecdPreBuiltConfig(BaseModel):
         description="List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
     )
 
-    @field_validator("cyears")
+    @field_validator("weather_scenarios")
     @classmethod
     def validate_cyears(cls, v: list[int]) -> list[int]:
         """Validate that weather scenarios are between 1 and 120."""
