@@ -337,7 +337,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    averaging: 168  # Use 1 for high resolution results in SB (requires commercial solver)
+    averaging: 168h  # Use 1h for high resolution results in SB (requires commercial solver)
 
 adjustments:
   electricity: false

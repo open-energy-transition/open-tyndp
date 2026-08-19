@@ -23,6 +23,7 @@ from scripts._helpers import (
 )
 from scripts.add_electricity import sanitize_carriers
 from scripts.build_tyndp_network import IBFI_COORD
+from scripts.co2_budget import co2_limit_name
 
 VALID_MAP_STYLES = PydeckPlotter.VALID_MAP_STYLES
 
@@ -175,10 +176,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "plot_balance_map_interactive",
-            clusters=50,
-            opts="",
-            sector_opts="",
-            planning_horizons="2050",
+            horizon="2050",
             carrier="H2",
         )
 
@@ -347,8 +345,9 @@ if __name__ == "__main__":
         )
     )
 
-    if carrier == "co2 stored" and "CO2Limit" in n.global_constraints.index:
-        co2_price = n.global_constraints.loc["CO2Limit", "mu"]
+    co2_limit = co2_limit_name("upper")
+    if carrier == "co2 stored" and co2_limit in n.global_constraints.index:
+        co2_price = n.global_constraints.loc[co2_limit, "mu"]
         price = price - co2_price
 
     # if only one price is available, use this price for all regions

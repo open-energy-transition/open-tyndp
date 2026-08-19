@@ -11,19 +11,10 @@ localrules:
 
 rule process_costs:
     input:
-        lambda w: (
-            expand(
-                resources(
-                    f"costs_{config_provider('costs', 'year')(w)}_processed.csv"
-                ),
-                run=config["run"]["name"],
-            )
-            if config_provider("foresight")(w) == "overnight"
-            else expand(
-                resources("costs_{horizon}_processed.csv"),
-                run=config["run"]["name"],
-                horizon=config["planning_horizons"],
-            )
+        expand(
+            resources("costs_{horizon}_processed.csv"),
+            run=config["run"]["name"],
+            horizon=config["planning_horizons"],
         ),
 
 
@@ -49,7 +40,7 @@ rule compose_networks:
             horizon=config["planning_horizons"],
         ),
     message:
-        "Collecting prepared electricity network files"
+        "Collecting composed network files"
 
 
 rule solve_networks:
@@ -60,7 +51,7 @@ rule solve_networks:
             horizon=config["planning_horizons"][-1],
         ),
     message:
-        "Collecting solved sector-coupled network files with perfect foresight"
+        "Collecting solved network files"
 
 
 rule solve_operations_networks:

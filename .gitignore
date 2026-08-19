@@ -35,6 +35,7 @@ _build
 site
 
 benchmark/
+/site
 
 /scripts/old
 /scripts/create_scenarios.py

@@ -555,23 +555,25 @@
           "description": "Configuration for `cba.msv_extraction` settings.",
           "properties": {
             "resolution": {
-              "description": "Configuration for `cba.msv_extraction.resolution` settings.",
+              "description": "Configuration for `clustering.temporal` settings (at most one may be set).",
               "properties": {
                 "averaging": {
                   "anyOf": [
                     {
+                      "const": false,
                       "type": "boolean"
                     },
                     {
-                      "type": "integer"
+                      "type": "string"
                     }
                   ],
                   "default": false,
-                  "description": "Average the MSV extraction solve over this many hours."
+                  "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
                 },
                 "segmentation": {
                   "anyOf": [
                     {
+                      "const": false,
                       "type": "boolean"
                     },
                     {
@@ -579,11 +581,12 @@
                     }
                   ],
                   "default": false,
-                  "description": "Aggregate the MSV extraction solve into this many segments."
+                  "description": "Aggregate the time series into `n` representative segments using `tsam`."
                 },
                 "representative": {
                   "anyOf": [
                     {
+                      "const": false,
                       "type": "boolean"
                     },
                     {
@@ -591,7 +594,7 @@
                     }
                   ],
                   "default": false,
-                  "description": "Keep every n-th snapshot for the MSV extraction solve."
+                  "description": "Use every `n`-th snapshot as representative."
                 }
               }
             },
@@ -865,11 +868,11 @@
                   "type": "boolean"
                 },
                 {
-                  "type": "integer"
+                  "type": "string"
                 }
               ],
               "default": false,
-              "description": "Average the time series over every `n` hours."
+              "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
             },
             "segmentation": {
               "anyOf": [
@@ -1010,9 +1013,16 @@
       "description": "Configuration for `costs` settings.",
       "properties": {
         "year": {
-          "default": 2050,
-          "description": "Year for which to retrieve cost assumptions of `data/costs/primary/<version>/costs_<year>.csv`.",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Year of the cost assumptions `data/costs/primary/<version>/costs_<year>.csv` used for all planning horizons. If null, each planning horizon uses the cost assumptions of its own year."
         },
         "social_discountrate": {
           "default": 0.02,
@@ -1069,6 +1079,18 @@
             }
           }
         },
+        "custom_cost_fn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "data/custom_costs.csv",
+          "description": "Path to the custom costs file. None if it should not be used. Default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results."
+        },
         "custom_cost_scn": {
           "default": "all",
           "description": "Name of the custom costs scenario. Empty string if custom costs should not be used. Per default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results for 'all' scenarios.",
@@ -1103,7 +1125,7 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Add cost for a carbon-dioxide price configured in `costs: emission_prices: co2` to `marginal_cost` of generators. Config setting can also be enabled with the keyword `Ep` in the `{opts}` wildcard for electricity-only runs.",
+              "description": "Add cost for a carbon-dioxide price configured in `costs: emission_prices: co2` to `marginal_cost` of generators. For a static price, only enable this setting; for a time-varying price, also set `costs.emission_prices.dynamic` to True.",
               "type": "boolean"
             },
             "co2": {
@@ -6846,23 +6868,25 @@
       "description": "Configuration for `cba.msv_extraction` settings.",
       "properties": {
         "resolution": {
-          "description": "Configuration for `cba.msv_extraction.resolution` settings.",
+          "description": "Configuration for `clustering.temporal` settings (at most one may be set).",
           "properties": {
             "averaging": {
               "anyOf": [
                 {
+                  "const": false,
                   "type": "boolean"
                 },
                 {
-                  "type": "integer"
+                  "type": "string"
                 }
               ],
               "default": false,
-              "description": "Average the MSV extraction solve over this many hours."
+              "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
             },
             "segmentation": {
               "anyOf": [
                 {
+                  "const": false,
                   "type": "boolean"
                 },
                 {
@@ -6870,11 +6894,12 @@
                 }
               ],
               "default": false,
-              "description": "Aggregate the MSV extraction solve into this many segments."
+              "description": "Aggregate the time series into `n` representative segments using `tsam`."
             },
             "representative": {
               "anyOf": [
                 {
+                  "const": false,
                   "type": "boolean"
                 },
                 {
@@ -6882,7 +6907,7 @@
                 }
               ],
               "default": false,
-              "description": "Keep every n-th snapshot for the MSV extraction solve."
+              "description": "Use every `n`-th snapshot as representative."
             }
           }
         },
@@ -6929,47 +6954,6 @@
               "type": "string"
             }
           }
-        }
-      }
-    },
-    "_CbaMsvResolutionConfig": {
-      "description": "Configuration for `cba.msv_extraction.resolution` settings.",
-      "properties": {
-        "averaging": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "integer"
-            }
-          ],
-          "default": false,
-          "description": "Average the MSV extraction solve over this many hours."
-        },
-        "segmentation": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "integer"
-            }
-          ],
-          "default": false,
-          "description": "Aggregate the MSV extraction solve into this many segments."
-        },
-        "representative": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "integer"
-            }
-          ],
-          "default": false,
-          "description": "Keep every n-th snapshot for the MSV extraction solve."
         }
       }
     },
@@ -7599,7 +7583,7 @@
       "properties": {
         "enable": {
           "default": false,
-          "description": "Add cost for a carbon-dioxide price configured in `costs: emission_prices: co2` to `marginal_cost` of generators. Config setting can also be enabled with the keyword `Ep` in the `{opts}` wildcard for electricity-only runs.",
+          "description": "Add cost for a carbon-dioxide price configured in `costs: emission_prices: co2` to `marginal_cost` of generators. For a static price, only enable this setting; for a time-varying price, also set `costs.emission_prices.dynamic` to True.",
           "type": "boolean"
         },
         "co2": {
@@ -9485,11 +9469,11 @@
               "type": "boolean"
             },
             {
-              "type": "integer"
+              "type": "string"
             }
           ],
           "default": false,
-          "description": "Average the time series over every `n` hours."
+          "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
         },
         "segmentation": {
           "anyOf": [
@@ -13706,9 +13690,16 @@
       "description": "Configuration for `costs` settings.",
       "properties": {
         "year": {
-          "default": 2050,
-          "description": "Year for which to retrieve cost assumptions of `data/costs/primary/<version>/costs_<year>.csv`.",
-          "type": "integer"
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Year of the cost assumptions `data/costs/primary/<version>/costs_<year>.csv` used for all planning horizons. If null, each planning horizon uses the cost assumptions of its own year."
         },
         "social_discountrate": {
           "default": 0.02,
@@ -13765,6 +13756,18 @@
             }
           }
         },
+        "custom_cost_fn": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": "data/custom_costs.csv",
+          "description": "Path to the custom costs file. None if it should not be used. Default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results."
+        },
         "custom_cost_scn": {
           "default": "all",
           "description": "Name of the custom costs scenario. Empty string if custom costs should not be used. Per default `data/custom_costs.csv` contains minor adjustments for stabilising the optimisation results for 'all' scenarios.",
@@ -13799,7 +13802,7 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "Add cost for a carbon-dioxide price configured in `costs: emission_prices: co2` to `marginal_cost` of generators. Config setting can also be enabled with the keyword `Ep` in the `{opts}` wildcard for electricity-only runs.",
+              "description": "Add cost for a carbon-dioxide price configured in `costs: emission_prices: co2` to `marginal_cost` of generators. For a static price, only enable this setting; for a time-varying price, also set `costs.emission_prices.dynamic` to True.",
               "type": "boolean"
             },
             "co2": {
@@ -14018,11 +14021,11 @@
                   "type": "boolean"
                 },
                 {
-                  "type": "integer"
+                  "type": "string"
                 }
               ],
               "default": false,
-              "description": "Average the time series over every `n` hours."
+              "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
             },
             "segmentation": {
               "anyOf": [
@@ -16174,23 +16177,25 @@
           "description": "Configuration for `cba.msv_extraction` settings.",
           "properties": {
             "resolution": {
-              "description": "Configuration for `cba.msv_extraction.resolution` settings.",
+              "description": "Configuration for `clustering.temporal` settings (at most one may be set).",
               "properties": {
                 "averaging": {
                   "anyOf": [
                     {
+                      "const": false,
                       "type": "boolean"
                     },
                     {
-                      "type": "integer"
+                      "type": "string"
                     }
                   ],
                   "default": false,
-                  "description": "Average the MSV extraction solve over this many hours."
+                  "description": "Average the time series over the given pandas offset, e.g. `3h` or `1d`."
                 },
                 "segmentation": {
                   "anyOf": [
                     {
+                      "const": false,
                       "type": "boolean"
                     },
                     {
@@ -16198,11 +16203,12 @@
                     }
                   ],
                   "default": false,
-                  "description": "Aggregate the MSV extraction solve into this many segments."
+                  "description": "Aggregate the time series into `n` representative segments using `tsam`."
                 },
                 "representative": {
                   "anyOf": [
                     {
+                      "const": false,
                       "type": "boolean"
                     },
                     {
@@ -16210,7 +16216,7 @@
                     }
                   ],
                   "default": false,
-                  "description": "Keep every n-th snapshot for the MSV extraction solve."
+                  "description": "Use every `n`-th snapshot as representative."
                 }
               }
             },

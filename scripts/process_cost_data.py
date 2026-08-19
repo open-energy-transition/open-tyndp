@@ -98,9 +98,10 @@ def overwrite_costs(costs: pd.DataFrame, custom_costs: pd.DataFrame) -> pd.DataF
 def prepare_costs(
     costs: pd.DataFrame,
     config: dict,
-    custom_costs_fn: str,
+    cost_year: str,
     max_hours: dict = None,
     nyears: float = 1.0,
+    custom_costs_fn: str | None = None,
     custom_cost_scn: str = "all",
 ) -> pd.DataFrame:
     """
@@ -112,12 +113,14 @@ def prepare_costs(
         DataFrame containing extended costs
     config : dict
         Dictionary containing cost-related configuration parameters
-    custom_costs_fn : str
-        Custom cost modifications file path.
+    cost_year : str
+        Year of the cost assumptions, used to select custom cost entries
     max_hours : dict, optional
         Dictionary specifying maximum hours for storage technologies
     nyears : float, optional
         Number of years for investment, by default 1.0
+    custom_costs_fn : str, optional
+        Custom cost modifications file path (default None).
     custom_cost_scn : str, optional
         Custom cost scenario to select in custom cost modification file (default "all").
         No custom cost are applied if empty string.
@@ -141,13 +144,13 @@ def prepare_costs(
     # Load custom costs and categorize into two sets:
     # - Raw attributes: overwritten before cost preparation
     # - Prepared attributes: overwritten after cost preparation
-    if custom_cost_scn:
+    if custom_costs_fn is not None and custom_cost_scn:
         custom_costs = pd.read_csv(
             custom_costs_fn,
             dtype={"planning_horizon": "str"},
             index_col=["technology", "parameter"],
         ).query(
-            "planning_horizon in [@planning_horizon, 'all'] and scenario in [@custom_cost_scn, 'all']"
+            "planning_horizon in [@cost_year, 'all'] and scenario in [@custom_cost_scn, 'all']"
         )
 
         custom_costs = _convert_to_MW(custom_costs)
@@ -386,14 +389,13 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from _helpers import mock_snakemake
 
-        snakemake = mock_snakemake("process_cost_data", planning_horizons=2030)
+        snakemake = mock_snakemake("process_cost_data", horizon=2030)
 
     cost_params = snakemake.params["costs"]
 
     n = pypsa.Network(snakemake.input.network)
     nyears = n.snapshot_weightings.generators.sum() / 8760.0
-    planning_horizon = str(snakemake.wildcards.horizon)
-    custom_cost_scn = snakemake.params.custom_cost_scn
+    cost_year = str(snakemake.params.cost_year)
 
     # Retrieve costs assumptions
     costs = pd.read_csv(snakemake.input.costs, index_col=["technology", "parameter"])
@@ -402,10 +404,11 @@ if __name__ == "__main__":
     costs_processed = prepare_costs(
         costs,
         cost_params,
-        snakemake.input.custom_costs,
+        cost_year,
         snakemake.params.max_hours,
         nyears,
-        custom_cost_scn,
+        snakemake.input.custom_costs,
+        snakemake.params.custom_cost_scn,
     )
 
     # TODO: update costs via overwrite csv with actual tech assumptions, this currently serves as a placeholder

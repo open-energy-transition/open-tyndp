@@ -43,7 +43,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "time_aggregation",
+            "build_snapshot_weightings",
             configfiles="config/test/config.overnight.yaml",
             horizon=2030,
         )
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     # Plain resampling
     elif resolution[0] == "averaging":
-        offset = f"{resolution[1]}h"
+        offset = resolution[1]
         logger.info(f"Averaging every {offset}")
 
         # Resample years separately to handle non-contiguous years

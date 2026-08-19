@@ -193,9 +193,8 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_cop_profiles",
-            clusters=48,
-            planning_horizons="2050",
+            "build_central_heating_temperature_profiles",
+            horizon="2050",
         )
 
     set_scenario_config(snakemake)

@@ -19,7 +19,7 @@
 
 ::: plot_base_network
 
-## Rule `plot_power_network_clustered`
+## Rule `plot_clustered_network`
 
 ::: plot_power_network_clustered
 
@@ -28,10 +28,6 @@
 ## Rule `plot_power_network` {#map_plot}
 
 ::: plot_power_network
-
-## Rule `plot_power_network_perfect`
-
-::: plot_power_network_perfect
 
 ## Rule `plot_hydrogen_network`
 

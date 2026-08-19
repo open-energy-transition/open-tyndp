@@ -689,8 +689,10 @@ rule build_hac_features:
 rule process_cost_data:
     input:
         network=resources("networks/simplified.nc"),
-        costs=rules.retrieve_cost_data.output["costs"],
-        custom_costs="data/custom_costs.csv",
+        costs=lambda w: rules.retrieve_cost_data.output["costs"].format(
+            horizon=cost_year(w)
+        ),
+        custom_costs=config_provider("costs", "custom_cost_fn"),
         carrier_mapping="data/tyndp_technology_map.csv",
     output:
         resources("costs_{horizon}_processed.csv"),
@@ -704,6 +706,7 @@ rule process_cost_data:
     params:
         costs=config_provider("costs"),
         max_hours=config_provider("electricity", "max_hours"),
+        cost_year=cost_year,
         group_tyndp_conventionals=config_provider(
             "electricity", "group_tyndp_conventionals"
         ),
@@ -815,9 +818,7 @@ rule cluster_network:
         mode=config_provider("clustering", "mode"),
         administrative=config_provider("clustering", "administrative"),
         cluster_network=config_provider("clustering", "cluster_network"),
-        n_clusters=config_provider(
-            "clustering", "cluster_network", "n_clusters", default="all"
-        ),
+        n_clusters=config_provider("clustering", "cluster_network", "n_clusters"),
         aggregation_strategies=config_provider(
             "clustering", "aggregation_strategies", default={}
         ),
@@ -847,7 +848,7 @@ rule chain_busmaps:
         logs("chain_busmaps.log"),
     threads: 1
     script:
-        "../scripts/chain_busmaps.py"
+        scripts("chain_busmaps.py")
 
 
 rule cluster_electricity_demand:
@@ -865,7 +866,7 @@ rule cluster_electricity_demand:
     message:
         "Aggregating electricity demand to clustered resolution"
     script:
-        "../scripts/cluster_electricity_demand.py"
+        scripts("cluster_electricity_demand.py")
 
 
 def input_profile_tech(w):
@@ -877,99 +878,93 @@ def input_profile_tech(w):
     }
 
 
-if (
-    config["electricity"]["base_network"] == "osm"
-    and config["data"]["osm"]["source"] == "build"
-):
+rule clean_osm_data:
+    input:
+        cables_way=expand(
+            f"{OSM_DATASET['folder']}/{{country}}/cables_way.json",
+            country=config_provider("countries"),
+        ),
+        lines_way=expand(
+            f"{OSM_DATASET['folder']}/{{country}}/lines_way.json",
+            country=config_provider("countries"),
+        ),
+        routes_relation=expand(
+            f"{OSM_DATASET['folder']}/{{country}}/routes_relation.json",
+            country=config_provider("countries"),
+        ),
+        substations_way=expand(
+            f"{OSM_DATASET['folder']}/{{country}}/substations_way.json",
+            country=config_provider("countries"),
+        ),
+        substations_relation=expand(
+            f"{OSM_DATASET['folder']}/{{country}}/substations_relation.json",
+            country=config_provider("countries"),
+        ),
+        offshore_shapes=resources("offshore_shapes.geojson"),
+        country_shapes=resources("country_shapes.geojson"),
+    output:
+        substations=resources(f"osm/clean/substations.geojson"),
+        substations_polygon=resources(f"osm/clean/substations_polygon.geojson"),
+        dc_switching=resources(f"osm/clean/dc_switching.geojson"),
+        dc_switching_polygon=resources(f"osm/clean/dc_switching_polygon.geojson"),
+        converters_polygon=resources(f"osm/clean/converters_polygon.geojson"),
+        lines=resources(f"osm/clean/lines.geojson"),
+        links=resources(f"osm/clean/links.geojson"),
+    log:
+        logs("clean_osm_data.log"),
+    benchmark:
+        benchmarks("performances/clean_osm_data")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        voltages=config_provider("electricity", "voltages"),
+    message:
+        "Cleaning raw OSM data for countries: " + ", ".join(config["countries"])
+    script:
+        scripts("clean_osm_data.py")
 
-    rule clean_osm_data:
-        input:
-            cables_way=expand(
-                f"{OSM_DATASET['folder']}/{{country}}/cables_way.json",
-                country=config_provider("countries"),
-            ),
-            lines_way=expand(
-                f"{OSM_DATASET['folder']}/{{country}}/lines_way.json",
-                country=config_provider("countries"),
-            ),
-            routes_relation=expand(
-                f"{OSM_DATASET['folder']}/{{country}}/routes_relation.json",
-                country=config_provider("countries"),
-            ),
-            substations_way=expand(
-                f"{OSM_DATASET['folder']}/{{country}}/substations_way.json",
-                country=config_provider("countries"),
-            ),
-            substations_relation=expand(
-                f"{OSM_DATASET['folder']}/{{country}}/substations_relation.json",
-                country=config_provider("countries"),
-            ),
-            offshore_shapes=resources("offshore_shapes.geojson"),
-            country_shapes=resources("country_shapes.geojson"),
-        output:
-            substations=resources(f"osm/clean/substations.geojson"),
-            substations_polygon=resources(f"osm/clean/substations_polygon.geojson"),
-            dc_switching=resources(f"osm/clean/dc_switching.geojson"),
-            dc_switching_polygon=resources(f"osm/clean/dc_switching_polygon.geojson"),
-            converters_polygon=resources(f"osm/clean/converters_polygon.geojson"),
-            lines=resources(f"osm/clean/lines.geojson"),
-            links=resources(f"osm/clean/links.geojson"),
-        log:
-            logs("clean_osm_data.log"),
-        benchmark:
-            benchmarks("performances/clean_osm_data")
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            voltages=config_provider("electricity", "voltages"),
-        message:
-            "Cleaning raw OSM data for countries: " + ", ".join(config["countries"])
-        script:
-            scripts("clean_osm_data.py")
 
-    rule build_osm_network:
-        input:
-            substations=resources(f"osm/clean/substations.geojson"),
-            substations_polygon=resources(f"osm/clean/substations_polygon.geojson"),
-            dc_switching=resources(f"osm/clean/dc_switching.geojson"),
-            dc_switching_polygon=resources(f"osm/clean/dc_switching_polygon.geojson"),
-            converters_polygon=resources(f"osm/clean/converters_polygon.geojson"),
-            lines=resources(f"osm/clean/lines.geojson"),
-            links=resources(f"osm/clean/links.geojson"),
-            country_shapes=resources("country_shapes.geojson"),
-        output:
-            lines=resources(f"osm/build/lines.csv"),
-            links=resources(f"osm/build/links.csv"),
-            converters=resources(f"osm/build/converters.csv"),
-            transformers=resources(f"osm/build/transformers.csv"),
-            substations=resources(f"osm/build/buses.csv"),
-            lines_geojson=resources(f"osm/build/geojson/lines.geojson"),
-            links_geojson=resources(f"osm/build/geojson/links.geojson"),
-            converters_geojson=resources(f"osm/build/geojson/converters.geojson"),
-            transformers_geojson=resources(f"osm/build/geojson/transformers.geojson"),
-            substations_geojson=resources(f"osm/build/geojson/buses.geojson"),
-            stations_polygon=resources(f"osm/build/geojson/stations_polygon.geojson"),
-            buses_polygon=resources(f"osm/build/geojson/buses_polygon.geojson"),
-        log:
-            logs("build_osm_network.log"),
-        benchmark:
-            benchmarks("performances/build_osm_network")
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            countries=config_provider("countries"),
-            voltages=config_provider("electricity", "voltages"),
-            line_types=config_provider("lines", "types"),
-            under_construction=config_provider(
-                "osm_network_release", "under_construction"
-            ),
-            remove_after=config_provider("osm_network_release", "remove_after"),
-        message:
-            "Building OSM network"
-        script:
-            scripts("build_osm_network.py")
+rule build_osm_network:
+    input:
+        substations=resources(f"osm/clean/substations.geojson"),
+        substations_polygon=resources(f"osm/clean/substations_polygon.geojson"),
+        dc_switching=resources(f"osm/clean/dc_switching.geojson"),
+        dc_switching_polygon=resources(f"osm/clean/dc_switching_polygon.geojson"),
+        converters_polygon=resources(f"osm/clean/converters_polygon.geojson"),
+        lines=resources(f"osm/clean/lines.geojson"),
+        links=resources(f"osm/clean/links.geojson"),
+        country_shapes=resources("country_shapes.geojson"),
+    output:
+        lines=resources(f"osm/build/lines.csv"),
+        links=resources(f"osm/build/links.csv"),
+        converters=resources(f"osm/build/converters.csv"),
+        transformers=resources(f"osm/build/transformers.csv"),
+        substations=resources(f"osm/build/buses.csv"),
+        lines_geojson=resources(f"osm/build/geojson/lines.geojson"),
+        links_geojson=resources(f"osm/build/geojson/links.geojson"),
+        converters_geojson=resources(f"osm/build/geojson/converters.geojson"),
+        transformers_geojson=resources(f"osm/build/geojson/transformers.geojson"),
+        substations_geojson=resources(f"osm/build/geojson/buses.geojson"),
+        stations_polygon=resources(f"osm/build/geojson/stations_polygon.geojson"),
+        buses_polygon=resources(f"osm/build/geojson/buses_polygon.geojson"),
+    log:
+        logs("build_osm_network.log"),
+    benchmark:
+        benchmarks("performances/build_osm_network")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        countries=config_provider("countries"),
+        voltages=config_provider("electricity", "voltages"),
+        line_types=config_provider("lines", "types"),
+        under_construction=config_provider("osm_network_release", "under_construction"),
+        remove_after=config_provider("osm_network_release", "remove_after"),
+    message:
+        "Building OSM network"
+    script:
+        scripts("build_osm_network.py")
 
 
 rule build_tyndp_network:

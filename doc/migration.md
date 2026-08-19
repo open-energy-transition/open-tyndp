@@ -18,7 +18,8 @@ workflow runs through five stages with fixed, readable names:
 base → simplified → clustered → composed_{horizon} → solved_{horizon}
 ```
 
-Only one wildcard is left: `{horizon}`, the planning year.
+Only two wildcards are left: `{horizon}`, the planning year, and `{run}`, which
+appears when `run.scenarios.enable` is true.
 
 All three foresight modes use these same stages. They differ only in how they
 loop over the horizons:
@@ -137,10 +138,12 @@ removed, so the block is not read any more. Move its content as follows:
 the `{horizon}` wildcard. A single year may be written as a scalar
 (`planning_horizons: 2030`); it is turned into a list for you.
 
-`n_clusters` takes one integer, not a list, because the wildcard sweep is gone. To
-compare several cluster counts, write one scenario per count under `run.scenarios`
-(see [configuration](configuration.md)). For administrative clustering, set
-`clustering.mode: administrative` instead of the former `clusters: [adm]`.
+`n_clusters` takes one integer or `all`, not a list, because the wildcard sweep is
+gone. `all` skips clustering and keeps every bus of the simplified network, as the
+former `clusters: [all]` did. To compare several cluster counts, write one scenario
+per count under `run.scenarios` (see [configuration](configuration.md)). For
+administrative clustering, set `clustering.mode: administrative` instead of the
+former `clusters: [adm]`.
 
 !!! warning "Overnight runs need exactly one horizon"
     With `foresight: overnight`, `planning_horizons` must contain exactly one year.
@@ -168,7 +171,7 @@ have no effect at all.
 | Old token | New config |
 |--------------|-----------|
 | `Co2L<x>` | `co2_budget.upper` (see [CO₂](#co2-budget)) |
-| `<n>h` | `clustering.temporal.averaging: <n>` |
+| `<n>h` | `clustering.temporal.averaging: <n>h` |
 | `<n>seg` | `clustering.temporal.segmentation: <n>` |
 | `CH4L<x>` | `electricity.gaslimit_enable: true` + `electricity.gaslimit` |
 | `Ep<x>` | `costs.emission_prices.enable: true` + `costs.emission_prices.co2` |
@@ -269,9 +272,9 @@ in each mode.
 ### Temporal resolution {#temporal}
 
 `clustering.temporal.resolution_elec` and `resolution_sector` are replaced by three
-integer options under `clustering.temporal`, of which you may set only one:
+options under `clustering.temporal`, of which you may set only one:
 
-- `averaging: <n>` averages over `n` hours,
+- `averaging: <offset>` averages over a pandas offset such as `3h` or `1d`,
 - `segmentation: <n>` aggregates the year into `n` segments using `tsam`,
 - `representative: <n>` keeps every `n`-th snapshot.
 
@@ -282,17 +285,18 @@ may be set`.
 
 | Old string | New |
 |---------------|-----|
-| `resolution_elec: 24h` / `resolution_sector: 24H` | `averaging: 24` |
-| `resolution_sector: 8760h` | `averaging: 8760` |
+| `resolution_elec: 24h` / `resolution_sector: 24H` | `averaging: 24h` |
+| `resolution_sector: 8760h` | `averaging: 8760h` |
 | `resolution_*: 4380seg` | `segmentation: 4380` |
 | `resolution_*: 3sn` | `representative: 3` |
 | `resolution_*: false` | leave all three `false` |
 
 !!! note
     `averaging` and `representative` reproduce the previous numbers exactly.
-    `segmentation` does not: the segments are now derived from
-    `networks/clustered.nc` rather than from the fully prepared network, so segment
-    boundaries and weights differ.
+    `segmentation` does not: the segments are now derived from the renewable profile,
+    electricity demand, heat demand and solar thermal resources rather than from the
+    time series of the fully prepared network, so segment boundaries and weights
+    differ.
 
 ### Other renamed keys {#other-keys}
 
@@ -360,7 +364,7 @@ clustering:
   cluster_network:
     n_clusters: 37
   temporal:
-    averaging: 24
+    averaging: 24h
 
 co2_budget:
   emissions_scope: CO2
@@ -384,13 +388,15 @@ The changes below are not renames. Even with an equivalent config the model itse
 changes, so do not expect to reproduce old numbers unless you act on them. Each item
 says how to get the old behaviour back, where that is possible.
 
-**Overnight runs now use per-horizon costs.** Every layer is costed with
-`costs_{horizon}_processed.csv`, and `costs.year` no longer influences composition.
-Previously an overnight run used `costs.year` (default 2050) regardless of the
-horizon, and in myopic and perfect runs the electricity layer used `costs.year` while
-the sector layer used the horizon. Wherever those two years differed, all costs,
-efficiencies and lifetimes change.
-*Old behaviour:* set `planning_horizons: [<old costs.year>]`.
+**Costs follow the planning horizon by default.** Every layer is costed with
+`costs_{horizon}_processed.csv`. Previously an overnight run used `costs.year`
+(default 2050) regardless of the horizon, and in myopic and perfect runs the
+electricity layer used `costs.year` while the sector layer used the horizon.
+Wherever those two years differed, all costs, efficiencies and lifetimes change.
+`costs.year` now defaults to `null` and acts as an override: set it to a year to cost
+*all* horizons with that year's assumptions, e.g. a 2050 horizon with conservative
+2030 cost assumptions. The override also selects which `planning_horizon` entries of
+`data/custom_costs.csv` apply.
 
 **Electricity-only runs are CO₂-capped by default**, and absolute caps are given in
 Gt instead of tonnes. A default electricity-only run therefore changes from
@@ -423,8 +429,9 @@ electricity-only runs also pick up `adjustments.sector`, and Line/Link
 *Old behaviour:* keep entries only in the block that your model type used before, and
 drop Line/Link `capital_cost` adjustments.
 
-**`segmentation` is computed from the clustered network**, so segment boundaries and
-weights differ, and with them capacity factors and the objective.
+**`segmentation` is computed from the profile and demand resources** rather than from
+the prepared network's time series, so segment boundaries and weights differ, and with
+them capacity factors and the objective.
 *Old behaviour:* use `averaging` or `representative`; both are numerically unchanged.
 
 **Electricity-only myopic and perfect foresight now run.** An electricity-only config
@@ -449,7 +456,7 @@ results rather than comparable ones. Three points in particular:
   the cross-border flows. You cannot recover the old behaviour from the config; the
   conversion code no longer exists.
 - **Per-horizon maps are not produced.** In this mode only the summary CSVs and the
-  `graphs/*.svg` summary plots are created.
+  `graphs/*.pdf` summary plots are created.
 - **The summary CSVs changed**, both in content and in which files exist. See
   [Summary outputs](#summaries).
 
@@ -579,9 +586,7 @@ dropped and `{planning_horizons}` becomes `{horizon}`. For example
 | `results/maps/static/base_s_…-costs-all_{planning_horizons}.pdf` | `results/maps/static/power_network_{horizon}.pdf` |
 | `results/maps/static/base_s_…-h2_network_{planning_horizons}.pdf` | `results/maps/static/h2_network_{horizon}.pdf` |
 | `results/maps/interactive/base_s_…_{planning_horizons}-balance_map_{carrier}.html` | `results/maps/interactive/balance_map_{carrier}_{horizon}.html` |
-| `results/graphs/costs.pdf` | `results/graphs/costs.svg` |
-| `results/graphs/energy.pdf` | `results/graphs/energy.svg` |
-| `results/graphs/balances-energy.pdf` | `results/graphs/balances_energy.svg` (note the underscore) |
+| `results/graphs/balances-energy.pdf` | `results/graphs/balances_energy.pdf` (note the underscore) |
 | `results/graphs/cop_profiles_s_{clusters}_{planning_horizons}.html` | `results/graphs/cop_profiles_{horizon}.html` |
 | `results/graphics/balance_timeseries/s_{clusters}_…_{planning_horizons}/` | `results/graphs/balance_timeseries_{horizon}/` |
 | `results/graphics/heatmap_timeseries/s_{clusters}_…_{planning_horizons}/` | `results/graphs/heatmap_timeseries_{horizon}/` |
@@ -610,10 +615,7 @@ The collection rules were unified:
 
 `solve_networks` only asks for the solved network of the last horizon; the earlier
 horizons follow from the dependency chain. `compose_networks` expands over the full
-`planning_horizons` list, and so does `process_costs` — except under
-`foresight: overnight`, where it still derives a single file from `costs.year`.
-Composition always reads `costs_{horizon}_processed.csv`, so on an overnight run this
-collect target can build a cost file that the run itself never uses.
+`planning_horizons` list, and so does `process_costs`.
 
 If you target files directly:
 
@@ -640,7 +642,7 @@ The `**config["scenario"]` expansion pattern is gone. Collection rules take the
 | Grid expansion larger than expected | `max_extension` was not renamed, so the default 20000/30000 MW applies |
 | `MissingInputException` on a `data/busmaps/…` or `data/busshapes/…` path | rename your custom busmap or bus shapes file, see [before you start](#before-you-start) |
 | `ValueError: Overnight optimization can only be run for a single planning horizon.` | `foresight: overnight` with several horizons; use one horizon or `run.scenarios` |
-| `ValidationError` on `clustering.cluster_network.n_clusters` | `n_clusters` must be an integer; `all` and `null` are rejected by the schema |
+| `ValidationError` on `clustering.cluster_network.n_clusters` | `n_clusters` must be an integer or `all`; lists and `null` are rejected by the schema |
 | `ValidationError` on `sector.district_heating.progress` | it has to stay a year-to-value mapping, not a scalar |
 | `ValueError: clustering.temporal: only one of averaging, segmentation and representative may be set, got …` | more than one temporal option is set |
 | Analysis script reads garbage from `csvs/*.csv` | the header is a single row now, not a three-level MultiIndex; see [summary outputs](#summaries) |
@@ -724,6 +726,8 @@ disambiguation is not needed any more, because both are branches inside one rule
 **Deleted:** `make_summary_perfect.py`, `make_global_summary.py` and
 `make_cumulative_costs.py`, all folded into `make_summary.py`, where cumulative costs
 are computed by `calculate_cumulative_costs()`.
+`plot_power_network_perfect.py` is deleted too: `plot_power_network.py` covers every
+foresight mode.
 
 **Renamed:** `build_clustered_solar_rooftop_potentials.py` →
 `build_solar_rooftop_potentials.py` (content unchanged).

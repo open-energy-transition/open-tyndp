@@ -1720,7 +1720,7 @@ if __name__ == "__main__":
 
     # Load network
     n = pypsa.Network(snakemake.input.network)
-    planning_horizons = snakemake.wildcards.get("horizon")
+    planning_horizons = snakemake.wildcards.horizon
 
     # Prepare network (settings before solving)
     prepare_network(

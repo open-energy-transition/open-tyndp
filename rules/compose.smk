@@ -321,7 +321,7 @@ rule compose_network:
         benchmarks("performances/compose_network_{horizon}")
     threads: 1
     resources:
-        mem_mb=8000,
+        mem_mb=10000,
     params:
         foresight=config_provider("foresight"),
         electricity=config_provider("electricity"),
@@ -390,4 +390,4 @@ rule compose_network:
     message:
         "Composing network for horizon {wildcards.horizon}"
     script:
-        "../scripts/compose_network.py"
+        scripts("compose_network.py")

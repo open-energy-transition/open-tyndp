@@ -13,6 +13,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator
 
 from scripts.lib.validation.config._base import ConfigModel
+from scripts.lib.validation.config.clustering import _TemporalConfig
 from scripts.lib.validation.config.solving import _SolvingOptionsConfig
 
 
@@ -79,28 +80,11 @@ class _CbaMsvSolvingConfig(ConfigModel):
         return _validate_solving_options_keys(options)
 
 
-class _CbaMsvResolutionConfig(ConfigModel):
-    """Configuration for `cba.msv_extraction.resolution` settings."""
-
-    averaging: bool | int = Field(
-        default=False,
-        description="Average the MSV extraction solve over this many hours.",
-    )
-    segmentation: bool | int = Field(
-        default=False,
-        description="Aggregate the MSV extraction solve into this many segments.",
-    )
-    representative: bool | int = Field(
-        default=False,
-        description="Keep every n-th snapshot for the MSV extraction solve.",
-    )
-
-
 class _CbaMsvExtractionConfig(ConfigModel):
     """Configuration for `cba.msv_extraction` settings."""
 
-    resolution: _CbaMsvResolutionConfig = Field(
-        default_factory=_CbaMsvResolutionConfig,
+    resolution: _TemporalConfig = Field(
+        default_factory=_TemporalConfig,
         description="Temporal resolution for the extraction solve, in the same form as `clustering.temporal`. Leave all options unset to use the native resolution.",
     )
     resample_method: Literal["ffill", "interpolate"] = Field(

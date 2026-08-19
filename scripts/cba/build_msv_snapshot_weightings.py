@@ -60,7 +60,7 @@ if __name__ == "__main__":
         pd.DataFrame().to_csv(snakemake.output.snapshot_weightings)
 
     else:
-        offset = f"{resolution[1]}h"
+        offset = resolution[1]
         logger.info(f"Resampling snapshot weightings every {offset}")
 
         # Resample years separately to handle non-contiguous years

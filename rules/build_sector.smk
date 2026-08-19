@@ -69,7 +69,7 @@ rule build_solar_rooftop_potentials:
     message:
         "Building solar rooftop potentials"
     script:
-        "../scripts/build_solar_rooftop_potentials.py"
+        scripts("build_solar_rooftop_potentials.py")
 
 
 rule build_simplified_population_layouts:
@@ -82,13 +82,13 @@ rule build_simplified_population_layouts:
     output:
         clustered_pop_layout=resources("pop_layout_simplified.csv"),
     log:
-        logs("build_simplified_population_layouts"),
+        logs("build_simplified_population_layouts.log"),
     benchmark:
         benchmarks("performances/build_simplified_population_layouts")
     resources:
         mem_mb=10000,
     script:
-        "../scripts/build_population_layouts.py"
+        scripts("build_population_layouts.py")
 
 
 rule build_gas_network:
@@ -121,7 +121,7 @@ rule build_gas_input_locations:
     log:
         logs("build_gas_input_locations.log"),
     benchmark:
-        benchmarks("performances/build_gas_input_locations/s")
+        benchmarks("performances/build_gas_input_locations")
     resources:
         mem_mb=2000,
     message:
@@ -171,7 +171,7 @@ rule build_daily_heat_demand:
     message:
         "Building daily heat demand profiles"
     script:
-        "../scripts/build_daily_heat_demand.py"
+        scripts("build_daily_heat_demand.py")
 
 
 rule build_hourly_heat_demand:
@@ -195,7 +195,7 @@ rule build_hourly_heat_demand:
     message:
         "Building hourly heat demand profiles from daily demand"
     script:
-        "../scripts/build_hourly_heat_demand.py"
+        scripts("build_hourly_heat_demand.py")
 
 
 rule build_temperature_profiles:
@@ -221,7 +221,7 @@ rule build_temperature_profiles:
     message:
         "Building temperature profiles"
     script:
-        "../scripts/build_temperature_profiles.py"
+        scripts("build_temperature_profiles.py")
 
 
 rule build_central_heating_temperature_profiles:
@@ -238,9 +238,7 @@ rule build_central_heating_temperature_profiles:
     log:
         logs("build_central_heating_temperature_profiles_{horizon}.log"),
     benchmark:
-        benchmarks(
-            "performances/build_central_heating_temperature_profiles/s_{horizon}"
-        )
+        benchmarks("performances/build_central_heating_temperature_profiles_{horizon}")
     resources:
         mem_mb=20000,
     params:
@@ -644,7 +642,7 @@ rule build_cop_profiles:
     log:
         logs("build_cop_profiles_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_cop_profiles/s_{horizon}")
+        benchmarks("performances/build_cop_profiles_{horizon}")
     resources:
         mem_mb=20000,
     params:
@@ -724,7 +722,7 @@ rule build_direct_heat_source_utilisation_profiles:
         logs("build_direct_heat_source_utilisation_profiles_{horizon}.log"),
     benchmark:
         benchmarks(
-            "performances/build_direct_heat_source_utilisation_profiles/s_{horizon}"
+            "performances/build_direct_heat_source_utilisation_profiles_{horizon}"
         )
     resources:
         mem_mb=20000,
@@ -1168,7 +1166,7 @@ rule build_industrial_distribution_key:
     log:
         logs("build_industrial_distribution_key.log"),
     benchmark:
-        benchmarks("performances/build_industrial_distribution_key/s")
+        benchmarks("performances/build_industrial_distribution_key")
     threads: 1
     resources:
         mem_mb=1000,
@@ -1194,7 +1192,7 @@ rule build_industrial_production_per_node:
     log:
         logs("build_industrial_production_per_node_{horizon}.log"),
     benchmark:
-        (benchmarks("performances/build_industrial_production_per_node/s_{horizon}"))
+        (benchmarks("performances/build_industrial_production_per_node_{horizon}"))
     threads: 1
     resources:
         mem_mb=1000,
@@ -1218,7 +1216,7 @@ rule build_industrial_energy_demand_per_node:
     log:
         logs("build_industrial_energy_demand_per_node_{horizon}.log"),
     benchmark:
-        (benchmarks("performances/build_industrial_energy_demand_per_node/s_{horizon}"))
+        (benchmarks("performances/build_industrial_energy_demand_per_node_{horizon}"))
     threads: 1
     resources:
         mem_mb=1000,
@@ -1269,7 +1267,7 @@ rule build_industrial_energy_demand_per_node_today:
     log:
         logs("build_industrial_energy_demand_per_node_today.log"),
     benchmark:
-        benchmarks("performances/build_industrial_energy_demand_per_node_today/s")
+        benchmarks("performances/build_industrial_energy_demand_per_node_today")
     threads: 1
     resources:
         mem_mb=1000,
@@ -1297,7 +1295,7 @@ rule build_retro_cost:
     log:
         logs("build_retro_cost.log"),
     benchmark:
-        benchmarks("performances/build_retro_cost/s")
+        benchmarks("performances/build_retro_cost")
     resources:
         mem_mb=1000,
     params:
@@ -1342,7 +1340,7 @@ rule build_shipping_demand:
     log:
         logs("build_shipping_demand.log"),
     benchmark:
-        benchmarks("performances/build_shipping_demand/s")
+        benchmarks("performances/build_shipping_demand")
     threads: 1
     resources:
         mem_mb=2000,
@@ -1376,8 +1374,6 @@ if MOBILITY_PROFILES_DATASET["source"] in ["build"]:
         threads: 1
         resources:
             mem_mb=5000,
-        params:
-            sector=config_provider("sector"),
         script:
             scripts("build_mobility_profiles.py")
 
@@ -1449,7 +1445,7 @@ rule build_existing_heating_distribution:
     log:
         logs("build_existing_heating_distribution_{horizon}.log"),
     benchmark:
-        benchmarks("performances/build_existing_heating_distribution/_{horizon}")
+        benchmarks("performances/build_existing_heating_distribution_{horizon}")
     threads: 1
     resources:
         mem_mb=2000,
@@ -1493,6 +1489,7 @@ rule build_snapshot_weightings:
             and config_provider("sector", "solar_thermal")(w)
             else []
         ),
+        # TODO: add cop and transport profiles, search for others in prepare_sectcor (like master considers them) 
     output:
         snapshot_weightings=resources("snapshot_weightings.csv"),
     log:
