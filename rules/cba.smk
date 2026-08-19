@@ -438,6 +438,9 @@ rule solve_cba_reference_network:
     benchmark:
         RESULTS + "benchmarks/performances/cba/reference/reference_{planning_horizons}"
     threads: 1
+    resources:
+        mem_mb=config_provider("cba", "solving", "mem_mb"),
+        runtime=config_provider("cba", "solving", "runtime"),
     params:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "solving"),
@@ -465,6 +468,9 @@ rule solve_cba_network:
         RESULTS
         + "benchmarks/performances/cba/projects/project_{cba_project}_{planning_horizons}"
     threads: 1
+    resources:
+        mem_mb=config_provider("cba", "solving", "mem_mb"),
+        runtime=config_provider("cba", "solving", "runtime"),
     params:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "solving"),
