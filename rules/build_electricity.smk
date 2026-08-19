@@ -1007,8 +1007,8 @@ rule build_osm_network:
 
 rule build_tyndp_network:
     input:
-        elec_reference_grid=rules.retrieve_tyndp.output.elec_reference_grid,
-        buses=rules.retrieve_tyndp.output.nodes,
+        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+        buses=rules.retrieve_tyndp_2026.output.nodes,
         bidding_shapes=resources("bidding_zones.geojson"),
     output:
         lines=resources("tyndp/build/lines.csv"),

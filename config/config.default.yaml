@@ -553,8 +553,6 @@ transmission_projects:
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
 tyndp_investment_candidates:
   patch_sb_with_annexe: false
-  elec_projects: {}
-  h2_projects: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
 transformers:
@@ -1010,7 +1008,6 @@ sector:
       efficiency_static: 0.97
   H2_network: true
   h2_topology_tyndp: false
-  h2_reference_grid_source: entsoe
   h2_zones_tyndp: false
   h2_demand_patch_with_mm: false
   gas_network: true

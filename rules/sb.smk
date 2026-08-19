@@ -310,40 +310,6 @@ rule build_pemmdb_data:
         scripts("sb/build_pemmdb_data.py")
 
 
-def get_elec_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "elec_projects")(w)[
-        int(w.planning_horizons)
-    ]
-
-
-def get_h2_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "h2_projects")(w)[
-        int(w.planning_horizons)
-    ]
-
-
-rule build_tyndp_transmission_projects:
-    input:
-        buses_elec=rules.build_tyndp_network.output.substations_geojson,
-        buses_h2=rules.build_tyndp_network.output.substations_h2_geojson,
-        invest_grid=rules.retrieve_tyndp.output.invest_grid,
-    output:
-        new_links_elec=resources("tyndp/new_links_{planning_horizons}.csv"),
-        new_links_h2=resources("tyndp/new_links_h2_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_transmission_projects_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_transmission_projects_{planning_horizons}")
-    threads: 1
-    resources:
-        mem_mb=1000,
-    params:
-        build_years_elec=get_elec_project_build_years,
-        build_years_h2=get_h2_project_build_years,
-    script:
-        scripts("sb/build_tyndp_transmission_projects.py")
-
-
 rule build_tyndp_trajectories:
     input:
         trajectories=rules.retrieve_tyndp.output.trajectories,
@@ -500,20 +466,9 @@ rule build_tyndp_h2_demand:
 
 if config["sector"]["h2_topology_tyndp"]:
 
-    def include_tyndp_h2_projects(w):
-        horizons = config_provider("tyndp_investment_candidates", "h2_projects")(w)
-        if not horizons:
-            return False
-        return int(w.planning_horizons) in horizons
-
     rule build_tyndp_h2_network:
         input:
-            h2_reference_grid_entsoe=rules.retrieve_tyndp.output.h2_reference_grid_entsoe,
-            h2_reference_grid_entsos=rules.retrieve_tyndp.output.h2_reference_grid_entsos,
-            h2_projects=branch(
-                include_tyndp_h2_projects,
-                resources("tyndp/new_links_h2_{planning_horizons}.csv"),
-            ),
+            h2_reference_grid=rules.retrieve_tyndp_2026.output.h2_reference_grid_entsos,
         output:
             h2_grid_prepped=resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
             interzonal_prepped=resources("h2_interzonal_tyndp_{planning_horizons}.csv"),
@@ -526,12 +481,6 @@ if config["sector"]["h2_topology_tyndp"]:
         threads: 1
         resources:
             mem_mb=4000,
-        params:
-            snapshots=config_provider("snapshots"),
-            scenario=config_provider("tyndp_scenario"),
-            h2_reference_grid_source=config_provider(
-                "sector", "h2_reference_grid_source"
-            ),
         script:
             scripts("sb/build_tyndp_h2_network.py")
 

@@ -1671,13 +1671,6 @@ def input_gas_network(w):
     return inputs
 
 
-def include_tyndp_projects(w):
-    horizons = config_provider("tyndp_investment_candidates", "elec_projects")(w)
-    if not horizons:
-        return False
-    return int(w.planning_horizons) in horizons
-
-
 def include_tyndp_trajectories(w):
     if config_provider("electricity", "tyndp_renewable_carriers")(w):
         return True
@@ -1869,14 +1862,6 @@ rule prepare_sector_network:
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
             resources("profile_pemmdb_hydro.nc"),
             [],
-        ),
-        tyndp_projects=branch(
-            include_tyndp_projects,
-            resources("tyndp/new_links_{planning_horizons}.csv"),
-        ),
-        tyndp_projects_fix=branch(
-            config_provider("tyndp_investment_candidates", "patch_sb_with_annexe"),
-            resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
         ),
         tyndp_trajectories=branch(
             include_tyndp_trajectories,

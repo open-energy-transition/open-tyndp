@@ -26,9 +26,6 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
-  tyndp_investment_candidates:
-    elec_projects: {}
-    h2_projects: {}
   load:
     patch_demand_with_mm: false
   sector:
@@ -119,9 +116,6 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
-  tyndp_investment_candidates:
-    elec_projects: {}
-    h2_projects: {}
   load:
     patch_demand_with_mm: false
   sector:
