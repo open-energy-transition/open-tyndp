@@ -23,7 +23,7 @@ from tqdm.contrib.itertools import product
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
+    safe_planning_horizon,
     set_scenario_config,
 )
 
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     years_in_time = pd.DatetimeIndex(time).year.unique()
 
     technologies = snakemake.params.technologies
-    pyears = snakemake.params.planning_horizons
+    planning_horizons = snakemake.params.planning_horizons
 
     tech_map = (
         pd.read_csv(snakemake.input.carrier_mapping)[
@@ -56,11 +56,11 @@ if __name__ == "__main__":
 
     inflows = []
 
-    for year, technology in product(pyears, technologies):
+    for year, technology in product(planning_horizons, technologies):
         logger.info(f"Extracting hydro inflows for {technology} in {year}")
         year_i = year
-        # falling back to latest available pyear if not in list of available years
-        year = safe_pyear(
+        # falling back to latest available planning_horizon if not in list of available years
+        year = safe_planning_horizon(
             int(year),
             available_years=snakemake.params.available_years,
             source="PEMMDB hydro inflow",

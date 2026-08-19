@@ -139,4 +139,4 @@ for a single climate year run (e.g. `NT-cy2009`).
 ### Rule `cba`
 
 Top-level target rule. Collects ensemble outputs from all climate year runs in a collection
-scenario (e.g. `NT-cyears`) and the per-scenario results from nested runs.
+scenario (e.g. `NT-weather_scenarios`) and the per-scenario results from nested runs.

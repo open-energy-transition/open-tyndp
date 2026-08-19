@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 
-from scripts._helpers import safe_pyear, find_free_port
+from scripts._helpers import safe_planning_horizon, find_free_port
 from shutil import unpack_archive, copy2
 
 # Retrieve
@@ -152,10 +152,13 @@ if not "pre-built" in PECD_DATASET["version"]:
         resources:
             mem_mb=1000,
         params:
-            cyears=config_provider(
-                "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
+            weather_scenarios=config_provider(
+                "electricity",
+                "pecd_renewable_profiles",
+                "pre_built",
+                "weather_scenarios",
             ),
-            available_pyears=config_provider(
+            available_planning_horizons=config_provider(
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:
@@ -233,7 +236,7 @@ rule clean_pecd_data:
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
         prebuilt_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
+            "electricity", "pecd_renewable_profiles", "pre_built", "weather_scenarios"
         ),
     script:
         scripts("sb/clean_pecd_data.py")
@@ -244,13 +247,15 @@ def input_data_pecd(w):
         "electricity", "pecd_renewable_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("scenario", "planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(year, available_years, "PECD", verbose=False)
+    safe_planning_horizons = set(
+        safe_planning_horizon(year, available_years, "PECD", verbose=False)
         for year in planning_horizons
     )
     return {
-        f"pecd_data_{pyear}": resources("pecd_data_{technology}_" + str(pyear) + ".csv")
-        for pyear in safe_pyears
+        f"pecd_data_{planning_horizon}": resources(
+            "pecd_data_{technology}_" + str(planning_horizon) + ".csv"
+        )
+        for planning_horizon in safe_planning_horizons
     }
 
 
@@ -390,8 +395,8 @@ def input_data_hydro_tyndp(w):
         "electricity", "pemmdb_hydro_profiles", "available_years"
     )(w)
     planning_horizons = config_provider("scenario", "planning_horizons")(w)
-    safe_pyears = set(
-        safe_pyear(
+    safe_planning_horizons = set(
+        safe_planning_horizon(
             year,
             available_years,
             "PEMMDB hydro",
@@ -403,10 +408,10 @@ def input_data_hydro_tyndp(w):
         "electricity", "pemmdb_hydro_profiles", "technologies"
     )(w)
     return {
-        f"hydro_inflow_tyndp_{tech}_{pyear}": resources(
-            f"hydro_inflows_tyndp_{tech}_{str(pyear)}.csv"
+        f"hydro_inflow_tyndp_{tech}_{planning_horizon}": resources(
+            f"hydro_inflows_tyndp_{tech}_{str(planning_horizon)}.csv"
         )
-        for pyear in safe_pyears
+        for planning_horizon in safe_planning_horizons
         for tech in technologies
     }
 
@@ -1066,7 +1071,7 @@ def input_pemmdb_datas(w):
     )(w)
     return list(
         {
-            safe_pyear(year, available_years, verbose=False)
+            safe_planning_horizon(year, available_years, verbose=False)
             for year in config_provider("scenario", "planning_horizons")(w)
         }
     )

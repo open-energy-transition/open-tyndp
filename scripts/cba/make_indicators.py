@@ -1093,23 +1093,23 @@ if __name__ == "__main__":
 
     df = apply_indicator_units(df)
 
-    reference_cyears = pd.DatetimeIndex(n_reference.snapshots).year.unique()
-    project_cyears = pd.DatetimeIndex(n_project.snapshots).year.unique()
+    reference_weather_scenarios = pd.DatetimeIndex(n_reference.snapshots).year.unique()
+    project_weather_scenarios = pd.DatetimeIndex(n_project.snapshots).year.unique()
 
     # check that both reference and project networks contain exactly one climate year
-    if len(reference_cyears) != 1 or len(project_cyears) != 1:
+    if len(reference_weather_scenarios) != 1 or len(project_weather_scenarios) != 1:
         raise ValueError(
             "More than one climate year found in reference or project snapshots."
         )
 
     # check that both reference and project networks use the same climate year
-    if reference_cyears[0] != project_cyears[0]:
+    if reference_weather_scenarios[0] != project_weather_scenarios[0]:
         raise ValueError(
             f"Reference and project networks use different climate years: "
-            f"{reference_cyears[0]} != {project_cyears[0]}"
+            f"{reference_weather_scenarios[0]} != {project_weather_scenarios[0]}"
         )
 
-    df["cyear"] = int(reference_cyears[0])
+    df["weather_scenario"] = int(reference_weather_scenarios[0])
 
     # Get version
     version = get_version()

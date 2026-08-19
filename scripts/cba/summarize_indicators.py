@@ -37,7 +37,7 @@ INDICATOR_UNITS = {
 }
 
 # TODO read from CSV file
-cyear_weightings = {
+weather_scenarios_weightings = {
     1995: 0.233,
     2008: 0.367,
     2009: 0.400,
@@ -363,7 +363,7 @@ def summarize_indicators(input_files: list[str], output_file: str) -> None:
                 df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value
                 * df[
                     (df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")
-                ].cyear_weight
+                ].weather_scenarios_weight
             ).sum(),
             "max": (
                 df[(df.indicator == INDICATOR_UNIT) & (df.source == "Open-TYNDP")].value

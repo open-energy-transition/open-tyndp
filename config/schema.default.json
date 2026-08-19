@@ -2742,7 +2742,7 @@
             "pre_built": {
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
-                "cyears": {
+                "weather_scenarios": {
                   "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
                   "items": {
                     "type": "integer"
@@ -8343,7 +8343,7 @@
     "_PecdPreBuiltConfig": {
       "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
       "properties": {
-        "cyears": {
+        "weather_scenarios": {
           "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
           "items": {
             "type": "integer"
@@ -8363,7 +8363,7 @@
         "pre_built": {
           "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
           "properties": {
-            "cyears": {
+            "weather_scenarios": {
               "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
               "items": {
                 "type": "integer"
@@ -9961,7 +9961,7 @@
             "pre_built": {
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
-                "cyears": {
+                "weather_scenarios": {
                   "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
                   "items": {
                     "type": "integer"
