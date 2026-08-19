@@ -261,9 +261,6 @@ def input_sb_network(w, run=None):
 rule simplify_sb_network:
     input:
         network=input_sb_network,
-        sb_network=lambda w: input_sb_network(
-            w, run=config_provider("cba", "sb_scenario")(w)
-        ),
     output:
         network=resources("cba/networks/simple_{planning_horizons}.nc"),
     log:

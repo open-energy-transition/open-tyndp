@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import add_metadata, configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -265,6 +265,7 @@ def plot_b1_top_projects(
     ax.set_xlim(ax.get_xlim()[0], max_val * 1.4)
 
     plt.tight_layout()
+    add_metadata(fig)
     save_figure(
         fig, output_dir, f"b1_top_{n_top}_projects{filename_suffix}", output_formats
     )
@@ -340,6 +341,7 @@ def plot_b1_summary(
     ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     plt.tight_layout()
+    add_metadata(fig)
     save_figure(fig, output_dir, f"b1_summary{filename_suffix}", output_formats)
     plt.close(fig)
 
@@ -418,6 +420,7 @@ def plot_b1_capex_vs_opex(
     ax.grid(alpha=0.3)
 
     plt.tight_layout()
+    add_metadata(fig)
     save_figure(fig, output_dir, f"b1_capex_vs_opex{filename_suffix}", output_formats)
     plt.close(fig)
 
