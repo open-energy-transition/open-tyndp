@@ -34,22 +34,6 @@ def get_tyndp_compose_inputs(w):
             if cfg["load"]["source"] == "tyndp"
             else []
         ),
-        "h2_grid_tyndp": (
-            resources(f"h2_reference_grid_tyndp_{horizon}.csv") if h2_tyndp else []
-        ),
-        "interzonal_prepped": (
-            resources(f"h2_interzonal_tyndp_{horizon}.csv") if h2_tyndp else []
-        ),
-        "buses_h2": (
-            resources("tyndp/build/geojson/buses_h2.geojson") if h2_tyndp else []
-        ),
-        "h2_imports_tyndp": (
-            resources(f"h2_import_potentials_{horizon}.csv") if h2_tyndp else []
-        ),
-        "tyndp_smr": resources(f"smr_data_prepped_{horizon}.csv") if h2_tyndp else [],
-        "tyndp_h2_storages": (
-            resources(f"h2_storages_prepped_{horizon}.csv") if h2_tyndp else []
-        ),
         "profile_pemmdb_hydro": (
             resources("pemmdb_hydro_profile.nc")
             if elec["pemmdb_hydro_profiles"]["enable"]
@@ -90,6 +74,16 @@ def get_tyndp_compose_inputs(w):
             else []
         ),
     }
+
+    if h2_tyndp:
+        inputs |= {
+            "h2_grid_tyndp": resources(f"h2_reference_grid_tyndp_{horizon}.csv"),
+            "interzonal_prepped": resources(f"h2_interzonal_tyndp_{horizon}.csv"),
+            "buses_h2": resources("tyndp/build/geojson/buses_h2.geojson"),
+            "h2_imports_tyndp": resources(f"h2_import_potentials_{horizon}.csv"),
+            "tyndp_smr": resources(f"smr_data_prepped_{horizon}.csv"),
+            "tyndp_h2_storages": resources(f"h2_storages_prepped_{horizon}.csv"),
+        }
 
     if elec["pecd_renewable_profiles"]["enable"]:
         for tech in elec["pecd_renewable_profiles"]["technologies"]:
@@ -222,16 +216,6 @@ def get_compose_inputs(w):
             direct_heat_source_utilisation_profiles=resources(
                 "direct_heat_source_utilisation_profiles_{horizon}.nc"
             ),
-            retro_cost=(
-                resources("retro_cost.csv")
-                if cfg["sector"]["retrofitting"]["retro_endogen"]
-                else []
-            ),
-            floor_area=(
-                resources("floor_area.csv")
-                if cfg["sector"]["retrofitting"]["retro_endogen"]
-                else []
-            ),
             biomass_transport_costs=(
                 resources("biomass_transport_costs.csv")
                 if cfg["sector"]["biomass_transport"]
@@ -260,27 +244,26 @@ def get_compose_inputs(w):
                 if cfg["sector"]["solar_thermal"]
                 else []
             ),
-            egs_potentials=(
-                resources("egs_potentials.csv")
-                if cfg["sector"]["enhanced_geothermal"]["enable"]
-                else []
-            ),
-            egs_overlap=(
-                resources("egs_overlap.csv")
-                if cfg["sector"]["enhanced_geothermal"]["enable"]
-                else []
-            ),
-            egs_capacity_factors=(
-                resources("egs_capacity_factors.csv")
-                if cfg["sector"]["enhanced_geothermal"]["enable"]
-                else []
-            ),
             ates_potentials=(
                 resources("ates_potentials_{horizon}.csv")
                 if cfg["sector"]["district_heating"]["ates"]["enable"]
                 else []
             ),
         )
+
+        if cfg["sector"]["retrofitting"]["retro_endogen"]:
+            sector_inputs |= {
+                "retro_cost": resources("retro_cost.csv"),
+                "floor_area": resources("floor_area.csv"),
+            }
+
+        if cfg["sector"]["enhanced_geothermal"]["enable"]:
+            sector_inputs |= {
+                "egs_potentials": resources("egs_potentials.csv"),
+                "egs_overlap": resources("egs_overlap.csv"),
+                "egs_capacity_factors": resources("egs_capacity_factors.csv"),
+            }
+
         inputs.update(sector_inputs)
 
     inputs.update(get_tyndp_compose_inputs(w))
