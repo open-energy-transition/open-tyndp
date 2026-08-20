@@ -13,6 +13,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator
 
 from scripts.lib.validation.config._base import ConfigModel
+from scripts.lib.validation.config.clustering import _TemporalConfig
 from scripts.lib.validation.config.solving import _SolvingOptionsConfig
 
 
@@ -82,9 +83,9 @@ class _CbaMsvSolvingConfig(ConfigModel):
 class _CbaMsvExtractionConfig(ConfigModel):
     """Configuration for `cba.msv_extraction` settings."""
 
-    resolution: bool | str = Field(
-        default=False,
-        description="Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve.",
+    resolution: _TemporalConfig = Field(
+        default_factory=_TemporalConfig,
+        description="Temporal resolution for the extraction solve, in the same form as `clustering.temporal`. Leave all options unset to use the native resolution.",
     )
     resample_method: Literal["ffill", "interpolate"] = Field(
         default="ffill",

@@ -487,7 +487,9 @@ def _process_battery_capacities(
     """
     # Fill missing data for FR15
     if node == "FR15":
-        node_tech_data.iloc[-1, [5, 7, 8]] = 0
+        cols = node_tech_data.columns[[5, 7, 8]]
+        node_tech_data[cols] = node_tech_data[cols].astype(object)
+        node_tech_data.loc[node_tech_data.index[-1], cols] = 0
 
     # Extract data
     df_raw = (
@@ -1244,8 +1246,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_pemmdb_data",
-            clusters="all",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -1277,7 +1278,7 @@ if __name__ == "__main__":
         cyear = 2009
 
     # Planning year
-    pyear_i = int(snakemake.wildcards.planning_horizons)
+    pyear_i = int(snakemake.wildcards.horizon)
     pyear = safe_pyear(
         pyear_i,
         available_years=snakemake.params.available_years,
@@ -1400,8 +1401,10 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # Otherwise merge PEMMDB profiles into one pd.DataFrame, convert to xarray dataset and save
-    pemmdb_profiles_df = pd.concat(pemmdb_profiles, axis=0).set_index(
-        ["price_band_type", "price", "hours"], append=True
+    pemmdb_profiles_df = (
+        pd.concat(pemmdb_profiles, axis=0)
+        .astype({"price": float, "hours": float})
+        .set_index(["price_band_type", "price", "hours"], append=True)
     )
     ds = xr.Dataset(
         {

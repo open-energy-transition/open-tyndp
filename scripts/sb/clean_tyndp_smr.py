@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "clean_tyndp_smr",
-            planning_horizons=2030,
+            horizon=2030,
             configfiles="config/test/config.tyndp.yaml",
         )
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     # Parameters
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
     smr_fn = snakemake.input.smr
     scenario = snakemake.params.tyndp_scenario
     h2_zones_tyndp = snakemake.params.h2_zones_tyndp
