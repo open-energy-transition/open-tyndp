@@ -2743,7 +2743,7 @@
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
                 "cyears": {
-                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                  "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
                   },
@@ -2768,11 +2768,10 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
-                  "Wind_Onshore"
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },
@@ -8354,7 +8353,7 @@
       "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
       "properties": {
         "cyears": {
-          "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+          "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
           "items": {
             "type": "integer"
           },
@@ -8374,7 +8373,7 @@
           "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
           "properties": {
             "cyears": {
-              "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+              "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
               "items": {
                 "type": "integer"
               },
@@ -8399,11 +8398,10 @@
           "items": {
             "enum": [
               "Wind_Offshore",
-              "LFSolarPVRooftop",
-              "LFSolarPVUtility",
-              "CSP_noStorage",
-              "CSP_withStorage",
-              "Wind_Onshore"
+              "Solar PV Rooftop",
+              "Solar PV Utility",
+              "Wind_Onshore",
+              "CSP_noStorage_0h_dispatched"
             ],
             "type": "string"
           },
@@ -9972,7 +9970,7 @@
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
                 "cyears": {
-                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                  "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
                   },
@@ -9997,11 +9995,10 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
-                  "Wind_Onshore"
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },

@@ -7,6 +7,10 @@
 
 ## Upcoming Open-TYNDP Release
 
+**Migration to TYNDP 2026**
+
+* Add complete processing and preparation of PECD v4.2 renewable profiles for all renewable technologies: Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, and Solar CSP  ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843)).  The data processing infrastructure for renewable profile creation is complete, but full integration into the model workflow will follow in a subsequent PRs.
+
 * feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
   
 ## Upcoming PyPSA-Eur Release
