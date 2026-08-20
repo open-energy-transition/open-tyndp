@@ -23,6 +23,7 @@ from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
+import os
 
 from scripts._helpers import (
     configure_logging,
