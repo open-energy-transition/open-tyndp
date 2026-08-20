@@ -53,6 +53,8 @@ def read_pecd_file(
             f"{node.replace('UK', 'GB')}_CapacityFactors_{technology}_{pyear}.csv",
         )
 
+    if not os.path.isfile(fn):
+        return None
 
     pecd_bus = pd.read_csv(fn)
     year = sns[0].year
