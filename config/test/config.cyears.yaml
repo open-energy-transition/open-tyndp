@@ -111,7 +111,7 @@ electricity:
     - Solar PV Rooftop
     - Solar PV Utility
     - Wind_Onshore
-  
+
   pemmdb_hydro_profiles:
     enable: true
     available_years:

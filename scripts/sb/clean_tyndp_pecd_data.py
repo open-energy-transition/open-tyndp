@@ -18,7 +18,6 @@ Cleaned csv file with capacity factor generation time series and regions as colu
 
 import logging
 import multiprocessing as mp
-import os
 from functools import partial
 from pathlib import Path
 
@@ -52,7 +51,6 @@ def read_pecd_file(
             str(pyear),
             f"{node.replace('UK', 'GB')}_CapacityFactors_{technology}_{pyear}.csv",
         )
-
 
     pecd_bus = pd.read_csv(fn)
     year = sns[0].year
