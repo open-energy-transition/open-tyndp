@@ -106,7 +106,6 @@ electricity:
     - 2040
     - 2050
     technologies:
-    - CSP_noStorage_0h_dispatched
     - Wind_Offshore
     - Solar PV Rooftop
     - Solar PV Utility
