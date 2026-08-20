@@ -63,7 +63,7 @@ class LoadConfig(BaseModel):
     )
     weather_year_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
-        description="Mapping of planning horizons to the weather years (climate year column indices, e.g. 3 for `WS003`) that contain data in the TYNDP 2026 demand data, for that planning horizon. The first entry is used as the preferred weather year; if it's missing for a given demand type/file, the script falls back to another entry in the list (see `scripts._helpers.check_weather_year`).",
+        description="Mapping of planning horizons to the weather years (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 demand data, in order of preference. Must be a subset of the weather years that carry data for that horizon, which are recorded in `AVAILABLE_WEATHER_YEARS` in `scripts/sb/build_tyndp_demand.py`; entries outside it fall back to the first available one (see `scripts._helpers.check_weather_year`).",
     )
     manual_adjustments: bool = Field(
         True,

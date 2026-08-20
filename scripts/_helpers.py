@@ -1548,21 +1548,21 @@ def check_cyear(cyear: int, scenario: str) -> int:
 
 def check_weather_year(weather_year: int, valid_weather_years: list[int]) -> int:
     """
-    Check if the weather year is one of the known-valid ones, falling back if not.
+    Check if a given weather year is one of the known-valid ones, falling back to first valid entry if not.
 
     TYNDP 2026 demand profiles provide 30 climate year columns per planning
-    horizon (labelled ``WSxxx``), but depending on the demand type, either all
-    of them contain data or only a handful of them do (the rest being empty
-    placeholders). Which weather years are valid therefore has to be
-    determined per file (see e.g. ``get_valid_weather_years`` in
-    `scripts/sb/build_tyndp_demand.py`) rather than assumed globally.
+    horizon (labelled ``WSxxx``), only 3 of which contain data for that
+    horizon; the rest are zero-filled placeholders. A weather year is valid for
+    one horizon is not valid for another, so validation is done per planning horizon against
+    its passed ``valid_weather_years``.
 
     Parameters
     ----------
     weather_year : int
         Weather year (climate year column index, e.g. 3 for ``WS003``) to validate.
     valid_weather_years : list[int]
-        Weather years known to contain data, for the file being processed.
+        Weather years known to contain data, for the planning horizon being
+        processed.
 
     Returns
     -------
@@ -1579,7 +1579,7 @@ def check_weather_year(weather_year: int, valid_weather_years: list[int]) -> int
     if weather_year not in valid_weather_years:
         fallback = valid_weather_years[0]
         logger.warning(
-            f"Weather year WS{weather_year:03d} doesn't contain data for this file "
+            f"No data for weather year WS{weather_year:03d} in given planning horizon "
             f"(available: {[f'WS{y:03d}' for y in valid_weather_years]}). "
             f"Falling back to WS{fallback:03d}."
         )
