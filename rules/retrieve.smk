@@ -1364,7 +1364,9 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 
 
 # TYNDP 2026 data package. Added alongside `retrieve_tyndp` (2024) rather than
-# replacing it. Rules are going to be migrated to it gradually.
+# replacing it. Subsequent rules are going to be migrated to it gradually.
+# TODO: rename to retrieve_tyndp for 2026 and phase out 2024 retrieve
+
 if config["tyndp_scenario"]:
     if (TYNDP_2026_DATASET := dataset_version("tyndp", version="2026"))[
         "source"
