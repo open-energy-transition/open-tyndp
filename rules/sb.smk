@@ -221,7 +221,7 @@ rule build_tyndp_demand:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_years=config_provider("load", "weather_year_tyndp"),
+        weather_scenarios=config_provider("weather_scenarios_tyndp"),
     script:
         scripts("sb/build_tyndp_demand.py")
 
