@@ -84,7 +84,7 @@ class _CbaMsvExtractionConfig(ConfigModel):
 
     resolution: bool | str = Field(
         default=False,
-        description="Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve.",
+        description="Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`.",
     )
     resample_method: Literal["ffill", "interpolate"] = Field(
         default="ffill",
