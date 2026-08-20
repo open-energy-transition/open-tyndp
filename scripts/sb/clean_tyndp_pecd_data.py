@@ -18,12 +18,12 @@ Cleaned csv file with capacity factor generation time series and regions as colu
 
 import logging
 import multiprocessing as mp
+import os
 from functools import partial
 from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
-import os
 
 from scripts._helpers import (
     configure_logging,
