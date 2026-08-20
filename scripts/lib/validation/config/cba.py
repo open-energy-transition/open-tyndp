@@ -123,6 +123,11 @@ class _CbaSolvingConfig(ConfigModel):
         default_factory=dict,
         description="Solver-specific options.",
     )
+    mem_mb: int = Field(
+        2_000,
+        description="Estimated maximum memory requirement for solving networks (MB).",
+    )
+    runtime: str = Field("12h", description="Runtime in humanfriendly style.")
 
     @field_validator("options")
     @classmethod

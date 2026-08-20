@@ -1718,3 +1718,5 @@ cba:
       name: highs
       options: "highs-simplex"
     solver_options: {}
+    mem_mb: 2000
+    runtime: 12h

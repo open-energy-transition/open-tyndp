@@ -88,6 +88,7 @@ def benchmarks(fn):
 
 
 RESULTS = "results/" + RDIR
+CLUSTER_LOGS = ("logs/slurm/" + RDIR.replace("{run}", "$scenario")).rstrip("/")
 workflow.default_target = config["run"]["default_target_rule"]
 
 
