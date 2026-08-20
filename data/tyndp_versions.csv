@@ -38,9 +38,12 @@ neso_electricity_demand,2026-02-02,tyndp-archive,latest supported,2026-05-08,,ht
 nitrogen_statistics,2023,tyndp-archive,latest supported,2026-02-26,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nitrogen_statistics/2023/nitro-ert.xlsx
 nitrogen_statistics,2022,tyndp-archive,supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nitrogen_statistics/2022/nitro-ert.xlsx
 nuts3_population,13-03-2025,tyndp-archive,latest supported,2026-05-08,earlier part of zenodo bundle,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/nuts3_population/13-03-2025/nama_10r_3popgdp.tsv.gz
+open_tyndp_prelim,0.8,primary,not-supported,2026-08-20,Open-TYNDP preliminary outcomes,https://zenodo.org/records/21874460
+open_tyndp_prelim,0.8,archive,latest supported,2026-08-20,Open-TYNDP preliminary outcomes (results-0.8.zip),https://zenodo.org/records/21874460/files/results-v0.8.zip
+open_tyndp_prelim,0.8,tyndp-archive,latest supported,2026-08-20,Open-TYNDP preliminary outcomes (results-0.8.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.8/results-v0.8.zip
 open_tyndp_prelim,0.7.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/20303009
-open_tyndp_prelim,0.7.1,archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://zenodo.org/records/20303009/files/results-0.7.1.zip
-open_tyndp_prelim,0.7.1,tyndp-archive,latest supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.7.1/results-0.7.1.zip
+open_tyndp_prelim,0.7.1,archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://zenodo.org/records/20303009/files/results-0.7.1.zip
+open_tyndp_prelim,0.7.1,tyndp-archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.7.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.7.1/results-0.7.1.zip
 open_tyndp_prelim,0.6.1,primary,not-supported,2026-06-02,Open-TYNDP preliminary outcomes,https://zenodo.org/records/19388086
 open_tyndp_prelim,0.6.1,archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.6.1.zip),https://zenodo.org/records/19388086/files/results-0.6.1.zip
 open_tyndp_prelim,0.6.1,tyndp-archive,supported,2026-06-02,Open-TYNDP preliminary outcomes (results-0.6.1.zip),https://storage.googleapis.com/open-tyndp-data-store/outcomes/0.6.1/results-0.6.1.zip
