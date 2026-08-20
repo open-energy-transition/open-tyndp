@@ -15,6 +15,11 @@ All configuration is now driven by config sections rather than wildcards.
 from scripts._helpers import safe_pyear
 
 
+def gated(condition, **paths):
+    """Keep input keys present, blanking their paths when the feature is off."""
+    return {k: v if condition else [] for k, v in paths.items()}
+
+
 def get_tyndp_compose_inputs(w):
     """Open-TYNDP additions to the compose_network inputs."""
     cfg = get_config(w)
@@ -75,15 +80,15 @@ def get_tyndp_compose_inputs(w):
         ),
     }
 
-    if h2_tyndp:
-        inputs |= {
-            "h2_grid_tyndp": resources(f"h2_reference_grid_tyndp_{horizon}.csv"),
-            "interzonal_prepped": resources(f"h2_interzonal_tyndp_{horizon}.csv"),
-            "buses_h2": resources("tyndp/build/geojson/buses_h2.geojson"),
-            "h2_imports_tyndp": resources(f"h2_import_potentials_{horizon}.csv"),
-            "tyndp_smr": resources(f"smr_data_prepped_{horizon}.csv"),
-            "tyndp_h2_storages": resources(f"h2_storages_prepped_{horizon}.csv"),
-        }
+    inputs |= gated(
+        h2_tyndp,
+        h2_grid_tyndp=resources(f"h2_reference_grid_tyndp_{horizon}.csv"),
+        interzonal_prepped=resources(f"h2_interzonal_tyndp_{horizon}.csv"),
+        buses_h2=resources("tyndp/build/geojson/buses_h2.geojson"),
+        h2_imports_tyndp=resources(f"h2_import_potentials_{horizon}.csv"),
+        tyndp_smr=resources(f"smr_data_prepped_{horizon}.csv"),
+        tyndp_h2_storages=resources(f"h2_storages_prepped_{horizon}.csv"),
+    )
 
     if elec["pecd_renewable_profiles"]["enable"]:
         for tech in elec["pecd_renewable_profiles"]["technologies"]:
@@ -101,20 +106,19 @@ def get_tyndp_compose_inputs(w):
             f"pemmdb_profiles_{pemmdb_year}{grouped}.nc"
         )
 
-    if sector["offshore_hubs_tyndp"]["enable"]:
-        for f in (
-            "offshore_buses",
-            "offshore_grid",
-            "offshore_electrolysers",
-            "offshore_generators",
-        ):
-            inputs[f] = resources(f"{f}.csv")
-        inputs["tyndp_offshore_fix"] = (
+    inputs |= gated(
+        sector["offshore_hubs_tyndp"]["enable"],
+        offshore_buses=resources("offshore_buses.csv"),
+        offshore_grid=resources("offshore_grid.csv"),
+        offshore_electrolysers=resources("offshore_electrolysers.csv"),
+        offshore_generators=resources("offshore_generators.csv"),
+        tyndp_offshore_fix=(
             f"{mm_dir}benchmarks_tyndp_output_crossborder_{scenario}{horizon}.csv"
             if sector["offshore_hubs_tyndp"]["patch_crossborder_with_mm"]
             and horizon in mm_years
             else []
-        )
+        ),
+    )
 
     return inputs
 
@@ -251,18 +255,18 @@ def get_compose_inputs(w):
             ),
         )
 
-        if cfg["sector"]["retrofitting"]["retro_endogen"]:
-            sector_inputs |= {
-                "retro_cost": resources("retro_cost.csv"),
-                "floor_area": resources("floor_area.csv"),
-            }
+        sector_inputs |= gated(
+            cfg["sector"]["retrofitting"]["retro_endogen"],
+            retro_cost=resources("retro_cost.csv"),
+            floor_area=resources("floor_area.csv"),
+        )
 
-        if cfg["sector"]["enhanced_geothermal"]["enable"]:
-            sector_inputs |= {
-                "egs_potentials": resources("egs_potentials.csv"),
-                "egs_overlap": resources("egs_overlap.csv"),
-                "egs_capacity_factors": resources("egs_capacity_factors.csv"),
-            }
+        sector_inputs |= gated(
+            cfg["sector"]["enhanced_geothermal"]["enable"],
+            egs_potentials=resources("egs_potentials.csv"),
+            egs_overlap=resources("egs_overlap.csv"),
+            egs_capacity_factors=resources("egs_capacity_factors.csv"),
+        )
 
         inputs.update(sector_inputs)
 
