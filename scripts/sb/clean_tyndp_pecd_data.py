@@ -18,7 +18,6 @@ Cleaned csv file with capacity factor generation time series and regions as colu
 
 import logging
 import multiprocessing as mp
-import os
 from functools import partial
 from pathlib import Path
 
