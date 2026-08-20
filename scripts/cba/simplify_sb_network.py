@@ -247,14 +247,14 @@ if __name__ == "__main__":
     # Make DC and DC_OH links uni-directional
     make_links_unidirectional(n, carrier=("DC", "DC_OH"))
 
-    # Extend primary fuel sources capacity
-    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
-    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
-
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
     # Fix optimal capacities from scenario building
     n.optimize.fix_optimal_capacities()
+
+    # Extend primary fuel sources capacity
+    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
+    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
 
     # Add hurdle costs to DC links
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
