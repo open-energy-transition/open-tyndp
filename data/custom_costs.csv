@@ -195,8 +195,8 @@ all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 ST
 all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,all,battery bicharger,efficiency,0.92,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",
 all,all,home battery bicharger,efficiency,0.95,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",
-all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2024 Supply Tool, Conversion factors",NCV
-all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2024 Supply Tool, Conversion factors",NCV
-all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2024 Supply Tool, Conversion factors",NCV
-all,2045,BtL,efficiency,0.68,per unit,"TYNDP 2024 Supply Tool, Conversion factors",NCV
-all,2050,BtL,efficiency,0.7,per unit,"TYNDP 2024 Supply Tool, Conversion factors",NCV
+all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2045,BtL,efficiency,0.68,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
+all,2050,BtL,efficiency,0.7,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
