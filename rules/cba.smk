@@ -421,8 +421,6 @@ rule prepare_project:
         benchmarks("performances/cba/prepare_project_{cba_project}_{planning_horizons}")
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
-        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
     script:
         scripts("cba/prepare_project.py")
 
