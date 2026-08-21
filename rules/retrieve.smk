@@ -1368,7 +1368,7 @@ if (TYNDP_DATASET := dataset_version("tyndp"))["source"] in [
 # TODO: rename to retrieve_tyndp for 2026 and phase out 2024 retrieve
 
 if config["tyndp_scenario"]:
-    if (TYNDP_2026_DATASET := dataset_version("tyndp", version="2026"))[
+    if (TYNDP_2026_DATASET := dataset_version("tyndp", version="2026-08-21"))[
         "source"
     ] in ARCHIVE_SOURCES:
 
