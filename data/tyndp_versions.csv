@@ -60,7 +60,7 @@ synthetic_electricity_demand,v2,tyndp-archive,latest supported,2026-05-08,the pr
 tyndp,2024,primary,latest supported,2026-02-05,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
 tyndp,2024,archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024
 tyndp,2024,tyndp-archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024
-tyndp_2026,2026-08-21,primary,not-supported,2026-08-21,,https://2026-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
+tyndp_2026,2026-08-21,primary,not-supported,2026-08-21,"Corrected Demand, Hydro Inflow, Hydrogen, Line Data and PEMMDB input files, announced and published by ENTSO-E on 2026-08-12 (https://tyndp.entsoe.eu/news/tyndp-2026-reference-dataset-available-for-ongoing-project-assessment-activities). Additional CBA project assessment data is included from https://tyndp2026.entsoe.eu/projects-map",https://2026-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
 tyndp_2026,2026-08-21,archive,latest supported,2026-08-21,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/2026/2026-08-21
 tyndp_2026,2026-08-21,tyndp-archive,latest supported,2026-08-21,TYNDP 2026 preliminary data package,https://storage.googleapis.com/open-tyndp-data-store/2026/2026-08-21
 tyndp_2026,2026,primary,not-supported,2026-07-30,,https://2026-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
