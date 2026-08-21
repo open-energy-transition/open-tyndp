@@ -770,6 +770,7 @@ plotting:
     h2-fuel-cell: '#c251ae'
     H2 turbine: '#991f83'
     h2-ccgt: '#991f83'
+    h2-ocgt: '#b52b99'
     H2 Electrolysis: '#ff29d9'
     H2 electrolysis: '#ff29d9'
     # ammonia
