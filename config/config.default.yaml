@@ -1530,6 +1530,9 @@ data:
   tyndp:
     source: archive
     version: latest
+  tyndp_2026:
+    source: archive
+    version: latest
   powerplants:
     source: archive
     version: latest
