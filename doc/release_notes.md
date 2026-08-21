@@ -8,6 +8,8 @@
 ## Upcoming Open-TYNDP Release
 
 * feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
+
+* feat: add `build_tyndp_demand` rule to process TYNDP 2026 demand profiles (electricity, EV, hydrogen, thermal energy, synthetic fuels) ([#808](https://github.com/open-energy-transition/open-tyndp/pull/808)).
   
 ## Upcoming PyPSA-Eur Release
 
