@@ -132,6 +132,10 @@ class ConfigSchema(BaseModel):
         False,
         description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
     )
+    weather_scenarios_tyndp: dict[int, list[int]] = Field(
+        default_factory=dict,
+        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data, in order of preference. Must be a subset of the weather scenarios that carry data for that horizon, which are recorded in `AVAILABLE_WEATHER_SCENARIOS` in `scripts/sb/build_tyndp_demand.py`; entries outside it fall back to the first available one (see `scripts._helpers.check_weather_scenario`).",
+    )
     launch_explorer: bool = Field(
         False,
         description="Switch to launch the PyPSA-Explorer with the result networks.",
