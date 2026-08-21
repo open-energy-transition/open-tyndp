@@ -29,8 +29,8 @@ weather scenario is resolved separately for every planning horizon read, since t
 Data Availability
 -----------------
 
-Demand data is available for 2030, 2035, 2040 and 2050. Missing planning
-horizons are linearly interpolated between available data points.
+Demand data is only available for 2030, 2035, 2040 and 2050; other planning
+horizons are not supported.
 
 Inputs
 ------
@@ -57,7 +57,6 @@ from scripts._helpers import (
     check_weather_scenario,
     configure_logging,
     get_snapshots,
-    interpolate_demand,
     set_scenario_config,
 )
 
@@ -112,15 +111,6 @@ def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:
     df_new = df_reset.set_index("datetime").drop(columns=["Date", "Hour"])
 
     return df_new
-
-
-def get_available_years(fn: str) -> list[int]:
-    """Scan the directory to find which planning years are available."""
-    return sorted(
-        int(folder.name)
-        for folder in Path(fn).iterdir()
-        if folder.is_dir() and folder.name.isdigit()
-    )
 
 
 def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
@@ -221,71 +211,18 @@ def get_weather_scenario(pyear: int, weather_scenarios: dict[int, list[int]]) ->
     return check_weather_scenario(requested[0], available)
 
 
-def load_single_year(
-    fn: str,
-    pyear: int,
-    demand_type: str,
-    weather_scenarios: dict[int, list[int]],
-) -> pd.DataFrame:
-    """Load demand data for a single planning year."""
-    demand_fn = get_file_path(fn, pyear, demand_type)
-    weather_scenario = get_weather_scenario(pyear, weather_scenarios)
-    logger.info(f"Reading {demand_fn.name}, weather scenario WS{weather_scenario:03d}")
-
-    return read_demand_excel(demand_fn, weather_scenario)
-
-
 def load_demand(
     fn: str,
     pyear: int,
     demand_type: str,
     weather_scenarios: dict[int, list[int]],
 ) -> pd.DataFrame:
-    """
-    Load demand data for a specific planning year, weather_scenario and demand type.
+    """Load demand data for a planning year and demand type."""
+    demand_fn = get_file_path(fn, pyear, demand_type)
+    weather_scenario = get_weather_scenario(pyear, weather_scenarios)
+    logger.info(f"Reading {demand_fn.name}, weather scenario WS{weather_scenario:03d}")
 
-    This function retrieves demand data from a file, either by loading the
-    exact year if available or by performing linear interpolation between
-    available years. Each planning year read is filtered to its own weather
-    year, so an interpolated result blends two different climate years.
-
-    Parameters
-    ----------
-    fn : str
-        Filepath to the demand data directory.
-    pyear : int
-        Planning year for which to retrieve demand data.
-    demand_type : str
-        Demand type to load (e.g. "ELECTRICITY_MARKET", "Hydrogen_Zone 1").
-    weather_scenarios : dict[int, list[int]]
-        Mapping of planning horizon to the weather scenarios to model for that
-        horizon, in order of preference (see `weather_scenarios_tyndp` in the
-        config).
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing demand data for the specified planning year and
-        demand type.
-    """
-
-    available_years = get_available_years(fn)
-    logger.info(f"Available years: {available_years}, Target year: {pyear}")
-
-    # If target year exists in data, load it directly
-    if pyear in available_years:
-        logger.info(f"Year {pyear} found in available data. Loading directly.")
-        return load_single_year(fn, pyear, demand_type, weather_scenarios)
-
-    # Target year not available, do linear interpolation
-    return interpolate_demand(
-        available_years=available_years,
-        pyear=pyear,
-        load_single_year_func=load_single_year,
-        fn=fn,
-        demand_type=demand_type,
-        weather_scenarios=weather_scenarios,
-    )
+    return read_demand_excel(demand_fn, weather_scenario)
 
 
 if __name__ == "__main__":
@@ -312,17 +249,10 @@ if __name__ == "__main__":
     )
     fn = snakemake.input.demand
 
-    # Interpolated target years are read from two planning horizons, each with
-    # its own weather scenario, so they are only resolved per read.
-    weather_scenario = (
-        f"WS{get_weather_scenario(pyear, weather_scenarios):03d}"
-        if pyear in AVAILABLE_WEATHER_SCENARIOS
-        else "interpolated"
-    )
-
+    weather_scenario = get_weather_scenario(pyear, weather_scenarios)
     logger.info(
         f"Processing '{demand_type}' demand for target year: {pyear}, "
-        f"weather scenario: {weather_scenario}"
+        f"weather scenario: WS{weather_scenario:03d}"
     )
     demand = load_demand(fn, pyear, demand_type, weather_scenarios)
 
