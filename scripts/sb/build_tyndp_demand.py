@@ -289,7 +289,10 @@ def load_demand(
         Demand data for the given planning year and demand type.
     """
     demand_fn = get_file_path(fn, pyear, demand_type)
-    logger.info(f"Reading {demand_fn.name}, weather scenario WS{weather_scenario:03d}")
+    logger.info(
+        f"Processing '{demand_type}' demand for planning horizon {pyear}, "
+        f"weather scenario WS{weather_scenario:03d}: reading {demand_fn.name}"
+    )
 
     return read_demand_excel(demand_fn, weather_scenario, year)
 
@@ -324,10 +327,6 @@ if __name__ == "__main__":
     check_snapshot_year(year, snakemake.params.drop_leap_day)
 
     weather_scenario = get_weather_scenario(weather_scenarios, pyear)
-    logger.info(
-        f"Processing '{demand_type}' demand for target year: {pyear}, "
-        f"weather scenario: WS{weather_scenario:03d}"
-    )
     demand = load_demand(fn, pyear, demand_type, weather_scenario, year)
 
     # Export to CSV
