@@ -1554,8 +1554,8 @@ def check_weather_scenario(
 
     TYNDP 2026 demand profiles provide 30 climate year columns per planning
     horizon (labelled ``WSxxx``), only 3 of which contain data for that
-    horizon; the rest are zero-filled placeholders. A weather scenario is valid for
-    one horizon is not valid for another, so validation is done per planning horizon against
+    horizon; the rest are zero-filled placeholders. A weather scenario valid for
+    one horizon may not be valid for another, so validation is done per planning horizon against
     its passed ``valid_weather_scenarios``.
 
     Parameters
