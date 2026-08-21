@@ -22,9 +22,9 @@ demand types for a given planning horizon. The availability is recorded in
 `weather_scenarios_tyndp` selects which of them to model, as an ordered
 preference list per planning horizon. The first entry that is actually
 populated is used; entries that aren't fall back to the first available one
-for that horizon (see :py:func:`scripts._helpers.check_weather_scenario`). The
-weather scenario is resolved separately for every planning horizon read, since the
-``WSxxx`` numbering restarts per horizon.
+for that horizon (see :py:func:`get_weather_scenario`). The weather scenario
+is resolved separately for every planning horizon read, since the ``WSxxx``
+numbering restarts per horizon.
 
 Data Availability
 -----------------
@@ -90,10 +90,6 @@ def get_weather_scenario(weather_scenarios, pyear):
     """
     Select the weather scenario to use for a given planning year.
 
-    Currently selects the first weather year listed for the given planning
-    year. This is a placeholder and should be adapted once the full weather
-    year implementation is available in SB.
-
     Parameters
     ----------
     weather_scenarios : dict
@@ -105,14 +101,13 @@ def get_weather_scenario(weather_scenarios, pyear):
     Returns
     -------
     int
-        The selected weather scenario. Falls back to the first entry in
-        ``AVAILABLE_WEATHER_SCENARIOS[pyear]`` if the originally selected
-        scenario is not available.
+        Selected weather scenario. Falls back to the first entry in
+        ``AVAILABLE_WEATHER_SCENARIOS[pyear]`` if unavailable.
 
     Notes
     -----
-    TODO: currently just selects first weather year, should be adapted when
-    we have the full weather year implementation in SB.
+    Currently always picks the first requested weather scenario; should be
+    adapted once the full weather year implementation is available in SB.
     """
     weather_scenario = weather_scenarios[pyear][0]
 
@@ -131,13 +126,10 @@ def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
     """
     Ensure a leap `year` doesn't leave 29 February in `snapshots`.
 
-    TYNDP 2026 demand profiles always span exactly 365 days (no 29 February
-    row) — demand is built directly against the target snapshot year (rather
-    than a placeholder year later remapped by `align_demand_to_snapshots`).
-    A leap `year` is fine as long as `drop_leap_day` strips 29 February from
-    `snapshots` (the default); it's only a problem if `year` is a leap year
-    and `drop_leap_day` is disabled, since demand can never supply data for
-    29 February and it would silently reindex to NaN.
+    TYNDP 2026 demand data always spans 365 days (no 29 February), so demand
+    built directly against a leap `year` would be missing that day. This is
+    fine as long as `drop_leap_day` also strips 29 February from
+    `snapshots` (the default); otherwise the two no longer line up.
 
     Raises
     ------
@@ -155,7 +147,22 @@ def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
 
 
 def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:
-    """Convert demand MultiIndex ('Date', 'Hour') to a DatetimeIndex and return a DataFrame."""
+    """
+    Convert a ``(Date, Hour)`` MultiIndex to a DatetimeIndex.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Demand data indexed by ``(Date, Hour)``, with ``Date`` as
+        ``"DD.MM."`` strings and ``Hour`` as 1-24.
+    year : int
+        Year to assign to the resulting DatetimeIndex.
+
+    Returns
+    -------
+    pd.DataFrame
+        `df` reindexed with a DatetimeIndex named ``"datetime"``.
+    """
 
     df_reset = df.reset_index()
 
@@ -225,7 +232,24 @@ def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
 
 
 def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.DataFrame:
-    """Read and process demand data from Excel file for a specific weather scenario."""
+    """
+    Read demand data for one weather scenario from a TYNDP demand Excel file.
+
+    Parameters
+    ----------
+    demand_fn : str
+        Path to the demand Excel file.
+    weather_scenario : int
+        Climate year column index to read, e.g. 3 for ``WS003``.
+    year : int
+        Year to assign to the resulting DatetimeIndex.
+
+    Returns
+    -------
+    pd.DataFrame
+        Demand indexed by DatetimeIndex, one column per bus. Empty DataFrame
+        if reading or parsing fails.
+    """
     ws_code = f"WS{weather_scenario:03d}"
     try:
         data = pd.read_excel(
@@ -278,10 +302,9 @@ def load_demand(
         Key identifying the demand type, must be present in
         `DEMAND_TYPE_MAP`.
     weather_scenario : int
-        Climate year column index (e.g. 3 for ``WS003``) to load demand data
-        for.
+        Climate year column index to load, e.g. 3 for ``WS003``.
     year : int
-        Target snapshot year to build the demand DatetimeIndex against.
+        Year to assign to the resulting DatetimeIndex.
 
     Returns
     -------
@@ -297,7 +320,6 @@ def load_demand(
     return read_demand_excel(demand_fn, weather_scenario, year)
 
 
-# %%
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
