@@ -35,7 +35,7 @@ horizons are linearly interpolated between available data points.
 Inputs
 ------
 
-- `data/tyndp_2026_bundle/Demand`: TYNDP 2026 demand profiles, with one
+- `data/tyndp/.../2026/Demand`: TYNDP 2026 demand profiles, with one
   subfolder per planning horizon containing one Excel file per demand type
   (e.g. ``ELECTRICITY_MARKET {pyear}.xlsx``, ``Hydrogen_Zone 1_{pyear}.xlsx``),
   each with one sheet per node.
