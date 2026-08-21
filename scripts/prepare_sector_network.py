@@ -2889,35 +2889,41 @@ def _add_battery_capacities(
 
     logger.info("Adding PEMMDB capacities to battery storage assets.")
 
+    batteries = {"battery": "battery-utility", "home battery": "battery-prosumer"}
     # Add Store capacities
-    tech = "battery"
-    stores_i = n.stores.query("carrier == @tech").index
-    caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-    caps = caps.set_index(caps.index + " " + caps["index_carrier"])
-    n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
-    if tyndp_scenario == "NT":
-        n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+    for carrier, pemmdb_index in batteries.items():
+        stores_i = n.stores.query("carrier == @carrier").index
+        if stores_i.empty:
+            continue
 
-    # Add links capacities
-    for tech in ["battery charger", "battery discharger"]:
-        links_i = n.links.query("carrier == @tech").index
-        caps = pemmdb_capacities.query(f"`index_carrier` == '{tech}'")
-        caps = caps.set_index(caps.index + " " + caps["index_carrier"])
-
-        # Adjust efficiencies with PEMMDB values
-        n.links.loc[links_i, "efficiency"] = (
-            caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
-        )
-
-        # Set capacities
-        p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
-        if tech == "battery discharger":
-            p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
-        n.links.loc[links_i, "p_nom"] = p_nom
-
-        # Set p_nom_extendable False for NT scenario
+        caps = pemmdb_capacities.query("index_carrier == @pemmdb_index")
+        caps = caps.set_index(caps.index + " " + carrier)
+        n.stores.loc[stores_i, "e_nom"] = caps.e_nom.reindex(stores_i, fill_value=0.0)
         if tyndp_scenario == "NT":
-            n.links.loc[links_i, "p_nom_extendable"] = False
+            n.components.stores.static.loc[stores_i, "e_nom_extendable"] = False
+
+        # Add links capacities
+        for suffix in ["charger", "discharger"]:
+            tech = f"{carrier} {suffix}"
+            pemmdb_tech = f"{pemmdb_index} {suffix}"
+            links_i = n.links.query("carrier == @tech").index
+            caps = pemmdb_capacities.query("index_carrier == @pemmdb_tech")
+            caps = caps.set_index(caps.index + " " + tech)
+
+            # Adjust efficiencies with PEMMDB values
+            n.links.loc[links_i, "efficiency"] = (
+                caps.efficiency.reindex(links_i, fill_value=0.0) ** 0.5
+            )
+
+            # Set capacities
+            p_nom = caps.p_nom.reindex(links_i, fill_value=0.0)
+            if suffix == "discharger":
+                p_nom = p_nom.div(n.links.loc[links_i, "efficiency"]).fillna(0.0)
+            n.links.loc[links_i, "p_nom"] = p_nom
+
+            # Set p_nom_extendable False for NT scenario
+            if tyndp_scenario == "NT":
+                n.links.loc[links_i, "p_nom_extendable"] = False
 
     remove_zero_capacity_non_extendable(
         n,
@@ -2925,13 +2931,19 @@ def _add_battery_capacities(
             "battery",
             "battery charger",
             "battery discharger",
+            "home battery",
+            "home battery charger",
+            "home battery discharger",
         ],
         component_types={"Store", "Link"},
     )
     # Drop Storage buses that do not have a store connected to it anymore
-    remaining_stores = n.stores[n.stores.carrier == "battery"].bus.unique()
+    remaining_stores = n.stores[
+        n.stores.carrier.isin(["battery", "home battery"])
+    ].bus.unique()
     idx = n.buses.loc[
-        (n.buses.carrier == "battery") & ~n.buses.index.isin(remaining_stores)
+        (n.buses.carrier.isin(["battery", "home battery"]))
+        & ~n.buses.index.isin(remaining_stores)
     ].index
     n.remove("Bus", idx)
 
@@ -3347,6 +3359,12 @@ def insert_electricity_distribution_grid(
     # set existing solar to cost of utility cost rather the 50-50 rooftop-utility
     solar = n.generators.index[n.generators.carrier == "solar"]
     n.generators.loc[solar, "capital_cost"] = costs.at["solar-utility", "capital_cost"]
+
+    homeb_chargers = n.links.index[n.links.carrier == "home battery charger"]
+    n.links.loc[homeb_chargers, "bus0"] += " low voltage"
+
+    homeb_dischargers = n.links.index[n.links.carrier == "home battery discharger"]
+    n.links.loc[homeb_dischargers, "bus1"] += " low voltage"
 
     fn = solar_rooftop_potentials_fn
     if len(fn) > 0:

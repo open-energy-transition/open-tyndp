@@ -1232,19 +1232,18 @@ def attach_stores(
     extendable_carriers : list
         List of extendable storage carrier names.
     tyndp_stores : list, optional
-        List of TYNDP store carriers. When `battery` is included, the battery
+        List of TYNDP store carriers. When `battery` and `home battery` are included, the battery
         lookup is overridden to use exogenous TYNDP component names.
     """
     store_lookup = STORE_LOOKUP.copy()
-    if "battery" in tyndp_stores:
-        store_lookup["battery"] = {
-            "store": "battery",
-            "bicharger": "battery bicharger",
+    for carrier in [c for c in tyndp_stores if c.endswith("battery")]:
+        store_lookup[carrier] = {
+            "store": f"{carrier} storage",
+            "bicharger": f"{carrier} bicharger",
             "roundtrip_correction": 0.5,
         }
-        extendable_carriers = extendable_carriers + (
-            ["battery"] if "battery" not in extendable_carriers else []
-        )
+        if carrier not in extendable_carriers:
+            extendable_carriers = extendable_carriers + [carrier]
 
     available_carriers = get_available_storage_carriers(
         extendable_carriers, store_lookup
