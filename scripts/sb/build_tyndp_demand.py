@@ -234,7 +234,28 @@ def load_demand(
     demand_type: str,
     weather_scenarios: dict[int, list[int]],
 ) -> pd.DataFrame:
-    """Load demand data for a planning year and demand type."""
+    """
+    Load demand data for a planning horizon and demand type.
+
+    Parameters
+    ----------
+    fn : str
+        Path to the base directory containing per-year demand data
+        subdirectories.
+    pyear : int
+        Planning horizon for which to load demand data.
+    demand_type : str
+        Key identifying the demand type, must be present in
+        `DEMAND_TYPE_MAP`.
+    weather_scenarios : dict[int, list[int]]
+        Mapping of weather year to the list of climate years to load
+        demand data for.
+
+    Returns
+    -------
+    pd.DataFrame
+        Demand data for the given planning year and demand type.
+    """
     demand_fn = get_file_path(fn, pyear, demand_type)
     weather_scenario = get_weather_scenario(pyear, weather_scenarios)
     logger.info(f"Reading {demand_fn.name}, weather scenario WS{weather_scenario:03d}")
