@@ -123,6 +123,23 @@ def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
     across demand types, so the file is looked up by matching on the prefix
     instead of a fixed template.
 
+    Parameters
+    ----------
+    fn : str
+        Path to the base directory containing per-year demand data
+        subdirectories.
+    pyear : int
+        Planning year for which to locate the demand file.
+    demand_type : str
+        Key identifying the demand type, must be present in
+        `DEMAND_TYPE_MAP`.
+
+    Returns
+    -------
+    Path
+        Path to the matching demand Excel file. If multiple files match,
+        the first one (sorted alphabetically) is returned.
+
     Raises
     ------
     KeyError
