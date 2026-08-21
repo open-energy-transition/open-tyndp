@@ -1442,6 +1442,33 @@ if config["tyndp_scenario"]:
                     macosx_dir = output_folder / "__MACOSX"
                     rmtree(macosx_dir, ignore_errors=True)
 
+                    # Some archives (as of the 2026-08-21 data drop) wrap
+                    # their contents in an extra subfolder matching the
+                    # zip's own name (e.g. Line-data/Line-data/...) instead
+                    # of the original single-level layout. Flatten that
+                    # back so downstream paths stay stable.
+                    top_dir = output_folder / Path(output[f"{key}_zip"]).stem
+                    nested_dir = top_dir / top_dir.name
+                    if nested_dir.is_dir():
+                        for item in nested_dir.iterdir():
+                            target = top_dir / item.name
+                            if target.exists():
+                                if target.is_dir():
+                                    rmtree(target)
+                                else:
+                                    target.unlink()
+                            move(str(item), str(target))
+                        nested_dir.rmdir()
+
+                    # Some files (as of the 2026-08-21 data drop) were
+                    # renamed with a "_corrected" suffix. Strip it so
+                    # downstream rules/scripts can keep relying on the
+                    # original, expected filenames.
+                    for path in top_dir.rglob("*_corrected.*"):
+                        path.rename(
+                            path.with_name(path.name.replace("_corrected", "", 1))
+                        )
+
 
 
 def get_osm_archive_files(version):
