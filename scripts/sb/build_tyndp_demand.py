@@ -306,9 +306,7 @@ if __name__ == "__main__":
     # Parameters
     pyear = int(snakemake.wildcards.planning_horizons)
     demand_type = snakemake.wildcards.demand_type
-    weather_scenarios = {
-        int(y): list(ws) for y, ws in snakemake.params.weather_scenarios.items()
-    }
+    weather_scenarios = snakemake.params.weather_scenarios
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
