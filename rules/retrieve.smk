@@ -1432,15 +1432,29 @@ if config["tyndp_scenario"]:
             run:
                 for key in input.keys():
                     # Keep zip file
-                    copy2(input[key], output[f"{key}_zip"])
+                    zip_file = Path(output[f"{key}_zip"])
+                    copy2(input[key], zip_file)
 
                     # unzip
-                    output_folder = Path(output[f"{key}_zip"]).parent
-                    unpack_archive(output[f"{key}_zip"], output_folder)
+                    output_folder = zip_file.parent
+                    unpack_archive(zip_file, output_folder)
 
-                    # Remove __MACOSX directory if it exists
-                    macosx_dir = output_folder / "__MACOSX"
-                    rmtree(macosx_dir, ignore_errors=True)
+                    # Flatten duplicated top-level folder, e.g. `Demand/Demand`
+                    extracted = output_folder / zip_file.stem
+                    if (nested := extracted / extracted.name).is_dir():
+                        for path in nested.iterdir():
+                            move(path, extracted / path.name)
+                        nested.rmdir()
+
+                    # Drop `_corrected` suffix from re-issued files
+                    for path in extracted.rglob("*_corrected.*"):
+                        path.replace(
+                            path.with_stem(path.stem.removesuffix("_corrected"))
+                        )
+
+                    # Remove __MACOSX directories if they exist
+                    for folder in [output_folder, extracted]:
+                        rmtree(folder / "__MACOSX", ignore_errors=True)
 
 
 
