@@ -1021,9 +1021,9 @@ def process_pemmdb_capacities(
         # Separate energy and power capacities, assign empty values for missing attributes and select needed columns
         capacities = (
             capacities.assign(
-                price=lambda x: x.get("price"),
-                hours=lambda x: x.get("hours"),
-                co2_factor=lambda x: x.get("co2_factor"),
+                price=lambda x: x.get("price", np.nan),
+                hours=lambda x: x.get("hours", np.nan),
+                co2_factor=lambda x: x.get("co2_factor", np.nan),
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
             )[
@@ -1188,10 +1188,10 @@ def process_pemmdb_profiles(
                 drop_on_columns=True,
             )
             .assign(
-                price=lambda x: x.get("price"),
-                hours=lambda x: x.get("hours"),
-                p_set=lambda x: x.get("p_set"),
-                price_band_type=lambda x: x.get("price_band_type"),
+                price=lambda x: x.get("price", np.nan),
+                hours=lambda x: x.get("hours", np.nan),
+                p_set=lambda x: x.get("p_set", np.nan),
+                price_band_type=lambda x: x.get("price_band_type", np.nan),
             )
             .set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
         )
