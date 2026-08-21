@@ -6,8 +6,7 @@ Builds TYNDP Scenario Building demand profiles for Open-TYNDP.
 
 This script processes demand data from TYNDP 2026 (e.g. electricity market,
 electricity prosumer, EV charging, hydrogen zones, thermal energy, synthetic
-fuels, ...), selecting one of the populated weather scenario columns for demand
-profiles.
+fuels, ...), for one weather scenario.
 
 Weather Scenario Selection
 --------------------------
@@ -19,12 +18,9 @@ Which 3 are populated is dependent on data package and identical across
 demand types for a given planning horizon. The availability is recorded in
 `AVAILABLE_WEATHER_SCENARIOS`.
 
-`weather_scenarios_tyndp` selects which of them to model, as an ordered
-preference list per planning horizon. The first entry that is actually
-populated is used; entries that aren't fall back to the first available one
-for that horizon (see :py:func:`get_weather_scenario`). The weather scenario
-is resolved separately for every planning horizon read, since the ``WSxxx``
-numbering restarts per horizon.
+Current implementation selects first weather scenario of a planning horizon,
+This needs to be revisit once we have implemented the full weather scenario
+implementation for SB.
 
 Data Availability
 -----------------
@@ -60,8 +56,8 @@ from scripts._helpers import (
 
 logger = logging.getLogger(__name__)
 
-# Weather scenarios (climate year column indices) that contain data in the TYNDP
-# 2026 demand files, per planning horizon.
+# Weather scenarios that contain data in the TYNDP 2026 demand files,
+# per planning horizon.
 AVAILABLE_WEATHER_SCENARIOS = {
     2030: [3, 21, 29],
     2035: [32, 37, 59],
@@ -69,7 +65,7 @@ AVAILABLE_WEATHER_SCENARIOS = {
     2050: [91, 92, 106],
 }
 
-# Maps the `demand_type` wildcard to the token prefixing the TYNDP 2026 demand
+# Maps the `demand_type` wildcard to the TYNDP 2026 demand
 # file names. Also defines which demand types the workflow knows about, and is
 # imported by `rules/sb.smk` to constrain the wildcard and collect targets.
 DEMAND_TYPE_MAP = {
