@@ -4,6 +4,7 @@
 
 
 from scripts._helpers import safe_pyear, find_free_port
+from scripts.sb.build_tyndp_demand import DEMAND_TYPE_MAP
 from shutil import unpack_archive, copy2
 
 # Retrieve
@@ -202,6 +203,29 @@ use rule build_electricity_demand as build_electricity_demand_tyndp with:
         benchmarks("performances/build_electricity_demand_{planning_horizons}")
 
 
+rule build_tyndp_demand:
+    input:
+        demand=rules.retrieve_tyndp_2026.output.demand_profiles,
+    output:
+        demand=resources("demand_tyndp_{demand_type}_{planning_horizons}.csv"),
+    log:
+        logs("build_tyndp_demand_{demand_type}_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_demand_{demand_type}_{planning_horizons}")
+    wildcard_constraints:
+        # Limited to the demand types the workflow knows how to process
+        demand_type="|".join(DEMAND_TYPE_MAP),
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        snapshots=config_provider("snapshots"),
+        drop_leap_day=config_provider("enable", "drop_leap_day"),
+        weather_scenarios=config_provider("weather_scenarios_tyndp"),
+    script:
+        scripts("sb/build_tyndp_demand.py")
+
+
 def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
@@ -285,7 +309,7 @@ pemmdb_techs = branch(
 
 rule build_pemmdb_data:
     input:
-        pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
+        pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
     output:
@@ -300,6 +324,7 @@ rule build_pemmdb_data:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
+        weather_year=get_weather_year_tyndp,
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
@@ -988,6 +1013,18 @@ if config["benchmarking"]["enable"]:
 
 # Collect
 #########
+
+
+rule build_tyndp_demands:
+    input:
+        expand(
+            rules.build_tyndp_demand.output.demand,
+            demand_type=list(DEMAND_TYPE_MAP),
+            **config["scenario"],
+            run=config["run"]["name"],
+        ),
+    message:
+        "Collecting TYNDP 2026 demand profiles"
 
 
 rule clean_pecd_datas:

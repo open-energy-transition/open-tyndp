@@ -1546,6 +1546,50 @@ def check_cyear(cyear: int, scenario: str) -> int:
     return cyear
 
 
+def check_weather_scenario(
+    weather_scenario: int, valid_weather_scenarios: list[int]
+) -> int:
+    """
+    Check if a given weather scenario is one of the known-valid ones, falling back to first valid entry if not.
+
+    TYNDP 2026 demand profiles provide 30 climate year columns per planning
+    horizon (labelled ``WSxxx``), only 3 of which contain data for that
+    horizon; the rest are zero-filled placeholders. A weather scenario valid for
+    one horizon may not be valid for another, so validation is done per planning horizon against
+    its passed ``valid_weather_scenarios``.
+
+    Parameters
+    ----------
+    weather_scenario : int
+        Weather scenario (climate year column index, e.g. 3 for ``WS003``) to validate.
+    valid_weather_scenarios : list[int]
+        Weather scenarios known to contain data, for the planning horizon being
+        processed.
+
+    Returns
+    -------
+    int
+        Valid weather scenario, falling back to the first entry of
+        `valid_weather_scenarios` if the input is not among them.
+    """
+
+    if not valid_weather_scenarios:
+        raise ValueError(
+            "No `valid_weather_scenarios` provided. Expected a non-empty list of weather scenarios."
+        )
+
+    if weather_scenario not in valid_weather_scenarios:
+        fallback = valid_weather_scenarios[0]
+        logger.warning(
+            f"No data for weather scenario WS{weather_scenario:03d} in given planning horizon "
+            f"(available: {[f'WS{y:03d}' for y in valid_weather_scenarios]}). "
+            f"Falling back to WS{fallback:03d}."
+        )
+        weather_scenario = fallback
+
+    return weather_scenario
+
+
 def get_tyndp_conventional_thermals(
     mapping: pd.DataFrame,
     tyndp_conventional_carriers: list[str],
@@ -1594,7 +1638,7 @@ def get_tyndp_conventional_thermals(
     if include_h2_fuel_cell:
         conventional_thermals.append("h2-fuel-cell")
     if include_h2_turbine:
-        conventional_thermals.append("h2-ccgt")
+        conventional_thermals.extend(["h2-ccgt", "h2-ocgt"])
 
     return conventional_dict, conventional_thermals
 
