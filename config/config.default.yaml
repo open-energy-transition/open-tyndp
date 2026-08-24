@@ -185,7 +185,7 @@ electricity:
   pecd_renewable_profiles:
     enable: false
     pre_built:
-      cyears:
+      weather_scenarios:
       - 1995
       - 2008
       - 2009

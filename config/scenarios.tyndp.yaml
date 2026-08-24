@@ -311,16 +311,16 @@ GA-cy2009:
     default_cutout: europe-2009-sarah3-era5
 
 
-NT-cyears:
+NT-weather_scenarios:
   cba:
     scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
 
 
-DE-cyears:
+DE-weather_scenarios:
   cba:
     scenarios: [DE-cy2009, DE-cy2008, DE-cy1995]
 
 
-GA-cyears:
+GA-weather_scenarios:
   cba:
     scenarios: [GA-cy2009, GA-cy2008, GA-cy1995]

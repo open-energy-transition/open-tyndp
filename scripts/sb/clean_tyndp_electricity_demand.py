@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script is used to clean TYNDP Scenario Building demand data to be used in the PyPSA-Eur workflow. The `snapshot` year is used as climatic year (`cyear`). For DE and GA, it must be one of the following years: 1995, 2008 or 2009. For NT, it must be between 1982 and 2019. If the `snapshot` is not one of these years, then the demand is set to 2009 electricity demand (2009 being considered as the most representative of the three years).
+This script is used to clean TYNDP Scenario Building demand data to be used in the PyPSA-Eur workflow. The `snapshot` year is used as climatic year (`weather_scenario`). For DE and GA, it must be one of the following years: 1995, 2008 or 2009. For NT, it must be between 1982 and 2019. If the `snapshot` is not one of these years, then the demand is set to 2009 electricity demand (2009 being considered as the most representative of the three years).
 
-Depending on the scenario, different planning years (`pyear`) are available. DE and GA are defined for 2030, 2040 and 2050. NT scenario is only defined for 2030 and 2040. All the planning years are read at once.
+Depending on the scenario, different planning years (`planning_horizon`) are available. DE and GA are defined for 2030, 2040 and 2050. NT scenario is only defined for 2030 and 2040. All the planning years are read at once.
 """
 
 import logging
@@ -18,7 +18,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
+    safe_planning_horizon,
     set_scenario_config,
 )
 
@@ -26,40 +26,46 @@ logger = logging.getLogger(__name__)
 
 
 def load_elec_demand(
-    fn: str, scenario: str, pyear: int, cyear: int, available_years: list
+    fn: str,
+    scenario: str,
+    planning_horizon: int,
+    weather_scenario: int,
+    available_years: list,
 ):
     """
     Load electricity demand files into dictionary of dataframes. Filter for specific climatic year and format data.
     """
-    pyear_index = pyear
+    planning_horizon_index = planning_horizon
 
     # handle intermediate years
     # TODO: Possibly improve this with linear interpolation for 2035 and 2045
-    pyear = safe_pyear(pyear, available_years=available_years, source="TYNDP demand")
+    planning_horizon = safe_planning_horizon(
+        planning_horizon, available_years=available_years, source="TYNDP demand"
+    )
 
     if scenario == "NT":
-        if pyear == 2050:
+        if planning_horizon == 2050:
             logger.warning(
                 "2050 electricity demand data are not defined for NT in 2024 TYNDP cycle. Falling back to 2040."
             )
-            pyear = 2040
+            planning_horizon = 2040
         demand_fn = Path(
             fn,
             scenario,
             "Electricity demand profiles",
-            f"{pyear}_National Trends.xlsx",
+            f"{planning_horizon}_National Trends.xlsx",
         )
 
-        if int(cyear) < 1982 or int(cyear) > 2019:
+        if int(weather_scenario) < 1982 or int(weather_scenario) > 2019:
             logger.warning(
                 "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
             )
-            cyear = 2009
+            weather_scenario = 2009
         data = pd.read_excel(
             demand_fn,
             skiprows=7,
             index_col=0,
-            usecols=lambda name: name == "Date" or name == int(cyear),
+            usecols=lambda name: name == "Date" or name == int(weather_scenario),
             sheet_name=None,
         )
 
@@ -67,38 +73,40 @@ def load_elec_demand(
         demand_fn = Path(
             fn,
             scenario,
-            str(pyear),
-            f"ELECTRICITY_MARKET {scenario} {pyear}.xlsx",
+            str(planning_horizon),
+            f"ELECTRICITY_MARKET {scenario} {planning_horizon}.xlsx",
         )
 
-        if int(cyear) not in [1995, 2008, 2009]:
+        if int(weather_scenario) not in [1995, 2008, 2009]:
             logger.warning(
                 "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
             )
-            cyear = 2009
+            weather_scenario = 2009
         data = pd.read_excel(
             demand_fn,
             skiprows=11,
             index_col=0,
-            usecols=lambda name: name == "Date" or name == int(cyear),
+            usecols=lambda name: name == "Date" or name == int(weather_scenario),
             sheet_name=None,
         )
 
         # Fix inconsistencies in input data
-        if pyear in [2040, 2050]:
+        if planning_horizon in [2040, 2050]:
             data["PL00"].index = data["AT00"].index
             data["UK00"] = pd.read_excel(
                 demand_fn,
                 skiprows=11,
                 index_col=0,
-                usecols=lambda name: name == "Date" or name == int(cyear) - 1,
+                usecols=lambda name: (
+                    name == "Date" or name == int(weather_scenario) - 1
+                ),
                 sheet_name="UK00",
             )
 
     demand = pd.concat(data, axis=1).droplevel(1, axis=1)
 
     # need to reindex load time series to target year
-    demand.index = demand.index.map(lambda t: t.replace(year=pyear_index))
+    demand.index = demand.index.map(lambda t: t.replace(year=planning_horizon_index))
 
     # rename UK in GB
     demand.columns = demand.columns.str.replace("UK", "GB")
@@ -120,16 +128,16 @@ if __name__ == "__main__":
 
     # Parameters
     scenario = snakemake.params["scenario"]
-    cyear = get_snapshots(snakemake.params.snapshots)[0].year
+    weather_scenario = get_snapshots(snakemake.params.snapshots)[0].year
     planning_horizons = snakemake.params["planning_horizons"]
 
     # Load and prep electricity demand
     logger.info(
-        f"Processing Electricity demand for scenario: {scenario} and climate year: {cyear}"
+        f"Processing Electricity demand for scenario: {scenario} and climate year: {weather_scenario}"
     )
     tqdm_kwargs = {
         "ascii": False,
-        "unit": " pyear",
+        "unit": " planning_horizon",
         "total": len(planning_horizons),
         "desc": "Loading TYNDP demand data",
     }
@@ -138,7 +146,7 @@ if __name__ == "__main__":
         load_elec_demand,
         snakemake.input.electricity_demand,
         scenario,
-        cyear=cyear,
+        weather_scenario=weather_scenario,
         available_years=snakemake.params.available_years,
     )
 

@@ -5,7 +5,7 @@
 Builds TYNDP Scenario Building hydrogen demand profiles for Open-TYNDP.
 
 This script processes hydrogen demand data from TYNDP 2024, using the
-`snapshots` year as the climatic year (`cyear`) for demand profiles.
+`snapshots` year as the climatic year (`weather_scenario`) for demand profiles.
 The data is filtered and interpolated based on the selected scenario
 (Distributed Energy, Global Ambition, or National Trends) and planning horizon.
 
@@ -56,7 +56,7 @@ import pandas as pd
 
 from scripts._helpers import (
     align_demand_to_snapshots,
-    check_cyear,
+    check_weather_scenarios,
     configure_logging,
     get_snapshots,
     interpolate_demand,
@@ -109,7 +109,11 @@ def get_available_years(fn: str, scenario: str) -> list[int]:
 
 
 def read_h2_excel(
-    demand_fn: str, scenario: str, pyear: int, cyear: int, h2_zone: int
+    demand_fn: str,
+    scenario: str,
+    planning_horizon: int,
+    weather_scenario: int,
+    h2_zone: int,
 ) -> pd.DataFrame:
     """Read and process hydrogen demand data from Excel file for a specific year and h2 zone."""
     try:
@@ -118,19 +122,21 @@ def read_h2_excel(
             header=10,
             index_col=[0, 1],
             sheet_name=None,
-            usecols=lambda name: name == "Date" or name == "Hour" or name == int(cyear),
+            usecols=lambda name: (
+                name == "Date" or name == "Hour" or name == int(weather_scenario)
+            ),
         )
 
         demand = pd.concat(data, axis=1).droplevel(1, axis=1)
         # Reindex to match snapshots
-        demand = multiindex_to_datetimeindex(demand, year=cyear)
+        demand = multiindex_to_datetimeindex(demand, year=weather_scenario)
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
         demand.columns.name = "Bus"
 
     except Exception as e:
         logger.warning(
-            f"Failed to read H2 demand for scenario {scenario}, pyear {pyear}, H2 Zone {h2_zone}: "
+            f"Failed to read H2 demand for scenario {scenario}, planning_horizon {planning_horizon}, H2 Zone {h2_zone}: "
             f"{type(e).__name__}: {e}"
         )
         demand = pd.DataFrame()
@@ -138,7 +144,9 @@ def read_h2_excel(
     return demand
 
 
-def get_file_path(fn: str, scenario: str, pyear: int, h2_zone: int = None) -> Path:
+def get_file_path(
+    fn: str, scenario: str, planning_horizon: int, h2_zone: int = None
+) -> Path:
     """
     Construct file path for given planning year and zone.
 
@@ -148,7 +156,7 @@ def get_file_path(fn: str, scenario: str, pyear: int, h2_zone: int = None) -> Pa
         Base directory path containing scenario subdirectories.
     scenario : str
         Scenario name.
-    pyear : int
+    planning_horizon : int
         Planning year.
     h2_zone : int, optional
         H2 zone identifier required for "DE" and "GA" scenarios. Default is None.
@@ -164,30 +172,34 @@ def get_file_path(fn: str, scenario: str, pyear: int, h2_zone: int = None) -> Pa
             fn,
             scenario,
             "H2 demand profiles",
-            f"H2 {pyear}",
-            f"{scenario}_{pyear}.xlsx",
+            f"H2 {planning_horizon}",
+            f"{scenario}_{planning_horizon}.xlsx",
         )
     elif scenario in ["DE", "GA"]:
         return Path(
             fn,
             scenario,
-            str(pyear),
+            str(planning_horizon),
             f"H2_ZONE_{h2_zone}.xlsx",
         )
 
 
-def load_single_year(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFrame:
+def load_single_year(
+    fn: str, scenario: str, planning_horizon: int, weather_scenario: int
+) -> pd.DataFrame:
     """Load demand data for a single planning year."""
     if scenario == "NT":
-        demand_fn = get_file_path(fn, scenario, pyear)
-        demand = read_h2_excel(demand_fn, scenario, pyear, cyear, h2_zone=2)
+        demand_fn = get_file_path(fn, scenario, planning_horizon)
+        demand = read_h2_excel(
+            demand_fn, scenario, planning_horizon, weather_scenario, h2_zone=2
+        )
         demand.columns = [f"{col[:2]} H2" for col in demand.columns]
     elif scenario in ["DE", "GA"]:
         demands = {}
         for h2_zone in [1, 2]:
-            demand_fn = get_file_path(fn, scenario, pyear, h2_zone)
+            demand_fn = get_file_path(fn, scenario, planning_horizon, h2_zone)
             demands[h2_zone] = read_h2_excel(
-                demand_fn, scenario, pyear, cyear, h2_zone=h2_zone
+                demand_fn, scenario, planning_horizon, weather_scenario, h2_zone=h2_zone
             )
             demands[h2_zone].columns = [
                 f"{col[:2]} H2 Z{h2_zone}" for col in demands[h2_zone].columns
@@ -197,7 +209,9 @@ def load_single_year(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataF
     return demand
 
 
-def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFrame:
+def load_h2_demand(
+    fn: str, scenario: str, planning_horizon: int, weather_scenario: int
+) -> pd.DataFrame:
     """
     Load hydrogen demand data for a specific scenario, climate year, planning year.
 
@@ -211,9 +225,9 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
         Filepath to the hydrogen demand data file.
     scenario : str
         Name of the scenario to load.
-    pyear : int
+    planning_horizon : int
         Planning year for which to retrieve hydrogen demand data.
-    cyear : int
+    weather_scenario : int
         Climatic year used to filter the demand data.
 
     Returns
@@ -225,22 +239,24 @@ def load_h2_demand(fn: str, scenario: str, pyear: int, cyear: int) -> pd.DataFra
 
     available_years = get_available_years(fn, scenario)
     logger.info(
-        f"Scenario {scenario}: Available years: {available_years}, Target year: {pyear}"
+        f"Scenario {scenario}: Available years: {available_years}, Target year: {planning_horizon}"
     )
 
     # If target year exists in data, load it directly
-    if pyear in available_years:
-        logger.info(f"Year {pyear} found in available data. Loading directly.")
-        return load_single_year(fn, scenario, pyear, cyear)
+    if planning_horizon in available_years:
+        logger.info(
+            f"Year {planning_horizon} found in available data. Loading directly."
+        )
+        return load_single_year(fn, scenario, planning_horizon, weather_scenario)
 
     # Target year not available, do linear interpolation
     return interpolate_demand(
         available_years=available_years,
-        pyear=pyear,
+        planning_horizon=planning_horizon,
         load_single_year_func=load_single_year,
         fn=fn,
         scenario=scenario,
-        cyear=cyear,
+        weather_scenario=weather_scenario,
     )
 
 
@@ -260,11 +276,11 @@ if __name__ == "__main__":
 
     # Parameters
     scenario = snakemake.params["scenario"]
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
-    cyear = snapshots[0].year
+    weather_scenario = snapshots[0].year
     fn = snakemake.input.h2_demand
 
     if scenario not in ["DE", "GA", "NT"]:
@@ -272,14 +288,14 @@ if __name__ == "__main__":
 
     else:
         # Check if climatic year is valid for scenario
-        cyear = check_cyear(cyear, scenario)
+        weather_scenario = check_weather_scenarios(weather_scenario, scenario)
 
         # Load demand with interpolation
         logger.info(
             f"Processing H2 demand for scenario: {scenario}, "
-            f"target year: {pyear}, climate year: {cyear}"
+            f"target year: {planning_horizon}, climate year: {weather_scenario}"
         )
-        demand = load_h2_demand(fn, scenario, pyear, cyear)
+        demand = load_h2_demand(fn, scenario, planning_horizon, weather_scenario)
 
         # Reindex demand to fit to snapshots
         demand = align_demand_to_snapshots(demand, snapshots)

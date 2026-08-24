@@ -4,7 +4,7 @@
 """
 This script loads and cleans the TYNDP H2 reference grid and interzonal connections for a given wildcard planning horizon
 and TYNDP scenario as defined in the config file. The reference grid contains data for the TYNDP planning year 2030,
-while depending on the scenario, different planning years (`pyear`) are available for the interzonal connections.
+while depending on the scenario, different planning years (`planning_horizon`) are available for the interzonal connections.
 DE and GA are defined for 2030, 2035, 2040, 2045 and 2050. For the NT scenario no interzonal capacities are defined.
 """
 
@@ -63,7 +63,7 @@ def normalize_starting_grid_h2_nodes(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_h2_interzonal_connections(
-    fn: str, scenario: str = "GA", pyear: int = 2030
+    fn: str, scenario: str = "GA", planning_horizon: int = 2030
 ) -> pd.DataFrame:
     """
     Load and clean H2 interzonal connections.
@@ -79,7 +79,7 @@ def load_h2_interzonal_connections(
         - 'GA'
         - 'DE'
         - 'NT'
-    pyear : int
+    planning_horizon : int
         TYNDP planning horizon to use for interzonal connection data.
         Possible options are:
         - 2030
@@ -98,16 +98,16 @@ def load_h2_interzonal_connections(
         interzonal_raw = pd.read_excel(fn, sheet_name="Hydrogen_Interzonal")
         interzonal_raw.columns = interzonal_raw.columns.str.title()
 
-        if int(pyear) not in [2030, 2035, 2040, 2045, 2050]:
+        if int(planning_horizon) not in [2030, 2035, 2040, 2045, 2050]:
             logger.warning(
                 "Planning horizon doesn't match available TYNDP data. "
                 "Falling back to closest available year between 2030 and 2050."
             )
-            pyear = np.clip(5 * (pyear // 5), 2030, 2050)
+            planning_horizon = np.clip(5 * (planning_horizon // 5), 2030, 2050)
         scenario_dict = {v: k for k, v in SCENARIO_DICT.items()}
         scenario = scenario_dict[scenario]
         interzonal_filtered = interzonal_raw.query(
-            "Scenario == @scenario and Year == @pyear "
+            "Scenario == @scenario and Year == @planning_horizon "
         )
 
         interzonal = extract_grid_data_tyndp(
@@ -129,7 +129,7 @@ def load_h2_interzonal_connections(
     return interzonal
 
 
-def load_h2_grid_entsoe(fn_grid: str, pyear: int) -> pd.DataFrame:
+def load_h2_grid_entsoe(fn_grid: str, planning_horizon: int) -> pd.DataFrame:
     """
     Load and clean the ENTSO-E/ENTSOG joint scenarios portal H2 starting grid.
 
@@ -138,7 +138,7 @@ def load_h2_grid_entsoe(fn_grid: str, pyear: int) -> pd.DataFrame:
     fn_grid : str
         Path to Excel file containing the ENTSO-E/ENTSOG joint scenarios portal
         H2 starting grid data.
-    pyear : int
+    planning_horizon : int
         Planning horizon used to select the corresponding sheet in the workbook.
 
     Returns
@@ -148,17 +148,17 @@ def load_h2_grid_entsoe(fn_grid: str, pyear: int) -> pd.DataFrame:
     """
 
     available_years = [2030, 2040, 2050]
-    if pyear not in available_years:
-        fallback = min(available_years, key=lambda y: abs(y - pyear))
+    if planning_horizon not in available_years:
+        fallback = min(available_years, key=lambda y: abs(y - planning_horizon))
         logger.warning(
             "Planning horizon %s is not available in StartingGrid2030.xlsx. "
             "Falling back to H_%s.",
-            pyear,
+            planning_horizon,
             fallback,
         )
-        pyear = fallback
+        planning_horizon = fallback
 
-    sheet_name = f"H_{pyear}"
+    sheet_name = f"H_{planning_horizon}"
     h2_grid_raw = pd.read_excel(fn_grid, sheet_name=sheet_name)
     required_cols = {"Border", "Summary Direction 1", "Summary Direction 2"}
     missing_cols = required_cols.difference(h2_grid_raw.columns)
@@ -220,7 +220,7 @@ def load_h2_grid(
     fn_grid_entsoe: str,
     fn_grid_entsos: str,
     fn_projects: str | None,
-    pyear: int,
+    planning_horizon: int,
 ) -> pd.DataFrame:
     """
     Load the corresponding H2 grid based on the source.
@@ -235,7 +235,7 @@ def load_h2_grid(
         Path to the ENTSO-E/ENTSOG joint scenarios H2 reference grid file.
     fn_projects : str or None
         Path to CSV file containing H2 projects data.
-    pyear : int
+    planning_horizon : int
         Planning horizon year.
 
     Returns
@@ -245,7 +245,7 @@ def load_h2_grid(
     """
 
     if source == "entsoe":
-        return load_h2_grid_entsoe(fn_grid_entsoe, pyear)
+        return load_h2_grid_entsoe(fn_grid_entsoe, planning_horizon)
     if source == "entsos":
         return load_h2_grid_entsos(fn_grid_entsos, fn_projects)
 
@@ -269,8 +269,8 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params.scenario
     source = snakemake.params.h2_reference_grid_source
-    pyear = int(snakemake.wildcards.planning_horizons)
-    cyear = get_snapshots(snakemake.params.snapshots)[0].year
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    weather_scenario = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
     h2_grid = load_h2_grid(
@@ -278,10 +278,12 @@ if __name__ == "__main__":
         fn_grid_entsoe=snakemake.input.h2_reference_grid_entsoe,
         fn_grid_entsos=snakemake.input.h2_reference_grid_entsos,
         fn_projects=snakemake.input.h2_projects,
-        pyear=pyear,
+        planning_horizon=planning_horizon,
     )
     interzonal = load_h2_interzonal_connections(
-        fn=snakemake.input.h2_reference_grid_entsos, scenario=scenario, pyear=pyear
+        fn=snakemake.input.h2_reference_grid_entsos,
+        scenario=scenario,
+        planning_horizon=planning_horizon,
     )
 
     # Save prepped H2 grid and interzonal

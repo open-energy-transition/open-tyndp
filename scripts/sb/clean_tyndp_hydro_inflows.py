@@ -28,7 +28,7 @@ from tqdm import tqdm
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
+    safe_planning_horizon,
     set_scenario_config,
 )
 
@@ -38,16 +38,16 @@ logger = logging.getLogger(__name__)
 def read_hydro_inflows_file(
     node: str,
     hydro_inflows_dir: str,
-    cyear: str,
-    pyear: int,
+    weather_scenario: str,
+    planning_horizon: int,
     hydro_tech: str,
     sns: pd.DatetimeIndex,
     date_index: dict,
 ) -> pd.Series:
     fn = Path(
         hydro_inflows_dir,
-        str(pyear),
-        f"PEMMDB_{node.replace('GB', 'UK')}_Hydro_Inflows_{pyear}.xlsx",
+        str(planning_horizon),
+        f"PEMMDB_{node.replace('GB', 'UK')}_Hydro_Inflows_{planning_horizon}.xlsx",
     )
 
     if not os.path.isfile(fn):
@@ -61,7 +61,7 @@ def read_hydro_inflows_file(
             or name == "Week"
             or name == "ShortName"
             or name == "Variable"
-            or name == int(cyear)
+            or name == int(weather_scenario)
         ),
         sheet_name=f"{hydro_tech} - Year Dependent",
     )
@@ -80,8 +80,8 @@ def read_hydro_inflows_file(
                 node: lambda df: np.where(  # calculate hourly inflow in MWh/h
                     # input value was either in GWh/week or in GWh/day
                     df.Variable.str.contains("week"),
-                    df[int(cyear)] / (24 * 7 * 1e-3),
-                    df[int(cyear)] / (24 * 1e-3),
+                    df[int(weather_scenario)] / (24 * 7 * 1e-3),
+                    df[int(weather_scenario)] / (24 * 1e-3),
                 )
             }
         )[node]
@@ -105,27 +105,27 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    cyear = sns[0].year
+    weather_scenario = sns[0].year
     date_index = {
         "w": pd.date_range(
-            start=f"{cyear}-01-01",
+            start=f"{weather_scenario}-01-01",
             periods=53,  # 53 weeks
             freq="7D",
         ),
         "d": pd.date_range(
-            start=f"{cyear}-01-01",
+            start=f"{weather_scenario}-01-01",
             periods=366,  # 366 days (incl. first day of next year)
             freq="D",
         ),
     }
-    if int(cyear) < 1982 or int(cyear) > 2019:
+    if int(weather_scenario) < 1982 or int(weather_scenario) > 2019:
         logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {weather_scenario} doesn't match available TYNDP data. Falling back to 2009."
         )
-        cyear = 2009
+        weather_scenario = 2009
 
     # Planning year
-    pyear = safe_pyear(
+    planning_horizon = safe_planning_horizon(
         snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
         source="Hydro inflows",
@@ -148,8 +148,8 @@ if __name__ == "__main__":
     func = partial(
         read_hydro_inflows_file,
         hydro_inflows_dir=hydro_inflows_dir,
-        cyear=cyear,
-        pyear=pyear,
+        weather_scenario=weather_scenario,
+        planning_horizon=planning_horizon,
         hydro_tech=hydro_tech,
         sns=sns,
         date_index=date_index,

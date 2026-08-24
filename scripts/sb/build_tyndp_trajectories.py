@@ -43,7 +43,7 @@ if __name__ == "__main__":
         "NODE": "bus",
         "SCENARIO": "scenario",
         "TECHNOLOGY": "investment_dataset_carrier",
-        "YEAR": "pyear",
+        "YEAR": "planning_horizon",
         "MIN CAPACITY [MW]": "p_nom_min",
         "MAX CAPACITY [MW]": "p_nom_max",
     }

@@ -6,11 +6,11 @@
 
 run:
   prefix: "test-tyndp"
-  name: "test-NT-cyears"
+  name: "test-NT-weather_scenarios"
   disable_progressbar: true
   scenarios:
     enable: true
-    file: config/test/scenarios.cyears.yaml
+    file: config/test/scenarios.weather_scenarios.yaml
 
 # TODO set foresight
 foresight: myopic
@@ -84,7 +84,7 @@ electricity:
   pecd_renewable_profiles:
     enable: true
     pre_built:
-      cyears:
+      weather_scenarios:
       - 1995
       - 2008
       - 2009
