@@ -34,6 +34,8 @@ doc/_build
 _build
 site
 
+benchmark/
+/site
 
 /scripts/old
 /scripts/create_scenarios.py
@@ -121,6 +123,9 @@ CLAUDE.md
 .claude/
 .github/copilot-instructions.md
 CLAUDE.local.md
+.envrc
+AGENTS.md
+
 # generated DAGs for docs
 doc/img/dag_*.svg
 doc/img/workflow.svg

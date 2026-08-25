@@ -260,7 +260,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "build_tyndp_gas_demand",
             configfiles="config/test/config.tyndp.yaml",
-            planning_horizons=2035,
+            horizon=2035,
             run="NT",
         )
 
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params["scenario"]
     fn = snakemake.input.supply_tool
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
 
     if scenario != "NT":
         # TODO Remove the fallback once DE/GA are implemented

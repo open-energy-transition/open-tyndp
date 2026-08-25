@@ -30,8 +30,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_trajectories",
-            clusters="all",
-            planning_horizons=2030,
+            horizon=2030,
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)

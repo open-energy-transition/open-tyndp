@@ -5,21 +5,20 @@
 Generate snapshot weightings for MSV extraction temporal aggregation.
 
 Produces a CSV with resampled snapshot weightings at the configured
-MSV extraction resolution. Follows the same logic as `time_aggregation.py`
-for the supported resolution formats:
+MSV extraction resolution, given as `cba.msv_extraction.resolution` in the same
+form as `clustering.temporal`:
 
-- `false`: No aggregation, outputs empty CSV
-- `"Nsn"`: Representative snapshots (e.g., "2sn"), outputs empty CSV
-  (handled directly by `set_temporal_aggregation`)
-- `"Nh"`: Hourly resampling (e.g., "24H", "48H"), outputs resampled weightings
+- nothing set: no aggregation, outputs empty CSV
+- `representative`: handled directly by `set_temporal_aggregation`, outputs empty CSV
+- `averaging` / `segmentation`: outputs resampled weightings
 
 **Inputs**
 
-- `resources/cba/networks/reference_{planning_horizons}.nc`: Reference network
+- `resources/cba/networks/reference_{horizon}.nc`: Reference network
 
 **Outputs**
 
-- `resources/cba/msv_snapshot_weightings_{planning_horizons}.csv`: Snapshot weightings
+- `resources/cba/msv_snapshot_weightings_{horizon}.csv`: Snapshot weightings
 """
 
 import logging
@@ -27,7 +26,11 @@ import logging
 import pandas as pd
 import pypsa
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import (
+    configure_logging,
+    get_temporal_resolution,
+    set_scenario_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +41,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_msv_snapshot_weightings",
-            planning_horizons="2030",
+            horizon="2030",
             run="NT",
             configfiles=["config/config.tyndp.yaml"],
         )
@@ -47,18 +50,17 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
-    resolution = snakemake.params.msv_resolution
+    resolution = get_temporal_resolution(snakemake.params.msv_resolution)
     drop_leap_day = snakemake.params.drop_leap_day
 
     # No aggregation or representative snapshots — output empty CSV
-    # (set_temporal_aggregation handles "Nsn" directly without a file)
-    if not resolution or (isinstance(resolution, str) and "sn" in resolution.lower()):
+    # (set_temporal_aggregation handles representative snapshots without a file)
+    if resolution is None or resolution[0] == "representative":
         logger.info("No hourly resampling needed, creating empty weightings file")
         pd.DataFrame().to_csv(snakemake.output.snapshot_weightings)
 
-    # Hourly resampling (e.g., "24H", "48H")
-    elif isinstance(resolution, str) and "h" in resolution.lower():
-        offset = resolution.lower()
+    else:
+        offset = resolution[1]
         logger.info(f"Resampling snapshot weightings every {offset}")
 
         # Resample years separately to handle non-contiguous years
@@ -87,9 +89,3 @@ if __name__ == "__main__":
             logger.info("Dropped leap day(s), redistributed weights to March 1st")
 
         snapshot_weightings.to_csv(snakemake.output.snapshot_weightings)
-
-    else:
-        raise ValueError(
-            f"Unsupported MSV extraction resolution: {resolution!r}. "
-            "Use false, 'Nsn' (e.g., '2sn'), or 'Nh' (e.g., '24H', '48H')."
-        )

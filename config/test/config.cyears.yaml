@@ -4,6 +4,11 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
+planning_horizons:
+- 2030
+- 2035
+- 2040
+
 run:
   prefix: "test-tyndp"
   name: "test-NT-cyears"
@@ -20,13 +25,6 @@ data_config:   # change to 'tyndp' to use tyndp-archive where available
 
 launch_explorer: false
 
-scenario:
-  clusters:
-  - all
-  planning_horizons:
-  - 2030
-  - 2035
-  - 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
 
@@ -35,6 +33,8 @@ snapshots:
   end: "2013-03-08"
 
 co2_budget:
+  upper:
+  lower:
 
 electricity:
   base_network: tyndp
@@ -224,6 +224,7 @@ existing_capacities:
   uniform_renewable_profiles: true
 
 sector:
+  enabled: true
   transport: true
   heating: false
   biomass: true
@@ -333,6 +334,8 @@ costs:
       2050: 168
 
 clustering:
+  cluster_network:
+    n_clusters: all  # the TYNDP base network is already at bidding-zone resolution
   mode: administrative
   administrative:
     level: bz
@@ -343,7 +346,7 @@ clustering:
     remove_stubs: false
   temporal:
     # Important note: The segmentation (SEG) option is currently not supported, for details https://github.com/open-energy-transition/open-tyndp/pull/345
-    resolution_sector: 6H
+    averaging: 6h
 
 adjustments:
   electricity: false
@@ -463,9 +466,10 @@ cba:
 
   # Marginal storage value extraction settings
   msv_extraction:
-    # Temporal resolution for extraction solve
-    # Options: false (use native resolution), "24H", "48H", etc.
-    resolution: false
+    # Temporal resolution for extraction solve, in the same form as
+    # clustering.temporal. Leave unset to use the native resolution.
+    resolution:
+      averaging: false
     # Resampling method: ffill (forward fill), interpolate (linear)
     resample_method: ffill
     # Solve options for MSV extraction

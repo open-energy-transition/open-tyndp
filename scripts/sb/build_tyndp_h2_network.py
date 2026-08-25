@@ -260,7 +260,7 @@ if __name__ == "__main__":
 
         snakemake = mock_snakemake(
             "build_tyndp_h2_network",
-            planning_horizons=2030,
+            horizon=2030,
         )
 
     configure_logging(snakemake)
@@ -269,7 +269,7 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params.scenario
     source = snakemake.params.h2_reference_grid_source
-    pyear = int(snakemake.wildcards.planning_horizons)
+    pyear = int(snakemake.wildcards.horizon)
     cyear = get_snapshots(snakemake.params.snapshots)[0].year
 
     # Load and prep H2 reference grid and interzonal pipeline capacities
