@@ -31,11 +31,16 @@ solving:
   solver:
     name: gurobi
     options: gurobi-default
-  partition: big
+  partition: high-mem
   mem_mb: 45000
   runtime: 2h
 
 cba:
+  # Default high-res CBA projects
+  projects:
+  - t335
+  - t339
+  - t1106
   # MSV solver settings
   msv_extraction:
     solving:
@@ -44,17 +49,17 @@ cba:
       solver:
         name: gurobi
         options: gurobi-default
-      partition: big
+      partition: high-mem
       mem_mb: 45000
-      runtime: 2h
+      runtime: 1h
 
   # Rolling horizon solving settings
   solving:
     options:
       include_objective_constant: false
-    partition: big
-    mem_mb: 45000
-    runtime: 2h
+    partition: high-mem
+    mem_mb: 10000
+    runtime: 1h
 
     solver:
       name: highs

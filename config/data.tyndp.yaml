@@ -21,9 +21,6 @@ data:
   worldbank_commodity_prices:
     source: tyndp-archive
     version: latest
-  gem_europe_gas_tracker:
-    source: tyndp-archive
-    version: latest
   gem_gcct:
     source: tyndp-archive
     version: latest
@@ -58,9 +55,6 @@ data:
     source: tyndp-archive
     version: latest
   jrc_idees:
-    source: tyndp-archive
-    version: latest
-  scigrid_gas:
     source: tyndp-archive
     version: latest
   seawater_temperature:
@@ -99,9 +93,6 @@ data:
   population_count:
     source: tyndp-archive
     version: latest
-  ghg_emissions:
-    source: tyndp-archive
-    version: latest
   gebco:
     source: tyndp-archive
     version: latest
@@ -112,9 +103,6 @@ data:
     source: tyndp-archive
     version: latest
   emobility:
-    source: tyndp-archive
-    version: latest
-  h2_salt_caverns:
     source: tyndp-archive
     version: latest
   lau_regions:
@@ -132,16 +120,10 @@ data:
   tyndp:
     source: tyndp-archive
     version: latest
-  powerplants:
-    source: tyndp-archive
-    version: latest
   costs:
     source: tyndp-archive
     version: latest
   country_runoff:
-    source: tyndp-archive
-    version: latest
-  country_hdd:
     source: tyndp-archive
     version: latest
   natura:
@@ -199,8 +181,5 @@ data:
     source: tyndp-archive
     version: latest
   jrc_energy_atlas:
-    source: tyndp-archive
-    version: latest
-  ons_lad:
     source: tyndp-archive
     version: latest

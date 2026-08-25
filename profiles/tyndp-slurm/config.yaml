@@ -4,21 +4,23 @@
 
 executor: cluster-generic
 cluster-generic-submit-cmd: >-
-  mkdir -p logs/slurm && sbatch
+  scenario={resources.scenario};
+  mkdir -p {CLUSTER_LOGS} && sbatch
   --cpus-per-task={threads}
   --ntasks-per-node=1
   --mem={resources.mem_mb}
   --time={resources.runtime}
   --job-name="project=open-tyndp_smk-{rule}-{wildcards}"
-  --output=logs/slurm/%x-%j.out
+  --output={CLUSTER_LOGS}/%x-%j.out
   --partition=$(if [ {resources.mem_mb} -gt 3000 ] && [ "{resources.partition}" = "small" ]; then echo high-mem; elif [ {resources.runtime} \> "50h" ]; then echo big; else echo {resources.partition}; fi)
   --exclude=$(if [ "{rule}" = "solve_sector_network_myopic" ] || [ "{rule}" = "solve_cba_msv_extraction" ] || [ "{rule}" = "solve_cba_reference_network" ] || [ "{rule}" = "solve_cba_network" ]; then python profiles/tyndp-slurm/exclude.py; fi)
 cluster-generic-cancel-cmd: scancel
 default-resources:
+  scenario: "getattr(wildcards, 'run', '')"
   mem_mb: 5000
   disk_mb: 4000
-  runtime: 2h
-  partition: small
+  runtime: 1h
+  partition: high-mem
   tmpdir: "'/scratch/local'"
 restart-times: 0
 max-jobs-per-timespan: "1/3s"
@@ -28,6 +30,10 @@ latency-wait: 60
 jobs: 999
 keep-going: true
 rerun-incomplete: true
+# Define solver license limitation
+resources:
+  solver_license: 2
+# Account for variations in HPC memory consumption
 set-resources:
   build_shapes:
     mem_mb: 4000
@@ -41,11 +47,13 @@ set-resources:
     mem_mb: 32000
   prepare_sector_network:
     mem_mb: 4000
+  solve_sector_network_myopic:
+    solver_license: 1
   solve_cba_msv_extraction:
-    mem_mb: 150000
+    solver_license: 1
   solve_cba_reference_network:
-    mem_mb: 15000
+    solver_license: 1
   solve_cba_network:
-    mem_mb: 15000
+    solver_license: 1
 
 

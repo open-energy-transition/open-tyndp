@@ -66,6 +66,14 @@ Within this ecosystem, independent organisations can develop their own private r
 
 Each organisation in this open-source ecosystem remains fully independent of the shared foundation, maintaining its own governance structure and decision-making processes regarding its codebase. Organisations are also free to keep parts of their code and sensitive data completely private.
 
+Feel free to check out our explainer video on ["What is Open Energy Modelling"](https://youtu.be/YL3jibyEM9k), which covers key concepts such as "open source" and "open data". We also have a [video](https://youtu.be/Hh6Cnucq2FU) explaining the differences between frameworks, algebraic modelling languages, workflows and models, as well as how Open-TYNDP relates to PyPSA-Eur and PyPSA.
+
+<div style="display: flex; gap: 1em; justify-content: center;">
+<iframe width="340" height="191" src="https://www.youtube-nocookie.com/embed/YL3jibyEM9k?si=8cClRYVomnl-o0EY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="340" height="191" src="https://www.youtube-nocookie.com/embed/Hh6Cnucq2FU?si=CC7mG2zYH-AUJDld" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+
 
 ## Development status {#development-status}
 

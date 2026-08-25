@@ -23,7 +23,7 @@ jobs:
         shell: bash -l {0}
     steps:
     - uses: actions/checkout@v7
-    - uses: prefix-dev/setup-pixi@v0.10.0
+    - uses: prefix-dev/setup-pixi@v0.10.1
       with:
         pixi-version: v0.68.1
 
@@ -57,7 +57,7 @@ jobs:
 
     - name: Upload SARIF
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-      uses: github/codeql-action/upload-sarif@v4.37.3
+      uses: github/codeql-action/upload-sarif@v4.37.8
       with:
         sarif_file: ${{ steps.scan.outputs.sarif }}
         category: pixi-vuln-scan
@@ -76,7 +76,7 @@ jobs:
     # diff against the master baseline artifact here instead
     - name: Download master baseline (fork PRs only)
       if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
-      uses: dawidd6/action-download-artifact@v21
+      uses: dawidd6/action-download-artifact@v24
       with:
         workflow: security-scan.yaml
         name: master-sarif
