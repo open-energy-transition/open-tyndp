@@ -10,14 +10,14 @@ Handles multi-border projects, creates links when needed, and validates capacity
 """
 
 import logging
+import random
 
+import numpy as np
 import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba._helpers import get_link_attrs
-
-import random
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ def apply_toot(
         _apply_toot_capacity(reverse_link_id, capacity_reverse, project)
 
 
-def apply_pint(
+def apply_pint_transmission(
     n: pypsa.Network,
     transmission_project: pd.DataFrame,
     hurdle_costs: float,
@@ -228,24 +228,80 @@ def apply_pint(
             )
 
 
-def apply_pint_generator(n, generator_project):
+def _get_generator_values(
+    df_static: pd.Series,
+    df_dynamic: pd.DataFrame,
+    snapshots: pd.Series,
+    col: str,
+    default_value: float,
+):
+    """
+    Returns static / dynamic / default value for generator attributes such as `p_max_pu`, 'p_min_pu`, `efficiency` etc
 
+    Parameters
+    ----------
+    df_static: pd.Series
+        Static components of custom generator projects
+    df_dynamic: pd.DataFrame
+        Dynamic timeseries components of custom generator projects
+    snapshots: pd.Series
+        pandas DateTime Index
+    col: str
+        Generator attribute
+    default_value: float
+        Default value if not provided in the custom generator projects sheets
+    """
+    if col in df_dynamic.columns:
+        return df_dynamic.loc[snapshots, col]
+    elif col in df_static.index:
+        return df_static[col]
+    else:
+        return default_value
+
+
+def apply_pint_generator(
+    n: pypsa.Network,
+    generator_project_static: pd.Series,
+    generator_project_dynamic: pd.DataFrame,
+) -> None:
+    """
+    Apply custom generator projects as PINT
+
+    Parameters
+    ----------
+    n: pypsa.Network
+        Network to modify
+    generator_project_static: pd.Series
+        Static components of custom generator projects
+    generator_project_dynamic: pd.DataFrame
+        Dynamic components of custom generator projects
+
+    Returns
+    -------
+    None
+    """
+
+    # Generate random hexcode for assigning color to a new carrier
+    # Existing color codes are excluded
     def generate_unique_hex(excluded_colors):
         while True:
             # Generate a random 6-digit hex code
             hex_color = f"#{random.randint(0, 0xFFFFFF):06x}"
-            
+
             # Check if the code is in the exclusion list
             if hex_color not in excluded_colors:
                 return hex_color
 
     # Add generator project to the network
-    for _, project in generator_project.iterrows():
+    for _, project in generator_project_static.iterrows():
+        # Add carrier to network if new carrier
         if project.carrier not in n.carriers.index:
             n.add(
                 "Carrier",
                 project.carrier,
-                color=generate_unique_hex(n.carriers.color.tolist())
+                color=generate_unique_hex(
+                    n.carriers.color.tolist()
+                ),  # Assign a new color to the newly added carrier
             )
 
         n.add(
@@ -254,13 +310,25 @@ def apply_pint_generator(n, generator_project):
             carrier=project.carrier,
             bus=project.bus,
             p_nom=project.p_nom,
-            marginal_cost=project.marginal_cost,
+            marginal_cost=_get_generator_values(
+                project, generator_project_dynamic, n.snapshots, "marginal_cost", 0
+            ),
             capital_cost=project.capital_cost,
-            efficiency=project.efficiency,
-            p_max_pu=project.p_max_pu if "p_max_pu" in project.columns else 1,
-            p_min_pu=project.p_min_pu if "p_min_pu" in project.columns else 0
+            efficiency=_get_generator_values(
+                project, generator_project_dynamic, n.snapshots, "efficiency", 1
+            ),
+            p_max_pu=_get_generator_values(
+                project, generator_project_dynamic, n.snapshots, "p_max_pu", 1
+            ),
+            p_min_pu=_get_generator_values(
+                project, generator_project_dynamic, n.snapshots, "p_min_pu", 0
+            ),
+            p_set=_get_generator_values(
+                project, generator_project_dynamic, n.snapshots, "p_set", np.nan
+            ),
         )
-        
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -286,18 +354,23 @@ if __name__ == "__main__":
     )
 
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
-    generator_projects = pd.read_csv(snakemake.input.generator_projects)
+    generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
+    generator_projects_dynamic = pd.read_csv(
+        snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
+    )
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
     n = pypsa.Network(snakemake.input.network)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
     ]
-    generator_project = generator_projects[
-        generator_projects["project_id"] == project_id
+    generator_project_static = generator_projects_static[
+        generator_projects_static["project_id"] == project_id
     ]
+    generator_project_dynamic = generator_projects_dynamic[str(project_id)]
+    generator_project_dynamic.index = pd.to_datetime(generator_project_dynamic.index)
 
-    assert not (transmission_project.empty and generator_project.empty), (
+    assert not (transmission_project.empty and generator_project_static.empty), (
         f"Transmission or generator project with {project_id} not found."
     )
     if planning_horizon not in [2030, 2040]:
@@ -313,9 +386,9 @@ if __name__ == "__main__":
         apply_toot(n, transmission_project, negative_toot_capacity)
     elif method == "pint":
         if not transmission_project.empty:
-            apply_pint(n, transmission_project, hurdle_costs, costs)
-        elif not generator_project.empty:
-            apply_pint_generator(n, generator_project)
+            apply_pint_transmission(n, transmission_project, hurdle_costs, costs)
+        elif not generator_project_static.empty:
+            apply_pint_generator(n, generator_project_static, generator_project_dynamic)
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")
 

@@ -163,7 +163,8 @@ checkpoint clean_projects:
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
-        custom_generators_static="data/custom_generators_static.csv"
+        custom_generators_static="data/custom_generators_static.csv",
+        custom_generators_dynamic="data/custom_generators_dynamic.csv",
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
         # transmission projects (no storage). In order to confirm, we should check
@@ -172,7 +173,8 @@ checkpoint clean_projects:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
-        generator_projects=resources("cba/generator_projects.csv")
+        generator_projects_static=resources("cba/generator_projects_static.csv"),
+        generator_projects_dynamic=resources("cba/generator_projects_dynamic.csv"),
     log:
         logs("cba/clean_projects.log"),
     benchmark:
@@ -309,7 +311,8 @@ rule prepare_reference:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        generator_projects=rules.clean_projects.output.generator_projects,
+        generator_projects_static=rules.clean_projects.output.generator_projects_static,
+        generator_projects_dynamic=rules.clean_projects.output.generator_projects_dynamic,
         corrections=rules.fix_reference_sb_to_cba.output.corrections,
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
@@ -410,7 +413,8 @@ rule prepare_project:
         network_msv=rules.solve_cba_msv_extraction.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        generator_projects=rules.clean_projects.output.generator_projects,
+        generator_projects_static=rules.clean_projects.output.generator_projects_static,
+        generator_projects_dynamic=rules.clean_projects.output.generator_projects_dynamic,
         methods=rules.clean_projects.output.methods,
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
