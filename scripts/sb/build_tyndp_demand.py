@@ -227,6 +227,50 @@ def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
     return matches[0]
 
 
+def deduplicate_corrected_columns(demand: pd.DataFrame) -> pd.DataFrame:
+    """
+    Prefer a "<node>_corrected" sheet over its plain "<node>" counterpart.
+
+    Some TYNDP raw Excel files carry a leftover "_corrected"-suffixed sheet
+    name for a node (e.g. "CZ00_corrected") -- a data-correction artifact
+    from TYNDP's own publishing pipeline that wasn't cleaned up before
+    release. If both a plain and a "_corrected" sheet exist for the same
+    node, the plain one is dropped and the corrected data is kept; either
+    way, the column is renamed back to the plain node code so it lines up
+    with every other bus downstream. A warning is logged whenever this
+    happens, since it means the raw data needed this override.
+
+    Parameters
+    ----------
+    demand : pd.DataFrame
+        Demand data with one column per bus/node.
+
+    Returns
+    -------
+    pd.DataFrame
+        `demand` with any "_corrected" columns merged into their plain node
+        code.
+    """
+    corrected_cols = [c for c in demand.columns if c.endswith("_corrected")]
+    for col in corrected_cols:
+        base = col[: -len("_corrected")]
+        if base in demand.columns:
+            logger.warning(
+                f"Found both '{base}' and '{col}' sheets for the same node; "
+                f"using the '{col}' (corrected) data for bus '{base}'."
+            )
+            demand = demand.drop(columns=[base])
+        else:
+            logger.warning(
+                f"Sheet '{col}' looks like a corrected variant of node "
+                f"'{base}' with no plain '{base}' sheet present; renaming "
+                f"it to '{base}'."
+            )
+        demand = demand.rename(columns={col: base})
+
+    return demand
+
+
 def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.DataFrame:
     """
     Read demand data for one weather scenario from a TYNDP demand Excel file.
@@ -263,6 +307,7 @@ def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.Da
 
         # Build DatetimeIndex from snapshot year
         demand = multiindex_to_datetimeindex(demand, year=year)
+        demand = deduplicate_corrected_columns(demand)
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
         demand.columns.name = "Bus"
