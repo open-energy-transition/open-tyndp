@@ -19,6 +19,8 @@
 
 **Documentation**
 
+* Add a warning to the CBA documentation recommending the latest pre-solved SB networks, and the code of the matching release as a fallback ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+
 **Developers Note**
 
 * feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).

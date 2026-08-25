@@ -139,7 +139,7 @@ class _CbaSbToCbaConfig(ConfigModel):
     )
     sb_version: str = Field(
         "latest",
-        description="Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+        description="Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
     )
 
 
