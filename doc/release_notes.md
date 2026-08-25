@@ -11,6 +11,8 @@
 
 **Changes**
 
+* Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+
 **Bugfixes and Compatibility**
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
@@ -19,6 +21,10 @@
 
 **Documentation**
 
+* feat: explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
+
+* Add a warning to the CBA documentation recommending the latest pre-solved SB networks, and the code of the matching release as a fallback ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+  
 **Developers Note**
 
 * feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
