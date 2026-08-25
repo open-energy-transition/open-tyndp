@@ -206,7 +206,6 @@ electricity:
     enable: false
     available_years:
     - 2030
-    - 2035
     - 2040
     - 2050
     technologies:
@@ -220,7 +219,6 @@ electricity:
     nprocesses: 4
     available_years:
     - 2030
-    - 2035
     - 2040
     - 2050
     technologies:
