@@ -28,7 +28,7 @@ It seeks to complement the tools currently used in the TYNDP cycles, especially 
 
 To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and [interactive workshops](https://open-energy-transition.github.io/open-tyndp-workshops/intro.html) alongside the development of the open-source tool, further promoting collaboration and transparency throughout the process.
 
-First outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/19388086).
+First outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/18608105).
 
 This repository is a soft-fork of [OET/PyPSA-Eur](https://github.com/open-energy-transition/pypsa-eur) and contains the entire project `Open-TYNDP` supported by OET, including code and documentation. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
