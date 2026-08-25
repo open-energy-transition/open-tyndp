@@ -17,6 +17,8 @@ import pypsa
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba._helpers import get_link_attrs
 
+import random
+
 logger = logging.getLogger(__name__)
 
 
@@ -226,6 +228,39 @@ def apply_pint(
             )
 
 
+def apply_pint_generator(n, generator_project):
+
+    def generate_unique_hex(excluded_colors):
+        while True:
+            # Generate a random 6-digit hex code
+            hex_color = f"#{random.randint(0, 0xFFFFFF):06x}"
+            
+            # Check if the code is in the exclusion list
+            if hex_color not in excluded_colors:
+                return hex_color
+
+    # Add generator project to the network
+    for _, project in generator_project.iterrows():
+        if project.carrier not in n.carriers.index:
+            n.add(
+                "Carrier",
+                project.carrier,
+                color=generate_unique_hex(n.carriers.color.tolist())
+            )
+
+        n.add(
+            "Generator",
+            f"{project.project_name}_{project.project_id}",
+            carrier=project.carrier,
+            bus=project.bus,
+            p_nom=project.p_nom,
+            marginal_cost=project.marginal_cost,
+            capital_cost=project.capital_cost,
+            efficiency=project.efficiency,
+            p_max_pu=project.p_max_pu if "p_max_pu" in project.columns else 1,
+            p_min_pu=project.p_min_pu if "p_min_pu" in project.columns else 0
+        )
+        
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -251,14 +286,19 @@ if __name__ == "__main__":
     )
 
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
+    generator_projects = pd.read_csv(snakemake.input.generator_projects)
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
     n = pypsa.Network(snakemake.input.network)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
     ]
-    assert not transmission_project.empty, (
-        f"Transmission project {project_id} not found."
+    generator_project = generator_projects[
+        generator_projects["project_id"] == project_id
+    ]
+
+    assert not (transmission_project.empty and generator_project.empty), (
+        f"Transmission or generator project with {project_id} not found."
     )
     if planning_horizon not in [2030, 2040]:
         logger.warning(
@@ -272,7 +312,10 @@ if __name__ == "__main__":
     if method == "toot":
         apply_toot(n, transmission_project, negative_toot_capacity)
     elif method == "pint":
-        apply_pint(n, transmission_project, hurdle_costs, costs)
+        if not transmission_project.empty:
+            apply_pint(n, transmission_project, hurdle_costs, costs)
+        elif not generator_project.empty:
+            apply_pint_generator(n, generator_project)
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")
 

@@ -406,6 +406,37 @@ def extract_custom_transmission_projects(
     return custom_transmission_projects
 
 
+def extract_custom_generator_projects(
+    custom_generator_projects_path: str, existing_buses: pd.DataFrame
+):
+    custom_generator_projects = (
+        pd.read_csv(custom_generator_projects_path)
+        .drop(["source", "further description"], axis=1, errors="ignore")
+    )
+
+    # Remove projects with no project ID
+    # TODO Should projects with no project name be dropped as well?
+    mask_not_null = custom_generator_projects.project_id.notnull()
+    if not (dropped_projects := custom_generator_projects[~mask_not_null]).empty:
+        logger.warning(
+            f"{len(dropped_projects)} custom generators without project ID have been dropped"
+        )
+    custom_generator_projects = custom_generator_projects[mask_not_null]
+
+    # Remove projects without an existing bus
+    # If generator is being added at a new bus, this bus should have already been listed under `custom_bus.csv`
+    mask_bus = custom_generator_projects.apply(lambda x: x['bus'] in existing_buses, axis=1)
+    if not (dropped_projects := custom_generator_projects[~mask_bus]).empty:
+        logger.warning(
+            f"{len(dropped_projects)} custom generators without existing bus have been dropped. If new bus being added, ensure that it has been added to custom_bus.csv"
+        )
+    custom_generator_projects = custom_generator_projects[mask_bus]
+
+    # Set default marginal cost, capital cost and efficiency if these columns have no entries
+    custom_generator_projects = custom_generator_projects.fillna({'marginal_cost':0,'capital_cost':0,'efficiency':1})
+
+    return custom_generator_projects
+
 def extract_investment_attributes(transmission_path: Path) -> pd.DataFrame:
     """
     Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
@@ -513,6 +544,7 @@ def build_method_assignments(
     guidelines_fn: str,
     projects: pd.DataFrame,
     custom_transmission_projects: pd.DataFrame,
+    custom_generator_projects: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Determine the CBA assessment method for each project. The method is PINT (default) or TOOT and
@@ -556,7 +588,9 @@ def build_method_assignments(
 
     all_project_ids = set(projects["project_id"]).union(
         set(custom_transmission_projects["project_id"])
+        .union(set(custom_generator_projects["project_id"]))
     )
+    
     assigned = []
     for horizon, col in [(2030, "in_ref_2030"), (2040, "in_ref_2040")]:
         rows = agg[["project_id", "in_ref_2030", "in_ref_2040"]].copy()
@@ -584,7 +618,7 @@ def build_method_assignments(
         assigned.append(rows)
 
     assigned = pd.concat(assigned, ignore_index=True).query(
-        "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id"
+        "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id or project_id in @custom_generator_projects.project_id"
     )
     return assigned
 
@@ -695,6 +729,11 @@ if __name__ == "__main__":
         custom_transmission_path, existing_buses
     )
 
+    # Custom generator projects
+    custom_generator_projects = extract_custom_generator_projects(
+        snakemake.input.custom_generators_static, existing_buses
+    )
+
     # Investment costs and length transmission
     investment_attrs = extract_investment_attributes(transmission_path)
     investment_attrs_per_line = split_investment_attributes_per_line(
@@ -710,7 +749,7 @@ if __name__ == "__main__":
 
     # Method definition (PINT / TOOT)
     methods = build_method_assignments(
-        snakemake.input.guidelines, transmission_projects, custom_transmission_projects
+        snakemake.input.guidelines, transmission_projects, custom_transmission_projects, custom_generator_projects
     )
 
     # Apply custom projects
@@ -724,3 +763,5 @@ if __name__ == "__main__":
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
     methods.to_csv(snakemake.output.methods, index=False)
+
+    custom_generator_projects.to_csv(snakemake.output.generator_projects, index=False)
