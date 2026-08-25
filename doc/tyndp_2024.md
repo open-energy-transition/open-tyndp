@@ -123,5 +123,5 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 ## `cba/a.3_non-co2-emissions.csv`
 
 - **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, <https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1>
-- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/cba/a.3_non-co2-emissions.csv>
+- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv>
 - **Description:** Contains a CSV file of the extracted Annex A.3 non-CO2 emissions factors table.
