@@ -71,6 +71,7 @@ RENEWABLES = [
 ]
 
 TOTALS = [
+    "Battery Total",
     "Installed capacities Photovoltaic (GW):",
     "Installed capacities Onshore wind Total(GW):",
     "Installed capacities Offshore wind Total (GW):",
@@ -477,15 +478,6 @@ def _process_electrolyser_capacities(
     """
     Extract and clean `Electrolyser` capacities.
     """
-    # Extract data
-    df = node_tech_data.iloc[7:, :9].dropna(how="all", axis=0).dropna(how="all", axis=1)
-
-    if df.empty:
-        logger.debug(
-            f"No PEMMDB capacities available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
-        )
-        return None
-
     column_names = [
         "pemmdb_type",
         "p_nom",
@@ -497,7 +489,21 @@ def _process_electrolyser_capacities(
         "generation_reduction",
     ]
 
-    df = df.set_axis(column_names, axis=1).assign(
+    # Extract data, dropping the empty spacer column
+    df = node_tech_data.iloc[7:, :9]
+    df = (
+        df.drop(columns=df.columns[1])
+        .set_axis(column_names, axis=1)
+        .dropna(subset=["pemmdb_type", "p_nom"])
+    )
+
+    if df.empty:
+        logger.debug(
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
+        )
+        return None
+
+    df = df.assign(
         pemmdb_carrier=pemmdb_tech,
         bus=node,
         country=node[:2],
@@ -514,21 +520,6 @@ def _process_battery_capacities(
     Extract and clean `Battery` capacities.
     """
 
-    # Extract data
-    df_raw = (
-        node_tech_data.iloc[7:, :9]
-        .dropna(how="all", axis=0)
-        .dropna(how="all", axis=1)
-        .iloc[1:]  # drop the first row which contains the Battery Total
-        .reset_index(drop=True)
-    )
-
-    if df_raw.empty:
-        logger.debug(
-            f"No PEMMDB data available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
-        )
-        return None
-
     column_names = [
         "pemmdb_type",
         "p_nom_discharge",
@@ -540,7 +531,21 @@ def _process_battery_capacities(
         "ramp_limit_down",
     ]
 
-    df_raw = df_raw.set_axis(column_names, axis=1)
+    # Extract data, dropping the empty spacer column and the 'Battery Total' aggregate
+    df_raw = node_tech_data.iloc[7:, :9]
+    df_raw = (
+        df_raw.drop(columns=df_raw.columns[1])
+        .set_axis(column_names, axis=1)
+        .query("pemmdb_type not in @TOTALS")
+        .dropna(subset=["p_nom_discharge", "p_nom_charge", "p_nom_store"], how="all")
+        .reset_index(drop=True)
+    )
+
+    if df_raw.empty:
+        logger.debug(
+            f"No PEMMDB data available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
+        )
+        return None
 
     units = {"p_nom_charge": "MW", "p_nom_discharge": "MW", "p_nom_store": "MWh"}
     types = {
@@ -1016,9 +1021,9 @@ def process_pemmdb_capacities(
         # Separate energy and power capacities, assign empty values for missing attributes and select needed columns
         capacities = (
             capacities.assign(
-                price=lambda x: x.get("price"),
-                hours=lambda x: x.get("hours"),
-                co2_factor=lambda x: x.get("co2_factor"),
+                price=lambda x: x.get("price", np.nan),
+                hours=lambda x: x.get("hours", np.nan),
+                co2_factor=lambda x: x.get("co2_factor", np.nan),
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
             )[
@@ -1183,10 +1188,10 @@ def process_pemmdb_profiles(
                 drop_on_columns=True,
             )
             .assign(
-                price=lambda x: x.get("price"),
-                hours=lambda x: x.get("hours"),
-                p_set=lambda x: x.get("p_set"),
-                price_band_type=lambda x: x.get("price_band_type"),
+                price=lambda x: x.get("price", np.nan),
+                hours=lambda x: x.get("hours", np.nan),
+                p_set=lambda x: x.get("p_set", np.nan),
+                price_band_type=lambda x: x.get("price_band_type", np.nan),
             )
             .set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
         )
