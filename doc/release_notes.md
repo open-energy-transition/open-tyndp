@@ -30,6 +30,8 @@
 
 **Documentation**
 
+* feat: explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
+  
 **Developers Note**
 
 * feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).

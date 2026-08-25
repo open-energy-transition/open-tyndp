@@ -78,7 +78,7 @@ jobs:
 
     - name: Upload SARIF
       if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-      uses: github/codeql-action/upload-sarif@v4.37.7
+      uses: github/codeql-action/upload-sarif@v4.37.8
       with:
         sarif_file: ${{ steps.scan.outputs.sarif }}
         category: pixi-vuln-scan
@@ -92,10 +92,11 @@ jobs:
         path: sbom.spdx.json
         retention-days: 30
 
-    # All PRs gate on new CVEs vs the master baseline
-    - name: Download master baseline
-      if: github.event_name == 'pull_request'
-      uses: dawidd6/action-download-artifact@v23
+    # Fork PRs cant upload SARIF to code scanning (no token write access), so
+    # diff against the master baseline artifact here instead
+    - name: Download master baseline (fork PRs only)
+      if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+      uses: dawidd6/action-download-artifact@v24
       with:
         workflow: security-scan.yaml
         name: master-sbom
