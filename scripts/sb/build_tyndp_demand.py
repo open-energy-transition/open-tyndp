@@ -40,7 +40,8 @@ Outputs
 -------
 
 - `resources/demand_tyndp_{demand_type}_{planning_horizons}.csv`: Processed
-  demand time series for the specified demand type and planning horizon
+  demand time series for the specified demand type and planning horizon.
+  Unit depends on `demand_type` (see `DEMAND_TYPE_UNITS`).
 """
 
 import logging
@@ -79,6 +80,22 @@ DEMAND_TYPE_MAP = {
     "synthetic_fuels": "SYNTHETIC_FUELS",
     "thermal_h2": "Thermal_energy_Hydrogen",
     "thermal_ch4": "Thermal_energy_Methane",
+}
+
+# Unit of the raw values as they appear in the TYNDP 2026 Excel files (and, in
+# turn, in this script's output) -- confirmed against the official TYNDP 2026
+# NT+ TimeSeriesDashboard, which labels the same columns identically.
+DEMAND_TYPE_UNITS = {
+    "electricity_market": "MW_e",
+    "electricity_prosumer": "MW_e",
+    "electricity_prosumer_btm": "MW_e",
+    "ev_market": "MW_e",
+    "ev_prosumer": "MW_e",
+    "h2_z1": "MW_H2",
+    "h2_z2": "MW_H2",
+    "synthetic_fuels": "MW_H2",
+    "thermal_h2": "GJ",
+    "thermal_ch4": "GJ",
 }
 
 
@@ -303,7 +320,9 @@ def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
     return demand
 
 
-def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.DataFrame:
+def read_demand_excel(
+    demand_fn: str, weather_scenario: int, year: int, demand_type: str
+) -> pd.DataFrame:
     """
     Read demand data for one weather scenario from a TYNDP demand Excel file.
 
@@ -315,12 +334,17 @@ def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.Da
         Climate year column index to read, e.g. 3 for ``WS003``.
     year : int
         Year to assign to the resulting DatetimeIndex.
+    demand_type : str
+        Key identifying the demand type, must be present in
+        `DEMAND_TYPE_UNITS`. Used only to label the output's unit.
 
     Returns
     -------
     pd.DataFrame
-        Demand indexed by DatetimeIndex, one column per bus. Empty DataFrame
-        if reading or parsing fails.
+        Demand indexed by DatetimeIndex, one column per bus, with the
+        columns' index named ``"Bus [<unit>]"`` (e.g. ``"Bus [MW_e]"``) so
+        the unit survives into the output CSV's corner cell. Empty
+        DataFrame if reading or parsing fails.
     """
     ws_code = f"WS{weather_scenario:03d}"
     try:
@@ -342,7 +366,7 @@ def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.Da
         demand = deduplicate_corrected_columns(demand)
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
-        demand.columns.name = "Bus"
+        demand.columns.name = f"Bus [{DEMAND_TYPE_UNITS[demand_type]}]"
         demand = drop_zero_demand_columns(demand)
 
     except Exception as e:
@@ -387,11 +411,12 @@ def load_demand(
     """
     demand_fn = get_file_path(fn, pyear, demand_type)
     logger.info(
-        f"Processing '{demand_type}' demand for planning horizon {pyear}, "
-        f"weather scenario WS{weather_scenario:03d}: reading {demand_fn.name}"
+        f"Processing '{demand_type}' demand ({DEMAND_TYPE_UNITS[demand_type]}) for "
+        f"planning horizon {pyear}, weather scenario WS{weather_scenario:03d}: "
+        f"reading {demand_fn.name}"
     )
 
-    return read_demand_excel(demand_fn, weather_scenario, year)
+    return read_demand_excel(demand_fn, weather_scenario, year, demand_type)
 
 
 if __name__ == "__main__":
