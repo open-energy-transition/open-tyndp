@@ -69,15 +69,21 @@ and Open-TYNDP configuration options.
 
 !!! warning
 
-    We recommend to always run the CBA workflow with the latest pre-solved SB networks, which is what the
+    We recommend always running the CBA workflow with the latest pre-solved SB networks, which is what the
     default `cba_scenario_input:sb_version: latest` selects. Earlier versions stay retrievable
     but may no longer match what a newer workflow expects, and nothing checks for that
     mismatch. If you encounter errors, please
     [report them](https://github.com/open-energy-transition/open-tyndp/issues) and fall back to
     the code of the latest release, which is what the networks were produced with (e.g.
-    pre-solve `0.8` with the `v0.8` tag). They also assume the default settings of
-    `config.tyndp.yaml` and `config.hpc.yaml`, so a deviating config can leave the SB and CBA
-    assumptions out of alignment.
+    pre-solve `0.8` with the `v0.8` tag). For doing so, open a terminal in your open-tyndp folder and run e.g.:
+
+    ```bash
+    git fetch --tags
+    git checkout v0.8
+    ```
+
+    The pre-solved networks also assume the default settings of `config.tyndp.yaml` and `config.hpc.yaml`, 
+    so a deviating config can leave the SB and CBA assumptions out of alignment.
 
 ### Rolling Horizon Settings
 
