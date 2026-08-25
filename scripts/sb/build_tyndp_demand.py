@@ -271,6 +271,38 @@ def deduplicate_corrected_columns(demand: pd.DataFrame) -> pd.DataFrame:
     return demand
 
 
+def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drop buses with zero total demand, to shrink the resulting output file.
+
+    Some TYNDP nodes genuinely have zero demand for a given demand type
+    (e.g. a country with no H2-based heating) -- confirmed against the
+    official TYNDP dashboard during validation, not a data gap. Downstream
+    code must treat a missing bus as zero demand rather than requiring
+    every bus to be present, since which buses are dropped can differ
+    between planning horizons/weather scenarios for the same demand type.
+
+    Parameters
+    ----------
+    demand : pd.DataFrame
+        Demand data with one column per bus/node.
+
+    Returns
+    -------
+    pd.DataFrame
+        `demand` without all-zero-sum columns.
+    """
+    zero_cols = demand.columns[demand.sum(axis=0) == 0]
+    if len(zero_cols):
+        logger.info(
+            f"Dropping {len(zero_cols)} bus(es) with zero total demand: "
+            f"{', '.join(zero_cols)}"
+        )
+        demand = demand.drop(columns=zero_cols)
+
+    return demand
+
+
 def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.DataFrame:
     """
     Read demand data for one weather scenario from a TYNDP demand Excel file.
@@ -311,6 +343,7 @@ def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.Da
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
         demand.columns.name = "Bus"
+        demand = drop_zero_demand_columns(demand)
 
     except Exception as e:
         logger.warning(
