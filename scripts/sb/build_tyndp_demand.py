@@ -6,8 +6,7 @@ Builds TYNDP Scenario Building demand profiles for Open-TYNDP.
 
 This script processes demand data from TYNDP 2026 (e.g. electricity market,
 electricity prosumer, EV charging, hydrogen zones, thermal energy, synthetic
-fuels, ...), selecting one of the populated weather scenario columns for demand
-profiles.
+fuels, ...), for one weather scenario.
 
 Weather Scenario Selection
 --------------------------
@@ -19,18 +18,15 @@ Which 3 are populated is dependent on data package and identical across
 demand types for a given planning horizon. The availability is recorded in
 `AVAILABLE_WEATHER_SCENARIOS`.
 
-`weather_scenarios_tyndp` selects which of them to model, as an ordered
-preference list per planning horizon. The first entry that is actually
-populated is used; entries that aren't fall back to the first available one
-for that horizon (see :py:func:`scripts._helpers.check_weather_scenario`). The
-weather scenario is resolved separately for every planning horizon read, since the
-``WSxxx`` numbering restarts per horizon.
+Current implementation selects first weather scenario of a planning horizon,
+This needs to be revisit once we have implemented the full weather scenario
+implementation for SB.
 
 Data Availability
 -----------------
 
-Demand data is available for 2030, 2035, 2040 and 2050. Missing planning
-horizons are linearly interpolated between available data points.
+Demand data is only available for 2030, 2035, 2040 and 2050; other planning
+horizons are not supported.
 
 Inputs
 ------
@@ -44,7 +40,8 @@ Outputs
 -------
 
 - `resources/demand_tyndp_{demand_type}_{planning_horizons}.csv`: Processed
-  demand time series for the specified demand type and planning horizon
+  demand time series for the specified demand type and planning horizon.
+  Unit depends on `demand_type` (see `DEMAND_TYPE_UNITS`).
 """
 
 import logging
@@ -53,24 +50,15 @@ from pathlib import Path
 import pandas as pd
 
 from scripts._helpers import (
-    align_demand_to_snapshots,
-    check_weather_scenario,
     configure_logging,
     get_snapshots,
-    interpolate_demand,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
 
-# Arbitrary non-leap placeholder year used to build a DatetimeIndex from the
-# demand data's day/hour index. Kept fixed across planning years so that
-# interpolation between two planning years aligns on matching dates; the
-# actual target year is applied later by `align_demand_to_snapshots`.
-REFERENCE_YEAR = 2013
-
-# Weather scenarios (climate year column indices) that contain data in the TYNDP
-# 2026 demand files, per planning horizon.
+# Weather scenarios that contain data in the TYNDP 2026 demand files,
+# per planning horizon.
 AVAILABLE_WEATHER_SCENARIOS = {
     2030: [3, 21, 29],
     2035: [32, 37, 59],
@@ -78,7 +66,7 @@ AVAILABLE_WEATHER_SCENARIOS = {
     2050: [91, 92, 106],
 }
 
-# Maps the `demand_type` wildcard to the token prefixing the TYNDP 2026 demand
+# Maps the `demand_type` wildcard to the TYNDP 2026 demand
 # file names. Also defines which demand types the workflow knows about, and is
 # imported by `rules/sb.smk` to constrain the wildcard and collect targets.
 DEMAND_TYPE_MAP = {
@@ -94,9 +82,100 @@ DEMAND_TYPE_MAP = {
     "thermal_ch4": "Thermal_energy_Methane",
 }
 
+# Unit of the raw values as they appear in the TYNDP 2026 Excel files (and, in
+# turn, in this script's output) -- confirmed against the official TYNDP 2026
+# NT+ TimeSeriesDashboard, which labels the same columns identically.
+DEMAND_TYPE_UNITS = {
+    "electricity_market": "MW_e",
+    "electricity_prosumer": "MW_e",
+    "electricity_prosumer_btm": "MW_e",
+    "ev_market": "MW_e",
+    "ev_prosumer": "MW_e",
+    "h2_z1": "MW_H2",
+    "h2_z2": "MW_H2",
+    "synthetic_fuels": "MW_H2",
+    "thermal_h2": "GJ",
+    "thermal_ch4": "GJ",
+}
+
+
+def get_weather_scenario(weather_scenarios, pyear):
+    """
+    Select the weather scenario to use for a given planning year.
+
+    Parameters
+    ----------
+    weather_scenarios : dict
+        Mapping of planning year to a list of requested weather scenarios,
+        e.g. ``{pyear: [weather_scenario, ...]}``.
+    pyear : int
+        Planning year for which to select the weather scenario.
+
+    Returns
+    -------
+    int
+        Selected weather scenario. Falls back to the first entry in
+        ``AVAILABLE_WEATHER_SCENARIOS[pyear]`` if unavailable.
+
+    Notes
+    -----
+    Currently always picks the first requested weather scenario; should be
+    adapted once the full weather year implementation is available in SB.
+    """
+    weather_scenario = weather_scenarios[pyear][0]
+
+    if weather_scenario not in AVAILABLE_WEATHER_SCENARIOS[pyear]:
+        fallback_scenario = AVAILABLE_WEATHER_SCENARIOS[pyear][0]
+        logger.warning(
+            f"Weather scenario WS{weather_scenario:03d} not available for "
+            f"planning year {pyear}, falling back to WS{fallback_scenario:03d}"
+        )
+        weather_scenario = fallback_scenario
+
+    return weather_scenario
+
+
+def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
+    """
+    Ensure a leap `year` doesn't leave 29 February in `snapshots`.
+
+    TYNDP 2026 demand data always spans 365 days (no 29 February), so demand
+    built directly against a leap `year` would be missing that day. This is
+    fine as long as `drop_leap_day` also strips 29 February from
+    `snapshots` (the default); otherwise the two no longer line up.
+
+    Raises
+    ------
+    ValueError
+        If `year` is a leap year and `drop_leap_day` is False.
+    """
+    is_leap_year = pd.Timestamp(year=year, month=1, day=1).is_leap_year
+    if is_leap_year and not drop_leap_day:
+        raise ValueError(
+            f"Snapshot year {year} is a leap year but `enable.drop_leap_day` "
+            "is disabled. TYNDP 2026 demand data always spans 365 days (no "
+            "29 February). Enable `enable.drop_leap_day` or configure a "
+            "non-leap `snapshots` year."
+        )
+
 
 def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:
-    """Convert demand MultiIndex ('Date', 'Hour') to a DatetimeIndex and return a DataFrame."""
+    """
+    Convert a ``(Date, Hour)`` MultiIndex to a DatetimeIndex.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Demand data indexed by ``(Date, Hour)``, with ``Date`` as
+        ``"DD.MM."`` strings and ``Hour`` as 1-24.
+    year : int
+        Year to assign to the resulting DatetimeIndex.
+
+    Returns
+    -------
+    pd.DataFrame
+        `df` reindexed with a DatetimeIndex named ``"datetime"``.
+    """
 
     df_reset = df.reset_index()
 
@@ -114,15 +193,6 @@ def multiindex_to_datetimeindex(df: pd.DataFrame, year: int) -> pd.DataFrame:
     return df_new
 
 
-def get_available_years(fn: str) -> list[int]:
-    """Scan the directory to find which planning years are available."""
-    return sorted(
-        int(folder.name)
-        for folder in Path(fn).iterdir()
-        if folder.is_dir() and folder.name.isdigit()
-    )
-
-
 def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
     """
     Construct file path to the demand Excel file for a given planning year and demand type.
@@ -132,6 +202,23 @@ def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
     the separator before the year nor the casing of the prefix is consistent
     across demand types, so the file is looked up by matching on the prefix
     instead of a fixed template.
+
+    Parameters
+    ----------
+    fn : str
+        Path to the base directory containing per-year demand data
+        subdirectories.
+    pyear : int
+        Planning year for which to locate the demand file.
+    demand_type : str
+        Key identifying the demand type, must be present in
+        `DEMAND_TYPE_MAP`.
+
+    Returns
+    -------
+    Path
+        Path to the matching demand Excel file. If multiple files match,
+        the first one (sorted alphabetically) is returned.
 
     Raises
     ------
@@ -157,8 +244,108 @@ def get_file_path(fn: str, pyear: int, demand_type: str) -> Path:
     return matches[0]
 
 
-def read_demand_excel(demand_fn: str, weather_scenario: int) -> pd.DataFrame:
-    """Read and process demand data from Excel file for a specific weather scenario."""
+def deduplicate_corrected_columns(demand: pd.DataFrame) -> pd.DataFrame:
+    """
+    Prefer a "<node>_corrected" sheet over its plain "<node>" counterpart.
+
+    Some TYNDP raw Excel files carry a leftover "_corrected"-suffixed sheet
+    name for a node (e.g. "CZ00_corrected") -- a data-correction artifact
+    from TYNDP's own publishing pipeline that wasn't cleaned up before
+    release. If both a plain and a "_corrected" sheet exist for the same
+    node, the plain one is dropped and the corrected data is kept; either
+    way, the column is renamed back to the plain node code so it lines up
+    with every other bus downstream. A warning is logged whenever this
+    happens, since it means the raw data needed this override.
+
+    Parameters
+    ----------
+    demand : pd.DataFrame
+        Demand data with one column per bus/node.
+
+    Returns
+    -------
+    pd.DataFrame
+        `demand` with any "_corrected" columns merged into their plain node
+        code.
+    """
+    corrected_cols = [c for c in demand.columns if c.endswith("_corrected")]
+    for col in corrected_cols:
+        base = col[: -len("_corrected")]
+        if base in demand.columns:
+            logger.warning(
+                f"Found both '{base}' and '{col}' sheets for the same node; "
+                f"using the '{col}' (corrected) data for bus '{base}'."
+            )
+            demand = demand.drop(columns=[base])
+        else:
+            logger.warning(
+                f"Sheet '{col}' looks like a corrected variant of node "
+                f"'{base}' with no plain '{base}' sheet present; renaming "
+                f"it to '{base}'."
+            )
+        demand = demand.rename(columns={col: base})
+
+    return demand
+
+
+def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drop buses with zero total demand, to shrink the resulting output file.
+
+    Some TYNDP nodes genuinely have zero demand for a given demand type
+    (e.g. a country with no H2-based heating) -- confirmed against the
+    official TYNDP dashboard during validation, not a data gap. Downstream
+    code must treat a missing bus as zero demand rather than requiring
+    every bus to be present, since which buses are dropped can differ
+    between planning horizons/weather scenarios for the same demand type.
+
+    Parameters
+    ----------
+    demand : pd.DataFrame
+        Demand data with one column per bus/node.
+
+    Returns
+    -------
+    pd.DataFrame
+        `demand` without all-zero-sum columns.
+    """
+    zero_cols = demand.columns[demand.sum(axis=0) == 0]
+    if len(zero_cols):
+        logger.info(
+            f"Dropping {len(zero_cols)} bus(es) with zero total demand: "
+            f"{', '.join(zero_cols)}"
+        )
+        demand = demand.drop(columns=zero_cols)
+
+    return demand
+
+
+def read_demand_excel(
+    demand_fn: str, weather_scenario: int, year: int, demand_type: str
+) -> pd.DataFrame:
+    """
+    Read demand data for one weather scenario from a TYNDP demand Excel file.
+
+    Parameters
+    ----------
+    demand_fn : str
+        Path to the demand Excel file.
+    weather_scenario : int
+        Climate year column index to read, e.g. 3 for ``WS003``.
+    year : int
+        Year to assign to the resulting DatetimeIndex.
+    demand_type : str
+        Key identifying the demand type, must be present in
+        `DEMAND_TYPE_UNITS`. Used only to label the output's unit.
+
+    Returns
+    -------
+    pd.DataFrame
+        Demand indexed by DatetimeIndex, one column per bus, with the
+        columns' index named ``"Bus [<unit>]"`` (e.g. ``"Bus [MW_e]"``) so
+        the unit survives into the output CSV's corner cell. Empty
+        DataFrame if reading or parsing fails.
+    """
     ws_code = f"WS{weather_scenario:03d}"
     try:
         data = pd.read_excel(
@@ -174,11 +361,13 @@ def read_demand_excel(demand_fn: str, weather_scenario: int) -> pd.DataFrame:
         if demand.empty:
             raise ValueError(f"No data found for weather scenario {ws_code}.")
 
-        # Reindex to match snapshots
-        demand = multiindex_to_datetimeindex(demand, year=REFERENCE_YEAR)
+        # Build DatetimeIndex from snapshot year
+        demand = multiindex_to_datetimeindex(demand, year=year)
+        demand = deduplicate_corrected_columns(demand)
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
-        demand.columns.name = "Bus"
+        demand.columns.name = f"Bus [{DEMAND_TYPE_UNITS[demand_type]}]"
+        demand = drop_zero_demand_columns(demand)
 
     except Exception as e:
         logger.warning(
@@ -190,102 +379,44 @@ def read_demand_excel(demand_fn: str, weather_scenario: int) -> pd.DataFrame:
     return demand
 
 
-def get_weather_scenario(pyear: int, weather_scenarios: dict[int, list[int]]) -> int:
-    """
-    Resolve the weather scenario to read for a planning year.
-
-    Takes the first requested weather scenario for `pyear`, falling back to the
-    first populated one if it isn't among those carrying data.
-
-    Raises
-    ------
-    ValueError
-        If the populated weather scenarios for `pyear` are unknown.
-    """
-    available = AVAILABLE_WEATHER_SCENARIOS.get(pyear)
-    if not available:
-        raise ValueError(
-            f"Unknown populated weather scenarios for planning year {pyear}. "
-            f"`AVAILABLE_WEATHER_SCENARIOS` covers "
-            f"{sorted(AVAILABLE_WEATHER_SCENARIOS)}."
-        )
-
-    requested = weather_scenarios.get(pyear)
-    if not requested:
-        logger.info(
-            f"No weather scenario requested for planning year {pyear}. "
-            f"Using WS{available[0]:03d}."
-        )
-        return available[0]
-
-    return check_weather_scenario(requested[0], available)
-
-
-def load_single_year(
-    fn: str,
-    pyear: int,
-    demand_type: str,
-    weather_scenarios: dict[int, list[int]],
-) -> pd.DataFrame:
-    """Load demand data for a single planning year."""
-    demand_fn = get_file_path(fn, pyear, demand_type)
-    weather_scenario = get_weather_scenario(pyear, weather_scenarios)
-    logger.info(f"Reading {demand_fn.name}, weather scenario WS{weather_scenario:03d}")
-
-    return read_demand_excel(demand_fn, weather_scenario)
-
-
 def load_demand(
     fn: str,
     pyear: int,
     demand_type: str,
-    weather_scenarios: dict[int, list[int]],
+    weather_scenario: int,
+    year: int,
 ) -> pd.DataFrame:
     """
-    Load demand data for a specific planning year, weather_scenario and demand type.
-
-    This function retrieves demand data from a file, either by loading the
-    exact year if available or by performing linear interpolation between
-    available years. Each planning year read is filtered to its own weather
-    year, so an interpolated result blends two different climate years.
+    Load demand data for a planning horizon and demand type.
 
     Parameters
     ----------
     fn : str
-        Filepath to the demand data directory.
+        Path to the base directory containing per-year demand data
+        subdirectories.
     pyear : int
-        Planning year for which to retrieve demand data.
+        Planning horizon for which to load demand data.
     demand_type : str
-        Demand type to load (e.g. "ELECTRICITY_MARKET", "Hydrogen_Zone 1").
-    weather_scenarios : dict[int, list[int]]
-        Mapping of planning horizon to the weather scenarios to model for that
-        horizon, in order of preference (see `weather_scenarios_tyndp` in the
-        config).
+        Key identifying the demand type, must be present in
+        `DEMAND_TYPE_MAP`.
+    weather_scenario : int
+        Climate year column index to load, e.g. 3 for ``WS003``.
+    year : int
+        Year to assign to the resulting DatetimeIndex.
 
     Returns
     -------
     pd.DataFrame
-        DataFrame containing demand data for the specified planning year and
-        demand type.
+        Demand data for the given planning year and demand type.
     """
-
-    available_years = get_available_years(fn)
-    logger.info(f"Available years: {available_years}, Target year: {pyear}")
-
-    # If target year exists in data, load it directly
-    if pyear in available_years:
-        logger.info(f"Year {pyear} found in available data. Loading directly.")
-        return load_single_year(fn, pyear, demand_type, weather_scenarios)
-
-    # Target year not available, do linear interpolation
-    return interpolate_demand(
-        available_years=available_years,
-        pyear=pyear,
-        load_single_year_func=load_single_year,
-        fn=fn,
-        demand_type=demand_type,
-        weather_scenarios=weather_scenarios,
+    demand_fn = get_file_path(fn, pyear, demand_type)
+    logger.info(
+        f"Processing '{demand_type}' demand ({DEMAND_TYPE_UNITS[demand_type]}) for "
+        f"planning horizon {pyear}, weather scenario WS{weather_scenario:03d}: "
+        f"reading {demand_fn.name}"
     )
+
+    return read_demand_excel(demand_fn, weather_scenario, year, demand_type)
 
 
 if __name__ == "__main__":
@@ -297,7 +428,8 @@ if __name__ == "__main__":
             planning_horizons="2040",
             demand_type="electricity_market",
             clusters="all",
-            configfiles="config/test/config.tyndp.yaml",
+            run="NT",
+            configfiles="config/config.tyndp.yaml",
         )
 
     configure_logging(snakemake)
@@ -306,30 +438,17 @@ if __name__ == "__main__":
     # Parameters
     pyear = int(snakemake.wildcards.planning_horizons)
     demand_type = snakemake.wildcards.demand_type
-    weather_scenarios = {
-        int(y): list(ws) for y, ws in snakemake.params.weather_scenarios.items()
-    }
+    weather_scenarios = snakemake.params.weather_scenarios
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
     fn = snakemake.input.demand
 
-    # Interpolated target years are read from two planning horizons, each with
-    # its own weather scenario, so they are only resolved per read.
-    weather_scenario = (
-        f"WS{get_weather_scenario(pyear, weather_scenarios):03d}"
-        if pyear in AVAILABLE_WEATHER_SCENARIOS
-        else "interpolated"
-    )
+    year = snapshots[0].year
+    check_snapshot_year(year, snakemake.params.drop_leap_day)
 
-    logger.info(
-        f"Processing '{demand_type}' demand for target year: {pyear}, "
-        f"weather scenario: {weather_scenario}"
-    )
-    demand = load_demand(fn, pyear, demand_type, weather_scenarios)
-
-    # Reindex demand to fit to snapshots
-    demand = align_demand_to_snapshots(demand, snapshots)
+    weather_scenario = get_weather_scenario(weather_scenarios, pyear)
+    demand = load_demand(fn, pyear, demand_type, weather_scenario, year)
 
     # Export to CSV
     demand.to_csv(snakemake.output.demand, index=True)
