@@ -311,8 +311,6 @@ rule prepare_reference:
         network=rules.simplify_sb_network.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
-        generator_projects_static=rules.clean_projects.output.generator_projects_static,
-        generator_projects_dynamic=rules.clean_projects.output.generator_projects_dynamic,
         corrections=rules.fix_reference_sb_to_cba.output.corrections,
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
