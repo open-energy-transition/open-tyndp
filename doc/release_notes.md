@@ -11,7 +11,7 @@
 
 **Changes**
 
-* Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 (https://github.com/open-energy-transition/open-tyndp/pull/890).
+* Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
 **Bugfixes and Compatibility**
 
