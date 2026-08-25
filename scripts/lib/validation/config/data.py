@@ -348,6 +348,10 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="TYNDP 2024 data source configuration.",
     )
+    tyndp_2026: _DataSourceConfig = Field(
+        default_factory=_DataSourceConfig,
+        description="TYNDP 2026 data source configuration.",
+    )
     powerplants: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,
         description="Powerplants data source configuration.",
