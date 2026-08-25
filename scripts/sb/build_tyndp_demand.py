@@ -261,7 +261,7 @@ def read_demand_excel(demand_fn: str, weather_scenario: int, year: int) -> pd.Da
         if demand.empty:
             raise ValueError(f"No data found for weather scenario {ws_code}.")
 
-        # Build the DatetimeIndex directly against the target snapshot year
+        # Build DatetimeIndex from snapshot year
         demand = multiindex_to_datetimeindex(demand, year=year)
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
