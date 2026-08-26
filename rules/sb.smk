@@ -312,6 +312,7 @@ rule build_pemmdb_data:
         pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
+        nodes=rules.retrieve_tyndp_2026.output.nodes,
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),

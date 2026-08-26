@@ -48,6 +48,7 @@ from scripts._helpers import (
     safe_pyear,
     set_scenario_config,
 )
+from scripts.cba.clean_projects import read_tyndp_electricity_buses
 from scripts.sb.build_tyndp_demand import get_weather_scenario
 
 # for compatibility with future pandas downcasting behaviour
@@ -142,7 +143,8 @@ def read_pemmdb_data(
     )
 
     if not fn.is_file():
-        logger.info(f"No PEMMDB data available for {node} in {pyear}.")
+        # Reported as a single summary warning by the caller
+        logger.debug(f"No PEMMDB data available for {node} in {pyear}.")
         return None
 
     try:
@@ -1301,7 +1303,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "build_pemmdb_data",
             clusters="all",
-            planning_horizons=2030,
+            planning_horizons=2040,
             configfiles="config/test/config.tyndp.yaml",
         )
     configure_logging(snakemake)
@@ -1313,7 +1315,23 @@ if __name__ == "__main__":
         {PEMMDB_SHEET_MAPPING.get(tech, tech) for tech in pemmdb_techs}
     )
     thermal_techs = [k for k, v in PEMMDB_SHEET_MAPPING.items() if v == "Thermal"]
-    nodes = pd.read_csv(snakemake.input.busmap, index_col=0).index
+    # Union of the model's busmap and the raw TYNDP node lists for electricity
+    # Todo: Revert to the busmap alone once it covers all modelled electricity nodes.
+    nodes = (
+        pd.read_csv(snakemake.input.busmap, index_col=0)
+        .index.union(
+            read_tyndp_electricity_buses(
+                snakemake.input.nodes, col_name="NODE", sheet_name="Electricity"
+            )
+        )
+        .union(
+            read_tyndp_electricity_buses(
+                snakemake.input.nodes,
+                col_name="NODE",
+                sheet_name="Electricity_Offshore",
+            )
+        )
+    )
     pemmdb_dir = snakemake.input.pemmdb_dir
     tyndp_scenario = snakemake.params.tyndp_scenario
     carrier_mapping_fn = snakemake.input.carrier_mapping
@@ -1370,6 +1388,12 @@ if __name__ == "__main__":
         ]
 
     pemmdb_data = {node: data for d in pemmdb_data_list for node, data in d.items()}
+
+    if missing_nodes := [node for node in nodes if node not in pemmdb_data]:
+        logger.warning(
+            f"No PEMMDB data available for {len(missing_nodes)} of {len(nodes)} nodes in "
+            f"{pyear}: {', '.join(missing_nodes)}."
+        )
 
     ####################
     # Process capacities
