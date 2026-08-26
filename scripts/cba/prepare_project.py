@@ -232,11 +232,10 @@ def _get_generator_values(
     df_static: pd.Series,
     df_dynamic: pd.DataFrame,
     snapshots: pd.Series,
-    col: str,
-    default_value: float,
+    pypsa_dynamic_attributes: list,
 ):
     """
-    Returns static / dynamic / default value for generator attributes such as `p_max_pu`, 'p_min_pu`, `efficiency` etc
+    Returns static / dynamic / null value for generator input attributes that can take either a static or time series value
 
     Parameters
     ----------
@@ -246,17 +245,20 @@ def _get_generator_values(
         Dynamic timeseries components of custom generator projects
     snapshots: pd.Series
         pandas DateTime Index
-    col: str
-        Generator attribute
-    default_value: float
-        Default value if not provided in the custom generator projects sheets
+    pypsa_dynamic_attributes: list
+        List of PyPSA attributes that can take a static value or series as inputs
     """
-    if col in df_dynamic.columns:
-        return df_dynamic.loc[snapshots, col]
-    elif col in df_static.index:
-        return df_static[col]
-    else:
-        return default_value
+
+    generator_dict = dict()
+    for attribute in pypsa_dynamic_attributes:
+        if attribute in df_dynamic.columns:
+            generator_dict[attribute] = df_dynamic.loc[snapshots, attribute]
+        elif attribute in df_static.index:
+            generator_dict[attribute] = df_static[attribute]
+        else:
+            generator_dict[attribute] = np.nan
+
+    return generator_dict
 
 
 def apply_pint_generator(
@@ -304,28 +306,25 @@ def apply_pint_generator(
                 ),  # Assign a new color to the newly added carrier
             )
 
+        pypsa_dynamic_attributes = (
+            n.components["Generator"]
+            .defaults.query(
+                "type.str.contains('series') and status.str.contains('Input')"
+            )
+            .index.tolist()
+        )
+        generator_dict = _get_generator_values(
+            project, generator_project_dynamic, n.snapshots, pypsa_dynamic_attributes
+        )
+
         n.add(
             "Generator",
             f"{project.project_name}_{project.project_id}",
             carrier=project.carrier,
             bus=project.bus,
             p_nom=project.p_nom,
-            marginal_cost=_get_generator_values(
-                project, generator_project_dynamic, n.snapshots, "marginal_cost", 0
-            ),
             capital_cost=project.capital_cost,
-            efficiency=_get_generator_values(
-                project, generator_project_dynamic, n.snapshots, "efficiency", 1
-            ),
-            p_max_pu=_get_generator_values(
-                project, generator_project_dynamic, n.snapshots, "p_max_pu", 1
-            ),
-            p_min_pu=_get_generator_values(
-                project, generator_project_dynamic, n.snapshots, "p_min_pu", 0
-            ),
-            p_set=_get_generator_values(
-                project, generator_project_dynamic, n.snapshots, "p_set", np.nan
-            ),
+            **generator_dict,
         )
 
 

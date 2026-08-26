@@ -57,6 +57,7 @@ import logging
 from pathlib import Path
 
 import pandas as pd
+import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
@@ -435,8 +436,27 @@ def extract_custom_generator_projects(
         ["source", "further description"], axis=1, errors="ignore"
     )
 
+    custom_generator_projects_dynamic = pd.read_csv(
+        custom_generator_dynamic_path, header=[0, 1], index_col=0
+    )
+
+    if (
+        custom_generator_projects_static.empty
+        and custom_generator_projects_dynamic.empty
+    ):
+        logger.info("No custom generator projects extracted")
+        return custom_generator_projects_static, custom_generator_projects_dynamic
+    elif (
+        custom_generator_projects_static.empty
+        and not custom_generator_projects_dynamic.empty
+    ):
+        logger.warning(
+            "No data found for static attributes of custom generator projects. Only dynamic attributes found. Ensure both datasets are compatible"
+        )
+        return custom_generator_projects_static, custom_generator_projects_dynamic
+
     # Remove projects with no project ID
-    # TODO Should projects with no project name be dropped as well?
+    # TODO If PINT generator already exists in the future, it should be updated with values from this CSV rather than dropped
     mask_not_null = custom_generator_projects_static.project_id.notnull()
     if not (dropped_projects := custom_generator_projects_static[~mask_not_null]).empty:
         logger.warning(
@@ -465,10 +485,6 @@ def extract_custom_generator_projects(
             str
         ).tolist()
 
-        custom_generator_projects_dynamic = pd.read_csv(
-            custom_generator_dynamic_path, header=[0, 1], index_col=0
-        )
-
         # Drop null columns
         custom_generator_projects_dynamic = custom_generator_projects_dynamic.dropna(
             axis=1, how="all"
@@ -478,8 +494,30 @@ def extract_custom_generator_projects(
         custom_generator_projects_dynamic = custom_generator_projects_dynamic[
             static_project_ids
         ]
-    else:
-        custom_generator_projects_dynamic = pd.DataFrame()
+
+        # Extract input dynamic attributes from dummy PyPSA network
+        n = pypsa.Network()
+        pypsa_dynamic_attributes = (
+            n.components["Generator"]
+            .defaults.query(
+                "type.str.contains('series') and status.str.contains('Input')"
+            )
+            .index.tolist()
+        )
+
+        # Filter out dynamic attributes that are not inputs that can be provided to PyPSA network
+        mask = custom_generator_projects_dynamic.columns.isin(
+            pypsa_dynamic_attributes, level=1
+        )
+
+        if not (dropped_cols := custom_generator_projects_dynamic.loc[:, ~mask]).empty:
+            logger.info(
+                f"Dropped columns {dropped_cols.columns.tolist()} as they are not PyPSA input attributes"
+            )
+
+        custom_generator_projects_dynamic = custom_generator_projects_dynamic.loc[
+            :, mask
+        ]
 
     return custom_generator_projects_static, custom_generator_projects_dynamic
 
@@ -778,6 +816,7 @@ if __name__ == "__main__":
     )
 
     # Custom generator projects
+    # TODO Ensure custom buses have already been extracted and grouped under existing_buses
     custom_generator_projects_static, custom_generator_projects_dynamic = (
         extract_custom_generator_projects(
             snakemake.input.custom_generators_static,
