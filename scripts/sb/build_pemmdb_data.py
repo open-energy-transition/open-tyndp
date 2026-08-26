@@ -73,7 +73,8 @@ RENEWABLES = [
 TOTALS = [
     "Battery Total",
     "Installed capacities Photovoltaic (GW):",
-    "Installed capacities Onshore wind Total(GW):",
+    "Installed capacities Onshore wind Total(GW):",  # missing space in PEMMDB source
+    "Installed capacities Onshore wind Total (GW):",  # to catch corrected spelling
     "Installed capacities Offshore wind Total (GW):",
 ]
 
