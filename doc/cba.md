@@ -156,15 +156,31 @@ $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
 
 ## Evaluation of custom projects
 
+Custom projects can be evaluated with the CBA workflow, either as **transmission** or **generator** projects.
+
+### Custom transmission projects
+
 Custom PINT transmission projects can be evaluated with the CBA workflow. Each project is defined in `data/custom_cba_transmission_projects.csv` and selected in the configuration. Two types of custom project are supported, depending on whether `project_id` refers to an existing PINT project:
 
 - **Modified projects**: if the combination (`project_id`, `bus0`, `bus1`) matches an existing PINT project, the specified fields overwrite those of that project. Fields left empty retain their original values.
 
 - **New projects**: if `project_id` is not yet used, the entry is added as a new PINT project, modeled as a link.
 
-Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning.
+Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning. Transmission capacities are in MW.
 
-Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf). Transmission capacities are in MW.
+### Custom generator projects
+
+Custom generator projects can also be evaluated with the CBA workflow, always as new **PINT** projects — unlike transmission projects, modifying an existing generator is not yet supported. Each project is defined across two files:
+
+- `data/custom_generators_static.csv`: one row per generator, with `project_id`, `project_name`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. Entries without a `project_id`, or whose `bus` does not already exist in the network, are dropped with a warning. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively. 
+
+- `data/custom_generators_dynamic.csv`: time series for the same projects, in wide format with a two-row header (`project_id` per column, then the PyPSA attribute name, e.g. `p_max_pu`, `p_min_pu`, `efficiency` etc) and snapshots as the index. Only columns matching a valid time-varying PyPSA `Generator` input attribute are kept; other columns are dropped.
+
+When applied, a new `Generator` component is added to the project network at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available, falling back to the static value or else set to `NaN`. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network.
+
+### Selecting custom projects
+
+Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf).
 
 ## Checkpoint
 
