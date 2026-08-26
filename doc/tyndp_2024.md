@@ -10,7 +10,7 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 ## `CBA Projects`
 
 - **Source:** TYNDP 2024 Project Sheets, <https://tyndp2024.entsoe.eu/projects-map>
-- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/CBA_projects.zip>
+- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/CBA_projects.zip>
 - **Description:** Contains 177 transmission and 33 storage projects, which have been assessed by TYNDP 2024 in its Cost-Benefit Analysis.
 
 ## `Demand Profiles`
@@ -111,13 +111,13 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 ## `TYNDP-2024-Visualisation-Platform`
 
 - **Source:** TYNDP 2024 Visualisation Platform, <https://2024.entsos-tyndp-scenarios.eu/visualisation-platform/>
-- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/250117-TYNDP-2024-Visualisation-Platform.zip>
+- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/250117-TYNDP-2024-Visualisation-Platform.zip>
 - **Description:** Contains the TYNDP 2024 Visualisation Platform data for both electricity (supply mix, flexibility options, and electricity demand) and hydrogen (supply mix and hydrogen demand).
 
 ## `TYNDP Nuclear profiles`
 
 - **Source:** Derived from TYNDP 2024 Market Model Outputs
-- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/nuclear_p_max_pu.zip>
+- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/nuclear_p_max_pu.zip>
 - **Description:** Contains availability profiles for nuclear power plants, derived from normalized generation time series in TYNDP 2024 Market Model Outputs. Resampled weekly, retaining maximum availability factor per week to account for maintenance schedules and forced outages.
 
 ## `cba/a.3_non-co2-emissions.csv`
