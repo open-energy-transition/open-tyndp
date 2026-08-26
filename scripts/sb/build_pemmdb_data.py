@@ -98,6 +98,11 @@ OTHER_RES_MAPPING = {
 
 OTHER_RES_GROUPS = ["Small Biomass", "Geothermal, Marine, Waste and Not Defined"]
 
+# Other Non-RES types given without the 'OtherNon-RES/<carrier>/<type>' separators
+OTHER_NONRES_TYPE_FIXES = {
+    "GAS_CCGT_NEW": "OtherNon-RES/Gas/CCGT new",  # IL00
+}
+
 
 def read_pemmdb_data(
     node: str,
@@ -305,7 +310,8 @@ def _process_other_nonres_capacities(
     # Extract data for given weather_scenario
     df = (
         df.set_axis(column_names)
-        .T.assign(
+        .T.replace({"pemmdb_type": OTHER_NONRES_TYPE_FIXES})
+        .assign(
             pemmdb_carrier=lambda df: (
                 "Other Non-RES" + " " + df.pemmdb_type.str.split("/").str[1]
             ),
@@ -798,6 +804,7 @@ def _process_other_nonres_profiles(
         )
         .rename_axis(None, axis=0)
     )
+    df.loc["pemmdb_type"] = df.loc["pemmdb_type"].replace(OTHER_NONRES_TYPE_FIXES)
 
     # Create mask to filter for given weather scenario
     ws_start = _parse_weather_scenario(df.loc["ws_start", :])
@@ -1338,7 +1345,7 @@ if __name__ == "__main__":
     )
 
     # Weather scenario, resolved for the planning year the data is read from
-    weather_scenario = get_weather_scenario(pyear, snakemake.params.weather_scenarios)
+    weather_scenario = get_weather_scenario(snakemake.params.weather_scenarios, pyear)
 
     logger.info(
         f"Processing PEMMDB data for target year: {pyear_i}, "
