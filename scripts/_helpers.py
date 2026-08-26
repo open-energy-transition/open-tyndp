@@ -1939,3 +1939,10 @@ def normalize_direction(
         df = df.value
 
     return df
+
+
+def parse_weather_scenario(s: pd.Series) -> pd.Series:
+    """
+    Convert weather scenario labels (eg. WS065) into their integer index.
+    """
+    return pd.to_numeric(s.astype(str).str.removeprefix("WS"), errors="coerce")

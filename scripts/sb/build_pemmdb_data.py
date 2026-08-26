@@ -44,6 +44,7 @@ from scripts._helpers import (
     convert_units,
     get_snapshots,
     map_tyndp_carrier_names,
+    parse_weather_scenario,
     safe_pyear,
     set_scenario_config,
 )
@@ -202,13 +203,6 @@ def _drop_duplicate_price_bands(
     return df.groupby(groupby, **kwargs).agg(agg)
 
 
-def _parse_weather_scenario(s: pd.Series) -> pd.Series:
-    """
-    Convert weather scenario labels (eg. WS065) into their integer index.
-    """
-    return pd.to_numeric(s.astype(str).str.removeprefix("WS"), errors="coerce")
-
-
 def _extract_price_band_type(df: pd.DataFrame) -> str:
     """
     Extract price band type information consisting of the PEMMDB type, the purpose of
@@ -320,8 +314,8 @@ def _process_other_nonres_capacities(
             unit="MW",
             price_band_type=lambda x: _extract_price_band_type(x),
             pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
-            ws_start=lambda x: _parse_weather_scenario(x.ws_start),
-            ws_end=lambda x: _parse_weather_scenario(x.ws_end),
+            ws_start=lambda x: parse_weather_scenario(x.ws_start),
+            ws_end=lambda x: parse_weather_scenario(x.ws_end),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -611,8 +605,8 @@ def _process_dsr_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            ws_start=lambda x: _parse_weather_scenario(x.ws_start),
-            ws_end=lambda x: _parse_weather_scenario(x.ws_end),
+            ws_start=lambda x: parse_weather_scenario(x.ws_start),
+            ws_end=lambda x: parse_weather_scenario(x.ws_end),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -807,8 +801,8 @@ def _process_other_nonres_profiles(
     df.loc["pemmdb_type"] = df.loc["pemmdb_type"].replace(OTHER_NONRES_TYPE_FIXES)
 
     # Create mask to filter for given weather scenario
-    ws_start = _parse_weather_scenario(df.loc["ws_start", :])
-    ws_end = _parse_weather_scenario(df.loc["ws_end", :])
+    ws_start = parse_weather_scenario(df.loc["ws_start", :])
+    ws_end = parse_weather_scenario(df.loc["ws_end", :])
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
     mask = (ws_start <= weather_scenario) & (weather_scenario <= ws_end) & (cap > 0)
 
@@ -889,8 +883,8 @@ def _process_dsr_profiles(
     )
 
     # Create mask to filter for given weather scenario and for capacity > 0
-    ws_start = _parse_weather_scenario(df.loc["ws_start", :])
-    ws_end = _parse_weather_scenario(df.loc["ws_end", :])
+    ws_start = parse_weather_scenario(df.loc["ws_start", :])
+    ws_end = parse_weather_scenario(df.loc["ws_end", :])
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
     mask = (ws_start <= weather_scenario) & (weather_scenario <= ws_end) & (cap > 0)
 
