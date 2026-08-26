@@ -443,9 +443,18 @@ def _process_res_capacities(
         df["pemmdb_type"],
     )
 
-    df = convert_units(df, value_col="p_nom").reset_index(drop=True)
+    df = convert_units(df, value_col="p_nom")
 
-    return df
+    # Invert pumping capacity reported as a load
+    inverted = (df["element"] == "Pump") & (df["p_nom"] < 0)
+    if inverted.any():
+        logger.info(
+            f"Inverting negative pumping capacity for '{pemmdb_tech}' at {node}: "
+            f"{', '.join(df.index[inverted])}."
+        )
+        df.loc[inverted, "p_nom"] = -df.loc[inverted, "p_nom"]
+
+    return df.reset_index(drop=True)
 
 
 def _process_other_res_capacities(
