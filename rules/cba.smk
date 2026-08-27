@@ -561,6 +561,7 @@ rule plot_indicators:
     input:
         indicators=rules.combine_indicators.output.indicators,
         transmission_projects=rules.clean_projects.output.transmission_projects,
+        storage_projects=rules.clean_projects.output.storage_projects,
     output:
         plot_dir=directory(RESULTS + "cba/graphs/{planning_horizons}/summary"),
     log:

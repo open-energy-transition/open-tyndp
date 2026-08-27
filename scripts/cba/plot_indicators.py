@@ -42,12 +42,8 @@ def get_indicator_series(df: pd.DataFrame, indicator: str) -> pd.Series:
     return series.set_index("project_id")["value"]
 
 
-def load_and_merge_data(indicators_path, projects_path):
-    """Load indicators and merge with project metadata."""
-    indicators_path = Path(indicators_path)
-    raw = pd.read_csv(indicators_path)
-    projects = pd.read_csv(projects_path)
-
+def _aggregate_transmission_projects(projects: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate exploded per-border transmission project rows to one row per project_id."""
     border_counts = projects.groupby("project_id").size().rename("border_count")
     projects_agg = (
         projects.groupby("project_id")
@@ -61,7 +57,50 @@ def load_and_merge_data(indicators_path, projects_path):
         )
         .reset_index()
     )
-    projects_agg = projects_agg.merge(border_counts, on="project_id")
+    return projects_agg.merge(border_counts, on="project_id")
+
+
+def _aggregate_storage_projects(projects: pd.DataFrame) -> pd.DataFrame:
+    """Recast storage projects onto the same column shape as transmission projects."""
+    columns = [
+        "project_id",
+        "project_name",
+        "is_crossborder",
+        "p_nom 0->1",
+        "p_nom 1->0",
+        "border_count",
+    ]
+    if projects.empty:
+        return pd.DataFrame(columns=columns)
+
+    return pd.DataFrame(
+        {
+            "project_id": projects["project_id"],
+            "project_name": projects["project_name"],
+            "is_crossborder": False,
+            "p_nom 0->1": projects["p_nom_discharge"],
+            "p_nom 1->0": projects["p_nom_charge"],
+            "border_count": 1,
+        }
+    )
+
+
+def load_and_merge_data(
+    indicators_path, transmission_projects_path, storage_projects_path
+):
+    """Load indicators and merge with transmission and storage project metadata."""
+    indicators_path = Path(indicators_path)
+    raw = pd.read_csv(indicators_path)
+    transmission_projects = pd.read_csv(transmission_projects_path)
+    storage_projects = pd.read_csv(storage_projects_path)
+
+    projects_agg = pd.concat(
+        [
+            _aggregate_transmission_projects(transmission_projects),
+            _aggregate_storage_projects(storage_projects),
+        ],
+        ignore_index=True,
+    )
     projects_agg["total_capacity_MW"] = (
         projects_agg["p_nom 0->1"] + projects_agg["p_nom 1->0"]
     )
@@ -98,7 +137,7 @@ def load_and_merge_data(indicators_path, projects_path):
     merged["capex_change_billion"] = merged["capex_change"] / 1e9
     merged["opex_change_billion"] = merged["opex_change"] / 1e9
 
-    return merged, projects["project_id"].nunique()
+    return merged, projects_agg["project_id"].nunique()
 
 
 def plot_b1_top_projects(
@@ -430,7 +469,13 @@ def plot_b1_capex_vs_opex(
 # def plot_b3_...
 
 
-def create_plots(indicators_path, projects_path, output_dir, params):
+def create_plots(
+    indicators_path,
+    transmission_projects_path,
+    storage_projects_path,
+    output_dir,
+    params,
+):
     """Create all CBA indicator plots."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -441,7 +486,9 @@ def create_plots(indicators_path, projects_path, output_dir, params):
     if isinstance(output_formats, str):
         output_formats = [output_formats]
 
-    df, _ = load_and_merge_data(indicators_path, projects_path)
+    df, _ = load_and_merge_data(
+        indicators_path, transmission_projects_path, storage_projects_path
+    )
     if df.empty:
         logger.warning("No indicators data to plot")
         return
@@ -507,6 +554,7 @@ if __name__ == "__main__":
     create_plots(
         snakemake.input.indicators,
         snakemake.input.transmission_projects,
+        snakemake.input.storage_projects,
         snakemake.output.plot_dir,
         snakemake.params,
     )
