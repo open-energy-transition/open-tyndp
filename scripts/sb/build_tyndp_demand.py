@@ -293,7 +293,7 @@ def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
     Some TYNDP nodes can contain zero demand time series for a given demand type
     (e.g. a country with no H2-based heating). Downstream code must treat a missing
     bus as zero demand rather than requiring every bus to be present, since which
-    buses are dropped can differ between planning horizons/weather scenarios for 
+    buses are dropped can differ between planning horizons/weather scenarios for
     the same demand type.
 
     Parameters
