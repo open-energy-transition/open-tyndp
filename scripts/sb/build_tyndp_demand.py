@@ -139,10 +139,9 @@ def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
     """
     Ensure a leap `year` doesn't leave 29 February in `snapshots`.
 
-    TYNDP 2026 demand data always spans 365 days (no 29 February), so demand
-    built directly against a leap `year` would be missing that day. This is
-    fine as long as `drop_leap_day` also strips 29 February from
-    `snapshots` (the default); otherwise the two no longer line up.
+    TYNDP 2026 demand data always spans 365 days, so demand
+    built directly against a leap `year` would be missing that day. Therefore,
+    `drop_leap_day` needs to be enabled to strip February 29th from `snapshots`.
 
     Raises
     ------
