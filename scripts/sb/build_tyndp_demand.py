@@ -83,8 +83,7 @@ DEMAND_TYPE_MAP = {
 }
 
 # Unit of this script's output. For most demand types this matches the raw
-# TYNDP 2026 Excel values as-is -- confirmed against the official TYNDP 2026
-# NT+ TimeSeriesDashboard, which labels the same columns identically. The
+# TYNDP 2026 Excel values as-is. The
 # `thermal_h2`/`thermal_ch4` raw files are in GJ, those
 # two are converted to MWh_th for follow Open-TYNDP convention.
 DEMAND_TYPE_UNITS = {
@@ -347,10 +346,8 @@ def read_demand_excel(
     Returns
     -------
     pd.DataFrame
-        Demand indexed by DatetimeIndex, one column per bus, with the
-        columns' index named ``"Bus [<unit>]"`` (e.g. ``"Bus [MW_e]"``) so
-        the unit survives into the output CSV's corner cell. Empty
-        DataFrame if reading or parsing fails.
+        Demand indexed by DatetimeIndex, one column per bus.
+        Empty DataFrame if reading or parsing fails.
     """
     ws_code = f"WS{weather_scenario:03d}"
     try:
@@ -374,7 +371,8 @@ def read_demand_excel(
             demand = demand * GJ_TO_MWH
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
-        demand.columns.name = f"Bus [{DEMAND_TYPE_UNITS[demand_type]}]"
+        demand.columns.name = "Bus"
+        demand.index.name = DEMAND_TYPE_UNITS[demand_type]
         demand = drop_zero_demand_columns(demand)
 
     except Exception as e:
