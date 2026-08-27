@@ -279,7 +279,7 @@ def deduplicate_corrected_columns(demand: pd.DataFrame) -> pd.DataFrame:
             demand = demand.drop(columns=[base])
         else:
             logger.warning(
-                f"Sheet '{col}' looks like a corrected variant of node "
+                f"Sheet '{col}' found as a corrected variant of node "
                 f"'{base}' with no plain '{base}' sheet present; renaming "
                 f"it to '{base}'."
             )
