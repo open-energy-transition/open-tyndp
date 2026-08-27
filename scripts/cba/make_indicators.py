@@ -988,7 +988,10 @@ if __name__ == "__main__":
     # Detect method from assignments (toot or pint)
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
-    method = load_method(snakemake.input.methods, project_id, planning_horizon)
+    project_type = "storage" if cba_project.startswith("s") else "transmission"
+    method = load_method(
+        snakemake.input.methods, project_id, project_type, planning_horizon
+    )
 
     # Calculate indicators
     indicators = {}
