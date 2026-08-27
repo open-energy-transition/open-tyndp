@@ -11,6 +11,7 @@ import yaml
 from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
 from dotenv import load_dotenv
+from snakemake.logging import logger
 from snakemake.utils import min_version, update_config
 
 load_dotenv()
@@ -58,6 +59,20 @@ for scenario_name, scenario_overrides in scenarios.items():
         raise ValueError(
             f"Scenario '{scenario_name}' failed config validation: {e}"
         ) from e
+
+selected_runs = run["name"] if isinstance(run["name"], list) else [run["name"]]
+unsupported = {
+    name
+    for name in selected_runs
+    if scenarios.get(name, {}).get("tyndp_scenario", config["tyndp_scenario"])
+    in ("DE", "GA")
+}
+if unsupported:
+    logger.warning(
+        f"Selected run(s) {sorted(unsupported)} use the DE or GA scenario. "
+        "Currently only the National Trends (NT) scenario is fully implemented and benchmarked in Open-TYNDP. "
+        "DE and GA are incomplete and unsupported, thus their results are not validated and parts of the workflow might break."
+    )
 
 RDIR = get_rdir(run)
 PROJ_DIR = Path(workflow.snakefile).parent
