@@ -95,8 +95,8 @@ DEMAND_TYPE_UNITS = {
     "h2_z1": "MW_H2",
     "h2_z2": "MW_H2",
     "synthetic_fuels": "MW_H2",
-    "thermal_h2": "MWh_th",
-    "thermal_ch4": "MWh_th",
+    "thermal_h2": "MW_th",
+    "thermal_ch4": "MW_th",
 }
 
 # Demand types whose raw TYNDP Excel values are in GJ and are
