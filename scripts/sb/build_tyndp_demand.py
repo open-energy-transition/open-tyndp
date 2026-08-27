@@ -82,7 +82,7 @@ DEMAND_TYPE_MAP = {
     "thermal_ch4": "Thermal_energy_Methane",
 }
 
-# Unit of the raw values as they appear in the TYNDP 2026 Excel files 
+# Unit of the raw values as they appear in the TYNDP 2026 Excel files
 # confirmed against the official TYNDP 2026 NT+ TimeSeriesDashboard
 DEMAND_TYPE_UNITS = {
     "electricity_market": "MW_e",
