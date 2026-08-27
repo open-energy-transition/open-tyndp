@@ -120,8 +120,14 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 - **Link:** <https://storage.googleapis.com/open-tyndp-data-store/2024/nuclear_p_max_pu.zip>
 - **Description:** Contains availability profiles for nuclear power plants, derived from normalized generation time series in TYNDP 2024 Market Model Outputs. Resampled weekly, retaining maximum availability factor per week to account for maintenance schedules and forced outages.
 
-## `cba/a.3_non-co2-emissions.csv`
+## `data/cba/a.3_non-co2-emissions.csv`
 
 - **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, <https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1>
-- **Link:** <https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv>
+- **Link:** On repository (not retrieved/downloaded).
 - **Description:** Contains a CSV file of the extracted Annex A.3 non-CO2 emissions factors table.
+
+## `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`
+
+- **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, <https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1>
+- **Link:** On repository (not retrieved/downloaded).
+- **Description:** Contains a CSV file of the extracted Annex B.1 table listing the projects included in the 2030 and 2040 reference grids, used to assign the TOOT/PINT method per project and planning horizon.

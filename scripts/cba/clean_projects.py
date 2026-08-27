@@ -27,8 +27,7 @@ the user can modify existing projects and add new ones. Transmission capacities 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
 - `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
-- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Table of projects as defined in the Implementation Guidelines Appendix B.1
-- `data/cba_guidelines_reference_projects/.../table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: CBA guidelines reference table, used to assign the TOOT/PINT method per project and planning horizon
+- `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: Table of projects as defined in the Implementation Guidelines Appendix B.1, used to assign the TOOT/PINT method per project and planning horizon
 - `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
 - `data/custom_cba_transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
 
