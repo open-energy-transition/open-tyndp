@@ -366,12 +366,17 @@ if __name__ == "__main__":
     generator_project_static = generator_projects_static[
         generator_projects_static["project_id"] == project_id
     ]
-    generator_project_dynamic = generator_projects_dynamic[str(project_id)]
-    generator_project_dynamic.index = pd.to_datetime(generator_project_dynamic.index)
 
     assert not (transmission_project.empty and generator_project_static.empty), (
         f"Transmission or generator project with {project_id} not found."
     )
+
+    if not generator_projects_dynamic.empty:
+        generator_project_dynamic = generator_projects_dynamic[str(project_id)]
+        generator_project_dynamic.index = pd.to_datetime(
+            generator_project_dynamic.index
+        )
+
     if planning_horizon not in [2030, 2040]:
         logger.warning(
             "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
