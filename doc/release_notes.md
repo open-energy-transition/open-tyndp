@@ -13,6 +13,8 @@
 
 * Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
+* Warn users that the DE and GA scenarios are incomplete and unsupported, both in the documentation and via a log warning when such a run is selected ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
+
 **Bugfixes and Compatibility**
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).

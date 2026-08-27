@@ -16,6 +16,13 @@ For a comprehensive overview of the TYNDP modelling methodology and its limitati
 !!! note "See also"
     Refer also to the current [development status](https://open-tyndp.readthedocs.io/en/latest/index.html#development-status) of the Open-TYNDP project for an overview of currently implemented and missing features.
 
+## Limitations of Open-TYNDP
+
+- **Only the National Trends (NT) scenario is implemented:** the Distributed Energy (DE) and
+  Global Ambition (GA) deviation scenarios are incomplete and unsupported. They can be selected
+  via `tyndp_scenario` and will run, but their results are not validated or benchmarked.
+  See [Scenarios](scenarios.md).
+
 ## Limitations of PyPSA-Eur
 
 While the benefit of an openly available, functional and partially validated
