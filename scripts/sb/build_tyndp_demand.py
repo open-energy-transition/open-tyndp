@@ -248,13 +248,12 @@ def deduplicate_corrected_columns(demand: pd.DataFrame) -> pd.DataFrame:
     Prefer a "<node>_corrected" sheet over its plain "<node>" counterpart.
 
     Some TYNDP raw Excel files carry a leftover "_corrected"-suffixed sheet
-    name for a node (e.g. "CZ00_corrected") -- a data-correction artifact
-    from TYNDP's own publishing pipeline that wasn't cleaned up before
-    release. If both a plain and a "_corrected" sheet exist for the same
-    node, the plain one is dropped and the corrected data is kept; either
-    way, the column is renamed back to the plain node code so it lines up
-    with every other bus downstream. A warning is logged whenever this
-    happens, since it means the raw data needed this override.
+    name for a node (e.g. "CZ00_corrected") which is a data-correction artifact.
+    If both a plain and a "_corrected" sheet exist for the same node, the plain 
+    one is dropped and the corrected data is kept; either way, the column is
+    renamed back to the plain node code so it lines up with every other bus
+    downstream. A warning is logged whenever this happens, since it means
+    the raw data needed this override.
 
     Parameters
     ----------
