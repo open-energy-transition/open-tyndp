@@ -290,12 +290,11 @@ def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
     """
     Drop buses with zero total demand, to shrink the resulting output file.
 
-    Some TYNDP nodes genuinely have zero demand for a given demand type
-    (e.g. a country with no H2-based heating) -- confirmed against the
-    official TYNDP dashboard during validation, not a data gap. Downstream
-    code must treat a missing bus as zero demand rather than requiring
-    every bus to be present, since which buses are dropped can differ
-    between planning horizons/weather scenarios for the same demand type.
+    Some TYNDP nodes can contain zero demand time series for a given demand type
+    (e.g. a country with no H2-based heating). Downstream code must treat a missing
+    bus as zero demand rather than requiring every bus to be present, since which
+    buses are dropped can differ between planning horizons/weather scenarios for 
+    the same demand type.
 
     Parameters
     ----------
