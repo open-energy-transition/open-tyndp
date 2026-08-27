@@ -205,6 +205,19 @@ def _drop_duplicate_price_bands(
     return df.groupby(groupby, **kwargs).agg(agg)
 
 
+def _format_band_number(s: pd.Series) -> pd.Series:
+    """
+    Format a numeric price band attribute as a compact rounded string,
+    e.g. 4.0 -> "4" and 564.0000000000001 -> "564".
+    """
+    return (
+        pd.to_numeric(s, errors="coerce")
+        .round(2)
+        .map(lambda v: f"{v:.10g}")
+        .astype(str)
+    )
+
+
 def _extract_price_band_type(df: pd.DataFrame) -> str:
     """
     Extract price band type information consisting of the PEMMDB type, the purpose of
@@ -220,7 +233,9 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
             + "eur"
         )
     elif "hours" in df.columns:
-        return df.hours.astype("str") + "h-" + df.price.astype("str") + "eur"
+        return (
+            _format_band_number(df.hours) + "h-" + _format_band_number(df.price) + "eur"
+        )
     else:
         logger.debug(
             "No purpose or hours column in Dataframe to extract for price band type."
