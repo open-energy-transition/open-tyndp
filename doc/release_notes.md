@@ -13,7 +13,7 @@
 
 * Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
-* Warn users that the DE and GA scenarios are incomplete and unsupported, both in the documentation and via a log warning when such a run is selected ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
+* Add warnings that the DE and GA scenarios are incomplete and unsupported, both in the documentation and via a log warning in Snakefile ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
 **Bugfixes and Compatibility**
 
@@ -35,6 +35,9 @@
 
 * Move the datasets `tyndp_cba_projects`, `tyndp_nuclear_profiles` and `tyndp_vis_plfm` in the Open-TYNDP GCP under a `2024/` prefixed path. The old paths are deprecated and will be removed with the next release ([#895](https://github.com/open-energy-transition/open-tyndp/pull/895)) .
 
+**Breaking Changes**
+
+* Remove DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`, etc) ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
 ## Upcoming PyPSA-Eur Release
 
