@@ -3,9 +3,6 @@ aquifer_data,v1.2,tyndp-archive,latest supported,2026-05-08,,https://storage.goo
 attributed_ports,2020-07-10,tyndp-archive,latest supported,2026-05-08,Moved from github repo `data/` folder,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/attributed_ports/2020-07-10/attributed_ports.json
 bidding_zones_electricitymaps,v1.238.0,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/bidding_zones_electricitymaps/v1.238.0/world.geojson
 bidding_zones_entsoepy,v0.6.18,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/bidding_zones_entsoepy/v0.6.18
-cba_guidelines_reference_projects,unknown,archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv
-cba_guidelines_reference_projects,unknown,tyndp-archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv
-cba_guidelines_reference_projects,2024,primary,not-supported,2026-02-05,,https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
 co2stop,26-august-2020,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/co2stop/26-august-2020/co2jrc_openformats.zip
 copernicus_land_cover,v3.0.1,tyndp-archive,latest supported,2026-05-08,"The primary is already from Zenodo, documentation in https://zenodo.org/records/4723921",https://storage.googleapis.com/open-tyndp-data-store/archive/eur/copernicus_land_cover/v3.0.1
 corine,v18_5,tyndp-archive,latest supported,2026-05-08,,https://storage.googleapis.com/open-tyndp-data-store/archive/eur/corine/v18_5/corine.zip
@@ -63,9 +60,6 @@ synthetic_electricity_demand,v2,tyndp-archive,latest supported,2026-05-08,the pr
 tyndp,2024,primary,latest supported,2026-02-05,,https://2024-data.entsos-tyndp-scenarios.eu/files/scenarios-inputs
 tyndp,2024,archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024
 tyndp,2024,tyndp-archive,latest supported,2026-02-05,,https://storage.googleapis.com/open-tyndp-data-store/2024
-tyndp_cba_non_co2_emissions,2024,primary,not-supported,2026-01-26,Annex A.3 page 108,https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
-tyndp_cba_non_co2_emissions,2024,archive,latest supported,2026-01-26,,https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv
-tyndp_cba_non_co2_emissions,2024,tyndp-archive,latest supported,2026-01-26,,https://storage.googleapis.com/open-tyndp-data-store/cba/a.3_non-co2-emissions.csv
 tyndp_cba_projects,unknown,primary,not-supported,2026-01-27,,https://tyndp2024.entsoe.eu/projects-map
 tyndp_cba_projects,unknown,archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/2024/CBA_projects.zip
 tyndp_cba_projects,unknown,tyndp-archive,latest supported,2026-01-27,,https://storage.googleapis.com/open-tyndp-data-store/2024/CBA_projects.zip
