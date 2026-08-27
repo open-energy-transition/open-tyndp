@@ -82,8 +82,11 @@ DEMAND_TYPE_MAP = {
     "thermal_ch4": "Thermal_energy_Methane",
 }
 
-# Unit of the raw values as they appear in the TYNDP 2026 Excel files
-# confirmed against the official TYNDP 2026 NT+ TimeSeriesDashboard
+# Unit of this script's output. For most demand types this matches the raw
+# TYNDP 2026 Excel values as-is -- confirmed against the official TYNDP 2026
+# NT+ TimeSeriesDashboard, which labels the same columns identically. The
+# `thermal_h2`/`thermal_ch4` raw files are in GJ, those
+# two are converted to MWh_th for follow Open-TYNDP convention.
 DEMAND_TYPE_UNITS = {
     "electricity_market": "MW_e",
     "electricity_prosumer": "MW_e",
@@ -93,9 +96,16 @@ DEMAND_TYPE_UNITS = {
     "h2_z1": "MW_H2",
     "h2_z2": "MW_H2",
     "synthetic_fuels": "MW_H2",
-    "thermal_h2": "GJ",
-    "thermal_ch4": "GJ",
+    "thermal_h2": "MWh_th",
+    "thermal_ch4": "MWh_th",
 }
+
+# Demand types whose raw TYNDP Excel values are in GJ and are
+# converted to MWh_th in `read_demand_excel`.
+GJ_DEMAND_TYPES = {"thermal_h2", "thermal_ch4"}
+
+# 1 MWh = 3.6 GJ.
+GJ_TO_MWH = 1 / 3.6
 
 
 def get_weather_scenario(weather_scenarios, pyear):
@@ -360,6 +370,8 @@ def read_demand_excel(
         # Build DatetimeIndex from snapshot year
         demand = multiindex_to_datetimeindex(demand, year=year)
         demand = deduplicate_corrected_columns(demand)
+        if demand_type in GJ_DEMAND_TYPES:
+            demand = demand * GJ_TO_MWH
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
         demand.columns.name = f"Bus [{DEMAND_TYPE_UNITS[demand_type]}]"
