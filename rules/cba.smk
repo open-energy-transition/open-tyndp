@@ -45,36 +45,6 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
             os.remove(output["dir"] + ".zip")
 
 
-if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    rule retrieve_tyndp_cba_non_co2_emissions:
-        input:
-            file=storage(CBA_NON_CO2_DATASET["url"]),
-        output:
-            file=f"{CBA_NON_CO2_DATASET['folder']}/a.3_non-co2-emissions.csv",
-        log:
-            "logs/retrieve_tyndp_cba_non_co2_emissions.log",
-        run:
-            copy2(input["file"], output["file"])
-
-
-if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    rule retrieve_cba_guidelines_reference_projects:
-        input:
-            file=storage(CBA_GUIDELINES_DATASET["url"]),
-        output:
-            file=f"{CBA_GUIDELINES_DATASET['folder']}/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
-        log:
-            "logs/retrieve_cba_guidelines_reference_projects.log",
-        run:
-            copy2(input["file"], output["file"])
-
-
 def _effective_horizon(h, warn_fn=None, msg=None):
     if h not in [2030, 2040]:
         if warn_fn:
@@ -160,7 +130,7 @@ checkpoint clean_projects:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
     output:
@@ -286,7 +256,7 @@ def get_elec_project_build_years(w):
 rule fix_reference_sb_to_cba:
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
-        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         buses=rules.build_tyndp_network.output.substations_geojson,
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
@@ -490,7 +460,7 @@ rule make_indicators:
     input:
         reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
         project=RESULTS + "cba/networks/project_{cba_project}_{planning_horizons}.nc",
-        non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,
+        non_co2_emissions="data/cba/a.3_non-co2-emissions.csv",
         benchmark=rules.clean_tyndp_indicators.output.indicators,
         methods=rules.clean_projects.output.methods,
     output:
