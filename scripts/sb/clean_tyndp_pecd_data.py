@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    cyear = f"WS{snakemake.params.weather_year:03d}"
+    cyear = f"WS{snakemake.params.weather_scenario:03d}"
 
     # Planning year (falls back to latest available pyear if not in list of available years)
     pyear = safe_pyear(
