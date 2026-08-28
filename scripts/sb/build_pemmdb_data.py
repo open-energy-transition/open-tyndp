@@ -4,6 +4,16 @@
 """
 Collects and bundles the available PEMMDB v2.5 capacities and profiles for different PEMMDB technologies from TYNDP data bundle for a given planning horizon.
 
+Weather Scenario Selection
+--------------------------
+
+PEMMDB capacities and profiles carry the range of weather scenarios they apply
+to (``ws_start`` to ``ws_end``, labeled ``WSxxx``), and only the entries
+covering the modeled scenario are kept. Which scenario that is comes from
+`weather_scenarios_tyndp` and is resolved for the planning year the data is read
+from, the same way as for demand (see
+:py:func:`scripts.sb.build_tyndp_demand.get_weather_scenario`).
+
 Outputs
 -------
 Cleaned CSV file with all NT capacities (p_nom) in long format and NetCDF file containing the must run obligations (p_min_pu) and availability (p_max_pu) for each of the different PEMMDB technologies.
@@ -34,9 +44,12 @@ from scripts._helpers import (
     convert_units,
     get_snapshots,
     map_tyndp_carrier_names,
+    parse_weather_scenario,
     safe_pyear,
     set_scenario_config,
 )
+from scripts.cba.clean_projects import read_tyndp_electricity_buses
+from scripts.sb.build_tyndp_demand import get_weather_scenario
 
 # for compatibility with future pandas downcasting behaviour
 pd.set_option("future.no_silent_downcasting", True)
@@ -59,6 +72,14 @@ RENEWABLES = [
     "Hydro",
 ]
 
+TOTALS = [
+    "Battery Total",
+    "Installed capacities Photovoltaic (GW):",
+    "Installed capacities Onshore wind Total(GW):",  # missing space in PEMMDB source
+    "Installed capacities Onshore wind Total (GW):",  # to catch corrected spelling
+    "Installed capacities Offshore wind Total (GW):",
+]
+
 PEMMDB_SHEET_MAPPING = {
     "Gas": "Thermal",
     "Nuclear": "Thermal",
@@ -79,16 +100,21 @@ OTHER_RES_MAPPING = {
 
 OTHER_RES_GROUPS = ["Small Biomass", "Geothermal, Marine, Waste and Not Defined"]
 
+# Other Non-RES types given without the 'OtherNon-RES/<carrier>/<type>' separators
+OTHER_NONRES_TYPE_FIXES = {
+    "GAS_CCGT_NEW": "OtherNon-RES/Gas/CCGT new",  # IL00
+}
+
 
 def read_pemmdb_data(
     node: str,
     pemmdb_dir: str,
-    cyear: int,
+    weather_scenario: int,
     pyear: int,
     required_sheets: list[str] = None,
 ) -> dict[str, dict[str, pd.DataFrame]]:
     """
-    Read raw data from the PEMMDB for a specific planning and climate year,
+    Read raw data from the PEMMDB for a specific planning year and weather scenario,
     and a given set of technologies.
 
     Parameters
@@ -97,8 +123,8 @@ def read_pemmdb_data(
         Node name to read data for.
     pemmdb_dir : str
         Path to directory containing PEMMDB data.
-    cyear : int
-        Climate year to read data for.
+    weather_scenario : int
+        Weather scenario to read data for.
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
     required_sheets : list[str], optional
@@ -117,7 +143,8 @@ def read_pemmdb_data(
     )
 
     if not fn.is_file():
-        logger.info(f"No PEMMDB data available for {node} in {pyear}.")
+        # Reported as a single summary warning by the caller
+        logger.debug(f"No PEMMDB data available for {node} in {pyear}.")
         return None
 
     try:
@@ -130,7 +157,7 @@ def read_pemmdb_data(
 
     except Exception as e:
         raise Exception(
-            f"Error reading PEMMDB data at {node} for climate year {cyear} and planning year {pyear}: {e}"
+            f"Error reading PEMMDB data at {node} for weather scenario WS{weather_scenario:03d} and planning year {pyear}: {e}"
         )
 
 
@@ -139,7 +166,7 @@ def _drop_duplicate_price_bands(
     groupby: str | list[str],
     pemmdb_tech: str,
     node: str,
-    cyear: int,
+    weather_scenario: int,
     **kwargs,
 ) -> pd.DataFrame:
     """
@@ -156,8 +183,8 @@ def _drop_duplicate_price_bands(
         PEMMDB technology name.
     node : str
         Node name.
-    cyear : int
-        Climate year.
+    weather_scenario : int
+        Weather year.
     **kwargs : dict
         Keyword arguments passed to pd.DataFrame.groupby().
 
@@ -169,13 +196,26 @@ def _drop_duplicate_price_bands(
     if (groupby in df.columns and df[groupby].duplicated().any()) or (
         groupby not in df.columns and df.index.duplicated().any()
     ):
-        # Some datasets have duplicate pemmdb_tech price bands with same cyear, type, purpose and price
+        # Some datasets have duplicate pemmdb_tech price bands with same weather scenario, type, purpose and price
         # but different capacities. Using first entry.
         logger.info(
-            f"Found duplicate '{pemmdb_tech}' price bands at {node} (cyear {cyear}) with same type, purpose, and price but different capacities. Aggregating capacities."
+            f"Found duplicate '{pemmdb_tech}' price bands at {node} (weather scenario WS{weather_scenario:03d}) with same type, purpose, and price but different capacities. Aggregating capacities."
         )
     agg = {c: "sum" if c in ["p_nom", "p_max"] else "first" for c in df.columns}
     return df.groupby(groupby, **kwargs).agg(agg)
+
+
+def _format_band_number(s: pd.Series) -> pd.Series:
+    """
+    Format a numeric price band attribute as a compact rounded string,
+    e.g. 4.0 -> "4" and 564.0000000000001 -> "564".
+    """
+    return (
+        pd.to_numeric(s, errors="coerce")
+        .round(2)
+        .map(lambda v: f"{v:.10g}")
+        .astype(str)
+    )
 
 
 def _extract_price_band_type(df: pd.DataFrame) -> str:
@@ -193,7 +233,9 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
             + "eur"
         )
     elif "hours" in df.columns:
-        return df.hours.astype("str") + "h-" + df.price.astype("str") + "eur"
+        return (
+            _format_band_number(df.hours) + "h-" + _format_band_number(df.price) + "eur"
+        )
     else:
         logger.debug(
             "No purpose or hours column in Dataframe to extract for price band type."
@@ -204,7 +246,7 @@ def _extract_price_band_type(df: pd.DataFrame) -> str:
 def _process_thermal_hydrogen_capacities(
     node_tech_data: pd.DataFrame,
     node: str,
-    cyear: int,
+    weather_scenario: int,
     pemmdb_tech_sheet: str,
     thermal_techs: list[str],
 ) -> pd.DataFrame:
@@ -231,7 +273,7 @@ def _process_thermal_hydrogen_capacities(
 
     if df.empty:
         logger.debug(
-            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech_sheet}' at {node}."
+            f"No PEMMDB capacities match weather scenario WS{weather_scenario:03d} for '{pemmdb_tech_sheet}' at {node}."
         )
         return None
 
@@ -239,7 +281,11 @@ def _process_thermal_hydrogen_capacities(
 
 
 def _process_other_nonres_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
+    node_tech_data: pd.DataFrame,
+    node: str,
+    weather_scenario: int,
+    pyear: int,
+    pemmdb_tech: str,
 ) -> pd.DataFrame:
     """
     Extract and clean `Other Non-RES` capacities.
@@ -256,7 +302,7 @@ def _process_other_nonres_capacities(
 
     if df.empty:
         logger.debug(
-            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
         )
         return None
 
@@ -268,14 +314,15 @@ def _process_other_nonres_capacities(
         "price",
         "efficiency",
         "co2_factor",
-        "cyear_start",
-        "cyear_end",
+        "ws_start",
+        "ws_end",
     ]
 
-    # Extract data for given cyear
+    # Extract data for given weather_scenario
     df = (
         df.set_axis(column_names)
-        .T.assign(
+        .T.replace({"pemmdb_type": OTHER_NONRES_TYPE_FIXES})
+        .assign(
             pemmdb_carrier=lambda df: (
                 "Other Non-RES" + " " + df.pemmdb_type.str.split("/").str[1]
             ),
@@ -284,15 +331,17 @@ def _process_other_nonres_capacities(
             unit="MW",
             price_band_type=lambda x: _extract_price_band_type(x),
             pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
-            cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
-            cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
+            ws_start=lambda x: parse_weather_scenario(x.ws_start),
+            ws_end=lambda x: parse_weather_scenario(x.ws_end),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
             efficiency=lambda x: pd.to_numeric(x.efficiency, errors="coerce"),
             co2_factor=lambda x: pd.to_numeric(x.co2_factor, errors="coerce"),
         )
-        .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
+        .query(
+            "ws_start <= @weather_scenario and ws_end >= @weather_scenario and p_nom > 0"
+        )
         .reset_index(drop=True)
     )
 
@@ -303,30 +352,37 @@ def _process_other_nonres_capacities(
         df.pemmdb_type,
     )
 
-    # Manually fix missing efficiency and CO2 factor information for AT, HU, ITN1, ITS1
+    # Manually fix missing efficiency and CO2 factor information for AT, PL, ITS1
     # with values of equivalent plant types of other countries (same for all countries)
     df[["efficiency", "co2_factor"]] = df[["efficiency", "co2_factor"]].astype(float)
     if node == "AT00":
-        # gas CCGT old 1
-        df.loc[:, ["efficiency", "co2_factor"]] = [0.4, 0.513]
+        # gas CCGT old 1 CO2 emissions factor missing in 2040 and 2050 (average derived from NL00 and ITN1 for those planning years)
+        co2_factors = {2040: 0.3521, 2050: 0.1308}
+        missing_co2 = (
+            (df.pemmdb_carrier == "Other Non-RES Gas")
+            & (df.pemmdb_type == "ccgt old 1")
+            & (df.co2_factor == 0)
+        )
+        df.loc[missing_co2, "co2_factor"] = co2_factors.get(pyear, 0)
 
-    if node in ["ITN1", "ITS1"]:
-        # gas conventional old 2
-        df.loc[:, ["efficiency", "co2_factor"]] = [0.41, 0.500488]
-
-    if node == "HU00":
-        # gas conventional old 1
-        df.loc[:, ["efficiency", "co2_factor"]] = [0.36, 0.57]
+    if node in ["ITS1", "PL00"]:
+        # hydrogen CCGT efficiency missing in 2050
+        missing_efficiency = (
+            (df.pemmdb_carrier == "Other Non-RES Hydrogen")
+            & (df.pemmdb_type == "ccgt")
+            & (df.efficiency == 0)
+        )
+        df.loc[missing_efficiency, "efficiency"] = 0.6
 
     if df.empty:
         logger.debug(
-            f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacity data matches weather scenario WS{weather_scenario:03d} for '{pemmdb_tech}' at {node}."
         )
         return None
 
     # Check for duplicate price bands and keep first entry only
     df = _drop_duplicate_price_bands(
-        df, "price_band_type", pemmdb_tech, node, cyear, as_index=False
+        df, "price_band_type", pemmdb_tech, node, weather_scenario, as_index=False
     ).reset_index(drop=True)
 
     return df
@@ -350,7 +406,7 @@ def _parse_index_parts(
 def _process_res_capacities(
     node_tech_data: pd.DataFrame,
     node: str,
-    cyear: int,
+    weather_scenario: int,
     pemmdb_tech: str,
 ) -> pd.DataFrame:
     """
@@ -363,11 +419,12 @@ def _process_res_capacities(
         .set_index("attributes")
         .rename_axis(None, axis=0)
         .dropna()
+        .drop(TOTALS, errors="ignore")
     )
 
     if df.empty:
         logger.debug(
-            f"No PEMMDB capacities match climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacities match weather scenario WS{weather_scenario:03d} for '{pemmdb_tech}' at {node}."
         )
         return None
 
@@ -401,13 +458,22 @@ def _process_res_capacities(
         df["pemmdb_type"],
     )
 
-    df = convert_units(df, value_col="p_nom").reset_index(drop=True)
+    df = convert_units(df, value_col="p_nom")
 
-    return df
+    # Invert pumping capacity reported as a load
+    inverted = (df["element"] == "Pump") & (df["p_nom"] < 0)
+    if inverted.any():
+        logger.info(
+            f"Inverting negative pumping capacity for '{pemmdb_tech}' at {node}: "
+            f"{', '.join(df.index[inverted])}."
+        )
+        df.loc[inverted, "p_nom"] = -df.loc[inverted, "p_nom"]
+
+    return df.reset_index(drop=True)
 
 
 def _process_other_res_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
+    node_tech_data: pd.DataFrame, node: str, weather_scenario: int, pemmdb_tech: str
 ) -> pd.DataFrame | None:
     """
     Extract and clean `Other RES` capacities.
@@ -436,7 +502,7 @@ def _process_other_res_capacities(
 
     if df.empty:
         logger.debug(
-            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
         )
         return None
 
@@ -444,21 +510,13 @@ def _process_other_res_capacities(
 
 
 def _process_electrolyser_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
+    node_tech_data: pd.DataFrame, node: str, weather_scenario: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
     Extract and clean `Electrolyser` capacities.
     """
-    # Extract data
-    df = node_tech_data.iloc[7:, 1:].dropna(how="all", axis=0).dropna(how="all", axis=1)
-
-    if df.empty:
-        logger.debug(
-            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
-        )
-        return None
-
     column_names = [
+        "pemmdb_type",
         "p_nom",
         "units_count",
         "efficiency",
@@ -468,11 +526,24 @@ def _process_electrolyser_capacities(
         "generation_reduction",
     ]
 
-    df = df.set_axis(column_names, axis=1).assign(
+    # Extract data, dropping the empty spacer column
+    df = node_tech_data.iloc[7:, :9]
+    df = (
+        df.drop(columns=df.columns[1])
+        .set_axis(column_names, axis=1)
+        .dropna(subset=["pemmdb_type", "p_nom"])
+    )
+
+    if df.empty:
+        logger.debug(
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
+        )
+        return None
+
+    df = df.assign(
         pemmdb_carrier=pemmdb_tech,
         bus=node,
         country=node[:2],
-        pemmdb_type="Onshore grid connected",
         unit="MW",
     )
 
@@ -480,30 +551,14 @@ def _process_electrolyser_capacities(
 
 
 def _process_battery_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
+    node_tech_data: pd.DataFrame, node: str, weather_scenario: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
     Extract and clean `Battery` capacities.
     """
-    # Fill missing data for FR15
-    if node == "FR15":
-        node_tech_data.iloc[-1, [5, 7, 8]] = 0
-
-    # Extract data
-    df_raw = (
-        node_tech_data.iloc[7:, 1:]
-        .dropna(how="all", axis=0)
-        .dropna(how="all", axis=1)
-        .reset_index(drop=True)
-    )
-
-    if df_raw.empty:
-        logger.debug(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
-        )
-        return None
 
     column_names = [
+        "pemmdb_type",
         "p_nom_discharge",
         "p_nom_charge",
         "p_nom_store",
@@ -513,28 +568,46 @@ def _process_battery_capacities(
         "ramp_limit_down",
     ]
 
-    df_raw = df_raw.set_axis(column_names, axis=1)
+    # Extract data, dropping the empty spacer column and the 'Battery Total' aggregate
+    df_raw = node_tech_data.iloc[7:, :9]
+    df_raw = (
+        df_raw.drop(columns=df_raw.columns[1])
+        .set_axis(column_names, axis=1)
+        .query("pemmdb_type not in @TOTALS")
+        .dropna(subset=["p_nom_discharge", "p_nom_charge", "p_nom_store"], how="all")
+        .reset_index(drop=True)
+    )
 
-    units = ["MW", "MW", "MWh"]
-    types = ["Charge", "Discharge", "Store"]
+    if df_raw.empty:
+        logger.debug(
+            f"No PEMMDB data available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
+        )
+        return None
+
+    units = {"p_nom_charge": "MW", "p_nom_discharge": "MW", "p_nom_store": "MWh"}
+    types = {
+        "p_nom_charge": "Charge",
+        "p_nom_discharge": "Discharge",
+        "p_nom_store": "Store",
+    }
 
     df = df_raw.melt(
-        value_vars=["p_nom_charge", "p_nom_discharge", "p_nom_store"],
+        id_vars=["pemmdb_type", "efficiency"],
+        value_vars=list(types),
         value_name="p_nom",
     ).assign(
-        efficiency=df_raw.efficiency[0],
         pemmdb_carrier=pemmdb_tech,
         bus=node,
         country=node[:2],
-        pemmdb_type=types,
-        unit=units,
+        pemmdb_type=lambda x: x.pemmdb_type + " " + x.variable.map(types),
+        unit=lambda x: x.variable.map(units),
     )
 
     return df
 
 
 def _process_dsr_capacities(
-    node_tech_data: pd.DataFrame, node: str, cyear: int, pemmdb_tech: str
+    node_tech_data: pd.DataFrame, node: str, weather_scenario: int, pemmdb_tech: str
 ) -> pd.DataFrame:
     """
     Extract and clean `DSR` capacities.
@@ -547,7 +620,7 @@ def _process_dsr_capacities(
 
     if df.empty:
         logger.debug(
-            f"No PEMMDB capacities available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB capacities available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
         )
         return None
 
@@ -556,11 +629,11 @@ def _process_dsr_capacities(
         "units_count",
         "hours",
         "price",
-        "cyear_start",
-        "cyear_end",
+        "ws_start",
+        "ws_end",
     ]
 
-    # Extract information and filter for given cyear
+    # Extract information and filter for given weather_scenario
     df = (
         df.set_axis(column_names)
         .T.assign(
@@ -568,8 +641,8 @@ def _process_dsr_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
-            cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
+            ws_start=lambda x: parse_weather_scenario(x.ws_start),
+            ws_end=lambda x: parse_weather_scenario(x.ws_end),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -577,19 +650,21 @@ def _process_dsr_capacities(
             pemmdb_type=lambda x: _extract_price_band_type(x),
             efficiency=1.0,  # dummy value for efficiency
         )
-        .query("cyear_start <= @cyear and cyear_end >= @cyear and p_nom > 0")
+        .query(
+            "ws_start <= @weather_scenario and ws_end >= @weather_scenario and p_nom > 0"
+        )
         .reset_index(drop=True)
     )
 
     if df.empty:
         logger.debug(
-            f"No PEMMDB capacity data matches climate year {cyear} for '{pemmdb_tech}' at {node}."
+            f"No PEMMDB capacity data matches weather scenario WS{weather_scenario:03d} for '{pemmdb_tech}' at {node}."
         )
         return None
 
     # Check for duplicate price bands and aggregate capacities
     df = _drop_duplicate_price_bands(
-        df, "pemmdb_type", pemmdb_tech, node, cyear, as_index=False
+        df, "pemmdb_type", pemmdb_tech, node, weather_scenario, as_index=False
     ).reset_index(drop=True)
 
     return df
@@ -733,7 +808,7 @@ def _process_other_nonres_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
     pemmdb_tech: str,
-    cyear: int,
+    weather_scenario: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
@@ -751,26 +826,29 @@ def _process_other_nonres_profiles(
                 "Purpose": "purpose",
                 "Avg. Market Offer Price (€/MWh)": "price",
                 "Avg. Efficiency Ratio": "efficiency",
-                "Start climate year": "cyear_start",
-                "End climate year": "cyear_end",
+                "Start weather scenario": "ws_start",
+                "End weather scenario": "ws_end",
+                "Start climate year": "ws_start",  # FR15 and AZ00 still follow the old naming convention
+                "End climate year": "ws_end",  # FR15 and AZ00 still follow the old naming convention
             }
         )
         .rename_axis(None, axis=0)
     )
+    df.loc["pemmdb_type"] = df.loc["pemmdb_type"].replace(OTHER_NONRES_TYPE_FIXES)
 
-    # Create mask to filter for given climate year
-    cyear_start = pd.to_numeric(df.loc["cyear_start", :], errors="coerce")
-    cyear_end = pd.to_numeric(df.loc["cyear_end", :], errors="coerce")
+    # Create mask to filter for given weather scenario
+    ws_start = parse_weather_scenario(df.loc["ws_start", :])
+    ws_end = parse_weather_scenario(df.loc["ws_end", :])
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
-    mask = (cyear_start <= cyear) & (cyear <= cyear_end) & (cap > 0)
+    mask = (ws_start <= weather_scenario) & (weather_scenario <= ws_end) & (cap > 0)
 
     if not mask.any():
         logger.debug(
-            f"No PEMMDB profiles available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB profiles available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
         )
         return None
 
-    # Filter for climate year
+    # Filter for weather scenario
     df = df.loc[:, mask]
 
     # Extract plant type
@@ -806,7 +884,7 @@ def _process_other_nonres_profiles(
 
     # Check for duplicate price bands and keep first entry only
     profiles = _drop_duplicate_price_bands(
-        df_long, df_long.index.names, pemmdb_tech, node, cyear, as_index=True
+        df_long, df_long.index.names, pemmdb_tech, node, weather_scenario, as_index=True
     )
 
     return profiles
@@ -816,7 +894,7 @@ def _process_dsr_profiles(
     node_tech_data: pd.DataFrame,
     node: str,
     pemmdb_tech: str,
-    cyear: int,
+    weather_scenario: int,
     sns: pd.DatetimeIndex,
     sns_year_h: pd.DatetimeIndex,
 ) -> pd.DataFrame:
@@ -825,30 +903,34 @@ def _process_dsr_profiles(
     """
     # Extract data
     df = node_tech_data.iloc[7:, 1:]
-    df = df.set_index(df.columns[0]).rename(
+    df = df.set_index(
+        df.columns[0]
+    ).rename(
         index={
             "Capacity": "p_nom",
             "Units": "units_count",
             "Hours": "hours",
             "Price": "price",
-            "Climate year start": "cyear_start",
-            "Climate year end": "cyear_end",
+            "Start weather scenario": "ws_start",
+            "End weather scenario": "ws_end",
+            "Climate year start": "ws_start",  # Most PEMMDB data sheets still use the old "Climate year start" and "Climate year end" names for DSR
+            "Climate year end": "ws_end",
         }
     )
 
-    # Create mask to filter for given climate year and for capacity > 0
-    cyear_start = pd.to_numeric(df.loc["cyear_start", :], errors="coerce")
-    cyear_end = pd.to_numeric(df.loc["cyear_end", :], errors="coerce")
+    # Create mask to filter for given weather scenario and for capacity > 0
+    ws_start = parse_weather_scenario(df.loc["ws_start", :])
+    ws_end = parse_weather_scenario(df.loc["ws_end", :])
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
-    mask = (cyear_start <= cyear) & (cyear <= cyear_end) & (cap > 0)
+    mask = (ws_start <= weather_scenario) & (weather_scenario <= ws_end) & (cap > 0)
 
     if not mask.any():
         logger.debug(
-            f"No PEMMDB data available for '{pemmdb_tech}' and climate year {cyear} at node {node}."
+            f"No PEMMDB data available for '{pemmdb_tech}' and weather scenario WS{weather_scenario:03d} at node {node}."
         )
         return None
 
-    # Filter for climate year
+    # Filter for weather scenario
     df = df.loc[:, mask]
 
     # Extract price band type information
@@ -879,7 +961,7 @@ def _process_dsr_profiles(
 
     # Check for duplicate price bands and keep first entry only
     profiles = _drop_duplicate_price_bands(
-        df_long, df_long.index.names, pemmdb_tech, node, cyear, as_index=True
+        df_long, df_long.index.names, pemmdb_tech, node, weather_scenario, as_index=True
     )
 
     # Calculate p_max_pu after aggregating duplicate price bands
@@ -896,12 +978,12 @@ def process_pemmdb_capacities(
     node: str,
     pemmdb_tech_sheet: str,
     thermal_techs: list[str],
-    cyear: int,
+    weather_scenario: int,
     pyear: int,
     carrier_mapping_fn: str,
 ) -> pd.DataFrame:
     """
-    Read and clean capacities from PEMMDB for a given technology, planning and climate year.
+    Read and clean capacities from PEMMDB for a given technology, planning year and weather scenario.
 
     Parameters
     ----------
@@ -913,8 +995,8 @@ def process_pemmdb_capacities(
         PEMMDB technology sheet to read data from.
     thermal_techs: list[str]
         List of PEMMDB thermal technologies included in the model.
-    cyear : int
-        Climate year to read data for.
+    weather_scenario : int
+        Weather scenario to read data for.
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
     carrier_mapping_fn : str
@@ -929,43 +1011,43 @@ def process_pemmdb_capacities(
         # Conventionals & Hydrogen
         if pemmdb_tech_sheet == "Thermal":
             capacities = _process_thermal_hydrogen_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet, thermal_techs
+                node_tech_data, node, weather_scenario, pemmdb_tech_sheet, thermal_techs
             )
 
         # Other Non-RES
         elif pemmdb_tech_sheet == "Other Non-RES":
             capacities = _process_other_nonres_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet
+                node_tech_data, node, weather_scenario, pyear, pemmdb_tech_sheet
             )
 
         # Renewables (Solar, Wind, Hydro)
         elif pemmdb_tech_sheet in RENEWABLES:
             capacities = _process_res_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet
+                node_tech_data, node, weather_scenario, pemmdb_tech_sheet
             )
 
         # Other RES
         elif pemmdb_tech_sheet == "Other RES":
             capacities = _process_other_res_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet
+                node_tech_data, node, weather_scenario, pemmdb_tech_sheet
             )
 
         # DSR
         elif pemmdb_tech_sheet == "DSR":
             capacities = _process_dsr_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet
+                node_tech_data, node, weather_scenario, pemmdb_tech_sheet
             )
 
         # Battery
         elif pemmdb_tech_sheet == "Battery":
             capacities = _process_battery_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet
+                node_tech_data, node, weather_scenario, pemmdb_tech_sheet
             )
 
         # Electrolyser
         elif pemmdb_tech_sheet == "Electrolyser":
             capacities = _process_electrolyser_capacities(
-                node_tech_data, node, cyear, pemmdb_tech_sheet
+                node_tech_data, node, weather_scenario, pemmdb_tech_sheet
             )
 
         else:
@@ -977,9 +1059,9 @@ def process_pemmdb_capacities(
         # Separate energy and power capacities, assign empty values for missing attributes and select needed columns
         capacities = (
             capacities.assign(
-                price=lambda x: x.get("price"),
-                hours=lambda x: x.get("hours"),
-                co2_factor=lambda x: x.get("co2_factor"),
+                price=lambda x: x.get("price", np.nan),
+                hours=lambda x: x.get("hours", np.nan),
+                co2_factor=lambda x: x.get("co2_factor", np.nan),
                 e_nom=lambda x: np.where(x.unit.str.contains("h"), x.p_nom, 0.0),
                 p_nom=lambda x: np.where(x.unit.str.contains("h"), 0.0, x.p_nom),
             )[
@@ -1011,7 +1093,7 @@ def process_pemmdb_capacities(
 
     except Exception as e:
         raise Exception(
-            f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for climate year {cyear} and planning year {pyear}: {e}"
+            f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for weather scenario WS{weather_scenario:03d} and planning year {pyear}: {e}"
         )
 
 
@@ -1046,7 +1128,7 @@ def process_pemmdb_profiles(
     pemmdb_tech_sheet: str,
     thermal_techs: list[str],
     tyndp_scenario: str,
-    cyear: int,
+    weather_scenario: int,
     pyear: int,
     pyear_i: int,
     sns: pd.DatetimeIndex,
@@ -1055,7 +1137,7 @@ def process_pemmdb_profiles(
 ) -> pd.DataFrame:
     """
     Read and clean must run obligations (p_min_pu) and availability (p_max_pu) profiles
-    from PEMMDB for a given technology, planning and climate year.
+    from PEMMDB for a given technology, planning year and weather scenario.
 
     Parameters
     ----------
@@ -1069,8 +1151,8 @@ def process_pemmdb_profiles(
         Thermal technologies to read data for.
     tyndp_scenario : str
         TYNDP scenario to read data for.
-    cyear : int
-        Climate year to read data for.
+    weather_scenario : int
+        Weather scenario to read data for.
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
     pyear_i : int
@@ -1078,7 +1160,7 @@ def process_pemmdb_profiles(
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
-        Hourly Datetime index for a full given cyear.
+        Hourly Datetime index for a full snapshot year.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names.
 
@@ -1108,13 +1190,23 @@ def process_pemmdb_profiles(
         # Other Non-RES
         elif pemmdb_tech_sheet == "Other Non-RES":
             profiles = _process_other_nonres_profiles(
-                node_tech_data, node, pemmdb_tech_sheet, cyear, sns, sns_year_h
+                node_tech_data,
+                node,
+                pemmdb_tech_sheet,
+                weather_scenario,
+                sns,
+                sns_year_h,
             )
 
         # DSR
         elif pemmdb_tech_sheet == "DSR":
             profiles = _process_dsr_profiles(
-                node_tech_data, node, pemmdb_tech_sheet, cyear, sns, sns_year_h
+                node_tech_data,
+                node,
+                pemmdb_tech_sheet,
+                weather_scenario,
+                sns,
+                sns_year_h,
             )
 
         else:
@@ -1134,10 +1226,10 @@ def process_pemmdb_profiles(
                 drop_on_columns=True,
             )
             .assign(
-                price=lambda x: x.get("price"),
-                hours=lambda x: x.get("hours"),
-                p_set=lambda x: x.get("p_set"),
-                price_band_type=lambda x: x.get("price_band_type"),
+                price=lambda x: x.get("price", np.nan),
+                hours=lambda x: x.get("hours", np.nan),
+                p_set=lambda x: x.get("p_set", np.nan),
+                price_band_type=lambda x: x.get("price_band_type", np.nan),
             )
             .set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
         )
@@ -1146,7 +1238,7 @@ def process_pemmdb_profiles(
 
     except Exception as e:
         raise Exception(
-            f"Error reading PEMMDB profiles for '{pemmdb_tech_sheet}' at {node} for climate year {cyear} and planning year {pyear}: {e}"
+            f"Error reading PEMMDB profiles for '{pemmdb_tech_sheet}' at {node} for weather scenario WS{weather_scenario:03d} and planning year {pyear}: {e}"
         )
 
 
@@ -1155,7 +1247,7 @@ def process_pemmdb_data(
     node_tech_sheet: tuple[str, str],
     pemmdb_data: dict[str, dict[str, pd.DataFrame]],
     thermal_techs: list[str],
-    cyear: int,
+    weather_scenario: int,
     pyear: int,
     pyear_i: int,
     tyndp_scenario: str,
@@ -1165,7 +1257,7 @@ def process_pemmdb_data(
 ) -> pd.DataFrame:
     """
     Read and clean either capacities or must run obligations (p_min_pu) and availability (p_max_pu) profiles
-    from PEMMDB for a given technology, planning and climate year.
+    from PEMMDB for a given technology, planning year and weather scenario.
 
     Parameters
     ----------
@@ -1177,8 +1269,8 @@ def process_pemmdb_data(
         Dictionary containing all PEMMDB data for all nodes and technologies.
     thermal_techs : list[str]
         Thermal technologies to read data for.
-    cyear : int
-        Climate year to read data for.
+    weather_scenario : int
+        Weather scenario to read data for.
     pyear : int
         Planning year used for data retrieval (fallback year if pyear_i not available).
     pyear_i : int
@@ -1188,7 +1280,7 @@ def process_pemmdb_data(
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
-        Hourly Datetime index for a full given cyear.
+        Hourly Datetime index for a full snapshot year.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names.
 
@@ -1212,7 +1304,7 @@ def process_pemmdb_data(
             node,
             pemmdb_tech_sheet,
             thermal_techs,
-            cyear,
+            weather_scenario,
             pyear,
             carrier_mapping_fn,
         )
@@ -1223,7 +1315,7 @@ def process_pemmdb_data(
             pemmdb_tech_sheet,
             thermal_techs,
             tyndp_scenario,
-            cyear,
+            weather_scenario,
             pyear,
             pyear_i,
             sns,
@@ -1245,7 +1337,8 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "build_pemmdb_data",
             clusters="all",
-            planning_horizons=2030,
+            planning_horizons=2040,
+            configfiles="config/test/config.tyndp.yaml",
         )
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -1256,25 +1349,38 @@ if __name__ == "__main__":
         {PEMMDB_SHEET_MAPPING.get(tech, tech) for tech in pemmdb_techs}
     )
     thermal_techs = [k for k, v in PEMMDB_SHEET_MAPPING.items() if v == "Thermal"]
-    nodes = pd.read_csv(snakemake.input.busmap, index_col=0).index
+    # Union of the model's busmap and the raw TYNDP node lists for electricity
+    # Todo: Revert to the busmap alone once it covers all modelled electricity nodes.
+    nodes = (
+        pd.read_csv(snakemake.input.busmap, index_col=0)
+        .index.union(
+            read_tyndp_electricity_buses(
+                snakemake.input.nodes, col_name="NODE", sheet_name="Electricity"
+            )
+        )
+        .union(
+            read_tyndp_electricity_buses(
+                snakemake.input.nodes,
+                col_name="NODE",
+                sheet_name="Electricity_Offshore",
+            )
+        )
+    )
     pemmdb_dir = snakemake.input.pemmdb_dir
     tyndp_scenario = snakemake.params.tyndp_scenario
     carrier_mapping_fn = snakemake.input.carrier_mapping
 
-    # Climate year from snapshots
+    # Snapshot year
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    cyear = sns[0].year
+    sns_year = sns[0].year
     sns_year_h = get_snapshots(
-        {"start": f"{cyear}-01-01", "end": f"{cyear + 1}-01-01", "inclusive": "left"},
+        {
+            "start": f"{sns_year}-01-01",
+            "end": f"{sns_year + 1}-01-01",
+            "inclusive": "left",
+        },
         drop_leap_day=True,
     )
-
-    # Only climate years 1995, 2008 and 2009 are available for all technologies and countries
-    if cyear not in [1995, 2008, 2009]:
-        logger.warning(
-            f"Snapshot year {cyear} doesn't match available TYNDP data. Falling back to 2009."
-        )
-        cyear = 2009
 
     # Planning year
     pyear_i = int(snakemake.wildcards.planning_horizons)
@@ -1282,6 +1388,14 @@ if __name__ == "__main__":
         pyear_i,
         available_years=snakemake.params.available_years,
         source="PEMMDB",
+    )
+
+    # Weather scenario, resolved for the planning year the data is read from
+    weather_scenario = get_weather_scenario(snakemake.params.weather_scenarios, pyear)
+
+    logger.info(
+        f"Processing PEMMDB data for target year: {pyear_i}, "
+        f"weather scenario: WS{weather_scenario:03d}"
     )
 
     # Load all PEMMDB data
@@ -1295,7 +1409,7 @@ if __name__ == "__main__":
     func_read = partial(
         read_pemmdb_data,
         pemmdb_dir=pemmdb_dir,
-        cyear=cyear,
+        weather_scenario=weather_scenario,
         pyear=pyear,
         required_sheets=pemmdb_tech_sheets,
     )
@@ -1308,6 +1422,12 @@ if __name__ == "__main__":
         ]
 
     pemmdb_data = {node: data for d in pemmdb_data_list for node, data in d.items()}
+
+    if missing_nodes := [node for node in nodes if node not in pemmdb_data]:
+        logger.warning(
+            f"No PEMMDB data available for {len(missing_nodes)} of {len(nodes)} nodes in "
+            f"{pyear}: {', '.join(missing_nodes)}."
+        )
 
     ####################
     # Process capacities
@@ -1331,7 +1451,7 @@ if __name__ == "__main__":
                     node_tech_sheet=node_tech_sheet,
                     pemmdb_data=pemmdb_data,
                     thermal_techs=thermal_techs,
-                    cyear=cyear,
+                    weather_scenario=weather_scenario,
                     pyear=pyear,
                     pyear_i=pyear_i,
                     tyndp_scenario=tyndp_scenario,
@@ -1346,8 +1466,8 @@ if __name__ == "__main__":
 
     if not pemmdb_capacities:
         logger.warning(
-            f"No PEMMDB capacities available for climate year {cyear} and planning year {pyear}. "
-            f"Please specify different technologies, climate year or planning year."
+            f"No PEMMDB capacities available for weather scenario WS{weather_scenario:03d} and planning year {pyear}. "
+            f"Please specify different technologies, weather scenario or planning year."
         )
         # Save empty file
         pd.DataFrame().to_csv(snakemake.output.pemmdb_capacities)
@@ -1377,7 +1497,7 @@ if __name__ == "__main__":
                     node_tech_sheet=node_tech_sheet,
                     pemmdb_data=pemmdb_data,
                     thermal_techs=thermal_techs,
-                    cyear=cyear,
+                    weather_scenario=weather_scenario,
                     pyear=pyear,
                     pyear_i=pyear_i,
                     tyndp_scenario=tyndp_scenario,
@@ -1392,8 +1512,8 @@ if __name__ == "__main__":
 
     if not pemmdb_profiles:
         logger.warning(
-            f"No PEMMDB profiles available for climate year {cyear} and planning year {pyear}. "
-            f"Please specify different technologies, climate year or planning year."
+            f"No PEMMDB profiles available for weather scenario WS{weather_scenario:03d} and planning year {pyear}. "
+            f"Please specify different technologies, weather scenario or planning year."
         )
         # Save empty dataset
         xr.Dataset().to_netcdf(snakemake.output.pemmdb_profiles)

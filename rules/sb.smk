@@ -309,9 +309,10 @@ pemmdb_techs = branch(
 
 rule build_pemmdb_data:
     input:
-        pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
+        pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
+        nodes=rules.retrieve_tyndp_2026.output.nodes,
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
@@ -324,6 +325,7 @@ rule build_pemmdb_data:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
+        weather_scenarios=config_provider("weather_scenarios_tyndp"),
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
