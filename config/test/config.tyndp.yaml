@@ -475,7 +475,7 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
+    sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)

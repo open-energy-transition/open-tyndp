@@ -34,7 +34,7 @@ from pathlib import Path
 import pandas as pd
 import pypsa
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, get_version, set_scenario_config
 from scripts.cba.prepare_project import load_method
 from scripts.prepare_sector_network import get
 
@@ -1110,4 +1110,9 @@ if __name__ == "__main__":
         )
 
     df["cyear"] = int(reference_cyears[0])
+
+    # Get version
+    version = get_version()
+    df["version"] = version
+
     df.to_csv(snakemake.output.indicators, index=False)
