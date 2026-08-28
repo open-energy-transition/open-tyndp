@@ -432,11 +432,11 @@ def extract_custom_generator_projects(
             custom_generator_projects_dynamic: pd.DataFrame
                 Pandas dataframe of dynamic attributes of custom generator projects
     """
-    custom_generator_projects_static = pd.read_csv(custom_generators_static_path).drop(
+    custom_gens_static = pd.read_csv(custom_generators_static_path).drop(
         ["source", "further description"], axis=1, errors="ignore"
     )
 
-    custom_generator_projects_dynamic = pd.read_csv(
+    custom_gens_dynamic = pd.read_csv(
         custom_generator_dynamic_path, header=[0, 1], index_col=0
     )
 
@@ -444,36 +444,41 @@ def extract_custom_generator_projects(
         custom_generator_projects_static.empty
         and custom_generator_projects_dynamic.empty
     ):
-        logger.info("No custom generator projects extracted")
+        logger.debug("No custom generator projects found.")
         return custom_generator_projects_static, custom_generator_projects_dynamic
-    elif (
-        custom_generator_projects_static.empty
-        and not custom_generator_projects_dynamic.empty
-    ):
+    if custom_gens_static.empty:
         logger.warning(
-            "No data found for static attributes of custom generator projects. Only dynamic attributes found. Ensure both datasets are compatible"
+            "No data found for static attributes of custom generator projects, only dynamic ones. "
+            "The dynamic time series are ignored. Ensure both datasets are compatible."
         )
-        return custom_generator_projects_static, custom_generator_projects_dynamic
+        return custom_gens_static, custom_gens_dynamic
+
+    if custom_gens_dynamic.empty:
+        logger.warning(
+            "No data found for dynamic attributes of custom generator projects, only static ones. "
+            "Time-varying generator attributes fall back to their static value where given, "
+            "and to the PyPSA default otherwise. Ensure both datasets are compatible."
+        )
 
     # Remove projects with no project ID
     # TODO If PINT generator already exists in the future, it should be updated with values from this CSV rather than dropped
-    mask_not_null = custom_generator_projects_static.project_id.notnull()
-    if not (dropped_projects := custom_generator_projects_static[~mask_not_null]).empty:
+    mask_null = custom_gens_static.project_id.isnull()
+    if mask_null.any():
         logger.warning(
-            f"{len(dropped_projects)} custom generators without project ID have been dropped"
+            f"{mask_null.sum()} custom generator(s) without project ID have been dropped"
         )
-    custom_generator_projects_static = custom_generator_projects_static[mask_not_null]
+    custom_gens_static = custom_gens_static[~mask_null].astype({"project_id": int})
 
     # Remove projects without an existing bus
     # If generator is being added at a new bus, this bus should have already been listed under `custom_bus.csv`
-    mask_bus = custom_generator_projects_static.apply(
-        lambda x: x["bus"] in existing_buses, axis=1
-    )
-    if not (dropped_projects := custom_generator_projects_static[~mask_bus]).empty:
+    mask_no_bus = ~custom_gens_static.bus.isin(existing_buses)
+    if mask_no_bus.any():
+        missing_buses = custom_gens_static.bus[mask_no_bus].unique().tolist()
         logger.warning(
-            f"{len(dropped_projects)} custom generators without existing bus have been dropped. If new bus being added, ensure that it has been added to custom_bus.csv"
+            f"{mask_no_bus.sum()} custom generator(s) without existing bus have been dropped. Missing buses: {missing_buses}. "
+            "If new bus being added, ensure that it has been added to 'custom_bus.csv'"
         )
-    custom_generator_projects_static = custom_generator_projects_static[mask_bus]
+    custom_gens_static = custom_gens_static[~mask_no_bus]
 
     # Set default marginal cost, capital cost and efficiency if these columns have no entries
     custom_generator_projects_static = custom_generator_projects_static.fillna(
@@ -485,7 +490,7 @@ def extract_custom_generator_projects(
             str
         ).tolist()
 
-        # Drop null columns
+        # Drop null columns for dynamic attributes
         custom_generator_projects_dynamic = custom_generator_projects_dynamic.dropna(
             axis=1, how="all"
         )
@@ -496,14 +501,10 @@ def extract_custom_generator_projects(
         ]
 
         # Extract input dynamic attributes from dummy PyPSA network
-        n = pypsa.Network()
-        pypsa_dynamic_attributes = (
-            n.components["Generator"]
-            .defaults.query(
-                "type.str.contains('series') and status.str.contains('Input')"
-            )
-            .index.tolist()
-        )
+        defaults = pypsa.Network().components["Generator"].defaults
+        pypsa_dynamic_attributes = defaults.index[
+            defaults.varying & defaults.status.str.startswith("Input")
+        ]
 
         # Filter out dynamic attributes that are not inputs that can be provided to PyPSA network
         mask = custom_generator_projects_dynamic.columns.isin(
@@ -798,6 +799,8 @@ if __name__ == "__main__":
     transmission_path = Path(snakemake.input.dir, "20250312_export_transmission.xlsx")
     storage_path = Path(snakemake.input.dir, "20250312_export_storage.xlsx")
     custom_transmission_path = Path(snakemake.input.custom_transmission)
+    custom_generators_static_path = Path(snakemake.input.custom_generators_static)
+    custom_generators_dynamic_path = Path(snakemake.input.custom_generators_dynamic)
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
@@ -819,8 +822,8 @@ if __name__ == "__main__":
     # TODO Ensure custom buses have already been extracted and grouped under existing_buses
     custom_generator_projects_static, custom_generator_projects_dynamic = (
         extract_custom_generator_projects(
-            snakemake.input.custom_generators_static,
-            snakemake.input.custom_generators_dynamic,
+            custom_generators_static_path,
+            custom_generators_dynamic_path,
             existing_buses,
         )
     )
