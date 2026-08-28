@@ -191,7 +191,7 @@ of the following ways:
 - Set it in `config/test/config.tyndp.yaml` for test runs.
 
 This loads `config/data.tyndp.yaml`, which switches all mirrored datasets to `tyndp-archive`.
-A small number of datasets (`wdpa`, `cutout`, `open_tyndp_prelim`) are not yet available
+A small number of archived datasets (`wdpa`, `wdpa_marine`, `cutout`) are not yet available
 on the GCS bucket and will still be retrieved from their respective sources.
 
 To see which datasets support `tyndp-archive`, check the `source` column in `data/tyndp_versions.csv`.

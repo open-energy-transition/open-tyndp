@@ -491,7 +491,7 @@
             },
             "sb_version": {
               "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
               "type": "string"
             }
           }
@@ -644,6 +644,16 @@
               },
               "description": "Solver-specific options.",
               "type": "object"
+            },
+            "mem_mb": {
+              "default": 2000,
+              "description": "Estimated maximum memory requirement for solving networks (MB).",
+              "type": "integer"
+            },
+            "runtime": {
+              "default": "12h",
+              "description": "Runtime in humanfriendly style.",
+              "type": "string"
             }
           }
         }
@@ -6828,7 +6838,7 @@
         },
         "sb_version": {
           "default": "latest",
-          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
           "type": "string"
         }
       }
@@ -6865,6 +6875,16 @@
           },
           "description": "Solver-specific options.",
           "type": "object"
+        },
+        "mem_mb": {
+          "default": 2000,
+          "description": "Estimated maximum memory requirement for solving networks (MB).",
+          "type": "integer"
+        },
+        "runtime": {
+          "default": "12h",
+          "description": "Runtime in humanfriendly style.",
+          "type": "string"
         }
       }
     },
@@ -15755,7 +15775,7 @@
             },
             "sb_version": {
               "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
               "type": "string"
             }
           }
@@ -15908,6 +15928,16 @@
               },
               "description": "Solver-specific options.",
               "type": "object"
+            },
+            "mem_mb": {
+              "default": 2000,
+              "description": "Estimated maximum memory requirement for solving networks (MB).",
+              "type": "integer"
+            },
+            "runtime": {
+              "default": "12h",
+              "description": "Runtime in humanfriendly style.",
+              "type": "string"
             }
           }
         }
