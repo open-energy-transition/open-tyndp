@@ -203,6 +203,18 @@ use rule build_electricity_demand as build_electricity_demand_tyndp with:
         benchmarks("performances/build_electricity_demand_{planning_horizons}")
 
 
+def get_weather_year_tyndp(w):
+    """Get the preferred TYNDP 2026 weather year (climate year column index) for a given planning horizon."""
+    weather_years = config_provider("load", "weather_year_tyndp")(w)
+    pyear = safe_pyear(
+        w.planning_horizons,
+        available_years=sorted(weather_years),
+        source="TYNDP demand weather year",
+        verbose=False,
+    )
+    return weather_years[pyear][0]
+
+
 # Generic rule: parameterized by the `demand_type` wildcard, so any demand
 # type/file present under `data/tyndp_2026_bundle/Demand` can be requested
 # directly by target filename. The concrete demand types below (electricity
@@ -264,9 +276,7 @@ rule clean_tyndp_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        prebuilt_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
-        ),
+        weather_year=get_weather_year_tyndp,
     script:
         scripts("sb/clean_tyndp_pecd_data.py")
 
