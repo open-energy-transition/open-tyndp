@@ -25,52 +25,42 @@ LEV,all,lignite,fuel,7.74,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xls
 NT,2030,coal,fuel,14.77,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 NT,2035,coal,fuel,14.41,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 NT,2040,coal,fuel,14.04,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-NT,2045,coal,fuel,14.41,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Interpolated between 2040 and 2050 (2045 not provided in source)
 NT,2050,coal,fuel,14.77,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 HEV,2030,coal,fuel,16.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 HEV,2035,coal,fuel,15.85,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 HEV,2040,coal,fuel,15.44,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-HEV,2045,coal,fuel,15.85,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Interpolated between 2040 and 2050 (2045 not provided in source)
 HEV,2050,coal,fuel,16.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 LEV,2030,coal,fuel,13.3,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 LEV,2035,coal,fuel,12.96,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
 LEV,2040,coal,fuel,12.63,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-LEV,2045,coal,fuel,12.96,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Interpolated between 2040 and 2050 (2045 not provided in source)
 LEV,2050,coal,fuel,13.3,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Hard coal",Converted from EUR/GJ to EUR/MWh
-NT,2030,gas,fuel,34.72,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
-NT,2035,gas,fuel,33.93,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
-NT,2040,gas,fuel,42.43,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
-NT,2045,gas,fuel,46.76,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas (blend of biomethane, synthetic gas and NG) NT+",Interpolated value between 2040 and 2050 (2045 not provided in source)
-NT,2050,gas,fuel,51.1,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
-HEV,2030,gas,fuel,38.2,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
-HEV,2035,gas,fuel,37.32,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
-HEV,2040,gas,fuel,46.68,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
-HEV,2045,gas,fuel,51.44,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Interpolated between 2040 and 2050 (2045 not provided in source)
-HEV,2050,gas,fuel,56.21,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
-LEV,2030,gas,fuel,31.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
-LEV,2035,gas,fuel,30.54,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
-LEV,2040,gas,fuel,38.19,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
-LEV,2045,gas,fuel,42.09,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Interpolated between 2040 and 2050 (2045 not provided in source)
-LEV,2050,gas,fuel,45.99,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+NT,2030,gas,fuel,34.72,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
+NT,2035,gas,fuel,33.93,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
+NT,2040,gas,fuel,42.43,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
+NT,2050,gas,fuel,51.1,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG) NT+",Converted from EUR/GJ to EUR/MWh
+HEV,2030,gas,fuel,38.2,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+HEV,2035,gas,fuel,37.32,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+HEV,2040,gas,fuel,46.68,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+HEV,2050,gas,fuel,56.21,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas (blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+LEV,2030,gas,fuel,31.25,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas(blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+LEV,2035,gas,fuel,30.54,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas(blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+LEV,2040,gas,fuel,38.19,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas(blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
+LEV,2050,gas,fuel,45.99,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx,  Gasblend_calculation sheet, Blended price of Gas(blend of biomethane, synthetic gas and NG)",Converted from EUR/GJ to EUR/MWh
 NT,2030,oil,fuel,51.34,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 NT,2035,oil,fuel,54.85,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 NT,2040,oil,fuel,58.36,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-NT,2045,oil,fuel,65.56,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Interpolated between 2040 and 2050 (2045 not provided in source)"
 NT,2050,oil,fuel,72.76,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices.xlsx, NT sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 HEV,2030,oil,fuel,56.48,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 HEV,2035,oil,fuel,60.34,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 HEV,2040,oil,fuel,64.19,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-HEV,2045,oil,fuel,72.12,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Interpolated between 2040 and 2050 (2045 not provided in source)"
 HEV,2050,oil,fuel,80.04,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_HEV.xlsx, HEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 LEV,2030,oil,fuel,46.21,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 LEV,2035,oil,fuel,49.37,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 LEV,2040,oil,fuel,52.52,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
-LEV,2045,oil,fuel,59.01,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Interpolated between 2040 and 2050 (2045 not provided in source)"
 LEV,2050,oil,fuel,65.49,EUR/MWh_th,"TYNDP2026Scenarios_Fuel_CO2_Prices_LEV.xlsx, LEV sheet, Crude oil","to be improved, assume crude oil. Converted from EUR/GJ to EUR/MWh"
 all,2030,electrolysis,efficiency,0.69,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,2035,electrolysis,efficiency,0.7,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,2040,electrolysis,efficiency,0.71,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
-all,2045,electrolysis,efficiency,0.725,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,2050,electrolysis,efficiency,0.74,per unit,"TYNDP 2024 Scenarios Methodology Report, p51",
 all,all,SMR CC,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
 all,all,gas-ccgt-ccs,capture_rate,0.9,per unit,"TYNDP 2024 Scenarios Methodology Report, p31",
@@ -84,7 +74,6 @@ all,all,SMR,efficiency,0.76,per unit,TYNDP 2026 Hydrogen/SMR.xlsx HEAT RATE [GJ/
 all,2030,SMR CC,VOM,5.06,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency. Note: NL is the only outlier at 4.96
 all,2035,SMR CC,VOM,4.96,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
 all,2040,SMR CC,VOM,4.86,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
-all,2045,SMR CC,VOM,4.81,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency. Interpolated between 2040 and 2050 (2045 not provided in source).
 all,2050,SMR CC,VOM,4.76,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
 all,all,SMR,VOM,5.3,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
 all,all,nuclear,efficiency,0.33,per unit,PEMMDB 2026 Common Data,
@@ -141,55 +130,45 @@ all,all,oil-shale-new,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
 all,all,h2-ccgt,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
 all,all,h2-ocgt,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
 all,all,h2-fuel-cell,VOM,8.4,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,2030,gas-conv-old1,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-conv-old1,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-conv-old1,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-conv-old1,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-conv-old1,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-conv-old1,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-conv-old1,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-conv-old1,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-conv-old2,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-conv-old2,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-conv-old2,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-conv-old2,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-conv-old2,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-conv-old2,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-conv-old2,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-conv-old2,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ccgt-old1,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ccgt-old1,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ccgt-old1,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ccgt-old1,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ccgt-old1,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ccgt-old1,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ccgt-old1,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ccgt-old1,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ccgt-old2,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ccgt-old2,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ccgt-old2,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ccgt-old2,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ccgt-old2,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ccgt-old2,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ccgt-old2,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ccgt-old2,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ccgt-present1,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ccgt-present1,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ccgt-present1,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ccgt-present1,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ccgt-present1,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ccgt-present1,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ccgt-present1,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ccgt-present1,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ccgt-present2,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ccgt-present2,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ccgt-present2,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ccgt-present2,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ccgt-present2,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ccgt-present2,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ccgt-present2,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ccgt-present2,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ccgt-new,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ccgt-new,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ccgt-new,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ccgt-new,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ccgt-new,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ccgt-new,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ccgt-new,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ccgt-new,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ocgt-old,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ocgt-old,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ocgt-old,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ocgt-old,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ocgt-old,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ocgt-old,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ocgt-old,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ocgt-old,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ocgt-new,CO2 intensity,0.186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ocgt-new,CO2 intensity,0.172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ocgt-new,CO2 intensity,0.145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ocgt-new,CO2 intensity,0.1,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ocgt-new,CO2 intensity,0.189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ocgt-new,CO2 intensity,0.174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ocgt-new,CO2 intensity,0.148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ocgt-new,CO2 intensity,0.055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,gas-ccgt-ccs,CO2 intensity,0.0186,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2035,gas-ccgt-ccs,CO2 intensity,0.0172,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2040,gas-ccgt-ccs,CO2 intensity,0.0145,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2045,gas-ccgt-ccs,CO2 intensity,0.01,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Interpolated between 2040 and 2050 (2045 not provided in source).
+all,2030,gas-ccgt-ccs,CO2 intensity,0.0189,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2035,gas-ccgt-ccs,CO2 intensity,0.0174,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
+all,2040,gas-ccgt-ccs,CO2 intensity,0.0148,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,2050,gas-ccgt-ccs,CO2 intensity,0.0055,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,all,coal-old1,CO2 intensity,0.3384,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,all,coal-old2,CO2 intensity,0.3384,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
@@ -210,27 +189,23 @@ all,all,h2-fuel-cell,CO2 intensity,0,tC02/MWh_th,"CO2_emission_factors_in_TYNDP2
 all,2030,cavern-storage,investment,2000,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
 all,2035,cavern-storage,investment,1750,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
 all,2040,cavern-storage,investment,1500,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
-all,2045,cavern-storage,investment,1350,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
 all,2050,cavern-storage,investment,1200,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
 all,all,cavern-storage,FOM,0.000002,%/year,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, FO&M (€/MW/Year)","Fixed O&M (€2015/MW/year), cost are converted to %/year of investment cost and are consistent over all planning years."
 all,2030,cavern-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
 all,2035,cavern-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
 all,2040,cavern-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
-all,2045,cavern-storage,VOM,0.0000135,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
 all,2050,cavern-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
 all,all,cavern-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
 all,all,cavern-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,2030,tank-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
 all,2035,tank-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
 all,2040,tank-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
-all,2045,tank-storage,VOM,0.0000135,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
 all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
-all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
-all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
+all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
+all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,all,battery bicharger,efficiency,0.92,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",
 all,all,home battery bicharger,efficiency,0.95,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",
 all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
-all,2045,BtL,efficiency,0.68,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2050,BtL,efficiency,0.7,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
