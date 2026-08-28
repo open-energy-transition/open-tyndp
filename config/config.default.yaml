@@ -41,6 +41,9 @@ foresight: overnight
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
 tyndp_scenario: false
 
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#weather_scenarios_tyndp
+weather_scenarios_tyndp: {}
+
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#launch_explorer
 launch_explorer: false
 
@@ -1540,6 +1543,9 @@ data:
     source: archive
     version: latest
   tyndp:
+    source: archive
+    version: latest
+  tyndp_2026:
     source: archive
     version: latest
   powerplants:

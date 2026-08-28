@@ -1967,6 +1967,27 @@
             }
           }
         },
+        "tyndp_2026": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "powerplants": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -9541,6 +9562,16 @@
         false
       ]
     },
+    "weather_scenarios_tyndp": {
+      "additionalProperties": {
+        "items": {
+          "type": "integer"
+        },
+        "type": "array"
+      },
+      "description": "Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WEATHER_SCENARIOS` in `scripts/sb/build_tyndp_demand.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+      "type": "object"
+    },
     "launch_explorer": {
       "default": false,
       "description": "Switch to launch the PyPSA-Explorer with the result networks.",
@@ -15138,6 +15169,27 @@
           }
         },
         "tyndp": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "tyndp_2026": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {

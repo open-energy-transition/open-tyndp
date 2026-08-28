@@ -70,6 +70,10 @@ Extends the upstream [`build_electricity_demand`](preparation.md#electricity_dem
 per-country load time series from the TYNDP electricity demand prepared by
 [`clean_tyndp_electricity_demand`](#rule-clean_tyndp_electricity_demand).
 
+### Rule `build_tyndp_demand`
+
+::: build_tyndp_demand
+
 ### Rule `clean_tyndp_pecd_data`
 
 ::: clean_tyndp_pecd_data
@@ -209,6 +213,10 @@ Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 ### Rule `build_pemmdb_and_trajectories`
 
 Aggregate [`build_pemmdb_data`](#rule-build_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
+
+### Rule `build_tyndp_demands`
+
+Aggregate [`build_tyndp_demand`](#rule-build_tyndp_demand) outputs.
 
 ### Rule `build_tyndp_h2_demands`
 
