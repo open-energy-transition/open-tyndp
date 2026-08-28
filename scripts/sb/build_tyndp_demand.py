@@ -82,9 +82,10 @@ DEMAND_TYPE_MAP = {
     "thermal_ch4": "Thermal_energy_Methane",
 }
 
-# Unit of the raw values as they appear in the TYNDP 2026 Excel files (and, in
-# turn, in this script's output) -- confirmed against the official TYNDP 2026
-# NT+ TimeSeriesDashboard, which labels the same columns identically.
+# Unit of this script's output. For most demand types this matches the raw
+# TYNDP 2026 Excel values as-is. The
+# `thermal_h2`/`thermal_ch4` raw files are in GJ, those
+# two are converted to MWh_th for follow Open-TYNDP convention.
 DEMAND_TYPE_UNITS = {
     "electricity_market": "MW_e",
     "electricity_prosumer": "MW_e",
@@ -94,9 +95,16 @@ DEMAND_TYPE_UNITS = {
     "h2_z1": "MW_H2",
     "h2_z2": "MW_H2",
     "synthetic_fuels": "MW_H2",
-    "thermal_h2": "GJ",
-    "thermal_ch4": "GJ",
+    "thermal_h2": "MW_th",
+    "thermal_ch4": "MW_th",
 }
+
+# Demand types whose raw TYNDP Excel values are in GJ and are
+# converted to MWh_th in `read_demand_excel`.
+GJ_DEMAND_TYPES = {"thermal_h2", "thermal_ch4"}
+
+# 1 MWh = 3.6 GJ.
+GJ_TO_MWH = 1 / 3.6
 
 
 def get_weather_scenario(weather_scenarios, pyear):
@@ -139,10 +147,9 @@ def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
     """
     Ensure a leap `year` doesn't leave 29 February in `snapshots`.
 
-    TYNDP 2026 demand data always spans 365 days (no 29 February), so demand
-    built directly against a leap `year` would be missing that day. This is
-    fine as long as `drop_leap_day` also strips 29 February from
-    `snapshots` (the default); otherwise the two no longer line up.
+    TYNDP 2026 demand data always spans 365 days, so demand
+    built directly against a leap `year` would be missing that day. Therefore,
+    `drop_leap_day` needs to be enabled to strip February 29th from `snapshots`.
 
     Raises
     ------
@@ -249,13 +256,12 @@ def deduplicate_corrected_columns(demand: pd.DataFrame) -> pd.DataFrame:
     Prefer a "<node>_corrected" sheet over its plain "<node>" counterpart.
 
     Some TYNDP raw Excel files carry a leftover "_corrected"-suffixed sheet
-    name for a node (e.g. "CZ00_corrected") -- a data-correction artifact
-    from TYNDP's own publishing pipeline that wasn't cleaned up before
-    release. If both a plain and a "_corrected" sheet exist for the same
-    node, the plain one is dropped and the corrected data is kept; either
-    way, the column is renamed back to the plain node code so it lines up
-    with every other bus downstream. A warning is logged whenever this
-    happens, since it means the raw data needed this override.
+    name for a node (e.g. "CZ00_corrected") which is a data-correction artifact.
+    If both a plain and a "_corrected" sheet exist for the same node, the plain
+    one is dropped and the corrected data is kept; either way, the column is
+    renamed back to the plain node code so it lines up with every other bus
+    downstream. A warning is logged whenever this happens, since it means
+    the raw data needed this override.
 
     Parameters
     ----------
@@ -279,7 +285,7 @@ def deduplicate_corrected_columns(demand: pd.DataFrame) -> pd.DataFrame:
             demand = demand.drop(columns=[base])
         else:
             logger.warning(
-                f"Sheet '{col}' looks like a corrected variant of node "
+                f"Sheet '{col}' found as a corrected variant of node "
                 f"'{base}' with no plain '{base}' sheet present; renaming "
                 f"it to '{base}'."
             )
@@ -292,12 +298,11 @@ def drop_zero_demand_columns(demand: pd.DataFrame) -> pd.DataFrame:
     """
     Drop buses with zero total demand, to shrink the resulting output file.
 
-    Some TYNDP nodes genuinely have zero demand for a given demand type
-    (e.g. a country with no H2-based heating) -- confirmed against the
-    official TYNDP dashboard during validation, not a data gap. Downstream
-    code must treat a missing bus as zero demand rather than requiring
-    every bus to be present, since which buses are dropped can differ
-    between planning horizons/weather scenarios for the same demand type.
+    Some TYNDP nodes can contain zero demand time series for a given demand type
+    (e.g. a country with no H2-based heating). Downstream code must treat a missing
+    bus as zero demand rather than requiring every bus to be present, since which
+    buses are dropped can differ between planning horizons/weather scenarios for
+    the same demand type.
 
     Parameters
     ----------
@@ -341,10 +346,8 @@ def read_demand_excel(
     Returns
     -------
     pd.DataFrame
-        Demand indexed by DatetimeIndex, one column per bus, with the
-        columns' index named ``"Bus [<unit>]"`` (e.g. ``"Bus [MW_e]"``) so
-        the unit survives into the output CSV's corner cell. Empty
-        DataFrame if reading or parsing fails.
+        Demand indexed by DatetimeIndex, one column per bus.
+        Empty DataFrame if reading or parsing fails.
     """
     ws_code = f"WS{weather_scenario:03d}"
     try:
@@ -364,9 +367,12 @@ def read_demand_excel(
         # Build DatetimeIndex from snapshot year
         demand = multiindex_to_datetimeindex(demand, year=year)
         demand = deduplicate_corrected_columns(demand)
+        if demand_type in GJ_DEMAND_TYPES:
+            demand = demand * GJ_TO_MWH
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
-        demand.columns.name = f"Bus [{DEMAND_TYPE_UNITS[demand_type]}]"
+        demand.columns.name = "Bus"
+        demand.index.name = DEMAND_TYPE_UNITS[demand_type]
         demand = drop_zero_demand_columns(demand)
 
     except Exception as e:
