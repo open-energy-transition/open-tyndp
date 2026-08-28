@@ -9,6 +9,8 @@
 
 **Features**
 
+* Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
+
 **Changes**
 
 **Bugfixes and Compatibility**
