@@ -28,7 +28,7 @@ It seeks to complement the tools currently used in the TYNDP cycles, especially 
 
 To build trust in and ensure reproducibility with the new open-source toolchain, the project first focuses on replicating key figures from the 2024 TYNDP cycle. This process involves developing new features within the open-source domain to address existing gaps, integrating tools for data interoperability and dynamic visualizations, and publishing best practices to encourage the adoption of open energy models. Additionally, the project emphasizes stakeholder consultations and [interactive workshops](https://open-energy-transition.github.io/open-tyndp-workshops/intro.html) alongside the development of the open-source tool, further promoting collaboration and transparency throughout the process.
 
-First outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/19388086).
+First outcomes for the TYNDP 2024 NT scenario are presented [here](https://open-tyndp.openenergytransition.org/), while preliminary outcomes and outputs for every release can be found on [Zenodo](https://zenodo.org/records/18608105).
 
 This repository is a soft-fork of [OET/PyPSA-Eur](https://github.com/open-energy-transition/pypsa-eur) and contains the entire project `Open-TYNDP` supported by OET, including code and documentation. The philosophy behind this repository is that no intermediary results are included, but all results are computed from raw data and code.
 
@@ -65,6 +65,14 @@ The Open-TYNDP repository builds on the open-source ecosystem of [PyPSA](https:/
 Within this ecosystem, independent organisations can develop their own private repositories using the publicly available Open-TYNDP and PyPSA-Eur codebases. This shared foundation ensures interoperability and creates opportunities for partnership through sharing and co-developing features. By using a soft-fork strategy, each private repository can benefit from the shared research and development environment and voluntarily contribute features. The shared foundation also enables organisations to request support and feature development from other actors.
 
 Each organisation in this open-source ecosystem remains fully independent of the shared foundation, maintaining its own governance structure and decision-making processes regarding its codebase. Organisations are also free to keep parts of their code and sensitive data completely private.
+
+Feel free to check out our explainer video on ["What is Open Energy Modelling"](https://youtu.be/YL3jibyEM9k), which covers key concepts such as "open source" and "open data". We also have a [video](https://youtu.be/Hh6Cnucq2FU) explaining the differences between frameworks, algebraic modelling languages, workflows and models, as well as how Open-TYNDP relates to PyPSA-Eur and PyPSA.
+
+<div style="display: flex; gap: 1em; justify-content: center;">
+<iframe width="340" height="191" src="https://www.youtube-nocookie.com/embed/YL3jibyEM9k?si=8cClRYVomnl-o0EY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="340" height="191" src="https://www.youtube-nocookie.com/embed/Hh6Cnucq2FU?si=CC7mG2zYH-AUJDld" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
 
 
 ## Development status {#development-status}
