@@ -35,54 +35,56 @@ def save_figure(fig, output_dir, filename, output_formats):
 
 
 def get_indicator_series(df: pd.DataFrame, indicator: str) -> pd.Series:
-    """Return a project_id-indexed Series for a single indicator."""
-    series = df.loc[df["indicator"] == indicator, ["project_id", "value"]]
+    """Return a project_code-indexed Series for a single indicator."""
+    series = df.loc[df["indicator"] == indicator, ["project_code", "value"]]
     if series.empty:
         return pd.Series(dtype=float)
-    return series.set_index("project_id")["value"]
+    return series.set_index("project_code")["value"]
+
+
+# Common project metadata shared by transmission and storage projects. Only
+# `project_code` is unique across both types; numeric `project_id` values
+# overlap between the two Excel exports.
+COMMON_COLS = [
+    "project_code",
+    "project_type",
+    "project_name",
+    "capacity_mw",
+    "capacity_label",
+    "n_sub_elements",
+]
 
 
 def _aggregate_transmission_projects(projects: pd.DataFrame) -> pd.DataFrame:
-    """Aggregate exploded per-border transmission project rows to one row per project_id."""
-    border_counts = projects.groupby("project_id").size().rename("border_count")
-    projects_agg = (
-        projects.groupby("project_id")
-        .agg(
-            {
-                "project_name": "first",
-                "is_crossborder": "first",
-                "p_nom 0->1": "sum",
-                "p_nom 1->0": "sum",
-            }
-        )
-        .reset_index()
+    """Aggregate exploded per-border transmission project rows to one row per project."""
+    agg = projects.groupby("project_id").agg(
+        project_name=("project_name", "first"),
+        fwd=("p_nom 0->1", "sum"),
+        rev=("p_nom 1->0", "sum"),
+        n_sub_elements=("project_id", "size"),
     )
-    return projects_agg.merge(border_counts, on="project_id")
+    return agg.assign(
+        project_code="t" + agg.index.astype(str),
+        project_type="transmission",
+        # transfer capability of the border, not the sum of both directions
+        capacity_mw=agg[["fwd", "rev"]].max(axis=1),
+        capacity_label=agg.apply(lambda r: f"{r.fwd:.0f}/{r.rev:.0f} MW", axis=1),
+    )[COMMON_COLS]
 
 
 def _aggregate_storage_projects(projects: pd.DataFrame) -> pd.DataFrame:
-    """Recast storage projects onto the same column shape as transmission projects."""
-    columns = [
-        "project_id",
-        "project_name",
-        "is_crossborder",
-        "p_nom 0->1",
-        "p_nom 1->0",
-        "border_count",
-    ]
-    if projects.empty:
-        return pd.DataFrame(columns=columns)
-
-    return pd.DataFrame(
-        {
-            "project_id": projects["project_id"],
-            "project_name": projects["project_name"],
-            "is_crossborder": False,
-            "p_nom 0->1": projects["p_nom_discharge"],
-            "p_nom 1->0": projects["p_nom_charge"],
-            "border_count": 1,
-        }
-    )
+    """Recast storage projects onto the common project metadata columns."""
+    agg = projects.set_index("project_id")
+    return agg.assign(
+        project_code="s" + agg.index.astype(str),
+        project_type="storage",
+        # discharge only; charging is the same device, not extra capacity
+        capacity_mw=agg["p_nom_discharge"],
+        capacity_label=agg.apply(
+            lambda r: f"{r.p_nom_discharge:.0f} MW / {r.e_nom_gwh:.1f} GWh", axis=1
+        ),
+        n_sub_elements=1,
+    )[COMMON_COLS]
 
 
 def load_and_merge_data(
@@ -98,34 +100,33 @@ def load_and_merge_data(
         [
             _aggregate_transmission_projects(transmission_projects),
             _aggregate_storage_projects(storage_projects),
-        ],
-        ignore_index=True,
-    )
-    projects_agg["total_capacity_MW"] = (
-        projects_agg["p_nom 0->1"] + projects_agg["p_nom 1->0"]
-    )
+        ]
+    ).reset_index(drop=True)
 
     base = raw.copy()
     # filter for Open-TYNDP source (to get model results)
     if "source" in base.columns:
         base = base[base["source"] == "Open-TYNDP"]
 
+    # project_code (t4/s1064) is the unique key; numeric project_id overlaps
+    # between the transmission and storage exports. project_type is not taken
+    # from the indicators here, it comes from projects_agg in the merge below.
     meta_cols = [c for c in ["method", "is_beneficial", "interpretation"] if c in base]
-    meta = base.groupby("project_id")[meta_cols].first().reset_index()
+    meta = base.groupby("project_code")[meta_cols].first().reset_index()
 
-    metrics = meta[["project_id"]].copy()
-    metrics["B1_total_system_cost_change"] = metrics["project_id"].map(
+    metrics = meta[["project_code"]].copy()
+    metrics["B1_total_system_cost_change"] = metrics["project_code"].map(
         get_indicator_series(base, "B1_total_system_cost_change")
     )
-    metrics["capex_change"] = metrics["project_id"].map(
+    metrics["capex_change"] = metrics["project_code"].map(
         get_indicator_series(base, "capex_change")
     )
-    metrics["opex_change"] = metrics["project_id"].map(
+    metrics["opex_change"] = metrics["project_code"].map(
         get_indicator_series(base, "opex_change")
     )
-    indicators_wide = meta.merge(metrics, on="project_id", how="left")
+    indicators_wide = meta.merge(metrics, on="project_code", how="left")
 
-    merged = indicators_wide.merge(projects_agg, on="project_id", how="left")
+    merged = indicators_wide.merge(projects_agg, on="project_code", how="left")
     if "is_beneficial" in merged.columns:
         merged["is_beneficial"] = (
             merged["is_beneficial"]
@@ -137,7 +138,7 @@ def load_and_merge_data(
     merged["capex_change_billion"] = merged["capex_change"] / 1e9
     merged["opex_change_billion"] = merged["opex_change"] / 1e9
 
-    return merged, projects_agg["project_id"].nunique()
+    return merged, projects_agg["project_code"].nunique()
 
 
 def plot_b1_top_projects(
@@ -221,10 +222,10 @@ def plot_b1_top_projects(
 
     labels = []
     for _, row in df_sorted.iterrows():
-        multi = "*" if row["border_count"] > 1 else ""
+        multi = "*" if row["n_sub_elements"] > 1 else ""
         labels.append(
-            f"{row['project_id']}: {row['project_name']}{multi} "
-            f"[{row['p_nom 0->1']:.0f}/{row['p_nom 1->0']:.0f} MW]"
+            f"{row['project_code']}: {row['project_name']}{multi} "
+            f"[{row['capacity_label']}]"
         )
     ax.set_yticks(y_pos)
     ax.set_yticklabels(labels, fontsize=10)
@@ -502,7 +503,7 @@ def create_plots(
         suffix = f"_{method_label.lower()}"
         logger.info("Creating %s plots for %d projects", method_label, len(method_df))
 
-        method_total = method_df["project_id"].nunique()
+        method_total = method_df["project_code"].nunique()
         plot_b1_top_projects(
             method_df,
             output_dir,
