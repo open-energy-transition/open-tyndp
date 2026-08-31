@@ -16,6 +16,23 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
+weather_scenarios_tyndp:
+  2030:
+  - 3
+  - 21
+  - 29
+  2035:
+  - 32
+  - 37
+  - 59
+  2040:
+  - 65
+  - 71
+  - 77
+  2050:
+  - 91
+  - 92
+  - 106
 data_config:   # change to 'tyndp' to use tyndp-archive where available
 
 launch_explorer: false
@@ -85,19 +102,30 @@ electricity:
     enable: true
     pre_built:
       cyears:
-      - 1995
-      - 2008
-      - 2009
+      - 3
+      - 21
+      - 29
+      - 32
+      - 37
+      - 59
+      - 65
+      - 71
+      - 77
+      - 91
+      - 92
+      - 106
     fill_gaps_method: zero
     # Complete PECD data is only available for the years 2030, 2040
     # TODO: adjust once updated 2050 PECD data is available
     available_years:
     - 2030
+    - 2035
     - 2040
+    - 2050
     technologies:
     - Wind_Offshore
-    - LFSolarPVRooftop
-    - LFSolarPVUtility
+    - Solar PV Rooftop
+    - Solar PV Utility
     - Wind_Onshore
 
   pemmdb_hydro_profiles:
@@ -439,7 +467,7 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest # currently only latest is supported
+    sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
   - t1-t35
   area: tyndp # options: tyndp (TODO: entso-e, eu27)

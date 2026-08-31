@@ -21,6 +21,7 @@ from typing import Literal
 import atlite
 import fiona
 import git
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pypsa
@@ -1445,6 +1446,96 @@ def get_version(hash_len: int = 9) -> str:
         return "unknown"
 
 
+def add_metadata(
+    fig: plt.Figure,
+    ax: plt.Axes | None = None,
+    model_col: str = "",
+    rfc_source: str = "",
+    rfc_cols: list[str] = [],
+    note: str = "",
+) -> None:
+    """
+    Add a version tag, and optionally reference-source/note text, to a figure.
+
+    The version tag is always added. The reference-source line is added only
+    when both `model_col` and `rfc_source` are given; the note is added only
+    when `note` is given.
+
+    Parameters
+    ----------
+    fig : plt.Figure
+        Figure to annotate.
+    ax : plt.Axes, optional
+        Axes used to host the text artists. Default is None, in which case the
+        text is added directly to the figure.
+    model_col : str, optional
+        Column name for model values, used in the reference-source text.
+        Default is "".
+    rfc_source : str, optional
+        Reference source label, used in the reference-source text. Default is
+        "".
+    rfc_cols : list[str], optional
+        Additional reference source column names shown for comparison.
+        Default is [].
+    note : str, optional
+        Additional note text. Default is "".
+    """
+    host = ax if ax is not None else fig
+
+    # Version
+    version = get_version()
+    fig.draw_without_rendering()
+    bbox_fig = fig.get_tightbbox(fig.canvas.get_renderer())
+    fig_width_inches, fig_height_inches = fig.get_size_inches()
+    x0_fig = (
+        bbox_fig.x0 / fig_width_inches
+    )  # Convert bbox coordinates from inches to figure coordinates
+    x1_fig = (
+        bbox_fig.x1 / fig_width_inches
+    )  # Convert bbox coordinates from inches to figure coordinates
+    y0_fig = bbox_fig.y0 / fig_height_inches
+
+    host.text(
+        x1_fig,
+        y0_fig - 0.05,
+        f"version: {version}",
+        transform=fig.transFigure,
+        ha="right",
+        va="bottom",
+        fontsize=8,
+        alpha=0.7,
+    )
+
+    # Reference source
+    if model_col != "" and rfc_source != "":
+        additional_sources = (
+            "" if len(rfc_cols) <= 1 else " Other sources shown for comparison."
+        )
+        host.text(
+            x0_fig,
+            y0_fig - 0.05,
+            f"Model outputs ({model_col}) benchmarked against {rfc_source}.{additional_sources}",
+            transform=fig.transFigure,
+            ha="left",
+            va="bottom",
+            fontsize=8,
+            alpha=0.7,
+        )
+
+    # Notes
+    if note:
+        host.text(
+            x0_fig,
+            y0_fig - 0.07,
+            "\n".join(note),
+            transform=fig.transFigure,
+            ha="left",
+            va="top",
+            fontsize=8,
+            alpha=0.7,
+        )
+
+
 def convert_units(
     df: pd.DataFrame,
     unit_col: str = "unit",
@@ -1544,6 +1635,48 @@ def check_cyear(cyear: int, scenario: str) -> int:
         cyear = 2009
 
     return cyear
+
+
+def check_weather_year(weather_year: int, valid_weather_years: list[int]) -> int:
+    """
+    Check if the weather year is one of the known-valid ones, falling back if not.
+
+    TYNDP 2026 demand profiles provide 30 climate year columns per planning
+    horizon (labelled ``WSxxx``), but depending on the demand type, either all
+    of them contain data or only a handful of them do (the rest being empty
+    placeholders). Which weather years are valid therefore has to be
+    determined per file (see e.g. ``get_valid_weather_years`` in
+    `scripts/sb/build_tyndp_demand.py`) rather than assumed globally.
+
+    Parameters
+    ----------
+    weather_year : int
+        Weather year (climate year column index, e.g. 3 for ``WS003``) to validate.
+    valid_weather_years : list[int]
+        Weather years known to contain data, for the file being processed.
+
+    Returns
+    -------
+    int
+        Valid weather year, falling back to the first entry of
+        `valid_weather_years` if the input is not among them.
+    """
+
+    if not valid_weather_years:
+        raise ValueError(
+            "No `valid_weather_years` provided. Expected a non-empty list of weather years."
+        )
+
+    if weather_year not in valid_weather_years:
+        fallback = valid_weather_years[0]
+        logger.warning(
+            f"Weather year WS{weather_year:03d} doesn't contain data for this file "
+            f"(available: {[f'WS{y:03d}' for y in valid_weather_years]}). "
+            f"Falling back to WS{fallback:03d}."
+        )
+        weather_year = fallback
+
+    return weather_year
 
 
 def get_tyndp_conventional_thermals(
