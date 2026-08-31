@@ -1090,7 +1090,7 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "\n        Switch to keep all retrieved data in a single source-agnostic cache directory.\n\n        When enabled, retrieved data is read from and written to `{directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Dropping the `source` segment gives each\n        dataset a single location regardless of where it was fetched from, so switching between\n        `primary`, `archive` and `tyndp-archive` no longer re-downloads the same files.\n\n        Retrieval is disabled while the cache is enabled, unless `fill` is also set: the workflow\n        reads the cached files and fails with a list of the missing ones instead of downloading\n        them.\n        ",
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n        ",
               "type": "boolean"
             },
             "directory": {
@@ -1100,7 +1100,7 @@
             },
             "fill": {
               "default": false,
-              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Set by the `collect-data` tasks; leave disabled for regular runs.",
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
               "type": "boolean"
             }
           }
@@ -7859,7 +7859,7 @@
       "properties": {
         "enable": {
           "default": false,
-          "description": "\n        Switch to keep all retrieved data in a single source-agnostic cache directory.\n\n        When enabled, retrieved data is read from and written to `{directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Dropping the `source` segment gives each\n        dataset a single location regardless of where it was fetched from, so switching between\n        `primary`, `archive` and `tyndp-archive` no longer re-downloads the same files.\n\n        Retrieval is disabled while the cache is enabled, unless `fill` is also set: the workflow\n        reads the cached files and fails with a list of the missing ones instead of downloading\n        them.\n        ",
+          "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n        ",
           "type": "boolean"
         },
         "directory": {
@@ -7869,7 +7869,7 @@
         },
         "fill": {
           "default": false,
-          "description": "Switch to allow the retrieve rules to populate the cache `directory`. Set by the `collect-data` tasks; leave disabled for regular runs.",
+          "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
           "type": "boolean"
         }
       }
@@ -14304,7 +14304,7 @@
           "properties": {
             "enable": {
               "default": false,
-              "description": "\n        Switch to keep all retrieved data in a single source-agnostic cache directory.\n\n        When enabled, retrieved data is read from and written to `{directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Dropping the `source` segment gives each\n        dataset a single location regardless of where it was fetched from, so switching between\n        `primary`, `archive` and `tyndp-archive` no longer re-downloads the same files.\n\n        Retrieval is disabled while the cache is enabled, unless `fill` is also set: the workflow\n        reads the cached files and fails with a list of the missing ones instead of downloading\n        them.\n        ",
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n        ",
               "type": "boolean"
             },
             "directory": {
@@ -14314,7 +14314,7 @@
             },
             "fill": {
               "default": false,
-              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Set by the `collect-data` tasks; leave disabled for regular runs.",
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
               "type": "boolean"
             }
           }

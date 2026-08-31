@@ -22,6 +22,10 @@ public file storage for the repository under `https://data.pypsa.org`.
     version. Reproducibility is given even when using the `latest` tag via the
     `versions.csv` and `tyndp_versions.csv`, which are version controlled.
 
+    Once a version is selected, the files it resolves to can be kept in a
+    [local cache](retrieve.md#local_cache) so that later runs neither re-download them nor need
+    network access at all.
+
 ### Understanding `versions.csv` files
 
 The version files (e.g. `data/versions.csv` and `data/tyndp_versions.csv`) are central registries for all data sources and their versions. The file `data/versions.csv` defines generic PyPSA-Eur data, and `data/tyndp_versions.csv` defines TYNDP-specific data.

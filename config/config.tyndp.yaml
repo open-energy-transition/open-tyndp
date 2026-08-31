@@ -395,7 +395,7 @@ data:
   - data/versions.csv
   - data/tyndp_versions.csv
   local_cache:
-    enable: true  # set true to read all data from one cache filled by `pixi run collect-data`
+    enable: false  # set true to read all data from one cache filled by `pixi run collect-data`
     directory: data/local-cache
 
 plotting:

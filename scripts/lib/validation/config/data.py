@@ -147,7 +147,7 @@ class _LocalCacheConfig(ConfigModel):
         description="""
         Switch to keep all retrieved data in a single, source-agnostic and local cache directory.
 
-        When enabled, retrieved data is read from and written to `{directory}/{dataset}/{version}`
+        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`
         instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,
         unless `fill` is also set: the workflow reads the cached files and fails with a list of the
         missing ones instead of downloading them, enabling offline execution of the workflow.
