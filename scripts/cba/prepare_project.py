@@ -285,15 +285,22 @@ def apply_pint_generator(
 
     # Generate random hexcode for assigning color to a new carrier
     # Existing color codes are excluded
-    def generate_unique_hex(excluded_colors):
+    def generate_unique_hex(carrier, excluded_colors):
+        rng = random.Random(carrier)
         while True:
-            # Generate a random 6-digit hex code
-            hex_color = f"#{random.randint(0, 0xFFFFFF):06x}"
+            # Generate a 6-digit hex code
+            hex_color = f"#{rng.randint(0, 0xFFFFFF):06x}"
 
             # Check if the code is in the exclusion list
             if hex_color not in excluded_colors:
                 return hex_color
 
+    # Dynamic PyPSA generator input attributes
+    defaults = n.components["Generator"].defaults
+    pypsa_dynamic_attributes = defaults.index[
+        defaults.varying & defaults.status.str.startswith("Input")
+    ].tolist()
+    
     # Add generator project to the network
     for _, project in generator_project_static.iterrows():
         # Add carrier to network if new carrier
@@ -301,18 +308,12 @@ def apply_pint_generator(
             n.add(
                 "Carrier",
                 project.carrier,
-                color=generate_unique_hex(
-                    n.carriers.color.tolist()
-                ),  # Assign a new color to the newly added carrier
+                color=tech_colors.get(
+                    project.carrier,
+                    generate_unique_hex(project.carrier, n.carriers.color.tolist()),
+                ),  # Use the configured color, or assign a new one
             )
 
-        pypsa_dynamic_attributes = (
-            n.components["Generator"]
-            .defaults.query(
-                "type.str.contains('series') and status.str.contains('Input')"
-            )
-            .index.tolist()
-        )
         generator_dict = _get_generator_values(
             project, generator_project_dynamic, n.snapshots, pypsa_dynamic_attributes
         )
@@ -371,7 +372,10 @@ if __name__ == "__main__":
         f"Transmission or generator project with {project_id} not found."
     )
 
-    if not generator_projects_dynamic.empty:
+    generator_project_dynamic = pd.DataFrame()
+    if not generator_projects_dynamic.empty and (
+        str(project_id) in generator_projects_dynamic.columns.get_level_values(0)
+    ):
         generator_project_dynamic = generator_projects_dynamic[str(project_id)]
         generator_project_dynamic.index = pd.to_datetime(
             generator_project_dynamic.index
