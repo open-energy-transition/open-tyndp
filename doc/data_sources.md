@@ -29,7 +29,7 @@ Each row defines a specific version of a dataset with the following columns:
 
 * `dataset`: The name of the dataset (e.g., `worldbank_urban_population`).
 * `version`: The version identifier, typically following the original data source's versioning (e.g., `2025-08-14`).
-* `source`: The source type - `primary` (original data source), `archive` (mirrored copy on `data.pypsa.org`), or `build` (generated from other data).
+* `source`: The source type - `primary` (original data source), `archive` (mirrored copy on `data.pypsa.org`), `tyndp-archive` (mirrored copy on the Open-TYNDP data store, see [tyndp_archive](sb.md#tyndp_archive)), or `build` (generated from other data).
 * `tags`: Space-separated tags like `latest`, `supported` or `deprecated`.
 * `added`: The date when this entry was added to the registry.
 * `note`: Optional notes about the dataset or version.

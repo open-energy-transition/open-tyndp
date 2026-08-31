@@ -886,7 +886,7 @@ Selects a pre-defined data configuration file to load. When set, the workflow lo
 the defaults, before any user `config/config.yaml` overrides.
 
 This is the recommended way to switch between data source strategies. For example, to use
-Open-TYNDP's own data archive on Google Cloud Storage (see [tyndp_archive](solving.md#tyndp_archive)), run:
+Open-TYNDP's own data archive on Google Cloud Storage (see [tyndp_archive](sb.md#tyndp_archive)), run:
 
 ```console
 pixi run tyndp-sb --config data_config=tyndp
@@ -920,7 +920,7 @@ To freeze a model to a specific version of input data, you can set a specific ve
 Some datasets support `primary` or `build` as a source option, meaning that the data can be retrieved from the original
 data source or build it from the latest available data.
 Datasets that are mirrored to the Open-TYNDP data store on Google Cloud Storage also support `tyndp-archive` as a source
-(see [tyndp_archive](solving.md#tyndp_archive)).
+(see [tyndp_archive](sb.md#tyndp_archive)).
 See the `data/versions.csv` and `data/tyndp_versions.csv` files for all available datasets and their sources/versions that are supported.
 
 In your own project, you can define additional version files to modify the contents of `data/tyndp_versions.csv`.
