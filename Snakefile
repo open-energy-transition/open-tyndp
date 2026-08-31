@@ -70,8 +70,9 @@ unsupported = {
 if unsupported:
     logger.warning(
         f"Selected run(s) {sorted(unsupported)} use the DE or GA scenario. "
-        "Currently only the National Trends (NT) scenario is fully implemented and benchmarked in Open-TYNDP. "
-        "DE and GA are incomplete and unsupported, thus their results are not validated and parts of the workflow might break."
+        "Only the National Trends (NT) scenario is implemented, validated and benchmarked in Open-TYNDP. "
+        "DE and GA are incomplete, unsupported, and there are no plans to support them within Open-TYND. The workflow may "
+        "fail for these scenarios, and any results it does produce are not validated."
     )
 
 RDIR = get_rdir(run)
