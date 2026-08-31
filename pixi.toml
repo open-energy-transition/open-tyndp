@@ -226,7 +226,9 @@ collect-data = """bash -c '
 """
 collect-data-cba = """bash -c '
     FILL="data={local_cache: {enable: true, fill: true}}"
-    NEEDED=$(snakemake -n --forceall cba --configfile config/config.tyndp.yaml --config "$FILL" 2>/dev/null | grep -oE "^retrieve_[a-z0-9_]+" | sort -u)
+    echo "Running the workflow up to the clean_projects checkpoint, so the CBA datasets can be listed."
+    snakemake -call cba --configfile config/config.tyndp.yaml --config "$FILL" --until clean_projects
+    NEEDED=$(snakemake -n cba --configfile config/config.tyndp.yaml --config "$FILL" 2>/dev/null | grep -oE "^retrieve_[a-z0-9_]+" | sort -u)
     [ -n "$NEEDED" ] || { echo "Local cache already holds everything this workflow needs."; exit 0; }
     snakemake -call cba --configfile config/config.tyndp.yaml --config "$FILL" "$@" --until $NEEDED
     ' --

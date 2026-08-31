@@ -51,10 +51,13 @@ would be downloaded without fetching anything.
 The source selection still applies: with `data_config: tyndp` the cache fills from the
 Google Cloud Storage mirror, into the same paths.
 
-!!! warning "The CBA scope is currently only partly knowable in advance"
-    `clean_projects` is a Snakemake checkpoint, so the CBA graph gains dependency on SB jobs only 
-    once it has run and `pixi run collect-data-cba` sees just the datasets needed up to that point. 
-    Run `pixi run collect-data` first and re-run `collect-data-cba` after.
+!!! note "How the CBA task handles the `clean_projects` checkpoint"
+    Most of the CBA graph, the per-project networks and the Scenario Building chain they build
+    on, only appears once the `clean_projects` checkpoint has run. `pixi run collect-data-cba`
+    therefore runs the workflow up to that checkpoint first, writing its outputs to `resources/`,
+    and enumerates the remaining datasets against the expanded graph. That first step runs even
+    under `-n`, the few datasets it needs are fetched and the checkpoint is computed, because
+    the list the dry run then prints cannot be worked out without it.
 
 To reach an offline machine, fill the cache where the network is available and copy the
 directory across, e.g. using rsync:
@@ -62,6 +65,9 @@ directory across, e.g. using rsync:
 ```console
 $ rsync -a data/local-cache/ offline-machine:~/open-tyndp/data/local-cache/
 ```
+
+With `cba: cba_scenario_input: use_presolved: true` the pre-solved SB networks are collected into
+`results/` rather than into the cache, so copy that directory across as well.
 
 ### Reading the cache without a network {#local_cache_offline}
 
@@ -73,10 +79,10 @@ job out of date. The manifest and the provenance reset are written only when a c
 finishes, so an interrupted `collect-data` leaves stale records behind and the next run will
 want to re-fetch.
 
-Should the cache be missing a file on offline execution, the workflow stops at parse time and names the absent
-files, also on dry runs. It can only report what the cache was told to hold, though: a cache collected for
-Scenario Building and then used for a CBA run passes the check and surfaces the gap later as a connection error,
-which `pixi run collect-data-cba` fixes.
+Should the cache be missing a file on offline execution, the workflow stops and
+names the absent files, also on dry runs. That check reads the manifest, so it covers only what
+the cache was told to hold. A dataset that was never collected is caught a moment later instead:
+the run aborts before the first job, naming the retrieve rules that would have run.
 
 Data already retrieved into `data/{dataset}/{source}/{version}` is not reused, so the first
 `collect-data` downloads it again unless you move those folders into the cache layout by hand.
