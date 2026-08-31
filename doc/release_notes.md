@@ -9,6 +9,8 @@
 
 **Features**
 
+* Add a local source-agnostic data cache to allow runs on machines without internet access ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
+
 **Changes**
 
 * Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
