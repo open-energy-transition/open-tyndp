@@ -13,7 +13,7 @@
 
 * Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
-* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. Added a small patch to `prepare_sector_network` when running DE and GA. ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
+* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. Also add a small patch to `prepare_sector_network` when running DE and GA. ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
 **Bugfixes and Compatibility**
 
