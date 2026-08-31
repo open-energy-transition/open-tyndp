@@ -27,6 +27,10 @@ of TYNDP 2024 (e.g. during 2023).
 
 ## Deviation Scenarios
 
+!!! warning
+    The DE and GA scenarios are **not implemented in Open-TYNDP, are not supported, and there are no plans to support them**. Only National Trends+ (NT) is complete, validated and benchmarked against TYNDP 2024.
+    Selecting `tyndp_scenario: DE` or `GA` is possible, but the workflow may fail for these scenarios and any results produced are not validated. The DE and GA entries are kept in `config/scenarios.tyndp.yaml` to document the scenario assumptions.
+
 - Begins with National Trends+ 2030 scenario results for grid topology, generation capacity and final energy demands
 - Uses predefined final energy demands for 2040 and 2050 collected from transmission system operators and public consultation
 - Capacity expansion model is used to identify where and when investment in renewable generation capacity and storage is required

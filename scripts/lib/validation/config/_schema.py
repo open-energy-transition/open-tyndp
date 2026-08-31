@@ -130,7 +130,7 @@ class ConfigSchema(BaseModel):
     )
     tyndp_scenario: Literal["NT", "DE", "GA", False] = Field(
         False,
-        description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
+        description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules. Only NT is fully implemented and benchmarked in TYNDP 2024; DE and GA are incomplete, unsupported, and not planned to be supported, and the workflow might fail for them.",
     )
     launch_explorer: bool = Field(
         False,
