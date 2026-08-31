@@ -192,8 +192,8 @@ Configuration for `tyndp_scenario` settings.
 Scenario configuration of the TYNDP data, which is one of `NT`, `DE` or `GA`. `false` disables the TYNDP-specific rules.
 
 !!! warning
-    Only `NT` is fully implemented and validated. `DE` and `GA` are incomplete and unsupported;
-    see [Scenarios](scenarios.md).
+    Only `NT` is implemented and validated. `DE` and `GA` are incomplete, unsupported, and not
+    planned to be supported. The workflow might fail when running `DE` or `GA`. See [Scenarios](scenarios.md).
 
 **YAML Syntax**
 
