@@ -3650,8 +3650,8 @@ def add_h2_dres_tyndp(
         v_nom=380.0,
         carrier="AC_DRES",
         unit="MWh_el",
-        substation_off=1.0,
-        substation_lv=1.0,
+        substation_off=True,
+        substation_lv=True,
     )
     n.add(
         "Link",
