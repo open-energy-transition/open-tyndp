@@ -543,6 +543,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },
@@ -6903,6 +6913,16 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "discount_rate": {
+          "default": 0.07,
+          "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+          "type": "number"
+        },
+        "default_lifetime": {
+          "default": 25,
+          "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+          "type": "number"
         }
       }
     },
@@ -15835,6 +15855,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },
