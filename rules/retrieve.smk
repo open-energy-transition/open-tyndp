@@ -25,6 +25,21 @@ storage cached_http:
 
 ARCHIVE_SOURCES = {"archive", "tyndp-archive"}
 
+_storage = storage
+
+
+def storage(url, **kwargs):
+    """
+    Return a remote handle for `url`, or the cache manifest when reading the local cache.
+
+    Since a remote handle makes Snakemake reach out to the network while the graph is built,
+    pointing at a local file instead enables offline runs with a local cache. `ancient` stops the
+    manifest's own timestamp from marking every retrieve job out of date.
+    """
+    if LOCAL_CACHE_READ:
+        return ancient(LOCAL_CACHE_MANIFEST)
+    return _storage(url, **kwargs)
+
 
 if (EUROSTAT_BALANCES_DATASET := dataset_version("eurostat_balances"))["source"] in [
     "primary",

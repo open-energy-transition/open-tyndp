@@ -498,3 +498,61 @@ rule sync_dry:
         rsync -uvarh --no-g {params.cluster}/results . -n || echo "No results directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
         """
+
+
+# Warning about potential long Snakemake build time for local cache dependencies
+if LOCAL_CACHE["enable"] and LOCAL_CACHE["fill"]:
+    logger.warning(
+        f"Populating the local cache in '{LOCAL_CACHE['directory']}'. Working out which "
+        "datasets this workflow needs requires building its full dependency graph, which can "
+        "take some time before the first download starts."
+    )
+
+
+# Write local cache manifest for offline runs to verify themselves against
+onsuccess:
+    if LOCAL_CACHE["enable"] and LOCAL_CACHE["fill"]:
+        from snakemake.io import IOFile
+
+        cache = Path(LOCAL_CACHE["directory"])
+        collected = sorted(
+            str(path.relative_to(cache))
+            for path in cache.rglob("*")
+            if path != LOCAL_CACHE_MANIFEST
+        )
+        LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
+
+        # Update cached files metadata for correct provenance
+        for entry in collected:
+            workflow.persistence.cleanup_metadata(IOFile(str(cache / entry)))
+
+        logger.info(
+            f"Recorded {len(collected)} cache entries in {LOCAL_CACHE_MANIFEST}"
+        )
+
+
+# Clear error message on missing files in local cache
+if LOCAL_CACHE_READ:
+    from snakemake.exceptions import WorkflowError
+
+    if not LOCAL_CACHE_MANIFEST.exists():
+        raise WorkflowError(
+            f"Local cache '{LOCAL_CACHE['directory']}' has not been populated: no "
+            f"'{LOCAL_CACHE_MANIFEST.name}' manifest found.\n\nRun `pixi run collect-data` "
+            "(or `collect-data-cba`) on a machine with internet access, or point "
+            "`data: local_cache: directory:` at a populated cache."
+        )
+
+    cache_root = LOCAL_CACHE_MANIFEST.parent
+    if gone := [
+        entry
+        for entry in LOCAL_CACHE_MANIFEST.read_text().splitlines()
+        if entry and not (cache_root / entry).exists()
+    ]:
+        raise WorkflowError(
+            "Local cache '{}' is incomplete, {} recorded file(s) are missing:\n  {}"
+            "\n\nRe-run `pixi run collect-data` (or `collect-data-cba`) on a machine "
+            "with internet access to restore them.".format(
+                LOCAL_CACHE["directory"], len(gone), "\n  ".join(gone)
+            )
+        )

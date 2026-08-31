@@ -217,6 +217,20 @@ create-tyndp-graphs = """
 tyndp-sb = """
     snakemake -call --configfile config/config.tyndp.yaml
 """
+collect-data = """bash -c '
+    FILL="data={local_cache: {enable: true, fill: true}}"
+    NEEDED=$(snakemake -n --forceall --configfile config/config.tyndp.yaml --config "$FILL" 2>/dev/null | grep -oE "^retrieve_[a-z0-9_]+" | sort -u)
+    [ -n "$NEEDED" ] || { echo "Local cache already holds everything this workflow needs."; exit 0; }
+    snakemake -call --configfile config/config.tyndp.yaml --config "$FILL" "$@" --until $NEEDED
+    ' --
+"""
+collect-data-cba = """bash -c '
+    FILL="data={local_cache: {enable: true, fill: true}}"
+    NEEDED=$(snakemake -n --forceall cba --configfile config/config.tyndp.yaml --config "$FILL" 2>/dev/null | grep -oE "^retrieve_[a-z0-9_]+" | sort -u)
+    [ -n "$NEEDED" ] || { echo "Local cache already holds everything this workflow needs."; exit 0; }
+    snakemake -call cba --configfile config/config.tyndp.yaml --config "$FILL" "$@" --until $NEEDED
+    ' --
+"""
 tyndp-checkpoint = """
     snakemake -call cba --configfile config/config.tyndp.yaml --until clean_projects
 """
