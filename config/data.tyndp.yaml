@@ -120,15 +120,9 @@ data:
   tyndp:
     source: tyndp-archive
     version: latest
-<<<<<<< HEAD
   tyndp_2026:
     source: tyndp-archive
     version: latest
-  powerplants:
-    source: tyndp-archive
-    version: latest
-=======
->>>>>>> origin/master
   costs:
     source: tyndp-archive
     version: latest
