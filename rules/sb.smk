@@ -146,9 +146,9 @@ if not "pre-built" in PECD_DATASET["version"]:
                 f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
             ),
         log:
-            "logs/prepare_pecd_release.log",
+            "logs/prepare_tyndp_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_pecd_release")
+            benchmarks("performances/prepare_tyndp_pecd_release")
         threads: 4
         resources:
             mem_mb=1000,
@@ -160,7 +160,7 @@ if not "pre-built" in PECD_DATASET["version"]:
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:
-            scripts("sb/prepare_pecd_release.py")
+            scripts("sb/prepare_tyndp_pecd_release.py")
 
 
 # Build electricity
@@ -203,6 +203,24 @@ use rule build_electricity_demand as build_electricity_demand_tyndp with:
         benchmarks("performances/build_electricity_demand_{planning_horizons}")
 
 
+def get_weather_scenario_tyndp(w):
+    """Get the preferred TYNDP 2026 weather scenario (climate year column index) for a given planning horizon."""
+    weather_scenarios = config_provider("weather_scenarios_tyndp")(w)
+    pyear = safe_pyear(
+        w.planning_horizons,
+        available_years=sorted(weather_scenarios),
+        source="TYNDP demand weather scenario",
+        verbose=False,
+    )
+    return weather_scenarios[pyear][0]
+
+
+# Generic rule: parameterized by the `demand_type` wildcard, so any demand
+# type/file present under `data/tyndp_2026_bundle/Demand` can be requested
+# directly by target filename. The concrete demand types below (electricity
+# market, EV charging, hydrogen zones, ...) are defined as named aliases of
+# this rule via `use rule ... as ...`, fixing `demand_type` and giving each a
+# stable, readable output name instead of relying on the wildcard.
 rule build_tyndp_demand:
     input:
         demand=rules.retrieve_tyndp_2026.output.demand_profiles,
@@ -230,20 +248,22 @@ def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
     else:
-        return rules.prepare_pecd_release.output.pecd_prebuilt
+        return rules.prepare_tyndp_pecd_release.output.pecd_prebuilt
 
 
-rule clean_pecd_data:
+rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
-        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        onshore_buses=resources("busmap_base_s_all.csv"),
+        nodes=rules.retrieve_tyndp_2026.output.nodes,
+        busmap=resources("busmap_base_s_all.csv"),
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:
-        logs("clean_pecd_data_{technology}_{planning_horizons}.log"),
+        logs("clean_tyndp_pecd_data_{technology}_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/clean_pecd_data_{technology}_{planning_horizons}")
+        benchmarks(
+            "performances/clean_tyndp_pecd_data_{technology}_{planning_horizons}"
+        )
     threads: 4
     resources:
         mem_mb=4000,
@@ -256,11 +276,9 @@ rule clean_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        prebuilt_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
-        ),
+        weather_scenario=get_weather_scenario_tyndp,
     script:
-        scripts("sb/clean_pecd_data.py")
+        scripts("sb/clean_tyndp_pecd_data.py")
 
 
 def input_data_pecd(w):
@@ -1012,18 +1030,6 @@ if config["benchmarking"]["enable"]:
 
 # Collect
 #########
-
-
-rule build_tyndp_demands:
-    input:
-        expand(
-            rules.build_tyndp_demand.output.demand,
-            demand_type=list(DEMAND_TYPE_MAP),
-            **config["scenario"],
-            run=config["run"]["name"],
-        ),
-    message:
-        "Collecting TYNDP 2026 demand profiles"
 
 
 rule clean_pecd_datas:

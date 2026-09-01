@@ -54,9 +54,9 @@ None.
 
 ## Development
 
-### Rule `prepare_pecd_release`
+### Rule `prepare_tyndp_pecd_release`
 
-::: prepare_pecd_release
+::: prepare_tyndp_pecd_release
 
 ## Build electricity
 
@@ -74,9 +74,9 @@ per-country load time series from the TYNDP electricity demand prepared by
 
 ::: build_tyndp_demand
 
-### Rule `clean_pecd_data`
+### Rule `clean_tyndp_pecd_data`
 
-::: clean_pecd_data
+::: clean_tyndp_pecd_data
 
 ### Rule `build_renewable_profiles_pecd`
 
@@ -192,7 +192,7 @@ Aggregate rules that run the corresponding base rule across all configured wildc
 
 ### Rule `clean_pecd_datas`
 
-Aggregate [`clean_pecd_data`](#rule-clean_pecd_data) outputs.
+Aggregate [`clean_tyndp_pecd_data`](#rule-clean_tyndp_pecd_data) outputs.
 
 ### Rule `build_renewable_profiles_pecds`
 
