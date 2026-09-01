@@ -150,7 +150,7 @@ https://conda.anaconda.org/conda-forge/noarch/annotated-doc-0.0.5-pyhcf101f3_0.c
 https://conda.anaconda.org/conda-forge/noarch/typer-0.27.1-pyhcf101f3_0.conda#8df7a3ee62a94dca4ea22c3f4d38d9eb
 https://conda.anaconda.org/conda-forge/noarch/mdit-py-plugins-0.6.1-pyhd8ed1ab_0.conda#ad6821df7a98510117db06e9a833281f
 https://conda.anaconda.org/conda-forge/noarch/uc-micro-py-2.0.0-pyhcf101f3_0.conda#4fdd327852ffefc83173a7c029690d0c
-https://conda.anaconda.org/conda-forge/noarch/linkify-it-py-2.1.0-pyhcf101f3_0.conda#1005e1f39083adad2384772e8e384e43
+https://conda.anaconda.org/conda-forge/noarch/linkify-it-py-2.1.1-pyhcf101f3_0.conda#362649019d1a8c597747afa69b6a39bb
 https://conda.anaconda.org/conda-forge/noarch/textual-8.2.8-pyhcf101f3_0.conda#89f2b015d7ee36ceaaf03fe687d1bd61
 https://conda.anaconda.org/conda-forge/noarch/win32_setctime-1.2.0-pyhd8ed1ab_0.conda#e79f83003ee3dba79bf795fcd1bfcc89
 https://conda.anaconda.org/conda-forge/noarch/loguru-0.7.3-pyh7428d3b_0.conda#a6c25c54d8d524735db2e5785aec0a4e
@@ -311,7 +311,7 @@ https://conda.anaconda.org/conda-forge/noarch/folium-0.20.0-pyhd8ed1ab_0.conda#a
 https://conda.anaconda.org/conda-forge/noarch/geopandas-1.1.4-pyhd8ed1ab_0.conda#99d77e0f92f7b0b977f77cfb49c7eaf6
 https://conda.anaconda.org/conda-forge/noarch/pypsa-1.2.4-pyhd8ed1ab_1.conda#91846434fab2068d63ab1937724d6125
 https://conda.anaconda.org/conda-forge/noarch/wbgapi-1.0.12-pyhd8ed1ab_0.tar.bz2#a2e1ba950c0ec23e3ea0b915743a37e0
-https://conda.anaconda.org/conda-forge/win-64/editdistpy-0.2.0-py314h417cb87_1.conda#3a029e2e020967c5e5ff9b9ef2c9e281
+https://conda.anaconda.org/conda-forge/win-64/editdistpy-0.4.0-py314hd88e9b1_0.conda#dcd8df99bcedfb9f9339e8f4f3dbd98e
 https://conda.anaconda.org/conda-forge/noarch/symspellpy-6.9.0-pyhcf101f3_0.conda#55dc3d4d76c0e2269bb395c7bad0e3ef
 https://conda.anaconda.org/conda-forge/noarch/pooch-1.9.0-pyhd8ed1ab_0.conda#dd4b6337bf8886855db6905b336db3c8
 https://conda.anaconda.org/conda-forge/noarch/resolvekit-0.1.12-pyhc364b38_0.conda#a6a7c2c08a4f2186bd040d056f958604
@@ -458,14 +458,14 @@ https://conda.anaconda.org/conda-forge/noarch/pystac-ext-file-2.1.1-pyhcf101f3_0
 https://conda.anaconda.org/conda-forge/noarch/pystac-ext-eo-1.1.1-pyhcf101f3_0.conda#906ae840cecc53214ecfbe7f4dc7d45d
 https://conda.anaconda.org/conda-forge/noarch/pystac-ext-datacube-2.2.1-pyhcf101f3_0.conda#c78adc1476402329e655c9ba61e424a8
 https://conda.anaconda.org/conda-forge/noarch/pystac-1.15.2-pyhcf101f3_0.conda#ad00420df7f2364fe838e9fc24d443a1
-https://conda.anaconda.org/conda-forge/noarch/cached_property-1.5.2-pyha770c72_2.conda#f71e6840332854fd2eac6c3229768a9c
-https://conda.anaconda.org/conda-forge/noarch/cached-property-1.5.2-hd8ed1ab_2.conda#1990eb3f49022846fbc7fc9624a0ee43
+https://conda.anaconda.org/conda-forge/noarch/cached_property-2.0.1-pyhcf101f3_0.conda#256d863ded0f79464391a075944d24a6
+https://conda.anaconda.org/conda-forge/noarch/cached-property-2.0.1-pyhcf101f3_0.conda#70e764e549c6c25de5e429d6e4a28b39
 https://conda.anaconda.org/conda-forge/win-64/h5py-3.16.0-nompi_py314hc249e69_104.conda#93f82afef7f5a8dbb29fa242c5946ac3
 https://conda.anaconda.org/conda-forge/noarch/h5netcdf-1.8.1-pyhd8ed1ab_0.conda#ca7f9ba8762d3e360e47917a10e23760
 https://conda.anaconda.org/conda-forge/noarch/jmespath-1.1.0-pyhcf101f3_1.conda#cc73a9bd315659dc5307a5270f44786f
-https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.78-pyhd8ed1ab_0.conda#4302cc1001d0756bb7c4839c8cee1c85
+https://conda.anaconda.org/conda-forge/noarch/botocore-1.43.79-pyhd8ed1ab_0.conda#0f9fdf758f1806b43ff6edbe2b6c9535
 https://conda.anaconda.org/conda-forge/noarch/s3transfer-0.19.2-pyhd8ed1ab_0.conda#5548801d61c206d492b85613a02a87e3
-https://conda.anaconda.org/conda-forge/noarch/boto3-1.43.78-pyhd8ed1ab_0.conda#f0906352d7bffaf9ccbc15f0e2752410
+https://conda.anaconda.org/conda-forge/noarch/boto3-1.43.79-pyhd8ed1ab_0.conda#08eecf0370bb4b79d16be786fbf039d0
 https://conda.anaconda.org/conda-forge/noarch/arcosparse-0.5.1-pyhd8ed1ab_0.conda#3fab2110d93a828f88ace66e418d6ef8
 https://conda.anaconda.org/conda-forge/noarch/copernicusmarine-2.4.1-pyhd8ed1ab_0.conda#690847cdb78772816f430fc91490f915
 https://conda.anaconda.org/conda-forge/noarch/pyshp-3.1.6-pyhcf101f3_0.conda#6778d276eb7b4230d622bdd2a732c75e
