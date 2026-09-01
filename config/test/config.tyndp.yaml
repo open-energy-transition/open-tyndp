@@ -446,9 +446,10 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
+    sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
   - t1-t35
+  - s*
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
@@ -460,10 +461,15 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
+    - caes
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
     - hydro-reservoir
+    # Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export
+    discount_rate: 0.07
+    # Lifetime (years) used for storage projects with missing or zero operational lifetime
+    default_lifetime: 25
 
   # Constrain DSR daily dispatch
   constrain_dsr: true

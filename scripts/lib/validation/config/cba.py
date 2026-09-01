@@ -49,6 +49,14 @@ class _CbaStorageConfig(ConfigModel):
         default_factory=lambda: ["hydro-reservoir"],
         description="Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
     )
+    discount_rate: float = Field(
+        default=0.07,
+        description="Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+    )
+    default_lifetime: float = Field(
+        default=25,
+        description="Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+    )
 
 
 class _CbaMsvSolvingConfig(ConfigModel):
@@ -144,7 +152,7 @@ class _CbaSbToCbaConfig(ConfigModel):
     )
     sb_version: str = Field(
         "latest",
-        description="Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+        description="Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
     )
 
 

@@ -491,7 +491,7 @@
             },
             "sb_version": {
               "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
               "type": "string"
             }
           }
@@ -543,6 +543,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },
@@ -6827,7 +6837,7 @@
         },
         "sb_version": {
           "default": "latest",
-          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
           "type": "string"
         }
       }
@@ -6893,6 +6903,16 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "discount_rate": {
+          "default": 0.07,
+          "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+          "type": "number"
+        },
+        "default_lifetime": {
+          "default": 25,
+          "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+          "type": "number"
         }
       }
     },
@@ -15743,7 +15763,7 @@
             },
             "sb_version": {
               "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
               "type": "string"
             }
           }
@@ -15795,6 +15815,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },
