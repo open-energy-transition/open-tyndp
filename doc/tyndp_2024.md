@@ -123,11 +123,14 @@ The original data files can be found under <https://2024.entsos-tyndp-scenarios.
 ## `data/cba/a.3_non-co2-emissions.csv`
 
 - **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, <https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1>
-- **Link:** On repository (not retrieved/downloaded).
-- **Description:** Contains a CSV file of the extracted Annex A.3 non-CO2 emissions factors table.
+- **Link:** On repository (not retrieved/downloaded). Full provenance and description are documented under [Data Repositories](data-repos.md).
+
+## `data/cba/cba_project_corrections.csv`
+
+- **Source:** Manually compiled by Open-TYNDP maintainers from the TYNDP 2024 project sheets, <https://tyndp2024.entsoe.eu/projects-map/transmission>
+- **Link:** On repository (not retrieved/downloaded). Full provenance and description are documented under [Data Repositories](data-repos.md).
 
 ## `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`
 
 - **Source:** TYNDP 2024 Methodology: CBA Implementation Guidelines, <https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1>
-- **Link:** On repository (not retrieved/downloaded).
-- **Description:** Contains a CSV file of the extracted Annex B.1 table listing the projects included in the 2030 and 2040 reference grids, used to assign the TOOT/PINT method per project and planning horizon.
+- **Link:** On repository (not retrieved/downloaded). Full provenance and description are documented under [Data Repositories](data-repos.md).
