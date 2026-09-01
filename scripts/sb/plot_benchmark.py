@@ -87,7 +87,9 @@ def _plot_scenario_comparison(
     )
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
-    legend = ax.legend(facecolor="white", frameon=True, edgecolor="black")
+    legend = ax.legend(
+        loc="upper left", facecolor="white", frameon=True, edgecolor="black"
+    )
     for txt in legend.get_texts():
         if txt.get_text() in [model_col, rfc_source]:
             txt.set_fontweight("bold")
@@ -338,6 +340,7 @@ def _plot_flows(
     ax.grid(axis="y", linestyle="-", alpha=0.7)
 
     ax.legend(
+        loc="upper left",
         frameon=True,
         facecolor="white",
     )
@@ -369,7 +372,7 @@ def _plot_flows(
         ax.grid(axis="x", which="major", linestyle="-")
         ax.grid(axis="x", which="minor", linestyle="--", alpha=0.7)
         ax.grid(axis="y", linestyle="-", alpha=0.7)
-        ax.legend(frameon=True, facecolor="white")
+        ax.legend(loc="upper left", frameon=True, facecolor="white")
         add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
         output_filename = Path(
             output_dir, f"benchmark_{table}_direction_errors_cy{cyear}_{year}.pdf"
@@ -413,7 +416,7 @@ def _plot_hours(
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
     ax.grid(axis="y", linestyle="--")
-    ax.legend(frameon=True, facecolor="white")
+    ax.legend(loc="upper left", frameon=True, facecolor="white")
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(output_dir, f"benchmark_{table}_cy{cyear}_{year}.pdf")
