@@ -168,12 +168,6 @@ data:
   tyndp_nuclear_profiles:
     source: tyndp-archive
     version: latest
-  tyndp_cba_non_co2_emissions:
-    source: tyndp-archive
-    version: latest
-  cba_guidelines_reference_projects:
-    source: tyndp-archive
-    version: latest
   open_tyndp_prelim:
     source: tyndp-archive
     version: latest
