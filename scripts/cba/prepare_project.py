@@ -462,11 +462,7 @@ def prepare_generator_project(
 
     generator_project_dynamic = pd.DataFrame()
     if not generator_projects_dynamic.empty and not generator_project_static.empty:
-        mapping_ids = (
-            generator_project_static["project_id"].astype(str)
-            + "_"
-            + generator_project_static["generator_name"]
-        ).tolist()
+        mapping_ids = generator_project_static["mapping_id"].tolist()
         reqd_columns = [
             x
             for x in generator_projects_dynamic.columns.get_level_values(0)

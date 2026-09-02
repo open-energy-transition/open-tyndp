@@ -587,9 +587,6 @@ def extract_custom_generator_projects(
 
         custom_gens_dynamic = custom_gens_dynamic.drop(dropped_attrs, axis=1, level=1)
 
-        # Drop mapping_id column from static attributes as it is no longer needed
-        custom_gens_static = custom_gens_static.drop(["mapping_id"], axis=1)
-
     return custom_gens_static, custom_gens_dynamic
 
 
