@@ -61,6 +61,8 @@ data/costs_*.csv
 !/data/versions.csv
 !/data/custom_cba_generators_static.csv
 !/data/custom_cba_generators_dynamic.csv
+!/data/cba/
+!/data/cba/*.csv
 
 dask-worker-space/
 publications.jrc.ec.europa.eu/

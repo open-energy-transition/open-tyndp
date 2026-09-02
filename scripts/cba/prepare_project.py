@@ -16,7 +16,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import generate_unique_hex, get_link_attrs
+from scripts.cba._helpers import get_link_attrs, get_storage_attrs, generate_unique_hex
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,9 @@ def check_method(method: str) -> str:
     return method
 
 
-def load_method(methods_fn: str, project_id: int, planning_horizon: int) -> str:
+def load_method(
+    methods_fn: str, project_id: int, project_type: str, planning_horizon: int
+) -> str:
     """
     Load the method for a specific project and planning horizon.
 
@@ -46,6 +48,8 @@ def load_method(methods_fn: str, project_id: int, planning_horizon: int) -> str:
         Path to the file defining the methods.
     project_id : int
         Project reference ID.
+    project_type : str
+        Either "transmission" or "storage".
     planning_horizon : int
         Planning horizon.
 
@@ -57,11 +61,13 @@ def load_method(methods_fn: str, project_id: int, planning_horizon: int) -> str:
     methods = pd.read_csv(methods_fn)
     row = methods[
         (methods["project_id"] == project_id)
+        & (methods["project_type"] == project_type)
         & (methods["planning_horizon"] == planning_horizon)
     ]
     if row.empty:
         raise ValueError(
-            f"Missing CBA method for project {project_id} and horizon {planning_horizon}"
+            f"Missing CBA method for {project_type} project {project_id} "
+            f"and horizon {planning_horizon}"
         )
     return check_method(row["method"].iloc[0])
 
@@ -136,7 +142,7 @@ def get_link_capacity_data(n, project, method="toot"):
     return link_id, reverse_link_id, capacity, capacity_reverse
 
 
-def apply_toot(
+def apply_toot_transmission(
     n: pypsa.Network,
     transmission_project: pd.DataFrame,
     negative_toot_option: str,
@@ -322,22 +328,95 @@ def apply_pint_generator(
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
+def apply_pint_storage(
+    n: pypsa.Network,
+    storage_project: pd.Series,
+    discount_rate: float,
+) -> None:
+    """
+    Add a new CBA storage project as a Bus/Store/Link triple.
 
-        snakemake = mock_snakemake(
-            "prepare_project",
-            cba_project="t1",
-            planning_horizons="2030",
-            run="NT",
-            configfiles=["config/config.tyndp.yaml"],
+    Creates a dedicated storage bus attached to the project's electricity
+    bus, a Store sized in MWh, and two Links (charge and discharge) sized in
+    MW, using capacities and costs taken from the storage project row.
+    """
+    project_id = storage_project["project_id"]
+    project_name = storage_project["project_name"]
+    carrier = storage_project["carrier"]
+    ac_bus = storage_project["bus"]
+    storage_bus = f"{ac_bus} cba s{project_id} storage"
+
+    attrs = get_storage_attrs(storage_project, discount_rate)
+
+    if carrier not in n.carriers.index:
+        n.add("Carrier", carrier)
+    n.add("Bus", storage_bus, location=ac_bus, carrier=carrier)
+    n.add(
+        "Store",
+        storage_bus,
+        bus=storage_bus,
+        carrier=carrier,
+        e_nom=attrs["e_nom"],
+        e_cyclic=True,
+        capital_cost=attrs["capital_cost_per_mwh"],
+    )
+    n.add(
+        "Link",
+        f"{storage_bus} charger",
+        bus0=ac_bus,
+        bus1=storage_bus,
+        carrier=carrier,
+        p_nom=attrs["p_nom_charge"],
+        efficiency=attrs["efficiency"],
+    )
+    n.add(
+        "Link",
+        f"{storage_bus} discharger",
+        bus0=storage_bus,
+        bus1=ac_bus,
+        carrier=carrier,
+        p_nom=attrs["p_nom_discharge"],
+        efficiency=attrs["efficiency"],
+    )
+    logger.info(
+        "Added storage project %s (%s) at bus %s: %.1f MWh, %.1f/%.1f MW charge/discharge",
+        project_id,
+        project_name,
+        ac_bus,
+        attrs["e_nom"],
+        attrs["p_nom_charge"],
+        attrs["p_nom_discharge"],
+    )
+
+
+def prepare_storage_project(
+    n: pypsa.Network, snakemake, project_id: int, method: str
+) -> None:
+    storage_projects = pd.read_csv(snakemake.input.storage_projects)
+    storage_project = storage_projects[storage_projects["project_id"] == project_id]
+    assert not storage_project.empty, f"Storage project {project_id} not found."
+
+    if method == "toot":
+        raise NotImplementedError(
+            f"TOOT method not supported for storage project {project_id}: "
+            "no matching reference-grid storage component to remove."
         )
+    elif method == "pint":
+        apply_pint_storage(
+            n,
+            storage_project.iloc[0],
+            snakemake.params.storage_discount_rate,
+        )
+    else:
+        raise ValueError(f"Unknown method {method} for project {project_id}")
 
-    configure_logging(snakemake)
-    set_scenario_config(snakemake)
+    logger.info("Saved %s project network for storage project %s", method, project_id)
 
-    cba_project = snakemake.wildcards.cba_project
-    project_id = int(cba_project[1:])
-    planning_horizon = int(snakemake.wildcards.planning_horizons)
-    methods_fn = snakemake.input.methods
+
+def prepare_transmission_project(
+    n: pypsa.Network, snakemake, project_id: int, method: str
+) -> None:
+    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
     hurdle_costs = snakemake.params.hurdle_costs
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
@@ -350,7 +429,6 @@ if __name__ == "__main__":
         snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
     )
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
-    n = pypsa.Network(snakemake.input.network)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
@@ -391,7 +469,7 @@ if __name__ == "__main__":
     method = load_method(methods_fn, project_id, planning_horizon)
 
     if method == "toot":
-        apply_toot(n, transmission_project, negative_toot_capacity)
+        apply_toot_transmission(n, transmission_project, negative_toot_capacity)
     elif method == "pint":
         if not transmission_project.empty:
             apply_pint_transmission(n, transmission_project, hurdle_costs, costs)
@@ -408,5 +486,44 @@ if __name__ == "__main__":
         project_id,
         len(transmission_project),
     )
+
+
+if __name__ == "__main__":
+    if "snakemake" not in globals():
+        from scripts._helpers import mock_snakemake
+
+        snakemake = mock_snakemake(
+            "prepare_project",
+            cba_project="t1",
+            planning_horizons="2030",
+            run="NT",
+            configfiles=["config/config.tyndp.yaml"],
+        )
+
+    configure_logging(snakemake)
+    set_scenario_config(snakemake)
+
+    n = pypsa.Network(snakemake.input.network)
+
+    cba_project = snakemake.wildcards.cba_project
+    is_storage = cba_project.startswith("s")
+    project_id = int(cba_project[1:])
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
+    if planning_horizon not in [2030, 2040]:
+        logger.warning(
+            "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
+            snakemake.wildcards.planning_horizons,
+        )
+        planning_horizon = 2040
+
+    project_type = "storage" if is_storage else "transmission"
+    method = load_method(
+        snakemake.input.methods, project_id, project_type, planning_horizon
+    )
+
+    if is_storage:
+        prepare_storage_project(n, snakemake, project_id, method)
+    else:
+        prepare_transmission_project(n, snakemake, project_id, method)
 
     n.export_to_netcdf(snakemake.output.network)

@@ -9,9 +9,14 @@
 
 **Features**
 
-* Add custom generator projects as PINT [#897](https://github.com/open-energy-transition/open-tyndp/pull/897)
+* Add custom generator projects to the CBA assessment, using the PINT method [#897](https://github.com/open-energy-transition/open-tyndp/pull/897)
+* Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
 **Changes**
+
+* Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+
+* Move small CBA data files (``a.3_non-co2-emissions.csv`` and ``table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv``) to local repository ``data/cba/`` folder instead of retrieving from GCP. The rules ``retrieve_tyndp_cba_non_co2_emissions`` and ``retrieve_cba_guidelines_reference_projects`` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)).
 
 **Bugfixes and Compatibility**
 
@@ -21,13 +26,21 @@
 
 **Documentation**
 
+* feat: explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
+
+* Add a warning to the CBA documentation recommending the latest pre-solved SB networks, and the code of the matching release as a fallback ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+  
 **Developers Note**
 
 * feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
 
 * Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820)).
 
+* Move the datasets `tyndp_cba_projects`, `tyndp_nuclear_profiles` and `tyndp_vis_plfm` in the Open-TYNDP GCP under a `2024/` prefixed path. The old paths are deprecated and will be removed with the next release ([#895](https://github.com/open-energy-transition/open-tyndp/pull/895)) .
 
+
+* feat: add automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
+  
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)

@@ -11,16 +11,6 @@ The Cost-Benefit Analysis (CBA) workflow is implemented in `rules/cba.smk`. Rule
 
 Downloads the CBA project explorer dataset, containing project definitions.
 
-### Rule `retrieve_tyndp_cba_non_co2_emissions`
-
-Downloads non-CO₂ emission factors (NOx, SO₂, PM, etc.) used to compute B4 indicators.
-
-### Rule `retrieve_cba_guidelines_reference_projects`
-
-Downloads the CBA Implementation Guidelines reference project table
-(`table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`) used to reconcile SB investments
-with CBA project definitions.
-
 ### Rule `retrieve_presolved_sb_networks`
 
 Downloads pre-solved SB networks from a previous Open-TYNDP release for use as CBA inputs
