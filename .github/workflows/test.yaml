@@ -115,14 +115,6 @@ jobs:
         cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
         environments: open-tyndp
 
-    # TEMPORARY: locate the per-figure slowdown in plot_benchmark on this runner.
-    # Runs before the snakemake steps so it reports without waiting for them.
-    - name: Figure cost diagnostic
-      if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-      run: |
-        df -h
-        pixi run -e open-tyndp python utils/repro_figure_cost.py
-
     - name: Setup cache keys
       if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
       run: |

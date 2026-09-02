@@ -8,7 +8,6 @@ Plot benchmark figures.
 import logging
 import multiprocessing as mp
 import textwrap
-import time
 from functools import partial
 from pathlib import Path
 
@@ -476,7 +475,6 @@ def plot_benchmark(
         f"Making benchmark for {table} at {bus} using {rfc_cols} and {model_col}"
     )
 
-    t_groupby = time.perf_counter()  # TEMPORARY
     op = "sum" if "price" not in table else "mean"
     benchmarks = (
         benchmarks.groupby([c for c in benchmarks.columns if c != "value"])
@@ -498,12 +496,9 @@ def plot_benchmark(
     available_columns = [
         c for c in benchmarks.columns if c not in ["value", "source", "unit"]
     ]
-    t_groupby = time.perf_counter() - t_groupby  # TEMPORARY
-    t_pivot = time.perf_counter()  # TEMPORARY
     bench_wide = benchmarks.pivot_table(
         index=available_columns, values="value", columns="source", dropna=False
     )
-    t_pivot = time.perf_counter() - t_pivot  # TEMPORARY
 
     # Check if at least two sources are available to compare
     if len(bench_wide.columns) < 2:
@@ -518,7 +513,6 @@ def plot_benchmark(
         "hours": _plot_hours,
     }
 
-    t_render = time.perf_counter()  # TEMPORARY
     for year in bench_wide.index.get_level_values("year").unique():
         bench_year = bench_wide.query("year==@year").copy()
 
@@ -570,13 +564,6 @@ def plot_benchmark(
             )
         else:
             raise ValueError(f"Unknown table type {table_type}.")
-
-    logger.info(  # TEMPORARY
-        f"TIMING table={table} bus={bus} groupby={t_groupby:.2f}s "
-        f"pivot={t_pivot:.2f}s render={time.perf_counter() - t_render:.2f}s "
-        f"rows_in={len(benchmarks)} wide_rows={bench_wide.shape[0]} "
-        f"levels={len(available_columns)}"
-    )
 
 
 def _plot_benchmark_star(args: tuple, **kwargs) -> None:
