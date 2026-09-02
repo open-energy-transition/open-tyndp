@@ -71,5 +71,3 @@ dependencies:
 - grpcio <1.78
 - snakemake-logger-plugin-snkmt ==0.1.6
 - snakemake-executor-plugin-slurm >=1.9.2
-variables:
-  OMP_NUM_THREADS: '1'
