@@ -325,11 +325,6 @@ def apply_pint_generator(
         )
 
 
-if __name__ == "__main__":
-    if "snakemake" not in globals():
-        from scripts._helpers import mock_snakemake
-
-
 def apply_pint_storage(
     n: pypsa.Network,
     storage_project: pd.Series,
@@ -425,7 +420,6 @@ def prepare_transmission_project(
     )
     tech_colors = snakemake.params.tech_colors
 
-    transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
     generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
     generator_projects_dynamic = pd.read_csv(
         snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
@@ -460,15 +454,6 @@ def prepare_transmission_project(
             generator_project_dynamic.index = pd.to_datetime(
                 generator_project_dynamic.index
             )
-
-    if planning_horizon not in [2030, 2040]:
-        logger.warning(
-            "CBA methods are only available for 2030 or 2040. Using 2040 for planning horizon %s.",
-            snakemake.wildcards.planning_horizons,
-        )
-        planning_horizon = 2040
-
-    method = load_method(methods_fn, project_id, planning_horizon)
 
     if method == "toot":
         apply_toot_transmission(n, transmission_project, negative_toot_capacity)

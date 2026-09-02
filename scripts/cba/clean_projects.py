@@ -1060,15 +1060,12 @@ if __name__ == "__main__":
     # Storage projects
     storage_projects = extract_storage_projects(storage_path, existing_buses)
 
-    # Method definition (PINT / TOOT)
-    methods = build_method_assignments(
+    # Method definition (PINT / TOOT) for transmission projects
+    transmission_methods = build_method_assignments(
         snakemake.input.guidelines,
         transmission_projects,
         custom_transmission_projects,
         custom_gens_static,
-    # Method definition (PINT / TOOT) for transmission projects
-    transmission_methods = build_method_assignments(
-        snakemake.input.guidelines, transmission_projects, custom_transmission_projects
     )
 
     # Apply custom projects
