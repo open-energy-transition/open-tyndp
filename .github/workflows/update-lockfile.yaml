@@ -1,6 +1,9 @@
 name: Update locked envs
 on:
   push:
+    # tyndp-2026 should inherit its lock from master
+    branches-ignore:
+    - tyndp-2026
     paths:
     - pixi.toml
     - pixi.lock
@@ -57,9 +60,12 @@ jobs:
       with:
         pixi-version: v0.68.1
 
-    - name: Full resolve
+    # Only scheduled master refresh should resolve the entire lock also w/o new dependencies
+    - name: Resolve environment
       run: |
-        rm pixi.lock
+        if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+          rm pixi.lock
+        fi
         pixi install --all
         git checkout pixi.toml
 
