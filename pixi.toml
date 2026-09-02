@@ -23,11 +23,6 @@ atlite = "0d"
 # stdout/stderr and use a proper logging infrastructure
 PYTHONUNBUFFERED = "1"
 
-[target.linux-64.activation.env]
-
-# Single-threaded BLAS; workflow scripts parallelise with multiprocessing pools.
-OMP_NUM_THREADS = "1"
-
 [tasks]
 
 reset = """bash -c '
