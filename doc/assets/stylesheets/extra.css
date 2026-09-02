@@ -12,11 +12,7 @@
   --md-typeset-a-color:    #4b73d7;
 }
 
-.technology-mapping-table {
+.technology-mapping-table .md-typeset__scrollwrap {
   max-height: 70vh;
-  overflow: auto;
-}
-
-.technology-mapping-table table {
-  width: max-content;
+  overflow-y: auto;
 }
