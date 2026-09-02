@@ -172,11 +172,15 @@ Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (
 
 Custom generator projects can also be evaluated with the CBA workflow, always as new **PINT** projects — unlike transmission projects, modifying an existing generator is not yet supported. Each project is defined across two files:
 
-- `data/custom_generators_static.csv`: one row per generator, with `project_id`, `project_name`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. Entries without a `project_id`, or whose `bus` does not already exist in the network, are dropped with a warning. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively. 
+- `data/custom_cba_generator_projects_static.csv`: one row per generator, with `project_id`, `project_name`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. Entries without a `project_id` or `generator_name`, or whose `bus` does not already exist in the network, are dropped with a warning. Duplicate (`project_id`, `generator_name`) combinations are also dropped. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively.
 
-- `data/custom_generators_dynamic.csv`: time series for the same projects, in wide format with a two-row header (`project_id` per column, then the PyPSA attribute name, e.g. `p_max_pu`, `p_min_pu`, `efficiency` etc) and snapshots as the index. Only columns matching a valid time-varying PyPSA `Generator` input attribute are kept; other columns are dropped.
+- `data/custom_cba_generator_projects_dynamic.csv`: time series for the same projects, in wide format with a two-row header and snapshots as the index:
+    - **Row 1** identifies the generator: replace the placeholder `<project_id>_<generator_name>` with the actual `project_id` and `generator_name` of the corresponding row in the static file (e.g. `1500_BEI wind`), joined with an underscore. A project with multiple generators needs one such column group per generator.
+    - **Row 2** names the PyPSA `Generator` attribute the column provides, e.g. `p_max_pu`, `p_min_pu`, `efficiency`, `marginal_cost`, `p_set`.
 
-When applied, a new `Generator` component is added to the project network at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available, falling back to the static value or else set to `NaN`. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network.
+    Only columns whose `project_id_generator_name` matches an entry in the static file, and whose attribute is a valid time-varying PyPSA `Generator` input, are kept; everything else (unmatched projects, non-input attributes, fully empty columns) is dropped.
+
+When applied, a new `Generator` component named `<project_id>_<generator_name>` is added to the project network at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available, falling back to the static value or else set to `NaN`. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network.
 
 ### Selecting custom projects
 

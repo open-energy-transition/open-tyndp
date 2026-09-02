@@ -163,8 +163,8 @@ checkpoint clean_projects:
         guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
-        custom_generators_static="data/custom_generators_static.csv",
-        custom_generators_dynamic="data/custom_generators_dynamic.csv",
+        custom_generators_static="data/custom_cba_generator_projects_static.csv",
+        custom_generators_dynamic="data/custom_cba_generator_projects_dynamic.csv",
     output:
         # TODO: The toot_projects and pint_projects outputs are likely only
         # transmission projects (no storage). In order to confirm, we should check
@@ -427,6 +427,7 @@ rule prepare_project:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
+        tech_colors=config["plotting"]["tech_colors"],
     script:
         scripts("cba/prepare_project.py")
 

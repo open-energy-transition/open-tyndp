@@ -10,14 +10,13 @@ Handles multi-border projects, creates links when needed, and validates capacity
 """
 
 import logging
-import random
 
 import numpy as np
 import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_link_attrs
+from scripts.cba._helpers import generate_unique_hex, get_link_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -265,6 +264,7 @@ def apply_pint_generator(
     n: pypsa.Network,
     generator_project_static: pd.Series,
     generator_project_dynamic: pd.DataFrame,
+    tech_colors: dict,
 ) -> None:
     """
     Apply custom generator projects as PINT
@@ -277,30 +277,20 @@ def apply_pint_generator(
         Static components of custom generator projects
     generator_project_dynamic: pd.DataFrame
         Dynamic components of custom generator projects
+    tech_colors: dict
+        Dictionary of technology colors for plotting
 
     Returns
     -------
     None
     """
 
-    # Generate random hexcode for assigning color to a new carrier
-    # Existing color codes are excluded
-    def generate_unique_hex(carrier, excluded_colors):
-        rng = random.Random(carrier)
-        while True:
-            # Generate a 6-digit hex code
-            hex_color = f"#{rng.randint(0, 0xFFFFFF):06x}"
-
-            # Check if the code is in the exclusion list
-            if hex_color not in excluded_colors:
-                return hex_color
-
     # Dynamic PyPSA generator input attributes
     defaults = n.components["Generator"].defaults
     pypsa_dynamic_attributes = defaults.index[
         defaults.varying & defaults.status.str.startswith("Input")
     ].tolist()
-    
+
     # Add generator project to the network
     for _, project in generator_project_static.iterrows():
         # Add carrier to network if new carrier
@@ -320,7 +310,7 @@ def apply_pint_generator(
 
         n.add(
             "Generator",
-            f"{project.project_name}_{project.project_id}",
+            f"{project.project_id}_{project.generator_name}",
             carrier=project.carrier,
             bus=project.bus,
             p_nom=project.p_nom,
@@ -352,6 +342,7 @@ if __name__ == "__main__":
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
     )
+    tech_colors = snakemake.params.tech_colors
 
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
     generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
@@ -373,13 +364,22 @@ if __name__ == "__main__":
     )
 
     generator_project_dynamic = pd.DataFrame()
-    if not generator_projects_dynamic.empty and (
-        str(project_id) in generator_projects_dynamic.columns.get_level_values(0)
-    ):
-        generator_project_dynamic = generator_projects_dynamic[str(project_id)]
-        generator_project_dynamic.index = pd.to_datetime(
-            generator_project_dynamic.index
-        )
+    if not generator_projects_dynamic.empty and not generator_project_static.empty:
+        mapping_ids = (
+            generator_project_static["project_id"].astype(str)
+            + "_"
+            + generator_project_static["generator_name"]
+        ).tolist()
+        reqd_columns = [
+            x
+            for x in generator_projects_dynamic.columns.get_level_values(0)
+            if x in mapping_ids
+        ]
+        if reqd_columns:
+            generator_project_dynamic = generator_projects_dynamic[reqd_columns]
+            generator_project_dynamic.index = pd.to_datetime(
+                generator_project_dynamic.index
+            )
 
     if planning_horizon not in [2030, 2040]:
         logger.warning(
@@ -396,7 +396,9 @@ if __name__ == "__main__":
         if not transmission_project.empty:
             apply_pint_transmission(n, transmission_project, hurdle_costs, costs)
         elif not generator_project_static.empty:
-            apply_pint_generator(n, generator_project_static, generator_project_dynamic)
+            apply_pint_generator(
+                n, generator_project_static, generator_project_dynamic, tech_colors
+            )
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")
 
