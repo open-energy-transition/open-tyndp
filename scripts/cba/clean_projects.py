@@ -504,10 +504,21 @@ def extract_custom_generator_projects(
         # Drop null columns for dynamic attributes
         custom_gens_dynamic = custom_gens_dynamic.dropna(axis=1, how="all")
 
+        static_mapping_ids = pd.Index(custom_gens_static["mapping_id"])
+        dynamic_mapping_ids = custom_gens_dynamic.columns.get_level_values(0)
+
+        # Projects without dynamic attributes keep their static values or PyPSA defaults
+        missing_ids = static_mapping_ids.difference(dynamic_mapping_ids)
+        if not missing_ids.empty:
+            logger.warning(
+                f"No dynamic attributes found for custom generator(s) {missing_ids.tolist()}. "
+                "Their time-varying attributes fall back to their static value where given, "
+                "and to the PyPSA default otherwise."
+            )
+
         # Filter dynamic attributes of relevant projects extracted from static worksheet
-        custom_gens_dynamic = custom_gens_dynamic[
-            custom_gens_static["mapping_id"].tolist()
-        ]
+        matched_ids = static_mapping_ids.intersection(dynamic_mapping_ids)
+        custom_gens_dynamic = custom_gens_dynamic[matched_ids]
 
         # Extract input dynamic attributes from dummy PyPSA network
         defaults = pypsa.Network().components["Generator"].defaults
