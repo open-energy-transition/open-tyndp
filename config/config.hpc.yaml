@@ -6,7 +6,7 @@
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT
+  - NT-cy2009-20260902
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
@@ -31,9 +31,8 @@ solving:
 cba:
   # Default high-res CBA projects
   projects:
-  - t335
-  - t339
-  - t1106
+  - t*
+  - s*
   # MSV solver settings
   msv_extraction:
     solving:
