@@ -145,8 +145,8 @@ checkpoint clean_projects:
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
-        custom_generators_static="data/custom_cba_generators_static_data.csv",
-        custom_generators_dynamic="data/custom_cba_generators_dynamic_data.csv",
+        custom_generators_static="data/custom_cba_generator_projects_static.csv",
+        custom_generators_dynamic="data/custom_cba_generator_projects_dynamic.csv",
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
