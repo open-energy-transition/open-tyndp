@@ -406,7 +406,7 @@ rule prepare_project:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
-        tech_colors=config_provider("plotting","tech_colors"),
+        tech_colors=config_provider("plotting", "tech_colors"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
     script:
         scripts("cba/prepare_project.py")

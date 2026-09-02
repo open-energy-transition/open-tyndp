@@ -16,7 +16,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_link_attrs, get_storage_attrs, generate_unique_hex
+from scripts.cba._helpers import generate_unique_hex, get_link_attrs, get_storage_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -328,6 +328,8 @@ def apply_pint_generator(
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
+
+
 def apply_pint_storage(
     n: pypsa.Network,
     storage_project: pd.Series,

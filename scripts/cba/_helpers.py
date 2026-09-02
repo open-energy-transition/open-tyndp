@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
-import random
 import fnmatch
+import random
 import re
 
 import pandas as pd
