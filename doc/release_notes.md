@@ -9,6 +9,8 @@
 
 **Features**
 
+* Add custom generator projects as PINT [#897](https://github.com/open-energy-transition/open-tyndp/pull/897)
+
 **Changes**
 
 **Bugfixes and Compatibility**
