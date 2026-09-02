@@ -928,6 +928,9 @@ def build_method_assignments(
         "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id or project_id in @custom_gens_static.project_id"
     )
     assigned["project_type"] = "transmission"
+    assigned.loc[
+        assigned["project_id"].isin(custom_gens_static["project_id"]), "project_type"
+    ] = "generator"
     return assigned
 
 
@@ -1056,9 +1059,6 @@ if __name__ == "__main__":
     transmission_projects = transmission_projects.merge(
         investment_attrs_per_line, on="project_id", how="left"
     )
-
-    # Storage projects
-    storage_projects = extract_storage_projects(storage_path, existing_buses)
 
     # Method definition (PINT / TOOT) for transmission projects
     transmission_methods = build_method_assignments(

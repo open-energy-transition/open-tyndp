@@ -418,23 +418,46 @@ def prepare_transmission_project(
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
     )
-    tech_colors = snakemake.params.tech_colors
 
-    generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
-    generator_projects_dynamic = pd.read_csv(
-        snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
-    )
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
     ]
+
+    assert not transmission_project.empty, (
+        f"Transmission project with {project_id} not found."
+    )
+
+    if method == "toot":
+        apply_toot_transmission(n, transmission_project, negative_toot_capacity)
+    elif method == "pint":
+        apply_pint_transmission(n, transmission_project, hurdle_costs, costs)
+    else:
+        raise ValueError(f"Unknown method {method} for project {project_id}")
+
+    logger.info(
+        "Saved %s project network for project %s (%s borders)",
+        method,
+        project_id,
+        len(transmission_project),
+    )
+
+
+def prepare_generator_project(
+    n: pypsa.Network, snakemake, project_id: int, method: str
+) -> None:
+
+    tech_colors = snakemake.params.tech_colors
+    generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
+    generator_projects_dynamic = pd.read_csv(
+        snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
+    )
     generator_project_static = generator_projects_static[
         generator_projects_static["project_id"] == project_id
     ]
-
-    assert not (transmission_project.empty and generator_project_static.empty), (
-        f"Transmission or generator project with {project_id} not found."
+    assert not generator_project_static.empty, (
+        f"Generator project with {project_id} not found."
     )
 
     generator_project_dynamic = pd.DataFrame()
@@ -456,23 +479,19 @@ def prepare_transmission_project(
             )
 
     if method == "toot":
-        apply_toot_transmission(n, transmission_project, negative_toot_capacity)
+        raise NotImplementedError(
+            f"TOOT method not supported for generator project {project_id}: "
+            "no matching reference-grid generator component to remove."
+        )
     elif method == "pint":
-        if not transmission_project.empty:
-            apply_pint_transmission(n, transmission_project, hurdle_costs, costs)
-        elif not generator_project_static.empty:
-            apply_pint_generator(
-                n, generator_project_static, generator_project_dynamic, tech_colors
-            )
+        apply_pint_generator(
+            n,
+            generator_project_static,
+            generator_project_dynamic,
+            tech_colors,
+        )
     else:
         raise ValueError(f"Unknown method {method} for project {project_id}")
-
-    logger.info(
-        "Saved %s project network for project %s (%s borders)",
-        method,
-        project_id,
-        len(transmission_project),
-    )
 
 
 if __name__ == "__main__":
@@ -493,7 +512,13 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     cba_project = snakemake.wildcards.cba_project
-    is_storage = cba_project.startswith("s")
+
+    project_type_dict = {
+        "s": "storage",
+        "t": "transmission",
+        "g": "generator",
+    }
+
     project_id = int(cba_project[1:])
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     if planning_horizon not in [2030, 2040]:
@@ -503,14 +528,20 @@ if __name__ == "__main__":
         )
         planning_horizon = 2040
 
-    project_type = "storage" if is_storage else "transmission"
+    project_type = project_type_dict.get(cba_project[0])
     method = load_method(
         snakemake.input.methods, project_id, project_type, planning_horizon
     )
 
-    if is_storage:
+    if project_type == "storage":
         prepare_storage_project(n, snakemake, project_id, method)
-    else:
+    elif project_type == "transmission":
         prepare_transmission_project(n, snakemake, project_id, method)
+    elif project_type == "generator":
+        prepare_generator_project(n, snakemake, project_id, method)
+    else:
+        raise ValueError(
+            f"Unknown project type {project_type} for project {cba_project}"
+        )
 
     n.export_to_netcdf(snakemake.output.network)

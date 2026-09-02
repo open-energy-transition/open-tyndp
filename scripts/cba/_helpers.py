@@ -145,6 +145,9 @@ def filter_projects_by_specs(
 
     >>> filter_projects_by_specs(['t1', 's1', 's2'], ['s*'])
     ['s1', 's2']
+
+    >>> filter_projects_by_specs(['t1', 'g1', 'g2'], ['g*'])
+    ['g1', 'g2']
     """
 
     if not spec_list:
@@ -190,7 +193,6 @@ def filter_projects_by_specs(
 
     if not filtered_list:
         raise ValueError(f"Project specification {spec_list} selects no projects.")
-
     return filtered_list
 
 

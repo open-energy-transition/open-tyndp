@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 wildcard_constraints:
-    cba_project=r"(s|t)\d+",
+    cba_project=r"(s|t|g)\d+",
     run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
 
 
@@ -46,10 +46,12 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
 
 
 def project_codes(projects: pd.DataFrame) -> list[str]:
-    """Return unique project codes (e.g. 't1', 's1001') from a methods table with project_id/project_type columns."""
+    """Return unique project codes (e.g. 't1', 's1001', 'g1500') from a methods table with project_id/project_type columns."""
     projects = projects[["project_id", "project_type"]].drop_duplicates()
     return list(
-        projects["project_type"].map({"storage": "s", "transmission": "t"})
+        projects["project_type"].map(
+            {"storage": "s", "transmission": "t", "generator": "g"}
+        )
         + projects["project_id"].astype(str)
     )
 
@@ -143,8 +145,8 @@ checkpoint clean_projects:
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
-        custom_generators_static="data/custom_cba_generator_projects_static.csv",
-        custom_generators_dynamic="data/custom_cba_generator_projects_dynamic.csv",
+        custom_generators_static="data/custom_cba_generators_static_data.csv",
+        custom_generators_dynamic="data/custom_cba_generators_dynamic_data.csv",
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
