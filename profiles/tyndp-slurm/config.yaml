@@ -51,9 +51,9 @@ set-resources:
     solver_license: 1
   solve_cba_msv_extraction:
     solver_license: 1
-  solve_cba_reference_network:
-    solver_license: 1
-  solve_cba_network:
-    solver_license: 1
+#  solve_cba_reference_network:
+#    solver_license: 1
+#  solve_cba_network:
+#    solver_license: 1
 
 
