@@ -4,7 +4,7 @@ on:
   push:
     branches:
     - master
-    - tyndp-2026
+    - tyndp-*
   pull_request:
   schedule:
   - cron: "0 5 * * 1-6"
@@ -56,7 +56,7 @@ jobs:
       with:
         pixi-version: v0.68.1
         cache: true
-        cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
+        cache-write: ${{ github.event_name == 'push' && (github.ref_name == 'master' || startsWith(github.ref_name, 'tyndp-')) }}
 
     - name: Run unit tests
       run: |
@@ -113,7 +113,7 @@ jobs:
       with:
         pixi-version: v0.68.1
         cache: true
-        cache-write: ${{ github.event_name == 'push' && github.ref_name == 'master' }}
+        cache-write: ${{ github.event_name == 'push' && (github.ref_name == 'master' || startsWith(github.ref_name, 'tyndp-')) }}
         environments: open-tyndp
 
     - name: Setup cache keys

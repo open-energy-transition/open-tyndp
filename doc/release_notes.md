@@ -187,6 +187,8 @@
 
 * Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/pull/807)).
 
+* Update integration and env autoupdate workflow to include and account for `tyndp-*` branches ([#913](https://github.com/open-energy-transition/open-tyndp/pull/913)) 
+
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 
 **Features**

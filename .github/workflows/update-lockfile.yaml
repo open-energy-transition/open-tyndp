@@ -1,9 +1,9 @@
 name: Update locked envs
 on:
   push:
-    # tyndp-2026 should inherit its lock from master
+    # tyndp-* branches should inherit their lock from master
     branches-ignore:
-    - tyndp-2026
+    - tyndp-*
     paths:
     - pixi.toml
     - pixi.lock
