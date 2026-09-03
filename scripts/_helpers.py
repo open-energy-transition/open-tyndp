@@ -1405,7 +1405,7 @@ def map_tyndp_carrier_names(
     return df[cols]
 
 
-@cache
+@lru_cache
 def get_version(hash_len: int = 9) -> str:
     """
     Create a version identifier from git repository state.
