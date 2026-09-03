@@ -36,12 +36,14 @@ data:
     fill: false
 ```
 
-The cache is filled in a separate step, once per workflow:
+The cache is filled in a separate step, depending on the workflow. The CBA workflow rule will, however,
+also retrieve all required files to run the prerequisite SB workflow, unless the SB networks are taken pre-solved (see below).
 
 ```console
 $ pixi run collect-data          # everything Scenario Building needs
-$ pixi run collect-data-cba      # everything the CBA needs
-$ pixi run tyndp-sb              # reads the cache, no network required
+$ pixi run collect-data-cba      # everything the CBA needs + required SB retrieves
+$ pixi run tyndp-sb              # reads the local cache if enabled, no network required for SB workflow
+$ pixi run tyndp-cba             # reads the cache if enabled, no network required for CBA workflow
 ```
 
 Each task dry-runs its own target to see which `retrieve_*` rules that workflow's graph actually
