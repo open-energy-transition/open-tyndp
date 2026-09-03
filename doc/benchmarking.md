@@ -215,11 +215,9 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **pypsa_eur_carrier**: Corresponding PyPSA-Eur carrier/technology if applicable.
 * **comment**: Any additional comments.
 
-#### Technology mapping table
-
 The complete technology mapping is shown below. Scroll horizontally and vertically to explore the table.
 
-<div class="technology-mapping-table" markdown="1">
+<div class="scrollable-table" markdown="1">
 
 {{ read_csv("data/tyndp_technology_map.csv", keep_default_na=False) }}
 
