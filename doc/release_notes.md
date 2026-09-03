@@ -212,6 +212,8 @@
 
 * Update integration and env autoupdate workflow to include and account for `tyndp-*` branches ([#913](https://github.com/open-energy-transition/open-tyndp/pull/913)) 
 
+* Improve efficiency of `plot_benchmark` by adding a cache to getting the version tag and fixing progressbar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)). 
+
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 
 **Features**
