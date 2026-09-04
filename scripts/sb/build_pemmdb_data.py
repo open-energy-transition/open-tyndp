@@ -411,6 +411,9 @@ def _process_res_capacities(
 
     df = convert_units(df, value_col="p_nom").reset_index(drop=True)
 
+    pump = df["element"] == "Pump"
+    df.loc[pump, "p_nom"] = -df.loc[pump, "p_nom"].abs()
+
     return df
 
 
