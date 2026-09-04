@@ -96,7 +96,6 @@ if config["foresight"] != "perfect":
             plotting=config_provider("plotting"),
             foresight=config_provider("foresight"),
             tyndp_h2_topology=config_provider("sector", "h2_topology_tyndp"),
-            sector=config_provider("sector"),
         message:
             "Plotting hydrogen network for {wildcards.clusters} clusters, {wildcards.opts} electric options, {wildcards.sector_opts} sector options and {wildcards.planning_horizons} planning horizons"
         script:
