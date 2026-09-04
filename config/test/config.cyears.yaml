@@ -195,17 +195,6 @@ links:
 transmission_projects:
   enable: false
 
-tyndp_investment_candidates:
-  patch_sb_with_annexe: true
-  elec_projects:
-    2040:
-    - 2030
-    - 2035
-  h2_projects:
-    2040:
-    - 2030
-    - 2035
-
 load:
   source: tyndp # opsd, tyndp
   fill_gaps:
