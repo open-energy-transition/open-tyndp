@@ -9,10 +9,6 @@ rule solve_sector_network:
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
         ),
-        offshore_zone_trajectories=branch(
-            config_provider("sector", "offshore_hubs_tyndp", "enable"),
-            resources("offshore_zone_trajectories.csv"),
-        ),
     output:
         network=RESULTS
         + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
@@ -50,9 +46,6 @@ rule solve_sector_network:
         ),
         custom_extra_functionality=input_custom_extra_functionality,
         renewable_carriers=config_provider("electricity", "renewable_carriers"),
-        renewable_carriers_tyndp=config_provider(
-            "electricity", "tyndp_renewable_carriers"
-        ),
     message:
         "Solving sector-coupled network with overnight investment optimization for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizons, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     script:

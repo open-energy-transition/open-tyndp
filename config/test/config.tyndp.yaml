@@ -328,13 +328,6 @@ sector:
     enable: true
     carriers:
     - H2
-  offshore_hubs_tyndp:
-    enable: true
-    patch_crossborder_with_mm: true
-    connect_isolated: true
-    max_capacity:
-      DC_OH: 10
-      H2 pipeline OH: 30
 
 costs:
   custom_cost_scn: NT

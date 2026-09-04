@@ -1587,29 +1587,6 @@ def input_heat_source_power(w):
     }
 
 
-def input_offshore_hubs(w):
-    offshore_files = [
-        "offshore_buses",
-        "offshore_grid",
-        "offshore_electrolysers",
-        "offshore_generators",
-    ]
-    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
-        inputs = {f: resources(f"{f}.csv") for f in offshore_files}
-        if config_provider(
-            "sector", "offshore_hubs_tyndp", "patch_crossborder_with_mm"
-        )(w) and int(w.planning_horizons) in [2030, 2040]:
-            scenario = config_provider("tyndp_scenario")(w)
-            inputs["tyndp_offshore_fix"] = (
-                RESULTS
-                + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{scenario}{{planning_horizons}}.csv"
-            )
-        else:
-            inputs["tyndp_offshore_fix"] = []
-        return inputs
-    return {}
-
-
 pecd_techs = branch(
     config_provider("electricity", "pecd_renewable_profiles", "enable"),
     config_provider("electricity", "pecd_renewable_profiles", "technologies"),
@@ -1685,7 +1662,6 @@ rule prepare_sector_network:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
         unpack(input_heat_source_power),
-        unpack(input_offshore_hubs),
         unpack(input_pemmdb_data),
         unpack(input_gas_network),
         retro_cost=lambda w: (
@@ -1969,7 +1945,6 @@ rule prepare_sector_network:
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
         patch_load_mm=config_provider("load", "patch_demand_with_mm"),
-        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         tyndp_scenario=config_provider("tyndp_scenario"),
     message:
         "Preparing integrated sector-coupled energy network for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizon, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"

@@ -373,26 +373,6 @@ class _ImportsConfig(BaseModel):
     )
 
 
-class _OffshoreHubsTyndpConfig(BaseModel):
-    """Configuration for `sector.offshore_hubs_tyndp` settings."""
-
-    enable: bool = Field(
-        False,
-        description="Add option to include TYNDP offshore hubs.",
-    )
-    patch_crossborder_with_mm: bool = Field(
-        False,
-        description="Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-    )
-    connect_isolated: bool = Field(
-        False, description="Copperplate isolated wind farms to the grid."
-    )
-    max_capacity: dict[str, float] = Field(
-        default_factory=lambda: {"DC_OH": 10, "H2 pipeline OH": 30},
-        description="Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
-    )
-
-
 class SectorConfig(BaseModel):
     """Configuration for `sector` settings."""
 
@@ -980,8 +960,4 @@ class SectorConfig(BaseModel):
     )
     imports: _ImportsConfig = Field(
         default_factory=_ImportsConfig, description="Imports configuration."
-    )
-    offshore_hubs_tyndp: _OffshoreHubsTyndpConfig = Field(
-        default_factory=_OffshoreHubsTyndpConfig,
-        description="TYNDP offshore hubs configuration.",
     )

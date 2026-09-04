@@ -605,40 +605,6 @@ if config["sector"]["h2_topology_tyndp"]:
             scripts("sb/clean_tyndp_h2_storages.py")
 
 
-if config["sector"]["offshore_hubs_tyndp"]["enable"]:
-
-    rule build_tyndp_offshore_hubs:
-        input:
-            nodes=rules.retrieve_tyndp.output.offshore_nodes,
-            grid=rules.retrieve_tyndp.output.offshore_grid,
-            electrolysers=rules.retrieve_tyndp.output.offshore_electrolysers,
-            generators=rules.retrieve_tyndp.output.offshore_generators,
-        output:
-            offshore_buses=resources("offshore_buses.csv"),
-            offshore_grid=resources("offshore_grid.csv"),
-            offshore_electrolysers=resources("offshore_electrolysers.csv"),
-            offshore_generators=resources("offshore_generators.csv"),
-            offshore_zone_trajectories=resources("offshore_zone_trajectories.csv"),
-        log:
-            logs("build_tyndp_offshore_hubs.log"),
-        benchmark:
-            benchmarks("performances/build_tyndp_offshore_hubs")
-        conda:
-            "../envs/environment.yaml"
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            planning_horizons=config_provider("scenario", "planning_horizons"),
-            scenario=config_provider("tyndp_scenario"),
-            countries=config_provider("countries"),
-            offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp"),
-            extendable_carriers=config_provider("electricity", "extendable_carriers"),
-            h2_zones_tyndp=config_provider("sector", "h2_zones_tyndp"),
-        script:
-            scripts("sb/build_tyndp_offshore_hubs.py")
-
-
 rule group_tyndp_conventionals:
     input:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizon}.csv"),
@@ -700,51 +666,6 @@ if config["foresight"] != "perfect":
         script:
             scripts("sb/plot_base_hydrogen_network.py")
 
-    rule plot_base_offshore_network:
-        input:
-            network=resources(
-                "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc"
-            ),
-            regions_offshore=resources("regions_offshore.geojson"),
-        output:
-            map=resources(
-                "maps/base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.pdf"
-            ),
-        log:
-            RESULTS
-            + "logs/plot_base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.log",
-        benchmark:
-            benchmarks(
-                "performances/plot_base_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
-            )
-        conda:
-            "../envs/environment.yaml"
-        threads: 1
-        resources:
-            mem_mb=4000,
-        params:
-            plotting=config_provider("plotting"),
-            expanded=False,
-        script:
-            scripts("sb/plot_offshore_network.py")
-
-    use rule plot_base_offshore_network as plot_offshore_network with:
-        input:
-            network=RESULTS
-            + "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}.nc",
-        output:
-            map=RESULTS
-            + "maps/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}-offshore_network_{carrier}.pdf",
-        log:
-            RESULTS
-            + "logs/plot_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}.log",
-        benchmark:
-            benchmarks(
-                "performances/plot_offshore_network_{clusters}_{opts}_{sector_opts}_{planning_horizons}_{carrier}"
-            )
-        params:
-            expanded=True,
-
 
 # Benchmark
 ###########
@@ -785,7 +706,6 @@ if config["benchmarking"]["enable"]:
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
             countries=config_provider("countries"),
-            offshore_hubs=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         script:
             scripts("sb/clean_tyndp_output_benchmark.py")
 

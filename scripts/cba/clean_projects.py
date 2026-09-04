@@ -110,7 +110,6 @@ def read_tyndp_electricity_buses(
     See Also
     --------
     build_tyndp_network.py : build_buses
-    build_tyndp_offshore_hubs.py : load_offshore_hubs
     """
     virtual_buses = virtual_buses if virtual_buses is not None else []
 
