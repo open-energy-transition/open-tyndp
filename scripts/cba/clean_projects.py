@@ -73,9 +73,16 @@ import country_converter as coco
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
 
 logger = logging.getLogger(__name__)
+
+# TYNDP 2024 virtual nodes added later in (the now TYNDP-2026-only)
+# build_tyndp_network.py, not present in the raw 2024 node list this
+# CBA-side script still consumes.
+AC_VIRTUAL_NODES_IT = {
+    "ITCO": "FR15",
+    "ITVI": "ITSI",
+}
 
 TRANSMISSION_PROJECTS_COLUMN_MAP = {
     "Project ID": "project_id",
@@ -153,7 +160,6 @@ def read_tyndp_electricity_buses(
     See Also
     --------
     build_tyndp_network.py : build_buses
-    build_tyndp_offshore_hubs.py : load_offshore_hubs
     """
     virtual_buses = virtual_buses if virtual_buses is not None else []
 

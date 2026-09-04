@@ -43,7 +43,7 @@ scenario:
   - 2035
   - 2040
 
-countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
+countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK', 'TR', 'UA']
 
 snapshots:
   start: "2009-01-01"
@@ -188,17 +188,6 @@ links:
 transmission_projects:
   enable: false
 
-tyndp_investment_candidates:
-  patch_sb_with_annexe: true
-  elec_projects:
-    2040:
-    - 2030
-    - 2035
-  h2_projects:
-    2040:
-    - 2030
-    - 2035
-
 load:
   source: tyndp # opsd, tyndp
   fill_gaps:
@@ -311,8 +300,6 @@ sector:
     biomass_to_methanol: false
   ammonia: false
   h2_topology_tyndp: true
-  h2_reference_grid_source: entsoe
-  h2_zones_tyndp: false
   h2_demand_patch_with_mm: true
   gas_network: false
   gas_demand_exogenously: true
@@ -333,13 +320,6 @@ sector:
     enable: true
     carriers:
     - H2
-  offshore_hubs_tyndp:
-    enable: true
-    patch_crossborder_with_mm: true
-    connect_isolated: true
-    max_capacity:
-      DC_OH: 10
-      H2 pipeline OH: 30
 
 costs:
   custom_cost_scn: NT

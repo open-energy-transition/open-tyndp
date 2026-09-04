@@ -8,7 +8,6 @@ Adds all sector-coupling components to the network, including demand and supply
 technologies for the buildings, transport and industry sectors.
 """
 
-import functools
 import logging
 import os
 from itertools import product
@@ -47,73 +46,22 @@ from scripts.add_electricity import (
     sanitize_carriers,
     sanitize_locations,
 )
-from scripts.base_network import _load_links_from_raw
 from scripts.build_energy_totals import (
     build_co2_totals,
     build_eea_co2,
     build_eurostat_co2,
 )
 from scripts.build_transport_demand import transport_degree_factor
+from scripts.build_tyndp_electricity_ntc import apply_tyndp_electricity_ntc
 from scripts.definitions.heat_sector import HeatSector
 from scripts.definitions.heat_system import HeatSystem
 from scripts.prepare_network import maybe_adjust_costs_and_potentials
-from scripts.sb.build_statistics import NODE_MAP
 
 spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
 
 
-def attach_tyndp_transmission_projects(
-    n: pypsa.Network, fn_projects: str, fn_projects_fix: str | None = None
-):
-    """
-    Add TYNDP transmission projects to the network.
-
-    Updates existing DC link capacities and adds new links from the project list.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        Network to attach projects to.
-    fn_projects : str
-        Path to CSV file containing transmission project data.
-    fn_projects_fix : str|None (optional)
-        Path to CSV file containing transmission project corrections. Default is None.
-    """
-    logger.info("Adding transmission projects to the electrical network")
-    projects = _load_links_from_raw(fn_projects)
-    projects["dc"] = True
-    # TODO underwater fraction and capital costs not defined for new links
-
-    # Patch the project list (optional)
-    if fn_projects_fix:
-        logger.info("Patching electrical transmission projects with corrections.")
-        projects_fix = pd.read_csv(fn_projects_fix, quotechar="'", index_col=0).assign(
-            dc=True
-        )
-        new_projects = projects_fix.loc[
-            list(set(projects_fix.index) - set(projects.index))
-        ]
-        projects.loc[:, "p_nom"] = (
-            projects.loc[:, "p_nom"]
-            + projects_fix.p_nom.reindex(projects.index, fill_value=0)
-        ).clip(lower=0)
-        projects = projects[projects.p_nom != 0]
-
-        if not new_projects.empty:
-            projects = pd.concat([projects, new_projects])
-
-    links = n.links[n.links.carrier == "DC"].index
-    new_links = projects.loc[sorted(set(projects.index) - set(links))]
-    n.links.loc[links, "p_nom"] += projects.reindex(links, fill_value=0).p_nom
-
-    if not new_links.empty:
-        n.add("Link", new_links.index, **new_links)
-
-
-def define_spatial(
-    nodes, options, offshore_buses_fn=None, buses_h2_file=None, tyndp_scenario=None
-):
+def define_spatial(nodes, options, buses_h2_file=None, tyndp_scenario=None):
     """
     Namespace for spatial.
 
@@ -131,8 +79,6 @@ def define_spatial(
         - methanol : dict
         - regional_oil_demand : bool
         - regional_coal_demand : bool
-    offshore_buses_fn : str, optional
-        Path to the file containing offshore bus data. Default is None.
     buses_h2_file : str, optional
         Path to the file containing TYNDP H2 buses information. Default is None.
     tyndp_scenario : str, optional
@@ -140,29 +86,6 @@ def define_spatial(
     """
 
     spatial.nodes = nodes
-
-    # offshore hubs
-
-    if options["offshore_hubs_tyndp"]["enable"] and offshore_buses_fn:
-        spatial.offshore_hubs = SimpleNamespace()
-        offshore_buses = pd.read_csv(offshore_buses_fn, index_col=0)
-        offshore_buses_h2 = offshore_buses.set_index(offshore_buses.index + " H2")
-        spatial.offshore_hubs.nodes = offshore_buses.index
-        spatial.offshore_hubs.nodes_h2 = offshore_buses_h2.index
-        spatial.offshore_hubs.carrier = pd.Series("AC_OH", index=offshore_buses.index)
-        spatial.offshore_hubs.carrier_h2 = pd.Series(
-            "H2_OH", index=offshore_buses_h2.index
-        )
-        spatial.offshore_hubs.x = offshore_buses.x
-        spatial.offshore_hubs.y = offshore_buses.y
-        spatial.offshore_hubs.x_h2 = offshore_buses_h2.x
-        spatial.offshore_hubs.y_h2 = offshore_buses_h2.y
-        spatial.offshore_hubs.locations = offshore_buses.location
-        spatial.offshore_hubs.locations_h2 = offshore_buses_h2.location
-        spatial.offshore_hubs.country = offshore_buses.country
-        spatial.offshore_hubs.country_h2 = offshore_buses_h2.country
-        spatial.offshore_hubs.type = offshore_buses.type
-        spatial.offshore_hubs.type_h2 = offshore_buses_h2.type
 
     # biomass
 
@@ -265,36 +188,15 @@ def define_spatial(
         spatial.h2_tyndp = SimpleNamespace()
         buses_h2 = gpd.read_file(buses_h2_file).set_index("bus_id")
 
-        if options["h2_zones_tyndp"]:
-            spatial.h2_tyndp.nodes = pd.Index(
-                (buses_h2.index + " Z1").append(buses_h2.index + " Z2")
-            )
-            spatial.h2_tyndp.locations = pd.Index(np.tile(buses_h2.index + " Z2", 2))
-            spatial.h2_tyndp.country = pd.Index(np.tile(buses_h2.country, 2))
-            spatial.h2_tyndp.x = pd.Index(np.tile(buses_h2.x, 2))
-            spatial.h2_tyndp.y = pd.Index(np.tile(buses_h2.y, 2))
-            spatial.h2_tyndp.df = pd.DataFrame(
-                vars(spatial.h2_tyndp),
-                index=pd.Index((buses_h2.index + " Z1").append(buses_h2.index + " Z2")),
-            )
-            spatial.buses_h2_z1 = spatial.h2_tyndp.nodes[
-                ~spatial.h2_tyndp.nodes.str.contains("IB")
-                & spatial.h2_tyndp.nodes.str.contains("Z1")
-            ]
-            spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[
-                ~spatial.h2_tyndp.nodes.str.contains("IB")
-                & spatial.h2_tyndp.nodes.str.contains("Z2")
-            ]
-        else:
-            spatial.h2_tyndp.nodes = buses_h2.index
-            spatial.h2_tyndp.locations = buses_h2.index
-            spatial.h2_tyndp.country = buses_h2.country
-            spatial.h2_tyndp.x = buses_h2.x
-            spatial.h2_tyndp.y = buses_h2.y
-            spatial.buses_h2_z1 = pd.Index([])
-            spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[
-                ~spatial.h2_tyndp.nodes.str.contains("IB")
-            ]
+        spatial.h2_tyndp.nodes = buses_h2.index
+        spatial.h2_tyndp.locations = buses_h2.index
+        spatial.h2_tyndp.country = buses_h2.country
+        spatial.h2_tyndp.x = buses_h2.x
+        spatial.h2_tyndp.y = buses_h2.y
+        spatial.h2_tyndp.category = buses_h2.category
+        spatial.h2_tyndp.df = pd.DataFrame(vars(spatial.h2_tyndp), index=buses_h2.index)
+        spatial.buses_h2_z1 = spatial.h2_tyndp.nodes[buses_h2.category == "Z1"]
+        spatial.buses_h2_z2 = spatial.h2_tyndp.nodes[buses_h2.category == "Z2"]
 
     # methanol
 
@@ -578,20 +480,25 @@ def create_h2_topology_tyndp(n, fn_h2_network, options):
     fn_h2_network : str
         Pointing to the input TYNDP H2 reference grid csv file.
     options : dict
-        Dictionary of configuration options. Key options include:
-        - h2_zones_tyndp : bool
+        Dictionary of configuration options.
 
     Returns
     -------
     pd.DataFrame with columns bus0, bus1, length, underwater_fraction
     """
 
-    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
-    # load H2 pipes
     h2_pipes = pd.read_csv(fn_h2_network, index_col=0)
-    h2_pipes = h2_pipes.assign(
-        bus0=h2_pipes.bus0 + f" {suffix}", bus1=h2_pipes.bus1 + f" {suffix}"
-    )
+
+    known_buses = h2_pipes.bus0.isin(n.buses.index) & h2_pipes.bus1.isin(n.buses.index)
+    if not known_buses.all():
+        missing = pd.concat([h2_pipes.bus0, h2_pipes.bus1])[
+            ~pd.concat([h2_pipes.bus0, h2_pipes.bus1]).isin(n.buses.index)
+        ].unique()
+        logger.warning(
+            f"Dropping H2 pipes with unknown bus(es): {', '.join(sorted(missing))}"
+        )
+        h2_pipes = h2_pipes.loc[known_buses]
+
     h2_pipes["length"] = h2_pipes.apply(haversine, axis=1, args=(n,))
 
     return h2_pipes
@@ -1534,7 +1441,8 @@ def _add_other_non_res_tyndp(
     query = "" if "ccs" in generator else "not"
 
     price_bands = pemmdb_capacities.query(
-        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
+        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0",
+        engine="python",  # numexpr chokes on "not" combined with .str methods here
     ).reset_index()
     nodes = price_bands.bus.values
     offer_price = price_bands.price
@@ -3490,6 +3398,7 @@ def add_h2_production_tyndp(
     nodes: pd.Index,
     buses_h2: pd.Index,
     costs: pd.DataFrame,
+    spatial: SimpleNamespace,
     options: dict = {},
 ) -> None:
     """
@@ -3505,6 +3414,8 @@ def add_h2_production_tyndp(
         Pandas Index of hydrogen nodes to which H2 production technologies will connect.
     costs : pd.DataFrame
         Technology cost assumptions.
+    spatial : SimpleNamespace
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
         Key options include:
@@ -3520,14 +3431,17 @@ def add_h2_production_tyndp(
         The function modifies the network object in-place by adding components.
     """
 
-    suffix = "H2 Z1" if options["h2_zones_tyndp"] else "H2"
+    country_map = spatial.h2_tyndp.df.country
+    zone_country = country_map.reindex(buses_h2)
+    country_to_bus = pd.Series(zone_country.index, index=zone_country.values)
+    country_to_bus = country_to_bus[~country_to_bus.index.duplicated()]
 
-    # Add electrolysis to Z1 or in NT case general H2 nodes
+    # Add electrolysis to Z1
     n.add(
         "Link",
-        nodes.index + f" {suffix} Electrolysis",
+        nodes.index + " H2 Z1 Electrolysis",
         bus0=nodes.index,
-        bus1=(nodes.country + f" {suffix}").values,
+        bus1=nodes.country.map(country_to_bus).values,
         p_nom_extendable=True,
         carrier="H2 Electrolysis",
         efficiency=costs.at["electrolysis", "efficiency"],
@@ -3536,18 +3450,20 @@ def add_h2_production_tyndp(
     )
 
     # Add electrolysis to Z2
-    if options["h2_zones_tyndp"]:
-        n.add(
-            "Link",
-            nodes.index + " H2 Z2 Electrolysis",
-            bus0=nodes.index,
-            bus1=(nodes.country + " H2 Z2").values,
-            p_nom_extendable=True,
-            carrier="H2 Electrolysis",
-            efficiency=costs.at["electrolysis", "efficiency"],
-            capital_cost=costs.at["electrolysis", "capital_cost"],
-            lifetime=costs.at["electrolysis", "lifetime"],
-        )
+    zone_country_z2 = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
+    country_to_bus_z2 = pd.Series(zone_country_z2.index, index=zone_country_z2.values)
+    country_to_bus_z2 = country_to_bus_z2[~country_to_bus_z2.index.duplicated()]
+    n.add(
+        "Link",
+        nodes.index + " H2 Z2 Electrolysis",
+        bus0=nodes.index,
+        bus1=nodes.country.map(country_to_bus_z2).values,
+        p_nom_extendable=True,
+        carrier="H2 Electrolysis",
+        efficiency=costs.at["electrolysis", "efficiency"],
+        capital_cost=costs.at["electrolysis", "capital_cost"],
+        lifetime=costs.at["electrolysis", "lifetime"],
+    )
 
     if options["SMR_cc"]:
         # TODO: this does currently only work for no gas spatial
@@ -3650,8 +3566,8 @@ def add_h2_dres_tyndp(
         v_nom=380.0,
         carrier="AC_DRES",
         unit="MWh_el",
-        substation_off=1.0,
-        substation_lv=1.0,
+        substation_off=True,
+        substation_lv=True,
     )
     n.add(
         "Link",
@@ -3703,7 +3619,9 @@ def add_h2_reconversion_tyndp(
         The function modifies the network object in-place by adding components.
     """
 
-    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
+    zone_country = spatial.h2_tyndp.df.country.reindex(buses_h2)
+    country_to_bus = pd.Series(zone_country.index, index=zone_country.values)
+    country_to_bus = country_to_bus[~country_to_bus.index.duplicated()]
 
     if options["methanation"]:
         # TODO: this does currently only work for no gas spatial and no co2 spatial
@@ -3728,8 +3646,8 @@ def add_h2_reconversion_tyndp(
     if options["hydrogen_fuel_cell"]:
         n.add(
             "Link",
-            nodes.index + f" {suffix} h2-fuel-cell",
-            bus0=(nodes.country + f" {suffix}").values,
+            nodes.index + " H2 Z2 h2-fuel-cell",
+            bus0=nodes.country.map(country_to_bus).values,
             bus1=nodes.index,
             p_nom_extendable=False,
             carrier="h2-fuel-cell",
@@ -3745,8 +3663,8 @@ def add_h2_reconversion_tyndp(
         )
         n.add(
             "Link",
-            nodes.index + f" {suffix} h2-ccgt",
-            bus0=(nodes.country + f" {suffix}").values,
+            nodes.index + " H2 Z2 h2-ccgt",
+            bus0=nodes.country.map(country_to_bus).values,
             bus1=nodes.index,
             p_nom_extendable=False,
             carrier="h2-ccgt",
@@ -3762,30 +3680,23 @@ def add_h2_reconversion_tyndp(
 
 def add_h2_grid_tyndp(
     n: pypsa.Network,
-    nodes: pd.Index,
     h2_pipes_file: str,
-    interzonal_file: str,
     costs: pd.DataFrame,
     options: dict,
 ) -> None:
     """
-    Adds TYNDP hydrogen pipelines and interzonal (Z1 <-> Z2) connections.
+    Adds TYNDP hydrogen pipelines.
 
     Parameters
     ----------
     n : pypsa.Network
         The PyPSA network container object.
-    nodes : pd.Index
-        Pandas Index of electricity node locations/nodes.
     h2_pipes_file : str
         Path to CSV file containing prepped H2 reference grid data.
-    interzonal_file : str
-        Path to CSV file containing prepped H2 interzonal connection data.
     costs : pd.DataFrame
         Technology cost assumptions.
     options : dict
-        Dictionary of configuration options. Key options include:
-        - h2_zones_tyndp : bool
+        Dictionary of configuration options.
 
     Returns
     -------
@@ -3796,7 +3707,6 @@ def add_h2_grid_tyndp(
     h2_pipes = create_h2_topology_tyndp(
         n=n, fn_h2_network=h2_pipes_file, options=options
     )
-    interzonal = pd.read_csv(interzonal_file, index_col=0)
 
     logger.info("Adding TYNDP H2 reference grid pipelines.")
     n.add(
@@ -3810,28 +3720,6 @@ def add_h2_grid_tyndp(
         bidirectional=False,
         capital_cost=costs.at["H2 (g) pipeline", "capital_cost"]
         * h2_pipes.length.values,
-        carrier="H2 pipeline",
-        lifetime=costs.at["H2 (g) pipeline", "lifetime"],
-    )
-
-    # for NT scenario there are no interzonal connections as only one H2 zone is modelled
-    if interzonal.empty:
-        return
-
-    interzonal = interzonal.assign(
-        bus0=interzonal.bus0.str.split("H2").str.join(" H2 "),
-        bus1=interzonal.bus1.str.split("H2").str.join(" H2 "),
-    )
-    interzonal = interzonal.loc[
-        interzonal.bus0.str.startswith(tuple(nodes.country.values))
-    ]
-    n.add(
-        "Link",
-        interzonal.index,
-        bus0=interzonal.bus0,
-        bus1=interzonal.bus1,
-        p_nom_extendable=False,
-        p_nom=interzonal.p_nom,
         carrier="H2 pipeline",
         lifetime=costs.at["H2 (g) pipeline", "lifetime"],
     )
@@ -3936,7 +3824,6 @@ def add_h2_storage_tyndp(
         Technology cost assumptions.
     options : dict, optional
         Dictionary of configuration options. Defaults to empty dict if not provided.
-       - h2_zones_tyndp : bool
 
     Returns
     -------
@@ -3945,14 +3832,13 @@ def add_h2_storage_tyndp(
     """
 
     # Add underground hydrogen cavern storage to all H2 Z2 nodes
-    suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
-    logger.info(f"Adding TYNDP H2 underground storage to {suffix} nodes.")
+    logger.info("Adding TYNDP H2 underground storage to H2 Z2 nodes.")
     _add_h2_stores_and_links_tyndp(
         n=n,
         storage_tech="cavern-storage",
         buses=buses_h2_z2,
         costs=costs,
-        extendable=options["h2_zones_tyndp"],
+        extendable=True,
     )
 
     # add overground hydrogen tank storage to all H2 Z1 nodes
@@ -3972,21 +3858,21 @@ def add_h2_topology_tyndp(
     pop_layout: pd.DataFrame,
     spatial: SimpleNamespace,
     h2_pipes_file: str,
-    interzonal_file: str,
     costs: pd.DataFrame,
     options: dict,
-    h2_demand_file: str,
+    h2_demand_z1_file: str,
+    h2_demand_z2_file: str,
 ) -> None:
     """
     Add TYNDP H2 topology to the network.
     This adds new single country H2 buses (Z1 + Z2 nodes) and pipeline connections
-    between the different countries as well as interzonal connections within a country.
+    between the different countries.
 
     Additionally added:
         * H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
         * H2 DRES electricity nodes and Electrolysis to H2 Z2
         * H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
-        * H2 grid (H2 reference grid and interzonal (Z1 <-> Z2) capacities)
+        * H2 grid (H2 reference grid)
         * H2 storage (Z1: H2 tanks; Z2: Salt caverns)
 
     Parameters
@@ -3999,14 +3885,14 @@ def add_h2_topology_tyndp(
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     h2_pipes_file : str
         Path to CSV file containing prepped H2 reference grid data.
-    interzonal_file : str
-        Path to CSV file containing prepped H2 interzonal connection data.
     costs : pd.DataFrame
         Technology cost assumptions.
     options : dict, optional
        Dictionary of configuration options. Defaults to empty dict if not provided.
-    h2_demand_file : str
-        Path to CSV file containing exogenous hydrogen demand time series.
+    h2_demand_z1_file : str
+        Path to CSV file containing exogenous Z1 hydrogen demand time series.
+    h2_demand_z2_file : str
+        Path to CSV file containing exogenous Z2 hydrogen demand time series.
 
 
     Returns
@@ -4022,10 +3908,18 @@ def add_h2_topology_tyndp(
     # add H2 as carrier
     n.add("Carrier", "H2")
 
-    # filter for electricity nodes and H2 buses
-    nodes = n.buses.loc[pop_layout.index, :].query(
-        "country in @spatial.h2_tyndp.country"
-    )
+    electricity_nodes = n.buses.index.intersection(pop_layout.index)
+    missing_nodes = pop_layout.index.difference(n.buses.index)
+    if not missing_nodes.empty:
+        logger.warning(
+            f"Dropping TYNDP nodes not present in the network (no reference-grid "
+            f"connections): {', '.join(sorted(missing_nodes))}"
+        )
+
+    h2_zone_countries = spatial.h2_tyndp.df.country[  # noqa: F841
+        spatial.h2_tyndp.df.category.isin(["Z1", "Z2"])
+    ].unique()
+    nodes = n.buses.loc[electricity_nodes, :].query("country in @h2_zone_countries")
 
     # add H2 Buses
     logger.info("Adding TYNDP H2 nodes.")
@@ -4037,6 +3931,7 @@ def add_h2_topology_tyndp(
         y=spatial.h2_tyndp.y,
         location=spatial.h2_tyndp.locations,
         country=spatial.h2_tyndp.country,
+        category=spatial.h2_tyndp.category,
         carrier="H2",
         unit="MWh_LHV",
     )
@@ -4045,15 +3940,27 @@ def add_h2_topology_tyndp(
     buses_h2_z1 = spatial.buses_h2_z1
     buses_h2_z2 = spatial.buses_h2_z2
 
+    # countries without a dedicated Z1 bus use their Z2 bus for Z1-role production
+    country_z1 = pd.Series(
+        buses_h2_z1, index=spatial.h2_tyndp.df.loc[buses_h2_z1].country.values
+    )
+    country_z2 = pd.Series(
+        buses_h2_z2, index=spatial.h2_tyndp.df.loc[buses_h2_z2].country.values
+    )
+    buses_h2_z1_effective = pd.Index(country_z1.combine_first(country_z2))
+
     # add H2 production (Z1: Electrolysis, SMR (optional), SMR CC (optional), ATR; Z2: Electrolysis)
-    buses_h2 = buses_h2_z1 if options["h2_zones_tyndp"] else buses_h2_z2
     add_h2_production_tyndp(
-        n=n, nodes=nodes, buses_h2=buses_h2, costs=costs, options=options
+        n=n,
+        nodes=nodes,
+        buses_h2=buses_h2_z1_effective,
+        costs=costs,
+        spatial=spatial,
+        options=options,
     )
 
     # add H2 DRES electricity nodes and Electrolysis to H2 Z2
-    if options["h2_zones_tyndp"]:
-        add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
+    add_h2_dres_tyndp(n=n, spatial=spatial, buses_h2_z2=buses_h2_z2, costs=costs)
 
     # add H2 reconversion (Fuel cells (optional), H2 turbines (optional), methanation (optional))
     add_h2_reconversion_tyndp(
@@ -4065,12 +3972,10 @@ def add_h2_topology_tyndp(
         options=options,
     )
 
-    # add H2 grid (H2 reference grid and interzonal (Z1 <-> Z2) capacities)
+    # add H2 grid (H2 reference grid)
     add_h2_grid_tyndp(
         n=n,
-        nodes=nodes,
         h2_pipes_file=h2_pipes_file,
-        interzonal_file=interzonal_file,
         costs=costs,
         options=options,
     )
@@ -4085,10 +3990,14 @@ def add_h2_topology_tyndp(
     )
 
     # add exogenous hydrogen demand
-    add_h2_demand_tyndp(n=n, h2_demand_file=h2_demand_file)
+    add_h2_demand_tyndp(
+        n=n, h2_demand_z1_file=h2_demand_z1_file, h2_demand_z2_file=h2_demand_z2_file
+    )
 
 
-def add_h2_demand_tyndp(n: pypsa.Network, h2_demand_file: str) -> None:
+def add_h2_demand_tyndp(
+    n: pypsa.Network, h2_demand_z1_file: str, h2_demand_z2_file: str
+) -> None:
     """
     Add exogenous TYNDP hydrogen demand to the network.
 
@@ -4096,14 +4005,20 @@ def add_h2_demand_tyndp(n: pypsa.Network, h2_demand_file: str) -> None:
     ----------
     n : pypsa.Network
         The PyPSA network container object.
-    h2_demand_file : str
-        Path to CSV file containing exogenous hydrogen demand time series.
+    h2_demand_z1_file : str
+        Path to CSV file containing exogenous Z1 hydrogen demand time series.
+    h2_demand_z2_file : str
+        Path to CSV file containing exogenous Z2 hydrogen demand time series.
     """
     logger.info("Add exogenous hydrogen demand to network")
 
-    demand = pd.read_csv(h2_demand_file, index_col=0, parse_dates=True).drop(
-        columns=["year", "source", "scenario"], errors="ignore"
-    )
+    demand = pd.concat(
+        [
+            pd.read_csv(h2_demand_z1_file, index_col=0, parse_dates=True),
+            pd.read_csv(h2_demand_z2_file, index_col=0, parse_dates=True),
+        ],
+        axis=1,
+    ).reindex(n.snapshots)
 
     # check for missing buses
     h2_buses = n.buses[n.buses.carrier == "H2"].index
@@ -4600,13 +4515,13 @@ def add_h2_gas_infrastructure(
     pop_layout,
     h2_cavern_file,
     h2_pipes_file,
-    interzonal_file,
     cavern_types,
     clustered_gas_network_file,
     gas_input_nodes,
     spatial,
     options,
-    h2_demand_file,
+    h2_demand_z1_file,
+    h2_demand_z2_file,
 ):
     """
     Add hydrogen and gas infrastructure to the network.
@@ -4623,8 +4538,6 @@ def add_h2_gas_infrastructure(
         Path to CSV file containing hydrogen cavern storage potentials.
     h2_pipes_file : str
         Path to CSV file containing prepped H2 reference grid data.
-    interzonal_file : str
-        Path to CSV file containing prepped H2 interzonal connection data.
     cavern_types : list
         List of underground storage types to consider.
     clustered_gas_network_file : str, optional
@@ -4646,8 +4559,10 @@ def add_h2_gas_infrastructure(
         - SMR : bool
         - cc_fraction : float
         - methanation : bool
-    h2_demand_file : str
-        Path to CSV file containing exogenous hydrogen demand data.
+    h2_demand_z1_file : str
+        Path to CSV file containing exogenous Z1 hydrogen demand data.
+    h2_demand_z2_file : str
+        Path to CSV file containing exogenous Z2 hydrogen demand data.
 
     Returns
     -------
@@ -4672,10 +4587,10 @@ def add_h2_gas_infrastructure(
             pop_layout=pop_layout,
             spatial=spatial,
             h2_pipes_file=h2_pipes_file,
-            interzonal_file=interzonal_file,
             costs=costs,
             options=options,
-            h2_demand_file=h2_demand_file,
+            h2_demand_z1_file=h2_demand_z1_file,
+            h2_demand_z2_file=h2_demand_z2_file,
         )
     else:
         # add base h2 technologies (carrier, production, reconversion, storage)
@@ -4736,615 +4651,6 @@ def add_h2_gas_infrastructure(
 
     if options["H2_network"] and not options["h2_topology_tyndp"]:
         add_h2_pipeline_new(n=n, costs=costs)
-
-
-def add_offshore_generators_tyndp(
-    n: pypsa.Network,
-    pyear: int,
-    offshore_generators_fn: str,
-    profiles_pecd: pd.Series,
-    costs: pd.DataFrame,
-    nyears: float = 1,
-):
-    """
-    Add offshore generators to the network model.
-
-    This function adds offshore generation capacity, various offshore wind
-    turbines (AC and H2), to the offshore hub buses in the network.
-
-    Existing capacities and potentials are adjusted for hydrogen-generating wind farms
-    to account for efficiency.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The network object to add offshore generators to.
-    pyear : int
-        Planning horizon used to filter which reference generator data to include.
-    offshore_generators_fn : str
-        Path to the file containing offshore generators configuration data.
-    profiles_pecd : pd.Series
-        Series mapping technology names (indexes) to PECD profile file paths (values).
-    costs : pd.DataFrame
-        Technology costs assumptions.
-    nyears : float, default 1
-        Number of years for which to scale the investment costs.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by adding offshore generators.
-    """
-    logger.info("Adding offshore generators")
-
-    offshore_generators = pd.read_csv(offshore_generators_fn).query("pyear==@pyear")
-
-    # Assign locations and index
-    offshore_generators.index = (
-        offshore_generators.location + " 0 " + offshore_generators.carrier
-    )
-
-    # Adjust capacities and costs to account for efficiency
-    h2_idx = offshore_generators.filter(like="h2", axis=0).index
-    offshore_generators["efficiency"] = np.where(
-        offshore_generators["carrier"].str.contains("h2"),
-        costs.at["electrolysis", "efficiency"],
-        1.0,
-    )
-    offshore_generators.loc[h2_idx, ["p_nom_min", "p_nom_max"]] *= costs.at[
-        "electrolysis", "efficiency"
-    ]
-    offshore_generators.loc[h2_idx, ["capex", "opex"]] /= costs.at[
-        "electrolysis", "efficiency"
-    ]
-
-    # Determine capital_cost
-    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
-    offshore_generators.loc[:, "capital_cost"] = (
-        annuity_factor.get("electrolysis") * offshore_generators["capex"]
-        + offshore_generators["opex"]
-    ) * nyears
-
-    # Only consider the lifetime if some of the assets are extendable
-    if offshore_generators.p_nom_extendable.all():
-        lifetime = costs.at["offwind", "lifetime"]
-    else:
-        lifetime = np.inf
-
-    # Load PECD profiles
-    p_max_pu = []
-
-    @functools.cache
-    def read_profile(fn):
-        with xr.open_dataset(fn) as ds:
-            ds = ds.stack(bus_bin=["bus", "bin"])
-            return ds["profile"].sel(year=pyear, time=n.snapshots).to_pandas()
-
-    for key, fn in profiles_pecd.items():
-        tech = key.removeprefix("profile_")
-
-        if tech not in offshore_generators.carrier.unique():
-            continue
-
-        p_max_pu_i = read_profile(fn).copy()
-        p_max_pu_i.columns = p_max_pu_i.columns.map(flatten) + f" {tech}"
-        p_max_pu.append(p_max_pu_i)
-
-    p_max_pu = pd.concat(p_max_pu, axis=1).reindex(offshore_generators.index, axis=1)
-
-    # Add generators to the network
-    n.add(
-        "Generator",
-        offshore_generators.index,
-        bus=offshore_generators.bus,
-        carrier=offshore_generators.carrier,
-        p_nom=offshore_generators.p_nom_min,
-        p_nom_min=offshore_generators.p_nom_min,
-        p_nom_max=offshore_generators.p_nom_max,
-        p_nom_extendable=offshore_generators.p_nom_extendable,
-        capital_cost=offshore_generators.capital_cost,
-        marginal_cost=costs.at["offwind", "marginal_cost"],
-        efficiency_dc_to_b0=offshore_generators.efficiency,
-        efficiency_dc_to_h2=costs.at["electrolysis", "efficiency"],
-        p_max_pu=p_max_pu,
-        lifetime=lifetime,
-    )
-
-    remove_zero_capacity_non_extendable(
-        n, carriers=offshore_generators.carrier.unique(), component_types={"Generator"}
-    )
-
-
-def add_offshore_electrolysers_tyndp(
-    n: pypsa.Network,
-    pyear: int,
-    offshore_electrolysers_fn: str,
-    costs: pd.DataFrame,
-    nyears: float = 1,
-):
-    """
-    Add offshore electrolysers to the network model.
-
-    This function adds offshore electrolysis capacity to the offshore hub buses in the network.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The network object to add offshore generators to.
-    pyear : int
-        Planning horizon used to filter which reference generator data to include.
-    offshore_electrolysers_fn : str
-        Path to the file containing offshore electrolysers configuration data.
-    costs : pd.DataFrame
-        Technology costs assumptions.
-    nyears : float, default 1
-        Number of years for which to scale the investment costs.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by adding offshore generators.
-    """
-    logger.info("Adding offshore electrolysers")
-
-    offshore_electrolysers = pd.read_csv(offshore_electrolysers_fn).query(
-        "pyear==@pyear"
-    )
-    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
-    offshore_electrolysers.index = (
-        offshore_electrolysers.bus0 + " H2 Offshore Electrolysis"
-    )
-
-    offshore_electrolysers.loc[:, "capital_cost"] = (
-        annuity_factor.get("electrolysis") * offshore_electrolysers["capex"]
-        + offshore_electrolysers["opex"]
-    ) * nyears
-
-    # Only consider the lifetime if some of the assets are extendable
-    if offshore_electrolysers.p_nom_extendable.all():
-        lifetime = costs.at["electrolysis", "lifetime"]
-    else:
-        lifetime = np.inf
-
-    n.add(
-        "Link",
-        offshore_electrolysers.index,
-        bus0=offshore_electrolysers.bus0,
-        bus1=offshore_electrolysers.bus1,
-        p_nom_extendable=offshore_electrolysers.p_nom_extendable,
-        carrier="H2 Electrolysis",
-        efficiency=costs.at["electrolysis", "efficiency"],
-        capital_cost=offshore_electrolysers.capital_cost,
-        lifetime=lifetime,
-    )
-
-    # Remove zero-capacity and non-extendable electrolysers
-    # Please keep in mind that the carrier is shared with onshore electrolysers
-    # Onshore electrolyser capacities must be defined before this point
-    remove_zero_capacity_non_extendable(
-        n, carriers=["H2 Electrolysis"], component_types={"Link"}
-    )
-
-
-def patch_offshore_grid_tyndp(
-    n: pypsa.Network,
-    offshore_fix_fn: str,
-    offshore_grid_dc: pd.DataFrame,
-    lifetime: int,
-):
-    """
-    Patch the offshore grid connections using the provided fix dataset. This fix strictly applies to the electrical network.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The network object to patch offshore grid connections in.
-    offshore_fix_fn : str
-        Path to the file containing offshore grid fixes to apply.
-    offshore_grid_dc : pd.DataFrame
-        DataFrame containing offshore grid data.
-    lifetime : int
-        Lifetime of the new offshore links.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by patching offshore grid links.
-    """
-    logger.info("Patching offshore interconnector capacities with corrections.")
-
-    # Read and format the fixes to apply
-    node_map_inv = {v: k for k, v in NODE_MAP.items()}
-    fix_raw = (
-        pd.read_csv(offshore_fix_fn, header=None, index_col=0)
-        .replace(regex=node_map_inv)
-        .T.set_index(["carrier", "border"])
-        .loc["electricity", ["max", "min"]]
-        .drop(index="unit")
-        .assign(
-            max=lambda df: df["max"].astype(float),
-            min=lambda df: df["min"].astype(float),
-            p_nom=lambda df: df["max"],
-            bus0=lambda df: df.index.str.split("->").str[0],
-            bus1=lambda df: df.index.str.split("->").str[1],
-        )
-    )
-
-    # Remap buses and aggregate duplicate borders
-    # TODO Remove this once the OH dataset bus names align with the Market Model outputs
-    fix_raw = (
-        fix_raw.reset_index()
-        .replace(regex={"DKKF": "DKE1", "NL60": "NLOH001", "NL6H": "NLOH001"})
-        .groupby("border")
-        .agg(
-            dict.fromkeys(["min", "max", "p_nom"], "sum")
-            | dict.fromkeys(["bus0", "bus1"], "first")
-        )
-    )
-
-    # Keep only borders with at least one offshore hub bus
-    fix_raw = fix_raw.query(
-        "bus0 in @spatial.offshore_hubs.nodes or bus1 in @spatial.offshore_hubs.nodes"
-    )
-
-    # Build reverse-direction fixes by swapping bus0/bus1
-    fix_inv = fix_raw.assign(
-        p_nom=lambda df: df["min"].mul(-1),
-        bus0_=lambda df: df.bus0,
-        bus0=lambda df: df.bus1,
-        bus1=lambda df: df.bus0_,
-    ).drop(columns="bus0_")
-
-    fix = (
-        pd.concat([fix_raw, fix_inv])
-        .assign(
-            border=lambda df: df.bus0 + "-" + df.bus1 + "-Offshore DC",
-            border_inv=lambda df: df.bus1 + "-" + df.bus0 + "-Offshore DC",
-        )
-        .set_index("border")
-        .query("p_nom>0")  # all the fixes are unidirectional
-        .drop(columns=["max", "min"])
-    )
-
-    # Retrieve existing offshore links
-    links_oh = n.links[n.links.carrier.isin(offshore_grid_dc.carrier.unique())].assign(
-        border_inv=lambda df: df.bus1 + "-" + df.bus0 + "-Offshore DC"
-    )
-
-    # Identify new links to add
-    new_links_oh = fix.loc[
-        fix.index.difference(links_oh.index).difference(links_oh.border_inv)
-    ].query("bus0 in @n.buses.index and bus1 in @n.buses.index")
-
-    # Identify capacities to update
-    fix_p_max = fix.loc[fix.index.intersection(links_oh.index), "p_nom"].rename("p_max")
-    fix_p_min = (
-        fix.loc[fix.index.intersection(links_oh.border_inv)]
-        .set_index("border_inv")
-        .p_nom.mul(-1)
-        .rename("p_min")
-    )
-
-    existing_oh_p = pd.concat([fix_p_max, fix_p_min], axis=1)
-    current = links_oh.loc[existing_oh_p.index]
-    existing_oh_pu = (
-        existing_oh_p.assign(
-            p_max=lambda df: df.p_max.where(
-                df.p_max > current.p_nom * current.p_max_pu
-            ),
-            p_min=lambda df: df.p_min.where(
-                df.p_min < current.p_nom * current.p_min_pu
-            ),
-        )
-        .dropna(subset=["p_max", "p_min"], how="all")
-        .assign(
-            p_nom=lambda df: pd.concat(
-                [n.links.loc[df.index, "p_nom"], df[["p_min", "p_max"]].abs()], axis=1
-            ).max(axis=1),
-            p_min_pu=lambda df: df.p_min.div(df.p_nom),
-            p_max_pu=lambda df: df.p_max.div(df.p_nom),
-        )
-    )
-
-    # Update existing links
-    for c in ["p_min_pu", "p_max_pu"]:
-        idx = existing_oh_pu.dropna(subset=c).index
-        n.links.loc[idx, [c, "p_nom"]] = existing_oh_pu.loc[idx, [c, "p_nom"]]
-
-    # Manually patch EE00 <> LV00 interconnection to match observed Market Model flows
-    if "LV00-EEOH001-Offshore DC" in new_links_oh.index:
-        new_links_oh.loc["LV00-LVOH001-Offshore DC"] = new_links_oh.loc[
-            "LV00-EEOH001-Offshore DC"
-        ]
-        new_links_oh.loc["LV00-LVOH001-Offshore DC", "bus1"] = "LVOH001"
-    new_links_oh = new_links_oh.drop(
-        ["LV00-EEOH001-Offshore DC", "EEOH001-LV00-Offshore DC"], errors="ignore"
-    )
-
-    # Add new links
-    n.add(
-        "Link",
-        new_links_oh.index,
-        bus0=new_links_oh.bus0,
-        bus1=new_links_oh.bus1,
-        p_nom_extendable=False,
-        p_nom=new_links_oh.p_nom,
-        p_min_pu=0,
-        p_max_pu=1,
-        carrier="DC_OH",
-        lifetime=lifetime,
-    )
-
-
-def add_offshore_grid_tyndp(
-    n: pypsa.Network,
-    pyear: int,
-    offshore_grid_fn: str,
-    costs: pd.DataFrame,
-    options: dict,
-    nyears: float = 1,
-    offshore_fix_fn: str | None = None,
-):
-    """
-    Add offshore grid connections to the network model.
-
-    This function reads offshore grid configuration data and adds both DC and H2 pipeline links to the network.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The network object to add offshore grid connections to.
-    pyear : int
-        Planning horizon used to filter which reference grid data to include.
-    offshore_grid_fn : str
-        Path to the file containing offshore grid configuration data.
-    costs : pd.DataFrame
-        Technology costs assumptions.
-    options : dict
-        Configuration options containing at least:
-        - offshore_hubs.connect_isolated : bool
-    nyears : float, default 1
-        Number of years for which to scale the investment costs.
-    offshore_fix_fn : str or None, default None
-        Path to the file containing offshore grid fixes to apply.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by adding offshore grid links.
-
-
-    Notes
-    -----
-    The capital costs are calculated as:
-    (annuity_factor * capex + opex) * nyears
-
-    """
-    logger.info("Adding offshore grid connections")
-
-    offshore_grid = pd.read_csv(offshore_grid_fn).query("pyear==@pyear")
-    annuity_factor = calculate_annuity(costs["lifetime"], costs["discount rate"])
-
-    # Add DC grid connections
-    offshore_grid_dc = offshore_grid.query("carrier=='DC_OH'").copy()
-    offshore_grid_dc.index = offshore_grid_dc.apply(
-        lambda x: f"{x.bus0}-{x.bus1}-Offshore DC", axis=1
-    )
-    offshore_grid_dc.loc[:, "capital_cost"] = (
-        annuity_factor.get("HVDC submarine") * offshore_grid_dc["capex"]
-        + offshore_grid_dc["opex"]
-    ) * nyears
-
-    # Only consider the lifetime if some of the assets are extendable
-    if offshore_grid_dc.p_nom_extendable.all():
-        lifetime = costs.at["HVDC submarine", "lifetime"]
-    else:
-        lifetime = np.inf
-
-    n.add(
-        "Link",
-        offshore_grid_dc.index,
-        bus0=offshore_grid_dc.bus0,
-        bus1=offshore_grid_dc.bus1,
-        p_nom_extendable=offshore_grid_dc.p_nom_extendable,
-        p_nom=offshore_grid_dc.p_nom_min,
-        p_nom_min=offshore_grid_dc.p_nom_min,
-        p_nom_max=offshore_grid_dc.p_nom_max,
-        p_min_pu=offshore_grid_dc.p_min_pu,
-        p_max_pu=offshore_grid_dc.p_max_pu,
-        capital_cost=offshore_grid_dc.capital_cost,
-        carrier=offshore_grid_dc.carrier,
-        lifetime=lifetime,
-    )
-
-    # Optionally patch the grid definition
-    if offshore_fix_fn:
-        patch_offshore_grid_tyndp(n, offshore_fix_fn, offshore_grid_dc, lifetime)
-
-    # Add H2 pipeline connections
-    offshore_grid_h2 = offshore_grid.query("carrier=='H2 pipeline OH'").copy()
-    offshore_grid_h2.index = offshore_grid_h2.apply(
-        make_index, axis=1, prefix="Offshore H2 pipeline"
-    )
-    offshore_grid_h2.loc[:, "capital_cost"] = (
-        annuity_factor.get("H2 (g) submarine pipeline") * offshore_grid_h2["capex"]
-        + offshore_grid_h2["opex"]
-    ) * nyears
-
-    # Only consider the lifetime if some of the assets are extendable
-    if offshore_grid_h2.p_nom_extendable.all():
-        lifetime = costs.at["H2 (g) submarine pipeline", "lifetime"]
-    else:
-        lifetime = np.inf
-
-    n.add(
-        "Link",
-        offshore_grid_h2.index,
-        bus0=offshore_grid_h2.bus0,
-        bus1=offshore_grid_h2.bus1,
-        p_nom_extendable=offshore_grid_h2.p_nom_extendable,
-        p_nom=offshore_grid_h2.p_nom_min,
-        p_nom_min=offshore_grid_h2.p_nom_min,
-        p_nom_max=offshore_grid_h2.p_nom_max,
-        p_min_pu=offshore_grid_h2.p_min_pu,
-        p_max_pu=offshore_grid_h2.p_max_pu,
-        capital_cost=offshore_grid_h2.capital_cost,
-        carrier=offshore_grid_h2.carrier,
-        lifetime=lifetime,
-    )
-
-    # Copperplate isolated wind farms to the grid
-    if options["offshore_hubs_tyndp"]["connect_isolated"]:
-        links_oh = n.links.query("carrier.isin(['DC_OH', 'H2 pipeline OH'])")
-        buses_oh_idx = n.buses.query("carrier in ['AC_OH', 'H2_OH']").index
-
-        query_str = "p_nom_extendable or p_nom > 0"
-        links_oh_cap = links_oh.query(query_str)
-        links_oh_no = links_oh.query(f"~({query_str})")
-
-        buses_cap = set(pd.concat([links_oh_cap.bus0, links_oh_cap.bus1])).intersection(
-            buses_oh_idx
-        )
-        buses_no = set(pd.concat([links_oh_no.bus0, links_oh_no.bus1])).intersection(
-            buses_oh_idx
-        )
-        buses_unconnected = set(buses_no) - set(buses_cap)  # noqa: F841
-        buses_mainland = n.buses.query(  # noqa: F841
-            "carrier in ['AC', 'H2', 'H2 Z1', 'H2 Z2']"
-        ).index
-        buses_target = n.generators.query(  # noqa: F841
-            "carrier.str.contains('offwind') "
-            "and bus in @buses_unconnected "
-            "and p_nom > 0"
-        ).bus
-
-        # identify the minimal list of links to patch with copperplating
-        # prioritise interconnection within the same country
-        idx_patch = []
-        for b0 in buses_target:
-            b1_candidates = (
-                links_oh_no.query("bus0==@b0 and bus1 in @buses_mainland")
-                .sort_index()
-                .bus1
-            )
-            b0_c = n.buses.loc[b0].country
-            b1_candidates_c = b1_candidates.map(n.buses.loc[b1_candidates].country)
-            if b0_c in b1_candidates_c.values:
-                b1 = b1_candidates[b1_candidates_c == b0_c].iloc[0]  # noqa: F841
-            else:
-                b1 = b1_candidates[0]  # noqa: F841
-            idx_patch.extend(links_oh_no.query("bus0 == @b0 and bus1 == @b1").index)
-        idx_patch = pd.Index(idx_patch).drop_duplicates()
-
-        n.links.loc[idx_patch, "p_nom"] = np.inf
-        n.links.loc[idx_patch, "capital_cost"] = 0
-
-    remove_zero_capacity_non_extendable(
-        n, carriers=offshore_grid.carrier.unique(), component_types={"Link"}
-    )
-
-
-def add_offshore_hubs_tyndp(
-    n: pypsa.Network,
-    pyear: int,
-    offshore_generators_fn: str,
-    offshore_electrolysers_fn: str,
-    offshore_grid_fn: str,
-    profiles_pecd: pd.Series,
-    costs: pd.DataFrame,
-    spatial: SimpleNamespace,
-    options: dict,
-    nyears: float = 1,
-    offshore_fix_fn: str | None = None,
-):
-    """
-    Add offshore hubs and grid connections to the network model.
-
-    This function creates offshore hub infrastructure by adding both the physical
-    hubs (buses) and their interconnecting grid (DC and H2 pipeline links).
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The network object to add offshore hubs and grid to.
-    pyear: int
-        Planning horizon used to filter which reference grid data to include.
-    offshore_generators_fn : str
-        Path to the file containing offshore generators configuration data.
-    offshore_electrolysers_fn : str
-        Path to the file containing offshore electrolysers configuration data.
-    offshore_grid_fn : str
-        Path to the file containing offshore grid configuration data.
-    profiles_pecd : pd.Series
-        Series mapping technology names (indexes) to PECD profile file paths (values).
-    costs : pd.DataFrame
-        Technology costs assumptions.
-    spatial : SimpleNamespace
-        Object containing spatial information about nodes and their locations.
-    options : dict
-        Configuration options containing at least:
-        - offshore_hubs.connect_isolated : bool
-    nyears : float (default : 1)
-        Number of years for which to scale the investment costs.
-    offshore_fix_fn : str or None, default None
-        Path to the file containing offshore grid fixes to apply.
-
-    Returns
-    -------
-    None
-        Modifies the network object in-place by adding offshore hubs
-
-    Notes
-    -----
-    Components added to the network:
-        - Offshore DC and H2 buses
-        - Offshore DC and H2 grid
-    """
-    logger.info("Adding offshore hubs")
-
-    n.add(
-        "Bus",
-        spatial.offshore_hubs.nodes,
-        x=spatial.offshore_hubs.x,
-        y=spatial.offshore_hubs.y,
-        location=spatial.offshore_hubs.locations,
-        country=spatial.offshore_hubs.country,
-        type=spatial.offshore_hubs.type,
-        carrier="AC_OH",
-        unit="MWh_el",
-        v_nom=380,
-    )
-
-    n.add(
-        "Bus",
-        spatial.offshore_hubs.nodes_h2,
-        x=spatial.offshore_hubs.x_h2,
-        y=spatial.offshore_hubs.y_h2,
-        location=spatial.offshore_hubs.locations_h2,
-        country=spatial.offshore_hubs.country_h2,
-        type=spatial.offshore_hubs.type_h2,
-        carrier="H2_OH",
-        unit="MWh_LHV",
-    )
-
-    # Add power production units
-    add_offshore_generators_tyndp(
-        n, pyear, offshore_generators_fn, profiles_pecd, costs, nyears
-    )
-
-    # Add H2 production units
-    add_offshore_electrolysers_tyndp(n, pyear, offshore_electrolysers_fn, costs, nyears)
-
-    # Add offshore DC and H2 grid connections
-    add_offshore_grid_tyndp(
-        n,
-        pyear,
-        offshore_grid_fn,
-        costs,
-        options,
-        nyears,
-        offshore_fix_fn=offshore_fix_fn,
-    )
 
 
 def attach_gas_load(
@@ -5893,7 +5199,10 @@ def add_land_transport(
     p_set = transport[nodes]
 
     # temperature for correction factor for heating/cooling
-    temperature = xr.open_dataarray(temp_air_total_file).to_pandas()
+    temperature = (
+        xr.open_dataarray(temp_air_total_file).to_pandas().reindex(columns=nodes)
+    )
+    temperature = temperature.apply(lambda col: col.fillna(temperature.mean(axis=1)))
 
     if shares["electric"] > 0:
         add_EVs(
@@ -8006,8 +7315,7 @@ def add_industry(
     )
 
     if options["h2_topology_tyndp"]:
-        suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
-        nodes_ind_h2 = pd.Index(pop_layout.ct + f" {suffix}")
+        nodes_ind_h2 = pd.Index(pop_layout.ct + " H2 Z2")
 
     else:
         nodes_ind_h2 = nodes + " H2"
@@ -8567,7 +7875,10 @@ def add_shipping(
         nodes, ["total domestic navigation"]
     ].squeeze()
     international_navigation = (
-        pd.read_csv(shipping_demand_file, index_col=0).squeeze(axis=1) * nyears
+        pd.read_csv(shipping_demand_file, index_col=0)
+        .squeeze(axis=1)
+        .reindex(nodes, fill_value=0)
+        * nyears
     )
     all_navigation = domestic_navigation + international_navigation
     p_set = all_navigation * 1e6 / nhours
@@ -9439,6 +8750,7 @@ def add_import_options(
     gas_input_nodes: pd.DataFrame,
     h2_imports_tyndp_fn: str,
     tyndp_scenario: str,
+    spatial: SimpleNamespace,
 ):
     """
     Add green energy import options.
@@ -9455,6 +8767,8 @@ def add_import_options(
         Path to file containing H2 import potentials, maximum capacity, offer quantity and marginal cost from TYNDP input data
     tyndp_scenario : str
         TYNDP scenario name to be used for H2 imports.
+    spatial : SimpleNamespace
+        Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     """
 
     import_config = options["imports"]
@@ -9559,6 +8873,7 @@ def add_import_options(
                 y=import_potentials_h2.bus0_y.values,
                 country=import_potentials_h2.bus0.replace({"Ammonia": ""}).values,
                 carrier="import H2",
+                category="import",
                 unit="MWh_th",
             )
 
@@ -9573,12 +8888,15 @@ def add_import_options(
                 marginal_cost=import_potentials_h2.marginal_cost.values,
                 e_sum_max=import_potentials_h2.e_sum_max.values,
             )
-            suffix = "H2 Z2" if options["h2_zones_tyndp"] else "H2"
+            zone_country = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
+            country_to_bus = pd.Series(zone_country.index, index=zone_country.values)
+            country_to_bus = country_to_bus[~country_to_bus.index.duplicated()]
+
             n.add(
                 "Link",
                 import_potentials_h2.index,
                 bus0=import_potentials_h2.Corridor.values + " H2 import",
-                bus1=import_potentials_h2.bus1.values + f" {suffix}",
+                bus1=import_potentials_h2.bus1.map(country_to_bus).values,
                 p_nom_extendable=False,
                 p_nom=import_potentials_h2.p_nom.values,
                 bidirectional=False,
@@ -9769,9 +9087,12 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    if fn_projects := snakemake.input.tyndp_projects:
-        attach_tyndp_transmission_projects(
-            n, fn_projects, fn_projects_fix=snakemake.input.tyndp_projects_fix
+    if snakemake.input.tyndp_electricity_ntc:
+        logger.info(
+            f"Overlaying TYNDP electricity NTC for planning horizon {investment_year}"
+        )
+        apply_tyndp_electricity_ntc(
+            n, snakemake.input.tyndp_electricity_ntc, investment_year
         )
 
     if snakemake.params.load_source == "tyndp":
@@ -9848,15 +9169,9 @@ if __name__ == "__main__":
     heating_efficiencies = pd.read_csv(fn, index_col=[1, 0]).loc[year]
 
     buses_h2_file = snakemake.input.buses_h2 if options["h2_topology_tyndp"] else None
-    buses_oh_file = (
-        snakemake.input.offshore_buses
-        if options["offshore_hubs_tyndp"]["enable"]
-        else None
-    )
     spatial = define_spatial(
         pop_layout.index,
         options,
-        offshore_buses_fn=buses_oh_file,
         buses_h2_file=buses_h2_file,
         tyndp_scenario=tyndp_scenario,
     )
@@ -9976,23 +9291,25 @@ if __name__ == "__main__":
         pop_layout=pop_layout,
         h2_cavern_file=snakemake.input.h2_cavern,
         h2_pipes_file=snakemake.input.h2_grid_tyndp,
-        interzonal_file=snakemake.input.interzonal_prepped,
         cavern_types=snakemake.params.sector["hydrogen_underground_storage_locations"],
         clustered_gas_network_file=snakemake.input.get("clustered_gas_network"),
         gas_input_nodes=gas_input_nodes,
         spatial=spatial,
         options=options,
-        h2_demand_file=snakemake.input.h2_demand,
+        h2_demand_z1_file=snakemake.input.h2_demand_z1,
+        h2_demand_z2_file=snakemake.input.h2_demand_z2,
     )
 
     # Hydrogen already implemented in add_h2_gas_infrastructure
     extendable_storageunits = list(set(ext_carriers.get("StorageUnit", [])) - {"H2"})
     extendable_stores = list(set(ext_carriers.get("Store", [])) - {"H2"})
 
+    electricity_buses_i = n.buses.index.intersection(pop_layout.index)
+
     attach_storageunits(
         n=n,
         costs=costs,
-        buses_i=pop_layout.index,
+        buses_i=electricity_buses_i,
         extendable_carriers=extendable_storageunits,
         max_hours=max_hours,
     )
@@ -10000,7 +9317,7 @@ if __name__ == "__main__":
     attach_stores(
         n=n,
         costs=costs,
-        buses_i=pop_layout.index,
+        buses_i=electricity_buses_i,
         extendable_carriers=extendable_stores,
         tyndp_stores=snakemake.params.tyndp_stores,
     )
@@ -10032,21 +9349,6 @@ if __name__ == "__main__":
             group_conventionals=snakemake.params.electricity[
                 "group_tyndp_conventionals"
             ],
-        )
-
-    if options["offshore_hubs_tyndp"]["enable"]:
-        add_offshore_hubs_tyndp(
-            n=n,
-            pyear=int(snakemake.wildcards.planning_horizons),
-            offshore_generators_fn=snakemake.input.offshore_generators,
-            offshore_electrolysers_fn=snakemake.input.offshore_electrolysers,
-            offshore_grid_fn=snakemake.input.offshore_grid,
-            profiles_pecd=profiles_pecd,
-            costs=costs,
-            spatial=spatial,
-            options=options,
-            nyears=nyears,
-            offshore_fix_fn=snakemake.input.tyndp_offshore_fix,
         )
 
     if options["gas_demand_exogenously"]:
@@ -10273,6 +9575,7 @@ if __name__ == "__main__":
             gas_input_nodes=gas_input_nodes,
             h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
             tyndp_scenario=tyndp_scenario,
+            spatial=spatial,
         )
 
     if options["gas_distribution_grid"]:

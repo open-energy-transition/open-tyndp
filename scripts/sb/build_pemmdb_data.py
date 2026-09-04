@@ -276,14 +276,21 @@ def _process_other_nonres_capacities(
     df = (
         df.set_axis(column_names)
         .T.assign(
+            # Some nodes (e.g. TR00) give the price band type as a plain
+            # description without the usual "Price Band/carrier/type" slashes;
+            # fall back to the raw value so this doesn't crash on a NaN split
             pemmdb_carrier=lambda df: (
-                "Other Non-RES" + " " + df.pemmdb_type.str.split("/").str[1]
+                "Other Non-RES"
+                + " "
+                + df.pemmdb_type.str.split("/").str[1].fillna(df.pemmdb_type)
             ),
             bus=node,
             country=node[:2],
             unit="MW",
             price_band_type=lambda x: _extract_price_band_type(x),
-            pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
+            pemmdb_type=lambda df: (
+                df.pemmdb_type.str.split("/").str[2].fillna(df.pemmdb_type).str.lower()
+            ),
             cyear_start=lambda x: pd.to_numeric(x.cyear_start, errors="coerce"),
             cyear_end=lambda x: pd.to_numeric(x.cyear_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
@@ -357,8 +364,9 @@ def _process_res_capacities(
     Extract and clean `RES` (Solar, Wind, Hydro) capacities.
     """
     # Clean data
+    # (some nodes, e.g. TR00, have a stray 3rd column with inline comments)
     df = (
-        node_tech_data.iloc[5:]
+        node_tech_data.iloc[5:, :2]
         .set_axis(["attributes", "p_nom"], axis="columns")
         .set_index("attributes")
         .rename_axis(None, axis=0)
@@ -402,6 +410,9 @@ def _process_res_capacities(
     )
 
     df = convert_units(df, value_col="p_nom").reset_index(drop=True)
+
+    pump = df["element"] == "Pump"
+    df.loc[pump, "p_nom"] = -df.loc[pump, "p_nom"].abs()
 
     return df
 
@@ -485,8 +496,11 @@ def _process_battery_capacities(
     """
     Extract and clean `Battery` capacities.
     """
-    # Fill missing data for FR15
-    if node == "FR15":
+    # Some nodes (e.g. FR15, MD00, UA00) don't report units count / ramp
+    # rates for Battery at all, leaving those columns entirely blank, which
+    # would otherwise get silently dropped below; fill them with 0 so the
+    # expected 7 columns always survive the dropna
+    if node_tech_data.iloc[7:, [5, 7, 8]].isna().all(axis=None):
         node_tech_data.iloc[-1, [5, 7, 8]] = 0
 
     # Extract data
@@ -776,10 +790,17 @@ def _process_other_nonres_profiles(
     # Extract plant type
     price_band_type = _extract_price_band_type(df.T).rename("price_band_type")
     price = df.T.price
+    # Some nodes (e.g. TR00) give the price band type as a plain description
+    # without the usual "Price Band/carrier/type" slashes; fall back to the
+    # raw value so this doesn't crash on a NaN split
     pemmdb_carrier = (
-        "Other Non-RES" + " " + df.T.pemmdb_type.str.split("/").str[1]
+        "Other Non-RES"
+        + " "
+        + df.T.pemmdb_type.str.split("/").str[1].fillna(df.T.pemmdb_type)
     ).rename("pemmdb_carrier")
-    pemmdb_type = df.T.pemmdb_type.str.split("/").str[2].str.lower()
+    pemmdb_type = (
+        df.T.pemmdb_type.str.split("/").str[2].fillna(df.T.pemmdb_type).str.lower()
+    )
 
     # Manually correct missing pemmdb type information
     pemmdb_type = pemmdb_type.mask(
@@ -1007,6 +1028,17 @@ def process_pemmdb_capacities(
             drop_on_columns=True,
         )
 
+        # Drop capacities whose PEMMDB carrier/type combination isn't covered
+        # by the carrier mapping (e.g. non-standard price band descriptions
+        # for some nodes) instead of propagating NaN carriers downstream
+        unmapped = capacities["index_carrier"].isna()
+        if unmapped.any():
+            logger.warning(
+                f"Dropping {unmapped.sum()} capacity entr{'y' if unmapped.sum() == 1 else 'ies'} "
+                f"with unmapped carrier for '{pemmdb_tech_sheet}' at {node}."
+            )
+            capacities = capacities.loc[~unmapped]
+
         return capacities
 
     except Exception as e:
@@ -1126,21 +1158,29 @@ def process_pemmdb_profiles(
             return None
 
         # Map PEMMDB carrier names to TYNDP technologies
-        profiles = (
-            map_tyndp_carrier_names(
-                profiles.reset_index(),
-                carrier_mapping_fn,
-                ["pemmdb_carrier", "pemmdb_type"],
-                drop_on_columns=True,
-            )
-            .assign(
-                price=lambda x: x.get("price"),
-                hours=lambda x: x.get("hours"),
-                p_set=lambda x: x.get("p_set"),
-                price_band_type=lambda x: x.get("price_band_type"),
-            )
-            .set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
+        profiles = map_tyndp_carrier_names(
+            profiles.reset_index(),
+            carrier_mapping_fn,
+            ["pemmdb_carrier", "pemmdb_type"],
+            drop_on_columns=True,
         )
+
+        # Drop profiles whose PEMMDB carrier/type combination isn't covered
+        # by the carrier mapping (e.g. non-standard price band descriptions
+        # for some nodes) instead of propagating NaN carriers downstream
+        unmapped = profiles["index_carrier"].isna()
+        if unmapped.any():
+            logger.warning(
+                f"Dropping profiles with unmapped carrier for '{pemmdb_tech_sheet}' at {node}."
+            )
+            profiles = profiles.loc[~unmapped]
+
+        profiles = profiles.assign(
+            price=lambda x: x.get("price"),
+            hours=lambda x: x.get("hours"),
+            p_set=lambda x: x.get("p_set"),
+            price_band_type=lambda x: x.get("price_band_type"),
+        ).set_index(["time", "bus", "carrier", "index_carrier", "open_tyndp_type"])
 
         return profiles
 

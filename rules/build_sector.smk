@@ -1587,29 +1587,6 @@ def input_heat_source_power(w):
     }
 
 
-def input_offshore_hubs(w):
-    offshore_files = [
-        "offshore_buses",
-        "offshore_grid",
-        "offshore_electrolysers",
-        "offshore_generators",
-    ]
-    if config_provider("sector", "offshore_hubs_tyndp", "enable")(w):
-        inputs = {f: resources(f"{f}.csv") for f in offshore_files}
-        if config_provider(
-            "sector", "offshore_hubs_tyndp", "patch_crossborder_with_mm"
-        )(w) and int(w.planning_horizons) in [2030, 2040]:
-            scenario = config_provider("tyndp_scenario")(w)
-            inputs["tyndp_offshore_fix"] = (
-                RESULTS
-                + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_crossborder_{scenario}{{planning_horizons}}.csv"
-            )
-        else:
-            inputs["tyndp_offshore_fix"] = []
-        return inputs
-    return {}
-
-
 pecd_techs = branch(
     config_provider("electricity", "pecd_renewable_profiles", "enable"),
     config_provider("electricity", "pecd_renewable_profiles", "technologies"),
@@ -1671,13 +1648,6 @@ def input_gas_network(w):
     return inputs
 
 
-def include_tyndp_projects(w):
-    horizons = config_provider("tyndp_investment_candidates", "elec_projects")(w)
-    if not horizons:
-        return False
-    return int(w.planning_horizons) in horizons
-
-
 def include_tyndp_trajectories(w):
     if config_provider("electricity", "tyndp_renewable_carriers")(w):
         return True
@@ -1692,7 +1662,6 @@ rule prepare_sector_network:
         unpack(input_profile_offwind),
         unpack(input_profile_pecd),
         unpack(input_heat_source_power),
-        unpack(input_offshore_hubs),
         unpack(input_pemmdb_data),
         unpack(input_gas_network),
         retro_cost=lambda w: (
@@ -1845,11 +1814,6 @@ rule prepare_sector_network:
             resources("h2_reference_grid_tyndp_{planning_horizons}.csv"),
             [],
         ),
-        interzonal_prepped=branch(
-            config_provider("sector", "h2_topology_tyndp"),
-            resources("h2_interzonal_tyndp_{planning_horizons}.csv"),
-            [],
-        ),
         buses_h2=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("tyndp/build/geojson/buses_h2.geojson"),
@@ -1870,14 +1834,6 @@ rule prepare_sector_network:
             resources("profile_pemmdb_hydro.nc"),
             [],
         ),
-        tyndp_projects=branch(
-            include_tyndp_projects,
-            resources("tyndp/new_links_{planning_horizons}.csv"),
-        ),
-        tyndp_projects_fix=branch(
-            config_provider("tyndp_investment_candidates", "patch_sb_with_annexe"),
-            resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
-        ),
         tyndp_trajectories=branch(
             include_tyndp_trajectories,
             resources("tyndp_trajectories.csv"),
@@ -1887,19 +1843,13 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("gas_demand_tyndp_{planning_horizons}.csv"),
         ),
-        h2_demand=lambda w: (
-            RESULTS
-            + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_h2_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
-            if config_provider("tyndp_scenario")(w)
-            == "NT"  # Only scenario with MM output data
-            and config_provider("sector", "h2_demand_patch_with_mm")(w)
-            and int(w.planning_horizons)
-            in [2030, 2040]  # Only years with MM output data
-            else (
-                resources("h2_demand_tyndp_{planning_horizons}.csv")
-                if config_provider("tyndp_scenario")(w)
-                else []
-            )
+        h2_demand_z1=branch(
+            config_provider("tyndp_scenario"),
+            resources("demand_tyndp_h2_z1_{planning_horizons}.csv"),
+        ),
+        h2_demand_z2=branch(
+            config_provider("tyndp_scenario"),
+            resources("demand_tyndp_h2_z2_{planning_horizons}.csv"),
         ),
         elec_demand_mm=lambda w: (
             RESULTS
@@ -1928,6 +1878,11 @@ rule prepare_sector_network:
         tyndp_h2_storages=branch(
             config_provider("sector", "h2_topology_tyndp"),
             resources("h2_storages_prepped_{planning_horizons}.csv"),
+            [],
+        ),
+        tyndp_electricity_ntc=branch(
+            lambda w: config_provider("electricity", "base_network")(w) == "tyndp",
+            resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
             [],
         ),
     output:
@@ -1984,7 +1939,6 @@ rule prepare_sector_network:
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
         patch_load_mm=config_provider("load", "patch_demand_with_mm"),
-        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         tyndp_scenario=config_provider("tyndp_scenario"),
     message:
         "Preparing integrated sector-coupled energy network for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizon, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"

@@ -255,26 +255,15 @@ rule simplify_sb_network:
         scripts("cba/simplify_sb_network.py")
 
 
-# build reference corrections between SB investments and CBA guidelines
-def get_elec_project_build_years(w):
-    return config_provider("tyndp_investment_candidates", "elec_projects")(w).get(
-        int(w.planning_horizons)
-    )
-
-
+# Placeholder for reference corrections aligning the SB base network with the
+# CBA reference grid of a given planning horizon
 rule fix_reference_sb_to_cba:
-    input:
-        invest_grid=rules.retrieve_tyndp.output.invest_grid,
-        guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
-        buses=rules.build_tyndp_network.output.substations_geojson,
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
     log:
         logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/cba/fix_reference_sb_to_cba_{planning_horizons}")
-    params:
-        build_years=get_elec_project_build_years,
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 
@@ -284,21 +273,12 @@ rule fix_reference_sb_to_cba:
 rule prepare_reference:
     input:
         network=rules.simplify_sb_network.output.network,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-        storage_projects=rules.clean_projects.output.storage_projects,
-        corrections=rules.fix_reference_sb_to_cba.output.corrections,
-        costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     log:
         logs("cba/prepare_reference_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/cba/prepare_reference_{planning_horizons}")
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
-        patch_sb_with_annexe=config_provider(
-            "tyndp_investment_candidates", "patch_sb_with_annexe"
-        ),
     script:
         scripts("cba/prepare_reference.py")
 

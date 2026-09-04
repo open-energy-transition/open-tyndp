@@ -97,6 +97,6 @@ Examples:
 
 - `tyndp_scenario` is overwritten by the scenario's value.
 - In DE/GA, `electricity.extendable_carriers.Generator` replaces the base list for that path.
-- In DE/GA, `sector.land_transport_ice_share`, `sector.h2_zones_tyndp`, `sector.force_biomass_potential`, `sector.force_biogas_potential`,
+- In DE/GA, `sector.land_transport_ice_share`, `sector.force_biomass_potential`, `sector.force_biogas_potential`,
   and `sector.co2_sequestration_potential` override the corresponding base entries.
 - If a key is not present in the scenario block, the base config value remains unchanged.

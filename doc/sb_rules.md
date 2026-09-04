@@ -86,10 +86,6 @@ per-country load time series from the TYNDP electricity demand prepared by
 
 ::: build_pemmdb_data
 
-### Rule `build_tyndp_transmission_projects`
-
-::: build_tyndp_transmission_projects
-
 ### Rule `build_tyndp_trajectories`
 
 ::: build_tyndp_trajectories
@@ -138,10 +134,6 @@ the electricity demand for base regions from the TYNDP electricity demand prepar
 
 ::: clean_tyndp_h2_storages
 
-### Rule `build_tyndp_offshore_hubs`
-
-::: build_tyndp_offshore_hubs
-
 ### Rule `group_tyndp_conventionals`
 
 ::: group_tyndp_conventionals
@@ -151,14 +143,6 @@ the electricity demand for base regions from the TYNDP electricity demand prepar
 ### Rule `plot_base_hydrogen_network`
 
 ::: plot_base_hydrogen_network
-
-### Rule `plot_base_offshore_network`
-
-::: plot_offshore_network
-
-### Rule `plot_offshore_network`
-
-::: plot_offshore_network
 
 ## Benchmark
 

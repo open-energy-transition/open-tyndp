@@ -23,6 +23,7 @@ path = [
     "data/custom_cba_transmission_projects.csv",
     "data/tyndp_technology_map.csv",
     "data/tyndp_versions.csv",
+    "data/tyndp_offshore_bus_location.csv",
     "doc/configtables/benchmarking.csv",
     "doc/img/tyndp/*",
 ]

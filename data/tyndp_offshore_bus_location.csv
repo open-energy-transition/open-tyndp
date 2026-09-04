@@ -1,0 +1,65 @@
+bus_id,x,y,geometry,confidence,note
+BEO1_OFF,4.41706,51.51868,POINT (4.41706 51.51868),low,"Single dot for BE Offshore, but 2 BE codes exist (BEO1/BEO2) - shared/duplicate point, not distinguishable | spread apart from shared cluster centroid for visibility"
+BEO2_OFF,3.87706,51.51868,POINT (3.87706 51.51868),low,Same shared point as BEO1_OFF - not distinguishable from it | spread apart from shared cluster centroid for visibility
+DEKF_OFF,14.34265,54.47988,POINT (14.34265 54.47988),low,Kriegers Flak (DE side) - shared centroid of Bornholm/Kriegers Flak sub-cluster (~3-5 codes share this) | spread apart from shared cluster centroid for visibility
+DKB2_OFF,14.18765,54.74835,POINT (14.18765 54.74835),low,"Bornholm/Kriegers Flak sub-cluster - shared centroid, not individually distinguishable | spread apart from shared cluster centroid for visibility"
+DKBF_OFF,9.6593,55.95044,POINT (9.6593 55.95044),low,DK North Sea sub-cluster - shared centroid (~6 dots represent ~9+ DK codes) | spread apart from shared cluster centroid for visibility
+DKBH_OFF,13.87765,54.74835,POINT (13.87765 54.74835),low,Bornholm/Kriegers Flak sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKHE_OFF,9.60215,56.14507,POINT (9.60215 56.14507),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKK2_OFF,13.72265,54.47988,POINT (13.72265 54.47988),low,Bornholm/Kriegers Flak sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKKA_OFF,13.87765,54.21141,POINT (13.87765 54.21141),low,Bornholm/Kriegers Flak sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKKF_OFF,14.18765,54.21141,POINT (14.18765 54.21141),low,Kriegers Flak - Bornholm/Kriegers Flak sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN1_OFF,9.44885,56.27791,POINT (9.44885 56.27791),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN2_OFF,9.24807,56.30678,POINT (9.24807 56.30678),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN3_OFF,9.06355,56.22251,POINT (9.06355 56.22251),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN4_OFF,8.95388,56.05186,POINT (8.95388 56.05186),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN5_OFF,8.95388,55.84902,POINT (8.95388 55.84902),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN6_OFF,9.06355,55.67837,POINT (9.06355 55.67837),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN7_OFF,9.24807,55.5941,POINT (9.24807 55.5941),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN8_OFF,9.44885,55.62297,POINT (9.44885 55.62297),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKN9_OFF,9.60215,55.75581,POINT (9.60215 55.75581),low,DK North Sea sub-cluster - shared centroid | spread apart from shared cluster centroid for visibility
+DKNS_OFF,7.73492,56.96667,POINT (7.73492 56.96667),medium,"Best guess: matches the dot explicitly labelled ""DK North Sea"" specifically (distinct from the denser sub-cluster)"
+ESA1_OFF,-10.11857,43.70936,POINT (-10.11857 43.70936),low,"Single dot ""ES Galicia Offshore"" shared by 3 Galicia-ish codes - not distinguishable | spread apart from shared cluster centroid for visibility"
+ESA2_OFF,-10.53857,43.95185,POINT (-10.53857 43.95185),low,"Shared ""ES Galicia Offshore"" point - see ESA1_OFF | spread apart from shared cluster centroid for visibility"
+ESAS_OFF,3.06268,42.14701,POINT (3.06268 42.14701),low,"Single dot ""ES Med. Offshore"" shared by remaining ES codes - not distinguishable | spread apart from shared cluster centroid for visibility"
+ESC1_OFF,2.52268,42.14701,POINT (2.52268 42.14701),low,"Shared ""ES Med. Offshore"" point - see ESAS_OFF | spread apart from shared cluster centroid for visibility"
+ESG1_OFF,-10.53857,43.46687,POINT (-10.53857 43.46687),low,"Shared ""ES Galicia Offshore"" point - see ESA1_OFF | spread apart from shared cluster centroid for visibility"
+ESG2_OFF,-10.39857,43.70936,POINT (-10.39857 43.70936),low,"Shared ""ES Galicia Offshore"" point - see ESA1_OFF"
+ITCO,11.99992,42.84157,POINT (11.99992 42.84157),high,"Clearly labelled node ""IT CO"" on map"
+ITVI,11.74407,38.95086,POINT (11.74407 38.95086),high,"Clearly labelled node ""IT VI"" on map"
+LTH1_OFF,20.06481,56.13294,POINT (20.06481 56.13294),high,"Clearly labelled, unambiguous single dot ""LT Offshore"""
+MD00,28.20428,48.28816,POINT (28.20428 48.28816),high,"Clearly labelled node ""MD 00"" on map"
+NL0B_OFF,7.07006,53.97305,POINT (7.07006 53.97305),low,"NL offshore cluster (~8 dots shared across 21+ NL codes) - not individually distinguishable, letters not shown on map | spread apart from shared cluster centroid for visibility"
+NL0C_OFF,7.05102,54.10546,POINT (7.05102 54.10546),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0D_OFF,6.99545,54.22715,POINT (6.99545 54.22715),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0E_OFF,6.90784,54.32825,POINT (6.90784 54.32825),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0F_OFF,6.79531,54.40058,POINT (6.79531 54.40058),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0G_OFF,6.66695,54.43827,POINT (6.66695 54.43827),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0J_OFF,6.53317,54.43827,POINT (6.53317 54.43827),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0K_OFF,6.40481,54.40058,POINT (6.40481 54.40058),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0L_OFF,6.29228,54.32825,POINT (6.29228 54.32825),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0M_OFF,6.20467,54.22715,POINT (6.20467 54.22715),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0N_OFF,6.1491,54.10546,POINT (6.1491 54.10546),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0P_OFF,6.13006,53.97305,POINT (6.13006 53.97305),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0Q_OFF,6.1491,53.84064,POINT (6.1491 53.84064),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0R_OFF,6.20467,53.71895,POINT (6.20467 53.71895),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0S_OFF,6.29228,53.61785,POINT (6.29228 53.61785),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0T_OFF,6.40481,53.54552,POINT (6.40481 53.54552),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0U_OFF,6.53317,53.50783,POINT (6.53317 53.50783),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0V_OFF,6.66695,53.50783,POINT (6.66695 53.50783),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0W_OFF,6.79531,53.54552,POINT (6.79531 53.54552),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0X_OFF,6.90784,53.61785,POINT (6.90784 53.61785),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NL0Y_OFF,6.99545,53.71895,POINT (6.99545 53.71895),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NLLL_OFF,7.05102,53.84064,POINT (7.05102 53.84064),low,"NL offshore cluster - shared centroid, see NL0B_OFF | spread apart from shared cluster centroid for visibility"
+NONC_OFF,13.04361,66.8693,POINT (13.04361 66.8693),medium,"Matches dot labelled ""Nordland Offshore"" (guessed code assignment vs NOND_OFF) | manually nudged offshore (no land polygon available for exact check)"
+NOND_OFF,16.32773,70.77823,POINT (16.32773 70.77823),medium,"Matches dot labelled ""Nordland E. Offshore"" (guessed code assignment vs NONC_OFF) | manually nudged offshore (no land polygon available for exact check)"
+NOS1,12.2083,60.207,POINT (12.2083 60.207),high,"Clearly labelled node ""NO S1"""
+NOS2,8.99933,58.54564,POINT (8.99933 58.54564),high,"Clearly labelled node ""NO S2"""
+NOS3,9.24998,61.0589,POINT (9.24998 61.0589),high,"Clearly labelled node ""NO S3"""
+NOSF_OFF,6.67535,58.75144,POINT (6.67535 58.75144),medium,"Matches dot labelled ""NO Offshore Farder"" | manually nudged offshore (no land polygon available for exact check)"
+NOWB_OFF,6.12873,60.33482,POINT (6.12873 60.33482),low,"Matches dot labelled ""NO Offshore West"" - but NOWF_OFF equally plausible for same dot | manually nudged offshore (no land polygon available for exact check)"
+NOWF_OFF,6.12873,60.18482,POINT (6.12873 60.18482),low,"Same ""NO Offshore West"" dot as NOWB_OFF - cannot tell the two codes apart; one of the two is likely wrong | manually nudged offshore (no land polygon available for exact check)"
+PL00E,21.91733,52.72344,POINT (21.91733 52.72344),high,"Clearly labelled node ""PL 00 E"""
+PL00I,21.32647,51.22726,POINT (21.32647 51.22726),high,"Clearly labelled node ""PL 00 I"""
+TR00,36.99315,42.00519,POINT (36.99315 42.00519),medium,"Map shows ""TR 03"", not ""TR00"" - id mismatch, please confirm this is the intended bus before using"
+UA00,30.599,50.1393,POINT (30.599 50.1393),high,"Clearly labelled node ""UA 00"""

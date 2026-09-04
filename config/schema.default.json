@@ -2482,6 +2482,11 @@
           ],
           "type": "string"
         },
+        "tyndp_reference_year": {
+          "default": 2030,
+          "description": "Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",
+          "type": "integer"
+        },
         "gaslimit_enable": {
           "default": false,
           "description": "Add an overall absolute gas limit configured in `electricity: gaslimit`.",
@@ -5584,20 +5589,6 @@
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
         },
-        "h2_reference_grid_source": {
-          "default": "entsoe",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-          "enum": [
-            "entsoe",
-            "entsos"
-          ],
-          "type": "string"
-        },
-        "h2_zones_tyndp": {
-          "default": false,
-          "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
-          "type": "boolean"
-        },
         "h2_demand_patch_with_mm": {
           "default": false,
           "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
@@ -5846,33 +5837,6 @@
                 "type": "number"
               },
               "description": "Price for importing renewable energy of carrier.",
-              "type": "object"
-            }
-          }
-        },
-        "offshore_hubs_tyndp": {
-          "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
-          "properties": {
-            "enable": {
-              "default": false,
-              "description": "Add option to include TYNDP offshore hubs.",
-              "type": "boolean"
-            },
-            "patch_crossborder_with_mm": {
-              "default": false,
-              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-              "type": "boolean"
-            },
-            "connect_isolated": {
-              "default": false,
-              "description": "Copperplate isolated wind farms to the grid.",
-              "type": "boolean"
-            },
-            "max_capacity": {
-              "additionalProperties": {
-                "type": "number"
-              },
-              "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
               "type": "object"
             }
           }
@@ -6447,36 +6411,6 @@
             "keep"
           ],
           "type": "string"
-        }
-      }
-    },
-    "TyndpInvestmentCandidatesConfig": {
-      "description": "Configuration for top level `tyndp_investment_candidates` settings.",
-      "properties": {
-        "patch_sb_with_annexe": {
-          "default": false,
-          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
-          "type": "boolean"
-        },
-        "elec_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        },
-        "h2_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
         }
       }
     },
@@ -7969,33 +7903,6 @@
           "default": true,
           "description": "Whether to delete the worker instance when an error occurs during job execution.",
           "type": "boolean"
-        }
-      }
-    },
-    "_OffshoreHubsTyndpConfig": {
-      "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
-      "properties": {
-        "enable": {
-          "default": false,
-          "description": "Add option to include TYNDP offshore hubs.",
-          "type": "boolean"
-        },
-        "patch_crossborder_with_mm": {
-          "default": false,
-          "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-          "type": "boolean"
-        },
-        "connect_isolated": {
-          "default": false,
-          "description": "Copperplate isolated wind farms to the grid.",
-          "type": "boolean"
-        },
-        "max_capacity": {
-          "additionalProperties": {
-            "type": "number"
-          },
-          "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
-          "type": "object"
         }
       }
     },
@@ -9728,6 +9635,11 @@
             "tyndp"
           ],
           "type": "string"
+        },
+        "tyndp_reference_year": {
+          "default": 2030,
+          "description": "Planning-horizon year of the TYNDP reference grid used to build the static base network topology and its initial NTC, when `base_network` is 'tyndp'. The node/link topology is identical across all TYNDP planning horizons, only NTC differs, so a single fixed year is used here; per-horizon NTC for `tyndp_scenario` runs is instead applied later, in `prepare_sector_network`.",
+          "type": "integer"
         },
         "gaslimit_enable": {
           "default": false,
@@ -11692,36 +11604,6 @@
         }
       }
     },
-    "tyndp_investment_candidates": {
-      "description": "Configuration for top level `tyndp_investment_candidates` settings.",
-      "properties": {
-        "patch_sb_with_annexe": {
-          "default": false,
-          "description": "Whether to apply capacity corrections to SB electricity transmission projects to align them with the CBA reference grid guidelines. Corrections are only relevant for the 2040 horizon.",
-          "type": "boolean"
-        },
-        "elec_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 electricity transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        },
-        "h2_projects": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the build years of TYNDP 2024 hydrogen transmission investment candidates to include in the reference grid for a given planning horizon. Horizons not listed are unaffected. Use an empty dict {} to disable.",
-          "type": "object"
-        }
-      }
-    },
     "transformers": {
       "description": "Configuration for `transformers` settings.",
       "properties": {
@@ -12875,20 +12757,6 @@
           "description": "Use TYNDP H2 topology for hydrogen network.",
           "type": "boolean"
         },
-        "h2_reference_grid_source": {
-          "default": "entsoe",
-          "description": "Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-          "enum": [
-            "entsoe",
-            "entsos"
-          ],
-          "type": "string"
-        },
-        "h2_zones_tyndp": {
-          "default": false,
-          "description": "Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
-          "type": "boolean"
-        },
         "h2_demand_patch_with_mm": {
           "default": false,
           "description": "Add option to patch the TYNDP H2 demand with the Market Model output data.",
@@ -13137,33 +13005,6 @@
                 "type": "number"
               },
               "description": "Price for importing renewable energy of carrier.",
-              "type": "object"
-            }
-          }
-        },
-        "offshore_hubs_tyndp": {
-          "description": "Configuration for `sector.offshore_hubs_tyndp` settings.",
-          "properties": {
-            "enable": {
-              "default": false,
-              "description": "Add option to include TYNDP offshore hubs.",
-              "type": "boolean"
-            },
-            "patch_crossborder_with_mm": {
-              "default": false,
-              "description": "Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-              "type": "boolean"
-            },
-            "connect_isolated": {
-              "default": false,
-              "description": "Copperplate isolated wind farms to the grid.",
-              "type": "boolean"
-            },
-            "max_capacity": {
-              "additionalProperties": {
-                "type": "number"
-              },
-              "description": "Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
               "type": "object"
             }
           }
