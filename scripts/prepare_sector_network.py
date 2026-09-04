@@ -8873,6 +8873,7 @@ def add_import_options(
                 y=import_potentials_h2.bus0_y.values,
                 country=import_potentials_h2.bus0.replace({"Ammonia": ""}).values,
                 carrier="import H2",
+                category="import",
                 unit="MWh_th",
             )
 
