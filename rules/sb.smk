@@ -307,7 +307,7 @@ pemmdb_techs = branch(
 )
 
 
-rule build_pemmdb_data:
+rule build_tyndp_pemmdb_data:
     input:
         pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
@@ -317,9 +317,9 @@ rule build_pemmdb_data:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
     log:
-        logs("build_pemmdb_data_{planning_horizons}.log"),
+        logs("build_tyndp_pemmdb_data_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/build_pemmdb_data_{planning_horizons}")
+        benchmarks("performances/build_tyndp_pemmdb_data_{planning_horizons}")
     threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
     resources:
         mem_mb=16000,
@@ -333,7 +333,7 @@ rule build_pemmdb_data:
         ),
         tyndp_scenario=config_provider("tyndp_scenario"),
     script:
-        scripts("sb/build_pemmdb_data.py")
+        scripts("sb/build_tyndp_pemmdb_data.py")
 
 
 def get_elec_project_build_years(w):
@@ -1113,7 +1113,7 @@ def input_pemmdb_datas(w):
 rule build_pemmdb_and_trajectories:
     input:
         expand(
-            rules.build_pemmdb_data.output.pemmdb_capacities,
+            rules.build_tyndp_pemmdb_data.output.pemmdb_capacities,
             planning_horizons=input_pemmdb_datas,
             run=config["run"]["name"],
         ),

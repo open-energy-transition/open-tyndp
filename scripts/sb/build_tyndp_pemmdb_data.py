@@ -1335,7 +1335,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_pemmdb_data",
+            "build_tyndp_pemmdb_data",
             clusters="all",
             planning_horizons=2040,
             configfiles="config/test/config.tyndp.yaml",
