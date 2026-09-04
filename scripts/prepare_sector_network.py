@@ -9301,10 +9301,12 @@ if __name__ == "__main__":
     extendable_storageunits = list(set(ext_carriers.get("StorageUnit", [])) - {"H2"})
     extendable_stores = list(set(ext_carriers.get("Store", [])) - {"H2"})
 
+    electricity_buses_i = n.buses.index.intersection(pop_layout.index)
+
     attach_storageunits(
         n=n,
         costs=costs,
-        buses_i=pop_layout.index,
+        buses_i=electricity_buses_i,
         extendable_carriers=extendable_storageunits,
         max_hours=max_hours,
     )
