@@ -5208,7 +5208,10 @@ def add_land_transport(
     p_set = transport[nodes]
 
     # temperature for correction factor for heating/cooling
-    temperature = xr.open_dataarray(temp_air_total_file).to_pandas()
+    temperature = (
+        xr.open_dataarray(temp_air_total_file).to_pandas().reindex(columns=nodes)
+    )
+    temperature = temperature.apply(lambda col: col.fillna(temperature.mean(axis=1)))
 
     if shares["electric"] > 0:
         add_EVs(
@@ -7882,7 +7885,10 @@ def add_shipping(
         nodes, ["total domestic navigation"]
     ].squeeze()
     international_navigation = (
-        pd.read_csv(shipping_demand_file, index_col=0).squeeze(axis=1) * nyears
+        pd.read_csv(shipping_demand_file, index_col=0)
+        .squeeze(axis=1)
+        .reindex(nodes, fill_value=0)
+        * nyears
     )
     all_navigation = domestic_navigation + international_navigation
     p_set = all_navigation * 1e6 / nhours

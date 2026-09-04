@@ -30,7 +30,13 @@ def build_nodal_transport_data(fn, pop_layout, year):
     transport_data = transport_data.xs(year, level="year")
 
     # break number of cars down to nodal level based on population density
-    nodal_transport_data = transport_data.loc[pop_layout.ct].fillna(0.0)
+    missing = sorted(set(pop_layout.ct) - set(transport_data.index))
+    if missing:
+        logger.warning(
+            f"No transport data for countries: {', '.join(missing)}. Assuming zero."
+        )
+
+    nodal_transport_data = transport_data.reindex(pop_layout.ct).fillna(0.0)
     nodal_transport_data.index = pop_layout.index
     nodal_transport_data["number cars"] = (
         pop_layout["fraction"] * nodal_transport_data["number cars"]
@@ -60,7 +66,9 @@ def build_transport_demand(traffic_fn, airtemp_fn, nodes, nodal_transport_data):
     transport_shape = transport_shape / transport_shape.sum()
 
     # get heating demand for correction to demand time series
-    temperature = xr.open_dataarray(airtemp_fn).to_pandas()
+    temperature = xr.open_dataarray(airtemp_fn).to_pandas().reindex(columns=nodes)
+    row_mean = temperature.mean(axis=1)
+    temperature = temperature.apply(lambda col: col.fillna(row_mean))
 
     # correction factors for vehicle heating
     dd_ICE = transport_degree_factor(
