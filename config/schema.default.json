@@ -1095,6 +1095,26 @@
           },
           "type": "array"
         },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
+        },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -7812,6 +7832,26 @@
         }
       }
     },
+    "_LocalCacheConfig": {
+      "description": "Configuration for the local cache of retrieved data.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n        ",
+          "type": "boolean"
+        },
+        "directory": {
+          "default": "data/local-cache",
+          "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+          "type": "string"
+        },
+        "fill": {
+          "default": false,
+          "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+          "type": "boolean"
+        }
+      }
+    },
     "_MaxHoursConfig": {
       "description": "Configuration for `electricity.max_hours` settings.",
       "properties": {
@@ -14236,6 +14276,26 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
         },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",

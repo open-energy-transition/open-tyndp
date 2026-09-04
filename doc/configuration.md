@@ -886,7 +886,7 @@ Selects a pre-defined data configuration file to load. When set, the workflow lo
 the defaults, before any user `config/config.yaml` overrides.
 
 This is the recommended way to switch between data source strategies. For example, to use
-Open-TYNDP's own data archive on Google Cloud Storage (see [tyndp_archive](solving.md#tyndp_archive)), run:
+Open-TYNDP's own data archive on Google Cloud Storage (see [tyndp_archive](sb.md#tyndp_archive)), run:
 
 ```console
 pixi run tyndp-sb --config data_config=tyndp
@@ -920,16 +920,28 @@ To freeze a model to a specific version of input data, you can set a specific ve
 Some datasets support `primary` or `build` as a source option, meaning that the data can be retrieved from the original
 data source or build it from the latest available data.
 Datasets that are mirrored to the Open-TYNDP data store on Google Cloud Storage also support `tyndp-archive` as a source
-(see [tyndp_archive](solving.md#tyndp_archive)).
+(see [tyndp_archive](sb.md#tyndp_archive)).
 See the `data/versions.csv` and `data/tyndp_versions.csv` files for all available datasets and their sources/versions that are supported.
 
 In your own project, you can define additional version files to modify the contents of `data/tyndp_versions.csv`.
 See the [data versioning documentation](data_sources.md#managing_data_versions) for more details.
 
+The `local_cache` settings are separate to the per-dataset source selection. Enabling
+`local_cache` collapses the retrieval layout from `data/{dataset}/{source}/{version}` to
+`{local_cache.directory}/{dataset}/{version}` and switches retrieval off, so the workflow reads whatever the
+cache already holds; `fill` turns retrieval back on so the cache can be populated, and is what
+the `collect-data` tasks add on the command line. A run reading the cache contacts no remote
+URL and so works without network access; see [Local data cache](retrieve.md#local_cache) and
+[Reading the cache without a network](retrieve.md#local_cache_offline).
+
 ??? note "Configuration for `data` settings."
 
     | Property | Type | Default | Description |
     |----------|------|---------|-------------|
+    | `local_cache` | any |  | Local cache of retrieved data, shared by all sources. |
+    |   `enable` | boolean | `false` | Switch to keep all retrieved data in a single source-agnostic cache directory. When enabled, data is read from and written to `{local_cache.directory}/{dataset}/{version}` and retrieval is disabled unless `fill` is also set. |
+    |   `directory` | string | `data/local-cache` | Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set. |
+    |   `fill` | boolean | `false` | Switch to allow the retrieve rules to populate the cache `directory`. Set by the `collect-data` tasks; leave disabled for regular runs. |
     | `hotmaps_industrial_sites` | any |  | Configuration for a single data source. |
     |   `source` | enum (`archive`, `primary`, `build`) | `archive` | Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source. |
     |   `version` | string | `latest` | Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source. |

@@ -1404,6 +1404,10 @@ solving:
 data:
   version_files:
   - data/versions.csv
+  local_cache:
+    enable: false
+    directory: "data/local-cache"
+    fill: false
   hotmaps_industrial_sites:
     source: archive
     version: latest
