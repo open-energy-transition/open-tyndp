@@ -12,7 +12,7 @@ to (``ws_start`` to ``ws_end``, labeled ``WSxxx``), and only the entries
 covering the modeled scenario are kept. Which scenario that is comes from
 `weather_scenarios_tyndp` and is resolved for the planning year the data is read
 from, the same way as for demand (see
-:py:func:`scripts.sb.build_tyndp_demand.get_weather_scenario`).
+:py:func:`scripts._helpers.get_weather_scenario`).
 
 Outputs
 -------
@@ -43,13 +43,13 @@ from scripts._helpers import (
     configure_logging,
     convert_units,
     get_snapshots,
+    get_weather_scenario,
     map_tyndp_carrier_names,
     parse_weather_scenario,
     safe_pyear,
     set_scenario_config,
 )
 from scripts.cba.clean_projects import read_tyndp_electricity_buses
-from scripts.sb.build_tyndp_demand import get_weather_scenario
 
 # for compatibility with future pandas downcasting behaviour
 pd.set_option("future.no_silent_downcasting", True)
