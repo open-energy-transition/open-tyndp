@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 wildcard_constraints:
-    cba_project=r"(s|t)\d+",
+    cba_project=r"(s|t|g)\d+",
     run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
 
 
@@ -46,10 +46,12 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
 
 
 def project_codes(projects: pd.DataFrame) -> list[str]:
-    """Return unique project codes (e.g. 't1', 's1001') from a methods table with project_id/project_type columns."""
+    """Return unique project codes (e.g. 't1', 's1001', 'g1500') from a methods table with project_id/project_type columns."""
     projects = projects[["project_id", "project_type"]].drop_duplicates()
     return list(
-        projects["project_type"].map({"storage": "s", "transmission": "t"})
+        projects["project_type"].map(
+            {"storage": "s", "transmission": "t", "generator": "g"}
+        )
         + projects["project_id"].astype(str)
     )
 
@@ -143,10 +145,14 @@ checkpoint clean_projects:
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
+        custom_generators_static="data/custom_cba_generator_projects_static.csv",
+        custom_generators_dynamic="data/custom_cba_generator_projects_dynamic.csv",
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
+        generator_projects_static=resources("cba/generator_projects_static.csv"),
+        generator_projects_dynamic=resources("cba/generator_projects_dynamic.csv"),
     log:
         logs("cba/clean_projects.log"),
     benchmark:
@@ -386,6 +392,8 @@ rule prepare_project:
         network_msv=rules.solve_cba_msv_extraction.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
+        generator_projects_static=rules.clean_projects.output.generator_projects_static,
+        generator_projects_dynamic=rules.clean_projects.output.generator_projects_dynamic,
         methods=rules.clean_projects.output.methods,
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
@@ -400,6 +408,7 @@ rule prepare_project:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
+        tech_colors=config_provider("plotting", "tech_colors"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
     script:
         scripts("cba/prepare_project.py")

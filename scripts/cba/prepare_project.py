@@ -11,11 +11,12 @@ Handles multi-border projects, creates links when needed, and validates capacity
 
 import logging
 
+import numpy as np
 import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_link_attrs, get_storage_attrs
+from scripts.cba._helpers import generate_unique_hex, get_link_attrs, get_storage_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -232,6 +233,98 @@ def apply_pint_transmission(
             )
 
 
+def _get_generator_values(
+    df_static: pd.Series,
+    df_dynamic: pd.DataFrame,
+    snapshots: pd.Series,
+    pypsa_dynamic_attributes: list,
+):
+    """
+    Returns static / dynamic / null value for generator input attributes that can take either a static or time series value
+
+    Parameters
+    ----------
+    df_static: pd.Series
+        Static components of custom generator projects
+    df_dynamic: pd.DataFrame
+        Dynamic timeseries components of custom generator projects
+    snapshots: pd.Series
+        pandas DateTime Index
+    pypsa_dynamic_attributes: list
+        List of PyPSA attributes that can take a static value or series as inputs
+    """
+
+    generator_dict = dict()
+    for attribute in pypsa_dynamic_attributes:
+        if attribute in df_dynamic.columns:
+            generator_dict[attribute] = df_dynamic.loc[snapshots, attribute]
+        elif attribute in df_static.index:
+            generator_dict[attribute] = df_static[attribute]
+        else:
+            generator_dict[attribute] = np.nan
+
+    return generator_dict
+
+
+def apply_pint_generator(
+    n: pypsa.Network,
+    generator_project_static: pd.Series,
+    generator_project_dynamic: pd.DataFrame,
+    tech_colors: dict,
+) -> None:
+    """
+    Apply custom generator projects as PINT
+
+    Parameters
+    ----------
+    n: pypsa.Network
+        Network to modify
+    generator_project_static: pd.Series
+        Static components of custom generator projects
+    generator_project_dynamic: pd.DataFrame
+        Dynamic components of custom generator projects
+    tech_colors: dict
+        Dictionary of technology colors for plotting
+
+    Returns
+    -------
+    None
+    """
+
+    # Dynamic PyPSA generator input attributes
+    defaults = n.components["Generator"].defaults
+    pypsa_dynamic_attributes = defaults.index[
+        defaults.varying & defaults.status.str.startswith("Input")
+    ].tolist()
+
+    # Add generator project to the network
+    for _, project in generator_project_static.iterrows():
+        # Add carrier to network if new carrier
+        if project.carrier not in n.carriers.index:
+            n.add(
+                "Carrier",
+                project.carrier,
+                color=tech_colors.get(
+                    project.carrier,
+                    generate_unique_hex(project.carrier, n.carriers.color.tolist()),
+                ),  # Use the configured color, or assign a new one
+            )
+
+        generator_dict = _get_generator_values(
+            project, generator_project_dynamic, n.snapshots, pypsa_dynamic_attributes
+        )
+
+        n.add(
+            "Generator",
+            f"{project.project_id}_{project.generator_name}",
+            carrier=project.carrier,
+            bus=project.bus,
+            p_nom=project.p_nom,
+            capital_cost=project.capital_cost,
+            **generator_dict,
+        )
+
+
 def apply_pint_storage(
     n: pypsa.Network,
     storage_project: pd.Series,
@@ -325,13 +418,15 @@ def prepare_transmission_project(
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
     )
+
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
     ]
+
     assert not transmission_project.empty, (
-        f"Transmission project {project_id} not found."
+        f"Transmission project with {project_id} not found."
     )
 
     if method == "toot":
@@ -347,6 +442,52 @@ def prepare_transmission_project(
         project_id,
         len(transmission_project),
     )
+
+
+def prepare_generator_project(
+    n: pypsa.Network, snakemake, project_id: int, method: str
+) -> None:
+
+    tech_colors = snakemake.params.tech_colors
+    generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
+    generator_projects_dynamic = pd.read_csv(
+        snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
+    )
+    generator_project_static = generator_projects_static[
+        generator_projects_static["project_id"] == project_id
+    ]
+    assert not generator_project_static.empty, (
+        f"Generator project with {project_id} not found."
+    )
+
+    generator_project_dynamic = pd.DataFrame()
+    if not generator_projects_dynamic.empty and not generator_project_static.empty:
+        mapping_ids = generator_project_static["mapping_id"].tolist()
+        reqd_columns = [
+            x
+            for x in generator_projects_dynamic.columns.get_level_values(0)
+            if x in mapping_ids
+        ]
+        if reqd_columns:
+            generator_project_dynamic = generator_projects_dynamic[reqd_columns]
+            generator_project_dynamic.index = pd.to_datetime(
+                generator_project_dynamic.index
+            )
+
+    if method == "toot":
+        raise NotImplementedError(
+            f"TOOT method not supported for generator project {project_id}: "
+            "no matching reference-grid generator component to remove."
+        )
+    elif method == "pint":
+        apply_pint_generator(
+            n,
+            generator_project_static,
+            generator_project_dynamic,
+            tech_colors,
+        )
+    else:
+        raise ValueError(f"Unknown method {method} for project {project_id}")
 
 
 if __name__ == "__main__":
@@ -367,7 +508,13 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     cba_project = snakemake.wildcards.cba_project
-    is_storage = cba_project.startswith("s")
+
+    project_type_dict = {
+        "s": "storage",
+        "t": "transmission",
+        "g": "generator",
+    }
+
     project_id = int(cba_project[1:])
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     if planning_horizon not in [2030, 2040]:
@@ -377,14 +524,20 @@ if __name__ == "__main__":
         )
         planning_horizon = 2040
 
-    project_type = "storage" if is_storage else "transmission"
+    project_type = project_type_dict.get(cba_project[0])
     method = load_method(
         snakemake.input.methods, project_id, project_type, planning_horizon
     )
 
-    if is_storage:
+    if project_type == "storage":
         prepare_storage_project(n, snakemake, project_id, method)
-    else:
+    elif project_type == "transmission":
         prepare_transmission_project(n, snakemake, project_id, method)
+    elif project_type == "generator":
+        prepare_generator_project(n, snakemake, project_id, method)
+    else:
+        raise ValueError(
+            f"Unknown project type {project_type} for project {cba_project}"
+        )
 
     n.export_to_netcdf(snakemake.output.network)

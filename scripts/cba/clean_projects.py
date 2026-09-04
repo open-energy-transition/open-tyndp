@@ -71,6 +71,7 @@ from pathlib import Path
 
 import country_converter as coco
 import pandas as pd
+import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
@@ -456,6 +457,139 @@ def extract_custom_transmission_projects(
     return custom_transmission_projects
 
 
+def extract_custom_generator_projects(
+    custom_generators_static_path: str,
+    custom_generator_dynamic_path: str,
+    existing_buses: pd.Index,
+) -> tuple:
+    """
+    Extract custom generator projects
+
+    Parameters
+    ----------
+    custom_generators_static_path: str
+        Filepath for custom generators static attributes
+    custom_generators_dynamic_path: str
+        Filepath for custom generators dynamic attributes
+    existing_buses: pd.Index
+        List of existing buses
+
+    Returns
+    -------
+        tuple
+            custom_gens_static: pd.DataFrame
+                Pandas dataframe of static attributes of custom generator projects
+            custom_gens_dynamic: pd.DataFrame
+                Pandas dataframe of dynamic attributes of custom generator projects
+    """
+    custom_gens_static = pd.read_csv(custom_generators_static_path).drop(
+        ["source", "further description"], axis=1, errors="ignore"
+    )
+
+    custom_gens_dynamic = pd.read_csv(
+        custom_generator_dynamic_path, header=[0, 1], index_col=0
+    )
+
+    if custom_gens_static.empty and custom_gens_dynamic.empty:
+        logger.debug("No custom generator projects found.")
+        return custom_gens_static, custom_gens_dynamic
+
+    if custom_gens_dynamic.empty:
+        logger.warning(
+            "No data found for dynamic attributes of custom generator projects, only static ones. "
+            "Time-varying generator attributes fall back to their static value where given, "
+            "and to the PyPSA default otherwise. Ensure both datasets are compatible."
+        )
+
+    # Remove projects with no project ID
+    # TODO If PINT generator already exists in the future, it should be updated with values from this CSV rather than dropped
+    mask_null = custom_gens_static.project_id.isnull()
+    if mask_null.any():
+        logger.warning(
+            f"{mask_null.sum()} custom generator(s) without project ID have been dropped"
+        )
+    custom_gens_static = custom_gens_static[~mask_null].astype({"project_id": int})
+
+    # Remove projects without an existing bus
+    # TODO If generator is being added at a new bus, this bus should have already been listed under `custom_bus.csv`
+    mask_no_bus = ~custom_gens_static.bus.isin(existing_buses)
+    if mask_no_bus.any():
+        missing_buses = custom_gens_static.bus[mask_no_bus].unique().tolist()
+        logger.warning(
+            f"{mask_no_bus.sum()} custom generator(s) without existing bus have been dropped. Missing buses: {missing_buses}. "
+            "If new bus being added, ensure that it has been added to 'custom_cba_bus_projects.csv'"
+        )
+    custom_gens_static = custom_gens_static[~mask_no_bus]
+
+    # Remove projects without a generator name
+    mask_null = custom_gens_static.generator_name.isnull()
+    if mask_null.any():
+        logger.warning(
+            f"{mask_null.sum()} custom generators without generator name have been dropped"
+        )
+    custom_gens_static = custom_gens_static[~mask_null]
+
+    # Remove duplicate subset of `project id`` and `generator name`
+    mask_duplicate = custom_gens_static.duplicated(
+        subset=["project_id", "generator_name"], keep="first"
+    )
+    if mask_duplicate.any():
+        logger.warning(
+            f"{mask_duplicate.sum()} custom generators with duplicate subset of project_id and generator_name have been dropped"
+        )
+    custom_gens_static = custom_gens_static[~mask_duplicate]
+
+    # Set default marginal cost, capital cost and efficiency if these columns have no entries
+    custom_gens_static = custom_gens_static.fillna(
+        {"marginal_cost": 0, "capital_cost": 0, "efficiency": 1}
+    )
+
+    if not custom_gens_static.empty:
+        custom_gens_static["mapping_id"] = (
+            custom_gens_static["project_id"].astype(str)
+            + "_"
+            + custom_gens_static["generator_name"]
+        )
+
+        # Drop null columns for dynamic attributes
+        custom_gens_dynamic = custom_gens_dynamic.dropna(axis=1, how="all")
+
+        static_mapping_ids = pd.Index(custom_gens_static["mapping_id"])
+        dynamic_mapping_ids = custom_gens_dynamic.columns.get_level_values(0)
+
+        # Projects without dynamic attributes keep their static values or PyPSA defaults
+        missing_ids = static_mapping_ids.difference(dynamic_mapping_ids)
+        if not missing_ids.empty:
+            logger.warning(
+                f"No dynamic attributes found for custom generator(s) {missing_ids.tolist()}. "
+                "Their time-varying attributes fall back to their static value where given, "
+                "and to the PyPSA default otherwise."
+            )
+
+        # Filter dynamic attributes of relevant projects extracted from static worksheet
+        matched_ids = static_mapping_ids.intersection(dynamic_mapping_ids)
+        custom_gens_dynamic = custom_gens_dynamic[matched_ids]
+
+        # Extract input dynamic attributes from dummy PyPSA network
+        defaults = pypsa.Network().components["Generator"].defaults
+        pypsa_dynamic_attributes = defaults.index[
+            defaults.varying & defaults.status.str.startswith("Input")
+        ]
+
+        # Filter out dynamic attributes that are not inputs that can be provided to PyPSA network
+        dropped_attrs = custom_gens_dynamic.columns.get_level_values(1).difference(
+            pypsa_dynamic_attributes
+        )
+        if not dropped_attrs.empty:
+            logger.info(
+                f"Dropped dynamic attributes {dropped_attrs.tolist()} as they are not PyPSA input attributes"
+            )
+
+        custom_gens_dynamic = custom_gens_dynamic.drop(dropped_attrs, axis=1, level=1)
+
+    return custom_gens_static, custom_gens_dynamic
+
+
 def extract_investment_attributes(transmission_path: Path) -> pd.DataFrame:
     """
     Extract length, CAPEX, and underwater fraction from Trans.Investments sheet.
@@ -713,6 +847,7 @@ def build_method_assignments(
     guidelines_fn: str,
     projects: pd.DataFrame,
     custom_transmission_projects: pd.DataFrame,
+    custom_gens_static: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Determine the CBA assessment method for each project. The method is PINT (default) or TOOT and
@@ -754,9 +889,12 @@ def build_method_assignments(
         in_ref_2040=("in_ref_2040", lambda s: "yes" if (s == "yes").any() else "no"),
     )
 
-    all_project_ids = set(projects["project_id"]).union(
-        set(custom_transmission_projects["project_id"])
+    all_project_ids = set().union(
+        projects["project_id"],
+        custom_transmission_projects["project_id"],
+        custom_gens_static["project_id"],
     )
+
     assigned = []
     for horizon, col in [(2030, "in_ref_2030"), (2040, "in_ref_2040")]:
         rows = agg[["project_id", "in_ref_2030", "in_ref_2040"]].copy()
@@ -784,9 +922,12 @@ def build_method_assignments(
         assigned.append(rows)
 
     assigned = pd.concat(assigned, ignore_index=True).query(
-        "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id"
+        "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id or project_id in @custom_gens_static.project_id"
     )
     assigned["project_type"] = "transmission"
+    assigned.loc[
+        assigned["project_id"].isin(custom_gens_static["project_id"]), "project_type"
+    ] = "generator"
     return assigned
 
 
@@ -879,6 +1020,8 @@ if __name__ == "__main__":
     transmission_path = Path(snakemake.input.dir, "20250312_export_transmission.xlsx")
     storage_path = Path(snakemake.input.dir, "20250312_export_storage.xlsx")
     custom_transmission_path = Path(snakemake.input.custom_transmission)
+    custom_generators_static_path = Path(snakemake.input.custom_generators_static)
+    custom_generators_dynamic_path = Path(snakemake.input.custom_generators_dynamic)
     corrections_path = snakemake.input.cba_project_corrections
 
     # Get existing buses
@@ -896,6 +1039,14 @@ if __name__ == "__main__":
         custom_transmission_path, existing_buses
     )
 
+    # Custom generator projects
+    # TODO Ensure custom buses have already been extracted and grouped under existing_buses
+    custom_gens_static, custom_gens_dynamic = extract_custom_generator_projects(
+        custom_generators_static_path,
+        custom_generators_dynamic_path,
+        existing_buses,
+    )
+
     # Investment costs and length transmission
     investment_attrs = extract_investment_attributes(transmission_path)
     investment_attrs_per_line = split_investment_attributes_per_line(
@@ -908,7 +1059,10 @@ if __name__ == "__main__":
 
     # Method definition (PINT / TOOT) for transmission projects
     transmission_methods = build_method_assignments(
-        snakemake.input.guidelines, transmission_projects, custom_transmission_projects
+        snakemake.input.guidelines,
+        transmission_projects,
+        custom_transmission_projects,
+        custom_gens_static,
     )
 
     # Apply custom projects
@@ -938,3 +1092,7 @@ if __name__ == "__main__":
 
     methods = pd.concat([transmission_methods, storage_methods], ignore_index=True)
     methods.to_csv(snakemake.output.methods, index=False)
+
+    custom_gens_static.to_csv(snakemake.output.generator_projects_static, index=False)
+
+    custom_gens_dynamic.to_csv(snakemake.output.generator_projects_dynamic)

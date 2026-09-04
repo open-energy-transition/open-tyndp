@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 import fnmatch
+import random
 import re
 
 import pandas as pd
@@ -144,6 +145,9 @@ def filter_projects_by_specs(
 
     >>> filter_projects_by_specs(['t1', 's1', 's2'], ['s*'])
     ['s1', 's2']
+
+    >>> filter_projects_by_specs(['t1', 'g1', 'g2'], ['g*'])
+    ['g1', 'g2']
     """
 
     if not spec_list:
@@ -189,5 +193,32 @@ def filter_projects_by_specs(
 
     if not filtered_list:
         raise ValueError(f"Project specification {spec_list} selects no projects.")
-
     return filtered_list
+
+
+# Generate random hexcode for assigning color to a new carrier
+# Existing color codes are excluded
+def generate_unique_hex(carrier: str, excluded_colors: list[str]) -> str:
+    """
+    Generate a unique hex color code for a given carrier, ensuring it does not conflict with existing colors.
+
+    Parameters
+    ----------
+    carrier : str
+        The name of the carrier for which to generate a color.
+    excluded_colors : list[str]
+        A list of hex color codes that should be avoided.
+
+    Returns
+    -------
+    str
+        A unique hex color code in the format '#RRGGBB'.
+    """
+    rng = random.Random(carrier)
+    while True:
+        # Generate a 6-digit hex code
+        hex_color = f"#{rng.randint(0, 0xFFFFFF):06x}"
+
+        # Check if the code is in the exclusion list
+        if hex_color not in excluded_colors:
+            return hex_color
