@@ -39,8 +39,9 @@
 
 * Move the datasets `tyndp_cba_projects`, `tyndp_nuclear_profiles` and `tyndp_vis_plfm` in the Open-TYNDP GCP under a `2024/` prefixed path. The old paths are deprecated and will be removed with the next release ([#895](https://github.com/open-energy-transition/open-tyndp/pull/895)) .
 
-
 * feat: add automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
+
+* Add the Snakemake logs to the set of files retrieved from remote by the `sync` and `sync_dry` rules ([#918](https://github.com/open-energy-transition/open-tyndp/pull/918)).
   
 ## Upcoming PyPSA-Eur Release
 
