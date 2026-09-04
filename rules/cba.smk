@@ -264,8 +264,6 @@ rule fix_reference_sb_to_cba:
         logs("cba/fix_reference_sb_to_cba_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/cba/fix_reference_sb_to_cba_{planning_horizons}")
-    params:
-        build_years=get_elec_project_build_years,
     script:
         scripts("cba/fix_reference_sb_to_cba.py")
 
@@ -275,21 +273,12 @@ rule fix_reference_sb_to_cba:
 rule prepare_reference:
     input:
         network=rules.simplify_sb_network.output.network,
-        transmission_projects=rules.clean_projects.output.transmission_projects,
-        storage_projects=rules.clean_projects.output.storage_projects,
-        corrections=rules.fix_reference_sb_to_cba.output.corrections,
-        costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
         network=resources("cba/networks/reference_{planning_horizons}.nc"),
     log:
         logs("cba/prepare_reference_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/cba/prepare_reference_{planning_horizons}")
-    params:
-        hurdle_costs=config_provider("cba", "hurdle_costs"),
-        patch_sb_with_annexe=config_provider(
-            "tyndp_investment_candidates", "patch_sb_with_annexe"
-        ),
     script:
         scripts("cba/prepare_reference.py")
 
