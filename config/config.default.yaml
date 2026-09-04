@@ -1596,12 +1596,6 @@ data:
   tyndp_nuclear_profiles:
     source: archive
     version: latest
-  tyndp_cba_non_co2_emissions:
-    source: archive
-    version: latest
-  cba_guidelines_reference_projects:
-    source: archive
-    version: latest
   open_tyndp_prelim:
     source: archive
     version: latest
@@ -1634,6 +1628,8 @@ cba:
     - home battery
     soc_boundary_carriers:
     - "hydro-reservoir"
+    discount_rate: 0.07
+    default_lifetime: 25
   constrain_dsr: true
   msv_extraction:
     resolution: false
