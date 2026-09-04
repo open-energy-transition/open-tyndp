@@ -126,6 +126,7 @@ electricity:
   - 500.0
   - 750.0
   base_network: osm
+  tyndp_reference_year: 2030
   gaslimit_enable: false
   gaslimit: false
   co2limit_enable: false
@@ -563,12 +564,6 @@ transmission_projects:
   - in_permitting
   - confirmed
   new_link_capacity: zero
-
-# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_investment_candidates
-tyndp_investment_candidates:
-  patch_sb_with_annexe: false
-  elec_projects: {}
-  h2_projects: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#transformers
 transformers:
@@ -1024,8 +1019,6 @@ sector:
       efficiency_static: 0.97
   H2_network: true
   h2_topology_tyndp: false
-  h2_reference_grid_source: entsoe
-  h2_zones_tyndp: false
   h2_demand_patch_with_mm: false
   gas_network: true
   gas_demand_exogenously: false
@@ -1087,13 +1080,6 @@ sector:
       methanol: 121
       gas: 122
       oil: 125
-  offshore_hubs_tyndp:
-    enable: false
-    patch_crossborder_with_mm: false
-    connect_isolated: false
-    max_capacity:
-      DC_OH: 10
-      H2 pipeline OH: 30
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#industry
 industry:
