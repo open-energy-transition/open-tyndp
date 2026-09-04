@@ -1007,9 +1007,10 @@ rule build_osm_network:
 
 rule build_tyndp_network:
     input:
-        elec_reference_grid=rules.retrieve_tyndp.output.elec_reference_grid,
-        buses=rules.retrieve_tyndp.output.nodes,
+        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+        buses=rules.retrieve_tyndp_2026.output.nodes,
         bidding_shapes=resources("bidding_zones.geojson"),
+        offshore_bus_locations="data/tyndp_offshore_bus_location.csv",
     output:
         lines=resources("tyndp/build/lines.csv"),
         links=resources("tyndp/build/links.csv"),
@@ -1032,7 +1033,27 @@ rule build_tyndp_network:
         mem_mb=4000,
     params:
         countries=config_provider("countries"),
+        reference_year=config_provider("electricity", "tyndp_reference_year"),
     message:
         "Building TYNDP network"
     script:
         scripts("build_tyndp_network.py")
+
+
+rule build_tyndp_electricity_ntc:
+    input:
+        elec_reference_grid=rules.retrieve_tyndp_2026.output.elec_reference_grid,
+        buses=resources("tyndp/build/geojson/buses.geojson"),
+    output:
+        ntc=resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
+    log:
+        logs("build_tyndp_electricity_ntc_{planning_horizons}.log"),
+    benchmark:
+        benchmarks("performances/build_tyndp_electricity_ntc_{planning_horizons}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    message:
+        "Building TYNDP electricity NTC for {wildcards.planning_horizons}"
+    script:
+        scripts("build_tyndp_electricity_ntc.py")

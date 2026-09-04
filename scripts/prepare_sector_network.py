@@ -47,13 +47,13 @@ from scripts.add_electricity import (
     sanitize_carriers,
     sanitize_locations,
 )
-from scripts.base_network import _load_links_from_raw
 from scripts.build_energy_totals import (
     build_co2_totals,
     build_eea_co2,
     build_eurostat_co2,
 )
 from scripts.build_transport_demand import transport_degree_factor
+from scripts.build_tyndp_electricity_ntc import apply_tyndp_electricity_ntc
 from scripts.definitions.heat_sector import HeatSector
 from scripts.definitions.heat_system import HeatSystem
 from scripts.prepare_network import maybe_adjust_costs_and_potentials
@@ -61,54 +61,6 @@ from scripts.sb.build_statistics import NODE_MAP
 
 spatial = SimpleNamespace()
 logger = logging.getLogger(__name__)
-
-
-def attach_tyndp_transmission_projects(
-    n: pypsa.Network, fn_projects: str, fn_projects_fix: str | None = None
-):
-    """
-    Add TYNDP transmission projects to the network.
-
-    Updates existing DC link capacities and adds new links from the project list.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        Network to attach projects to.
-    fn_projects : str
-        Path to CSV file containing transmission project data.
-    fn_projects_fix : str|None (optional)
-        Path to CSV file containing transmission project corrections. Default is None.
-    """
-    logger.info("Adding transmission projects to the electrical network")
-    projects = _load_links_from_raw(fn_projects)
-    projects["dc"] = True
-    # TODO underwater fraction and capital costs not defined for new links
-
-    # Patch the project list (optional)
-    if fn_projects_fix:
-        logger.info("Patching electrical transmission projects with corrections.")
-        projects_fix = pd.read_csv(fn_projects_fix, quotechar="'", index_col=0).assign(
-            dc=True
-        )
-        new_projects = projects_fix.loc[
-            list(set(projects_fix.index) - set(projects.index))
-        ]
-        projects.loc[:, "p_nom"] = (
-            projects.loc[:, "p_nom"]
-            + projects_fix.p_nom.reindex(projects.index, fill_value=0)
-        ).clip(lower=0)
-        projects = projects[projects.p_nom != 0]
-
-        if not new_projects.empty:
-            projects = pd.concat([projects, new_projects])
-
-    links = n.links[n.links.carrier == "DC"].index
-    new_links = projects.loc[sorted(set(projects.index) - set(links))]
-    n.links.loc[links, "p_nom"] += projects.reindex(links, fill_value=0).p_nom
-
-    if not new_links.empty:
-        n.add("Link", new_links.index, **new_links)
 
 
 def define_spatial(
@@ -1534,7 +1486,8 @@ def _add_other_non_res_tyndp(
     query = "" if "ccs" in generator else "not"
 
     price_bands = pemmdb_capacities.query(
-        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0"
+        f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0",
+        engine="python",  # numexpr chokes on "not" combined with .str methods here
     ).reset_index()
     nodes = price_bands.bus.values
     offer_price = price_bands.price
@@ -9769,9 +9722,12 @@ if __name__ == "__main__":
 
     n = pypsa.Network(snakemake.input.network)
 
-    if fn_projects := snakemake.input.tyndp_projects:
-        attach_tyndp_transmission_projects(
-            n, fn_projects, fn_projects_fix=snakemake.input.tyndp_projects_fix
+    if snakemake.input.tyndp_electricity_ntc:
+        logger.info(
+            f"Overlaying TYNDP electricity NTC for planning horizon {investment_year}"
+        )
+        apply_tyndp_electricity_ntc(
+            n, snakemake.input.tyndp_electricity_ntc, investment_year
         )
 
     if snakemake.params.load_source == "tyndp":
