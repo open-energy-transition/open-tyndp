@@ -543,6 +543,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },
@@ -2409,48 +2419,6 @@
           }
         },
         "tyndp_nuclear_profiles": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "tyndp_cba_non_co2_emissions": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "cba_guidelines_reference_projects": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -6903,6 +6871,16 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "discount_rate": {
+          "default": 0.07,
+          "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+          "type": "number"
+        },
+        "default_lifetime": {
+          "default": 25,
+          "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+          "type": "number"
         }
       }
     },
@@ -15631,48 +15609,6 @@
             }
           }
         },
-        "tyndp_cba_non_co2_emissions": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "cba_guidelines_reference_projects": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "open_tyndp_prelim": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -15824,6 +15760,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },

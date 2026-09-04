@@ -7,6 +7,8 @@
 
 ## Upcoming Open-TYNDP Release
 
+**2026**
+
 **Features**
 
 * feat: add rule to retrieve TYNDP 2026 data ([#815](https://github.com/open-energy-transition/open-tyndp/pull/815)).
@@ -16,6 +18,49 @@
 * feat: add `build_tyndp_demand` rule to process TYNDP 2026 demand profiles (electricity, EV, hydrogen, thermal energy, synthetic fuels) ([#808](https://github.com/open-energy-transition/open-tyndp/pull/808)).
 
 * feat: Add complete processing and preparation of PECD v4.2 renewable profiles for all renewable technologies: Solar PV rooftop, Solar PV utility, Onshore Wind, Offshore Wind, and Solar CSP  ([#843](https://github.com/open-energy-transition/open-tyndp/pull/843)).  The data processing infrastructure for renewable profile creation is complete, but full integration into the model workflow will follow in a subsequent PRs.
+
+**Changes**
+
+**Bugfixes and Compatibility**
+
+**Documentation**
+
+**Developers Note**
+
+**2024**
+
+**Features**
+
+* Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
+
+**Changes**
+
+* Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+
+* Move small CBA data files (``a.3_non-co2-emissions.csv`` and ``table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv``) to local repository ``data/cba/`` folder instead of retrieving from GCP. The rules ``retrieve_tyndp_cba_non_co2_emissions`` and ``retrieve_cba_guidelines_reference_projects`` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)).
+
+**Bugfixes and Compatibility**
+
+* Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
+
+* Correct bus (NL00->NLOH001) and capacity (2000 MW -> 1800 MW) for CBA project 260 ([#873](https://github.com/open-energy-transition/open-tyndp/pull/873)).
+
+**Documentation**
+
+* feat: explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
+
+* Add a warning to the CBA documentation recommending the latest pre-solved SB networks, and the code of the matching release as a fallback ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+  
+**Developers Note**
+
+* feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
+
+* Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820)).
+
+* Move the datasets `tyndp_cba_projects`, `tyndp_nuclear_profiles` and `tyndp_vis_plfm` in the Open-TYNDP GCP under a `2024/` prefixed path. The old paths are deprecated and will be removed with the next release ([#895](https://github.com/open-energy-transition/open-tyndp/pull/895)) .
+
+* feat: add automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
+  
 
 ## Upcoming PyPSA-Eur Release
 

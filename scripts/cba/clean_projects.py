@@ -11,7 +11,10 @@ border strings (expected format: "BUS0-BUS1") and rows are filtered out with a w
 when the format does not match, when either bus is absent from the TYNDP node list, or
 when no capacity is reported in either direction.
 
-Storage project extraction is not yet implemented and returns an empty DataFrame.
+Reads storage projects from the "Stor.Projects" sheet. Each project's country is mapped
+to a representative electricity bus. Storage projects are assigned TOOT or PINT based on
+whether they are already part of the reference grid, same as transmission projects; TOOT
+storage projects are not yet supported downstream (see `prepare_project.py`).
 
 Custom PINT transmission projects can be configured using `data/custom_cba_transmission_projects.csv`. With it,
 the user can modify existing projects and add new ones. Transmission capacities are in MW.
@@ -25,10 +28,9 @@ the user can modify existing projects and add new ones. Transmission capacities 
 **Inputs**
 
 - `data/tyndp_2024_bundle/cba_projects/20250312_export_transmission.xlsx`: Excel file containing CBA transmission projects
-- `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects (not yet processed)
+- `data/tyndp_2024_bundle/cba_projects/20250312_export_storage.xlsx`: Excel file containing CBA storage projects
 - `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
-- `rules.retrieve_cba_guidelines_reference_projects.output.file`: Table of projects as defined in the Implementation Guidelines Appendix B.1
-- `data/cba_guidelines_reference_projects/.../table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: CBA guidelines reference table, used to assign the TOOT/PINT method per project and planning horizon
+- `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: Table of projects as defined in the Implementation Guidelines Appendix B.1, used to assign the TOOT/PINT method per project and planning horizon
 - `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
 - `data/custom_cba_transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
 
@@ -47,7 +49,18 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `capex_meur`: Total estimated CAPEX in MEUR (from Trans.Investments)
   - `underwater_fraction`: Fraction of route that is offshore cable
 
-- `resources/cba/storage_projects.csv`: Empty CSV with columns project_id and project_name (stub implementation)
+- `resources/cba/storage_projects.csv`: Cleaned CSV with columns:
+  - `project_id`: Integer project identifier
+  - `project_name`: Project name
+  - `capex_meur`: Estimated total CAPEX in MEUR
+  - `opex_meur_per_year`: Estimated annual OPEX in MEUR/year
+  - `p_nom_discharge`: Total turbining/discharge capacity (MW)
+  - `e_nom_gwh`: Storage capacity (GWh)
+  - `p_nom_charge`: Total pumping/charge capacity (MW)
+  - `roundtrip_efficiency`: Roundtrip efficiency (fraction)
+  - `lifetime_years`: Operational lifetime (years); missing or zero values are replaced with `cba.storage.default_lifetime`
+  - `carrier`: PyPSA carrier name for the storage technology
+  - `bus`: Representative electricity bus for the project's country
 
 - `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
 
@@ -56,6 +69,7 @@ the user can modify existing projects and add new ones. Transmission capacities 
 import logging
 from pathlib import Path
 
+import country_converter as coco
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
@@ -76,6 +90,42 @@ OFFSHORE_ELEMENT_TYPES = {
     "OffshoreDCTransmissionCable",
     "OffshoreACTransmissionCable",
 }
+
+STORAGE_PROJECTS_COLUMN_MAP = {
+    "Project ID": "project_id",
+    "Project Name": "project_name",
+    "Country": "country",
+    "Storage technology": "technology",
+    "Estimated CAPEX (MEUR)": "capex_meur",
+    "Estimated OPEX (MEUR/year)": "opex_meur_per_year",
+    "Total turbining capacity (MW)": "p_nom_discharge",
+    "Total Pumping Capacity of Pump Storage (MW)": "p_nom_charge",
+    "Storage Capacity (GWh)": "e_nom_gwh",
+    "Roundtrip efficiency (%)": "roundtrip_efficiency",
+    "Operational lifetime (Years)": "lifetime_years",
+    "Is the project in the reference grid 2030?": "in_ref_grid_2030",
+    "Is the project in the reference grid 2035?": "in_ref_grid_2035",
+}
+
+
+def load_storage_technology_carrier_map(carrier_mapping_fn: str) -> pd.Series:
+    """
+    Load the storage technology -> carrier mapping from the technology map CSV.
+
+    Parameters
+    ----------
+    carrier_mapping_fn : str
+        Path to `data/tyndp_technology_map.csv`.
+
+    Returns
+    -------
+    pd.Series
+        Mapping from `cba_storage_technology` (as reported in the CBA storage
+        projects Excel export) to `open_tyndp_carrier`.
+    """
+    tech_map = pd.read_csv(carrier_mapping_fn)
+    tech_map = tech_map.dropna(subset=["cba_storage_technology"])
+    return tech_map.set_index("cba_storage_technology")["open_tyndp_carrier"]
 
 
 def read_tyndp_electricity_buses(
@@ -456,6 +506,171 @@ def extract_investment_attributes(transmission_path: Path) -> pd.DataFrame:
     return agg
 
 
+def assign_country_bus(countries: pd.Series, existing_buses: pd.Index) -> pd.Series:
+    """
+    Assign each project's country name to a representative electrical bus.
+
+    Country names (e.g. "Austria") are converted to ISO2 codes and matched
+    against the bus prefix (e.g. "AT00"). If a country has several buses,
+    the alphabetically first one is used and a warning is logged.
+
+    Parameters
+    ----------
+    countries : pd.Series
+        Country names as given in the storage projects Excel sheet.
+    existing_buses : pd.Index
+        Electricity buses as used in Open-TYNDP.
+
+    Returns
+    -------
+    pd.Series
+        Bus code per project, aligned with ``countries``.
+    """
+    iso2 = pd.Index(coco.convert(countries.unique().tolist(), to="ISO2"))
+    country_to_iso2 = dict(zip(countries.unique(), iso2))
+
+    buses_by_country = existing_buses.to_series().groupby(existing_buses.str[:2])
+    representative_bus = buses_by_country.first()
+
+    multi_bus_countries = buses_by_country.nunique().loc[lambda s: s > 1]
+    if not multi_bus_countries.empty:
+        logger.warning(
+            "%d countries have several electricity buses; assigning storage "
+            "projects to the first bus alphabetically:\n%s",
+            len(multi_bus_countries),
+            representative_bus.loc[multi_bus_countries.index].to_string(),
+        )
+
+    bus = countries.map(country_to_iso2).map(representative_bus)
+    unmatched = bus.isna()
+    if unmatched.any():
+        logger.warning(
+            "%d storage projects could not be matched to a bus for countries:\n%s",
+            unmatched.sum(),
+            countries.loc[unmatched].unique(),
+        )
+    return bus
+
+
+def extract_storage_projects(
+    excel_path: Path,
+    existing_buses: pd.Index,
+    default_lifetime: float,
+    technology_carrier_map: pd.Series,
+) -> pd.DataFrame:
+    """
+    Read and clean the storage projects from the "Stor.Projects" sheet.
+
+    Each project's country is mapped to a representative electricity bus.
+    Rows with an unknown technology or that cannot be matched to a bus are
+    dropped with a warning. Projects with a missing or zero operational
+    lifetime are overwritten with ``default_lifetime``.
+
+    Parameters
+    ----------
+    excel_path : Path
+        Path to the Excel export defining the storage projects.
+    existing_buses : pd.Index
+        Electricity buses as used in Open-TYNDP.
+    default_lifetime : float
+        Lifetime (years) used to replace missing or zero operational
+        lifetimes reported in the Excel export.
+    technology_carrier_map : pd.Series
+        Mapping from `cba_storage_technology` to `open_tyndp_carrier`, as
+        returned by `load_storage_technology_carrier_map`.
+
+    Returns
+    -------
+    pd.DataFrame
+        List of storage projects with their detailed characteristics, one row per project.
+    """
+    projects = (
+        pd.read_excel(
+            excel_path,
+            sheet_name="Stor.Projects",
+            skiprows=1,
+            usecols=list(STORAGE_PROJECTS_COLUMN_MAP),
+        )
+        .rename(columns=STORAGE_PROJECTS_COLUMN_MAP)
+        .dropna(subset=["project_id"])
+    )
+    projects["project_id"] = projects["project_id"].astype(int)
+    projects["roundtrip_efficiency"] = projects["roundtrip_efficiency"] / 100.0
+
+    unknown_technology = ~projects["technology"].isin(technology_carrier_map.index)
+    if unknown_technology.any():
+        logger.warning(
+            "%d out of %d storage projects have an unknown storage technology, ignoring them:\n%s",
+            unknown_technology.sum(),
+            len(projects),
+            projects.loc[
+                unknown_technology, ["project_id", "project_name", "technology"]
+            ].to_string(index=False, max_colwidth=40),
+        )
+    projects = projects.loc[~unknown_technology]
+    projects["carrier"] = projects["technology"].map(technology_carrier_map)
+
+    projects["bus"] = assign_country_bus(projects["country"], existing_buses)
+    projects = projects.dropna(subset=["bus"])
+
+    # Data quirk: project 1064 reports a negative pumping capacity
+    projects["p_nom_charge"] = projects["p_nom_charge"].abs()
+
+    # Data quirk: some projects report a missing or zero operational lifetime
+    # (e.g. project 1076); fall back to default_lifetime in that case
+    missing_lifetime = projects["lifetime_years"].isna() | (
+        projects["lifetime_years"] <= 0
+    )
+    projects.loc[missing_lifetime, "lifetime_years"] = default_lifetime
+
+    return projects.drop(columns=["technology", "country"])
+
+
+# The Stor.Projects sheet only reports reference-grid flags for 2030 and 2035;
+# 2035 is used as the nearest available proxy for the 2040 planning horizon.
+STORAGE_REF_GRID_HORIZON_COLUMN = {2030: "in_ref_grid_2030", 2040: "in_ref_grid_2035"}
+
+
+def build_storage_method_assignments(
+    storage_projects: pd.DataFrame, planning_horizons: list[int]
+) -> pd.DataFrame:
+    """
+    Define the assignment method of storage projects.
+
+    A storage project is assigned TOOT if it is reported as already part of
+    the reference grid for the given planning horizon, and PINT otherwise
+    (i.e. it represents a new capacity addition). The reference-grid flag is
+    only reported for 2030 and 2035 in the Excel; 2035 is used as a proxy for
+    the 2040 planning horizon.
+
+    Parameters
+    ----------
+    storage_projects : pd.DataFrame
+        List of storage projects with their detailed characteristics,
+        including the in_ref_grid_2030/in_ref_grid_2035 boolean columns.
+    planning_horizons : list[int]
+        Planning horizons for which to assign a method.
+
+    Returns
+    -------
+    pd.DataFrame
+        Table defining the assignment method of each storage project.
+    """
+    rows = []
+    for horizon in planning_horizons:
+        rows.append(
+            storage_projects[["project_id", "project_name"]].assign(
+                planning_horizon=horizon,
+                method=storage_projects[STORAGE_REF_GRID_HORIZON_COLUMN[horizon]].map(
+                    {True: "toot", False: "pint"}
+                ),
+            )
+        )
+    methods = pd.concat(rows, ignore_index=True)
+    methods["project_type"] = "storage"
+    return methods
+
+
 def split_investment_attributes_per_line(
     investment_attrs: pd.DataFrame, transmission_projects: pd.DataFrame
 ) -> pd.DataFrame:
@@ -484,21 +699,6 @@ def split_investment_attributes_per_line(
         length_km=lambda d: d.length_km / d.index.map(link_counts).fillna(1),
         capex_meur=lambda d: d.capex_meur / d.index.map(link_counts).fillna(1),
     )
-
-
-def extract_storage_projects(
-    storage_path: Path, existing_buses: pd.Index
-) -> pd.DataFrame:
-    """
-    Stub method to extract storage projects.
-
-    Returns an empty DataFrame with the expected column structure.
-    TODO: Implement actual storage project extraction from Excel file.
-    """
-    logger.info(
-        "Storage project extraction not yet implemented, returning empty DataFrame"
-    )
-    return pd.DataFrame(columns=["project_id", "project_name"])
 
 
 def normalize_yes_no(value: str) -> str:
@@ -586,6 +786,7 @@ def build_method_assignments(
     assigned = pd.concat(assigned, ignore_index=True).query(
         "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id"
     )
+    assigned["project_type"] = "transmission"
     return assigned
 
 
@@ -705,22 +906,35 @@ if __name__ == "__main__":
         investment_attrs_per_line, on="project_id", how="left"
     )
 
-    # Storage projects
-    storage_projects = extract_storage_projects(storage_path, existing_buses)
-
-    # Method definition (PINT / TOOT)
-    methods = build_method_assignments(
+    # Method definition (PINT / TOOT) for transmission projects
+    transmission_methods = build_method_assignments(
         snakemake.input.guidelines, transmission_projects, custom_transmission_projects
     )
 
     # Apply custom projects
     transmission_projects = apply_custom_projects(
-        transmission_projects, custom_transmission_projects, methods
+        transmission_projects, custom_transmission_projects, transmission_methods
     )
 
     transmission_projects.to_csv(snakemake.output.transmission_projects, index=False)
 
+    # Storage projects
     # TODO Add overwrite_projects for storage projects
+    technology_carrier_map = load_storage_technology_carrier_map(
+        snakemake.input.carrier_mapping
+    )
+    storage_projects = extract_storage_projects(
+        storage_path,
+        existing_buses,
+        snakemake.params.storage_default_lifetime,
+        technology_carrier_map,
+    )
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
+    # Method definition (PINT / TOOT) for storage projects
+    storage_methods = build_storage_method_assignments(
+        storage_projects, snakemake.params.planning_horizons
+    )
+
+    methods = pd.concat([transmission_methods, storage_methods], ignore_index=True)
     methods.to_csv(snakemake.output.methods, index=False)
