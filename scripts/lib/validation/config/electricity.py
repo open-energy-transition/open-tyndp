@@ -230,7 +230,7 @@ class _PemmdbHydroProfilesConfig(BaseModel):
         description="Activate PEMMDB hydro inflow profiles from 2024 TYNDP instead of default hydro profiles.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2035, 2040, 2050],
+        default_factory=lambda: [2030, 2040, 2050],
         description="List of years for which PEMMDB hydro inflows data is available.",
     )
     technologies: list[

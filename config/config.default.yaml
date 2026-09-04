@@ -206,7 +206,6 @@ electricity:
     enable: false
     available_years:
     - 2030
-    - 2035
     - 2040
     - 2050
     technologies:
