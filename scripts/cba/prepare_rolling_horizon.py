@@ -341,8 +341,22 @@ def fix_reservoir_soc_at_boundaries(
     pf_soc = n_msv.storage_units_t.state_of_charge[common]
 
     # Resample if snapshots differ
+    # A state of charge is reported at the END of a snapshot's period, so re-date both indices to those period ends before interpolating between them.
     if not n.snapshots.equals(n_msv.snapshots):
-        pf_soc = resample_msv_to_target(pf_soc, n.snapshots, method="ffill")
+        msv_period_ends = n_msv.snapshots + pd.to_timedelta(
+            n_msv.snapshot_weightings.stores.values, unit="h"
+        )
+        rh_period_ends = n.snapshots + pd.to_timedelta(
+            n.snapshot_weightings.stores.values, unit="h"
+        )
+        pf_soc = (
+            pf_soc.set_axis(msv_period_ends)
+            .reindex(msv_period_ends.union(rh_period_ends))
+            .interpolate(method="time")
+            .reindex(rh_period_ends)
+            .set_axis(n.snapshots)
+            .bfill()
+        )
 
     # Compute window boundary indices (same logic as optimize_with_rolling_horizon)
     n_sns = len(n.snapshots)
@@ -350,7 +364,8 @@ def fix_reservoir_soc_at_boundaries(
     boundary_idx = set()
     for start in range(0, n_sns, step):
         end = min(n_sns - 1, start + horizon - 1)
-        boundary_idx.add(start)
+        if start:
+            boundary_idx.add(start)
         boundary_idx.add(end)
     boundary_snapshots = n.snapshots[sorted(boundary_idx)]
 
@@ -410,13 +425,12 @@ if __name__ == "__main__":
 
     # Fix reservoir state of charge at window boundaries from perfect foresight
     soc_boundary_carriers = snakemake.params.get("soc_boundary_carriers", [])
-    cba_solving = snakemake.config.get("cba", {}).get("solving", {})
     fix_reservoir_soc_at_boundaries(
         n,
         n_msv,
         carriers=soc_boundary_carriers,
-        horizon=cba_solving.get("horizon", 168),
-        overlap=cba_solving.get("overlap", 1),
+        horizon=snakemake.params.rh_horizon,
+        overlap=snakemake.params.rh_overlap,
     )
 
     # Save prepared network
