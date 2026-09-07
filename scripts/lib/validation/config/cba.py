@@ -96,7 +96,7 @@ class _CbaMsvExtractionConfig(ConfigModel):
     )
     resample_method: Literal["ffill", "interpolate"] = Field(
         default="ffill",
-        description="Method for resampling marginal storage value to target network resolution.",
+        description="Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
     )
     solving: _CbaMsvSolvingConfig = Field(
         default_factory=_CbaMsvSolvingConfig,

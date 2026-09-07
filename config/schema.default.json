@@ -578,7 +578,7 @@
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling marginal storage value to target network resolution.",
+              "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
               "enum": [
                 "ffill",
                 "interpolate"
@@ -6706,7 +6706,7 @@
         },
         "resample_method": {
           "default": "ffill",
-          "description": "Method for resampling marginal storage value to target network resolution.",
+          "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
           "enum": [
             "ffill",
             "interpolate"
@@ -15766,7 +15766,7 @@
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling marginal storage value to target network resolution.",
+              "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
               "enum": [
                 "ffill",
                 "interpolate"
