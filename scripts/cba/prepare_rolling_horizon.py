@@ -82,6 +82,9 @@ def resample_msv_to_target(
     msv: pd.DataFrame,
     target_snapshots: pd.DatetimeIndex,
     method: str = "ffill",
+    msv_weightings: pd.Series | None = None,
+    target_weightings: pd.Series | None = None,
+    initial: pd.Series | None = None,
 ) -> pd.DataFrame:
     """
     Resample marginal storage value from extraction resolution to target resolution.
@@ -96,13 +99,41 @@ def resample_msv_to_target(
         Resampling method:
         - "ffill": Forward fill - each MSV value applies until the next one.
         - "interpolate": Linear interpolation between marginal storage values.
+        - "interpolate_period_end": Linear interpolation for quantities reported at
+          the END of a snapshot's period (state of charge, store energy). Requires
+          msv_weightings and target_weightings.
+    msv_weightings : pd.Series or None, optional
+        Snapshot weightings of MSV network, used by "interpolate_period_end"
+        method to date its values to the end of their period.
+    target_weightings : pd.Series or None, optional
+        Snapshot weightings of target_snapshots, used by "interpolate_period_end" method.
+    initial : pd.Series or None, optional
+        Value at the start of the first period, used by "interpolate_period_end" method.
+        Without this, the first period has no earlier value to interpolate from and is
+        backward filled instead.
 
     Returns
     -------
     pd.DataFrame
         Resampled MSV data aligned to target_snapshots.
     """
-    if method == "interpolate":
+    if method == "interpolate_period_end":
+        # Re-date both indices to their period ends, interpolate, then date back
+        msv_period_ends = msv.index + pd.to_timedelta(msv_weightings.values, unit="h")
+        target_period_ends = target_snapshots + pd.to_timedelta(
+            target_weightings.values, unit="h"
+        )
+        msv_dated = msv.set_axis(msv_period_ends)
+        if initial is not None:
+            # Value at the start of the first period, which has no earlier value
+            msv_dated.loc[msv.index[0]] = initial
+        msv_resampled = (
+            msv_dated.reindex(msv_dated.index.union(target_period_ends))
+            .interpolate(method="time")
+            .reindex(target_period_ends)
+            .set_axis(target_snapshots)
+        )
+    elif method == "interpolate":
         # Combine indices and interpolate
         combined_index = msv.index.union(target_snapshots).sort_values()
         msv_resampled = msv.reindex(combined_index).interpolate(method="time")
@@ -305,6 +336,9 @@ def fix_reservoir_soc_at_boundaries(
     leaving all other snapshots unconstrained. This guides the seasonal
     trajectory while giving the optimizer freedom for hourly dispatch.
 
+    Must be called AFTER set_initial_state_from_pf, whose state_of_charge_initial
+    seeds the interpolation of the first period.
+
     Parameters
     ----------
     n : pypsa.Network
@@ -340,23 +374,17 @@ def fix_reservoir_soc_at_boundaries(
 
     pf_soc = n_msv.storage_units_t.state_of_charge[common]
 
-    # Resample if snapshots differ
+    # Resample if snapshots differ.
     # A state of charge is reported at the END of a snapshot's period,
     # so re-date both indices to those period ends before interpolating between them.
     if not n.snapshots.equals(n_msv.snapshots):
-        msv_period_ends = n_msv.snapshots + pd.to_timedelta(
-            n_msv.snapshot_weightings.stores.values, unit="h"
-        )
-        rh_period_ends = n.snapshots + pd.to_timedelta(
-            n.snapshot_weightings.stores.values, unit="h"
-        )
-        pf_soc = (
-            pf_soc.set_axis(msv_period_ends)
-            .reindex(msv_period_ends.union(rh_period_ends))
-            .interpolate(method="time")
-            .reindex(rh_period_ends)
-            .set_axis(n.snapshots)
-            .bfill()
+        pf_soc = resample_msv_to_target(
+            pf_soc,
+            n.snapshots,
+            method="interpolate_period_end",
+            msv_weightings=n_msv.snapshot_weightings.stores,
+            target_weightings=n.snapshot_weightings.stores,
+            initial=n.storage_units.state_of_charge_initial[common],
         )
 
     # Compute window boundary indices (same logic as optimize_with_rolling_horizon)
@@ -365,8 +393,7 @@ def fix_reservoir_soc_at_boundaries(
     boundary_idx = set()
     for start in range(0, n_sns, step):
         end = min(n_sns - 1, start + horizon - 1)
-        if start:  # Initial state_of_charge defined by set_initial_state_from_pf
-            boundary_idx.add(start)
+        boundary_idx.add(start)
         boundary_idx.add(end)
     boundary_snapshots = n.snapshots[sorted(boundary_idx)]
 
