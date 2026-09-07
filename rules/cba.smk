@@ -381,7 +381,6 @@ rule solve_cba_msv_extraction:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "msv_extraction", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     script:
         scripts("cba/solve_cba_msv_extraction.py")
 
