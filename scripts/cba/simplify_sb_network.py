@@ -41,6 +41,9 @@ def extend_primary_fuel_sources(
     Primary fuel sources have no capital costs, so unlimited capacity ensures
     sufficient supply without affecting the objective function.
 
+    Both p_nom and p_nom_opt are set so that the capacity is not overwritten by
+    `n.optimize.fix_optimal_capacities()`, which resets p_nom from p_nom_opt.
+
     Parameters
     ----------
     n : pypsa.Network
@@ -61,7 +64,7 @@ def extend_primary_fuel_sources(
     ).unique()
     mask = n.generators.carrier.str.contains("|".join(primary_fuel_carriers))
     gen_i = n.generators[mask].index
-    n.generators.loc[gen_i, "p_nom"] = inf
+    n.generators.loc[gen_i, ["p_nom", "p_nom_opt"]] = inf
 
 
 def move_bus_carrier_and_cleanup(
@@ -247,14 +250,14 @@ if __name__ == "__main__":
     # Make DC and DC_OH links uni-directional
     make_links_unidirectional(n, carrier=("DC", "DC_OH"))
 
+    # Extend primary fuel sources capacity
+    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
+    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
+
     # TODO: in the case of a perfect foresight network we need to extract a single planning horizon here
 
     # Fix optimal capacities from scenario building
     n.optimize.fix_optimal_capacities()
-
-    # Extend primary fuel sources capacity
-    tyndp_conventional_carriers = snakemake.params.tyndp_conventional_carriers
-    extend_primary_fuel_sources(n, tyndp_conventional_carriers)
 
     # Add hurdle costs to DC links
     # Hurdle costs: 0.01 €/MWh (p.20, 104 TYNDP 2024 CBA implementation guidelines)
