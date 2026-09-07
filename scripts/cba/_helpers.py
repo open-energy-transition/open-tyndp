@@ -7,6 +7,7 @@ import random
 import re
 
 import pandas as pd
+import pypsa
 
 from scripts.add_electricity import calculate_annuity
 
@@ -145,9 +146,6 @@ def filter_projects_by_specs(
 
     >>> filter_projects_by_specs(['t1', 's1', 's2'], ['s*'])
     ['s1', 's2']
-
-    >>> filter_projects_by_specs(['t1', 'g1', 'g2'], ['g*'])
-    ['g1', 'g2']
     """
 
     if not spec_list:
@@ -222,3 +220,22 @@ def generate_unique_hex(carrier: str, excluded_colors: list[str]) -> str:
         # Check if the code is in the exclusion list
         if hex_color not in excluded_colors:
             return hex_color
+
+
+def get_pypsa_dynamic_attributes() -> list[str]:
+    """
+    Return a list of PyPSA dynamic attributes that can be provided as input.
+
+    These attributes are derived from the PyPSA defaults for the Generator
+    component, specifically those that are marked as varying and have a status
+    starting with "Input".
+
+    Returns
+    -------
+    list[str]
+        List of PyPSA dynamic attribute names.
+    """
+    defaults = pypsa.Network().components["Generator"].defaults
+    return defaults.index[
+        defaults.varying & defaults.status.str.startswith("Input")
+    ].tolist()

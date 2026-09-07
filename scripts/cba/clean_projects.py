@@ -71,10 +71,10 @@ from pathlib import Path
 
 import country_converter as coco
 import pandas as pd
-import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
+from scripts.cba._helpers import get_pypsa_dynamic_attributes
 
 logger = logging.getLogger(__name__)
 
@@ -589,15 +589,9 @@ def extract_custom_generators(
         matched_ids = static_mapping_ids.intersection(dynamic_mapping_ids)
         custom_gens_dynamic = custom_gens_dynamic[matched_ids]
 
-        # Extract input dynamic attributes from dummy PyPSA network
-        defaults = pypsa.Network().components["Generator"].defaults
-        pypsa_dynamic_attributes = defaults.index[
-            defaults.varying & defaults.status.str.startswith("Input")
-        ]
-
         # Filter out dynamic attributes that are not inputs that can be provided to PyPSA network
         dropped_attrs = custom_gens_dynamic.columns.get_level_values(1).difference(
-            pypsa_dynamic_attributes
+            get_pypsa_dynamic_attributes()
         )
         if not dropped_attrs.empty:
             logger.warning(
