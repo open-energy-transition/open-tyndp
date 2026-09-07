@@ -42,6 +42,8 @@
 * feat: add automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
 
 * Add the Snakemake logs to the set of files retrieved from remote by the `sync` and `sync_dry` rules ([#918](https://github.com/open-energy-transition/open-tyndp/pull/918)).
+
+* Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
   
 ## Upcoming PyPSA-Eur Release
 
