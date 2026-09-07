@@ -444,7 +444,7 @@ def prepare_transmission_project(
     )
 
 
-def prepare_generator_project(
+def prepare_custom_generators(
     n: pypsa.Network, snakemake, project_id: int, method: str
 ) -> None:
 
@@ -512,7 +512,6 @@ if __name__ == "__main__":
     project_type_dict = {
         "s": "storage",
         "t": "transmission",
-        "g": "generator",
     }
 
     project_id = int(cba_project[1:])
@@ -533,11 +532,12 @@ if __name__ == "__main__":
         prepare_storage_project(n, snakemake, project_id, method)
     elif project_type == "transmission":
         prepare_transmission_project(n, snakemake, project_id, method)
-    elif project_type == "generator":
-        prepare_generator_project(n, snakemake, project_id, method)
     else:
         raise ValueError(
             f"Unknown project type {project_type} for project {cba_project}"
         )
+
+    prepare_custom_generators(n, snakemake, project_id, method)
+
 
     n.export_to_netcdf(snakemake.output.network)

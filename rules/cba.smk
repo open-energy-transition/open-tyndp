@@ -46,11 +46,11 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
 
 
 def project_codes(projects: pd.DataFrame) -> list[str]:
-    """Return unique project codes (e.g. 't1', 's1001', 'g1500') from a methods table with project_id/project_type columns."""
+    """Return unique project codes (e.g. 't1', 's1001') from a methods table with project_id/project_type columns."""
     projects = projects[["project_id", "project_type"]].drop_duplicates()
     return list(
         projects["project_type"].map(
-            {"storage": "s", "transmission": "t", "generator": "g"}
+            {"storage": "s", "transmission": "t"}
         )
         + projects["project_id"].astype(str)
     )
