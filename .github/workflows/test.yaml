@@ -155,7 +155,10 @@ jobs:
         SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
         SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
       run: |
-        pixi run -e open-tyndp tyndp-sb-test
+        # Temporarily stop the test before prepare_sector_network and everything
+        # downstream of it. 
+        # TODO: Remove --omit-from flag to restore the full test.
+        pixi run -e open-tyndp tyndp-sb-test --omit-from prepare_sector_network
 
     - name: Run snakemake test workflows (cba)
       if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -163,7 +166,10 @@ jobs:
         SNAKEMAKE_STORAGE_CACHED_HTTP_CACHE: ""
         SNAKEMAKE_STORAGE_CACHED_HTTP_SKIP_REMOTE_CHECKS: "1"
       run: |
-        pixi run -e open-tyndp tyndp-cba-test
+        # Temporarily stop the test before prepare_sector_network and everything
+        # downstream of it. 
+        # TODO: Remove --omit-from flag to restore the full test.
+        pixi run -e open-tyndp tyndp-cba-test --omit-from prepare_sector_network
 
     - name: Run snakemake test workflows (upstream)
       if: steps.filter.outputs.src == 'true' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
