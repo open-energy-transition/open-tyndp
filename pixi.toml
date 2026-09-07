@@ -246,6 +246,10 @@ snakemake-storage-plugin-cached-http = ">=0.3"
 pypsa-explorer = ">=0.1.1"
 pixi-pycharm = ">=0.0.9"
 python-calamine = ">=0.6.1"
+# Pin the BLAS provider: unconstrained it drifts (netlib/blis/openblas) between resolves,
+# making results irreproducible. openmp_* is required too, else SCIP/MUMPS get downgraded.
+libblas = { version = "*", build = "*openblas" }
+libopenblas = { version = "*", build = "openmp_*" }
 
 [feature.open-tyndp.target.win-64.dependencies]
 git = ">=2.52.0"

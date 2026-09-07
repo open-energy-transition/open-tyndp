@@ -20,6 +20,7 @@ logging:
 remote:
   ssh: ""
   path: ""
+  sync_file: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#run
 run:
@@ -1591,12 +1592,6 @@ data:
     source: archive
     version: latest
   tyndp_nuclear_profiles:
-    source: archive
-    version: latest
-  tyndp_cba_non_co2_emissions:
-    source: archive
-    version: latest
-  cba_guidelines_reference_projects:
     source: archive
     version: latest
   open_tyndp_prelim:

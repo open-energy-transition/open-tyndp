@@ -195,12 +195,23 @@ New data should generally not be added to the data, but externally retrieved in 
 - **License:** CC-BY 4.0 ([reference](https://commission.europa.eu/legal-notice_en#copyright-notice))
 - **Description:** Contains transport costs for different types of biomass.
 
+`data/cba/a.3_non-co2-emissions.csv`
+
+- **Source:** ENTSO-E, TYNDP 2024 Methodology: CBA Implementation Guidelines, Annex A.3, p. 108
+- **Link:** https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
+- **License:** CC-BY 4.0
+- **Description:** Non-CO2 emission factors (NOx, NH3, SOx, PM2.5, PM10, NMVOC in kg per net GJ) and standard efficiencies in NCV terms per fuel and plant type, extracted manually from the CBA Implementation Guidelines. Used to compute the B4 non-CO2 emissions indicator in units of t/year.
+
 `data/cba/cba_project_corrections.csv`
 
 - **Source:** Source manually compiled by Open-TYNDP maintainers, based on cross-referencing raw TYNDP CBA project export data with individual TYNDP project investment sheets/PDFs.
 - **Link:** https://tyndp2024.entsoe.eu/projects-map/transmission
-- **License:** CC-BY 4.0 
+- **License:** CC-BY 4.0
 - **Description:** Contains manual corrections to raw TYNDP cost-benefit analysis (CBA) project data, including fixes to malformed or missing border/bus codes (e.g. mapping blank or ambiguous codes to offshore hub buses), splitting single malformed rows into their correct per-investment legs, and correcting transfer capacities (`p_nom`) between project endpoints. Used to override erroneous entries in the raw CBA project list before building CBA networks.
 
+`data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`
 
-
+- **Source:** ENTSO-E, TYNDP 2024 Methodology: CBA Implementation Guidelines, Table B.1
+- **Link:** https://tyndp.entsoe.eu/resources/tyndp-2024-methodology-cba-implementation-guidelines-for-consultation-1
+- **License:** CC-BY 4.0
+- **Description:** Overview of the transmission projects included in the reference grids for the 2030 and 2040 time horizons, with border, transfer capacities and commissioning year, extracted manually from the CBA Implementation Guidelines. Used to assign the TOOT/PINT assessment method to each transmission project per planning horizon and patch the CBA reference grid.
