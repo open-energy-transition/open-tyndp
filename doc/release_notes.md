@@ -43,6 +43,8 @@
 
 * Add the Snakemake logs to the set of files retrieved from remote by the `sync` and `sync_dry` rules ([#918](https://github.com/open-energy-transition/open-tyndp/pull/918)).
 
+* Add rule to sync individual files from remote cluster ([#823](https://github.com/open-energy-transition/open-tyndp/pull/823)).
+
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
   
 ## Upcoming PyPSA-Eur Release
