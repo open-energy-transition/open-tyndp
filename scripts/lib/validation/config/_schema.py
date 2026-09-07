@@ -66,6 +66,10 @@ class RemoteConfig(ConfigModel):
         "",
         description="Optionally specify the file path within the remote cluster to be synchronized.",
     )
+    sync_file: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+    )
 
 
 class TyndpInvestmentCandidatesConfig(ConfigModel):
