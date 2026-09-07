@@ -17,7 +17,7 @@
 
 * Move small CBA data files (``a.3_non-co2-emissions.csv`` and ``table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv``) to local repository ``data/cba/`` folder instead of retrieving from GCP. The rules ``retrieve_tyndp_cba_non_co2_emissions`` and ``retrieve_cba_guidelines_reference_projects`` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)).
 
-* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. Also add a small patch to `prepare_sector_network` when running DE and GA. ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
+* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`, etc) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details) ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
 **Bugfixes and Compatibility**
 
