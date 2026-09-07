@@ -512,12 +512,12 @@ def extract_custom_generators(
 
     # Remove projects with no project ID
     # TODO If PINT generator already exists in the future, it should be updated with values from this CSV rather than dropped
-    mask_null = custom_gens_static.project_id.isnull()
-    if mask_null.any():
+    mask_projid_null = custom_gens_static.project_id.isnull()
+    if mask_projid_null.any():
         logger.warning(
-            f"{mask_null.sum()} custom generator(s) without project ID have been dropped"
+            f"{mask_projid_null.sum()} custom generator(s) without project ID have been dropped"
         )
-    custom_gens_static = custom_gens_static[~mask_null].astype({"project_id": int})
+    custom_gens_static = custom_gens_static[~mask_projid_null].astype({"project_id": int})
 
     # Remove projects without an existing bus
     # TODO If generator is being added at a new bus, this bus should have already been listed under `custom_bus.csv`
@@ -531,12 +531,12 @@ def extract_custom_generators(
     custom_gens_static = custom_gens_static[~mask_no_bus]
 
     # Remove projects without a generator name
-    mask_null = custom_gens_static.generator_name.isnull()
-    if mask_null.any():
+    mask_gen_null = custom_gens_static.generator_name.isnull()
+    if mask_gen_null.any():
         logger.warning(
-            f"{mask_null.sum()} custom generators without generator name have been dropped"
+            f"{mask_gen_null.sum()} custom generators without generator name have been dropped"
         )
-    custom_gens_static = custom_gens_static[~mask_null]
+    custom_gens_static = custom_gens_static[~mask_gen_null]
 
     # Remove duplicate subset of `project id`` and `generator name`
     mask_duplicate = custom_gens_static.duplicated(
