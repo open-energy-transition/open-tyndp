@@ -517,7 +517,7 @@ def extract_custom_generators(
         logger.warning(
             f"{mask_pid_null.sum()} custom generator(s) without project ID have been dropped"
         )
-    custom_gens_static = custom_gens_static[~mask_pid_null].astype({"project_id": int})
+    custom_gens_static = custom_gens_static[~mask_pid_null].astype({"project_id": str})
 
     # Remove projects without an existing bus
     # TODO If generator is being added at a new bus, this bus should have already been listed under `custom_cba_buses.csv`
@@ -538,13 +538,20 @@ def extract_custom_generators(
         )
     custom_gens_static = custom_gens_static[~mask_name_null]
 
-    # Remove duplicate subset of `project id` and `generator name`
+    custom_gens_static["mapping_id"] = (
+        custom_gens_static["project_id"].astype(str)
+        + "_"
+        + custom_gens_static["generator_name"]
+    )
+
+    # Remove duplicate mapping id - subset of `project id` and `generator name`
     mask_duplicate = custom_gens_static.duplicated(
-        subset=["project_id", "generator_name"], keep="first"
+        subset=["mapping_id"], keep="first"
     )
     if mask_duplicate.any():
+        duplicate_mapping_ids = custom_gens_static[mask_duplicate].mapping_id.tolist()
         logger.warning(
-            f"{mask_duplicate.sum()} custom generators with duplicate subset of project_id and generator_name have been dropped"
+            f"Custom generators with duplicate mapping IDs have been dropped: {duplicate_mapping_ids}"
         )
     custom_gens_static = custom_gens_static[~mask_duplicate]
 
@@ -562,11 +569,6 @@ def extract_custom_generators(
     )
 
     if not custom_gens_static.empty:
-        custom_gens_static["mapping_id"] = (
-            custom_gens_static["project_id"].astype(str)
-            + "_"
-            + custom_gens_static["generator_name"]
-        )
 
         # Drop null columns for dynamic attributes
         custom_gens_dynamic = custom_gens_dynamic.dropna(axis=1, how="all")
@@ -598,7 +600,7 @@ def extract_custom_generators(
             pypsa_dynamic_attributes
         )
         if not dropped_attrs.empty:
-            logger.info(
+            logger.warning(
                 f"Dropped dynamic attributes {dropped_attrs.tolist()} as they are not PyPSA input attributes"
             )
 
@@ -609,7 +611,6 @@ def extract_custom_generators(
             "No custom generators found after cleaning. The dynamic attributes will be ignored."
         )
         custom_gens_dynamic = custom_gens_dynamic.head(0)
-    breakpoint()
     return custom_gens_static, custom_gens_dynamic
 
 
@@ -1062,7 +1063,7 @@ if __name__ == "__main__":
         custom_transmission_path, existing_buses
     )
 
-    # Custom generator projects
+    # Custom generators
     # TODO Ensure custom buses have already been extracted and grouped under existing_buses
     custom_gens_static, custom_gens_dynamic = extract_custom_generators(
         custom_generators_static_path,
