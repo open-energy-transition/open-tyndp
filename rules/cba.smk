@@ -45,34 +45,13 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
             os.remove(output["dir"] + ".zip")
 
 
-if (CBA_NON_CO2_DATASET := dataset_version("tyndp_cba_non_co2_emissions"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    rule retrieve_tyndp_cba_non_co2_emissions:
-        input:
-            file=storage(CBA_NON_CO2_DATASET["url"]),
-        output:
-            file=f"{CBA_NON_CO2_DATASET['folder']}/a.3_non-co2-emissions.csv",
-        log:
-            "logs/retrieve_tyndp_cba_non_co2_emissions.log",
-        run:
-            copy2(input["file"], output["file"])
-
-
-if (CBA_GUIDELINES_DATASET := dataset_version("cba_guidelines_reference_projects"))[
-    "source"
-] in ARCHIVE_SOURCES:
-
-    rule retrieve_cba_guidelines_reference_projects:
-        input:
-            file=storage(CBA_GUIDELINES_DATASET["url"]),
-        output:
-            file=f"{CBA_GUIDELINES_DATASET['folder']}/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
-        log:
-            "logs/retrieve_cba_guidelines_reference_projects.log",
-        run:
-            copy2(input["file"], output["file"])
+def project_codes(projects: pd.DataFrame) -> list[str]:
+    """Return unique project codes (e.g. 't1', 's1001') from a methods table with project_id/project_type columns."""
+    projects = projects[["project_id", "project_type"]].drop_duplicates()
+    return list(
+        projects["project_type"].map({"storage": "s", "transmission": "t"})
+        + projects["project_id"].astype(str)
+    )
 
 
 def _effective_horizon(h, warn_fn=None, msg=None):
@@ -160,14 +139,11 @@ checkpoint clean_projects:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
         buses=rules.retrieve_tyndp.output.nodes,
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
+        carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
         custom_transmission="data/custom_cba_transmission_projects.csv",
     output:
-        # TODO: The toot_projects and pint_projects outputs are likely only
-        # transmission projects (no storage). In order to confirm, we should check
-        # if Table B.1 from the guidelines (table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv)
-        # contains only transmission or also storage projects.
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
@@ -175,6 +151,9 @@ checkpoint clean_projects:
         logs("cba/clean_projects.log"),
     benchmark:
         benchmarks("performances/cba/clean_projects")
+    params:
+        planning_horizons=config_provider("cba", "planning_horizons"),
+        storage_default_lifetime=config_provider("cba", "storage", "default_lifetime"),
     script:
         scripts("cba/clean_projects.py")
 
@@ -286,7 +265,7 @@ def get_elec_project_build_years(w):
 rule fix_reference_sb_to_cba:
     input:
         invest_grid=rules.retrieve_tyndp.output.invest_grid,
-        guidelines=rules.retrieve_cba_guidelines_reference_projects.output.file,
+        guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         buses=rules.build_tyndp_network.output.substations_geojson,
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
@@ -421,6 +400,7 @@ rule prepare_project:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
+        storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
     script:
         scripts("cba/prepare_project.py")
 
@@ -490,7 +470,7 @@ rule make_indicators:
     input:
         reference=RESULTS + "cba/networks/reference_{planning_horizons}.nc",
         project=RESULTS + "cba/networks/project_{cba_project}_{planning_horizons}.nc",
-        non_co2_emissions=rules.retrieve_tyndp_cba_non_co2_emissions.output.file,
+        non_co2_emissions="data/cba/a.3_non-co2-emissions.csv",
         benchmark=rules.clean_tyndp_indicators.output.indicators,
         methods=rules.clean_projects.output.methods,
     output:
@@ -522,7 +502,7 @@ def input_indicators(w):
     )
     if "planning_horizon" in projects.columns:
         projects = projects.loc[projects["planning_horizon"] == horizon]
-    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+    cba_projects = project_codes(projects)
 
     # Collection scenarios look for results within nested source runs,
     # regular scenarios look within their own run.
@@ -557,6 +537,7 @@ rule plot_indicators:
     input:
         indicators=rules.combine_indicators.output.indicators,
         transmission_projects=rules.clean_projects.output.transmission_projects,
+        storage_projects=rules.clean_projects.output.storage_projects,
     output:
         plot_dir=directory(RESULTS + "cba/graphs/{planning_horizons}/summary"),
     log:
@@ -796,7 +777,7 @@ def cba_projects(w):
 
     run = cba_projects_run(w)
     projects = pd.read_csv(checkpoints.clean_projects.get(run=run).output.methods)
-    cba_projects = [f"t{pid}" for pid in projects["project_id"].unique()]
+    cba_projects = project_codes(projects)
     project_specs = config_provider("cba", "projects")(w)
     cba_project = filter_projects_by_specs(cba_projects, project_specs)
 
