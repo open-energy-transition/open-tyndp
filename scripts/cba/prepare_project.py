@@ -444,10 +444,22 @@ def prepare_transmission_project(
     )
 
 
-def prepare_generator_project(
+def prepare_project_generators(
     n: pypsa.Network, snakemake, project_id: int, method: str
 ) -> None:
+    """
+    Add custom generators accompanying a storage or transmission project.
 
+    Generators only exist the project_ids listed in the custom
+    generator input files.
+
+    Raises
+    ------
+    NotImplementedError
+        If a project assessed with TOOT has custom generators.
+    ValueError
+        If `method` is neither "pint" nor "toot".
+    """
     tech_colors = snakemake.params.tech_colors
     generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
     generator_projects_dynamic = pd.read_csv(
@@ -456,12 +468,12 @@ def prepare_generator_project(
     generator_project_static = generator_projects_static[
         generator_projects_static["project_id"] == project_id
     ]
-    assert not generator_project_static.empty, (
-        f"Generator project with {project_id} not found."
-    )
+    if generator_project_static.empty:
+        logger.debug(f"No custom generators found for project {project_id}")
+        return
 
     generator_project_dynamic = pd.DataFrame()
-    if not generator_projects_dynamic.empty and not generator_project_static.empty:
+    if not generator_projects_dynamic.empty:
         mapping_ids = generator_project_static["mapping_id"].tolist()
         reqd_columns = [
             x
@@ -476,7 +488,7 @@ def prepare_generator_project(
 
     if method == "toot":
         raise NotImplementedError(
-            f"TOOT method not supported for generator project {project_id}: "
+            f"TOOT method not supported for the custom generators of project {project_id}: "
             "no matching reference-grid generator component to remove."
         )
     elif method == "pint":
@@ -512,7 +524,6 @@ if __name__ == "__main__":
     project_type_dict = {
         "s": "storage",
         "t": "transmission",
-        "g": "generator",
     }
 
     project_id = int(cba_project[1:])
@@ -533,8 +544,13 @@ if __name__ == "__main__":
         prepare_storage_project(n, snakemake, project_id, method)
     elif project_type == "transmission":
         prepare_transmission_project(n, snakemake, project_id, method)
-    elif project_type == "generator":
-        prepare_generator_project(n, snakemake, project_id, method)
+    else:
+        raise ValueError(
+            f"Unknown project type {project_type} for project {cba_project}"
+        )
+    
+    # Transmission and storage projects can be accompanied by project generators
+    prepare_project_generators(n, snakemake, project_id, method)
     else:
         raise ValueError(
             f"Unknown project type {project_type} for project {cba_project}"
