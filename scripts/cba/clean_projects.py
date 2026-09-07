@@ -457,13 +457,13 @@ def extract_custom_transmission_projects(
     return custom_transmission_projects
 
 
-def extract_custom_generator_projects(
+def extract_custom_generators(
     custom_generators_static_path: str,
     custom_generator_dynamic_path: str,
     existing_buses: pd.Index,
 ) -> tuple:
     """
-    Extract custom generator projects
+    Extract custom generators associated with a transmission / storage project.
 
     Parameters
     ----------
@@ -478,9 +478,9 @@ def extract_custom_generator_projects(
     -------
         tuple
             custom_gens_static: pd.DataFrame
-                Pandas dataframe of static attributes of custom generator projects
+                Pandas dataframe of static attributes of custom generators
             custom_gens_dynamic: pd.DataFrame
-                Pandas dataframe of dynamic attributes of custom generator projects
+                Pandas dataframe of dynamic attributes of custom generators
     """
     custom_gens_static = pd.read_csv(custom_generators_static_path).drop(
         ["source", "further description"], axis=1, errors="ignore"
@@ -490,13 +490,22 @@ def extract_custom_generator_projects(
         custom_generator_dynamic_path, header=[0, 1], index_col=0
     )
 
+
     if custom_gens_static.empty and custom_gens_dynamic.empty:
-        logger.debug("No custom generator projects found.")
+        logger.debug("No custom generators found.")
         return custom_gens_static, custom_gens_dynamic
 
+    if custom_gens_static.empty:
+        logger.warning(
+            "No data found for static attributes of custom generators, only dynamic ones. The data for dynamic attributes will be ignored. Ensure both datasets are compatible."
+        )
+        # Dropping all rows from the static dataframe to ensure that the dynamic dataframe is also ignored downstream
+        custom_gens_dynamic = custom_gens_dynamic.head(0)
+        return custom_gens_static, custom_gens_dynamic
+    
     if custom_gens_dynamic.empty:
         logger.warning(
-            "No data found for dynamic attributes of custom generator projects, only static ones. "
+            "No data found for dynamic attributes of custom generators, only static ones. "
             "Time-varying generator attributes fall back to their static value where given, "
             "and to the PyPSA default otherwise. Ensure both datasets are compatible."
         )
@@ -1041,7 +1050,7 @@ if __name__ == "__main__":
 
     # Custom generator projects
     # TODO Ensure custom buses have already been extracted and grouped under existing_buses
-    custom_gens_static, custom_gens_dynamic = extract_custom_generator_projects(
+    custom_gens_static, custom_gens_dynamic = extract_custom_generators(
         custom_generators_static_path,
         custom_generators_dynamic_path,
         existing_buses,
