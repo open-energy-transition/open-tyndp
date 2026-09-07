@@ -447,7 +447,19 @@ def prepare_transmission_project(
 def prepare_custom_generators(
     n: pypsa.Network, snakemake, project_id: int, method: str
 ) -> None:
+    """
+    Add custom generators accompanying a storage or transmission project.
 
+    Generators only exist the project_ids listed in the custom
+    generator input files.
+
+    Raises
+    ------
+    NotImplementedError
+        If a project assessed with TOOT has custom generators.
+    ValueError
+        If `method` is neither "pint" nor "toot".
+    """
     tech_colors = snakemake.params.tech_colors
     generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
     generator_projects_dynamic = pd.read_csv(
@@ -456,12 +468,12 @@ def prepare_custom_generators(
     generator_project_static = generator_projects_static[
         generator_projects_static["project_id"] == project_id
     ]
-    assert not generator_project_static.empty, (
-        f"Generator project with {project_id} not found."
-    )
+    if generator_project_static.empty:
+        logger.debug(f"No custom generators found for project {project_id}")
+        return
 
     generator_project_dynamic = pd.DataFrame()
-    if not generator_projects_dynamic.empty and not generator_project_static.empty:
+    if not generator_projects_dynamic.empty:
         mapping_ids = generator_project_static["mapping_id"].tolist()
         reqd_columns = [
             x
@@ -476,7 +488,7 @@ def prepare_custom_generators(
 
     if method == "toot":
         raise NotImplementedError(
-            f"TOOT method not supported for generator project {project_id}: "
+            f"TOOT method not supported for the custom generators of project {project_id}: "
             "no matching reference-grid generator component to remove."
         )
     elif method == "pint":
