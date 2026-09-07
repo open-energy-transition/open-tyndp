@@ -169,17 +169,17 @@ class _PecdPreBuiltConfig(BaseModel):
     """Configuration for `electricity.pecd_renewable_profiles.pre_built` settings."""
 
     cyears: list[int] = Field(
-        default_factory=lambda: [1995, 2008, 2009],
-        description="List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+        default_factory=lambda: [3, 21, 29, 32, 37, 59, 65, 71, 77, 91, 92, 106],
+        description="List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
     )
 
     @field_validator("cyears")
     @classmethod
     def validate_cyears(cls, v: list[int]) -> list[int]:
-        """Validate that climate years are between 1982 and 2019."""
+        """Validate that weather scenarios are between 1 and 120."""
         for year in v:
-            if not 1982 <= year <= 2019:
-                raise ValueError(f"Climate year {year} must be between 1982 and 2019")
+            if not 1 <= year <= 120:
+                raise ValueError(f"Weather scenario {year} must be between 1 and 120")
         return v
 
 
@@ -199,24 +199,24 @@ class _PecdRenewableProfilesConfig(BaseModel):
         description="The chosen method for filling gaps in the PECD data to the modelled nodes. Can be either `zero` to fill with zero values or any other aggregation method such as `mean`, `median`, `max` or similar.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
+        default_factory=lambda: [2030, 2035, 2040, 2050],
         description="List of years for which PECD data is available.",
     )
     technologies: list[
         Literal[
             "Wind_Offshore",
-            "LFSolarPVRooftop",
-            "LFSolarPVUtility",
-            "CSP_noStorage",
-            "CSP_withStorage",
+            "Solar PV Rooftop",
+            "Solar PV Utility",
             "Wind_Onshore",
+            "CSP_noStorage_0h_dispatched",
         ]
     ] = Field(
         default_factory=lambda: [
             "Wind_Offshore",
-            "LFSolarPVRooftop",
-            "LFSolarPVUtility",
+            "Solar PV Rooftop",
+            "Solar PV Utility",
             "Wind_Onshore",
+            "CSP_noStorage_0h_dispatched",
         ],
         description="The PECD technologies whose PECD profile is used. These PECD technologies and their profiles are mapped to `tyndp_renewable_carriers`. Please make sure that the mapping is included in the `tyndp_technology_map.csv` file.",
     )

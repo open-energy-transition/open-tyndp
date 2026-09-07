@@ -1,0 +1,103 @@
+name: Weekly merge master into tyndp-2026
+
+on:
+  schedule:
+  - cron: '0 6 * * 1'    # every Monday at 06:00 UTC
+  workflow_dispatch:      # allows manual trigger from the Actions tab
+
+concurrency:
+  group: ${{ github.workflow }}
+
+env:
+  MERGE_BRANCH: weekly-merge-master-into-tyndp-2026
+  TARGET_BRANCH: tyndp-2026
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        ref: tyndp-2026
+        fetch-depth: 0
+
+    - name: Merge master
+      id: merge
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git fetch origin master "$TARGET_BRANCH"
+
+        # Continue an open sync branch rather than recreating it, so any conflict
+        # resolution already pushed there survives and the push stays fast-forward.
+        if git fetch origin "$MERGE_BRANCH"; then
+          git checkout -B "$MERGE_BRANCH" FETCH_HEAD
+        else
+          git checkout -B "$MERGE_BRANCH" "origin/$TARGET_BRANCH"
+        fi
+
+        # A conflicted merge leaves nothing committed, so commit it as-is to keep
+        # the PR reviewable; the marker grep below then reports it.
+        git merge origin/master --no-edit || { git add -A && git commit --no-edit; }
+
+        echo "changes=$(git rev-list --count "origin/$TARGET_BRANCH..HEAD")" >> "$GITHUB_OUTPUT"
+        {
+          echo 'conflicts<<EOF'
+          git grep -lE '^<{7} ' -- || true
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Push merge branch
+      if: steps.merge.outputs.changes != '0'
+      run: git push origin "$MERGE_BRANCH"
+
+    - name: Create or update PR
+      if: steps.merge.outputs.changes != '0'
+      env:
+        CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+      run: |
+        TESTS_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/workflows/test.yaml?query=branch%3A$MERGE_BRANCH"
+
+        cat > pr-body.md <<EOF
+        Automated weekly merge of \`master\` into \`$TARGET_BRANCH\`.
+
+        > [!CAUTION]
+        > **Do not squash-merge this PR** — use a regular merge commit. Squashing drops the
+        > merge commit recording \`master\` as an ancestor of \`$TARGET_BRANCH\`, so every future
+        > sync would replay all of \`master\` and re-raise the same conflicts indefinitely.
+
+        EOF
+
+        if [ -n "$CONFLICTS" ]; then
+          echo "> [!WARNING]" >> pr-body.md
+          echo "> **This branch contains conflict markers and does not build.** Resolve before merging:" >> pr-body.md
+          printf '> - `%s`\n' $CONFLICTS >> pr-body.md
+        else
+          echo "No conflicts detected." >> pr-body.md
+        fi
+
+        cat >> pr-body.md <<EOF
+
+        \`GITHUB_TOKEN\` PRs do not trigger \`pull_request\` workflows, so tests are dispatched
+        separately and will not appear as checks below: [test runs for this branch]($TESTS_URL)
+        EOF
+
+        PR=$(gh pr list --head "$MERGE_BRANCH" --base "$TARGET_BRANCH" --state open --json number --jq '.[0].number // empty')
+        if [ -n "$PR" ]; then
+          gh pr edit "$PR" --body-file pr-body.md
+        else
+          gh pr create \
+            --base "$TARGET_BRANCH" \
+            --head "$MERGE_BRANCH" \
+            --title "[github-actions.ci] Weekly sync: master into $TARGET_BRANCH" \
+            --body-file pr-body.md
+        fi
+
+    - name: Dispatch tests against the merge branch
+      if: steps.merge.outputs.changes != '0'
+      run: gh workflow run test.yaml --ref "$MERGE_BRANCH"

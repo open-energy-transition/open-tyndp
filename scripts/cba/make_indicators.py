@@ -34,7 +34,7 @@ from pathlib import Path
 import pandas as pd
 import pypsa
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, get_version, set_scenario_config
 from scripts.cba.prepare_project import load_method
 from scripts.prepare_sector_network import get
 
@@ -77,19 +77,19 @@ CARRIER_TO_EMISSION_FACTORS = {
 def _apply_original_costs(n, remove_noisy_costs: bool) -> None:
     if not remove_noisy_costs:
         return
-    for t in n.iterate_components():
-        if "marginal_cost_original" in t.static:
-            mask = t.static["marginal_cost_original"].notna()
-            t.static.loc[mask, "marginal_cost"] = t.static.loc[
+    for c in n.components:
+        if "marginal_cost_original" in c.static:
+            mask = c.static["marginal_cost_original"].notna()
+            c.static.loc[mask, "marginal_cost"] = c.static.loc[
                 mask, "marginal_cost_original"
-            ].astype(t.static["marginal_cost"].dtype)
+            ].astype(c.static["marginal_cost"].dtype)
 
-    for t in n.iterate_components(["Line", "Link"]):
-        if "capital_cost_original" in t.static:
-            mask = t.static["capital_cost_original"].notna()
-            t.static.loc[mask, "capital_cost"] = t.static.loc[
+    for c in n.components[["Line", "Link"]]:
+        if "capital_cost_original" in c.static:
+            mask = c.static["capital_cost_original"].notna()
+            c.static.loc[mask, "capital_cost"] = c.static.loc[
                 mask, "capital_cost_original"
-            ].astype(t.static["capital_cost"].dtype)
+            ].astype(c.static["capital_cost"].dtype)
 
 
 def calculate_total_system_cost(
@@ -988,7 +988,10 @@ if __name__ == "__main__":
     # Detect method from assignments (toot or pint)
     cba_project = snakemake.wildcards.cba_project
     project_id = int(cba_project[1:])
-    method = load_method(snakemake.input.methods, project_id, planning_horizon)
+    project_type = "storage" if cba_project.startswith("s") else "transmission"
+    method = load_method(
+        snakemake.input.methods, project_id, project_type, planning_horizon
+    )
 
     # Calculate indicators
     indicators = {}
@@ -1110,4 +1113,9 @@ if __name__ == "__main__":
         )
 
     df["cyear"] = int(reference_cyears[0])
+
+    # Get version
+    version = get_version()
+    df["version"] = version
+
     df.to_csv(snakemake.output.indicators, index=False)

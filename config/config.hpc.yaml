@@ -1,0 +1,59 @@
+# yaml-language-server: $schema=schema.default.json
+# SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
+run:
+  name:
+  - NT
+
+# Remote runs usually can't launch the explorer
+launch_explorer: false
+
+# Use 1H for high-resolution SB results
+clustering:
+  temporal:
+    resolution_sector: 1H
+
+# SB solver settings
+solving:
+  options:
+    assign_all_duals: true
+    include_objective_constant: false
+  solver:
+    name: gurobi
+    options: gurobi-default
+  partition: high-mem
+  mem_mb: 45000
+  runtime: 2h
+
+cba:
+  # Default high-res CBA projects
+  projects:
+  - t335
+  - t339
+  - t1106
+  # MSV solver settings
+  msv_extraction:
+    solving:
+      options:
+        include_objective_constant: false
+      solver:
+        name: gurobi
+        options: gurobi-default
+      partition: high-mem
+      mem_mb: 45000
+      runtime: 1h
+
+  # Rolling horizon solving settings
+  solving:
+    options:
+      include_objective_constant: false
+    partition: high-mem
+    mem_mb: 10000
+    runtime: 1h
+
+    solver:
+      name: highs
+      options: highs-simplex

@@ -67,6 +67,24 @@ and Open-TYNDP configuration options.
 * `projects`: Defines project identifiers (e.g., `t1-t35`).
 * `cba_scenario_input`: If `use_presolved` is true, the workflow retrieves pre-solved SB networks from an archive.
 
+!!! warning
+
+    We recommend always running the CBA workflow with the latest pre-solved SB networks, which is what the
+    default `cba_scenario_input:sb_version: latest` selects. Earlier versions stay retrievable
+    but may no longer match what a newer workflow expects, and nothing checks for that
+    mismatch. If you encounter errors, please
+    [report them](https://github.com/open-energy-transition/open-tyndp/issues) and fall back to
+    the code of the latest release, which is what the networks were produced with (e.g.
+    pre-solve `0.8` with the `v0.8` tag). For doing so, open a terminal in your open-tyndp folder and run e.g.:
+
+    ```bash
+    git fetch --tags
+    git checkout v0.8
+    ```
+
+    The pre-solved networks also assume the default settings of `config.tyndp.yaml` and `config.hpc.yaml`, 
+    so a deviating config can leave the SB and CBA assumptions out of alignment.
+
 ### Rolling Horizon Settings
 
 * `storage.cyclic_carriers`: Carriers that remain cyclic within each weekly window.

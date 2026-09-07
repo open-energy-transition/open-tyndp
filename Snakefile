@@ -72,6 +72,7 @@ resources = path_provider("resources/", RDIR, shared_resources, exclude_from_sha
 scripts = script_path_provider(PROJ_DIR)
 
 RESULTS = "results/" + RDIR
+CLUSTER_LOGS = ("logs/slurm/" + RDIR.replace("{run}", "$scenario")).rstrip("/")
 workflow.default_target = config["run"]["default_target_rule"]
 
 
