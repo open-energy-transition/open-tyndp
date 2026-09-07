@@ -311,9 +311,10 @@ def apply_pint_generator(
             project, generator_project_dynamic, n.snapshots, pypsa_dynamic_attributes
         )
 
+        breakpoint()
         n.add(
             "Generator",
-            f"{project.project_id}_{project.generator_name}",
+            f"{project.mapping_id}",
             carrier=project.carrier,
             bus=project.bus,
             p_nom=project.p_nom,
@@ -442,7 +443,7 @@ def prepare_transmission_project(
 
 
 def prepare_custom_generators(
-    n: pypsa.Network, snakemake, project_id: int, method: str
+    n: pypsa.Network, snakemake, project_id: str, method: str
 ) -> None:
     """
     Add custom generators accompanying a storage or transmission project.
@@ -546,7 +547,7 @@ if __name__ == "__main__":
             f"Unknown project type {project_type} for project {cba_project}"
         )
 
-    prepare_custom_generators(n, snakemake, project_id, method)
+    prepare_custom_generators(n, snakemake, cba_project, method)
 
 
     n.export_to_netcdf(snakemake.output.network)
