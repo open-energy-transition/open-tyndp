@@ -341,7 +341,7 @@ def fix_reservoir_soc_at_boundaries(
     pf_soc = n_msv.storage_units_t.state_of_charge[common]
 
     # Resample if snapshots differ
-    # A state of charge is reported at the END of a snapshot's period, 
+    # A state of charge is reported at the END of a snapshot's period,
     # so re-date both indices to those period ends before interpolating between them.
     if not n.snapshots.equals(n_msv.snapshots):
         msv_period_ends = n_msv.snapshots + pd.to_timedelta(
