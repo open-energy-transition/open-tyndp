@@ -101,7 +101,7 @@ electricity:
   pecd_renewable_profiles:
     enable: true
     pre_built:
-      wscenarios:
+      cyears:
       - 3
       - 21
       - 29

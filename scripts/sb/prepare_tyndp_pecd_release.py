@@ -38,7 +38,7 @@ def process_pecd_files(
     skiprows = 10
 
     def _usecols(name):
-        return name in ("Date", "Hour") or name in cyears
+        return name in ("Date", "Hour") or name in wscenarios
 
     df = pd.read_csv(
         fn,
@@ -67,9 +67,9 @@ if __name__ == "__main__":
     ############
 
     # Weather scenarios from snakemake params
-    cyears = [f"WS{x:03d}" for x in pd.Series(snakemake.params.cyears)]
-    available_cyears = [f"WS{x:03d}" for x in np.arange(1, 121, 1)]
-    if set(cyears).difference(available_cyears):
+    wscenarios = [f"WS{x:03d}" for x in pd.Series(snakemake.params.wscenarios)]
+    available_wscenarios = [f"WS{x:03d}" for x in np.arange(1, 121, 1)]
+    if set(wscenarios).difference(available_wscenarios):
         logger.warning(
             "Weather scenarios doesn't match available TYNDP data. Only returning subset of available weather scenarios."
         )

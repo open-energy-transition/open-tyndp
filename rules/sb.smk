@@ -206,16 +206,16 @@ use rule build_electricity_demand as build_electricity_demand_tyndp with:
         benchmarks("performances/build_electricity_demand_{planning_horizons}")
 
 
-def get_weather_scenario_tyndp(w):
+def get_wscenario_tyndp(w):
     """Get the preferred TYNDP 2026 weather scenario (climate year column index) for a given planning horizon."""
-    weather_scenarios = config_provider("weather_scenarios_tyndp")(w)
-    pyear = safe_pyear(
+    wscenarios = config_provider("wscenarios_tyndp")(w)
+    planning_horizon = safe_planning_horizon(
         w.planning_horizons,
-        available_years=sorted(weather_scenarios),
+        available_years=sorted(wscenarios),
         source="TYNDP demand weather scenario",
         verbose=False,
     )
-    return weather_scenarios[pyear][0]
+    return wscenarios[planning_horizon][0]
 
 
 # Generic rule: parameterized by the `demand_type` wildcard, so any demand
@@ -242,7 +242,7 @@ rule build_tyndp_demand:
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_scenarios=config_provider("weather_scenarios_tyndp"),
+        wscenarios=config_provider("wscenarios_tyndp"),
     script:
         scripts("sb/build_tyndp_demand.py")
 
@@ -279,7 +279,7 @@ rule clean_tyndp_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        weather_scenario=get_weather_scenario_tyndp,
+        wscenario=get_wscenario_tyndp,
     script:
         scripts("sb/clean_tyndp_pecd_data.py")
 

@@ -132,9 +132,9 @@ class ConfigSchema(BaseModel):
         False,
         description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
     )
-    weather_scenarios_tyndp: dict[int, list[int]] = Field(
+    wscenarios_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
-        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WEATHER_SCENARIOS` in `scripts/sb/build_tyndp_demand.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/sb/build_tyndp_demand.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
     )
     launch_explorer: bool = Field(
         False,
