@@ -21,6 +21,7 @@ remote:
   ssh: ""
   path: ""
   sync_file: {}
+  sync_exclude: []
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#run
 run:

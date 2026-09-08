@@ -70,6 +70,10 @@ class RemoteConfig(ConfigModel):
         default_factory=dict,
         description="Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
     )
+    sync_exclude: list[str] = Field(
+        default_factory=list,
+        description="Patterns to skip when pulling directories with the `sync_file` rule, passed to `rsync --exclude`. Paths are matched relative to the transfer root, so anchor with a leading `/` (e.g. `/results/tyndp/NT/cba/networks`) or leave unanchored to match anywhere (e.g. `cba/networks`).",
+    )
 
 
 class TyndpInvestmentCandidatesConfig(ConfigModel):
