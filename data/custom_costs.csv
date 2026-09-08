@@ -76,60 +76,60 @@ all,2035,SMR CC,VOM,4.96,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [�
 all,2040,SMR CC,VOM,4.86,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
 all,2050,SMR CC,VOM,4.76,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
 all,all,SMR,VOM,5.3,EUR/MWh_H2,TYNDP 2026 Hydrogen/SMR.xlsx VO&M CHARGE [€/MWh],Unit assumed as [EUR/MWh_H2]. For conversion to [EUR/MWh_CH4] needs to be multiplied with efficiency.
-all,all,nuclear,efficiency,0.33,per unit,PEMMDB 2026 Common Data,
-all,all,gas-conv-old1,efficiency,0.36,per unit,PEMMDB 2026 Common Data,
-all,all,gas-conv-old2,efficiency,0.41,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-old1,efficiency,0.4,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-old2,efficiency,0.48,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-new,efficiency,0.6,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-ccs,efficiency,0.51,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-present1,efficiency,0.56,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-present2,efficiency,0.58,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ocgt-old,efficiency,0.35,per unit,PEMMDB 2026 Common Data,
-all,all,gas-ocgt-new,efficiency,0.42,per unit,PEMMDB 2026 Common Data,
-all,all,coal-old1,efficiency,0.35,per unit,PEMMDB 2026 Common Data,
-all,all,coal-old2,efficiency,0.4,per unit,PEMMDB 2026 Common Data,
-all,all,coal-new,efficiency,0.46,per unit,PEMMDB 2026 Common Data,
-all,all,coal-ccs,efficiency,0.38,per unit,PEMMDB 2026 Common Data,
-all,all,lignite-old1,efficiency,0.35,per unit,PEMMDB 2026 Common Data,
-all,all,lignite-old2,efficiency,0.4,per unit,PEMMDB 2026 Common Data,
-all,all,lignite-new,efficiency,0.46,per unit,PEMMDB 2026 Common Data,
-all,all,lignite-ccs,efficiency,0.38,per unit,PEMMDB 2026 Common Data,
-all,all,oil-light,efficiency,0.35,per unit,PEMMDB 2026 Common Data,
-all,all,oil-heavy-old1,efficiency,0.35,per unit,PEMMDB 2026 Common Data,
-all,all,oil-heavy-old2,efficiency,0.4,per unit,PEMMDB 2026 Common Data,
-all,all,oil-shale-old,efficiency,0.29,per unit,PEMMDB 2026 Common Data,
-all,all,oil-shale-new,efficiency,0.39,per unit,PEMMDB 2026 Common Data,
-all,all,h2-ccgt,efficiency,0.6,per unit,PEMMDB 2026 Common Data,
-all,all,h2-ocgt,efficiency,0.42,per unit,PEMMDB 2026 Common Data,
-all,all,h2-fuel-cell,efficiency,0.6,per unit,PEMMDB 2026 Common Data,
-all,all,nuclear,VOM,9,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-conv-old1,VOM,1.1,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-conv-old2,VOM,1.1,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-old1,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-old2,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-present1,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-present2,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-new,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ccgt-ccs,VOM,3.2,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ocgt-old,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,gas-ocgt-new,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,coal-old1,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,coal-old2,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,coal-new,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,coal-ccs,VOM,6.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,lignite-old1,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,lignite-old2,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,lignite-new,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,lignite-ccs,VOM,6.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,oil-light,VOM,1.1,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,oil-heavy-old1,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,oil-heavy-old2,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,oil-shale-old,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,oil-shale-new,VOM,3.3,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,h2-ccgt,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,h2-ocgt,VOM,1.6,EUR/MWh_e,PEMMDB 2026 Common Data,
-all,all,h2-fuel-cell,VOM,8.4,EUR/MWh_e,PEMMDB 2026 Common Data,
+all,all,nuclear,efficiency,0.33,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-conv-old1,efficiency,0.36,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-conv-old2,efficiency,0.41,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-old1,efficiency,0.4,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-old2,efficiency,0.48,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-new,efficiency,0.6,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-ccs,efficiency,0.51,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-present1,efficiency,0.56,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-present2,efficiency,0.58,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ocgt-old,efficiency,0.35,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ocgt-new,efficiency,0.42,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-old1,efficiency,0.35,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-old2,efficiency,0.4,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-new,efficiency,0.46,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-ccs,efficiency,0.38,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-old1,efficiency,0.35,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-old2,efficiency,0.4,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-new,efficiency,0.46,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-ccs,efficiency,0.38,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-light,efficiency,0.35,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-heavy-old1,efficiency,0.35,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-heavy-old2,efficiency,0.4,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-shale-old,efficiency,0.29,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-shale-new,efficiency,0.39,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,h2-ccgt,efficiency,0.6,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,h2-ocgt,efficiency,0.42,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,h2-fuel-cell,efficiency,0.6,per unit,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,nuclear,VOM,9,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-conv-old1,VOM,1.1,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-conv-old2,VOM,1.1,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-old1,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-old2,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-present1,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-present2,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-new,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ccgt-ccs,VOM,3.2,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ocgt-old,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,gas-ocgt-new,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-old1,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-old2,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-new,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,coal-ccs,VOM,6.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-old1,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-old2,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-new,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,lignite-ccs,VOM,6.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-light,VOM,1.1,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-heavy-old1,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-heavy-old2,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-shale-old,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,oil-shale-new,VOM,3.3,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,h2-ccgt,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,h2-ocgt,VOM,1.6,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
+all,all,h2-fuel-cell,VOM,8.4,EUR/MWh_e,TYNDP 2026 PEMMDB_2.X PEMMDB_CommonData.xlsx,
 all,2030,gas-conv-old1,CO2 intensity,0.1888,tCO2/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Converted from kg/GJ to tCO2/MWh with factor 0.0036.
 all,2035,gas-conv-old1,CO2 intensity,0.1744,tCO2/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Converted from kg/GJ to tCO2/MWh with factor 0.0036.
 all,2040,gas-conv-old1,CO2 intensity,0.1477,tCO2/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios. Converted from kg/GJ to tCO2/MWh with factor 0.0036.
@@ -186,21 +186,21 @@ all,all,oil-shale-new,CO2 intensity,0.36,tCO2/MWh_th,"CO2_emission_factors_in_TY
 all,all,h2-ccgt,CO2 intensity,0,tCO2/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,all,h2-ocgt,CO2 intensity,0,tCO2/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
 all,all,h2-fuel-cell,CO2 intensity,0,tCO2/MWh_th,"CO2_emission_factors_in_TYNDP2026.xlsx, CO2 emission factor sheet",NT values taken for all scenarios.
-all,2030,cavern-storage,investment,2000,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
-all,2035,cavern-storage,investment,1750,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
-all,2040,cavern-storage,investment,1500,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
-all,2050,cavern-storage,investment,1200,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh
-all,all,cavern-storage,FOM,0.000002,%/year,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, FO&M (€/MW/Year)","Fixed O&M (€2015/MW/year), cost are converted to %/year of investment cost and are consistent over all planning years."
-all,2030,cavern-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
-all,2035,cavern-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
-all,2040,cavern-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
-all,2050,cavern-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh)
+all,2030,cavern-storage,investment,2000,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh. No cavern-storage investment cost specified in the TYNDP 2026 input data
+all,2035,cavern-storage,investment,1750,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh. No cavern-storage investment cost specified in the TYNDP 2026 input data
+all,2040,cavern-storage,investment,1500,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh. No cavern-storage investment cost specified in the TYNDP 2026 input data
+all,2050,cavern-storage,investment,1200,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, CAPEX [€/MW]",Specific investment in €2015/MWh. No cavern-storage investment cost specified in the TYNDP 2026 input data
+all,all,cavern-storage,FOM,0.000002,%/year,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, FO&M (€/MW/Year)","Fixed O&M (€2015/MW/year), cost are converted to %/year of investment cost and are consistent over all planning years.  No cavern-storage FOM cost specified in the TYNDP 2026 input data"
+all,2030,cavern-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh). No cavern-storage VOM cost specified in the TYNDP 2026 input data
+all,2035,cavern-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh). No cavern-storage VOM cost specified in the TYNDP 2026 input data
+all,2040,cavern-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh). No cavern-storage VOM cost specified in the TYNDP 2026 input data
+all,2050,cavern-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]",Variable O&M (€2015/MWh). No cavern-storage VOM cost specified in the TYNDP 2026 input data
 all,all,cavern-storage-charger,efficiency,0.99,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
 all,all,cavern-storage-discharger,efficiency,1,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
-all,2030,tank-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
-all,2035,tank-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
-all,2040,tank-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
-all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed."
+all,2030,tank-storage,VOM,0.00002,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
+all,2035,tank-storage,VOM,0.0000175,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
+all,2040,tank-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
+all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
 all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
 all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
 all,all,battery bicharger,efficiency,0.92,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",
