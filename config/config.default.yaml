@@ -41,8 +41,8 @@ foresight: overnight
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#tyndp_scenario
 tyndp_scenario: false
 
-# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#weather_scenarios_tyndp
-weather_scenarios_tyndp: {}
+# docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#wscenarios_tyndp
+wscenarios_tyndp: {}
 
 # docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#launch_explorer
 launch_explorer: false
@@ -188,7 +188,7 @@ electricity:
   pecd_renewable_profiles:
     enable: false
     pre_built:
-      cyears:
+      wscenarios:
       - 3
       - 21
       - 29

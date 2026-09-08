@@ -145,7 +145,7 @@ if __name__ == "__main__":
         snakemake = mock_snakemake(
             "launch_explorer",
             configfiles="config/config.tyndp.yaml",
-            run="NT-cy2009-20260130",
+            run="NT-ws2009-20260130",
         )
 
     # Get files and output path from snakemake or command line arguments

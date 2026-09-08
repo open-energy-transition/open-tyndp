@@ -61,7 +61,9 @@ logger = logging.getLogger(__name__)
 cc = coco.CountryConverter()
 
 
-def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Series]:
+def read_fed_data(
+    fn: str, scenario: str, planning_horizon: int
+) -> tuple[pd.Series, pd.Series]:
     """
     Read and process final gas demand data and final heat demand data from Supply Tool for a specific year.
     """
@@ -72,7 +74,7 @@ def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Ser
             header=1,
             index_col=0,
             nrows=25,
-            skiprows=27 if pyear == 2040 else 0,
+            skiprows=27 if planning_horizon == 2040 else 0,
             sheet_name="NT+ data",
         )
 
@@ -101,7 +103,7 @@ def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Ser
 
     except Exception as e:
         logger.warning(
-            f"Failed to read final gas demand for scenario {scenario} and pyear {pyear}: "
+            f"Failed to read final gas demand for scenario {scenario} and planning_horizon {planning_horizon}: "
             f"{type(e).__name__}: {e}"
         )
         demand_fed = pd.Series()
@@ -111,17 +113,19 @@ def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Ser
 
 
 def read_heat_frame(
-    fn: str, pyear: int, type: Literal["distribution", "efficiency"]
+    fn: str, planning_horizon: int, type: Literal["distribution", "efficiency"]
 ) -> pd.DataFrame:
     """Read heat distribution and efficiency tables in 'Other data and Conversions' sheet of Supply Tool."""
     if type not in ["distribution", "efficiency"]:
         raise ValueError(
             f"Invalid type '{type}'. Must be 'distribution' or 'efficiency'."
         )
-    if pyear not in [2030, 2040, 2050]:
-        raise ValueError(f"Invalid pyear '{pyear}'. Must be 2030, 2040, or 2050.")
+    if planning_horizon not in [2030, 2040, 2050]:
+        raise ValueError(
+            f"Invalid planning_horizon '{planning_horizon}'. Must be 2030, 2040, or 2050."
+        )
 
-    offset = ((pyear - 2030) // 10) * 34
+    offset = ((planning_horizon - 2030) // 10) * 34
     offset += 17 if type == "efficiency" else 0
 
     df = pd.read_excel(
@@ -140,7 +144,7 @@ def read_heat_frame(
     return df
 
 
-def read_it_gas_prod(fn: str, pyear: int) -> float:
+def read_it_gas_prod(fn: str, planning_horizon: int) -> float:
     """Read Italian gas production used for heat. This data is hardcoded in Supply Tool IT sheet."""
     return (
         pd.read_excel(
@@ -151,18 +155,18 @@ def read_it_gas_prod(fn: str, pyear: int) -> float:
             nrows=2,
             skiprows=31,
             sheet_name="IT",
-        ).loc[pyear, "For heat"]
+        ).loc[planning_horizon, "For heat"]
         * 1e6
     )  # MWh
 
 
 def read_heat_data(
-    heat_fed: pd.Series, fn: str, scenario: str, pyear: int
+    heat_fed: pd.Series, fn: str, scenario: str, planning_horizon: int
 ) -> pd.Series:
     """Read and process heat-related gas demand data from Supply Tool for a specific year."""
     try:
-        shares = read_heat_frame(fn, pyear, "distribution")
-        efficiencies = read_heat_frame(fn, pyear, "efficiency")
+        shares = read_heat_frame(fn, planning_horizon, "distribution")
+        efficiencies = read_heat_frame(fn, planning_horizon, "efficiency")
 
         # Compute heat primary energy demand
         demand_primary = heat_fed * shares * (1 / efficiencies)
@@ -179,11 +183,11 @@ def read_heat_data(
         ].sum()  # MWh
 
         # Apply Italian solution as specified in Supply Tool
-        demand.loc["IT"] = read_it_gas_prod(fn, pyear)
+        demand.loc["IT"] = read_it_gas_prod(fn, planning_horizon)
 
     except Exception as e:
         logger.warning(
-            f"Failed to read heat demand data for scenario {scenario} and pyear {pyear}: "
+            f"Failed to read heat demand data for scenario {scenario} and planning_horizon {planning_horizon}: "
             f"{type(e).__name__}: {e}"
         )
         demand = pd.Series()
@@ -191,10 +195,10 @@ def read_heat_data(
     return demand
 
 
-def read_supply_tool(fn: str, scenario: str, pyear: int) -> pd.Series:
+def read_supply_tool(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
     """Read and process both final gas demand and heat demand data from Supply Tool for a specific year."""
-    demand_fed, heat_fed = read_fed_data(fn, scenario, pyear)
-    demand_heat = read_heat_data(heat_fed, fn, scenario, pyear)
+    demand_fed, heat_fed = read_fed_data(fn, scenario, planning_horizon)
+    demand_heat = read_heat_data(heat_fed, fn, scenario, planning_horizon)
 
     demand = pd.concat([demand_fed, demand_heat], axis=1).sum(axis=1)
     demand.name = "p_nom"
@@ -202,10 +206,10 @@ def read_supply_tool(fn: str, scenario: str, pyear: int) -> pd.Series:
     return demand
 
 
-def load_single_year(fn: str, scenario: str, pyear: int) -> pd.Series:
+def load_single_year(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
     """Load demand data for a single planning year."""
     if scenario == "NT":
-        demand = read_supply_tool(fn, scenario, pyear)
+        demand = read_supply_tool(fn, scenario, planning_horizon)
     elif scenario in ["DE", "GA"]:
         # TODO Implement processing for DE/GA
         demand = pd.Series()
@@ -213,7 +217,7 @@ def load_single_year(fn: str, scenario: str, pyear: int) -> pd.Series:
     return demand
 
 
-def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.Series:
+def load_gas_demand(fn: str, scenario: str, planning_horizon: int) -> pd.Series:
     """
     Load gas demand data for a specific scenario and planning year.
 
@@ -227,7 +231,7 @@ def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.Series:
         Filepath to the gas demand data file.
     scenario : str
         Name of the scenario to load.
-    pyear : int
+    planning_horizon : int
         Planning year for which to retrieve gas demand data.
 
     Returns
@@ -239,14 +243,16 @@ def load_gas_demand(fn: str, scenario: str, pyear: int) -> pd.Series:
     available_years = [2030, 2040]
 
     # If target year exists in data, load it directly
-    if pyear in available_years:
-        logger.debug(f"Year {pyear} found in available data. Loading directly.")
-        return load_single_year(fn, scenario, pyear)
+    if planning_horizon in available_years:
+        logger.debug(
+            f"Year {planning_horizon} found in available data. Loading directly."
+        )
+        return load_single_year(fn, scenario, planning_horizon)
 
     # Target year not available, do linear interpolation
     return interpolate_demand(
         available_years=available_years,
-        pyear=pyear,
+        planning_horizon=planning_horizon,
         load_single_year_func=load_single_year,
         fn=fn,
         scenario=scenario,
@@ -270,7 +276,7 @@ if __name__ == "__main__":
     # Parameters
     scenario = snakemake.params["scenario"]
     fn = snakemake.input.supply_tool
-    pyear = int(snakemake.wildcards.planning_horizons)
+    planning_horizon = int(snakemake.wildcards.planning_horizons)
 
     if scenario != "NT":
         # TODO Remove the fallback once DE/GA are implemented
@@ -279,7 +285,7 @@ if __name__ == "__main__":
 
     # Load demand with interpolation
     logger.info(f"Processing gas demand for scenario: {scenario}")
-    demand = load_gas_demand(fn, scenario, pyear)
+    demand = load_gas_demand(fn, scenario, planning_horizon)
 
     # Export to CSV
     demand.to_csv(snakemake.output.gas_demand, index=True)

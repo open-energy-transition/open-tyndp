@@ -1298,7 +1298,7 @@ def add_offshore_hubs_constraint(
     # Constraint the maximum potential per zone
     limit = (
         pd.read_csv(offshore_zone_trajectories_fn, index_col=0)
-        .query("pyear == @planning_horizons")
+        .query("planning_horizon == @planning_horizons")
         .p_nom_max
     )
 
