@@ -170,9 +170,7 @@ def create_plots(
     subindexes = df.subindex.unique()
     planning_horizons = df.planning_horizon.unique()
     project_ids = df.loc[df["source"] == "Open-TYNDP", "project_id"].dropna().unique()
-    wscenarios = (
-        df.loc[df["source"] == "Open-TYNDP", "wscenario"].dropna().unique()
-    )
+    wscenarios = df.loc[df["source"] == "Open-TYNDP", "wscenario"].dropna().unique()
 
     if len(planning_horizons) == 0:
         logger.info("No planning horizons found in dataset")

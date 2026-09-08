@@ -97,9 +97,7 @@ def load_elec_demand(
                 demand_fn,
                 skiprows=11,
                 index_col=0,
-                usecols=lambda name: (
-                    name == "Date" or name == int(wscenario) - 1
-                ),
+                usecols=lambda name: name == "Date" or name == int(wscenario) - 1,
                 sheet_name="UK00",
             )
 

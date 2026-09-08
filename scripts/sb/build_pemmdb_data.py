@@ -284,12 +284,8 @@ def _process_other_nonres_capacities(
             unit="MW",
             price_band_type=lambda x: _extract_price_band_type(x),
             pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
-            wscenario_start=lambda x: pd.to_numeric(
-                x.wscenario_start, errors="coerce"
-            ),
-            wscenario_end=lambda x: pd.to_numeric(
-                x.wscenario_end, errors="coerce"
-            ),
+            wscenario_start=lambda x: pd.to_numeric(x.wscenario_start, errors="coerce"),
+            wscenario_end=lambda x: pd.to_numeric(x.wscenario_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -574,12 +570,8 @@ def _process_dsr_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            wscenario_start=lambda x: pd.to_numeric(
-                x.wscenario_start, errors="coerce"
-            ),
-            wscenario_end=lambda x: pd.to_numeric(
-                x.wscenario_end, errors="coerce"
-            ),
+            wscenario_start=lambda x: pd.to_numeric(x.wscenario_start, errors="coerce"),
+            wscenario_end=lambda x: pd.to_numeric(x.wscenario_end, errors="coerce"),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -771,18 +763,10 @@ def _process_other_nonres_profiles(
     )
 
     # Create mask to filter for given climate year
-    wscenario_start = pd.to_numeric(
-        df.loc["wscenario_start", :], errors="coerce"
-    )
-    wscenario_end = pd.to_numeric(
-        df.loc["wscenario_end", :], errors="coerce"
-    )
+    wscenario_start = pd.to_numeric(df.loc["wscenario_start", :], errors="coerce")
+    wscenario_end = pd.to_numeric(df.loc["wscenario_end", :], errors="coerce")
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
-    mask = (
-        (wscenario_start <= wscenario)
-        & (wscenario <= wscenario_end)
-        & (cap > 0)
-    )
+    mask = (wscenario_start <= wscenario) & (wscenario <= wscenario_end) & (cap > 0)
 
     if not mask.any():
         logger.debug(
@@ -857,18 +841,10 @@ def _process_dsr_profiles(
     )
 
     # Create mask to filter for given climate year and for capacity > 0
-    wscenario_start = pd.to_numeric(
-        df.loc["wscenario_start", :], errors="coerce"
-    )
-    wscenario_end = pd.to_numeric(
-        df.loc["wscenario_end", :], errors="coerce"
-    )
+    wscenario_start = pd.to_numeric(df.loc["wscenario_start", :], errors="coerce")
+    wscenario_end = pd.to_numeric(df.loc["wscenario_end", :], errors="coerce")
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
-    mask = (
-        (wscenario_start <= wscenario)
-        & (wscenario <= wscenario_end)
-        & (cap > 0)
-    )
+    mask = (wscenario_start <= wscenario) & (wscenario <= wscenario_end) & (cap > 0)
 
     if not mask.any():
         logger.debug(

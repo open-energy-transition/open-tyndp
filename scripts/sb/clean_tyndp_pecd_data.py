@@ -45,7 +45,11 @@ def read_pecd_file(
 ):
 
     if "Solar" in technology:
-        fn = Path(dir_pecd, str(planning_horizon), f"{technology} {node.replace('UK', 'GB')}.csv")
+        fn = Path(
+            dir_pecd,
+            str(planning_horizon),
+            f"{technology} {node.replace('UK', 'GB')}.csv",
+        )
     else:
         fn = Path(
             dir_pecd,

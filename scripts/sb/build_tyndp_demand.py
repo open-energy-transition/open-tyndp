@@ -123,7 +123,7 @@ def get_wscenario(wscenarios, planning_horizon):
     -------
     int
         Selected weather scenario. Falls back to the first entry in
-        ``AVAILABLE_wscenarioS[planning_horizon]`` if unavailable.
+        ``AVAILABLE_WSCENARIOS[planning_horizon]`` if unavailable.
 
     Notes
     -----

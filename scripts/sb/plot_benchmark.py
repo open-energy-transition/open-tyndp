@@ -292,9 +292,7 @@ def _plot_prices(
 
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(
-        output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf"
-    )
+    output_filename = Path(output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
 
@@ -348,9 +346,7 @@ def _plot_flows(
 
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(
-        output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf"
-    )
+    output_filename = Path(output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
     # Additional plot for crossborder flows with incorrect net direction
@@ -423,9 +419,7 @@ def _plot_hours(
     ax.legend(frameon=True, facecolor="white")
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
-    output_filename = Path(
-        output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf"
-    )
+    output_filename = Path(output_dir, f"benchmark_{table}_ws{wscenario}_{year}.pdf")
     fig.savefig(output_filename, bbox_inches="tight")
 
 

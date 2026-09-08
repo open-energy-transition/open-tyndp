@@ -636,9 +636,7 @@ def compare_sources(
             wscenario = int(
                 pd.DatetimeIndex(df.index.get_level_values("snapshot")).year[0]
             )
-            show_warning = (
-                scenario in ["TYNDP DE", "TYNDP GA"] and wscenario == 2009
-            )
+            show_warning = scenario in ["TYNDP DE", "TYNDP GA"] and wscenario == 2009
 
         if show_warning:
             logger.warning(
