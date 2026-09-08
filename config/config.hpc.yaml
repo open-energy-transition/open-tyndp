@@ -6,14 +6,19 @@
 remote:
   sync_file:
     results:
-    - ""
-  sync_exclude:
-  - cba/networks
+    - cba/networks/project_t335_2030.nc
+    - cba/networks/project_t335_2040.nc
+    - cba/networks/project_t339_2030.nc
+    - cba/networks/project_t339_2040.nc
+    - cba/networks/project_t1106_2030.nc
+    - cba/networks/project_t1106_2040.nc
 
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
+  prefix: "pr-898"
   name:
-  - NT-cy2009-20260907-pr-898
+  - NT-cy2009-20260907-msv24h-overlap1
+  - NT-cy2009-20260907-msv24h-overlap2
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
