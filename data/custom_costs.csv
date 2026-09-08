@@ -12,7 +12,7 @@ all,all,home battery storage,marginal_cost,0,EUR/MWh,Default value to prevent ma
 all,all,water tank charger,marginal_cost,0.03,EUR/MWh,Default value to prevent mathematical degeneracy in optimisation,
 all,all,central water pit charger,marginal_cost,0.025,EUR/MWh,Default value to prevent mathematical degeneracy in optimisation,
 all,all,all,lifetime,25,years,TYNDP 2024,
-all,all,oil,CO2 intensity,0.264,tC02/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 2026, Carbon budget sheet",
+all,all,oil,CO2 intensity,0.264,tCO2/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 2026, Carbon budget sheet, Emission factors from IPCC, Crude Oil",Assume crude oil. Converted from kg/TJ to tCO2/MWh with factor 0.0000036.
 all,all,coal,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 2026, Carbon budget sheet",Solids encompass both hard coal and lignite
 all,all,lignite,CO2 intensity,0.354,tC02/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 2026, Carbon budget sheet",Solids encompass both hard coal and lignite
 all,all,gas,CO2 intensity,0.202,tC02/MWh_th,"TYNDP 2026 Supply Tool NT+ SCN 2026, Carbon budget sheet",
