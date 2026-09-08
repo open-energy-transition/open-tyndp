@@ -310,7 +310,6 @@ def apply_pint_generator(
         generator_dict = _get_generator_values(
             project, generator_project_dynamic, n.snapshots, pypsa_dynamic_attributes
         )
-
         breakpoint()
         n.add(
             "Generator",
@@ -443,13 +442,24 @@ def prepare_transmission_project(
 
 
 def prepare_custom_generators(
-    n: pypsa.Network, snakemake, project_id: str, method: str
+    n: pypsa.Network, snakemake, prefix_pid: str, method: str
 ) -> None:
     """
     Add custom generators accompanying a storage or transmission project.
 
     Generators only exist the project_ids listed in the custom
     generator input files.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    snakemake : snakemake object
+        Snakemake object containing input/output paths and parameters.
+    prefix_pid : str
+        Project ID with prefix (e.g. "s1500" or "t1500")
+    method : str 
+        Method (toot/pint) to apply the project.
 
     Raises
     ------
@@ -464,10 +474,11 @@ def prepare_custom_generators(
         snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
     )
     generator_project_static = generator_projects_static[
-        generator_projects_static["project_id"] == project_id
+        (generator_projects_static["project_id"] == int(prefix_pid[1:]))
+        & (generator_projects_static["prefix"] == prefix_pid[0])
     ]
     if generator_project_static.empty:
-        logger.debug(f"No custom generators found for project {project_id}")
+        logger.debug(f"No custom generators found for project {prefix_pid}")
         return
 
     generator_project_dynamic = pd.DataFrame()
@@ -486,7 +497,7 @@ def prepare_custom_generators(
 
     if method == "toot":
         raise NotImplementedError(
-            f"TOOT method not supported for the custom generators of project {project_id}: "
+            f"TOOT method not supported for the custom generators of project {prefix_pid}: "
             "no matching reference-grid generator component to remove."
         )
     elif method == "pint":
@@ -497,7 +508,7 @@ def prepare_custom_generators(
             tech_colors,
         )
     else:
-        raise ValueError(f"Unknown method {method} for project {project_id}")
+        raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 
 
 if __name__ == "__main__":
@@ -548,6 +559,5 @@ if __name__ == "__main__":
         )
 
     prepare_custom_generators(n, snakemake, cba_project, method)
-
 
     n.export_to_netcdf(snakemake.output.network)

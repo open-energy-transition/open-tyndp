@@ -517,7 +517,7 @@ def extract_custom_generators(
         logger.warning(
             f"{mask_pid_null.sum()} custom generator(s) without project ID have been dropped"
         )
-    custom_gens_static = custom_gens_static[~mask_pid_null].astype({"project_id": str})
+    custom_gens_static = custom_gens_static[~mask_pid_null].astype({"project_id": int})
 
     # Remove projects without an existing bus
     # TODO If generator is being added at a new bus, this bus should have already been listed under `custom_cba_buses.csv`
@@ -538,13 +538,24 @@ def extract_custom_generators(
         )
     custom_gens_static = custom_gens_static[~mask_name_null]
 
+    # Remove projects whose prefix is not a `storage` or `transmission` project prefix (i.e. not `s` or `t`)
+    mask_prefix = ~custom_gens_static.prefix.isin(["s", "t"])
+    if mask_prefix.any():
+        invalid_ids = custom_gens_static.project_id[mask_prefix].unique().tolist()
+        logger.warning(
+            f"{mask_prefix.sum()} custom generator(s) with a malformed project prefix have been dropped. "
+            f"Expected the prefix to be 's' or 't', Invalid Project IDs: {invalid_ids}"
+        )
+    custom_gens_static = custom_gens_static[~mask_prefix]
+
     custom_gens_static["mapping_id"] = (
-        custom_gens_static["project_id"].astype(str)
+        custom_gens_static["prefix"]
+        + custom_gens_static["project_id"].astype(str)
         + "_"
         + custom_gens_static["generator_name"]
     )
 
-    # Remove duplicate mapping id - subset of `project id` and `generator name`
+    # Remove duplicate mapping id - subset of `prefix`,`project id` and `generator name`
     mask_duplicate = custom_gens_static.duplicated(
         subset=["mapping_id"], keep="first"
     )
@@ -555,56 +566,49 @@ def extract_custom_generators(
         )
     custom_gens_static = custom_gens_static[~mask_duplicate]
 
-    # Remove projects without a `storage` or `transmission` project prefix
-    mask_prefix = ~custom_gens_static.project_id.astype(str).str.startswith(("s", "t"))
-    if mask_prefix.any():
-        logger.warning(
-            f"{mask_prefix.sum()} custom generators without a storage or transmission project prefix have been dropped"
-        )
-    custom_gens_static = custom_gens_static[~mask_prefix]
-
     # Set default marginal cost, capital cost and efficiency if these columns have no entries
     custom_gens_static = custom_gens_static.fillna(
         {"marginal_cost": 0, "capital_cost": 0, "efficiency": 1}
     )
 
-    if not custom_gens_static.empty:
-
-        # Drop null columns for dynamic attributes
-        custom_gens_dynamic = custom_gens_dynamic.dropna(axis=1, how="all")
-
-        static_mapping_ids = pd.Index(custom_gens_static["mapping_id"])
-        dynamic_mapping_ids = custom_gens_dynamic.columns.get_level_values(0)
-
-        # Projects without dynamic attributes keep their static values or PyPSA defaults
-        missing_ids = static_mapping_ids.difference(dynamic_mapping_ids)
-        if not missing_ids.empty:
-            logger.warning(
-                f"No dynamic attributes found for custom generator(s) {missing_ids.tolist()}. "
-                "Their time-varying attributes fall back to their static value where given, "
-                "and to the PyPSA default otherwise."
-            )
-
-        # Filter dynamic attributes of relevant projects extracted from static worksheet
-        matched_ids = static_mapping_ids.intersection(dynamic_mapping_ids)
-        custom_gens_dynamic = custom_gens_dynamic[matched_ids]
-
-        # Filter out dynamic attributes that are not inputs that can be provided to PyPSA network
-        dropped_attrs = custom_gens_dynamic.columns.get_level_values(1).difference(
-            get_pypsa_dynamic_attributes()
-        )
-        if not dropped_attrs.empty:
-            logger.warning(
-                f"Dropped dynamic attributes {dropped_attrs.tolist()} as they are not PyPSA input attributes"
-            )
-
-        custom_gens_dynamic = custom_gens_dynamic.drop(dropped_attrs, axis=1, level=1)
-
-    else:
+    if custom_gens_static.empty:
         logger.warning(
             "No custom generators found after cleaning. The dynamic attributes will be ignored."
         )
         custom_gens_dynamic = custom_gens_dynamic.head(0)
+        return custom_gens_static, custom_gens_dynamic
+
+    # Process dynamic attributes
+    # Drop null columns for dynamic attributes
+    custom_gens_dynamic = custom_gens_dynamic.dropna(axis=1, how="all")
+
+    static_mapping_ids = pd.Index(custom_gens_static["mapping_id"])
+    dynamic_mapping_ids = custom_gens_dynamic.columns.get_level_values(0)
+
+    # Projects without dynamic attributes keep their static values or PyPSA defaults
+    missing_ids = static_mapping_ids.difference(dynamic_mapping_ids)
+    if not missing_ids.empty:
+        logger.warning(
+            f"No dynamic attributes found for custom generator(s) {missing_ids.tolist()}. "
+            "Their time-varying attributes fall back to their static value where given, "
+            "and to the PyPSA default otherwise."
+        )
+
+    # Filter dynamic attributes of relevant projects extracted from static worksheet
+    matched_ids = static_mapping_ids.intersection(dynamic_mapping_ids)
+    custom_gens_dynamic = custom_gens_dynamic[matched_ids]
+
+    # Filter out dynamic attributes that are not inputs that can be provided to PyPSA network
+    dropped_attrs = custom_gens_dynamic.columns.get_level_values(1).difference(
+        get_pypsa_dynamic_attributes()
+    )
+    if not dropped_attrs.empty:
+        logger.warning(
+            f"Dropped dynamic attributes {dropped_attrs.tolist()} as they are not PyPSA input attributes"
+        )
+
+    custom_gens_dynamic = custom_gens_dynamic.drop(dropped_attrs, axis=1, level=1)
+
     return custom_gens_static, custom_gens_dynamic
 
 
@@ -943,9 +947,7 @@ def build_method_assignments(
         "project_id in @projects.project_id or project_id in @custom_transmission_projects.project_id or project_id in @custom_gens_static.project_id"
     )
     assigned["project_type"] = "transmission"
-    assigned.loc[
-        assigned["project_id"].isin(custom_gens_static["project_id"]), "project_type"
-    ] = "generator"
+
     return assigned
 
 
@@ -1080,7 +1082,7 @@ if __name__ == "__main__":
         snakemake.input.guidelines,
         transmission_projects,
         custom_transmission_projects,
-        custom_gens_static,
+        custom_gens_static.query("prefix=='t'"),
     )
 
     # Apply custom projects
