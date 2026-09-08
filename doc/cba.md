@@ -186,19 +186,23 @@ Custom PINT transmission projects can be evaluated with the CBA workflow. Each p
 
 Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning. Transmission capacities are in MW.
 
-### Custom generator projects
+### Custom generators
 
-Custom generator projects can also be evaluated with the CBA workflow, always as new **PINT** projects — unlike transmission projects, modifying an existing generator is not yet supported. Each project is defined across two files:
+Custom generators can also be evaluated with the CBA workflow, always as new **PINT** projects — unlike transmission projects, modifying an existing generator is not yet supported.
 
-- `data/custom_cba_generator_projects_static.csv`: one row per generator, with `project_id`, `project_name`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. Entries without a `project_id` or `generator_name`, or whose `bus` does not already exist in the network, are dropped with a warning. Duplicate (`project_id`, `generator_name`) combinations are also dropped. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively.
+Custom generators are never assessed on their own: each one is grouped with either a transmission or a storage project, which it is added alongside in the same project network. The grouping is expressed by two columns, `prefix` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project), and the generator inherits the assessment method of the project it is grouped with — so a generator grouped with a project assessed as TOOT is not supported and raises an error.
 
-- `data/custom_cba_generator_projects_dynamic.csv`: time series for the same projects, in wide format with a two-row header and snapshots as the index:
-    - **Row 1** identifies the generator: replace the placeholder `<project_id>_<generator_name>` with the actual `project_id` and `generator_name` of the corresponding row in the static file (e.g. `1500_BEI wind`), joined with an underscore. A project with multiple generators needs one such column group per generator.
+Each project is defined across two files:
+
+- `data/custom_cba_generators_static.csv`: one row per generator, with `project_name`, `prefix`, `project_id`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. `prefix` and `project_id` identify the project the generator is grouped with: `prefix` is `t` for a transmission project or `s` for a storage project, and `project_id` is that project's ID, without the prefix (e.g. `prefix = t`, `project_id = 1500` for transmission project `1500`). Entries whose `prefix` is neither `s` nor `t` are dropped with a warning, as are entries without a `project_id` or `generator_name`, or whose `bus` does not already exist in the network. Duplicate (`prefix`, `project_id`, `generator_name`) combinations are also dropped. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively.
+
+- `data/custom_cba_generators_dynamic.csv`: time series for the same projects, in wide format with a two-row header and snapshots as the index:
+    - **Row 1** identifies the generator: replace the placeholder `<prefix><project_id>_<generator_name>` with the `prefix`, `project_id` and `generator_name` of the corresponding row in the static file, the prefix written directly against the ID and the generator name joined with an underscore (e.g. `t1500_BEI wind`). A project with multiple generators needs one such column group per generator.
     - **Row 2** names the PyPSA `Generator` attribute the column provides, e.g. `p_max_pu`, `p_min_pu`, `efficiency`, `marginal_cost`, `p_set`.
 
-    Only columns whose `project_id_generator_name` matches an entry in the static file, and whose attribute is a valid time-varying PyPSA `Generator` input, are kept; everything else (unmatched projects, non-input attributes, fully empty columns) is dropped.
+    Only columns whose subset of prefix, project_id and generator_name matches an entry in the static file, and whose attribute is a valid time-varying PyPSA `Generator` input, are kept; everything else (unmatched projects, non-input attributes, fully empty columns) is dropped.
 
-When applied, a new `Generator` component named `<project_id>_<generator_name>` is added to the project network at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available, falling back to the static value or else set to `NaN`. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network.
+When applied, a new `Generator` component named `<prefix><project_id>_<generator_name>` is added to the project network at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available, falling back to the static value or else set to `NaN`. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network.
 
 ### Selecting custom projects
 
