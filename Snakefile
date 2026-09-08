@@ -11,6 +11,7 @@ import yaml
 from os.path import normpath, exists, join
 from shutil import copyfile, move, rmtree
 from dotenv import load_dotenv
+from snakemake.logging import logger
 from snakemake.utils import min_version, update_config
 
 load_dotenv()
@@ -58,6 +59,21 @@ for scenario_name, scenario_overrides in scenarios.items():
         raise ValueError(
             f"Scenario '{scenario_name}' failed config validation: {e}"
         ) from e
+
+selected_runs = run["name"] if isinstance(run["name"], list) else [run["name"]]
+unsupported = {
+    name
+    for name in selected_runs
+    if scenarios.get(name, {}).get("tyndp_scenario", config["tyndp_scenario"])
+    in ("DE", "GA")
+}
+if unsupported:
+    logger.warning(
+        f"Selected run(s) {sorted(unsupported)} use the DE or GA scenario. "
+        "Only the National Trends (NT) scenario is implemented, validated and benchmarked in Open-TYNDP. "
+        "DE and GA are incomplete, unsupported, and there are no plans to support them within Open-TYND. The workflow may "
+        "fail for these scenarios, and any results it does produce are not validated."
+    )
 
 RDIR = get_rdir(run)
 PROJ_DIR = Path(workflow.snakefile).parent
@@ -485,6 +501,7 @@ rule sync:
         rsync -uvarh --no-g {params.cluster}/resources . || echo "No resources directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/results . || echo "No results directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake || echo "No snakemake logs directory, skipping rsync"
         """
 
 
@@ -497,4 +514,36 @@ rule sync_dry:
         rsync -uvarh --no-g {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/results . -n || echo "No results directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake -n || echo "No snakemake logs directory, skipping rsync"
+        """
+
+
+def remote_sync_files():
+    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
+    rdir = get_rdir(run)
+    return [
+        f"{d}/{rdir.replace('{run}', n)}{f}"
+        for d, files in config["remote"]["sync_file"].items()
+        for n in names
+        for f in files
+    ]
+
+
+rule sync_file:
+    params:
+        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        files=remote_sync_files(),
+    shell:
+        """
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ .
+        """
+
+
+rule sync_file_dry:
+    params:
+        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        files=remote_sync_files(),
+    shell:
+        """
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ . -n
         """
