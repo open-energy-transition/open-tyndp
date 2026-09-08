@@ -49,9 +49,7 @@ def project_codes(projects: pd.DataFrame) -> list[str]:
     """Return unique project codes (e.g. 't1', 's1001') from a methods table with project_id/project_type columns."""
     projects = projects[["project_id", "project_type"]].drop_duplicates()
     return list(
-        projects["project_type"].map(
-            {"storage": "s", "transmission": "t"}
-        )
+        projects["project_type"].map({"storage": "s", "transmission": "t"})
         + projects["project_id"].astype(str)
     )
 

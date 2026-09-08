@@ -16,7 +16,12 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import generate_unique_hex, get_link_attrs, get_storage_attrs, get_pypsa_dynamic_attributes
+from scripts.cba._helpers import (
+    generate_unique_hex,
+    get_link_attrs,
+    get_pypsa_dynamic_attributes,
+    get_storage_attrs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -310,7 +315,6 @@ def apply_pint_generator(
         generator_dict = _get_generator_values(
             project, generator_project_dynamic, n.snapshots, pypsa_dynamic_attributes
         )
-        breakpoint()
         n.add(
             "Generator",
             f"{project.mapping_id}",
@@ -458,7 +462,7 @@ def prepare_custom_generators(
         Snakemake object containing input/output paths and parameters.
     prefix_pid : str
         Project ID with prefix (e.g. "s1500" or "t1500")
-    method : str 
+    method : str
         Method (toot/pint) to apply the project.
 
     Raises

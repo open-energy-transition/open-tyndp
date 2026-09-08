@@ -490,7 +490,6 @@ def extract_custom_generators(
         custom_generator_dynamic_path, header=[0, 1], index_col=0
     )
 
-
     if custom_gens_static.empty and custom_gens_dynamic.empty:
         logger.debug("No custom generators found.")
         return custom_gens_static, custom_gens_dynamic
@@ -502,7 +501,7 @@ def extract_custom_generators(
         # Dropping all rows from the static dataframe to ensure that the dynamic dataframe is also ignored downstream
         custom_gens_dynamic = custom_gens_dynamic.head(0)
         return custom_gens_static, custom_gens_dynamic
-    
+
     if custom_gens_dynamic.empty:
         logger.warning(
             "No data found for dynamic attributes of custom generators, only static ones. "
@@ -556,9 +555,7 @@ def extract_custom_generators(
     )
 
     # Remove duplicate mapping id - subset of `prefix`,`project id` and `generator name`
-    mask_duplicate = custom_gens_static.duplicated(
-        subset=["mapping_id"], keep="first"
-    )
+    mask_duplicate = custom_gens_static.duplicated(subset=["mapping_id"], keep="first")
     if mask_duplicate.any():
         duplicate_mapping_ids = custom_gens_static[mask_duplicate].mapping_id.tolist()
         logger.warning(
@@ -788,7 +785,9 @@ STORAGE_REF_GRID_HORIZON_COLUMN = {2030: "in_ref_grid_2030", 2040: "in_ref_grid_
 
 
 def build_storage_method_assignments(
-    storage_projects: pd.DataFrame, planning_horizons: list[int], storage_custom_gens: pd.DataFrame
+    storage_projects: pd.DataFrame,
+    planning_horizons: list[int],
+    storage_custom_gens: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Define the assignment method of storage projects.
