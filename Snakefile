@@ -517,9 +517,10 @@ rule sync_file:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         files=remote_sync_files(),
+        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ .
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ .
         """
 
 
@@ -527,7 +528,8 @@ rule sync_file_dry:
     params:
         cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
         files=remote_sync_files(),
+        exclude=[f"--exclude='{p}'" for p in config["remote"]["sync_exclude"]],
     shell:
         """
-        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ . -n
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args {params.exclude} --files-from=- {params.cluster}/ . -n
         """
