@@ -83,7 +83,7 @@ def _plot_scenario_comparison(
         width=0.7,
         xlabel="",
         ylabel=f"{table_title} [{source_unit}]",
-        title=f"{table_title} - {bus} - Scenario {scenario} - CY {weather_scenario} - Year {year}",
+        title=f"{table_title} - {bus} - Scenario {scenario} - WS {weather_scenario} - Year {year}",
     )
     ax.tick_params(axis="x", labelrotation=45)
     plt.setp(ax.get_xticklabels(), ha="right")
@@ -133,7 +133,7 @@ def _plot_scenario_comparison(
 
     output_filename = Path(
         output_dir,
-        f"benchmark_{table}_{bus.replace(' ', '_')}_cy{weather_scenario}_{year}.pdf",
+        f"benchmark_{table}_{bus.replace(' ', '_')}_ws{weather_scenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -195,7 +195,7 @@ def _plot_time_series(
     correlation = df_clean[model_col].corr(df_clean[rfc_col])
     table_title = table.replace("_", " ").title()
     ax.set_title(
-        f"{table_title} - EU27 - Scenario {scenario} - CY {weather_scenario} - Year {year}"
+        f"{table_title} - EU27 - Scenario {scenario} - WS {weather_scenario} - Year {year}"
     )
     ax.set_xlabel(f"{rfc_col} [{source_unit}]")
     ax.set_ylabel(f"{model_col} [{source_unit}]")
@@ -223,7 +223,7 @@ def _plot_time_series(
 
     output_filename = Path(
         output_dir,
-        f"benchmark_{table}_{bus.replace(' ', '_')}_cy{weather_scenario}_{year}.pdf",
+        f"benchmark_{table}_{bus.replace(' ', '_')}_ws{weather_scenario}_{year}.pdf",
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -250,7 +250,7 @@ def _plot_prices(
     bar_colors = [bench_colors.get(col, "grey") for col in [model_col, rfc_source]]
     df.index = df.index.get_level_values("spatial")
     df[[model_col, rfc_source]].plot.bar(
-        title=f"{table_title} - Scenario {scenario} - CY {weather_scenario} - Year {year}",
+        title=f"{table_title} - Scenario {scenario} - WS {weather_scenario} - Year {year}",
         ylabel=source_unit,
         color=bar_colors,
         ax=ax,
@@ -293,7 +293,7 @@ def _plot_prices(
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(
-        output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf"
+        output_dir, f"benchmark_{table}_ws{weather_scenario}_{year}.pdf"
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -330,7 +330,7 @@ def _plot_flows(
     df = df[df.index.str.split("->").map(lambda x: x[0] != x[1])]
 
     df[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
-        title=f"{table_title} - Scenario {scenario} - CY {weather_scenario} - Year {year}",
+        title=f"{table_title} - Scenario {scenario} - WS {weather_scenario} - Year {year}",
         xlabel=source_unit,
         color=bar_colors,
         ax=ax,
@@ -349,7 +349,7 @@ def _plot_flows(
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(
-        output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf"
+        output_dir, f"benchmark_{table}_ws{weather_scenario}_{year}.pdf"
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -366,7 +366,7 @@ def _plot_flows(
         FigureCanvasAgg(fig)
         ax = fig.subplots()
         df_direction[[model_col, rfc_source]].sort_index(ascending=False).plot.barh(
-            title=f"{table_title} (focusing on incorrect net direction - Scenario {scenario} - CY {weather_scenario} - Year {year}",
+            title=f"{table_title} (focusing on incorrect net direction - Scenario {scenario} - WS {weather_scenario} - Year {year}",
             xlabel=source_unit,
             color=bar_colors,
             ax=ax,
@@ -379,7 +379,7 @@ def _plot_flows(
         add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
         output_filename = Path(
             output_dir,
-            f"benchmark_{table}_direction_errors_cy{weather_scenario}_{year}.pdf",
+            f"benchmark_{table}_direction_errors_ws{weather_scenario}_{year}.pdf",
         )
         fig.savefig(output_filename, bbox_inches="tight")
 
@@ -407,11 +407,11 @@ def _plot_hours(
     ]  # keep buses with one non-zero value
     if df.empty:
         logger.info(
-            f"Skipping plot for {table} - Scenario {scenario} - CY {weather_scenario} - Year {year}: no buses with non-zero values."
+            f"Skipping plot for {table} - Scenario {scenario} - WS {weather_scenario} - Year {year}: no buses with non-zero values."
         )
         return
     df[[model_col, rfc_source]].sort_values(model_col, ascending=False).plot.bar(
-        title=f"{table_title} - Scenario {scenario} - CY {weather_scenario} - Year {year}",
+        title=f"{table_title} - Scenario {scenario} - WS {weather_scenario} - Year {year}",
         ylabel=source_unit,
         color=bar_colors,
         ax=ax,
@@ -424,7 +424,7 @@ def _plot_hours(
     add_metadata(fig, ax, model_col=model_col, rfc_source=rfc_source)
 
     output_filename = Path(
-        output_dir, f"benchmark_{table}_cy{weather_scenario}_{year}.pdf"
+        output_dir, f"benchmark_{table}_ws{weather_scenario}_{year}.pdf"
     )
     fig.savefig(output_filename, bbox_inches="tight")
 
@@ -674,7 +674,7 @@ def plot_overview(
         width=0.7,
         xlabel="",
         ylabel=metric,
-        title=f"Comparison of Open-TYNDP and TYNDP 2024 outputs by {bus_col_name}, CY {weather_scenario} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
+        title=f"Comparison of Open-TYNDP and TYNDP 2024 outputs by {bus_col_name}, WS {weather_scenario} and {scenario} scenario\n{metric} accuracy indicator (a lower error is better)",
         legend=True,
         ylim=[0, max(df_clean[metric].max() + 0.1, 1)],
     )

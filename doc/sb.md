@@ -140,7 +140,7 @@ and Open-TYNDP configuration options.
 * `planning_horizons`: List of target years to solve (e.g. `[2030, 2035, 2040, 2050]`). Each
   horizon is solved as an independent optimisation.
 * `run.name`: Identifies the run and determines the output directory; typically set to
-  the scenario/climate-year identifier (e.g. `NT-cy2009`).
+  the scenario/climate-year identifier (e.g. `NT-ws2009`).
   * `launch_explorer`: Whether to launch the [PyPSA Explorer](https://github.com/open-energy-transition/pypsa-explorer) after the model solve within the workflow. Default is `True`.
 
 ### Climate Years

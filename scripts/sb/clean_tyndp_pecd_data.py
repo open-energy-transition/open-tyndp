@@ -93,8 +93,8 @@ if __name__ == "__main__":
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
     cyear = f"WS{snakemake.params.weather_scenario:03d}"
 
-    # Planning year (falls back to latest available plansafe_planning_horizon if not in list of available years)
-    plansafe_planning_horizon = safe_planning_horizon(
+    # Planning year (falls back to latest available planning_horizon if not in list of available years)
+    planning_horizon = safe_planning_horizon(
         snakemake.wildcards.planning_horizons,
         available_years=snakemake.params.available_years,
         source="PECD",
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     if all(data is None for data in pecd):
         raise ValueError(
-            f"No PECD data found for {pecd_tech} in {plansafe_planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
+            f"No PECD data found for {pecd_tech} in {planning_horizon}. Please specify a technology covered within the TYNDP PECD data."
         )
     pecd_df = pd.concat(pecd, axis=1)
     fill_na = (
