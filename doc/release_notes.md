@@ -36,6 +36,8 @@
 * Add a warning to the CBA documentation recommending the latest pre-solved SB networks, and the code of the matching release as a fallback ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
 * Update list of Open-TYNDP contributors ([#923](https://github.com/open-energy-transition/open-tyndp/pull/923)).
+
+* Display the complete technology mapping table in the benchmarking documentation, generated directly from `data/tyndp_technology_map.csv` ([#917](https://github.com/open-energy-transition/open-tyndp/issues/917)).
   
 **Developers Note**
 
