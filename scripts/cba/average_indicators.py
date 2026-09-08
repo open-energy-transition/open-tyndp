@@ -90,11 +90,11 @@ def average_indicators_csv(
             # check if input_file shows reference to required weather year
             weather_scenarios = None
             weather_scenarios_weight = 1
-            for cy in weather_scenarios_weightings:
-                weather_scenarios_str = "cy" + str(cy)
+            for ws in weather_scenarios_weightings:
+                weather_scenarios_str = "ws" + str(ws)
                 if weather_scenarios_str in input_file:
-                    weather_scenarios = cy
-                    weather_scenarios_weight = weather_scenarios_weightings[cy]
+                    weather_scenarios = ws
+                    weather_scenarios_weight = weather_scenarios_weightings[ws]
                     break
 
             if weather_scenarios is None:
