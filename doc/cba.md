@@ -138,7 +138,7 @@ atlite:
 cba:
     sb_scenario: NT
 
-NT-weather_scenarios:
+NT-wscenarios:
   cba:
     scenarios: [NT-cy2009, NT-cy2008, NT-cy1995]
 ```
@@ -158,10 +158,10 @@ Individual child scenarios (e.g., `NT-cy2009`) must define their specific `snaps
 
 ### Running Multiple Years
 
-To run a collection like `NT-weather_scenarios`, modify `run.name` in `config/config.tyndp.yaml` or override it via command line:
+To run a collection like `NT-wscenarios`, modify `run.name` in `config/config.tyndp.yaml` or override it via command line:
 
 ```console
-$ pixi run tyndp-cba --config run='{"name":"NT-weather_scenarios"}'
+$ pixi run tyndp-cba --config run='{"name":"NT-wscenarios"}'
 ```
 
 ### Running a Single Climate Year

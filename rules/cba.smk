@@ -878,7 +878,7 @@ def cba_ensemble_inputs(w):
     return inputs
 
 
-# collect files to be stored in the scenario collection directory, e.g., NT-weather-scenarios
+# collect files to be stored in the scenario collection directory, e.g., NT-wscenarios
 rule cba:
     input:
         cba_ensemble_inputs,
