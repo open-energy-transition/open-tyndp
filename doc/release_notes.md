@@ -17,6 +17,8 @@
 
 * Move small CBA data files (``a.3_non-co2-emissions.csv`` and ``table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv``) to local repository ``data/cba/`` folder instead of retrieving from GCP. The rules ``retrieve_tyndp_cba_non_co2_emissions`` and ``retrieve_cba_guidelines_reference_projects`` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)).
 
+* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`, etc) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details) ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
+
 **Bugfixes and Compatibility**
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
@@ -24,6 +26,8 @@
 * Correct bus (NL00->NLOH001) and capacity (2000 MW -> 1800 MW) for CBA project 260 ([#873](https://github.com/open-energy-transition/open-tyndp/pull/873)).
  
 * Stop reserving a solver license for the CBA rolling horizon rules in the `tyndp-slurm` profile, since `config/config.hpc.yaml` solves them with HiGHS by default ([#916](https://github.com/open-energy-transition/open-tyndp/pull/916)).
+
+* Use booleans instead of floats for `substation_off` and `substation_lv` when adding the Z2 DRES buses, which mixed dtypes in `n.buses` and broke the network export for the DE and GA scenarios ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
 **Documentation**
 
