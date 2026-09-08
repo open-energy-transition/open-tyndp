@@ -788,7 +788,7 @@ STORAGE_REF_GRID_HORIZON_COLUMN = {2030: "in_ref_grid_2030", 2040: "in_ref_grid_
 
 
 def build_storage_method_assignments(
-    storage_projects: pd.DataFrame, planning_horizons: list[int]
+    storage_projects: pd.DataFrame, planning_horizons: list[int], storage_custom_gens: pd.DataFrame
 ) -> pd.DataFrame:
     """
     Define the assignment method of storage projects.
@@ -806,6 +806,8 @@ def build_storage_method_assignments(
         including the in_ref_grid_2030/in_ref_grid_2035 boolean columns.
     planning_horizons : list[int]
         Planning horizons for which to assign a method.
+    storage_custom_gens : pd.DataFrame
+        Custom generators associated with storage projects.
 
     Returns
     -------
@@ -822,6 +824,17 @@ def build_storage_method_assignments(
                 ),
             )
         )
+        if not storage_custom_gens.empty:
+            # Add custom generators associated with storage projects
+            custom_gens = (
+                storage_custom_gens[["project_id", "generator_name"]]
+                .rename(columns={"generator_name": "project_name"})
+                .assign(
+                    planning_horizon=horizon,
+                    method="pint",
+                )
+            )
+            rows.append(custom_gens)
     methods = pd.concat(rows, ignore_index=True)
     methods["project_type"] = "storage"
     return methods
@@ -1078,11 +1091,12 @@ if __name__ == "__main__":
     )
 
     # Method definition (PINT / TOOT) for transmission projects
+    transmission_custom_gens = custom_gens_static.query("prefix=='t'")
     transmission_methods = build_method_assignments(
         snakemake.input.guidelines,
         transmission_projects,
         custom_transmission_projects,
-        custom_gens_static.query("prefix=='t'"),
+        transmission_custom_gens,
     )
 
     # Apply custom projects
@@ -1106,8 +1120,9 @@ if __name__ == "__main__":
     storage_projects.to_csv(snakemake.output.storage_projects, index=False)
 
     # Method definition (PINT / TOOT) for storage projects
+    storage_custom_gens = custom_gens_static.query("prefix=='s'")
     storage_methods = build_storage_method_assignments(
-        storage_projects, snakemake.params.planning_horizons
+        storage_projects, snakemake.params.planning_horizons, storage_custom_gens
     )
 
     methods = pd.concat([transmission_methods, storage_methods], ignore_index=True)
