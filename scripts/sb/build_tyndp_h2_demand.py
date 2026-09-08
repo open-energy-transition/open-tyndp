@@ -5,7 +5,7 @@
 Builds TYNDP Scenario Building hydrogen demand profiles for Open-TYNDP.
 
 This script processes hydrogen demand data from TYNDP 2024, using the
-`snapshots` year as the climatic year (`weather_scenario`) for demand profiles.
+`snapshots` year as the climatic year (`wscenario`) for demand profiles.
 The data is filtered and interpolated based on the selected scenario
 (Distributed Energy, Global Ambition, or National Trends) and planning horizon.
 
@@ -56,7 +56,7 @@ import pandas as pd
 
 from scripts._helpers import (
     align_demand_to_snapshots,
-    check_weather_scenarios,
+    check_wscenarios,
     configure_logging,
     get_snapshots,
     interpolate_demand,
@@ -112,7 +112,7 @@ def read_h2_excel(
     demand_fn: str,
     scenario: str,
     planning_horizon: int,
-    weather_scenario: int,
+    wscenario: int,
     h2_zone: int,
 ) -> pd.DataFrame:
     """Read and process hydrogen demand data from Excel file for a specific year and h2 zone."""
@@ -123,13 +123,13 @@ def read_h2_excel(
             index_col=[0, 1],
             sheet_name=None,
             usecols=lambda name: (
-                name == "Date" or name == "Hour" or name == int(weather_scenario)
+                name == "Date" or name == "Hour" or name == int(wscenario)
             ),
         )
 
         demand = pd.concat(data, axis=1).droplevel(1, axis=1)
         # Reindex to match snapshots
-        demand = multiindex_to_datetimeindex(demand, year=weather_scenario)
+        demand = multiindex_to_datetimeindex(demand, year=wscenario)
         # Rename UK in GB
         demand.columns = demand.columns.str.replace("UK", "GB")
         demand.columns.name = "Bus"
@@ -185,13 +185,13 @@ def get_file_path(
 
 
 def load_single_year(
-    fn: str, scenario: str, planning_horizon: int, weather_scenario: int
+    fn: str, scenario: str, planning_horizon: int, wscenario: int
 ) -> pd.DataFrame:
     """Load demand data for a single planning year."""
     if scenario == "NT":
         demand_fn = get_file_path(fn, scenario, planning_horizon)
         demand = read_h2_excel(
-            demand_fn, scenario, planning_horizon, weather_scenario, h2_zone=2
+            demand_fn, scenario, planning_horizon, wscenario, h2_zone=2
         )
         demand.columns = [f"{col[:2]} H2" for col in demand.columns]
     elif scenario in ["DE", "GA"]:
@@ -199,7 +199,7 @@ def load_single_year(
         for h2_zone in [1, 2]:
             demand_fn = get_file_path(fn, scenario, planning_horizon, h2_zone)
             demands[h2_zone] = read_h2_excel(
-                demand_fn, scenario, planning_horizon, weather_scenario, h2_zone=h2_zone
+                demand_fn, scenario, planning_horizon, wscenario, h2_zone=h2_zone
             )
             demands[h2_zone].columns = [
                 f"{col[:2]} H2 Z{h2_zone}" for col in demands[h2_zone].columns
@@ -210,7 +210,7 @@ def load_single_year(
 
 
 def load_h2_demand(
-    fn: str, scenario: str, planning_horizon: int, weather_scenario: int
+    fn: str, scenario: str, planning_horizon: int, wscenario: int
 ) -> pd.DataFrame:
     """
     Load hydrogen demand data for a specific scenario, climate year, planning year.
@@ -227,7 +227,7 @@ def load_h2_demand(
         Name of the scenario to load.
     planning_horizon : int
         Planning year for which to retrieve hydrogen demand data.
-    weather_scenario : int
+    wscenario : int
         Climatic year used to filter the demand data.
 
     Returns
@@ -247,7 +247,7 @@ def load_h2_demand(
         logger.info(
             f"Year {planning_horizon} found in available data. Loading directly."
         )
-        return load_single_year(fn, scenario, planning_horizon, weather_scenario)
+        return load_single_year(fn, scenario, planning_horizon, wscenario)
 
     # Target year not available, do linear interpolation
     return interpolate_demand(
@@ -256,7 +256,7 @@ def load_h2_demand(
         load_single_year_func=load_single_year,
         fn=fn,
         scenario=scenario,
-        weather_scenario=weather_scenario,
+        wscenario=wscenario,
     )
 
 
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
-    weather_scenario = snapshots[0].year
+    wscenario = snapshots[0].year
     fn = snakemake.input.h2_demand
 
     if scenario not in ["DE", "GA", "NT"]:
@@ -288,14 +288,14 @@ if __name__ == "__main__":
 
     else:
         # Check if climatic year is valid for scenario
-        weather_scenario = check_weather_scenarios(weather_scenario, scenario)
+        wscenario = check_wscenarios(wscenario, scenario)
 
         # Load demand with interpolation
         logger.info(
             f"Processing H2 demand for scenario: {scenario}, "
-            f"target year: {planning_horizon}, climate year: {weather_scenario}"
+            f"target year: {planning_horizon}, climate year: {wscenario}"
         )
-        demand = load_h2_demand(fn, scenario, planning_horizon, weather_scenario)
+        demand = load_h2_demand(fn, scenario, planning_horizon, wscenario)
 
         # Reindex demand to fit to snapshots
         demand = align_demand_to_snapshots(demand, snapshots)

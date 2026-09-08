@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script is used to clean TYNDP Scenario Building demand data to be used in the PyPSA-Eur workflow. The `snapshot` year is used as climatic year (`weather_scenario`). For DE and GA, it must be one of the following years: 1995, 2008 or 2009. For NT, it must be between 1982 and 2019. If the `snapshot` is not one of these years, then the demand is set to 2009 electricity demand (2009 being considered as the most representative of the three years).
+This script is used to clean TYNDP Scenario Building demand data to be used in the PyPSA-Eur workflow. The `snapshot` year is used as climatic year (`wscenario`). For DE and GA, it must be one of the following years: 1995, 2008 or 2009. For NT, it must be between 1982 and 2019. If the `snapshot` is not one of these years, then the demand is set to 2009 electricity demand (2009 being considered as the most representative of the three years).
 
 Depending on the scenario, different planning years (`planning_horizon`) are available. DE and GA are defined for 2030, 2040 and 2050. NT scenario is only defined for 2030 and 2040. All the planning years are read at once.
 """
@@ -29,7 +29,7 @@ def load_elec_demand(
     fn: str,
     scenario: str,
     planning_horizon: int,
-    weather_scenario: int,
+    wscenario: int,
     available_years: list,
 ):
     """
@@ -56,16 +56,16 @@ def load_elec_demand(
             f"{planning_horizon}_National Trends.xlsx",
         )
 
-        if int(weather_scenario) < 1982 or int(weather_scenario) > 2019:
+        if int(wscenario) < 1982 or int(wscenario) > 2019:
             logger.warning(
                 "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
             )
-            weather_scenario = 2009
+            wscenario = 2009
         data = pd.read_excel(
             demand_fn,
             skiprows=7,
             index_col=0,
-            usecols=lambda name: name == "Date" or name == int(weather_scenario),
+            usecols=lambda name: name == "Date" or name == int(wscenario),
             sheet_name=None,
         )
 
@@ -77,16 +77,16 @@ def load_elec_demand(
             f"ELECTRICITY_MARKET {scenario} {planning_horizon}.xlsx",
         )
 
-        if int(weather_scenario) not in [1995, 2008, 2009]:
+        if int(wscenario) not in [1995, 2008, 2009]:
             logger.warning(
                 "Snapshot year doesn't match available TYNDP data. Falling back to 2009."
             )
-            weather_scenario = 2009
+            wscenario = 2009
         data = pd.read_excel(
             demand_fn,
             skiprows=11,
             index_col=0,
-            usecols=lambda name: name == "Date" or name == int(weather_scenario),
+            usecols=lambda name: name == "Date" or name == int(wscenario),
             sheet_name=None,
         )
 
@@ -98,7 +98,7 @@ def load_elec_demand(
                 skiprows=11,
                 index_col=0,
                 usecols=lambda name: (
-                    name == "Date" or name == int(weather_scenario) - 1
+                    name == "Date" or name == int(wscenario) - 1
                 ),
                 sheet_name="UK00",
             )
@@ -128,12 +128,12 @@ if __name__ == "__main__":
 
     # Parameters
     scenario = snakemake.params["scenario"]
-    weather_scenario = get_snapshots(snakemake.params.snapshots)[0].year
+    wscenario = get_snapshots(snakemake.params.snapshots)[0].year
     planning_horizons = snakemake.params["planning_horizons"]
 
     # Load and prep electricity demand
     logger.info(
-        f"Processing Electricity demand for scenario: {scenario} and climate year: {weather_scenario}"
+        f"Processing Electricity demand for scenario: {scenario} and climate year: {wscenario}"
     )
     tqdm_kwargs = {
         "ascii": False,
@@ -146,7 +146,7 @@ if __name__ == "__main__":
         load_elec_demand,
         snakemake.input.electricity_demand,
         scenario,
-        weather_scenario=weather_scenario,
+        wscenario=wscenario,
         available_years=snakemake.params.available_years,
     )
 

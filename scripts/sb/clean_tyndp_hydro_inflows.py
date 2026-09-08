@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 def read_hydro_inflows_file(
     node: str,
     hydro_inflows_dir: str,
-    weather_scenario: str,
+    wscenario: str,
     planning_horizon: int,
     hydro_tech: str,
     sns: pd.DatetimeIndex,
@@ -61,7 +61,7 @@ def read_hydro_inflows_file(
             or name == "Week"
             or name == "ShortName"
             or name == "Variable"
-            or name == int(weather_scenario)
+            or name == int(wscenario)
         ),
         sheet_name=f"{hydro_tech} - Year Dependent",
     )
@@ -80,8 +80,8 @@ def read_hydro_inflows_file(
                 node: lambda df: np.where(  # calculate hourly inflow in MWh/h
                     # input value was either in GWh/week or in GWh/day
                     df.Variable.str.contains("week"),
-                    df[int(weather_scenario)] / (24 * 7 * 1e-3),
-                    df[int(weather_scenario)] / (24 * 1e-3),
+                    df[int(wscenario)] / (24 * 7 * 1e-3),
+                    df[int(wscenario)] / (24 * 1e-3),
                 )
             }
         )[node]
@@ -105,24 +105,24 @@ if __name__ == "__main__":
 
     # Climate year from snapshots
     sns = get_snapshots(snakemake.params.snapshots, snakemake.params.drop_leap_day)
-    weather_scenario = sns[0].year
+    wscenario = sns[0].year
     date_index = {
         "w": pd.date_range(
-            start=f"{weather_scenario}-01-01",
+            start=f"{wscenario}-01-01",
             periods=53,  # 53 weeks
             freq="7D",
         ),
         "d": pd.date_range(
-            start=f"{weather_scenario}-01-01",
+            start=f"{wscenario}-01-01",
             periods=366,  # 366 days (incl. first day of next year)
             freq="D",
         ),
     }
-    if int(weather_scenario) < 1982 or int(weather_scenario) > 2019:
+    if int(wscenario) < 1982 or int(wscenario) > 2019:
         logger.warning(
-            f"Snapshot year {weather_scenario} doesn't match available TYNDP data. Falling back to 2009."
+            f"Snapshot year {wscenario} doesn't match available TYNDP data. Falling back to 2009."
         )
-        weather_scenario = 2009
+        wscenario = 2009
 
     # Planning year
     planning_horizon = safe_planning_horizon(
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     func = partial(
         read_hydro_inflows_file,
         hydro_inflows_dir=hydro_inflows_dir,
-        weather_scenario=weather_scenario,
+        wscenario=wscenario,
         planning_horizon=planning_horizon,
         hydro_tech=hydro_tech,
         sns=sns,

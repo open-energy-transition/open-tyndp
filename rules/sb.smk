@@ -153,11 +153,11 @@ if not "pre-built" in PECD_DATASET["version"]:
         resources:
             mem_mb=1000,
         params:
-            weather_scenarios=config_provider(
+            wscenarios=config_provider(
                 "electricity",
                 "pecd_renewable_profiles",
                 "pre_built",
-                "weather_scenarios",
+                "wscenarios",
             ),
             available_planning_horizons=config_provider(
                 "electricity", "pecd_renewable_profiles", "available_years"
