@@ -112,9 +112,9 @@ Electrolyser,Electrolyser Dedicated RES Z2,,,Electrolyzers,Electrolyser (gen.),P
 ,,,,,Battery Storage charge (load),,,,battery,battery charger,Battery Storage,battery charge (load),,battery,,,,,,,,,,,battery charger,,,
 ,,,,,,,,ElectrochemicalStorage,battery,battery,Battery Storage,,,,,,,,,,,,,,battery,,,
 ,,,,,,,,CompressedAirEnergyStorage,caes,caes,Compressed Air Energy Storage,,,,,,,,,,,,,,caes,,Only used for CBA storage projects (no SB source, not part of the TYNDP scenarios)
-Battery,Battery Residential Discharge,,,,Battery Storage discharge (gen.),Battery,Prosumer,,home battery,battery-prosumer discharger,Battery Storage Prosumer,battery,,battery,,,,,,,,,,,battery-prosumer discharger,,,
-Battery,Battery Residential Charge,,,,Battery Storage charge (load),,,,home battery,battery-prosumer charger,Battery Storage Prosumer,battery charge (load),,battery,,,,,,,,,,,battery-prosumer charger,,,
-Battery,Battery Residential Store,,,Batteries Prosumer,,,,,home battery,battery-prosumer,Battery Storage Prosumer,,,,,,,,,,,,,,battery-prosumer,,,
+Battery,Battery Residential Discharge,,,,Battery Storage discharge (gen.),Battery,Prosumer,,home battery,home battery discharger,Battery Storage Prosumer,battery,,battery,,,,,,,,,,,battery-prosumer discharger,,,
+Battery,Battery Residential Charge,,,,Battery Storage charge (load),,,,home battery,home battery charger,Battery Storage Prosumer,battery charge (load),,battery,,,,,,,,,,,battery-prosumer charger,,,
+Battery,Battery Residential Store,,,Batteries Prosumer,,,,,home battery,home battery,Battery Storage Prosumer,,,,,,,,,,,,,,battery-prosumer,,,
 Battery,Battery Utility Scale Discharge,,,,Battery Storage discharge (gen.),Battery,Large scale batteries,,battery,battery-utility discharger,Battery Storage Utility,battery,,battery,,,,,,,,,,,battery-utility discharger,,,
 Battery,Battery Utility Scale Charge,,,,Battery Storage charge (load),,,,battery,battery-utility charger,Battery Storage Utility,battery charge (load),,battery,,,,,,,,,,,battery-utility charger,,,
 Battery,Battery Utility Scale Store,,,Batteries Utility,,,,,battery,battery-utility,Battery Storage Utility,,,,,,,,,,,,,,battery-utility,,,
