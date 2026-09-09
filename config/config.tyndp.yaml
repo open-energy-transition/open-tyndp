@@ -486,6 +486,7 @@ cba:
     cyclic_carriers:
     - battery
     - caes
+    - home battery
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
