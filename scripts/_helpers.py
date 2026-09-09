@@ -1732,6 +1732,43 @@ def get_tyndp_conventional_thermals(
     return conventional_dict, conventional_thermals
 
 
+def get_h2_zone_buses(buses_h2_file: str) -> pd.DataFrame:
+    """
+    Map each country to its TYNDP H2 Z1 and Z2 zone bus ids.
+
+    Mirrors the country-to-bus resolution used when building the TYNDP H2
+    topology in ``add_h2_topology_tyndp``/``add_h2_production_tyndp``
+    (``scripts/prepare_sector_network.py``): the "z1" column is the
+    country's dedicated Z1 bus if the raw TYNDP node list has one (``NaN``
+    otherwise, since only a handful of countries have a separate Z1 zone),
+    and the "z2" column is the country's first Z2 bus in node-list order
+    (countries with several Z2 sub-zones, e.g. France or Slovakia, only
+    expose one bus to country-level TYNDP tables).
+
+    Parameters
+    ----------
+    buses_h2_file : str
+        Path to the TYNDP H2 buses CSV file (``build_tyndp_network``'s
+        ``substations_h2`` output) with "bus_id", "country" and "category"
+        columns.
+
+    Returns
+    -------
+    pd.DataFrame
+        Indexed by country, with "z1" and "z2" bus id columns.
+    """
+    buses_h2 = pd.read_csv(buses_h2_file, index_col="bus_id")
+
+    def _first_bus_per_country(zone: str) -> pd.Series:
+        buses = buses_h2[buses_h2.category == zone]
+        country_to_bus = pd.Series(buses.index, index=buses.country.values)
+        return country_to_bus[~country_to_bus.index.duplicated()]
+
+    return pd.DataFrame(
+        {"z1": _first_bus_per_country("Z1"), "z2": _first_bus_per_country("Z2")}
+    )
+
+
 def interpolate_demand(
     available_years: list[int],
     pyear: int,
