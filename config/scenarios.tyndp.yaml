@@ -23,7 +23,7 @@ NT-cy2009-20260907-msv24h-overlap1:
           options: gurobi-default
     solving:
       horizon: 168
-      overlap: 2
+      overlap: 1
 
 NT-cy2009-20260907-msv24h-overlap2:
 
