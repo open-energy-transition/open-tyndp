@@ -585,8 +585,7 @@ if config["sector"]["h2_topology_tyndp"]:
 
     rule clean_tyndp_h2_storages:
         input:
-            h2_storages=rules.retrieve_tyndp.output.h2_storages,
-            buses_h2=rules.build_tyndp_network.output.substations_h2,
+            h2_storages=rules.retrieve_tyndp_2026.output.h2_storages,
         output:
             h2_storages_prepped=resources("h2_storages_prepped_{planning_horizons}.csv"),
         log:
