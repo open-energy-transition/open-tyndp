@@ -1,2 +1,2 @@
-,<prefix><project_id>_<generator_name>,<prefix><project_id>_<generator_name>,<prefix><project_id>_<generator_name>,<prefix><project_id>_<generator_name>,<prefix><project_id>_<generator_name>
+,<project_type><project_id>_<generator_name>,<project_type><project_id>_<generator_name>,<project_type><project_id>_<generator_name>,<project_type><project_id>_<generator_name>,<project_type><project_id>_<generator_name>
 snapshot,p_max_pu,efficiency,p_min_pu,marginal_cost,p_set

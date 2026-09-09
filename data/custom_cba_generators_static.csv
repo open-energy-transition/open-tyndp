@@ -1,1 +1,1 @@
-project_name,prefix,project_id,generator_name,carrier,bus,p_nom,marginal_cost,capital_cost,efficiency,source,further description,
+project_name,project_type,project_id,generator_name,carrier,bus,p_nom,marginal_cost,capital_cost,efficiency,source,further,description

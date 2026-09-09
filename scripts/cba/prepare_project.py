@@ -577,7 +577,7 @@ def prepare_custom_generators(
     )
     generator_df_static = generator_projects_static[
         (generator_projects_static["project_id"] == int(prefix_pid[1:]))
-        & (generator_projects_static["prefix"] == prefix_pid[0])
+        & (generator_projects_static["project_type"] == prefix_pid[0])
     ]
     if generator_df_static.empty:
         logger.debug(f"No custom generators found for project {prefix_pid}")

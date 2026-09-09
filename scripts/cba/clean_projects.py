@@ -537,24 +537,24 @@ def extract_custom_generators(
         )
     custom_gens_static = custom_gens_static[~mask_name_null]
 
-    # Remove projects whose prefix is not a `storage` or `transmission` project prefix (i.e. not `s` or `t`)
-    mask_prefix = ~custom_gens_static.prefix.isin(["s", "t"])
-    if mask_prefix.any():
-        invalid_ids = custom_gens_static.project_id[mask_prefix].unique().tolist()
+    # Remove projects whose project_type is not a `storage` or `transmission` (i.e. not `s` or `t`)
+    mask_project_type = ~custom_gens_static.project_type.isin(["s", "t"])
+    if mask_project_type.any():
+        invalid_ids = custom_gens_static.project_id[mask_project_type].unique().tolist()
         logger.warning(
-            f"{mask_prefix.sum()} custom generator(s) with a malformed project prefix have been dropped. "
-            f"Expected the prefix to be 's' or 't', Invalid Project IDs: {invalid_ids}"
+            f"{mask_project_type.sum()} custom generator(s) with a malformed project project_type have been dropped. "
+            f"Expected the project_type to be 's' or 't', Invalid Project IDs: {invalid_ids}"
         )
-    custom_gens_static = custom_gens_static[~mask_prefix]
+    custom_gens_static = custom_gens_static[~mask_project_type]
 
     custom_gens_static["mapping_id"] = (
-        custom_gens_static["prefix"]
+        custom_gens_static["project_type"]
         + custom_gens_static["project_id"].astype(str)
         + "_"
         + custom_gens_static["generator_name"]
     )
 
-    # Remove duplicate mapping id - subset of `prefix`,`project id` and `generator name`
+    # Remove duplicate mapping id - subset of `project_type`,`project id` and `generator name`
     mask_duplicate = custom_gens_static.duplicated(subset=["mapping_id"], keep="first")
     if mask_duplicate.any():
         duplicate_mapping_ids = custom_gens_static[mask_duplicate].mapping_id.tolist()
