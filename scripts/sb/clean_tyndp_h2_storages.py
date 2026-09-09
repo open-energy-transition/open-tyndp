@@ -13,13 +13,16 @@ import pandas as pd
 from scripts._helpers import (
     SCENARIO_DICT,
     configure_logging,
+    get_h2_zone_buses,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def load_h2_storage_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
+def load_h2_storage_data(
+    fn: str, buses_h2_file: str, pyear: int, scenario: str
+) -> pd.DataFrame:
     """
     Load and clean TYNDP H2 storage energy capacities as well as charge/discharge capacities and efficiencies.
 
@@ -27,6 +30,9 @@ def load_h2_storage_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
     ----------
     fn : str
         Path to Excel file containing TYNDP H2 storage data.
+    buses_h2_file : str
+        Path to the TYNDP H2 buses CSV file, used to resolve each country's
+        Z1/Z2 hydrogen bus.
     pyear : int
         Planning horizon to read H2 storage data for.
     scenario : str
@@ -60,6 +66,12 @@ def load_h2_storage_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
         "All": "all",
     }
 
+    # Tank storage is only added to countries with a dedicated Z1 bus (a
+    # handful of countries); cavern storage is added to every country's Z2
+    # bus (`add_h2_storage_tyndp`) - countries with no matching bus (e.g.
+    # "ZONE 1" entries for countries without a Z1 zone, or "EU") are dropped
+    h2_zone_buses = get_h2_zone_buses(buses_h2_file)
+
     # Read data and rename
     storages = (
         pd.read_excel(fn, sheet_name="TEMPLATE")
@@ -70,13 +82,18 @@ def load_h2_storage_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
             e_nom_max=lambda df: df.e_nom_max * 1e3,  # [MWh]
             efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
             efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
-            bus=lambda df: (
-                df.bus
-                + np.where(df.h2_zone == "H2 Z2", " H2 Z2", " H2 Z1")
-                + " "
-                + np.where(df.h2_zone == "H2 Z2", "cavern-storage", "tank-storage")
+            storage_tech=lambda df: np.where(
+                df.h2_zone == "H2 Z2", "cavern-storage", "tank-storage"
+            ),
+            bus=lambda df: np.where(
+                df.h2_zone == "H2 Z2",
+                df.bus.map(h2_zone_buses.z2),
+                df.bus.map(h2_zone_buses.z1),
             ),
         )
+        .dropna(subset=["bus"])
+        .assign(bus=lambda df: df.bus + " " + df.storage_tech)
+        .drop(columns="storage_tech")
     )
 
     # Manually fix 2030 expansion limits for NL
@@ -120,10 +137,13 @@ if __name__ == "__main__":
     # Parameters
     pyear = int(snakemake.wildcards.planning_horizons)
     h2_storage_fn = snakemake.input.h2_storages
+    buses_h2_fn = snakemake.input.buses_h2
     scenario = snakemake.params.tyndp_scenario
 
     # Load and prep H2 storage data
-    h2_storages = load_h2_storage_data(fn=h2_storage_fn, pyear=pyear, scenario=scenario)
+    h2_storages = load_h2_storage_data(
+        fn=h2_storage_fn, buses_h2_file=buses_h2_fn, pyear=pyear, scenario=scenario
+    )
 
     # Save clean H2 Storage data
     h2_storages.to_csv(snakemake.output.h2_storages_prepped, index=False)
