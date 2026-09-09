@@ -378,14 +378,7 @@ def fix_reservoir_soc_at_boundaries(
     # A state of charge is reported at the END of a snapshot's period,
     # so re-date both indices to those period ends before interpolating between them.
     if not n.snapshots.equals(n_msv.snapshots):
-        pf_soc = resample_msv_to_target(
-            pf_soc,
-            n.snapshots,
-            method="interpolate_period_end",
-            msv_weightings=n_msv.snapshot_weightings.stores,
-            target_weightings=n.snapshot_weightings.stores,
-            initial=n.storage_units.state_of_charge_initial[common],
-        )
+        pf_soc = resample_msv_to_target(pf_soc, n.snapshots, method="ffill")
 
     # Compute window boundary indices (same logic as optimize_with_rolling_horizon)
     n_sns = len(n.snapshots)
