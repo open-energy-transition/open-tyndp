@@ -567,6 +567,7 @@ if config["sector"]["h2_topology_tyndp"]:
     rule clean_tyndp_smr:
         input:
             smr=rules.retrieve_tyndp.output.smr,
+            buses_h2=rules.build_tyndp_network.output.substations_h2,
         output:
             smr_prepped=resources("smr_data_prepped_{planning_horizons}.csv"),
         log:
