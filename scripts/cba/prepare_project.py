@@ -11,7 +11,6 @@ Handles multi-border projects, creates links when needed, and validates capacity
 
 import logging
 
-import numpy as np
 import pandas as pd
 import pypsa
 
@@ -262,13 +261,35 @@ def _get_generator_values(
     generator_dict = dict()
     for attribute in pypsa_dynamic_attributes:
         if attribute in df_dynamic.columns:
-            generator_dict[attribute] = df_dynamic.loc[snapshots, attribute]
+            generator_dict[attribute] = df_dynamic[attribute].reindex(snapshots)
         elif attribute in df_static.index:
             generator_dict[attribute] = df_static[attribute]
-        else:
-            generator_dict[attribute] = np.nan
 
     return generator_dict
+
+
+def _get_existing_generator(n: pypsa.Network, mapping_id: str):
+    """
+    Returns the existing generator in the network with the given mapping_id, or None if not found.
+
+    Parameters
+    ----------
+    n: pypsa.Network
+        Network to search for the generator
+    mapping_id: str
+        Mapping ID of the generator to find
+
+    Returns
+    -------
+    pd.Series or None
+        The existing generator as a pandas Series if found, otherwise None
+    """
+
+    existing_generator = n.generators.query("index == @mapping_id").squeeze()
+    if not existing_generator.empty:
+        return existing_generator
+    else:
+        return None
 
 
 def apply_pint_generator(
@@ -296,40 +317,51 @@ def apply_pint_generator(
     None
     """
 
-    # Dynamic PyPSA generator input attributes
-    pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
-
     # Add generator to the network
     for _, generator in generator_df_static.iterrows():
-        # Add carrier to network if new carrier
-        if generator.carrier not in n.carriers.index:
-            n.add(
-                "Carrier",
-                generator.carrier,
-                color=tech_colors.get(
-                    generator.carrier,
-                    generate_unique_hex(generator.carrier, n.carriers.color.tolist()),
-                ),  # Use the configured color, or assign a new one
-            )
+        gen_to_modify = _get_existing_generator(n, generator.mapping_id)
+        if gen_to_modify is not None:
+            # Overwrite existing generator with the same mapping_id, summing p_nom values
+            p_nom_new = gen_to_modify.p_nom + generator.p_nom
+            n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
+        else:
+            # Dynamic PyPSA generator input attributes
+            pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
 
-        generator_dict = _get_generator_values(
-            generator, generator_df_dynamic, n.snapshots, pypsa_dynamic_attributes
-        )
-        n.add(
-            "Generator",
-            f"{generator.mapping_id}",
-            carrier=generator.carrier,
-            bus=generator.bus,
-            p_nom=generator.p_nom,
-            capital_cost=generator.capital_cost,
-            **generator_dict,
-        )
+            # Add carrier to network if new carrier
+            if generator.carrier not in n.carriers.index:
+                n.add(
+                    "Carrier",
+                    generator.carrier,
+                    color=tech_colors.get(
+                        generator.carrier,
+                        generate_unique_hex(
+                            generator.carrier, n.carriers.color.tolist()
+                        ),
+                    ),  # Use the configured color, or assign a new one
+                )
+
+            # Add new generator with the specified mapping_id
+            generator_dict = _get_generator_values(
+                generator,
+                generator_df_dynamic[generator.mapping_id],
+                n.snapshots,
+                pypsa_dynamic_attributes,
+            )
+            p_nom_new = generator.p_nom
+            n.add(
+                "Generator",
+                f"{generator.mapping_id}",
+                carrier=generator.carrier,
+                bus=generator.bus,
+                p_nom=p_nom_new,
+                capital_cost=generator.capital_cost,
+                **generator_dict,
+            )
 
 
 def apply_toot_generator(
-    n: pypsa.Network,
-    generator_df_static: pd.Series,
-    generator_df_dynamic: pd.DataFrame,
+    n: pypsa.Network, generator_df_static: pd.Series, negative_toot_option: str
 ) -> None:
     """
     Apply generators as TOOT if accompanied transmission / storage project is TOOT
@@ -340,37 +372,57 @@ def apply_toot_generator(
         pypsa Network to modify
     generator_df_static: pd.Series
         Static generator attributes
-    generator_df_dynamic: pd.DataFrame
-        Dynamic generator attributes
+    negative_toot_option: str
+        Policy for handling negative capacity after TOOT removal ("zero" to set to zero, "break" to raise an error)
     """
 
-    # Dynamic PyPSA generator input attributes
-    pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
-
     for _, generator in generator_df_static.iterrows():
-        gen_to_modify = n.generators.query("carrier == @generator.carrier and index == @generator.mapping_id")
-        if gen_to_modify.empty:
-            logger.warning(f"No match found for generator {generator.mapping_id} with carrier {generator.carrier} in the network. Skipping TOOT removal for this generator.")
+        gen_to_modify = _get_existing_generator(n, generator.mapping_id)
+        if gen_to_modify is None:
+            logger.warning(
+                f"No match found for generator {generator.mapping_id} with carrier {generator.carrier} in the network. Skipping TOOT removal for this generator."
+            )
             continue
 
-        generator_dict = _get_generator_values(
-            generator, generator_df_dynamic, n.snapshots, pypsa_dynamic_attributes
-        )
+        p_nom_new = gen_to_modify.p_nom - generator.p_nom
 
-        n.add(
-            "Generator",
-            f"{generator.mapping_id}",
-            carrier=generator.carrier,
-            bus=generator.bus,
-            p_nom=max(gen_to_modify.p_nom.values[0] - generator.p_nom, 0),  # Ensure non-negative capacity
-            capital_cost=generator.capital_cost,
-            **generator_dict,
-            overwrite=True  # Overwrite existing generator with the same mapping_id
-        )
+        if p_nom_new < 0:
+            logger.warning(
+                "Applying TOOT for generator %s (%s) would create negative capacity: "
+                "%s %.0f -> %.0f MW after removing %.0f MW (policy=%s).",
+                generator.mapping_id,
+                generator.carrier,
+                generator.mapping_id,
+                gen_to_modify.p_nom,
+                p_nom_new,
+                generator.p_nom,
+                negative_toot_option,
+            )
+            if negative_toot_option == "break":
+                raise ValueError(
+                    "Cannot remove more capacity than exists in the network."
+                )
+            if negative_toot_option == "zero":
+                p_nom_new = max(p_nom_new, 0)
+            else:
+                raise ValueError(
+                    f"Unknown cba.negative_toot_capacity policy: {negative_toot_option}"
+                )
 
-        logger.info(f"Applied TOOT for generator {generator.mapping_id} with carrier {generator.carrier}. Updated p_nom to {max(gen_to_modify.p_nom.values[0] - generator.p_nom, 0)} MW.")
-        
-        breakpoint()
+        if p_nom_new == 0:
+            # If the new capacity is zero, remove the generator from the network
+            n.remove("Generator", generator.mapping_id)
+            logger.info(
+                f"Removed generator {generator.mapping_id} with carrier {generator.carrier} from the network due to TOOT removal."
+            )
+            continue
+        else:
+            # If the new capacity is non-zero, update the generator's capacity
+            n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
+            logger.info(
+                f"Applied TOOT for generator {generator.mapping_id} with carrier {generator.carrier}. Updated p_nom to {p_nom_new} MW."
+            )
+
 
 def apply_pint_storage(
     n: pypsa.Network,
@@ -541,16 +593,13 @@ def prepare_custom_generators(
         ]
         if reqd_columns:
             generator_df_dynamic = generator_projects_dynamic[reqd_columns]
-            generator_df_dynamic.index = pd.to_datetime(
-                generator_df_dynamic.index
-            )
+            generator_df_dynamic.index = pd.to_datetime(generator_df_dynamic.index)
 
     if method == "toot":
-        apply_toot_generator(
-            n,
-            generator_df_static,
-            generator_df_dynamic,
+        negative_toot_option = snakemake.config["cba"].get(
+            "negative_toot_capacity", "zero"
         )
+        apply_toot_generator(n, generator_df_static, negative_toot_option)
     elif method == "pint":
         apply_pint_generator(
             n,
