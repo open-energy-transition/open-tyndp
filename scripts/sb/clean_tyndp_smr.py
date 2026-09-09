@@ -11,29 +11,21 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
-    SCENARIO_DICT,
     configure_logging,
-    get_h2_zone_buses,
-    safe_pyear,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
 
 
-def load_smr_data(
-    fn: str, buses_h2_file: str, pyear: int, scenario: str
-) -> pd.DataFrame:
+def load_smr_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
     """
-    Load and clean TYNDP SMR capacity, must run and CCS information.
+    Load and clean TYNDP SMR capacity and CCS information.
 
     Parameters
     ----------
     fn : str
         Path to Excel file containing TYNDP SMR data.
-    buses_h2_file : str
-        Path to the TYNDP H2 buses CSV file, used to resolve each country's
-        Z1 (or, absent a dedicated Z1 bus, Z2) hydrogen bus.
     pyear : int
         Planning horizon to read SMR data for.
     scenario : str
@@ -42,7 +34,7 @@ def load_smr_data(
     Returns
     -------
     pd.DataFrame
-        Cleaned TYNDP SMR data with capacity, must run and CCS information.
+        Cleaned TYNDP SMR data with capacity and CCS information.
     """
 
     column_dict = {
@@ -52,36 +44,33 @@ def load_smr_data(
         "CAPACITY [MW]": "p_nom",
         "HEAT RATE [GJ/MWh]": "heat_rate",
         "VO&M CHARGE [€/MWh]": "marginal_cost",
-        "MUST-RUN UNITS": "must_run",
         "CCS": "ccs",
     }
 
-    replace_dict = SCENARIO_DICT | {"UK": "GB"}
-
-    # SMR is a Z1-role technology: use each country's dedicated Z1 bus, or
-    # fall back to its Z2 bus if it has no separate Z1 zone (matches
-    # `buses_h2_z1_effective` in `add_h2_topology_tyndp`)
-    h2_zone_buses = get_h2_zone_buses(buses_h2_file)
-    bus_z1_effective = h2_zone_buses.z1.combine_first(h2_zone_buses.z2)
+    # TYNDP 2026 has no more scenario split: SCENARIO is always "All"
+    replace_dict = {"All": "all"}
 
     # Read data and rename
     smr = (
-        pd.read_excel(fn)
+        pd.read_excel(fn, sheet_name="TEMPLATE")
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .query("year == @pyear and scenario == @scenario")
+        .query("year == @pyear and (scenario == @scenario or scenario == 'all')")
         .assign(
-            bus=lambda df: df.bus.map(bus_z1_effective),
+            bus=lambda df: df.bus.str.replace("^UK", "GB", regex=True),
             carrier=lambda df: np.where(df.ccs, "SMR CC", "SMR"),
-            p_min_pu=lambda df: np.where(df.must_run, 1, 0),
+            # match the TYNDP market-output asset naming convention
+            name_suffix=lambda df: np.where(df.ccs, "SMR CCS", "SMR"),
+            p_min_pu=0,
             efficiency=lambda df: 3.6 / df.heat_rate,  # convert to [MW_CH4/MW_H2]
             p_nom=lambda df: df.p_nom / df.efficiency,  # convert to [MW_CH4]
             unit="MW_CH4",
         )
-        .drop(columns=["heat_rate", "marginal_cost", "must_run", "ccs", "efficiency"])
+        .drop(columns=["heat_rate", "marginal_cost", "ccs", "efficiency"])
     )
 
-    smr.index = smr.bus + " " + smr.carrier
+    smr.index = smr.bus + " " + smr.name_suffix
+    smr = smr.drop(columns="name_suffix")
 
     return smr
 
@@ -102,17 +91,10 @@ if __name__ == "__main__":
     # Parameters
     pyear = int(snakemake.wildcards.planning_horizons)
     smr_fn = snakemake.input.smr
-    buses_h2_fn = snakemake.input.buses_h2
     scenario = snakemake.params.tyndp_scenario
 
-    # Fallback for NT scenario
-    if scenario == "NT":
-        pyear = safe_pyear(pyear, [2030, 2040])
-
     # Load and prep SMR data
-    smr = load_smr_data(
-        fn=smr_fn, buses_h2_file=buses_h2_fn, pyear=pyear, scenario=scenario
-    )
+    smr = load_smr_data(fn=smr_fn, pyear=pyear, scenario=scenario)
 
     # Save clean H2 SMR data
     smr.to_csv(snakemake.output.smr_prepped)
