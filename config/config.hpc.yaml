@@ -15,7 +15,7 @@ remote:
 
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
-  prefix: "pr-898-ffill"
+  prefix: "pr-898-interpolate-period-ends"
   name:
   - NT-cy2009-20260907-msv24h-overlap1
   - NT-cy2009-20260907-msv24h-overlap2
