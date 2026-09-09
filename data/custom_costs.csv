@@ -203,8 +203,8 @@ all,2040,tank-storage,VOM,0.000015,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx
 all,2050,tank-storage,VOM,0.000012,EUR/MWh,"TYNDP 2024 Hydrogen/H2 STORAGES.xlsx, COST sheet, OPEX [€/MW/a]","Variable O&M (€2015/MWh), as no tank storage OPEX are given, same values as for caverns are assumed. No tank-storage VOM cost specified in the TYNDP 2026 input data"
 all,all,tank-storage-charger,efficiency,0.99,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, CHARGE EFFICIENCY [%]",
 all,all,tank-storage-discharger,efficiency,1,per unit,"TYNDP 2026 Hydrogen/H2 STORAGES.xlsx, TEMPLATE sheet, DISCHARGE EFFICIENCY [%]",
-all,all,battery bicharger,efficiency,0.92,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",
-all,all,home battery bicharger,efficiency,0.95,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",
+all,all,battery bicharger,efficiency,0.92,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",Most common efficiency value. Some nodes have different efficiencies specified in the TYNDP 2026 PEMMDB input data
+all,all,home battery bicharger,efficiency,0.95,per unit,"PEMMDB 2026 v2.X, Battery sheet, Average efficiency",Most common efficiency value. Some nodes have different efficiencies specified in the TYNDP 2026 PEMMDB input data
 all,2030,BtL,efficiency,0.6,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2035,BtL,efficiency,0.63,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
 all,2040,BtL,efficiency,0.66,per unit,"TYNDP 2026 Supply Tool NT+ SCN 2026, Conversion factors",NCV
