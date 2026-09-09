@@ -131,7 +131,7 @@ https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhcf101f3_1.conda#04
 https://conda.anaconda.org/conda-forge/linux-64/immutables-0.21-py314h5bd0f2a_2.conda#d4d65cfb5c2569d5dbd344039471a534
 https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.3-pyhcf101f3_1.conda#b899f1195be56d8215ed1973a8f409c3
 https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda#7c14f3706e099f8fcd47af2d494616cc
-https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.60-pyhcf101f3_0.conda#edb848213e7e7fa29ccf99f561269bd5
+https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.61-pyhcf101f3_0.conda#a4d052a35ae133a5fef5bc34fd337cd8
 https://conda.anaconda.org/conda-forge/noarch/connection_pool-0.0.3-pyhd3deb0d_0.tar.bz2#e270fff08907db8691c02a0eda8d38ae
 https://conda.anaconda.org/conda-forge/noarch/conda-inject-1.3.2-pyhd8ed1ab_0.conda#e52c2a160d6bd0649c9fafdf0c813357
 https://conda.anaconda.org/bioconda/noarch/snakemake-minimal-9.26.0-pyhdfd78af_0.conda#2551648909bd5bc405724553e40e16e5
@@ -391,7 +391,7 @@ https://conda.anaconda.org/conda-forge/noarch/pandera-0.32.1-ha00cc4c_0.conda#f6
 https://conda.anaconda.org/conda-forge/noarch/et_xmlfile-2.0.0-pyhd8ed1ab_1.conda#71bf9646cbfabf3022c8da4b6b4da737
 https://conda.anaconda.org/conda-forge/linux-64/openpyxl-3.1.5-py314hf3b76af_3.conda#bc90b1901f01e0772c74e24b6f931137
 https://conda.anaconda.org/conda-forge/linux-64/inflate64-1.0.4-py314h5bd0f2a_2.conda#7fde62dd2e4133af7aa951fd05e5c4dd
-https://conda.anaconda.org/conda-forge/noarch/filelock-3.32.4-pyhd8ed1ab_0.conda#0171dc5d54fdbb3f6e55f285f805e0fe
+https://conda.anaconda.org/conda-forge/noarch/filelock-3.32.5-pyhd8ed1ab_0.conda#9b091d04be6b722d4ed7dfee34295dea
 https://conda.anaconda.org/conda-forge/noarch/oda-reader-1.6.0-pyhc364b38_0.conda#0c5f9ee81f0fac33b7fac8c7591913e6
 https://conda.anaconda.org/conda-forge/noarch/pyrate-limiter-4.4.0-pyhd8ed1ab_0.conda#9e441a5cba1cbc9c4a185db95592a17b
 https://conda.anaconda.org/conda-forge/noarch/requests-ratelimiter-0.10.0-pyhd8ed1ab_0.conda#85889a37a2e5d1eeb87d6ad7f523b536
@@ -496,7 +496,7 @@ https://conda.anaconda.org/conda-forge/linux-64/graphviz-14.1.2-h8b86629_0.conda
 https://conda.anaconda.org/conda-forge/linux-64/glpk-5.0-h445213a_0.tar.bz2#efc4b0c33bdf47312ad5a8a0587fa653
 https://conda.anaconda.org/conda-forge/noarch/geojson-3.3.0-pyhd8ed1ab_0.conda#c3cee0e0843e38698c45dfec869e9888
 https://conda.anaconda.org/conda-forge/noarch/descartes-1.1.0-pyhd8ed1ab_5.conda#4a25cae637029c5589135903aa15b3b6
-https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-1.2.1-py314h97ea11e_1.conda#1c8698b2012012806ec17a062bb9f339
+https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-1.2.2-py314h5383ef5_1.conda#9fe4a1c314db2c29167abbb31d5c8d64
 https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_1.conda#5498feb783ab29db6ca8845f68fa0f03
 https://conda.anaconda.org/conda-forge/linux-64/numcodecs-0.16.5-py314ha0b5721_0.conda#780127fd34cd3b3c320c8e8d22ff4b0e
 https://conda.anaconda.org/conda-forge/linux-64/google-crc32c-1.8.0-py314hd6bf2bd_1.conda#9878f356d87ec8e4d2cd3c44561128be
