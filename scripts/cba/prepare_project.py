@@ -273,21 +273,21 @@ def _get_generator_values(
 
 def apply_pint_generator(
     n: pypsa.Network,
-    generator_project_static: pd.Series,
-    generator_project_dynamic: pd.DataFrame,
+    generator_df_static: pd.Series,
+    generator_df_dynamic: pd.DataFrame,
     tech_colors: dict,
 ) -> None:
     """
-    Apply custom generator projects as PINT
+    Apply custom generators as PINT
 
     Parameters
     ----------
     n: pypsa.Network
         Network to modify
-    generator_project_static: pd.Series
-        Static components of custom generator projects
-    generator_project_dynamic: pd.DataFrame
-        Dynamic components of custom generator projects
+    generator_df_static: pd.Series
+        Static components of custom generators
+    generator_df_dynamic: pd.DataFrame
+        Dynamic components of custom generators
     tech_colors: dict
         Dictionary of technology colors for plotting
 
@@ -299,32 +299,78 @@ def apply_pint_generator(
     # Dynamic PyPSA generator input attributes
     pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
 
-    # Add generator project to the network
-    for _, project in generator_project_static.iterrows():
+    # Add generator to the network
+    for _, generator in generator_df_static.iterrows():
         # Add carrier to network if new carrier
-        if project.carrier not in n.carriers.index:
+        if generator.carrier not in n.carriers.index:
             n.add(
                 "Carrier",
-                project.carrier,
+                generator.carrier,
                 color=tech_colors.get(
-                    project.carrier,
-                    generate_unique_hex(project.carrier, n.carriers.color.tolist()),
+                    generator.carrier,
+                    generate_unique_hex(generator.carrier, n.carriers.color.tolist()),
                 ),  # Use the configured color, or assign a new one
             )
 
         generator_dict = _get_generator_values(
-            project, generator_project_dynamic, n.snapshots, pypsa_dynamic_attributes
+            generator, generator_df_dynamic, n.snapshots, pypsa_dynamic_attributes
         )
         n.add(
             "Generator",
-            f"{project.mapping_id}",
-            carrier=project.carrier,
-            bus=project.bus,
-            p_nom=project.p_nom,
-            capital_cost=project.capital_cost,
+            f"{generator.mapping_id}",
+            carrier=generator.carrier,
+            bus=generator.bus,
+            p_nom=generator.p_nom,
+            capital_cost=generator.capital_cost,
             **generator_dict,
         )
 
+
+def apply_toot_generator(
+    n: pypsa.Network,
+    generator_df_static: pd.Series,
+    generator_df_dynamic: pd.DataFrame,
+) -> None:
+    """
+    Apply generators as TOOT if accompanied transmission / storage project is TOOT
+
+    Parameters
+    ----------
+    n: pypsa.Network
+        pypsa Network to modify
+    generator_df_static: pd.Series
+        Static generator attributes
+    generator_df_dynamic: pd.DataFrame
+        Dynamic generator attributes
+    """
+
+    # Dynamic PyPSA generator input attributes
+    pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
+
+    for _, generator in generator_df_static.iterrows():
+        gen_to_modify = n.generators.query("carrier == @generator.carrier and index == @generator.mapping_id")
+        if gen_to_modify.empty:
+            logger.warning(f"No match found for generator {generator.mapping_id} with carrier {generator.carrier} in the network. Skipping TOOT removal for this generator.")
+            continue
+
+        generator_dict = _get_generator_values(
+            generator, generator_df_dynamic, n.snapshots, pypsa_dynamic_attributes
+        )
+
+        n.add(
+            "Generator",
+            f"{generator.mapping_id}",
+            carrier=generator.carrier,
+            bus=generator.bus,
+            p_nom=max(gen_to_modify.p_nom.values[0] - generator.p_nom, 0),  # Ensure non-negative capacity
+            capital_cost=generator.capital_cost,
+            **generator_dict,
+            overwrite=True  # Overwrite existing generator with the same mapping_id
+        )
+
+        logger.info(f"Applied TOOT for generator {generator.mapping_id} with carrier {generator.carrier}. Updated p_nom to {max(gen_to_modify.p_nom.values[0] - generator.p_nom, 0)} MW.")
+        
+        breakpoint()
 
 def apply_pint_storage(
     n: pypsa.Network,
@@ -477,38 +523,39 @@ def prepare_custom_generators(
     generator_projects_dynamic = pd.read_csv(
         snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
     )
-    generator_project_static = generator_projects_static[
+    generator_df_static = generator_projects_static[
         (generator_projects_static["project_id"] == int(prefix_pid[1:]))
         & (generator_projects_static["prefix"] == prefix_pid[0])
     ]
-    if generator_project_static.empty:
+    if generator_df_static.empty:
         logger.debug(f"No custom generators found for project {prefix_pid}")
         return
 
-    generator_project_dynamic = pd.DataFrame()
+    generator_df_dynamic = pd.DataFrame()
     if not generator_projects_dynamic.empty:
-        mapping_ids = generator_project_static["mapping_id"].tolist()
+        mapping_ids = generator_df_static["mapping_id"].tolist()
         reqd_columns = [
             x
             for x in generator_projects_dynamic.columns.get_level_values(0)
             if x in mapping_ids
         ]
         if reqd_columns:
-            generator_project_dynamic = generator_projects_dynamic[reqd_columns]
-            generator_project_dynamic.index = pd.to_datetime(
-                generator_project_dynamic.index
+            generator_df_dynamic = generator_projects_dynamic[reqd_columns]
+            generator_df_dynamic.index = pd.to_datetime(
+                generator_df_dynamic.index
             )
 
     if method == "toot":
-        raise NotImplementedError(
-            f"TOOT method not supported for the custom generators of project {prefix_pid}: "
-            "no matching reference-grid generator component to remove."
+        apply_toot_generator(
+            n,
+            generator_df_static,
+            generator_df_dynamic,
         )
     elif method == "pint":
         apply_pint_generator(
             n,
-            generator_project_static,
-            generator_project_dynamic,
+            generator_df_static,
+            generator_df_dynamic,
             tech_colors,
         )
     else:
