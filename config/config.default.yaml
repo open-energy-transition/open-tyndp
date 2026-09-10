@@ -995,6 +995,7 @@ sector:
   electricity_transmission_grid: true
   electricity_distribution_grid: true
   electricity_distribution_grid_cost_factor: 1.0
+  electricity_distribution_grid_tyndp: false
   electricity_grid_connection: true
   transmission_efficiency:
     enable:
