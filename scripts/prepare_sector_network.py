@@ -2076,6 +2076,12 @@ def _add_dsr_components(
     profiles = pemmdb_profiles.query("carrier == 'dsr'")
     if not profiles.empty:
         profiles = profiles.assign(name=lambda df: _format_dsr_names(df))
+        unmatched = pd.Index(profiles["name"].unique()).difference(caps.index)
+        if not unmatched.empty:
+            logger.warning(
+                f"{len(unmatched)} PEMMDB DSR availability profiles have no matching capacity and are discarded, "
+                f"e.g. {unmatched[:5].tolist()}. These price bands fall back to the default availability."
+            )
         p_min_pu = profiles.pivot_table(
             values="p_min_pu", index="time", columns="name"
         ).reindex(caps.index, axis=1, fill_value=0.0)

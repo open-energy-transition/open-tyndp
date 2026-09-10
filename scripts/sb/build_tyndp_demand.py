@@ -16,7 +16,7 @@ Each planning horizon Excel file contains 30 climate year columns (labeled
 for the corresponding planning horizon (the rest are zero-filled placeholders).
 Which 3 are populated is dependent on data package and identical across
 demand types for a given planning horizon. The availability is recorded in
-`AVAILABLE_WEATHER_SCENARIOS`.
+`AVAILABLE_WEATHER_SCENARIOS` in `scripts/_helpers.py`.
 
 Current implementation selects first weather scenario of a planning horizon,
 This needs to be revisit once we have implemented the full weather scenario
@@ -52,19 +52,11 @@ import pandas as pd
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    get_weather_scenario,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
-
-# Weather scenarios that contain data in the TYNDP 2026 demand files,
-# per planning horizon.
-AVAILABLE_WEATHER_SCENARIOS = {
-    2030: [3, 21, 29],
-    2035: [32, 37, 59],
-    2040: [65, 71, 77],
-    2050: [91, 92, 106],
-}
 
 # Maps the `demand_type` wildcard to the TYNDP 2026 demand
 # file names. Also defines which demand types the workflow knows about, and is
@@ -105,42 +97,6 @@ GJ_DEMAND_TYPES = {"thermal_h2", "thermal_ch4"}
 
 # 1 MWh = 3.6 GJ.
 GJ_TO_MWH = 1 / 3.6
-
-
-def get_weather_scenario(weather_scenarios, pyear):
-    """
-    Select the weather scenario to use for a given planning year.
-
-    Parameters
-    ----------
-    weather_scenarios : dict
-        Mapping of planning year to a list of requested weather scenarios,
-        e.g. ``{pyear: [weather_scenario, ...]}``.
-    pyear : int
-        Planning year for which to select the weather scenario.
-
-    Returns
-    -------
-    int
-        Selected weather scenario. Falls back to the first entry in
-        ``AVAILABLE_WEATHER_SCENARIOS[pyear]`` if unavailable.
-
-    Notes
-    -----
-    Currently always picks the first requested weather scenario; should be
-    adapted once the full weather year implementation is available in SB.
-    """
-    weather_scenario = weather_scenarios[pyear][0]
-
-    if weather_scenario not in AVAILABLE_WEATHER_SCENARIOS[pyear]:
-        fallback_scenario = AVAILABLE_WEATHER_SCENARIOS[pyear][0]
-        logger.warning(
-            f"Weather scenario WS{weather_scenario:03d} not available for "
-            f"planning year {pyear}, falling back to WS{fallback_scenario:03d}"
-        )
-        weather_scenario = fallback_scenario
-
-    return weather_scenario
 
 
 def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
