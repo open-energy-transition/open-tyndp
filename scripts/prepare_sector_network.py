@@ -8749,7 +8749,7 @@ def add_import_options(
     options: dict,
     gas_input_nodes: pd.DataFrame,
     h2_imports_tyndp_fn: str,
-    tyndp_scenario: str,
+    h2_import_profiles_tyndp_fn: str,
     spatial: SimpleNamespace,
 ):
     """
@@ -8763,10 +8763,12 @@ def add_import_options(
         Options from snakemake.params["sector"].
     gas_input_nodes : pd.DataFrame
         Locations of gas input nodes split by LNG and pipeline.
-    h2_imports_tyndp_fn: str,
-        Path to file containing H2 import potentials, maximum capacity, offer quantity and marginal cost from TYNDP input data
-    tyndp_scenario : str
-        TYNDP scenario name to be used for H2 imports.
+    h2_imports_tyndp_fn : str
+        Path to file containing H2 import corridor properties (bus0, bus1,
+        p_nom, marginal_cost) from TYNDP 2026 input data.
+    h2_import_profiles_tyndp_fn : str
+        Path to file containing hourly ``p_max_pu`` for the subset of H2
+        import corridors with a TYNDP 2026 time-series capacity profile.
     spatial : SimpleNamespace
         Namespace object with spatial nodes for different carriers such as `h2_tyndp`.
     """
@@ -8850,53 +8852,31 @@ def add_import_options(
             logger.info("Adding TYNDP H2 import.")
 
             import_potentials_h2 = pd.read_csv(h2_imports_tyndp_fn, index_col=0)
-
-            # change coordinates of import buses with existing H2 buses (e.g. NO)
-            h2_coords = (
-                n.buses.query("index.str.contains('H2')")
-                .groupby("country")
-                .first()[["x", "y"]]
-                .rename(columns={"x": "bus0_x", "y": "bus0_y"})
-            )
-            temp_df = import_potentials_h2.set_index("bus0")
-            temp_df.update(h2_coords)
-            import_potentials_h2[["bus0_x", "bus0_y"]] = temp_df[
-                ["bus0_x", "bus0_y"]
-            ].values
-
-            n.add(
-                "Bus",
-                import_potentials_h2.Corridor,
-                suffix=" H2 import",
-                location=import_potentials_h2.Corridor.values + " H2 import",
-                x=import_potentials_h2.bus0_x.values,
-                y=import_potentials_h2.bus0_y.values,
-                country=import_potentials_h2.bus0.replace({"Ammonia": ""}).values,
-                carrier="import H2",
-                category="import",
-                unit="MWh_th",
+            import_profiles_h2 = pd.read_csv(
+                h2_import_profiles_tyndp_fn, index_col=0, parse_dates=True
             )
 
             n.add(
                 "Generator",
-                import_potentials_h2.Corridor,
+                import_potentials_h2.index,
                 suffix=" H2 import",
-                bus=import_potentials_h2.Corridor.values + " H2 import",
+                bus=import_potentials_h2.bus0.values,
                 carrier="import H2",
                 p_nom_extendable=False,
                 p_nom=import_potentials_h2.p_nom.values,
                 marginal_cost=import_potentials_h2.marginal_cost.values,
-                e_sum_max=import_potentials_h2.e_sum_max.values,
             )
-            zone_country = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
-            country_to_bus = pd.Series(zone_country.index, index=zone_country.values)
-            country_to_bus = country_to_bus[~country_to_bus.index.duplicated()]
+
+            if not import_profiles_h2.empty:
+                n.generators_t.p_max_pu[import_profiles_h2.columns + " H2 import"] = (
+                    import_profiles_h2.reindex(n.snapshots).values
+                )
 
             n.add(
                 "Link",
                 import_potentials_h2.index,
-                bus0=import_potentials_h2.Corridor.values + " H2 import",
-                bus1=import_potentials_h2.bus1.map(country_to_bus).values,
+                bus0=import_potentials_h2.bus0.values,
+                bus1=import_potentials_h2.bus1.values,
                 p_nom_extendable=False,
                 p_nom=import_potentials_h2.p_nom.values,
                 bidirectional=False,
@@ -9574,7 +9554,7 @@ if __name__ == "__main__":
             options=options,
             gas_input_nodes=gas_input_nodes,
             h2_imports_tyndp_fn=snakemake.input.h2_imports_tyndp,
-            tyndp_scenario=tyndp_scenario,
+            h2_import_profiles_tyndp_fn=snakemake.input.h2_import_profiles_tyndp,
             spatial=spatial,
         )
 
