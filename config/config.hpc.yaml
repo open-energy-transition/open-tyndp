@@ -22,8 +22,9 @@ remote:
 
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
+  prefix: "pr-898-ffill"
   name:
-  - NT-cy2009-20260910-pr-898-ffill
+  - NT-cy2009-20260910-pr-898
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
