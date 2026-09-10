@@ -40,6 +40,7 @@ COLUMN_MAP = {
 def load_wheeling_charges(fn: str) -> pd.DataFrame:
     charges = pd.read_excel(fn, sheet_name="Prosumer", engine="calamine")
     charges = charges.rename(columns=COLUMN_MAP).set_index("node")
+    charges.index = charges.index.str.replace("UK", "GB")
     return charges[["e_market_to_prosumer", "prosumer_to_e_market"]]
 
 
