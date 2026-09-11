@@ -1019,7 +1019,6 @@ sector:
       efficiency_static: 0.97
   H2_network: true
   h2_topology_tyndp: false
-  h2_demand_patch_with_mm: false
   gas_network: true
   gas_demand_exogenously: false
   H2_retrofit: false
