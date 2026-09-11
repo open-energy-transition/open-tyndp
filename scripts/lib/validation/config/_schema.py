@@ -66,6 +66,10 @@ class RemoteConfig(ConfigModel):
         "",
         description="Optionally specify the file path within the remote cluster to be synchronized.",
     )
+    sync_file: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+    )
 
 
 class ConfigSchema(BaseModel):
@@ -117,7 +121,7 @@ class ConfigSchema(BaseModel):
     )
     weather_scenarios_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
-        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WEATHER_SCENARIOS` in `scripts/sb/build_tyndp_demand.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WEATHER_SCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
     )
     launch_explorer: bool = Field(
         False,

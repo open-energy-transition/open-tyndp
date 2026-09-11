@@ -325,23 +325,25 @@ pemmdb_techs = branch(
 )
 
 
-rule build_pemmdb_data:
+rule build_tyndp_pemmdb_data:
     input:
-        pemmdb_dir=rules.retrieve_tyndp.output.pemmdb,
+        pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
+        nodes=rules.retrieve_tyndp_2026.output.nodes,
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
     log:
-        logs("build_pemmdb_data_{planning_horizons}.log"),
+        logs("build_tyndp_pemmdb_data_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/build_pemmdb_data_{planning_horizons}")
+        benchmarks("performances/build_tyndp_pemmdb_data_{planning_horizons}")
     threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
     resources:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
+        weather_scenarios=config_provider("weather_scenarios_tyndp"),
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
@@ -349,7 +351,7 @@ rule build_pemmdb_data:
         ),
         tyndp_scenario=config_provider("tyndp_scenario"),
     script:
-        scripts("sb/build_pemmdb_data.py")
+        scripts("sb/build_tyndp_pemmdb_data.py")
 
 
 rule build_tyndp_trajectories:
@@ -983,7 +985,7 @@ def input_pemmdb_datas(w):
 rule build_pemmdb_and_trajectories:
     input:
         expand(
-            rules.build_pemmdb_data.output.pemmdb_capacities,
+            rules.build_tyndp_pemmdb_data.output.pemmdb_capacities,
             planning_horizons=input_pemmdb_datas,
             run=config["run"]["name"],
         ),
