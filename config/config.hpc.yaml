@@ -6,17 +6,24 @@
 remote:
   sync_file:
     results:
-    - cba/networks/project_t335_2030.nc
-    - cba/networks/project_t335_2040.nc
-    - cba/networks/project_t339_2030.nc
-    - cba/networks/project_t339_2040.nc
-    - cba/networks/project_t1106_2030.nc
-    - cba/networks/project_t1106_2040.nc
+    - ""
+  sync_exclude:
+  - cba/networks
+
+# remote:
+#   sync_file:
+#     results:
+#     - cba/networks/project_t335_2030.nc
+#     - cba/networks/project_t335_2040.nc
+#     - cba/networks/project_t339_2030.nc
+#     - cba/networks/project_t339_2040.nc
+#     - cba/networks/project_t1106_2030.nc
+#     - cba/networks/project_t1106_2040.nc
 
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT-cy2009-20260907-pr-898-interpolate-period-end
+  - NT-cy2009-20260910-pr-898-interpolate-period-end
 
 # Remote runs usually can't launch the explorer
 launch_explorer: false
