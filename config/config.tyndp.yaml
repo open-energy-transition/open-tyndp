@@ -299,6 +299,7 @@ sector:
       ocgt: false
     biomass_to_methanol: false
   ammonia: false
+  electricity_distribution_grid_tyndp: true
   h2_topology_tyndp: true
   h2_demand_patch_with_mm: true
   gas_network: false

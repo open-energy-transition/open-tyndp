@@ -1851,6 +1851,10 @@ rule prepare_sector_network:
             config_provider("tyndp_scenario"),
             resources("demand_tyndp_h2_z2_{planning_horizons}.csv"),
         ),
+        wheeling_charges=branch(
+            config_provider("sector", "electricity_distribution_grid_tyndp"),
+            resources("wheeling_charges_tyndp.csv"),
+        ),
         elec_demand_mm=lambda w: (
             RESULTS
             + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_elec_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
