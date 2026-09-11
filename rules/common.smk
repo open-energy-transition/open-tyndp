@@ -84,6 +84,12 @@ def config_provider(*keys, default=None):
         return partial(static_getter, keys=keys, default=default)
 
 
+# Retrieval is disabled while reading from a populated local cache
+LOCAL_CACHE = config["data"]["local_cache"]
+LOCAL_CACHE_READ = LOCAL_CACHE["enable"] and not LOCAL_CACHE["fill"]
+LOCAL_CACHE_MANIFEST = Path(LOCAL_CACHE["directory"], ".collected")
+
+
 def dataset_version(
     name: str,
     all_versions: bool = False,
@@ -151,10 +157,15 @@ def dataset_version(
     # Return single-row DataFrame as a Series
     dataset = dataset.squeeze()
 
-    # Generate output folder path in the `data` directory
-    dataset["folder"] = Path(
-        "data", name, dataset["source"], dataset["version"]
-    ).as_posix()
+    # Generate output folder path, in the local cache or the versioned `data` directory
+    if LOCAL_CACHE["enable"]:
+        dataset["folder"] = Path(
+            LOCAL_CACHE["directory"], name, dataset["version"]
+        ).as_posix()
+    else:
+        dataset["folder"] = Path(
+            "data", name, dataset["source"], dataset["version"]
+        ).as_posix()
 
     return dataset
 

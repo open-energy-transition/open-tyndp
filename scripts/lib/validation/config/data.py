@@ -139,6 +139,30 @@ class _DataSourceConfig(ConfigModel):
     )
 
 
+class _LocalCacheConfig(ConfigModel):
+    """Configuration for the local cache of retrieved data."""
+
+    enable: bool = Field(
+        False,
+        description="""
+        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.
+
+        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`
+        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,
+        unless `fill` is also set: the workflow reads the cached files and fails with a list of the
+        missing ones instead of downloading them, enabling offline execution of the workflow.
+        """,
+    )
+    directory: str = Field(
+        "data/local-cache",
+        description="Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+    )
+    fill: bool = Field(
+        False,
+        description="Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+    )
+
+
 class DataConfig(BaseModel):
     """Configuration for `data` settings."""
 
@@ -179,6 +203,10 @@ class DataConfig(BaseModel):
         - `note`: [Optional] notes about the dataset version.
         - `url`: URL to the dataset version. Optional if data `source` is "build", otherwise required.
         """,
+    )
+    local_cache: _LocalCacheConfig = Field(
+        default_factory=_LocalCacheConfig,
+        description="Local cache data configuration.",
     )
     hotmaps_industrial_sites: _DataSourceConfig = Field(
         default_factory=_DataSourceConfig,

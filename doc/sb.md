@@ -197,6 +197,18 @@ on the GCS bucket and will still be retrieved from their respective sources.
 To see which datasets support `tyndp-archive`, check the `source` column in `data/tyndp_versions.csv`.
 See also [`data_config`](configuration.md#data_config_cf) and [`data`](configuration.md#data_cf) in the configuration reference.
 
+Files from any source can also be kept in a [local cache](retrieve.md#local_cache), which 
+allows runs without internet access. Enable `local_cache` in `config/config.tyndp.yaml`
+and fill the cache once where there is network:
+
+```console
+$ pixi run collect-data          # everything Scenario Building needs
+$ pixi run collect-data-cba      # everything the CBA needs
+```
+
+Both tasks switch retrieval on themselves, so they populate the cache whatever your own
+configuration says. The workflow can now be run without network access.
+
 ## Running Scenario Building
 
 Before running, make sure you have completed the steps in the [installation guide](installation.md).

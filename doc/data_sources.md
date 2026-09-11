@@ -22,6 +22,10 @@ public file storage for the repository under `https://data.pypsa.org`.
     version. Reproducibility is given even when using the `latest` tag via the
     `versions.csv` and `tyndp_versions.csv`, which are version controlled.
 
+    Once a version is selected, the files it resolves to can be kept in a
+    [local cache](retrieve.md#local_cache) so that later runs neither re-download them nor need
+    network access at all.
+
 ### Understanding `versions.csv` files
 
 The version files (e.g. `data/versions.csv` and `data/tyndp_versions.csv`) are central registries for all data sources and their versions. The file `data/versions.csv` defines generic PyPSA-Eur data, and `data/tyndp_versions.csv` defines TYNDP-specific data.
@@ -29,7 +33,7 @@ Each row defines a specific version of a dataset with the following columns:
 
 * `dataset`: The name of the dataset (e.g., `worldbank_urban_population`).
 * `version`: The version identifier, typically following the original data source's versioning (e.g., `2025-08-14`).
-* `source`: The source type - `primary` (original data source), `archive` (mirrored copy on `data.pypsa.org`), or `build` (generated from other data).
+* `source`: The source type - `primary` (original data source), `archive` (mirrored copy on `data.pypsa.org`), `tyndp-archive` (mirrored copy on the Open-TYNDP data store, see [tyndp_archive](sb.md#tyndp_archive)), or `build` (generated from other data).
 * `tags`: Space-separated tags like `latest`, `supported` or `deprecated`.
 * `added`: The date when this entry was added to the registry.
 * `note`: Optional notes about the dataset or version.
