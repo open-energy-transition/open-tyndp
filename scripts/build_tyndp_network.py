@@ -284,10 +284,7 @@ def build_buses(
             symbol="Substation",
             under_construction="f",
             tags=lambda df: df["bus_id"],
-            # Bidding-zone shapes don't cover offshore/virtual/sub-zone node
-            # codes (e.g. "BEO1_OFF", "PL00E"); fall back to the node code's
-            # country prefix
-            country=lambda df: df["country"].fillna(df["bus_id"].map(extract_country)),
+            country=lambda df: df["country"].fillna(df["bus_id"].map(extract_country)),  # Fallback for offshore/virtual/sub-zone nodes
             category=lambda df: df["sheet"].map(ELEC_SHEET_CATEGORIES),
         )
         .set_index("bus_id")[BUSES_COLUMNS]
