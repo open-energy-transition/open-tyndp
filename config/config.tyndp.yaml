@@ -353,24 +353,27 @@ adjustments:
     factor:
       Generator:
         biogas:
-          p_nom: # EU27 biogas potential for 8760h; TYNDP 2026 Supply Tool NT+, biomethane (upgraded, grid-injected) production only — excludes "biogas not upgraded to biomethane", which is counted in solid biomass instead (see PR description; matches original PR #570 methodology)
+          p_nom: # EU27 biogas potential for 8760h
             2030: 0.79  # PyPSA-Eur 301 TWh vs TYNDP 238.57 TWh
             2035: 1.28  # interpolated
             2040: 1.77  # PyPSA-Eur 306 TWh vs TYNDP 542.68 TWh
+            2050: 2.56  # PyPSA-Eur 298.2 TWh vs TYNDP 764.09 TWh
           e_sum_max:
             2030: 0.79
             2035: 1.28
             2040: 1.77
+            2050: 2.56
           e_sum_min:
             2030: 0.79
             2035: 1.28
             2040: 1.77
+            2050: 2.56
         solid biomass:
-          p_nom: # EU27 biomass potential for 8760h; TYNDP 2026 Supply Tool NT+: final energy demand + for electricity generation + for bioliquids + for biogas not upgraded to biomethane + for heat production, excluding the biomethane-upgrade feedstock (counted in biogas instead) — see PR description
+          p_nom: # EU27 biomass potential for 8760h
             2030: 1.48  # PyPSA-Eur 974 TWh vs TYNDP 1444.85 TWh
             2035: 1.59  # interpolated
             2040: 1.69  # PyPSA-Eur 950 TWh vs TYNDP 1607.73 TWh
-            2050: 1.65  # PyPSA-Eur ~950.8 TWh (approximate) vs TYNDP 1569.12 TWh
+            2050: 1.65  # PyPSA-Eur 949.7 TWh vs TYNDP 1569.12 TWh
           e_sum_max:
             2030: 1.48
             2035: 1.59
