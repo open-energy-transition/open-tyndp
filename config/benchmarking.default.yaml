@@ -181,17 +181,17 @@ benchmarking:
           - scenario
           - year
       biomass_to_methane_efficiency:
-        # Values from TYNDP 2024 Supply Tool
-        2030: 0.68
-        2035: 0.68  # Interpolated
-        2040: 0.68
-        2045: 0.68  # Interpolated
-        2050: 0.68
+        # Values from TYNDP 2026 Supply Tool NT+ ("All data" sheet, "Efficiency Conversion Biomass to Biomethane")
+        2030: 0.582
+        2035: 0.609
+        2040: 0.636
+        2050: 0.682
       biogas_not_upgraded:
-        # Values from TYNDP 2024 Supply Tool, EU27, 8760h
-        2030: 33  # TWh
-        2035: 45
-        2040: 56
+        # Values from TYNDP 2026 Supply Tool NT+, EU27, 8760h (biomass feedstock consumed for biogas not upgraded to biomethane)
+        2030: 103  # TWh
+        2035: 105
+        2040: 111
+        2050: 106
 
     energy_imports:
       table_type: scenario_comparison

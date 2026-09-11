@@ -273,12 +273,11 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  shipping_oil_share:
-    2030: 0.85
-    2035: 0.65
-    2040: 0.45
-    2045: 0.2
-    2050: 0
+  shipping_oil_share:  # TYNDP 2026 Supply Tool NT+, FuelEU Maritime-compliant fuel split (not raw ETM demand)
+    2030: 0.875
+    2035: 0.751
+    2040: 0.547
+    2050: 0.138
   bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
   oil_boilers: false
   biomass_boiler: false
@@ -288,10 +287,11 @@ sector:
   regional_co2_sequestration_potential:
     enable: false
   co2_sequestration_potential:
-    # Values from TYNDP 2024 Supply Tool
-    2030: 47
-    2035: 167
-    2040: 344
+    # Values from TYNDP 2026 Supply Tool NT+ (CCS sheet, "Total CCS")
+    2030: 44
+    2035: 111
+    2040: 142
+    2050: 179
   co2_spatial: false
   co2_network: false
   methanol:
@@ -308,10 +308,11 @@ sector:
   biomass_to_liquid_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
-  biomass_final_demand: # in TWh and for 8760h
-    2030: 939
-    2035: 863   # linear interpolation
-    2040: 787
+  biomass_final_demand: # in TWh and for 8760h, TYNDP 2026 Supply Tool NT+: ETM final energy demand + for heat production + for biogas not upgraded to biomethane
+    2030: 1089
+    2035: 1028
+    2040: 1012
+    2050: 998
   electrobiofuels: false
   transmission_efficiency:
     enable:
@@ -353,30 +354,36 @@ adjustments:
       Generator:
         biogas:
           p_nom: # EU27 biogas potential for 8760h
-            2030: 1.26  # PyPSA-Eur 301 TWh vs TYNDP 380 TWh
-            2035: 1.89  # interpolated
-            2040: 2.51  # PyPSA-Eur 306 TWh vs TYNDP 771 TWh
+            2030: 0.79  # PyPSA-Eur 301 TWh vs TYNDP 238.57 TWh
+            2035: 1.28  # interpolated
+            2040: 1.77  # PyPSA-Eur 306 TWh vs TYNDP 542.68 TWh
+            2050: 2.56  # PyPSA-Eur 298.2 TWh vs TYNDP 764.09 TWh
           e_sum_max:
-            2030: 1.26
-            2035: 1.89
-            2040: 2.51
+            2030: 0.79
+            2035: 1.28
+            2040: 1.77
+            2050: 2.56
           e_sum_min:
-            2030: 1.26
-            2035: 1.89
-            2040: 2.51
+            2030: 0.79
+            2035: 1.28
+            2040: 1.77
+            2050: 2.56
         solid biomass:
           p_nom: # EU27 biomass potential for 8760h
-            2030: 2.02 # PyPSA-Eur 974 TWh vs TYNDP 1964 TWh (8736h value: 1959 TWh = 1463 Supply Tool + 496 Other-RES)
-            2035: 1.90 # interpolated
-            2040: 1.77 # PyPSA-Eur 950 TWh vs TYNDP 1678 TWh (8736h value: 1673 TWh = 1316 Supply Tool + 357 Other-RES)
+            2030: 1.48  # PyPSA-Eur 974 TWh vs TYNDP 1444.85 TWh
+            2035: 1.59  # interpolated
+            2040: 1.69  # PyPSA-Eur 950 TWh vs TYNDP 1607.73 TWh
+            2050: 1.65  # PyPSA-Eur 949.7 TWh vs TYNDP 1569.12 TWh
           e_sum_max:
-            2030: 2.02
-            2035: 1.90
-            2040: 1.77
+            2030: 1.48
+            2035: 1.59
+            2040: 1.69
+            2050: 1.65
           e_sum_min:
-            2030: 2.02
-            2035: 1.90
-            2040: 1.77
+            2030: 1.48
+            2035: 1.59
+            2040: 1.69
+            2050: 1.65
     absolute: false
 
 solving:
