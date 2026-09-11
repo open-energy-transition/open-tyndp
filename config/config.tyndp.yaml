@@ -273,12 +273,11 @@ sector:
     2040: 0
     2045: 0
     2050: 0
-  shipping_oil_share:
-    2030: 0.85
-    2035: 0.65
-    2040: 0.45
-    2045: 0.2
-    2050: 0
+  shipping_oil_share:  # TYNDP 2026 Supply Tool NT+, FuelEU Maritime-compliant fuel split (not raw ETM demand)
+    2030: 0.875
+    2035: 0.751
+    2040: 0.547
+    2050: 0.138
   bev_charge_efficiency: 0.94 # p.96 of Methodology Report TYNDP 2024
   oil_boilers: false
   biomass_boiler: false
