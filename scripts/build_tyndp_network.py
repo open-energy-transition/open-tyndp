@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Builds the static electricity and hydrogen network topology (buses and
+Builds the electricity and hydrogen network topology (buses and
 electricity links) from the TYNDP node list and electricity reference grid
 Excel files, for a single, fixed reference year (``electricity:
 tyndp_reference_year``). The border topology is identical across all
@@ -198,8 +198,6 @@ def build_shapes(
     gpd.GeoDataFrame
         Bidding zone shapes with a representative point per zone.
     """
-    # zone_name already uses the "GB" (not "UK") country-code convention,
-    # applied upstream by build_bidding_zones.py's own format_names.
     bidding_zones = gpd.read_file(bz_fn)
 
     bidding_shapes = bidding_zones.assign(

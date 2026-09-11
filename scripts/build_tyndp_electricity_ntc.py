@@ -15,12 +15,9 @@ per-horizon NTC, later overlaid onto the network in `prepare_sector_network`
 (see `apply_tyndp_electricity_ntc`) whenever `electricity: base_network` is
 `tyndp`.
 
-This module also defines `apply_tyndp_electricity_ntc`, the function that
-applies this script's output NTC CSV onto a PyPSA network - it is not called
-from this script's own `__main__` block, only imported from
-`prepare_sector_network.py`. It lives here rather than there since it is the
-natural counterpart to `build_tyndp_network.build_links`, which builds the
-same links' initial topology/NTC.
+This script also defines `apply_tyndp_electricity_ntc`, the function that
+applies this NTC onto a PyPSA network. The function is called in
+`prepare_sector_network.py`.
 """
 
 import logging
