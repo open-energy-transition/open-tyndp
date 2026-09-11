@@ -755,7 +755,6 @@ plotting:
     H2 tank-storage discharger: '#bf13d2'
     land transport fuel cell: '#6b3161'
     H2 pipeline: '#f081dc'
-    H2 pipeline OH: '#f081dc'
     H2 pipeline retrofitted: '#ba99b5'
     H2 import LH2: "#F28C28"
     H2 import Pipeline: "#FFA500"
