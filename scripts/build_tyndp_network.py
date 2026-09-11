@@ -2,16 +2,32 @@
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
+"""
+Builds the electricity and hydrogen network topology (buses and
+electricity links) from the TYNDP node list and electricity reference grid
+Excel files, for a single, fixed reference year (``electricity:
+tyndp_reference_year``). The border topology is identical across all
+available planning horizons in the reference grid, only the NTC capacities
+differ; `build_tyndp_electricity_ntc.py` re-reads the same reference grid to
+extract the per-horizon NTC, later overlaid onto the network in
+`prepare_sector_network` (see `apply_tyndp_electricity_ntc`).
+
+Every bus is additionally tagged with a ``category``, marking which raw
+node-list sheet it came from: "onshore"/"offshore" for electricity buses (see
+`ELEC_SHEET_CATEGORIES`), or "offshore"/"import"/"bottleneck"/"Z1"/"Z2" for
+hydrogen buses (see `H2_SHEET_CATEGORIES`).
+"""
 
 import logging
 
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString
 
 from scripts._helpers import (
     configure_logging,
     extract_grid_data_tyndp,
+    format_bz_names,
     set_scenario_config,
 )
 
@@ -30,6 +46,7 @@ BUSES_COLUMNS = [
     "y",
     "country",
     "geometry",
+    "category",
 ]
 LINES_COLUMNS = [
     "bus0",
@@ -70,38 +87,40 @@ CONVERTERS_COLUMNS = [
     "geometry",
 ]
 
-# Poland organizes its lines in three sections,
-# PL00 for demand/generation, -E for exporting lines and -I for importing lines
-MAP_GRID_TYNDP = {
-    "PL00E": "PL00",
-    "PL00I": "PL00",
-    "UK": "GB",
+# Countries bordering the modelled area that never have their own node in the
+# TYNDP electricity node list, but still appear as a link endpoint in the
+# reference grid.
+KNOWN_EXCEPTIONS = {
+    "DZ00",  # Algeria
+    "EG00",  # Egypt
+    "FR15",  # Corsica (French side of the FR15-ITCO interconnector)
+    "IS00",  # Iceland
+    "IL00",  # Israel
+    "LY00",  # Libya
+    "MA00",  # Morocco
+    "PS00",  # Palestine
+    "TN00",  # Tunisia
 }
 
-AC_VIRTUAL_NODES_IT = {
-    "ITCO": "FR15",
-    "ITVI": "ITSI",
+# Category assigned to electricity nodes from each raw node-list sheet.
+ELEC_SHEET_CATEGORIES = {
+    "Electricity": "onshore",
+    "Electricity_Offshore": "offshore",
 }
 
-IBFI_COORD = (63.0, 25.0)
+# Category assigned to hydrogen nodes from each raw node-list sheet, except
+# "H2_Demand" whose nodes are further split between "Z1"/"Z2" instead (see
+# below, where nodes' actual category overrides this placeholder).
+H2_SHEET_CATEGORIES = {
+    "H2_Demand": "z1/z2",
+    "H2_Offshore": "offshore",
+    "H2_Imports": "import",
+    "H2_Bottlenecks": "bottleneck",
+}
 
-
-def format_bz_names(s: str) -> str:
-    """
-    Standardize bidding zone name formats to Open-TYNDP conventions.
-
-    Parameters
-    ----------
-    s : str
-        Raw bidding zone name string to format.
-
-    Returns
-    -------
-    str
-        Formatted bidding zone name with standardized region codes.
-    """
-    s = s.replace("FR-C", "FR15").replace("UK-N", "UKNI").replace("UK", "GB")
-    return s
+# Raw H2_Imports entries that are already country codes rather
+# than TYNDP node codes, and thus need no further country extraction.
+BARE_COUNTRY_CODES = {"DZ", "MA", "NO", "Y_NO", "TN", "TR", "IL", "UA"}
 
 
 def extract_shape_by_bbox(
@@ -161,10 +180,9 @@ def build_shapes(
     bz_fn: str,
     countries: list[str],
     geo_crs: str = GEO_CRS,
-    distance_crs: str = DISTANCE_CRS,
 ):
     """
-    Process bidding zones from the shape file and calculate representative point. Deduce the country shapes and their representative point.
+    Process bidding zones from the shape file and calculate representative point.
 
     Parameters
     ----------
@@ -174,129 +192,75 @@ def build_shapes(
         List of countries to consider.
     geo_crs : str, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
-    distance_crs : str, optional
-        Coordinate reference system to use for distance calculations. Defaults to DISTANCE_CRS.
 
     Returns
     -------
-    tuple
-        A tuple of (bidding_shapes, country_shapes) GeoDataFrames.
+    gpd.GeoDataFrame
+        Bidding zone shapes with a representative point per zone.
     """
     bidding_zones = gpd.read_file(bz_fn)
 
-    # Bidding zone shapes
     bidding_shapes = bidding_zones.assign(
-        bz_id=lambda df: df["zone_name"].apply(format_bz_names),
+        bz_id=lambda df: df["zone_name"],
         node=lambda df: (
-            df.geometry.to_crs(distance_crs).representative_point().to_crs(geo_crs)
+            df.geometry.to_crs(DISTANCE_CRS).representative_point().to_crs(geo_crs)
         ),
         x=lambda df: df["node"].x,
         y=lambda df: df["node"].y,
     ).set_index("bz_id")
 
-    # Country shapes
-    country_shapes = bidding_shapes.dissolve(by="country")[["geometry"]].assign(
-        node=lambda df: (
-            df.geometry.to_crs(distance_crs).representative_point().to_crs(geo_crs)
-        ),
-        x=lambda df: df["node"].x,
-        y=lambda df: df["node"].y,
-    )
-
-    # Correct DK, IT, GR, SE and GB coordinates
-    if "DK" in countries:
-        country_shapes.loc["DK", ["node", "x", "y"]] = bidding_shapes.loc[
-            "DKE1", ["node", "x", "y"]
-        ]
-    if "IT" in countries:
-        country_shapes.loc["IT", ["node", "x", "y"]] = bidding_shapes.loc[
-            "ITCA", ["node", "x", "y"]
-        ]
-    if "GR" in countries:
-        country_shapes.loc["GR", ["node", "x", "y"]] = bidding_shapes.loc[
-            "GR00", ["node", "x", "y"]
-        ]
-    if "SE" in countries:
-        country_shapes.loc["SE", ["node", "x", "y"]] = bidding_shapes.loc[
-            "SE01", ["node", "x", "y"]
-        ]
-    if "GB" in countries:
-        country_shapes.loc["GB", ["node", "x", "y"]] = bidding_shapes.loc[
-            "GB00", ["node", "x", "y"]
-        ]
-
-    return bidding_shapes, country_shapes
-
-
-def _add_virtual_node(
-    target_gdf: gpd.GeoDataFrame,
-    new_bus: str,
-    ref_bus: str,
-    source_gdf: gpd.GeoDataFrame | None = None,
-    **overrides,
-) -> None:
-    """
-    Add a virtual node to target Dataframe as a copy of an existing reference bus.
-
-    The virtual node inherits every attribute of the reference bus and takes its
-    own name as ``station_id`` and ``tags``. Any remaining attribute is set
-    through ``overrides``.
-
-    Parameters
-    ----------
-    target_gdf : gpd.GeoDataFrame
-        Bus GeoDataFrame the virtual node is appended to, modified in place.
-    new_bus : str
-        Name of the virtual node.
-    ref_bus : str
-        Name of the reference bus whose attributes are copied.
-    source_gdf : gpd.GeoDataFrame, optional
-        Bus GeoDataFrame holding the reference bus. Defaults to None in which case ``target_gdf`` is used.
-    **overrides, optional
-        Attribute values overriding those inherited from the reference bus.
-    """
-    source_gdf = target_gdf if source_gdf is None else source_gdf
-    target_gdf.loc[new_bus] = (
-        source_gdf.loc[[ref_bus]]
-        .assign(station_id=new_bus, tags=new_bus, **overrides)
-        .loc[ref_bus]
-    )
+    return bidding_shapes
 
 
 def build_buses(
     buses_fn: str,
-    countries: list[str],
     bidding_shapes: gpd.GeoDataFrame,
-    country_shapes: gpd.GeoDataFrame,
+    manual_bus_locations_fn: str,
     geo_crs: str = GEO_CRS,
 ):
     """
-    Extend the node list for both electricity and hydrogen with attributes, incl. country and coordinates.
+    Build the electricity node list with attributes, incl. country and coordinates.
+
+    Node identities are kept exactly as given in the TYNDP node list (no
+    renaming, splitting or merging), except for the "UK" -> "GB" country-code
+    convention used throughout Open-TYNDP.
+
+    Each bus is additionally tagged with a ``category``: "onshore" or
+    "offshore", depending on whether it came from the "Electricity" or
+    "Electricity_Offshore" node-list sheet (see `ELEC_SHEET_CATEGORIES`).
 
     Parameters
     ----------
     buses_fn : str
-        Path to bidding zone shape file.
-    countries : list[str]
-        List of countries to consider.
+        Path to the TYNDP node list Excel file ("LIST OF NODES.xlsx").
     bidding_shapes : gpd.GeoDataFrame
         A GeoDataFrame including bidding zone geometry, representative point and id.
-    country_shapes : gpd.GeoDataFrame
-        A GeoDataFrame including country geometry and representative point.
+    manual_bus_locations_fn : str
+        Path to a CSV of manually-guessed ``x``/``y`` coordinates (see
+        ``data/tyndp_manual_bus_locations.csv``), keyed by ``bus_id``, used
+        to fill in coordinates for offshore/virtual nodes that have no
+        matching bidding-zone shape.
     geo_crs : str, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
 
     Returns
     -------
-    tuple
-        A tuple of (buses, buses_h2) GeoDataFrames.
+    gpd.GeoDataFrame
+        Electricity buses as used in Open-TYNDP.
     """
+    nodes = pd.concat(
+        [
+            pd.read_excel(buses_fn, sheet_name=sheet).assign(sheet=sheet)
+            for sheet in ELEC_SHEET_CATEGORIES
+        ],
+        ignore_index=True,
+    )
+
     buses = (
-        pd.read_excel(buses_fn)
-        .replace("UK", "GB", regex=True)
+        format_bz_names(nodes)
         .merge(
             bidding_shapes[["country", "node", "x", "y"]],
-            how="outer",
+            how="left",
             left_on="NODE",
             right_index=True,
         )
@@ -308,63 +272,170 @@ def build_buses(
             symbol="Substation",
             under_construction="f",
             tags=lambda df: df["bus_id"],
+            country=lambda df: df["country"].fillna(
+                df["bus_id"].map(extract_country)
+            ),  # Fallback for offshore/virtual/sub-zone nodes
+            category=lambda df: df["sheet"].map(ELEC_SHEET_CATEGORIES),
         )
         .set_index("bus_id")[BUSES_COLUMNS]
     )
     buses = gpd.GeoDataFrame(buses, geometry="geometry", crs=geo_crs)
 
-    # Assume the same coordinates for all LU buses
-    if "LU" in countries:
-        buses.loc["LUB1"] = buses.loc["LUB1"].fillna(buses.loc["LUG1"])
-        buses.loc["LUF1"] = buses.loc["LUF1"].fillna(buses.loc["LUG1"])
-        buses.loc["LUV1"] = buses.loc["LUV1"].fillna(buses.loc["LUG1"])
+    # Fill in manually-guessed coordinates for offshore/virtual nodes that
+    # have no matching bidding-zone shape (see data/tyndp_manual_bus_locations.csv)
+    manual_locations = pd.read_csv(manual_bus_locations_fn, index_col="bus_id")
+    missing = buses.index[
+        buses["geometry"].isna() & buses.index.isin(manual_locations.index)
+    ]
+    if not missing.empty:
+        buses.loc[missing, "x"] = manual_locations.loc[missing, "x"]
+        buses.loc[missing, "y"] = manual_locations.loc[missing, "y"]
+        buses.loc[missing, "geometry"] = gpd.points_from_xy(
+            manual_locations.loc[missing, "x"], manual_locations.loc[missing, "y"]
+        )
 
-    # Manually add Italian virtual nodes  # TODO Refine assumptions
-    if "IT" in countries:
-        for node, location in AC_VIRTUAL_NODES_IT.items():
-            _add_virtual_node(
-                target_gdf=buses, new_bus=node, ref_bus=location, country="IT"
-            )
+    still_missing = buses.index[buses["geometry"].isna()]
+    if not still_missing.empty:
+        logger.warning(
+            "No coordinates for buses (not in any bidding-zone shape and not in "
+            f"{manual_bus_locations_fn}): {', '.join(sorted(still_missing))}"
+        )
+
+    return buses
+
+
+def build_country_shapes(bidding_shapes: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """
+    Derive a representative point per country from electricity bidding zone shapes.
+
+    Parameters
+    ----------
+    bidding_shapes : gpd.GeoDataFrame
+        Bidding zone shapes as returned by `build_shapes`.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Country shapes with a representative point per country.
+    """
+    return bidding_shapes.dissolve(by="country")[["geometry", "x", "y"]]
+
+
+def extract_country(bus_id: str) -> str:
+    """
+    Approximate the country of a raw TYNDP node code.
+
+    Every raw code starts with its two-letter country code, except for a
+    handful of hydrogen import/bottleneck node naming conventions (H2_Imports,
+    H2_Bottlenecks) handled explicitly below; those never match electricity
+    node codes, so this also works unchanged for electricity nodes without a
+    matching bidding-zone shape (e.g. offshore/virtual/sub-zone codes).
+
+    Parameters
+    ----------
+    bus_id : str
+        Raw TYNDP node code (e.g. "DEh2Z1", "Ammonia_BE", "IB_ITh2", "BEO1_OFF").
+
+    Returns
+    -------
+    str
+        Two-letter country code.
+    """
+    if bus_id in BARE_COUNTRY_CODES:
+        return bus_id[-2:]
+    if bus_id.startswith("Ammonia_"):
+        return bus_id.removeprefix("Ammonia_")[:2]
+    if bus_id.startswith("IB_"):
+        return bus_id[3:5]
+    return bus_id[:2]
+
+
+def build_buses_h2(
+    nodes_fn: str,
+    bidding_shapes: gpd.GeoDataFrame,
+    geo_crs: str = GEO_CRS,
+) -> gpd.GeoDataFrame:
+    """
+    Build the hydrogen node list with attributes, incl. approximate coordinates.
+
+    Combines the ``H2_Demand``, ``H2_Offshore``, ``H2_Imports`` and
+    ``H2_Bottlenecks`` sheets of the TYNDP node list into a single hydrogen
+    bus list. Node identities are kept exactly as given in the raw data (no
+    renaming, splitting or merging), except for the "UK" -> "GB" country-code
+    convention used throughout Open-TYNDP.
+
+    Each bus is additionally tagged with a ``category``: "offshore", "import"
+    or "bottleneck" for nodes from the corresponding sheet, and "Z1"/"Z2" for
+    ``H2_Demand`` nodes depending on whether their node code names the "Z1"
+    zone (e.g. "DEh2Z1") or not (implicitly "Z2").
+
+    Node coordinates are not given directly in the TYNDP node list (unlike
+    electricity, hydrogen nodes have no matching bidding-zone shape), so they
+    are approximated by the representative point of the node's country,
+    derived from the electricity bidding-zone shapes. This is a coarse
+    approximation for zone-split countries and import/bottleneck nodes; it is
+    only used for plotting and downstream distance-based calculations, not
+    for the pipeline topology itself.
+
+    Parameters
+    ----------
+    nodes_fn : str
+        Path to the TYNDP node list Excel file ("LIST OF NODES.xlsx").
+    bidding_shapes : gpd.GeoDataFrame
+        Electricity bidding zone shapes, used to approximate hydrogen node
+        coordinates at country level.
+    geo_crs : str, optional
+        Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Hydrogen buses as used in Open-TYNDP.
+    """
+    country_shapes = build_country_shapes(bidding_shapes)
+
+    nodes = format_bz_names(
+        pd.concat(
+            [
+                pd.read_excel(nodes_fn, sheet_name=sheet).assign(sheet=sheet)
+                for sheet in H2_SHEET_CATEGORIES
+            ],
+            ignore_index=True,
+        )
+    )
+
+    is_demand = nodes["sheet"] == "H2_Demand"
+    nodes["category"] = nodes["sheet"].map(H2_SHEET_CATEGORIES)
+    nodes.loc[is_demand, "category"] = nodes.loc[is_demand, "NODE"].apply(
+        lambda node: "Z1" if "Z1" in node else "Z2"
+    )
+
+    nodes["country"] = nodes["NODE"].map(extract_country)
+    missing_shape = set(nodes["country"]) - set(country_shapes.index)
+    if missing_shape:
+        logger.warning(
+            "No bidding-zone shape for countries, dropping coordinates for "
+            f"hydrogen nodes in: {', '.join(sorted(missing_shape))}"
+        )
 
     buses_h2 = (
-        country_shapes[["node", "x", "y"]]
-        .reset_index()
-        .rename({"node": "geometry"}, axis=1)
+        nodes.merge(
+            country_shapes[["x", "y"]], how="left", left_on="country", right_index=True
+        )
+        .rename({"NODE": "bus_id"}, axis=1)
         .assign(
-            bus_id=lambda df: df[["country"]] + " H2",
             station_id=lambda df: df["bus_id"],
             voltage=None,
             dc="f",
             symbol="Substation",
             under_construction="f",
             tags=lambda df: df["bus_id"],
+            geometry=lambda df: gpd.points_from_xy(df["x"], df["y"]),
         )
         .set_index("bus_id")[BUSES_COLUMNS]
     )
-    buses_h2 = gpd.GeoDataFrame(buses_h2, geometry="geometry", crs=geo_crs)
 
-    # Manually add IBIT and IBFI nodes  # TODO Refine assumptions
-    if "IT" in countries:
-        _add_virtual_node(
-            target_gdf=buses_h2,
-            new_bus="IBIT H2",
-            ref_bus="ITN1",
-            source_gdf=buses,
-            voltage=None,
-            dc="f",
-        )
-    if "FI" in countries:
-        ibfi_lat, ibfi_long = IBFI_COORD
-        _add_virtual_node(
-            target_gdf=buses_h2,
-            new_bus="IBFI H2",
-            ref_bus="FI H2",
-            x=ibfi_long,
-            y=ibfi_lat,
-            geometry=Point(ibfi_long, ibfi_lat),
-        )
-
-    return buses, buses_h2
+    return gpd.GeoDataFrame(buses_h2, geometry="geometry", crs=geo_crs)
 
 
 def add_links_missing_attributes(
@@ -405,26 +476,10 @@ def add_links_missing_attributes(
     unknown_buses = set(
         links["bus0"][links[["bus0", "geometry0"]].isna().any(axis=1)]
     ).union(set(links["bus1"][links[["bus1", "geometry1"]].isna().any(axis=1)]))
-    known_exceptions = {
-        "DEKF",  # Connection from DE to the Kriegers Flak offshore wind farm
-        "DKKF",  # Connection from DK to the Kriegers Flak offshore wind farm
-        "DZ00",  # Algeria
-        "EG00",  # Egypt
-        "IS00",  # Iceland
-        "IL00",  # Israel
-        "LY00",  # Libya
-        "MA00",  # Morocco
-        "MD00",  # Moldova
-        "PS00",  # Palestine
-        "TN00",  # Tunisia
-        "TR00",  # Turkey
-        "UA00",  # Ukraine
-        "UA01",  # Ukraine
-    }
-    if unknown_buses - known_exceptions:
+    if unknown_buses - KNOWN_EXCEPTIONS:
         logger.warning(
             f"Dropping links connected to unknown buses: "
-            f"{', '.join(sorted(unknown_buses - known_exceptions))}"
+            f"{', '.join(sorted(unknown_buses - KNOWN_EXCEPTIONS))}"
         )
     links = links.dropna()  # TODO Remove this when all nodes are known
 
@@ -462,6 +517,7 @@ def add_links_missing_attributes(
 def build_links(
     grid_fn,
     buses: gpd.GeoDataFrame,
+    reference_year: int,
 ):
     """
     Process reference grid information to produce link data. p_nom are NTC values.
@@ -469,22 +525,21 @@ def build_links(
     Parameters
     ----------
     grid_fn : str | Path
-        Path to bidding zone shape file.
+        Path to the TYNDP electricity reference grid Excel file.
     buses : gpd.GeoDataFrame
         A GeoDataFrame of electrical buses including country and coordinates.
+    reference_year : int
+        Planning horizon sheet to read from the reference grid workbook (see
+        module docstring for how this relates to `build_tyndp_electricity_ntc`).
 
     Returns
     -------
     gpd.GeoDataFrame
         A GeoDataFrame including NTC from the reference grid.
     """
-    links = pd.read_excel(grid_fn)
-    links = extract_grid_data_tyndp(
-        links=links,
-        idx_prefix="Transmission line",
-        replace_dict=MAP_GRID_TYNDP,
-        idx_connector="->",
-    )
+    links = pd.read_excel(grid_fn, sheet_name=f"Year_{reference_year}")
+    links["Border"] = format_bz_names(links["Border"])
+    links = extract_grid_data_tyndp(links=links, idx_connector="->")
 
     # Add missing attributes
     links = add_links_missing_attributes(links, buses)
@@ -496,7 +551,9 @@ if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("build_tyndp_network")
+        snakemake = mock_snakemake(
+            "build_tyndp_network", run="NT", configfiles=["config/config.tyndp.yaml"]
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
@@ -504,15 +561,20 @@ if __name__ == "__main__":
     countries = snakemake.params.countries
 
     # Build node coordinates
-    bidding_shapes, country_shapes = build_shapes(
-        snakemake.input.bidding_shapes, countries
+    bidding_shapes = build_shapes(snakemake.input.bidding_shapes, countries)
+    buses = build_buses(
+        snakemake.input.buses,
+        bidding_shapes,
+        snakemake.input.manual_bus_locations,
     )
-    buses, buses_h2 = build_buses(
-        snakemake.input.buses, countries, bidding_shapes, country_shapes
-    )
+    buses_h2 = build_buses_h2(snakemake.input.buses, bidding_shapes)
 
     # Build links
-    links = build_links(snakemake.input.elec_reference_grid, buses)
+    links = build_links(
+        snakemake.input.elec_reference_grid,
+        buses,
+        reference_year=snakemake.params.reference_year,
+    )
 
     # Build placeholder lines, converters and transformers as empty DataFrames
     lines = gpd.GeoDataFrame(columns=LINES_COLUMNS, geometry="geometry").set_index(

@@ -150,7 +150,7 @@ def compute_benchmark(
     """
     opt = options["tables"][table]
     mapping = opt.get("mapping", {})
-    elec_bus_carrier = ["AC", "AC_OH"] + (["low voltage"] if low_voltage else [])
+    elec_bus_carrier = ["AC"] + (["low voltage"] if low_voltage else [])
     supply_comps = ["Generator", "Link"]
     demand_comps = ["Link", "Load"]
     eu27_idx = n.buses[n.buses.country.isin(eu27)].index
@@ -246,7 +246,7 @@ def compute_benchmark(
         ).loc[lambda df: ~df.index.get_level_values("carrier").isin(exclusions)]
     elif table == "power_capacity":
         grouper = ["carrier"]
-        exclusions = ["electricity distribution grid", "DC", "DC_OH", "load"]
+        exclusions = ["electricity distribution grid", "DC", "load"]
         df = (
             n.statistics.optimal_capacity(
                 bus_carrier=elec_bus_carrier,
@@ -264,22 +264,22 @@ def compute_benchmark(
 
         # Add H2 offwind capacities in MW_e
         off_car = [c for c in tyndp_renewable_carriers if c.startswith("offwind-h2")]  # noqa: F841
-        df_offwind_h2 = (
-            n.generators.query("carrier.isin(@off_car)")
-            .assign(
-                p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
-                bus=lambda df: df.bus.str.split(" ").str[0],
+        if off_car and "efficiency_dc_to_h2" in n.generators.columns:
+            df_offwind_h2 = (
+                n.generators.query("carrier.isin(@off_car)")
+                .assign(
+                    p_nom_opt=lambda df: df.p_nom_opt / df.efficiency_dc_to_h2,
+                    bus=lambda df: df.bus.str.split(" ").str[0],
+                )
+                .groupby(by=["bus"] + grouper)
+                .p_nom_opt.sum()
             )
-            .groupby(by=["bus"] + grouper)
-            .p_nom_opt.sum()
-        )
 
-        df = pd.concat([df, df_offwind_h2])
+            df = pd.concat([df, df_offwind_h2])
     elif table == "power_generation":
         grouper = ["carrier"]
         exclusions = [
             "DC",
-            "DC_OH",
             "electricity distribution grid",
             "battery discharger",
             "battery charger",
@@ -304,7 +304,10 @@ def compute_benchmark(
         # TODO Review once solar thermals are integrated
         res_carriers = n.carriers.filter(regex="offwind.*|solar.*|onwind", axis=0).index
         res_idx = n.generators[n.generators.carrier.isin(res_carriers)].index
-        eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
+        if "efficiency_dc_to_b0" in n.generators.columns:
+            eff_dc_to_b0 = n.generators.loc[res_idx, "efficiency_dc_to_b0"].fillna(1)
+        else:
+            eff_dc_to_b0 = pd.Series(1.0, index=res_idx)
 
         res_gen = (
             (
@@ -480,7 +483,6 @@ def compute_benchmark(
                 .drop(
                     index=[
                         "DC",
-                        "DC_OH",
                         "electricity distribution grid",
                         "H2 Electrolysis",
                         "battery charger",

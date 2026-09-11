@@ -35,7 +35,6 @@ def add_brownfield(
     h2_retrofit=False,
     h2_retrofit_capacity_per_ch4=None,
     capacity_threshold=None,
-    offshore_hubs_tyndp=False,
     h2_topology_tyndp=False,
     carriers_tyndp=list[str],
 ):
@@ -56,8 +55,6 @@ def add_brownfield(
         Ratio of hydrogen to methane capacity for pipeline retrofitting. Default is None.
     capacity_threshold : float, optional
         Threshold for removing assets with low capacity. Default is None.
-    offshore_hubs_tyndp : bool, optional
-        Whether to enable offshore hubs. Default is False.
     h2_topology_tyndp : bool, optional
         Whether to enable TYNDP Hydrogen topology. Default is False.
     carriers_tyndp : list[str]
@@ -172,81 +169,6 @@ def add_brownfield(
         n.generators.loc[onwind_solar_i, "p_nom_min"] = remaining_min
         n.generators.loc[onwind_solar_i, "p_nom"] = remaining_capacity
         n.generators.loc[onwind_solar_i, "p_nom_max"] = remaining_potential
-
-    # adjust TYNDP offshore expansion by subtracting existing capacity from previous years
-    # from current year total capacity and potential
-    # hydrogen- and electricity-generating wind farms share the same potential; values are adjusted accordingly
-    if offshore_hubs_tyndp:
-        filter = {"Link": "Offshore", "Generator": "offwind"}
-        eff_map = {"Link": "efficiency", "Generator": "efficiency_dc_to_h2"}
-        for c in n.components[["Link", "Generator"]]:
-            off_fixed_i = c.static[
-                (c.static.index.str.contains(filter[c.name]))
-                & (c.static.build_year != year)
-            ].index
-            off_i = c.static[
-                (c.static.index.str.contains(filter[c.name]))
-                & (c.static.build_year == year)
-            ].index
-
-            off_capacity = c.static.loc[off_i, "p_nom"]
-            off_potential = c.static.loc[off_i, "p_nom_max"]
-
-            # Determine existing capacities in MW_e and MW_h2
-            already_existing = (
-                c.static.loc[off_fixed_i]
-                .assign(
-                    p_nom_opt_e=lambda df: np.where(
-                        df.carrier.str.contains("h2"),
-                        df.p_nom_opt.div(df[eff_map[c.name]]),
-                        df.p_nom_opt,
-                    ),
-                    p_nom_opt_h2=lambda df: np.where(
-                        ~df.carrier.str.contains("h2"),
-                        df.p_nom_opt.mul(df[eff_map[c.name]]),
-                        df.p_nom_opt,
-                    ),
-                )
-                .rename(lambda x: x.split("-2")[0] + f"-{year}")[
-                    ["p_nom_opt", "p_nom_opt_e", "p_nom_opt_h2"]
-                ]
-                .groupby(level=0)
-                .sum()
-                .reindex(index=off_capacity.index, fill_value=0)
-            )
-
-            # account for the shared potential of hydrogen- and electricity-generating wind farms
-            if c.name == "Generator":
-                h2_gens = already_existing.loc[
-                    already_existing.index.str.contains("h2")
-                ]
-                dc_gens = already_existing.loc[
-                    already_existing.index.str.contains("dc.*oh")
-                ]
-
-                h2_to_dc = h2_gens.p_nom_opt_e.rename(
-                    index=lambda x: x.replace("h2", "dc")
-                ).rename("p_nom_opt")
-                dc_to_h2 = dc_gens.p_nom_opt_h2.rename(
-                    index=lambda x: x.replace("dc", "h2")
-                ).rename("p_nom_opt")
-
-                already_existing_l = (
-                    pd.concat([already_existing.p_nom_opt, h2_to_dc, dc_to_h2])
-                    .groupby(level=0)
-                    .sum()
-                    .reindex(index=off_capacity.index, fill_value=0)
-                )
-            else:
-                already_existing_l = already_existing.p_nom_opt
-
-            # values should be non-negative; clipping applied to handle rounding errors
-            remaining_capacity = (off_capacity - already_existing.p_nom_opt).clip(
-                lower=0
-            )
-            remaining_potential = (off_potential - already_existing_l).clip(lower=0)
-            c.static.loc[off_i, ["p_nom_min", "p_nom"]] = remaining_capacity
-            c.static.loc[off_i, "p_nom_max"] = remaining_potential
 
     # Adjust Open-TYNDP H2 cavern storage expansion by subtracting existing capacity from previous years
     if h2_topology_tyndp:
@@ -671,7 +593,6 @@ if __name__ == "__main__":
         h2_retrofit=snakemake.params.H2_retrofit,
         h2_retrofit_capacity_per_ch4=snakemake.params.H2_retrofit_capacity_per_CH4,
         capacity_threshold=snakemake.params.threshold_capacity,
-        offshore_hubs_tyndp=snakemake.params.offshore_hubs_tyndp,
         h2_topology_tyndp=snakemake.params.h2_topology_tyndp,
         carriers_tyndp=snakemake.params.carriers_tyndp,
     )

@@ -19,9 +19,7 @@ from scripts._helpers import (
 logger = logging.getLogger(__name__)
 
 
-def load_h2_storage_data(
-    fn: str, pyear: int, scenario: str, h2_zones_tyndp: bool
-) -> pd.DataFrame:
+def load_h2_storage_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
     """
     Load and clean TYNDP H2 storage energy capacities as well as charge/discharge capacities and efficiencies.
 
@@ -33,8 +31,6 @@ def load_h2_storage_data(
         Planning horizon to read H2 storage data for.
     scenario : str
         TYNDP scenario to filter for.
-    h2_zones_tyndp : bool
-        Whether H2 zonal split is modeled.
 
     Returns
     -------
@@ -64,8 +60,6 @@ def load_h2_storage_data(
         "All": "all",
     }
 
-    suffix = " H2 Z2" if h2_zones_tyndp else " H2"
-
     # Read data and rename
     storages = (
         pd.read_excel(fn, sheet_name="TEMPLATE")
@@ -78,7 +72,7 @@ def load_h2_storage_data(
             efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
             bus=lambda df: (
                 df.bus
-                + np.where(df.h2_zone == "H2 Z2", suffix, " H2 Z1")
+                + np.where(df.h2_zone == "H2 Z2", " H2 Z2", " H2 Z1")
                 + " "
                 + np.where(df.h2_zone == "H2 Z2", "cavern-storage", "tank-storage")
             ),
@@ -127,12 +121,9 @@ if __name__ == "__main__":
     pyear = int(snakemake.wildcards.planning_horizons)
     h2_storage_fn = snakemake.input.h2_storages
     scenario = snakemake.params.tyndp_scenario
-    h2_zones_tyndp = snakemake.params.h2_zones_tyndp
 
     # Load and prep H2 storage data
-    h2_storages = load_h2_storage_data(
-        fn=h2_storage_fn, pyear=pyear, scenario=scenario, h2_zones_tyndp=h2_zones_tyndp
-    )
+    h2_storages = load_h2_storage_data(fn=h2_storage_fn, pyear=pyear, scenario=scenario)
 
     # Save clean H2 Storage data
     h2_storages.to_csv(snakemake.output.h2_storages_prepped, index=False)

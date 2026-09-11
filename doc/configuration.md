@@ -471,19 +471,6 @@ Configuration for `transmission_projects` settings.
 ```
 
 
-## `tyndp_investment_candidates` {#tyndp_investment_candidates_cf}
-
-Defines which investment candidates to include in the network. Currently supports TYNDP 2024 investment candidates. This configuration applies to the TYNDP base networks and should not be used with `transmission_projects` enabled (see [`transmission_projects`](#transmission_projects_cf)).
-
-{{ schema_table("tyndp_investment_candidates") }}
-
-**YAML Syntax**
-
-```yaml
-{{ yaml_section("tyndp_investment_candidates") }}
-```
-
-
 ## `transformers` {#transformers_cf}
 
 Configuration for `transformers` settings.

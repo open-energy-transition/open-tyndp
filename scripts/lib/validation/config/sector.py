@@ -9,7 +9,7 @@ Sector configuration.
 See docs in https://open-tyndp.readthedocs.io/en/latest/configuration.html#sector
 """
 
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -370,26 +370,6 @@ class _ImportsConfig(BaseModel):
             "oil": 125,
         },
         description="Price for importing renewable energy of carrier.",
-    )
-
-
-class _OffshoreHubsTyndpConfig(BaseModel):
-    """Configuration for `sector.offshore_hubs_tyndp` settings."""
-
-    enable: bool = Field(
-        False,
-        description="Add option to include TYNDP offshore hubs.",
-    )
-    patch_crossborder_with_mm: bool = Field(
-        False,
-        description="Add option to patch the Offshore Hubs interconnector capacities with the Market Model output data.",
-    )
-    connect_isolated: bool = Field(
-        False, description="Copperplate isolated wind farms to the grid."
-    )
-    max_capacity: dict[str, float] = Field(
-        default_factory=lambda: {"DC_OH": 10, "H2 pipeline OH": 30},
-        description="Maximum transmission capacity between two offshore hubs of a carrier (GW). Keys are carrier names (e.g., 'DC_OH', 'H2 pipeline OH').",
     )
 
 
@@ -868,18 +848,6 @@ class SectorConfig(BaseModel):
         False,
         description="Use TYNDP H2 topology for hydrogen network.",
     )
-    h2_reference_grid_source: Literal["entsoe", "entsos"] = Field(
-        "entsoe",
-        description="Source dataset for the TYNDP hydrogen reference grid. 'entsoe' uses StartingGrid2030.xlsx (from ENTSO-E landing page); 'entsos' uses ReferenceGrid_Hydrogen.xlsx (from ENTSOS Scenarios data Line Data dataset), with added H2 investment candidates.",
-    )
-    h2_zones_tyndp: bool = Field(
-        False,
-        description="Add option to split TYNDP H2 nodes into two zones (Z1, Z1), currently only available for DE/GA scenarios.",
-    )
-    h2_demand_patch_with_mm: bool = Field(
-        False,
-        description="Add option to patch the TYNDP H2 demand with the Market Model output data.",
-    )
     gas_network: bool = Field(
         True,
         description="Add existing natural gas infrastructure, incl. LNG terminals, production and entry-points. The existing gas network is added with a lossless transport model. A length-weighted `k-edge augmentation algorithm <https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation.html#networkx.algorithms.connectivity.edge_augmentation.k_edge_augmentation>`_ can be run to add new candidate gas pipelines such that all regions of the model can be connected to the gas network. When activated, all the gas demands are regionally disaggregated as well.",
@@ -980,8 +948,4 @@ class SectorConfig(BaseModel):
     )
     imports: _ImportsConfig = Field(
         default_factory=_ImportsConfig, description="Imports configuration."
-    )
-    offshore_hubs_tyndp: _OffshoreHubsTyndpConfig = Field(
-        default_factory=_OffshoreHubsTyndpConfig,
-        description="TYNDP offshore hubs configuration.",
     )

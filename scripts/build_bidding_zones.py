@@ -17,11 +17,14 @@ supply stay within the modelling scope. Bornholm is a further exception, as
 the Bornholm Energy Island offshore hub (`BEIOH01`) is built from the TYNDP
 offshore hub data and is unaffected by this option.
 
-If `aggregate_to_tyndp` is enabled, the three southern Norwegian zones
-(NO-NO1, NO-NO2, NO-NO5) are merged into a single zone (NOS0), and Crete is
-split out from Greece as an independent zone (GR03), to match the TYNDP 2024
-zone configuration. This option must also be set to `true` for Open-TYNDP,
-since the rest of the workflow expects bidding zones at TYNDP 2024 resolution.
+If `aggregate_to_tyndp` is enabled, Crimea (UA-CR) is merged into mainland
+Ukraine (UA) since TYNDP models Ukraine as a single zone, and Crete is split
+out from Greece as an independent zone (GR03), to match the TYNDP zone
+configuration. This option must also be set to `true` for Open-TYNDP, since
+the rest of the workflow expects bidding zones at TYNDP resolution.
+
+Northern Cyprus (XX, filed under electricitymaps' CY country group) is always
+dropped, regardless of `countries`, since TYNDP has no separate node for it.
 
 **Inputs**
 
@@ -224,7 +227,7 @@ def format_names(s: str):
         .replace("NO-NO2", "NOS2")
         .replace("NO-NO3", "NOM1")
         .replace("NO-NO4", "NON1")
-        .replace("NO-NO5", "NOS5")
+        .replace("NO-NO5", "NOS3")
         .replace("SE-SE", "SE0")
         .replace("_", "")
         .replace("-", "")
@@ -309,19 +312,20 @@ if __name__ == "__main__":
         bidding_zones = bidding_zones[~bidding_zones.zone_name.isin(islands)]
 
     if snakemake.params.aggregate_to_tyndp:
-        # Manually merge southern norwegian zones
-        nos0_idx = bidding_zones.query(
-            "zone_name in ['NO-NO1', 'NO-NO2', 'NO-NO5']"
-        ).index
-        bidding_zones = pd.concat(
-            [
-                bidding_zones.drop(nos0_idx),
-                bidding_zones.loc[nos0_idx]
-                .dissolve(by="country")
-                .reset_index()
-                .assign(zone_name="NOS0"),
-            ]
-        )
+        # Merge Crimea into mainland Ukraine: TYNDP models Ukraine as a single
+        # zone ("UA00"), unlike electricitymaps' separate "UA" (mainland) and
+        # "UA-CR" (Crimea) zones.
+        if "UA" in countries:
+            ua_idx = bidding_zones.query("zone_name in ['UA', 'UA-CR']").index
+            bidding_zones = pd.concat(
+                [
+                    bidding_zones.drop(ua_idx),
+                    bidding_zones.loc[ua_idx]
+                    .dissolve(by="country")
+                    .reset_index()
+                    .assign(zone_name="UA"),
+                ]
+            )
 
         # Extract Crete
         bidding_zones = extract_shape_by_bbox(
@@ -337,9 +341,9 @@ if __name__ == "__main__":
     # remove holes from geometries
     bidding_zones["geometry"] = bidding_zones["geometry"].apply(remove_holes)
 
-    # if turkey is not in the list of countries, drop northern cyprus
-    if "TR" not in countries:
-        bidding_zones = bidding_zones[~bidding_zones.zone_name.eq("XX")]
+    # Northern Cyprus ("XX", filed under electricitymaps' "CY" country group)
+    # has no separate TYNDP node
+    bidding_zones = bidding_zones[~bidding_zones.zone_name.eq("XX")]
 
     # rename zones
     bidding_zones["zone_name"] = bidding_zones["zone_name"].apply(format_names)

@@ -74,6 +74,7 @@ nav:
 - Data Sources:
   - Data Sources: data_sources.md
   - TYNDP 2024 Data: tyndp_2024.md
+  - TYNDP 2026 Data: tyndp_2026.md
   - Base Network: data-base-network.md
   - Cutouts: data-cutouts.md
   - Data Repositories: data-repos.md

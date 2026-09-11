@@ -26,9 +26,6 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
-  tyndp_investment_candidates:
-    elec_projects: {}
-    h2_projects: {}
   load:
     patch_demand_with_mm: false
   sector:
@@ -71,7 +68,6 @@ DE:
       2045: 0.36
       2050: 0.41
     transport_electric_efficiency: 58.8 # unit: 100km/MWh_el -> 170 Wh per km -> 0.017 MWh per 100 km, p.96 of Methodology Report TYNDP 2024
-    h2_zones_tyndp: true
     methanation: true
     force_biomass_potential: false
     force_biogas_potential: false
@@ -82,9 +78,6 @@ DE:
       2040: 120
       2045: 135
       2050: 150
-    offshore_hubs_tyndp:
-      patch_crossborder_with_mm: false
-      connect_isolated: false
   costs:
     custom_cost_scn: DE
   benchmarking:
@@ -119,9 +112,6 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
-  tyndp_investment_candidates:
-    elec_projects: {}
-    h2_projects: {}
   load:
     patch_demand_with_mm: false
   sector:
@@ -164,7 +154,6 @@ GA:
       2045: 0.18
       2050: 0.205
     transport_electric_efficiency: 50 # unit: 100km/MWh_el -> 200 Wh per km -> 0.02 MWh per 100 km, p.96 of Methodology Report TYNDP 2024
-    h2_zones_tyndp: true
     methanation: true
     force_biomass_potential: false
     force_biogas_potential: false
@@ -175,9 +164,6 @@ GA:
       2040: 344
       2045: 398
       2050: 400
-    offshore_hubs_tyndp:
-      patch_crossborder_with_mm: false
-      connect_isolated: false
   costs:
     custom_cost_scn: GA
   benchmarking:

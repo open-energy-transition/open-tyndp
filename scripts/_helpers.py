@@ -1209,6 +1209,31 @@ def make_index(
     return separator.join(idx)
 
 
+def format_bz_names(
+    obj: str | pd.Series | pd.DataFrame,
+) -> str | pd.Series | pd.DataFrame:
+    """
+    Standardize TYNDP bidding zone / node name conventions to Open-TYNDP's.
+
+    Currently only rewrites the "UK" country-code convention to "GB" (and the
+    "UK-N" sub-zone code to "UKNI"). Works both on a single string and,
+    element-wise, on a pandas Series/DataFrame.
+
+    Parameters
+    ----------
+    obj : str | pd.Series | pd.DataFrame
+        Raw bidding zone / node name(s) to format.
+
+    Returns
+    -------
+    str | pd.Series | pd.DataFrame
+        Formatted name(s) with standardized region codes.
+    """
+    if isinstance(obj, str):
+        return obj.replace("UK-N", "UKNI").replace("UK", "GB")
+    return obj.replace("UK-N", "UKNI", regex=True).replace("UK", "GB", regex=True)
+
+
 def extract_grid_data_tyndp(
     links,
     replace_dict: dict = {},

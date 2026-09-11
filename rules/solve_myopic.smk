@@ -113,7 +113,6 @@ rule add_brownfield:
         dynamic_ptes_capacity=config_provider(
             "sector", "district_heating", "ptes", "dynamic_capacity"
         ),
-        offshore_hubs_tyndp=config_provider("sector", "offshore_hubs_tyndp", "enable"),
         h2_topology_tyndp=config_provider("sector", "h2_topology_tyndp"),
         carriers_tyndp=config_provider("electricity", "tyndp_renewable_carriers"),
         tyndp_conventional_carriers=config_provider(
@@ -143,10 +142,6 @@ rule solve_sector_network_myopic:
     input:
         network=resources(
             "networks/base_s_{clusters}_{opts}_{sector_opts}_{planning_horizons}_brownfield.nc"
-        ),
-        offshore_zone_trajectories=branch(
-            config_provider("sector", "offshore_hubs_tyndp", "enable"),
-            resources("offshore_zone_trajectories.csv"),
         ),
     output:
         network=RESULTS
@@ -185,9 +180,6 @@ rule solve_sector_network_myopic:
         ),
         custom_extra_functionality=input_custom_extra_functionality,
         renewable_carriers=config_provider("electricity", "renewable_carriers"),
-        renewable_carriers_tyndp=config_provider(
-            "electricity", "tyndp_renewable_carriers"
-        ),
     message:
         "Solving sector-coupled network with myopic foresight for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizons, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
     script:
