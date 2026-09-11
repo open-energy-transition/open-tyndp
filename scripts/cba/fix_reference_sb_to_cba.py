@@ -40,6 +40,8 @@ if __name__ == "__main__":
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    pd.DataFrame(columns=CORRECTIONS_COLUMNS).to_csv(
+# TODO: Adjust or deprecate reference fixes once once published 
+# TYNDP 2026 CBA results are available to build against.
+pd.DataFrame(columns=CORRECTIONS_COLUMNS).to_csv(
         snakemake.output.corrections, quotechar="'"
     )
