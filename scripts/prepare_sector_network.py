@@ -7315,7 +7315,12 @@ def add_industry(
     )
 
     if options["h2_topology_tyndp"]:
-        nodes_ind_h2 = pd.Index(pop_layout.ct + " H2 Z2")
+        zone_country_z2 = spatial.h2_tyndp.df.country.reindex(spatial.buses_h2_z2)
+        country_to_bus_z2 = pd.Series(
+            zone_country_z2.index, index=zone_country_z2.values
+        )
+        country_to_bus_z2 = country_to_bus_z2[~country_to_bus_z2.index.duplicated()]
+        nodes_ind_h2 = pop_layout.ct.map(country_to_bus_z2)
 
     else:
         nodes_ind_h2 = nodes + " H2"
