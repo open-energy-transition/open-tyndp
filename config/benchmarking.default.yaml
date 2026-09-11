@@ -188,10 +188,12 @@ benchmarking:
         2045: 0.68  # Interpolated
         2050: 0.68
       biogas_not_upgraded:
-        # Values from TYNDP 2024 Supply Tool, EU27, 8760h
-        2030: 33  # TWh
-        2035: 45
-        2040: 56
+        # Values from TYNDP 2026 Supply Tool NT+, sheet 'Biofuels', row 'biogases'
+        # (national production capacity, EU27), TWh/year.
+        2030: 59.98  # TWh
+        2035: 63.78
+        2040: 70.80
+        2050: 71.95
 
     energy_imports:
       table_type: scenario_comparison
