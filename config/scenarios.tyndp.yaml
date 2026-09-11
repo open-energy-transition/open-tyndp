@@ -7,6 +7,69 @@
 NT:
   tyndp_scenario: NT
 
+NT-cy2009-20260911-pr-898-ffill:
+  tyndp_scenario: NT
+
+NT-cy2009-20260907-msv24h-overlap1:
+
+  tyndp_scenario: NT
+
+  cba:
+    msv_extraction:
+      resolution: 24H
+      solving:
+        solver:
+          name: gurobi
+          options: gurobi-default
+    solving:
+      horizon: 168
+      overlap: 2
+
+NT-cy2009-20260907-msv24h-overlap2:
+
+  tyndp_scenario: NT
+
+  cba:
+    msv_extraction:
+      resolution: 24H
+      solving:
+        solver:
+          name: gurobi
+          options: gurobi-default
+    solving:
+      horizon: 168
+      overlap: 2
+
+NT-cy2009-20260907-msv24h-overlap1-highs-simplex:
+
+  tyndp_scenario: NT
+
+  cba:
+    msv_extraction:
+      resolution: 24H
+      solving:
+        solver:
+          name: highs
+          options: highs-simplex
+    solving:
+      horizon: 168
+      overlap: 2
+
+NT-cy2009-20260907-msv24h-overlap1-highs-default:
+
+  tyndp_scenario: NT
+
+  cba:
+    msv_extraction:
+      resolution: 24H
+      solving:
+        solver:
+          name: highs
+          options: highs-default
+    solving:
+      horizon: 168
+      overlap: 2
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE
