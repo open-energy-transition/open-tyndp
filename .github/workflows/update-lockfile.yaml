@@ -1,6 +1,10 @@
 name: Update locked envs
 on:
   push:
+    # Branches whose lockfile is maintained outside this workflow
+    branches-ignore:
+    - tyndp-*      # mirrors the locked environments on master
+    - scan-branch  # adds security patches to the latest release's environments
     paths:
     - pixi.toml
     - pixi.lock
