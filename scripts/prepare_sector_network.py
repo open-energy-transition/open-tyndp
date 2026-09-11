@@ -3292,8 +3292,6 @@ def insert_electricity_distribution_grid(
                 p_set=prosumer_btm_demand[btm_nodes],
             )
 
-        loss_carriers = ["electricity prosumer", "electricity prosumer btm"]
-
         loads = n.loads.index[
             n.loads.carrier.str.contains("electric")
             & n.loads.bus.isin(nodes)
@@ -3314,29 +3312,27 @@ def insert_electricity_distribution_grid(
             capital_cost=costs.at["electricity distribution grid", "capital_cost"],
         )
 
-        loss_carriers = ["electricity"]
+        # deduct distribution losses from electricity demand as these are included in total load
+        # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
+        efficiency = (
+            options["transmission_efficiency"]
+            .get("electricity distribution grid", {})
+            .get("efficiency_static")
+        )
+        if (
+            efficiency
+            and "electricity distribution grid"
+            in options["transmission_efficiency"]["enable"]
+        ):
+            logger.info(
+                f"Deducting distribution losses from electricity demand: {np.around(100 * (1 - efficiency), decimals=2)}%"
+            )
+            n.loads_t.p_set.loc[:, n.loads.carrier == "electricity"] *= efficiency
 
         loads = n.loads.index[
             n.loads.carrier.str.contains("electric") & n.loads.bus.isin(nodes)
         ]
         n.loads.loc[loads, "bus"] += lv_suffix
-
-    # deduct distribution losses from electricity demand as these are included in total load
-    # https://nbviewer.org/github/Open-Power-System-Data/datapackage_timeseries/blob/2020-10-06/main.ipynb
-    efficiency = (
-        options["transmission_efficiency"]
-        .get("electricity distribution grid", {})
-        .get("efficiency_static")
-    )
-    if (
-        efficiency
-        and "electricity distribution grid"
-        in options["transmission_efficiency"]["enable"]
-    ):
-        logger.info(
-            f"Deducting distribution losses from electricity demand: {np.around(100 * (1 - efficiency), decimals=2)}%"
-        )
-        n.loads_t.p_set.loc[:, n.loads.carrier.isin(loss_carriers)] *= efficiency
 
     bevs = n.links.index[(n.links.carrier == "BEV charger") & n.links.bus0.isin(nodes)]
     n.links.loc[bevs, "bus0"] += lv_suffix
