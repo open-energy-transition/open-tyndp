@@ -1881,7 +1881,9 @@ rule prepare_sector_network:
             [],
         ),
         tyndp_electricity_ntc=branch(
-            lambda w: config_provider("electricity", "base_network")(w) == "tyndp",
+            lambda w: config_provider("electricity", "base_network")(w) == "tyndp"
+            and config_provider("electricity", "tyndp_reference_year")(w)
+            != int(w.planning_horizons),
             resources("tyndp_electricity_ntc_{planning_horizons}.csv"),
             [],
         ),
