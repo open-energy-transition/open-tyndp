@@ -21,6 +21,8 @@
 
 * feat: update processing and preparation of PEMMDB 2.X technologies, capacities and profiles for TYNDP 2026: Thermals, Other Non-RES, Solar, Wind, Battery, Electrolyser, Hydro, and DSR ([#865](https://github.com/open-energy-transition/open-tyndp/pull/865)). Full integration of 2026 technologies with their capacities and profiles will follow in subsequent PRs.
 
+* feat: update assumptions (costs, efficiencies, CO2 intensities etc..) of technologies for TYNDP 2026. Assumptions were also added for the high and low economic variant scenarios, and all new technologies present in the TYNDP 2026 cycle ([#880](https://github.com/open-energy-transition/open-tyndp/pull/880)).
+
 **Changes**
 
 **Bugfixes and Compatibility**
