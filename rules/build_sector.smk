@@ -1855,15 +1855,15 @@ rule prepare_sector_network:
             config_provider("sector", "electricity_distribution_grid_tyndp"),
             resources("wheeling_charges_tyndp.csv"),
         ),
-        elec_demand_mm=lambda w: (
-            RESULTS
-            + f"benchmarks/tyndp-2024/resources/benchmarks_tyndp_output_elec_demand_{config_provider('tyndp_scenario')(w)}{{planning_horizons}}.csv"
-            if config_provider("tyndp_scenario")(w)
-            == "NT"  # Only scenario with MM output data
-            and config_provider("load", "patch_demand_with_mm")(w)
-            and int(w.planning_horizons)
-            in [2030, 2040]  # Only years with MM output data
-            else []
+        elec_demand_prosumer_tyndp=branch(
+            config_provider("sector", "electricity_distribution_grid_tyndp"),
+            resources("demand_tyndp_electricity_prosumer_{planning_horizons}.csv"),
+            [],
+        ),
+        elec_demand_prosumer_btm_tyndp=branch(
+            config_provider("sector", "electricity_distribution_grid_tyndp"),
+            resources("demand_tyndp_electricity_prosumer_btm_{planning_horizons}.csv"),
+            [],
         ),
         tyndp_nuclear_profiles=branch(
             config_provider("tyndp_scenario")
@@ -1942,7 +1942,6 @@ rule prepare_sector_network:
         ),
         load_source=config_provider("load", "source"),
         scaling_factor=config_provider("load", "scaling_factor"),
-        patch_load_mm=config_provider("load", "patch_demand_with_mm"),
         tyndp_scenario=config_provider("tyndp_scenario"),
     message:
         "Preparing integrated sector-coupled energy network for {wildcards.clusters} clusters, {wildcards.planning_horizons} planning horizon, {wildcards.opts} electric options and {wildcards.sector_opts} sector options"
