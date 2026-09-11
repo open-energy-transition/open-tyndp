@@ -288,10 +288,11 @@ sector:
   regional_co2_sequestration_potential:
     enable: false
   co2_sequestration_potential:
-    # Values from TYNDP 2024 Supply Tool
-    2030: 47
-    2035: 167
-    2040: 344
+    # Values from TYNDP 2026 Supply Tool NT+ (CCS sheet, "Total CCS")
+    2030: 44
+    2035: 111
+    2040: 142
+    2050: 179
   co2_spatial: false
   co2_network: false
   methanol:
