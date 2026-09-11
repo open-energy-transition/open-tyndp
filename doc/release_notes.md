@@ -9,6 +9,7 @@
 
 **Features**
 
+* Add custom generator projects to the CBA assessment, using the PINT method [#897](https://github.com/open-energy-transition/open-tyndp/pull/897)
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
 **Changes**

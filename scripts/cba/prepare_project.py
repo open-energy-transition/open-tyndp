@@ -15,7 +15,12 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_link_attrs, get_storage_attrs
+from scripts.cba._helpers import (
+    generate_unique_hex,
+    get_link_attrs,
+    get_pypsa_dynamic_attributes,
+    get_storage_attrs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -232,6 +237,193 @@ def apply_pint_transmission(
             )
 
 
+def _get_generator_values(
+    df_static: pd.Series,
+    df_dynamic: pd.DataFrame,
+    snapshots: pd.Series,
+    pypsa_dynamic_attributes: list,
+):
+    """
+    Returns static / dynamic / null value for generator input attributes that can take either a static or time series value
+
+    Parameters
+    ----------
+    df_static: pd.Series
+        Static components of custom generator projects
+    df_dynamic: pd.DataFrame
+        Dynamic timeseries components of custom generator projects
+    snapshots: pd.Series
+        pandas DateTime Index
+    pypsa_dynamic_attributes: list
+        List of PyPSA attributes that can take a static value or series as inputs
+    """
+
+    generator_dict = dict()
+    for attribute in pypsa_dynamic_attributes:
+        if attribute in df_dynamic.columns:
+            generator_dict[attribute] = df_dynamic[attribute].reindex(snapshots)
+        elif attribute in df_static.index:
+            generator_dict[attribute] = df_static[attribute]
+
+    return generator_dict
+
+
+def _get_existing_generator(n: pypsa.Network, mapping_id: str):
+    """
+    Returns the existing generator in the network with the given mapping_id, or None if not found.
+
+    Parameters
+    ----------
+    n: pypsa.Network
+        Network to search for the generator
+    mapping_id: str
+        Mapping ID of the generator to find
+
+    Returns
+    -------
+    pd.Series or None
+        The existing generator as a pandas Series if found, otherwise None
+    """
+
+    existing_generator = n.generators.query("index == @mapping_id").squeeze()
+    if not existing_generator.empty:
+        return existing_generator
+    else:
+        return None
+
+
+def apply_pint_generator(
+    n: pypsa.Network,
+    generator_df_static: pd.Series,
+    generator_df_dynamic: pd.DataFrame,
+    tech_colors: dict,
+) -> None:
+    """
+    Apply custom generators as PINT
+
+    Parameters
+    ----------
+    n: pypsa.Network
+        Network to modify
+    generator_df_static: pd.Series
+        Static components of custom generators
+    generator_df_dynamic: pd.DataFrame
+        Dynamic components of custom generators
+    tech_colors: dict
+        Dictionary of technology colors for plotting
+
+    Returns
+    -------
+    None
+    """
+
+    # Add generator to the network
+    for _, generator in generator_df_static.iterrows():
+        gen_to_modify = _get_existing_generator(n, generator.mapping_id)
+        if gen_to_modify is not None:
+            # Overwrite existing generator with the same mapping_id, summing p_nom values
+            p_nom_new = gen_to_modify.p_nom + generator.p_nom
+            n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
+        else:
+            # Dynamic PyPSA generator input attributes
+            pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
+
+            # Add carrier to network if new carrier
+            if generator.carrier not in n.carriers.index:
+                n.add(
+                    "Carrier",
+                    generator.carrier,
+                    color=tech_colors.get(
+                        generator.carrier,
+                        generate_unique_hex(
+                            generator.carrier, n.carriers.color.tolist()
+                        ),
+                    ),  # Use the configured color, or assign a new one
+                )
+
+            # Add new generator with the specified mapping_id
+            generator_dict = _get_generator_values(
+                generator,
+                generator_df_dynamic[generator.mapping_id],
+                n.snapshots,
+                pypsa_dynamic_attributes,
+            )
+            p_nom_new = generator.p_nom
+            n.add(
+                "Generator",
+                f"{generator.mapping_id}",
+                carrier=generator.carrier,
+                bus=generator.bus,
+                p_nom=p_nom_new,
+                capital_cost=generator.capital_cost,
+                **generator_dict,
+            )
+
+
+def apply_toot_generator(
+    n: pypsa.Network, generator_df_static: pd.Series, negative_toot_option: str
+) -> None:
+    """
+    Apply generators as TOOT if accompanied transmission / storage project is TOOT
+
+    Parameters
+    ----------
+    n: pypsa.Network
+        pypsa Network to modify
+    generator_df_static: pd.Series
+        Static generator attributes
+    negative_toot_option: str
+        Policy for handling negative capacity after TOOT removal ("zero" to set to zero, "break" to raise an error)
+    """
+
+    for _, generator in generator_df_static.iterrows():
+        gen_to_modify = _get_existing_generator(n, generator.mapping_id)
+        if gen_to_modify is None:
+            logger.warning(
+                f"No match found for generator {generator.mapping_id} with carrier {generator.carrier} in the network. Skipping TOOT removal for this generator."
+            )
+            continue
+
+        p_nom_new = gen_to_modify.p_nom - generator.p_nom
+
+        if p_nom_new < 0:
+            logger.warning(
+                "Applying TOOT for generator %s (%s) would create negative capacity: "
+                "%s %.0f -> %.0f MW after removing %.0f MW (policy=%s).",
+                generator.mapping_id,
+                generator.carrier,
+                generator.mapping_id,
+                gen_to_modify.p_nom,
+                p_nom_new,
+                generator.p_nom,
+                negative_toot_option,
+            )
+            if negative_toot_option == "break":
+                raise ValueError(
+                    "Cannot remove more capacity than exists in the network."
+                )
+            if negative_toot_option == "zero":
+                p_nom_new = max(p_nom_new, 0)
+            else:
+                raise ValueError(
+                    f"Unknown cba.negative_toot_capacity policy: {negative_toot_option}"
+                )
+
+        if p_nom_new == 0:
+            # If the new capacity is zero, remove the generator from the network
+            n.remove("Generator", generator.mapping_id)
+            logger.info(
+                f"Removed generator {generator.mapping_id} with carrier {generator.carrier} from the network due to TOOT removal."
+            )
+            continue
+        else:
+            # If the new capacity is non-zero, update the generator's capacity
+            n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
+            logger.info(
+                f"Applied TOOT for generator {generator.mapping_id} with carrier {generator.carrier}. Updated p_nom to {p_nom_new} MW."
+            )
+
+
 def apply_pint_storage(
     n: pypsa.Network,
     storage_project: pd.Series,
@@ -325,13 +517,15 @@ def prepare_transmission_project(
     negative_toot_capacity = snakemake.config["cba"].get(
         "negative_toot_capacity", "zero"
     )
+
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
 
     transmission_project = transmission_projects[
         transmission_projects["project_id"] == project_id
     ]
+
     assert not transmission_project.empty, (
-        f"Transmission project {project_id} not found."
+        f"Transmission project with {project_id} not found."
     )
 
     if method == "toot":
@@ -347,6 +541,74 @@ def prepare_transmission_project(
         project_id,
         len(transmission_project),
     )
+
+
+def prepare_custom_generators(
+    n: pypsa.Network, snakemake, prefix_pid: str, method: str
+) -> None:
+    """
+    Add custom generators accompanying a storage or transmission project.
+
+    Generators only exist the project_ids listed in the custom
+    generator input files.
+
+    Parameters
+    ----------
+    n : pypsa.Network
+        Network to modify.
+    snakemake : snakemake object
+        Snakemake object containing input/output paths and parameters.
+    prefix_pid : str
+        Project ID with prefix (e.g. "s1500" or "t1500")
+    method : str
+        Method (toot/pint) to apply the project.
+
+    Raises
+    ------
+    NotImplementedError
+        If a project assessed with TOOT has custom generators.
+    ValueError
+        If `method` is neither "pint" nor "toot".
+    """
+    tech_colors = snakemake.params.tech_colors
+    generator_projects_static = pd.read_csv(snakemake.input.generator_projects_static)
+    generator_projects_dynamic = pd.read_csv(
+        snakemake.input.generator_projects_dynamic, header=[0, 1], index_col=0
+    )
+    generator_df_static = generator_projects_static[
+        (generator_projects_static["project_id"] == int(prefix_pid[1:]))
+        & (generator_projects_static["project_type"] == prefix_pid[0])
+    ]
+    if generator_df_static.empty:
+        logger.debug(f"No custom generators found for project {prefix_pid}")
+        return
+
+    generator_df_dynamic = pd.DataFrame()
+    if not generator_projects_dynamic.empty:
+        mapping_ids = generator_df_static["mapping_id"].tolist()
+        reqd_columns = [
+            x
+            for x in generator_projects_dynamic.columns.get_level_values(0)
+            if x in mapping_ids
+        ]
+        if reqd_columns:
+            generator_df_dynamic = generator_projects_dynamic[reqd_columns]
+            generator_df_dynamic.index = pd.to_datetime(generator_df_dynamic.index)
+
+    if method == "toot":
+        negative_toot_option = snakemake.config["cba"].get(
+            "negative_toot_capacity", "zero"
+        )
+        apply_toot_generator(n, generator_df_static, negative_toot_option)
+    elif method == "pint":
+        apply_pint_generator(
+            n,
+            generator_df_static,
+            generator_df_dynamic,
+            tech_colors,
+        )
+    else:
+        raise ValueError(f"Unknown method {method} for project {prefix_pid}")
 
 
 if __name__ == "__main__":
@@ -367,7 +629,12 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
 
     cba_project = snakemake.wildcards.cba_project
-    is_storage = cba_project.startswith("s")
+
+    project_type_dict = {
+        "s": "storage",
+        "t": "transmission",
+    }
+
     project_id = int(cba_project[1:])
     planning_horizon = int(snakemake.wildcards.planning_horizons)
     if planning_horizon not in [2030, 2040]:
@@ -377,14 +644,20 @@ if __name__ == "__main__":
         )
         planning_horizon = 2040
 
-    project_type = "storage" if is_storage else "transmission"
+    project_type = project_type_dict.get(cba_project[0])
     method = load_method(
         snakemake.input.methods, project_id, project_type, planning_horizon
     )
 
-    if is_storage:
+    if project_type == "storage":
         prepare_storage_project(n, snakemake, project_id, method)
-    else:
+    elif project_type == "transmission":
         prepare_transmission_project(n, snakemake, project_id, method)
+    else:
+        raise ValueError(
+            f"Unknown project type {project_type} for project {cba_project}"
+        )
+
+    prepare_custom_generators(n, snakemake, cba_project, method)
 
     n.export_to_netcdf(snakemake.output.network)
