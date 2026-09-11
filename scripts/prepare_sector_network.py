@@ -1442,7 +1442,6 @@ def _add_other_non_res_tyndp(
 
     price_bands = pemmdb_capacities.query(
         f"index_carrier.str.startswith(@generator) and {query} index_carrier.str.contains('ccs') and efficiency > 0",
-        engine="python",  # numexpr chokes on "not" combined with .str methods here
     ).reset_index()
     nodes = price_bands.bus.values
     offer_price = price_bands.price
@@ -3838,7 +3837,7 @@ def add_h2_storage_tyndp(
         storage_tech="cavern-storage",
         buses=buses_h2_z2,
         costs=costs,
-        extendable=True,
+        extendable=True,  # TODO intermediate fix to keep the workflow feasible, see PR #920
     )
 
     # add overground hydrogen tank storage to all H2 Z1 nodes
