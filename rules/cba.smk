@@ -257,6 +257,7 @@ rule simplify_sb_network:
 
 # Placeholder for reference corrections aligning the SB base network with the
 # CBA reference grid of a given planning horizon
+# TODO: Update once CBA corrections are clarified
 rule fix_reference_sb_to_cba:
     output:
         corrections=resources("cba/reference_sb_to_cba_{planning_horizons}.csv"),
