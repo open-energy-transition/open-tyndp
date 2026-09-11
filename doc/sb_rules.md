@@ -60,16 +60,6 @@ None.
 
 ## Build electricity
 
-### Rule `clean_tyndp_electricity_demand`
-
-::: clean_tyndp_electricity_demand
-
-### Rule `build_electricity_demand_tyndp`
-
-Extends the upstream [`build_electricity_demand`](preparation.md#electricity_demand) rule with TYNDP-specific load data. Builds
-per-country load time series from the TYNDP electricity demand prepared by
-[`clean_tyndp_electricity_demand`](#rule-clean_tyndp_electricity_demand).
-
 ### Rule `build_tyndp_demand`
 
 ::: build_tyndp_demand
@@ -101,8 +91,8 @@ per-country load time series from the TYNDP electricity demand prepared by
 ### Rule `build_electricity_demand_base_tyndp`
 
 Extends the upstream [`build_electricity_demand_base`](preparation.md#rule-build_electricity_demand_base) rule with TYNDP-specific load data. Builds
-the electricity demand for base regions from the TYNDP electricity demand prepared by
-[`build_electricity_demand_tyndp`](#rule-build_electricity_demand_tyndp).
+the electricity demand for base regions from the TYNDP electricity market demand prepared by
+[`build_tyndp_demand`](#rule-build_tyndp_demand).
 
 ## Build sector
 
