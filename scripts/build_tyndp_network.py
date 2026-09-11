@@ -214,7 +214,6 @@ def build_shapes(
 
 def build_buses(
     buses_fn: str,
-    countries: list[str],
     bidding_shapes: gpd.GeoDataFrame,
     manual_bus_locations_fn: str,
     geo_crs: str = GEO_CRS,
@@ -234,8 +233,6 @@ def build_buses(
     ----------
     buses_fn : str
         Path to the TYNDP node list Excel file ("LIST OF NODES.xlsx").
-    countries : list[str]
-        List of countries to consider.
     bidding_shapes : gpd.GeoDataFrame
         A GeoDataFrame including bidding zone geometry, representative point and id.
     manual_bus_locations_fn : str
@@ -284,12 +281,6 @@ def build_buses(
     )
     buses = gpd.GeoDataFrame(buses, geometry="geometry", crs=geo_crs)
 
-    # Assume the same coordinates for all LU buses
-    if "LU" in countries:
-        buses.loc["LUB1"] = buses.loc["LUB1"].fillna(buses.loc["LUG1"])
-        buses.loc["LUF1"] = buses.loc["LUF1"].fillna(buses.loc["LUG1"])
-        buses.loc["LUV1"] = buses.loc["LUV1"].fillna(buses.loc["LUG1"])
-
     # Fill in manually-guessed coordinates for offshore/virtual nodes that
     # have no matching bidding-zone shape (see data/tyndp_manual_bus_locations.csv)
     manual_locations = pd.read_csv(manual_bus_locations_fn, index_col="bus_id")
@@ -301,6 +292,13 @@ def build_buses(
         buses.loc[missing, "y"] = manual_locations.loc[missing, "y"]
         buses.loc[missing, "geometry"] = gpd.points_from_xy(
             manual_locations.loc[missing, "x"], manual_locations.loc[missing, "y"]
+        )
+
+    still_missing = buses.index[buses["geometry"].isna()]
+    if not still_missing.empty:
+        logger.warning(
+            "No coordinates for buses (not in any bidding-zone shape and not in "
+            f"{manual_bus_locations_fn}): {', '.join(sorted(still_missing))}"
         )
 
     return buses
@@ -566,7 +564,6 @@ if __name__ == "__main__":
     bidding_shapes = build_shapes(snakemake.input.bidding_shapes, countries)
     buses = build_buses(
         snakemake.input.buses,
-        countries,
         bidding_shapes,
         snakemake.input.manual_bus_locations,
     )
