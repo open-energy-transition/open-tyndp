@@ -2,6 +2,21 @@
 # SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
 #
 # SPDX-License-Identifier: MIT
+"""
+Builds the static electricity and hydrogen network topology (buses and
+electricity links) from the TYNDP node list and electricity reference grid
+Excel files, for a single, fixed reference year (``electricity:
+tyndp_reference_year``). The border topology is identical across all
+available planning horizons in the reference grid, only the NTC capacities
+differ; `build_tyndp_electricity_ntc.py` re-reads the same reference grid to
+extract the per-horizon NTC, later overlaid onto the network in
+`prepare_sector_network` (see `apply_tyndp_electricity_ntc`).
+
+Every bus is additionally tagged with a ``category``, marking which raw
+node-list sheet it came from: "onshore"/"offshore" for electricity buses (see
+`ELEC_SHEET_CATEGORIES`), or "offshore"/"import"/"bottleneck"/"Z1"/"Z2" for
+hydrogen buses (see `H2_SHEET_CATEGORIES`).
+"""
 
 import logging
 
@@ -12,6 +27,7 @@ from shapely.geometry import LineString
 from scripts._helpers import (
     configure_logging,
     extract_grid_data_tyndp,
+    format_bz_names,
     set_scenario_config,
 )
 
@@ -30,10 +46,6 @@ BUSES_COLUMNS = [
     "y",
     "country",
     "geometry",
-    # Marks which raw node-list sheet a bus came from: "onshore"/"offshore"
-    # for electricity buses (see `ELEC_SHEET_CATEGORIES`), or
-    # "offshore"/"import"/"bottleneck"/"Z1"/"Z2" for hydrogen buses (see
-    # `H2_SHEET_CATEGORIES`).
     "category",
 ]
 LINES_COLUMNS = [
@@ -90,20 +102,17 @@ KNOWN_EXCEPTIONS = {
     "TN00",  # Tunisia
 }
 
-ELEC_NODE_SHEETS = ["Electricity", "Electricity_Offshore"]
-
 # Category assigned to electricity nodes from each raw node-list sheet.
 ELEC_SHEET_CATEGORIES = {
     "Electricity": "onshore",
     "Electricity_Offshore": "offshore",
 }
 
-H2_NODE_SHEETS = ["H2_Demand", "H2_Offshore", "H2_Imports", "H2_Bottlenecks"]
-
 # Category assigned to hydrogen nodes from each raw node-list sheet, except
-# "H2_Demand" whose nodes are categorised as "Z1"/"Z2" instead (see
-# `categorize_h2_demand_zone`).
+# "H2_Demand" whose nodes are further split between "Z1"/"Z2" instead (see
+# below, where nodes' actual category overrides this placeholder).
 H2_SHEET_CATEGORIES = {
+    "H2_Demand": "z1/z2",
     "H2_Offshore": "offshore",
     "H2_Imports": "import",
     "H2_Bottlenecks": "bottleneck",
@@ -112,24 +121,6 @@ H2_SHEET_CATEGORIES = {
 # Raw H2_Imports entries that are already country codes rather
 # than TYNDP node codes, and thus need no further country extraction.
 BARE_COUNTRY_CODES = {"DZ", "MA", "NO", "Y_NO", "TN", "TR", "IL", "UA"}
-
-
-def format_bz_names(s: str) -> str:
-    """
-    Standardize bidding zone name formats to Open-TYNDP conventions.
-
-    Parameters
-    ----------
-    s : str
-        Raw bidding zone name string to format.
-
-    Returns
-    -------
-    str
-        Formatted bidding zone name with standardized region codes.
-    """
-    s = s.replace("UK-N", "UKNI").replace("UK", "GB")
-    return s
 
 
 def extract_shape_by_bbox(
@@ -207,10 +198,12 @@ def build_shapes(
     gpd.GeoDataFrame
         Bidding zone shapes with a representative point per zone.
     """
+    # zone_name already uses the "GB" (not "UK") country-code convention,
+    # applied upstream by build_bidding_zones.py's own format_names.
     bidding_zones = gpd.read_file(bz_fn)
 
     bidding_shapes = bidding_zones.assign(
-        bz_id=lambda df: df["zone_name"].apply(format_bz_names),
+        bz_id=lambda df: df["zone_name"],
         node=lambda df: (
             df.geometry.to_crs(DISTANCE_CRS).representative_point().to_crs(geo_crs)
         ),
@@ -263,13 +256,13 @@ def build_buses(
     nodes = pd.concat(
         [
             pd.read_excel(buses_fn, sheet_name=sheet).assign(sheet=sheet)
-            for sheet in ELEC_NODE_SHEETS
+            for sheet in ELEC_SHEET_CATEGORIES
         ],
         ignore_index=True,
     )
 
     buses = (
-        nodes.replace("UK", "GB", regex=True)
+        format_bz_names(nodes)
         .merge(
             bidding_shapes[["country", "node", "x", "y"]],
             how="left",
@@ -284,7 +277,9 @@ def build_buses(
             symbol="Substation",
             under_construction="f",
             tags=lambda df: df["bus_id"],
-            country=lambda df: df["country"].fillna(df["bus_id"].map(extract_country)),  # Fallback for offshore/virtual/sub-zone nodes
+            country=lambda df: df["country"].fillna(
+                df["bus_id"].map(extract_country)
+            ),  # Fallback for offshore/virtual/sub-zone nodes
             category=lambda df: df["sheet"].map(ELEC_SHEET_CATEGORIES),
         )
         .set_index("bus_id")[BUSES_COLUMNS]
@@ -403,13 +398,15 @@ def build_buses_h2(
     """
     country_shapes = build_country_shapes(bidding_shapes)
 
-    nodes = pd.concat(
-        [
-            pd.read_excel(nodes_fn, sheet_name=sheet).assign(sheet=sheet)
-            for sheet in H2_NODE_SHEETS
-        ],
-        ignore_index=True,
-    ).replace("UK", "GB", regex=True)
+    nodes = format_bz_names(
+        pd.concat(
+            [
+                pd.read_excel(nodes_fn, sheet_name=sheet).assign(sheet=sheet)
+                for sheet in H2_SHEET_CATEGORIES
+            ],
+            ignore_index=True,
+        )
+    )
 
     is_demand = nodes["sheet"] == "H2_Demand"
     nodes["category"] = nodes["sheet"].map(H2_SHEET_CATEGORIES)
@@ -536,12 +533,8 @@ def build_links(
     buses : gpd.GeoDataFrame
         A GeoDataFrame of electrical buses including country and coordinates.
     reference_year : int
-        Planning horizon sheet to read from the reference grid workbook. The
-        border topology is identical across all available planning horizons,
-        only NTC capacities differ; `build_tyndp_network` builds the static
-        (unwildcarded) base network topology from a single, fixed year, given
-        via `electricity: tyndp_reference_year`, while `build_tyndp_electricity_ntc`
-        re-reads per-horizon NTC for `tyndp_scenario` runs.
+        Planning horizon sheet to read from the reference grid workbook (see
+        module docstring for how this relates to `build_tyndp_electricity_ntc`).
 
     Returns
     -------
@@ -549,7 +542,7 @@ def build_links(
         A GeoDataFrame including NTC from the reference grid.
     """
     links = pd.read_excel(grid_fn, sheet_name=f"Year_{reference_year}")
-    links["Border"] = links["Border"].replace("UK", "GB", regex=True)
+    links["Border"] = format_bz_names(links["Border"])
     links = extract_grid_data_tyndp(links=links, idx_connector="->")
 
     # Add missing attributes

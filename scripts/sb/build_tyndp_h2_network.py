@@ -15,6 +15,7 @@ import pandas as pd
 from scripts._helpers import (
     configure_logging,
     extract_grid_data_tyndp,
+    format_bz_names,
     set_scenario_config,
 )
 
@@ -39,7 +40,7 @@ def load_h2_grid(fn_grid: str, pyear: int) -> pd.DataFrame:
         Cleaned TYNDP H2 reference grid.
     """
     h2_grid_raw = pd.read_excel(fn_grid, sheet_name=f"Year_{pyear}")
-    h2_grid_raw["Border"] = h2_grid_raw["Border"].replace("UK", "GB", regex=True)
+    h2_grid_raw["Border"] = format_bz_names(h2_grid_raw["Border"])
     h2_grid = extract_grid_data_tyndp(
         links=h2_grid_raw, idx_prefix="H2 pipeline", idx_connector="->"
     )
