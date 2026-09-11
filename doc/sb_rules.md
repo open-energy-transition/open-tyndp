@@ -60,19 +60,27 @@ None.
 
 ## Build electricity
 
-### Rule `clean_tyndp_electricity_demand`
-
-::: clean_tyndp_electricity_demand
-
-### Rule `build_electricity_demand_tyndp`
-
-Extends the upstream [`build_electricity_demand`](preparation.md#electricity_demand) rule with TYNDP-specific load data. Builds
-per-country load time series from the TYNDP electricity demand prepared by
-[`clean_tyndp_electricity_demand`](#rule-clean_tyndp_electricity_demand).
-
 ### Rule `build_tyndp_demand`
 
 ::: build_tyndp_demand
+
+Electricity demand is requested directly by wildcarded output name rather
+than through a per-demand-type named alias (matching the
+`h2_demand_z1`/`h2_demand_z2` inputs in `rules/build_sector.smk`):
+
+- `demand_tyndp_electricity_market_{planning_horizons}.csv` — grid-connected
+  ("Native Demand") consumer demand, consumed by
+  [`build_electricity_demand_base_tyndp`](#rule-build_electricity_demand_base_tyndp)
+  and attached at the main (high-voltage) node.
+- `demand_tyndp_electricity_prosumer_{planning_horizons}.csv` — prosumer
+  segment's Native Demand, attached as its own `Load` on the
+  low-voltage/`RETE` bus in `prepare_sector_network`, in addition to (not
+  instead of) the Market demand.
+- `demand_tyndp_electricity_prosumer_btm_{planning_horizons}.csv` — prosumer
+  segment's behind-the-meter "Fixed Demand", only available for a handful of
+  nodes. Kept as a second, separate `Load` alongside the Native Demand one
+  rather than summed with it — the TYNDP output dashboards themselves report
+  Native Demand and Fixed Demand as two distinct line items.
 
 ### Rule `clean_tyndp_pecd_data`
 
@@ -101,8 +109,8 @@ per-country load time series from the TYNDP electricity demand prepared by
 ### Rule `build_electricity_demand_base_tyndp`
 
 Extends the upstream [`build_electricity_demand_base`](preparation.md#rule-build_electricity_demand_base) rule with TYNDP-specific load data. Builds
-the electricity demand for base regions from the TYNDP electricity demand prepared by
-[`build_electricity_demand_tyndp`](#rule-build_electricity_demand_tyndp).
+the electricity demand for base regions from the TYNDP electricity market demand prepared by
+[`build_tyndp_demand`](#rule-build_tyndp_demand).
 
 ## Build sector
 
