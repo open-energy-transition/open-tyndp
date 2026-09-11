@@ -351,7 +351,6 @@ rule solve_cba_msv_extraction:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "msv_extraction", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     script:
         scripts("cba/solve_cba_msv_extraction.py")
 
@@ -375,6 +374,8 @@ rule prepare_rolling_horizon:
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
         msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
+        rh_horizon=config_provider("cba", "solving", "horizon"),
+        rh_overlap=config_provider("cba", "solving", "overlap"),
     script:
         scripts("cba/prepare_rolling_horizon.py")
 
@@ -398,8 +399,6 @@ rule prepare_project:
         benchmarks("performances/cba/prepare_project_{cba_project}_{planning_horizons}")
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
-        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
     script:
         scripts("cba/prepare_project.py")
