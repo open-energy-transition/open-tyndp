@@ -353,31 +353,34 @@ adjustments:
     factor:
       Generator:
         biogas:
-          p_nom: # EU27 biogas potential for 8760h
-            2030: 1.26  # PyPSA-Eur 301 TWh vs TYNDP 380 TWh
-            2035: 1.89  # interpolated
-            2040: 2.51  # PyPSA-Eur 306 TWh vs TYNDP 771 TWh
+          p_nom: # EU27 biogas potential for 8760h; TYNDP 2026 Supply Tool NT+, biomethane (upgraded, grid-injected) production only — excludes "biogas not upgraded to biomethane", which is counted in solid biomass instead (see PR description; matches original PR #570 methodology)
+            2030: 0.79  # PyPSA-Eur 301 TWh vs TYNDP 238.57 TWh
+            2035: 1.28  # interpolated
+            2040: 1.77  # PyPSA-Eur 306 TWh vs TYNDP 542.68 TWh
           e_sum_max:
-            2030: 1.26
-            2035: 1.89
-            2040: 2.51
+            2030: 0.79
+            2035: 1.28
+            2040: 1.77
           e_sum_min:
-            2030: 1.26
-            2035: 1.89
-            2040: 2.51
+            2030: 0.79
+            2035: 1.28
+            2040: 1.77
         solid biomass:
-          p_nom: # EU27 biomass potential for 8760h
-            2030: 2.02 # PyPSA-Eur 974 TWh vs TYNDP 1964 TWh (8736h value: 1959 TWh = 1463 Supply Tool + 496 Other-RES)
-            2035: 1.90 # interpolated
-            2040: 1.77 # PyPSA-Eur 950 TWh vs TYNDP 1678 TWh (8736h value: 1673 TWh = 1316 Supply Tool + 357 Other-RES)
+          p_nom: # EU27 biomass potential for 8760h; TYNDP 2026 Supply Tool NT+: final energy demand + for electricity generation + for bioliquids + for biogas not upgraded to biomethane + for heat production, excluding the biomethane-upgrade feedstock (counted in biogas instead) — see PR description
+            2030: 1.48  # PyPSA-Eur 974 TWh vs TYNDP 1444.85 TWh
+            2035: 1.59  # interpolated
+            2040: 1.69  # PyPSA-Eur 950 TWh vs TYNDP 1607.73 TWh
+            2050: 1.65  # PyPSA-Eur ~950.8 TWh (approximate) vs TYNDP 1569.12 TWh
           e_sum_max:
-            2030: 2.02
-            2035: 1.90
-            2040: 1.77
+            2030: 1.48
+            2035: 1.59
+            2040: 1.69
+            2050: 1.65
           e_sum_min:
-            2030: 2.02
-            2035: 1.90
-            2040: 1.77
+            2030: 1.48
+            2035: 1.59
+            2040: 1.69
+            2050: 1.65
     absolute: false
 
 solving:
