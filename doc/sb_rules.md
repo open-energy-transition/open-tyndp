@@ -118,10 +118,6 @@ the electricity demand for base regions from the TYNDP electricity demand prepar
 
 ::: build_tyndp_h2_network
 
-### Rule `clean_tyndp_h2_imports`
-
-::: clean_tyndp_h2_imports
-
 ### Rule `build_tyndp_h2_imports`
 
 ::: build_tyndp_h2_imports
