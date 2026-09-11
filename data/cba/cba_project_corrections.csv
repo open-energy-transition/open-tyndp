@@ -3,6 +3,7 @@ project_id,project_name,is_crossborder,p_nom 0->1,p_nom 1->0,bus0,bus1,notes
 121,Nautilus: multi-purpose interconnector Belgium - UK,True,1400,1400,BEOH001,GB00,"Raw border 'BE00-UK00'. bus0 'BE00' -> BEOH001 (Princess Elisabeth Island hub), bus1 GB00 unchanged."
 235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,True,0,1150,DE00,DKW1,"Raw Border ‘DE00-DKW’ , bus1 `DKW` → DKW1"
 235,HVDC SuedLink Brunsbüttel/Wilster to Großgartach/Bergrheinfeld West,True,2250,50,DE00,NL00,"Raw Border ‘DE00-NL00’, no change"
+260,Project 260 – Multi-purpose HVDC interconnection between Great Britain and The Netherlands,True,1800,1800,GB00,NLOH001,"Raw Border ‘GB00-NL00’, map to offshore NL hub, reduce capacity from 2000 MW → 1800 MW"
 335,North Sea Wind Power Hub,True,6000,6000,DE00,DEOH001,"Investments 1508 (Heide(West)) + 1509 (north of Bremen) + 1511 (Rastede) - three separate 2000 MW radial cables from different German onshore substations to the same German hub, all in the DE00 zone - summed into a single DE00-DEOH001 link: 3x2000 MW = 6000 MW each direction."
 335,North Sea Wind Power Hub,True,4000,4000,NL00,NLOH001,Investments 1506+1507 (two separate 2000 MW cables on the same Maasvlakte 380kV -> Dutch hub route) summed into a single NL00-NLOH001 link: 2x2000 MW = 4000 MW each direction.
 335,North Sea Wind Power Hub,True,2000,2000,DKWOH01,NLOH001,Investment 1817. Hub-to-hub link: Danish hub -> Dutch hub.

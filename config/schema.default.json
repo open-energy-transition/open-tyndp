@@ -491,7 +491,7 @@
             },
             "sb_version": {
               "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
               "type": "string"
             }
           }
@@ -543,6 +543,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },
@@ -644,6 +654,16 @@
               },
               "description": "Solver-specific options.",
               "type": "object"
+            },
+            "mem_mb": {
+              "default": 2000,
+              "description": "Estimated maximum memory requirement for solving networks (MB).",
+              "type": "integer"
+            },
+            "runtime": {
+              "default": "12h",
+              "description": "Runtime in humanfriendly style.",
+              "type": "string"
             }
           }
         }
@@ -1957,6 +1977,27 @@
             }
           }
         },
+        "tyndp_2026": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "powerplants": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -2398,48 +2439,6 @@
             }
           }
         },
-        "tyndp_cba_non_co2_emissions": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "cba_guidelines_reference_projects": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "open_tyndp_prelim": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -2743,7 +2742,7 @@
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
                 "cyears": {
-                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                  "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
                   },
@@ -2768,11 +2767,10 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
-                  "Wind_Onshore"
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },
@@ -3421,16 +3419,6 @@
           },
           "type": "array"
         },
-        "weather_year_tyndp": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the weather years (climate year column indices, e.g. 3 for `WS003`) that contain data in the TYNDP 2026 demand data, for that planning horizon. The first entry is used as the preferred weather year; if it's missing for a given demand type/file, the script falls back to another entry in the list (see `scripts._helpers.check_weather_year`).",
-          "type": "object"
-        },
         "manual_adjustments": {
           "default": true,
           "description": "Whether to adjust the load data manually according to the function in `manual_adjustment`.",
@@ -3612,6 +3600,16 @@
           "default": "",
           "description": "Optionally specify the file path within the remote cluster to be synchronized.",
           "type": "string"
+        },
+        "sync_file": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+          "type": "object"
         }
       }
     },
@@ -6817,7 +6815,7 @@
         },
         "sb_version": {
           "default": "latest",
-          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+          "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
           "type": "string"
         }
       }
@@ -6854,6 +6852,16 @@
           },
           "description": "Solver-specific options.",
           "type": "object"
+        },
+        "mem_mb": {
+          "default": 2000,
+          "description": "Estimated maximum memory requirement for solving networks (MB).",
+          "type": "integer"
+        },
+        "runtime": {
+          "default": "12h",
+          "description": "Runtime in humanfriendly style.",
+          "type": "string"
         }
       }
     },
@@ -6873,6 +6881,16 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "discount_rate": {
+          "default": 0.07,
+          "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+          "type": "number"
+        },
+        "default_lifetime": {
+          "default": 25,
+          "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+          "type": "number"
         }
       }
     },
@@ -8354,7 +8372,7 @@
       "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
       "properties": {
         "cyears": {
-          "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+          "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
           "items": {
             "type": "integer"
           },
@@ -8374,7 +8392,7 @@
           "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
           "properties": {
             "cyears": {
-              "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+              "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
               "items": {
                 "type": "integer"
               },
@@ -8399,11 +8417,10 @@
           "items": {
             "enum": [
               "Wind_Offshore",
-              "LFSolarPVRooftop",
-              "LFSolarPVUtility",
-              "CSP_noStorage",
-              "CSP_withStorage",
-              "Wind_Onshore"
+              "Solar PV Rooftop",
+              "Solar PV Utility",
+              "Wind_Onshore",
+              "CSP_noStorage_0h_dispatched"
             ],
             "type": "string"
           },
@@ -9401,6 +9418,16 @@
           "default": "",
           "description": "Optionally specify the file path within the remote cluster to be synchronized.",
           "type": "string"
+        },
+        "sync_file": {
+          "additionalProperties": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+          "type": "object"
         }
       }
     },
@@ -9522,6 +9549,16 @@
         "GA",
         false
       ]
+    },
+    "weather_scenarios_tyndp": {
+      "additionalProperties": {
+        "items": {
+          "type": "integer"
+        },
+        "type": "array"
+      },
+      "description": "Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WEATHER_SCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+      "type": "object"
     },
     "launch_explorer": {
       "default": false,
@@ -9972,7 +10009,7 @@
               "description": "Configuration for `electricity.pecd_renewable_profiles.pre_built` settings.",
               "properties": {
                 "cyears": {
-                  "description": "List of climate years to filter for when creating the PECD pre-built. Can be any year between 1982 and 2019.",
+                  "description": "List of weather scenarios to filter for when creating the PECD pre-built. The scenario numbering ranges between 1-120.",
                   "items": {
                     "type": "integer"
                   },
@@ -9997,11 +10034,10 @@
               "items": {
                 "enum": [
                   "Wind_Offshore",
-                  "LFSolarPVRooftop",
-                  "LFSolarPVUtility",
-                  "CSP_noStorage",
-                  "CSP_withStorage",
-                  "Wind_Onshore"
+                  "Solar PV Rooftop",
+                  "Solar PV Utility",
+                  "Wind_Onshore",
+                  "CSP_noStorage_0h_dispatched"
                 ],
                 "type": "string"
               },
@@ -11764,16 +11800,6 @@
             "type": "integer"
           },
           "type": "array"
-        },
-        "weather_year_tyndp": {
-          "additionalProperties": {
-            "items": {
-              "type": "integer"
-            },
-            "type": "array"
-          },
-          "description": "Mapping of planning horizons to the weather years (climate year column indices, e.g. 3 for `WS003`) that contain data in the TYNDP 2026 demand data, for that planning horizon. The first entry is used as the preferred weather year; if it's missing for a given demand type/file, the script falls back to another entry in the list (see `scripts._helpers.check_weather_year`).",
-          "type": "object"
         },
         "manual_adjustments": {
           "default": true,
@@ -15141,6 +15167,27 @@
             }
           }
         },
+        "tyndp_2026": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
         "powerplants": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -15582,48 +15629,6 @@
             }
           }
         },
-        "tyndp_cba_non_co2_emissions": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
-        "cba_guidelines_reference_projects": {
-          "description": "Configuration for a single data source.",
-          "properties": {
-            "source": {
-              "default": "archive",
-              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
-              "enum": [
-                "archive",
-                "tyndp-archive",
-                "primary",
-                "build"
-              ],
-              "type": "string"
-            },
-            "version": {
-              "default": "latest",
-              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
-              "type": "string"
-            }
-          }
-        },
         "open_tyndp_prelim": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -15723,7 +15728,7 @@
             },
             "sb_version": {
               "default": "latest",
-              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a supported version from data/versions.csv.",
+              "description": "Version of open_tyndp_prelim to use for pre-solved SB network input in CBA. Use 'latest' or a version tagged as supported in data/tyndp_versions.csv.",
               "type": "string"
             }
           }
@@ -15775,6 +15780,16 @@
                 "type": "string"
               },
               "type": "array"
+            },
+            "discount_rate": {
+              "default": 0.07,
+              "description": "Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export.",
+              "type": "number"
+            },
+            "default_lifetime": {
+              "default": 25,
+              "description": "Lifetime (years) used for storage projects with missing or zero operational lifetime.",
+              "type": "number"
             }
           }
         },
@@ -15876,6 +15891,16 @@
               },
               "description": "Solver-specific options.",
               "type": "object"
+            },
+            "mem_mb": {
+              "default": 2000,
+              "description": "Estimated maximum memory requirement for solving networks (MB).",
+              "type": "integer"
+            },
+            "runtime": {
+              "default": "12h",
+              "description": "Runtime in humanfriendly style.",
+              "type": "string"
             }
           }
         }

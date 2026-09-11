@@ -14,6 +14,23 @@ run:
 foresight: myopic
 
 tyndp_scenario: NT
+weather_scenarios_tyndp:
+  2030:
+  - 3
+  - 21
+  - 29
+  2035:
+  - 32
+  - 37
+  - 59
+  2040:
+  - 65
+  - 71
+  - 77
+  2050:
+  - 91
+  - 92
+  - 106
 data_config:   # change to 'tyndp' to use tyndp-archive where available
 
 launch_explorer: true
@@ -23,6 +40,7 @@ scenario:
   - all
   planning_horizons:
   - 2030
+  - 2035
   - 2040
 
 countries: ['AL', 'AT', 'BA', 'BE', 'BG', 'CH', 'CZ', 'CY', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SE', 'SI', 'SK']
@@ -80,26 +98,37 @@ electricity:
     enable: true
     pre_built:
       cyears:
-      - 1995
-      - 2008
-      - 2009
+      - 3
+      - 21
+      - 29
+      - 32
+      - 37
+      - 59
+      - 65
+      - 71
+      - 77
+      - 91
+      - 92
+      - 106
     fill_gaps_method: zero
     # Complete PECD data is only available for the years 2030, 2040
     # TODO: adjust once updated 2050 PECD data is available
     available_years:
     - 2030
+    - 2035
     - 2040
+    - 2050
     technologies:
     - Wind_Offshore
-    - LFSolarPVRooftop
-    - LFSolarPVUtility
+    - Solar PV Rooftop
+    - Solar PV Utility
     - Wind_Onshore
+    - CSP_noStorage_0h_dispatched
 
   pemmdb_hydro_profiles:
     enable: true
     available_years:
     - 2030
-    - 2035
     - 2040
     - 2050
     technologies:
@@ -179,23 +208,6 @@ load:
   - 2030
   - 2040
   - 2050
-  weather_year_tyndp:
-    2030:
-    - 3
-    - 21
-    - 29
-    2035:
-    - 32
-    - 37
-    - 59
-    2040:
-    - 65
-    - 71
-    - 77
-    2050:
-    - 91
-    - 92
-    - 106
   manual_adjustments: false
   supplement_synthetic: false
   patch_demand_with_mm: true
@@ -457,9 +469,10 @@ cba:
   - 2040
   cba_scenario_input:
     use_presolved: false
-    sb_version: latest # use 'latest' or a supported version from data/versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
+    sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
   - t1-t35
+  - s*
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
@@ -471,10 +484,15 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
+    - caes
     # Carriers whose state of charge is fixed at window boundaries
     # from perfect foresight (applies to StorageUnit components only)
     soc_boundary_carriers:
     - hydro-reservoir
+    # Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export
+    discount_rate: 0.07
+    # Lifetime (years) used for storage projects with missing or zero operational lifetime
+    default_lifetime: 25
 
   # Constrain DSR daily dispatch
   constrain_dsr: true

@@ -54,9 +54,9 @@ None.
 
 ## Development
 
-### Rule `prepare_pecd_release`
+### Rule `prepare_tyndp_pecd_release`
 
-::: prepare_pecd_release
+::: prepare_tyndp_pecd_release
 
 ## Build electricity
 
@@ -70,17 +70,21 @@ Extends the upstream [`build_electricity_demand`](preparation.md#electricity_dem
 per-country load time series from the TYNDP electricity demand prepared by
 [`clean_tyndp_electricity_demand`](#rule-clean_tyndp_electricity_demand).
 
-### Rule `clean_pecd_data`
+### Rule `build_tyndp_demand`
 
-::: clean_pecd_data
+::: build_tyndp_demand
+
+### Rule `clean_tyndp_pecd_data`
+
+::: clean_tyndp_pecd_data
 
 ### Rule `build_renewable_profiles_pecd`
 
 ::: build_renewable_profiles_pecd
 
-### Rule `build_pemmdb_data`
+### Rule `build_tyndp_pemmdb_data`
 
-::: build_pemmdb_data
+::: build_tyndp_pemmdb_data
 
 ### Rule `build_tyndp_transmission_projects`
 
@@ -188,7 +192,7 @@ Aggregate rules that run the corresponding base rule across all configured wildc
 
 ### Rule `clean_pecd_datas`
 
-Aggregate [`clean_pecd_data`](#rule-clean_pecd_data) outputs.
+Aggregate [`clean_tyndp_pecd_data`](#rule-clean_tyndp_pecd_data) outputs.
 
 ### Rule `build_renewable_profiles_pecds`
 
@@ -208,7 +212,11 @@ Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 
 ### Rule `build_pemmdb_and_trajectories`
 
-Aggregate [`build_pemmdb_data`](#rule-build_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
+Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
+
+### Rule `build_tyndp_demands`
+
+Aggregate [`build_tyndp_demand`](#rule-build_tyndp_demand) outputs.
 
 ### Rule `build_tyndp_h2_demands`
 

@@ -72,6 +72,7 @@ resources = path_provider("resources/", RDIR, shared_resources, exclude_from_sha
 scripts = script_path_provider(PROJ_DIR)
 
 RESULTS = "results/" + RDIR
+CLUSTER_LOGS = ("logs/slurm/" + RDIR.replace("{run}", "$scenario")).rstrip("/")
 workflow.default_target = config["run"]["default_target_rule"]
 
 
@@ -484,6 +485,7 @@ rule sync:
         rsync -uvarh --no-g {params.cluster}/resources . || echo "No resources directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/results . || echo "No results directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/logs . || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake || echo "No snakemake logs directory, skipping rsync"
         """
 
 
@@ -496,4 +498,36 @@ rule sync_dry:
         rsync -uvarh --no-g {params.cluster}/resources . -n || echo "No resources directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/results . -n || echo "No results directory, skipping rsync"
         rsync -uvarh --no-g {params.cluster}/logs . -n || echo "No logs directory, skipping rsync"
+        rsync -uvarh --no-g {params.cluster}/.snakemake/log .snakemake -n || echo "No snakemake logs directory, skipping rsync"
+        """
+
+
+def remote_sync_files():
+    names = run["name"] if isinstance(run["name"], list) else [run["name"]]
+    rdir = get_rdir(run)
+    return [
+        f"{d}/{rdir.replace('{run}', n)}{f}"
+        for d, files in config["remote"]["sync_file"].items()
+        for n in names
+        for f in files
+    ]
+
+
+rule sync_file:
+    params:
+        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        files=remote_sync_files(),
+    shell:
+        """
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ .
+        """
+
+
+rule sync_file_dry:
+    params:
+        cluster=f"{config['remote']['ssh']}:{config['remote']['path']}",
+        files=remote_sync_files(),
+    shell:
+        """
+        printf '%s\\n' {params.files} | rsync -uvarh --no-g --ignore-missing-args --files-from=- {params.cluster}/ . -n
         """

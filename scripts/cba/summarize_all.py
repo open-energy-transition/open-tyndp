@@ -15,7 +15,7 @@ import logging
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from scripts._helpers import configure_logging, set_scenario_config
+from scripts._helpers import add_metadata, configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
@@ -212,14 +212,15 @@ def create_plots(
         logger.info("No benchmark data to plot")
         return
 
-    plt.figure(figsize=(6.0, 0.3 * len(plot_items_percent)))
+    fig = plt.figure(figsize=(6.0, 0.3 * len(plot_items_percent)))
     plt.title("CBA differential cost indicator benchmark\n", y=0.98)
     plt.barh(axis_items, plot_items_percent)
     plt.xlabel("Mean difference B1_total_system_cost_change (%)")
     plt.xticks(rotation=90, fontsize=6)
     plt.yticks(fontsize=6)
     plt.tight_layout(rect=[0, 0.05, 1, 0.95])
-    plt.savefig(output_file, dpi=400)
+    add_metadata(fig)
+    plt.savefig(output_file, dpi=400, bbox_inches="tight")
     plt.close()
 
     logger.info("Benchmark plots saved to %s", output_file)

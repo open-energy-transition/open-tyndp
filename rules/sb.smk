@@ -4,6 +4,7 @@
 
 
 from scripts._helpers import safe_pyear, find_free_port
+from scripts.sb.build_tyndp_demand import DEMAND_TYPE_MAP
 from shutil import unpack_archive, copy2
 
 # Retrieve
@@ -145,9 +146,9 @@ if not "pre-built" in PECD_DATASET["version"]:
                 f"{PECD_DATASET['folder']}+pre-built.{get_pecd_prebuilt_version(increment_minor= True)}"
             ),
         log:
-            "logs/prepare_pecd_release.log",
+            "logs/prepare_tyndp_pecd_release.log",
         benchmark:
-            benchmarks("performances/prepare_pecd_release")
+            benchmarks("performances/prepare_tyndp_pecd_release")
         threads: 4
         resources:
             mem_mb=1000,
@@ -159,7 +160,7 @@ if not "pre-built" in PECD_DATASET["version"]:
                 "electricity", "pecd_renewable_profiles", "available_years"
             ),
         script:
-            scripts("sb/prepare_pecd_release.py")
+            scripts("sb/prepare_tyndp_pecd_release.py")
 
 
 # Build electricity
@@ -202,16 +203,16 @@ use rule build_electricity_demand as build_electricity_demand_tyndp with:
         benchmarks("performances/build_electricity_demand_{planning_horizons}")
 
 
-def get_weather_year_tyndp(w):
-    """Get the preferred TYNDP 2026 weather year (climate year column index) for a given planning horizon."""
-    weather_years = config_provider("load", "weather_year_tyndp")(w)
+def get_weather_scenario_tyndp(w):
+    """Get the preferred TYNDP 2026 weather scenario (climate year column index) for a given planning horizon."""
+    weather_scenarios = config_provider("weather_scenarios_tyndp")(w)
     pyear = safe_pyear(
         w.planning_horizons,
-        available_years=sorted(weather_years),
-        source="TYNDP demand weather year",
+        available_years=sorted(weather_scenarios),
+        source="TYNDP demand weather scenario",
         verbose=False,
     )
-    return weather_years[pyear][0]
+    return weather_scenarios[pyear][0]
 
 
 # Generic rule: parameterized by the `demand_type` wildcard, so any demand
@@ -222,209 +223,47 @@ def get_weather_year_tyndp(w):
 # stable, readable output name instead of relying on the wildcard.
 rule build_tyndp_demand:
     input:
-        # TODO Replace with rules.retrieve_tyndp_2026.output.demand once available
-        demand="data/tyndp_2026_bundle/Demand",
+        demand=rules.retrieve_tyndp_2026.output.demand_profiles,
     output:
         demand=resources("demand_tyndp_{demand_type}_{planning_horizons}.csv"),
     log:
         logs("build_tyndp_demand_{demand_type}_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/build_tyndp_demand_{demand_type}_{planning_horizons}")
+    wildcard_constraints:
+        # Limited to the demand types the workflow knows how to process
+        demand_type="|".join(DEMAND_TYPE_MAP),
     threads: 1
     resources:
         mem_mb=4000,
     params:
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type=lambda w: w.demand_type,
+        weather_scenarios=config_provider("weather_scenarios_tyndp"),
     script:
         scripts("sb/build_tyndp_demand.py")
-
-
-use rule build_tyndp_demand as build_tyndp_electricity_market_demand with:
-    output:
-        demand=resources("electricity_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_electricity_market_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/build_tyndp_electricity_market_demand_{planning_horizons}"
-        )
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="ELECTRICITY_MARKET",
-
-
-use rule build_tyndp_demand as build_tyndp_electricity_prosumer_demand with:
-    output:
-        demand=resources("electricity_prosumer_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_electricity_prosumer_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/build_tyndp_electricity_prosumer_demand_{planning_horizons}"
-        )
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="ELECTRICITY_PROSUMER",
-
-
-use rule build_tyndp_demand as build_tyndp_electricity_prosumer_btm_demand with:
-    output:
-        demand=resources(
-            "electricity_prosumer_btm_demand_tyndp_{planning_horizons}.csv"
-        ),
-    log:
-        logs("build_tyndp_electricity_prosumer_btm_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/build_tyndp_electricity_prosumer_btm_demand_{planning_horizons}"
-        )
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="ELECTRICITY_PROSUMER_BEHIND_THE_METER_FIXED_LOAD",
-
-
-use rule build_tyndp_demand as build_tyndp_ev_market_demand with:
-    output:
-        demand=resources("ev_market_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_ev_market_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_ev_market_demand_{planning_horizons}")
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="EV_FIXED_LOAD_PROFILES_ELECTRICITY_MARKET",
-
-
-use rule build_tyndp_demand as build_tyndp_ev_prosumer_demand with:
-    output:
-        demand=resources("ev_prosumer_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_ev_prosumer_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_ev_prosumer_demand_{planning_horizons}")
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="EV_FIXED_LOAD_PROFILES_ELECTRICITY_PROSUMER",
-
-
-use rule build_tyndp_demand as build_tyndp_h2_zone1_demand with:
-    output:
-        demand=resources("h2_zone1_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_h2_zone1_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_h2_zone1_demand_{planning_horizons}")
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="Hydrogen_Zone 1",
-
-
-use rule build_tyndp_demand as build_tyndp_h2_zone2_demand with:
-    output:
-        demand=resources("h2_zone2_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_h2_zone2_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks("performances/build_tyndp_h2_zone2_demand_{planning_horizons}")
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="Hydrogen_Zone 2",
-
-
-use rule build_tyndp_demand as build_tyndp_synthetic_fuels_demand with:
-    output:
-        demand=resources("synthetic_fuels_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_synthetic_fuels_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/build_tyndp_synthetic_fuels_demand_{planning_horizons}"
-        )
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="SYNTHETIC_FUELS",
-
-
-use rule build_tyndp_demand as build_tyndp_thermal_hydrogen_demand with:
-    output:
-        demand=resources("thermal_hydrogen_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_thermal_hydrogen_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/build_tyndp_thermal_hydrogen_demand_{planning_horizons}"
-        )
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="Thermal_energy_Hydrogen",
-
-
-use rule build_tyndp_demand as build_tyndp_thermal_methane_demand with:
-    output:
-        demand=resources("thermal_methane_demand_tyndp_{planning_horizons}.csv"),
-    log:
-        logs("build_tyndp_thermal_methane_demand_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/build_tyndp_thermal_methane_demand_{planning_horizons}"
-        )
-    params:
-        snapshots=config_provider("snapshots"),
-        drop_leap_day=config_provider("enable", "drop_leap_day"),
-        weather_year=get_weather_year_tyndp,
-        weather_years=config_provider("load", "weather_year_tyndp"),
-        demand_type="Thermal_energy_Methane",
 
 
 def get_pecd_prebuilt(w):
     if "pre-built" in PECD_DATASET["version"]:
         return rules.retrieve_tyndp_pecd.output.dir
     else:
-        return rules.prepare_pecd_release.output.pecd_prebuilt
+        return rules.prepare_tyndp_pecd_release.output.pecd_prebuilt
 
 
-rule clean_pecd_data:
+rule clean_tyndp_pecd_data:
     input:
         pecd_prebuilt=get_pecd_prebuilt,
-        offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
-        onshore_buses=resources("busmap_base_s_all.csv"),
+        nodes=rules.retrieve_tyndp_2026.output.nodes,
+        busmap=resources("busmap_base_s_all.csv"),
     output:
         pecd_data_clean=resources("pecd_data_{technology}_{planning_horizons}.csv"),
     log:
-        logs("clean_pecd_data_{technology}_{planning_horizons}.log"),
+        logs("clean_tyndp_pecd_data_{technology}_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/clean_pecd_data_{technology}_{planning_horizons}")
+        benchmarks(
+            "performances/clean_tyndp_pecd_data_{technology}_{planning_horizons}"
+        )
     threads: 4
     resources:
         mem_mb=4000,
@@ -437,11 +276,9 @@ rule clean_pecd_data:
         available_years=config_provider(
             "electricity", "pecd_renewable_profiles", "available_years"
         ),
-        prebuilt_years=config_provider(
-            "electricity", "pecd_renewable_profiles", "pre_built", "cyears"
-        ),
+        weather_scenario=get_weather_scenario_tyndp,
     script:
-        scripts("sb/clean_pecd_data.py")
+        scripts("sb/clean_tyndp_pecd_data.py")
 
 
 def input_data_pecd(w):
@@ -488,24 +325,25 @@ pemmdb_techs = branch(
 )
 
 
-rule build_pemmdb_data:
+rule build_tyndp_pemmdb_data:
     input:
         pemmdb_dir=rules.retrieve_tyndp_2026.output.pemmdb,
         carrier_mapping="data/tyndp_technology_map.csv",
         busmap=resources("busmap_base_s_all.csv"),
+        nodes=rules.retrieve_tyndp_2026.output.nodes,
     output:
         pemmdb_capacities=resources("pemmdb_capacities_{planning_horizons}.csv"),
         pemmdb_profiles=resources("pemmdb_profiles_{planning_horizons}.nc"),
     log:
-        logs("build_pemmdb_data_{planning_horizons}.log"),
+        logs("build_tyndp_pemmdb_data_{planning_horizons}.log"),
     benchmark:
-        benchmarks("performances/build_pemmdb_data_{planning_horizons}")
+        benchmarks("performances/build_tyndp_pemmdb_data_{planning_horizons}")
     threads: config_provider("electricity", "pemmdb_capacities", "nprocesses")
     resources:
         mem_mb=16000,
     params:
         pemmdb_techs=pemmdb_techs,
-        weather_year=get_weather_year_tyndp,
+        weather_scenarios=config_provider("weather_scenarios_tyndp"),
         snapshots=config_provider("snapshots"),
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         available_years=config_provider(
@@ -513,7 +351,7 @@ rule build_pemmdb_data:
         ),
         tyndp_scenario=config_provider("tyndp_scenario"),
     script:
-        scripts("sb/build_pemmdb_data.py")
+        scripts("sb/build_tyndp_pemmdb_data.py")
 
 
 def get_elec_project_build_years(w):
@@ -1281,7 +1119,7 @@ def input_pemmdb_datas(w):
 rule build_pemmdb_and_trajectories:
     input:
         expand(
-            rules.build_pemmdb_data.output.pemmdb_capacities,
+            rules.build_tyndp_pemmdb_data.output.pemmdb_capacities,
             planning_horizons=input_pemmdb_datas,
             run=config["run"]["name"],
         ),

@@ -409,6 +409,10 @@ plotting:
     # wind
     onwind: "#235ebc"
     onshore wind: "#235ebc"
+    onwind-dres: "#1a4a96"
+    onwind-sres: "#4d82d1"
+    onwind-sres-h2z1: "#4d82d1"
+    onwind-sres-h2z2: "#4d82d1"
     offwind: "#6895dd"
     offshore wind: "#6895dd"
     offwind-ac: "#6895dd"
@@ -428,6 +432,16 @@ plotting:
     offwind-dc-fl-oh: "#b5e2fa"
     offwind-h2-fb-oh: "#c47dbd"
     offwind-h2-fl-oh: "#9d4d96"
+    offwind-r: "#4a7ec4"
+    offwind-dres-r: "#35619e"
+    offwind-sres-r: "#23477a"
+    offwind-sres-h2z1-r: "#23477a"
+    offwind-sres-h2z2-r: "#23477a"
+    offwind-oh: "#5fc9e8"
+    offwind-dres-oh: "#3aa8cc"
+    offwind-sres-oh: "#2287a8"
+    offwind-sres-h2z1-oh: "#2287a8"
+    offwind-sres-h2z2-oh: "#2287a8"
     # water
     hydro: '#298c81'
     hydro-pondage: '#51dbbc'
@@ -446,6 +460,13 @@ plotting:
     hydro-phs-pump: "#088d97"
     hydro-phs-turbine: "#089d97"
     hydro-phs-inflows: "#08ad97"
+    hydro-ror-turbine: "#3dbfb0"
+    hydro-pondage-turbine: "#51dbbc"
+    hydro-pondage-reservoir: "#51bbbc"
+    hydro-reservoir-turbine: "#298c81"
+    hydro-reservoir-reservoir: "#296c81"
+    hydro-phs-reservoir: "#087d97"
+    hydro-phs-pure-reservoir: "#51abcc"
     # solar
     solar: "#f9d002"
     solar PV: "#f9d002"
@@ -459,6 +480,13 @@ plotting:
     urban central solar thermal: '#d7b24c'
     solar rooftop: '#ffea80'
     solar-pv-rooftop: '#ffea80'
+    solar-pv-utility-dres: '#d4a800'
+    solar-pv-utility-sres: '#a87f00'
+    solar-pv-utility-sres-h2z1: '#a87f00'
+    solar-pv-utility-sres-h2z2: '#a87f00'
+    solar-thermal: '#ffbf2b'
+    solar-thermal-w-storage: '#e09a1f'
+    solar-thermal-w-storage-storage: '#c27f14'
     # gas
     OCGT: '#e0986c'
     OCGT marginal: '#e0986c'
@@ -604,6 +632,7 @@ plotting:
     solid biomass to hydrogen: '#654321'
     other-res-biomass: '#9d9042'
     other-res-mix: '#91ba41'
+    other-res: '#91ba41'
     # power transmission
     lines: '#6c9459'
     transmission lines: '#6c9459'
@@ -626,6 +655,12 @@ plotting:
     home battery storage: '#80c944'
     home battery charger: '#5e8032'
     home battery discharger: '#3c5221'
+    battery-utility: '#ace37f'
+    battery-utility charger: '#88a75b'
+    battery-utility discharger: '#5d4e29'
+    battery-prosumer: '#80c944'
+    battery-prosumer charger: '#5e8032'
+    battery-prosumer discharger: '#3c5221'
     BEV charger: '#baf238'
     V2G: '#e5ffa8'
     land transport EV: '#baf238'
@@ -773,6 +808,18 @@ plotting:
     h2-ocgt: '#b52b99'
     H2 Electrolysis: '#ff29d9'
     H2 electrolysis: '#ff29d9'
+    h2-electrolysis: '#ff29d9'
+    electrolyser-onshore-grid: '#ff29d9'
+    H2 Electrolysis Z1: '#ff29d9'
+    H2 Electrolysis Z2: '#ff29d9'
+    h2-electrolysis-dres: '#cc1fae'
+    H2 Electrolysis DRES Z1: '#cc1fae'
+    H2 Electrolysis DRES Z2: '#cc1fae'
+    h2-electrolysis-sres: '#99177f'
+    H2 Electrolysis SRES Z1: '#99177f'
+    H2 Electrolysis SRES Z2: '#99177f'
+    other-non-res-h2-ccgt: '#991f83'
+    other-non-res-h2-ocgt: '#b52b99'
     # ammonia
     NH3: '#46caf0'
     ammonia: '#46caf0'

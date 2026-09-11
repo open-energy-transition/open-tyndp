@@ -21,6 +21,7 @@ from typing import Literal
 import atlite
 import fiona
 import git
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pypsa
@@ -49,6 +50,15 @@ SCENARIO_DICT = {
 ENERGY_UNITS = {"TWh", "GWh", "MWh", "kWh"}
 POWER_UNITS = {"GW", "MW", "kW"}
 PRICE_UNITS = {"EUR/MWh", "EUR/MWh_e", "EUR/MWh_H2"}
+
+# Weather scenarios that contain data in the TYNDP 2026 data,
+# per planning horizon.
+AVAILABLE_WEATHER_SCENARIOS = {
+    2030: [3, 21, 29],
+    2035: [32, 37, 59],
+    2040: [65, 71, 77],
+    2050: [91, 92, 106],
+}
 
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
@@ -1362,28 +1372,16 @@ def map_tyndp_carrier_names(
     # Map the carriers
     df = df.merge(carrier_mapping, on=on_columns, how="left")
 
-    # If the carrier is DSR or Other Non-RES, the different price bands are too diverse for a robust external
-    # mapping. Instead, we will combine the carrier and type information.
+    # DSR price bands are too diverse for a robust external mapping. Instead, we
+    # will combine the carrier and type information.
     if "pemmdb_carrier" in on_columns:
+        dsr = df["pemmdb_carrier"] == "DSR"
 
-        def normalize_carrier(s):
-            return s.lower().replace(" ", "-").replace("other-non-res", "chp")
-
-        # Other Non-RES are assumed to represent CHP plants (according to TYNDP 2024 Methodology report p.37)
-        df = df.assign(
-            open_tyndp_carrier=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["pemmdb_carrier"].apply(normalize_carrier),
-                x["open_tyndp_carrier"],
-            ),
-            open_tyndp_index=lambda x: np.where(
-                x["pemmdb_carrier"].isin(["DSR", "Other Non-RES"]),
-                x["open_tyndp_carrier"]
-                + "-"
-                + x["pemmdb_type"].apply(normalize_carrier),
-                x["open_tyndp_index"],
-            ),
-        )
+        if dsr.any():
+            df.loc[dsr, "open_tyndp_carrier"] = "dsr"
+            df.loc[dsr, "open_tyndp_index"] = "dsr-" + df.loc[
+                dsr, "pemmdb_type"
+            ].str.lower().str.replace(" ", "-")
 
     if not drop_on_columns:
         return df
@@ -1443,6 +1441,96 @@ def get_version(hash_len: int = 9) -> str:
     except Exception as e:
         logger.warning(f"Failed to determine version from git repository: {e}")
         return "unknown"
+
+
+def add_metadata(
+    fig: plt.Figure,
+    ax: plt.Axes | None = None,
+    model_col: str = "",
+    rfc_source: str = "",
+    rfc_cols: list[str] = [],
+    note: str = "",
+) -> None:
+    """
+    Add a version tag, and optionally reference-source/note text, to a figure.
+
+    The version tag is always added. The reference-source line is added only
+    when both `model_col` and `rfc_source` are given; the note is added only
+    when `note` is given.
+
+    Parameters
+    ----------
+    fig : plt.Figure
+        Figure to annotate.
+    ax : plt.Axes, optional
+        Axes used to host the text artists. Default is None, in which case the
+        text is added directly to the figure.
+    model_col : str, optional
+        Column name for model values, used in the reference-source text.
+        Default is "".
+    rfc_source : str, optional
+        Reference source label, used in the reference-source text. Default is
+        "".
+    rfc_cols : list[str], optional
+        Additional reference source column names shown for comparison.
+        Default is [].
+    note : str, optional
+        Additional note text. Default is "".
+    """
+    host = ax if ax is not None else fig
+
+    # Version
+    version = get_version()
+    fig.draw_without_rendering()
+    bbox_fig = fig.get_tightbbox(fig.canvas.get_renderer())
+    fig_width_inches, fig_height_inches = fig.get_size_inches()
+    x0_fig = (
+        bbox_fig.x0 / fig_width_inches
+    )  # Convert bbox coordinates from inches to figure coordinates
+    x1_fig = (
+        bbox_fig.x1 / fig_width_inches
+    )  # Convert bbox coordinates from inches to figure coordinates
+    y0_fig = bbox_fig.y0 / fig_height_inches
+
+    host.text(
+        x1_fig,
+        y0_fig - 0.05,
+        f"version: {version}",
+        transform=fig.transFigure,
+        ha="right",
+        va="bottom",
+        fontsize=8,
+        alpha=0.7,
+    )
+
+    # Reference source
+    if model_col != "" and rfc_source != "":
+        additional_sources = (
+            "" if len(rfc_cols) <= 1 else " Other sources shown for comparison."
+        )
+        host.text(
+            x0_fig,
+            y0_fig - 0.05,
+            f"Model outputs ({model_col}) benchmarked against {rfc_source}.{additional_sources}",
+            transform=fig.transFigure,
+            ha="left",
+            va="bottom",
+            fontsize=8,
+            alpha=0.7,
+        )
+
+    # Notes
+    if note:
+        host.text(
+            x0_fig,
+            y0_fig - 0.07,
+            "\n".join(note),
+            transform=fig.transFigure,
+            ha="left",
+            va="top",
+            fontsize=8,
+            alpha=0.7,
+        )
 
 
 def convert_units(
@@ -1981,3 +2069,46 @@ def normalize_direction(
         df = df.value
 
     return df
+
+
+def parse_weather_scenario(s: pd.Series) -> pd.Series:
+    """
+    Convert weather scenario labels (eg. WS065) into their integer index.
+    """
+    return pd.to_numeric(s.astype(str).str.removeprefix("WS"), errors="coerce")
+
+
+def get_weather_scenario(weather_scenarios, pyear):
+    """
+    Select the weather scenario to use for a given planning year.
+
+    Parameters
+    ----------
+    weather_scenarios : dict
+        Mapping of planning year to a list of requested weather scenarios,
+        e.g. ``{pyear: [weather_scenario, ...]}``.
+    pyear : int
+        Planning year for which to select the weather scenario.
+
+    Returns
+    -------
+    int
+        Selected weather scenario. Falls back to the first entry in
+        ``AVAILABLE_WEATHER_SCENARIOS[pyear]`` if unavailable.
+
+    Notes
+    -----
+    Currently always picks the first requested weather scenario; should be
+    adapted once the full weather year implementation is available in SB.
+    """
+    weather_scenario = weather_scenarios[pyear][0]
+
+    if weather_scenario not in AVAILABLE_WEATHER_SCENARIOS[pyear]:
+        fallback_scenario = AVAILABLE_WEATHER_SCENARIOS[pyear][0]
+        logger.warning(
+            f"Weather scenario WS{weather_scenario:03d} not available for "
+            f"planning year {pyear}, falling back to WS{fallback_scenario:03d}"
+        )
+        weather_scenario = fallback_scenario
+
+    return weather_scenario
