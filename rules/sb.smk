@@ -566,7 +566,7 @@ if config["sector"]["h2_topology_tyndp"]:
 
     rule clean_tyndp_smr:
         input:
-            smr=rules.retrieve_tyndp.output.smr,
+            smr=rules.retrieve_tyndp_2026.output.smr,
         output:
             smr_prepped=resources("smr_data_prepped_{planning_horizons}.csv"),
         log:
@@ -585,7 +585,7 @@ if config["sector"]["h2_topology_tyndp"]:
 
     rule clean_tyndp_h2_storages:
         input:
-            h2_storages=rules.retrieve_tyndp.output.h2_storages,
+            h2_storages=rules.retrieve_tyndp_2026.output.h2_storages,
         output:
             h2_storages_prepped=resources("h2_storages_prepped_{planning_horizons}.csv"),
         log:

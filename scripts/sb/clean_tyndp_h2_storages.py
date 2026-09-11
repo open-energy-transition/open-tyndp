@@ -7,11 +7,9 @@ This script cleans and extracts the TYNDP H2 Storage data and saves it in a comm
 
 import logging
 
-import numpy as np
 import pandas as pd
 
 from scripts._helpers import (
-    SCENARIO_DICT,
     configure_logging,
     set_scenario_config,
 )
@@ -42,59 +40,33 @@ def load_h2_storage_data(fn: str, pyear: int, scenario: str) -> pd.DataFrame:
         "YEAR": "year",
         "SCENARIO": "scenario",
         "NODE": "bus",
-        "H2 ZONE": "h2_zone",
+        "Flexibility": "flexibility",
         "CAPACITY [GWh]": "e_nom",
         "MAX POWER [MW]": "p_nom_discharge",
         "MAX LOAD [MW]": "p_nom_charge",
-        "MAX CAPACITY [GWh]": "e_nom_max",
-        "MAX POWER EXPANSION [MW]": "p_nom_max_discharge",
-        "MAX LOAD EXPANSION [MW]": "p_nom_max_charge",
         "CHARGE EFFICIENCY [%]": "efficiency_charge",
         "DISCHARGE EFFICIENCY [%]": "efficiency_discharge",
     }
 
-    replace_dict = SCENARIO_DICT | {
-        "UK": "GB",
-        "ZONE 1": "H2 Z1",
-        "ZONE 2": "H2 Z2",
-        "All": "all",
-    }
+    replace_dict = {"All": "all"}
 
     # Read data and rename
     storages = (
         pd.read_excel(fn, sheet_name="TEMPLATE")
         .rename(columns=column_dict)
         .replace(replace_dict)
-        .assign(
-            e_nom=lambda df: df.e_nom * 1e3,  # [MWh]
-            e_nom_max=lambda df: df.e_nom_max * 1e3,  # [MWh]
-            efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
-            efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
-            bus=lambda df: (
-                df.bus
-                + np.where(df.h2_zone == "H2 Z2", " H2 Z2", " H2 Z1")
-                + " "
-                + np.where(df.h2_zone == "H2 Z2", "cavern-storage", "tank-storage")
-            ),
-        )
+        .drop(columns=["H2 ZONE", "Initial SoC [GWh]"])
     )
 
-    # Manually fix 2030 expansion limits for NL
-    # TODO: Remove if fixed
-    err_entry_i = storages.query(
-        "bus.str.contains('NL') and year == 2030 and h2_zone == 'H2 Z2'"
-    ).index
-    # scale up by missing decimal
-    if (
-        storages.at[err_entry_i.item(), "p_nom_max_charge"]
-        < storages.at[err_entry_i.item(), "p_nom_charge"]
-    ):
-        storages.loc[err_entry_i, ["p_nom_max_charge"]] *= 10
-    if (
-        storages.at[err_entry_i.item(), "p_nom_max_discharge"]
-        < storages.at[err_entry_i.item(), "p_nom_discharge"]
-    ):
-        storages.loc[err_entry_i, ["p_nom_max_discharge"]] *= 10
+    storages = storages.assign(
+        e_nom=lambda df: df.e_nom * 1e3,  # [MWh]
+        efficiency_charge=lambda df: df.efficiency_charge / 100,  # [1]
+        efficiency_discharge=lambda df: df.efficiency_discharge / 100,  # [1]
+        # NODE already spells the UK bus as "UKh2"
+        bus=lambda df: (
+            df.bus.str.replace("^UK", "GB", regex=True) + " Storage_" + df.flexibility
+        ),
+    ).drop(columns="flexibility")
 
     storages = storages.loc[
         ((storages.scenario == scenario) | (storages.scenario == "all"))
