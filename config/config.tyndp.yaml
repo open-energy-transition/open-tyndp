@@ -308,10 +308,11 @@ sector:
   biomass_to_liquid_cc: true
   force_biomass_potential: true
   force_biogas_potential: true
-  biomass_final_demand: # in TWh and for 8760h
-    2030: 939
-    2035: 863   # linear interpolation
-    2040: 787
+  biomass_final_demand: # in TWh and for 8760h, TYNDP 2026 Supply Tool NT+: ETM final energy demand + for heat production + for biogas not upgraded to biomethane (see PR description; matches original PR #570 methodology)
+    2030: 1089
+    2035: 1028
+    2040: 1012
+    2050: 998
   electrobiofuels: false
   transmission_efficiency:
     enable:
