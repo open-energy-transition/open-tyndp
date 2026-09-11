@@ -26,8 +26,6 @@ DE:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
-  load:
-    patch_demand_with_mm: false
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
@@ -112,8 +110,6 @@ GA:
       - offwind-h2-fl-oh
       - OCGT
       - CCGT
-  load:
-    patch_demand_with_mm: false
   sector:
     land_transport_ice_share:  # TODO Improve TYNDP 2024 approximations
       2030: 0.96
