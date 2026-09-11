@@ -218,7 +218,7 @@ def build_buses(
     buses_fn: str,
     countries: list[str],
     bidding_shapes: gpd.GeoDataFrame,
-    offshore_bus_locations_fn: str,
+    manual_bus_locations_fn: str,
     geo_crs: str = GEO_CRS,
 ):
     """
@@ -240,9 +240,9 @@ def build_buses(
         List of countries to consider.
     bidding_shapes : gpd.GeoDataFrame
         A GeoDataFrame including bidding zone geometry, representative point and id.
-    offshore_bus_locations_fn : str
+    manual_bus_locations_fn : str
         Path to a CSV of manually-guessed ``x``/``y`` coordinates (see
-        ``data/tyndp_offshore_bus_location.csv``), keyed by ``bus_id``, used
+        ``data/tyndp_manual_bus_locations.csv``), keyed by ``bus_id``, used
         to fill in coordinates for offshore/virtual nodes that have no
         matching bidding-zone shape.
     geo_crs : str, optional
@@ -293,16 +293,16 @@ def build_buses(
         buses.loc["LUV1"] = buses.loc["LUV1"].fillna(buses.loc["LUG1"])
 
     # Fill in manually-guessed coordinates for offshore/virtual nodes that
-    # have no matching bidding-zone shape (see data/tyndp_offshore_bus_location.csv)
-    offshore_locations = pd.read_csv(offshore_bus_locations_fn, index_col="bus_id")
+    # have no matching bidding-zone shape (see data/tyndp_manual_bus_locations.csv)
+    manual_locations = pd.read_csv(manual_bus_locations_fn, index_col="bus_id")
     missing = buses.index[
-        buses["geometry"].isna() & buses.index.isin(offshore_locations.index)
+        buses["geometry"].isna() & buses.index.isin(manual_locations.index)
     ]
     if not missing.empty:
-        buses.loc[missing, "x"] = offshore_locations.loc[missing, "x"]
-        buses.loc[missing, "y"] = offshore_locations.loc[missing, "y"]
+        buses.loc[missing, "x"] = manual_locations.loc[missing, "x"]
+        buses.loc[missing, "y"] = manual_locations.loc[missing, "y"]
         buses.loc[missing, "geometry"] = gpd.points_from_xy(
-            offshore_locations.loc[missing, "x"], offshore_locations.loc[missing, "y"]
+            manual_locations.loc[missing, "x"], manual_locations.loc[missing, "y"]
         )
 
     return buses
@@ -570,7 +570,7 @@ if __name__ == "__main__":
         snakemake.input.buses,
         countries,
         bidding_shapes,
-        snakemake.input.offshore_bus_locations,
+        snakemake.input.manual_bus_locations,
     )
     buses_h2 = build_buses_h2(snakemake.input.buses, bidding_shapes)
 
