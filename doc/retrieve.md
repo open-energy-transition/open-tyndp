@@ -42,11 +42,15 @@ also retrieve all required files to run the prerequisite SB workflow, unless the
 ```console
 # everything Scenario Building needs
 $ python utils/collect_data.py --configfile path/to/your/config.yaml
+# or
 $ pixi run collect-data
+
 # everything the CBA needs + required SB retrieves
 $ python utils/collect_data.py --cba --configfile path/to/your/config.yaml
+# or
 $ pixi run collect-data-cba
-# read the cache if enabled, no network required for either workflow
+
+# run either workflow, reading the cache if enabled, no network required
 $ pixi run tyndp-sb
 $ pixi run tyndp-cba
 ```

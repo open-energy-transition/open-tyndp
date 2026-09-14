@@ -204,9 +204,12 @@ and fill the cache once where there is network:
 ```console
 # everything Scenario Building needs
 $ python utils/collect_data.py --configfile config/config.tyndp.yaml
+# or
 $ pixi run collect-data
+
 # everything the CBA needs + required SB retrieves
 $ python utils/collect_data.py --cba --configfile config/config.tyndp.yaml
+# or
 $ pixi run collect-data-cba
 ```
 
