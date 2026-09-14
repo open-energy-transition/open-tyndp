@@ -500,15 +500,6 @@ rule sync_dry:
         """
 
 
-# Warning about potential long Snakemake build time for local cache dependencies
-if workflow.is_main_process and LOCAL_CACHE["enable"] and LOCAL_CACHE["fill"]:
-    logger.warning(
-        f"Populating the local cache in '{LOCAL_CACHE['directory']}'. Working out which "
-        "datasets this workflow needs requires building its full dependency graph, which can "
-        "take some time before the first download starts."
-    )
-
-
 # Fail a cached run that would need a dataset the cache does not hold
 onstart:
     if LOCAL_CACHE_READ:
