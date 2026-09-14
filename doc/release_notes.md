@@ -49,6 +49,8 @@
 
 * feat: add automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
 
+* Update integration and env autoupdate workflow to include and account for `tyndp-*` branches ([#913](https://github.com/open-energy-transition/open-tyndp/pull/913)).
+
 * Add the Snakemake logs to the set of files retrieved from remote by the `sync` and `sync_dry` rules ([#918](https://github.com/open-energy-transition/open-tyndp/pull/918)).
 
 * Add rule to sync individual files from remote cluster ([#823](https://github.com/open-energy-transition/open-tyndp/pull/823)).
@@ -56,6 +58,8 @@
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
+
+* Improve efficiency of `plot_benchmark` by adding a cache to getting the version tag and fixing progressbar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)).
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
@@ -229,9 +233,6 @@
 
 * Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/pull/807)).
 
-* Update integration and env autoupdate workflow to include and account for `tyndp-*` branches ([#913](https://github.com/open-energy-transition/open-tyndp/pull/913)) 
-
-* Improve efficiency of `plot_benchmark` by adding a cache to getting the version tag and fixing progressbar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)). 
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 
