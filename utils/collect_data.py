@@ -217,7 +217,12 @@ def main() -> None:
             verbose=args.verbose,
         )
 
-    if not args.skip_sb:
+    if args.skip_sb:
+        print(
+            "\nSkipping the Scenario Building datasets as --skip-sb is set. "
+            "Expecting to use pre-solved SB networks."
+        )
+    else:
         listing = run_snakemake(
             "Listing the datasets this workflow needs",
             "-n",
@@ -246,7 +251,7 @@ def main() -> None:
         return
     if dry_run:
         print(
-            "Skipping the coverage check, the clean_projects checkpoint has not run under "
+            "\nSkipping the coverage check, the clean_projects checkpoint has not run under "
             "a dry run and the CBA graph is not expanded yet."
         )
         return
