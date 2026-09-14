@@ -151,6 +151,12 @@ class _LocalCacheConfig(ConfigModel):
         instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,
         unless `fill` is also set: the workflow reads the cached files and fails with a list of the
         missing ones instead of downloading them, enabling offline execution of the workflow.
+
+        Useful if you want to run the workflow on a machine without internet access: first use `fill`
+        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory
+        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this
+        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,
+        so the offline machine also needs the repository itself, including the data files tracked in `data/`.
         """,
     )
     directory: str = Field(

@@ -40,26 +40,46 @@ The cache is filled in a separate step, depending on the workflow. The CBA workf
 also retrieve all required files to run the prerequisite SB workflow, unless the SB networks are taken pre-solved (see below).
 
 ```console
-$ pixi run collect-data          # everything Scenario Building needs
-$ pixi run collect-data-cba      # everything the CBA needs + required SB retrieves
-$ pixi run tyndp-sb              # reads the local cache if enabled, no network required for SB workflow
-$ pixi run tyndp-cba             # reads the cache if enabled, no network required for CBA workflow
+# everything Scenario Building needs
+$ python utils/collect_data.py --configfile path/to/your/config.yaml
+$ pixi run collect-data
+# everything the CBA needs + required SB retrieves
+$ python utils/collect_data.py --cba --configfile path/to/your/config.yaml
+$ pixi run collect-data-cba
+# read the cache if enabled, no network required for either workflow
+$ pixi run tyndp-sb
+$ pixi run tyndp-cba
 ```
 
-Each task dry-runs its own target to see which `retrieve_*` rules that workflow's graph actually
-contains and downloads those, with the cache and retrieval forced on so it fills whatever your
-config says. It is possible to dry-run this task with `pixi run collect-data -n` to list what
-would be downloaded without fetching anything. 
+Both tasks run `utils/collect_data.py`. The script dry-runs the full Scenario Building graph,
+with `--forceall`, so every `retrieve_*` rule that graph contains is listed based on your config settings
+regardless of what a previous run already left in `resources/`. Then everything missing from the cache
+is downloaded. Anything else passed on the command line goes through to Snakemake, so
+`pixi run collect-data -n` lists what would be downloaded without fetching anything and
+`pixi run collect-data --configfile config/test/config.tyndp.yaml` collects for another config.
+The dry runs that only work out which datasets are needed stay quiet unless they fail; add the
+`--verbose` flag to see them, and every other Snakemake call, in full.
 The source selection still applies: with `data_config: tyndp` the cache fills from the
 Google Cloud Storage mirror, into the same paths.
 
+!!! note "Collect data without pixi"
+    `collect-data` and `collect-data-cba` are pixi tasks, not Snakemake rules — they just run the
+    collect script via the commands below. If you don't use pixi, run them directly in any
+    environment that has Snakemake and the project's other dependencies installed.
+
+    Equivalent to `pixi run collect-data`:
+    `python utils/collect_data.py --configfile config/config.tyndp.yaml`
+
+    Equivalent to `pixi run collect-data-cba`:
+    `python utils/collect_data.py --cba --configfile config/config.tyndp.yaml`
+
 !!! note "How the CBA task handles the `clean_projects` checkpoint"
     Most of the CBA graph, the per-project networks and the Scenario Building chain they build
-    on, only appears once the `clean_projects` checkpoint has run. `pixi run collect-data-cba`
-    therefore runs the workflow up to that checkpoint first, writing its outputs to `resources/`,
-    and enumerates the remaining datasets against the expanded graph. That first step runs even
-    under `-n`, the few datasets it needs are fetched and the checkpoint is computed, because
-    the list the dry run then prints cannot be worked out without it.
+    on, only appears once the `clean_projects` checkpoint has run, and forcing the graph would
+    keep it from running. `pixi run collect-data-cba` therefore collects the datasets that feed
+    the checkpoint first, by running the workflow up to it, and then collects the Scenario
+    Building graph, which covers everything the expanded CBA graph goes on to need. It checks
+    that afterwards and stops with the rule names if a dataset is left uncollected.
 
 To reach an offline machine, fill the cache where the network is available and copy the
 directory across, e.g. using rsync:
@@ -67,6 +87,14 @@ directory across, e.g. using rsync:
 ```console
 $ rsync -a data/local-cache/ offline-machine:~/open-tyndp/data/local-cache/
 ```
+
+!!! note "Repository data"
+    The cache holds retrieved data only, so the offline machine needs the repository as well.
+    Clone it where there is network and copy the whole checkout across, or clone it on the
+    offline machine if it can reach the Git remote. `data/` matters here: Some files like
+    `data/cba/*.csv`, `data/tyndp_technology_map.csv`, `data/tyndp_versions.csv` and the
+    transmission project CSVs ship directly with the repository and are never fetched, so a copy
+    that skips `data/` leaves the workflow without them.
 
 With `cba: cba_scenario_input: use_presolved: true` the pre-solved SB networks are collected into
 `results/` rather than into the cache, so copy that directory across as well.

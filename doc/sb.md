@@ -202,12 +202,16 @@ allows runs without internet access. Enable `local_cache` in `config/config.tynd
 and fill the cache once where there is network:
 
 ```console
-$ pixi run collect-data          # everything Scenario Building needs
-$ pixi run collect-data-cba      # everything the CBA needs
+# everything Scenario Building needs
+$ python utils/collect_data.py --configfile config/config.tyndp.yaml
+$ pixi run collect-data
+# everything the CBA needs + required SB retrieves
+$ python utils/collect_data.py --cba --configfile config/config.tyndp.yaml
+$ pixi run collect-data-cba
 ```
 
-Both tasks switch retrieval on themselves, so they populate the cache whatever your own
-configuration says. The workflow can now be run without network access.
+Either way the script switches retrieval on, so it populates the cache whatever
+your own configuration says. The workflow can now be run without network access.
 
 ## Running Scenario Building
 
