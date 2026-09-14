@@ -2913,7 +2913,7 @@ def _add_battery_capacities(
             tech = f"{carrier} {suffix}"
             pemmdb_tech = f"{pemmdb_index} {suffix}"
             links_i = n.links.query("carrier == @tech").index
-            caps = pemmdb_capacities.query("index_carrier == @pemmdb_tech")
+            caps = pemmdb_capacities.query(f"index_carrier == '{pemmdb_tech}'")
             caps = caps.set_index(caps.index + " " + tech)
 
             # Adjust efficiencies with PEMMDB values
