@@ -97,7 +97,9 @@ $ rsync -a data/local-cache/ offline-machine:~/open-tyndp/data/local-cache/
     that skips `data/` leaves the workflow without them.
 
 With `cba: cba_scenario_input: use_presolved: true` the pre-solved SB networks are collected into
-`results/` rather than into the cache, so copy that directory across as well.
+`results/` rather than into the cache, so copy that directory across as well. That run never generates
+the solved SB networks, so none of the SB datasets are required either; pass `--skip-sb` alongside
+`--cba` to leave them out of the cache.
 
 ### Reading the cache without a network {#local_cache_offline}
 
