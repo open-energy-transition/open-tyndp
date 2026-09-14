@@ -464,3 +464,7 @@ class DataConfig(BaseModel):
         default_factory=_DataSourceConfig,
         description="Open-TYNDP preliminary results data source configuration.",
     )
+    countries_centroids: _DataSourceConfig = Field(
+        default_factory=lambda: _DataSourceConfig(source="primary"),
+        description="World country centroids data source configuration.",
+    )
