@@ -122,9 +122,7 @@ def read_pemmdb_data(
 
     try:
         if required_sheets:
-            data = pd.read_excel(
-                fn, sheet_name=required_sheets, engine="calamine"
-            )
+            data = pd.read_excel(fn, sheet_name=required_sheets, engine="calamine")
         else:
             data = pd.read_excel(fn, sheet_name=None, engine="calamine")
 
