@@ -531,7 +531,7 @@ onsuccess:
         collected = sorted(
             str(path.relative_to(cache))
             for path in cache.rglob("*")
-            if path != LOCAL_CACHE_MANIFEST
+            if path.is_file() and path != LOCAL_CACHE_MANIFEST
         )
         LOCAL_CACHE_MANIFEST.write_text("\n".join(collected) + "\n")
 
