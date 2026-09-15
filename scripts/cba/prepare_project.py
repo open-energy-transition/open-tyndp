@@ -322,9 +322,7 @@ def prepare_transmission_project(
 ) -> None:
     transmission_projects = pd.read_csv(snakemake.input.transmission_projects)
     hurdle_costs = snakemake.params.hurdle_costs
-    negative_toot_capacity = snakemake.config["cba"].get(
-        "negative_toot_capacity", "zero"
-    )
+    negative_toot_capacity = snakemake.params.negative_toot_capacity
     costs = pd.read_csv(snakemake.input.costs, index_col=0)
 
     transmission_project = transmission_projects[

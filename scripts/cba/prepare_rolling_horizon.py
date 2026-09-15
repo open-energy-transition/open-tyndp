@@ -410,7 +410,7 @@ if __name__ == "__main__":
 
     # Fix reservoir state of charge at window boundaries from perfect foresight
     soc_boundary_carriers = snakemake.params.get("soc_boundary_carriers", [])
-    cba_solving = snakemake.config.get("cba", {}).get("solving", {})
+    cba_solving = snakemake.params.cba_solving
     fix_reservoir_soc_at_boundaries(
         n,
         n_msv,
