@@ -184,6 +184,8 @@ def check_cba_coverage(*args: str, verbose: bool = False) -> None:
             "fill the cache meanwhile, re-run with --verbose, take the output paths those jobs "
             f"report and fetch them directly:\n\n  {example}\n"
         )
+    else:
+        print("\nNo further retrieves, the cache covers the CBA workflow.")
 
 
 def main() -> None:
