@@ -287,7 +287,7 @@ if __name__ == "__main__":
         demand = pd.Series()
 
     else:
-        # Check if climatic year is valid for scenario
+        # Check if weather scenario is valid for scenario
         wscenario = check_wscenario(wscenario, scenario)
 
         # Load demand with interpolation

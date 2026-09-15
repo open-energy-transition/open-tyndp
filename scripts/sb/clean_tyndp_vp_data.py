@@ -64,7 +64,7 @@ def get_elec_demand(
     scenario : str
         Name of the scenario being processed.
     wscenario : int
-        Climate year.
+        Weather scenario.
     unit_conversion : dict
         Dictionary of unit conversions.
 
@@ -124,7 +124,7 @@ def get_power_capacities(
     scenario : str
         Name of the scenario being processed.
     wscenario : int
-        Climate year.
+        Weather scenario.
     unit_conversion : dict
         Dictionary of unit conversions.
 
@@ -140,7 +140,7 @@ def get_power_capacities(
             .replace(SCENARIO_DICT, regex=True)
             .query(
                 f"Scenario==@scenario and "
-                f"Climate_Year=='CY{wscenario}' and "
+                f"Climate_Year=='WS{wscenario}' and "
                 f"Property_Name == 'Installed Capacity' and "
                 f"Country in @EU27_COUNTRIES"
             )

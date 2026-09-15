@@ -1604,19 +1604,19 @@ def convert_units(
 
 def check_wscenario(wscenario: int, scenario: str) -> int:
     """
-    Check if the climatic year is valid for the given scenario.
+    Check if the weather scenario is valid for the given scenario.
 
     Parameters
     ----------
     wscenario : int
-        Climatic year to validate.
+        Weather scenario to validate.
     scenario : str
         TYNDP scenario name.
 
     Returns
     -------
     int
-        Valid climatic year, falling back to 2009 if the input is not available.
+        Valid weather scenario, falling back to 2009 if the input is not available.
     """
 
     valid_years = {

@@ -644,7 +644,7 @@ def compare_sources(
             )
         else:
             logger.info(
-                f"Skipping table {table} for scenario {scenario} and climate year {wscenario}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
+                f"Skipping table {table} for scenario {scenario} and weather scenario {wscenario}, generation profiles only available in TYNDP 2024 for climate year 2009 and DE/GA scenarios."
             )
         return pd.DataFrame(), pd.DataFrame(
             [["NA", "NA"]],

@@ -1151,7 +1151,7 @@ def process_pemmdb_profiles(
     sns : pd.DatetimeIndex
         Modelled snapshots.
     sns_year_h : pd.DatetimeIndex
-        Hourly Datetime index for a full given wscenario.
+        Hourly Datetime index for a full snapshot year.
     carrier_mapping_fn : str
         Path to file with mapping from external carriers to available tyndp_carrier names.
 
