@@ -897,3 +897,21 @@ rule prepare_references:
             **config["scenario"],
             run=config["run"]["name"],
         ),
+
+
+def presolved_sb_networks(w):
+    """
+    Return the pre-solved SB networks the CBA reads, empty when SB workflow is run instead.
+    """
+    if not config_provider("cba", "cba_scenario_input", "use_presolved")(w):
+        return []
+    return expand(
+        rules.retrieve_presolved_sb_networks.output.network,
+        planning_horizons=config_provider("cba", "planning_horizons")(w),
+        run=cba_target_runs(w),
+    )
+
+
+rule collect_presolved_sb_networks:
+    input:
+        presolved_sb_networks,

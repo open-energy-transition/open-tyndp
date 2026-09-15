@@ -1095,6 +1095,26 @@
           },
           "type": "array"
         },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
+        },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -2419,6 +2439,27 @@
           }
         },
         "open_tyndp_prelim": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "countries_centroids": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -7819,6 +7860,26 @@
           "default": {},
           "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
           "type": "object"
+        }
+      }
+    },
+    "_LocalCacheConfig": {
+      "description": "Configuration for the local cache of retrieved data.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+          "type": "boolean"
+        },
+        "directory": {
+          "default": "data/local-cache",
+          "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+          "type": "string"
+        },
+        "fill": {
+          "default": false,
+          "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+          "type": "boolean"
         }
       }
     },
@@ -14257,6 +14318,26 @@
           },
           "type": "array"
         },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
+        },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -15581,6 +15662,27 @@
           }
         },
         "open_tyndp_prelim": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "countries_centroids": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
