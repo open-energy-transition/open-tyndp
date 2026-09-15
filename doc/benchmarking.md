@@ -110,7 +110,7 @@ The structure of these outputs can be validated in the published preliminary ben
 
 ### Outputs
 
-Example of indicators extracted from `power_generation_cy2009_s_all___all_years.csv` by countries
+Example of indicators extracted from `power_generation_ws2009_s_all___all_years.csv` by countries
 for the NT scenario with hourly resolution:
 
 | Carrier | sMPE | sMAPE | sMdAPE | RMSLE | Growth Error | Missing countries | reference | version |
@@ -232,8 +232,8 @@ The following CBA indicators are benchmarked:
 
 ### Per Climate Year
 
-Indicators are first benchmarked for each individual climate year run (e.g. CY2009, CY2008,
-CY1995). This allows deviations to be traced to specific weather conditions and isolates
+Indicators are first benchmarked for each individual climate year run (e.g. WS2009, WS2008,
+WS1995). This allows deviations to be traced to specific weather conditions and isolates
 the effect of inter-annual climate variability on project benefits. For each climate year,
 all four indicators (B1–B4) are compared against the TYNDP 2024 reference values for every
 transmission project.

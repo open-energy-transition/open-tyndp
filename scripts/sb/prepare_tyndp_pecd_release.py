@@ -31,14 +31,14 @@ def process_pecd_files(
     pecd_file: str,
     dir_pecd: Path,
     output_dir: Path,
-    cyears: pd.Series,
+    wscenarios: pd.Series,
 ) -> pd.DataFrame:
     fn = Path(dir_pecd, pecd_file)
 
     skiprows = 10
 
     def _usecols(name):
-        return name in ("Date", "Hour") or name in cyears
+        return name in ("Date", "Hour") or name in wscenarios
 
     df = pd.read_csv(
         fn,
@@ -67,22 +67,22 @@ if __name__ == "__main__":
     ############
 
     # Weather scenarios from snakemake params
-    cyears = [f"WS{x:03d}" for x in pd.Series(snakemake.params.cyears)]
-    available_cyears = [f"WS{x:03d}" for x in np.arange(1, 121, 1)]
-    if set(cyears).difference(available_cyears):
+    wscenarios = [f"WS{x:03d}" for x in pd.Series(snakemake.params.wscenarios)]
+    available_wscenarios = [f"WS{x:03d}" for x in np.arange(1, 121, 1)]
+    if set(wscenarios).difference(available_wscenarios):
         logger.warning(
             "Weather scenarios doesn't match available TYNDP data. Only returning subset of available weather scenarios."
         )
-        cyears = pd.Series(list(set(cyears).intersection(available_cyears)))
+        wscenarios = pd.Series(list(set(wscenarios).intersection(available_wscenarios)))
     # Planning years for which PECD data is available for in the specified PECD version
-    available_pyears = snakemake.params.available_pyears
+    available_planning_horizons = snakemake.params.available_planning_horizons
     # Input and output directories and prebuilt version
     dir_pecd = snakemake.input.pecd_raw
     prebuilt_dir = snakemake.output.pecd_prebuilt
 
     # Iterate over available planning years
     #######################################
-    for year in available_pyears:
+    for year in available_planning_horizons:
         dir_pecd_year = Path(dir_pecd, str(year))
         pecd_files = [
             f
@@ -106,7 +106,7 @@ if __name__ == "__main__":
             process_pecd_files,
             dir_pecd=dir_pecd_year,
             output_dir=output_dir,
-            cyears=cyears,
+            wscenarios=wscenarios,
         )
 
         with mp.Pool(processes=snakemake.threads) as pool:

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """
-This script is used to clean TYNDP Scenario Building offshore hubs data to be used in the PyPSA-Eur workflow. Depending on the scenario, different planning years (`pyear`) are available. DE and GA are defined for 2030, 2040 and 2050. NT scenario is only defined for 2030 and 2040. All the planning years are read at once.
+This script is used to clean TYNDP Scenario Building offshore hubs data to be used in the PyPSA-Eur workflow. Depending on the scenario, different planning years (`planning_horizon`) are available. DE and GA are defined for 2030, 2040 and 2050. NT scenario is only defined for 2030 and 2040. All the planning years are read at once.
 """
 
 import logging
@@ -108,7 +108,7 @@ def load_offshore_grid(
     column_names = {
         "FROM": "bus0",
         "TO": "bus1",
-        "YEAR": "pyear",
+        "YEAR": "planning_horizon",
         "SCENARIO": "scenario",
         "MARKET": "carrier",
         "CAPACITY": "p_nom_min",
@@ -139,7 +139,7 @@ def load_offshore_grid(
         )
         .rename(columns=column_names)
         .replace({"scenario": SCENARIO_DICT})
-        .query("pyear in @planning_horizons and scenario == @scenario")
+        .query("planning_horizon in @planning_horizons and scenario == @scenario")
     )
     grid_costs[["capex", "opex"]] = grid_costs[["capex", "opex"]].mul(
         1e3
@@ -150,7 +150,9 @@ def load_offshore_grid(
 
     # Merge information
     grid = grid.merge(
-        grid_costs, how="outer", on=["bus0", "bus1", "pyear", "scenario", "carrier"]
+        grid_costs,
+        how="outer",
+        on=["bus0", "bus1", "planning_horizon", "scenario", "carrier"],
     ).assign(
         p_min_pu=lambda x: np.where(
             x["bus0"].str.contains("OH") & x["bus1"].str.contains("OH"), -1, 0
@@ -246,7 +248,7 @@ def load_offshore_electrolysers(
     column_names = {
         "NODE": "bus0",
         "OFFSHORE_NODE_TYPE": "type",
-        "YEAR": "pyear",
+        "YEAR": "planning_horizon",
         "SCENARIO": "scenario",
         "CAPEX": "capex",
         "OPEX": "opex",
@@ -259,7 +261,7 @@ def load_offshore_electrolysers(
             sheet_name="COST",
         )
         .rename(columns=column_names)
-        .query("pyear in @planning_horizons")
+        .query("planning_horizon in @planning_horizons")
         .replace({"scenario": SCENARIO_DICT})
         .query("scenario == @scenario")
         .assign(country=lambda x: x.bus0.str[:2], bus1=lambda x: x.bus0 + " H2")
@@ -319,11 +321,11 @@ def collect_from_layer(
        and potential capacities.
     """
     # Identify reallocations of radial wind farms using LAYER_POTENTIAL
-    idx = ["location", "bus", "type", "pyear", "scenario", "carrier"]
+    idx = ["location", "bus", "type", "planning_horizon", "scenario", "carrier"]
     generators_el = generators_e.merge(
         generators_l,
         how="outer",
-        on=["location", "type", "pyear", "scenario", "carrier"],
+        on=["location", "type", "planning_horizon", "scenario", "carrier"],
         suffixes=("", "_l"),
     )
 
@@ -363,7 +365,7 @@ def collect_from_layer(
         generators_e_fixed.merge(
             generators_l_fixed,
             how="outer",
-            on=["location", "type", "pyear", "scenario", "carrier_mapped"],
+            on=["location", "type", "planning_horizon", "scenario", "carrier_mapped"],
         )
         .assign(
             p_nom_min=lambda df: df.p_nom_min.fillna(0),
@@ -441,7 +443,7 @@ def load_offshore_generators(
         "NODE": "bus",
         "OFFSHORE_NODE": "location",
         "OFFSHORE_NODE_TYPE": "type",
-        "YEAR": "pyear",
+        "YEAR": "planning_horizon",
         "SCENARIO": "scenario",
         "TECHNOLOGY": "carrier",
         "TECH1": "carrier",
@@ -475,7 +477,7 @@ def load_offshore_generators(
         generators = (
             generators.rename(columns=column_names)
             .replace({"scenario": SCENARIO_DICT})
-            .query("pyear in @planning_horizons and scenario == @scenario")
+            .query("planning_horizon in @planning_horizons and scenario == @scenario")
             .assign(
                 carrier=lambda x: (
                     "offwind-" + x.carrier.str.lower().replace("_", "-", regex=True)
@@ -511,13 +513,13 @@ def load_offshore_generators(
     # TODO: Remove this once upstream TYNDP data is corrected
     DEOH002_DISCREPANCY_MW = 526
     idx_l = generators.query(
-        "location=='DEOH002' and pyear == 2040 and carrier=='offwind-ac-fb-r'"
+        "location=='DEOH002' and planning_horizon == 2040 and carrier=='offwind-ac-fb-r'"
     ).index
     generators.loc[idx_l, "p_nom_min"] = (
         generators.loc[idx_l, "p_nom_min"] - DEOH002_DISCREPANCY_MW
     )
     idx_z = zone_trajectories.query(
-        "location=='DEOH002' and pyear in [2045, 2050]"
+        "location=='DEOH002' and planning_horizon in [2045, 2050]"
     ).index
     zone_trajectories.loc[idx_z, "p_nom_max"] = (
         zone_trajectories.loc[idx_z, "p_nom_max"] - DEOH002_DISCREPANCY_MW
@@ -527,7 +529,7 @@ def load_offshore_generators(
     generators = generators.merge(
         generators_c,
         how="left",
-        on=["bus", "location", "pyear", "scenario", "type", "carrier"],
+        on=["bus", "location", "planning_horizon", "scenario", "type", "carrier"],
     )
 
     # Convert to explicit hydrogen buses

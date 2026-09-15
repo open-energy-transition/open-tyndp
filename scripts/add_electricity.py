@@ -565,7 +565,7 @@ def attach_wind_and_solar(
     landfall_lengths : dict, optional
         Dictionary containing the landfall lengths for offshore wind, by default None.
     trajectories : pd.DataFrame, optional, by default None
-        DataFrame containing the trajectories for the current pyear to attach (p_nom_min and p_nom_max). When
+        DataFrame containing the trajectories for the current planning_horizon to attach (p_nom_min and p_nom_max). When
         provided, these values override any p_nom_max defined in the profile itself.
     planning_horizon: int, optional
         Planning horizon for which renewable profiles should be added. Optional input defaults to None. If
