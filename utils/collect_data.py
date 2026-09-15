@@ -163,17 +163,22 @@ def check_cba_coverage(*args: str, verbose: bool = False) -> None:
     )
     if missing := retrieve_rules(listing):
         quote = subprocess.list2cmdline if sys.platform == "win32" else shlex.join
-        example = f"{quote([sys.executable])} -m snakemake <paths> {quote(list(args))}"
+        interpreter = quote([sys.executable])
+        listing_command = f"{interpreter} -m snakemake -n cba {quote(list(args))}"
+        fetch_command = f"{interpreter} -m snakemake -call <paths> {quote(list(args))}"
         raise SystemExit(
             "The cache does not cover the CBA workflow, these rules would still "
             "retrieve data:\n  " + "\n  ".join(missing) + "\n\n"
-            "Collecting Scenario Building is meant to cover the remaining CBA data files, so the two have "
-            "drifted apart and this collection needs to account for it. Please report it. To "
-            "fill the cache meanwhile, re-run with --verbose, take the output paths those jobs "
-            f"report and fetch them directly:\n\n  {example}\n"
+            "The clean_projects inputs and the Scenario Building collection are meant to cover "
+            "the CBA data files between them, so the collection and the workflow could have "
+            "drifted apart. To fill the cache meanwhile, read the output paths those "
+            f"jobs report:\n\n  {listing_command}\n\n"
+            f"and fetch them directly, by replacing <paths>:\n\n  {fetch_command}\n\n"
+            "Please report the issue under: "
+            "https://github.com/open-energy-transition/open-tyndp/issues\n"
         )
     else:
-        print("\nNo further retrieves, the cache covers the CBA workflow.")
+        print("\nNo further retrieves required, the cache covers the CBA workflow.")
 
 
 def main() -> None:
