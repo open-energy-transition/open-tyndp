@@ -3590,6 +3590,13 @@
           },
           "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
           "type": "object"
+        },
+        "sync_exclude": {
+          "description": "Patterns to skip when pulling directories with the `sync_file` rule, passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       }
     },
@@ -9409,6 +9416,13 @@
           },
           "description": "Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
           "type": "object"
+        },
+        "sync_exclude": {
+          "description": "Patterns to skip when pulling directories with the `sync_file` rule, passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         }
       }
     },
