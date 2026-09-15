@@ -334,9 +334,7 @@ def _process_other_nonres_capacities(
             efficiency=lambda x: pd.to_numeric(x.efficiency, errors="coerce"),
             co2_factor=lambda x: pd.to_numeric(x.co2_factor, errors="coerce"),
         )
-        .query(
-            "ws_start <= @wscenario and ws_end >= @wscenario and p_nom > 0"
-        )
+        .query("ws_start <= @wscenario and ws_end >= @wscenario and p_nom > 0")
         .reset_index(drop=True)
     )
 
@@ -645,9 +643,7 @@ def _process_dsr_capacities(
             pemmdb_type=lambda x: _extract_price_band_type(x),
             efficiency=1.0,  # dummy value for efficiency
         )
-        .query(
-            "ws_start <= @wscenario and ws_end >= @wscenario and p_nom > 0"
-        )
+        .query("ws_start <= @wscenario and ws_end >= @wscenario and p_nom > 0")
         .reset_index(drop=True)
     )
 
@@ -1391,9 +1387,7 @@ if __name__ == "__main__":
     )
 
     # Weather scenario, resolved for the planning year the data is read from
-    wscenario = get_wscenario(
-        snakemake.params.wscenarios, planning_horizon
-    )
+    wscenario = get_wscenario(snakemake.params.wscenarios, planning_horizon)
 
     logger.info(
         f"Processing PEMMDB data for target year: {planning_horizon_i}, "
