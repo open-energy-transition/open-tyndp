@@ -10,6 +10,14 @@
 #    - cba/results/2030/indicators_2030.csv
 #    - cba/results/2040/indicators_2040.csv
 
+# example for syncing all results/ files, except for cba/networks
+# remote:
+#   sync_file:
+#     results:
+#     - ""
+#   sync_exclude:
+#   - cba/networks
+
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
