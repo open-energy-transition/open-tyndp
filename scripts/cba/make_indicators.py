@@ -1099,16 +1099,16 @@ if __name__ == "__main__":
     reference_wscenarios = pd.DatetimeIndex(n_reference.snapshots).year.unique()
     project_wscenarios = pd.DatetimeIndex(n_project.snapshots).year.unique()
 
-    # check that both reference and project networks contain exactly one climate year
+    # check that both reference and project networks contain exactly one  weather scenario
     if len(reference_wscenarios) != 1 or len(project_wscenarios) != 1:
         raise ValueError(
-            "More than one climate year found in reference or project snapshots."
+            "More than one weather scenario found in reference or project snapshots."
         )
 
-    # check that both reference and project networks use the same climate year
+    # check that both reference and project networks use the same weather scenario
     if reference_wscenarios[0] != project_wscenarios[0]:
         raise ValueError(
-            f"Reference and project networks use different climate years: "
+            f"Reference and project networks use different weather scenarios: "
             f"{reference_wscenarios[0]} != {project_wscenarios[0]}"
         )
 

@@ -124,7 +124,7 @@ def read_pemmdb_data(
     pemmdb_dir : str
         Path to directory containing PEMMDB data.
     wscenario : int
-        Climate year to read data for.
+        Weather scenario to read data for.
     planning_horizon : int
         Planning year used for data retrieval (fallback year if planning_horizon_i not available).
     required_sheets : list[str], optional
@@ -1143,7 +1143,7 @@ def process_pemmdb_profiles(
     tyndp_scenario : str
         TYNDP scenario to read data for.
     wscenario : int
-        Climate year to read data for.
+        Weather scenario to read data for.
     planning_horizon : int
         Planning year used for data retrieval (fallback year if planning_horizon_i not available).
     planning_horizon_i : int
@@ -1266,7 +1266,7 @@ def process_pemmdb_data(
     thermal_techs : list[str]
         Thermal technologies to read data for.
     wscenario : int
-        Climate year to read data for.
+        Weather scenario to read data for.
     planning_horizon : int
         Planning year used for data retrieval (fallback year if planning_horizon_i not available).
     planning_horizon_i : int

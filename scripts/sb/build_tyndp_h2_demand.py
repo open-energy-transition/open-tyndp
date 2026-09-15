@@ -213,11 +213,11 @@ def load_h2_demand(
     fn: str, scenario: str, planning_horizon: int, wscenario: int
 ) -> pd.DataFrame:
     """
-    Load hydrogen demand data for a specific scenario, climate year, planning year.
+    Load hydrogen demand data for a specific scenario, weather scenario, planning year.
 
     This function retrieves hydrogen demand data from a file, either by loading
     the exact year if available or by performing linear interpolation between
-    available years. The data is filtered for a specific climatic year.
+    available years. The data is filtered for a specific weather scenario.
 
     Parameters
     ----------
@@ -228,13 +228,13 @@ def load_h2_demand(
     planning_horizon : int
         Planning year for which to retrieve hydrogen demand data.
     wscenario : int
-        Climatic year used to filter the demand data.
+        Weather scenario used to filter the demand data.
 
     Returns
     -------
     pd.DataFrame
         DataFrame containing hydrogen demand data for the specified scenario,
-        planning year, and climatic year.
+        planning year, and weather scenario.
     """
 
     available_years = get_available_years(fn, scenario)
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         # Load demand with interpolation
         logger.info(
             f"Processing H2 demand for scenario: {scenario}, "
-            f"target year: {planning_horizon}, climate year: {wscenario}"
+            f"target year: {planning_horizon}, weather scenario: {wscenario}"
         )
         demand = load_h2_demand(fn, scenario, planning_horizon, wscenario)
 
