@@ -131,7 +131,7 @@ https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.6-pyhcf101f3_1.conda#04
 https://conda.anaconda.org/conda-forge/linux-64/immutables-0.21-py314h5bd0f2a_2.conda#d4d65cfb5c2569d5dbd344039471a534
 https://conda.anaconda.org/conda-forge/noarch/smmap-5.0.3-pyhcf101f3_1.conda#b899f1195be56d8215ed1973a8f409c3
 https://conda.anaconda.org/conda-forge/noarch/gitdb-4.0.12-pyhd8ed1ab_0.conda#7c14f3706e099f8fcd47af2d494616cc
-https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.61-pyhcf101f3_0.conda#a4d052a35ae133a5fef5bc34fd337cd8
+https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.62-pyh5ded981_0.conda#bc66034cae0ff9168c130766eb2b33d1
 https://conda.anaconda.org/conda-forge/noarch/connection_pool-0.0.3-pyhd3deb0d_0.tar.bz2#e270fff08907db8691c02a0eda8d38ae
 https://conda.anaconda.org/conda-forge/noarch/conda-inject-1.3.2-pyhd8ed1ab_0.conda#e52c2a160d6bd0649c9fafdf0c813357
 https://conda.anaconda.org/bioconda/noarch/snakemake-minimal-9.26.0-pyhdfd78af_0.conda#2551648909bd5bc405724553e40e16e5
@@ -496,7 +496,7 @@ https://conda.anaconda.org/conda-forge/linux-64/graphviz-14.1.2-h8b86629_0.conda
 https://conda.anaconda.org/conda-forge/linux-64/glpk-5.0-h445213a_0.tar.bz2#efc4b0c33bdf47312ad5a8a0587fa653
 https://conda.anaconda.org/conda-forge/noarch/geojson-3.3.0-pyhd8ed1ab_0.conda#c3cee0e0843e38698c45dfec869e9888
 https://conda.anaconda.org/conda-forge/noarch/descartes-1.1.0-pyhd8ed1ab_5.conda#4a25cae637029c5589135903aa15b3b6
-https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-1.2.2-py314h5383ef5_1.conda#9fe4a1c314db2c29167abbb31d5c8d64
+https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-1.2.2-py314h5383ef5_2.conda#12730234204506e89076693b125e3c61
 https://conda.anaconda.org/conda-forge/noarch/deprecated-1.3.1-pyhd8ed1ab_1.conda#5498feb783ab29db6ca8845f68fa0f03
 https://conda.anaconda.org/conda-forge/linux-64/numcodecs-0.16.5-py314ha0b5721_0.conda#780127fd34cd3b3c320c8e8d22ff4b0e
 https://conda.anaconda.org/conda-forge/linux-64/google-crc32c-1.8.0-py314hd6bf2bd_1.conda#9878f356d87ec8e4d2cd3c44561128be
