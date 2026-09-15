@@ -14,6 +14,7 @@ import pandas as pd
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
 from shutil import unpack_archive, copy2
+from snakemake.iocontainers import Wildcards
 
 logger = logging.getLogger(__name__)
 
@@ -785,6 +786,7 @@ def cba_projects(w):
 
 
 def collect_cba_scenario_inputs(w):
+    print(">>> collect_cba_scenario_inputs run =", w.get("run"))
     inputs = []
     inputs.extend(
         expand(
@@ -820,23 +822,12 @@ def collect_cba_scenario_inputs(w):
             )
         )
 
+    print(">>> returned", len(inputs), "files:", inputs[:3])
     return inputs
 
 
 # Collect
 ##########
-
-
-# collect files to be stored in the scenario directory, e.g., NT-cy1995
-rule collect_cba_scenario:
-    input:
-        collect_cba_scenario_inputs,
-    output:
-        touch(RESULTS + "cba/all_scenarios.txt"),
-    log:
-        logs("cba/collect_cba_scenario.log"),
-    benchmark:
-        benchmarks("performances/cba/collect_cba_scenario")
 
 
 def cba_ensemble_inputs(w):
@@ -878,15 +869,30 @@ def cba_ensemble_inputs(w):
     return inputs
 
 
+# def cba_target_inputs(w):
+#     """
+#     Collect files to be stored in the scenario directory, e.g., NT-cy1995
+#     """
+#     return [
+#         f
+#         for run in cba_target_runs(w)
+#         for f in collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
+#     ]
+
+def cba_target_inputs(w):
+    files = []
+    for run in cba_target_runs(w):
+        run_files = collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
+        print(f">>> {run}: {len(run_files)} files, first={run_files[:2]}")
+        files.extend(run_files)
+    print(f">>> cba_target_inputs total: {len(files)}")
+    return files
+
 # collect files to be stored in the scenario collection directory, e.g., NT-cyears
 rule cba:
     input:
         cba_ensemble_inputs,
-        # collect files to be stored in the scenario directory, e.g., NT-cy1995
-        lambda w: expand(
-            rules.collect_cba_scenario.output[0],
-            run=cba_target_runs(w),
-        ),
+        cba_target_inputs,
 
 
 # collect rules
