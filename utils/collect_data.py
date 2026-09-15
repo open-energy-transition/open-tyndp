@@ -70,7 +70,11 @@ def run_snakemake(
     if verbose:
         print(f"  {' '.join(command)}", flush=True)
     completed = subprocess.run(
-        command, text=True, stdout=subprocess.PIPE if capture else None
+        command,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        stdout=subprocess.PIPE if capture else None,
     )
     if capture and (verbose or completed.returncode):
         sys.stdout.write(completed.stdout)
@@ -170,9 +174,8 @@ def check_cba_coverage(*args: str, verbose: bool = False) -> None:
         verbose=verbose,
     )
     if missing := retrieve_rules(listing):
-        example = (
-            f"{shlex.quote(sys.executable)} -m snakemake <paths> {shlex.join(args)}"
-        )
+        quote = subprocess.list2cmdline if sys.platform == "win32" else shlex.join
+        example = f"{quote([sys.executable])} -m snakemake <paths> {quote(list(args))}"
         raise SystemExit(
             "The cache does not cover the CBA workflow, these rules would still "
             "retrieve data:\n  " + "\n  ".join(missing) + "\n\n"
