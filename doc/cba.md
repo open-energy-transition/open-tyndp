@@ -13,7 +13,136 @@ The workflow evaluates projects using a **rolling horizon** approach where the f
 
 To resolve **myopia**—where the optimizer cannot see beyond the current week and makes suboptimal decisions for seasonal storage (H2, gas, large hydro)—the workflow uses Marginal Storage Values (MSV) derived from a full-year optimization.
 
-![CBA rolling horizon pipeline diagram](img/tyndp/cba-rolling-horizon-pipeline.jpeg)
+The diagram below shows the full CBA workflow as implemented in `rules/cba.smk`. Dashed boxes and
+arrows are conditional; `×N` marks a step that fans out over every selected project.
+
+```mermaid
+flowchart TD
+
+    subgraph RET ["Retrieve"]
+        RPS["retrieve_presolved_sb_networks<br/>only if use_presolved"]
+        RTP["retrieve_tyndp_cba_projects<br/>downloads the CBA project explorer dataset, containing project definitions."]
+        CTI["clean_tyndp_indicators<br/>processes and cleans CBA project data"]
+    end
+
+    SBNET(["SB solved network<br/>one per planning horizon"])
+    CLP[["clean_projects (checkpoint)<br/>project list, one row per border,<br/>TOOT or PINT per horizon"]]
+
+    subgraph REF ["Build reference network"]
+        SIM["simplify_sb_network<br/>fix optimal capacities, add hurdle costs to DC links,<br/>set infinite capacities for fuel generators"]
+        FRX["fix_reference_sb_to_cba<br/>build dataframe of capacity corrections to align SB projects with the CBA reference grid"]
+        PRF["prepare_reference<br/>apply capacity patches"]
+    end
+
+    subgraph MSVX ["Create Marginal Storage Values (MSV)"]
+        BMW["build_msv_snapshot_weightings<br/>generate snapshot weightings for MSV extraction temporal aggregation"]
+        SMS["solve_cba_msv_extraction<br/>solve full-year perfect-foresight LP,<br/>all duals assigned"]
+    end
+
+    subgraph RH ["Prepare rolling horizon"]
+        PRH["prepare_rolling_horizon<br/>carry storage state, drop annual limits,<br/>MSVs become marginal costs"]
+        PRP["prepare_project ×N<br/>create project network:<br/>TOOT removes the project, PINT adds it"]
+    end
+
+    subgraph SOL ["Solve dispatch using rolling horizon<br/>(default weekly windows, 168 h, overlap 1)"]
+        SLR["solve_cba_reference_network<br/>one per planning horizon"]
+        SLN["solve_cba_network ×N<br/>one per project per planning horizon"]
+    end
+
+    subgraph IND ["Calculate and benchmark indicators"]
+        MKI["make_indicators ×N<br/>project minus reference:<br/>B1 welfare, B2 CO2, B3 RES, B4 pollutants"]
+        CBI["combine_indicators"]
+        PLI["plot_indicators"]
+        PCB["plot_cba_benchmark ×N"]
+        PSB["plot_summary_projects_benchmark<br/>sMAPE and sMdAPE against published results"]
+    end
+
+    subgraph ENS ["Run climate-year ensemble (collection runs only)"]
+        AVG["average_indicators_per_project_and_planning_horizon<br/>weighted mean over climate years 1995, 2008, 2009"]
+        PWB["plot_weather_benchmark ×N"]
+        SIP["summarize_indicators_per_project"]
+        SAI["summarize_all_indicators"]
+    end
+
+    subgraph COL ["Collect"]
+        CCS["collect_cba_scenario"]
+        CBA(["rule cba — workflow entry point"])
+    end
+
+    RPS -.-> SBNET
+    RTP --> CLP
+    RTP --> CTI
+
+    SBNET --> SIM
+    SIM --> PRF
+    FRX --> PRF
+
+    PRF --> BMW
+    BMW -.-> SMS
+    PRF --> SMS
+
+    PRF --> PRH
+    SMS --> PRH
+
+    PRH --> SLR
+    PRH --> PRP
+    CLP --> PRP
+    PRP --> SLN
+
+    SLR --> MKI
+    SLN --> MKI
+    CLP --> MKI
+    CTI --> MKI
+
+    MKI --> CBI
+    CBI --> PLI
+    MKI --> PCB
+    CBI -->|plain run| PSB
+
+    MKI --> AVG
+    MKI -.-> PWB
+    AVG --> SIP
+    MKI --> SAI
+    AVG -->|collection run| PSB
+
+    PLI --> CCS
+    PCB --> CCS
+    PSB --> CCS
+    PWB -.-> CCS
+
+    CCS --> CBA
+    SIP --> CBA
+    SAI --> CBA
+
+    classDef checkpoint stroke-width:3px;
+    classDef optional stroke-dasharray: 5 5;
+    class CLP checkpoint
+    class RPS,BMW,PWB optional
+```
+
+Outputs per stage, with `{h}` the planning horizon, `{p}` the project code (e.g. `t4`) and the run
+directory `results/tyndp/{run}/` (`resources/tyndp/{run}/` for intermediate files):
+
+| Stage | Output |
+| --- | --- |
+| `clean_projects` | `resources/.../cba/transmission_projects.csv`, `storage_projects.csv`, `cba_project_methods.csv` |
+| `simplify_sb_network` | `resources/.../cba/networks/simple_{h}.nc` |
+| `fix_reference_sb_to_cba` | `resources/.../cba/reference_sb_to_cba_{h}.csv` |
+| `prepare_reference` | `resources/.../cba/networks/reference_{h}.nc` |
+| `solve_cba_msv_extraction` | `resources/.../cba/networks/msv_{h}.nc` |
+| `prepare_rolling_horizon` | `resources/.../cba/networks/rl_{h}.nc` |
+| `prepare_project` | `resources/.../cba/networks/project_{p}_{h}.nc` (temporary) |
+| `solve_cba_reference_network` / `solve_cba_network` | `results/.../cba/networks/reference_{h}.nc`, `project_{p}_{h}.nc` |
+| `make_indicators` | `results/.../cba/results/{h}/project_{p}_{h}.csv` |
+| `combine_indicators` | `results/.../cba/results/{h}/indicators_{h}.csv` |
+| `average_indicators_per_project_and_planning_horizon` | `results/.../cba/results/all/ensemble_indicators_{p}_{h}.csv` |
+
+Two things the diagram makes explicit that are easy to miss:
+
+* `clean_projects` is a Snakemake **checkpoint** — it is what expands the rest of the DAG, which is
+  why a first run shows only a handful of jobs (see [Checkpoint](#checkpoint) below).
+* The ensemble stage only materialises for a collection run such as `NT-cyears`. A plain
+  single-climate-year run stops at `collect_cba_scenario`.
 
 ### Network Simplification
 
@@ -25,7 +154,9 @@ The SB network is transformed into a dispatch-ready CBA network:
 
 ### Reference Network
 
-The simplified network is extended to form the CBA reference baseline by adding all TOOT project capacities. This ensures the reference and MSV extraction operate on the same topology.
+The simplified network is reconciled with the reference grid defined in the CBA Implementation Guidelines. TOOT projects are already present, since the SB workflow built them; what `prepare_reference` does is apply the per-border capacity deltas computed by `fix_reference_sb_to_cba` on top of the SB build-out, so that the reference network, the MSV extraction and every project variant share one topology.
+
+This correction only applies to the 2035 and 2040 horizons, and only when `tyndp_investment_candidates.patch_sb_with_annexe` is `false`. It is `true` in `config/config.tyndp.yaml`, meaning the investment candidates were already patched during Scenario Building — so under the shipped configuration this step is a pass-through.
 
 ### MSV Extraction
 
@@ -33,7 +164,7 @@ The reference network is solved with **perfect foresight** (entire year, single 
 
 ### Rolling Horizon Preparation
 
-The reference network and MSV results are combined through five transformations:
+The reference network and MSV results are combined through six transformations:
 
 * **(a) Initial storage state:** Seasonal components have their initial state set to the perfect foresight solution's last-snapshot value.
 * **(b) Disable cyclicity:** Short-term storage (battery) keeps cyclicity, while seasonal units (H2, gas, hydro) have it disabled, guided instead by MSVs.
