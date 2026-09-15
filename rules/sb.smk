@@ -812,10 +812,10 @@ if config["benchmarking"]["enable"]:
 
     rule clean_tyndp_output_benchmark:
         input:
-            # TODO Generalize hardcoded climate year CY2009 for DE / GA
+            # TODO Generalize hardcoded climate year WS2009 for DE / GA
             tyndp_output_file=lambda w: getattr(
                 rules.retrieve_tyndp.output,
-                f"market_outputs_{w.scenario}{w.planning_horizons}_CY2009",
+                f"market_outputs_{w.scenario}{w.planning_horizons}_WS2009",
             ),
             carrier_mapping="data/tyndp_technology_map.csv",
         output:
