@@ -374,6 +374,7 @@ rule prepare_rolling_horizon:
         cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
         soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
         msv_resample_method=config_provider("cba", "msv_extraction", "resample_method"),
+        cba_solving=config_provider("cba", "solving"),
     script:
         scripts("cba/prepare_rolling_horizon.py")
 
