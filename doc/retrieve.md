@@ -36,6 +36,8 @@ data:
     fill: false
 ```
 
+### Filling the cache with network access {#local_cache_online}
+
 The cache is filled in a separate step, depending on the workflow. The CBA workflow rule will, however,
 also retrieve all required files to run the prerequisite SB workflow, unless the SB networks are taken pre-solved (see below).
 
@@ -106,7 +108,7 @@ collect task retrieves them for the planning horizons the CBA covers; copy `resu
 the cache. That run still needs part of the Scenario Building data, for the shapes, bidding zones and
 costs the CBA builds itself, so SB dependencies are still retrieved into the local cache.
 
-### Reading the cache without a network {#local_cache_offline}
+### Reading the cache without network access {#local_cache_offline}
 
 A cached run contacts no remote URL. The retrieve rules stay defined but take the cache
 manifest `{local_cache.directory}/.collected` as their input instead of a URL, because Snakemake

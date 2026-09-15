@@ -930,13 +930,13 @@ See the `data/versions.csv` and `data/tyndp_versions.csv` files for all availabl
 In your own project, you can define additional version files to modify the contents of `data/tyndp_versions.csv`.
 See the [data versioning documentation](data_sources.md#managing_data_versions) for more details.
 
-The `local_cache` settings are separate to the per-dataset source selection. Enabling
+The [`local_cache`](retrieve.md#local_cache) settings are separate to the per-dataset source selection. Enabling
 `local_cache` collapses the retrieval layout from `data/{dataset}/{source}/{version}` to
 `{local_cache.directory}/{dataset}/{version}` and switches retrieval off, so the workflow reads whatever the
 cache already holds; `fill` turns retrieval back on so the cache can be populated, and is what
 the `collect-data` tasks add on the command line. A run reading the cache contacts no remote
-URL and so works without network access; see [Local data cache](retrieve.md#local_cache) and
-[Reading the cache without a network](retrieve.md#local_cache_offline).
+URL and so works without network access; see [Filling the cache with network access](retrieve.md#local_cache_online) and
+[Reading the cache without network access](retrieve.md#local_cache_offline).
 
 ??? note "Configuration for `data` settings."
 
