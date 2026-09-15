@@ -98,12 +98,13 @@ $ rsync -a data/local-cache/ offline-machine:~/open-tyndp/data/local-cache/
     offline machine if it can reach the Git remote. `data/` matters here: Some files like
     `data/cba/*.csv`, `data/tyndp_technology_map.csv`, `data/tyndp_versions.csv` and the
     transmission project CSVs ship directly with the repository and are never fetched, so a copy
-    that skips `data/` leaves the workflow without them.
+    that skips `data/` will break the workflow.
 
 With `cba: cba_scenario_input: use_presolved: true` the pre-solved SB networks are collected into
-`results/` rather than into the cache, so copy that directory across as well. That run never generates
-the solved SB networks, so none of the SB datasets are required either; pass `--skip-sb` alongside
-`--cba` to leave them out of the cache.
+`results/` rather than into the cache. The `clean_projects` checkpoint lists them as an input, so the
+collect task retrieves them for the planning horizons the CBA covers; copy `results/` across alongside
+the cache. That run still needs part of the Scenario Building data, for the shapes, bidding zones and
+costs the CBA builds itself, so SB dependencies are still retrieved into the local cache.
 
 ### Reading the cache without a network {#local_cache_offline}
 

@@ -14,9 +14,6 @@ Run directly or through the pixi tasks, which already specify config/config.tynd
     python utils/collect_data.py --cba --configfile path/to/your/config.yaml [ARGS]
     pixi run collect-data-cba [ARGS]
 
-Add `--skip-sb` to the CBA calls when the SB networks are taken pre-solved, so the SB datasets
-the run never builds are left out.
-
 Arguments other than the options below are passed to every Snakemake call, so `-n` lists
 what would be downloaded without fetching it, and `-c`, `--scheduler`, `--executor` and
 `--profile` reach Snakemake unchanged. The last occurrence of an argument wins, so `-c8`
@@ -132,21 +129,12 @@ def parse_arguments() -> tuple[argparse.Namespace, list[str]]:
         help="config file(s) to collect for, overriding the one the pixi task passes",
     )
     parser.add_argument(
-        "--skip-sb",
-        action="store_true",
-        help="skip the Scenario Building datasets, for a CBA run that takes the SB networks "
-        "pre-solved and does not generate them from scratch",
-    )
-    parser.add_argument(
         "--verbose",
         action="store_true",
         help="show every Snakemake call in full, including the dry runs that only list "
         "datasets; taken by this script rather than passed on to Snakemake",
     )
-    args, forwarded = parser.parse_known_args()
-    if args.skip_sb and not args.cba:
-        parser.error("--skip-sb is only compatible with --cba collection")
-    return args, forwarded
+    return parser.parse_known_args()
 
 
 def check_cba_coverage(*args: str, verbose: bool = False) -> None:
@@ -217,40 +205,36 @@ def main() -> None:
             "-c",
             "all",
             *base,
+            "--forcerun",
+            "clean_projects",
             "--until",
             "clean_projects",
             verbose=args.verbose,
         )
 
-    if args.skip_sb:
-        print(
-            "\nSkipping the Scenario Building datasets as --skip-sb is set. "
-            "Expecting to use pre-solved SB networks."
+    listing = run_snakemake(
+        "Listing the datasets this workflow needs",
+        "-n",
+        "--forceall",
+        *base,
+        capture=True,
+        verbose=args.verbose,
+    )
+    if not (needed := retrieve_rules(listing)):
+        raise SystemExit(
+            "Found no retrieve rules in the forced dry run. Either this config retrieves no "
+            "datasets at all, or its job listing no longer parses. Pass '--verbose' to inspect "
+            "job listing in more detail."
         )
-    else:
-        listing = run_snakemake(
-            "Listing the datasets this workflow needs",
-            "-n",
-            "--forceall",
-            *base,
-            capture=True,
-            verbose=args.verbose,
-        )
-        if not (needed := retrieve_rules(listing)):
-            raise SystemExit(
-                "Found no retrieve rules in the forced dry run. Either this config retrieves no "
-                "datasets at all, or its job listing no longer parses. Pass '--verbose' to inspect "
-                "job listing in more detail."
-            )
-        run_snakemake(
-            f"Collecting {len(needed)} dataset(s)",
-            "-c",
-            "all",
-            *base,
-            "--until",
-            *needed,
-            verbose=args.verbose,
-        )
+    run_snakemake(
+        f"Collecting {len(needed)} dataset(s)",
+        "-c",
+        "all",
+        *base,
+        "--until",
+        *needed,
+        verbose=args.verbose,
+    )
 
     if not args.cba:
         return

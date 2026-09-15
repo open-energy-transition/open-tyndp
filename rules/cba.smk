@@ -134,9 +134,24 @@ def input_clustered_network(w):
     return fill_wildcards(rules.cluster_network.output.network, clusters=clusters)
 
 
+def presolved_sb_networks(w):
+    """
+    Return the pre-solved SB networks the CBA reads, empty when SB workflow is run instead.
+    """
+    if not config_provider("cba", "cba_scenario_input", "use_presolved")(w):
+        return []
+    return expand(
+        rules.retrieve_presolved_sb_networks.output.network,
+        planning_horizons=config_provider("cba", "planning_horizons")(w),
+        run=[w.run],
+    )
+
+
 checkpoint clean_projects:
     input:
         dir=rules.retrieve_tyndp_cba_projects.output.dir,
+        # not read by the script, listed so the checkpoint requires their retrieval
+        presolved_networks=presolved_sb_networks,
         buses=rules.retrieve_tyndp.output.nodes,
         offshore_buses=rules.retrieve_tyndp.output.offshore_nodes,
         guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
