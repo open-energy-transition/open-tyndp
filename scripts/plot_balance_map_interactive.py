@@ -311,7 +311,11 @@ if __name__ == "__main__":
         .where(
             lambda x: x < voll * 0.98
         )  # Add 2% of numerical tolerance; comment out to incl. load shedding
-        .pipe(lambda x: (weights @ x.fillna(0)) / (weights @ x.notna()))
+        .pipe(
+            lambda x: (weights @ x.fillna(0)).div(
+                (weights @ x.notna()).mask(lambda d: d == 0)
+            )
+        )
     )
 
     if carrier == "co2 stored" and "CO2Limit" in n.global_constraints.index:
