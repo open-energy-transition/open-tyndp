@@ -37,8 +37,6 @@ if (CBA_PROJECTS_DATASET := dataset_version("tyndp_cba_projects"))[
             dir=directory(CBA_PROJECTS_DATASET["folder"]),
         log:
             "logs/retrieve_tyndp_cba_projects.log",
-        params:
-            source="CBA project explorer",
         run:
             copy2(input["zip_file"], output["dir"] + ".zip")
             unpack_archive(output["dir"] + ".zip", output["dir"])
@@ -168,6 +166,8 @@ rule clean_tyndp_indicators:
         logs("cba/clean_tyndp_indicators.log"),
     benchmark:
         benchmarks("performances/cba/clean_tyndp_indicators")
+    params:
+        planning_horizons=config_provider("cba", "planning_horizons"),
     script:
         scripts("cba/clean_tyndp_indicators.py")
 
@@ -351,7 +351,6 @@ rule solve_cba_msv_extraction:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "msv_extraction", "solving"),
         msv_resolution=config_provider("cba", "msv_extraction", "resolution"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
     script:
         scripts("cba/solve_cba_msv_extraction.py")
 
@@ -383,7 +382,6 @@ rule prepare_rolling_horizon:
 rule prepare_project:
     input:
         network=rules.prepare_rolling_horizon.output.network,
-        network_msv=rules.solve_cba_msv_extraction.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
         methods=rules.clean_projects.output.methods,
@@ -398,9 +396,8 @@ rule prepare_project:
         benchmarks("performances/cba/prepare_project_{cba_project}_{planning_horizons}")
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
-        cyclic_carriers=config_provider("cba", "storage", "cyclic_carriers"),
-        soc_boundary_carriers=config_provider("cba", "storage", "soc_boundary_carriers"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
+        negative_toot_capacity=config_provider("cba", "negative_toot_capacity"),
     script:
         scripts("cba/prepare_project.py")
 
@@ -425,7 +422,6 @@ rule solve_cba_reference_network:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "solving"),
         foresight=config_provider("foresight"),
-        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
     script:
         scripts("cba/solve_cba_network.py")
@@ -455,7 +451,6 @@ rule solve_cba_network:
         solving=config_provider("solving"),
         cba_solving=config_provider("cba", "solving"),
         foresight=config_provider("foresight"),
-        time_resolution=config_provider("clustering", "temporal", "resolution_sector"),
         custom_extra_functionality=None,
     script:
         scripts("cba/solve_cba_network.py")
@@ -578,6 +573,8 @@ rule plot_cba_benchmark:
         benchmarks(
             "performances/cba/plot_cba_benchmark_{cba_project}_{planning_horizons}"
         )
+    params:
+        area=config_provider("cba", "area"),
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -595,6 +592,8 @@ rule plot_weather_benchmark:
         benchmarks(
             "performances/cba/plot_weather_benchmark_{cba_project}_{planning_horizons}"
         )
+    params:
+        area=config_provider("cba", "area"),
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -624,7 +623,7 @@ rule summarize_indicators_per_project:
     input:
         indicators=lambda w: expand(
             rules.average_indicators_per_project_and_planning_horizon.output.indicators,
-            planning_horizons=config["cba"]["planning_horizons"],
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=[w.cba_project],
             run=[w.run],
         ),
@@ -634,6 +633,8 @@ rule summarize_indicators_per_project:
         logs("cba/summarize_indicators_{cba_project}.log"),
     benchmark:
         benchmarks("performances/cba/summarize_indicators_{cba_project}")
+    params:
+        area=config_provider("cba", "area"),
     script:
         scripts("cba/summarize_indicators.py")
 
@@ -670,6 +671,8 @@ rule plot_summary_projects_benchmark:
         benchmarks(
             "performances/cba/plot_summary_projects_benchmark_{planning_horizons}"
         )
+    params:
+        area=config_provider("cba", "area"),
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
@@ -678,7 +681,7 @@ rule summarize_all_indicators:
     input:
         indicators=lambda w: expand(
             rules.plot_weather_benchmark.input.indicators,
-            planning_horizons=config["cba"]["planning_horizons"],
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=cba_source_runs(w),
         ),
@@ -688,6 +691,8 @@ rule summarize_all_indicators:
         logs("cba/summarize_all_indicators.log"),
     benchmark:
         benchmarks("performances/cba/summarize_all_indicators")
+    params:
+        area=config_provider("cba", "area"),
     script:
         scripts("cba/summarize_all.py")
 
@@ -860,7 +865,7 @@ def cba_ensemble_inputs(w):
     inputs.extend(
         expand(
             rules.average_indicators_per_project_and_planning_horizon.output.indicators,
-            planning_horizons=config["cba"]["planning_horizons"],
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=runs,
         )
@@ -875,7 +880,7 @@ def cba_ensemble_inputs(w):
     inputs.extend(
         expand(
             rules.summarize_all_indicators.output.plot_file,
-            planning_horizons=config["cba"]["planning_horizons"],
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=runs,
         )
@@ -883,7 +888,7 @@ def cba_ensemble_inputs(w):
     inputs.extend(
         expand(
             rules.plot_summary_projects_benchmark.output.plot_file,
-            planning_horizons=config["cba"]["planning_horizons"],
+            planning_horizons=config_provider("cba", "planning_horizons")(w),
             run=runs,
         )
     )
