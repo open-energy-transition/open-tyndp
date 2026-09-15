@@ -51,10 +51,6 @@ $ pixi run collect-data
 $ python utils/collect_data.py --cba --configfile path/to/your/config.yaml
 # or
 $ pixi run collect-data-cba
-
-# run either workflow, reading the cache if enabled, no network required
-$ pixi run tyndp-sb
-$ pixi run tyndp-cba
 ```
 
 Both tasks run `utils/collect_data.py`. The script dry-runs the full Scenario Building graph,
@@ -117,6 +113,12 @@ Snakemake's provenance records for the cached files, so that switch does not mar
 job out of date. The manifest and the provenance reset are written only when a collect task
 finishes, so an interrupted `collect-data` leaves stale records behind and the next run will
 want to re-fetch.
+
+```console
+# run either workflow, reading the cache if enabled, no network required
+$ pixi run tyndp-sb
+$ pixi run tyndp-cba
+```
 
 Should the cache be missing a file on offline execution, the workflow stops and
 names the absent files, also on dry runs. That check reads the manifest, so it covers only what
