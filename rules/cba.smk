@@ -480,6 +480,18 @@ rule make_indicators:
         logs("cba/make_indicators_{cba_project}_{planning_horizons}.log"),
     benchmark:
         benchmarks("performances/cba/make_indicators_{cba_project}_{planning_horizons}")
+    params:
+        remove_noisy_costs=config_provider("cba", "remove_noisy_costs"),
+        co2_societal_cost=config_provider("cba", "co2_societal_cost"),
+        emission_prices=config_provider("costs", "emission_prices"),
+        tyndp_renewable_carriers=config_provider(
+            "electricity", "tyndp_renewable_carriers"
+        ),
+        tyndp_conventional_carriers=config_provider(
+            "electricity", "tyndp_conventional_carriers"
+        ),
+        sb_scenario=config_provider("cba", "sb_scenario", default=None),
+        tyndp_scenario=config_provider("tyndp_scenario"),
     script:
         scripts("cba/make_indicators.py")
 
