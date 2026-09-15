@@ -358,7 +358,7 @@ def _process_other_nonres_capacities(
             & (df.pemmdb_type == "ccgt old 1")
             & (df.co2_factor == 0)
         )
-        df.loc[missing_co2, "co2_factor"] = co2_factors.get(pyear, 0)
+        df.loc[missing_co2, "co2_factor"] = co2_factors.get(planning_horizon, 0)
 
     if node in ["ITS1", "PL00"]:
         # hydrogen CCGT efficiency missing in 2050
@@ -1088,7 +1088,7 @@ def process_pemmdb_capacities(
 
     except Exception as e:
         raise Exception(
-            f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for weather scenario WS{wscenario:03d} and planning year {pyear}: {e}"
+            f"Error while processing capacities for {pemmdb_tech_sheet} at {node} for weather scenario WS{wscenario:03d} and planning year {planning_horizon}: {e}"
         )
 
 
@@ -1391,10 +1391,12 @@ if __name__ == "__main__":
     )
 
     # Weather scenario, resolved for the planning year the data is read from
-    weather_scenario = get_weather_scenario(snakemake.params.weather_scenarios, pyear)
+    weather_scenario = get_weather_scenario(
+        snakemake.params.weather_scenarios, planning_horizon
+    )
 
     logger.info(
-        f"Processing PEMMDB data for target year: {pyear_i}, "
+        f"Processing PEMMDB data for target year: {planning_horizon_i}, "
         f"weather scenario: WS{weather_scenario:03d}"
     )
 
@@ -1426,7 +1428,7 @@ if __name__ == "__main__":
     if missing_nodes := [node for node in nodes if node not in pemmdb_data]:
         logger.warning(
             f"No PEMMDB data available for {len(missing_nodes)} of {len(nodes)} nodes in "
-            f"{pyear}: {', '.join(missing_nodes)}."
+            f"{planning_horizon}: {', '.join(missing_nodes)}."
         )
 
     ####################
