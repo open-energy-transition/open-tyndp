@@ -2071,22 +2071,22 @@ def normalize_direction(
     return df
 
 
-def parse_weather_scenario(s: pd.Series) -> pd.Series:
+def parse_wscenario(s: pd.Series) -> pd.Series:
     """
     Convert weather scenario labels (eg. WS065) into their integer index.
     """
     return pd.to_numeric(s.astype(str).str.removeprefix("WS"), errors="coerce")
 
 
-def get_weather_scenario(weather_scenarios, planning_horizon):
+def get_wscenario(wscenarios, planning_horizon):
     """
     Select the weather scenario to use for a given planning year.
 
     Parameters
     ----------
-    weather_scenarios : dict
+    wscenarios : dict
         Mapping of planning year to a list of requested weather scenarios,
-        e.g. ``{planning_horizon: [weather_scenario, ...]}``.
+        e.g. ``{planning_horizon: [wscenario, ...]}``.
     planning_horizon : int
         Planning year for which to select the weather scenario.
 
@@ -2101,14 +2101,14 @@ def get_weather_scenario(weather_scenarios, planning_horizon):
     Currently always picks the first requested weather scenario; should be
     adapted once the full weather year implementation is available in SB.
     """
-    weather_scenario = weather_scenarios[planning_horizon][0]
+    wscenario = wscenarios[planning_horizon][0]
 
-    if weather_scenario not in AVAILABLE_WSCENARIOS[planning_horizon]:
+    if wscenario not in AVAILABLE_WSCENARIOS[planning_horizon]:
         fallback_scenario = AVAILABLE_WSCENARIOS[planning_horizon][0]
         logger.warning(
-            f"Weather scenario WS{weather_scenario:03d} not available for "
+            f"Weather scenario WS{wscenario:03d} not available for "
             f"planning year {planning_horizon}, falling back to WS{fallback_scenario:03d}"
         )
-        weather_scenario = fallback_scenario
+        wscenario = fallback_scenario
 
-    return weather_scenario
+    return wscenario

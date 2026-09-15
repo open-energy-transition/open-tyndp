@@ -138,7 +138,7 @@ class ConfigSchema(BaseModel):
     )
     wscenarios_tyndp: dict[int, list[int]] = Field(
         default_factory=dict,
-        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_weather_scenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
+        description="Mapping of planning horizons to the weather scenarios (climate year column indices, e.g. 3 for `WS003`) to model in the TYNDP 2026 data. Only the first entry per horizon is currently used, falling back to the first entry of `AVAILABLE_WSCENARIOS` in `scripts/_helpers.py` if unavailable (see `get_wscenario`); to be revisited once Scenario Building supports modelling multiple weather years at once.",
     )
     launch_explorer: bool = Field(
         False,

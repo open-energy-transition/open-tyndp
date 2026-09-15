@@ -10,9 +10,9 @@ Weather Scenario Selection
 PEMMDB capacities and profiles carry the range of weather scenarios they apply
 to (``ws_start`` to ``ws_end``, labeled ``WSxxx``), and only the entries
 covering the modeled scenario are kept. Which scenario that is comes from
-`weather_scenarios_tyndp` and is resolved for the planning year the data is read
+`wscenarios_tyndp` and is resolved for the planning year the data is read
 from, the same way as for demand (see
-:py:func:`scripts._helpers.get_weather_scenario`).
+:py:func:`scripts._helpers.get_wscenario`).
 
 Outputs
 -------
@@ -43,9 +43,9 @@ from scripts._helpers import (
     configure_logging,
     convert_units,
     get_snapshots,
-    get_weather_scenario,
+    get_wscenario,
     map_tyndp_carrier_names,
-    parse_weather_scenario,
+    parse_wscenario,
     safe_planning_horizon,
     set_scenario_config,
 )
@@ -313,7 +313,7 @@ def _process_other_nonres_capacities(
         "ws_end",
     ]
 
-    # Extract data for given weather_scenario
+    # Extract data for given wscenario
     df = (
         df.set_axis(column_names)
         .T.replace({"pemmdb_type": OTHER_NONRES_TYPE_FIXES})
@@ -326,8 +326,8 @@ def _process_other_nonres_capacities(
             unit="MW",
             price_band_type=lambda x: _extract_price_band_type(x),
             pemmdb_type=lambda df: df.pemmdb_type.str.split("/").str[2].str.lower(),
-            ws_start=lambda x: parse_weather_scenario(x.ws_start),
-            ws_end=lambda x: parse_weather_scenario(x.ws_end),
+            ws_start=lambda x: parse_wscenario(x.ws_start),
+            ws_end=lambda x: parse_wscenario(x.ws_end),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -335,7 +335,7 @@ def _process_other_nonres_capacities(
             co2_factor=lambda x: pd.to_numeric(x.co2_factor, errors="coerce"),
         )
         .query(
-            "ws_start <= @weather_scenario and ws_end >= @weather_scenario and p_nom > 0"
+            "ws_start <= @wscenario and ws_end >= @wscenario and p_nom > 0"
         )
         .reset_index(drop=True)
     )
@@ -628,7 +628,7 @@ def _process_dsr_capacities(
         "ws_end",
     ]
 
-    # Extract information and filter for given weather_scenario
+    # Extract information and filter for given wscenario
     df = (
         df.set_axis(column_names)
         .T.assign(
@@ -636,8 +636,8 @@ def _process_dsr_capacities(
             bus=node,
             country=node[:2],
             unit="MW",
-            ws_start=lambda x: parse_weather_scenario(x.ws_start),
-            ws_end=lambda x: parse_weather_scenario(x.ws_end),
+            ws_start=lambda x: parse_wscenario(x.ws_start),
+            ws_end=lambda x: parse_wscenario(x.ws_end),
             p_nom=lambda x: pd.to_numeric(x.p_nom, errors="coerce"),
             units_count=lambda x: pd.to_numeric(x.units_count, errors="coerce"),
             price=lambda x: pd.to_numeric(x.price, errors="coerce"),
@@ -646,7 +646,7 @@ def _process_dsr_capacities(
             efficiency=1.0,  # dummy value for efficiency
         )
         .query(
-            "ws_start <= @weather_scenario and ws_end >= @weather_scenario and p_nom > 0"
+            "ws_start <= @wscenario and ws_end >= @wscenario and p_nom > 0"
         )
         .reset_index(drop=True)
     )
@@ -832,8 +832,8 @@ def _process_other_nonres_profiles(
     df.loc["pemmdb_type"] = df.loc["pemmdb_type"].replace(OTHER_NONRES_TYPE_FIXES)
 
     # Create mask to filter for given weather scenario
-    ws_start = parse_weather_scenario(df.loc["ws_start", :])
-    ws_end = parse_weather_scenario(df.loc["ws_end", :])
+    ws_start = parse_wscenario(df.loc["ws_start", :])
+    ws_end = parse_wscenario(df.loc["ws_end", :])
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
     mask = (ws_start <= wscenario) & (wscenario <= ws_end) & (cap > 0)
 
@@ -914,8 +914,8 @@ def _process_dsr_profiles(
     )
 
     # Create mask to filter for given weather scenario and for capacity > 0
-    ws_start = parse_weather_scenario(df.loc["ws_start", :])
-    ws_end = parse_weather_scenario(df.loc["ws_end", :])
+    ws_start = parse_wscenario(df.loc["ws_start", :])
+    ws_end = parse_wscenario(df.loc["ws_end", :])
     cap = pd.to_numeric(df.loc["p_nom", :], errors="coerce")
     mask = (ws_start <= wscenario) & (wscenario <= ws_end) & (cap > 0)
 
@@ -1391,13 +1391,13 @@ if __name__ == "__main__":
     )
 
     # Weather scenario, resolved for the planning year the data is read from
-    weather_scenario = get_weather_scenario(
-        snakemake.params.weather_scenarios, planning_horizon
+    wscenario = get_wscenario(
+        snakemake.params.wscenarios, planning_horizon
     )
 
     logger.info(
         f"Processing PEMMDB data for target year: {planning_horizon_i}, "
-        f"weather scenario: WS{weather_scenario:03d}"
+        f"weather scenario: WS{wscenario:03d}"
     )
 
     # Load all PEMMDB data

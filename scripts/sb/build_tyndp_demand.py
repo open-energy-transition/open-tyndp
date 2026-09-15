@@ -52,7 +52,7 @@ import pandas as pd
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    get_weather_scenario,
+    get_wscenario,
     set_scenario_config,
 )
 
@@ -409,7 +409,7 @@ if __name__ == "__main__":
     year = snapshots[0].year
     check_snapshot_year(year, snakemake.params.drop_leap_day)
 
-    wscenario = get_weather_scenario(wscenarios, planning_horizon)
+    wscenario = get_wscenario(wscenarios, planning_horizon)
     demand = load_demand(fn, planning_horizon, demand_type, wscenario, year)
 
     # Export to CSV
