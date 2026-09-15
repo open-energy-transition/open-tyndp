@@ -82,9 +82,9 @@ per-country load time series from the TYNDP electricity demand prepared by
 
 ::: build_renewable_profiles_pecd
 
-### Rule `build_pemmdb_data`
+### Rule `build_tyndp_pemmdb_data`
 
-::: build_pemmdb_data
+::: build_tyndp_pemmdb_data
 
 ### Rule `build_tyndp_transmission_projects`
 
@@ -212,7 +212,7 @@ Aggregate [`plot_benchmark`](#rule-plot_benchmark) outputs.
 
 ### Rule `build_pemmdb_and_trajectories`
 
-Aggregate [`build_pemmdb_data`](#rule-build_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
+Aggregate [`build_tyndp_pemmdb_data`](#rule-build_tyndp_pemmdb_data) and [`build_tyndp_trajectories`](#rule-build_tyndp_trajectories) outputs.
 
 ### Rule `build_tyndp_demands`
 

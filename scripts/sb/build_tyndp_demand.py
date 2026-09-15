@@ -52,19 +52,11 @@ import pandas as pd
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
+    get_weather_scenario,
     set_scenario_config,
 )
 
 logger = logging.getLogger(__name__)
-
-# Weather scenarios that contain data in the TYNDP 2026 demand files,
-# per planning horizon.
-AVAILABLE_WSCENARIOS = {
-    2030: [3, 21, 29],
-    2035: [32, 37, 59],
-    2040: [65, 71, 77],
-    2050: [91, 92, 106],
-}
 
 # Maps the `demand_type` wildcard to the TYNDP 2026 demand
 # file names. Also defines which demand types the workflow knows about, and is
@@ -105,42 +97,6 @@ GJ_DEMAND_TYPES = {"thermal_h2", "thermal_ch4"}
 
 # 1 MWh = 3.6 GJ.
 GJ_TO_MWH = 1 / 3.6
-
-
-def get_wscenario(wscenarios, planning_horizon):
-    """
-    Select the weather scenario to use for a given planning year.
-
-    Parameters
-    ----------
-    wscenarios : dict
-        Mapping of planning year to a list of requested weather scenarios,
-        e.g. ``{planning_horizon: [wscenario, ...]}``.
-    planning_horizon : int
-        Planning year for which to select the weather scenario.
-
-    Returns
-    -------
-    int
-        Selected weather scenario. Falls back to the first entry in
-        ``AVAILABLE_WSCENARIOS[planning_horizon]`` if unavailable.
-
-    Notes
-    -----
-    Currently always picks the first requested weather scenario; should be
-    adapted once the full weather year implementation is available in SB.
-    """
-    wscenario = wscenarios[planning_horizon][0]
-
-    if wscenario not in AVAILABLE_WSCENARIOS[planning_horizon]:
-        fallback_scenario = AVAILABLE_WSCENARIOS[planning_horizon][0]
-        logger.warning(
-            f"Weather scenario WS{wscenario:03d} not available for "
-            f"planning year {planning_horizon}, falling back to WS{fallback_scenario:03d}"
-        )
-        wscenario = fallback_scenario
-
-    return wscenario
 
 
 def check_snapshot_year(year: int, drop_leap_day: bool) -> None:
@@ -453,7 +409,7 @@ if __name__ == "__main__":
     year = snapshots[0].year
     check_snapshot_year(year, snakemake.params.drop_leap_day)
 
-    wscenario = get_wscenario(wscenarios, planning_horizon)
+    wscenario = get_weather_scenario(wscenarios, planning_horizon)
     demand = load_demand(fn, planning_horizon, demand_type, wscenario, year)
 
     # Export to CSV

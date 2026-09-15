@@ -259,7 +259,7 @@ class _PemmdbCapacitiesConfig(BaseModel):
         description="Number of parallel processes when reading pemmdb data.",
     )
     available_years: list[int] = Field(
-        default_factory=lambda: [2030, 2040, 2050],
+        default_factory=lambda: [2030, 2035, 2040, 2050],
         description="List of years for which PEMMDB data is available.",
     )
     technologies: list[
