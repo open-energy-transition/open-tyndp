@@ -197,7 +197,7 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **tyndp_vp_carrier**: Carrier names as listed on the TYNDP 2024 Visualization Platform.
 * **open_tyndp_carrier**: Open-TYNDP carrier naming convention representing either an energy carrier or a technology, depending on the context.
 * **open_tyndp_index**: Open-TYNDP technology naming convention found in the component index.
-* **open_tyndp_nice_names**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
+* **open_tyndp_nice_name**: Open-TYNDP nice names for better readability and aggregation of technologies for reporting purposes.
 * **benchmarking_capacity**: Naming convention for the benchmarking framework's `power_capacity` table.
 * **benchmarking_generation**: Naming convention for the benchmarking framework's `power_generation` table.
 * **benchmarking_generation_profiles**: Naming convention for the benchmarking framework's `generation_profiles` table.
@@ -214,6 +214,14 @@ To align naming conventions across data sources, Open-TYNDP uses a mapping table
 * **open_tyndp_type**: Open-TYNDP technology type for grouping together detailed technologies if `electricity:group_tyndp_conventionals` is enabled in the configuration.
 * **pypsa_eur_carrier**: Corresponding PyPSA-Eur carrier/technology if applicable.
 * **comment**: Any additional comments.
+
+The complete technology mapping is shown below. Scroll horizontally and vertically to explore the table.
+
+<div class="scrollable-table" markdown="1">
+
+{{ read_csv("data/tyndp_technology_map.csv", keep_default_na=False) }}
+
+</div>
 
 ## Cost-Benefit Analysis Benchmarking
 
