@@ -4,7 +4,7 @@
 """
 This script cleans the TYNDP market model output data for benchmarking.
 
-Reads TYNDP market model (MM) TimeSeries Dashboard xlsx files, one per country, 
+Reads TYNDP market model (MM) TimeSeries Dashboard xlsx files, one per country,
 per planning horizon and weather scenario
 - "Installed Capacity" sheet for installed capacities per market zone
 - Nodal sheets for aggregates of hourly generation, load, prices, curtailment and unserved energy
@@ -24,15 +24,13 @@ from scripts._helpers import (
     align_demand_to_snapshots,
     configure_logging,
     convert_units,
+    format_bz_names,
     get_snapshots,
+    get_weather_scenario,
     normalize_direction,
     set_scenario_config,
-    format_bz_names,
-    get_weather_scenario,
 )
-
 from scripts.build_tyndp_network import extract_country
-
 
 logger = logging.getLogger(__name__)
 
@@ -46,41 +44,47 @@ LOOKUP_TABLES: dict[str, dict] = {
     "power_generation": {"sheet": ELECTRICITY_SHEETS, "stats": "sum"},
     # E-Market and Prosumer demand share one benchmark carrier in current build_statistics
     "electricity_demand": {
-        "sheet": ELECTRICITY_SHEETS, 
-        "category":["Native Demand [MW_e]", "Fixed Demand [MW_e]"], 
-        "stats": "sum", 
+        "sheet": ELECTRICITY_SHEETS,
+        "category": ["Native Demand [MW_e]", "Fixed Demand [MW_e]"],
+        "stats": "sum",
     },
     "hydrogen_demand": {
-        "sheet": H2_SHEETS, "category":["Native Demand [MW_H2]"], "stats": "sum", 
+        "sheet": H2_SHEETS,
+        "category": ["Native Demand [MW_H2]"],
+        "stats": "sum",
     },
     "hydrogen_supply": {"sheet": H2_SHEETS, "stats": "sum"},
     # TODO: For shedding hours, TYNDP 2026 does not give a direct value, so it can be derived
     # where "Energy Not Served" is above 0.
     # "electricity_demand_shedding_hours": [
-        #"Yearly Outputs",
-        #"Loss of load expectation [hour]  ",
-    #],  # includes white space
-    #"hydrogen_demand_shedding_hours": [
-        #"Yearly H2 Outputs",
-        #"Loss of H2 load expectation [hour]  ",
-    #],  # includes white space
+    # "Yearly Outputs",
+    # "Loss of load expectation [hour]  ",
+    # ],  # includes white space
+    # "hydrogen_demand_shedding_hours": [
+    # "Yearly H2 Outputs",
+    # "Loss of H2 load expectation [hour]  ",
+    # ],  # includes white space
     # prices
     "electricity_price": {
-        "sheet": ["E-Market"], "category":["Marginal Cost [€/MWh_e]"], "stats": "avg",
+        "sheet": ["E-Market"],
+        "category": ["Marginal Cost [€/MWh_e]"],
+        "stats": "avg",
         "carrier": "AC",
     },
-    #"electricity_price_excl_shed": [
-       # "Yearly Outputs",
-        #"Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
-    #],
+    # "electricity_price_excl_shed": [
+    # "Yearly Outputs",
+    # "Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
+    # ],
     "hydrogen_price": {
-        "sheet": ["H2 Zone 2"], "category":["Marginal Cost [€/MWh_H2]"], "stats": "avg",
-        "carrier": "H2", 
+        "sheet": ["H2 Zone 2"],
+        "category": ["Marginal Cost [€/MWh_H2]"],
+        "stats": "avg",
+        "carrier": "H2",
     },
-    #"hydrogen_price_excl_shed": [
-        #"Yearly H2 Outputs",
-        #"Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]",
-    #],
+    # "hydrogen_price_excl_shed": [
+    # "Yearly H2 Outputs",
+    # "Marginal Cost Yearly Average (excl. 3 000 €/MWhH2) [€/MWhH2]",
+    # ],
 }
 
 # look up dictionary for crossborder exchanges
@@ -91,9 +95,7 @@ CROSS_BORDER_DICT: dict[str, str] = {
 }
 
 
-def _load_mm_carrier_mapping(
-    carrier_mapping_fn: str, tables: dict
-) -> dict[str, dict]:
+def _load_mm_carrier_mapping(carrier_mapping_fn: str, tables: dict) -> dict[str, dict]:
     """
     Load mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names.
     """
@@ -119,6 +121,7 @@ def _load_mm_carrier_mapping(
 
     return output_map
 
+
 def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.Series]:
     """
     Split units from category (carrier) labels in the dashboard
@@ -128,13 +131,17 @@ def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.
         .str.replace("€", "EUR", regex=False)
         .str.replace(r"_(e|H2)$", "", regex=True)
     )
-    return category_labels.str.replace(r"\s*\[[^\]]*\]\s*$", "", regex=True).str.strip(), unit
+    return category_labels.str.replace(
+        r"\s*\[[^\]]*\]\s*$", "", regex=True
+    ).str.strip(), unit
 
-def rename_prosumer_nodes(buses:pd.Series) -> pd.Series:
+
+def rename_prosumer_nodes(buses: pd.Series) -> pd.Series:
     """
-    Rename prosumer nodes to match Open-TYNDP bus names 
+    Rename prosumer nodes to match Open-TYNDP bus names
     """
     return format_bz_names(buses).str.removesuffix("RETE")
+
 
 def load_dashboard_sheet(
     filepath: str | Path,
@@ -175,14 +182,12 @@ def load_dashboard_sheet(
     if sheet_name not in file.sheet_names:
         return pd.DataFrame()
 
-    df = pd.read_excel(
-        file, sheet_name=sheet_name, header=None, nrows=row_flow + 1
-    )
+    df = pd.read_excel(file, sheet_name=sheet_name, header=None, nrows=row_flow + 1)
     cols = df.columns[col_data:]
-    if categories: 
+    if categories:
         cols = cols[df.loc[row_category, cols].isin(categories)]
 
-    carrier, unit = split_unit_from_category(df.iloc[row_category,cols].astype(str))
+    carrier, unit = split_unit_from_category(df.iloc[row_category, cols].astype(str))
     bus = df.loc[row_zone, cols]
     element = df.loc[row_element, cols]
     flow = df.loc[row_flow, cols]
@@ -205,7 +210,9 @@ def load_dashboard_sheet(
     return df
 
 
-def load_installed_capacity(filepath: str | Path,) -> pd.DataFrame:
+def load_installed_capacity(
+    filepath: str | Path,
+) -> pd.DataFrame:
     """
     Load the sheet "Installed Capacity" from a TYNDP TimeSeries Dashboard output file.
 
@@ -242,6 +249,7 @@ def load_installed_capacity(filepath: str | Path,) -> pd.DataFrame:
 
     return df
 
+
 def load_crossborder_sheet(
     sheet_name: str,
     filepaths: list[Path],
@@ -254,7 +262,6 @@ def load_crossborder_sheet(
 
     Parameters
     ----------
-
     sheet_name : str
         Name of the Excel sheet to read
     filepaths : list[Path]
@@ -304,7 +311,7 @@ def load_MM_sheet(
 ) -> pd.DataFrame:
     """
     Read benchmarking table from TYNDP 2026 market model output files
-    
+
 
     Parameters
     ----------
@@ -423,7 +430,7 @@ def load_demand_ts(
     """
     row_zone, row_category, row_data, col_time = 5, 6, 10, 1
 
-    dfs =[]
+    dfs = []
     for filepath in filepaths:
         file = pd.ExcelFile(filepath, engine="calamine")
         for sheet_name in [s for s in sheet_names if s in file.sheet_names]:
@@ -450,7 +457,7 @@ def set_load_sign(
     """
     Set negative sign for load values in market model data.
 
-    The timeseries sheets report flags if a carrier is generation or load, with 
+    The timeseries sheets report flags if a carrier is generation or load, with
     load being reported with positive values.
 
     Parameters
@@ -476,7 +483,9 @@ def set_load_sign(
     return df
 
 
-def clean_crossborder_for_benchmarking(df: pd.DataFrame, eu27: list[str]) -> pd.DataFrame:
+def clean_crossborder_for_benchmarking(
+    df: pd.DataFrame, eu27: list[str]
+) -> pd.DataFrame:
     """
     Clean crossborder data for benchmarking purposes.
     """
@@ -584,7 +593,7 @@ if __name__ == "__main__":
     MM_data = pd.concat(benchmarks).reset_index(drop=True)
 
     # load crossborder data
-    logger.info(f"Processing tables of cross-border flows")
+    logger.info("Processing tables of cross-border flows")
     crossborder = load_crossborder_sheet("Exchanges", tyndp_output_files)
 
     # concatenate crossborder flows and imports to MM_data for benchmarking
