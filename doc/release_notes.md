@@ -29,6 +29,8 @@
 
 * Use booleans instead of floats for `substation_off` and `substation_lv` when adding the Z2 DRES buses, which mixed dtypes in `n.buses` and broke the network export for the DE and GA scenarios ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
+* Fix MSV upsampling method to work with different temporal aggregations and change `extend_primary_fuel_sources` to also set `p_nom_opt` to `inf` [#898](https://github.com/open-energy-transition/open-tyndp/pull/898).
+
 **Documentation**
 
 * feat: explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
