@@ -203,36 +203,15 @@ def main() -> None:
     )
 
     if args.cba:
-        # collect pre-solved SB networks if configured
-        presolved = run_snakemake(
-            "Checking whether the CBA reads pre-solved SB networks",
-            "collect_presolved_sb_networks",
-            "-n",
-            *base,
-            capture=True,
-            verbose=args.verbose,
-        )
-        if retrieve_rules(presolved):
-            run_snakemake(
-                "Collecting the pre-solved SB networks the CBA reads",
-                "collect_presolved_sb_networks",
-                "-c",
-                "all",
-                *base,
-                verbose=args.verbose,
-            )
-        else:
-            print("\nNo pre-solved SB networks to collect for this config.")
-        # collect the datasets that feed into the clean_projects checkpoint
+        # collect the CBA data (optionally incl. pre-solved networks) and run the clean_projects checkpoint
         run_snakemake(
-            "Collecting the CBA project data and running the clean_projects checkpoint",
-            "cba",
+            "Collecting the CBA project data, the pre-solved SB networks if configured, and "
+            "running the clean_projects checkpoint",
+            "collect_cba_data",
             "-c",
             "all",
             *base,
             "--forcerun",
-            "clean_projects",
-            "--until",
             "clean_projects",
             verbose=args.verbose,
         )

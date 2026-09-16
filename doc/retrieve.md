@@ -78,10 +78,12 @@ Google Cloud Storage mirror, into the same paths.
 !!! note "How the CBA task handles the `clean_projects` checkpoint"
     Most of the CBA graph, the per-project networks and the Scenario Building chain they build
     on, only appears once the `clean_projects` checkpoint has run, and forcing the graph would
-    keep it from running. `pixi run collect-data-cba` therefore collects the datasets that feed
-    the checkpoint first, by running the workflow up to it, and then collects the Scenario
-    Building graph, which covers everything the expanded CBA graph goes on to need. It checks
-    that afterwards and stops with the rule names if a dataset is left uncollected.
+    keep it from running. `pixi run collect-data-cba` therefore starts with the
+    [`collect_cba_data`](cba_rules.md#rule-collect_cba_data) rule, which gathers what the checkpoint
+    reads, along with the pre-solved SB networks if configured, and runs the checkpoint itself.
+    It then collects the Scenario Building graph, which covers everything the expanded CBA
+    graph goes on to need, and checks afterwards that nothing is left, stopping with the rule names
+    if a dataset is uncollected.
 
 To reach an offline machine, fill the cache where the network is available and copy the
 directory across, e.g. using rsync:
@@ -99,10 +101,11 @@ $ rsync -a data/local-cache/ offline-machine:~/open-tyndp/data/local-cache/
     that skips `data/` will break the workflow.
 
 With `cba: cba_scenario_input: use_presolved: true` the pre-solved SB networks are collected into
-`results/` rather than into the cache. The `clean_projects` checkpoint lists them as an input, so the
-collect task retrieves them for the planning horizons the CBA covers; copy `results/` across alongside
-the cache. That run still needs part of the Scenario Building data, for the shapes, bidding zones and
-costs the CBA builds itself, so SB dependencies are still retrieved into the local cache.
+`results/` rather than into the cache. The [`collect_cba_data`](cba_rules.md#rule-collect_cba_data)
+rule lists them as an input, so the collect task retrieves them for the planning horizons the CBA
+covers; copy `results/` across alongside the cache. That run still needs part of the Scenario
+Building data, for the shapes, bidding zones and costs the CBA builds itself, so SB dependencies are
+still retrieved into the local cache.
 
 ### Reading the cache without network access {#local_cache_offline}
 
