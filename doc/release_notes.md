@@ -63,6 +63,8 @@
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
+* Remove the empty `all_scenarios.txt` file and refactor `rule cba` to no longer depend on it [#958](https://github.com/open-energy-transition/open-tyndp/pull/958).
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
