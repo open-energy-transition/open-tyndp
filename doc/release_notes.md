@@ -63,7 +63,7 @@
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
-* Extend `sync-file` rule to also exclude specified files when syncing from remote cluster [#951](https://github.com/open-energy-transition/open-tyndp/pull/951).
+* Extend `sync-file` rule to also exclude specified files when syncing from remote cluster ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)).
 
 ## Upcoming PyPSA-Eur Release
 
