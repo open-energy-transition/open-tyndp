@@ -19,7 +19,7 @@
 
 * Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`, etc) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details) ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
-* Align the default CBA project selection across configuration files to `t335` (PINT), `t339` (TOOT), `t1106` (TOOT, offshore), `s1001` (PHS), `s1013` (CAES) and `s1035` (battery) [#952](https://github.com/open-energy-transition/open-tyndp/pull/952).
+* Align the default CBA project selection across configuration files to `t335` (PINT), `t339` (TOOT), `t1106` (TOOT, offshore), `s1001` (PHS), `s1013` (CAES) and `s1035` (battery) ([#952](https://github.com/open-energy-transition/open-tyndp/pull/952)).
 
 **Bugfixes and Compatibility**
 
