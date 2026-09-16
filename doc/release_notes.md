@@ -63,7 +63,7 @@
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
-* Refactor rules and scripts to use `params` instead of `config.get()` where possible [#954](https://github.com/open-energy-transition/open-tyndp/pull/954).
+* Refactor CBA rules and scripts to use `params` instead of `config.get()` ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
 
 ## Upcoming PyPSA-Eur Release
 
