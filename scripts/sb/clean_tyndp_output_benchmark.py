@@ -14,13 +14,11 @@ Note: Currently, only NT scenario processing is supported.
 """
 
 import logging
-import re
 from pathlib import Path
 
 import country_converter as coco
 import numpy as np
 import pandas as pd
-from functools import partial
 
 from scripts._helpers import (
     align_demand_to_snapshots,
@@ -42,10 +40,11 @@ logger = logging.getLogger(__name__)
 ELECTRICITY_SHEETS = ["E-Market", "Prosumer", "Offshore"]
 H2_SHEETS = ["H2 Zone 1", "H2 Zone 2"]
 
-# look up dictionary {name of plot: [sheet_name, output_type]}
+# look up dictionary {name of plot: [sheet_name, category, stats, carrier]}
 LOOKUP_TABLES: dict[str, dict] = {
     "power_capacity": {"sheet": ["Installed Capacity"]},
     "power_generation": {"sheet": ELECTRICITY_SHEETS, "stats": "sum"},
+    # E-Market and Prosumer demand share one benchmark carrier in current build_statistics
     "electricity_demand": {
         "sheet": ELECTRICITY_SHEETS, 
         "category":["Native Demand [MW_e]", "Fixed Demand [MW_e]"], 
@@ -67,14 +66,16 @@ LOOKUP_TABLES: dict[str, dict] = {
     #],  # includes white space
     # prices
     "electricity_price": {
-        "sheet": ["E-Market"], "category":["Marginal Cost [€/MWh_e]"], "stats": "avg", 
+        "sheet": ["E-Market"], "category":["Marginal Cost [€/MWh_e]"], "stats": "avg",
+        "carrier": "AC",
     },
     #"electricity_price_excl_shed": [
        # "Yearly Outputs",
         #"Marginal Cost Yearly Average (excl. 3 000 €/MWh) [€]",
     #],
     "hydrogen_price": {
-        "sheet": ["H2 Zone 2"], "category":["Marginal Cost [€/MWh_H2]"], "stats": "avg", 
+        "sheet": ["H2 Zone 2"], "category":["Marginal Cost [€/MWh_H2]"], "stats": "avg",
+        "carrier": "H2", 
     },
     #"hydrogen_price_excl_shed": [
         #"Yearly H2 Outputs",
@@ -84,15 +85,15 @@ LOOKUP_TABLES: dict[str, dict] = {
 
 # look up dictionary for crossborder exchanges
 CROSS_BORDER_DICT: dict[str, str] = {
-    "electricity": "E-Market Exchanges [MW_e]",
-    "H2": "H2 Zone 2 Exchanges [MW_H2]",
-    "H2 imports": "H2 Imports to H2 Zone 2 [MW_H2]",
+    "electricity": "E-Market Exchanges",
+    "H2": "H2 Zone 2 Exchanges",
+    "H2_imports": "H2 Imports to H2 Zone 2",
 }
 
 
 def _load_mm_carrier_mapping(
     carrier_mapping_fn: str, tables: dict
-) -> tuple[dict[str, dict], dict[str, dict]]:
+) -> dict[str, dict]:
     """
     Load mapping from TYNDP Market Model (MM) carrier names to benchmark carrier names.
     """
@@ -118,16 +119,16 @@ def _load_mm_carrier_mapping(
 
     return output_map
 
-def split_unit_from_category(carrier_labels: pd.Series) -> tuple[pd.Series, pd.Series]:
+def split_unit_from_category(category_labels: pd.Series) -> tuple[pd.Series, pd.Series]:
     """
     Split units from category (carrier) labels in the dashboard
     """
     unit = (
-        carrier_labels.str.extract(r"\[([^\]]*)\]", expand=False)
+        category_labels.str.extract(r"\[([^\]]*)\]", expand=False)
         .str.replace("€", "EUR", regex=False)
         .str.replace(r"_(e|H2)$", "", regex=True)
     )
-    return carrier_labels.str.replace(r"\s*\[[^\]]*\]\s*$", "", regex=True).str.strip(), unit
+    return category_labels.str.replace(r"\s*\[[^\]]*\]\s*$", "", regex=True).str.strip(), unit
 
 def rename_prosumer_nodes(buses:pd.Series) -> pd.Series:
     """
@@ -167,7 +168,7 @@ def load_dashboard_sheet(
         unit, value]
     """
     stats_rows = {"min": 0, "max": 1, "avg": 2, "sum": 3}
-    row_zone, row_carrier, row_element, row_flow, col_data = 5, 6, 7, 8, 2
+    row_zone, row_category, row_element, row_flow, col_data = 5, 6, 7, 8, 2
 
     # Load the file and check if the sheet exists as some nodes are missing sheets.
     file = pd.ExcelFile(filepath, engine="calamine")
@@ -179,21 +180,29 @@ def load_dashboard_sheet(
     )
     cols = df.columns[col_data:]
     if categories: 
-        cols = cols[df.loc[row_category cols].isin(categories)]
+        cols = cols[df.loc[row_category, cols].isin(categories)]
 
-    carrier, unit = split_unit_from_category(df.iloc[row_category,cols:].astype(str))
-    df = pd.Dataframe(
-        {
-            "sheet": sheet_name,
-            "bus": df.loc[row_zone, cols],
-            "carrier": carrier,
-            "element": df.loc[row_element, cols],
-            "flow": df.loc[row_flow, cols],
-            "unit": unit,
-        }
+    carrier, unit = split_unit_from_category(df.iloc[row_category,cols].astype(str))
+    bus = df.loc[row_zone, cols]
+    element = df.loc[row_element, cols]
+    flow = df.loc[row_flow, cols]
+    values = df.loc[[stats_rows[s] for s in stats], cols].set_axis(stats)
+
+    meta_cols = ["sheet", "bus", "carrier", "element", "flow", "unit"]
+    df = values.T.apply(pd.to_numeric, errors="coerce")
+    df = df.assign(
+        sheet=sheet_name,
+        bus=bus.values,
+        carrier=carrier,
+        element=element,
+        flow=flow,
+        unit=unit,
     )
+    df = df.melt(id_vars=meta_cols, var_name="stats", value_name="value")
 
-    return pd.concat()
+    df["unit"] = df.unit.where(df.stats != "sum", "GWh")
+
+    return df
 
 
 def load_installed_capacity(filepath: str | Path,) -> pd.DataFrame:
@@ -210,29 +219,32 @@ def load_installed_capacity(filepath: str | Path,) -> pd.DataFrame:
     pd.DataFrame
         Long format with columns [sheet, bus, carrier, unit, value]
     """
-    row_zone, row_data = 1, 2
+    row_sheet, row_zone, row_data = 0, 1, 2
 
     df = pd.read_excel(
         filepath, sheet_name="Installed Capacity", header=None, engine="calamine"
     )
     carrier, unit = split_unit_from_category(df.iloc[row_data:, 0].astype(str))
+    columns = pd.MultiIndex.from_arrays(
+        [df.iloc[row_sheet, 1:], df.iloc[row_zone, 1:]], names=["sheet", "bus"]
+    )
 
-    return( 
+    df = (
         df.iloc[row_data:, 1:]
         .apply(pd.to_numeric, errors="coerce")
-        .set_axis(pd.Index(df.iloc[row_zone, 1:], name="bus"), axis=1)
+        .set_axis(columns, axis=1)
         .set_axis(pd.MultiIndex.from_arrays([carrier, unit], names=["carrier", "unit"]))
-        .stack(future_stack=True)
+        .stack(["sheet", "bus"], future_stack=True)
         .rename("value")
         .reset_index()
         .dropna(subset=["value"])
-        .assign(sheet="Installed Capacity")
     )
 
+    return df
 
 def load_crossborder_sheet(
     sheet_name: str,
-    filepath: list[Path],
+    filepaths: list[Path],
     stats: list[str] = ["min", "max", "avg", "sum"],
 ) -> pd.DataFrame:
     """
@@ -245,7 +257,7 @@ def load_crossborder_sheet(
 
     sheet_name : str
         Name of the Excel sheet to read
-    filepath : list[Path]
+    filepaths : list[Path]
         Paths to the Excel files
     stats : list[str], optional
         Yearly aggregates to extract
@@ -256,20 +268,20 @@ def load_crossborder_sheet(
         DataFrame with normalized cross-border flow data.
     """
     df = pd.concat(
-        [load_dashboard_sheet(sheet_name,fn, stats) for fn in filepath]
+        [load_dashboard_sheet(filepath, sheet_name, stats) for filepath in filepaths]
     )
 
-    categories = {v: k for k, v in CROSS_BORDER_DICT.items()}
+    carrier = {v: k for k, v in CROSS_BORDER_DICT.items()}
 
     df = (
         df.assign(
-            carrier=lambda x: x.carrier.map(categories),
+            carrier=lambda x: x.carrier.map(carrier),
             border=lambda x: format_bz_names(x.element),
         )
-        .drop(subset=["carrier"])
+        .dropna(subset=["carrier"])
         .drop_duplicates(["border", "stats"])
         .pivot(index=["carrier", "bus", "border"], columns="stats", values="value")
-        .reset_index("carrier", "bus")
+        .reset_index(["carrier", "bus"])
     )
 
     # normalize direction
@@ -285,7 +297,7 @@ def load_crossborder_sheet(
 
 def load_MM_sheet(
     table_name: str,
-    filepath: str | Path,
+    filepaths: list[Path],
     countries: list[str],
     eu27: list,
     mapping: dict[str, dict[str, str]],
@@ -296,7 +308,7 @@ def load_MM_sheet(
 
     Parameters
     ----------
-    filepath : str or Path
+    filepaths : list[Path]
         Path to the TYNDP market model xlsx file.
     table_name : str
         Name of the table from LOOKUP_TABLES (e.g., "power_capacity").
@@ -315,37 +327,34 @@ def load_MM_sheet(
     opt = LOOKUP_TABLES[table_name]
 
     if table_name == "power_capacity":
-        df = pd.concat([load_installed_capacity(fn) for fn in filepath])
+        df = pd.concat([load_installed_capacity(fn) for fn in filepaths])
     else:
         df = pd.concat(
             [
-                load_dashboard_sheet(fn, sheet, [opt["stat"]], opt.get("categories)"))
-                for sheet in opt["sheets"]
-                for fn in filepath
+                load_dashboard_sheet(fn, sheet, [opt["stats"]], opt.get("category"))
+                for sheet in opt["sheet"]
+                for fn in filepaths
             ]
         )
 
     # Only include mapped carriers
-    carriers = df.carrier.map(mapping[table_name])
-    if unmapped := sorted(df.carrier[carriers.isna()].unique()):
-        logger.warning(
-            f"No carrier mappings for table '{table_name}' for: {unmapped}. They will be excluded from the benchmarking for this table."
-        )
-    df = df.assign(carrier=carriers).dropna(subset=["carrier"])
+    if carrier := opt.get("carrier"):
+        df["carrier"] = carrier
+    else:
+        carriers = df.carrier.map(mapping[table_name])
+        if unmapped := sorted(df.carrier[carriers.isna()].unique()):
+            logger.warning(
+                f"No carrier mappings for table '{table_name}' for: {unmapped}. They will be excluded from the benchmarking for this table."
+            )
+        df = df.assign(carrier=carriers).dropna(subset=["carrier"])
+
+    df = set_load_sign(df, table_name)
 
     # Rename and filter column names (buses)
-    df.rename(
-        columns=lambda x: x.replace("UK", "GB").replace("_H2", " H2"),
-        inplace=True,
-    )
+    df = df.assign(bus=lambda x: rename_prosumer_nodes(x.bus.astype(str)))
     op = "sum" if "price" not in table_name else "mean"
-    df_nodal = (
-        df.T.groupby(df.columns)
-        .agg(op)
-        .T.reset_index()
-        .melt(id_vars=["carrier"], var_name="bus")
-    )
-    df_nodal = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(countries)]
+    df_nodal = df.groupby(["bus", "carrier", "unit"], as_index=False).value.agg(op)
+    df_nodal = df_nodal[df_nodal.bus.map(extract_country).isin(countries)]
 
     # Add EU27 / Pan-EU load-weighted average for prices
     if "price" in table_name:
@@ -354,26 +363,25 @@ def load_MM_sheet(
         weights = (
             load_MM_sheet(
                 table_name=f"{table_name.split('_')[0]}_demand",
-                filepath=tyndp_output_file,
+                filepaths=filepaths,
                 countries=countries,
                 eu27=eu27,
                 mapping=mapping,
-                skiprows=5,
             )
             .query("bus!='EU27'")
-            .set_index("bus")
-            .value
+            .groupby("bus")
+            .value.sum()
         )
         normalizer = weights.sum()
     else:
-        df_eu = df_nodal[df_nodal.bus.str.extract(r"^(?:IB)?(.{2})")[0].isin(eu27)]
+        df_eu = df_nodal[df_nodal.bus.map(extract_country).isin(eu27)]
         bus_name = "EU27"
         weights = pd.Series(1.0, index=df_eu.bus.unique())
         normalizer = 1
 
     df_eu = (
         df_eu.assign(value=lambda x: x.bus.map(weights) * x.value)
-        .groupby(by=["carrier"])
+        .groupby(by=["carrier", "unit"])
         .value.sum()
         .div(normalizer)
         .reset_index()
@@ -382,15 +390,15 @@ def load_MM_sheet(
     df = pd.concat([df_nodal, df_eu])
 
     df["table"] = table_name
-    if "price" not in table_name and "hours" not in table_name:
+    if "price" not in table_name:
         df = convert_units(df)
 
     return df
 
 
 def load_demand_ts(
-    sheet_name: list[str],
-    filepath: list[Path],
+    sheet_names: list[str],
+    filepaths: list[Path],
     snapshots: pd.DatetimeIndex,
     categories: list[str],
 ) -> pd.DataFrame:
@@ -399,9 +407,9 @@ def load_demand_ts(
 
     Parameters
     ----------
-    sheet_name : str
+    sheet_names : list[str]
         Name of the Excel sheet containing hourly data.
-    filepath : str or Path
+    filepaths : list[Path]
         Path to the TYNDP Market Model Outputs Excel file.
     snapshots : pd.DatetimeIndex
         Model snapshot index.
@@ -416,9 +424,9 @@ def load_demand_ts(
     row_zone, row_category, row_data, col_time = 5, 6, 10, 1
 
     dfs =[]
-    for filepath in filepath:
+    for filepath in filepaths:
         file = pd.ExcelFile(filepath, engine="calamine")
-        for sheet_name in [s for s in sheet_name if s in file.sheet_name]:
+        for sheet_name in [s for s in sheet_names if s in file.sheet_names]:
             df = pd.read_excel(file, sheet_name=sheet_name, header=None)
             cols = df.columns[2:]
             cols = cols[df.loc[row_category, cols].isin(categories)]
@@ -435,7 +443,8 @@ def load_demand_ts(
 
 
 def set_load_sign(
-    MM_data: pd.DataFrame,
+    df: pd.DataFrame,
+    table_name: str,
     tables: list = ["power_generation", "hydrogen_supply"],
 ) -> pd.DataFrame:
     """
@@ -446,8 +455,10 @@ def set_load_sign(
 
     Parameters
     ----------
-    MM_data : pd.DataFrame
+    df : pd.DataFrame
         Market model data with columns 'flow', 'table', and 'value'.
+    table_name : str
+        Name of the table from LOOKUP_TABLES.
     tables : list, default ["power_generation", "hydrogen_supply"]
         List of table names to apply the sign conversion to.
 
@@ -456,89 +467,48 @@ def set_load_sign(
     pd.DataFrame
         DataFrame with negated values for identified load carriers.
     """
-    load_i = MM_data[
-        (MM_data.flow == "Load") & MM_data.table.isin(tables)
-    ].index
-    MM_data.loc[load_i, "value"] *= -1
-    return MM_data
+    if table_name not in tables:
+        return df
+
+    load_i = df[df.flow == "Load"].index
+    df.loc[load_i, "value"] *= -1
+
+    return df
 
 
-def clean_h2_imports_for_benchmarking(
-    crossborder_h2: pd.DataFrame,
-    eu27: list[str],
-) -> pd.DataFrame:
-    """
-    Extracts H2 imports from external nodes/buses for hydrogen supply benchmarking.
-
-    Filters the hydrogen imports of the "Exchanges" sheet and maps their node to a benchmark carriers:
-    - "Ammonia_": "ammonia imports"
-    - Other import nodes (eg. DZ): "imports (renewable & low carbon)"
-
-    The importing node is "bus1" and exporting node is"bus0" for shipped ammonia imports. 
-    One exception is the IB_SKh2E-UA element where the reported value is negative and the 
-    flow direction name convention reversed. Therefore, the sheet's zone is taken for bus0
-    as this is the importing node.
-
-    Parameters
-    ----------
-    eu27 : list[str]
-        List of EU27 country codes (2-letter ISO).
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame with columns [carrier, bus, unit, table, value] for each importing country and an EU27 aggregated row.
-    """
-    df = (
-        crossborder_h2.query("carrier == 'H2_Imports'").assign(
-            carrier=lambda x: np.where(
-                x.element.str.contains("Ammonia"),
-                "ammonia imports",
-                "imports (renewable & low carbon)",
-            ),
-            unit="MWh",
-            table="hydrogen_supply",
-            value= lambda x: np.where(x.bus == x.bus1, x["sum"], -x["sum"])
-        )
-    )[["carrier", "bus", "value", "unit", "table"]]
-
-
-    df_eu27 = (
-        df[df.bus.map(extract_country).isin(eu27)]
-        .groupby("carrier", as_index=False)
-        .value.sum()
-        .assign(bus="EU27", unit="MWh", table="hydrogen_supply")
-    )
-    return pd.concat([df, df_eu27], ignore_index=True)
-
-
-def clean_crossborder_for_benchmarking(df: pd.DataFrame) -> pd.DataFrame:
+def clean_crossborder_for_benchmarking(df: pd.DataFrame, eu27: list[str]) -> pd.DataFrame:
     """
     Clean crossborder data for benchmarking purposes.
     """
-    unit_map = df.loc["sum"].xs("unit", level="border")
-    df = (
-        df.loc["sum"]
-        .T.reset_index()
-        .query("border!='unit'")
-        .rename(columns={"sum": "value"})
-        .assign(
-            unit=lambda x: x.carrier.map(unit_map),
-            table=lambda x: np.where(
-                x.carrier == "electricity",
-                "crossborder_electricity",
-                "crossborder_hydrogen",
-            ),
-            carrier=lambda x: np.where(x.carrier == "electricity", "AC", x.carrier),
-        )
-        .reset_index(drop=True)
+    tables = {"electricity": "crossborder_electricity", "H2": "crossborder_hydrogen"}
+
+    df = df.reset_index().rename(columns={"sum": "value"})
+
+    flows = df[df.carrier.isin(tables)].assign(
+        table=lambda x: x.carrier.map(tables),
+        carrier=lambda x: x.carrier.replace({"electricity": "AC"}),
+    )[["border", "carrier", "value", "table"]]
+
+    imports = df[df.carrier == "H2_imports"].assign(
+        carrier=lambda x: np.where(
+            x.border.str.contains("Ammonia"),
+            "ammonia imports",
+            "imports (renewable & low carbon)",
+        ),
+        value=lambda x: np.where(x.bus == x.bus1, x.value, -x.value),
+        table="hydrogen_supply",
+    )[["bus", "carrier", "value", "table"]]
+
+    imports_eu27 = (
+        imports[imports.bus.map(extract_country).isin(eu27)]
+        .groupby(["carrier", "table"], as_index=False)
+        .value.sum()
+        .assign(bus="EU27")
     )
 
-    df = (
-        normalize_direction(df.set_index("border"), ["value"], buses_from_index=True)
-        .reset_index()
-        .drop(columns=["bus0", "bus1"])
-    )
+    df = pd.concat([flows, imports, imports_eu27], ignore_index=True)
+    df["unit"] = "MWh"
+
     return df
 
 
@@ -581,14 +551,14 @@ if __name__ == "__main__":
     eu27 = cc.EU27as("ISO2").ISO2.tolist()
 
     # TYNDP market model output files
-    tyndp_output_file = sorted(
+    tyndp_output_files = sorted(
         Path(
             snakemake.input.tyndp_output_file,
             str(planning_horizon),
             f"Weather scenario {weather_scenario:03d}",
         ).glob("*_TimeSeriesDashboard_*.xlsx")
     )
-    if not tyndp_output_file:
+    if not tyndp_output_files:
         raise FileNotFoundError(
             f"No TimeSeries Dashboard files for planning year {planning_horizon} "
             f"and weather scenario WS{weather_scenario:03d}."
@@ -605,7 +575,7 @@ if __name__ == "__main__":
     for table in tables_to_process:
         benchmarks[table] = load_MM_sheet(
             table_name=table,
-            filepath=tyndp_output_file,
+            filepaths=tyndp_output_files,
             countries=countries,
             eu27=eu27,
             mapping=mm_carrier_mapping,
@@ -613,38 +583,32 @@ if __name__ == "__main__":
 
     MM_data = pd.concat(benchmarks).reset_index(drop=True)
 
-    # set negative sign for loads
-    MM_data = set_load_sign(MM_data)
-
     # load crossborder data
     logger.info(f"Processing tables of cross-border flows")
     crossborder = load_crossborder_sheet("Exchanges", tyndp_output_files)
 
-
-    MM_data = pd.concat([MM_data, clean_crossborder_for_benchmarking(crossborder)])
-
-    # concatenate crossborder H2 imports to MM data for benchmarking
+    # concatenate crossborder flows and imports to MM_data for benchmarking
     MM_data = pd.concat(
-        [MM_data, clean_h2_imports_for_benchmarking(crossborder, eu27)],
+        [MM_data, clean_crossborder_for_benchmarking(crossborder, eu27)],
         ignore_index=True,
     )
 
-    # load h2 demand time series
-    logger.info("Processing hourly H2 demand tables")
+    # load demand time series
+    logger.info("Processing hourly demand tables")
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
     h2_demand_ts = load_demand_ts(
-        sheet_name="Hourly H2 Data",
-        filepath=tyndp_output_file,
+        sheet_names=H2_SHEETS,
+        filepaths=tyndp_output_files,
         snapshots=snapshots,
-        carrier="H2",
+        categories=["Native Demand [MW_H2]"],
     )
     elec_demand_ts = load_demand_ts(
-        sheet_name="Hourly Market Data",
-        filepath=tyndp_output_file,
+        sheet_names=ELECTRICITY_SHEETS,
+        filepaths=tyndp_output_files,
         snapshots=snapshots,
-        carrier="electricity",
+        categories=["Native Demand [MW_e]"],
     )
 
     # assign meta data
