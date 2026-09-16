@@ -72,7 +72,7 @@ class RemoteConfig(ConfigModel):
     )
     sync_exclude: list[str] = Field(
         default_factory=list,
-        description="Patterns to skip when pulling directories with the `sync_file` rule, passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+        description="Patterns to skip when pulling files and directories from the remote connection with the `sync_file` and `sync_file_dry` rules, and when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
     )
 
 
