@@ -866,19 +866,15 @@ def cba_ensemble_inputs(w):
     )
     return inputs
 
-def cba_target_inputs(w):
-    files = []
-    for run in cba_target_runs(w):
-        run_files = collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
-        files.extend(run_files)
-    return files
-
 # collect files to be stored in the scenario collection directory, e.g., NT-cyears
 rule cba:
     input:
         cba_ensemble_inputs,
-        cba_target_inputs,
-
+        lambda w: [
+            f
+            for run in cba_target_runs(w)
+            for f in collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
+        ],
 
 # collect rules
 rule prepare_references:
