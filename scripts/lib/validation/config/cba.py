@@ -47,7 +47,7 @@ class _CbaStorageConfig(ConfigModel):
     )
     soc_boundary_carriers: list[str] = Field(
         default_factory=lambda: ["hydro-reservoir"],
-        description="Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+        description="Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation. Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. Therefore hydro-pondage is not listed.",
     )
     discount_rate: float = Field(
         default=0.07,
