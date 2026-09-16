@@ -866,6 +866,7 @@ def cba_ensemble_inputs(w):
     )
     return inputs
 
+
 # collect files to be stored in the scenario collection directory, e.g., NT-cyears
 rule cba:
     input:
@@ -875,6 +876,7 @@ rule cba:
             for run in cba_target_runs(w)
             for f in collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
         ],
+
 
 # collect rules
 rule prepare_references:
