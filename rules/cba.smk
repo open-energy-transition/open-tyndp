@@ -822,7 +822,7 @@ def collect_cba_scenario_inputs(w):
             )
         )
 
-    print(">>> returned", len(inputs), "files:", inputs[:3])
+    print(">>>>>>>>>> collect_cba_scenario_inputs | output from function (input into `collect_cba_scenario` rule) for run", run, ":", inputs)
     return inputs
 
 
@@ -881,11 +881,12 @@ def cba_ensemble_inputs(w):
 
 def cba_target_inputs(w):
     files = []
+    print("!!! cba_scenario_inputs | input `cba_target_runs(w)`: ", cba_target_runs(w))
     for run in cba_target_runs(w):
         run_files = collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
-        print(f">>> {run}: {len(run_files)} files, first={run_files[:2]}")
+        print(f">>> {run}: {len(run_files)} files, first 5={run_files[:5]}")
         files.extend(run_files)
-    print(f">>> cba_target_inputs total: {len(files)}")
+    print("!!! cba_target_inputs | output (input into `cba` rule): " , files)
     return files
 
 # collect files to be stored in the scenario collection directory, e.g., NT-cyears
