@@ -65,6 +65,8 @@
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
+* Rename `get_link_attrs` function to `get_transmission_attrs` to align with `get_storage_attrs` ([#961](https://github.com/open-energy-transition/open-tyndp/pull/961)).
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
