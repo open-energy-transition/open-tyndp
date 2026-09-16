@@ -674,7 +674,6 @@ if config["benchmarking"]["enable"]:
 
     rule clean_tyndp_output_benchmark:
         input:
-            # TODO Generalize hardcoded climate year CY2009 for DE / GA
             tyndp_output_file=rules.retrieve_tyndp_2026.output.market_outputs,
             carrier_mapping="data/tyndp_technology_map.csv",
         output:

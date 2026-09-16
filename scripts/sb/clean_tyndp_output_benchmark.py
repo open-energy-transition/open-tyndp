@@ -626,7 +626,7 @@ if __name__ == "__main__":
     assign_meta_data(h2_demand_ts, planning_horizon, scenario)
 
     # Save data
-    MM_data.to_csv(snakemake.output.benchmarks, index=False)
+    MM_data.to_csv(snakemake.output.benchmarks, index=False, float_format="%.2f")
     crossborder.to_csv(snakemake.output.crossborder)
     h2_demand_ts.to_csv(snakemake.output.h2_demand)
     elec_demand_ts.to_csv(snakemake.output.elec_demand)
