@@ -69,6 +69,8 @@
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
+* Pin the `highs-default` solver preset to the `ipx` interior-point solver instead of `ipm` ([#962](https://github.com/open-energy-transition/open-tyndp/pull/962)). From HiGHS 1.12 onwards, `ipm` selects HiPO and falls back to `ipx`. However, HiPO is not yet validated for Open-TYNDP (see issue [#786](https://github.com/open-energy-transition/open-tyndp/issues/786)).
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
