@@ -19,3 +19,7 @@ are evaluated is configured by `cba.projects`, see
 
 The files are read and cleaned by [`scripts/cba/clean_projects.py`](../../../scripts/cba/clean_projects.py),
 whose module docstring describes the resulting tables in `resources/cba/`.
+
+Filled-in versions of each file are available in [`examples/`](examples), covering a modified
+project, a new project and a pair of identical projects used to assess two generator variants
+separately. They are not read by the workflow.
