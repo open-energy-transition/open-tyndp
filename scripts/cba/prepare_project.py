@@ -341,10 +341,16 @@ def apply_pint_generator(
                     ),  # Use the configured color, or assign a new one
                 )
 
+            # Generators without dynamic attributes fall back to their static values
+            if generator.mapping_id in generator_df_dynamic.columns.get_level_values(0):
+                generator_timeseries = generator_df_dynamic[generator.mapping_id]
+            else:
+                generator_timeseries = pd.DataFrame()
+
             # Add new generator with the specified mapping_id
             generator_dict = _get_generator_values(
                 generator,
-                generator_df_dynamic[generator.mapping_id],
+                generator_timeseries,
                 n.snapshots,
                 pypsa_dynamic_attributes,
             )
