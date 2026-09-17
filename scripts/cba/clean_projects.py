@@ -514,9 +514,7 @@ def extract_custom_generators(
     if not dynamic_path.exists():
         dynamic_path = custom_generator_dynamic_path
     reader = pd.read_excel if dynamic_path.suffix == ".xlsx" else pd.read_csv
-    custom_gens_dynamic = reader(
-        dynamic_path, header=[0, 1], index_col=0
-    )
+    custom_gens_dynamic = reader(dynamic_path, header=[0, 1], index_col=0)
 
     if custom_gens_static.empty and custom_gens_dynamic.empty:
         logger.debug("No custom generators found.")
@@ -538,7 +536,6 @@ def extract_custom_generators(
         )
 
     # Remove projects with no project ID
-    # TODO If PINT generator already exists in the future, it should be updated with values from this CSV rather than dropped
     mask_pid_null = custom_gens_static.project_id.isnull()
     if mask_pid_null.any():
         logger.warning(

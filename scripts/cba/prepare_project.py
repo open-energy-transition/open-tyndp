@@ -291,15 +291,13 @@ def _get_existing_generator(n: pypsa.Network, bus: str, carrier: str):
         The existing generator as a pandas Series if found, otherwise None
     """
 
-    existing_generator = n.generators.index[
-        (n.generators.bus == bus) & (n.generators.carrier == carrier)
-    ]
+    existing_generator = n.generators.query("carrier == @carrier and bus == @bus")
     if len(existing_generator) > 1:
         logger.warning(
             f"More than one generator with the carrier {carrier} is attached to the bus {bus}. Returning the first matching entry."
         )
     if not existing_generator.empty:
-        return existing_generator[0]
+        return existing_generator.iloc[0]
     else:
         return None
 
@@ -392,7 +390,7 @@ def apply_toot_generator(
         gen_to_modify = _get_existing_generator(n, generator.bus, generator.carrier)
         if gen_to_modify is None:
             logger.warning(
-                f"No match found for generator {generator.mapping_id} with carrier {generator.carrier} in the network. Skipping TOOT removal for this generator."
+                f"No match found for generator with carrier {generator.carrier} at bus {generator.bus} in the network. Skipping TOOT removal for generator {generator.mapping_id}."
             )
             continue
 
@@ -417,7 +415,7 @@ def apply_toot_generator(
             if negative_toot_option == "zero":
                 p_nom_new = 0
                 logger.info(
-                    f"Removing all existing capacity and setting p_nom to zero for {generator.generator_name}"
+                    f"Removing all existing capacity and setting p_nom to zero for {gen_to_modify.name}"
                 )
             else:
                 raise ValueError(
@@ -426,9 +424,9 @@ def apply_toot_generator(
 
         if p_nom_new == 0:
             # If the new capacity is zero, remove the generator from the network
-            n.remove("Generator", generator.mapping_id)
+            n.remove("Generator", gen_to_modify.name)
             logger.info(
-                f"Removed generator {generator.mapping_id} with carrier {generator.carrier} from the network due to TOOT removal."
+                f"Removed TOOT generator {gen_to_modify.name} with carrier {generator.carrier} at bus {generator.bus} from the network as p_nom = 0."
             )
             continue
         else:
