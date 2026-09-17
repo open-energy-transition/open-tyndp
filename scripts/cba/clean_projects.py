@@ -461,6 +461,7 @@ def extract_custom_generators(
     custom_generators_static_path: str,
     custom_generator_dynamic_path: str,
     existing_buses: pd.Index,
+    snapshot_year: int,
 ) -> tuple:
     """
     Extract custom generators associated with a transmission / storage project.
@@ -473,6 +474,8 @@ def extract_custom_generators(
         Filepath for custom generators dynamic attributes
     existing_buses: pd.Index
         List of existing buses
+    snapshot_year: int
+        Year of the configured snapshots, which the dynamic attributes are shifted to
 
     Returns
     -------
@@ -498,7 +501,7 @@ def extract_custom_generators(
         logger.warning(
             "No data found for static attributes of custom generators, only dynamic ones. The data for dynamic attributes will be ignored. Ensure both datasets are compatible."
         )
-        # Dropping all rows from the static dataframe to ensure that the dynamic dataframe is also ignored downstream
+        # Dropping all rows from the dynamic dataframe to ensure that it is also ignored downstream
         custom_gens_dynamic = custom_gens_dynamic.head(0)
         return custom_gens_static, custom_gens_dynamic
 
@@ -605,6 +608,25 @@ def extract_custom_generators(
         )
 
     custom_gens_dynamic = custom_gens_dynamic.drop(dropped_attrs, axis=1, level=1)
+
+    # Shift the dynamic attributes to the configured snapshot year
+    if not custom_gens_dynamic.empty:
+        custom_gens_dynamic.index = pd.to_datetime(custom_gens_dynamic.index)
+        input_year = custom_gens_dynamic.index[0].year
+        if input_year != snapshot_year:
+            logger.info(
+                f"Shifting dynamic attributes of custom generators from {input_year} to the configured snapshot year {snapshot_year}."
+            )
+            custom_gens_dynamic.index += pd.DateOffset(years=snapshot_year - input_year)
+
+        # Snapshots can be duplicated by a leap day shifted onto 28 February
+        duplicates = custom_gens_dynamic.index.duplicated(keep="first")
+        if duplicates.any():
+            logger.warning(
+                f"Dropping {duplicates.sum()} duplicate snapshots from the dynamic attributes of custom generators, keeping the first occurrence."
+            )
+            custom_gens_dynamic = custom_gens_dynamic[~duplicates]
+
 
     return custom_gens_static, custom_gens_dynamic
 
@@ -1061,6 +1083,7 @@ if __name__ == "__main__":
         custom_generators_static_path,
         custom_generators_dynamic_path,
         existing_buses,
+        pd.Timestamp(snakemake.params.snapshots["start"]).year,
     )
 
     # Investment costs and length transmission

@@ -565,8 +565,6 @@ def prepare_custom_generators(
 
     Raises
     ------
-    NotImplementedError
-        If a project assessed with TOOT has custom generators.
     ValueError
         If `method` is neither "pint" nor "toot".
     """
