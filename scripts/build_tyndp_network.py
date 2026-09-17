@@ -306,7 +306,7 @@ def build_buses(
 
 def build_country_shapes(bidding_shapes: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
-    Derive a representative point per country from electricity bidding zone shapes.
+    Derive a country shape per country from electricity bidding zone shapes. The representative point will be taken from the first dissolved bidding zone shape.
 
     Parameters
     ----------
