@@ -181,7 +181,7 @@ benchmarking:
           - scenario
           - year
       biomass_to_methane_efficiency:
-        # Values from TYNDP 2026 Supply Tool NT+ ("All data" sheet, "Efficiency Conversion Biomass to Biomethane")
+        # Values from TYNDP 2026 Supply Tool NT+ (per-country sheets, "Efficiency Conversion Biomass to Biomethane (%)"; identical for all 27 countries)
         2030: 0.582
         2035: 0.609
         2040: 0.636
