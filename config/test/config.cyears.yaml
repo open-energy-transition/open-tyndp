@@ -389,6 +389,16 @@ solving:
   solver:
     name: highs
     options: highs-default
+  solver_options:
+    highs-default:
+      solver: ipx
+      primal_feasibility_tolerance: 1.0e-06
+      dual_feasibility_tolerance: 1.0e-06
+      ipm_optimality_tolerance: 1.0e-06
+    gurobi-default:
+      BarConvTol: 1.0e-06
+      FeasibilityTol: 1.0e-06
+      OptimalityTol: 1.0e-06
   mem: 4000
 
 data:
@@ -445,6 +455,7 @@ cba:
     sb_version: latest # use 'latest' or a supported version from data/tyndp_versions.csv for pre-solved SB network input in CBA; only applies if use_presolved is true
   projects:
   - t1-t35
+  - s*
   area: tyndp # options: tyndp (TODO: entso-e, eu27)
   remove_noisy_costs: true # Use pre-noise costs for indicators while keeping noisy costs in the solve
   negative_toot_capacity: zero
@@ -456,10 +467,17 @@ cba:
     # marginal storage value and have cyclicity disabled
     cyclic_carriers:
     - battery
+    - caes
     # Carriers whose state of charge is fixed at window boundaries
-    # from perfect foresight (applies to StorageUnit components only)
+    # from perfect foresight (applies to StorageUnit components only).
+    # Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. 
+    # Therefore hydro-pondage is not included.
     soc_boundary_carriers:
     - hydro-reservoir
+    # Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export
+    discount_rate: 0.07
+    # Lifetime (years) used for storage projects with missing or zero operational lifetime
+    default_lifetime: 25
 
   # Constrain DSR daily dispatch
   constrain_dsr: true
@@ -475,9 +493,23 @@ cba:
     solving:
       options:
         noisy_costs: false
+        load_shedding:
+          enable: true
+          all_carriers: false
+          carriers:
+            H2: 300
+            AC: 300
       solver:
         name: highs
         options: highs-simplex
+      solver_options:
+        highs-simplex:
+          primal_feasibility_tolerance: 1.0e-06
+          dual_feasibility_tolerance: 1.0e-06
+        gurobi-default:
+          BarConvTol: 1.0e-06
+          FeasibilityTol: 1.0e-05
+          OptimalityTol: 1.0e-06
 
   # Rolling horizon solving settings
   solving:
@@ -487,7 +519,10 @@ cba:
       noisy_costs: false
       load_shedding:
         enable: true
-        all_carriers: true
+        all_carriers: false
+        carriers:
+          H2: 300
+          AC: 300
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
@@ -497,3 +532,8 @@ cba:
     solver_options:
       highs-simplex:
         parallel: "off" # does not speed up solution
+        primal_feasibility_tolerance: 1.0e-06
+        dual_feasibility_tolerance: 1.0e-06
+      gurobi-simplex:
+        FeasibilityTol: 1.0e-06
+        OptimalityTol: 1.0e-06

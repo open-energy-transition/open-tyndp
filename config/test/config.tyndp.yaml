@@ -389,6 +389,7 @@ solving:
     options: highs-default
   solver_options:
     highs-default:
+      solver: ipx
       primal_feasibility_tolerance: 1.0e-06
       dual_feasibility_tolerance: 1.0e-06
       ipm_optimality_tolerance: 1.0e-06
@@ -466,7 +467,9 @@ cba:
     - battery
     - caes
     # Carriers whose state of charge is fixed at window boundaries
-    # from perfect foresight (applies to StorageUnit components only)
+    # from perfect foresight (applies to StorageUnit components only).
+    # Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. 
+    # Therefore hydro-pondage is not included.
     soc_boundary_carriers:
     - hydro-reservoir
     # Discount rate used to annualize storage project CAPEX from the CBA storage projects Excel export
@@ -488,6 +491,12 @@ cba:
     solving:
       options:
         noisy_costs: false
+        load_shedding:
+          enable: true
+          all_carriers: false
+          carriers:
+            H2: 300
+            AC: 300
       solver:
         name: highs
         options: highs-simplex
@@ -508,7 +517,10 @@ cba:
       noisy_costs: false
       load_shedding:
         enable: true
-        all_carriers: true
+        all_carriers: false
+        carriers:
+          H2: 300
+          AC: 300
       io_api: direct  # 20% faster than default lp mode for rolling horizon
 
     solver:
