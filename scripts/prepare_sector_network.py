@@ -7334,7 +7334,7 @@ def add_industry(
             zone_country_z2.index, index=zone_country_z2.values
         )
         country_to_bus_z2 = country_to_bus_z2[~country_to_bus_z2.index.duplicated()]
-        nodes_ind_h2 = pop_layout.ct.map(country_to_bus_z2)
+        nodes_ind_h2 = pd.Index(pop_layout.ct.map(country_to_bus_z2))
 
     else:
         nodes_ind_h2 = nodes + " H2"
