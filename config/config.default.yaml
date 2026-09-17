@@ -1298,7 +1298,7 @@ solving:
   solver_options:
     "highs-default":
       threads: 1
-      solver: ipx
+      solver: ipm
       run_crossover: 'off'
       small_matrix_value: 1.0e-06
       large_matrix_value: 1000000000.0
