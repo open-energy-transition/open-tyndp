@@ -16,49 +16,72 @@ To resolve **myopia**—where the optimizer cannot see beyond the current week a
 The diagram below shows the full CBA workflow as implemented in `rules/cba.smk`. Dashed boxes and
 arrows are conditional; `×N` marks a step that fans out over every selected project.
 
+### Simplified view
+
+Here is a simplified overview of the CBA workflow:
+
 ```mermaid
+flowchart TD
+    SB(["SB solved network<br/>capacities already optimised"])
+    S1["1 · Freeze the grid<br/>fix capacities, align with CBA reference grid"]
+    S2["2 · Price stored energy<br/>full-year solve gives Marginal Storage Values"]
+    S3["3 · Cut the year into weekly windows<br/>MSVs become storage marginal costs"]
+    S4["4 · Build one network per project<br/>TOOT removes it, PINT adds it"]
+    S5["5 · Solve dispatch week by week<br/>reference network and every project"]
+    S6["6 · Compare project with reference<br/>B1 welfare · B2 CO2 · B3 RES · B4 pollutants"]
+    OUT(["CBA indicators<br/>optionally averaged over climate years"])
+
+    SB --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> OUT
+```
+
+### Detailed view
+
+Here is a more detailed overlook of the CBA workflow, including with rules and small descriptors:
+
+```mermaid
+%%{init: { "flowchart": { "useMaxWidth": false } } }%%
 flowchart TD
 
     subgraph RET ["Retrieve"]
-        RPS["retrieve_presolved_sb_networks<br/>only if use_presolved"]
-        RTP["retrieve_tyndp_cba_projects<br/>downloads the CBA project explorer dataset, containing project definitions."]
-        CTI["clean_tyndp_indicators<br/>processes and cleans CBA project data"]
+        RPS["retrieve_presolved_sb_networks<br/>if use_presolved"]
+        RTP["retrieve_tyndp_cba_projects"]
+        CTI["clean_tyndp_indicators"]
     end
 
     SBNET(["SB solved network<br/>one per planning horizon"])
-    CLP[["clean_projects (checkpoint)<br/>project list, one row per border, TOOT or PINT per horizon"]]
+    CLP[["clean_projects (checkpoint)<br/>one row per border, TOOT or PINT"]]
 
     subgraph REF ["Build reference network"]
-        SIM["simplify_sb_network<br/>fix optimal capacities, add hurdle costs to DC links,<br/>set infinite capacities for fuel generators"]
-        FRX["fix_reference_sb_to_cba<br/>build dataframe of capacity corrections to align SB projects with the CBA reference grid"]
-        PRF["prepare_reference<br/>apply capacity patches"]
+        SIM["simplify_sb_network<br/>fix capacities, hurdle costs"]
+        FRX["fix_reference_sb_to_cba<br/>capacity corrections"]
+        PRF["prepare_reference"]
     end
 
-    subgraph MSVX ["Create Marginal Storage Values (MSV)"]
-        BMW["build_msv_snapshot_weightings<br/>generate snapshot weightings for MSV extraction temporal aggregation"]
-        SMS["solve_cba_msv_extraction<br/>solve full-year perfect-foresight LP, all duals assigned"]
+    subgraph MSVX ["Marginal Storage Values (MSV)"]
+        BMW["build_msv_snapshot_weightings"]
+        SMS["solve_cba_msv_extraction<br/>full-year LP, all duals"]
     end
 
     subgraph RH ["Prepare rolling horizon"]
-        PRH["prepare_rolling_horizon<br/>carry storage state, drop annual limits, MSVs become marginal costs"]
-        PRP["prepare_project ×N<br/>create project network:<br/>TOOT removes the project, PINT adds it"]
+        PRH["prepare_rolling_horizon<br/>MSVs become marginal costs"]
+        PRP["prepare_project ×N<br/>TOOT removes, PINT adds"]
     end
 
-    subgraph SOL ["Solve dispatch using rolling horizon"]
-        SLR["solve_cba_reference_network<br/>(one per planning horizon)"]
-        SLN["solve_cba_network ×N<br/>(one per project per planning horizon)"]
+    subgraph SOL ["Solve dispatch (rolling horizon)"]
+        SLR["solve_cba_reference_network"]
+        SLN["solve_cba_network ×N"]
     end
 
-    subgraph IND ["Calculate and benchmark indicators"]
-        MKI["make_indicators ×N<br/>project minus reference:<br/>B1 welfare, B2 CO2, B3 RES, B4 pollutants"]
+    subgraph IND ["Indicators and benchmarks"]
+        MKI["make_indicators ×N<br/>B1 · B2 · B3 · B4 deltas"]
         CBI["combine_indicators"]
         PLI["plot_indicators"]
         PCB["plot_cba_benchmark ×N"]
-        PSB["plot_summary_projects_benchmark<br/>sMAPE and sMdAPE against published results"]
+        PSB["plot_summary_projects_benchmark"]
     end
 
-    subgraph ENS ["Run climate-year ensemble (collection runs only)"]
-        AVG["average_indicators_per_project_and_planning_horizon<br/>weighted mean over climate years 1995, 2008, 2009"]
+    subgraph ENS ["Climate-year ensemble (collection runs)"]
+        AVG["average_indicators_per_project_<br/>and_planning_horizon"]
         PWB["plot_weather_benchmark ×N"]
         SIP["summarize_indicators_per_project"]
         SAI["summarize_all_indicators"]
@@ -66,7 +89,7 @@ flowchart TD
 
     subgraph COL ["Collect"]
         CCS["collect_cba_scenario"]
-        CBA(["rule cba — workflow entry point"])
+        CBA(["rule cba<br/>workflow entry point"])
     end
 
     RPS -.-> SBNET
@@ -100,6 +123,9 @@ flowchart TD
     CBI -->|plain run| PSB
 
     MKI --> AVG
+    %% invisible links keep the ensemble stage below the indicator stage
+    PSB ~~~ AVG
+    PCB ~~~ AVG
     MKI -.-> PWB
     AVG --> SIP
     MKI --> SAI
@@ -120,6 +146,14 @@ flowchart TD
     class RPS,BMW,PWB optional
 ```
 
+Two notes about the diagram:
+
+* `clean_projects` is a Snakemake **checkpoint**: it checks how many projects are being requested to run before expanding the rest of the DAG. Hence why a first run shows only a handful of jobs (see [Checkpoint](#checkpoint) below).
+* The ensemble stage only materialises for a collection run such as `NT-cyears`. A plain
+  single-climate-year run (such as `NT` or `NT-cy2009`) stops at `collect_cba_scenario` (see [Running Single vs Multiple Climate Years](#running-single-vs-multiple-climate-years) below).
+
+### Outputs per stage
+
 Outputs per stage, with `{h}` the planning horizon, `{p}` the project code (e.g. `t4`) and the run
 directory `results/tyndp/{run}/` (`resources/tyndp/{run}/` for intermediate files):
 
@@ -136,12 +170,6 @@ directory `results/tyndp/{run}/` (`resources/tyndp/{run}/` for intermediate file
 | `make_indicators` | `results/.../cba/results/{h}/project_{p}_{h}.csv` |
 | `combine_indicators` | `results/.../cba/results/{h}/indicators_{h}.csv` |
 | `average_indicators_per_project_and_planning_horizon` | `results/.../cba/results/all/ensemble_indicators_{p}_{h}.csv` |
-
-Two notes about the diagram:
-
-* `clean_projects` is a Snakemake **checkpoint**: it checks how many projects are being requested to run before expanding the rest of the DAG. Hence why a first run shows only a handful of jobs (see [Checkpoint](#checkpoint) below).
-* The ensemble stage only materialises for a collection run such as `NT-cyears`. A plain
-  single-climate-year run (such as `NT` or `NT-cy2009`) stops at `collect_cba_scenario` (see [Running Single vs Multiple Climate Years](#running-single-vs-multiple-climate-years) below).
 
 ### Network Simplification
 
