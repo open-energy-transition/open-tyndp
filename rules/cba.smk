@@ -916,3 +916,22 @@ rule prepare_references:
             **config["scenario"],
             run=config["run"]["name"],
         ),
+
+
+rule collect_cba_data:
+    input:
+        lambda w: (
+            expand(
+                rules.retrieve_presolved_sb_networks.output.network,
+                planning_horizons=config_provider("cba", "planning_horizons")(w),
+                run=cba_target_runs(w),
+            )
+            if config_provider(
+                "cba", "cba_scenario_input", "use_presolved", default=False
+            )(w)
+            else []
+        ),
+        lambda w: expand(
+            rules.clean_projects.output,
+            run=cba_target_runs(w),
+        ),
