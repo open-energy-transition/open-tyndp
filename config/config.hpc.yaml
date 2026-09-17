@@ -8,6 +8,15 @@ run:
   name:
   - NT
 
+remote:
+  # sync all results files
+  sync_file:
+    results:
+    - ""
+  # except for cba/networks
+  sync_exclude:
+  - cba/networks
+
 # Remote runs usually can't launch the explorer
 launch_explorer: false
 

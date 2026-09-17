@@ -66,6 +66,14 @@ class RemoteConfig(ConfigModel):
         "",
         description="Optionally specify the file path within the remote cluster to be synchronized.",
     )
+    sync_file: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Files to pull from the remote cluster with the `sync_file` rule, keyed by top-level directory (`results`, `resources`, or `logs`). Each value is a list of paths behind `<dir>/<rdir>/<run-name>/`, e.g. `cba/indicators_2030.csv`. Every listed file is fetched for every configured run name.",
+    )
+    sync_exclude: list[str] = Field(
+        default_factory=list,
+        description="Patterns to skip when pulling files and directories from the remote connection with the `sync_file` and `sync_file_dry` rules, and when pulling the `results` and `resources` directories with the `sync` and `sync_dry` rules. Passed to `rsync --exclude`. Use unanchored patterns (e.g. `cba/networks`), which match at any depth, or use a leading `/` to anchor the pattern relative to the transfer root (e.g. `/results/tyndp/NT/cba/networks`, assuming the run name is `NT`).",
+    )
 
 
 class TyndpInvestmentCandidatesConfig(ConfigModel):
@@ -130,7 +138,7 @@ class ConfigSchema(BaseModel):
     )
     tyndp_scenario: Literal["NT", "DE", "GA", False] = Field(
         False,
-        description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules.",
+        description="Scenario configuration of the TYNDP data, which is one of NT, DE or GA. False disables the TYNDP-specific rules. Only NT is fully implemented and benchmarked in TYNDP 2024; DE and GA are incomplete, unsupported, and not planned to be supported, and the workflow might fail for them.",
     )
     launch_explorer: bool = Field(
         False,

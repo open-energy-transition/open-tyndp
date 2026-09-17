@@ -35,6 +35,9 @@ authors:
   - family-names: Hernandez Denyer
     given-names: Andreas
     orcid: https://orcid.org/0009-0000-8438-7764
+  - family-names: Narayana
+    given-names: Sermisha
+    orcid: https://orcid.org/0009-0004-9553-5709
   - family-names: Groissböck
     given-names: Markus
     orcid: https://orcid.org/0000-0001-6025-9477
@@ -82,6 +85,9 @@ preferred-citation:
     - family-names: Hernandez Denyer
       given-names: Andreas
       orcid: https://orcid.org/0009-0000-8438-7764
+    - family-names: Narayana
+      given-names: Sermisha
+      orcid: https://orcid.org/0009-0004-9553-5709
     - family-names: Groissböck
       given-names: Markus
       orcid: https://orcid.org/0000-0001-6025-9477

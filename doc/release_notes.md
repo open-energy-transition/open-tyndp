@@ -12,23 +12,39 @@
 * Add custom generator projects to the CBA assessment, using the PINT method [#897](https://github.com/open-energy-transition/open-tyndp/pull/897)
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
+* Add a source-agnostic local data cache to allow runs on machines without internet access ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
+
 **Changes**
 
 * Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
 * Move small CBA data files (``a.3_non-co2-emissions.csv`` and ``table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv``) to local repository ``data/cba/`` folder instead of retrieving from GCP. The rules ``retrieve_tyndp_cba_non_co2_emissions`` and ``retrieve_cba_guidelines_reference_projects`` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)).
 
+* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`, etc) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details) ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
+
+* Retrieve ``countries_centroids`` through the versioned data layout for local data cache. The file moves from ``data/countries_centroids.geojson`` to ``data/countries_centroids/{source}/{version}/countries.geojson`` and gains a ``data: countries_centroids:`` configuration entry ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
+
 **Bugfixes and Compatibility**
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
 
 * Correct bus (NL00->NLOH001) and capacity (2000 MW -> 1800 MW) for CBA project 260 ([#873](https://github.com/open-energy-transition/open-tyndp/pull/873)).
+ 
+* Stop reserving a solver license for the CBA rolling horizon rules in the `tyndp-slurm` profile, since `config/config.hpc.yaml` solves them with HiGHS by default ([#916](https://github.com/open-energy-transition/open-tyndp/pull/916)).
+
+* Use booleans instead of floats for `substation_off` and `substation_lv` when adding the Z2 DRES buses, which mixed dtypes in `n.buses` and broke the network export for the DE and GA scenarios ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
+
+* Fix MSV upsampling method to work with different temporal aggregations and change `extend_primary_fuel_sources` to also set `p_nom_opt` to `inf` ([#898](https://github.com/open-energy-transition/open-tyndp/pull/898)).
 
 **Documentation**
 
 * feat: explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
 
 * Add a warning to the CBA documentation recommending the latest pre-solved SB networks, and the code of the matching release as a fallback ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+
+* Update list of Open-TYNDP contributors ([#923](https://github.com/open-energy-transition/open-tyndp/pull/923)).
+
+* Display the complete technology mapping table in the benchmarking documentation, generated directly from `data/tyndp_technology_map.csv` ([#917](https://github.com/open-energy-transition/open-tyndp/issues/917)).
   
 **Developers Note**
 
@@ -38,9 +54,24 @@
 
 * Move the datasets `tyndp_cba_projects`, `tyndp_nuclear_profiles` and `tyndp_vis_plfm` in the Open-TYNDP GCP under a `2024/` prefixed path. The old paths are deprecated and will be removed with the next release ([#895](https://github.com/open-energy-transition/open-tyndp/pull/895)) .
 
-
 * feat: add automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
+
+* Update integration and env autoupdate workflow to include and account for `tyndp-*` branches ([#913](https://github.com/open-energy-transition/open-tyndp/pull/913)).
+
+* Add the Snakemake logs to the set of files retrieved from remote by the `sync` and `sync_dry` rules ([#918](https://github.com/open-energy-transition/open-tyndp/pull/918)).
+
+* Add rule to sync individual files from remote cluster ([#823](https://github.com/open-energy-transition/open-tyndp/pull/823)).
   
+* Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
+
+* Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
+
+* Improve efficiency of `plot_benchmark` by adding a cache to getting the version tag and fixing progressbar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)).
+
+* Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
+
+* Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip paths/files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster. For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)).
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
@@ -210,6 +241,7 @@
 * Switch Snakemake persistence backend to SQLite ([#833](https://github.com/open-energy-transition/open-tyndp/pull/833)).
 
 * Refactor `clean_projects` script to reduce the redundancy in its outputs ([#807](https://github.com/open-energy-transition/open-tyndp/pull/807)).
+
 
 ## PyPSA-Eur v2026.02.0 (18th February 2026, merged 17th June 2026)
 

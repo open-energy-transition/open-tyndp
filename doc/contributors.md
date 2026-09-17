@@ -16,6 +16,8 @@ towards the development of Open-TYNDP:
 * 2025-2026 Will Usher (OET)
 * 2026 Markus Groissböck (OET)
 * 2026 Andreas Hernandez Denyer (OET)
+* 2026 Measrainsey Meng (OET)
+* 2026 Sermisha Narayana (OET)
 
 For licensing purposes, this team is referred to as *Contributors to Open-TYNDP* (see [licenses](licenses.md)).
 
