@@ -482,12 +482,21 @@ def extract_custom_generators(
             custom_gens_dynamic: pd.DataFrame
                 Pandas dataframe of dynamic attributes of custom generators
     """
-    custom_gens_static = pd.read_csv(custom_generators_static_path).drop(
+
+    static_path = custom_generators_static_path.with_suffix(".xlsx")
+    if not static_path.exists():
+        static_path = custom_generators_static_path
+    reader = pd.read_excel if static_path.suffix == ".xlsx" else pd.read_csv
+    custom_gens_static = reader(static_path).drop(
         ["source", "further description"], axis=1, errors="ignore"
     )
 
-    custom_gens_dynamic = pd.read_csv(
-        custom_generator_dynamic_path, header=[0, 1], index_col=0
+    dynamic_path = custom_generator_dynamic_path.with_suffix(".xlsx")
+    if not dynamic_path.exists():
+        dynamic_path = custom_generator_dynamic_path
+    reader = pd.read_excel if dynamic_path.suffix == ".xlsx" else pd.read_csv
+    custom_gens_dynamic = reader(
+        dynamic_path, header=[0, 1], index_col=0
     )
 
     if custom_gens_static.empty and custom_gens_dynamic.empty:

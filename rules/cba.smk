@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 wildcard_constraints:
-    cba_project=r"(s|t|g)\d+",
+    cba_project=r"(s|t)\d+",
     run="(?!None)[-a-zA-Z0-9]+",  # Disallow None as a run wildcard
 
 
