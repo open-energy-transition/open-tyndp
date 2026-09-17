@@ -538,7 +538,7 @@
               "type": "array"
             },
             "soc_boundary_carriers": {
-              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation. Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. Therefore hydro-pondage is not listed.",
               "items": {
                 "type": "string"
               },
@@ -574,11 +574,11 @@
                 }
               ],
               "default": false,
-              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling marginal storage value to target network resolution.",
+              "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
               "enum": [
                 "ffill",
                 "interpolate"
@@ -1094,6 +1094,26 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
         },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",
@@ -2419,6 +2439,27 @@
           }
         },
         "open_tyndp_prelim": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
+        },
+        "countries_centroids": {
           "description": "Configuration for a single data source.",
           "properties": {
             "source": {
@@ -6702,11 +6743,11 @@
             }
           ],
           "default": false,
-          "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+          "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
         },
         "resample_method": {
           "default": "ffill",
-          "description": "Method for resampling marginal storage value to target network resolution.",
+          "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
           "enum": [
             "ffill",
             "interpolate"
@@ -6856,7 +6897,7 @@
           "type": "array"
         },
         "soc_boundary_carriers": {
-          "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+          "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation. Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. Therefore hydro-pondage is not listed.",
           "items": {
             "type": "string"
           },
@@ -7819,6 +7860,26 @@
           "default": {},
           "description": "Dictionary of carriers and their specific load sink cost in the unit of the bus carrier (e.g. EUR/MWh for electricity, EUR/t_CO2 for CO2). If load sinks are added for all carriers, the default cost is assumed for non-listed carriers.",
           "type": "object"
+        }
+      }
+    },
+    "_LocalCacheConfig": {
+      "description": "Configuration for the local cache of retrieved data.",
+      "properties": {
+        "enable": {
+          "default": false,
+          "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+          "type": "boolean"
+        },
+        "directory": {
+          "default": "data/local-cache",
+          "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+          "type": "string"
+        },
+        "fill": {
+          "default": false,
+          "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+          "type": "boolean"
         }
       }
     },
@@ -14257,6 +14318,26 @@
           },
           "type": "array"
         },
+        "local_cache": {
+          "description": "Configuration for the local cache of retrieved data.",
+          "properties": {
+            "enable": {
+              "default": false,
+              "description": "\n        Switch to keep all retrieved data in a single, source-agnostic and local cache directory.\n\n        When enabled, retrieved data is read from and written to `{local_cache.directory}/{dataset}/{version}`\n        instead of `data/{dataset}/{source}/{version}`. Retrieval is disabled while the cache is enabled,\n        unless `fill` is also set: the workflow reads the cached files and fails with a list of the\n        missing ones instead of downloading them, enabling offline execution of the workflow.\n\n        Useful if you want to run the workflow on a machine without internet access: first use `fill`\n        (or the `collect-data` tasks) on a machine with internet access to populate the cache directory\n        with all needed data, then copy `{local_cache.directory}` to the offline machine and enable this\n        setting there with fill set to `false` to run fully offline. The cache holds retrieved data only,\n        so the offline machine also needs the repository itself, including the data files tracked in `data/`.\n        ",
+              "type": "boolean"
+            },
+            "directory": {
+              "default": "data/local-cache",
+              "description": "Directory holding the local cache, relative to the project root or absolute. Only used when `enable` is set.",
+              "type": "string"
+            },
+            "fill": {
+              "default": false,
+              "description": "Switch to allow the retrieve rules to populate the cache `directory`. Can also be evoked by the `collect-data` tasks; leave disabled for regular runs.",
+              "type": "boolean"
+            }
+          }
+        },
         "hotmaps_industrial_sites": {
           "description": "Configuration for a single data source.",
           "properties": {
@@ -15600,6 +15681,27 @@
               "type": "string"
             }
           }
+        },
+        "countries_centroids": {
+          "description": "Configuration for a single data source.",
+          "properties": {
+            "source": {
+              "default": "archive",
+              "description": "Source of the data. 'archive' retrieves pre-built data, 'primary' retrieves from primary source.",
+              "enum": [
+                "archive",
+                "tyndp-archive",
+                "primary",
+                "build"
+              ],
+              "type": "string"
+            },
+            "version": {
+              "default": "latest",
+              "description": "Version of the data to use. Uses the specific 'version' for the selected 'source' or the dataset tagged 'latest' for this source.",
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -15726,7 +15828,7 @@
               "type": "array"
             },
             "soc_boundary_carriers": {
-              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation.",
+              "description": "Storage unit carriers for which the state of charge is pinned at the boundaries between rolling horizon windows, using values pre-computed from the perfect foresight (full-year) optimisation. Only carriers whose storage horizon (max_hours) exceeds the rolling horizon window need this. Therefore hydro-pondage is not listed.",
               "items": {
                 "type": "string"
               },
@@ -15762,11 +15864,11 @@
                 }
               ],
               "default": false,
-              "description": "Temporal resolution for extraction solve. False uses native resolution, or a string like '24H', '48H' for faster solve."
+              "description": "Temporal resolution for extraction solve. False uses the native resolution; 'NH' (e.g. '24H') averages over N hours and 'Nsn' (e.g. '2sn') uses every Nth snapshot. Can only coarsen the scenario building resolution, never refine it. Segmentation ('NSEG') is not supported, mirroring `clustering.temporal.resolution_sector`."
             },
             "resample_method": {
               "default": "ffill",
-              "description": "Method for resampling marginal storage value to target network resolution.",
+              "description": "Method for resampling marginal storage values and biomass/biogas bus marginal prices to the target network resolution. Does not apply to the reservoir state of charge, which is interpolated on snapshot period ends.",
               "enum": [
                 "ffill",
                 "interpolate"
