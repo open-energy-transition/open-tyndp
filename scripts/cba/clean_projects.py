@@ -16,7 +16,7 @@ to a representative electricity bus. Storage projects are assigned TOOT or PINT 
 whether they are already part of the reference grid, same as transmission projects; TOOT
 storage projects are not yet supported downstream (see `prepare_project.py`).
 
-Custom PINT transmission projects can be configured using `data/custom_cba_transmission_projects.csv`. With it,
+Custom PINT transmission projects can be configured using `data/cba/custom_projects/transmission_projects.csv`. With it,
 the user can modify existing projects and add new ones. Transmission capacities are in MW.
 
 - Using an existing PINT combination (`project_id`, `bus0`, `bus1`), the user can overwrite any
@@ -32,7 +32,9 @@ the user can modify existing projects and add new ones. Transmission capacities 
 - `rules.retrieve_tyndp.output.nodes`: TYNDP electricity node list used to validate borders
 - `data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`: Table of projects as defined in the Implementation Guidelines Appendix B.1, used to assign the TOOT/PINT method per project and planning horizon
 - `data/cba/cba_project_corrections.csv`: Manually curated bus0/bus1/p_nom corrections for CBA projects, applied in place of the corresponding raw Excel entries
-- `data/custom_cba_transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
+- `data/cba/custom_projects/transmission_projects.csv`: File used to configure custom transmission projects. With it, the user can modify existing projects and add new ones.
+- `data/cba/custom_projects/generators_static.csv`: File used to configure custom generators. With it, user can modify static attributes of existing or new generators attached to a transmission / storage project.
+- `data/cba/custom_projects/generators_dynamic.csv`: File used to configure custom generators. With it, user can modify dynamic attributes of existing or new generators attached to a transmission / storage project.
 
 **Outputs**
 
@@ -63,6 +65,23 @@ the user can modify existing projects and add new ones. Transmission capacities 
   - `bus`: Representative electricity bus for the project's country
 
 - `resources/cba/cba_project_methods.csv`: Table defining the assignment method of each project.
+
+- `resources/cba/generator_projects_static.csv`: Cleaned CSV of custom generators, one row per generator, with columns:
+  - `project_name`: Name of the project the generator is grouped with
+  - `project_type`: Type of that project, `t` for transmission or `s` for storage
+  - `project_id`: Integer identifier of that project
+  - `generator_name`: Generator name, unique within a project
+  - `carrier`: PyPSA carrier name of the generator
+  - `bus`: Electricity bus the generator is attached to
+  - `p_nom`: Nominal capacity (MW)
+  - `marginal_cost`: Marginal cost (EUR/MWh); missing values are replaced with 0
+  - `capital_cost`: Capital cost (EUR/MW); missing values are replaced with 0
+  - `efficiency`: Conversion efficiency (fraction); missing values are replaced with 1
+
+- `resources/cba/generator_projects_dynamic.csv`: Time-varying attributes of the same generators, in wide format with
+  a two-row header and the snapshots as index:
+  - Row 1: `mapping_id` of the generator the column belongs to having the format `<project_type><project_id>_<generator_name>`
+  - Row 2: PyPSA `Generator` input timeseries attribute the column provides(e.g. `p_max_pu`, `p_min_pu`, `efficiency`, `marginal_cost`, `p_set`)
 
 """
 
@@ -534,7 +553,7 @@ def extract_custom_generators(
         missing_buses = custom_gens_static.bus[mask_no_bus].unique().tolist()
         logger.warning(
             f"{mask_no_bus.sum()} custom generator(s) without existing bus have been dropped. Missing buses: {missing_buses}. "
-            "If new bus being added, ensure that it has been added to 'custom_cba_bus_projects.csv'"
+            "If new bus being added, ensure that it has been added to 'custom_cba_buses.csv'"
         )
     custom_gens_static = custom_gens_static[~mask_no_bus]
 

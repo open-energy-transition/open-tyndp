@@ -178,7 +178,7 @@ Custom projects can be evaluated with the CBA workflow, either as **transmission
 
 ### Custom transmission projects
 
-Custom PINT transmission projects can be evaluated with the CBA workflow. Each project is defined in `data/custom_cba_transmission_projects.csv` and selected in the configuration. Two types of custom project are supported, depending on whether `project_id` refers to an existing PINT project:
+Custom PINT transmission projects can be evaluated with the CBA workflow. Each project is defined in `data/cba/custom_projects/transmission_projects.csv` and selected in the configuration. Two types of custom project are supported, depending on whether `project_id` refers to an existing PINT project:
 
 - **Modified projects**: if the combination (`project_id`, `bus0`, `bus1`) matches an existing PINT project, the specified fields overwrite those of that project. Fields left empty retain their original values.
 
@@ -194,9 +194,9 @@ Custom generators are never assessed on their own: each one is grouped with eith
 
 Each project is defined across two files:
 
-- `data/custom_cba_generators_static.csv`: one row per generator, with `project_name`, `project_type`, `project_id`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. `project_type` and `project_id` identify the project the generator is grouped with: `project_type` is `t` for a transmission project or `s` for a storage project, and `project_id` is that project's ID, without the project_type (e.g. `project_type = t`, `project_id = 1500` for transmission project `1500`). Entries whose `project_type` is neither `s` nor `t` are dropped with a warning, as are entries without a `project_id` or `generator_name`, or whose `bus` does not already exist in the network. Duplicate (`project_type`, `project_id`, `generator_name`) combinations are also dropped. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively.
+- `data/cba/custom_projects/generators_static.csv`: one row per generator, with `project_name`, `project_type`, `project_id`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. `project_type` and `project_id` identify the project the generator is grouped with: `project_type` is `t` for a transmission project or `s` for a storage project, and `project_id` is that project's ID, without the project_type (e.g. `project_type = t`, `project_id = 1500` for transmission project `1500`). Entries whose `project_type` is neither `s` nor `t` are dropped with a warning, as are entries without a `project_id` or `generator_name`, or whose `bus` does not already exist in the network. Duplicate (`project_type`, `project_id`, `generator_name`) combinations are also dropped. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively.
 
-- `data/custom_cba_generators_dynamic.csv`: time series for the same projects, in wide format with a two-row header and snapshots as the index:
+- `data/cba/custom_projects/generators_dynamic.csv`: time series for the same projects, in wide format with a two-row header and snapshots as the index:
     - **Row 1** identifies the generator: replace the placeholder `<project_type><project_id>_<generator_name>` with the `project_type`, `project_id` and `generator_name` of the corresponding row in the static file, the project_type written directly against the ID and the generator name joined with an underscore (e.g. `t1500_BEI wind`). A project with multiple generators needs one such column group per generator.
     - **Row 2** names the PyPSA `Generator` attribute the column provides, e.g. `p_max_pu`, `p_min_pu`, `efficiency`, `marginal_cost`, `p_set`.
 
