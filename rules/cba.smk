@@ -14,6 +14,7 @@ import pandas as pd
 from scripts.cba._helpers import filter_projects_by_specs
 from scripts._helpers import fill_wildcards
 from shutil import unpack_archive, copy2
+from snakemake.iocontainers import Wildcards
 
 logger = logging.getLogger(__name__)
 
@@ -826,18 +827,6 @@ def collect_cba_scenario_inputs(w):
 ##########
 
 
-# collect files to be stored in the scenario directory, e.g., NT-cy1995
-rule collect_cba_scenario:
-    input:
-        collect_cba_scenario_inputs,
-    output:
-        touch(RESULTS + "cba/all_scenarios.txt"),
-    log:
-        logs("cba/collect_cba_scenario.log"),
-    benchmark:
-        benchmarks("performances/cba/collect_cba_scenario")
-
-
 def cba_ensemble_inputs(w):
     runs = cba_collection_scenarios(w)
     if not runs:
@@ -881,11 +870,11 @@ def cba_ensemble_inputs(w):
 rule cba:
     input:
         cba_ensemble_inputs,
-        # collect files to be stored in the scenario directory, e.g., NT-cy1995
-        lambda w: expand(
-            rules.collect_cba_scenario.output[0],
-            run=cba_target_runs(w),
-        ),
+        lambda w: [
+            f
+            for run in cba_target_runs(w)
+            for f in collect_cba_scenario_inputs(Wildcards(fromdict={"run": run}))
+        ],
 
 
 # collect rules
