@@ -22,13 +22,13 @@ Here is a simplified overview of the CBA workflow:
 
 ```mermaid
 flowchart TD
-    SB(["SB solved network<br/>capacities already optimised"])
-    S1["1 · Freeze the grid<br/>fix capacities, align with CBA reference grid"]
-    S2["2 · Price stored energy<br/>full-year solve gives Marginal Storage Values"]
-    S3["3 · Cut the year into weekly windows<br/>MSVs become storage marginal costs"]
-    S4["4 · Build one network per project<br/>TOOT removes it, PINT adds it"]
-    S5["5 · Solve dispatch week by week<br/>reference network and every project"]
-    S6["6 · Compare project with reference<br/>B1 welfare · B2 CO2 · B3 RES · B4 pollutants"]
+    SB(["SB solved network"])
+    S1["(1) Create reference grid<br/>fix capacities, align with CBA reference grid"]
+    S2["(2) Price stored energy<br/>full-year solve to get Marginal Storage Values"]
+    S3["(3) Prepare reference network<br/>MSVs become storage marginal costs,<br/>cut year into rolling horizon windows"]
+    S4["(4) Prepare one network per project<br/>TOOT removes it, PINT adds it"]
+    S5["(5) Solve dispatch per rolling horizon window<br/>reference network and every project"]
+    S6["(6) Compare project with reference<br/>B1-B4 indicators"]
     OUT(["CBA indicators<br/>optionally averaged over climate years"])
 
     SB --> S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> OUT
@@ -49,7 +49,7 @@ flowchart TD
     end
 
     SBNET(["SB solved network<br/>one per planning horizon"])
-    CLP[["clean_projects (checkpoint)<br/>one row per border, TOOT or PINT"]]
+    CLP[["clean_projects (checkpoint)"]]
 
     subgraph REF ["Build reference network"]
         SIM["simplify_sb_network<br/>fix capacities, hurdle costs"]
@@ -73,7 +73,7 @@ flowchart TD
     end
 
     subgraph IND ["Indicators and benchmarks"]
-        MKI["make_indicators ×N<br/>B1 · B2 · B3 · B4 deltas"]
+        MKI["make_indicators ×N<br/>B1-B4 indicators"]
         CBI["combine_indicators"]
         PLI["plot_indicators"]
         PCB["plot_cba_benchmark ×N"]
@@ -120,7 +120,7 @@ flowchart TD
     MKI --> CBI
     CBI --> PLI
     MKI --> PCB
-    CBI -->|plain run| PSB
+    CBI -->|single-scenario run| PSB
 
     MKI --> AVG
     %% invisible links keep the ensemble stage below the indicator stage
