@@ -25,6 +25,8 @@
 
 **Bugfixes and Compatibility**
 
+* fix: cap the Other RES biomass dispatch with `p_max_pu` instead of fixing it with `p_set` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). The must-run biomass demand derived from PEMMDB 2024 exceeded the solid biomass potentials of the TYNDP 2026 Supply Tool and made the 2030 network infeasible. To be revisited once PEMMDB 2026 data is added to the network.
+
 **Documentation**
 
 **Developers Note**
