@@ -1216,7 +1216,7 @@ def format_bz_names(
     Standardize TYNDP bidding zone / node name conventions to Open-TYNDP's.
 
     Currently only rewrites the "UK" country-code convention to "GB" (and the
-    "UK-N" sub-zone code to "UKNI"). Works both on a single string and,
+    "UK-N" sub-zone code to "GBNI"). Works both on a single string and,
     element-wise, on a pandas Series/DataFrame.
 
     Parameters
