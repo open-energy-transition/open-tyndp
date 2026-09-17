@@ -333,7 +333,7 @@ class SolvingConfig(BaseModel):
         default_factory=lambda: {
             "highs-default": {
                 "threads": 1,
-                "solver": "ipm",
+                "solver": "ipx",
                 "run_crossover": "off",
                 "small_matrix_value": 1e-6,
                 "large_matrix_value": 1e9,
