@@ -97,22 +97,22 @@ if (PRESOLVED_NETWORKS_DATASET := dataset_version("open_tyndp_prelim"))[
 
 
 
-# Versioning not implemented as the dataset is used only for plotting
 # License - MIT - Copyright (c) 2021 Gavin Rehkemper
 # Website: https://github.com/gavinr/world-countries-centroids
-rule retrieve_countries_centroids:
-    output:
-        "data/countries_centroids.geojson",
-    log:
-        "logs/retrieve_countries_centroids.log",
-    run:
-        from scripts._helpers import progress_retrieve
+if (CENTROIDS_DATASET := dataset_version("countries_centroids"))["source"] in [
+    "primary",
+    *ARCHIVE_SOURCES,
+]:
 
-        progress_retrieve(
-            "https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1.0.0/dist/countries.geojson",
-            output[0],
-            disable=True,
-        )
+    rule retrieve_countries_centroids:
+        input:
+            centroids=storage(CENTROIDS_DATASET["url"]),
+        output:
+            f"{CENTROIDS_DATASET['folder']}/countries.geojson",
+        log:
+            "logs/retrieve_countries_centroids.log",
+        run:
+            copy2(input["centroids"], output[0])
 
 
 # Development
