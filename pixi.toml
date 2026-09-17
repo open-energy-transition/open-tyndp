@@ -217,6 +217,8 @@ create-tyndp-graphs = """
 tyndp-sb = """
     snakemake -call --configfile config/config.tyndp.yaml
 """
+collect-data = "python utils/collect_data.py --configfile config/config.tyndp.yaml"
+collect-data-cba = "python utils/collect_data.py --cba --configfile config/config.tyndp.yaml"
 tyndp-checkpoint = """
     snakemake -call cba --configfile config/config.tyndp.yaml --until clean_projects
 """
