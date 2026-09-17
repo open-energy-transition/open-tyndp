@@ -181,7 +181,9 @@ def apply_toot_transmission(
                     "Cannot remove more capacity than exists in the network."
                 )
             if negative_toot_option == "zero":
-                result_capacity = max(result_capacity, 0)
+                logger.info(f"Removing all existing capacity and setting p_nom to zero for {project['project_id']}")
+                
+                result_capacity = 0
             else:
                 raise ValueError(
                     f"Unknown cba.negative_toot_option policy: {negative_toot_option}"
@@ -317,6 +319,9 @@ def apply_pint_generator(
     None
     """
 
+    # Dynamic PyPSA generator input attributes
+    pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
+
     # Add generator to the network
     for _, generator in generator_df_static.iterrows():
         gen_to_modify = _get_existing_generator(n, generator.mapping_id)
@@ -325,8 +330,6 @@ def apply_pint_generator(
             p_nom_new = gen_to_modify.p_nom + generator.p_nom
             n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
         else:
-            # Dynamic PyPSA generator input attributes
-            pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
 
             # Add carrier to network if new carrier
             if generator.carrier not in n.carriers.index:
@@ -403,7 +406,8 @@ def apply_toot_generator(
                     "Cannot remove more capacity than exists in the network."
                 )
             if negative_toot_option == "zero":
-                p_nom_new = max(p_nom_new, 0)
+                p_nom_new = 0
+                logger.info(f"Removing all existing capacity and setting p_nom to zero for {generator.generator_name}")
             else:
                 raise ValueError(
                     f"Unknown cba.negative_toot_capacity policy: {negative_toot_option}"
