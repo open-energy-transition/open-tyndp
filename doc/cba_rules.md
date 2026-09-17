@@ -121,6 +121,14 @@ Aggregate rules that run the corresponding base rule across all configured wildc
 
 Aggregate [`prepare_reference`](#rule-prepare_reference) outputs.
 
+### Rule `collect_cba_data`
+
+Collects the data the CBA needs before the [`clean_projects`](#rule-clean_projects-checkpoint)
+checkpoint expands the graph: the project data the checkpoint reads, and the pre-solved SB networks
+where `cba: cba_scenario_input: use_presolved: true`. Running the rule also runs the checkpoint.
+Used by `pixi run collect-data-cba`, see
+[Filling the cache with network access](retrieve.md#local_cache_online).
+
 ### Rule `cba`
 
 Top-level target rule. Collects ensemble outputs from all climate year runs in a collection
