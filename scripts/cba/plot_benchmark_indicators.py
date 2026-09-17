@@ -73,7 +73,7 @@ def benchmark_range(
     benchmark = df[(df["source"] == source) & (df["indicator"] == indicator)].copy()
     benchmark.subindex = benchmark.subindex.fillna("explicit")
     if benchmark.empty:
-        return None
+        return (None, None, None)
 
     if indicator == "B2a_societal_cost_variation":
         benchmark = benchmark[benchmark["subindex"].isin(["low", "central", "high"])]
@@ -89,7 +89,7 @@ def benchmark_range(
         index="project_id", columns="subindex", values="value", aggfunc="mean"
     )
     if pivot.empty:
-        return None
+        return (None, None, None)
 
     mean = pivot.get("mean")
     if mean is None:
@@ -98,7 +98,7 @@ def benchmark_range(
         elif "max" in pivot.columns:
             mean = pivot["max"]
     if mean is None or mean.empty:
-        return None
+        return (None, None, None)
 
     mean_val = float(mean.iloc[0])
     min_val = float(pivot.get("min", mean).iloc[0])
@@ -164,8 +164,8 @@ def plot_project_benchmarks(
             continue
 
         model_val = select_model_value(df, indicator)
-        bench = benchmark_range(df, indicator, source="TYNDP 2024")
-        if model_val is None or bench is None:
+
+        if model_val is None:
             continue
         plot_items.append(indicator)
 
@@ -251,34 +251,39 @@ def plot_project_benchmarks(
                 df, indicator, source="TYNDP 2024"
             )
 
-            ax.errorbar(
-                [-0.1],
-                [mean_val],
-                yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
-                fmt="x",
-                color="gray",
-                ecolor="lightgray",
-                capsize=3,
-            )
+            if None not in (mean_val, min_val, max_val):
+                ax.errorbar(
+                    [-0.1],
+                    [mean_val],
+                    yerr=[[abs(mean_val - min_val)], [abs(max_val - mean_val)]],
+                    fmt="x",
+                    color="gray",
+                    ecolor="lightgray",
+                    capsize=3,
+                )
+
             label = "2024 TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(
                     Line2D([0], [0], marker="x", color="gray", linestyle="None")
                 )
                 legend_labels.append(label)
-            ax.errorbar(
-                [0.1],
-                [model_mean_val],
-                yerr=[
-                    [abs(model_mean_val - model_min_val)],
-                    [abs(model_max_val - model_mean_val)],
-                ],
-                fmt="o",
-                color="tab:blue",
-                ecolor="lightblue",
-                capsize=3,
-            )
-            ax.set_xlim(xmin=-0.5, xmax=0.5)
+
+            if None not in (model_mean_val, model_min_val, model_max_val):
+                ax.errorbar(
+                    [0.1],
+                    [model_mean_val],
+                    yerr=[
+                        [abs(model_mean_val - model_min_val)],
+                        [abs(model_max_val - model_mean_val)],
+                    ],
+                    fmt="o",
+                    color="tab:blue",
+                    ecolor="lightblue",
+                    capsize=3,
+                )
+                ax.set_xlim(xmin=-0.5, xmax=0.5)
+
             label = "Open-TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(

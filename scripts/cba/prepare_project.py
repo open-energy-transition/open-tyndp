@@ -334,9 +334,9 @@ def apply_pint_generator(
     for _, generator in generator_df_static.iterrows():
         gen_to_modify = _get_existing_generator(n, generator.bus, generator.carrier)
         if gen_to_modify is not None:
-            # Overwrite existing generator with the same mapping_id, summing p_nom values
+            # Overwrite existing generator with the same bus and carrier with updated p_nom, summing p_nom values
             p_nom_new = gen_to_modify.p_nom + generator.p_nom
-            n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
+            n.generators.loc[gen_to_modify.name, "p_nom"] = p_nom_new
         else:
             # Add carrier to network if new carrier
             if generator.carrier not in n.carriers.index:

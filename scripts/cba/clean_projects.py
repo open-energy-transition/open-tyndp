@@ -434,8 +434,13 @@ def extract_custom_transmission_projects(
     pd.DataFrame
         Curated list of custom projects.
     """
+    transmission_path = custom_transmission_path.with_suffix(".xlsx")
+    if not transmission_path.exists():
+        transmission_path = custom_transmission_path
+    reader = pd.read_excel if transmission_path.suffix == ".xlsx" else pd.read_csv
+
     custom_transmission_projects = (
-        pd.read_csv(
+        reader(
             custom_transmission_path,
         )
         .assign(border=lambda df: df.bus0 + "-" + df.bus1)
