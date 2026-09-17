@@ -26,6 +26,7 @@ path = [
     "doc/configtables/benchmarking.csv",
     "doc/img/tyndp/*",
     "data/cba/custom_projects/*",
+    "data/cba/custom_projects/examples/*",
 ]
 SPDX-FileCopyrightText = [
     "The Open-TYNDP Authors",

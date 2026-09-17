@@ -158,6 +158,7 @@ checkpoint clean_projects:
     params:
         planning_horizons=config_provider("cba", "planning_horizons"),
         storage_default_lifetime=config_provider("cba", "storage", "default_lifetime"),
+        snapshots=config_provider("snapshots"),
     script:
         scripts("cba/clean_projects.py")
 
