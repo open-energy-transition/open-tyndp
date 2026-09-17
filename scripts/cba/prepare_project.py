@@ -181,8 +181,10 @@ def apply_toot_transmission(
                     "Cannot remove more capacity than exists in the network."
                 )
             if negative_toot_option == "zero":
-                logger.info(f"Removing all existing capacity and setting p_nom to zero for {project['project_id']}")
-                
+                logger.info(
+                    f"Removing all existing capacity and setting p_nom to zero for {project['project_id']}"
+                )
+
                 result_capacity = 0
             else:
                 raise ValueError(
@@ -270,7 +272,7 @@ def _get_generator_values(
     return generator_dict
 
 
-def _get_existing_generator(n: pypsa.Network, mapping_id: str):
+def _get_existing_generator(n: pypsa.Network, bus: str, carrier: str):
     """
     Returns the existing generator in the network with the given mapping_id, or None if not found.
 
@@ -278,8 +280,10 @@ def _get_existing_generator(n: pypsa.Network, mapping_id: str):
     ----------
     n: pypsa.Network
         Network to search for the generator
-    mapping_id: str
-        Mapping ID of the generator to find
+    bus: str
+        Bus the generator is attached to
+    carrier: str
+        Carrier of the generator
 
     Returns
     -------
@@ -287,9 +291,15 @@ def _get_existing_generator(n: pypsa.Network, mapping_id: str):
         The existing generator as a pandas Series if found, otherwise None
     """
 
-    existing_generator = n.generators.query("index == @mapping_id").squeeze()
+    existing_generator = n.generators.index[
+        (n.generators.bus == bus) & (n.generators.carrier == carrier)
+    ]
+    if len(existing_generator) > 1:
+        logger.warning(
+            f"More than one generator with the carrier {carrier} is attached to the bus {bus}. Returning the first matching entry."
+        )
     if not existing_generator.empty:
-        return existing_generator
+        return existing_generator[0]
     else:
         return None
 
@@ -320,17 +330,16 @@ def apply_pint_generator(
     """
 
     # Dynamic PyPSA generator input attributes
-    pypsa_dynamic_attributes = get_pypsa_dynamic_attributes()
+    pypsa_dynamic_attributes = get_pypsa_dynamic_attributes("Generator")
 
     # Add generator to the network
     for _, generator in generator_df_static.iterrows():
-        gen_to_modify = _get_existing_generator(n, generator.mapping_id)
+        gen_to_modify = _get_existing_generator(n, generator.bus, generator.carrier)
         if gen_to_modify is not None:
             # Overwrite existing generator with the same mapping_id, summing p_nom values
             p_nom_new = gen_to_modify.p_nom + generator.p_nom
             n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
         else:
-
             # Add carrier to network if new carrier
             if generator.carrier not in n.carriers.index:
                 n.add(
@@ -380,7 +389,7 @@ def apply_toot_generator(
     """
 
     for _, generator in generator_df_static.iterrows():
-        gen_to_modify = _get_existing_generator(n, generator.mapping_id)
+        gen_to_modify = _get_existing_generator(n, generator.bus, generator.carrier)
         if gen_to_modify is None:
             logger.warning(
                 f"No match found for generator {generator.mapping_id} with carrier {generator.carrier} in the network. Skipping TOOT removal for this generator."
@@ -407,7 +416,9 @@ def apply_toot_generator(
                 )
             if negative_toot_option == "zero":
                 p_nom_new = 0
-                logger.info(f"Removing all existing capacity and setting p_nom to zero for {generator.generator_name}")
+                logger.info(
+                    f"Removing all existing capacity and setting p_nom to zero for {generator.generator_name}"
+                )
             else:
                 raise ValueError(
                     f"Unknown cba.negative_toot_capacity policy: {negative_toot_option}"

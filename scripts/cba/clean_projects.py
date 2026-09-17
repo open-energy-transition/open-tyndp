@@ -597,7 +597,7 @@ def extract_custom_generators(
 
     # Filter out dynamic attributes that are not inputs that can be provided to PyPSA network
     dropped_attrs = custom_gens_dynamic.columns.get_level_values(1).difference(
-        get_pypsa_dynamic_attributes()
+        get_pypsa_dynamic_attributes("Generator")
     )
     if not dropped_attrs.empty:
         logger.warning(

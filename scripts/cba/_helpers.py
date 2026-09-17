@@ -222,7 +222,7 @@ def generate_unique_hex(carrier: str, excluded_colors: list[str]) -> str:
             return hex_color
 
 
-def get_pypsa_dynamic_attributes() -> list[str]:
+def get_pypsa_dynamic_attributes(component: str) -> list[str]:
     """
     Return a list of PyPSA dynamic attributes that can be provided as input.
 
@@ -230,12 +230,17 @@ def get_pypsa_dynamic_attributes() -> list[str]:
     component, specifically those that are marked as varying and have a status
     starting with "Input".
 
+    Parameters
+    ----------
+    component: str
+        PyPSA component to filter
+
     Returns
     -------
     list[str]
         List of PyPSA dynamic attribute names.
     """
-    defaults = pypsa.Network().components["Generator"].defaults
+    defaults = pypsa.Network().components[component].defaults
     return defaults.index[
         defaults.varying & defaults.status.str.startswith("Input")
     ].tolist()
