@@ -1244,95 +1244,6 @@ def add_import_limit_constraint(n: pypsa.Network, sns: pd.DatetimeIndex):
     n.model.add_constraints(lhs, limit_sense, rhs, name="import_limit")
 
 
-def add_offshore_hubs_constraint(
-    n: pypsa.Network,
-    planning_horizons: int,
-    offshore_zone_trajectories_fn: str,
-    renewable_carriers_tyndp: list[str],
-) -> None:
-    """
-    Add two constraints on offshore hubs.
-
-    1. Constraint expansion of DC and H2 sitting on the same location, as the sum of the two capacities cannot exceed the layer potential.
-    2. Constraint the maximum potential per zone.
-
-    Parameters
-    ----------
-    n : pypsa.Network
-        The PyPSA network instance.
-    planning_horizons : int
-        The current planning horizon year.
-    offshore_zone_trajectories_fn : str
-        Path to the file containing the offshore zone potentials trajectories.
-    renewable_carriers_tyndp : list[str]
-        List of TYNDP renewable carriers.
-    """
-    ext_i = n.generators.p_nom_extendable
-    gens = n.generators.assign(
-        layer=lambda df: df.index.str.replace(
-            r"-\d{4}$", f"-{planning_horizons}", regex=True
-        ),
-        zone=lambda df: df.index.str.split().str[0],
-    ).rename_axis("Generator-ext")
-    off_carriers = [i for i in renewable_carriers_tyndp if "offwind" in i]
-    off_h2_carriers = [i for i in off_carriers if "h2" in i]
-
-    # Constraint DC / H2 expansion on the same layer
-    h2_i = gens.carrier.isin(off_h2_carriers)
-    h2_gens = gens.loc[(h2_i) & (ext_i)]
-    h2_gens_i = h2_gens.index
-    dc_gens_i = h2_gens_i.str.replace("h2", "dc").str.replace(" H2", "")
-    p_nom = n.model["Generator-p_nom"]
-    if PYPSA_V1:
-        p_nom = p_nom.rename({"name": "Generator-ext"})
-
-    lhs = (
-        p_nom.loc[dc_gens_i]
-        + p_nom.loc[h2_gens_i] / h2_gens.loc[h2_gens_i, "efficiency_dc_to_b0"]
-    )
-    rhs = gens.loc[dc_gens_i].p_nom_max
-
-    if not lhs.empty:
-        n.model.add_constraints(lhs <= rhs, name="Generator-off_h2_dc_pot")
-
-    # Constraint the maximum potential per zone
-    limit = (
-        pd.read_csv(offshore_zone_trajectories_fn, index_col=0)
-        .query("pyear == @planning_horizons")
-        .p_nom_max
-    )
-
-    off_i = gens.carrier.isin(off_carriers)
-
-    off_gens_i = gens.loc[(off_i) & (ext_i)].index
-
-    if off_gens_i.empty:
-        return
-
-    grouper_ext = gens.loc[off_gens_i].zone
-    idx = pd.Index(set(limit.index).intersection(grouper_ext))
-    eff_z = gens["efficiency_dc_to_b0"].reindex(off_gens_i)
-    lhs = (p_nom.loc[off_gens_i] / eff_z).groupby(grouper_ext).sum().loc[idx]
-
-    existing_z = (
-        gens.loc[(off_i) & ~(ext_i)]
-        .assign(
-            p_nom=lambda df: np.where(
-                df.carrier.str.contains("h2"),
-                df.p_nom.div(df.efficiency_dc_to_h2),
-                df.p_nom,
-            )
-        )
-        .rename(lambda x: x.split("-2")[0] + f"-{planning_horizons}")[["p_nom", "zone"]]
-        .groupby(by="zone")
-        .sum()
-        .reindex(idx, fill_value=0)["p_nom"]
-    )
-    rhs = limit.loc[idx] - existing_z
-
-    n.model.add_constraints(lhs <= rhs, name="Generator-off_zone_pot")
-
-
 def add_co2_atmosphere_constraint(n, snapshots):
     glcs = n.global_constraints[n.global_constraints.type == "co2_atmosphere"]
 
@@ -1418,8 +1329,6 @@ def extra_functionality(
     n: pypsa.Network,
     snapshots: pd.DatetimeIndex,
     planning_horizons: str | None = None,
-    offshore_zone_trajectories_fn: str | None = None,
-    renewable_carriers_tyndp: list[str] = [],
 ) -> None:
     """
     Add custom constraints and functionality.
@@ -1432,11 +1341,6 @@ def extra_functionality(
         Simulation timesteps
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight.
-    offshore_zone_trajectories_fn : str or None, optional
-        Path to the file containing the offshore zone potentials trajectories.
-        Default is None.
-    renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers. Default is [].
 
     Notes
     -----
@@ -1494,17 +1398,6 @@ def extra_functionality(
 
     if config["sector"]["imports"]["enable"]:
         add_import_limit_constraint(n, snapshots)
-
-    if (
-        config["sector"]["offshore_hubs_tyndp"]["enable"]
-        and config["tyndp_scenario"] != "NT"
-    ):
-        add_offshore_hubs_constraint(
-            n,
-            int(planning_horizons),
-            offshore_zone_trajectories_fn,
-            renewable_carriers_tyndp,
-        )
 
     if config["electricity"].get("constrain_dsr", False):
         constrain_dsr_daily_dispatch(n, snapshots)
@@ -1652,8 +1545,6 @@ def create_optimization_model(
     model_kwargs: dict,
     solve_kwargs: dict,
     planning_horizons: str | None = None,
-    offshore_zone_trajectories_fn: str | None = None,
-    renewable_carriers_tyndp: list[str] = [],
 ) -> None:
     """
     Prepare optimization problem by creating model and adding extra functionality.
@@ -1677,11 +1568,6 @@ def create_optimization_model(
         Arguments for n.optimize.solve_model()
     planning_horizons : str, optional
         The current planning horizon year or None in perfect foresight
-    offshore_zone_trajectories_fn : str or None, optional
-        Path to DataFrame containing the offshore zone potentials trajectories.
-        Default is None.
-    renewable_carriers_tyndp : list[str], optional
-        List of TYNDP renewable carriers. Default is [].
     """
     # Add config and params to network for extra_functionality
     n.config = config
@@ -1697,8 +1583,6 @@ def create_optimization_model(
         n,
         n.snapshots,
         planning_horizons,
-        offshore_zone_trajectories_fn,
-        renewable_carriers_tyndp,
     )
 
 
@@ -1771,8 +1655,6 @@ if __name__ == "__main__":
             all_kwargs["extra_functionality"] = partial(
                 extra_functionality,
                 planning_horizons=planning_horizons,
-                offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
-                renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
             )
             n.optimize.optimize_with_rolling_horizon(**all_kwargs)
             status, condition = "", ""
@@ -1793,8 +1675,6 @@ if __name__ == "__main__":
                 model_kwargs=model_kwargs,
                 solve_kwargs=solve_kwargs,
                 planning_horizons=planning_horizons,
-                offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
-                renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
             )
 
             logger.info("Solving model...")
@@ -1816,8 +1696,6 @@ if __name__ == "__main__":
             all_kwargs["extra_functionality"] = partial(
                 extra_functionality,
                 planning_horizons=planning_horizons,
-                offshore_zone_trajectories_fn=snakemake.input.offshore_zone_trajectories,
-                renewable_carriers_tyndp=snakemake.params.renewable_carriers_tyndp,
             )
             status, condition = n.optimize.optimize_transmission_expansion_iteratively(
                 **all_kwargs

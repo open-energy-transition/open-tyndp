@@ -14,7 +14,6 @@ import pydeck as pdk
 import pypsa
 from pypsa.plot.maps.interactive import PydeckPlotter
 from pypsa.statistics import get_transmission_carriers
-from shapely.geometry import box
 
 from scripts._helpers import (
     configure_logging,
@@ -23,7 +22,6 @@ from scripts._helpers import (
     update_config_from_wildcards,
 )
 from scripts.add_electricity import sanitize_carriers
-from scripts.build_tyndp_network import IBFI_COORD
 
 VALID_MAP_STYLES = PydeckPlotter.VALID_MAP_STYLES
 
@@ -77,10 +75,6 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
     """
     Dissolve hydrogen regions to align with the TYNDP topology.
 
-    Two zones require dedicated treatments, as defined in ``build_tyndp_network``:
-    IBIT and IBFI. The IBIT zone uses the ITN1 shape. The Finland shape is divided
-    in two: the northern part is assigned to FI H2 and the southern part to IBFI H2.
-
     Parameters
     ----------
     regions : gpd.GeoDataFrame
@@ -92,38 +86,27 @@ def dissolve_h2_regions_tyndp(regions: gpd.GeoDataFrame, buses_h2_fn: str):
     -------
     gpd.GeoDataFrame
         Regions dissolved to the hydrogen topology.
+
+    Notes
+    -----
+    TODO: TYNDP 2026 already splits several countries into multiple H2 buses
+    of the same category (e.g. FR: FRh2/FRh2N/FRh2S/FRh2SW, all "Z2") instead
+    of one bus per country. The country -> bus_id mapping below keeps only
+    one of them per country (whichever sorts first), silently dissolving the
+    others' regions into it. Filtering to a single category doesn't help
+    here, since a country's extra zones share the same category as its
+    "main" bus. A proper region-to-zone assignment (e.g. by geometry) is
+    needed to plot those countries correctly.
     """
     buses_h2 = gpd.read_file(buses_h2_fn).set_index("bus_id")
     buses_h2_real = buses_h2[~buses_h2.index.str.startswith("IB")]
     country_to_bus = buses_h2_real.reset_index()[["bus_id", "country"]].set_index(
         "country"
     )["bus_id"]
+    country_to_bus = country_to_bus[~country_to_bus.index.duplicated()]
     regions["country"] = regions.index.str[:2]
     regions["bus_id"] = regions["country"].map(country_to_bus)
-    if "ITN1" in regions.index:
-        regions.loc["ITN1", "bus_id"] = "IBIT H2"
     regions = regions.dissolve("bus_id")[["geometry"]]
-
-    if "FI H2" in regions.index:
-        ibfi_lat, ibfi_long = IBFI_COORD
-        fi_lat = buses_h2.loc["FI H2"].y
-        split_lat = (ibfi_lat + fi_lat) / 2
-        fi_geom = regions.loc["FI H2", "geometry"]
-
-        south = fi_geom.intersection(box(minx=-180, miny=-90, maxx=180, maxy=split_lat))
-        north = fi_geom.intersection(box(minx=-180, miny=split_lat, maxx=180, maxy=90))
-
-        fi_splitted = gpd.GeoDataFrame(
-            {
-                "geometry": [south, north],
-                "bus_id": ["IBFI H2", "FI H2"],
-            },
-            crs=regions.crs,
-        ).set_index("bus_id")
-        regions = gpd.GeoDataFrame(
-            pd.concat([regions[regions.index != "FI H2"], fi_splitted]),
-            crs=regions.crs,
-        )
 
     return regions
 
