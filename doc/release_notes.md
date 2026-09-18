@@ -71,6 +71,8 @@
 
 * Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip paths/files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster. For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)).
 
+* Drop the `grpcio < 1.78` pin and update `h2`, `pyarrow` and `fiona` to apply security patches ([#929](https://github.com/open-energy-transition/open-tyndp/pull/929)).
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
