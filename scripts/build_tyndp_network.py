@@ -281,12 +281,30 @@ def build_buses(
     )
     buses = gpd.GeoDataFrame(buses, geometry="geometry", crs=geo_crs)
 
-    # Fill in manually-guessed coordinates for offshore/virtual nodes that
-    # have no matching bidding-zone shape (see data/tyndp_manual_bus_locations.csv)
+    return fill_manual_coordinates(buses, manual_bus_locations_fn)
+
+
+def fill_manual_coordinates(
+    buses: gpd.GeoDataFrame, manual_bus_locations_fn: str
+) -> gpd.GeoDataFrame:
+    """
+    Fill in manually-guessed coordinates for buses without coordinates.
+
+    Parameters
+    ----------
+    buses : gpd.GeoDataFrame
+        Buses indexed by ``bus_id``, with ``x``, ``y`` and ``geometry`` columns.
+    manual_bus_locations_fn : str
+        Path to a CSV of manually-guessed ``x``/``y`` coordinates (see
+        ``data/tyndp_manual_bus_locations.csv``), keyed by ``bus_id``.
+
+    Returns
+    -------
+    gpd.GeoDataFrame
+        Buses with coordinates filled in where they were missing.
+    """
     manual_locations = pd.read_csv(manual_bus_locations_fn, index_col="bus_id")
-    missing = buses.index[
-        buses["geometry"].isna() & buses.index.isin(manual_locations.index)
-    ]
+    missing = buses.index[buses["x"].isna() & buses.index.isin(manual_locations.index)]
     if not missing.empty:
         buses.loc[missing, "x"] = manual_locations.loc[missing, "x"]
         buses.loc[missing, "y"] = manual_locations.loc[missing, "y"]
@@ -294,7 +312,7 @@ def build_buses(
             manual_locations.loc[missing, "x"], manual_locations.loc[missing, "y"]
         )
 
-    still_missing = buses.index[buses["geometry"].isna()]
+    still_missing = buses.index[buses["x"].isna()]
     if not still_missing.empty:
         logger.warning(
             "No coordinates for buses (not in any bidding-zone shape and not in "
@@ -353,6 +371,7 @@ def extract_country(bus_id: str) -> str:
 def build_buses_h2(
     nodes_fn: str,
     bidding_shapes: gpd.GeoDataFrame,
+    manual_bus_locations_fn: str,
     geo_crs: str = GEO_CRS,
 ) -> gpd.GeoDataFrame:
     """
@@ -372,10 +391,12 @@ def build_buses_h2(
     Node coordinates are not given directly in the TYNDP node list (unlike
     electricity, hydrogen nodes have no matching bidding-zone shape), so they
     are approximated by the representative point of the node's country,
-    derived from the electricity bidding-zone shapes. This is a coarse
-    approximation for zone-split countries and import/bottleneck nodes; it is
-    only used for plotting and downstream distance-based calculations, not
-    for the pipeline topology itself.
+    derived from the electricity bidding-zone shapes. Import nodes of
+    non-modelled countries have no bidding-zone shape at all and are filled
+    from ``manual_bus_locations_fn`` instead. This is a coarse approximation
+    for zone-split countries and import/bottleneck nodes; it is only used for
+    plotting and downstream distance-based calculations, not for the pipeline
+    topology itself.
 
     Parameters
     ----------
@@ -384,6 +405,11 @@ def build_buses_h2(
     bidding_shapes : gpd.GeoDataFrame
         Electricity bidding zone shapes, used to approximate hydrogen node
         coordinates at country level.
+    manual_bus_locations_fn : str
+        Path to a CSV of manually-guessed ``x``/``y`` coordinates (see
+        ``data/tyndp_manual_bus_locations.csv``), keyed by ``bus_id``, used
+        to fill in coordinates for import nodes of countries without a
+        bidding-zone shape.
     geo_crs : str, optional
         Coordinate reference system for geographic calculations. Defaults to GEO_CRS.
 
@@ -411,12 +437,6 @@ def build_buses_h2(
     )
 
     nodes["country"] = nodes["NODE"].map(extract_country)
-    missing_shape = set(nodes["country"]) - set(country_shapes.index)
-    if missing_shape:
-        logger.warning(
-            "No bidding-zone shape for countries, dropping coordinates for "
-            f"hydrogen nodes in: {', '.join(sorted(missing_shape))}"
-        )
 
     buses_h2 = (
         nodes.merge(
@@ -434,8 +454,9 @@ def build_buses_h2(
         )
         .set_index("bus_id")[BUSES_COLUMNS]
     )
+    buses_h2 = gpd.GeoDataFrame(buses_h2, geometry="geometry", crs=geo_crs)
 
-    return gpd.GeoDataFrame(buses_h2, geometry="geometry", crs=geo_crs)
+    return fill_manual_coordinates(buses_h2, manual_bus_locations_fn)
 
 
 def add_links_missing_attributes(
@@ -567,7 +588,11 @@ if __name__ == "__main__":
         bidding_shapes,
         snakemake.input.manual_bus_locations,
     )
-    buses_h2 = build_buses_h2(snakemake.input.buses, bidding_shapes)
+    buses_h2 = build_buses_h2(
+        snakemake.input.buses,
+        bidding_shapes,
+        snakemake.input.manual_bus_locations,
+    )
 
     # Build links
     links = build_links(
