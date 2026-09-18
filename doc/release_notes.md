@@ -81,6 +81,8 @@
 
 * Bump PyPSA-Explorer version to 0.1.2 and pin as new lower bound to keep continued compatibility with new PyPSA versions ([#971](https://github.com/open-energy-transition/open-tyndp/pull/971)).
 
+* Introduce fix for logger in `cba.smk` against Snakemake's global logger variable ([#974](https://github.com/open-energy-transition/open-tyndp/pull/974)).
+
 * Revert open-tyndp vendored version of `snakemake-minimal`. This change bumps open-tyndp version of `snakemake-minimal` to 9.26.1 ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
 
 
