@@ -6639,7 +6639,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.13.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.3.2-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-1.2.4-pyhd8ed1ab_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.1-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.2-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyrate-limiter-4.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyshp-3.1.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
@@ -6908,7 +6908,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.13.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.3.2-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-1.2.4-pyhd8ed1ab_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.1-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.2-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyrate-limiter-4.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyshp-3.1.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
@@ -7410,7 +7410,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.13.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.3.2-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-1.2.4-pyhd8ed1ab_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.1-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.2-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyrate-limiter-4.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyshp-3.1.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyha55dd90_7.conda
@@ -7908,7 +7908,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyjwt-2.13.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyparsing-3.3.2-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-1.2.4-pyhd8ed1ab_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.1-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.2-pyhc364b38_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyrate-limiter-4.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pyshp-3.1.6-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pysocks-1.7.1-pyh09c184e_7.conda
@@ -21824,9 +21824,9 @@ packages:
   run_exports: {}
   size: 257896
   timestamp: 1783671566473
-- conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.1-pyhcf101f3_0.conda
-  sha256: fde35906cd6e79998b923d242df78f142e50c759133a711d505db5404302e129
-  md5: e734f12c4fe8793d27059c499552da86
+- conda: https://conda.anaconda.org/conda-forge/noarch/pypsa-explorer-0.1.2-pyhc364b38_0.conda
+  sha256: 686ee785d5a39455d56c7ea6e33f6ae4389005bd1b0714c3e1676896bcb94b37
+  md5: 6f9674396bbdaa9dd6254b590023fca2
   depends:
   - python >=3.12
   - plotly >=5.0
@@ -21838,12 +21838,13 @@ packages:
   - pyyaml >=6.0
   - typer >=0.9
   - rich >=13.0
+  - ipython >=8.0
   - python
   license: MIT
   license_family: MIT
   run_exports: {}
-  size: 44699
-  timestamp: 1770992960710
+  size: 44792
+  timestamp: 1788953282270
 - conda: https://conda.anaconda.org/conda-forge/noarch/pyrate-limiter-4.4.0-pyhd8ed1ab_0.conda
   sha256: ba0be2c57c3615e48ee840f3cad336fee35f138f6ca440ebce36c6ad2e6bf489
   md5: 9e441a5cba1cbc9c4a185db95592a17b

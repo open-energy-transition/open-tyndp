@@ -79,6 +79,10 @@
 
 * Refactor CBA rules and scripts to read configuration through Snakemake `params` instead of `snakemake.config` and `config.get()`, and remove unused rule inputs and params ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
 
+* Bump PyPSA-Explorer version to 0.1.2 and pin as new lower bound to keep continued compatibility with new PyPSA versions ([#971](https://github.com/open-energy-transition/open-tyndp/pull/971)).
+
+* Introduce fix for logger in `cba.smk` against Snakemake's global logger variable ([#974](https://github.com/open-energy-transition/open-tyndp/pull/974)).
+
 * Drop the `grpcio < 1.78` pin and update `h2`, `pyarrow` and `fiona` to apply security patches ([#929](https://github.com/open-energy-transition/open-tyndp/pull/929)).
 
 
