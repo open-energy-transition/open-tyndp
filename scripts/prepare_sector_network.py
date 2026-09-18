@@ -26,10 +26,8 @@ from pypsa.geo import haversine_pts
 from scipy.stats import beta
 
 from scripts._helpers import (
-    _add_new_profiles_to_existing,
     configure_logging,
     get,
-    get_tyndp_conventional_thermals,
     load_costs,
     make_index,
     remove_disconnected_storage_buses,
@@ -57,6 +55,10 @@ from scripts.build_transport_demand import transport_degree_factor
 from scripts.definitions.heat_sector import HeatSector
 from scripts.definitions.heat_system import HeatSystem
 from scripts.prepare_network import maybe_adjust_costs_and_potentials
+from scripts.sb._helpers import (
+    _add_new_profiles_to_existing,
+    get_tyndp_conventional_thermals,
+)
 from scripts.sb.build_statistics import NODE_MAP
 
 spatial = SimpleNamespace()
