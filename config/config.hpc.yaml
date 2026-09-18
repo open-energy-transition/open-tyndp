@@ -36,6 +36,10 @@ solving:
   runtime: 2h
 
 cba:
+  # Default high-res CBA projects
+  projects:
+  - t*
+  - s*
   # MSV solver settings
   msv_extraction:
     solving:
