@@ -6496,7 +6496,7 @@ def add_biomass(
     )
 
     e_sum_min_biogas = (
-        biogas_potentials_spatial * nyears if options["force_biogas_potential"] else 0
+        biogas_potentials_spatial if options["force_biogas_potential"] else 0
     )
     if options["force_biogas_potential"]:
         logger.info("Force biogas potential to be used.")
@@ -6513,9 +6513,7 @@ def add_biomass(
     )
 
     e_sum_min_biomass = (
-        solid_biomass_potentials_spatial * nyears
-        if options["force_biomass_potential"]
-        else 0
+        solid_biomass_potentials_spatial if options["force_biomass_potential"] else 0
     )
     if options["force_biomass_potential"]:
         logger.info("Force biomass potential to be used.")
