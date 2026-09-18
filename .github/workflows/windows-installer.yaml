@@ -51,6 +51,7 @@ jobs:
         pixi-version: v0.68.1
         cache: true
         cache-write: false
+        environments: open-tyndp
 
     - name: Build Windows installer
       env:
