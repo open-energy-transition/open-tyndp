@@ -79,6 +79,8 @@
 
 * Refactor CBA rules and scripts to read configuration through Snakemake `params` instead of `snakemake.config` and `config.get()`, and remove unused rule inputs and params ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
 
+* Move the SB-specific helper functions from `scripts/_helpers.py` into the new `scripts/sb/_helpers.py` ([#970](https://github.com/open-energy-transition/open-tyndp/pull/970)).
+
 
 ## Upcoming PyPSA-Eur Release
 
