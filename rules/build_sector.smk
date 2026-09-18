@@ -1829,6 +1829,11 @@ rule prepare_sector_network:
             resources("h2_import_potentials_{planning_horizons}.csv"),
             [],
         ),
+        h2_import_profiles_tyndp=branch(
+            config_provider("sector", "h2_topology_tyndp"),
+            resources("h2_import_profiles_{planning_horizons}.csv"),
+            [],
+        ),
         profile_pemmdb_hydro=branch(
             config_provider("electricity", "pemmdb_hydro_profiles", "enable"),
             resources("profile_pemmdb_hydro.nc"),
