@@ -360,11 +360,13 @@ adjustments:
     factor:
       Generator:
         biogas:
+          # Ratio of the TYNDP EU27 biogas potential to the PyPSA-Eur one, both summed
+          # over EU27 buses of resources/biomass_potentials_s_{clusters}_{planning_horizons}.csv
           p_nom: # EU27 biogas potential for 8760h
-            2030: 0.82  # PyPSA-Eur 291.5 TWh vs TYNDP 238.57 TWh
-            2035: 1.23  # PyPSA-Eur 293.2 TWh vs TYNDP 360.78 TWh
-            2040: 1.84  # PyPSA-Eur 294.8 TWh vs TYNDP 542.68 TWh
-            2050: 2.56  # PyPSA-Eur 298.2 TWh vs TYNDP 764.09 TWh
+            2030: 0.82  # PyPSA-Eur EU27 291.5 TWh vs TYNDP EU27 238.57 TWh
+            2035: 1.23  # PyPSA-Eur EU27 293.2 TWh vs TYNDP EU27 360.78 TWh
+            2040: 1.84  # PyPSA-Eur EU27 294.8 TWh vs TYNDP EU27 542.68 TWh
+            2050: 2.56  # PyPSA-Eur EU27 298.2 TWh vs TYNDP EU27 764.09 TWh
           e_sum_max:
             2030: 0.82
             2035: 1.23
@@ -376,11 +378,13 @@ adjustments:
             2040: 1.84
             2050: 2.56
         solid biomass:
+          # Ratio of the TYNDP EU27 biomass potential to the PyPSA-Eur one, both summed
+          # over EU27 buses of resources/biomass_potentials_s_{clusters}_{planning_horizons}.csv
           p_nom: # EU27 biomass potential for 8760h
-            2030: 1.48  # PyPSA-Eur 973.9 TWh vs TYNDP 1444.85 TWh
-            2035: 1.53  # PyPSA-Eur 960.8 TWh vs TYNDP 1474.13 TWh
-            2040: 1.69  # PyPSA-Eur 949.1 TWh vs TYNDP 1607.73 TWh
-            2050: 1.65  # PyPSA-Eur 949.7 TWh vs TYNDP 1569.12 TWh
+            2030: 1.48  # PyPSA-Eur EU27 973.9 TWh vs TYNDP EU27 1444.85 TWh
+            2035: 1.53  # PyPSA-Eur EU27 960.8 TWh vs TYNDP EU27 1474.13 TWh
+            2040: 1.69  # PyPSA-Eur EU27 949.1 TWh vs TYNDP EU27 1607.73 TWh
+            2050: 1.65  # PyPSA-Eur EU27 949.7 TWh vs TYNDP EU27 1569.12 TWh
           e_sum_max:
             2030: 1.48
             2035: 1.53
