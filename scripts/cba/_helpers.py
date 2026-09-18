@@ -62,7 +62,7 @@ def get_storage_attrs(project: pd.Series, discount_rate: float) -> dict:
     )
 
 
-def get_link_attrs(project: pd.Series, costs: pd.DataFrame) -> dict:
+def get_transmission_attrs(project: pd.Series, costs: pd.DataFrame) -> dict:
     """
     Return length, underwater_fraction, and capital_cost for a new DC link.
 
