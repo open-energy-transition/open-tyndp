@@ -5213,6 +5213,9 @@ def add_land_transport(
     p_set = transport[nodes]
 
     # temperature for correction factor for heating/cooling
+    # TODO: PyPSA-Eur merge issue - reindex needed because pop_layout covers TYNDP
+    # nodes without an own Voronoi region (e.g. ITVI, LUF1), so they are missing
+    # from the region-based temperature
     temperature = (
         xr.open_dataarray(temp_air_total_file).to_pandas().reindex(columns=nodes)
     )
@@ -7893,6 +7896,9 @@ def add_shipping(
     domestic_navigation = pop_weighted_energy_totals.loc[
         nodes, ["total domestic navigation"]
     ].squeeze()
+    # TODO: PyPSA-Eur merge issue - reindex needed because pop_layout covers TYNDP
+    # nodes without an own Voronoi region (e.g. ITVI, LUF1), so they are missing
+    # from the region-based shipping demand
     international_navigation = (
         pd.read_csv(shipping_demand_file, index_col=0)
         .squeeze(axis=1)
