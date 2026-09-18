@@ -51,10 +51,10 @@ update-dags = """
 """
 
 sync-locks = """
-    pixi install -e default && \
-    pixi workspace export conda-explicit-spec -e default envs && \
+    pixi install -e open-tyndp && \
+    pixi workspace export conda-explicit-spec -e open-tyndp envs && \
     bash -c 'for f in envs/*_conda_spec*; do mv "$f" "${f/_conda_spec/.pin}"; done' && \
-    pixi workspace export conda-environment -e default envs/environment.yaml -n pypsa-eur
+    pixi workspace export conda-environment -e open-tyndp envs/environment.yaml -n open-tyndp
 """
 
 [dependencies]
