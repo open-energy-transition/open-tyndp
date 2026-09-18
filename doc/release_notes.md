@@ -92,6 +92,9 @@
 
 * Remove `collect_cba_scenario` rule and the empty `all_scenarios.txt` file it creates; refactor `cba` rule ([#958](https://github.com/open-energy-transition/open-tyndp/pull/958)).
 
+* Drop the `grpcio < 1.78` pin and update `h2`, `pyarrow` and `fiona` to apply security patches ([#929](https://github.com/open-energy-transition/open-tyndp/pull/929)).
+
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
