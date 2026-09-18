@@ -300,6 +300,7 @@ sector:
       ocgt: false
     biomass_to_methanol: false
   ammonia: false
+  electricity_distribution_grid_tyndp: true
   h2_topology_tyndp: true
   gas_network: false
   gas_demand_exogenously: true
