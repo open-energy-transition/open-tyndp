@@ -71,13 +71,6 @@ DE:
     methanation: true
     force_biomass_potential: false
     force_biogas_potential: false
-    co2_sequestration_potential:
-      # Values from TYNDP 2024 Supply Tool
-      2030: 60
-      2035: 90
-      2040: 120
-      2045: 135
-      2050: 150
   costs:
     custom_cost_scn: DE
   benchmarking:
@@ -157,13 +150,6 @@ GA:
     methanation: true
     force_biomass_potential: false
     force_biogas_potential: false
-    co2_sequestration_potential:
-      # Values from TYNDP 2024 Supply Tool
-      2030: 48
-      2035: 167
-      2040: 344
-      2045: 398
-      2050: 400
   costs:
     custom_cost_scn: GA
   benchmarking:

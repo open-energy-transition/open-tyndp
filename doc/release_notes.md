@@ -21,7 +21,13 @@
 
 **Changes**
 
+* feat: align configuration values with the TYNDP 2026 Supply Tool (NT+): `co2_sequestration_potential`, `shipping_oil_share`, `biomass_final_demand`, the biogas and solid biomass `adjustments` factors, and the `biomass_supply` benchmarking references ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). Values are now also provided for 2050, and the outdated TYNDP 2024 `co2_sequestration_potential` overrides of the DE and GA scenarios are removed.
+
 **Bugfixes and Compatibility**
+
+* fix: do not scale `e_sum_min` of the biogas and solid biomass generators twice with `nyears` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). The biomass potentials are already scaled when they are read, so `force_biogas_potential` and `force_biomass_potential` forced a slightly lower dispatch than `e_sum_max` allowed, and would have made any run with `nyears > 1` infeasible.
+
+* fix: cap the Other RES biomass dispatch with `p_max_pu` instead of fixing it with `p_set` ([#941](https://github.com/open-energy-transition/open-tyndp/pull/941)). The must-run biomass demand derived from PEMMDB 2024 exceeded the solid biomass potentials of the TYNDP 2026 Supply Tool and made the 2030 network infeasible. To be revisited once PEMMDB 2026 data is added to the network.
 
 **Documentation**
 
