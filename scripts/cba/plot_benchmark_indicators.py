@@ -589,7 +589,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     planning_horizon = snakemake.wildcards.get("planning_horizons")
-    area = snakemake.config.get("cba", {}).get("area")
+    area = snakemake.params.area
 
     if "cba_project" in snakemake.wildcards.keys():
         output_target = snakemake.output.get("plot_file") or snakemake.output.plot_dir
