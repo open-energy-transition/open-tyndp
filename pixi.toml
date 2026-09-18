@@ -245,7 +245,7 @@ all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "in
 # open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
 snakemake-minimal = { version = ">=9.17.0", channel = "https://repo.prefix.dev/open-tyndp" }
 snakemake-storage-plugin-cached-http = ">=0.3"
-pypsa-explorer = ">=0.1.1"
+pypsa-explorer = ">=0.1.2"
 pixi-pycharm = ">=0.0.9"
 python-calamine = ">=0.6.1"
 # Pin the BLAS provider: unconstrained it drifts (netlib/blis/openblas) between resolves,
