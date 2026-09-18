@@ -15,7 +15,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_link_attrs, get_storage_attrs
+from scripts.cba._helpers import get_storage_attrs, get_transmission_attrs
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +146,6 @@ def apply_toot_transmission(
     transmission_project: pd.DataFrame,
     negative_toot_option: str,
 ) -> None:
-
     def _apply_toot_capacity(link_id, capacity, project):
         if link_id is None:
             if capacity != 0:
@@ -215,7 +214,7 @@ def apply_pint_transmission(
             n.links.loc[reverse_link_id, "p_nom"] += capacity_reverse
             continue
 
-        attrs = get_link_attrs(project, costs)
+        attrs = get_transmission_attrs(project, costs)
         for lid, b0, b1, cap in [
             (link_id, bus0, bus1, capacity),
             (reverse_link_id, bus1, bus0, capacity_reverse),
