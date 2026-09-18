@@ -73,7 +73,7 @@
 
 * Rename `get_link_attrs` function to `get_transmission_attrs` to align with `get_storage_attrs` ([#961](https://github.com/open-energy-transition/open-tyndp/pull/961)).
 
-* Refactor CBA rules and scripts to use `params` instead of `config.get()` ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
+* Refactor CBA rules and scripts to read configuration through Snakemake `params` instead of `snakemake.config` and `config.get()`, and remove unused rule inputs and params ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
 
 
 ## Upcoming PyPSA-Eur Release
