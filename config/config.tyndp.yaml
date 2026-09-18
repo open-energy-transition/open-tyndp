@@ -382,6 +382,7 @@ solving:
     options: highs-default
   solver_options:
     highs-default:
+      solver: ipx
       primal_feasibility_tolerance: 1.0e-06
       dual_feasibility_tolerance: 1.0e-06
       ipm_optimality_tolerance: 1.0e-06

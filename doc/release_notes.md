@@ -75,6 +75,8 @@
 
 * Rename `get_link_attrs` function to `get_transmission_attrs` to align with `get_storage_attrs` ([#961](https://github.com/open-energy-transition/open-tyndp/pull/961)).
 
+* Pin the `highs-default` solver preset to the `ipx` interior-point solver instead of `ipm` ([#962](https://github.com/open-energy-transition/open-tyndp/pull/962)). From HiGHS 1.12 onwards, `ipm` selects HiPO and falls back to `ipx`. However, HiPO is not yet validated for Open-TYNDP (see issue [#786](https://github.com/open-energy-transition/open-tyndp/issues/786)). The changes also ensure consistency in the configurations across the configuration files.
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
