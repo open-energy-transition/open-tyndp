@@ -23,6 +23,8 @@
 
 * Retrieve ``countries_centroids`` through the versioned data layout for local data cache. The file moves from ``data/countries_centroids.geojson`` to ``data/countries_centroids/{source}/{version}/countries.geojson`` and gains a ``data: countries_centroids:`` configuration entry ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
 
+* Align the default CBA project selection across configuration files to `t335` (PINT), `t339` (TOOT), `t1106` (TOOT, offshore), `s1001` (PHS), `s1013` (CAES) and `s1035` (battery) ([#952](https://github.com/open-energy-transition/open-tyndp/pull/952)).
+
 **Bugfixes and Compatibility**
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
