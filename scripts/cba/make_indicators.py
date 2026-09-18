@@ -380,14 +380,14 @@ def calculate_res_dump_per_carrier(
     return res_dump
 
 
-def get_co2_ets_price(config: dict, planning_horizon: int | str) -> float:
+def get_co2_ets_price(emission_prices: dict, planning_horizon: int | str) -> float:
     """
-    Retrieve the CO2 ETS price for a given planning horizon from the configuration.
+    Retrieve the CO2 ETS price for a given planning horizon from the emission prices.
 
     Parameters
     ----------
-    config : dict
-        Configuration dictionary containing emission prices under the "costs" key.
+    emission_prices : dict
+        Emission prices configuration, i.e. the ``costs: emission_prices`` section.
     planning_horizon : int or str
         The year or period for which the CO2 ETS price is requested.
 
@@ -396,7 +396,6 @@ def get_co2_ets_price(config: dict, planning_horizon: int | str) -> float:
     float
         The CO2 ETS price for the specified planning horizon.
     """
-    emission_prices = config.get("costs", {}).get("emission_prices", {})
     if not emission_prices.get("enable", False):
         raise KeyError("Emission prices are not enabled in the config")
 
@@ -997,7 +996,7 @@ if __name__ == "__main__":
     indicators = {}
     units = {}
 
-    noisy_costs_option = snakemake.config["cba"].get("remove_noisy_costs", False)
+    noisy_costs_option = snakemake.params.remove_noisy_costs
     b1_indicators, b1_units = calculate_b1_indicator(
         n_reference,
         n_project,
@@ -1007,7 +1006,7 @@ if __name__ == "__main__":
     indicators.update(b1_indicators)
     units.update(b1_units)
 
-    co2_societal_costs_map = snakemake.config["cba"]["co2_societal_cost"]
+    co2_societal_costs_map = snakemake.params.co2_societal_cost
     co2_cost_horizon = planning_horizon
     if co2_cost_horizon not in [2030, 2040]:
         logger.warning(
@@ -1017,7 +1016,9 @@ if __name__ == "__main__":
         co2_cost_horizon = 2040
     co2_societal_costs = get(co2_societal_costs_map, co2_cost_horizon)
 
-    co2_ets_price = get_co2_ets_price(snakemake.config, planning_horizon)
+    co2_ets_price = get_co2_ets_price(
+        snakemake.params.emission_prices, planning_horizon
+    )
     ac_assets_reference = get_ac_electricity_producing_assets(n_reference)
     ac_assets_project = get_ac_electricity_producing_assets(n_project)
 
@@ -1033,9 +1034,7 @@ if __name__ == "__main__":
     indicators.update(b2_indicators)
     units.update(b2_units)
 
-    res_carriers = snakemake.config.get("electricity", {}).get(
-        "tyndp_renewable_carriers"
-    )
+    res_carriers = snakemake.params.tyndp_renewable_carriers
     b3_indicators, b3_units = calculate_b3_indicator(
         n_reference,
         n_project,
@@ -1046,9 +1045,7 @@ if __name__ == "__main__":
     units.update(b3_units)
 
     emission_factors = load_non_co2_emission_factors(snakemake.input.non_co2_emissions)
-    conventional_carriers = snakemake.config.get("electricity", {}).get(
-        "tyndp_conventional_carriers", []
-    )
+    conventional_carriers = snakemake.params.tyndp_conventional_carriers
     b4_indicators, b4_units = calculate_b4_indicator(
         n_reference,
         n_project,
@@ -1075,9 +1072,7 @@ if __name__ == "__main__":
     # Convert to DataFrame and save
     df_model = build_long_indicators(indicators, units)
 
-    benchmark_scenario = snakemake.config.get("cba", {}).get(
-        "sb_scenario"
-    ) or snakemake.config.get("tyndp_scenario")
+    benchmark_scenario = snakemake.params.sb_scenario or snakemake.params.tyndp_scenario
     benchmark_rows = load_benchmark_rows(
         snakemake.input.benchmark,
         indicators["project_id"],
