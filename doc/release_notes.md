@@ -94,6 +94,8 @@
 
 * Drop the `grpcio < 1.78` pin and update `h2`, `pyarrow` and `fiona` to apply security patches ([#929](https://github.com/open-energy-transition/open-tyndp/pull/929)).
 
+* Move the SB-specific helper functions from `scripts/_helpers.py` into the new `scripts/sb/_helpers.py` ([#970](https://github.com/open-energy-transition/open-tyndp/pull/970)).
+
 
 ## Upcoming PyPSA-Eur Release
 
