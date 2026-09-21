@@ -660,7 +660,7 @@ rule plot_summary_projects_benchmark:
 rule summarize_all_indicators:
     input:
         indicators=lambda w: expand(
-            rules.plot_weather_benchmark.input.indicators,
+            rules.make_indicators.output.indicators,
             planning_horizons=config_provider("cba", "planning_horizons")(w),
             cba_project=cba_projects(w),
             run=cba_source_runs(w),
