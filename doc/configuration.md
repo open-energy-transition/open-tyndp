@@ -90,7 +90,7 @@ For each scenario, the fully resolved configuration, the result of merging all l
 Version of Open-TYNDP. Descriptive only.
 
 - **Type:** string
-- **Default:** `v0.8`
+- **Default:** `v0.9`
 
 **YAML Syntax**
 
