@@ -89,6 +89,7 @@
 
 * Fix the Windows installer to look for the `open-tyndp` environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
 
+* Clarify logger warnings in `clean_projects` (CBA checkpoint) to specify reasons for projects being ignored ([#978](https://github.com/open-energy-transition/open-tyndp/pull/978)).
 
 ## Upcoming PyPSA-Eur Release
 
