@@ -63,18 +63,18 @@ If you cannot access `pixi` on your machine, you can also install using [conda](
 To do so, we highly recommend you install from one of our platform-specific environment files:
 
 * For Intel/AMD processors:
-    - Linux: `envs/default_linux-64.pin.txt`
-    - macOS: `envs/default_osx-64.pin.txt`
-    - Windows: `envs/default_win-64.pin.txt`
+    - Linux: `envs/open-tyndp_linux-64.pin.txt`
+    - macOS: `envs/open-tyndp_osx-64.pin.txt`
+    - Windows: `envs/open-tyndp_win-64.pin.txt`
 
 * For ARM processors:
-    - macOS (Apple Silicon): `envs/default_osx-arm64.pin.txt`
+    - macOS (Apple Silicon): `envs/open-tyndp_osx-arm64.pin.txt`
     - Linux (ARM): Currently not supported via lock files; requires building certain packages, such as `PySCIPOpt`, from source
 
 ```console
 $ conda update conda
 
-$ conda create -n open-tyndp --file envs/default_linux-64.pin.txt # select the appropriate file for your platform
+$ conda create -n open-tyndp --file envs/open-tyndp_linux-64.pin.txt # select the appropriate file for your platform
 
 $ conda activate open-tyndp
 ```

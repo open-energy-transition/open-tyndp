@@ -81,6 +81,14 @@
 
 * Bump PyPSA-Explorer version to 0.1.2 and pin as new lower bound to keep continued compatibility with new PyPSA versions ([#971](https://github.com/open-energy-transition/open-tyndp/pull/971)).
 
+* Introduce fix for logger in `cba.smk` against Snakemake's global logger variable ([#974](https://github.com/open-energy-transition/open-tyndp/pull/974)).
+
+* Drop the vendored `snakemake-minimal` from the `open-tyndp` channel and resolve it upstream again, bumping the lock to 9.26.1 ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+
+* Export the conda environment and pin files from the `open-tyndp` pixi environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+
+* Fix the Windows installer to look for the `open-tyndp` environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+
 * Move the SB-specific helper functions from `scripts/_helpers.py` into the new `scripts/sb/_helpers.py` ([#970](https://github.com/open-energy-transition/open-tyndp/pull/970)).
 
 
