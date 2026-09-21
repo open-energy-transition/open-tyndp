@@ -89,6 +89,7 @@
 
 * Fix the Windows installer to look for the `open-tyndp` environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
 
+* Remove `plot_weather_benchmark` rule from CBA, as it creates the same plots as `plot_cba_benchmark` ([#979](https://github.com/open-energy-transition/open-tyndp/pull/979)).
 
 ## Upcoming PyPSA-Eur Release
 
