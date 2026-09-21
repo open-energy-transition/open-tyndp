@@ -18,12 +18,12 @@ from shapely.geometry import box
 
 from scripts._helpers import (
     configure_logging,
-    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
 from scripts.add_electricity import sanitize_carriers
 from scripts.build_tyndp_network import IBFI_COORD
+from scripts.sb._helpers import get_version
 
 VALID_MAP_STYLES = PydeckPlotter.VALID_MAP_STYLES
 
