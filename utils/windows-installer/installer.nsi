@@ -286,7 +286,7 @@ Section "Install" SecInstall
     # Install environment if requested
     ${If} $INSTALL_ENV == ${BST_CHECKED}
         # Check if environment already exists
-        ${If} ${FileExists} "$REPO_DIR\.pixi\envs\default"
+        ${If} ${FileExists} "$REPO_DIR\.pixi\envs\${PIXI_ENV_NAME}"
             DetailPrint "Environment already installed, skipping..."
         ${Else}
             # Install the environment using pixi
