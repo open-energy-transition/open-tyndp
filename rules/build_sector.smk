@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Open Energy Transition gGmbH
 #
 # SPDX-License-Identifier: MIT
-from scripts._helpers import safe_pyear
+from scripts.sb._helpers import safe_pyear
 
 
 rule build_population_layouts:

@@ -23,9 +23,9 @@ from tqdm.contrib.itertools import product
 from scripts._helpers import (
     configure_logging,
     get_snapshots,
-    safe_pyear,
     set_scenario_config,
 )
+from scripts.sb._helpers import safe_pyear
 
 logger = logging.getLogger(__name__)
 
