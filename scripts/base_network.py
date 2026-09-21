@@ -37,6 +37,7 @@ from shapely.geometry import Point
 from tqdm import tqdm
 
 from scripts._helpers import (
+    REGION_COLS,
     configure_logging,
     get_snapshots,
     set_scenario_config,
@@ -44,8 +45,6 @@ from scripts._helpers import (
 from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
 
 PD_GE_2_2 = parse(pd.__version__) >= Version("2.2")
-
-REGION_COLS = ["geometry", "name", "x", "y", "country"]
 
 logger = logging.getLogger(__name__)
 

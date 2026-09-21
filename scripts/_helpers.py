@@ -32,6 +32,8 @@ from scripts.lib.validation.config.data import VersionsSchema
 
 logger = logging.getLogger(__name__)
 
+REGION_COLS = ["geometry", "name", "x", "y", "country"]
+
 PYPSA_V1 = bool(re.match(r"^1\.\d", pypsa.__version__))
 
 
