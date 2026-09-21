@@ -3,9 +3,13 @@
 # SPDX-License-Identifier: MIT
 
 import fnmatch
+import random
 import re
+from pathlib import Path
+from typing import Literal
 
 import pandas as pd
+import pypsa
 
 from scripts.add_electricity import calculate_annuity
 
@@ -189,5 +193,84 @@ def filter_projects_by_specs(
 
     if not filtered_list:
         raise ValueError(f"Project specification {spec_list} selects no projects.")
-
     return filtered_list
+
+
+# Generate random hexcode for assigning color to a new carrier
+# Existing color codes are excluded
+def generate_unique_hex(carrier: str, excluded_colors: list[str]) -> str:
+    """
+    Generate a unique hex color code for a given carrier, ensuring it does not conflict with existing colors.
+
+    Parameters
+    ----------
+    carrier : str
+        The name of the carrier for which to generate a color.
+    excluded_colors : list[str]
+        A list of hex color codes that should be avoided.
+
+    Returns
+    -------
+    str
+        A unique hex color code in the format '#RRGGBB'.
+    """
+    rng = random.Random(carrier)
+    while True:
+        # Generate a 6-digit hex code
+        hex_color = f"#{rng.randint(0, 0xFFFFFF):06x}"
+
+        # Check if the code is in the exclusion list
+        if hex_color not in excluded_colors:
+            return hex_color
+
+
+def get_pypsa_dynamic_attributes(component: str) -> list[str]:
+    """
+    Return a list of PyPSA dynamic attributes that can be provided as input.
+
+    These attributes are derived from the PyPSA defaults for the Generator
+    component, specifically those that are marked as varying and have a status
+    starting with "Input".
+
+    Parameters
+    ----------
+    component: str
+        PyPSA component to filter
+
+    Returns
+    -------
+    list[str]
+        List of PyPSA dynamic attribute names.
+    """
+    defaults = pypsa.Network().components[component].defaults
+    return defaults.index[
+        defaults.varying & defaults.status.str.startswith("Input")
+    ].tolist()
+
+
+def read_csv_or_excel(
+    path: Path, prefer: Literal["csv", "xlsx"] = "xlsx", **kwargs
+) -> pd.DataFrame:
+    """
+    Read a table either as XLSX or CSV, preferring specified type over the other if it exists.
+
+    Parameters
+    ----------
+    path : Path
+        Path to the table. Used as the fallback when no file of the preferred
+        format shares its stem.
+    prefer : {"csv", "xlsx"}
+        Format to look for first.
+    **kwargs
+        Keyword arguments passed on to the pandas reader.
+
+    Returns
+    -------
+    pd.DataFrame
+        Contents of the file that was read.
+    """
+    preferred = path.with_suffix(f".{prefer}")
+    if preferred != path and preferred.exists():
+        path = preferred
+    reader = pd.read_excel if path.suffix == ".xlsx" else pd.read_csv
+    return reader(path, **kwargs)

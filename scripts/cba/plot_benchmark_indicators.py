@@ -260,12 +260,14 @@ def plot_project_benchmarks(
                 ecolor="lightgray",
                 capsize=3,
             )
+
             label = "2024 TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(
                     Line2D([0], [0], marker="x", color="gray", linestyle="None")
                 )
                 legend_labels.append(label)
+
             ax.errorbar(
                 [0.1],
                 [model_mean_val],
@@ -279,6 +281,7 @@ def plot_project_benchmarks(
                 capsize=3,
             )
             ax.set_xlim(xmin=-0.5, xmax=0.5)
+
             label = "Open-TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(
