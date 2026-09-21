@@ -15,7 +15,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_storage_attrs, get_transmission_attrs, generate_unique_hex, get_pypsa_dynamic_attributes,
+from scripts.cba._helpers import get_storage_attrs, get_transmission_attrs, generate_unique_hex, get_pypsa_dynamic_attributes
 
 
 logger = logging.getLogger(__name__)
@@ -243,7 +243,7 @@ def _get_generator_values(
     pypsa_dynamic_attributes: list,
 ):
     """
-    Returns static / dynamic / null value for generator input attributes that can take either a static or time series value
+    Returns static / dynamic for generator input attributes that can take either a static or time series value
 
     Parameters
     ----------
@@ -264,9 +264,9 @@ def _get_generator_values(
             if values.isna().any():
                 logger.warning(
                     f"Snapshots of custom generator {df_static.mapping_id} do not cover "
-                    f"all network snapshots. Forward filling {attribute}."
+                    f"all network snapshots. Applying forward and backward filling for {attribute}."
                 )
-                values = values.ffill()
+                values = values.ffill().bfill()
             generator_dict[attribute] = values
         elif attribute in df_static.index:
             generator_dict[attribute] = df_static[attribute]
@@ -359,6 +359,7 @@ def apply_pint_generator(
                         ),
                     ),  # Use the configured color, or assign a new one
                 )
+                logger.info(f"Adding a new carrier {generator.carrier} required to add custom generator {generator.mapping_id} to the network.")
 
             # Generators without dynamic attributes fall back to their static values
             if generator.mapping_id in generator_df_dynamic.columns.get_level_values(0):
@@ -366,7 +367,6 @@ def apply_pint_generator(
             else:
                 generator_timeseries = pd.DataFrame()
 
-            # Add new generator with the specified mapping_id
             generator_dict = _get_generator_values(
                 generator,
                 generator_timeseries,
@@ -374,6 +374,8 @@ def apply_pint_generator(
                 pypsa_dynamic_attributes,
             )
             p_nom_new = generator.p_nom
+
+            # Add new generator with the specified mapping_id
             n.add(
                 "Generator",
                 f"{generator.mapping_id}",
@@ -383,6 +385,8 @@ def apply_pint_generator(
                 capital_cost=generator.capital_cost,
                 **generator_dict,
             )
+
+            logger.info(f"A new custom generator {generator.mapping_id} added to the network using the PINT method.")
 
 
 def apply_toot_generator(
@@ -446,7 +450,7 @@ def apply_toot_generator(
             continue
         else:
             # If the new capacity is non-zero, update the generator's capacity
-            n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
+            n.generators.loc[gen_to_modify.name, "p_nom"] = p_nom_new
             logger.info(
                 f"Applied TOOT for generator {gen_to_modify.name} with carrier {generator.carrier}. Updated p_nom to {p_nom_new} MW. Custom dynamic attributes are ignored for TOOT project generators."
             )
@@ -573,9 +577,6 @@ def prepare_custom_generators(
 ) -> None:
     """
     Add custom generators accompanying a storage or transmission project.
-
-    Generators only exist the project_ids listed in the custom
-    generator input files.
 
     Parameters
     ----------
