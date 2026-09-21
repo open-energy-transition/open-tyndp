@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
+import logging
 import re
 import socket
 from bisect import bisect_right
@@ -13,7 +14,7 @@ import pandas as pd
 import pypsa
 from matplotlib import pyplot as plt
 
-from scripts._helpers import logger
+logger = logging.getLogger(__name__)
 
 SCENARIO_DICT = {
     "Distributed Energy": "DE",
