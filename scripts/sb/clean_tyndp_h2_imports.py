@@ -13,10 +13,9 @@ from shapely.geometry import Point
 
 from scripts._helpers import (
     configure_logging,
-    make_index,
     set_scenario_config,
 )
-from scripts.sb._helpers import SCENARIO_DICT
+from scripts.sb._helpers import SCENARIO_DICT, make_index
 
 logger = logging.getLogger(__name__)
 

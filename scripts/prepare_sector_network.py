@@ -29,9 +29,6 @@ from scripts._helpers import (
     configure_logging,
     get,
     load_costs,
-    make_index,
-    remove_disconnected_storage_buses,
-    remove_zero_capacity_non_extendable,
     set_scenario_config,
     update_config_from_wildcards,
 )
@@ -58,6 +55,9 @@ from scripts.prepare_network import maybe_adjust_costs_and_potentials
 from scripts.sb._helpers import (
     _add_new_profiles_to_existing,
     get_tyndp_conventional_thermals,
+    make_index,
+    remove_disconnected_storage_buses,
+    remove_zero_capacity_non_extendable,
 )
 from scripts.sb.build_statistics import NODE_MAP
 

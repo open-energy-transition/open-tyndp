@@ -18,7 +18,8 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
-from scripts._helpers import add_metadata, configure_logging, set_scenario_config
+from scripts._helpers import configure_logging, set_scenario_config
+from scripts.sb._helpers import add_metadata
 
 logger = logging.getLogger(__name__)
 
