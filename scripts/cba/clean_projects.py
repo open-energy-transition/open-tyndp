@@ -289,8 +289,8 @@ def remove_unclear_border(
     cols = ["project_id", "project_name", "is_crossborder", "border"]
     instruct = (
         "Please add projects to data/cba/cba_project_corrections.csv to include them in "
-        "the CBA. Set `logging: level: DEBUG` in the configuration and rerun to list the "
-        "affected projects"
+        "the CBA.\nTo view the full list of affected projects, set `logging: level: DEBUG` "
+        "in the configuration and rerun the workflow."
     )
 
     # Log warnings for projects with unparsed or unknown borders
