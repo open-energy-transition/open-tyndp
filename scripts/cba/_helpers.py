@@ -5,12 +5,11 @@
 import fnmatch
 import random
 import re
-
-import pandas as pd
-import pypsa
 from pathlib import Path
 from typing import Literal
 
+import pandas as pd
+import pypsa
 
 from scripts.add_electricity import calculate_annuity
 

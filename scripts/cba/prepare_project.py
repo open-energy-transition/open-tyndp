@@ -15,8 +15,12 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.cba._helpers import get_storage_attrs, get_transmission_attrs, generate_unique_hex, get_pypsa_dynamic_attributes
-
+from scripts.cba._helpers import (
+    generate_unique_hex,
+    get_pypsa_dynamic_attributes,
+    get_storage_attrs,
+    get_transmission_attrs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -359,7 +363,9 @@ def apply_pint_generator(
                         ),
                     ),  # Use the configured color, or assign a new one
                 )
-                logger.info(f"Adding a new carrier {generator.carrier} required to add custom generator {generator.mapping_id} to the network.")
+                logger.info(
+                    f"Adding a new carrier {generator.carrier} required to add custom generator {generator.mapping_id} to the network."
+                )
 
             # Generators without dynamic attributes fall back to their static values
             if generator.mapping_id in generator_df_dynamic.columns.get_level_values(0):
@@ -386,7 +392,9 @@ def apply_pint_generator(
                 **generator_dict,
             )
 
-            logger.info(f"A new custom generator {generator.mapping_id} added to the network using the PINT method.")
+            logger.info(
+                f"A new custom generator {generator.mapping_id} added to the network using the PINT method."
+            )
 
 
 def apply_toot_generator(
