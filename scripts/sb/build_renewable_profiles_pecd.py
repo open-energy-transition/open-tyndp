@@ -25,9 +25,9 @@ import xarray as xr
 
 from scripts._helpers import (
     configure_logging,
-    safe_pyear,
     set_scenario_config,
 )
+from scripts.sb._helpers import safe_pyear
 
 logger = logging.getLogger(__name__)
 

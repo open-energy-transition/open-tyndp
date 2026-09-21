@@ -51,10 +51,10 @@ update-dags = """
 """
 
 sync-locks = """
-    pixi install -e default && \
-    pixi workspace export conda-explicit-spec -e default envs && \
+    pixi install -e open-tyndp && \
+    pixi workspace export conda-explicit-spec -e open-tyndp envs && \
     bash -c 'for f in envs/*_conda_spec*; do mv "$f" "${f/_conda_spec/.pin}"; done' && \
-    pixi workspace export conda-environment -e default envs/environment.yaml -n pypsa-eur
+    pixi workspace export conda-environment -e open-tyndp envs/environment.yaml -n open-tyndp
 """
 
 [dependencies]
@@ -120,7 +120,6 @@ pandera = ">=0.28.1"
 natsort = ">=8.4.0"
 snakemake-logger-plugin-pypsa = ">=0.1.0"
 pydeflate = ">=2.3.4"
-grpcio = "<1.78"
 snakemake-logger-plugin-snkmt = "==0.1.6" # For better pypsa-app integration
 
 [target.unix.dependencies]
@@ -242,10 +241,8 @@ clean-tyndp = """
 all-tests = {depends-on = ["tyndp-sb-test", "tyndp-cba-test", "clean-tyndp", "integration-tests", "clean-tests", "unit-tests"]}
 
 [feature.open-tyndp.dependencies]
-# open-tyndp channel contains vendored versions of snakemake with patches for mainly windows compatibility not merged into upstream snakemake yet
-snakemake-minimal = { version = ">=9.17.0", channel = "https://repo.prefix.dev/open-tyndp" }
 snakemake-storage-plugin-cached-http = ">=0.3"
-pypsa-explorer = ">=0.1.1"
+pypsa-explorer = ">=0.1.2"
 pixi-pycharm = ">=0.0.9"
 python-calamine = ">=0.6.1"
 # Pin the BLAS provider: unconstrained it drifts (netlib/blis/openblas) between resolves,

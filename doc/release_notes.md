@@ -9,6 +9,8 @@
 
 **Features**
 
+* Add option to specify custom generators for CBA assessments associated with transmission or storage projects. Generators that do not yet exist in the network are added as PINT, while generators that already exist at the same bus and with the same carrier have their ``p_nom`` updated for both PINT and TOOT projects respectively. All custom CBA project files have also been moved to the `data/cba/custom_projects/` folder ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
+
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
 * Add a source-agnostic local data cache to allow runs on machines without internet access ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
@@ -22,6 +24,8 @@
 * Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`, etc) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details) ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
 
 * Retrieve ``countries_centroids`` through the versioned data layout for local data cache. The file moves from ``data/countries_centroids.geojson`` to ``data/countries_centroids/{source}/{version}/countries.geojson`` and gains a ``data: countries_centroids:`` configuration entry ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
+
+* Align the default CBA project selection across configuration files to `t335` (PINT), `t339` (TOOT), `t1106` (TOOT, offshore), `s1001` (PHS), `s1013` (CAES) and `s1035` (battery) ([#952](https://github.com/open-energy-transition/open-tyndp/pull/952)).
 
 **Bugfixes and Compatibility**
 
@@ -68,6 +72,29 @@
 * Improve efficiency of `plot_benchmark` by adding a cache to getting the version tag and fixing progressbar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)).
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
+
+* Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip paths/files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster. For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)).
+
+* Rename `get_link_attrs` function to `get_transmission_attrs` to align with `get_storage_attrs` ([#961](https://github.com/open-energy-transition/open-tyndp/pull/961)).
+
+* Pin the `highs-default` solver preset to the `ipx` interior-point solver instead of `ipm` ([#962](https://github.com/open-energy-transition/open-tyndp/pull/962)). From HiGHS 1.12 onwards, `ipm` selects HiPO and falls back to `ipx`. However, HiPO is not yet validated for Open-TYNDP (see issue [#786](https://github.com/open-energy-transition/open-tyndp/issues/786)). The changes also ensure consistency in the configurations across the configuration files.
+
+* Refactor CBA rules and scripts to read configuration through Snakemake `params` instead of `snakemake.config` and `config.get()`, and remove unused rule inputs and params ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
+
+* Bump PyPSA-Explorer version to 0.1.2 and pin as new lower bound to keep continued compatibility with new PyPSA versions ([#971](https://github.com/open-energy-transition/open-tyndp/pull/971)).
+
+* Introduce fix for logger in `cba.smk` against Snakemake's global logger variable ([#974](https://github.com/open-energy-transition/open-tyndp/pull/974)).
+
+* Drop the vendored `snakemake-minimal` from the `open-tyndp` channel and resolve it upstream again, bumping the lock to 9.26.1 ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+
+* Export the conda environment and pin files from the `open-tyndp` pixi environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+
+* Fix the Windows installer to look for the `open-tyndp` environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+
+* Drop the `grpcio < 1.78` pin and update `h2`, `pyarrow` and `fiona` to apply security patches ([#968](https://github.com/open-energy-transition/open-tyndp/pull/968)).
+
+* Move the SB-specific helper functions from `scripts/_helpers.py` into the new `scripts/sb/_helpers.py` ([#970](https://github.com/open-energy-transition/open-tyndp/pull/970)).
+
 
 ## Upcoming PyPSA-Eur Release
 

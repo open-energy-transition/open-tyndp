@@ -48,11 +48,11 @@ from scripts._helpers import (
     PYPSA_V1,
     configure_logging,
     get,
-    get_version,
     set_scenario_config,
     update_config_from_wildcards,
 )
 from scripts.add_electricity import sanitize_carriers
+from scripts.sb._helpers import get_version
 
 logger = logging.getLogger(__name__)
 

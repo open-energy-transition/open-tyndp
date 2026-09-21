@@ -332,15 +332,49 @@ $ pixi run tyndp-cba --config run='{"name":"NT-cy2009"}'
 
 ## Evaluation of custom projects
 
-Custom PINT transmission projects can be evaluated with the CBA workflow. Each project is defined in `data/custom_cba_transmission_projects.csv` and selected in the configuration. Two types of custom project are supported, depending on whether `project_id` refers to an existing PINT project:
+Custom projects can be evaluated with the CBA workflow, either as **transmission** or **generator** projects.
+
+### Custom transmission projects
+
+Custom PINT transmission projects can be evaluated with the CBA workflow. Each project is defined in `data/cba/custom_projects/transmission_projects.csv` and selected in the configuration. Two types of custom project are supported, depending on whether `project_id` refers to an existing PINT project:
 
 - **Modified projects**: if the combination (`project_id`, `bus0`, `bus1`) matches an existing PINT project, the specified fields overwrite those of that project. Fields left empty retain their original values.
 
 - **New projects**: if `project_id` is not yet used, the entry is added as a new PINT project, modeled as a link.
 
-Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning.
+Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (`p_nom 0->1` or `p_nom 1->0`), and the resulting combinations must be unique. Entries referring to TOOT projects are not supported and are ignored with a warning. Transmission capacities are in MW.
 
-Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf). Transmission capacities are in MW.
+### Custom generators
+
+Custom generators can also be evaluated with the CBA workflow.
+
+Custom generators are never assessed on their own: each one is grouped with either a transmission or a storage project, which it is added alongside in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project), and the generator inherits the assessment method of the project it is grouped with. 
+
+Each project is defined across two files:
+
+- `data/cba/custom_projects/generators_static.csv`: one row per generator, with `project_name`, `project_type`, `project_id`, `generator_name`, `carrier`, `bus`, `p_nom`, `marginal_cost`, `capital_cost` and `efficiency`. `project_type` and `project_id` identify the project the generator is grouped with: `project_type` is `t` for a transmission project or `s` for a storage project, and `project_id` is that project's ID, without the project_type (e.g. `project_type = t`, `project_id = 1500` for transmission project `t1500`). Entries whose `project_type` is neither `s` nor `t` are dropped with a warning, as are entries without a `project_id` or `generator_name`, or whose `bus` does not already exist in the network. Duplicate (`project_type`, `project_id`, `generator_name`) combinations are also dropped. Missing `marginal_cost`, `capital_cost` and `efficiency` default to `0`, `0` and `1` respectively.
+
+- `data/cba/custom_projects/generators_dynamic.csv`: time series for the same projects, in wide format with a two-row header and snapshots as the index:
+    - **Row 1** identifies the generator: replace the placeholder `<project_type><project_id>_<generator_name>` with the `project_type`, `project_id` and `generator_name` of the corresponding row in the static file, the project_type written directly against the ID and the generator name joined with an underscore (e.g. `t1500_BEI wind`). A project with multiple generators needs one such column group per generator.
+    - **Row 2** names the PyPSA `Generator` attribute the column provides, e.g. `p_max_pu`, `p_min_pu`, `efficiency`, `marginal_cost`, `p_set`.
+
+    Only columns whose subset of project_type, project_id and generator_name matches an entry in the static file, and whose attribute is a valid time-varying PyPSA `Generator` input, are kept; everything else (unmatched projects, non-input attributes, fully empty columns) is dropped.
+
+When applied, the project network is searched for a generator with the same `bus` and `carrier` as the entry, and the outcome depends on whether such a generator already exists:
+
+- **The generator already exists**: only its `p_nom` is updated. PINT adds the `p_nom` of the entry to the existing capacity, TOOT subtracts it, and the generator is removed from the network when its capacity reaches zero. Removing more capacity than exists is governed by `cba.negative_toot_capacity`, which either clamps the capacity to zero or raises an error. Every other attribute keeps the value of the existing generator, so `marginal_cost`, `capital_cost`, `efficiency` and the time series of the custom files are ignored for that entry.
+
+- **No such generator exists**: PINT adds a new `Generator` component named `<project_type><project_id>_<generator_name>` at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available and falling back to the static value where given, and to the PyPSA default otherwise. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network. TOOT has no capacity to remove in this case, so the entry is skipped with a warning and nothing is added.
+
+If several generators share the same `bus` and `carrier`, the first one is updated and a warning is logged.
+
+A filled-in template with a few examples for custom transmission projects and generators are available at `data/cba/custom_projects/examples/`.
+
+A user can optionally provide the same files as `.xlsx` format for each input file; if detected this will take precedence over given csv files.
+
+### Selecting custom projects
+
+Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf).
 
 ## Checkpoint
 
