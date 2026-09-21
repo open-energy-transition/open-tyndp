@@ -287,16 +287,23 @@ def remove_unclear_border(
     unparsed = projects["bus0"].isna() | projects["bus1"].isna()
     unknown_bus = ~known & ~unparsed
     cols = ["project_id", "project_name", "is_crossborder", "border"]
-    instruct = "Please add projects to data/cba/cba_project_corrections.csv to include them in the CBA"
+    instruct = (
+        "Please add projects to data/cba/cba_project_corrections.csv to include them in "
+        "the CBA. Set `logging: level: DEBUG` in the configuration and rerun to list the "
+        "affected projects"
+    )
 
     # Log warnings for projects with unparsed or unknown borders
     if unparsed.any():
         logger.warning(
             "Ignoring %d out of %d project borders that are not reported as "
-            "'<bus0>-<bus1>'. %s:\n%s",
+            "'<bus0>-<bus1>'. %s.",
             unparsed.sum(),
             len(projects),
             instruct,
+        )
+        logger.debug(
+            "Project borders that are not reported as '<bus0>-<bus1>':\n%s",
             projects.loc[unparsed, cols]
             .sort_values(["is_crossborder", "border"], ascending=[False, True])
             .to_string(index=False, max_colwidth=40, line_width=100),
@@ -306,10 +313,13 @@ def remove_unclear_border(
     if unknown_bus.any():
         logger.warning(
             "Ignoring %d out of %d project borders that have bus codes that are missing "
-            "from the node list. %s:\n%s",
+            "from the node list. %s.",
             unknown_bus.sum(),
             len(projects),
             instruct,
+        )
+        logger.debug(
+            "Project borders with bus codes that are missing from the node list:\n%s",
             projects.loc[unknown_bus, cols]
             .sort_values("border")
             .to_string(index=False, max_colwidth=40, line_width=100),
