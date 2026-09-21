@@ -578,6 +578,7 @@ rule plot_cba_benchmark:
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
+
 rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
@@ -805,17 +806,6 @@ def collect_cba_scenario_inputs(w):
             run=cba_scenarios(w),
         )
     )
-
-    run = get_run_name(w)
-    if run in cba_collection_scenarios(w):
-        inputs.extend(
-            expand(
-                rules.plot_weather_benchmark.output.plot_file,
-                planning_horizons=config_provider("cba", "planning_horizons")(w),
-                cba_project=cba_projects(w),
-                run=cba_scenarios(w),
-            )
-        )
 
     return inputs
 
