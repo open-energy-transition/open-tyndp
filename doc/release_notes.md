@@ -9,7 +9,8 @@
 
 **Features**
 
-* Add custom generator projects to the CBA assessment, using the PINT method [#897](https://github.com/open-energy-transition/open-tyndp/pull/897)
+* Add custom generator projects to the CBA assessment, using the PINT / TOOT methods. Generators that do not yet exist in the network are added as PINT, while generators that already exist at the same bus and with the same carrier have their ``p_nom`` updated. All custom CBA project files have been moved to `data/cba/custom_projects/` folder. ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
+
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
 * Add a source-agnostic local data cache to allow runs on machines without internet access ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).

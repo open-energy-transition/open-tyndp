@@ -1,1 +1,3 @@
 project_name,project_type,project_id,generator_name,carrier,bus,p_nom,marginal_cost,capital_cost,efficiency,source,further,description
+BEI offshore wind,t,1106,BEI wind,offwind-ac-fb-r,DKE1,3000,0.02,0.02,0.3,,Adding a custom generator for an existing TOOT transmission project,
+Example for variant project 1,t,9998,wind generator 1,offwind-ac-fb-r,DE00,1000,0.2,1.5,0.38,,Custom PINT generator variant 1 ,

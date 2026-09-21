@@ -188,9 +188,9 @@ Every entry must define `project_id`, `bus0`, `bus1` and at least one capacity (
 
 ### Custom generators
 
-Custom generators can also be evaluated with the CBA workflow, always as new **PINT** projects — unlike transmission projects, modifying an existing generator is not yet supported.
+Custom generators can also be evaluated with the CBA workflow.
 
-Custom generators are never assessed on their own: each one is grouped with either a transmission or a storage project, which it is added alongside in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project), and the generator inherits the assessment method of the project it is grouped with — so a generator grouped with a project assessed as TOOT is not supported and raises an error.
+Custom generators are never assessed on their own: each one is grouped with either a transmission or a storage project, which it is added alongside in the same project network. The grouping is expressed by two columns, `project_type` (`t` for transmission, `s` for storage) and `project_id` (the ID of that project), and the generator inherits the assessment method of the project it is grouped with. 
 
 Each project is defined across two files:
 
@@ -202,7 +202,15 @@ Each project is defined across two files:
 
     Only columns whose subset of project_type, project_id and generator_name matches an entry in the static file, and whose attribute is a valid time-varying PyPSA `Generator` input, are kept; everything else (unmatched projects, non-input attributes, fully empty columns) is dropped.
 
-When applied, a new `Generator` component named `<project_type><project_id>_<generator_name>` is added to the project network at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available, falling back to the static value or else set to `NaN`. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network.
+When applied, the project network is searched for a generator with the same `bus` and `carrier` as the entry, and the outcome depends on whether such a generator already exists:
+
+- **The generator already exists**: only its `p_nom` is updated. PINT adds the `p_nom` of the entry to the existing capacity, TOOT subtracts it, and the generator is removed from the network when its capacity reaches zero. Removing more capacity than exists is governed by `cba.negative_toot_capacity`, which either clamps the capacity to zero or raises an error. Every other attribute keeps the value of the existing generator, so `marginal_cost`, `capital_cost`, `efficiency` and the time series of the custom files are ignored for that entry.
+
+- **No such generator exists**: PINT adds a new `Generator` component named `<project_type><project_id>_<generator_name>` at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available and falling back to the static value where given, and to the PyPSA default otherwise. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network. TOOT has no capacity to remove in this case, so the entry is skipped with a warning and nothing is added.
+
+If several generators share the same `bus` and `carrier`, the first one is updated and a warning is logged.
+
+A filled-in template with a few examples for custom transmission projects and generators are available at `data/cba/custom_projects/examples/`.
 
 ### Selecting custom projects
 

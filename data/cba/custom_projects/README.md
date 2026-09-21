@@ -8,9 +8,9 @@ header only; add one row per project or generator to include it in a run.
 
 | File | Purpose |
 | --- | --- |
-| `transmission_projects.csv` | Modify an existing PINT transmission project, or add a new one |
+| `transmission_projects.csv` | Modify an existing transmission project, or add a new one |
 | `generators_static.csv` | Static attributes of custom generators grouped with a transmission or storage project |
-| `generators_dynamic.csv` | Time-varying attributes of those generators (two-row header, snapshots as index) |
+| `generators_dynamic.csv` | Time-varying attributes of the custom generators added in `generators_static.csv` (two-row header, snapshots as index) |
 
 Columns, validation rules and defaults are documented under
 [Evaluation of custom projects](../../../doc/cba.md#evaluation-of-custom-projects); which projects
