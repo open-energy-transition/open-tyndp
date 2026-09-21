@@ -81,7 +81,7 @@ the user can modify existing projects and add new ones. Transmission capacities 
 - `resources/cba/generator_projects_dynamic.csv`: Time-varying attributes of the same generators, in wide format with
   a two-row header and the snapshots as index:
   - Row 1: `mapping_id` of the generator the column belongs to having the format `<project_type><project_id>_<generator_name>`
-  - Row 2: PyPSA `Generator` input timeseries attribute the column provides(e.g. `p_max_pu`, `p_min_pu`, `efficiency`, `marginal_cost`, `p_set`)
+  - Row 2: PyPSA `Generator` input timeseries attribute the column provides (e.g. `p_max_pu`, `p_min_pu`, `efficiency`, `marginal_cost`, `p_set`)
 
 """
 
