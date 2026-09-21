@@ -259,20 +259,48 @@ def remove_unclear_border(
     pd.DataFrame
         Curated list of projects that only use existing buses.
     """
-    unclear_border = ~(
-        projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
+
+    # Get list of projects with known, unknown, or unparsed borders
+    known = projects["bus0"].isin(existing_buses) & projects["bus1"].isin(
+        existing_buses
     )
-    if unclear_border.sum() > 0:
+    unparsed = projects["bus0"].isna() | projects["bus1"].isna()
+    unknown_bus = ~known & ~unparsed
+    cols = ["project_id", "project_name", "is_crossborder", "border"]
+    instruct = "Please add projects to data/cba/cba_project_corrections.csv to include them in the CBA"
+
+    # Log warnings for projects with unparsed or unknown borders
+    if unparsed.any():
         logger.warning(
-            "%d out of %d extensions do not follow the simple <bus0>-<bus1> format or are not defined in the base network, ignoring them:\n%s",
-            unclear_border.sum(),
-            len(unclear_border),
-            projects.loc[
-                unclear_border, ["project_id", "project_name", "border"]
-            ].to_string(index=False, max_colwidth=40, line_width=100),
+            "Ignoring %d out of %d project borders that are not reported as "
+            "'<bus0>-<bus1>'. %s:\n%s",
+            unparsed.sum(),
+            len(projects),
+            instruct,
+            projects.loc[unparsed, cols]
+            .sort_values(["is_crossborder", "border"], ascending=[False, True])
+            .to_string(index=False, max_colwidth=40, line_width=100),
         )
 
-    return projects.loc[~unclear_border]
+    # Log warnings for projects with unknown bus codes
+    if unknown_bus.any():
+        unknown_codes = sorted(
+            set(projects.loc[unknown_bus, ["bus0", "bus1"]].to_numpy().ravel())
+            - set(existing_buses)
+        )
+        logger.warning(
+            "Ignoring %d out of %d project borders that have bus codes that are missing "
+            "from the node list (%s). %s:\n%s",
+            unknown_bus.sum(),
+            len(projects),
+            ", ".join(unknown_codes),
+            instruct,
+            projects.loc[unknown_bus, cols]
+            .sort_values("border")
+            .to_string(index=False, max_colwidth=40, line_width=100),
+        )
+
+    return projects.loc[known]
 
 
 def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
