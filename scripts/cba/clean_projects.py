@@ -290,7 +290,7 @@ def remove_unclear_border(
         )
         logger.warning(
             "Ignoring %d out of %d project borders that have bus codes that are missing "
-            "from the node list (%s). %s:\n%s",
+            "from the node list. %s:\n%s",
             unknown_bus.sum(),
             len(projects),
             ", ".join(unknown_codes),
