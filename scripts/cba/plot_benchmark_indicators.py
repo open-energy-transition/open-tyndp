@@ -76,7 +76,7 @@ def benchmark_range(
     benchmark = df[(df["source"] == source) & (df["indicator"] == indicator)].copy()
     benchmark.subindex = benchmark.subindex.fillna("explicit")
     if benchmark.empty:
-        return (None, None, None)
+        return None
 
     if indicator == "B2a_societal_cost_variation":
         benchmark = benchmark[benchmark["subindex"].isin(["low", "central", "high"])]
@@ -92,7 +92,7 @@ def benchmark_range(
         index="project_id", columns="subindex", values="value", aggfunc="mean"
     )
     if pivot.empty:
-        return (None, None, None)
+        return None
 
     mean = pivot.get("mean")
     if mean is None:
@@ -101,7 +101,7 @@ def benchmark_range(
         elif "max" in pivot.columns:
             mean = pivot["max"]
     if mean is None or mean.empty:
-        return (None, None, None)
+        return None
 
     mean_val = float(mean.iloc[0])
     min_val = float(pivot.get("min", mean).iloc[0])
@@ -244,16 +244,21 @@ def plot_project_benchmarks(
             ax.set_xticks([])
         else:
             model_range = benchmark_range(df, indicator, source="Open-TYNDP")
+            bench_range = benchmark_range(df, indicator, source="TYNDP 2024")
+
+            # Handle missing model_range via single-value fallback (should be rare,
+            # since plot_items already required model_val).
             if model_range is None:
-                model_min_val, model_mean_val, model_max_val = (0, 0, 0)
+                fallback_val = select_model_value(df, indicator)
+                if fallback_val is None:
+                    continue
+                model_min_val = model_mean_val = model_max_val = float(fallback_val)
             else:
                 model_min_val, model_mean_val, model_max_val = model_range
 
-            min_val, mean_val, max_val = benchmark_range(
-                df, indicator, source="TYNDP 2024"
-            )
-
-            if None not in (mean_val, min_val, max_val):
+            # Draw TYNDP benchmark only if present
+            if bench_range is not None:
+                min_val, mean_val, max_val = bench_range
                 ax.errorbar(
                     [-0.1],
                     [mean_val],
@@ -263,29 +268,27 @@ def plot_project_benchmarks(
                     ecolor="lightgray",
                     capsize=3,
                 )
+                label = "2024 TYNDP (mean ± min/max)"
+                if label not in legend_labels:
+                    legend_handles.append(
+                        Line2D([0], [0], marker="x", color="gray", linestyle="None")
+                    )
+                    legend_labels.append(label)
 
-            label = "2024 TYNDP (mean ± min/max)"
-            if label not in legend_labels:
-                legend_handles.append(
-                    Line2D([0], [0], marker="x", color="gray", linestyle="None")
-                )
-                legend_labels.append(label)
-
-            if None not in (model_mean_val, model_min_val, model_max_val):
-                ax.errorbar(
-                    [0.1],
-                    [model_mean_val],
-                    yerr=[
-                        [abs(model_mean_val - model_min_val)],
-                        [abs(model_max_val - model_mean_val)],
-                    ],
-                    fmt="o",
-                    color="tab:blue",
-                    ecolor="lightblue",
-                    capsize=3,
-                )
-                ax.set_xlim(xmin=-0.5, xmax=0.5)
-
+            # Draw Open-TYNDP (always expected for plot_items)
+            ax.errorbar(
+                [0.1],
+                [model_mean_val],
+                yerr=[
+                    [abs(model_mean_val - model_min_val)],
+                    [abs(model_max_val - model_mean_val)],
+                ],
+                fmt="o",
+                color="tab:blue",
+                ecolor="lightblue",
+                capsize=3,
+            )
+            ax.set_xlim(xmin=-0.5, xmax=0.5)
             label = "Open-TYNDP (mean ± min/max)"
             if label not in legend_labels:
                 legend_handles.append(
