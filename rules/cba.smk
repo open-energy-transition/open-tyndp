@@ -578,26 +578,6 @@ rule plot_cba_benchmark:
     script:
         scripts("cba/plot_benchmark_indicators.py")
 
-
-rule plot_weather_benchmark:
-    input:
-        # indicators=rules.combine_indicators.output.indicators,
-        indicators=rules.make_indicators.output.indicators,
-    output:
-        plot_file=RESULTS
-        + "cba/graphs/{planning_horizons}/ensemble_{cba_project}_{planning_horizons}.png",
-    log:
-        logs("cba/plot_weather_benchmark_{cba_project}_{planning_horizons}.log"),
-    benchmark:
-        benchmarks(
-            "performances/cba/plot_weather_benchmark_{cba_project}_{planning_horizons}"
-        )
-    params:
-        area=config_provider("cba", "area"),
-    script:
-        scripts("cba/plot_benchmark_indicators.py")
-
-
 rule average_indicators_per_project_and_planning_horizon:
     input:
         indicators=lambda w: expand(
