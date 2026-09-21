@@ -393,7 +393,7 @@ if __name__ == "__main__":
 
     # Read all files into one DataFrame
     df = pd.concat(map(pd.read_csv, input_files), ignore_index=True)
-    area = snakemake.config.get("cba", {}).get("area")
+    area = snakemake.params.area
 
     # Create a summary plot for a specific project
     create_plots(df, output_file, area)
