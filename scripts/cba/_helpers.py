@@ -252,7 +252,7 @@ def read_csv_or_excel(
     path: Path, prefer: Literal["csv", "xlsx"] = "xlsx", **kwargs
 ) -> pd.DataFrame:
     """
-    Read a table either as XLSX or CSV, prefering specified type over the other if it exists.
+    Read a table either as XLSX or CSV, preferring specified type over the other if it exists.
 
     Parameters
     ----------
