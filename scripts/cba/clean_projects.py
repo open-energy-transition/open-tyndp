@@ -93,7 +93,7 @@ import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
 from scripts.build_tyndp_network import AC_VIRTUAL_NODES_IT
-from scripts.cba._helpers import get_pypsa_dynamic_attributes
+from scripts.cba._helpers import get_pypsa_dynamic_attributes, read_csv_or_excel
 
 logger = logging.getLogger(__name__)
 
@@ -434,13 +434,9 @@ def extract_custom_transmission_projects(
     pd.DataFrame
         Curated list of custom projects.
     """
-    transmission_path = custom_transmission_path.with_suffix(".xlsx")
-    if not transmission_path.exists():
-        transmission_path = custom_transmission_path
-    reader = pd.read_excel if transmission_path.suffix == ".xlsx" else pd.read_csv
 
     custom_transmission_projects = (
-        reader(
+        read_csv_or_excel(
             custom_transmission_path,
         )
         .assign(border=lambda df: df.bus0 + "-" + df.bus1)
@@ -510,19 +506,13 @@ def extract_custom_generators(
                 Pandas dataframe of dynamic attributes of custom generators
     """
 
-    static_path = custom_generators_static_path.with_suffix(".xlsx")
-    if not static_path.exists():
-        static_path = custom_generators_static_path
-    reader = pd.read_excel if static_path.suffix == ".xlsx" else pd.read_csv
-    custom_gens_static = reader(static_path).drop(
+    custom_gens_static = read_csv_or_excel(custom_generators_static_path).drop(
         ["source", "further description"], axis=1, errors="ignore"
     )
 
-    dynamic_path = custom_generator_dynamic_path.with_suffix(".xlsx")
-    if not dynamic_path.exists():
-        dynamic_path = custom_generator_dynamic_path
-    reader = pd.read_excel if dynamic_path.suffix == ".xlsx" else pd.read_csv
-    custom_gens_dynamic = reader(dynamic_path, header=[0, 1], index_col=0)
+    custom_gens_dynamic = read_csv_or_excel(
+        custom_generator_dynamic_path, header=[0, 1], index_col=0
+    )
 
     if custom_gens_static.empty and custom_gens_dynamic.empty:
         logger.debug("No custom generators found.")

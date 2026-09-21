@@ -8,6 +8,9 @@ import re
 
 import pandas as pd
 import pypsa
+from pathlib import Path
+from typing import Literal
+
 
 from scripts.add_electricity import calculate_annuity
 
@@ -244,3 +247,31 @@ def get_pypsa_dynamic_attributes(component: str) -> list[str]:
     return defaults.index[
         defaults.varying & defaults.status.str.startswith("Input")
     ].tolist()
+
+
+def read_csv_or_excel(
+    path: Path, prefer: Literal["csv", "xlsx"] = "xlsx", **kwargs
+) -> pd.DataFrame:
+    """
+    Read a table either as XLSX or CSV, prefering specified type over the other if it exists.
+
+    Parameters
+    ----------
+    path : Path
+        Path to the table. Used as the fallback when no file of the preferred
+        format shares its stem.
+    prefer : {"csv", "xlsx"}
+        Format to look for first.
+    **kwargs
+        Keyword arguments passed on to the pandas reader.
+
+    Returns
+    -------
+    pd.DataFrame
+        Contents of the file that was read.
+    """
+    preferred = path.with_suffix(f".{prefer}")
+    if preferred != path and preferred.exists():
+        path = preferred
+    reader = pd.read_excel if path.suffix == ".xlsx" else pd.read_csv
+    return reader(path, **kwargs)
