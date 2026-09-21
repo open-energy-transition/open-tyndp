@@ -188,7 +188,7 @@ def apply_toot_transmission(
                 result_capacity = 0
             else:
                 raise ValueError(
-                    f"Unknown cba.negative_toot_option policy: {negative_toot_option}"
+                    f"Unknown cba.negative_toot_capacity policy: {negative_toot_option}"
                 )
         if result_capacity == 0:
             n.remove("Link", link_id)
@@ -265,7 +265,14 @@ def _get_generator_values(
     generator_dict = dict()
     for attribute in pypsa_dynamic_attributes:
         if attribute in df_dynamic.columns:
-            generator_dict[attribute] = df_dynamic[attribute].reindex(snapshots)
+            values = df_dynamic[attribute].reindex(snapshots)
+            if values.isna().any():
+                logger.warning(
+                    f"Snapshots of custom generator {df_static.mapping_id} do not cover "
+                    f"all network snapshots. Forward filling {attribute}."
+                )
+                values = values.ffill()
+            generator_dict[attribute] = values
         elif attribute in df_static.index:
             generator_dict[attribute] = df_static[attribute]
 
@@ -274,7 +281,9 @@ def _get_generator_values(
 
 def _get_existing_generator(n: pypsa.Network, bus: str, carrier: str):
     """
-    Returns the existing generator in the network with the given mapping_id, or None if not found.
+    Returns the existing generator in the network matching a given `bus` and `carrier`, or None if not found.
+
+    If more than one generator matches, the first one is returned.
 
     Parameters
     ----------
@@ -288,12 +297,12 @@ def _get_existing_generator(n: pypsa.Network, bus: str, carrier: str):
     Returns
     -------
     pd.Series or None
-        The existing generator as a pandas Series if found, otherwise None
+        The (first) existing generator as a pandas Series if found, otherwise None
     """
 
     existing_generator = n.generators.query("carrier == @carrier and bus == @bus")
     if len(existing_generator) > 1:
-        logger.warning(
+        logger.debug(
             f"More than one generator with the carrier {carrier} is attached to the bus {bus}. Returning the first matching entry."
         )
     if not existing_generator.empty:
@@ -335,6 +344,11 @@ def apply_pint_generator(
         gen_to_modify = _get_existing_generator(n, generator.bus, generator.carrier)
         if gen_to_modify is not None:
             # Overwrite existing generator with the same bus and carrier with updated p_nom, summing p_nom values
+            logger.warning(
+                f"Custom generator {generator.mapping_id} matches the existing generator "
+                f"{gen_to_modify.name} at bus {generator.bus}. Only p_nom is updated while "
+                "all other custom attributes are ignored."
+            )
             p_nom_new = gen_to_modify.p_nom + generator.p_nom
             n.generators.loc[gen_to_modify.name, "p_nom"] = p_nom_new
         else:
@@ -439,7 +453,7 @@ def apply_toot_generator(
             # If the new capacity is non-zero, update the generator's capacity
             n.generators.loc[generator.mapping_id, "p_nom"] = p_nom_new
             logger.info(
-                f"Applied TOOT for generator {generator.mapping_id} with carrier {generator.carrier}. Updated p_nom to {p_nom_new} MW."
+                f"Applied TOOT for generator {gen_to_modify.name} with carrier {generator.carrier}. Updated p_nom to {p_nom_new} MW. Custom dynamic attributes are ignored for TOOT project generators."
             )
 
 

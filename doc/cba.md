@@ -212,6 +212,8 @@ If several generators share the same `bus` and `carrier`, the first one is updat
 
 A filled-in template with a few examples for custom transmission projects and generators are available at `data/cba/custom_projects/examples/`.
 
+A user can optionally provide the same files as `.xlsx` format for each input file; if detected this will take precedence over given csv files.
+
 ### Selecting custom projects
 
 Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf).
