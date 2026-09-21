@@ -284,16 +284,11 @@ def remove_unclear_border(
 
     # Log warnings for projects with unknown bus codes
     if unknown_bus.any():
-        unknown_codes = sorted(
-            set(projects.loc[unknown_bus, ["bus0", "bus1"]].to_numpy().ravel())
-            - set(existing_buses)
-        )
         logger.warning(
             "Ignoring %d out of %d project borders that have bus codes that are missing "
             "from the node list. %s:\n%s",
             unknown_bus.sum(),
             len(projects),
-            ", ".join(unknown_codes),
             instruct,
             projects.loc[unknown_bus, cols]
             .sort_values("border")
