@@ -204,6 +204,8 @@ Each project is defined across two files:
 
 When applied, a new `Generator` component named `<project_type><project_id>_<generator_name>` is added to the project network at the specified `bus`, using the static `p_nom` and `capital_cost`, with the remaining time-varying attributes taken from the dynamic file where available, falling back to the static value or else set to `NaN`. If the generator's `carrier` does not yet exist in the network, it is added to the PyPSA network.
 
+A user can optionally provide the same files as `.xlsx` format for each input file; if detected this will take precedence over given csv files.
+
 ### Selecting custom projects
 
 Custom projects are injected into the workflow in [`clean_projects`](cba_rules.md#rule-clean_projects-checkpoint), once the project list has been extracted. The set of projects evaluated in the CBA workflow is configured by [`cba.projects`](configuration.md#cba_cf).
