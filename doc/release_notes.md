@@ -15,22 +15,24 @@
 
 **Changes**
 
-* Update ``tyndp_versions.csv`` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
+* Update `tyndp_versions.csv` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
-* Move small CBA data files (``a.3_non-co2-emissions.csv`` and ``table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv``) to local repository ``data/cba/`` folder instead of retrieving from GCP. The rules ``retrieve_tyndp_cba_non_co2_emissions`` and ``retrieve_cba_guidelines_reference_projects`` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)).
+* Move small CBA data files (`a.3_non-co2-emissions.csv` and `table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`) to local repository `data/cba/` folder instead of retrieving from GCP ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)). The rules `retrieve_tyndp_cba_non_co2_emissions` and `retrieve_cba_guidelines_reference_projects` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release.
 
-* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile. The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`, etc) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details) ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
+* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)). The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details).
 
-* Retrieve ``countries_centroids`` through the versioned data layout for local data cache. The file moves from ``data/countries_centroids.geojson`` to ``data/countries_centroids/{source}/{version}/countries.geojson`` and gains a ``data: countries_centroids:`` configuration entry ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
+* Retrieve `countries_centroids` through the versioned data layout for local data cache ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)). The file moves from `data/countries_centroids.geojson` to `data/countries_centroids/{source}/{version}/countries.geojson` and gains a `data: countries_centroids:` configuration entry.
 
 * Align the default CBA project selection across configuration files to `t335` (PINT), `t339` (TOOT), `t1106` (TOOT, offshore), `s1001` (PHS), `s1013` (CAES) and `s1035` (battery) ([#952](https://github.com/open-energy-transition/open-tyndp/pull/952)).
+
+* Pin the `highs-default` solver preset to the `ipx` interior-point solver instead of `ipm` ([#962](https://github.com/open-energy-transition/open-tyndp/pull/962)). From HiGHS 1.12 onwards, `ipm` selects HiPO and falls back to `ipx`. However, HiPO is not yet validated for Open-TYNDP (see issue [#786](https://github.com/open-energy-transition/open-tyndp/issues/786)). The changes also ensure consistency in the configurations across the configuration files.
 
 **Bugfixes and Compatibility**
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
 
-* Correct bus (NL00->NLOH001) and capacity (2000 MW -> 1800 MW) for CBA project 260 ([#873](https://github.com/open-energy-transition/open-tyndp/pull/873)).
- 
+* Correct bus (NL00 -> NLOH001) and capacity (2000 MW -> 1800 MW) for CBA project 260 ([#873](https://github.com/open-energy-transition/open-tyndp/pull/873)).
+
 * Stop reserving a solver license for the CBA rolling horizon rules in the `tyndp-slurm` profile, since `config/config.hpc.yaml` solves them with HiGHS by default ([#916](https://github.com/open-energy-transition/open-tyndp/pull/916)).
 
 * Use booleans instead of floats for `substation_off` and `substation_lv` when adding the Z2 DRES buses, which mixed dtypes in `n.buses` and broke the network export for the DE and GA scenarios ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)).
@@ -39,30 +41,30 @@
 
 **Documentation**
 
-* feat: explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
+* Add explainer videos to documentation ([#884](https://github.com/open-energy-transition/open-tyndp/pull/884)).
 
 * Add a warning to the CBA documentation recommending the latest pre-solved SB networks, and the code of the matching release as a fallback ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
 * Update list of Open-TYNDP contributors ([#923](https://github.com/open-energy-transition/open-tyndp/pull/923)).
 
-* Display the complete technology mapping table in the benchmarking documentation, generated directly from `data/tyndp_technology_map.csv` ([#917](https://github.com/open-energy-transition/open-tyndp/issues/917)).
-  
+* Display the complete technology mapping table in the benchmarking documentation, generated directly from `data/tyndp_technology_map.csv` ([#917](https://github.com/open-energy-transition/open-tyndp/pull/917)).
+
 **Developers Note**
 
-* feat: add version tag to CBA output plots and csv files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
+* Add the version tag to CBA output plots and CSV files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
 
 * Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820)).
 
-* Move the datasets `tyndp_cba_projects`, `tyndp_nuclear_profiles` and `tyndp_vis_plfm` in the Open-TYNDP GCP under a `2024/` prefixed path. The old paths are deprecated and will be removed with the next release ([#895](https://github.com/open-energy-transition/open-tyndp/pull/895)) .
+* Move the datasets `tyndp_cba_projects`, `tyndp_nuclear_profiles` and `tyndp_vis_plfm` in the Open-TYNDP GCP under a `2024/` prefixed path ([#895](https://github.com/open-energy-transition/open-tyndp/pull/895)). The old paths are deprecated and will be removed with the next release.
 
-* feat: add automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
+* Add an automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
 
 * Update integration and env autoupdate workflow to include and account for `tyndp-*` branches ([#913](https://github.com/open-energy-transition/open-tyndp/pull/913)).
 
 * Add the Snakemake logs to the set of files retrieved from remote by the `sync` and `sync_dry` rules ([#918](https://github.com/open-energy-transition/open-tyndp/pull/918)).
 
 * Add rule to sync individual files from remote cluster ([#823](https://github.com/open-energy-transition/open-tyndp/pull/823)).
-  
+
 * Update the maintainer issue templates to ensure compliance with ISO certification ([#924](https://github.com/open-energy-transition/open-tyndp/pull/924)). The risk-level scale gains a `Very High` option and drops `N/A`.
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
@@ -71,11 +73,9 @@
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
-* Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip paths/files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster. For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)).
+* Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip paths/files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)). For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories.
 
 * Rename `get_link_attrs` function to `get_transmission_attrs` to align with `get_storage_attrs` ([#961](https://github.com/open-energy-transition/open-tyndp/pull/961)).
-
-* Pin the `highs-default` solver preset to the `ipx` interior-point solver instead of `ipm` ([#962](https://github.com/open-energy-transition/open-tyndp/pull/962)). From HiGHS 1.12 onwards, `ipm` selects HiPO and falls back to `ipx`. However, HiPO is not yet validated for Open-TYNDP (see issue [#786](https://github.com/open-energy-transition/open-tyndp/issues/786)). The changes also ensure consistency in the configurations across the configuration files.
 
 * Refactor CBA rules and scripts to read configuration through Snakemake `params` instead of `snakemake.config` and `config.get()`, and remove unused rule inputs and params ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
 
@@ -83,11 +83,11 @@
 
 * Introduce fix for logger in `cba.smk` against Snakemake's global logger variable ([#974](https://github.com/open-energy-transition/open-tyndp/pull/974)).
 
-* Drop the vendored `snakemake-minimal` from the `open-tyndp` channel and resolve it upstream again, bumping the lock to 9.26.1 ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+* Revert the vendored `snakemake-minimal` dependency and align the packaging on the `open-tyndp` pixi environment ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)):
 
-* Export the conda environment and pin files from the `open-tyndp` pixi environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
-
-* Fix the Windows installer to look for the `open-tyndp` environment instead of `default` ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)).
+    - Drop the vendored `snakemake-minimal` from the `open-tyndp` channel and resolve it upstream again, bumping the lock to 9.26.1.
+    - Export the conda environment and pin files from the `open-tyndp` pixi environment instead of `default`.
+    - Fix the Windows installer to look for the `open-tyndp` environment instead of `default`.
 
 
 ## Upcoming PyPSA-Eur Release
@@ -146,6 +146,9 @@
 
 * doc: Add FAQ section to docs (`faq.md`) with troubleshooting for `SSL: CERTIFICATE_VERIFY_FAILED` during data retrieval behind proxy servers ([#2228](https://github.com/PyPSA/pypsa-eur/pull/2228)).
 * Fix Ultranet (TYNDP 254) to end in Philippsburg (#2236)
+
+
+## Open-TYNDP v0.9 (22nd September 2026)
 
 
 ## Open-TYNDP v0.8 (7th August 2026)
