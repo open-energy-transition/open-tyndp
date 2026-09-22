@@ -109,6 +109,8 @@
 
 * Remove outdated upstream retrieves from `data.tyndp.yaml` as a follow-up to PR [#798](https://github.com/open-energy-transition/open-tyndp/pull/798) fixing the tyndp-archive feature ([#867](https://github.com/open-energy-transition/open-tyndp/pull/867)).
 
+* Remove the redundant `sb_network` input from the `simplify_sb_network` rule in `rules/cba.smk` ([#858](https://github.com/open-energy-transition/open-tyndp/pull/858)).
+
 * Correct bus (NL00 -> NLOH001) and capacity (2000 MW -> 1800 MW) for CBA project 260 ([#873](https://github.com/open-energy-transition/open-tyndp/pull/873)).
 
 * Stop reserving a solver license for the CBA rolling horizon rules in the `tyndp-slurm` profile, since `config/config.hpc.yaml` solves them with HiGHS by default ([#916](https://github.com/open-energy-transition/open-tyndp/pull/916)).
@@ -129,7 +131,11 @@
 
 **Developers Note**
 
+* Bump the pixi version installed by the Windows installer workflow ([#848](https://github.com/open-energy-transition/open-tyndp/pull/848)).
+
 * Add the version tag to CBA output plots and CSV files ([#857](https://github.com/open-energy-transition/open-tyndp/pull/857)).
+
+* Remove the temporary `exclude-newer` exceptions for `snakemake-minimal` and `cryptography` from `pixi.toml` ([#872](https://github.com/open-energy-transition/open-tyndp/pull/872)).
 
 * Add custom slurm profile, exclude script and HPC config for remote execution of high-resolution runs ([#820](https://github.com/open-energy-transition/open-tyndp/pull/820)).
 
@@ -138,6 +144,8 @@
 * Add an automated weekly merge workflow to sync `master` into `tyndp-2026` ([#871](https://github.com/open-energy-transition/open-tyndp/pull/871)).
 
 * Update integration and env autoupdate workflow to include and account for `tyndp-*` branches ([#913](https://github.com/open-energy-transition/open-tyndp/pull/913)).
+
+* Pin the BLAS provider to an `openblas` build of `libblas` and an `openmp_*` build of `libopenblas` ([#869](https://github.com/open-energy-transition/open-tyndp/pull/869)). Left unconstrained, the provider drifted between netlib, blis and openblas across resolves; the `openmp_*` build is required to keep SCIP and MUMPS from being downgraded.
 
 * Add the Snakemake logs to the set of files retrieved from remote by the `sync` and `sync_dry` rules ([#918](https://github.com/open-energy-transition/open-tyndp/pull/918)).
 
@@ -150,6 +158,8 @@
 * Improve the efficiency of `plot_benchmark` by caching the version tag lookup and fixing the progress bar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)).
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
+
+* Update `gitpython`, `filelock` and `msgpack-python` in the locked environments to apply security patches ([#929](https://github.com/open-energy-transition/open-tyndp/pull/929)).
 
 * Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip the paths and files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)). For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories.
 
