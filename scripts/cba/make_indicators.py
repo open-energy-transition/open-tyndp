@@ -34,9 +34,10 @@ from pathlib import Path
 import pandas as pd
 import pypsa
 
-from scripts._helpers import configure_logging, get_version, set_scenario_config
+from scripts._helpers import configure_logging, set_scenario_config
 from scripts.cba.prepare_project import load_method
 from scripts.prepare_sector_network import get
+from scripts.sb._helpers import get_version
 
 logger = logging.getLogger(__name__)
 

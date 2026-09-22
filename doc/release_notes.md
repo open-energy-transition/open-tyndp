@@ -9,6 +9,8 @@
 
 **Features**
 
+* Add option to specify custom generators for CBA assessments associated with transmission or storage projects. Generators that do not yet exist in the network are added as PINT, while generators that already exist at the same bus and with the same carrier have their ``p_nom`` updated for both PINT and TOOT projects respectively. All custom CBA project files have also been moved to the `data/cba/custom_projects/` folder ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
+
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
 * Add a source-agnostic local data cache to allow runs on machines without internet access ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)).
@@ -88,6 +90,10 @@
     - Drop the vendored `snakemake-minimal` from the `open-tyndp` channel and resolve it upstream again, bumping the lock to 9.26.1.
     - Export the conda environment and pin files from the `open-tyndp` pixi environment instead of `default`.
     - Fix the Windows installer to look for the `open-tyndp` environment instead of `default`.
+
+* Drop the `grpcio < 1.78` pin and update `h2`, `pyarrow` and `fiona` to apply security patches ([#968](https://github.com/open-energy-transition/open-tyndp/pull/968)).
+
+* Move the SB-specific helper functions from `scripts/_helpers.py` into the new `scripts/sb/_helpers.py` ([#970](https://github.com/open-energy-transition/open-tyndp/pull/970)).
 
 
 ## Upcoming PyPSA-Eur Release

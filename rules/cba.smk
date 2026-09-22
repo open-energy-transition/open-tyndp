@@ -138,11 +138,15 @@ checkpoint clean_projects:
         guidelines="data/cba/table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv",
         carrier_mapping="data/tyndp_technology_map.csv",
         cba_project_corrections="data/cba/cba_project_corrections.csv",
-        custom_transmission="data/custom_cba_transmission_projects.csv",
+        custom_transmission="data/cba/custom_projects/transmission_projects.csv",
+        custom_generators_static="data/cba/custom_projects/generators_static.csv",
+        custom_generators_dynamic="data/cba/custom_projects/generators_dynamic.csv",
     output:
         transmission_projects=resources("cba/transmission_projects.csv"),
         storage_projects=resources("cba/storage_projects.csv"),
         methods=resources("cba/cba_project_methods.csv"),
+        generator_projects_static=resources("cba/generator_projects_static.csv"),
+        generator_projects_dynamic=resources("cba/generator_projects_dynamic.csv"),
     log:
         logs("cba/clean_projects.log"),
     benchmark:
@@ -150,6 +154,7 @@ checkpoint clean_projects:
     params:
         planning_horizons=config_provider("cba", "planning_horizons"),
         storage_default_lifetime=config_provider("cba", "storage", "default_lifetime"),
+        snapshots=config_provider("snapshots"),
     script:
         scripts("cba/clean_projects.py")
 
@@ -384,6 +389,8 @@ rule prepare_project:
         network=rules.prepare_rolling_horizon.output.network,
         transmission_projects=rules.clean_projects.output.transmission_projects,
         storage_projects=rules.clean_projects.output.storage_projects,
+        generator_projects_static=rules.clean_projects.output.generator_projects_static,
+        generator_projects_dynamic=rules.clean_projects.output.generator_projects_dynamic,
         methods=rules.clean_projects.output.methods,
         costs=resources("costs_{planning_horizons}_processed.csv"),
     output:
@@ -396,6 +403,7 @@ rule prepare_project:
         benchmarks("performances/cba/prepare_project_{cba_project}_{planning_horizons}")
     params:
         hurdle_costs=config_provider("cba", "hurdle_costs"),
+        tech_colors=config_provider("plotting", "tech_colors"),
         storage_discount_rate=config_provider("cba", "storage", "discount_rate"),
         negative_toot_capacity=config_provider("cba", "negative_toot_capacity"),
     script:
