@@ -15,6 +15,7 @@
 
 **Bugfixes and Compatibility**
 
+* Remove `__innit__` override from `heat_systems.py` for compatibility with python>=3.14 ([#990](https://github.com/open-energy-transition/open-tyndp/pull/990)).
 
 **Documentation**
 
