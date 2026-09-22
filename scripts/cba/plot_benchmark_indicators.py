@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: Contributors to Open-TYNDP <https://github.com/open-energy-transition/open-tyndp>
 #
 # SPDX-License-Identifier: MIT
-from __future__ import annotations
-
 """
 Create benchmark plots for CBA indicators.
 
@@ -11,6 +9,8 @@ includes Open-TYNDP rows and TYNDP benchmark rows,
 and generates plots comparing Open-TYNDP values
 to the 2024 TYNDP values.
 """
+
+from __future__ import annotations
 
 import logging
 from pathlib import Path
