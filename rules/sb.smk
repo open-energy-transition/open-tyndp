@@ -462,15 +462,22 @@ use rule build_electricity_demand_base as build_electricity_demand_base_tyndp wi
 ##############
 
 if DEMAND_TYPE_MAP:
+
     rule build_tyndp_demand:
         input:
-            demand=rules.retrieve_tyndp_2026.output.demand_profiles if "retrieve_tyndp_2026" in dir(rules) else rules.retrieve_tyndp.output.demand_profiles,
+            demand=(
+                rules.retrieve_tyndp_2026.output.demand_profiles
+                if "retrieve_tyndp_2026" in dir(rules)
+                else rules.retrieve_tyndp.output.demand_profiles
+            ),
         output:
             demand=resources("demand_tyndp_{demand_type}_{planning_horizons}.csv"),
         log:
             logs("build_tyndp_demand_{demand_type}_{planning_horizons}.log"),
         benchmark:
-            benchmarks("performances/build_tyndp_demand_{demand_type}_{planning_horizons}")
+            benchmarks(
+                "performances/build_tyndp_demand_{demand_type}_{planning_horizons}"
+            )
         wildcard_constraints:
             demand_type="|".join(DEMAND_TYPE_MAP) if DEMAND_TYPE_MAP else "thermal_ch4",
         threads: 1
@@ -479,14 +486,22 @@ if DEMAND_TYPE_MAP:
         params:
             snapshots=config_provider("snapshots"),
             drop_leap_day=config_provider("enable", "drop_leap_day"),
-            weather_scenarios=config_provider("weather_scenarios_tyndp") if "weather_scenarios_tyndp" in config else {},
+            weather_scenarios=(
+                config_provider("weather_scenarios_tyndp")
+                if "weather_scenarios_tyndp" in config
+                else {}
+            ),
         script:
             scripts("sb/build_tyndp_demand.py")
 
 
 rule build_tyndp_gas_demand:
     input:
-        supply_tool=rules.retrieve_tyndp_2026.output.supply_tool if "retrieve_tyndp_2026" in dir(rules) else rules.retrieve_tyndp.output.supply_tool,
+        supply_tool=(
+            rules.retrieve_tyndp_2026.output.supply_tool
+            if "retrieve_tyndp_2026" in dir(rules)
+            else rules.retrieve_tyndp.output.supply_tool
+        ),
         thermal_ch4=resources("demand_tyndp_thermal_ch4_{planning_horizons}.csv"),
     output:
         gas_demand=resources("gas_demand_tyndp_{planning_horizons}.csv"),

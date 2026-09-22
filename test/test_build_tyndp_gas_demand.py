@@ -13,7 +13,16 @@ import pytest
 def _import_gas_module():
     import sys
 
-    for mod in ["atlite", "pypsa", "geopandas", "xarray", "rioxarray", "fiona", "rasterio", "shapely"]:
+    for mod in [
+        "atlite",
+        "pypsa",
+        "geopandas",
+        "xarray",
+        "rioxarray",
+        "fiona",
+        "rasterio",
+        "shapely",
+    ]:
         if mod not in sys.modules:
             sys.modules[mod] = MagicMock()
     if "scripts._helpers" not in sys.modules:
@@ -24,9 +33,11 @@ def _import_gas_module():
         sys.modules["scripts._helpers"] = mock_helpers
     if "scripts.sb._helpers" not in sys.modules:
         mock_sb = MagicMock()
+
         # Provide dummy interpolate that does simple linear
         def dummy_interpolate(available_years, pyear, load_single_year_func, **kwargs):
             import bisect
+
             idx = bisect.bisect_right(sorted(available_years), pyear)
             if idx == 0:
                 return load_single_year_func(pyear=available_years[0], **kwargs)
@@ -233,7 +244,9 @@ def test_real_supply_tool_file():
     real = Path("/tmp/supply2026.xlsm")
     if not real.exists():
         pytest.skip("Real Supply Tool not downloaded")
-    _, _, _, _, read_hybrid_heating_gas_2026, read_methane_total_2026 = _import_gas_module()
+    _, _, _, _, read_hybrid_heating_gas_2026, read_methane_total_2026 = (
+        _import_gas_module()
+    )
     total = read_methane_total_2026(str(real), "NT", 2030)
     hybrid = read_hybrid_heating_gas_2026(str(real), "NT", 2030)
     assert not total.empty
@@ -251,7 +264,12 @@ def test_year_specific_interpolation(tmp_path):
     df = pd.DataFrame(
         {
             "ETM": ["Methane", "Methane", "Methane", "Methane"],
-            "Parameter": ["Total Energy Demand", "Methane for hybrid heating", "Total Energy Demand", "Methane for hybrid heating"],
+            "Parameter": [
+                "Total Energy Demand",
+                "Methane for hybrid heating",
+                "Total Energy Demand",
+                "Methane for hybrid heating",
+            ],
             "Unit": ["TWh/year", "TWh/year", "TWh/year", "TWh/year"],
             "Year": [2030, 2030, 2035, 2035],
             "AT": [1.0, 0.2, 1.5, 0.5],

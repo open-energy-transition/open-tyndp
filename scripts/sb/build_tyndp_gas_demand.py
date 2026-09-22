@@ -56,7 +56,16 @@ DEFAULT_GAS_BOILER_EFFICIENCY = 0.9
 
 def _is_country_col(col: str) -> bool:
     col = str(col).strip()
-    if col.lower() in {"etm", "parameter", "unit", "year", "scenario", "eu27", "eu27.1", "unnamed: 33"}:
+    if col.lower() in {
+        "etm",
+        "parameter",
+        "unit",
+        "year",
+        "scenario",
+        "eu27",
+        "eu27.1",
+        "unnamed: 33",
+    }:
         return False
     # Country codes are 2 letters, bus codes like AT00 are 4 with first 2 being country
     try:
@@ -184,18 +193,24 @@ def read_methane_total_2026(fn: str, scenario: str, pyear: int) -> pd.Series | N
     # Should be single row, but sum if multiple
     totals = {}
     for _, row in df_sel.iterrows():
-        factor = _unit_factor(str(row[unit_col])) if unit_col and unit_col in df_sel.columns else 1e6
+        factor = (
+            _unit_factor(str(row[unit_col]))
+            if unit_col and unit_col in df_sel.columns
+            else 1e6
+        )
         for col, iso in col_to_iso.items():
             totals[iso] = totals.get(iso, 0.0) + float(row[col]) * factor
 
     s = pd.Series(totals, dtype=float)
     s.name = "p_nom"
     s = s[s != 0]
-    logger.info(f"2026 Methane total for {pyear}: {s.sum()/1e6:.1f} TWh")
+    logger.info(f"2026 Methane total for {pyear}: {s.sum() / 1e6:.1f} TWh")
     return s
 
 
-def read_hybrid_heating_gas_2026(fn: str, scenario: str, pyear: int) -> pd.Series | None:
+def read_hybrid_heating_gas_2026(
+    fn: str, scenario: str, pyear: int
+) -> pd.Series | None:
     """Read Methane for hybrid heating (gas input) for pyear."""
     df = _read_all_data_df(fn, scenario)
     if df is None:
@@ -242,7 +257,7 @@ def read_hybrid_heating_gas_2026(fn: str, scenario: str, pyear: int) -> pd.Serie
     s = pd.Series(totals, dtype=float)
     s.name = "hybrid_gas"
     s = s[s != 0]
-    logger.info(f"2026 Hybrid gas for {pyear}: {s.sum()/1e6:.2f} TWh")
+    logger.info(f"2026 Hybrid gas for {pyear}: {s.sum() / 1e6:.2f} TWh")
     return s
 
 
@@ -273,7 +288,9 @@ def compute_thermal_ch4_annual(
         if df.shape[0] == 1 and "p_nom" in df.columns:
             s = df["p_nom"]
             s.index = s.index.map(lambda x: str(x)[:2])
-            s = s.groupby(lambda x: cc.convert(str(x)[:2], to="iso2") if len(str(x)) >= 2 else x).sum()
+            s = s.groupby(
+                lambda x: cc.convert(str(x)[:2], to="iso2") if len(str(x)) >= 2 else x
+            ).sum()
             return s
 
         df = df.apply(pd.to_numeric, errors="coerce").fillna(0)
@@ -306,7 +323,9 @@ def compute_thermal_ch4_annual(
             annual_per_country[iso] = annual_per_country.get(iso, 0) + float(val)
         s = pd.Series(annual_per_country, dtype=float)
         s.name = "thermal_ch4_gas"
-        logger.info(f"thermal_ch4 annual gas equivalent ({efficiency=}): {s.sum()/1e6:.2f} TWh from {p}")
+        logger.info(
+            f"thermal_ch4 annual gas equivalent ({efficiency=}): {s.sum() / 1e6:.2f} TWh from {p}"
+        )
         return s
     except Exception as e:
         logger.warning(f"Failed to read thermal_ch4 {p}: {e}")
@@ -334,7 +353,9 @@ def read_fed_data(fn: str, scenario: str, pyear: int) -> tuple[pd.Series, pd.Ser
     return demand_fed, demand_heat
 
 
-def read_heat_frame(fn: str, pyear: int, type: Literal["distribution", "efficiency"]) -> pd.DataFrame:
+def read_heat_frame(
+    fn: str, pyear: int, type: Literal["distribution", "efficiency"]
+) -> pd.DataFrame:
     if type not in ["distribution", "efficiency"]:
         raise ValueError(f"Invalid type '{type}'")
     if pyear not in [2030, 2040, 2050]:
@@ -356,17 +377,29 @@ def read_heat_frame(fn: str, pyear: int, type: Literal["distribution", "efficien
 
 def read_it_gas_prod(fn: str, pyear: int) -> float:
     return (
-        pd.read_excel(fn, usecols="H:K", header=0, index_col=0, nrows=2, skiprows=31, sheet_name="IT").loc[pyear, "For heat"]
+        pd.read_excel(
+            fn,
+            usecols="H:K",
+            header=0,
+            index_col=0,
+            nrows=2,
+            skiprows=31,
+            sheet_name="IT",
+        ).loc[pyear, "For heat"]
         * 1e6
     )
 
 
-def read_heat_data(heat_fed: pd.Series, fn: str, scenario: str, pyear: int) -> pd.Series:
+def read_heat_data(
+    heat_fed: pd.Series, fn: str, scenario: str, pyear: int
+) -> pd.Series:
     try:
         shares = read_heat_frame(fn, pyear, "distribution")
         efficiencies = read_heat_frame(fn, pyear, "efficiency")
         demand_primary = heat_fed * shares * (1 / efficiencies)
-        demand = demand_primary.loc[["Biogas", "E-Methane", "Natural gas", "Other fossil gas", "Waste gas"]].sum()
+        demand = demand_primary.loc[
+            ["Biogas", "E-Methane", "Natural gas", "Other fossil gas", "Waste gas"]
+        ].sum()
         demand.loc["IT"] = read_it_gas_prod(fn, pyear)
     except Exception as e:
         logger.warning(f"Failed heat for {scenario} {pyear}: {e}")
@@ -392,7 +425,12 @@ def read_supply_tool(fn: str, scenario: str, pyear: int) -> pd.Series:
 
 
 def load_single_year(
-    fn: str, scenario: str, pyear: int, thermal_ch4_path: str | None = None, efficiency: float = DEFAULT_GAS_BOILER_EFFICIENCY, snapshots: pd.DatetimeIndex | None = None,
+    fn: str,
+    scenario: str,
+    pyear: int,
+    thermal_ch4_path: str | None = None,
+    efficiency: float = DEFAULT_GAS_BOILER_EFFICIENCY,
+    snapshots: pd.DatetimeIndex | None = None,
 ) -> pd.Series:
     """Load demand for single year, subtracting hybrid heating to avoid double-counting."""
     if scenario == "NT":
@@ -431,49 +469,75 @@ def load_single_year(
             if not p.exists():
                 # Try year-specific path if passed template was for different year (interpolation case)
                 # For interpolation, caller should pass None and let auto-detect per pyear
-                logger.error(f"thermal_ch4 expected for 2026 year {pyear} but not found at {p}. This is required to avoid double-counting heating.")
+                logger.error(
+                    f"thermal_ch4 expected for 2026 year {pyear} but not found at {p}. This is required to avoid double-counting heating."
+                )
                 raise FileNotFoundError(f"thermal_ch4 not found for {pyear}: {p}")
-            thermal_gas = compute_thermal_ch4_annual(thermal_ch4_path, snapshots=snapshots, efficiency=efficiency)
+            thermal_gas = compute_thermal_ch4_annual(
+                thermal_ch4_path, snapshots=snapshots, efficiency=efficiency
+            )
 
         # Use Supply Tool hybrid gas for subtraction (authoritative gas input)
         # Thermal_gas is for verification and hourly shape
         if not hybrid_gas_supply.empty:
             # Subtract hybrid gas from total to get residual
-            demand, hybrid_gas_supply = demand.align(hybrid_gas_supply, fill_value=0, join="outer")
+            demand, hybrid_gas_supply = demand.align(
+                hybrid_gas_supply, fill_value=0, join="outer"
+            )
             total_before = demand.sum()
             residual = demand - hybrid_gas_supply
             # Never mask invalid: if residual negative, error
             neg = residual[residual < -1e-6]
             if not neg.empty:
-                logger.error(f"Hybrid subtraction negative for {pyear}: {neg.to_dict()}. Total {total_before/1e6:.2f} TWh, hybrid {hybrid_gas_supply.sum()/1e6:.2f} TWh")
-                raise ValueError(f"Negative residual after hybrid subtraction for {pyear}: {neg.index.tolist()}")
+                logger.error(
+                    f"Hybrid subtraction negative for {pyear}: {neg.to_dict()}. Total {total_before / 1e6:.2f} TWh, hybrid {hybrid_gas_supply.sum() / 1e6:.2f} TWh"
+                )
+                raise ValueError(
+                    f"Negative residual after hybrid subtraction for {pyear}: {neg.index.tolist()}"
+                )
             residual = residual.clip(lower=0)
             # Energy balance check
             if not thermal_gas.empty:
                 # Compare thermal_gas (converted) to hybrid_gas_supply
-                thermal_gas, hybrid_gas_supply = thermal_gas.align(hybrid_gas_supply, fill_value=0, join="outer")
+                thermal_gas, hybrid_gas_supply = thermal_gas.align(
+                    hybrid_gas_supply, fill_value=0, join="outer"
+                )
                 diff = (thermal_gas - hybrid_gas_supply).abs().sum()
                 if diff / (hybrid_gas_supply.sum() + 1e-9) > 0.2:  # 20% tolerance
-                    logger.warning(f"thermal_ch4 gas equivalent {thermal_gas.sum()/1e6:.2f} TWh differs from Supply Tool hybrid {hybrid_gas_supply.sum()/1e6:.2f} TWh by {diff/1e6:.2f} TWh for {pyear} (efficiency {efficiency})")
+                    logger.warning(
+                        f"thermal_ch4 gas equivalent {thermal_gas.sum() / 1e6:.2f} TWh differs from Supply Tool hybrid {hybrid_gas_supply.sum() / 1e6:.2f} TWh by {diff / 1e6:.2f} TWh for {pyear} (efficiency {efficiency})"
+                    )
             demand = residual
             demand.name = "p_nom"
-            logger.info(f"2026 gas demand for {pyear}: total {total_before/1e6:.1f} TWh - hybrid {hybrid_gas_supply.sum()/1e6:.2f} TWh = residual {demand.sum()/1e6:.1f} TWh")
+            logger.info(
+                f"2026 gas demand for {pyear}: total {total_before / 1e6:.1f} TWh - hybrid {hybrid_gas_supply.sum() / 1e6:.2f} TWh = residual {demand.sum() / 1e6:.1f} TWh"
+            )
         else:
             if not thermal_gas.empty:
                 # Fallback: use thermal_gas for subtraction if hybrid_gas_supply missing (should not happen where source data unavailable)
-                logger.warning(f"No hybrid gas row in Supply Tool for {pyear}, using thermal_ch4 for subtraction (efficiency {efficiency})")
-                demand, thermal_gas = demand.align(thermal_gas, fill_value=0, join="outer")
+                logger.warning(
+                    f"No hybrid gas row in Supply Tool for {pyear}, using thermal_ch4 for subtraction (efficiency {efficiency})"
+                )
+                demand, thermal_gas = demand.align(
+                    thermal_gas, fill_value=0, join="outer"
+                )
                 residual = demand - thermal_gas
                 neg = residual[residual < -1e-6]
                 if not neg.empty:
-                    raise ValueError(f"Negative residual for {pyear}: {neg.index.tolist()}")
+                    raise ValueError(
+                        f"Negative residual for {pyear}: {neg.index.tolist()}"
+                    )
                 demand = residual.clip(lower=0)
             else:
-                logger.warning(f"No hybrid heating data for {pyear}, using total without subtraction (double-counting risk)")
+                logger.warning(
+                    f"No hybrid heating data for {pyear}, using total without subtraction (double-counting risk)"
+                )
     else:
         # 2024 path: thermal_ch4 not used, but if provided, subtract
         if thermal_ch4_path:
-            thermal = compute_thermal_ch4_annual(thermal_ch4_path, snapshots=snapshots, efficiency=efficiency)
+            thermal = compute_thermal_ch4_annual(
+                thermal_ch4_path, snapshots=snapshots, efficiency=efficiency
+            )
             if not thermal.empty and not demand.empty:
                 demand, thermal = demand.align(thermal, fill_value=0, join="outer")
                 residual = demand - thermal
@@ -486,13 +550,19 @@ def load_single_year(
 
 
 def load_gas_demand(
-    fn: str, scenario: str, pyear: int, thermal_ch4_path: str | None = None, snapshots: pd.DatetimeIndex | None = None,
+    fn: str,
+    scenario: str,
+    pyear: int,
+    thermal_ch4_path: str | None = None,
+    snapshots: pd.DatetimeIndex | None = None,
 ) -> pd.Series:
     available_years = AVAILABLE_YEARS_TYNDP2026
     # For interpolation, we need year-specific thermal files, not the same file for both bounds
     # So we don't pass thermal_ch4_path directly to interpolate; let load_single_year auto-detect per pyear
     if pyear in available_years:
-        return load_single_year(fn, scenario, pyear, thermal_ch4_path=thermal_ch4_path, snapshots=snapshots)
+        return load_single_year(
+            fn, scenario, pyear, thermal_ch4_path=thermal_ch4_path, snapshots=snapshots
+        )
 
     # For interpolation years, use None and let per-year auto-detect
     return interpolate_demand(
@@ -544,7 +614,9 @@ if __name__ == "__main__":
         logger.warning(f"Gas demand processing is not supported yet for {scenario}.")
         scenario = "NT"
 
-    logger.info(f"Processing gas demand for {scenario} year {pyear} thermal_ch4 {thermal_ch4_path}")
+    logger.info(
+        f"Processing gas demand for {scenario} year {pyear} thermal_ch4 {thermal_ch4_path}"
+    )
 
     demand = load_gas_demand(fn, scenario, pyear, thermal_ch4_path=thermal_ch4_path)
 
