@@ -4,6 +4,7 @@ on:
     # Branches whose lockfile is maintained outside this workflow
     branches-ignore:
     - tyndp-*      # mirrors the locked environments on master
+    - release/*    # tracks previous releases for security patches
     - scan-branch  # adds security patches to the latest release's environments
     paths:
     - pixi.toml
