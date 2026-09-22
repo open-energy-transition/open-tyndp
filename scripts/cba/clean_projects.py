@@ -245,7 +245,7 @@ def apply_cba_project_corrections(
 
     logger.info(
         "\n============ Applying CBA project corrections ============\n"
-        "Applying CBA project corrections to %d projects: %s",
+        "Applying CBA project corrections to %d projects: %s \n",
         len(corrected_ids),
         ", ".join(corrected_ids.astype(str)),
     )
