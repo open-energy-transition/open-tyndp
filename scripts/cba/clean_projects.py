@@ -244,7 +244,8 @@ def apply_cba_project_corrections(
     corrected_ids = corrections["project_id"].unique()
 
     logger.info(
-        "Applying CBA project corrections for %d projects with project ID:\n%s",
+        "\n============ Applying CBA project corrections ============\n"
+        "Applying CBA project corrections to %d projects: %s \n",
         len(corrected_ids),
         ", ".join(corrected_ids.astype(str)),
     )
@@ -279,20 +280,56 @@ def remove_unclear_border(
     pd.DataFrame
         Curated list of projects that only use existing buses.
     """
-    unclear_border = ~(
-        projects["bus0"].isin(existing_buses) & projects["bus1"].isin(existing_buses)
+
+    # Get list of projects with known, unknown, or unparsed borders
+    known = projects["bus0"].isin(existing_buses) & projects["bus1"].isin(
+        existing_buses
     )
-    if unclear_border.sum() > 0:
+    unparsed = projects["bus0"].isna() | projects["bus1"].isna()
+    unknown_bus = ~known & ~unparsed
+    cols = ["project_id", "project_name", "is_crossborder", "border"]
+    instruct = (
+        "\n \nPlease add projects to data/cba/cba_project_corrections.csv to include them in "
+        "the CBA.\n \nTo view the full list of affected projects, set `logging: level: DEBUG` "
+        "in the configuration and"
+        "\nrerun the Snakemake workflow with `-R clean_projects` in the command"
+    )
+
+    # Log warnings for projects with unparsed or unknown borders
+    if unparsed.any():
         logger.warning(
-            "%d out of %d extensions do not follow the simple <bus0>-<bus1> format or are not defined in the base network, ignoring them:\n%s",
-            unclear_border.sum(),
-            len(unclear_border),
-            projects.loc[
-                unclear_border, ["project_id", "project_name", "border"]
-            ].to_string(index=False, max_colwidth=40, line_width=100),
+            "\n============ Ignoring projects with unclear borders ============\n"
+            "Ignoring %d out of %d project borders that are not reported as "
+            "'<bus0>-<bus1>'. %s. \n",
+            unparsed.sum(),
+            len(projects),
+            instruct,
+        )
+        logger.debug(
+            "Project borders that are not reported as '<bus0>-<bus1>':\n%s",
+            projects.loc[unparsed, cols]
+            .sort_values(["is_crossborder", "border"], ascending=[False, True])
+            .to_string(index=False, max_colwidth=40, line_width=100),
         )
 
-    return projects.loc[~unclear_border]
+    # Log warnings for projects with unknown bus codes
+    if unknown_bus.any():
+        logger.warning(
+            "\n============ Ignoring projects with unknown bus codes ============\n"
+            "Ignoring %d out of %d project borders that have bus codes that are missing "
+            "from the node list. %s. \n",
+            unknown_bus.sum(),
+            len(projects),
+            instruct,
+        )
+        logger.debug(
+            "Project borders with bus codes that are missing from the node list:\n%s",
+            projects.loc[unknown_bus, cols]
+            .sort_values("border")
+            .to_string(index=False, max_colwidth=40, line_width=100),
+        )
+
+    return projects.loc[known]
 
 
 def remove_no_capacity(projects: pd.DataFrame) -> pd.DataFrame:
