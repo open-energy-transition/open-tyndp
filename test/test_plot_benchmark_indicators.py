@@ -4,12 +4,11 @@
 """Regression tests for CBA benchmark plotting with custom projects."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
-import pytest
 
 matplotlib.use("Agg")
 
@@ -81,12 +80,32 @@ def test_benchmark_range_returns_values_when_present():
     benchmark_range, _, _ = _import_plot_module()
     df = _make_df(
         [
-            {"source": "TYNDP 2024", "indicator": "B1_total_system_cost_change", "subindex": "min", "value": -10, "project_id": 335},
-            {"source": "TYNDP 2024", "indicator": "B1_total_system_cost_change", "subindex": "mean", "value": -5, "project_id": 335},
-            {"source": "TYNDP 2024", "indicator": "B1_total_system_cost_change", "subindex": "max", "value": 0, "project_id": 335},
+            {
+                "source": "TYNDP 2024",
+                "indicator": "B1_total_system_cost_change",
+                "subindex": "min",
+                "value": -10,
+                "project_id": 335,
+            },
+            {
+                "source": "TYNDP 2024",
+                "indicator": "B1_total_system_cost_change",
+                "subindex": "mean",
+                "value": -5,
+                "project_id": 335,
+            },
+            {
+                "source": "TYNDP 2024",
+                "indicator": "B1_total_system_cost_change",
+                "subindex": "max",
+                "value": 0,
+                "project_id": 335,
+            },
         ]
     )
-    mn, mean, mx = benchmark_range(df, "B1_total_system_cost_change", source="TYNDP 2024")
+    mn, mean, mx = benchmark_range(
+        df, "B1_total_system_cost_change", source="TYNDP 2024"
+    )
     assert mn == -10
     assert mean == -5
     assert mx == 0
@@ -192,7 +211,9 @@ def test_plot_project_benchmarks_preserves_comparison(tmp_path: Path):
 
     plt.Figure.savefig = fake_savefig
     try:
-        plot_project_benchmarks(df, out, project_label="t335_2030", area_subtitle="whole area")
+        plot_project_benchmarks(
+            df, out, project_label="t335_2030", area_subtitle="whole area"
+        )
     finally:
         plt.Figure.savefig = original_savefig
 
