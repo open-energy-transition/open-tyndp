@@ -244,7 +244,8 @@ def apply_cba_project_corrections(
     corrected_ids = corrections["project_id"].unique()
 
     logger.info(
-        "Applying CBA project corrections for %d projects with project ID:\n%s",
+        "\n============ Applying CBA project corrections ============\n"
+        "Applying CBA project corrections to %d projects: %s",
         len(corrected_ids),
         ", ".join(corrected_ids.astype(str)),
     )
@@ -288,7 +289,7 @@ def remove_unclear_border(
     unknown_bus = ~known & ~unparsed
     cols = ["project_id", "project_name", "is_crossborder", "border"]
     instruct = (
-        "Please add projects to data/cba/cba_project_corrections.csv to include them in "
+        "\nPlease add projects to data/cba/cba_project_corrections.csv to include them in "
         "the CBA.\nTo view the full list of affected projects, set `logging: level: DEBUG` "
         "in the configuration and rerun the workflow"
     )
@@ -296,7 +297,8 @@ def remove_unclear_border(
     # Log warnings for projects with unparsed or unknown borders
     if unparsed.any():
         logger.warning(
-            "Ignoring %d out of %d project borders that are not reported as "
+            "\n============ Ignoring projects with unclear borders ============\n"
+            "\033[1mIgnoring %d out of %d project borders\033[0m that are not reported as "
             "'<bus0>-<bus1>'. %s.",
             unparsed.sum(),
             len(projects),
@@ -312,7 +314,8 @@ def remove_unclear_border(
     # Log warnings for projects with unknown bus codes
     if unknown_bus.any():
         logger.warning(
-            "Ignoring %d out of %d project borders that have bus codes that are missing "
+            "\n============ Ignoring projects with unknown bus codes ============\n"
+            "\033[1mIgnoring %d out of %d project borders\033[0m that have bus codes that are missing "
             "from the node list. %s.",
             unknown_bus.sum(),
             len(projects),
