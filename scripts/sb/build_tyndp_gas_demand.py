@@ -20,11 +20,23 @@ Supply Tool rows are already gas input (MWh_LHV).
 
 Dependencies requiring maintainer decision:
 - Hourly ``thermal_ch4`` production (``build_tyndp_demand`` rule,
-  ``retrieve_tyndp_2026``) lives on upstream ``tyndp-2026`` and is not
-  duplicated here. Downstream hourly integration of residual + thermal is
-  pending that infrastructure.
+  ``retrieve_tyndp_2026`` Demand.zip, ``weather_scenarios_tyndp``) lives on
+  upstream ``tyndp-2026`` (PR #808, merged) and is not duplicated here.
+  Verified 2030 file: 41 sheets named ``Methane_Heat-<BUS>_HCH4-B``, 8760
+  hourly rows, WS003/021/029 populated, raw values in GJ (MWh_th = GJ/3.6).
+  Upstream ``read_demand_excel`` outputs long sheet names (not bus codes);
+  bus extraction (``-<BUS>_``) and UK->GB are required downstream.
+- Downstream hourly integration (residual flat + thermal shape scaled to
+  hybrid totals per country) is pending; ``prepare_sector_network`` on both
+  branches still consumes annual residual via ``attach_gas_load`` only.
+  Thermal file has 8760 rows vs snapshots 8736h (2009 config drops last day);
+  final 24h handling belongs to that wiring.
 - Scenario file mapping for 2026 directory (NT+ vs LEV/HEV) is assumed as
-  NT->NT+; DE/GA mapping requires maintainer confirmation.
+  NT->NT+; DE->LEV / GA->HEV mapping unconfirmed.
+- Country coverage differs: Supply Tool All data has no GB column while
+  thermal has GB/NI buses; multi-bus countries (ITx7, SEx4, DKx2, GRx2)
+  aggregate by first-2-letters. Gaps are documented in tests, not silently
+  filled.
 """
 
 from __future__ import annotations
