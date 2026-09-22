@@ -442,6 +442,7 @@ def extract_transmission_projects(
             up_to_projects.update(projects.loc[up_to, "project_name"])
     if up_to_projects:
         logger.info(
+            "\n===============================================\n"
             f"Removed 'Up to ' capacity prefix from {len(up_to_projects)} projects:\n"
             + ", ".join(up_to_projects)
         )
