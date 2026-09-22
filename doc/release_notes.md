@@ -85,7 +85,7 @@
 
 **Features**
 
-* Add an option to specify custom generators associated with transmission or storage projects in the CBA assessment. Generators that do not yet exist in the network are added as PINT, while generators that already exist at the same bus and with the same carrier have their `p_nom` updated, for both PINT and TOOT projects. All custom CBA project files have also been moved to the `data/cba/custom_projects/` folder ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
+* Add an option to specify custom generators associated with transmission or storage projects in the CBA assessment ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)). Generators that do not yet exist in the network are added as PINT, while generators that already exist at the same bus and with the same carrier have their `p_nom` updated, for both PINT and TOOT projects. All custom CBA project files have also been moved to the `data/cba/custom_projects/` folder.
 
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
