@@ -95,6 +95,8 @@
 
 * Move the SB-specific helper functions from `scripts/_helpers.py` into the new `scripts/sb/_helpers.py` ([#970](https://github.com/open-energy-transition/open-tyndp/pull/970)).
 
+* Remove `collect_cba_scenario` rule and the empty `all_scenarios.txt` file it creates; refactor `cba` rule ([#958](https://github.com/open-energy-transition/open-tyndp/pull/958)).
+
 
 ## Upcoming PyPSA-Eur Release
 

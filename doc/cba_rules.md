@@ -129,11 +129,6 @@ where `cba: cba_scenario_input: use_presolved: true`. Running the rule also runs
 Used by `pixi run collect-data-cba`, see
 [Filling the cache with network access](retrieve.md#local_cache_online).
 
-### Rule `collect_cba_scenario`
-
-Collects all per-scenario outputs (indicator plots, benchmark charts) into a single target
-for a single climate year run (e.g. `NT-cy2009`).
-
 ### Rule `cba`
 
 Top-level target rule. Collects ensemble outputs from all climate year runs in a collection
