@@ -299,7 +299,7 @@ def remove_unclear_border(
     if unparsed.any():
         logger.warning(
             "\n============ Ignoring projects with unclear borders ============\n"
-            "\033[1mIgnoring %d out of %d project borders\033[0m that are not reported as "
+            "Ignoring %d out of %d project borders that are not reported as "
             "'<bus0>-<bus1>'. %s. \n",
             unparsed.sum(),
             len(projects),
@@ -316,7 +316,7 @@ def remove_unclear_border(
     if unknown_bus.any():
         logger.warning(
             "\n============ Ignoring projects with unknown bus codes ============\n"
-            "\033[1mIgnoring %d out of %d project borders\033[0m that have bus codes that are missing "
+            "Ignoring %d out of %d project borders that have bus codes that are missing "
             "from the node list. %s. \n",
             unknown_bus.sum(),
             len(projects),
