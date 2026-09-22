@@ -9,7 +9,7 @@
 
 **Features**
 
-* Add option to specify custom generators for CBA assessments associated with transmission or storage projects. Generators that do not yet exist in the network are added as PINT, while generators that already exist at the same bus and with the same carrier have their ``p_nom`` updated for both PINT and TOOT projects respectively. All custom CBA project files have also been moved to the `data/cba/custom_projects/` folder ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
+* Add an option to specify custom generators associated with transmission or storage projects in the CBA assessment. Generators that do not yet exist in the network are added as PINT, while generators that already exist at the same bus and with the same carrier have their `p_nom` updated, for both PINT and TOOT projects. All custom CBA project files have also been moved to the `data/cba/custom_projects/` folder ([#897](https://github.com/open-energy-transition/open-tyndp/pull/897)).
 
 * Add storage projects to the CBA assessment, using the PINT method ([#838](https://github.com/open-energy-transition/open-tyndp/pull/838)).
 
@@ -19,15 +19,15 @@
 
 * Update `tyndp_versions.csv` to allow latest pre-solved SB networks for v0.8 ([#890](https://github.com/open-energy-transition/open-tyndp/pull/890)).
 
-* Move small CBA data files (`a.3_non-co2-emissions.csv` and `table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`) to local repository `data/cba/` folder instead of retrieving from GCP ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)). The rules `retrieve_tyndp_cba_non_co2_emissions` and `retrieve_cba_guidelines_reference_projects` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release.
+* Move small CBA data files (`a.3_non-co2-emissions.csv` and `table_B1_CBA_Implementations_Guidelines_TYNDP2024.csv`) to the local `data/cba/` folder instead of retrieving them from GCP ([#900](https://github.com/open-energy-transition/open-tyndp/pull/900)). The rules `retrieve_tyndp_cba_non_co2_emissions` and `retrieve_cba_guidelines_reference_projects` are deprecated, and the aforementioned data files will be removed from the Open-TYNDP GCP with the next release.
 
-* Add warnings that the DE and GA scenarios are incomplete, unsupported and not planned to be supported, both in the documentation and via a log warning in Snakefile ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)). The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details).
+* Add warnings that the DE and GA scenarios are incomplete and unsupported, with no plans to support them, both in the documentation and via a log warning in the `Snakefile` ([#899](https://github.com/open-energy-transition/open-tyndp/pull/899)). The DE and GA climate/weather variant scenarios (e.g., `DE-cy1995`, `GA-cy2008`) are removed, thus the workflow will not work when trying to run those scenarios. Also add a small patch to `prepare_sector_network` when running DE and GA (see **Bugfixes and Compatibility** for details).
 
 * Retrieve `countries_centroids` through the versioned data layout for local data cache ([#907](https://github.com/open-energy-transition/open-tyndp/pull/907)). The file moves from `data/countries_centroids.geojson` to `data/countries_centroids/{source}/{version}/countries.geojson` and gains a `data: countries_centroids:` configuration entry.
 
 * Align the default CBA project selection across configuration files to `t335` (PINT), `t339` (TOOT), `t1106` (TOOT, offshore), `s1001` (PHS), `s1013` (CAES) and `s1035` (battery) ([#952](https://github.com/open-energy-transition/open-tyndp/pull/952)).
 
-* Pin the `highs-default` solver preset to the `ipx` interior-point solver instead of `ipm` ([#962](https://github.com/open-energy-transition/open-tyndp/pull/962)). From HiGHS 1.12 onwards, `ipm` selects HiPO and falls back to `ipx`. However, HiPO is not yet validated for Open-TYNDP (see issue [#786](https://github.com/open-energy-transition/open-tyndp/issues/786)). The changes also ensure consistency in the configurations across the configuration files.
+* Pin the `highs-default` solver preset to the `ipx` interior-point solver instead of `ipm` ([#962](https://github.com/open-energy-transition/open-tyndp/pull/962)). From HiGHS 1.12 onwards, `ipm` selects HiPO and falls back to `ipx`. However, HiPO is not yet validated for Open-TYNDP (see issue [#786](https://github.com/open-energy-transition/open-tyndp/issues/786)). The change also aligns the solver settings across the configuration files.
 
 **Bugfixes and Compatibility**
 
@@ -71,21 +71,21 @@
 
 * Run CodeQL on `tyndp-*` branches, so the CodeQL status check required by the branch ruleset is reported and no longer blocks PRs targeting these branches ([#922](https://github.com/open-energy-transition/open-tyndp/pull/922)).
 
-* Improve efficiency of `plot_benchmark` by adding a cache to getting the version tag and fixing progressbar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)).
+* Improve the efficiency of `plot_benchmark` by caching the version tag lookup and fixing the progress bar ([#914](https://github.com/open-energy-transition/open-tyndp/pull/914)).
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
-* Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip paths/files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)). For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories.
+* Extend the `sync_file`, `sync_file_dry`, `sync` and `sync_dry` rules to skip the paths and files specified in the new `remote.sync_exclude` config option when syncing from the remote cluster ([#951](https://github.com/open-energy-transition/open-tyndp/pull/951)). For `sync` and `sync_dry`, the exclusion applies to the `results` and `resources` directories.
 
 * Rename `get_link_attrs` function to `get_transmission_attrs` to align with `get_storage_attrs` ([#961](https://github.com/open-energy-transition/open-tyndp/pull/961)).
 
 * Refactor CBA rules and scripts to read configuration through Snakemake `params` instead of `snakemake.config` and `config.get()`, and remove unused rule inputs and params ([#954](https://github.com/open-energy-transition/open-tyndp/pull/954)).
 
-* Bump PyPSA-Explorer version to 0.1.2 and pin as new lower bound to keep continued compatibility with new PyPSA versions ([#971](https://github.com/open-energy-transition/open-tyndp/pull/971)).
+* Bump PyPSA-Explorer to 0.1.2 and pin it as the new lower bound to maintain compatibility with new PyPSA versions ([#971](https://github.com/open-energy-transition/open-tyndp/pull/971)).
 
-* Introduce fix for logger in `cba.smk` against Snakemake's global logger variable ([#974](https://github.com/open-energy-transition/open-tyndp/pull/974)).
+* Fix the logger in `cba.smk`, which clashed with Snakemake's global `logger` variable ([#974](https://github.com/open-energy-transition/open-tyndp/pull/974)).
 
-* Revert the vendored `snakemake-minimal` dependency and align the packaging on the `open-tyndp` pixi environment ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)):
+* Revert the vendored `snakemake-minimal` dependency and align the packaging with the `open-tyndp` pixi environment ([#972](https://github.com/open-energy-transition/open-tyndp/pull/972)):
 
     - Drop the vendored `snakemake-minimal` from the `open-tyndp` channel and resolve it upstream again, bumping the lock to 9.26.1.
     - Export the conda environment and pin files from the `open-tyndp` pixi environment instead of `default`.
