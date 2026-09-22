@@ -10,6 +10,10 @@
 
 * Configure the CodeQL and test workflows for `scan-branch`, and exclude it from the lockfile update to keep its environments pinned to the latest release with security patches on top ([#928](https://github.com/open-energy-transition/open-tyndp/pull/928)).
 
+* Apply security patches on top of v0.8 by relocking all `pixi` environments ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)). The `grpcio <1.78` pin is removed, since it blocked the `pyarrow` upgrade and no dependency requires `grpcio` any more.
+
+* Configure the CodeQL and test workflows for `release/*` branches, and exclude them from the lockfile update to keep their environments manually managed ([#989](https://github.com/open-energy-transition/open-tyndp/pull/989)).
+
 ## Upcoming PyPSA-Eur Release
 
 * fix: update stale contribution docs (linting and formatting ruff)
