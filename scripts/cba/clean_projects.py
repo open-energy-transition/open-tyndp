@@ -289,9 +289,10 @@ def remove_unclear_border(
     unknown_bus = ~known & ~unparsed
     cols = ["project_id", "project_name", "is_crossborder", "border"]
     instruct = (
-        "\nPlease add projects to data/cba/cba_project_corrections.csv to include them in "
-        "the CBA.\nTo view the full list of affected projects, set `logging: level: DEBUG` "
-        "in the configuration and rerun the workflow"
+        "\n \nPlease add projects to data/cba/cba_project_corrections.csv to include them in "
+        "the CBA.\n \nTo view the full list of affected projects, set `logging: level: DEBUG` "
+        "in the configuration and"
+        "\nrerun the Snakemake workflow with `-R clean_projects` in the command"
     )
 
     # Log warnings for projects with unparsed or unknown borders
@@ -299,7 +300,7 @@ def remove_unclear_border(
         logger.warning(
             "\n============ Ignoring projects with unclear borders ============\n"
             "\033[1mIgnoring %d out of %d project borders\033[0m that are not reported as "
-            "'<bus0>-<bus1>'. %s.",
+            "'<bus0>-<bus1>'. %s. \n",
             unparsed.sum(),
             len(projects),
             instruct,
@@ -316,7 +317,7 @@ def remove_unclear_border(
         logger.warning(
             "\n============ Ignoring projects with unknown bus codes ============\n"
             "\033[1mIgnoring %d out of %d project borders\033[0m that have bus codes that are missing "
-            "from the node list. %s.",
+            "from the node list. %s. \n",
             unknown_bus.sum(),
             len(projects),
             instruct,
@@ -442,7 +443,6 @@ def extract_transmission_projects(
             up_to_projects.update(projects.loc[up_to, "project_name"])
     if up_to_projects:
         logger.info(
-            "\n===============================================\n"
             f"Removed 'Up to ' capacity prefix from {len(up_to_projects)} projects:\n"
             + ", ".join(up_to_projects)
         )
