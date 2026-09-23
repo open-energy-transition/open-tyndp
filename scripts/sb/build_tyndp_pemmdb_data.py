@@ -143,6 +143,7 @@ def read_pemmdb_data(
     )
 
     if not fn.is_file():
+        # Reported as a single summary warning by the caller
         logger.debug(f"No PEMMDB data available for {node} in {planning_horizon}.")
         return None
 
