@@ -4,6 +4,9 @@ on:
   push:
     branches:
     - master
+    - tyndp-*
+    - scan-branch
+    - release/*
   pull_request:
   schedule:
   - cron: "0 5 * * 1-6"
