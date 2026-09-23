@@ -22,6 +22,7 @@
 
 **Developers Note**
 
+* Remove `open-tyndp` channel from pixi.toml and add `pypsa-explorer` to exclude-newer exceptions ([#988](https://github.com/open-energy-transition/open-tyndp/pull/988)).
 
 
 ## Upcoming PyPSA-Eur Release
