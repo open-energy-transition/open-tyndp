@@ -7,6 +7,24 @@
 NT:
   tyndp_scenario: NT
 
+NT-cy2009-20260923-msv24h-gurobi:
+  tyndp_scenario: NT
+  msv_extraction:
+    resolution: 24H
+    solving:
+      solver:
+        name: gurobi
+        options: gurobi-default
+
+NT-cy2009-20260923-msv24h-highs:
+  tyndp_scenario: NT
+  msv_extraction:
+    resolution: 24H
+    solving:
+      solver:
+        name: highs
+        options: highs-simplex
+
 # DE Scenario - Extends NT baseline with specific overrides below
 DE:
   tyndp_scenario: DE

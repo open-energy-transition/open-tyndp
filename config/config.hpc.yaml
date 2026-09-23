@@ -6,7 +6,8 @@
 # Specify the name of the scenario(s) you want to run from config/scenarios.tyndp.yaml
 run:
   name:
-  - NT
+  - NT-cy2009-20260923-msv24h-gurobi
+  - NT-cy2009-20260923-msv24h-highs
 
 remote:
   # sync all results files
@@ -44,12 +45,10 @@ cba:
   - s*
   # MSV solver settings
   msv_extraction:
+    resolution: 24H
     solving:
       options:
         include_objective_constant: false
-      solver:
-        name: gurobi
-        options: gurobi-default
       partition: high-mem
       mem_mb: 45000
       runtime: 1h
